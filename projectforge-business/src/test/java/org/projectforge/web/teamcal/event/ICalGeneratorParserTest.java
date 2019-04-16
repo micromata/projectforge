@@ -23,41 +23,34 @@
 
 package org.projectforge.web.teamcal.event;
 
-import static org.projectforge.business.teamcal.event.ical.ICalConverterStore.*;
+import net.fortuna.ical4j.model.parameter.CuType;
+import net.fortuna.ical4j.model.parameter.Role;
+import net.fortuna.ical4j.model.property.Method;
+import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.projectforge.business.teamcal.event.ical.ICalGenerator;
+import org.projectforge.business.teamcal.event.ical.ICalParser;
+import org.projectforge.business.teamcal.event.model.*;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.time.DateHelper;
+import org.projectforge.test.AbstractTestBase;
 
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.io.IOUtils;
-import org.projectforge.business.teamcal.event.ical.ICalGenerator;
-import org.projectforge.business.teamcal.event.ical.ICalParser;
-import org.projectforge.business.teamcal.event.model.ReminderActionType;
-import org.projectforge.business.teamcal.event.model.ReminderDurationUnit;
-import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
-import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
-import org.projectforge.business.teamcal.event.model.TeamEventDO;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DateHelper;
-import org.projectforge.test.AbstractTestNGBase;
-import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import static org.projectforge.business.teamcal.event.ical.ICalConverterStore.*;
 
-import net.fortuna.ical4j.model.parameter.CuType;
-import net.fortuna.ical4j.model.parameter.Role;
-import net.fortuna.ical4j.model.property.Method;
-
-public class ICalGeneratorParserTest extends AbstractTestNGBase
+public class ICalGeneratorParserTest extends AbstractTestBase
 {
 
-  @Override
-  @BeforeClass
+  @BeforeEach
   public void setUp()
   {
-    super.setUp();
     PFUserDO user = new PFUserDO();
     user.setUsername("UserName");
     user.setFirstname("FirstName");
@@ -120,91 +113,91 @@ public class ICalGeneratorParserTest extends AbstractTestNGBase
 
     generatorFull.addEvent(event);
 
-    Assert.assertFalse(generatorFull.isEmpty());
+    Assertions.assertFalse(generatorFull.isEmpty());
 
     String ical = new String(generatorFull.getCalendarAsByteStream().toByteArray());
     ical = ical.replaceAll("\r\n", ""); // remove linebreaks to enable a simple testing
 
     // set alarm
-    Assert.assertTrue(ical.contains("BEGIN:VALARM"));
-    Assert.assertTrue(ical.contains("TRIGGER:-PT100M"));
-    Assert.assertTrue(ical.contains("ACTION:DISPLAY"));
-    Assert.assertTrue(ical.contains("END:VALARM"));
+    Assertions.assertTrue(ical.contains("BEGIN:VALARM"));
+    Assertions.assertTrue(ical.contains("TRIGGER:-PT100M"));
+    Assertions.assertTrue(ical.contains("ACTION:DISPLAY"));
+    Assertions.assertTrue(ical.contains("END:VALARM"));
 
     // set Attendees
-    Assert.assertTrue(ical.contains("ATTENDEE;CN=test@test.de;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT= NEEDS-ACTION:mailto:test@test.de"));
+    Assertions.assertTrue(ical.contains("ATTENDEE;CN=test@test.de;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT= NEEDS-ACTION:mailto:test@test.de"));
 
     // set description
-    Assert.assertTrue(ical.contains("DESCRIPTION:summary"));
+    Assertions.assertTrue(ical.contains("DESCRIPTION:summary"));
 
     // set dt end
-    Assert.assertTrue(ical.contains("DTEND;TZID=Europe/Berlin:20170731T000000"));
+    Assertions.assertTrue(ical.contains("DTEND;TZID=Europe/Berlin:20170731T000000"));
 
     // set dt stamp
-    Assert.assertTrue(ical.contains("DTSTAMP:20170730T100000Z"));
+    Assertions.assertTrue(ical.contains("DTSTAMP:20170730T100000Z"));
 
     // set dt start
-    Assert.assertTrue(ical.contains("DTSTART;TZID=Europe/Berlin:20170731T120000"));
+    Assertions.assertTrue(ical.contains("DTSTART;TZID=Europe/Berlin:20170731T120000"));
 
     // set location
-    Assert.assertTrue(ical.contains("LOCATION:location"));
+    Assertions.assertTrue(ical.contains("LOCATION:location"));
 
     // set organizer
-    Assert.assertTrue(ical.contains("ORGANIZER;CUTYPE=INDIVIDUAL;ROLE=CHAIR;PARTSTAT=ACCEPTED:organizer"));
+    Assertions.assertTrue(ical.contains("ORGANIZER;CUTYPE=INDIVIDUAL;ROLE=CHAIR;PARTSTAT=ACCEPTED:organizer"));
 
     // set sequence
-    Assert.assertTrue(ical.contains("SEQUENCE:5"));
+    Assertions.assertTrue(ical.contains("SEQUENCE:5"));
 
     // set summary
-    Assert.assertTrue(ical.contains("SUMMARY:subject"));
+    Assertions.assertTrue(ical.contains("SUMMARY:subject"));
 
     // set uid
-    Assert.assertTrue(ical.contains("UID:uid string"));
+    Assertions.assertTrue(ical.contains("UID:uid string"));
 
     ICalGenerator generatorCancel = ICalGenerator.forMethod(Method.CANCEL);
 
     generatorCancel.addEvent(event);
 
-    Assert.assertFalse(generatorCancel.isEmpty());
+    Assertions.assertFalse(generatorCancel.isEmpty());
 
     ical = new String(generatorCancel.getCalendarAsByteStream().toByteArray());
     ical = ical.replaceAll("\r\n", ""); // remove linebreaks to enable a simple testing
 
     // set alarm
-    Assert.assertFalse(ical.contains("BEGIN:VALARM"));
-    Assert.assertFalse(ical.contains("TRIGGER:-PT100M"));
-    Assert.assertFalse(ical.contains("ACTION:DISPLAY"));
-    Assert.assertFalse(ical.contains("END:VALARM"));
+    Assertions.assertFalse(ical.contains("BEGIN:VALARM"));
+    Assertions.assertFalse(ical.contains("TRIGGER:-PT100M"));
+    Assertions.assertFalse(ical.contains("ACTION:DISPLAY"));
+    Assertions.assertFalse(ical.contains("END:VALARM"));
 
     // set Attendees
-    Assert.assertTrue(ical.contains("ATTENDEE;CN=test@test.de;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT= NEEDS-ACTION:mailto:test@test.de"));
+    Assertions.assertTrue(ical.contains("ATTENDEE;CN=test@test.de;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT= NEEDS-ACTION:mailto:test@test.de"));
 
     // set description
-    Assert.assertFalse(ical.contains("DESCRIPTION:summary"));
+    Assertions.assertFalse(ical.contains("DESCRIPTION:summary"));
 
     // set dt end
-    Assert.assertFalse(ical.contains("DTEND;TZID=Europe/Berlin:20170731T000000"));
+    Assertions.assertFalse(ical.contains("DTEND;TZID=Europe/Berlin:20170731T000000"));
 
     // set dt stamp
-    Assert.assertTrue(ical.contains("DTSTAMP:20170730T100000Z"));
+    Assertions.assertTrue(ical.contains("DTSTAMP:20170730T100000Z"));
 
     // set dt start
-    Assert.assertTrue(ical.contains("DTSTART;TZID=Europe/Berlin:20170731T120000"));
+    Assertions.assertTrue(ical.contains("DTSTART;TZID=Europe/Berlin:20170731T120000"));
 
     // set location
-    Assert.assertFalse(ical.contains("LOCATION:location"));
+    Assertions.assertFalse(ical.contains("LOCATION:location"));
 
     // set organizer
-    Assert.assertTrue(ical.contains("ORGANIZER;CUTYPE=INDIVIDUAL;ROLE=CHAIR;PARTSTAT=ACCEPTED:organizer"));
+    Assertions.assertTrue(ical.contains("ORGANIZER;CUTYPE=INDIVIDUAL;ROLE=CHAIR;PARTSTAT=ACCEPTED:organizer"));
 
     // set sequence
-    Assert.assertTrue(ical.contains("SEQUENCE:5"));
+    Assertions.assertTrue(ical.contains("SEQUENCE:5"));
 
     // set summary
-    Assert.assertFalse(ical.contains("SUMMARY:subject"));
+    Assertions.assertFalse(ical.contains("SUMMARY:subject"));
 
     // set uid
-    Assert.assertTrue(ical.contains("UID:uid string"));
+    Assertions.assertTrue(ical.contains("UID:uid string"));
   }
 
   @Test
@@ -212,51 +205,51 @@ public class ICalGeneratorParserTest extends AbstractTestNGBase
   {
     ICalParser parser = ICalParser.parseAllFields();
 
-    Assert.assertTrue(parser.parse(IOUtils.toString(this.getClass().getResourceAsStream("/ical/ical_test_input.ics"), "UTF-8")));
+    Assertions.assertTrue(parser.parse(IOUtils.toString(this.getClass().getResourceAsStream("/ical/ical_test_input.ics"), "UTF-8")));
 
     // check event
-    Assert.assertEquals(parser.getExtractedEvents().size(), 1);
+    Assertions.assertEquals(parser.getExtractedEvents().size(), 1);
     TeamEventDO event = parser.getExtractedEvents().get(0);
-    Assert.assertNotNull(event);
+    Assertions.assertNotNull(event);
 
     // VEVENT_DTSTART
-    Assert.assertEquals(event.getStartDate().getTime(), DateHelper.parseIsoTimestamp("2020-01-01 12:00:00.000", DateHelper.EUROPE_BERLIN).getTime());
+    Assertions.assertEquals(event.getStartDate().getTime(), DateHelper.parseIsoTimestamp("2020-01-01 12:00:00.000", DateHelper.EUROPE_BERLIN).getTime());
     // VEVENT_DTEND
-    Assert.assertEquals(event.getEndDate().getTime(), DateHelper.parseIsoTimestamp("2020-01-01 13:00:00.000", DateHelper.EUROPE_BERLIN).getTime());
+    Assertions.assertEquals(event.getEndDate().getTime(), DateHelper.parseIsoTimestamp("2020-01-01 13:00:00.000", DateHelper.EUROPE_BERLIN).getTime());
     // VEVENT_SUMMARY
-    Assert.assertEquals(event.getSubject(), "Test ical import web frontend");
+    Assertions.assertEquals(event.getSubject(), "Test ical import web frontend");
     // VEVENT_UID
-    Assert.assertEquals(event.getUid(), "ICAL_IMPORT_UID_VALUE_UPDATE_IF_REQUIRED");
+    Assertions.assertEquals(event.getUid(), "ICAL_IMPORT_UID_VALUE_UPDATE_IF_REQUIRED");
     // VEVENT_CREATED
-    Assert.assertNull(event.getCreated());
+    Assertions.assertNull(event.getCreated());
     // VEVENT_LOCATION
-    Assert.assertNull(event.getLocation());
+    Assertions.assertNull(event.getLocation());
     // VEVENT_DTSTAMP
-    Assert.assertEquals(event.getDtStamp().getTime(), DateHelper.parseIsoTimestamp("2017-06-22 15:07:52.000", DateHelper.UTC).getTime());
+    Assertions.assertEquals(event.getDtStamp().getTime(), DateHelper.parseIsoTimestamp("2017-06-22 15:07:52.000", DateHelper.UTC).getTime());
     // VEVENT_LAST_MODIFIED
-    Assert.assertNull(event.getLastUpdate());
+    Assertions.assertNull(event.getLastUpdate());
     // VEVENT_SEQUENCE
-    Assert.assertEquals(event.getSequence(), Integer.valueOf(0));
+    Assertions.assertEquals(event.getSequence(), Integer.valueOf(0));
     // VEVENT_ORGANIZER
-    Assert.assertEquals(event.getOrganizer(), "mailto:organizer@example.com");
-    Assert.assertEquals(event.getOrganizerAdditionalParams(), "CN=Organizer");
+    Assertions.assertEquals(event.getOrganizer(), "mailto:organizer@example.com");
+    Assertions.assertEquals(event.getOrganizerAdditionalParams(), "CN=Organizer");
     // VEVENT_TRANSP
     // currently not implemented
     // VEVENT_ALARM
-    Assert.assertNull(event.getReminderActionType());
+    Assertions.assertNull(event.getReminderActionType());
     // VEVENT_DESCRIPTION
-    Assert.assertNull(event.getNote());
+    Assertions.assertNull(event.getNote());
     // VEVENT_ATTENDEES
-    Assert.assertEquals(event.getAttendees().size(), 3);
+    Assertions.assertEquals(event.getAttendees().size(), 3);
     for (TeamEventAttendeeDO attendee : event.getAttendees()) {
-      Assert.assertTrue(attendee.getUrl().equals("organizer@example.com")
+      Assertions.assertTrue(attendee.getUrl().equals("organizer@example.com")
           || attendee.getUrl().equals("a1@example.com")
           || attendee.getUrl().equals("a2@example.com"));
     }
     // VEVENT_RRULE
-    Assert.assertNull(event.getRecurrenceRuleObject());
+    Assertions.assertNull(event.getRecurrenceRuleObject());
     // VEVENT_EX_DATE
-    Assert.assertNull(event.getRecurrenceExDate());
+    Assertions.assertNull(event.getRecurrenceExDate());
   }
 
   @Test
@@ -280,11 +273,11 @@ public class ICalGeneratorParserTest extends AbstractTestNGBase
   {
     generator.reset();
     generator.addEvent(event);
-    Assert.assertFalse(generator.isEmpty());
+    Assertions.assertFalse(generator.isEmpty());
     String ics = new String(generator.getCalendarAsByteStream().toByteArray());
     parser.reset();
-    Assert.assertTrue(parser.parse(ics));
-    Assert.assertEquals(parser.getExtractedEvents().size(), 1);
+    Assertions.assertTrue(parser.parse(ics));
+    Assertions.assertEquals(parser.getExtractedEvents().size(), 1);
     return parser.getExtractedEvents().get(0);
   }
 
@@ -339,43 +332,43 @@ public class ICalGeneratorParserTest extends AbstractTestNGBase
   {
     for (String field : fields) {
       if (VEVENT_DTSTART.equals(field)) {
-        Assert.assertEquals(eventExtracted.getStartDate(), eventSrc.getStartDate());
+        Assertions.assertEquals(eventExtracted.getStartDate(), eventSrc.getStartDate());
       } else if (VEVENT_DTEND.equals(field)) {
-        Assert.assertEquals(eventExtracted.getEndDate(), eventSrc.getEndDate());
+        Assertions.assertEquals(eventExtracted.getEndDate(), eventSrc.getEndDate());
       } else if (VEVENT_SUMMARY.equals(field)) {
-        Assert.assertEquals(eventExtracted.getSubject(), eventSrc.getSubject());
+        Assertions.assertEquals(eventExtracted.getSubject(), eventSrc.getSubject());
       } else if (VEVENT_UID.equals(field)) {
-        Assert.assertEquals(eventExtracted.getUid(), eventSrc.getUid());
+        Assertions.assertEquals(eventExtracted.getUid(), eventSrc.getUid());
       } else if (VEVENT_CREATED.equals(field)) {
         // currently not implemented
       } else if (VEVENT_LOCATION.equals(field)) {
-        Assert.assertEquals(eventExtracted.getLocation(), eventSrc.getLocation());
+        Assertions.assertEquals(eventExtracted.getLocation(), eventSrc.getLocation());
       } else if (VEVENT_DTSTAMP.equals(field)) {
-        Assert.assertEquals(eventExtracted.getDtStamp(), eventSrc.getDtStamp());
+        Assertions.assertEquals(eventExtracted.getDtStamp(), eventSrc.getDtStamp());
       } else if (VEVENT_LAST_MODIFIED.equals(field)) {
         // currently not implemented
       } else if (VEVENT_SEQUENCE.equals(field)) {
-        Assert.assertEquals(eventExtracted.getSequence(), eventSrc.getSequence());
+        Assertions.assertEquals(eventExtracted.getSequence(), eventSrc.getSequence());
       } else if (VEVENT_ORGANIZER.equals(field)) {
-        Assert.assertEquals(eventExtracted.getOrganizer(), eventSrc.getOrganizer());
+        Assertions.assertEquals(eventExtracted.getOrganizer(), eventSrc.getOrganizer());
         if (eventSrc.getOrganizerAdditionalParams() != null) {
-          Assert.assertEquals(eventExtracted.getOrganizerAdditionalParams(), eventSrc.getOrganizerAdditionalParams());
+          Assertions.assertEquals(eventExtracted.getOrganizerAdditionalParams(), eventSrc.getOrganizerAdditionalParams());
         } else {
-          Assert.assertEquals(eventExtracted.getOrganizerAdditionalParams(), "CUTYPE=INDIVIDUAL;ROLE=CHAIR;PARTSTAT=ACCEPTED");
+          Assertions.assertEquals(eventExtracted.getOrganizerAdditionalParams(), "CUTYPE=INDIVIDUAL;ROLE=CHAIR;PARTSTAT=ACCEPTED");
         }
       } else if (VEVENT_TRANSP.equals(field)) {
         // currently not implemented
       } else if (VEVENT_ALARM.equals(field)) {
-        Assert.assertEquals(eventExtracted.getReminderDuration(), eventSrc.getReminderDuration());
-        Assert.assertEquals(eventExtracted.getReminderActionType(), eventSrc.getReminderActionType());
-        Assert.assertEquals(eventExtracted.getReminderDurationUnit(), eventSrc.getReminderDurationUnit());
+        Assertions.assertEquals(eventExtracted.getReminderDuration(), eventSrc.getReminderDuration());
+        Assertions.assertEquals(eventExtracted.getReminderActionType(), eventSrc.getReminderActionType());
+        Assertions.assertEquals(eventExtracted.getReminderDurationUnit(), eventSrc.getReminderDurationUnit());
       } else if (VEVENT_DESCRIPTION.equals(field)) {
-        Assert.assertEquals(eventExtracted.getNote(), eventSrc.getNote());
+        Assertions.assertEquals(eventExtracted.getNote(), eventSrc.getNote());
       } else if (VEVENT_ATTENDEES.equals(field)) {
         if (eventSrc.getAttendees() == null) {
-          Assert.assertNull(eventExtracted.getAttendees());
+          Assertions.assertNull(eventExtracted.getAttendees());
         } else {
-          Assert.assertEquals(eventExtracted.getAttendees().size(), eventSrc.getAttendees().size());
+          Assertions.assertEquals(eventExtracted.getAttendees().size(), eventSrc.getAttendees().size());
 
           for (TeamEventAttendeeDO attendee : eventSrc.getAttendees()) {
             TeamEventAttendeeDO found = null;
@@ -387,22 +380,22 @@ public class ICalGeneratorParserTest extends AbstractTestNGBase
               }
             }
 
-            Assert.assertNotNull(found);
-            Assert.assertEquals(found.getCommonName(), attendee.getCommonName());
-            Assert.assertEquals(found.getStatus(), attendee.getStatus());
-            Assert.assertEquals(found.getCuType(), attendee.getCuType());
-            Assert.assertEquals(found.getRole(), attendee.getRole());
-            Assert.assertEquals(found.getRsvp(), attendee.getRsvp());
-            Assert.assertEquals(found.getAdditionalParams(), attendee.getAdditionalParams());
+            Assertions.assertNotNull(found);
+            Assertions.assertEquals(found.getCommonName(), attendee.getCommonName());
+            Assertions.assertEquals(found.getStatus(), attendee.getStatus());
+            Assertions.assertEquals(found.getCuType(), attendee.getCuType());
+            Assertions.assertEquals(found.getRole(), attendee.getRole());
+            Assertions.assertEquals(found.getRsvp(), attendee.getRsvp());
+            Assertions.assertEquals(found.getAdditionalParams(), attendee.getAdditionalParams());
           }
         }
       } else if (VEVENT_RRULE.equals(field)) {
-        Assert.assertEquals(eventExtracted.getRecurrenceRule(), eventSrc.getRecurrenceRule());
-        Assert.assertEquals(eventExtracted.getRecurrenceDate(), eventSrc.getRecurrenceDate());
+        Assertions.assertEquals(eventExtracted.getRecurrenceRule(), eventSrc.getRecurrenceRule());
+        Assertions.assertEquals(eventExtracted.getRecurrenceDate(), eventSrc.getRecurrenceDate());
       } else if (VEVENT_RECURRENCE_ID.equals(field)) {
         // currently not implemented
       } else if (VEVENT_EX_DATE.equals(field)) {
-        Assert.assertEquals(eventExtracted.getRecurrenceExDate(), eventSrc.getRecurrenceExDate());
+        Assertions.assertEquals(eventExtracted.getRecurrenceExDate(), eventSrc.getRecurrenceExDate());
       } else {
         throw new RuntimeException("Unknown field " + field);
       }
@@ -416,43 +409,43 @@ public class ICalGeneratorParserTest extends AbstractTestNGBase
         }
 
         if (VEVENT_DTSTART.equals(field)) {
-          Assert.assertNull(eventExtracted.getStartDate());
+          Assertions.assertNull(eventExtracted.getStartDate());
         } else if (VEVENT_DTEND.equals(field)) {
-          Assert.assertNull(eventExtracted.getEndDate());
+          Assertions.assertNull(eventExtracted.getEndDate());
         } else if (VEVENT_SUMMARY.equals(field)) {
-          Assert.assertNull(eventExtracted.getSubject());
+          Assertions.assertNull(eventExtracted.getSubject());
         } else if (VEVENT_UID.equals(field)) {
-          Assert.assertNull(eventExtracted.getUid());
+          Assertions.assertNull(eventExtracted.getUid());
         } else if (VEVENT_CREATED.equals(field)) {
-          Assert.assertNull(eventExtracted.getCreated());
+          Assertions.assertNull(eventExtracted.getCreated());
         } else if (VEVENT_LOCATION.equals(field)) {
-          Assert.assertNull(eventExtracted.getLocation());
+          Assertions.assertNull(eventExtracted.getLocation());
         } else if (VEVENT_DTSTAMP.equals(field)) {
-          Assert.assertNull(eventExtracted.getDtStamp());
+          Assertions.assertNull(eventExtracted.getDtStamp());
         } else if (VEVENT_LAST_MODIFIED.equals(field)) {
-          Assert.assertNull(eventExtracted.getLastUpdate());
+          Assertions.assertNull(eventExtracted.getLastUpdate());
         } else if (VEVENT_SEQUENCE.equals(field)) {
-          Assert.assertNull(eventExtracted.getSequence());
+          Assertions.assertNull(eventExtracted.getSequence());
         } else if (VEVENT_ORGANIZER.equals(field)) {
-          Assert.assertNull(eventExtracted.getOrganizer());
-          Assert.assertNull(eventExtracted.getOrganizerAdditionalParams());
+          Assertions.assertNull(eventExtracted.getOrganizer());
+          Assertions.assertNull(eventExtracted.getOrganizerAdditionalParams());
         } else if (VEVENT_TRANSP.equals(field)) {
           // currently not implemented
         } else if (VEVENT_ALARM.equals(field)) {
-          Assert.assertNull(eventExtracted.getReminderActionType());
-          Assert.assertNull(eventExtracted.getReminderDuration());
-          Assert.assertNull(eventExtracted.getReminderDurationUnit());
+          Assertions.assertNull(eventExtracted.getReminderActionType());
+          Assertions.assertNull(eventExtracted.getReminderDuration());
+          Assertions.assertNull(eventExtracted.getReminderDurationUnit());
         } else if (VEVENT_DESCRIPTION.equals(field)) {
-          Assert.assertNull(eventExtracted.getNote());
+          Assertions.assertNull(eventExtracted.getNote());
         } else if (VEVENT_ATTENDEES.equals(field)) {
-          Assert.assertNull(eventExtracted.getAttendees());
+          Assertions.assertNull(eventExtracted.getAttendees());
         } else if (VEVENT_RRULE.equals(field)) {
-          Assert.assertNull(eventExtracted.getRecurrenceRule());
-          Assert.assertNull(eventExtracted.getRecurrenceDate());
+          Assertions.assertNull(eventExtracted.getRecurrenceRule());
+          Assertions.assertNull(eventExtracted.getRecurrenceDate());
         } else if (VEVENT_RECURRENCE_ID.equals(field)) {
           // currently not implemented
         } else if (VEVENT_EX_DATE.equals(field)) {
-          Assert.assertNull(eventExtracted.getRecurrenceExDate());
+          Assertions.assertNull(eventExtracted.getRecurrenceExDate());
         } else {
           throw new RuntimeException("Unknown field " + field);
         }

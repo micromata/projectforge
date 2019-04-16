@@ -23,16 +23,14 @@
 
 package org.projectforge.web.wicket;
 
-import static org.testng.AssertJUnit.assertEquals;
+import org.junit.jupiter.api.Test;
 
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class IntialPageParameterHolderTest
-{
+public class IntialPageParameterHolderTest {
 
   @Test
-  public void constructor()
-  {
+  public void constructor() {
     test("taskId|task", "", "taskId", "task");
     test("taskId", "", "taskId", "taskId");
     test("p.taskId|task", "p.", "taskId", "task");
@@ -40,8 +38,7 @@ public class IntialPageParameterHolderTest
   }
 
   private void test(final String propertyString, final String expectedPrefix, final String expectedProperty,
-      final String expectedAlias)
-  {
+                    final String expectedAlias) {
     final InitialPageParameterHolder holder = new InitialPageParameterHolder(propertyString);
     assertEquals(expectedPrefix, holder.prefix);
     assertEquals(expectedProperty, holder.property);

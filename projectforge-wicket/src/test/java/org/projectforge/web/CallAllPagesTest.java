@@ -23,24 +23,21 @@
 
 package org.projectforge.web;
 
-import java.util.Map;
-
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.systeminfo.SystemInfoCache;
+import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.web.address.AddressMobileViewPage;
-import org.projectforge.web.address.AddressViewPage;
 import org.projectforge.web.admin.SetupPage;
 import org.projectforge.web.doc.TutorialPage;
-import org.projectforge.web.mobile.LoginMobilePage;
 import org.projectforge.web.registry.WebRegistry;
 import org.projectforge.web.scripting.ScriptExecutePage;
 import org.projectforge.web.wicket.MessagePage;
 import org.projectforge.web.wicket.WicketPageTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.Test;
+
+import java.util.Map;
 
 public class CallAllPagesTest extends WicketPageTestBase
 {
@@ -51,26 +48,26 @@ public class CallAllPagesTest extends WicketPageTestBase
   @Autowired
   private SystemInfoCache systemInfoCache;
 
+  @Autowired
+  private MenuCreator menuCreator;
+
   @SuppressWarnings("unchecked")
   private final Class<? extends WebPage>[] skipPages = new Class[] { //
-      // Checked below:
-      LoginPage.class, LoginMobilePage.class, SetupPage.class, TutorialPage.class, //
-      AddressViewPage.class, AddressMobileViewPage.class, // Checked in AddressPagesTest
       // Not yet checked:
       ScriptExecutePage.class };
 
-  @AfterClass
-  public static void logNumberOfTestesPages()
-  {
+  @Override
+  protected void afterAll() {
     log.info("Number of tested Wicket pages: " + counter);
+    recreateDataBase();
   }
 
   @Test
   public void testAllMountedPages()
   {
+    MenuCreator.Companion.setTestCase(true);
     _testAllMountedPages();
     testPage(LoginPage.class);
-    testPage(LoginMobilePage.class);
     clearDatabase();
     testPage(SetupPage.class);
   }

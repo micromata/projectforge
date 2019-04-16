@@ -28,8 +28,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.projectforge.web.common.MultiChoiceListHelper;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -69,10 +69,10 @@ public class AssignListHelperTest
 
   private void assertSet(final Set<String> expected, final Set<String> actual)
   {
-    Assert.assertNotNull(actual);
-    Assert.assertEquals(expected.size(), actual.size());
+    Assertions.assertNotNull(actual);
+    Assertions.assertEquals(expected.size(), actual.size());
     for (final String item : expected) {
-      Assert.assertTrue(actual.contains(item));
+      Assertions.assertTrue(actual.contains(item));
     }
   }
 }

@@ -23,8 +23,7 @@
 
 package org.projectforge.business.task;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.ProjektDao;
@@ -32,11 +31,11 @@ import org.projectforge.business.fibu.kost.Kost2ArtDO;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
+import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
-public class TaskHelperTest extends AbstractTestNGBase
+public class TaskHelperTest extends AbstractTestBase
 {
   @Autowired
   private ProjektDao projektDao;

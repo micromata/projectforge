@@ -2,7 +2,7 @@
 
 .formGroup {
   position: relative;
-  font-size: 13px;
+  font-size: 1.5rem;
   letter-spacing: .02em;
 
   .label {
@@ -11,6 +11,7 @@
     height: 2.8em;
     width: 100%;
     cursor: text;
+    position: relative;
 
     .text {
       position: absolute;
@@ -19,31 +20,33 @@
       color: #555;
       @include transition-transform-extra(.3s, translate(2px, 1em) scale(1, 1), color .3s);
       transform-origin: top left;
+      color: #7a7a7a;
     }
 
     .input {
       padding-left: 5px;
       width: 100%;
-      position: absolute;
-      top: 1.1em;
+      position: relative;
+      top: 1.3em;
       background-color: transparent;
       border: none;
-      border-bottom: 1px solid #bbb;
+      border-bottom: 1px solid #deddde;
       outline: none;
 
-      @include transition(border-bottom .3s);
+      &:focus {
+        border-bottom: 1px solid #007480;
+        transition: border-bottom 1s;
+      }
+
+      //@include transition(border-bottom .3s);
 
     }
 
     &.active {
 
       .text {
-        color: #000;
-        @include transform(translate(0, 0) scale(.9,.9));
-      }
-
-      .input {
-        border-bottom: 1px solid #000;
+        color: #a5a2a5;
+        @include transform(translate(0, 0) scale(.8,.8));
       }
     }
 
@@ -274,11 +277,16 @@
 
     &.active {
       .text {
-        color: #000;
+        color: #a5a2a5;
+        font-size: 11px;
       }
 
       .textArea {
-        border-color: #000;
+        border-color: #ddd;
+
+        &:focus {
+          border-color: #007480;
+        }
       }
     }
 
@@ -317,7 +325,7 @@
     }
   }
 
-  .subLine {
+  .additionalLabel {
     display: block;
     margin: .5em 0;
     font-size: .85em;

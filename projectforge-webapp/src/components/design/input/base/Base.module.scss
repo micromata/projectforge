@@ -1,0 +1,166 @@
+@import '../../../../assets/style/mixins.scss';
+
+label.label {
+  position: relative;
+  display: block;
+  width: 100%;
+  cursor: text;
+  padding-top: 1em;
+
+  span.title {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: 3px;
+    color: #7a7a7a;
+    transform-origin: top left;
+    @include transition-transform-extra(.3s, translate(2px, 1em) scale(1, 1), color .3s);
+  }
+
+  ul.parts {
+    list-style: none;
+    -webkit-padding-start: 0;
+    margin: 0 0 0 0;
+    display: flex;
+    flex-flow: row wrap;
+    border-bottom: 1px solid #cccacc;
+
+    @include transition(border-bottom .3s);
+
+    li.part {
+      position: relative;
+      .input {
+        width: 100%;
+        padding-left: 5px;
+        background-color: transparent;
+        border: none;
+        outline: none;
+      }
+    }
+  }
+
+  div.dropdown {
+    display: block;
+    position: absolute;
+    max-height: 0;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    width: 100%;
+    background-color: #fff;
+    z-index: 999;
+    @include transition(.5s max-height);
+
+    &::before {
+      z-index: 2;
+      position: absolute;
+      content: '';
+      width: 100%;
+      height: 100%;
+      border: 1px solid #cccacc;
+      border-top: none;
+    }
+
+    ul.selectContent {
+      margin: 1px;
+      z-index: 10;
+      position: relative;
+      list-style: none;
+      padding-inline-start: 0;
+      background-color: #fff;
+
+      li.selectOption {
+
+        span {
+          display: block;
+          width: 100%;
+          padding: 5px;
+          cursor: pointer;
+        }
+
+        &.keySelected {
+          background-color: #ddd;
+        }
+      }
+    }
+  }
+
+  &.active {
+    span.title {
+      @include transform(translate(0, 0) scale(.8, .8));
+    }
+  }
+
+  &.focus {
+    span.title {
+      color: #000;
+    }
+
+    ul.parts {
+      border-bottom-color: #3e8387;
+    }
+
+    div.dropdown {
+      max-height: 400px;
+    }
+  }
+
+  @mixin color($color) {
+    span.title {
+      color: $color;
+    }
+
+    ul.parts {
+      border-bottom-color: $color;
+    }
+  }
+
+  &.primary {
+    @include color(#007bff);
+  }
+
+  &.secondary {
+    @include color(#6c757d);
+  }
+
+  &.success {
+    @include color(#28a745);
+  }
+
+  &.danger {
+    @include color(#dc3545);
+  }
+
+  &.warning {
+    @include color(#ffc107);
+  }
+
+  &.info {
+    @include color(#17a2b8);
+  }
+}
+
+div[class^='Input_additionalLabel'] > span {
+  margin-left: 5px;
+  color: #cccacc;
+}
+
+input[class^='Input_select'] {
+  border-color: #fff !important;
+  padding-left: 3px !important;
+  font-weight: 400 !important;
+  color: #7a7a7a !important;
+}
+
+
+label[class^='Input_select'] {
+  margin-bottom: 10px;
+
+  > span {
+    color: #a5a2a5 !important;
+    margin-left: 0 !important;
+    font-size: 0.95rem !important;
+    top: -3px !important;
+    left: -3px;
+  }
+}
+

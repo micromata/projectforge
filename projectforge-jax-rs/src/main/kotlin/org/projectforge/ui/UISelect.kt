@@ -1,6 +1,5 @@
 package org.projectforge.ui
 
-import com.google.gson.annotations.SerializedName
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.i18n.translate
 
@@ -10,7 +9,6 @@ data class UISelect(val id: String,
                     val values: MutableList<UISelectValue> = mutableListOf(),
                     val required: Boolean? = null,
                     override var label: String? = null,
-                    @SerializedName("additional-label")
                     override var additionalLabel: String? = null,
                     override var tooltip: String? = null)
     : UIElement(UIElementType.SELECT), UILabelledElement {

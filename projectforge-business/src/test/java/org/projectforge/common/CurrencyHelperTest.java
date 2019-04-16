@@ -23,12 +23,12 @@
 
 package org.projectforge.common;
 
-import static org.testng.AssertJUnit.fail;
+import org.junit.jupiter.api.Test;
+import org.projectforge.framework.utils.CurrencyHelper;
 
 import java.math.BigDecimal;
 
-import org.projectforge.framework.utils.CurrencyHelper;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class CurrencyHelperTest
 {
@@ -45,15 +45,12 @@ public class CurrencyHelperTest
     myAssertEquals("1.19", CurrencyHelper.getGrossAmount(BigDecimal.ONE, new BigDecimal("0.19")));
   }
 
-  private void myAssertEquals(final BigDecimal expected, final BigDecimal actual)
-  {
+  private void myAssertEquals(final BigDecimal expected, final BigDecimal actual)  {
     if (expected.compareTo(actual) != 0) {
       fail("BigDecimals not equal: expected=" + expected + ", actual=" + actual);
     }
   }
 
-  private void myAssertEquals(final String expected, final BigDecimal actual)
-  {
-    myAssertEquals(new BigDecimal(expected), actual);
-  }
+  private void myAssertEquals(final String expected, final BigDecimal actual)  {
+    myAssertEquals(new BigDecimal(expected), actual);  }
 }

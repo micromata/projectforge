@@ -23,16 +23,15 @@
 
 package org.projectforge.common;
 
-import static org.testng.AssertJUnit.assertEquals;
+import org.junit.jupiter.api.Test;
 
 import java.io.StringWriter;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.projectforge.test.AbstractTestNGBase;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class CSVWriterTest extends AbstractTestNGBase
+public class CSVWriterTest
 {
   @Test
   public void testWriteCSV() throws Exception

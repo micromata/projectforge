@@ -23,27 +23,29 @@
 
 package org.projectforge.web.wicket.converter;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.fail;
+import org.apache.wicket.util.convert.ConversionException;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.time.DateHelper;
+import org.projectforge.test.TestSetup;
 
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import org.apache.wicket.util.convert.ConversionException;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DateHelper;
-import org.projectforge.test.AbstractTestNGBase;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class MyDateConverterTest extends AbstractTestNGBase
-{
+public class MyDateConverterTest {
+  @BeforeAll
+  static void setup() {
+    TestSetup.init();
+  }
+
   @Test
-  public void preProcessInput()
-  {
+  public void preProcessInput() {
     final int year = Calendar.getInstance(Locale.GERMAN).get(Calendar.YEAR);
     final MyDateConverter conv = new MyDateConverter();
     assertEquals("21.11.1970", conv.preProcessInput("21.11.1970", Locale.GERMAN));
@@ -59,8 +61,7 @@ public class MyDateConverterTest extends AbstractTestNGBase
   }
 
   @Test
-  public void convertToObject()
-  {
+  public void convertToObject() {
     convertToObjectGerman(DateHelper.EUROPE_BERLIN);
     convertToObjectGerman(DateHelper.UTC);
     convertToObjectEnglish(DateHelper.EUROPE_BERLIN);
@@ -68,8 +69,7 @@ public class MyDateConverterTest extends AbstractTestNGBase
   }
 
   @Test
-  public void convertToObjetErrors()
-  {
+  public void convertToObjetErrors() {
     final MyDateConverter conv = new MyDateConverter();
     try {
       conv.convertToObject("31.11.09", Locale.GERMAN);
@@ -104,14 +104,13 @@ public class MyDateConverterTest extends AbstractTestNGBase
   }
 
   @Test
-  public void convertToString()
-  {
+  public void convertToString() {
     final MyDateConverter conv = new MyDateConverter();
     PFUserDO user = new PFUserDO();
     user.setTimeZone(DateHelper.EUROPE_BERLIN);
     user.setLocale(Locale.GERMAN);
     user.setDateFormat("dd.MM.yyyy");
-    ThreadLocalUserContext.setUser(getUserGroupCache(), user);
+    ThreadLocalUserContext.setUser(null, user);
     user = ThreadLocalUserContext.getUser(); // ThreadLocalUserContext made a copy!
     Date testDate = createDate(1970, 10, 21, 0, 0, 0, 0, DateHelper.EUROPE_BERLIN);
     assertEquals("21.11.1970", conv.convertToString(testDate, Locale.GERMAN));
@@ -128,15 +127,14 @@ public class MyDateConverterTest extends AbstractTestNGBase
     assertEquals("02/01/2009", conv.convertToString(testDate, Locale.GERMAN));
   }
 
-  private void convertToObjectGerman(final TimeZone timeZone)
-  {
+  private void convertToObjectGerman(final TimeZone timeZone) {
     final MyDateConverter conv = new MyDateConverter();
     assertNull(conv.convertToObject("", Locale.GERMAN));
 
     final PFUserDO user = new PFUserDO();
     user.setTimeZone(timeZone);
     user.setDateFormat("dd.MM.yyyy");
-    ThreadLocalUserContext.setUser(getUserGroupCache(), user);
+    ThreadLocalUserContext.setUser(null, user);
     Date testDate = createDate(1970, 9, 21, 0, 0, 0, 0, timeZone);
     Date date = conv.convertToObject("21.10.1970", Locale.GERMAN);
     assertDates(testDate, date);
@@ -193,12 +191,12 @@ public class MyDateConverterTest extends AbstractTestNGBase
     // assertDates(testDate, date);
   }
 
-  private void convertToObjectEnglish(final TimeZone timeZone)
-  {
+  private void convertToObjectEnglish(final TimeZone timeZone) {
     final MyDateConverter conv = new MyDateConverter();
     final PFUserDO user = new PFUserDO();
     user.setTimeZone(timeZone);
-    ThreadLocalUserContext.setUser(getUserGroupCache(), user);
+    user.setDateFormat("MM/dd/yyyy");
+    ThreadLocalUserContext.setUser(null, user);
     Date testDate = createDate(1970, 9, 21, 0, 0, 0, 0, timeZone);
     Date date = conv.convertToObject("10/21/1970", Locale.ENGLISH);
     assertDates(testDate, date);
@@ -221,16 +219,14 @@ public class MyDateConverterTest extends AbstractTestNGBase
     assertDates(testDate, date);
   }
 
-  private void assertDates(final Date exptected, final Date actual)
-  {
+  private void assertDates(final Date exptected, final Date actual) {
     assertEquals(DateHelper.formatAsUTC(exptected), DateHelper.formatAsUTC(actual));
     assertEquals(exptected.getTime(), actual.getTime());
   }
 
   private Date createDate(final int year, final int month, final int day, final int hour, final int minute,
-      final int second,
-      final int millisecond, final TimeZone timeZone)
-  {
+                          final int second,
+                          final int millisecond, final TimeZone timeZone) {
     final Calendar cal = Calendar.getInstance(timeZone);
     cal.set(Calendar.YEAR, year);
     cal.set(Calendar.MONTH, month);

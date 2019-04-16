@@ -23,45 +23,44 @@
 
 package org.projectforge.web;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
+import org.junit.jupiter.api.Test;
 
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class UrlHelperTest
-{
+
+public class UrlHelperTest {
   @Test
-  public void removeJSessionId()
-  {
+  public void removeJSessionId() {
     assertNull(URLHelper.removeJSessionId(null));
     assertEquals("", URLHelper.removeJSessionId(""));
     assertEquals("http://localhost:8080/ProjectForge/wa/addressEdit",
-        URLHelper.removeJSessionId("http://localhost:8080/ProjectForge/wa/addressEdit"));
+            URLHelper.removeJSessionId("http://localhost:8080/ProjectForge/wa/addressEdit"));
     assertEquals("http://localhost:8080/ProjectForge/wa/addressEdit",
-        URLHelper.removeJSessionId(
-            "http://localhost:8080/ProjectForge/wa/addressEdit;jsessionid=hji8ysdreqlz19bipa3ccm2jj"));
+            URLHelper.removeJSessionId(
+                    "http://localhost:8080/ProjectForge/wa/addressEdit;jsessionid=hji8ysdreqlz19bipa3ccm2jj"));
     assertEquals("http://localhost:8080/ProjectForge/wa/addressEdit?4",
-        URLHelper.removeJSessionId(
-            "http://localhost:8080/ProjectForge/wa/addressEdit;jsessionid=hji8ysdreqlz19bipa3ccm2jj?4"));
+            URLHelper.removeJSessionId(
+                    "http://localhost:8080/ProjectForge/wa/addressEdit;jsessionid=hji8ysdreqlz19bipa3ccm2jj?4"));
     assertEquals("https://localhost:8443/ProjectForge/wa/timesheetEdit/id/325295",
-        URLHelper
-            .removeJSessionId(
-                "https://localhost:8443/ProjectForge/wa/timesheetEdit/id/325295;jsessionid=DF6F216F10DC6A27EBA0EB60A7254EAA"));
+            URLHelper
+                    .removeJSessionId(
+                            "https://localhost:8443/ProjectForge/wa/timesheetEdit/id/325295;jsessionid=DF6F216F10DC6A27EBA0EB60A7254EAA"));
     assertEquals("https://localhost:8443/ProjectForge/wa/timesheetEdit/id/325295",
-        URLHelper.removeJSessionId("https://localhost:8443/ProjectForge/wa/timesheetEdit/id/325295"));
+            URLHelper.removeJSessionId("https://localhost:8443/ProjectForge/wa/timesheetEdit/id/325295"));
     assertEquals("https://localhost:8443/?hurzel",
-        URLHelper.removeJSessionId("https://localhost:8443/;jsessionid=376kjKJ224?hurzel"));
+            URLHelper.removeJSessionId("https://localhost:8443/;jsessionid=376kjKJ224?hurzel"));
     assertEquals(
-        "https://localhost:8443/ProjectForge/wa/?wicket:bookmarkablePage=:org.projectforge.web.timesheet.TimesheetMassUpdatePage",
-        URLHelper
-            .removeJSessionId(
-                "https://localhost:8443/ProjectForge/wa/;jsessionid=B2BE03E5838FDAFCE3ED1AE235A78878?wicket:bookmarkablePage=:org.projectforge.web.timesheet.TimesheetMassUpdatePage"));
+            "https://localhost:8443/ProjectForge/wa/?wicket:bookmarkablePage=:org.projectforge.web.timesheet.TimesheetMassUpdatePage",
+            URLHelper
+                    .removeJSessionId(
+                            "https://localhost:8443/ProjectForge/wa/;jsessionid=B2BE03E5838FDAFCE3ED1AE235A78878?wicket:bookmarkablePage=:org.projectforge.web.timesheet.TimesheetMassUpdatePage"));
     assertEquals("https://localhost:8443/timesheetList/date=6546576/store=false?hurzel",
-        URLHelper.removeJSessionId(
-            "https://localhost:8443/timesheetList/date=6546576/store=false;jsessionid=376kjKJ224?hurzel"));
+            URLHelper.removeJSessionId(
+                    "https://localhost:8443/timesheetList/date=6546576/store=false;jsessionid=376kjKJ224?hurzel"));
     assertEquals("https://localhost:8443/timesheetList/?hurzel",
-        URLHelper.removeJSessionId("https://localhost:8443/timesheetList/;jsessionid=376kjKJ224?hurzel"));
+            URLHelper.removeJSessionId("https://localhost:8443/timesheetList/;jsessionid=376kjKJ224?hurzel"));
     assertEquals("https://localhost:8443/timesheetList/",
-        URLHelper.removeJSessionId("https://localhost:8443/timesheetList/;jsessionid=376kjKJ224"));
+            URLHelper.removeJSessionId("https://localhost:8443/timesheetList/;jsessionid=376kjKJ224"));
   }
 }

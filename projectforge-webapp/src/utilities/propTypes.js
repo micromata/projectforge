@@ -1,13 +1,7 @@
 import PropTypes from 'prop-types';
 
-export const categoryItemPropType = PropTypes.shape({
-    name: PropTypes.string,
-    url: PropTypes.string,
-});
-
-export const categoryPropType = PropTypes.shape({
-    name: PropTypes.string,
-    items: PropTypes.arrayOf(categoryItemPropType),
+export const menuItemPropType = PropTypes.shape({
+    title: PropTypes.string,
 });
 
 export const buttonPropType = PropTypes.shape({
@@ -15,7 +9,7 @@ export const buttonPropType = PropTypes.shape({
     title: PropTypes.string,
     id: PropTypes.string,
     handleClick: PropTypes.func,
-    type: PropTypes.oneOf(['button', 'checkbox']),
+    type: PropTypes.oneOf(['BUTTON', 'CHECKBOX']),
     checked: PropTypes.bool,
 });
 
@@ -30,6 +24,7 @@ export const colorPropType = PropTypes.oneOf([
 
 export const selectProps = {
     id: PropTypes.string.isRequired,
+    additionalLabel: PropTypes.string,
     color: colorPropType,
     label: PropTypes.string,
     options: PropTypes.oneOfType([
@@ -44,14 +39,13 @@ export const selectProps = {
     ]).isRequired,
 };
 
-export const dataPropType = PropTypes.objectOf(PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.number,
-    PropTypes.bool,
-    PropTypes.objectOf(PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.number,
-        PropTypes.bool,
-    ])),
-    PropTypes.arrayOf(PropTypes.shape({})),
-]));
+export const dataPropType = PropTypes.shape({});
+
+export const tableColumnsPropType = PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string,
+    title: PropTypes.string,
+}));
+
+export const badgePropType = PropTypes.shape({
+    counter: PropTypes.number,
+});

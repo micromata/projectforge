@@ -23,39 +23,39 @@
 
 package org.projectforge.fibu.kost;
 
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.EingangsrechnungDO;
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO;
 import org.projectforge.business.fibu.PaymentType;
 import org.projectforge.business.fibu.kost.reporting.SEPATransferGenerator;
 import org.projectforge.business.fibu.kost.reporting.SEPATransferResult;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
-import org.projectforge.test.AbstractTestNGBase;
-import org.testng.annotations.Test;
+import org.projectforge.test.AbstractTestBase;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 
-import static org.testng.AssertJUnit.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class SEPATransferGeneratorTest extends AbstractTestNGBase {
+public class SEPATransferGeneratorTest extends AbstractTestBase {
   @Test
   public void testIban() {
     String iban = "DE12 3456 7890 1234 5678 90";
     String bic = null;
     String xml = testIban(iban, null);
     assertNotNull(xml);
-    assertTrue("xml: " + xml, xml.contains("<IBAN>" + iban.replaceAll("\\s", "") + "</IBAN>"));
-    assertTrue("xml: " + xml, xml.contains("<Nm>ACME INC.</Nm>"));
-    assertTrue("xml: " + xml, xml.contains("<Nm>Kai Reinhard</Nm>"));
-    assertTrue("xml: " + xml, xml.contains("<IBAN>DE87200500001234567890</IBAN>"));
+    assertTrue(xml.contains("<IBAN>" + iban.replaceAll("\\s", "") + "</IBAN>"), "xml: " + xml);
+    assertTrue(xml.contains("<Nm>ACME INC.</Nm>"), "xml: " + xml);
+    assertTrue(xml.contains("<Nm>Kai Reinhard</Nm>"), "xml: " + xml);
+    assertTrue(xml.contains("<IBAN>DE87200500001234567890</IBAN>"), "xml: " + xml);
     xml = testIban("IT12 3456 7890 1234 5678 90", null);
-    assertNull("xml: " + xml, xml);
+    assertNull(xml, "xml: " + xml);
     iban = "IT12 3456 7890 1234 5678 90";
     bic = "UNCRITM1J27";
     xml = testIban(iban, bic);
     assertNotNull("xml: " + xml, xml);
-    assertTrue("xml: " + xml, xml.contains("<IBAN>" + iban.replaceAll("\\s", "") + "</IBAN>"));
-    assertTrue("xml: " + xml, xml.contains("<BIC>" + bic + "</BIC>"));
+    assertTrue(xml.contains("<IBAN>" + iban.replaceAll("\\s", "") + "</IBAN>"), "xml: " + xml);
+    assertTrue(xml.contains("<BIC>" + bic + "</BIC>"), "xml: " + xml);
   }
 
   private String testIban(String iban, String bic) {

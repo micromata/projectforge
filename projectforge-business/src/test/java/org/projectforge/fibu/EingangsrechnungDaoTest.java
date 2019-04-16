@@ -23,30 +23,27 @@
 
 package org.projectforge.fibu;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
-
-import java.io.Serializable;
-import java.sql.Date;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.EingangsrechnungDO;
 import org.projectforge.business.fibu.EingangsrechnungDao;
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO;
 import org.projectforge.business.fibu.RechnungFilter;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
 
-public class EingangsrechnungDaoTest extends AbstractTestNGBase
-{
+import java.io.Serializable;
+import java.sql.Date;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+
+public class EingangsrechnungDaoTest extends AbstractTestBase {
   @Autowired
   private EingangsrechnungDao eingangsrechnungDao;
 
   @Test
-  public void checkAccess()
-  {
+  public void checkAccess() {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     EingangsrechnungDO eingangsrechnung = new EingangsrechnungDO();
     eingangsrechnung.setDatum(new Date(System.currentTimeMillis()));
@@ -69,8 +66,7 @@ public class EingangsrechnungDaoTest extends AbstractTestNGBase
     checkNoAccess(id, eingangsrechnung, "Admin ");
   }
 
-  private void checkNoAccess(Serializable id, EingangsrechnungDO eingangsrechnung, String who)
-  {
+  private void checkNoAccess(Serializable id, EingangsrechnungDO eingangsrechnung, String who) {
     try {
       RechnungFilter filter = new RechnungFilter();
       eingangsrechnungDao.getList(filter);
@@ -88,20 +84,17 @@ public class EingangsrechnungDaoTest extends AbstractTestNGBase
     checkNoWriteAccess(id, eingangsrechnung, who);
   }
 
-  private void checkNoHistoryAccess(Serializable id, EingangsrechnungDO eingangsrechnung, String who)
-  {
-    assertEquals(who + " users should not have select access to history of invoices.",
-        eingangsrechnungDao.hasLoggedInUserHistoryAccess(false), false);
+  private void checkNoHistoryAccess(Serializable id, EingangsrechnungDO eingangsrechnung, String who) {
+    assertEquals(eingangsrechnungDao.hasLoggedInUserHistoryAccess(false), false,
+            who + " users should not have select access to history of invoices.");
     try {
       eingangsrechnungDao.hasLoggedInUserHistoryAccess(true);
       fail("AccessException expected: " + who + " users should not have select access to history of invoices.");
     } catch (AccessException ex) {
       // OK
     }
-    assertEquals(who + " users should not have select access to history of invoices.",
-        eingangsrechnungDao.hasLoggedInUserHistoryAccess(
-            eingangsrechnung, false),
-        false);
+    assertEquals(eingangsrechnungDao.hasLoggedInUserHistoryAccess(eingangsrechnung, false), false,
+            who + " users should not have select access to history of invoices.");
     try {
       eingangsrechnungDao.hasLoggedInUserHistoryAccess(eingangsrechnung, true);
       fail("AccessException expected: " + who + " users should not have select access to history of invoices.");
@@ -110,8 +103,7 @@ public class EingangsrechnungDaoTest extends AbstractTestNGBase
     }
   }
 
-  private void checkNoWriteAccess(Serializable id, EingangsrechnungDO eingangsrechnung, String who)
-  {
+  private void checkNoWriteAccess(Serializable id, EingangsrechnungDO eingangsrechnung, String who) {
     try {
       EingangsrechnungDO re = new EingangsrechnungDO();
       re.setDatum(new Date(System.currentTimeMillis()));
@@ -129,8 +121,7 @@ public class EingangsrechnungDaoTest extends AbstractTestNGBase
     }
   }
 
-  public void setEingangsrechnungDao(EingangsrechnungDao eingangsrechnungDao)
-  {
+  public void setEingangsrechnungDao(EingangsrechnungDao eingangsrechnungDao) {
     this.eingangsrechnungDao = eingangsrechnungDao;
   }
 }

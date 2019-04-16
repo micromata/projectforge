@@ -36,7 +36,7 @@ class LayoutUtils {
         fun processListPage(layout: UILayout): UILayout {
             var found = false
             layout.namedContainers.forEach {
-                if (it.id == "filter-options") {
+                if (it.id == "filterOptions") {
                     found = true // Container found. Don't attach it automatically.
                 }
             }
@@ -44,8 +44,8 @@ class LayoutUtils {
                 addListFilterContainer(layout)
             }
             layout
-                    .addAction(UIButton("reset", style = UIButtonStyle.DANGER))
-                    .addAction(UIButton("search", style = UIButtonStyle.PRIMARY, default = true))
+                    .addAction(UIButton("reset", style = UIStyle.DANGER))
+                    .addAction(UIButton("search", style = UIStyle.PRIMARY, default = true))
             process(layout)
             return layout
         }
@@ -74,7 +74,7 @@ class LayoutUtils {
             }
             if (autoAppendDefaultSettings == true)
                 addListDefaultOptions(filterGroup)
-            layout.add(UINamedContainer("filter-options").add(filterGroup))
+            layout.add(UINamedContainer("filterOptions").add(filterGroup))
         }
 
         /**
@@ -83,7 +83,7 @@ class LayoutUtils {
          */
         fun addListDefaultOptions(group: UIGroup) {
             group
-                    .add(UICheckbox("onlyDeleted", label = "onlyDeleted", tooltip = "onlyDeleted.tooltip"))
+                    .add(UICheckbox("deleted", label = "onlyDeleted", tooltip = "onlyDeleted.tooltip"))
                     .add(UICheckbox("searchHistory", label = "search.searchHistory", tooltip = "search.searchHistory.additional.tooltip"))
         }
 
@@ -95,23 +95,24 @@ class LayoutUtils {
          * @see LayoutUtils.process
          */
         fun processEditPage(layout: UILayout, data: DefaultBaseDO?): UILayout {
-            layout.addAction(UIButton("cancel", style = UIButtonStyle.DANGER))
+            layout.addAction(UIButton("cancel", style = UIStyle.DANGER))
             if (data != null && data.id != null) {
                 if (data.isDeleted)
-                    layout.addAction(UIButton("undelete", style = UIButtonStyle.WARNING))
+                    layout.addAction(UIButton("undelete", style = UIStyle.WARNING))
                 else
-                    layout.addAction(UIButton("markAsDeleted", style = UIButtonStyle.WARNING))
+                    layout.addAction(UIButton("markAsDeleted", style = UIStyle.WARNING))
             }
             //if (restService.prepareClone(restService.newBaseDO())) {
             //    layout.addAction(UIButton("clone", style = UIButtonStyle.PRIMARY))
             //}
             if (data != null && data.id != null) {
                 if (!data.isDeleted)
-                    layout.addAction(UIButton("update", style = UIButtonStyle.PRIMARY, default = true))
+                    layout.addAction(UIButton("update", style = UIStyle.PRIMARY, default = true))
             } else {
-                layout.addAction(UIButton("create", style = UIButtonStyle.PRIMARY, default = true))
+                layout.addAction(UIButton("create", style = UIStyle.PRIMARY, default = true))
             }
             process(layout)
+            layout.addTranslations("label.historyOfChanges")
             return layout
         }
 
@@ -120,16 +121,7 @@ class LayoutUtils {
          * the label (e. g. UIInput). If don't use inline labels, a group containing a label and an input field is returned.
          */
         internal fun buildLabelInputElement(layoutSettings: LayoutContext, id: String): UIElement? {
-            val element = ElementsRegistry.buildElement(layoutSettings, id)
-            if (layoutSettings.useInlineLabels) {
-                return element
-            }
-            val group = UIGroup()
-            val label = UILabel()
-            val elementInfo = ElementsRegistry.getElementInfo(layoutSettings, id)
-            setLabels(elementInfo, label)
-            group.add(label, element)
-            return group
+            return ElementsRegistry.buildElement(layoutSettings, id)
         }
 
         internal fun setLabels(elementInfo: ElementsRegistry.ElementInfo?, element: UILabelledElement) {
@@ -157,6 +149,9 @@ class LayoutUtils {
                         it.label = getLabelTransformation(it.label, it as UIElement)
                         it.additionalLabel = getLabelTransformation(it.additionalLabel, it, additionalLabel = true)
                         it.tooltip = getLabelTransformation(it.tooltip)
+                    }
+                    is UIFieldset -> {
+                        it.title = getLabelTransformation(it.title, it as UIElement)
                     }
                     is UITableColumn -> {
                         val translation = getLabelTransformation(it.title)
@@ -200,7 +195,7 @@ class LayoutUtils {
                 is UICheckbox -> element.id
                 is UISelect -> element.id
                 is UIMultiSelect -> element.id
-                is UITextarea -> element.id
+                is UITextArea -> element.id
                 is UITableColumn -> element.id
                 else -> null
             }

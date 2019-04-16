@@ -1,32 +1,34 @@
 package org.projectforge.business.systeminfo;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-
-import java.util.Locale;
-import java.util.TimeZone;
-
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.projectforge.business.jsonRest.RestCallService;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.model.rest.VersionCheck;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 
+import java.util.Locale;
+import java.util.TimeZone;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+
+@RunWith(PowerMockRunner.class)
 @PrepareForTest({ ThreadLocalUserContext.class, ConfigXml.class })
 //Needed for: java.lang.ClassCastException: com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl cannot be cast to javax.xml.parsers.SAXParserFactory
 @PowerMockIgnore({ "javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*" })
-public class SystemServiceTest extends PowerMockTestCase
+public class SystemServiceTest
 {
   @InjectMocks
   SystemService systemService = new SystemService();
@@ -40,7 +42,7 @@ public class SystemServiceTest extends PowerMockTestCase
 
   private VersionCheck targetVersionCheck = new VersionCheck();
 
-  @BeforeMethod
+  @Before
   public void setUp()
   {
     MockitoAnnotations.initMocks(this);

@@ -2,12 +2,11 @@ import React from 'react';
 import Card from 'reactstrap/es/Card';
 import CardBody from 'reactstrap/es/CardBody';
 import Col from 'reactstrap/es/Col';
-import FormGroup from 'reactstrap/es/FormGroup';
-import BootstrapInput from 'reactstrap/es/Input';
-import BootstrapLabel from 'reactstrap/es/Label';
 import Row from 'reactstrap/es/Row';
+import DropArea from '../../components/design/droparea';
 import Input from '../../components/design/input';
 import CheckBox from '../../components/design/input/CheckBox';
+import NewInput from '../../components/design/input/Input';
 import TextArea from '../../components/design/input/TextArea';
 import UncontrolledSelect from '../../components/design/input/UncontrolledSelect';
 
@@ -111,6 +110,11 @@ function InputTestPage() {
                             id="checkbox-default"
                             label="Default"
                         />
+                        <CheckBox
+                            id="checkbox-with-additional-label"
+                            label="Checkbox mit Additional Label"
+                            additionalLabel="Additional Label"
+                        />
                     </Col>
                     <Col sm>
                         <h2>Select</h2>
@@ -152,6 +156,52 @@ function InputTestPage() {
                                 },
                             ]}
                         />
+                        <UncontrolledSelect
+                            id="select-with-additional-title"
+                            label="Zusätzlicher Titel"
+                            options={[
+                                {
+                                    value: 'book',
+                                    title: 'Buch',
+                                },
+                                {
+                                    value: 'magazine',
+                                    title: 'Magazin',
+                                },
+                                {
+                                    value: 'article',
+                                    title: 'Artikel',
+                                },
+                                {
+                                    value: 'newspaper',
+                                    title: 'Zeitung',
+                                },
+                                {
+                                    value: 'periodical',
+                                    title: 'Periodika',
+                                },
+                                {
+                                    value: 'film',
+                                    title: 'Film (Datenträger)',
+                                },
+                                {
+                                    value: 'software',
+                                    title: 'Software (Datenträger)',
+                                },
+                                {
+                                    value: 'misc',
+                                    title: 'Sonstiges',
+                                },
+                            ]}
+                            additionalLabel="Zusätzlicher Titel"
+                        />
+                        <NewInput
+                            label="Neuer Input"
+                            id="new-input-test"
+                            additionalLabel="Additional Value"
+                        />
+                    </Col>
+                    <Col sm>
                         <h2>Text Area</h2>
                         <TextArea label="Long Text" id="textarea-example" />
                         <TextArea
@@ -172,49 +222,13 @@ function InputTestPage() {
                             color="danger"
                             rows={1}
                         />
-                    </Col>
-                    <Col sm style={{ fontSize: '14px' }}>
-                        <h1>Alte Bootstrap Inputs</h1>
-                        <FormGroup row>
-                            <Col sm={2}>
-                                <BootstrapLabel>
-                                    Mail
-                                </BootstrapLabel>
-                            </Col>
-                            <Col sm={10}>
-                                <BootstrapInput />
-                            </Col>
-                        </FormGroup>
-                        <FormGroup row>
-                            <Col sm={2}>
-                                <BootstrapLabel>
-                                    Passwort
-                                </BootstrapLabel>
-                            </Col>
-                            <Col sm={10}>
-                                <BootstrapInput />
-                            </Col>
-                        </FormGroup>
-                        <FormGroup row>
-                            <Col sm={2}>
-                                <BootstrapLabel>
-                                    Name
-                                </BootstrapLabel>
-                            </Col>
-                            <Col sm={10}>
-                                <BootstrapInput />
-                            </Col>
-                        </FormGroup>
-                        <FormGroup row>
-                            <Col sm={2}>
-                                <BootstrapLabel>
-                                    Telefon
-                                </BootstrapLabel>
-                            </Col>
-                            <Col sm={10}>
-                                <BootstrapInput />
-                            </Col>
-                        </FormGroup>
+                        <TextArea
+                            label="Default mit zusätzlichem Titel"
+                            id="textarea-example-additional-title"
+                            rows={1}
+                            additionalLabel="Zusätzlicher Titel"
+                        />
+                        <DropArea />
                     </Col>
                 </Row>
             </CardBody>

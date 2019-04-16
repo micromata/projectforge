@@ -23,7 +23,13 @@
 
 package org.projectforge.common;
 
-import static org.testng.AssertJUnit.*;
+import org.joda.time.DateTimeConstants;
+import org.junit.jupiter.api.Test;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.test.AbstractTestBase;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -33,15 +39,9 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import org.joda.time.DateTimeConstants;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateHolder;
-import org.projectforge.framework.time.DatePrecision;
-import org.projectforge.test.AbstractTestNGBase;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class DateHelperTest extends AbstractTestNGBase
+public class DateHelperTest extends AbstractTestBase
 {
   private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(KeyValuePairWriterTest.class);

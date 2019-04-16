@@ -23,14 +23,11 @@
 
 package org.projectforge.common;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.framework.utils.IntRanges;
 import org.projectforge.framework.utils.Range;
-import org.testng.annotations.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class IntRangesTest
 {

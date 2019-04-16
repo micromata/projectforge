@@ -24,20 +24,20 @@
 package org.projectforge.calendar;
 
 import org.projectforge.framework.calendar.DurationUtils;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class DurationUtilsTest
 {
   @Test
   public void formattedHoursAndMinutes()
   {
-    Assert.assertEquals("0:00", getFormattedHoursAndMinutes(0, 0));
-    Assert.assertEquals("0:01", getFormattedHoursAndMinutes(0, 1));
-    Assert.assertEquals("0:59", getFormattedHoursAndMinutes(0, 59));
-    Assert.assertEquals("1:00", getFormattedHoursAndMinutes(0, 60));
-    Assert.assertEquals("9:59", getFormattedHoursAndMinutes(9, 59));
-    Assert.assertEquals("10:59", getFormattedHoursAndMinutes(10, 59));
+    Assertions.assertEquals("0:00", getFormattedHoursAndMinutes(0, 0));
+    Assertions.assertEquals("0:01", getFormattedHoursAndMinutes(0, 1));
+    Assertions.assertEquals("0:59", getFormattedHoursAndMinutes(0, 59));
+    Assertions.assertEquals("1:00", getFormattedHoursAndMinutes(0, 60));
+    Assertions.assertEquals("9:59", getFormattedHoursAndMinutes(9, 59));
+    Assertions.assertEquals("10:59", getFormattedHoursAndMinutes(10, 59));
   }
 
   private String getFormattedHoursAndMinutes(final int hours, final int minutes)

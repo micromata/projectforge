@@ -24,19 +24,19 @@
 package org.projectforge.fibu.kost;
 
 import org.projectforge.business.fibu.kost.KostHelper;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class KostHelperTest
 {
   @Test
   public void parseKostString()
   {
-    Assert.assertNull(KostHelper.parseKostString(null));
-    Assert.assertNull(KostHelper.parseKostString(""));
-    Assert.assertNull(KostHelper.parseKostString("123456789"));
-    Assert.assertNull(KostHelper.parseKostString("123456789"));
-    Assert.assertNull(KostHelper.parseKostString("123456789012"));
+    Assertions.assertNull(KostHelper.parseKostString(null));
+    Assertions.assertNull(KostHelper.parseKostString(""));
+    Assertions.assertNull(KostHelper.parseKostString("123456789"));
+    Assertions.assertNull(KostHelper.parseKostString("123456789"));
+    Assertions.assertNull(KostHelper.parseKostString("123456789012"));
 
     assertKost(1, 234, 56, 78, KostHelper.parseKostString("12345678"));
     assertKost(1, 234, 56, 78, KostHelper.parseKostString("1.234.56.78"));
@@ -44,11 +44,11 @@ public class KostHelperTest
 
   private void assertKost(final int v0, final int v1, final int v2, final int v3, int[] result)
   {
-    Assert.assertNotNull(result);
-    Assert.assertEquals(4, result.length);
-    Assert.assertEquals(v0, result[0]);
-    Assert.assertEquals(v1, result[1]);
-    Assert.assertEquals(v2, result[2]);
-    Assert.assertEquals(v3, result[3]);
+    Assertions.assertNotNull(result);
+    Assertions.assertEquals(4, result.length);
+    Assertions.assertEquals(v0, result[0]);
+    Assertions.assertEquals(v1, result[1]);
+    Assertions.assertEquals(v2, result[2]);
+    Assertions.assertEquals(v3, result[3]);
   }
 }

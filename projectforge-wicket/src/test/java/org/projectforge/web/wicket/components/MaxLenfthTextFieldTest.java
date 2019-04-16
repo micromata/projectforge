@@ -23,22 +23,18 @@
 
 package org.projectforge.web.wicket.components;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.junit.jupiter.api.Test;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractTestNGBase;
-import org.testng.annotations.Test;
+import org.projectforge.test.AbstractTestBase;
 
-public class MaxLenfthTextFieldTest extends AbstractTestNGBase
-{
+import static org.junit.jupiter.api.Assertions.*;
+
+public class MaxLenfthTextFieldTest extends AbstractTestBase {
   @Test
-  public void maxLength()
-  {
+  public void maxLength() {
     PropertyModel<String> model = new PropertyModel<String>(new PFUserDO(), "username");
     assertInteger(255, MaxLengthTextField.getMaxLength(model));
     assertInteger(255, MaxLengthTextField.getMaxLength(model, 300));
@@ -52,8 +48,7 @@ public class MaxLenfthTextFieldTest extends AbstractTestNGBase
     assertInteger(100, MaxLengthTextField.getMaxLength(Model.of("test"), 100));
   }
 
-  private void assertInteger(final int expectedValue, final Integer value)
-  {
+  private void assertInteger(final int expectedValue, final Integer value) {
     assertNotNull(value);
     assertEquals(expectedValue, value.intValue());
   }

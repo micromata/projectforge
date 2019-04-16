@@ -37,14 +37,14 @@ class LayoutSelect extends React.Component {
 }
 
 LayoutSelect.propTypes = {
-    label: PropTypes.string.isRequired,
-    id: PropTypes.string.isRequired,
-    values: PropTypes.arrayOf(PropTypes.shape({
-        value: PropTypes.string,
-        title: PropTypes.string,
-    })).isRequired,
-    data: dataPropType.isRequired,
     changeDataField: PropTypes.func.isRequired,
+    data: dataPropType.isRequired,
+    id: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired,
+    values: PropTypes.arrayOf(PropTypes.shape({
+        title: PropTypes.string,
+        value: PropTypes.string,
+    })).isRequired,
 };
 
 export default LayoutSelect;

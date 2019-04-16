@@ -23,22 +23,18 @@
 
 package org.projectforge.web.wicket;
 
-import static org.testng.AssertJUnit.assertEquals;
-
 import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.util.tester.FormTester;
-import org.testng.annotations.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Use-full super class for testing standard list pages (derived from AbstractListPage).
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public abstract class ListAndEditPagesTestBase extends WicketPageTestBase
-{
+public abstract class ListAndEditPagesTestBase extends WicketPageTestBase {
   protected final String KEY_EDITPAGE_BUTTON_CREATE = "create";
 
   protected final String KEY_EDITPAGE_BUTTON_MARK_AS_DELETED = "markAsDeleted";
@@ -61,14 +57,14 @@ public abstract class ListAndEditPagesTestBase extends WicketPageTestBase
    * Creates a new edit page and pre-fills all fields of the data model which are at least required to create a new
    * data-base entry.<br>
    * Example:<br>
-   * 
+   *
    * <pre>
    * AddressEditPage editPage = new AddressEditPage(new PageParameters());
    * final AddressDO data = editPage.getForm().getData();
    * data.setName(&quot;Reinhard&quot;).setFirstName(&quot;Kai&quot;))....;
    * return editPage.
    * </pre>
-   * 
+   *
    * @return
    */
   protected abstract AbstractEditPage<?, ?, ?> getEditPageWithPrefilledData();
@@ -76,41 +72,37 @@ public abstract class ListAndEditPagesTestBase extends WicketPageTestBase
   /**
    * Optional checks of the fields of the edit page after an object was inserted and clicked in the list page.<br>
    * Example:<br>
-   * 
+   *
    * <pre>
    * AddressEditPage editPage = (AddressEditPage) tester.getLastRenderedPage();
    * AddressDO address = editPage.getForm().getData();
    * assertEquals(&quot;Kai&quot;, address.getFirstName());
    * </pre>
    */
-  protected void checkEditPage()
-  {
+  protected void checkEditPage() {
 
   }
 
   /**
    * Override this method if any test object entries do exist in the list (default is 0).
-   * 
+   *
    * @return number of existing elements expected in the list view or null if not to-be checked.
    */
-  protected Integer getNumberOfExistingListElements()
-  {
+  protected Integer getNumberOfExistingListElements() {
     return 0;
   }
 
   /**
    * Starts list page with reseted filter.
    */
-  protected void startListPage()
-  {
+  protected void startListPage() {
     startListPage(null);
   }
 
   /**
    * Starts list page with reseted filter and given search string as filter string.
    */
-  protected void startListPage(final String searchString)
-  {
+  protected void startListPage(final String searchString) {
     tester.startPage(getListPageClass());
     tester.assertRenderedPage(getListPageClass());
     final FormTester form = tester.newFormTester(PATH_LISTPAGE_FORM);
@@ -119,13 +111,12 @@ public abstract class ListAndEditPagesTestBase extends WicketPageTestBase
     form.submit();
   }
 
-  public void baseTests()
-  {
+  public void baseTests() {
     loginTestAdmin();
     startListPage();
     if (getNumberOfExistingListElements() != null) {
       final DataTable<?, String> table = (DataTable<?, String>) tester
-          .getComponentFromLastRenderedPage(PATH_LISTPAGE_TABLE);
+              .getComponentFromLastRenderedPage(PATH_LISTPAGE_TABLE);
       assertEquals(getNumberOfExistingListElements().intValue(), table.getRowCount());
     }
     // Now, add a new element:
@@ -143,7 +134,7 @@ public abstract class ListAndEditPagesTestBase extends WicketPageTestBase
     tester.assertRenderedPage(getListPageClass());
     if (getNumberOfExistingListElements() != null) {
       final DataTable<?, String> table = (DataTable<?, String>) tester
-          .getComponentFromLastRenderedPage(PATH_LISTPAGE_TABLE);
+              .getComponentFromLastRenderedPage(PATH_LISTPAGE_TABLE);
       assertEquals(getNumberOfExistingListElements() + 1, table.getRowCount());
     }
     startListPage("id:" + id);
@@ -159,7 +150,7 @@ public abstract class ListAndEditPagesTestBase extends WicketPageTestBase
     tester.assertRenderedPage(getListPageClass());
     if (getNumberOfExistingListElements() != null) {
       final DataTable<?, String> table = (DataTable<?, String>) tester
-          .getComponentFromLastRenderedPage(PATH_LISTPAGE_TABLE);
+              .getComponentFromLastRenderedPage(PATH_LISTPAGE_TABLE);
       assertEquals(getNumberOfExistingListElements().intValue(), table.getRowCount());
     }
   }

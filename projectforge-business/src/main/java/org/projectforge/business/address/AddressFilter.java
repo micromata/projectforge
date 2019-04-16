@@ -68,12 +68,13 @@ public class AddressFilter extends BaseSearchFilter implements Serializable
 
   public AddressFilter()
   {
+    reset();
   }
 
   public AddressFilter(final BaseSearchFilter filter)
   {
     super(filter);
-    outdated = leaved = nonActive = uninteresting = personaIngrata = departed = true;
+    reset();
     if (filter instanceof AddressFilter) {
       AddressFilter obj = (AddressFilter) filter;
       this.uptodate = obj.isUptodate();
@@ -91,6 +92,7 @@ public class AddressFilter extends BaseSearchFilter implements Serializable
   public AddressFilter reset()
   {
     super.reset();
+    setSortProperty("name").appendSortProperty("firstName");
     setUptodate(true);
     setOutdated(false);
     setLeaved(false);

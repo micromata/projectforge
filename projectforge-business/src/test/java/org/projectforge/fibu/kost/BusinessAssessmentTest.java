@@ -23,7 +23,7 @@
 
 package org.projectforge.fibu.kost;
 
-import static org.testng.AssertJUnit.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -33,7 +33,7 @@ import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.kost.BuchungssatzDO;
 import org.projectforge.business.fibu.kost.BusinessAssessment;
 import org.projectforge.business.fibu.kost.BusinessAssessmentConfig;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class BusinessAssessmentTest
 {

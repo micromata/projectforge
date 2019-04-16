@@ -5,7 +5,7 @@ import java.util.List;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.projectforge.web.selenium.ListPage;
-import org.testng.Assert;
+import org.junit.jupiter.api.Assertions;
 
 public class SeleniumCalendarListPage extends ListPage<SeleniumCalendarListPage, SeleniumCalendarEditPage>
 {
@@ -50,7 +50,7 @@ public class SeleniumCalendarListPage extends ListPage<SeleniumCalendarListPage,
         }
       }
     } catch (Exception e) {
-      Assert.fail(e.getMessage());
+      Assertions.fail(e.getMessage());
     }
     return this;
   }

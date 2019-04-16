@@ -23,10 +23,9 @@
 
 package org.projectforge.business.gantt;
 
-import static org.testng.AssertJUnit.assertEquals;
+import org.junit.jupiter.api.Test;
 
-import org.projectforge.business.gantt.GanttTaskImpl;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class GanttTaskImplTest
 {

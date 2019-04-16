@@ -23,12 +23,12 @@
 
 package org.projectforge.fibu;
 
-import static org.testng.AssertJUnit.assertEquals;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
-import org.testng.annotations.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class AuftragDOTest
 {

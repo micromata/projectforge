@@ -23,18 +23,16 @@
 
 package org.projectforge.common;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
+import org.junit.jupiter.api.Test;
+import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.DatePrecision;
 
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateHolder;
-import org.projectforge.framework.time.DatePrecision;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class DateHolderTest
 {

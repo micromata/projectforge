@@ -23,28 +23,25 @@
 
 package org.projectforge.fibu;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
-
-import java.io.Serializable;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.KundeDao;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
 
-public class KundeDaoTest extends AbstractTestNGBase
-{
+import java.io.Serializable;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+
+public class KundeDaoTest extends AbstractTestBase {
   @Autowired
   private KundeDao kundeDao;
 
   @Test
-  public void checkAccess()
-  {
+  public void checkAccess() {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     KundeDO kunde = new KundeDO();
     kunde.setName("ACME");
@@ -69,8 +66,7 @@ public class KundeDaoTest extends AbstractTestNGBase
     checkNoAccess(id, kunde, "Admin ");
   }
 
-  private void checkNoAccess(Serializable id, KundeDO kunde, String who)
-  {
+  private void checkNoAccess(Serializable id, KundeDO kunde, String who) {
     try {
       BaseSearchFilter filter = new BaseSearchFilter();
       kundeDao.getList(filter);
@@ -88,18 +84,17 @@ public class KundeDaoTest extends AbstractTestNGBase
     checkNoWriteAccess(id, kunde, who);
   }
 
-  private void checkNoHistoryAccess(Serializable id, KundeDO kunde, String who)
-  {
-    assertEquals(who + " users should not have select access to history of customers.",
-        kundeDao.hasLoggedInUserHistoryAccess(false), false);
+  private void checkNoHistoryAccess(Serializable id, KundeDO kunde, String who) {
+    assertEquals(kundeDao.hasLoggedInUserHistoryAccess(false), false,
+            who + " users should not have select access to history of customers.");
     try {
       kundeDao.hasLoggedInUserHistoryAccess(true);
       fail("AccessException expected: " + who + " users should not have select access to history of customers.");
     } catch (AccessException ex) {
       // OK
     }
-    assertEquals(who + " users should not have select access to history of customers.",
-        kundeDao.hasLoggedInUserHistoryAccess(kunde, false), false);
+    assertEquals(kundeDao.hasLoggedInUserHistoryAccess(kunde, false), false,
+            who + " users should not have select access to history of customers.");
     try {
       kundeDao.hasLoggedInUserHistoryAccess(kunde, true);
       fail("AccessException expected: " + who + " users should not have select access to history of invoices.");
@@ -108,8 +103,7 @@ public class KundeDaoTest extends AbstractTestNGBase
     }
   }
 
-  private void checkNoWriteAccess(Serializable id, KundeDO kunde, String who)
-  {
+  private void checkNoWriteAccess(Serializable id, KundeDO kunde, String who) {
     try {
       KundeDO ku = new KundeDO();
       ku.setId(42);

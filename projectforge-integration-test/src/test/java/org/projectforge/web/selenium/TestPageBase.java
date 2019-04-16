@@ -1,6 +1,6 @@
 package org.projectforge.web.selenium;
 
-import static org.testng.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,7 +15,7 @@ import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Select;
 import org.projectforge.framework.i18n.I18nService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.testng.annotations.BeforeClass;
 
 import com.google.common.base.Predicate;
@@ -154,7 +154,7 @@ public abstract class TestPageBase<T extends TestPageBase>
    */
   public T assertTextOfElementWithIdEquals(String elementId, String expected)
   {
-    Assert.assertEquals(driver.findElement(By.id(elementId)).getAttribute("value"), expected);
+    Assertions.assertEquals(driver.findElement(By.id(elementId)).getAttribute("value"), expected);
     return (T) this;
   }
 
@@ -170,7 +170,7 @@ public abstract class TestPageBase<T extends TestPageBase>
     String xpathtoErrorMessage = "//ul/li/span[@class='feedbackPanelERROR']";
     String errorMessage = driver.findElement(By.xpath(xpathtoErrorMessage)).getText();
     String localizedStringForKey = i18NService.getLocalizedStringForKey(i18nKey, Locale.GERMAN);
-    Assert.assertEquals(errorMessage, localizedStringForKey);
+    Assertions.assertEquals(errorMessage, localizedStringForKey);
     return (T) this;
   }
 
@@ -204,7 +204,7 @@ public abstract class TestPageBase<T extends TestPageBase>
           }
         }
       } catch (Exception e) {
-        Assert.fail(e.getMessage());
+        Assertions.fail(e.getMessage());
       }
     } while (groupsToAdd1.size() != beginSize);
     driver.findElement(By.xpath(input)).click();

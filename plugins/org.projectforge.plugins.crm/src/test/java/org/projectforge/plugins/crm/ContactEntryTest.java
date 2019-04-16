@@ -23,16 +23,14 @@
 
 package org.projectforge.plugins.crm;
 
-import static org.testng.AssertJUnit.assertEquals;
-
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class ContactEntryTest extends AbstractTestNGBase
-{
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class ContactEntryTest extends AbstractTestBase {
   private final static Logger log = LoggerFactory.getLogger(ContactEntryTest.class);
 
   @Autowired
@@ -40,19 +38,16 @@ public class ContactEntryTest extends AbstractTestNGBase
   @Autowired
   private ContactDao contactDao;
 
-  public void setContactEntryDao(final ContactEntryDao contactEntryDao)
-  {
+  public void setContactEntryDao(final ContactEntryDao contactEntryDao) {
     this.contactEntryDao = contactEntryDao;
   }
 
-  public void setContactDao(final ContactDao contactDao)
-  {
+  public void setContactDao(final ContactDao contactDao) {
     this.contactDao = contactDao;
   }
 
   //  @Test
-  public void testSaveAndUpdate()
-  {
+  public void testSaveAndUpdate() {
     logon(AbstractTestBase.ADMIN);
 
     //final ContactDao contactDao = new ContactDao();
@@ -85,8 +80,7 @@ public class ContactEntryTest extends AbstractTestNGBase
   }
 
   //@Test
-  public void testDeleteAndUndelete()
-  {
+  public void testDeleteAndUndelete() {
     logon(AbstractTestBase.ADMIN);
     final ContactDO a1 = new ContactDO();
     a1.setName("Test");
@@ -104,11 +98,11 @@ public class ContactEntryTest extends AbstractTestNGBase
     ae1 = contactEntryDao.getById(id);
     contactEntryDao.markAsDeleted(ae1);
     ae1 = contactEntryDao.getById(id);
-    assertEquals("Should be marked as deleted.", true, ae1.isDeleted());
+    assertEquals(true, ae1.isDeleted(), "Should be marked as deleted.");
 
     contactEntryDao.undelete(ae1);
     ae1 = contactEntryDao.getById(id);
-    assertEquals("Should be undeleted.", false, ae1.isDeleted());
+    assertEquals(false, ae1.isDeleted(), "Should be undeleted.");
   }
 
   //  @Test(expected = RuntimeException.class)

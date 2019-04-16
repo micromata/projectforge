@@ -23,23 +23,19 @@
 
 package org.projectforge.business.user;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
+import org.junit.jupiter.api.Test;
+import org.projectforge.framework.persistence.user.entities.GroupDO;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.test.AbstractTestBase;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.projectforge.framework.persistence.user.entities.GroupDO;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class UserRightDaoTest extends AbstractTestNGBase
-{
+public class UserRightDaoTest extends AbstractTestBase {
   @Autowired
   private GroupDao groupDao;
 
@@ -47,8 +43,7 @@ public class UserRightDaoTest extends AbstractTestNGBase
   private UserRightDao userRightDao;
 
   @Test
-  public void testUpdateUserRights()
-  {
+  public void testUpdateUserRights() {
     logon(AbstractTestBase.ADMIN);
     final PFUserDO user = initTestDB.addUser("testUserRightDaoTest");
     final Set<GroupDO> groupsToAssign = new HashSet<GroupDO>();
@@ -64,8 +59,8 @@ public class UserRightDaoTest extends AbstractTestNGBase
         right2 = item;
       }
     }
-    assertNotNull("right not found!", right1);
-    assertNotNull("right not found!", right2);
+    assertNotNull(right1, "right not found!");
+    assertNotNull(right2, "right not found!");
     assertNull(right1.getValue());
     assertNull(right2.getValue());
     right1.setValue(UserRightValue.READWRITE);
@@ -80,8 +75,8 @@ public class UserRightDaoTest extends AbstractTestNGBase
         right2 = item;
       }
     }
-    assertNotNull("right not found!", right1);
-    assertNotNull("right not found!", right2);
+    assertNotNull(right1, "right not found!");
+    assertNotNull(right2, "right not found!");
     assertEquals(UserRightValue.READWRITE, right1.getValue());
     assertEquals(UserRightValue.READONLY, right2.getValue());
     right1.setValue(UserRightValue.READONLY);
@@ -96,8 +91,8 @@ public class UserRightDaoTest extends AbstractTestNGBase
         right2 = item;
       }
     }
-    assertNotNull("right not found!", right1);
-    assertNotNull("right not found!", right2);
+    assertNotNull(right1, "right not found!");
+    assertNotNull(right2, "right not found!");
     assertEquals(UserRightValue.READONLY, right1.getValue());
     assertNull(right2.getValue());
   }

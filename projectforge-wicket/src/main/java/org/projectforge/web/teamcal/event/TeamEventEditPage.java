@@ -178,9 +178,9 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
             public void onClick()
             {
               final TimesheetDO timesheet = new TimesheetDO();
-              timesheet.setStartDate(getData().getStartDate())//
-                  .setStopTime(getData().getEndDate()) //
-                  .setLocation(getData().getLocation());
+              timesheet.setStartDate(getData().getStartDate());
+              timesheet.setStopTime(getData().getEndDate()) ;
+              timesheet.setLocation(getData().getLocation());
               final StringBuffer buf = new StringBuffer();
               buf.append(getData().getSubject());
               final String note = getData().getNote();

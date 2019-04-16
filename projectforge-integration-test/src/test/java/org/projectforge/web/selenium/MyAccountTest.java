@@ -3,9 +3,9 @@ package org.projectforge.web.selenium;
 import org.projectforge.web.selenium.fibu.SeleniumEmployeeEditPage;
 import org.projectforge.web.selenium.fibu.SeleniumEmployeeListPage;
 import org.projectforge.web.selenium.login.SeleniumLoginPage;
-import org.testng.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class MyAccountTest extends SeleniumSuiteTestBase
 {
@@ -111,9 +111,9 @@ public class MyAccountTest extends SeleniumSuiteTestBase
     SeleniumEmployeeEditPage employeeEditPage = seleniumEmployeeListPage
         .callPage()
         .clickRowWhereColumnLike("Administrator");
-    Assert.assertEquals(employeeEditPage.getIban(), iban);
-    Assert.assertEquals(employeeEditPage.getBic(), bic);
-    Assert.assertEquals(employeeEditPage.getAccountHolder(), accountHolder);
+    Assertions.assertEquals(employeeEditPage.getIban(), iban);
+    Assertions.assertEquals(employeeEditPage.getBic(), bic);
+    Assertions.assertEquals(employeeEditPage.getAccountHolder(), accountHolder);
   }
 
   @Test
@@ -154,10 +154,10 @@ public class MyAccountTest extends SeleniumSuiteTestBase
         .callPage()
         .clickRowWhereColumnLike("Administrator");
 
-    Assert.assertEquals(employeeEditPage.getCity(), city);
-    Assert.assertEquals(employeeEditPage.getCountry(), country);
-    Assert.assertEquals(employeeEditPage.getState(), state);
-    Assert.assertEquals(employeeEditPage.getStreet(), street);
+    Assertions.assertEquals(employeeEditPage.getCity(), city);
+    Assertions.assertEquals(employeeEditPage.getCountry(), country);
+    Assertions.assertEquals(employeeEditPage.getState(), state);
+    Assertions.assertEquals(employeeEditPage.getStreet(), street);
 
   }
 
@@ -206,7 +206,7 @@ public class MyAccountTest extends SeleniumSuiteTestBase
         .callPage()
         .clickRowWhereColumnLike("Administrator");
 
-    Assert.assertEquals(employeeEditPage.getBirthday(), birthday);
+    Assertions.assertEquals(employeeEditPage.getBirthday(), birthday);
   }
 
 }

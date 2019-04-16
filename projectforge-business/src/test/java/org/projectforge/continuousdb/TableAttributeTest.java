@@ -23,21 +23,17 @@
 
 package org.projectforge.continuousdb;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.framework.access.GroupTaskAccessDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
-import org.testng.annotations.Test;
 
-public class TableAttributeTest
-{
+import static org.junit.jupiter.api.Assertions.*;
+
+public class TableAttributeTest {
   @Test
-  public void createTableAttributes()
-  {
+  public void createTableAttributes() {
     TableAttribute attr;
     attr = assertAttribute(TaskDO.class, "id", "pk", TableAttributeType.INT, true, false);
     attr = assertAttribute(TaskDO.class, "created", "created", TableAttributeType.TIMESTAMP, false, true);
@@ -67,19 +63,18 @@ public class TableAttributeTest
   }
 
   private TableAttribute assertAttribute(final Class<?> cls, final String property, final String name,
-      final TableAttributeType type,
-      final boolean primaryKey, final boolean nullable)
-  {
+                                         final TableAttributeType type,
+                                         final boolean primaryKey, final boolean nullable) {
     final TableAttribute attr = new TableAttribute(cls, property);
-    assertEquals("Different column name expected.", name, attr.getName());
-    assertEquals("Different nullable value expected.", nullable, attr.isNullable());
+    assertEquals(name, attr.getName(), "Different column name expected.");
+    assertEquals(nullable, attr.isNullable(), "Different nullable value expected.");
     if (primaryKey == true) {
       assertTrue(attr.isPrimaryKey());
-      assertFalse("Primary key should be not nullable.", attr.isNullable());
+      assertFalse(attr.isNullable(), "Primary key should be not nullable.");
     } else {
       assertFalse(attr.isPrimaryKey());
     }
-    assertEquals("Different column type expected.", type, attr.getType());
+    assertEquals(type, attr.getType(), "Different column type expected.");
     return attr;
   }
 }

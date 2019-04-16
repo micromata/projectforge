@@ -23,7 +23,14 @@
 
 package org.projectforge.business.gantt;
 
-import static org.testng.AssertJUnit.assertEquals;
+import org.apache.commons.io.FileUtils;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.projectforge.framework.renderer.BatikImageRenderer;
+import org.projectforge.framework.renderer.ImageFormat;
+import org.projectforge.framework.time.DayHolder;
+import org.projectforge.test.TestSetup;
+import org.projectforge.test.WorkFileHelper;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,24 +38,17 @@ import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.apache.commons.io.FileUtils;
-import org.projectforge.framework.configuration.ConfigXmlTest;
-import org.projectforge.framework.renderer.BatikImageRenderer;
-import org.projectforge.framework.renderer.ImageFormat;
-import org.projectforge.framework.time.DayHolder;
-import org.projectforge.test.WorkFileHelper;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class GanttTest
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GanttTest.class);
 
-  @BeforeClass
+  @BeforeAll
   public static void setUp()
   {
     // Needed if this tests runs before the ConfigurationTest.
-    ConfigXmlTest.createTestConfiguration();
+    TestSetup.init();
   }
 
   @Test

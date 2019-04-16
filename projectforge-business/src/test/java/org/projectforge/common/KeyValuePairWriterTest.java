@@ -23,17 +23,17 @@
 
 package org.projectforge.common;
 
-import static org.testng.AssertJUnit.assertEquals;
+import org.junit.jupiter.api.Test;
+import org.projectforge.framework.utils.KeyValuePairWriter;
+import org.projectforge.test.AbstractTestBase;
 
 import java.io.StringWriter;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.projectforge.framework.utils.KeyValuePairWriter;
-import org.projectforge.test.AbstractTestNGBase;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class KeyValuePairWriterTest extends AbstractTestNGBase
+public class KeyValuePairWriterTest extends AbstractTestBase
 {
 
   private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory

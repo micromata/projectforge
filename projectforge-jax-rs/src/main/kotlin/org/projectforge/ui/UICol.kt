@@ -1,7 +1,9 @@
 package org.projectforge.ui
 
-data class UICol(val length: Int,
-                 val content: MutableList<UIElement> = mutableListOf()) : UIElement(UIElementType.COL) {
+open class UICol(val length: Int? = null,
+                 val content: MutableList<UIElement> = mutableListOf(),
+                 type : UIElementType = UIElementType.COL)
+    : UIElement(type) {
     fun add(element: UIElement): UICol {
         content.add(element)
         return this

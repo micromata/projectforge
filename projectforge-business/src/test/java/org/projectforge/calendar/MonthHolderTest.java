@@ -23,33 +23,33 @@
 
 package org.projectforge.calendar;
 
-import static org.testng.AssertJUnit.assertEquals;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.projectforge.framework.calendar.MonthHolder;
+import org.projectforge.framework.calendar.WeekHolder;
+import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.framework.time.DayHolder;
+import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.TestSetup;
 
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import org.projectforge.framework.calendar.MonthHolder;
-import org.projectforge.framework.calendar.WeekHolder;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateHolder;
-import org.projectforge.framework.time.DatePrecision;
-import org.projectforge.framework.time.DayHolder;
-import org.projectforge.test.AbstractTestNGBase;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class MonthHolderTest extends AbstractTestNGBase
-{
+public class MonthHolderTest {
+
+  @BeforeAll
+  static void beforeAll() {
+    TestSetup.init();
+  }
 
   @Test
-  public void testMonthHolder()
-  {
-    ThreadLocalUserContext.setUser(getUserGroupCache(),
-        new PFUserDO().setLocale(Locale.GERMAN).setTimeZone(DateHelper.EUROPE_BERLIN));
+  public void testMonthHolder() {
     final DateHolder date = new DateHolder(new Date(), DatePrecision.DAY, Locale.GERMAN);
     date.setDate(1970, Calendar.NOVEMBER, 21, 0, 0, 0);
     final MonthHolder month = new MonthHolder(date.getDate());
@@ -58,45 +58,42 @@ public class MonthHolderTest extends AbstractTestNGBase
     assertEquals("monday", week.getDays()[0].getDayKey());
     assertEquals(26, week.getDays()[0].getDayOfMonth());
     assertEquals(Calendar.OCTOBER, week.getDays()[0].getMonth());
-    assertEquals("Day is marked, because it is not part of the month.", true, week.getDays()[0].isMarker());
+    assertEquals(true, week.getDays()[0].isMarker(), "Day is marked, because it is not part of the month.");
     week = month.getWeeks().get(5);
     assertEquals("monday", week.getDays()[0].getDayKey());
     assertEquals(30, week.getDays()[0].getDayOfMonth());
-    assertEquals("Day is not marked, because it is part of the month.", false, week.getDays()[0].isMarker());
+    assertEquals(false, week.getDays()[0].isMarker(), "Day is not marked, because it is part of the month.");
     assertEquals(6, week.getDays()[6].getDayOfMonth());
-    assertEquals("Day is marked, because it is not part of the month.", true, week.getDays()[6].isMarker());
+    assertEquals(true, week.getDays()[6].isMarker(), "Day is marked, because it is not part of the month.");
     assertEquals(Calendar.DECEMBER, week.getDays()[6].getMonth());
   }
 
   @Test
-  public void testNumberOfWorkingDays()
-  {
+  public void testNumberOfWorkingDays() {
     final DateHolder date = new DateHolder(new Date(), DatePrecision.DAY, Locale.GERMAN);
     date.setDate(2009, Calendar.JANUARY, 16, 0, 0, 0);
     MonthHolder month = new MonthHolder(date.getDate());
-    assertBigDecimal(21, month.getNumberOfWorkingDays());
+    AbstractTestBase.assertBigDecimal(21, month.getNumberOfWorkingDays());
     date.setDate(2009, Calendar.FEBRUARY, 16, 0, 0, 0);
     month = new MonthHolder(date.getDate());
-    assertBigDecimal(20, month.getNumberOfWorkingDays());
+    AbstractTestBase.assertBigDecimal(20, month.getNumberOfWorkingDays());
     date.setDate(2009, Calendar.NOVEMBER, 16, 0, 0, 0);
     month = new MonthHolder(date.getDate());
-    assertBigDecimal(21, month.getNumberOfWorkingDays());
+    AbstractTestBase.assertBigDecimal(21, month.getNumberOfWorkingDays());
     date.setDate(2009, Calendar.DECEMBER, 16, 0, 0, 0);
     month = new MonthHolder(date.getDate());
-    assertBigDecimal(21, month.getNumberOfWorkingDays());
+    AbstractTestBase.assertBigDecimal(21, month.getNumberOfWorkingDays());
   }
 
   @Test
-  public void testDays()
-  {
+  public void testDays() {
     final MonthHolder mh = new MonthHolder(2013, Calendar.MAY);
     final List<DayHolder> list = mh.getDays();
-    Assert.assertEquals(31, list.size());
+    Assertions.assertEquals(31, list.size());
     for (final DayHolder dh : list) {
-      Assert.assertEquals(Calendar.MAY, dh.getMonth());
+      Assertions.assertEquals(Calendar.MAY, dh.getMonth());
     }
-    Assert.assertEquals(1, list.get(0).getDayOfMonth());
-    Assert.assertEquals(31, list.get(30).getDayOfMonth());
+    Assertions.assertEquals(1, list.get(0).getDayOfMonth());
+    Assertions.assertEquals(31, list.get(30).getDayOfMonth());
   }
-
 }

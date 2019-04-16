@@ -4,6 +4,7 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { selectProps } from '../../../utilities/propTypes';
+import AdditionalLabel from './AdditionalLabel';
 import style from './Input.module.scss';
 
 class Select extends Component {
@@ -37,6 +38,7 @@ class Select extends Component {
 
     render() {
         const {
+            additionalLabel,
             id,
             label,
             selected,
@@ -99,6 +101,7 @@ class Select extends Component {
                         ))}
                     </ul>
                 </label>
+                <AdditionalLabel title={additionalLabel} />
             </div>
         );
     }

@@ -27,6 +27,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 import org.projectforge.business.task.TaskDependentFilter;
+import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.time.TimePeriod;
 
@@ -45,8 +46,10 @@ public class TimesheetFilter extends BaseSearchFilter implements Serializable, T
 
   private boolean marked;
 
+  @PropertyInfo(i18nKey = "longFormat")
   private boolean longFormat = false;
 
+  @PropertyInfo(i18nKey = "recursive")
   private boolean recursive = true;
 
   private boolean onlyBillable = false;

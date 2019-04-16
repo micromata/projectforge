@@ -24,21 +24,20 @@
 package org.projectforge.plugins.memo;
 
 import org.projectforge.continuousdb.UpdateEntry;
+import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
-import org.projectforge.web.MenuItemDef;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * Your plugin initialization. Register all your components such as i18n files, data-access object etc.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-public class MemoPlugin extends AbstractPlugin
-{
+public class MemoPlugin extends AbstractPlugin {
   public static final String ID = "memo";
 
   public static final String RESOURCE_BUNDLE_NAME = "MemoI18nResources";
@@ -46,7 +45,7 @@ public class MemoPlugin extends AbstractPlugin
   // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of
   // each test).
   // The entities are inserted in ascending order and deleted in descending order.
-  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[] { MemoDO.class };
+  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[]{MemoDO.class};
 
   @Autowired
   private MemoDao memoDao;
@@ -55,8 +54,7 @@ public class MemoPlugin extends AbstractPlugin
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
   @Override
-  protected void initialize()
-  {
+  protected void initialize() {
     // DatabaseUpdateDao is needed by the updater:
     MemoPluginUpdates.dao = myDatabaseUpdater;
     memoDao = (MemoDao) applicationContext.getBean("memoDao");
@@ -67,9 +65,7 @@ public class MemoPlugin extends AbstractPlugin
     pluginWicketRegistrationService.registerWeb(ID, MemoListPage.class, MemoEditPage.class);
 
     // Register the menu entry as sub menu entry of the misc menu:
-    final MenuItemDef parentMenu = pluginWicketRegistrationService.getMenuItemDef(MenuItemDefId.MISC);
-    pluginWicketRegistrationService
-        .registerMenuItem(new MenuItemDef(parentMenu, ID, 10, "plugins.memo.menu", MemoListPage.class));
+    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, new MenuItemDef(ID, "plugins.memo.menu"), MemoListPage.class);
 
     // Define the access management:
     registerRight(new MemoRight(accessChecker));
@@ -78,14 +74,12 @@ public class MemoPlugin extends AbstractPlugin
     addResourceBundle(RESOURCE_BUNDLE_NAME);
   }
 
-  public void setMemoDao(final MemoDao memoDao)
-  {
+  public void setMemoDao(final MemoDao memoDao) {
     this.memoDao = memoDao;
   }
 
   @Override
-  public UpdateEntry getInitializationUpdateEntry()
-  {
+  public UpdateEntry getInitializationUpdateEntry() {
     return MemoPluginUpdates.getInitializationUpdateEntry();
   }
 }

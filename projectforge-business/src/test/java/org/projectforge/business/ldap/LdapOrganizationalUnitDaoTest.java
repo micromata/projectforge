@@ -23,9 +23,10 @@
 
 package org.projectforge.business.ldap;
 
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
-@Test(enabled=false)
+@Disabled
 public class LdapOrganizationalUnitDaoTest
 {
   /*  private static final org.slf4j.Logger log = org.slf4j.Logger
@@ -53,13 +54,13 @@ public class LdapOrganizationalUnitDaoTest
     final String ou = "deactivated";
     final String path = "ou=pf-test-ou";
     ldapOrganizationalUnitDao.createIfNotExist(path, "description");
-    Assert.assertTrue(ldapOrganizationalUnitDao.doesExist(path));
+    Assertions.assertTrue(ldapOrganizationalUnitDao.doesExist(path));
     ldapOrganizationalUnitDao.createIfNotExist(ou, "description", path);
-    Assert.assertTrue(ldapOrganizationalUnitDao.doesExist(ou, path));
+    Assertions.assertTrue(ldapOrganizationalUnitDao.doesExist(ou, path));
 
     ldapOrganizationalUnitDao.deleteIfExists(ou, path);
-    Assert.assertFalse(ldapOrganizationalUnitDao.doesExist(ou, path));
+    Assertions.assertFalse(ldapOrganizationalUnitDao.doesExist(ou, path));
     ldapOrganizationalUnitDao.deleteIfExists(path);
-    Assert.assertFalse(ldapOrganizationalUnitDao.doesExist(path));
+    Assertions.assertFalse(ldapOrganizationalUnitDao.doesExist(path));
   }*/
 }

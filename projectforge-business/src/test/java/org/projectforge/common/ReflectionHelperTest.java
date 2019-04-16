@@ -23,10 +23,10 @@
 
 package org.projectforge.common;
 
-import static org.testng.AssertJUnit.assertEquals;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.framework.utils.ReflectionHelper;
-import org.testng.annotations.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ReflectionHelperTest
 {

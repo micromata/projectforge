@@ -2,7 +2,7 @@ package org.projectforge.web.selenium.login;
 
 import org.projectforge.web.selenium.SeleniumSuiteTestBase;
 import org.projectforge.web.selenium.teamcal.SeleniumTeamCalPage;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class LoginPageTest extends SeleniumSuiteTestBase
 {

@@ -23,37 +23,34 @@
 
 package org.projectforge.business.gantt;
 
-import static org.testng.AssertJUnit.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.DayHolder;
+import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.TestSetup;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.projectforge.framework.configuration.ConfigXmlTest;
-import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DayHolder;
-import org.projectforge.test.AbstractTestNGBase;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class GanttUtilsTest extends AbstractTestNGBase
-{
+public class GanttUtilsTest extends AbstractTestBase {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GanttUtilsTest.class);
 
   private static int counter = 0;
 
   private static BigDecimal TWO = new BigDecimal("2");
 
-  @BeforeClass
-  public static void setUpThisTest()
-  {
+  @BeforeEach
+  public void setUpThisTest() {
     // Needed if this tests runs before the ConfigurationTest.
-    ConfigXmlTest.createTestConfiguration();
+    TestSetup.init();
   }
 
   @Test
-  public void calculateFromDate()
-  {
+  public void calculateFromDate() {
     final GanttTaskImpl activity1 = createActivity(10).setTitle("activity1");
     final DayHolder day = new DayHolder();
     day.setDate(2010, Calendar.FEBRUARY, 5);
@@ -90,8 +87,7 @@ public class GanttUtilsTest extends AbstractTestNGBase
   }
 
   @Test
-  public void subActivities()
-  {
+  public void subActivities() {
     final DayHolder day = new DayHolder();
     final GanttTaskImpl a1 = createActivity(1).setTitle("a1");
     day.setDate(2010, Calendar.SEPTEMBER, 1);
@@ -132,8 +128,7 @@ public class GanttUtilsTest extends AbstractTestNGBase
   }
 
   @Test
-  public void circularReferences()
-  {
+  public void circularReferences() {
     final GanttTaskImpl a1 = createActivity(1).setTitle("a1");
     final GanttTaskImpl a1_1 = createActivity(10).setTitle("a1_1");
     a1_1.setPredecessor(a1);
@@ -146,46 +141,52 @@ public class GanttUtilsTest extends AbstractTestNGBase
   }
 
   @Test
-  public void compareTo()
-  {
+  public void compareTo() {
     final GanttTaskImpl a1 = new GanttTaskImpl(1).setTitle("B");
     assertEquals(0, GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a1, a1));
     GanttTaskImpl a2 = new GanttTaskImpl(1).setTitle("A");
     assertEquals(0, GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a1, a1)); // Same id
     a2 = new GanttTaskImpl(2).setTitle("A");
-    assertTrue("Start date not given, use alphabetical order instead.",
-        GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a1, a2) > 0);
-    assertTrue("Start date not given, use alphabetical order instead.",
-        GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a2, a1) < 0);
+    assertTrue(GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a1, a2) > 0,
+            "Start date not given, use alphabetical order instead.");
+    assertTrue(GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a2, a1) < 0,
+            "Start date not given, use alphabetical order instead.");
 
     final DayHolder day = new DayHolder();
     day.setDate(2010, Calendar.JUNE, 1);
     a1.setStartDate(day.getDate());
-    assertTrue("a1.startDate before a2.startDate = null (now).",
-        GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a1, a2) < 0);
-    assertTrue("a1.startDate before a2.startDate = null (now).",
-        GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a2, a1) > 0);
+    assertTrue(GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a1, a2) < 0,
+            "a1.startDate before a2.startDate = null (now).");
+    assertTrue(GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a2, a1) > 0,
+            "a1.startDate before a2.startDate = null (now).");
     day.addWorkingDays(2);
     a2.setStartDate(day.getDate());
-    assertTrue("a1.startDate before a2.startDate.", GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a1, a2) < 0);
-    assertTrue("a1.startDate before a2.startDate.", GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a2, a1) > 0);
+    assertTrue(GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a1, a2) < 0,
+            "a1.startDate before a2.startDate.");
+    assertTrue(GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a2, a1) > 0,
+            "a1.startDate before a2.startDate.");
     a1.setStartDate(day.getDate());
-    assertTrue("Same start date -> alphabetical order", GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a1, a2) > 0);
-    assertTrue("Same start date -> alphabetical order", GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a2, a1) < 0);
+    assertTrue(GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a1, a2) > 0,
+            "Same start date -> alphabetical order");
+    assertTrue(GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a2, a1) < 0,
+            "Same start date -> alphabetical order");
     day.addWorkingDays(2);
     a2.setEndDate(day.getDate());
     final Date a1StartDate = a1.getStartDate();
     a1.setStartDate(null);
-    assertTrue("a1.endDate = null after a2.endDate", GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a1, a2) > 0);
-    assertTrue("a1.endDate = null before a2.endDate", GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a2, a1) < 0);
+    assertTrue(GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a1, a2) > 0,
+            "a1.endDate = null after a2.endDate");
+    assertTrue(GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a2, a1) < 0,
+            "a1.endDate = null before a2.endDate");
     a1.setEndDate(day.getDate());
     a1.setStartDate(a1StartDate);
-    assertTrue("Same start and end date -> alphabetical order", GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a1, a2) > 0);
-    assertTrue("Same start and end date -> alphabetical order", GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a2, a1) < 0);
+    assertTrue(GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a1, a2) > 0,
+            "Same start and end date -> alphabetical order");
+    assertTrue(GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a2, a1) < 0,
+            "Same start and end date -> alphabetical order");
   }
 
-  private GanttTaskImpl createActivity(final int durationDays)
-  {
+  private GanttTaskImpl createActivity(final int durationDays) {
     final GanttTaskImpl activity = new GanttTaskImpl();
     if (durationDays >= 0) {
       activity.setDuration(new BigDecimal(durationDays));
@@ -194,26 +195,22 @@ public class GanttUtilsTest extends AbstractTestNGBase
     return activity;
   }
 
-  private void assertDate(final int year, final int month, final int day, final Date date)
-  {
+  private void assertDate(final int year, final int month, final int day, final Date date) {
     final DayHolder dh = new DayHolder();
     dh.setDate(year, month, day);
     assertEquals(DateHelper.formatIsoDate(dh.getDate()), DateHelper.formatIsoDate(date));
   }
 
   private void assertDates(final String expectedCalculatedStartDate, final String expectedCalculatedEndDate,
-      final GanttTask task)
-  {
+                           final GanttTask task) {
     assertEquals(expectedCalculatedStartDate, DateHelper.formatIsoDate(task.recalculate().getCalculatedStartDate()));
     assertEquals(expectedCalculatedEndDate, DateHelper.formatIsoDate(task.getCalculatedEndDate()));
   }
 
   private void assertDates(final String msg, final String expectedCalculatedStartDate,
-      final String expectedCalculatedEndDate,
-      final GanttTask task)
-  {
-    assertEquals(msg, expectedCalculatedStartDate,
-        DateHelper.formatIsoDate(task.recalculate().getCalculatedStartDate()));
-    assertEquals(msg, expectedCalculatedEndDate, DateHelper.formatIsoDate(task.getCalculatedEndDate()));
+                           final String expectedCalculatedEndDate,
+                           final GanttTask task) {
+    assertEquals(expectedCalculatedStartDate, DateHelper.formatIsoDate(task.recalculate().getCalculatedStartDate()), msg);
+    assertEquals(expectedCalculatedEndDate, DateHelper.formatIsoDate(task.getCalculatedEndDate()), msg);
   }
 }

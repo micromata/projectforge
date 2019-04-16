@@ -1,27 +1,31 @@
 package org.projectforge.ui
 
 import de.micromata.genome.jpa.metainf.ColumnMetadata
+import de.micromata.genome.jpa.metainf.ColumnMetadataBean
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.springframework.beans.BeanUtils
 import java.util.*
+import javax.persistence.Basic
+import javax.persistence.Column
+import javax.persistence.JoinColumn
 
 /**
  * Registry holds properties of UIElements...
- * Builds elements automatically dependent on their property type. For Strings with maxLength > 255 a [UITextarea] will be created instead
+ * Builds elements automatically dependent on their property type. For Strings with maxLength > 255 a [UITextArea] will be created instead
  * of an [UIInput].
  */
 object ElementsRegistry {
-    private val log = org.slf4j.LoggerFactory.getLogger(LayoutUtils::class.java)
+    private val log = org.slf4j.LoggerFactory.getLogger(ElementsRegistry::class.java)
 
     class ElementInfo(val propertyType: Class<*>,
-                               var maxLength: Int? = null,
-                               var required: Boolean? = null,
-                               var i18nKey: String? = null,
-                               var additionalI18nKey: String? = null)
+                      var maxLength: Int? = null,
+                      var required: Boolean? = null,
+                      var i18nKey: String? = null,
+                      var additionalI18nKey: String? = null)
 
-    fun getProperties(clazz : Class<*>) : Map<String, ElementInfo>? {
+    fun getProperties(clazz: Class<*>): Map<String, ElementInfo>? {
         return registryMap.get(clazz)
     }
 
@@ -50,7 +54,7 @@ object ElementsRegistry {
                     String::class.java -> {
                         val maxLength = elementInfo.maxLength
                         if (maxLength != null && maxLength > 255) {
-                            UITextarea(property, maxLength = elementInfo.maxLength, layoutSettings = layoutSettings)
+                            UITextArea(property, maxLength = elementInfo.maxLength, layoutSettings = layoutSettings)
                         } else {
                             UIInput(property, maxLength = elementInfo.maxLength, required = elementInfo.required, layoutSettings = layoutSettings)
                         }
@@ -74,7 +78,7 @@ object ElementsRegistry {
                 }
             }
         }
-        if ((layoutSettings.useInlineLabels || element is UILabel) && element is UILabelledElement) {
+        if (element is UILabelledElement) {
             LayoutUtils.setLabels(elementInfo, element)
         }
         return element ?: UILabel(property)
@@ -85,7 +89,7 @@ object ElementsRegistry {
     }
 
     internal fun getElementInfo(clazz: Class<*>?, property: String): ElementInfo? {
-        if (clazz == null || property == null)
+        if (clazz == null)
             return null
         val mapKey = getMapKey(clazz, property)!!
         var elementInfo = ensureClassMap(clazz).get(property)
@@ -103,11 +107,16 @@ object ElementsRegistry {
         }
         elementInfo = ElementInfo(propertyType)
         val propertyInfo = PropUtils.get(clazz, property)
+        if (propertyInfo == null) {
+            log.warn("@PropertyInfo '${clazz}:${property}' not found.")
+            return elementInfo
+        }
         val colinfo = getColumnMetadata(clazz, property)
-
-        elementInfo.maxLength = colinfo?.getMaxLength()
-        if (!(colinfo?.isNullable == true) || propertyInfo.required == true)
-            elementInfo.required = true
+        if (colinfo != null) {
+            elementInfo.maxLength = colinfo.getMaxLength()
+            if (!(colinfo.isNullable) || propertyInfo.required)
+                elementInfo.required = true
+        }
         elementInfo.i18nKey = getNullIfEmpty(propertyInfo?.i18nKey)
         elementInfo.additionalI18nKey = getNullIfEmpty(propertyInfo?.additionalI18nKey)
 
@@ -151,7 +160,25 @@ object ElementsRegistry {
         if (entity == null)
             return null
         val persistentClass = PfEmgrFactory.get().metadataRepository.findEntityMetadata(entity) ?: return null
-        return persistentClass.columns[property]
+        val columnMetaData = persistentClass.columns[property]
+        if (columnMetaData == null)
+            return null
+        if (!columnMetaData.isNullable) {
+            var joinColumnAnn = columnMetaData.findAnnoation(JoinColumn::class.java)
+            if (joinColumnAnn != null) {
+                // Fix for error in method findEntityMetadata: For @JoinColumn nullable is always returned as false:
+                (columnMetaData as ColumnMetadataBean).isNullable = joinColumnAnn.nullable
+            }
+            val basicAnn = columnMetaData.findAnnoation(Basic::class.java)
+            if (basicAnn != null) {
+                val columnAnn = columnMetaData.findAnnoation(Column::class.java)
+                if (columnAnn == null) {
+                    // Fix for error in method findEntityMetadata: For @Basic without @Column nullable is always returned as false:
+                    (columnMetaData as ColumnMetadataBean).isNullable = true // nullable is true, if @Column is not given (JPA).
+                }
+            }
+        }
+        return columnMetaData
     }
 
     private fun getNullIfEmpty(value: String?): String? {

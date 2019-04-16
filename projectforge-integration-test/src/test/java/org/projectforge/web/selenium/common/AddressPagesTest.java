@@ -2,8 +2,8 @@ package org.projectforge.web.selenium.common;
 
 import org.projectforge.web.selenium.SeleniumSuiteTestBase;
 import org.projectforge.web.selenium.login.SeleniumLoginPage;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class AddressPagesTest extends SeleniumSuiteTestBase
 {
@@ -48,6 +48,6 @@ public class AddressPagesTest extends SeleniumSuiteTestBase
       failed = true;
     }
 
-    Assert.assertTrue(failed);
+    Assertions.assertTrue(failed);
   }
 }

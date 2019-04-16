@@ -23,29 +23,25 @@
 
 package org.projectforge.web.rest;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.rest.Authentication;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 
-public class RestUserFilterTest extends AbstractTestNGBase
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+import static org.mockito.Mockito.*;
+
+public class RestUserFilterTest extends AbstractTestBase
 {
 
   @Autowired
@@ -57,9 +53,14 @@ public class RestUserFilterTest extends AbstractTestNGBase
 
   String userToken = "token";
 
-  @BeforeClass
+  private static boolean initialized;
+
+  @BeforeEach
   public void init()
   {
+    if (initialized)
+      return;
+    initialized = true;
     PFUserDO user = getUserGroupCache().getUser(AbstractTestBase.TEST_USER);
     this.userId = user.getId();
     this.userToken = userService.getAuthenticationToken(this.userId);

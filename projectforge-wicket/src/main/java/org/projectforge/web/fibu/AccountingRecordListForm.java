@@ -50,9 +50,7 @@ public class AccountingRecordListForm extends AbstractListForm<AccountingRecordL
   @Override
   protected void init()
   {
-    if (parentPage.reportId != null) {
-      setPageSize(1000);
-    }
+    searchFilter.setMaxRows(1000);
     super.init();
     if (isFilterVisible() == false) {
       return;

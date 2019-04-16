@@ -23,12 +23,9 @@
 
 package org.projectforge.business.login;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
+import org.junit.jupiter.api.Test;
 
-import org.projectforge.business.login.LoginProtection;
-import org.projectforge.business.login.LoginProtectionMap;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class LoginProtectionTest
 {
@@ -42,42 +39,48 @@ public class LoginProtectionTest
     final long current = System.currentTimeMillis();
     final LoginProtectionMap lp = LoginProtection.instance().getMapByUserId();
     lp.clearAll();
-    assertEquals("Maps should be empty.", 0, lp.getSizeOfLastFailedLoginMap());
-    assertEquals("Maps should be empty.", 0, lp.getSizeOfLoginFailedAttemptsMap());
+    assertEquals( 0, lp.getSizeOfLastFailedLoginMap(),"Maps should be empty.");
+    assertEquals( 0, lp.getSizeOfLoginFailedAttemptsMap(),"Maps should be empty.");
     lp.incrementFailedLoginTimeOffset("kai");
     lp.incrementFailedLoginTimeOffset("kai");
     lp.incrementFailedLoginTimeOffset("kai");
-    assertTrue("Time offset due to 3 failed logins expected.", lp.getFailedLoginTimeOffsetIfExists("kai") > 0);
-    assertTrue("Time offset due to 3 failed logins not more than 3 seconds expected.",
-        lp.getFailedLoginTimeOffsetIfExists("kai") < 3001);
-    assertEquals("No offset for new user 'horst' expected.", 0, (int) lp.getFailedLoginTimeOffsetIfExists("horst"));
+    assertTrue( lp.getFailedLoginTimeOffsetIfExists("kai") > 0,
+            "Time offset due to 3 failed logins expected.");
+    assertTrue(lp.getFailedLoginTimeOffsetIfExists("kai") < 3001,
+            "Time offset due to 3 failed logins not more than 3 seconds expected.");
+    assertEquals( 0, (int) lp.getFailedLoginTimeOffsetIfExists("horst"),
+            "No offset for new user 'horst' expected.");
     lp.setEntry("horst", 10, current - DURATION_48_HOURS); // Expired.
     lp.incrementFailedLoginTimeOffset("kai"); // 10 failed login attempts should be deleted now:
-    assertEquals("Penalty for 'horst' should be deleted, because it's expired.", 1, lp.getSizeOfLastFailedLoginMap());
-    assertEquals("Penalty for 'horst' should be deleted, because it's expired.", 1,
-        lp.getSizeOfLoginFailedAttemptsMap());
-    assertEquals("Penalty for 'horst' should be deleted, because it's expired.", 0,
-        lp.getNumberOfFailedLoginAttempts("horst"));
-    assertEquals("Penalty for 'horst' should be deleted, because it's expired.", 0,
-        (int) lp.getFailedLoginTimeOffsetIfExists("horst"));
+    assertEquals( 1, lp.getSizeOfLastFailedLoginMap(),
+            "Penalty for 'horst' should be deleted, because it's expired.");
+    assertEquals( 1, lp.getSizeOfLoginFailedAttemptsMap(),
+            "Penalty for 'horst' should be deleted, because it's expired.");
+    assertEquals( 0, lp.getNumberOfFailedLoginAttempts("horst"),
+            "Penalty for 'horst' should be deleted, because it's expired.");
+    assertEquals( 0, (int) lp.getFailedLoginTimeOffsetIfExists("horst"),
+            "Penalty for 'horst' should be deleted, because it's expired.");
     lp.setEntry("horst", 10, current - DURATION_4_HOURS); // Not expired.
     lp.incrementFailedLoginTimeOffset("kai");
-    assertEquals("No time offset for 'horst' expected because last login was 4 hours ago.", 0,
-        (int) lp.getFailedLoginTimeOffsetIfExists("horst"));
+    assertEquals( 0, (int) lp.getFailedLoginTimeOffsetIfExists("horst"),
+            "No time offset for 'horst' expected because last login was 4 hours ago.");
     lp.incrementFailedLoginTimeOffset("horst");
-    assertEquals("11 failed login attempts expected.", 11, lp.getNumberOfFailedLoginAttempts("horst"));
-    assertTrue("Time offset due to 11 failed logins expected.", lp.getFailedLoginTimeOffsetIfExists("horst") > 0);
-    assertTrue("Time offset due to 11 failed logins not more than 11 seconds expected.",
-        lp.getFailedLoginTimeOffsetIfExists("horst") < 11001);
+    assertEquals( 11, lp.getNumberOfFailedLoginAttempts("horst"),
+            "11 failed login attempts expected.");
+    assertTrue( lp.getFailedLoginTimeOffsetIfExists("horst") > 0,
+            "Time offset due to 11 failed logins expected.");
+    assertTrue(lp.getFailedLoginTimeOffsetIfExists("horst") < 11001,
+            "Time offset due to 11 failed logins not more than 11 seconds expected.");
     lp.clearLoginTimeOffset("horst");
-    assertEquals("Penalty for 'horst' should be deleted.", 0, (int) lp.getFailedLoginTimeOffsetIfExists("horst"));
+    assertEquals( 0, (int) lp.getFailedLoginTimeOffsetIfExists("horst"),
+            "Penalty for 'horst' should be deleted.");
     lp.incrementFailedLoginTimeOffset("horst");
     final long offset = lp.getFailedLoginTimeOffsetIfExists("horst");
-    assertTrue("Time offset between 0 and 1 second expected due to 1 failed login attempt.",
-        offset > 0 && offset < 1001);
+    assertTrue(offset > 0 && offset < 1001,
+            "Time offset between 0 and 1 second expected due to 1 failed login attempt.");
     Thread.sleep(offset + 1);
-    assertEquals("No time offset for 'horst' expected, because time offest was run down.", 0,
-        (int) lp.getFailedLoginTimeOffsetIfExists("horst"));
+    assertEquals( 0, (int) lp.getFailedLoginTimeOffsetIfExists("horst"),
+            "No time offset for 'horst' expected, because time offest was run down.");
   }
 
   @Test
@@ -85,16 +88,19 @@ public class LoginProtectionTest
   {
     final LoginProtection lp = LoginProtection.instance();
     lp.clearAll();
-    assertEquals("Maps should be empty.", 0, lp.getMapByIpAddress().getSizeOfLastFailedLoginMap());
-    assertEquals("Maps should be empty.", 0, lp.getMapByIpAddress().getSizeOfLoginFailedAttemptsMap());
+    assertEquals( 0, lp.getMapByIpAddress().getSizeOfLastFailedLoginMap(),
+            "Maps should be empty.");
+    assertEquals( 0, lp.getMapByIpAddress().getSizeOfLoginFailedAttemptsMap(),
+            "Maps should be empty.");
     final String ip = "192.168.76.1";
     for (int i = 0; i < 3001; i++) {
       lp.incrementFailedLoginTimeOffset(String.valueOf(i), ip);
     }
-    assertTrue("Time offset due to 3 failed logins expected.", lp.getFailedLoginTimeOffsetIfExists("kai", ip) > 0);
-    assertTrue("Time offset due to 3 failed logins not more than 3 seconds expected.",
-        lp.getFailedLoginTimeOffsetIfExists("kai", ip) < 3001);
-    assertEquals("No offset for new ip address expected.", 0,
-        (int) lp.getFailedLoginTimeOffsetIfExists("horst", "192.168.76.2"));
+    assertTrue( lp.getFailedLoginTimeOffsetIfExists("kai", ip) > 0,
+            "Time offset due to 3 failed logins expected.");
+    assertTrue(lp.getFailedLoginTimeOffsetIfExists("kai", ip) < 3001,
+            "Time offset due to 3 failed logins not more than 3 seconds expected.");
+    assertEquals( 0, (int) lp.getFailedLoginTimeOffsetIfExists("horst", "192.168.76.2"),
+            "No offset for new ip address expected.");
   }
 }

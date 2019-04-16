@@ -2,9 +2,9 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { categoryPropType } from '../../../../utilities/propTypes';
 import { Collapse } from '../../../design';
 import style from '../Navigation.module.scss';
+import MenuBadge from './MenuBadge';
 
 class Category extends React.Component {
     constructor(props) {
@@ -17,6 +17,7 @@ class Category extends React.Component {
 
         this.handleWindowResize = this.handleWindowResize.bind(this);
         this.toggle = this.toggle.bind(this);
+        this.handleLinkClick = this.handleLinkClick.bind(this);
     }
 
     componentDidMount() {
@@ -58,8 +59,20 @@ class Category extends React.Component {
         }));
     }
 
+    handleLinkClick() {
+        const { closeMenu } = this.props;
+
+        closeMenu();
+    }
+
     render() {
-        const { category, className, ...props } = this.props;
+        const {
+            category,
+            className,
+            // destructuring is necessary. Otherwise its in the dom.
+            closeMenu,
+            ...props
+        } = this.props;
         const { collapse } = this.state;
 
         return (
@@ -69,16 +82,31 @@ class Category extends React.Component {
                     onClick={this.toggle}
                     role="presentation"
                 >
-                    {category.name}
+                    {category.title}
+                    {category.badge
+                        ? <MenuBadge>{category.badge.counter}</MenuBadge>
+                        : undefined}
                 </div>
                 <Collapse isOpen={collapse}>
                     <ul className={style.categoryLinks}>
-                        {category.items.map(item => (
+                        {category.subMenu.map(item => (
                             <li
                                 className={style.categoryLink}
-                                key={`category-link-${category.name}-${item.name}`}
+                                key={`category-link-${item.key}`}
                             >
-                                <Link to={item.url}>{item.name}</Link>
+                                <Link
+                                    onClick={this.handleLinkClick}
+                                    to={`/${item.url}/`}
+                                >
+                                    {item.title}
+                                    {item.badge
+                                        ? (
+                                            <MenuBadge tooltip={item.badge.tooltip}>
+                                                {item.badge.counter}
+                                            </MenuBadge>
+                                        )
+                                        : undefined}
+                                </Link>
                             </li>
                         ))}
                     </ul>
@@ -89,12 +117,14 @@ class Category extends React.Component {
 }
 
 Category.propTypes = {
-    category: categoryPropType.isRequired,
+    category: PropTypes.shape({}).isRequired,
     className: PropTypes.string,
+    closeMenu: PropTypes.func,
 };
 
 Category.defaultProps = {
     className: undefined,
+    closeMenu: undefined,
 };
 
 export default Category;

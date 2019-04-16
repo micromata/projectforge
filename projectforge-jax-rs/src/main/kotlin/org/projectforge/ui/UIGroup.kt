@@ -41,7 +41,7 @@ data class UIGroup(val content: MutableList<UIElement> = mutableListOf()) : UIEl
         label.labelFor =
                 when (element) {
                     is UIInput -> element.id
-                    is UITextarea -> element.id
+                    is UITextArea -> element.id
                     is UISelect -> element.id
                     is UIMultiSelect -> element.id
                     else -> null
