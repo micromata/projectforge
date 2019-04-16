@@ -140,7 +140,7 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
     }
 
     fun getFullRestPath(): String {
-        return "${ProjectForgeRestConfiguration.REST_WEB_APP_URL}${getRestPath()}"
+        return "${getRestPath()}"
     }
 
     open fun createEditLayout(dataObject: O?): UILayout {

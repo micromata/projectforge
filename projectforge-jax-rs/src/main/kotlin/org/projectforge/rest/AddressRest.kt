@@ -161,7 +161,7 @@ class AddressRest()
                 .add(UIGroup()
                         .add(UIMultiSelect("addressbookList", lc,
                 //                autoCompletion = AutoCompletion(values = addressbooks))))
-                              autoCompletion = AutoCompletion(url = "${ProjectForgeRestConfiguration.REST_WEB_APP_URL}addressBook/ac?search="))))
+                              autoCompletion = AutoCompletion(url = "addressBook/ac?search="))))
                 .add(UIRow()
                         .add(UIFieldset(6).add(lc, "contactStatus"))
                         .add(UIFieldset(6)
