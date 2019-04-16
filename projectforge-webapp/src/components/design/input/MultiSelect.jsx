@@ -21,6 +21,7 @@ class MultiSelect extends Component {
         this.handleBadgeDelete = this.handleBadgeDelete.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
         this.selectFromDropdown = this.selectFromDropdown.bind(this);
+        this.setSelectIndex = this.setSelectIndex.bind(this);
         this.handleInputKey = this.handleInputKey.bind(this);
         this.getFilteredValueKeys = this.getFilteredValueKeys.bind(this);
         this.editValue = this.editValue.bind(this);
@@ -38,6 +39,12 @@ class MultiSelect extends Component {
         // filter searchString and deleted values
         return Object.keys(value)
             .filter(key => key !== 'searchString' && value[key] !== undefined);
+    }
+
+    setSelectIndex(index) {
+        this.setState({
+            selectIndex: index,
+        });
     }
 
     editValue(key) {
@@ -141,10 +148,7 @@ class MultiSelect extends Component {
                     newValue = dropdownLength - 1;
                 }
 
-                this.setState({
-                    selectIndex: newValue,
-                });
-
+                this.setSelectIndex(newValue);
                 break;
             }
             default:
@@ -178,6 +182,7 @@ class MultiSelect extends Component {
             dropdownContent = (
                 <DropdownSelectContent
                     select={this.selectFromDropdown}
+                    setSelected={this.setSelectIndex}
                     values={this.getDropdownValues()}
                     selectIndex={selectIndex}
                 />
