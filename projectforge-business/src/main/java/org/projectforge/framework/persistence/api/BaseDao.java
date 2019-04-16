@@ -1591,7 +1591,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   {
     checkLoggedInUserSelectAccess();
     if (StringUtils.isBlank(searchString) == true) {
-      return null;
+      return new ArrayList<>();
     }
     final String hql = "select distinct "
         + property
