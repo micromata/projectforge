@@ -63,14 +63,13 @@ class SearchFilter extends Component {
         } = this.props;
 
         const { filter: newFilter } = this.state;
-        const searchFilter = getNamedContainer('searchFilter', namedContainers) || { content: [] };
 
         return (
             <Card>
                 <CardBody>
                     <MultiSelect
                         additionalLabel="WIP: New Search Filter"
-                        autoComplete={searchFilter.content}
+                        autoComplete={[]}
                         autoCompleteForm="$AUTOCOMPLETE:"
                         id="complexSearchFilter"
                         label="Suchfilter"

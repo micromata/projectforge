@@ -19,7 +19,7 @@ function DropdownSelectContent(
                         style.selectOption,
                         { [style.keySelected]: selectIndex === index },
                     )}
-                    key={`dropdown-select-option-${option.id}`}
+                    key={`dropdown-select-option-${option}`}
                 >
                     <span
                         onMouseOver={() => setSelected(index)}
@@ -32,7 +32,7 @@ function DropdownSelectContent(
                         role="button"
                         tabIndex={-1}
                     >
-                        {option.id}
+                        {option}
                     </span>
                 </li>
             ))}
@@ -44,9 +44,7 @@ DropdownSelectContent.propTypes = {
     select: PropTypes.func.isRequired,
     setSelected: PropTypes.func.isRequired,
     selectIndex: PropTypes.number,
-    values: PropTypes.arrayOf(PropTypes.shape({
-        id: PropTypes.string,
-    })),
+    values: PropTypes.arrayOf(PropTypes.string),
 };
 
 DropdownSelectContent.defaultProps = {

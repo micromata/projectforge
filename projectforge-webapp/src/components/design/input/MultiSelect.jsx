@@ -30,7 +30,8 @@ class MultiSelect extends Component {
     getDropdownValues() {
         const { value, autoComplete } = this.props;
 
-        return autoComplete.filter(({ id }) => id.includes(value.searchString));
+        return autoComplete.filter(entry => entry.toLowerCase()
+            .includes(value.searchString.toLowerCase()));
     }
 
     getFilteredValueKeys() {
@@ -78,7 +79,7 @@ class MultiSelect extends Component {
 
         const { setValue } = this.props;
 
-        setValue('searchString', autoCompleteForm.replace('$AUTOCOMPLETE', values[index].id));
+        setValue('searchString', autoCompleteForm.replace('$AUTOCOMPLETE', values[index]));
     }
 
     handleInputKey(event) {
@@ -109,6 +110,8 @@ class MultiSelect extends Component {
             case 'Enter': {
                 // handling dropdown selection
                 if (selectIndex > -1 && selectIndex < this.getDropdownValues().length) {
+                    event.stopPropagation();
+                    event.preventDefault();
                     this.selectFromDropdown(selectIndex);
                     return;
                 }
@@ -233,9 +236,7 @@ MultiSelect.propTypes = {
         searchString: PropTypes.string,
     }).isRequired,
     additionalLabel: PropTypes.string,
-    autoComplete: PropTypes.arrayOf(PropTypes.shape({
-        id: PropTypes.string,
-    })),
+    autoComplete: PropTypes.arrayOf(PropTypes.string),
     autoCompleteForm: PropTypes.string,
     pills: PropTypes.bool,
 };
