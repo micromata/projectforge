@@ -22,12 +22,14 @@ class RestWebAppConfiguration : ResourceConfig() {
         register(UserStatusRest::class.java)
 
         register(AddressRest::class.java)
+        register(AddressBookServicesRest::class.java)
         register(AddressImageServicesRest::class.java)
         register(AddressServicesRest::class.java)
         register(BookRest::class.java)
         register(BookServicesRest::class.java)
         register(CalendarServicesRest::class.java)
         register(TaskServicesRest::class.java)
+        register(TeamCalRest::class.java)
         register(TimesheetRest::class.java)
 
         // Organization

@@ -8,6 +8,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.AddressImageServicesRest.Companion.SESSION_IMAGE_ATTR
+import org.projectforge.rest.config.ProjectForgeRestConfiguration
 import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.core.ResultSet
@@ -159,7 +160,8 @@ class AddressRest()
         val layout = super.createEditLayout(dataObject)
                 .add(UIGroup()
                         .add(UIMultiSelect("addressbookList", lc,
-                                autoCompletion = AutoCompletion(values = addressbooks))))
+                //                autoCompletion = AutoCompletion(values = addressbooks))))
+                              autoCompletion = AutoCompletion(url = "${ProjectForgeRestConfiguration.REST_WEB_APP_URL}addressBook/ac?search="))))
                 .add(UIRow()
                         .add(UIFieldset(6).add(lc, "contactStatus"))
                         .add(UIFieldset(6)
