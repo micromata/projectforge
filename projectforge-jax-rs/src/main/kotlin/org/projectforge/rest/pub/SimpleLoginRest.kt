@@ -11,8 +11,14 @@ import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.business.user.service.UserService
+import org.projectforge.framework.configuration.ConfigurationParam
+import org.projectforge.framework.configuration.GlobalConfiguration
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.rest.core.RestHelper
+import org.projectforge.ui.UILabel
+import org.projectforge.ui.UILayout
+import org.projectforge.ui.UINamedContainer
 import org.projectforge.web.rest.RestUserFilter.executeLogin
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
@@ -23,9 +29,7 @@ import javax.servlet.ServletRequest
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-import javax.ws.rs.Consumes
-import javax.ws.rs.POST
-import javax.ws.rs.Path
+import javax.ws.rs.*
 import javax.ws.rs.core.Context
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
@@ -41,13 +45,26 @@ open class SimpleLoginRest {
     private val log = org.slf4j.LoggerFactory.getLogger(SimpleLoginRest::class.java)
 
     @Autowired
-    open var applicationContext: ApplicationContext? = null
+    private lateinit var applicationContext: ApplicationContext
 
     @Autowired
-    open var userService: UserService? = null
+    private lateinit var userService: UserService
 
     @Autowired
-    open var cookieService: CookieService? = null
+    private lateinit var cookieService: CookieService
+
+    private val restHelper = RestHelper()
+
+    @GET
+    @Path("layout")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun getLayout(): Response {
+        val layout = UILayout("login.title")
+                .addTranslations("username", "password", "login.stayLoggedIn", "login.stayLoggedIn.tooltip")
+                //.addTranslation("messageOfTheDay")
+        layout.add(UINamedContainer("messageOfTheDay").add(UILabel(label = GlobalConfiguration.getInstance().getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY))))
+        return restHelper.buildResponse(layout)
+    }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -78,9 +95,9 @@ open class SimpleLoginRest {
         }
         log.info("User successfully logged in: " + user.displayUsername)
         if (loginData.stayLoggedIn == true) {
-            val loggedInUser = userService!!.getById(user.id)
-            val cookie = Cookie(Const.COOKIE_NAME_FOR_STAY_LOGGED_IN, "${loggedInUser.getId()}:${loggedInUser.getUsername()}:${userService!!.getStayLoggedInKey(user.id)}")
-            cookieService!!.addStayLoggedInCookie(request, response, cookie)
+            val loggedInUser = userService.getById(user.id)
+            val cookie = Cookie(Const.COOKIE_NAME_FOR_STAY_LOGGED_IN, "${loggedInUser.getId()}:${loggedInUser.getUsername()}:${userService.getStayLoggedInKey(user.id)}")
+            cookieService.addStayLoggedInCookie(request, response, cookie)
         }
         // Execute login:
         val userContext = UserContext(PFUserDO.createCopyWithoutSecretFields(user), getUserGroupCache())
@@ -103,7 +120,7 @@ open class SimpleLoginRest {
             return LoginResult().setLoginResultStatus(LoginResultStatus.LOGIN_TIME_OFFSET).setMsgParams(seconds,
                     numberOfFailedAttempts.toString())
         }
-        val loginHandler = applicationContext!!.getBean(LoginDefaultHandler::class.java)
+        val loginHandler = applicationContext.getBean(LoginDefaultHandler::class.java)
 
         val result = loginHandler.checkLogin(loginData.username, loginData.password)
         if (result.getLoginResultStatus() == LoginResultStatus.SUCCESS) {

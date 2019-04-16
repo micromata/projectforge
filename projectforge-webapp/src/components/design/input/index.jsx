@@ -2,6 +2,7 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { colorPropType } from '../../../utilities/propTypes';
+import AdditionalLabel from './AdditionalLabel';
 import style from './Input.module.scss';
 
 function Input(
@@ -18,12 +19,16 @@ function Input(
 ) {
     // Use new React Hook Feature
     // https://reactjs.org/docs/hooks-intro.html
-    const [active, setActive] = React.useState(value);
+    const [active, setActive] = React.useState(false);
 
     return (
-        <div className={classNames(style.formGroup, className)}>
+        <div className={classNames(style.formGroup, 'form-group', className)}>
             <label
-                className={classNames(style.label, { [style.active]: active }, style[color])}
+                className={classNames(
+                    style.label,
+                    { [style.active]: value || active },
+                    style[color],
+                )}
                 htmlFor={id}
             >
                 <input
@@ -37,9 +42,7 @@ function Input(
                 />
                 <span className={style.text}>{label}</span>
             </label>
-            <div className={style.subLine}>
-                {additionalLabel ? <span>{additionalLabel}</span> : undefined}
-            </div>
+            <AdditionalLabel title={additionalLabel} />
         </div>
     );
 }

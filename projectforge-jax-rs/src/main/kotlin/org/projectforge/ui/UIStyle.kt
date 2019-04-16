@@ -7,6 +7,12 @@ enum class UIStyle {
     DANGER,
     @SerializedName("info")
     INFO,
+    @SerializedName("link")
+    LINK,
+    @SerializedName("primary")
+    PRIMARY,
+    @SerializedName("secondary")
+    SECONDARY,
     @SerializedName("success")
     SUCCESS,
     @SerializedName("warning")

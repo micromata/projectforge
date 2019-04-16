@@ -19,12 +19,12 @@ import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.OrderExport;
 import org.projectforge.business.fibu.PaymentScheduleDO;
 import org.projectforge.framework.i18n.I18nHelper;
-import org.projectforge.test.AbstractTestNGBase;
+import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-public class OrderExportTest extends AbstractTestNGBase
+public class OrderExportTest extends AbstractTestBase
 {
   @Autowired
   private OrderExport orderExport;
@@ -69,9 +69,9 @@ public class OrderExportTest extends AbstractTestNGBase
         }
       }
     }
-    Assert.assertTrue(hasperformaceBegin);
-    Assert.assertTrue(hasPerformanceEnd);
-    Assert.assertTrue(hasStatusBeschreibung);
+    Assertions.assertTrue(hasperformaceBegin);
+    Assertions.assertTrue(hasPerformanceEnd);
+    Assertions.assertTrue(hasStatusBeschreibung);
   }
 
   @Test
@@ -165,13 +165,13 @@ public class OrderExportTest extends AbstractTestNGBase
         }
       }
     }
-    Assert.assertTrue(hasFirstScheduleDate);
-    Assert.assertTrue(hasSecondScheduleDate);
-    Assert.assertTrue(hasCommentfirstSchedule);
-    Assert.assertTrue(hasAmount1);
-    Assert.assertTrue(hasAmount2);
-    Assert.assertTrue(hasCommentSecondSchedule);
-    Assert.assertTrue(hasScheduleNumber);
-    Assert.assertTrue(hasSetBoolean);
+    Assertions.assertTrue(hasFirstScheduleDate);
+    Assertions.assertTrue(hasSecondScheduleDate);
+    Assertions.assertTrue(hasCommentfirstSchedule);
+    Assertions.assertTrue(hasAmount1);
+    Assertions.assertTrue(hasAmount2);
+    Assertions.assertTrue(hasCommentSecondSchedule);
+    Assertions.assertTrue(hasScheduleNumber);
+    Assertions.assertTrue(hasSetBoolean);
   }
 }

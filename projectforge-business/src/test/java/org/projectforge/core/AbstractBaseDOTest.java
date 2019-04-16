@@ -23,32 +23,28 @@
 
 package org.projectforge.core;
 
-import static org.testng.AssertJUnit.*;
-
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Locale;
-
-import org.junit.Ignore;
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.book.BookDO;
 import org.projectforge.business.book.BookStatus;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
-import org.projectforge.test.AbstractTestNGBase;
-import org.testng.annotations.Test;
+import org.projectforge.test.AbstractTestBase;
 
-public class AbstractBaseDOTest extends AbstractTestNGBase
-{
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Locale;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class AbstractBaseDOTest extends AbstractTestBase {
   @Override
-  protected void initDb()
-  {
+  protected void initDb() {
     init(false);
   }
 
   @Test
-  public void determinePropertyName() throws NoSuchMethodException
-  {
+  public void determinePropertyName() throws NoSuchMethodException {
     BookDO obj = createBookDO(21, 22, false, BookStatus.DISPOSED, "Hurzel");
     final String created = DateHelper.getForTestCase(obj.getCreated());
     final String lastUpdate = DateHelper.getForTestCase(obj.getLastUpdate());
@@ -66,7 +62,7 @@ public class AbstractBaseDOTest extends AbstractTestNGBase
     obj = createBookDO(21, 22, false, BookStatus.MISSED, "Hurzel");
     src = createBookDO(19, 20, false, BookStatus.MISSED, null);
     obj.copyValuesFrom(src);
-    assertEquals("Expected, that the property will be overwritten by null", null, obj.getTitle());
+    assertEquals(null, obj.getTitle(), "Expected, that the property will be overwritten by null");
     assertEquals(false, obj.isDeleted());
     assertEquals(BookStatus.MISSED, obj.getStatus());
     assertEquals(created, DateHelper.getForTestCase(obj.getCreated()));
@@ -74,8 +70,7 @@ public class AbstractBaseDOTest extends AbstractTestNGBase
   }
 
   private BookDO createBookDO(final int createdDayOfMonth, final int lastUpdateDateOfMonth, final boolean deleted,
-      final BookStatus bookStatus, final String testString)
-  {
+                              final BookStatus bookStatus, final String testString) {
     BookDO obj = new BookDO();
     DateHolder dateHolder = new DateHolder(DatePrecision.SECOND, Locale.GERMAN);
     obj.setId(42);
@@ -93,10 +88,8 @@ public class AbstractBaseDOTest extends AbstractTestNGBase
   /**
    * does not work with entities, which are not in Emgr.
    */
-  @Ignore
   //  @Test
-  public void copyValuesFrom()
-  {
+  public void copyValuesFrom() {
     final FooDO srcFoo = new FooDO();
     srcFoo.setManagedChilds(new ArrayList<BarDO>());
     srcFoo.setUnmanagedChilds1(new ArrayList<BarDO>());

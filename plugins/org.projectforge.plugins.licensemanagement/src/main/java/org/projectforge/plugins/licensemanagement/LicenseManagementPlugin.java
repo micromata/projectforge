@@ -25,10 +25,10 @@ package org.projectforge.plugins.licensemanagement;
 
 import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
+import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.registry.RegistryEntry;
-import org.projectforge.web.MenuItemDef;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -39,8 +39,7 @@ import java.util.List;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-public class LicenseManagementPlugin extends AbstractPlugin
-{
+public class LicenseManagementPlugin extends AbstractPlugin {
   public static final String ID = "licenseManagement";
 
   public static final String RESOURCE_BUNDLE_NAME = "LicenseManagementI18nResources";
@@ -50,7 +49,7 @@ public class LicenseManagementPlugin extends AbstractPlugin
   // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of
   // each test).
   // The entities are inserted in ascending order and deleted in descending order.
-  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[] { LicenseDO.class };
+  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[]{LicenseDO.class};
 
   @Autowired
   private LicenseDao licenseDao;
@@ -62,12 +61,11 @@ public class LicenseManagementPlugin extends AbstractPlugin
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
    */
   @Override
-  protected void initialize()
-  {
+  protected void initialize() {
     // DatabaseUpdateDao is needed by the updater:
     LicenseManagementPluginUpdates.dao = myDatabaseUpdater;
     final RegistryEntry entry = new RegistryEntry(ID, LicenseDao.class, licenseDao,
-        "plugins.licensemanagement");
+            "plugins.licensemanagement");
     // The LicenseDao is automatically available by the scripting engine!
     register(entry);
 
@@ -75,9 +73,8 @@ public class LicenseManagementPlugin extends AbstractPlugin
     pluginWicketRegistrationService.registerWeb(ID, LicenseListPage.class, LicenseEditPage.class);
 
     // Register the menu entry as sub menu entry of the misc menu:
-    final MenuItemDef parentMenu = pluginWicketRegistrationService.getMenuItemDef(MenuItemDefId.MISC);
-    pluginWicketRegistrationService
-        .registerMenuItem(new MenuItemDef(parentMenu, ID, 10, "plugins.licensemanagement.menu", LicenseListPage.class));
+    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, new MenuItemDef(ID, "plugins.licensemanagement.menu"),
+            LicenseListPage.class);
 
     // Define the access management:
     registerRight(new LicenseManagementRight(accessChecker));
@@ -90,8 +87,7 @@ public class LicenseManagementPlugin extends AbstractPlugin
    * @see org.projectforge.plugins.core.AbstractPlugin#getUpdateEntries()
    */
   @Override
-  public List<UpdateEntry> getUpdateEntries()
-  {
+  public List<UpdateEntry> getUpdateEntries() {
     return LicenseManagementPluginUpdates.getUpdateEntries();
   }
 
@@ -99,8 +95,7 @@ public class LicenseManagementPlugin extends AbstractPlugin
    * @see org.projectforge.plugins.core.AbstractPlugin#getInitializationUpdateEntry()
    */
   @Override
-  public UpdateEntry getInitializationUpdateEntry()
-  {
+  public UpdateEntry getInitializationUpdateEntry() {
     return LicenseManagementPluginUpdates.getInitializationUpdateEntry();
   }
 }

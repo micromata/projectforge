@@ -21,7 +21,7 @@ class LayoutInput extends Component {
         let newValue;
 
         switch (type) {
-            case 'checkbox':
+            case 'CHECKBOX':
                 newValue = event.target.checked;
                 break;
             default:
@@ -39,10 +39,12 @@ class LayoutInput extends Component {
 
     render() {
         const {
-            id,
+            additionalLabel,
             data,
+            focus,
+            id,
             label,
-            'max-length': maxLength,
+            maxLength,
             required,
             type,
             validation,
@@ -54,13 +56,13 @@ class LayoutInput extends Component {
 
 
         switch (type) {
-            case 'input':
+            case 'INPUT':
                 Tag = Input;
                 break;
-            case 'textarea':
+            case 'TEXTAREA':
                 Tag = TextArea;
                 break;
-            case 'checkbox':
+            case 'CHECKBOX':
                 Tag = CheckBox;
                 properties.checked = value || false;
                 break;
@@ -69,7 +71,7 @@ class LayoutInput extends Component {
         }
 
         if (
-            type !== 'checkbox'
+            type !== 'CHECKBOX'
             && ((required && !value) || (maxLength && value.length > maxLength))
         ) {
             properties.color = 'danger';
@@ -81,8 +83,13 @@ class LayoutInput extends Component {
             properties.additionalLabel = validation[id];
         }
 
+        if (focus) {
+            properties.autoFocus = true;
+        }
+
         return (
             <Tag
+                additionalLabel={additionalLabel}
                 label={label}
                 id={id}
                 {...properties}
@@ -94,28 +101,32 @@ class LayoutInput extends Component {
 }
 
 LayoutInput.propTypes = {
-    label: PropTypes.string.isRequired,
-    changeDataField: PropTypes.func,
     data: dataPropType.isRequired,
+    label: PropTypes.string.isRequired,
+    additionalLabel: PropTypes.string,
+    changeDataField: PropTypes.func,
+    focus: PropTypes.bool,
     id: PropTypes.string,
+    maxLength: PropTypes.number,
+    required: PropTypes.bool,
     type: PropTypes.string,
+    validation: PropTypes.shape({}),
     values: PropTypes.arrayOf(PropTypes.shape({
         value: PropTypes.string,
         title: PropTypes.string,
     })),
-    'max-length': PropTypes.number,
-    required: PropTypes.bool,
-    validation: PropTypes.shape({}),
 };
 
 LayoutInput.defaultProps = {
+    additionalLabel: undefined,
     changeDataField: undefined,
+    focus: false,
     id: undefined,
-    type: 'text',
-    values: [],
-    'max-length': 0,
+    maxLength: 0,
     required: false,
+    type: 'TEXT',
     validation: {},
+    values: [],
 };
 
 export default LayoutInput;

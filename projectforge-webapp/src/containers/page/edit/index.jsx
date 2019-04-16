@@ -8,39 +8,18 @@ import LayoutGroup from '../../../components/base/page/layout/Group';
 import PageNavigation from '../../../components/base/page/Navigation';
 import { Alert, Container, TabContent, TabPane, } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
+import { getTranslation } from '../../../utilities/layout';
 import style from '../../ProjectForge.module.scss';
+import EditHistory from './history';
 
 class EditPage extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            activeTab: 'edit',
-        };
-
-        this.toggleTab = this.toggleTab.bind(this);
-    }
-
     componentDidMount() {
         const { load, match } = this.props;
 
         load(match.params.category, match.params.id);
     }
 
-    toggleTab(event) {
-        const { activeTab } = this.state;
-
-        if (activeTab === event.target.id) {
-            return;
-        }
-
-        this.setState({
-            activeTab: event.target.id,
-        });
-    }
-
     render() {
-        const { activeTab } = this.state;
         const {
             changeDataField,
             data,
@@ -48,7 +27,10 @@ class EditPage extends React.Component {
             loading,
             ui,
             validation,
+            match,
         } = this.props;
+
+        const { category, id } = match.params;
 
         if (error) {
             return (
@@ -59,15 +41,29 @@ class EditPage extends React.Component {
             );
         }
 
+        const activeTab = match.params.tab || 'edit';
+
+        const tabs = [];
+
+        if (id) {
+            const baseUrl = `/${category}/edit/${id}`;
+
+            tabs.push({
+                id: 'edit',
+                title: ui.title,
+                link: baseUrl,
+            }, {
+                id: 'history',
+                title: getTranslation('label.historyOfChanges', ui.translations),
+                link: `${baseUrl}/history`,
+            });
+        }
+
         return (
             <LoadingContainer loading={loading}>
                 <PageNavigation current={ui.title} />
                 <TabNavigation
-                    tabs={{
-                        edit: ui.title,
-                        history: '[History]',
-                    }}
-                    toggleTab={this.toggleTab}
+                    tabs={tabs}
                     activeTab={activeTab}
                 />
                 <TabContent
@@ -76,15 +72,31 @@ class EditPage extends React.Component {
                 >
                     <TabPane tabId="edit">
                         <Container fluid>
-                            <LayoutGroup
-                                content={ui.layout}
-                                data={data}
-                                changeDataField={changeDataField}
-                                validation={validation}
-                            />
-                            <ActionGroup actions={ui.actions} />
+                            <form>
+                                <LayoutGroup
+                                    content={ui.layout}
+                                    data={data}
+                                    translation={ui.translations}
+                                    changeDataField={changeDataField}
+                                    validation={validation}
+                                />
+                                <ActionGroup actions={ui.actions} />
+                            </form>
                         </Container>
                     </TabPane>
+                    {id
+                        ? (
+                            <TabPane tabId="history">
+                                <Container fluid>
+                                    <EditHistory
+                                        category={category}
+                                        id={id}
+                                        translation={ui.translations}
+                                    />
+                                </Container>
+                            </TabPane>
+                        )
+                        : undefined}
                 </TabContent>
             </LoadingContainer>
         );
@@ -95,7 +107,9 @@ EditPage.propTypes = {
     changeDataField: PropTypes.func.isRequired,
     match: PropTypes.shape({}).isRequired,
     load: PropTypes.func.isRequired,
-    ui: PropTypes.shape({}).isRequired,
+    ui: PropTypes.shape({
+        translations: PropTypes.shape({}),
+    }).isRequired,
     validation: PropTypes.shape({}),
     error: PropTypes.string,
     data: PropTypes.shape({}),

@@ -23,14 +23,15 @@ class ActionButton extends React.Component {
     handleClick(event) {
         const { action, ...props } = this.props;
 
+        event.preventDefault();
+        event.stopPropagation();
+
         if (action.handleClick) {
             action.handleClick(action, event);
             return;
         }
 
         const actionFunction = props[action.id];
-
-        console.log(action.id);
 
         if (actionFunction) {
             actionFunction();
@@ -41,6 +42,12 @@ class ActionButton extends React.Component {
         const { action } = this.props;
 
         let color = 'secondary';
+        let type = 'button';
+
+
+        if (action.default) {
+            type = 'submit';
+        }
 
         if (action.style) {
             color = action.style;
@@ -52,6 +59,7 @@ class ActionButton extends React.Component {
             <Button
                 color={color}
                 onClick={this.handleClick}
+                type={type}
             >
                 {action.title}
             </Button>
@@ -67,7 +75,6 @@ ActionButton.propTypes = {
 
 const mapStateToProps = () => ({});
 
-// TODO: ADD FUNCTIONS
 const actions = {
     create: updateEditPageData,
     update: updateEditPageData,

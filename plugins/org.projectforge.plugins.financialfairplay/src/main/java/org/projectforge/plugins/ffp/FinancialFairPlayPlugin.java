@@ -23,29 +23,25 @@
 
 package org.projectforge.plugins.ffp;
 
-import java.util.List;
-
-import org.apache.wicket.model.Model;
 import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.ffp.repository.FFPEventDao;
 import org.projectforge.plugins.ffp.repository.FFPEventService;
 import org.projectforge.plugins.ffp.wicket.FFPDebtListPage;
 import org.projectforge.plugins.ffp.wicket.FFPEventListPage;
-import org.projectforge.web.MenuBuilderContext;
-import org.projectforge.web.MenuEntry;
-import org.projectforge.web.MenuItemDef;
 import org.projectforge.web.MenuItemRegistry;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
+
 /**
  * @author Florian Blumenstein
  */
-public class FinancialFairPlayPlugin extends AbstractPlugin
-{
+public class FinancialFairPlayPlugin extends AbstractPlugin {
   public static final String ID = "financialfairplay";
 
   public static final String RESOURCE_BUNDLE_NAME = "FinancialFairPlayI18nResources";
@@ -53,7 +49,7 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
   // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of
   // each test).
   // The entities are inserted in ascending order and deleted in descending order.
-  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[] {};
+  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[]{};
 
   @Autowired
   private PluginWicketRegistrationService pluginWicketRegistrationService;
@@ -68,8 +64,7 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
    */
   @Override
-  protected void initialize()
-  {
+  protected void initialize() {
     FinancialFairPlayPluginUpdates.applicationContext = applicationContext;
 
     // Register it:
@@ -78,31 +73,14 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
     // Register the web part:
     pluginWicketRegistrationService.registerWeb(ID);
 
-    //    final MenuItemDef parentMenu = new MenuItemDef(null, "FINANCIALFAIRPLAY", 120, "plugins.ffp.menu.financialfairplay");
-    //    pluginWicketRegistrationService.registerMenuItem(parentMenu);
+    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC,
+            new MenuItemDef("financialfairplay_eventlist", "plugins.ffp.submenu.financialfairplay.eventlist"), FFPEventListPage.class);
 
-    final MenuItemDef parentMenu = menuItemRegistry.get(MenuItemDefId.MISC);
-
-    pluginWicketRegistrationService
-        .registerMenuItem(
-            new MenuItemDef(parentMenu, "financialfairplay_eventlist", 121, "plugins.ffp.submenu.financialfairplay.eventlist", FFPEventListPage.class));
-    final MenuItemDef debtViewPage = new MenuItemDef(parentMenu, "financialfairplay_dept", 122, "plugins.ffp.submenu.financialfairplay.dept",
-        FFPDebtListPage.class)
-    {
-      @Override
-      protected void afterMenuEntryCreation(final MenuEntry createdMenuEntry, final MenuBuilderContext context)
-      {
-        createdMenuEntry.setNewCounterModel(new Model<Integer>()
-        {
-          @Override
-          public Integer getObject()
-          {
-            return eventService.getOpenDebts(ThreadLocalUserContext.getUser());
-          }
-        });
-      }
-    };
-    pluginWicketRegistrationService.registerMenuItem(debtViewPage);
+    MenuItemDef menu = new MenuItemDef("financialfairplay_dept", "plugins.ffp.submenu.financialfairplay.dept");
+    menu.setBadgeCounter(() -> {
+       return eventService.getOpenDebts(ThreadLocalUserContext.getUser());
+    });
+    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, menu, FFPDebtListPage.class);
 
     // Define the access management:
     registerRight(new FinancialFairPlayDebtRight(accessChecker));
@@ -115,8 +93,7 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
    * @see org.projectforge.plugins.core.AbstractPlugin#getInitializationUpdateEntry()
    */
   @Override
-  public UpdateEntry getInitializationUpdateEntry()
-  {
+  public UpdateEntry getInitializationUpdateEntry() {
     return FinancialFairPlayPluginUpdates.getInitializationUpdateEntry();
   }
 
@@ -124,8 +101,7 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
    * @see org.projectforge.plugins.core.AbstractPlugin#getUpdateEntries()
    */
   @Override
-  public List<UpdateEntry> getUpdateEntries()
-  {
+  public List<UpdateEntry> getUpdateEntries() {
     return FinancialFairPlayPluginUpdates.getUpdateEntries();
   }
 

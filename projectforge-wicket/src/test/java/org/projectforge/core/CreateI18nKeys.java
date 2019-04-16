@@ -30,8 +30,8 @@ import org.projectforge.business.fibu.AuftragsStatus;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.framework.calendar.MonthHolder;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
-import org.projectforge.web.MenuItemDef;
 import org.projectforge.web.wicket.WebConstants;
 
 import java.io.File;

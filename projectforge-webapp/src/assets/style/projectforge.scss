@@ -1,3 +1,5 @@
+@import '../fonts/roboto/index.css';
+
 html {
   font-size: 62.5%;
   -webkit-tap-highlight-color: transparent;
@@ -5,8 +7,7 @@ html {
 }
 
 body {
-  background: #eee url(../images/fabric_plaid.png) repeat;
-  font-family: sans-serif;
+  background: #F8F9FA;
   font-size: 12px;
   font-style: normal;
   font-variant: normal;
@@ -14,10 +15,231 @@ body {
   line-height: 1.428571429;
   color: #333;
   margin: 0;
+  font-family: Roboto, sans-serif;
 }
 
 a {
   color: #428bca;
   text-decoration: none;
   background: transparent;
+}
+
+// Custom Styles
+// -------------
+
+div[class*="TopBar_"] {
+  border: none;
+}
+
+nav.bg-light {
+  background: #F8F9FA !important;background: #F8F9FA;
+  box-shadow: 0 2px 4px 0 rgba(0,0,0,0.50);
+
+  ul li a {
+    color: #4D4D4D !important;
+    font-size: 14px;
+    margin-left: 20px;
+  }
+
+  ul li a.btn {
+    color: #fff !important;
+    background: #009BA3;
+  }
+}
+
+.container-fluid nav.navbar.navbar-light {
+  background: #007480 !important;
+  box-shadow: none;
+
+  ul li {
+    color: #fff !important;
+    font-weight: 600;
+  }
+}
+
+.tab-content {
+  margin-bottom: 20px;
+  border: none !important;
+}
+
+// NavBar
+
+ul {
+  li.nav-item a.btn {
+      margin-left: 10px !important;
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 1;
+      padding: 1px 5px;
+      border-radius: 3px;
+      position: relative;
+      top: -2px;
+  }
+}
+
+// Push footer to bottom
+
+html {
+  height: 100%;
+  box-sizing: border-box;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
+
+body {
+  position: relative;
+  margin: 0;
+  min-height: 100%;
+}
+
+.container-fluid {
+  margin: 0 auto;
+  padding-bottom: 20px;
+}
+
+.footer {
+  position: absolute;
+  margin-top: -20px;
+}
+
+
+.form-group {
+  margin-bottom: 2.3rem;
+}
+
+// Forms
+
+fieldset {
+  //border: 1px solid #dedede;
+  //box-shadow: 0 0 3px 2px rgba(0,0,0,0.15);
+  box-shadow: 0 1px 1px 0 rgba(60,64,67,.08),
+  0 1px 3px 1px rgba(60,64,67,.16);
+  padding: 25px;
+  margin-bottom: 20px;
+
+  legend {
+    font-weight: bold;
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+    width: auto;
+    padding: 0 10px;
+    background: #fff;
+  }
+}
+
+// Buttons
+
+.btn {
+  font-size: 15px;
+  padding: 5px 15px;
+  border-radius: 3px;
+
+  &.btn-primary {
+    background: #32912E !important;
+  }
+
+  &.btn-danger,
+  &.btn-warning {
+    background: #fff !important;
+    color: #a4a4a4 !important;
+    border: 2px solid #E6E6E6 !important;
+  }
+}
+
+// NavTabs
+
+.nav-tabs {
+  border: none;
+
+  a[class*="Page_active_"] {
+    background: #fff;
+    color: #009BA3 !important;
+    font-weight: 400;
+    font-size: 15px;
+    border: none !important;
+    border-bottom: 1px solid #fff !important;
+    border-top: 1px solid #007480 !important;
+  }
+
+  a[class*="_navTab_"] {
+    background: #fff;
+    color: #676767;
+    font-size: 15px;
+    padding-left: 20px;
+    padding-right: 20px;
+    margin-right: 10px;
+    border-top: 1px solid #a4a4a4;
+
+    &:hover {
+      border-top: 1px solid #007480 !important;
+      border-bottom: 1px solid #fff;
+    }
+  }
+}
+
+// SVG
+
+svg.fa-chevron-down {
+  color: #009BA3;
+}
+
+// Calendar
+
+.rbc-event {
+  color: #222222;
+  borderRadius: 3px;
+  //opacity: 0.8;
+  border: 0px;
+  display: block;
+}
+
+.rbc-event.timesheet {
+  color: #fff;
+  background: #7994d7;
+}
+
+.weekend {
+  background: #f5e0df;
+}
+
+.weekend-holiday {
+  background: #f5e0df;
+}
+
+.holiday {
+  background: #f5e0df;
+}
+
+
+// Task tree
+
+div.tree-nav {
+  float: left;
+  white-space: nowrap;
+}
+
+div.tree-link-close {
+  float: left;
+}
+
+div.tree-link-open {
+  float: left;
+}
+
+div.tree-leaf {
+  float: left;
+}
+
+div.tree-icon {
+  width: 1.5em;
+  float: left;
+}
+
+div.tree-nav-space {
+  float: left;
+  width: 1.5em;
 }

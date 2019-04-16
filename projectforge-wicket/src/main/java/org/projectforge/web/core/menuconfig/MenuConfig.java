@@ -24,7 +24,7 @@
 package org.projectforge.web.core.menuconfig;
 
 import org.apache.wicket.markup.html.panel.Panel;
-import org.projectforge.web.Menu;
+import org.projectforge.web.WicketMenu;
 
 /**
  * @author Dennis Hilpmann (d.hilpmann.extern@micromata.de)
@@ -35,7 +35,7 @@ public class MenuConfig extends Panel
 {
   private static final long serialVersionUID = 7330216552642637127L;
 
-  public MenuConfig(final String id, final Menu menu)
+  public MenuConfig(final String id, final WicketMenu menu)
   {
     super(id);
     add(new MenuConfigContent("content", menu));

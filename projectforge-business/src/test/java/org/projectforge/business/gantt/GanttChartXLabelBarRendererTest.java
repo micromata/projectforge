@@ -23,6 +23,17 @@
 
 package org.projectforge.business.gantt;
 
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.projectforge.export.SVGHelper;
+import org.projectforge.framework.renderer.BatikImageRenderer;
+import org.projectforge.framework.renderer.ImageFormat;
+import org.projectforge.framework.time.DayHolder;
+import org.projectforge.test.TestSetup;
+import org.projectforge.test.WorkFileHelper;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -30,22 +41,17 @@ import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.projectforge.export.SVGHelper;
-import org.projectforge.framework.renderer.BatikImageRenderer;
-import org.projectforge.framework.renderer.ImageFormat;
-import org.projectforge.framework.time.DayHolder;
-import org.projectforge.test.AbstractTestNGBase;
-import org.projectforge.test.WorkFileHelper;
-import org.testng.annotations.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-public class GanttChartXLabelBarRendererTest extends AbstractTestNGBase
+public class GanttChartXLabelBarRendererTest
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(GanttChartXLabelBarRendererTest.class);
 
   private static final int ROW_HEIGHT = 50;
+
+  @BeforeAll
+  static void beforeAll() {
+    TestSetup.init();
+  }
 
   @Test
   public void test()

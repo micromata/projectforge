@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { setListFilter } from '../../../actions';
 import ActionGroup from '../../../components/base/page/action/Group';
+import LayoutGroup from '../../../components/base/page/layout/Group';
 import {
     Card,
     CardBody,
@@ -13,14 +14,32 @@ import {
     Row,
     Select,
 } from '../../../components/design';
+import MultiSelect from '../../../components/design/input/MultiSelect';
+import { getNamedContainer } from '../../../utilities/layout';
 import { buttonPropType } from '../../../utilities/propTypes';
-import FilterButtons from './FilterButtons';
 
 class SearchFilter extends Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            filter: {
+                searchString: '',
+            },
+        };
+
         this.handleInputChange = this.handleInputChange.bind(this);
+        this.handleSelectChange = this.handleSelectChange.bind(this);
+        this.setFilterValue = this.setFilterValue.bind(this);
+    }
+
+    setFilterValue(id, value) {
+        this.setState(({ filter }) => ({
+            filter: {
+                ...filter,
+                [id]: value,
+            },
+        }));
     }
 
     handleInputChange(event) {
@@ -36,57 +55,68 @@ class SearchFilter extends Component {
     }
 
     render() {
-        const { filter, actions } = this.props;
+        const {
+            actions,
+            filter,
+            namedContainers,
+            setFilter,
+        } = this.props;
+
+        const { filter: newFilter } = this.state;
         // TODO: REPLACE DATE AND TIME WITH PICKERS
+        const searchFilter = getNamedContainer('searchFilter', namedContainers) || { content: [] };
+
         return (
             <Card>
                 <CardBody>
-                    <Input
-                        label="[Suchfilter]"
-                        id="searchString"
-                        value={filter.searchString}
-                        onChange={this.handleInputChange}
+                    <MultiSelect
+                        additionalLabel="WIP: New Search Filter"
+                        autoComplete={searchFilter.content}
+                        autoCompleteForm="$AUTOCOMPLETE:"
+                        id="complexSearchFilter"
+                        label="Suchfilter"
+                        pills
+                        setValue={this.setFilterValue}
+                        value={newFilter}
                     />
-                    <Row>
-                        <Col sm={8}>
-                            <Input
-                                label="[Änderungszeitraum]"
-                                id="changePeriod"
-                            />
-                        </Col>
-                        <Col sm={4}>
-                            <Input
-                                label="[geändert durch]"
-                                id="user"
-                            />
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col sm={8}>
-                            <FormGroup row>
-                                <Label sm={2}>[Optionen]</Label>
-                                <Col sm={10}>
-                                    <FilterButtons />
-                                </Col>
-                            </FormGroup>
-                        </Col>
-                        <Col sm={4}>
-                            <Select
-                                selected={filter.maxRows}
-                                setSelected={this.handleSelectChange}
-                                id="maxRows"
-                                label="[Seitengröße]"
-                                options={[25, 50, 100, 200, 500, 1000]}
-                            />
-                        </Col>
-                    </Row>
-                    <FormGroup row>
-                        <Col>
-                            <ActionGroup
-                                actions={actions}
-                            />
-                        </Col>
-                    </FormGroup>
+                    <form>
+                        <Input
+                            label="[Suchfilter]"
+                            id="searchString"
+                            value={filter.searchString}
+                            onChange={this.handleInputChange}
+                        />
+                        <Row>
+                            <Col sm={8}>
+                                <FormGroup row>
+                                    <Label sm={2}>[Optionen]</Label>
+                                    <Col sm={10}>
+                                        <LayoutGroup
+                                            {...getNamedContainer('filterOptions', namedContainers)}
+                                            data={filter}
+                                            changeDataField={setFilter}
+                                        />
+                                    </Col>
+                                </FormGroup>
+                            </Col>
+                            <Col sm={4}>
+                                <Select
+                                    selected={filter.maxRows}
+                                    setSelected={this.handleSelectChange}
+                                    id="maxRows"
+                                    label="[Seitengröße]"
+                                    options={['25', '50', '100', '200', '500', '1000']}
+                                />
+                            </Col>
+                        </Row>
+                        <FormGroup row>
+                            <Col>
+                                <ActionGroup
+                                    actions={actions}
+                                />
+                            </Col>
+                        </FormGroup>
+                    </form>
                 </CardBody>
             </Card>
         );
@@ -95,11 +125,12 @@ class SearchFilter extends Component {
 
 SearchFilter.propTypes = {
     setFilter: PropTypes.func.isRequired,
+    actions: PropTypes.arrayOf(buttonPropType),
     filter: PropTypes.shape({
         searchString: PropTypes.string,
         maxRows: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
     }),
-    actions: PropTypes.arrayOf(buttonPropType),
+    namedContainers: PropTypes.arrayOf(PropTypes.shape({})),
 };
 
 SearchFilter.defaultProps = {
@@ -108,11 +139,13 @@ SearchFilter.defaultProps = {
         searchString: '',
         maxRows: 50,
     },
+    namedContainers: [],
 };
 
 const mapStateToProps = state => ({
     filter: state.listPage.filter,
     actions: state.listPage.ui.actions,
+    namedContainers: state.listPage.ui.namedContainers,
 });
 
 const actions = {

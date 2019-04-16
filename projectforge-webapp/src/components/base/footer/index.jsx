@@ -5,7 +5,7 @@ import style from './Footer.module.scss';
 
 function Footer({ version, updateAvailable }) {
     return (
-        <div className={style.footer}>
+        <div className={classNames(style.footer, 'footer',)}>
             <ul className={classNames(style.list, style.copyHint)}>
                 <li>
                     <a

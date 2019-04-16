@@ -12,6 +12,7 @@ export {
 
 export {
     Alert,
+    Badge,
     Button,
     ButtonGroup,
     Card,
@@ -40,4 +41,5 @@ export {
     Table,
     TabPane,
     UncontrolledDropdown,
+    UncontrolledTooltip,
 } from 'reactstrap';

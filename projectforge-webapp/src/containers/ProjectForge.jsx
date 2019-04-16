@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import { Route, Router, Switch } from 'react-router-dom';
-import { loadUserStatus, loginUser, logoutUser } from '../actions';
+import { loadUserStatus, loginUser } from '../actions';
 import LoginView from '../components/authentication/LoginView';
 import Footer from '../components/base/footer';
 import Navigation from '../components/base/navigation';
@@ -12,6 +12,8 @@ import history from '../utilities/history';
 import EditPage from './page/edit';
 import InputTestPage from './page/InputTest';
 import ListPage from './page/list';
+import CalendarPage from './page/CalendarPage';
+import TaskTreePage from "./page/TaskTreePage";
 
 class ProjectForge extends React.Component {
     componentDidMount() {
@@ -24,7 +26,6 @@ class ProjectForge extends React.Component {
         const {
             user,
             loginUser: login,
-            logoutUser: logout,
             loginInProgress,
             loginError,
             version,
@@ -36,241 +37,38 @@ class ProjectForge extends React.Component {
                 <Router history={history}>
                     <React.Fragment>
                         <Navigation
-                            logout={logout}
-                            username={user.fullname}
-                            // TODO: REMOVE EXAMPLE CATEGORIES
+                            // TODO: REMOVE CUSTOM ENTRIES
                             entries={[
                                 {
                                     name: 'Bücher',
-                                    url: '/books/',
+                                    url: '/book/',
                                 },
                                 {
                                     name: 'Adressbücher',
-                                    url: '/addresses/',
+                                    url: '/address/',
                                 },
                                 {
                                     name: 'Input Test',
                                     url: '/inputTest',
                                 },
                             ]}
-                            categories={[
-                                {
-                                    name: 'Allgemein',
-                                    items: [
-                                        {
-                                            name: 'Kalender',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Kalenderliste',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Urlaubsantrag',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Bücher',
-                                            url: '/books/',
-                                        },
-                                        {
-                                            name: 'Adressbücher',
-                                            url: '/addresses/',
-                                        },
-                                        {
-                                            name: 'Adressen',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Direktwahl',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'SMS senden',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Suche',
-                                            url: '/',
-                                        },
-                                    ],
-                                },
-                                {
-                                    name: 'Projektmanagement',
-                                    items: [
-                                        {
-                                            name: 'Strukturbaum',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Zeitberichte',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Monatsbericht',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Meine Statistiken',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Personalplanung',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Personalplanungsliste',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Gantt',
-                                            url: '/',
-                                        },
-                                    ],
-                                },
-                                {
-                                    name: 'FiBu',
-                                    items: [
-                                        {
-                                            name: 'Debitorenrechnungen',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Kreditorenrechnungen',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Kunden',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Projekte',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Auftragsbuch',
-                                            url: '/',
-                                        },
-                                    ],
-                                },
-                                {
-                                    name: 'Kost',
-                                    items: [
-                                        {
-                                            name: 'Kost1',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Kost2',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Kost2-Arten',
-                                            url: '/',
-                                        },
-                                    ],
-                                },
-                                {
-                                    name: 'Reporting',
-                                    items: [
-                                        {
-                                            name: 'Scriptliste',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Scripting',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Report-Objectives',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Buchungssätze',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Datev-Import',
-                                            url: '/',
-                                        },
-                                    ],
-                                },
-                                {
-                                    name: 'Organisation',
-                                    items: [
-                                        {
-                                            name: 'Postausgang',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Posteingang',
-                                            url: '/',
-                                        },
-                                    ],
-                                },
-                                {
-                                    name: 'Administration',
-                                    items: [
-                                        {
-                                            name: 'Mein Zugang',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Urlaubskonto',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Meine Einstellungen',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Passwort ändern',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Benutzer',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Gruppen',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Zugriffsverwaltung',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'System',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Systemupdate',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Systemstatistik',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Konfiguration',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Plugins',
-                                            url: '/',
-                                        },
-                                    ],
-                                },
-                            ]}
                         />
                         <Container fluid>
                             <Switch>
+                                <Route
+                                    path="/calendar"
+                                    component={CalendarPage}
+                                />
+                                <Route
+                                    path="/taskTree"
+                                    component={TaskTreePage}
+                                />
                                 <Route
                                     path="/inputTest"
                                     component={InputTestPage}
                                 />
                                 <Route
-                                    path="/:category/edit/:id?"
+                                    path="/:category/edit/:id?/:tab?"
                                     component={EditPage}
                                 />
                                 <Route
@@ -306,7 +104,6 @@ class ProjectForge extends React.Component {
 
 ProjectForge.propTypes = {
     loginUser: PropTypes.func.isRequired,
-    logoutUser: PropTypes.func.isRequired,
     loadUserStatus: PropTypes.func.isRequired,
     loginInProgress: PropTypes.bool.isRequired,
     loginError: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
@@ -330,7 +127,6 @@ const mapStateToProps = state => ({
 const actions = {
     loginUser,
     loadUserStatus,
-    logoutUser,
 };
 
 export default connect(mapStateToProps, actions)(ProjectForge);

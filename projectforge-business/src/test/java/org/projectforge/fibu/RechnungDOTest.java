@@ -23,13 +23,13 @@
 
 package org.projectforge.fibu;
 
-import static org.testng.AssertJUnit.assertEquals;
+import org.junit.jupiter.api.Test;
+import org.projectforge.business.fibu.RechnungDO;
+import org.projectforge.business.fibu.RechnungsPositionDO;
 
 import java.math.BigDecimal;
 
-import org.projectforge.business.fibu.RechnungDO;
-import org.projectforge.business.fibu.RechnungsPositionDO;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class RechnungDOTest
 {

@@ -23,9 +23,7 @@
 
 package org.projectforge.web.admin;
 
-import java.io.InputStream;
-import java.util.zip.GZIPInputStream;
-
+import de.micromata.genome.db.jpa.xmldump.api.JpaXmlDumpService.RestoreMode;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
@@ -45,15 +43,16 @@ import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.web.LoginPage;
-import org.projectforge.web.MenuItemRegistry;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.AbstractUnsecureBasePage;
 import org.projectforge.web.wicket.MessagePage;
 import org.projectforge.web.wicket.WicketUtils;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
 
-import de.micromata.genome.db.jpa.xmldump.api.JpaXmlDumpService.RestoreMode;
+import java.io.InputStream;
+import java.util.zip.GZIPInputStream;
 
 public class SetupPage extends AbstractUnsecureBasePage
 {
@@ -78,7 +77,7 @@ public class SetupPage extends AbstractUnsecureBasePage
   private final SetupImportForm importForm;
 
   @SpringBean
-  private MenuItemRegistry menuItemRegistry;
+  private MenuCreator menuCreator;
 
   public SetupPage(final PageParameters parameters)
   {
@@ -120,7 +119,7 @@ public class SetupPage extends AbstractUnsecureBasePage
       databaseService.afterCreatedTestDb(false);
       message = "administration.setup.message.testdata";
       // refreshes the visibility of the costConfigured dependent menu items:
-      menuItemRegistry.refresh();
+      menuCreator.refresh();
     }
 
     loginAdminUser(adminUser);

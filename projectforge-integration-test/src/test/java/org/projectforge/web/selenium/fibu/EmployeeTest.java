@@ -1,14 +1,14 @@
 package org.projectforge.web.selenium.fibu;
 
-import static org.testng.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;assertTrue;
 
 import org.projectforge.web.selenium.Const;
 import org.projectforge.web.selenium.SeleniumSuiteTestBase;
 import org.projectforge.web.selenium.TestPageBase;
 import org.projectforge.web.selenium.login.SeleniumLoginPage;
-import org.testng.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class EmployeeTest extends SeleniumSuiteTestBase
 {
@@ -178,7 +178,7 @@ public class EmployeeTest extends SeleniumSuiteTestBase
 
     new SeleniumEmployeeListPage().assertWeAreOnThisPage();
 
-    Assert.assertEquals("12.12.1999", seleniumEmployeeEditPage.callPage().getProbation());
+    Assertions.assertEquals("12.12.1999", seleniumEmployeeEditPage.callPage().getProbation());
     new SeleniumLoginPage().logout();
   }
 

@@ -23,13 +23,8 @@
 
 package org.projectforge.framework.persistence.database;
 
-import static org.testng.AssertJUnit.*;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import de.micromata.genome.jpa.ConstraintPersistenceException;
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.book.BookDO;
@@ -48,13 +43,17 @@ import org.projectforge.framework.access.GroupTaskAccessDO;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
-import org.projectforge.test.AbstractTestNGBase;
+import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
 
-import de.micromata.genome.jpa.ConstraintPersistenceException;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestNGBase
+import static org.junit.jupiter.api.Assertions.*;
+
+public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(InitDatabaseDaoWithTestDataTestFork.class);
@@ -126,8 +125,8 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestNGBase
     final List<GroupTaskAccessDO> accessList = accessDao.internalLoadAll();
     assertTrue(accessList.size() > 0);
     for (final GroupTaskAccessDO access : accessList) {
-      assertNotNull("Access entries should be serialized.", access.getAccessEntries());
-      assertTrue("Access entries should be serialized.", access.getAccessEntries().size() > 0);
+      assertNotNull( access.getAccessEntries(),"Access entries should be serialized.");
+      assertTrue( access.getAccessEntries().size() > 0,"Access entries should be serialized.");
     }
 
     final List<AddressDO> addressList = addressDao.internalLoadAll();
@@ -147,8 +146,8 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestNGBase
         break;
       }
     }
-    assertNotNull("Order #1 not found.", order);
-    assertEquals("Order #1 must have 3 order positions.", 3, order.getPositionenIncludingDeleted().size());
+    assertNotNull( order,"Order #1 not found.");
+    assertEquals( 3, order.getPositionenIncludingDeleted().size(),"Order #1 must have 3 order positions.");
 
     final List<PfHistoryMasterDO> list = hibernateTemplate.loadAll(PfHistoryMasterDO.class);
     // assertTrue("At least 10 history entries expected: " + list.size(), list.size() >= 10);

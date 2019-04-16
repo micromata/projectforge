@@ -31,10 +31,10 @@ import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
+import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test of persistence of attributes.
@@ -42,7 +42,7 @@ import org.testng.annotations.Test;
  * @author Roger Kommer (r.kommer.extern@micromata.de)
  *
  */
-public class EmployeeAttrTest extends AbstractTestNGBase
+public class EmployeeAttrTest extends AbstractTestBase
 {
   @Autowired
   private EmployeeDao employeeDao;
@@ -76,22 +76,22 @@ public class EmployeeAttrTest extends AbstractTestNGBase
 
     EmployeeDO luser = employeeDao.getById(e.getId());
     final String comment = luser.getComment();
-    Assert.assertTrue(luser.getTimeableAttributes().isEmpty() == false);
-    Assert.assertTrue(luser.getTimeableAttributes().size() == 1);
+    Assertions.assertTrue(luser.getTimeableAttributes().isEmpty() == false);
+    Assertions.assertTrue(luser.getTimeableAttributes().size() == 1);
 
     EmployeeTimedDO row = luser.getTimeableAttributes().get(0);
     Integer rhol = row.getAttribute("hollydays", Integer.class);
-    Assert.assertEquals(42, rhol.intValue());
+    Assertions.assertEquals(42, rhol.intValue());
     String rlongVal = row.getAttribute("longValue", String.class);
-    Assert.assertEquals(longValue, rlongVal);
+    Assertions.assertEquals(longValue, rlongVal);
     row.putAttribute("hollydays", 43);
     employeeDao.update(luser);
     luser = employeeDao.getById(e.getId());
     row = luser.getTimeableAttributes().get(0);
     rhol = row.getAttribute("hollydays", Integer.class);
-    Assert.assertEquals(43, rhol.intValue());
+    Assertions.assertEquals(43, rhol.intValue());
     rlongVal = row.getAttribute("longValue", String.class);
-    Assert.assertEquals(longValue, rlongVal);
+    Assertions.assertEquals(longValue, rlongVal);
 
     final String nlongValue = longValue + "X";
     row.putAttribute("longValue", nlongValue);
@@ -100,9 +100,9 @@ public class EmployeeAttrTest extends AbstractTestNGBase
     //    luser = employeeDao.getById(e.getId());
     //    row = luser.getTimeableAttributes().get(0);
     //    rlongVal = row.getAttribute("longValue", String.class);
-    //    Assert.assertEquals(nlongValue, rlongVal);
+    //    Assertions.assertEquals(nlongValue, rlongVal);
     //    rlongVal = row.getAttribute("longValue2", String.class);
-    //    Assert.assertEquals("XSHORT", rlongVal);
+    //    Assertions.assertEquals("XSHORT", rlongVal);
 
   }
 

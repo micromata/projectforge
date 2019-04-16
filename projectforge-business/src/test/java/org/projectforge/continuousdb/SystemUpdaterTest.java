@@ -23,11 +23,10 @@
 
 package org.projectforge.continuousdb;
 
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class SystemUpdaterTest
 {
@@ -36,18 +35,18 @@ public class SystemUpdaterTest
   {
     SystemUpdater updater = new SystemUpdater();
     updater.testRegister(createEntry("a", "1.0.0", "2011-02-01", UpdatePreCheckStatus.READY_FOR_UPDATE));
-    assertFalse("Version is expected to be ready for update.", updater.isUpdated());
+    assertFalse( updater.isUpdated(),"Version is expected to be ready for update.");
     updater.testRegister(createEntry("a", "1.1.0", "2011-02-05", UpdatePreCheckStatus.ALREADY_UPDATED));
-    assertTrue("Older version shouldn't be tested.", updater.isUpdated());
+    assertTrue( updater.isUpdated(),"Older version shouldn't be tested.");
     updater.testRegister(createEntry("b", "1.0.0", "2011-01-01", UpdatePreCheckStatus.ALREADY_UPDATED));
-    assertTrue("Older version shouldn't be tested.", updater.isUpdated());
+    assertTrue( updater.isUpdated(),"Older version shouldn't be tested.");
     UpdateEntry b = createEntry("b", "1.1.0", "2011-01-02", UpdatePreCheckStatus.READY_FOR_UPDATE);
     updater.testRegister(b);
-    assertFalse("b 1.1.0 should be detected as ready for update.", updater.isUpdated());
+    assertFalse( updater.isUpdated(),"b 1.1.0 should be detected as ready for update.");
 
     updater.update(b);
-    Assert.assertFalse(updater.isUpdating());
-    Assert.assertFalse(updater.isUpdated());
+    Assertions.assertFalse(updater.isUpdating());
+    Assertions.assertFalse(updater.isUpdated());
     updater.runAllPreChecks();
 
     updater = new SystemUpdater()

@@ -23,11 +23,10 @@
 
 package org.projectforge.framework.persistence.database;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
+import org.junit.jupiter.api.Test;
 
-import org.projectforge.framework.persistence.database.DatabaseUpdateHelper;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class DatebaseUpdateHelperTest
 {

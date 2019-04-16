@@ -13,10 +13,10 @@ class ListFilterService {
     private val log = org.slf4j.LoggerFactory.getLogger(ListFilterService::class.java)
 
     @Autowired
-    private lateinit var userPreferencesService: UserPreferencesService
+    private lateinit var userXmlPreferencesService: RestUserXmlPreferencesService
 
     fun getSearchFilter(session: HttpSession, filterClazz: Class<out BaseSearchFilter>): BaseSearchFilter {
-        val filter = userPreferencesService.getEntry(session, filterClazz.name + ":Filter")
+        val filter = userXmlPreferencesService.getEntry(session, filterClazz.name + ":Filter")
         if (filter != null) {
             if (filter.javaClass == filterClazz) {
                 try {
@@ -35,7 +35,7 @@ class ListFilterService {
         }
         val result = filterClazz.newInstance()
         result.reset()
-        userPreferencesService.putEntry(session, filterClazz.name + ":Filter", result, true)
+        userXmlPreferencesService.putEntry(session, filterClazz.name + ":Filter", result, true)
         return result
     }
 }

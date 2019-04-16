@@ -1,23 +1,17 @@
 package org.projectforge.web.teamcal.event;
 
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
-
-import java.io.IOException;
-import java.util.Locale;
-import java.util.TimeZone;
-
+import net.fortuna.ical4j.model.parameter.CuType;
+import net.fortuna.ical4j.model.parameter.Role;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.*;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
@@ -38,16 +32,18 @@ import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.mail.SendMail;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 
-import net.fortuna.ical4j.model.parameter.CuType;
-import net.fortuna.ical4j.model.parameter.Role;
+import java.io.IOException;
+import java.util.Locale;
+import java.util.TimeZone;
 
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
+
+@RunWith(PowerMockRunner.class)
 @PrepareForTest({ ThreadLocalUserContext.class, ConfigXml.class })
 @PowerMockIgnore({ "javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*" })
-public class ICalHandlerTest extends PowerMockTestCase
+public class ICalHandlerTest
 {
   @InjectMocks
   public TeamEventService eventService = new TeamEventServiceImpl();
@@ -73,14 +69,14 @@ public class ICalHandlerTest extends PowerMockTestCase
   @Mock
   private ConfigurationService configService;
 
-  @BeforeClass
+  @Before
   public void init()
   {
     System.setProperty("user.timezone", "UTC");
     TimeZone.setDefault(DateHelper.UTC);
   }
 
-  @BeforeMethod
+  @Before
   public void setUp()
   {
     Mockito.reset(teamEventDao);

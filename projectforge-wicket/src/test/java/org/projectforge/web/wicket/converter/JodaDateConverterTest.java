@@ -23,26 +23,31 @@
 
 package org.projectforge.web.wicket.converter;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.fail;
-
-import java.util.Calendar;
-import java.util.Locale;
-
 import org.apache.wicket.util.convert.ConversionException;
 import org.joda.time.DateMidnight;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.test.AbstractTestNGBase;
-import org.testng.annotations.Test;
+import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.TestSetup;
 
-public class JodaDateConverterTest extends AbstractTestNGBase
+import java.util.Calendar;
+import java.util.Locale;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class JodaDateConverterTest
 {
   private final static DateTimeZone EUROPE_BERLIN = DateTimeZone.forID("Europe/Berlin");
+
+  @BeforeAll
+  static void setup() {
+    TestSetup.init();
+  }
 
   @Test
   public void convertToObject()
@@ -96,7 +101,7 @@ public class JodaDateConverterTest extends AbstractTestNGBase
     user.setTimeZone(DateHelper.EUROPE_BERLIN);
     user.setLocale(Locale.GERMAN);
     user.setDateFormat("dd.MM.yyyy");
-    ThreadLocalUserContext.setUser(getUserGroupCache(), user);
+    ThreadLocalUserContext.setUser(null, user);
     user = ThreadLocalUserContext.getUser(); // ThreadLocalUserContext made a copy!
     JodaDateConverter conv = new JodaDateConverter();
     DateMidnight testDate = createDate(1970, DateTimeConstants.NOVEMBER, 21, EUROPE_BERLIN);
@@ -122,7 +127,7 @@ public class JodaDateConverterTest extends AbstractTestNGBase
     final PFUserDO user = new PFUserDO();
     user.setTimeZone(timeZone.getID());
     user.setDateFormat("dd.MM.yyyy");
-    ThreadLocalUserContext.setUser(getUserGroupCache(), user);
+    ThreadLocalUserContext.setUser(null, user);
     final JodaDateConverter conv = new JodaDateConverter();
     assertNull(conv.convertToObject("", Locale.GERMAN));
     DateMidnight testDate = createDate(1970, DateTimeConstants.OCTOBER, 21, timeZone);
@@ -172,7 +177,8 @@ public class JodaDateConverterTest extends AbstractTestNGBase
   {
     final PFUserDO user = new PFUserDO();
     user.setTimeZone(timeZone.getID());
-    ThreadLocalUserContext.setUser(getUserGroupCache(), user);
+    user.setDateFormat("MM/dd/yyyy");
+    ThreadLocalUserContext.setUser(null, user);
     final JodaDateConverter conv = new JodaDateConverter();
     DateMidnight testDate = createDate(1970, DateTimeConstants.OCTOBER, 21, timeZone);
     DateMidnight date = conv.convertToObject("10/21/1970", Locale.ENGLISH);

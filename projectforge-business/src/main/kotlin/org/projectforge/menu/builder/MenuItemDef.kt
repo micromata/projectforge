@@ -5,6 +5,7 @@ import org.projectforge.business.user.UserRight
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.IUserRightId
+import org.projectforge.menu.MenuBadge
 import org.projectforge.menu.MenuItem
 
 /**
@@ -20,14 +21,17 @@ class MenuItemDef {
      */
     constructor(defId: MenuItemDefId,
                 url: String? = null,
+                badgeCounter: (() -> Int?)? = null,
                 checkAccess: (() -> Boolean)? = null,
                 visibleForRestrictedUsers: Boolean = false,
                 requiredUserRightId: IUserRightId? = null,
                 requiredUserRight: UserRight? = null,
                 requiredUserRightValues: Array<UserRightValue>? = null,
-                vararg requiredGroups : ProjectForgeGroup) {
-        this.key = defId.id
+                vararg requiredGroups: ProjectForgeGroup) {
+        this.id = defId.id
         this.i18nKey = defId.getI18nKey()
+        this.badgeCounter = badgeCounter
+        this.badgeTooltipKey = badgeTooltipKey
         this.url = url
         this.checkAccess = checkAccess
         this.visibleForRestrictedUsers = visibleForRestrictedUsers
@@ -45,29 +49,15 @@ class MenuItemDef {
      * @param checkAccess Dynamic check access for the logged in user. The menu is visible if [checkAccess] is null or returns true.
      */
     constructor(id: String,
-                i18nKey: String,
-                url: String? = null,
-                checkAccess: (() -> Boolean)? = null,
-                visibleForRestrictedUsers: Boolean = false,
-                requiredUserRightId: IUserRightId? = null,
-                requiredUserRight: UserRight? = null,
-                requiredUserRightValues: Array<UserRightValue>? = null,
-                vararg requiredGroups : ProjectForgeGroup) {
-        this.key = id
+                i18nKey: String) {
+        this.id = id
         this.i18nKey = i18nKey
-        this.url = url
-        this.checkAccess = checkAccess
-        this.visibleForRestrictedUsers = visibleForRestrictedUsers
-        this.requiredGroups = arrayOf(*requiredGroups)
-        this.requiredUserRightId = requiredUserRightId
-        this.requiredUserRight = requiredUserRight
-        this.requiredUserRightValues = requiredUserRightValues
     }
 
     /**
      * Needed for unique keys for React frontend.
      */
-    val key: String
+    val id: String
     var title: String? = null
     var i18nKey: String? = null
     var url: String? = null
@@ -79,10 +69,8 @@ class MenuItemDef {
     var requiredUserRight: UserRight? = null
     var requiredUserRightValues: Array<UserRightValue>? = null
 
-    /**
-     * For alternative url references (used by Wicket for referring Wicket page classes instead of urls as string.
-     */
-    var link : Any? = null
+    var badgeCounter: (() -> Int?)? = null
+    var badgeTooltipKey: String? = null
 
     internal var childs: MutableList<MenuItemDef>? = null
 
@@ -95,14 +83,14 @@ class MenuItemDef {
     }
 
     internal fun get(id: MenuItemDefId): MenuItemDef? {
-        if (this.key == id.id) {
+        if (this.id == id.id) {
             return this
         }
         if (childs == null) {
             return null
         }
         childs!!.forEach {
-            if (it.key == id.id)
+            if (it.id == id.id)
                 return it
         }
         return null
@@ -112,12 +100,19 @@ class MenuItemDef {
      * @param parentMenu Only needed for building unique keys
      * @param menuBuilderContext
      */
-    internal fun createMenu(parentMenu: MenuItem): MenuItem {
-        val menuItem = MenuItem(translate(i18nKey), url = this.url)
-        if (parentMenu.title != "root")
-            menuItem.key = "${parentMenu.key}.${key}"
+    internal fun createMenu(parentMenu: MenuItem?, menuCreatorContext: MenuCreatorContext): MenuItem {
+        val title = if (menuCreatorContext.translate) translate(i18nKey) else i18nKey
+        val menuItem = MenuItem(id, title = title!!, i18nKey = i18nKey, url = this.url)
+        if (parentMenu != null)
+            menuItem.key = "${parentMenu.key}.${id}"
         else
-            menuItem.key = "${key}"
+            menuItem.key = "${id}"
+        val counter = badgeCounter?.invoke()
+        if (counter ?: -1 > 0) {
+            menuItem.badge = MenuBadge(counter, style = "danger")
+            if (badgeTooltipKey != null)
+                menuItem.badge?.tooltip = translate(badgeTooltipKey)
+        }
         return menuItem
     }
 }

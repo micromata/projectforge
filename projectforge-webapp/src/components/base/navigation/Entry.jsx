@@ -1,7 +1,8 @@
+import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
-import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
-import { categoryItemPropType, categoryPropType } from '../../../utilities/propTypes';
+import { menuItemPropType } from '../../../utilities/propTypes';
 import {
     DropdownItem,
     DropdownMenu,
@@ -15,19 +16,20 @@ import style from './Navigation.module.scss';
 function Entry({ entry }) {
     let content;
 
-    if (entry.items) {
+    if (entry.subMenu) {
         content = (
             <UncontrolledDropdown nav inNavbar>
-                <DropdownToggle nav caret>
-                    {entry.name}
+                <DropdownToggle nav>
+                    {entry.title}
+                    <FontAwesomeIcon icon={faChevronDown} />
                 </DropdownToggle>
                 <DropdownMenu>
-                    {entry.items.map(item => (
+                    {entry.subMenu.map(item => (
                         <DropdownItem
-                            key={`entry-item-${entry.name}-${item.name}`}
+                            key={`entry-item-${entry.key}-${item.key}`}
                             className={style.entryItem}
                         >
-                            <Link to={item.url}>{item.name}</Link>
+                            <Link to={`/${item.url}`}>{item.title}</Link>
                         </DropdownItem>
                     ))}
                 </DropdownMenu>
@@ -36,8 +38,8 @@ function Entry({ entry }) {
     } else {
         content = (
             <NavItem>
-                <NavLink tag={Link} to={entry.url}>
-                    {entry.name}
+                <NavLink tag={Link} to={`/${entry.url}`}>
+                    {entry.title}
                 </NavLink>
             </NavItem>
         );
@@ -47,7 +49,7 @@ function Entry({ entry }) {
 }
 
 Entry.propTypes = {
-    entry: PropTypes.oneOfType([categoryItemPropType, categoryPropType]).isRequired,
+    entry: menuItemPropType.isRequired,
 };
 
 export default Entry;

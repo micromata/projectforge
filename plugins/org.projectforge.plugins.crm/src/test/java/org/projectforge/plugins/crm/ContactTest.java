@@ -23,12 +23,6 @@
 
 package org.projectforge.plugins.crm;
 
-import static org.testng.AssertJUnit.*;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-
 import org.hibernate.criterion.Order;
 import org.projectforge.business.address.PhoneType;
 import org.projectforge.framework.access.AccessException;
@@ -37,21 +31,24 @@ import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class ContactTest extends AbstractTestNGBase
-{
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class ContactTest extends AbstractTestBase {
   private final static Logger log = LoggerFactory.getLogger(ContactTest.class);
 
   @Autowired
   private ContactDao contactDao;
 
   //  @Test
-  public void testSaveAndUpdate()
-  {
+  public void testSaveAndUpdate() {
     logon(AbstractTestBase.ADMIN);
 
     final ContactDO a1 = new ContactDO();
@@ -59,13 +56,13 @@ public class ContactTest extends AbstractTestNGBase
     a1.setTask(getTask("1.1"));
 
     final SocialMediaValue value1 = new SocialMediaValue()
-        .setContactType(ContactType.BUSINESS)
-        .setSocialMediaType(SocialMediaType.JABBER)
-        .setUser("Hurzel");
+            .setContactType(ContactType.BUSINESS)
+            .setSocialMediaType(SocialMediaType.JABBER)
+            .setUser("Hurzel");
     final SocialMediaValue value2 = new SocialMediaValue()
-        .setContactType(ContactType.PRIVATE)
-        .setSocialMediaType(SocialMediaType.TWITTER)
-        .setUser("Hurzeli");
+            .setContactType(ContactType.PRIVATE)
+            .setSocialMediaType(SocialMediaType.TWITTER)
+            .setUser("Hurzeli");
     a1.setSocialMediaValues(contactDao.getSocialMediaValuesAsXml(value1, value2));
 
     final EmailValue email1 = new EmailValue().setContactType(ContactType.BUSINESS).setEmail("theo.test@acme.com");
@@ -116,8 +113,7 @@ public class ContactTest extends AbstractTestNGBase
   }
 
   //@Test
-  public void testDeleteAndUndelete()
-  {
+  public void testDeleteAndUndelete() {
     logon(AbstractTestBase.ADMIN);
     ContactDO a1 = new ContactDO();
     a1.setName("Test");
@@ -128,16 +124,15 @@ public class ContactTest extends AbstractTestNGBase
     a1 = contactDao.getById(id);
     contactDao.markAsDeleted(a1);
     a1 = contactDao.getById(id);
-    assertEquals("Should be marked as deleted.", true, a1.isDeleted());
+    assertEquals(true, a1.isDeleted(), "Should be marked as deleted.");
 
     contactDao.undelete(a1);
     a1 = contactDao.getById(id);
-    assertEquals("Should be undeleted.", false, a1.isDeleted());
+    assertEquals(false, a1.isDeleted(), "Should be undeleted.");
   }
 
   //@Test(expected = RuntimeException.class)
-  public void testDelete()
-  {
+  public void testDelete() {
     ContactDO a1 = new ContactDO();
     a1.setName("Not deletable");
     a1.setTask(getTask("1.1"));
@@ -228,8 +223,7 @@ public class ContactTest extends AbstractTestNGBase
   //  }
 
   //@Test
-  public void checkStandardAccess()
-  {
+  public void checkStandardAccess() {
     ContactDO a1 = new ContactDO();
     a1.setName("testa1");
     a1.setTask(getTask("ta_1_siud"));
@@ -264,14 +258,14 @@ public class ContactTest extends AbstractTestNGBase
     final QueryFilter filter = new QueryFilter(searchFilter);
     filter.addOrder(Order.asc("name"));
     final List<ContactDO> result = contactDao.getList(filter);
-    assertEquals("Should found 3 address'.", 3, result.size());
+    assertEquals(3, result.size(), "Should found 3 address'.");
     final HashSet<String> set = new HashSet<String>();
     set.add("testa1");
     set.add("testa2");
     set.add("testa3");
-    assertTrue("Hit first entry", set.remove(result.get(0).getName()));
-    assertTrue("Hit second entry", set.remove(result.get(1).getName()));
-    assertTrue("Hit third entry", set.remove(result.get(2).getName()));
+    assertTrue(set.remove(result.get(0).getName()), "Hit first entry");
+    assertTrue(set.remove(result.get(1).getName()), "Hit second entry");
+    assertTrue(set.remove(result.get(2).getName()), "Hit third entry");
     // test_a4 should not be included in result list (no select access)
 
     // Insert

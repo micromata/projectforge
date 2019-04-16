@@ -23,11 +23,11 @@
 
 package org.projectforge.web;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.utils.HtmlHelper;
-import org.testng.annotations.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class HtmlHelperTest
 {

@@ -23,32 +23,29 @@
 
 package org.projectforge.calendar;
 
-import static org.testng.AssertJUnit.assertEquals;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.projectforge.framework.calendar.WeekHolder;
+import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.test.TestSetup;
 
 import java.util.Calendar;
 import java.util.Locale;
 
-import org.projectforge.framework.calendar.WeekHolder;
-import org.projectforge.framework.configuration.ConfigXmlTest;
-import org.projectforge.framework.time.DateHolder;
-import org.projectforge.framework.time.DatePrecision;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class WeekHolderTest
-{
+public class WeekHolderTest {
   //private final static Logger log = Logger.getLogger(WeekHolderTest.class);
 
-  @BeforeClass
-  public static void setUp()
-  {
+  @BeforeAll
+  public static void setUp() {
     // Needed if this tests runs before the ConfigurationTest.
-    ConfigXmlTest.createTestConfiguration();
+    TestSetup.init();
   }
 
   @Test
-  public void testWeekHolder()
-  {
+  public void testWeekHolder() {
     final Calendar cal = Calendar.getInstance(Locale.GERMAN);
     WeekHolder week = new WeekHolder(cal);
     assertEquals(7, week.getDays().length);
@@ -73,6 +70,6 @@ public class WeekHolderTest
     assertEquals(true, week.getDays()[1].isMarker()); // February, 27
     assertEquals(true, week.getDays()[2].isMarker()); // February, 28
     assertEquals(1, week.getDays()[3].getDayOfMonth());
-    assertEquals("Day is not of current month and should be marked.", false, week.getDays()[3].isMarker()); // March, 1
+    assertEquals(false, week.getDays()[3].isMarker(), "Day is not of current month and should be marked."); // March, 1
   }
 }

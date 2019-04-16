@@ -23,8 +23,7 @@
 
 package org.projectforge.web.teamcal.event;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.Timestamp;
 import java.text.DateFormat;
@@ -38,7 +37,7 @@ import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateHelper;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class TeamRecurrenceEventTest
 {

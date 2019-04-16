@@ -23,18 +23,17 @@
 
 package org.projectforge.framework.xstream.converter;
 
-import static org.testng.AssertJUnit.assertEquals;
-
-import java.util.TimeZone;
-
 import org.joda.time.DateTime;
+import org.junit.jupiter.api.Test;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.test.AbstractTestNGBase;
-import org.testng.annotations.Test;
 
-public class JodaDateTimeConverterTest extends AbstractTestNGBase
+import java.util.TimeZone;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class JodaDateTimeConverterTest
 {
   @Test
   public void testConverter()
@@ -47,7 +46,7 @@ public class JodaDateTimeConverterTest extends AbstractTestNGBase
   {
     final PFUserDO user = new PFUserDO();
     user.setTimeZone(timeZone);
-    ThreadLocalUserContext.setUser(getUserGroupCache(), user);
+    ThreadLocalUserContext.setUser(null, user);
     final JodaDateTimeConverter converter = new JodaDateTimeConverter();
     final DateTime dateTime = (DateTime) converter.parse("1970-11-21 16:00:00");
     assertEquals(1970, dateTime.getYear());

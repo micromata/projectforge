@@ -23,14 +23,8 @@
 
 package org.projectforge.web.wicket;
 
-import java.util.MissingResourceException;
-
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
-import org.apache.wicket.Page;
-import org.apache.wicket.Session;
+import org.apache.wicket.*;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.LabeledWebMarkupContainer;
 import org.apache.wicket.markup.html.link.AbstractLink;
@@ -52,13 +46,13 @@ import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
 import org.projectforge.web.LoginPage;
 import org.projectforge.web.LoginService;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.BeforeClass;
+
+import java.util.MissingResourceException;
 
 /**
  * Your wicket tester class must extends this or any derived class from AbstractTestBase for correct initialization of
@@ -66,8 +60,7 @@ import org.testng.annotations.BeforeClass;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class WicketPageTestBase extends AbstractTestNGBase
-{
+public class WicketPageTestBase extends AbstractTestBase {
   protected static final String KEY_LOGINPAGE_BUTTON_LOGIN = "loginButton:button";
 
   protected WicketTester tester;
@@ -86,12 +79,10 @@ public class WicketPageTestBase extends AbstractTestNGBase
    */
   private static ResourceSettings resourceSettings;
 
-  private class WicketTestApplication extends WebApplication implements WicketApplicationInterface
-  {
+  private class WicketTestApplication extends WebApplication implements WicketApplicationInterface {
 
     @Override
-    protected void init()
-    {
+    protected void init() {
       log.info("Init WicketTestApplication");
       super.init();
       getComponentInstantiationListeners().add(new SpringComponentInjector(this, applicationContext));
@@ -109,14 +100,12 @@ public class WicketPageTestBase extends AbstractTestNGBase
     }
 
     @Override
-    public Class<? extends Page> getHomePage()
-    {
+    public Class<? extends Page> getHomePage() {
       return WicketUtils.getDefaultPage();
     }
 
     @Override
-    public Session newSession(final Request request, final Response response)
-    {
+    public Session newSession(final Request request, final Response response) {
       return new MySession(request);
     }
 
@@ -124,8 +113,7 @@ public class WicketPageTestBase extends AbstractTestNGBase
      * @see org.projectforge.web.wicket.WicketApplicationInterface#isDevelopmentSystem()
      */
     @Override
-    public boolean isDevelopmentSystem()
-    {
+    public boolean isDevelopmentSystem() {
       return false;
     }
 
@@ -133,13 +121,11 @@ public class WicketPageTestBase extends AbstractTestNGBase
      * @see org.projectforge.web.wicket.WicketApplicationInterface#isStripWicketTags()
      */
     @Override
-    public boolean isStripWicketTags()
-    {
+    public boolean isStripWicketTags() {
       return true;
     }
 
-    private void addPluginResources()
-    {
+    private void addPluginResources() {
       for (AbstractPlugin plugin : pluginAdminService.getActivePlugin()) {
         for (String bundleName : plugin.getResourceBundleNames()) {
           addResourceBundle(bundleName);
@@ -147,17 +133,15 @@ public class WicketPageTestBase extends AbstractTestNGBase
       }
     }
 
-    private void addResourceBundle(String bundleName)
-    {
+    private void addResourceBundle(String bundleName) {
       // Prepend the resource bundle for overwriting some Wicket default localizations (such as StringValidator.*)
       getResourceSettings().getStringResourceLoaders().add(new BundleStringResourceLoader(bundleName));
       I18nHelper.addBundleName(bundleName);
     }
   }
 
-  @BeforeClass
-  public void setUpWicketApplication()
-  {
+  @Override
+  protected void beforeAll() {
     tester = new WicketTester(new WicketTestApplication());
   }
 
@@ -168,8 +152,7 @@ public class WicketPageTestBase extends AbstractTestNGBase
    * @param username
    * @param password not encrypted.
    */
-  public void login(final String username, final String password)
-  {
+  public void login(final String username, final String password) {
     login(username, password, true);
   }
 
@@ -180,8 +163,7 @@ public class WicketPageTestBase extends AbstractTestNGBase
    * @param username
    * @param password not encrypted.
    */
-  public void login(final String username, final String password, final boolean checkDefaultPage)
-  {
+  public void login(final String username, final String password, final boolean checkDefaultPage) {
     // start and render the test page
     tester.startPage(new LoginPage(new PageParameters()));
     if (ClassUtils.isAssignable(tester.getLastRenderedPage().getClass(), WicketUtils.getDefaultPage()) == true) {
@@ -199,8 +181,7 @@ public class WicketPageTestBase extends AbstractTestNGBase
     }
   }
 
-  public void loginTestAdmin()
-  {
+  public void loginTestAdmin() {
     login(AbstractTestBase.TEST_ADMIN_USER, AbstractTestBase.TEST_ADMIN_USER_PASSWORD);
   }
 
@@ -215,8 +196,7 @@ public class WicketPageTestBase extends AbstractTestNGBase
    * @see LabeledWebMarkupContainer#getLabel()
    * @see ContentMenuEntryPanel#getLabel()
    */
-  public Component findComponentByLabel(final MarkupContainer container, final String label)
-  {
+  public Component findComponentByLabel(final MarkupContainer container, final String label) {
     String str = label;
     try {
       str = container.getString(label);
@@ -225,11 +205,9 @@ public class WicketPageTestBase extends AbstractTestNGBase
     }
     final String locLabel = str;
     final Component[] component = new Component[1];
-    container.visitChildren(new IVisitor<Component, Void>()
-    {
+    container.visitChildren(new IVisitor<Component, Void>() {
       @Override
-      public void component(final Component object, final IVisit<Void> visit)
-      {
+      public void component(final Component object, final IVisit<Void> visit) {
         if (object instanceof AbstractLink) {
           final MarkupContainer parent = object.getParent();
           if (parent instanceof ContentMenuEntryPanel) {
@@ -276,14 +254,11 @@ public class WicketPageTestBase extends AbstractTestNGBase
    * @see LabeledWebMarkupContainer#getLabel()
    * @see ContentMenuEntryPanel#getLabel()
    */
-  public Component findComponentByAccessKey(final MarkupContainer container, final char accessKey)
-  {
+  public Component findComponentByAccessKey(final MarkupContainer container, final char accessKey) {
     final Component[] component = new Component[1];
-    container.visitChildren(new IVisitor<Component, Void>()
-    {
+    container.visitChildren(new IVisitor<Component, Void>() {
       @Override
-      public void component(final Component object, final IVisit<Void> visit)
-      {
+      public void component(final Component object, final IVisit<Void> visit) {
         if (object instanceof AbstractLink) {
           final AbstractLink link = (AbstractLink) object;
           final AttributeModifier attrMod = WicketUtils.getAttributeModifier(link, "accesskey");
@@ -298,16 +273,14 @@ public class WicketPageTestBase extends AbstractTestNGBase
     return component[0];
   }
 
-  private boolean labelEquals(final String label, final String l1, final String l2)
-  {
+  private boolean labelEquals(final String label, final String l1, final String l2) {
     if (label == null) {
       return false;
     }
     return l1 != null && label.equals(l1) == true || l2 != null && label.equals(l2) == true;
   }
 
-  public Component findComponentByLabel(final FormTester form, final String label)
-  {
+  public Component findComponentByLabel(final FormTester form, final String label) {
     return findComponentByLabel(form.getForm(), label);
   }
 
@@ -317,8 +290,7 @@ public class WicketPageTestBase extends AbstractTestNGBase
    * @param label
    * @see #findComponentByLabel(MarkupContainer, String)
    */
-  public Component findComponentByLabel(final WicketTester tester, final String containerPath, final String label)
-  {
+  public Component findComponentByLabel(final WicketTester tester, final String containerPath, final String label) {
     return findComponentByLabel((MarkupContainer) tester.getComponentFromLastRenderedPage(containerPath), label);
   }
 
@@ -328,17 +300,15 @@ public class WicketPageTestBase extends AbstractTestNGBase
    * @param label
    * @see #findComponentByLabel(MarkupContainer, String)
    */
-  public Component findComponentByAccessKey(final WicketTester tester, final String containerPath, final char accessKey)
-  {
+  public Component findComponentByAccessKey(final WicketTester tester, final String containerPath, final char accessKey) {
     return findComponentByAccessKey((MarkupContainer) tester.getComponentFromLastRenderedPage(containerPath),
-        accessKey);
+            accessKey);
   }
 
   /**
    * Logs out any current logged-in user and calls log-in page.
    */
-  protected void logout()
-  {
+  protected void logout() {
     loginService.logout((MySession) tester.getSession(), tester.getRequest(), tester.getResponse(), userXmlPreferencesCache);
     tester.startPage(LoginPage.class);
     tester.assertRenderedPage(LoginPage.class);

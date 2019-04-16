@@ -23,8 +23,8 @@
 
 package org.projectforge.common;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
+import org.junit.jupiter.api.Test;
+import org.projectforge.framework.time.DayHolder;
 
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -34,8 +34,8 @@ import java.text.DateFormat;
 import java.util.Date;
 import java.util.List;
 
-import org.projectforge.framework.time.DayHolder;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class CSVParserTest
 {

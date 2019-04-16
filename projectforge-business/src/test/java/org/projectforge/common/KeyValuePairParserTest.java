@@ -28,8 +28,8 @@ import java.math.BigDecimal;
 import java.util.Map;
 
 import org.projectforge.framework.utils.KeyValuePairParser;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class KeyValuePairParserTest
 {
@@ -46,12 +46,12 @@ public class KeyValuePairParserTest
         replaceQuotationMark("a1=,a2='1970-11-21 13:17:57.742',a3=5,a4='Hallo',a5='Hallo ''Kai''',a6=1.2"));
     final KeyValuePairParser parser = new KeyValuePairParser(in);
     final Map<String, String> pairs = parser.parse();
-    Assert.assertEquals(6, pairs.size());
-    Assert.assertNull(pairs.get("a1"));
-    Assert.assertEquals("1970-11-21 13:17:57.742", pairs.get("a2"));
-    Assert.assertEquals(5, parser.getInteger("a3").intValue());
-    Assert.assertEquals("Hallo", pairs.get("a4"));
-    Assert.assertEquals("Hallo \"Kai\"", pairs.get("a5"));
-    Assert.assertEquals(new BigDecimal("1.2"), parser.getBigDecimal("a6"));
+    Assertions.assertEquals(6, pairs.size());
+    Assertions.assertNull(pairs.get("a1"));
+    Assertions.assertEquals("1970-11-21 13:17:57.742", pairs.get("a2"));
+    Assertions.assertEquals(5, parser.getInteger("a3").intValue());
+    Assertions.assertEquals("Hallo", pairs.get("a4"));
+    Assertions.assertEquals("Hallo \"Kai\"", pairs.get("a5"));
+    Assertions.assertEquals(new BigDecimal("1.2"), parser.getBigDecimal("a6"));
   }
 }

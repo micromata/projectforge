@@ -32,8 +32,8 @@ import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.RecurrenceFrequency;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import net.fortuna.ical4j.model.DateList;
 import net.fortuna.ical4j.model.Recur;
@@ -52,12 +52,12 @@ public class ICal4JUtilsTest
     recur.setInterval(2);
     final DateList dateList = recur.getDates(getDate("2013-01-01", timeZone), getDate("2012-01-02", timeZone),
         getDate("2013-03-31", timeZone), Value.TIME);
-    Assert.assertEquals(3, dateList.size());
+    Assertions.assertEquals(3, dateList.size());
     final DateFormat df = new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_MINUTES);
     df.setTimeZone(timeZone);
-    Assert.assertEquals("2013-01-01 00:00", df.format(dateList.get(0)));
-    Assert.assertEquals("2013-01-15 00:00", df.format(dateList.get(1)));
-    Assert.assertEquals("2013-01-29 00:00", df.format(dateList.get(2)));
+    Assertions.assertEquals("2013-01-01 00:00", df.format(dateList.get(0)));
+    Assertions.assertEquals("2013-01-15 00:00", df.format(dateList.get(1)));
+    Assertions.assertEquals("2013-01-29 00:00", df.format(dateList.get(2)));
   }
 
   @Test
@@ -66,18 +66,18 @@ public class ICal4JUtilsTest
     final net.fortuna.ical4j.model.Date date = ICal4JUtils.getICal4jDate(
         DateHelper.parseIsoDate("2012-12-22", DateHelper.EUROPE_BERLIN),
         DateHelper.EUROPE_BERLIN);
-    Assert.assertEquals("20121222", date.toString());
+    Assertions.assertEquals("20121222", date.toString());
   }
 
   @Test
   public void parseIsoDate()
   {
     final java.util.Date date = ICal4JUtils.parseISODateString("2013-03-21 08:47:00");
-    Assert.assertNotNull(date);
-    Assert.assertEquals("2013-03-21 08:47:00", ICal4JUtils.asISODateTimeString(date));
-    Assert.assertNull(ICal4JUtils.parseISODateString(null));
-    Assert.assertNull(ICal4JUtils.parseISODateString(""));
-    Assert.assertNull(ICal4JUtils.asISODateTimeString(null));
+    Assertions.assertNotNull(date);
+    Assertions.assertEquals("2013-03-21 08:47:00", ICal4JUtils.asISODateTimeString(date));
+    Assertions.assertNull(ICal4JUtils.parseISODateString(null));
+    Assertions.assertNull(ICal4JUtils.parseISODateString(""));
+    Assertions.assertNull(ICal4JUtils.asISODateTimeString(null));
   }
 
   private net.fortuna.ical4j.model.Date getDate(final String dateString, final TimeZone timeZone)
@@ -100,12 +100,12 @@ public class ICal4JUtilsTest
     final List<net.fortuna.ical4j.model.Date> dateTimes = ICal4JUtils.parseCSVDatesAsICal4jDates(
         "2013-03-21 08:47:00,20130327T090000", true,
         ICal4JUtils.getTimeZone(timeZone));
-    Assert.assertEquals(2, dateTimes.size());
+    Assertions.assertEquals(2, dateTimes.size());
     final DateFormat dtfLocal = new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_MINUTES);
     dtfLocal.setTimeZone(timeZone);
     final DateFormat dtfUtc = new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_MINUTES);
     dtfUtc.setTimeZone(DateHelper.UTC);
-    Assert.assertEquals(dtfUtc.format(dateTimes.get(0)), "2013-03-21 08:47");
-    Assert.assertEquals(dtfLocal.format(dateTimes.get(1)), "2013-03-27 09:00");
+    Assertions.assertEquals(dtfUtc.format(dateTimes.get(0)), "2013-03-21 08:47");
+    Assertions.assertEquals(dtfLocal.format(dateTimes.get(1)), "2013-03-27 09:00");
   }
 }

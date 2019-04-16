@@ -94,7 +94,7 @@ export const updatePageData = () => (dispatch, getState) => {
                 response.json()
                     .then(json => dispatch(updateFailure(json.reduce((map, obj) => ({
                         ...map,
-                        [obj['field-id']]: obj.message,
+                        [obj.fieldId]: obj.message,
                     }), {}))));
                 return;
             }
@@ -112,7 +112,7 @@ export const abort = () => (dispatch, getState) => {
     redirectToCategory(category);
 };
 
-const callEndpointWithData = (category, endpoint, data, dispatch, method = 'POST') => {
+export const callEndpointWithData = (category, endpoint, data, dispatch, method = 'POST') => {
     dispatch(updateBegin());
 
     fetch(

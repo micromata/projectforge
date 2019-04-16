@@ -1,6 +1,5 @@
 package org.projectforge.rest.core
 
-import com.google.gson.annotations.SerializedName
 import de.micromata.genome.db.jpa.history.api.DiffEntry
 import de.micromata.genome.db.jpa.history.api.HistoryEntry
 import de.micromata.genome.db.jpa.history.entities.EntityOpType
@@ -8,6 +7,7 @@ import de.micromata.genome.db.jpa.history.entities.PropertyOpType
 import org.projectforge.business.multitenancy.TenantRegistryMap
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
+import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.stereotype.Component
@@ -22,27 +22,19 @@ class HistoryService {
     private val log = org.slf4j.LoggerFactory.getLogger(HistoryService::class.java)
 
     data class DisplayHistoryEntry(
-            @SerializedName("modified-at")
             var modifiedAt: Date? = null,
-            @SerializedName("modified-by-user-id")
-            var modfiedByUserId: String? = null,
-            @SerializedName("modified-by-user")
-            var modfiedByUser: String? = null,
-            @SerializedName("operation-type")
+            var timeAgo: String? = null,
+            var modifiedByUserId: String? = null,
+            var modifiedByUser: String? = null,
             var operationType: EntityOpType? = null,
-            @SerializedName("operation")
             var operation: String? = null,
-            @SerializedName("diff-entries")
             var diffEntries: MutableList<DisplayHistoryDiffEntry> = mutableListOf())
 
     data class DisplayHistoryDiffEntry(
-            @SerializedName("operation-type")
             var operationType: PropertyOpType? = null,
             var operation: String? = null,
             var property: String? = null,
-            @SerializedName("old-value")
             var oldValue: String? = null,
-            @SerializedName("new-value")
             var newValue: String? = null)
 
     /**
@@ -60,8 +52,9 @@ class HistoryService {
             }
             val entry = DisplayHistoryEntry(
                     modifiedAt = it.modifiedAt,
-                    modfiedByUserId = it.modifiedBy,
-                    modfiedByUser = user?.fullname,
+                    timeAgo = TimeAgo.getMessage(it.modifiedAt),
+                    modifiedByUserId = it.modifiedBy,
+                    modifiedByUser = user?.fullname,
                     operationType = it.entityOpType,
                     operation = translate(it.entityOpType))
             var clazz: Class<*>? = null

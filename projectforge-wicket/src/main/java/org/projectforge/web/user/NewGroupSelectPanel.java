@@ -34,6 +34,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.business.user.GroupDao;
+import org.projectforge.business.user.service.UserPreferencesService;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.utils.RecentQueue;
@@ -60,6 +61,9 @@ public class NewGroupSelectPanel extends AbstractSelectPanel<GroupDO> implements
 
   @SpringBean
   private GroupDao groupDao;
+
+  @SpringBean
+  private UserPreferencesService userPreferencesService;
 
   private RecentQueue<String> recentGroups;
 
@@ -251,11 +255,11 @@ public class NewGroupSelectPanel extends AbstractSelectPanel<GroupDO> implements
   private RecentQueue<String> getRecentCustomers()
   {
     if (this.recentGroups == null) {
-      this.recentGroups = (RecentQueue<String>) UserPreferencesHelper.getEntry(USER_PREF_KEY_RECENT_GROUPS);
+      this.recentGroups = (RecentQueue<String>) userPreferencesService.getEntry(USER_PREF_KEY_RECENT_GROUPS);
     }
     if (this.recentGroups == null) {
       this.recentGroups = new RecentQueue<String>();
-      UserPreferencesHelper.putEntry(USER_PREF_KEY_RECENT_GROUPS, this.recentGroups, true);
+      userPreferencesService.putEntry(USER_PREF_KEY_RECENT_GROUPS, this.recentGroups, true);
     }
     return this.recentGroups;
   }

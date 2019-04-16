@@ -1,23 +1,13 @@
 package org.projectforge.web.vacation;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.*;
-
-import java.math.BigDecimal;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.Locale;
-import java.util.TimeZone;
-
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.configuration.ConfigurationServiceImpl;
 import org.projectforge.business.fibu.EmployeeDO;
@@ -27,16 +17,26 @@ import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.business.vacation.service.VacationServiceImpl;
-import org.projectforge.framework.configuration.ConfigXml;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.test.TestSetup;
 import org.projectforge.web.wicket.components.DatePanel;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 import org.wicketstuff.select2.Select2Choice;
 import org.wicketstuff.select2.Select2MultiChoice;
 
-@PrepareForTest({ DatePanel.class, Form.class, ThreadLocalUserContext.class, ConfigXml.class })
-public class VacationFormValidatorTest extends PowerMockTestCase
+import java.math.BigDecimal;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.GregorianCalendar;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.when;
+
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ DatePanel.class, Form.class })
+public class VacationFormValidatorTest
 {
   private EmployeeDO employee;
 
@@ -68,9 +68,10 @@ public class VacationFormValidatorTest extends PowerMockTestCase
 
   private Collection<TeamCalDO> teamCalDO;
 
-  @BeforeMethod
+  @Before
   public void setUp()
   {
+    TestSetup.init();
     this.employee = mock(EmployeeDO.class);
     when(this.employee.getUrlaubstage()).thenReturn(30);
     this.vacationService = mock(VacationServiceImpl.class);
@@ -87,14 +88,6 @@ public class VacationFormValidatorTest extends PowerMockTestCase
     this.employeeSelect = mock(Select2Choice.class);
     this.calendars = mock(Select2MultiChoice.class);
     this.teamCalDO = mock(Collection.class);
-    mockStatic(ThreadLocalUserContext.class);
-    mockStatic(ConfigXml.class);
-    Locale locale = Locale.getDefault();
-    TimeZone timeZone = TimeZone.getDefault();
-    ConfigXml configXml = new ConfigXml("./target/Projectforge");
-    when(ThreadLocalUserContext.getLocale()).thenReturn(locale);
-    when(ThreadLocalUserContext.getTimeZone()).thenReturn(timeZone);
-    when(ConfigXml.getInstance()).thenReturn(configXml);
     Calendar vacationEndDate = new GregorianCalendar();
     vacationEndDate.set(Calendar.MONTH, Calendar.MARCH);
     vacationEndDate.set(Calendar.DAY_OF_MONTH, 31);

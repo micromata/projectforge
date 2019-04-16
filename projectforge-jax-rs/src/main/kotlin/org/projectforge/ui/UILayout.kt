@@ -1,6 +1,7 @@
 package org.projectforge.ui
 
-import com.google.gson.annotations.SerializedName
+import org.projectforge.framework.i18n.translate
+import org.projectforge.menu.MenuItem
 
 class UILayout {
     constructor(title: String) {
@@ -9,9 +10,38 @@ class UILayout {
 
     var title: String?
     val layout: MutableList<UIElement> = mutableListOf()
-    @SerializedName("named-containers")
     val namedContainers: MutableList<UINamedContainer> = mutableListOf()
-    val actions: MutableList<UIElement> = mutableListOf()
+    /**
+     * The action buttons.
+     */
+    val actions = mutableListOf<UIElement>()
+
+    val pageMenu = mutableListOf<MenuItem>()
+
+    /**
+     * All required translations for the frontend dependent on the logged-in-user's language.
+     */
+    val translations = mutableMapOf<String, String>()
+
+    /**
+     * @param i18nKey The translation i18n key. The translation for the logged-in-user will be added.
+     * @return this for chaining.
+     */
+    fun addTranslations(vararg i18nKeys: String): UILayout {
+        i18nKeys.forEach {
+            translations.put(it, translate(it))
+        }
+        return this
+    }
+
+    /**
+     * @param i18nKey The translation i18n key. The translation for the logged-in-user will be added.
+     * @return this for chaining.
+     */
+    fun addTranslation(i18nKey: String, translation: String): UILayout {
+        translations.put(i18nKey, translate(translation))
+        return this
+    }
 
     fun add(element: UIElement): UILayout {
         layout.add(element)
@@ -26,6 +56,20 @@ class UILayout {
     fun add(namedContainer: UINamedContainer): UILayout {
         namedContainers.add(namedContainer)
         return this
+    }
+
+    fun add(menu: MenuItem, index: Int? = null): UILayout {
+        if (index != null)
+            pageMenu.add(index, menu)
+        else
+            pageMenu.add(menu)
+        return this
+    }
+
+    fun postProcessPageMenu() {
+        pageMenu.forEach {
+            it.postProcess()
+        }
     }
 
     /**
@@ -64,10 +108,24 @@ class UILayout {
         return getElementById(id) as UIInput
     }
 
+    fun getTextAreaById(id: String): UITextArea {
+        return getElementById(id) as UITextArea
+    }
+
     fun getNamedContainerById(id: String): UINamedContainer? {
-        namedContainers.forEach{
+        namedContainers.forEach {
             if (it.id == id) {
                 return it
+            }
+        }
+        return null
+    }
+
+    fun getMenuById(id: String): MenuItem? {
+        pageMenu.forEach {
+            val found = it.get(id)
+            if (found != null) {
+                return found
             }
         }
         return null

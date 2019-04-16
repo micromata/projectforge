@@ -29,6 +29,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.joda.time.DateMidnight;
+import org.projectforge.business.teamcal.filter.CalendarFilter;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.business.user.UserDao;

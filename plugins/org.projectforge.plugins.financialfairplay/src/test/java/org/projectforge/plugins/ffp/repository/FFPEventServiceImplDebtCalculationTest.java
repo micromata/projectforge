@@ -1,8 +1,12 @@
 package org.projectforge.plugins.ffp.repository;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.plugins.ffp.model.FFPAccountingDO;
+import org.projectforge.plugins.ffp.model.FFPDebtDO;
+import org.projectforge.plugins.ffp.model.FFPEventDO;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
@@ -10,26 +14,19 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.plugins.ffp.model.FFPAccountingDO;
-import org.projectforge.plugins.ffp.model.FFPDebtDO;
-import org.projectforge.plugins.ffp.model.FFPEventDO;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class FFPEventServiceImplDebtCalculationTest
-{
+
+public class FFPEventServiceImplDebtCalculationTest {
   private FFPEventServiceImpl ffpEventServiceImpl;
 
-  @BeforeMethod
-  public void setup()
-  {
+  @BeforeEach
+  public void setup() {
     ffpEventServiceImpl = new FFPEventServiceImpl();
   }
 
   @Test
-  public void testDebtCalculation() throws Exception
-  {
+  public void testDebtCalculation() throws Exception {
     FFPEventDO event = new FFPEventDO();
     Set<FFPAccountingDO> accountingDOs = new HashSet<>();
     accountingDOs.add(createFfpAccounting(1, BigDecimal.ZERO, BigDecimal.ZERO));
@@ -37,14 +34,13 @@ public class FFPEventServiceImplDebtCalculationTest
     accountingDOs.add(createFfpAccounting(3, new BigDecimal(2), new BigDecimal(2)));
     event.setAccountingList(accountingDOs);
     List<FFPDebtDO> calculateDebt = ffpEventServiceImpl.calculateDebt(event);
-    assertNotNull("ffpEventServiceImpl.calculateDebt returned null object", calculateDebt);
-    assertEquals("wrong count of debts", 0, calculateDebt.size());
+    assertNotNull(calculateDebt, "ffpEventServiceImpl.calculateDebt returned null object");
+    assertEquals(0, calculateDebt.size(), "wrong count of debts");
 
   }
 
   @Test
-  public void testDebtCalculation1() throws Exception
-  {
+  public void testDebtCalculation1() throws Exception {
     FFPEventDO event = new FFPEventDO();
     Set<FFPAccountingDO> accountingDOs = new HashSet<>();
     accountingDOs.add(createFfpAccounting(1, BigDecimal.ZERO, new BigDecimal(0.75)));
@@ -52,18 +48,17 @@ public class FFPEventServiceImplDebtCalculationTest
     accountingDOs.add(createFfpAccounting(3, new BigDecimal(2.68), new BigDecimal(2)));
     event.setAccountingList(accountingDOs);
     List<FFPDebtDO> calculateDebt = ffpEventServiceImpl.calculateDebt(event);
-    assertNotNull("ffpEventServiceImpl.calculateDebt returned null object", calculateDebt);
-    assertEquals("wrong count of debts", 2, calculateDebt.size());
+    assertNotNull(calculateDebt, "ffpEventServiceImpl.calculateDebt returned null object");
+    assertEquals(2, calculateDebt.size(), "wrong count of debts");
     TestPredicate pre = new TestPredicate(1, 3, new BigDecimal(0.69));
     TestPredicate pre2 = new TestPredicate(2, 3, new BigDecimal(0.16));
 
-    assertTrue("calculated wrong debt", calculateDebt.stream().anyMatch(pre));
-    assertTrue("calculated wrong debt", calculateDebt.stream().anyMatch(pre2));
+    assertTrue(calculateDebt.stream().anyMatch(pre), "calculated wrong debt");
+    assertTrue(calculateDebt.stream().anyMatch(pre2), "calculated wrong debt");
   }
 
   @Test
-  public void testDebtCalculation2() throws Exception
-  {
+  public void testDebtCalculation2() throws Exception {
     FFPEventDO event = new FFPEventDO();
     Set<FFPAccountingDO> accountingDOs = new HashSet<>();
     accountingDOs.add(createFfpAccounting(1, new BigDecimal(456.90), new BigDecimal(1.23)));
@@ -72,29 +67,28 @@ public class FFPEventServiceImplDebtCalculationTest
     event.setAccountingList(accountingDOs);
 
     List<FFPDebtDO> calculateDebt = ffpEventServiceImpl.calculateDebt(event);
-    assertNotNull("ffpEventServiceImpl.calculateDebt returned null object", calculateDebt);
-    assertEquals("wrong count of debts", 2, calculateDebt.size());
+    assertNotNull(calculateDebt, "ffpEventServiceImpl.calculateDebt returned null object");
+    assertEquals(2, calculateDebt.size(), "wrong count of debts");
     TestPredicate pre = new TestPredicate(3, 1, new BigDecimal(434.27));
-    assertTrue("calculated wrong debt", calculateDebt.stream().anyMatch(pre));
+    assertTrue(calculateDebt.stream().anyMatch(pre), "calculated wrong debt");
     TestPredicate pre1 = new TestPredicate(3, 2, new BigDecimal(19.11));
-    assertTrue("calculated wrong debt", calculateDebt.stream().anyMatch(pre1));
+    assertTrue(calculateDebt.stream().anyMatch(pre1), "calculated wrong debt");
   }
 
-  @Test(expectedExceptions = ArithmeticException.class)
-  public void testDebtCalculation3() throws Exception
-  {
-    FFPEventDO event = new FFPEventDO();
-    Set<FFPAccountingDO> accountingDOs = new HashSet<>();
-    accountingDOs.add(createFfpAccounting(1, BigDecimal.ZERO, BigDecimal.ZERO));
-    accountingDOs.add(createFfpAccounting(2, BigDecimal.ZERO, BigDecimal.ZERO));
-    accountingDOs.add(createFfpAccounting(3, BigDecimal.ZERO, BigDecimal.ZERO));
-    event.setAccountingList(accountingDOs);
-    ffpEventServiceImpl.calculateDebt(event);
+  public void testDebtCalculation3() throws Exception {
+    Assertions.assertThrows(ArithmeticException.class, () -> {
+      FFPEventDO event = new FFPEventDO();
+      Set<FFPAccountingDO> accountingDOs = new HashSet<>();
+      accountingDOs.add(createFfpAccounting(1, BigDecimal.ZERO, BigDecimal.ZERO));
+      accountingDOs.add(createFfpAccounting(2, BigDecimal.ZERO, BigDecimal.ZERO));
+      accountingDOs.add(createFfpAccounting(3, BigDecimal.ZERO, BigDecimal.ZERO));
+      event.setAccountingList(accountingDOs);
+      ffpEventServiceImpl.calculateDebt(event);
+    });
   }
 
   @Test
-  public void testDebtCalculation4() throws Exception
-  {
+  public void testDebtCalculation4() throws Exception {
     FFPEventDO event = new FFPEventDO();
     Set<FFPAccountingDO> accountingDOs = new HashSet<>();
     accountingDOs.add(createFfpAccounting(1, BigDecimal.ZERO, BigDecimal.ZERO));
@@ -102,15 +96,14 @@ public class FFPEventServiceImplDebtCalculationTest
     accountingDOs.add(createFfpAccounting(3, BigDecimal.ONE, new BigDecimal(2)));
     event.setAccountingList(accountingDOs);
     List<FFPDebtDO> calculateDebt = ffpEventServiceImpl.calculateDebt(event);
-    assertNotNull("ffpEventServiceImpl.calculateDebt returned null object", calculateDebt);
-    assertEquals("wrong count of debts", 1, calculateDebt.size());
+    assertNotNull(calculateDebt, "ffpEventServiceImpl.calculateDebt returned null object");
+    assertEquals(1, calculateDebt.size(), "wrong count of debts");
     TestPredicate pre = new TestPredicate(3, 2, BigDecimal.ONE);
-    assertTrue("calculated wrong debt", calculateDebt.stream().anyMatch(pre));
+    assertTrue(calculateDebt.stream().anyMatch(pre), "calculated wrong debt");
   }
 
   @Test
-  public void testDebtCalculation5() throws Exception
-  {
+  public void testDebtCalculation5() throws Exception {
     FFPEventDO event = new FFPEventDO();
     Set<FFPAccountingDO> accountingDOs = new HashSet<>();
     accountingDOs.add(createFfpAccounting(1, BigDecimal.ONE, BigDecimal.ONE));
@@ -120,17 +113,16 @@ public class FFPEventServiceImplDebtCalculationTest
     event.setAccountingList(accountingDOs);
 
     List<FFPDebtDO> calculateDebt = ffpEventServiceImpl.calculateDebt(event);
-    assertNotNull("ffpEventServiceImpl.calculateDebt returned null object", calculateDebt);
-    assertEquals("wrong count of debts", 2, calculateDebt.size());
+    assertNotNull(calculateDebt, "ffpEventServiceImpl.calculateDebt returned null object");
+    assertEquals(2, calculateDebt.size(), "wrong count of debts");
     TestPredicate pre = new TestPredicate(1, 4, BigDecimal.ONE);
-    assertTrue("calculated wrong debt", calculateDebt.stream().anyMatch(pre));
+    assertTrue(calculateDebt.stream().anyMatch(pre), "calculated wrong debt");
     TestPredicate pre1 = new TestPredicate(2, 4, BigDecimal.ONE);
-    assertTrue("calculated wrong debt", calculateDebt.stream().anyMatch(pre1));
+    assertTrue(calculateDebt.stream().anyMatch(pre1), "calculated wrong debt");
   }
 
   @Test
-  public void testDebtCalculation7() throws Exception
-  {
+  public void testDebtCalculation7() throws Exception {
     FFPEventDO event = new FFPEventDO();
     Set<FFPAccountingDO> accountingDOs = new HashSet<>();
     accountingDOs.add(createFfpAccounting(1, BigDecimal.ONE, BigDecimal.ONE));
@@ -140,17 +132,16 @@ public class FFPEventServiceImplDebtCalculationTest
     event.setAccountingList(accountingDOs);
 
     List<FFPDebtDO> calculateDebt = ffpEventServiceImpl.calculateDebt(event);
-    assertNotNull("ffpEventServiceImpl.calculateDebt returned null object", calculateDebt);
-    assertEquals("wrong count of debts", 2, calculateDebt.size());
+    assertNotNull(calculateDebt, "ffpEventServiceImpl.calculateDebt returned null object");
+    assertEquals(2, calculateDebt.size(), "wrong count of debts");
     TestPredicate pre = new TestPredicate(2, 1, new BigDecimal(0.5));
-    assertTrue("calculated wrong debt", calculateDebt.stream().anyMatch(pre));
+    assertTrue(calculateDebt.stream().anyMatch(pre), "calculated wrong debt");
     TestPredicate pre1 = new TestPredicate(4, 3, new BigDecimal(0.5));
-    assertTrue("calculated wrong debt", calculateDebt.stream().anyMatch(pre1));
+    assertTrue(calculateDebt.stream().anyMatch(pre1), "calculated wrong debt");
   }
 
   @Test
-  public void testDebtCalculation8() throws Exception
-  {
+  public void testDebtCalculation8() throws Exception {
     FFPEventDO event = new FFPEventDO();
     Set<FFPAccountingDO> accountingDOs = new HashSet<>();
     accountingDOs.add(createFfpAccounting(1, BigDecimal.ONE, BigDecimal.ONE));
@@ -160,17 +151,16 @@ public class FFPEventServiceImplDebtCalculationTest
     event.setAccountingList(accountingDOs);
 
     List<FFPDebtDO> calculateDebt = ffpEventServiceImpl.calculateDebt(event);
-    assertNotNull("ffpEventServiceImpl.calculateDebt returned null object", calculateDebt);
-    assertEquals("wrong count of debts", 2, calculateDebt.size());
+    assertNotNull(calculateDebt, "ffpEventServiceImpl.calculateDebt returned null object");
+    assertEquals(2, calculateDebt.size(), "wrong count of debts");
     TestPredicate pre = new TestPredicate(2, 1, new BigDecimal(0.5));
-    assertTrue("calculated wrong debt", calculateDebt.stream().anyMatch(pre));
+    assertTrue(calculateDebt.stream().anyMatch(pre), "calculated wrong debt");
     TestPredicate pre1 = new TestPredicate(4, 3, new BigDecimal(0.5));
-    assertTrue("calculated wrong debt", calculateDebt.stream().anyMatch(pre1));
+    assertTrue(calculateDebt.stream().anyMatch(pre1), "calculated wrong debt");
   }
 
   @Test
-  public void testDebtCalculation9() throws Exception
-  {
+  public void testDebtCalculation9() throws Exception {
     FFPEventDO event = new FFPEventDO();
     Set<FFPAccountingDO> accountingDOs = new HashSet<>();
     accountingDOs.add(createFfpAccounting(1, BigDecimal.ZERO, BigDecimal.ONE));
@@ -179,14 +169,13 @@ public class FFPEventServiceImplDebtCalculationTest
     event.setAccountingList(accountingDOs);
 
     List<FFPDebtDO> calculateDebt = ffpEventServiceImpl.calculateDebt(event);
-    assertNotNull("ffpEventServiceImpl.calculateDebt returned null object", calculateDebt);
-    assertEquals("wrong count of debts", 1, calculateDebt.size());
+    assertNotNull(calculateDebt, "ffpEventServiceImpl.calculateDebt returned null object");
+    assertEquals(1, calculateDebt.size(), "wrong count of debts");
     TestPredicate pre = new TestPredicate(1, 2, new BigDecimal(5));
-    assertTrue("calculated wrong debt", calculateDebt.stream().anyMatch(pre));
+    assertTrue(calculateDebt.stream().anyMatch(pre), "calculated wrong debt");
   }
 
-  private FFPAccountingDO createFfpAccounting(Integer pk, BigDecimal value, BigDecimal weighting)
-  {
+  private FFPAccountingDO createFfpAccounting(Integer pk, BigDecimal value, BigDecimal weighting) {
     FFPAccountingDO ffpAccountingDO1 = new FFPAccountingDO();
     PFUserDO attendee = new PFUserDO();
     attendee.setPk(pk);
@@ -196,25 +185,22 @@ public class FFPEventServiceImplDebtCalculationTest
     return ffpAccountingDO1;
   }
 
-  private class TestPredicate implements Predicate<FFPDebtDO>
-  {
+  private class TestPredicate implements Predicate<FFPDebtDO> {
     private int fromPk;
     private int toPk;
     private BigDecimal value;
 
-    private TestPredicate(int fromPk, int toPk, BigDecimal value)
-    {
+    private TestPredicate(int fromPk, int toPk, BigDecimal value) {
       this.fromPk = fromPk;
       this.toPk = toPk;
       this.value = value;
     }
 
     @Override
-    public boolean test(FFPDebtDO t)
-    {
+    public boolean test(FFPDebtDO t) {
       return t.getFrom().getPk() == fromPk && //
-          t.getTo().getPk() == toPk && //
-          t.getValue().equals(value.setScale(2, BigDecimal.ROUND_HALF_UP));
+              t.getTo().getPk() == toPk && //
+              t.getValue().equals(value.setScale(2, BigDecimal.ROUND_HALF_UP));
     }
 
   }

@@ -23,43 +23,38 @@
 
 package org.projectforge.business.gantt;
 
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.projectforge.framework.time.DayHolder;
+import org.projectforge.test.TestSetup;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
 
-import org.projectforge.business.gantt.GanttTask;
-import org.projectforge.business.gantt.GanttTaskImpl;
-import org.projectforge.framework.configuration.ConfigXmlTest;
-import org.projectforge.framework.time.DayHolder;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class GanttTaskImplTest2
-{
-  @BeforeClass
-  public static void setUp()
-  {
+public class GanttTaskImplTest2 {
+  @BeforeAll
+  public static void setUp() {
     // Needed if this tests runs before the ConfigurationTest.
-    ConfigXmlTest.createTestConfiguration();
+    TestSetup.init();
   }
 
   @Test
-  public void hasDuration()
-  {
+  public void hasDuration() {
     final GanttTask task = new GanttTaskImpl();
-    assertFalse("duration should be 0.", task.hasDuration());
+    assertFalse(task.hasDuration(), "duration should be 0.");
     task.setDuration(BigDecimal.TEN);
-    assertTrue("duration should be 10.", task.hasDuration());
+    assertTrue(task.hasDuration(), "duration should be 10.");
     final DayHolder day = new DayHolder();
     day.setDate(2010, Calendar.AUGUST, 13);
     task.setStartDate(day.getDate());
-    assertTrue("duration should be 10.", task.hasDuration());
+    assertTrue(task.hasDuration(), "duration should be 10.");
     task.setDuration(null);
-    assertFalse("duration should be null.", task.hasDuration());
+    assertFalse(task.hasDuration(), "duration should be null.");
     day.add(Calendar.DAY_OF_MONTH, 1);
     task.setEndDate(day.getDate());
-    assertTrue("duration expected.", task.hasDuration());
+    assertTrue(task.hasDuration(), "duration expected.");
   }
 }

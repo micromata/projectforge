@@ -23,15 +23,15 @@
 
 package org.projectforge.business.fibu.kost;
 
-import static org.testng.AssertJUnit.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;
 
 import org.projectforge.business.fibu.RechnungsPositionDO;
-import org.projectforge.test.AbstractTestNGBase;
-import org.testng.annotations.Test;
+import org.projectforge.test.AbstractTestBase;
+import org.junit.jupiter.api.Test;
 
-public class KostZuweisungenCopyHelperTest extends AbstractTestNGBase
+public class KostZuweisungenCopyHelperTest extends AbstractTestBase
 {
   @Test
   public void copy()

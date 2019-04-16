@@ -43,6 +43,6 @@ public class HibernateSearchInstantMessagingBridge implements StringBridge
       return "";
     }
     List<LabelValueBean<InstantMessagingType, String>> list = (List<LabelValueBean<InstantMessagingType, String>>)object;
-    return AddressDO.getInstantMessagingAsString(list);
+    return AddressDO.Companion.getInstantMessagingAsString(list);
   }
 }

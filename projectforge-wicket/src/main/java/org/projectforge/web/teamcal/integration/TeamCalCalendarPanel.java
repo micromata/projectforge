@@ -48,7 +48,7 @@ import org.projectforge.business.teamcal.filter.TemplateEntry;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.web.calendar.CalendarFilter;
+import org.projectforge.business.teamcal.filter.CalendarFilter;
 import org.projectforge.web.calendar.CalendarPanel;
 import org.projectforge.web.calendar.MyFullCalendarConfig;
 import org.projectforge.web.teamcal.dialog.RecurrenceChangeDialog;

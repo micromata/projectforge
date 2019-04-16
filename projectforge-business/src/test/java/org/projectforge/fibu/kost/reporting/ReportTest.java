@@ -23,7 +23,7 @@
 
 package org.projectforge.fibu.kost.reporting;
 
-import static org.testng.AssertJUnit.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,11 +33,11 @@ import org.projectforge.business.fibu.kost.reporting.ReportDao;
 import org.projectforge.business.fibu.kost.reporting.ReportObjective;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
+import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
-public class ReportTest extends AbstractTestNGBase
+public class ReportTest extends AbstractTestBase
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ReportTest.class);
 

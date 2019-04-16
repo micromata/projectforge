@@ -23,22 +23,17 @@
 
 package org.projectforge.common;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import org.junit.jupiter.api.Test;
+import org.projectforge.common.anots.StringAlphanumericSort;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.projectforge.common.anots.StringAlphanumericSort;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class BeanHelperTest
-{
+public class BeanHelperTest {
   @StringAlphanumericSort
   private String number;
 
@@ -51,8 +46,7 @@ public class BeanHelperTest
   private int[] testInts;
 
   @Test
-  public void getDeclaredAnnotationsTest()
-  {
+  public void getDeclaredAnnotationsTest() {
     boolean annoExists = false;
     Annotation[] declaredAnnotations = BeanHelper.getDeclaredAnnotations(this.getClass(), "number");
     for (Annotation a : declaredAnnotations) {
@@ -60,12 +54,11 @@ public class BeanHelperTest
         annoExists = true;
       }
     }
-    assertTrue("Annotation not found!", annoExists);
+    assertTrue(annoExists, "Annotation not found!");
   }
 
   @Test
-  public void determineGetter()
-  {
+  public void determineGetter() {
     Method getter = BeanHelper.determineGetter(this.getClass(), "name");
     assertEquals("getName", getter.getName());
     getter = BeanHelper.determineGetter(this.getClass(), "enabled");
@@ -77,36 +70,33 @@ public class BeanHelperTest
   }
 
   @Test
-  public void determinePropertyName() throws NoSuchMethodException
-  {
-    final Method getName = getClass().getDeclaredMethod("getName", new Class[] {});
+  public void determinePropertyName() throws NoSuchMethodException {
+    final Method getName = getClass().getDeclaredMethod("getName", new Class[]{});
     assertEquals("name", BeanHelper.determinePropertyName(getName));
-    final Method setName = getClass().getDeclaredMethod("setName", new Class[] { String.class });
+    final Method setName = getClass().getDeclaredMethod("setName", new Class[]{String.class});
     assertEquals("name", BeanHelper.determinePropertyName(setName));
-    final Method isEnabled = getClass().getDeclaredMethod("isEnabled", new Class[] {});
+    final Method isEnabled = getClass().getDeclaredMethod("isEnabled", new Class[]{});
     assertEquals("enabled", BeanHelper.determinePropertyName(isEnabled));
   }
 
   @Test
-  public void determineSetter() throws NoSuchMethodException
-  {
-    final Method getName = getClass().getDeclaredMethod("getName", new Class[] {});
+  public void determineSetter() throws NoSuchMethodException {
+    final Method getName = getClass().getDeclaredMethod("getName", new Class[]{});
     assertEquals("setName", BeanHelper.determineSetter(this.getClass(), getName).getName());
-    final Method setName = getClass().getDeclaredMethod("setName", new Class[] { String.class });
+    final Method setName = getClass().getDeclaredMethod("setName", new Class[]{String.class});
     assertEquals("setName", BeanHelper.determineSetter(this.getClass(), setName).getName());
-    final Method isEnabled = getClass().getDeclaredMethod("isEnabled", new Class[] {});
+    final Method isEnabled = getClass().getDeclaredMethod("isEnabled", new Class[]{});
     assertEquals("setEnabled", BeanHelper.determineSetter(this.getClass(), isEnabled).getName());
   }
 
   @Test
-  public void invokeSetter() throws NoSuchMethodException
-  {
-    final Method getName = getClass().getDeclaredMethod("getName", new Class[] {});
+  public void invokeSetter() throws NoSuchMethodException {
+    final Method getName = getClass().getDeclaredMethod("getName", new Class[]{});
     BeanHelper.invokeSetter(this, getName, "Hurzel");
     assertEquals("Hurzel", getName());
     BeanHelper.invokeSetter(this, getName, null);
     assertNull(getName());
-    final Method isEnabled = getClass().getDeclaredMethod("isEnabled", new Class[] {});
+    final Method isEnabled = getClass().getDeclaredMethod("isEnabled", new Class[]{});
     BeanHelper.invokeSetter(this, isEnabled, true);
     assertEquals(true, isEnabled());
     BeanHelper.invokeSetter(this, isEnabled, false);
@@ -114,8 +104,7 @@ public class BeanHelperTest
   }
 
   @Test
-  public void setProperty() throws NoSuchMethodException
-  {
+  public void setProperty() throws NoSuchMethodException {
     BeanHelper.setProperty(this, "name", "Hurzel");
     assertEquals("Hurzel", getName());
     BeanHelper.setProperty(this, "name", null);
@@ -127,16 +116,14 @@ public class BeanHelperTest
   }
 
   @Test
-  public void invoke() throws NoSuchMethodException
-  {
-    final Method getName = getClass().getDeclaredMethod("getName", new Class[] {});
+  public void invoke() throws NoSuchMethodException {
+    final Method getName = getClass().getDeclaredMethod("getName", new Class[]{});
     this.name = "invoke";
     assertEquals("invoke", BeanHelper.invoke(this, getName));
   }
 
   @Test
-  public void getProperty()
-  {
+  public void getProperty() {
     this.name = "test";
     assertEquals("test", BeanHelper.getProperty(this, "name"));
     assertEquals("java.lang.String", BeanHelper.getNestedProperty(this, "name.class.name"));
@@ -149,32 +136,30 @@ public class BeanHelperTest
     } catch (final RuntimeException ex) {
       // OK
     }
-    testStrings = new String[] { null, "zwei", "drei" };
+    testStrings = new String[]{null, "zwei", "drei"};
     assertEquals("zwei", BeanHelper.getIndexedProperty(this, "testStrings[1]"));
     assertEquals("java.lang.String", BeanHelper.getNestedProperty(this, "testStrings[1].class.name"));
     assertNull(BeanHelper.getNestedProperty(this, "testStrings[0]"));
     assertNull(BeanHelper.getNestedProperty(this, "testStrings[0].class.name"));
-    testInts = new int[] { 1, 2, 3, 5, 6 };
+    testInts = new int[]{1, 2, 3, 5, 6};
     assertEquals(2, BeanHelper.getIndexedProperty(this, "testInts[1]"));
   }
 
   @Test
-  public void copyFields()
-  {
+  public void copyFields() {
     final BeanHelperTest src = new BeanHelperTest().setName("Hurzel").setEnabled(true);
     final BeanHelperTest dest = new BeanHelperTest();
-    assertTrue("dest should be modified.", BeanHelper.copyProperties(src, dest, "name", "enabled"));
+    assertTrue(BeanHelper.copyProperties(src, dest, "name", "enabled"), "dest should be modified.");
     assertEquals("Hurzel", dest.getName());
     assertTrue(dest.isEnabled());
-    assertFalse("dest should be unmodified.", BeanHelper.copyProperties(src, dest, "name", "enabled"));
+    assertFalse(BeanHelper.copyProperties(src, dest, "name", "enabled"), "dest should be unmodified.");
     src.setEnabled(false);
-    assertTrue("dest should be modified.", BeanHelper.copyProperties(src, dest, "name", "enabled"));
+    assertTrue(BeanHelper.copyProperties(src, dest, "name", "enabled"), "dest should be modified.");
     assertFalse(dest.isEnabled());
   }
 
   @Test
-  public void get()
-  {
+  public void get() {
     final List<Integer> list = new LinkedList<Integer>();
     list.add(0);
     assertEquals(0, BeanHelper.get(list, 0));
@@ -184,8 +169,7 @@ public class BeanHelperTest
   }
 
   @Test
-  public void isListEquals()
-  {
+  public void isListEquals() {
     final List<Integer> l1 = new LinkedList<Integer>();
     final List<Integer> l2 = new LinkedList<Integer>();
     assertTrue(BeanHelper.isEqualList(null, null));
@@ -204,40 +188,33 @@ public class BeanHelperTest
     assertFalse(BeanHelper.isEqualList(l1, l2));
   }
 
-  public String getName()
-  {
+  public String getName() {
     return this.name;
   }
 
-  public BeanHelperTest setName(final String name)
-  {
+  public BeanHelperTest setName(final String name) {
     this.name = name;
     return this;
   }
 
-  public boolean isEnabled()
-  {
+  public boolean isEnabled() {
     return this.enabled;
   }
 
-  public BeanHelperTest setEnabled(final boolean value)
-  {
+  public BeanHelperTest setEnabled(final boolean value) {
     this.enabled = value;
     return this;
   }
 
-  public String[] getTestStrings()
-  {
+  public String[] getTestStrings() {
     return testStrings;
   }
 
-  public int[] getTestInts()
-  {
+  public int[] getTestInts() {
     return testInts;
   }
 
-  public String getNumber()
-  {
+  public String getNumber() {
     return number;
   }
 

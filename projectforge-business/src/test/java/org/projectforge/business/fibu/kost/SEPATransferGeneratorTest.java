@@ -23,35 +23,38 @@
 
 package org.projectforge.business.fibu.kost;
 
-import static org.testng.AssertJUnit.assertEquals;
-
-import java.io.UnsupportedEncodingException;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.EingangsrechnungDO;
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO;
 import org.projectforge.business.fibu.PaymentType;
 import org.projectforge.business.fibu.kost.reporting.SEPATransferGenerator;
 import org.projectforge.business.fibu.kost.reporting.SEPATransferResult;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
+import org.projectforge.framework.time.DateHelper;
 import org.projectforge.generated.CreditTransferTransactionInformationSCT;
 import org.projectforge.generated.Document;
 import org.projectforge.generated.PaymentInstructionInformationSCT;
-import org.projectforge.test.AbstractTestNGBase;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
 
-public class SEPATransferGeneratorTest extends AbstractTestNGBase
-{
+import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 
-  @Autowired
-  private SEPATransferGenerator SEPATransferGenerator;
+public class SEPATransferGeneratorTest {
+  private SEPATransferGenerator SEPATransferGenerator = new SEPATransferGenerator();
+
+  @BeforeAll
+  static void beforeAll() {
+    PFUserDO user = new PFUserDO();
+    user.setTimeZone(DateHelper.EUROPE_BERLIN);
+    ThreadLocalUserContext.setUser(null, user);
+  }
 
   @Test
-  public void generateTransfer() throws UnsupportedEncodingException
-  {
+  public void generateTransfer() throws UnsupportedEncodingException {
     // Test error cases
     this.testInvoice("Test debitor", null, "DE12341234123412341234", "abcdefg1234", "Do stuff", new BigDecimal(100.0), false);
     this.testInvoice("Test debitor", "Test creditor", null, "abcdefg1234", "Do stuff", new BigDecimal(100.0), false);
@@ -68,9 +71,8 @@ public class SEPATransferGeneratorTest extends AbstractTestNGBase
   }
 
   private void testInvoice(final String debitor, final String creditor, final String iban, final String bic, final String purpose, final BigDecimal amount,
-      boolean ok)
-      throws UnsupportedEncodingException
-  {
+                           boolean ok)
+          throws UnsupportedEncodingException {
     EingangsrechnungDO invoice = new EingangsrechnungDO();
 
     // set values
@@ -95,35 +97,35 @@ public class SEPATransferGeneratorTest extends AbstractTestNGBase
     SEPATransferResult result = this.SEPATransferGenerator.format(invoice);
 
     if (ok == false) {
-      Assert.assertFalse(result.isSuccessful());
+      Assertions.assertFalse(result.isSuccessful());
       return;
     }
 
-    Assert.assertTrue(result.isSuccessful());
+    Assertions.assertTrue(result.isSuccessful());
 
     // unmarshall
     Document document = this.SEPATransferGenerator.parse(result.getXml());
-    Assert.assertNotNull(document);
+    Assertions.assertNotNull(document);
 
     final PaymentInstructionInformationSCT pmtInf = document.getCstmrCdtTrfInitn().getPmtInf().get(0);
-    Assert.assertNotNull(pmtInf);
+    Assertions.assertNotNull(pmtInf);
     final CreditTransferTransactionInformationSCT cdtTrfTxInf = pmtInf.getCdtTrfTxInf().get(0);
-    Assert.assertNotNull(cdtTrfTxInf);
+    Assertions.assertNotNull(cdtTrfTxInf);
 
     // check debitor
-    Assert.assertEquals(debitor, pmtInf.getDbtr().getNm());
+    Assertions.assertEquals(debitor, pmtInf.getDbtr().getNm());
 
     // check creditor
-    Assert.assertEquals(creditor, cdtTrfTxInf.getCdtr().getNm());
-    Assert.assertEquals(iban, cdtTrfTxInf.getCdtrAcct().getId().getIBAN());
-    if(iban.toUpperCase().startsWith("DE") == false) {
-      Assert.assertEquals(bic.toUpperCase(), cdtTrfTxInf.getCdtrAgt().getFinInstnId().getBIC());
+    Assertions.assertEquals(creditor, cdtTrfTxInf.getCdtr().getNm());
+    Assertions.assertEquals(iban, cdtTrfTxInf.getCdtrAcct().getId().getIBAN());
+    if (iban.toUpperCase().startsWith("DE") == false) {
+      Assertions.assertEquals(bic.toUpperCase(), cdtTrfTxInf.getCdtrAgt().getFinInstnId().getBIC());
     }
-    Assert.assertEquals(purpose, cdtTrfTxInf.getRmtInf().getUstrd());
+    Assertions.assertEquals(purpose, cdtTrfTxInf.getRmtInf().getUstrd());
 
     // check sum
-    Assert.assertEquals(amount.doubleValue(), document.getCstmrCdtTrfInitn().getGrpHdr().getCtrlSum().doubleValue(), 0.0000001);
-    Assert.assertEquals(amount.doubleValue(), pmtInf.getCtrlSum().doubleValue(), 0.0000001);
-    Assert.assertEquals(amount.doubleValue(), cdtTrfTxInf.getAmt().getInstdAmt().getValue().doubleValue(), 0.0000001);
+    Assertions.assertEquals(amount.doubleValue(), document.getCstmrCdtTrfInitn().getGrpHdr().getCtrlSum().doubleValue(), 0.0000001);
+    Assertions.assertEquals(amount.doubleValue(), pmtInf.getCtrlSum().doubleValue(), 0.0000001);
+    Assertions.assertEquals(amount.doubleValue(), cdtTrfTxInf.getAmt().getInstdAmt().getValue().doubleValue(), 0.0000001);
   }
 }

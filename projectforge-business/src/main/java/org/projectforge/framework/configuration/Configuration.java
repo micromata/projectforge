@@ -58,8 +58,8 @@ public class Configuration extends AbstractConfiguration
    */
   public static Configuration getInstance()
   {
-    final TenantRegistryMap tennatRegistryMap = TenantRegistryMap.getInstance();
-    final TenantRegistry tenantRegistry = tennatRegistryMap.getTenantRegistry();
+    final TenantRegistryMap tenantRegistryMap = TenantRegistryMap.getInstance();
+    final TenantRegistry tenantRegistry = tenantRegistryMap.getTenantRegistry();
     Validate.notNull(tenantRegistry);
     return tenantRegistry.getConfiguration();
   }

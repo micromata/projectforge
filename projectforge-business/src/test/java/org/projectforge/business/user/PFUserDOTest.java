@@ -23,13 +23,10 @@
 
 package org.projectforge.business.user;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.testng.annotations.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class PFUserDOTest
 {

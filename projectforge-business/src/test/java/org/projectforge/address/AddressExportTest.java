@@ -23,11 +23,11 @@
 
 package org.projectforge.address;
 
-import static org.testng.AssertJUnit.assertEquals;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
-import org.testng.annotations.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class AddressExportTest
 {

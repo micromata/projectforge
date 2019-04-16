@@ -23,19 +23,17 @@
 
 package org.projectforge.web.wicket.converter;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
+import org.junit.jupiter.api.Test;
 
 import java.util.Locale;
 import java.util.TimeZone;
 
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class TimeZoneConverterTest
-{
+public class TimeZoneConverterTest {
   @Test
-  public void convertToObject()
-  {
+  public void convertToObject() {
     final TimeZoneConverter con = new TimeZoneConverter();
     final Locale locale = Locale.ENGLISH;
     assertNull(con.convertToObject(null, locale));
@@ -45,13 +43,12 @@ public class TimeZoneConverterTest
   }
 
   @Test
-  public void convertToString()
-  {
+  public void convertToString() {
     final TimeZoneConverter con = new TimeZoneConverter();
     final Locale locale = Locale.ENGLISH;
     assertNull(con.convertToString(null, locale));
     assertEquals("Europe/Berlin (Central European Time)",
-        con.convertToString(TimeZone.getTimeZone("Europe/Berlin"), locale));
+            con.convertToString(TimeZone.getTimeZone("Europe/Berlin"), locale));
     assertEquals("CET (Central European Time)", con.convertToString(TimeZone.getTimeZone("CET"), locale));
   }
 }

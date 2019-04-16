@@ -111,7 +111,7 @@ public class AddressDao extends BaseDao<AddressDO>
     queryFilter.addOrder(Order.desc("created"));
     addAddressbookRestriction(queryFilter, null);
     if (filter.getMaxRows() > 0) {
-      queryFilter.setMaxResults(filter.getMaxRows());
+      filter.setSortAndLimitMaxRowsWhileSelect(true);
     }
     return getList(queryFilter);
   }

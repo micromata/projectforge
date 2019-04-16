@@ -202,7 +202,9 @@ public class AddressListForm extends AbstractListForm<AddressFilter, AddressList
           public Serializable getObject()
           {
             // Pseudo object for storing search string (title field is used for this foreign purpose).
-            return new AddressDO().setComment(searchFilter.getSearchString());
+            AddressDO address = new AddressDO();
+            address.setComment(searchFilter.getSearchString());
+            return address;
           }
 
           @Override

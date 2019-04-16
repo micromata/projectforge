@@ -24,8 +24,8 @@
 package org.projectforge.common;
 
 import org.projectforge.framework.utils.Crypt;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class CryptTest
 {
@@ -43,6 +43,6 @@ public class CryptTest
   {
     final String encryptedString = Crypt.encrypt(password, data);
     final String decrpytedString = Crypt.decrypt(password, encryptedString);
-    Assert.assertEquals(data, decrpytedString);
+    Assertions.assertEquals(data, decrpytedString);
   }
 }

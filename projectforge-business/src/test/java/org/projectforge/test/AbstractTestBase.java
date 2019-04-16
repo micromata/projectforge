@@ -25,8 +25,10 @@ package org.projectforge.test;
 
 import de.micromata.genome.db.jpa.history.api.HistoryEntry;
 import de.micromata.genome.db.jpa.history.entities.EntityOpType;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.login.LoginDefaultHandler;
@@ -54,8 +56,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.hibernate5.HibernateTemplate;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
@@ -67,10 +69,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 
 /**
+ * Every test should finish with a valid database with test cases. If not, the test should call recreateDatabase() on afterAll!
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@RunWith(SpringRunner.class)
-@SpringJUnitConfig(TestConfiguration.class)
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {TestConfiguration.class})
+//@SpringJUnitConfig(TestConfiguration.class)
 public abstract class AbstractTestBase {
   protected static final org.slf4j.Logger log = org.slf4j.LoggerFactory
           .getLogger(AbstractTestBase.class);
@@ -158,15 +162,60 @@ public abstract class AbstractTestBase {
   @Autowired
   private DatabaseService initDatabaseDao;
 
-  private static boolean initialized;
-
   protected int mCount = 0;
 
+  private static boolean initialized = false;
+
+  private static AbstractTestBase instance = null;
+
+  @BeforeAll
+  public static void _beforeAll() {
+    initialized = false;
+  }
+
+  @AfterAll
+  public static void _afterAll() {
+    instance.afterAll();
+    instance = null;
+    initialized = false;
+  }
+
+  /**
+   * Override this as beforeAll, but non static.
+   */
+  protected void beforeAll() {
+
+  }
+
+  /**
+   * Override this as afterAll, but non static.
+   * Every test should finish with a valid database with test cases. If not, the test should call recreateDatabase() on afterAll!
+   */
+  protected void afterAll() {
+
+  }
+
   @BeforeEach
-  public void setUp() {
-    if (initialized)
-      return;
-    initialized = true;
+  void beforeEach() {
+    if (instance == null) {
+      instance = this; // Store instance for afterAll method.
+      //System.out.println("******** " + instance.getClass());
+    }
+    if (!initialized) {
+      initialized = true;
+      if (getUser(ADMIN) == null) {
+        recreateDataBase();
+      }
+      beforeAll();
+    }
+  }
+
+
+  /**
+   * Will be called once (BeforeClass). You may it call in your test to get a fresh database in your test class for your
+   * method.
+   */
+  public void recreateDataBase() {
     System.setProperty("user.timezone", "UTC");
     TimeZone.setDefault(DateHelper.UTC);
     log.info("user.timezone is: " + System.getProperty("user.timezone"));
@@ -192,6 +241,7 @@ public abstract class AbstractTestBase {
     } catch (BeansException e) {
       log.error("Something in setUp go wrong: " + e.getMessage(), e);
     }
+    return;
   }
 
   protected void initDb() {
@@ -219,7 +269,6 @@ public abstract class AbstractTestBase {
   }
 
   protected void clearDatabase() {
-    log.info("clearDatabase...");
     emf.getJpaSchemaService().clearDatabase();
     TenantRegistryMap.getInstance().setAllUserGroupCachesAsExpired();
     getUserGroupCache().setExpired();
@@ -331,11 +380,11 @@ public abstract class AbstractTestBase {
     }
   }
 
-  protected void assertBigDecimal(final int v1, final BigDecimal v2) {
+  public static void assertBigDecimal(final int v1, final BigDecimal v2) {
     assertBigDecimal(new BigDecimal(v1), v2);
   }
 
-  protected void assertBigDecimal(final BigDecimal v1, final BigDecimal v2) {
+  public static void assertBigDecimal(final BigDecimal v1, final BigDecimal v2) {
     assertTrue(v1.compareTo(v2) == 0, "BigDecimal values are not equal.");
   }
 

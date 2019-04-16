@@ -28,23 +28,17 @@ import java.util.Set;
 import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
-import org.projectforge.test.AbstractTestNGBase;
+import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import de.micromata.genome.db.jpa.history.api.HistoryServiceManager;
 
-public class AbstractHistorizableBaseDOTest extends AbstractTestNGBase
+public class AbstractHistorizableBaseDOTest extends AbstractTestBase
 {
   @Autowired
   private PfEmgrFactory emf;
-
-  @Override
-  protected void initDb()
-  {
-    init(false);
-  }
 
   @Test
   public void testNonHistorizableProperties()
@@ -52,18 +46,18 @@ public class AbstractHistorizableBaseDOTest extends AbstractTestNGBase
     final TaskDO task = new TaskDO();
     Set<String> set = HistoryServiceManager.get().getHistoryService().getNoHistoryProperties(emf,
         task.getClass());
-    Assert.assertEquals(2, set.size());
-    Assert.assertTrue(set.contains("lastUpdate"));
-    Assert.assertTrue(set.contains("created"));
-    Assert.assertTrue(set.contains("lastUpdate"));
-    Assert.assertTrue(set.contains("created"));
-    Assert.assertFalse(set.contains("title"));
+    Assertions.assertEquals(2, set.size());
+    Assertions.assertTrue(set.contains("lastUpdate"));
+    Assertions.assertTrue(set.contains("created"));
+    Assertions.assertTrue(set.contains("lastUpdate"));
+    Assertions.assertTrue(set.contains("created"));
+    Assertions.assertFalse(set.contains("title"));
 
     final AuftragDO order = new AuftragDO();
     set = HistoryServiceManager.get().getHistoryService().getNoHistoryProperties(emf, order.getClass());
-    Assert.assertEquals(3, set.size());
-    //    not, because ransient Assert.assertTrue(set.contains("uiStatus"));
-    Assert.assertTrue(set.contains("uiStatusAsXml"));
-    Assert.assertFalse(set.contains("subject"));
+    Assertions.assertEquals(3, set.size());
+    //    not, because ransient Assertions.assertTrue(set.contains("uiStatus"));
+    Assertions.assertTrue(set.contains("uiStatusAsXml"));
+    Assertions.assertFalse(set.contains("subject"));
   }
 }

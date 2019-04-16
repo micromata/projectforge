@@ -23,28 +23,28 @@
 
 package org.projectforge.calendar;
 
-import static org.testng.AssertJUnit.assertEquals;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.framework.time.TimePeriod;
+import org.projectforge.test.TestSetup;
 
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-import org.projectforge.framework.configuration.ConfigXmlTest;
-import org.projectforge.framework.time.DateHolder;
-import org.projectforge.framework.time.DatePrecision;
-import org.projectforge.framework.time.TimePeriod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TimePeriodTest
 {
   //private final static Logger log = Logger.getLogger(WeekHolderTest.class);
 
-  @BeforeClass
+  @BeforeAll
   public static void setUp()
   {
     // Needed if this tests runs before the ConfigurationTest.
-    ConfigXmlTest.createTestConfiguration();
+    TestSetup.init();
   }
 
   @Test
@@ -84,8 +84,8 @@ public class TimePeriodTest
 
   private void assertResultArray(final int[] required, final int[] result)
   {
-    assertEquals("days", required[0], result[0]);
-    assertEquals("hours", required[1], result[1]);
-    assertEquals("minutes", required[2], result[2]);
+    assertEquals( required[0], result[0],"days");
+    assertEquals( required[1], result[1],"hours");
+    assertEquals( required[2], result[2],"minutes");
   }
 }

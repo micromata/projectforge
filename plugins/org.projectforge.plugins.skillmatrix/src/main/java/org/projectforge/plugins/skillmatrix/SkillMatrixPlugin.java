@@ -26,8 +26,8 @@ package org.projectforge.plugins.skillmatrix;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
+import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.plugins.core.AbstractPlugin;
-import org.projectforge.web.MenuItemDef;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -36,8 +36,7 @@ import org.springframework.stereotype.Component;
  * @author Billy Duong (b.duong@micromata.de)
  */
 @Component
-public class SkillMatrixPlugin extends AbstractPlugin
-{
+public class SkillMatrixPlugin extends AbstractPlugin {
   public static final String ID_SKILL_TOP_LEVEL = "skillTopLevel";
 
   public static final String ID_SKILL_RATING = "skillRating";
@@ -57,8 +56,8 @@ public class SkillMatrixPlugin extends AbstractPlugin
   // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of
   // each test).
   // The entities are inserted in ascending order and deleted in descending order.
-  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[] { SkillDO.class, SkillRatingDO.class,
-      TrainingDO.class, TrainingAttendeeDO.class };
+  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[]{SkillDO.class, SkillRatingDO.class,
+          TrainingDO.class, TrainingAttendeeDO.class};
 
   public static final String I18N_KEY_SKILLMATRIX_PREFIX = "plugins.skillmatrix";
 
@@ -97,8 +96,7 @@ public class SkillMatrixPlugin extends AbstractPlugin
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
    */
   @Override
-  protected void initialize()
-  {
+  protected void initialize() {
     // DatabaseUpdateDao is needed by the updater:
     SkillMatrixPluginUpdates.dao = myDatabaseUpdater;
     register(ID_SKILL_RATING, SkillRatingDao.class, skillRatingDao, I18N_KEY_SKILLMATRIX_PREFIX);
@@ -111,22 +109,22 @@ public class SkillMatrixPlugin extends AbstractPlugin
     pluginWicketRegistrationService.registerWeb(ID_SKILL, SkillListPage.class, SkillEditPage.class);
     pluginWicketRegistrationService.registerWeb(ID_SKILL_TRAINING, TrainingListPage.class, TrainingEditPage.class);
     pluginWicketRegistrationService.registerWeb(ID_SKILL_TRAINING_ATTENDEE, TrainingAttendeeListPage.class,
-        TrainingAttendeeEditPage.class);
+            TrainingAttendeeEditPage.class);
 
     // Register the menu entry as sub menu entry of the misc menu:
-    final MenuItemDef parentMenu = new MenuItemDef(null, ID_SKILL_TOP_LEVEL, 90, I18N_KEY_SKILL_MENU_ENTRY, SkillTreePage.class);
+    MenuItemDef skillMenu = new MenuItemDef(ID_SKILL_TOP_LEVEL, I18N_KEY_SKILL_MENU_ENTRY);
+    pluginWicketRegistrationService.registerTopLevelMenuItem(skillMenu, SkillTreePage.class);
 
-    pluginWicketRegistrationService.registerMenuItem(parentMenu);
-    pluginWicketRegistrationService.registerMenuItem(
-        new MenuItemDef(parentMenu, ID_SKILL_TREE, 5, I18N_KEY_SKILLTREE_MENU_ENTRY, SkillTreePage.class));
-    pluginWicketRegistrationService.registerMenuItem(
-        new MenuItemDef(parentMenu, ID_SKILL_RATING, 5, I18N_KEY_SKILLRATING_MENU_ENTRY, SkillRatingListPage.class));
-    pluginWicketRegistrationService
-        .registerMenuItem(new MenuItemDef(parentMenu, ID_SKILL, 5, I18N_KEY_SKILL_MENU_ENTRY, SkillListPage.class));
-    pluginWicketRegistrationService.registerMenuItem(
-        new MenuItemDef(parentMenu, ID_SKILL_TRAINING, 5, I18N_KEY_SKILLTRAINING_MENU_ENTRY, TrainingListPage.class));
-    pluginWicketRegistrationService.registerMenuItem(new MenuItemDef(parentMenu, ID_SKILL_TRAINING_ATTENDEE, 5,
-        I18N_KEY_SKILLTRAINING_ATTENDEE_MENU_ENTRY, TrainingAttendeeListPage.class));
+    pluginWicketRegistrationService.registerMenuItem(skillMenu.getId(),
+            new MenuItemDef(ID_SKILL_TREE, I18N_KEY_SKILLTREE_MENU_ENTRY), SkillTreePage.class);
+    pluginWicketRegistrationService.registerMenuItem(skillMenu.getId(),
+            new MenuItemDef(ID_SKILL_RATING, I18N_KEY_SKILLRATING_MENU_ENTRY), SkillRatingListPage.class);
+    pluginWicketRegistrationService.registerMenuItem(skillMenu.getId(),
+            new MenuItemDef(ID_SKILL, I18N_KEY_SKILL_MENU_ENTRY), SkillListPage.class);
+    pluginWicketRegistrationService.registerMenuItem(skillMenu.getId(),
+            new MenuItemDef(ID_SKILL_TRAINING, I18N_KEY_SKILLTRAINING_MENU_ENTRY), TrainingListPage.class);
+    pluginWicketRegistrationService.registerMenuItem(skillMenu.getId(),
+            new MenuItemDef(ID_SKILL_TRAINING_ATTENDEE, I18N_KEY_SKILLTRAINING_ATTENDEE_MENU_ENTRY), TrainingAttendeeListPage.class);
 
     // .setMobileMenu(SkillRatingMobileListPage.class, 10));
 
@@ -144,8 +142,7 @@ public class SkillMatrixPlugin extends AbstractPlugin
    * @see org.projectforge.plugins.core.AbstractPlugin#getInitializationUpdateEntry()
    */
   @Override
-  public UpdateEntry getInitializationUpdateEntry()
-  {
+  public UpdateEntry getInitializationUpdateEntry() {
     return SkillMatrixPluginUpdates.getInitializationUpdateEntry();
   }
 

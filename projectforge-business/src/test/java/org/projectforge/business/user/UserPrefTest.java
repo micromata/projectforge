@@ -23,10 +23,7 @@
 
 package org.projectforge.business.user;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.Serializable;
 import java.util.Iterator;
@@ -40,11 +37,11 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
+import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
-public class UserPrefTest extends AbstractTestNGBase
+public class UserPrefTest extends AbstractTestBase
 {
   @Autowired
   private UserPrefDao userPrefDao;
