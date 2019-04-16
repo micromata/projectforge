@@ -305,7 +305,7 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
      * @return list of strings as json.
      */
     @GET
-    @Path("autoCompletion")
+    @Path("ac")
     @Produces(MediaType.APPLICATION_JSON)
     fun getAutoCompletion(@QueryParam("property") property: String?, @QueryParam("search") searchString: String?): Response {
         val result = baseDao.getAutocompletion(property, searchString)
