@@ -3,7 +3,14 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import style from '../Base.module.scss';
 
-function DropdownSelectContent({ select, selectIndex, values }) {
+function DropdownSelectContent(
+    {
+        select,
+        selectIndex,
+        setSelected,
+        values,
+    },
+) {
     return (
         <ul className={style.selectContent}>
             {values.map((option, index) => (
@@ -15,7 +22,11 @@ function DropdownSelectContent({ select, selectIndex, values }) {
                     key={`dropdown-select-option-${option.id}`}
                 >
                     <span
+                        onMouseOver={() => setSelected(index)}
+                        onMouseLeave={() => setSelected(-1)}
                         onClick={() => select(index)}
+                        onFocus={() => {
+                        }}
                         onKeyPress={() => {
                         }}
                         role="button"
@@ -31,6 +42,7 @@ function DropdownSelectContent({ select, selectIndex, values }) {
 
 DropdownSelectContent.propTypes = {
     select: PropTypes.func.isRequired,
+    setSelected: PropTypes.func.isRequired,
     selectIndex: PropTypes.number,
     values: PropTypes.arrayOf(PropTypes.shape({
         id: PropTypes.string,

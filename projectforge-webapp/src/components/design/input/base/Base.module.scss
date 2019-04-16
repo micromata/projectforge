@@ -75,14 +75,10 @@ label.label {
           width: 100%;
           padding: 5px;
           cursor: pointer;
-
-          &:hover {
-            background-color: #ddd;
-          }
         }
 
         &.keySelected {
-          background-color: #eee;
+          background-color: #ddd;
         }
       }
     }
