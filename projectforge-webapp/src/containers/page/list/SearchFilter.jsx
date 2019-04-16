@@ -72,6 +72,7 @@ class SearchFilter extends Component {
                     <MultiSelect
                         additionalLabel="WIP: New Search Filter"
                         autoComplete={searchFilter.content}
+                        autoCompleteForm="$AUTOCOMPLETE:"
                         id="complexSearchFilter"
                         label="Suchfilter"
                         pills

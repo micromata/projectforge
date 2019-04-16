@@ -69,6 +69,7 @@ class MultiSelect extends Component {
     }
 
     selectFromDropdown(index) {
+        const { autoCompleteForm } = this.props;
         const values = this.getDropdownValues();
 
         if (values.length <= index) {
@@ -77,7 +78,7 @@ class MultiSelect extends Component {
 
         const { setValue } = this.props;
 
-        setValue('searchString', `${values[index].id}:`);
+        setValue('searchString', autoCompleteForm.replace('$AUTOCOMPLETE', values[index].id));
     }
 
     handleInputKey(event) {
@@ -235,6 +236,7 @@ MultiSelect.propTypes = {
     autoComplete: PropTypes.arrayOf(PropTypes.shape({
         id: PropTypes.string,
     })),
+    autoCompleteForm: PropTypes.string,
     pills: PropTypes.bool,
 };
 
@@ -242,6 +244,7 @@ MultiSelect.defaultProps = {
     additionalLabel: undefined,
     pills: false,
     autoComplete: undefined,
+    autoCompleteForm: '$AUTOCOMPLETE',
 };
 
 export default MultiSelect;
