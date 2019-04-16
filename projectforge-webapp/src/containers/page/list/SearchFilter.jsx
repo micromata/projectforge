@@ -63,7 +63,6 @@ class SearchFilter extends Component {
         } = this.props;
 
         const { filter: newFilter } = this.state;
-        // TODO: REPLACE DATE AND TIME WITH PICKERS
         const searchFilter = getNamedContainer('searchFilter', namedContainers) || { content: [] };
 
         return (
