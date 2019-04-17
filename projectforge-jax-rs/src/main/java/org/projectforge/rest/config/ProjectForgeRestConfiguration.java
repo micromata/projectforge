@@ -8,7 +8,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class ProjectforgeRestConfiguration {
+public class ProjectForgeRestConfiguration {
+  public static final String REST_WEB_APP_URL = "/" + RestPaths.REST_WEB_APP + "/";
+
   @Bean
   public ServletRegistrationBean publicJersey() {
     ServletRegistrationBean publicJersey
@@ -35,7 +37,7 @@ public class ProjectforgeRestConfiguration {
     resourceConfig.register(ObjectMapperResolver.class);
     ServletContainer container = new ServletContainer(resourceConfig);
     ServletRegistrationBean webAppJersey = new ServletRegistrationBean(container);
-    webAppJersey.addUrlMappings("/" + RestPaths.REST_WEB_APP + "/*");
+    webAppJersey.addUrlMappings(REST_WEB_APP_URL + "*");
     webAppJersey.setName("RestWebapp");
     webAppJersey.setLoadOnStartup(0);
     return webAppJersey;

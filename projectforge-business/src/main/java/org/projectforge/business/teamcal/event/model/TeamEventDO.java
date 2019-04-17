@@ -59,6 +59,7 @@ import org.hibernate.search.annotations.Store;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.RecurrenceMonthMode;
 import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
+import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.persistence.api.AUserRightId;
 import org.projectforge.framework.persistence.api.Constants;
@@ -115,18 +116,23 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 {
   private static final long serialVersionUID = -9205582135590380919L;
 
+  @PropertyInfo(i18nKey = "plugins.teamcal.event.subject")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String subject;
 
+  @PropertyInfo(i18nKey = "plugins.teamcal.event.location")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String location;
 
+  @PropertyInfo(i18nKey = "plugins.teamcal.event.allDay")
   private boolean allDay;
 
+  @PropertyInfo(i18nKey = "plugins.teamcal.event.beginDate")
   @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
   @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
   private Timestamp startDate;
 
+  @PropertyInfo(i18nKey = "plugins.teamcal.event.endDate")
   @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
   @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
   private Timestamp endDate;
@@ -138,6 +144,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   private Timestamp dtStamp;
 
+  @PropertyInfo(i18nKey = "plugins.teamcal.calendar")
   @IndexedEmbedded(depth = 1)
   private TeamCalDO calendar;
 
@@ -147,6 +154,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   private java.util.Date recurrenceUntil;
 
+  @PropertyInfo(i18nKey = "plugins.teamcal.event.note")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String note;
 

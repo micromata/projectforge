@@ -10,7 +10,8 @@ Object.getByString = (object, multiKey) => {
         // split at dots
         .split('.')
         .forEach((key) => {
-            obj = obj[key];
+            if (obj)
+              obj = obj[key];
         });
 
     return obj;

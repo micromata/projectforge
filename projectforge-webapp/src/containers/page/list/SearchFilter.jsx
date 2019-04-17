@@ -14,6 +14,7 @@ import {
     Row,
     Select,
 } from '../../../components/design';
+import MultiSelect from '../../../components/design/input/MultiSelect';
 import { getNamedContainer } from '../../../utilities/layout';
 import { buttonPropType } from '../../../utilities/propTypes';
 
@@ -21,8 +22,24 @@ class SearchFilter extends Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            filter: {
+                searchString: '',
+            },
+        };
+
         this.handleInputChange = this.handleInputChange.bind(this);
         this.handleSelectChange = this.handleSelectChange.bind(this);
+        this.setFilterValue = this.setFilterValue.bind(this);
+    }
+
+    setFilterValue(id, value) {
+        this.setState(({ filter }) => ({
+            filter: {
+                ...filter,
+                [id]: value,
+            },
+        }));
     }
 
     handleInputChange(event) {
@@ -44,10 +61,22 @@ class SearchFilter extends Component {
             namedContainers,
             setFilter,
         } = this.props;
-        // TODO: REPLACE DATE AND TIME WITH PICKERS
+
+        const { filter: newFilter } = this.state;
+
         return (
             <Card>
                 <CardBody>
+                    <MultiSelect
+                        additionalLabel="WIP: New Search Filter"
+                        autoComplete={[]}
+                        autoCompleteForm="$AUTOCOMPLETE:"
+                        id="complexSearchFilter"
+                        label="Suchfilter"
+                        pills
+                        setValue={this.setFilterValue}
+                        value={newFilter}
+                    />
                     <form>
                         <Input
                             label="[Suchfilter]"

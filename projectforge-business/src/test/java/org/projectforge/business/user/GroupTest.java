@@ -47,6 +47,11 @@ public class GroupTest extends AbstractTestBase {
   @Autowired
   private TransactionTemplate txTemplate;
 
+  @Override
+  protected void afterAll() {
+    recreateDataBase();
+  }
+
   @SuppressWarnings({"unchecked", "rawtypes"})
   @Test
   public void test1SaveAndUpdate() {

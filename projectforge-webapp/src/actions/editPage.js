@@ -106,10 +106,8 @@ export const updatePageData = () => (dispatch, getState) => {
 
 export const changeField = (id, newValue) => dispatch => dispatch(fieldChanged(id, newValue));
 
-export const abort = () => (dispatch, getState) => {
-    const { category } = getState().editPage;
-
-    redirectToCategory(category);
+export const abort = () => () => {
+    history.goBack(1);
 };
 
 export const callEndpointWithData = (category, endpoint, data, dispatch, method = 'POST') => {
