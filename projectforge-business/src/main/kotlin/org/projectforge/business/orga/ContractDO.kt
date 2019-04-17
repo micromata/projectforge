@@ -35,7 +35,9 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_CONTRACT", uniqueConstraints = [UniqueConstraint(columnNames = ["number", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_contract_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_CONTRACT",
+        uniqueConstraints = [UniqueConstraint(columnNames = ["number", "tenant_id"])],
+        indexes = [javax.persistence.Index(name = "idx_fk_t_contract_tenant_id", columnList = "tenant_id")])
 class ContractDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.number")
@@ -109,6 +111,7 @@ class ContractDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "status")
     @Field
+    @get:Enumerated(EnumType.STRING)
     @get:Column(length = 100)
     var status: ContractStatus? = null
 
