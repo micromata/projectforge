@@ -3,6 +3,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { loadList } from '../../../actions';
+import Navigation from '../../../components/base/navigation';
 import LayoutGroup from '../../../components/base/page/layout/Group';
 import PageNavigation from '../../../components/base/page/Navigation';
 import { Alert, Button, NavItem } from '../../../components/design';
@@ -46,6 +47,8 @@ class ListPage extends React.Component {
             ui,
         } = this.props;
 
+        console.log(ui.pageMenu);
+
         if (error === '404') {
             return (
                 <Alert color="warning">
@@ -62,6 +65,7 @@ class ListPage extends React.Component {
                             +
                         </Button>
                     </NavItem>
+                    <Navigation entries={ui.pageMenu || []} />
                 </PageNavigation>
                 <SearchFilter />
                 <LayoutGroup
