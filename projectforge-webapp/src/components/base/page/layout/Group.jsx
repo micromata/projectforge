@@ -5,7 +5,9 @@ import CustomizedLayout from './customized';
 import LayoutInput from './Input';
 import LayoutLabel from './Label';
 import LayoutSelect from './Select';
+import ReactSelect from './ReactSelect';
 import LayoutTable from './table';
+import MultiSelect from "../../../design/input/MultiSelect";
 
 function LayoutGroup(
     {
@@ -49,6 +51,9 @@ function LayoutGroup(
                         break;
                     case 'TABLE':
                         Tag = LayoutTable;
+                        break;
+                    case 'MULTISELECT_':
+                        Tag = ReactSelect;
                         break;
                     case 'CUSTOMIZED':
                         Tag = CustomizedLayout;
