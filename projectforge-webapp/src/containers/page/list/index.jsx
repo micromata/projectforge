@@ -47,8 +47,6 @@ class ListPage extends React.Component {
             ui,
         } = this.props;
 
-        console.log(ui.pageMenu);
-
         if (error === '404') {
             return (
                 <Alert color="warning">

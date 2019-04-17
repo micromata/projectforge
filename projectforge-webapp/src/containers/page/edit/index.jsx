@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import { changeEditFormField, loadEditPage } from '../../../actions';
+import Navigation from '../../../components/base/navigation';
 import ActionGroup from '../../../components/base/page/action/Group';
 import TabNavigation from '../../../components/base/page/edit/TabNavigation';
 import LayoutGroup from '../../../components/base/page/layout/Group';
@@ -62,7 +63,9 @@ class EditPage extends React.Component {
 
         return (
             <LoadingContainer loading={loading}>
-                <PageNavigation current={ui.title} />
+                <PageNavigation current={ui.title}>
+                    <Navigation entries={ui.pageMenu || []} />
+                </PageNavigation>
                 <TabNavigation
                     tabs={tabs}
                     activeTab={activeTab}
