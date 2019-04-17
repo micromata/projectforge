@@ -24,7 +24,7 @@ function DropdownSelectContent(
                     <span
                         onMouseOver={() => setSelected(index)}
                         onMouseLeave={() => setSelected(-1)}
-                        onClick={() => select(index)}
+                        onClick={({target}) => select(index, target)}
                         onFocus={() => {
                         }}
                         onKeyPress={() => {
