@@ -50,6 +50,13 @@ class PFDateTime {
         return isoDateFormatter.format(dateTime)
     }
 
+    /**
+     * Date part as ISO string: "yyyy-MM-dd HH:mm".
+     */
+    fun dateTimeAsIsoString() :String {
+        return isoDateTimeFormatterMinutes.format(dateTime)
+    }
+
     fun getZone(): ZoneId {
         return dateTime.zone
     }
@@ -194,6 +201,7 @@ class PFDateTime {
         private val log = org.slf4j.LoggerFactory.getLogger(PFDateTime::class.java)
 
         private val isoDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        private val isoDateTimeFormatterMinutes = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
        // private val jsonDateTimeFormatter = DateTimeFormatter.ofPattern(DateTimeFormat.JS_DATE_TIME_MILLIS.pattern)
     }
 }
