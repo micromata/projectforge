@@ -40,7 +40,8 @@ class TeamCalEventsProvider() {
             }
 
             val bgColor = displayFilter.calendarColorMapping.get(eventDO.getCalendarId())
-            val link = if (recurrentEvent) "teamEvent/edit?id=${eventDO.id}&recurrent=true" else "teamEvent/edit?id=${eventDO.id}"
+            val recurrentDate = if (recurrentEvent) "&recurrentDate=${it.startDate.time / 1000}" else ""
+            val link = "teamEvent/eventEdit?id=${eventDO.id}$recurrentDate"
             val allDay = eventDO.isAllDay()
             events.add(BigCalendarEvent(it.subject, it.startDate, it.endDate, allDay,
                     location = it.location, desc = it.note, link = link, bgColor = bgColor))
