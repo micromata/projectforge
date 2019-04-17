@@ -8,6 +8,7 @@ import PageNavigation from '../../../components/base/page/Navigation';
 import { Alert, Button, NavItem } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
 import { dataPropType } from '../../../utilities/propTypes';
+import { getObjectFromQuery } from '../../../utilities/rest';
 import SearchFilter from './SearchFilter';
 
 class ListPage extends React.Component {
@@ -30,9 +31,9 @@ class ListPage extends React.Component {
     }
 
     loadInitialList() {
-        const { load, match } = this.props;
+        const { load, location, match } = this.props;
 
-        load(match.params.category);
+        load(match.params.category, getObjectFromQuery(location.search || ''));
     }
 
     render() {
@@ -78,6 +79,9 @@ ListPage.propTypes = {
     data: dataPropType.isRequired,
     load: PropTypes.func.isRequired,
     loading: PropTypes.bool.isRequired,
+    location: PropTypes.shape({
+        search: PropTypes.string,
+    }).isRequired,
     match: PropTypes.shape({}).isRequired,
     ui: PropTypes.shape({
         layout: PropTypes.arrayOf(PropTypes.shape({
