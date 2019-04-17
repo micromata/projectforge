@@ -69,8 +69,8 @@ class MultiSelect extends Component {
         setValue('searchString', event.target.value);
     }
 
-    selectFromDropdown(index) {
-        const { autoCompleteForm } = this.props;
+    selectFromDropdown(index, target) {
+        const { autoCompleteForm, single } = this.props;
         const values = this.getDropdownValues();
 
         if (values.length <= index) {
@@ -80,10 +80,18 @@ class MultiSelect extends Component {
         const { setValue } = this.props;
 
         setValue('searchString', autoCompleteForm.replace('$AUTOCOMPLETE', values[index]));
+
+        if (single && target !== undefined) {
+            target.blur();
+        }
     }
 
     handleInputKey(event) {
-        const { setValue, pills, value } = this.props;
+        const {
+            setValue,
+            pills,
+            value,
+        } = this.props;
         const { selectIndex } = this.state;
 
         switch (event.key) {
@@ -109,10 +117,14 @@ class MultiSelect extends Component {
             case ' ':
             case 'Enter': {
                 // handling dropdown selection
-                if (selectIndex > -1 && selectIndex < this.getDropdownValues().length) {
+                if (
+                    event.key === 'Enter'
+                    && selectIndex > -1
+                    && selectIndex < this.getDropdownValues().length
+                ) {
                     event.stopPropagation();
                     event.preventDefault();
-                    this.selectFromDropdown(selectIndex);
+                    this.selectFromDropdown(selectIndex, event.target);
                     return;
                 }
 
@@ -239,13 +251,15 @@ MultiSelect.propTypes = {
     autoComplete: PropTypes.arrayOf(PropTypes.string),
     autoCompleteForm: PropTypes.string,
     pills: PropTypes.bool,
+    single: PropTypes.bool,
 };
 
 MultiSelect.defaultProps = {
     additionalLabel: undefined,
-    pills: false,
     autoComplete: undefined,
     autoCompleteForm: '$AUTOCOMPLETE',
+    pills: false,
+    single: false,
 };
 
 export default MultiSelect;
