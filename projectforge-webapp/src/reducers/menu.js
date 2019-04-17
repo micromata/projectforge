@@ -3,8 +3,9 @@ import { MENU_LOAD_BEGIN, MENU_LOAD_FAILURE, MENU_LOAD_SUCCESS } from '../action
 const initialState = {
     loading: false,
     error: undefined,
-    categories: [],
-    favorites: [],
+    mainMenu: [],
+    favoritesMenu: [],
+    myAccountMenu: [],
 };
 
 const reducer = (state = initialState, { type, payload }) => {
@@ -14,16 +15,18 @@ const reducer = (state = initialState, { type, payload }) => {
                 ...state,
                 loading: true,
                 error: undefined,
-                categories: [],
-                favorites: [],
+                mainMenu: [],
+                favoritesMenu: [],
+                myAccountMenu: [],
             };
         case MENU_LOAD_SUCCESS:
             return {
                 ...state,
                 loading: false,
-                categories: payload.mainMenu.menuItems,
                 badge: payload.mainMenu.badge,
-                favorites: payload.favoritesMenu.menuItems,
+                mainMenu: payload.mainMenu.menuItems,
+                myAccountMenu: payload.myAccountMenu.menuItems,
+                favoritesMenu: payload.favoritesMenu.menuItems,
             };
         case MENU_LOAD_FAILURE:
             return {

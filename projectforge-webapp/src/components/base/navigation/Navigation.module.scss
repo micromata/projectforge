@@ -1,22 +1,9 @@
 @import "../../../assets/style/mixins";
 
-.navigation {
+.globalNavigation {
   font-size: 1.1em;
   padding: 10px 5px;
   margin-bottom: 15px;
-
-  .entryItem {
-    font-size: 1.2em;
-    color: #4c5766;
-
-    a {
-      color: inherit;
-      &:hover {
-        text-decoration: none;
-        color: #34373c;
-      }
-    }
-  }
 }
 
 .categoryContainer {
