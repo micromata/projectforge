@@ -11,8 +11,6 @@ import org.projectforge.rest.json.JsonCreator
 import org.projectforge.ui.ValidationError
 import java.net.URI
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.*
@@ -53,6 +51,7 @@ class RestHelper(
     fun <O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter>
             getList(dataObjectRest: AbstractStandardRest<O, B, F>, baseDao: BaseDao<O>, filter: F)
             : ResultSet<Any> {
+        filter.isSortAndLimitMaxRowsWhileSelect = true
         val list = baseDao.getList(filter)
         val resultSet = ResultSet<Any>(dataObjectRest.filterList(list, filter), list.size)
         return resultSet

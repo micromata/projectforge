@@ -17,7 +17,7 @@ import javax.persistence.JoinColumn
  * of an [UIInput].
  */
 object ElementsRegistry {
-    private val log = org.slf4j.LoggerFactory.getLogger(LayoutUtils::class.java)
+    private val log = org.slf4j.LoggerFactory.getLogger(ElementsRegistry::class.java)
 
     class ElementInfo(val propertyType: Class<*>,
                       var maxLength: Int? = null,
@@ -69,7 +69,7 @@ object ElementsRegistry {
             if (elementInfo.propertyType.isEnum) {
                 if (I18nEnum::class.java.isAssignableFrom(elementInfo.propertyType)) {
                     @Suppress("UNCHECKED_CAST")
-                    element = UISelect(property, layoutSettings = layoutSettings)
+                    element = UISelect<String>(property, layoutSettings = layoutSettings)
                             .buildValues(i18nEnum = elementInfo.propertyType as Class<out Enum<*>>)
                 } else {
                     log.warn("Properties of enum not implementing I18nEnum not yet supported: ${mapKey}.")
@@ -108,7 +108,7 @@ object ElementsRegistry {
         elementInfo = ElementInfo(propertyType)
         val propertyInfo = PropUtils.get(clazz, property)
         if (propertyInfo == null) {
-            log.warn("Property '${clazz}:${property}' not found.")
+            log.warn("@PropertyInfo '${clazz}:${property}' not found.")
             return elementInfo
         }
         val colinfo = getColumnMetadata(clazz, property)

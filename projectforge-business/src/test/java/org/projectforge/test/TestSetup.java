@@ -46,6 +46,7 @@ public class TestSetup {
     PFUserDO user = new PFUserDO();
     user.setTimeZone(TimeZone.getTimeZone("Europe/Berlin"));
     user.setExcelDateFormat("YYYY-MM-DD");
+    user.setDateFormat("dd.MM.yyyy");
     user.setLocale(Locale.GERMAN);
     user.setFirstDayOfWeek(Calendar.MONDAY);
     ThreadLocalUserContext.setUserContext(new UserContext(user, null));

@@ -29,7 +29,7 @@ class MenuRest {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    fun logout(): Response {
+    fun getMenu(): Response {
         val mainMenu = menuCreator.build(MenuCreatorContext(ThreadLocalUserContext.getUser()))
         val favoritesMenu = favoritesMenuCreator.getDefaultFavoriteMenu()
         val myAccountMenu = Menu()

@@ -11,6 +11,7 @@ import {getServiceURL} from '../../utilities/rest';
 import CalendarToolBar from './CalendarToolBar';
 
 import 'moment/locale/de';
+import history from "../../utilities/history";
 
 const localizer = BigCalendar.momentLocalizer(moment_timezone); // or globalizeLocalizer
 
@@ -203,8 +204,7 @@ class CalendarPage extends React.Component {
 
     // Callback fired when a calendar event is selected.
     onSelectEvent = (event) => {
-        // redirect to event.link
-        console.log("ToDo: redirect to " + event.link);
+        history.push(event.link);
     };
 
     // Callback fired when a calendar event is clicked twice.

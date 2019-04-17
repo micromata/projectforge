@@ -66,7 +66,7 @@ class BookRest() : AbstractStandardRest<BookDO, BookDao, BookFilter>(BookDao::cl
 
         if (dataObject?.id != null) // Show lend out functionality only for existing books:
             layout.add(UIFieldset(title = "book.lending")
-                    .add(UICustomized("lendOutComponent"))
+                    .add(UICustomized("book.lendOutComponent"))
                     .add(lc, "lendOutComment"))
         layout.add(lc, "abstractText", "comment")
         layout.getInputById("title").focus = true

@@ -42,7 +42,7 @@ data class UIGroup(val content: MutableList<UIElement> = mutableListOf()) : UIEl
                 when (element) {
                     is UIInput -> element.id
                     is UITextArea -> element.id
-                    is UISelect -> element.id
+                    is UISelect<*> -> element.id
                     is UIMultiSelect -> element.id
                     else -> null
                 }

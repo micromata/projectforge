@@ -253,9 +253,14 @@ class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
     var birthday: Date? = null
 
     @PropertyInfo(i18nKey = "address.image")
-    @NoHistory
+    @get:NoHistory
     @get:Column
     var imageData: ByteArray? = null
+
+    @PropertyInfo(i18nKey = "address.image")
+    @get:NoHistory
+    @get:Column(name = "image_data_preview")
+    var imageDataPreview: ByteArray? = null
 
     /**
      * The substitutions.
@@ -273,11 +278,6 @@ class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
             indexes = [javax.persistence.Index(name = "idx_fk_t_addressbook_address_address_id", columnList = "address_id"),
                 javax.persistence.Index(name = "idx_fk_t_addressbook_address_addressbook_id", columnList = "addressbook_id")])
     var addressbookList: Set<AddressbookDO>? = HashSet()
-
-    @PropertyInfo(i18nKey = "address.image")
-    @NoHistory
-    @get:Column(name = "image_data_preview")
-    var imageDataPreview: ByteArray? = null
 
     // @FieldBridge(impl = HibernateSearchInstantMessagingBridge.class)
     // @Field(index = Index.YES /*TOKENIZED*/, store = Store.NO)

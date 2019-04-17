@@ -193,7 +193,7 @@ class LayoutUtils {
             return when (element) {
                 is UIInput -> element.id
                 is UICheckbox -> element.id
-                is UISelect -> element.id
+                is UISelect<*> -> element.id
                 is UIMultiSelect -> element.id
                 is UITextArea -> element.id
                 is UITableColumn -> element.id

@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { lendOutBook, returnBook } from '../../../../../../actions/customized';
 import { Button } from '../../../../../design';
 
-function CustomizedLendOutComponent(
+function CustomizedBookLendOutComponent(
     {
         data,
         handBack,
@@ -40,7 +40,7 @@ function CustomizedLendOutComponent(
     );
 }
 
-CustomizedLendOutComponent.propTypes = {
+CustomizedBookLendOutComponent.propTypes = {
     translation: PropTypes.shape({
         'book.lendOut': PropTypes.string,
         'book.returnBook': PropTypes.string,
@@ -51,7 +51,7 @@ CustomizedLendOutComponent.propTypes = {
     data: PropTypes.shape({}),
 };
 
-CustomizedLendOutComponent.defaultProps = {
+CustomizedBookLendOutComponent.defaultProps = {
     data: {},
 };
 
@@ -64,4 +64,4 @@ const actions = {
     lendOut: lendOutBook,
 };
 
-export default connect(mapStateToProps, actions)(CustomizedLendOutComponent);
+export default connect(mapStateToProps, actions)(CustomizedBookLendOutComponent);

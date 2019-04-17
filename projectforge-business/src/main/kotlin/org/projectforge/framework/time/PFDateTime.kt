@@ -6,6 +6,9 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
 import java.util.*
+import java.time.ZonedDateTime
+
+
 
 /**
  * Immutable holder of [ZoneDateTime] for transforming to [java.util.Date] (once) if used several times.
@@ -19,12 +22,19 @@ class PFDateTime {
     val dateTime: ZonedDateTime
     private var date: java.util.Date? = null
     private var sqlDate: java.sql.Date? = null
+    private var sqlTimestamp: java.sql.Timestamp? = null
     private var localDate: LocalDate? = null
 
     fun asUtilDate(): java.util.Date {
         if (date == null)
             date = java.util.Date.from(dateTime.toInstant());
         return date!!
+    }
+
+    fun asSqlTimestamp(): java.sql.Timestamp {
+        if (sqlTimestamp == null)
+            sqlTimestamp = java.sql.Timestamp.from(dateTime.toInstant());
+        return sqlTimestamp!!
     }
 
     fun asLocalDate(): LocalDate {
@@ -38,6 +48,13 @@ class PFDateTime {
      */
     fun dateAsIsoString() :String {
         return isoDateFormatter.format(dateTime)
+    }
+
+    /**
+     * Date part as ISO string: "yyyy-MM-dd HH:mm".
+     */
+    fun dateTimeAsIsoString() :String {
+        return isoDateTimeFormatterMinutes.format(dateTime)
     }
 
     fun getZone(): ZoneId {
@@ -99,7 +116,18 @@ class PFDateTime {
 
     companion object {
         /**
-         * Sets the user
+         * Sets the user's time zone.
+         */
+        @JvmStatic
+        fun from(epochMillis : Long?): PFDateTime {
+            if (epochMillis == null)
+                return now()
+            val instant = Instant.ofEpochMilli(epochMillis)
+            return PFDateTime(ZonedDateTime.ofInstant(instant, getUsersZoneId()))
+        }
+
+        /**
+         * Sets the user's time zone.
          */
         @JvmStatic
         fun from(localDateTime: LocalDateTime?): PFDateTime {
@@ -173,6 +201,7 @@ class PFDateTime {
         private val log = org.slf4j.LoggerFactory.getLogger(PFDateTime::class.java)
 
         private val isoDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        private val isoDateTimeFormatterMinutes = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
        // private val jsonDateTimeFormatter = DateTimeFormatter.ofPattern(DateTimeFormat.JS_DATE_TIME_MILLIS.pattern)
     }
 }

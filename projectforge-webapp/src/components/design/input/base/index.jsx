@@ -10,14 +10,37 @@ class InputBase extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = {
-            active: false,
-            focus: false,
-        };
-
+        this.getFilteredChildren = this.getFilteredChildren.bind(this);
+        this.calculateActiveState = this.calculateActiveState.bind(this);
         this.handleInputOnBlur = this.handleInputOnBlur.bind(this);
         this.handleInputOnFocus = this.handleInputOnFocus.bind(this);
+
+        this.state = {
+            active: this.calculateActiveState(),
+            focus: false,
+        };
     }
+
+    getFilteredChildren() {
+        const { children } = this.props;
+
+        return React.Children
+            .toArray(children)
+            .filter(child => child);
+    }
+
+    calculateActiveState() {
+        const children = this.getFilteredChildren();
+
+        if (React.Children.count(children) === 1) {
+            const child = React.Children.only(children[0]);
+
+            return !(child.type.name === 'InputPart' && !child.props.value);
+        }
+
+        return true;
+    }
+
 
     handleInputOnFocus() {
         this.setState({
@@ -26,9 +49,9 @@ class InputBase extends React.Component {
         });
     }
 
-    handleInputOnBlur(event) {
+    handleInputOnBlur() {
         this.setState({
-            active: event.target.value !== '',
+            active: this.calculateActiveState(),
             focus: false,
         });
     }
@@ -42,28 +65,10 @@ class InputBase extends React.Component {
             id,
             label,
         } = this.props;
-        let { children } = this.props;
         const {
             active,
             focus,
         } = this.state;
-
-        children = React.Children.map(children, child => ({
-            ...child,
-            props: {
-                ...child.props,
-                onFocus: this.handleInputOnFocus,
-                onBlur: this.handleInputOnBlur,
-            },
-        }));
-
-        let onlyInputs = true;
-
-        React.Children.forEach(children, (child) => {
-            if (child.type.name !== 'InputPart') {
-                onlyInputs = false;
-            }
-        });
 
         return (
             <React.Fragment>
@@ -75,7 +80,7 @@ class InputBase extends React.Component {
                         style.label,
                         style[color],
                         {
-                            [style.active]: active || !onlyInputs,
+                            [style.active]: active,
                             [style.focus]: focus,
                         },
                         className,
@@ -83,7 +88,15 @@ class InputBase extends React.Component {
                 >
                     <span className={style.title}>{label}</span>
                     <ul className={style.parts}>
-                        {children}
+                        {this.getFilteredChildren()
+                            .map(child => ({
+                                ...child,
+                                props: {
+                                    ...child.props,
+                                    onFocus: this.handleInputOnFocus,
+                                    onBlur: this.handleInputOnBlur,
+                                },
+                            }))}
                     </ul>
                     {dropdownContent
                         ? <BaseDropdown>{dropdownContent}</BaseDropdown>

@@ -56,7 +56,7 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
     /**
      * Contains the layout data returned for the frontend regarding edit pages.
      */
-    private data class EditLayoutData(val data: Any?, val ui: UILayout?)
+    class EditLayoutData(val data: Any?, val ui: UILayout?)
 
     /**
      * Contains the data, layout and filter settings served by [getInitialList].
@@ -129,12 +129,16 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
         return layout
     }
 
-    protected fun getRestPath(): String {
+    fun getRestPath(): String {
         if (restPath == null) {
             val path = this::class.annotations.find { it is Path } as? Path
             restPath = path?.value
         }
         return restPath!!
+    }
+
+    fun getFullRestPath(): String {
+        return "${getRestPath()}"
     }
 
     open fun createEditLayout(dataObject: O?): UILayout {
@@ -260,7 +264,7 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
         return restHelper.buildResponse(item)
     }
 
-    private fun getById(id: Int?): O? {
+    protected fun getById(id: Int?): O? {
         val item = baseDao.getById(id)
         if (item == null)
             return null
@@ -278,7 +282,6 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
     @Path("edit")
     @Produces(MediaType.APPLICATION_JSON)
     fun getItemAndLayout(@Context request: HttpServletRequest, @QueryParam("id") id: Int?): Response {
-        onGetItemAndLayout(request)
         val item: O?
         if (id != null) {
             item = getById(id)
@@ -289,10 +292,26 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
         layout.addTranslations("changes")
         layout.postProcessPageMenu()
         val result = EditLayoutData(item, layout)
+        onGetItemAndLayout(request, item, result)
         return restHelper.buildResponse(result)
     }
 
-    internal open fun onGetItemAndLayout(request: HttpServletRequest) {
+    open protected fun onGetItemAndLayout(request: HttpServletRequest, item : O, editLayoutData : EditLayoutData) {
+    }
+
+
+    /**
+     * Gets the autocomletion list for the given property and search string.
+     * @param property The property (field of the data) used to search.
+     * @param searchString
+     * @return list of strings as json.
+     */
+    @GET
+    @Path("ac")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun getAutoCompletion(@QueryParam("property") property: String?, @QueryParam("search") searchString: String?): Response {
+        val result = baseDao.getAutocompletion(property, searchString)
+        return restHelper.buildResponse(result)
     }
 
     /**
