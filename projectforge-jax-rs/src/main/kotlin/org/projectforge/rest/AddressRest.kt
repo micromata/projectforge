@@ -152,14 +152,14 @@ class AddressRest()
      */
     override fun createEditLayout(dataObject: AddressDO?): UILayout {
         val addressbookDOs = addressbookDao.allAddressbooksWithFullAccess
-        val addressbooks = mutableListOf<AutoCompletion.Entry>()
+        val addressbooks = mutableListOf<AutoCompletion.Entry<Int>>()
         addressbookDOs.forEach {
             addressbooks.add(AutoCompletion.Entry(it.id, it.title))
         }
         val layout = super.createEditLayout(dataObject)
                 .add(UIGroup()
                         .add(UIMultiSelect("addressbookList", lc,
-                                autoCompletion = AutoCompletion(values = addressbooks))))
+                                autoCompletion = AutoCompletion<Int>(values = addressbooks))))
                 //autoCompletion = AutoCompletion(url = "addressBook/ac?search="))))
                 .add(UIRow()
                         .add(UIFieldset(6).add(lc, "contactStatus"))
