@@ -40,7 +40,7 @@ class ContractDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.number")
     @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
-    @get:Column(name = "number", nullable = true)
+    @get:Column(name = "number")
     var number: Int? = null
 
     @PropertyInfo(i18nKey = "date")
@@ -110,7 +110,7 @@ class ContractDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "status")
     @Field
     @get:Column(length = 100)
-    var status: String? = null
+    var status: ContractStatus? = null
 
     @PropertyInfo(i18nKey = "text")
     @Field
@@ -119,7 +119,7 @@ class ContractDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "fibu.common.reference")
     @Field
-    @get:Column(length = 1000)
+    @get:Column
     var reference: String? = null
 
     @PropertyInfo(i18nKey = "filing")

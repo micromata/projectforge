@@ -14,7 +14,7 @@ import javax.ws.rs.Path
 
 @Component
 @Path("incomingMail")
-class PosteingangRest(): AbstractStandardRest<PosteingangDO, PosteingangDao, PostFilter>(PosteingangDao::class.java, PostFilter::class.java, "") {
+class PosteingangRest(): AbstractStandardRest<PosteingangDO, PosteingangDao, PostFilter>(PosteingangDao::class.java, PostFilter::class.java, "orga.posteingang.title") {
 
     override fun newBaseDO(): PosteingangDO {
         val inbox = super.newBaseDO()
@@ -40,7 +40,7 @@ class PosteingangRest(): AbstractStandardRest<PosteingangDO, PosteingangDao, Pos
                         .add(lc, "datum", "absender", "person", "inhalt", "bemerkung", "type"))
         layout.getTableColumnById("datum").formatter = Formatter.DATE
         LayoutUtils.addListFilterContainer(layout, UILabel("'TODO: date range"),
-                filterClass = BookFilter::class.java)
+                filterClass = PostFilter::class.java)
         return LayoutUtils.processListPage(layout)
     }
 

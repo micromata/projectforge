@@ -10,22 +10,21 @@ import javax.ws.rs.Path
 
 @Component
 @Path("contract")
-class ContractRest() : AbstractStandardRest<PostausgangDO, PostausgangDao, ContractFilter>(PostausgangDao::class.java, ContractFilter::class.java, "orga.postausgang.title") {
+class ContractRest() : AbstractStandardRest<ContractDO, ContractDao, ContractFilter>(ContractDao::class.java, ContractFilter::class.java, "legalAffaires.contract.title") {
     /**
      * Initializes new outbox mails for adding.
      */
-    override fun newBaseDO(): PostausgangDO {
-        val outbox = super.newBaseDO()
-        outbox.datum = PFDate.now().asSqlDate()
-        outbox.type = PostType.BRIEF
-        return outbox
+    override fun newBaseDO(): ContractDO {
+        val contract = super.newBaseDO()
+        contract.date = PFDate.now().asSqlDate()
+        return contract
     }
 
-    override fun validate(validationErrors: MutableList<ValidationError>, obj: PostausgangDO) {
-        val date = PFDate.from(obj.datum)
+    override fun validate(validationErrors: MutableList<ValidationError>, obj: ContractDO) {
+        val date = PFDate.from(obj.date)
         val today = PFDate.now()
         if (today.isBefore(date)) { // No dates in the future accepted.
-            validationErrors.add(ValidationError(translate("error.dateInFuture"), fieldId = "datum"))
+            validationErrors.add(ValidationError(translate("error.dateInFuture"), fieldId = "date"))
         }
     }
 
@@ -35,8 +34,7 @@ class ContractRest() : AbstractStandardRest<PostausgangDO, PostausgangDao, Contr
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
-                        .add(lc, "number", "date", "type", "status", "title", "coContractorA", "coContractorB",
-                                "resubmissionOnDate", "dueDate"))
+                        .add(lc, "number", "date", "type", "status", "title", "coContractorA", "coContractorB", "resubmissionOnDate", "dueDate"))
         layout.getTableColumnById("date").formatter = Formatter.DATE
         LayoutUtils.addListFilterContainer(layout, UILabel("'TODO: date range"),
                 filterClass = ContractFilter::class.java)
@@ -46,7 +44,7 @@ class ContractRest() : AbstractStandardRest<PostausgangDO, PostausgangDao, Contr
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: PostausgangDO?): UILayout {
+    override fun createEditLayout(dataObject: ContractDO?): UILayout {
         val title = UIInput("title", lc).enableAutoCompletion(this)
         val coContractorA = UIInput("coContractorA", lc).enableAutoCompletion(this)
         val coContractorB = UIInput("coContractorB", lc).enableAutoCompletion(this)
@@ -61,13 +59,14 @@ class ContractRest() : AbstractStandardRest<PostausgangDO, PostausgangDao, Contr
                                 .add(lc, "number")
                                 .add(lc, "date")
                                 .add(title)
+                                .add(lc, "type")
                                 .add(lc, "status"))
                         .add(UICol()
                                 .add(lc, "reference")
                                 .add(lc, "resubmissionOnDate")
                                 .add(lc, "dueDate")
                                 .add(lc, "signingDate")
-                                .add(lc, "validity")))
+                                .add(lc, "validFrom")))
                 .add(UIRow()
                         .add(UICol()
                                 .add(coContractorA)
@@ -78,7 +77,7 @@ class ContractRest() : AbstractStandardRest<PostausgangDO, PostausgangDao, Contr
                                 .add(contractPersonB)
                                 .add(signerB)))
                 .add(lc, "text")
-                .add(lc, "filling")
+                .add(lc, "filing")
         return LayoutUtils.processEditPage(layout, dataObject)
     }
 }
