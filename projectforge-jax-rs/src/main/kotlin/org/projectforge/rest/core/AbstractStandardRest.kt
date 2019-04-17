@@ -58,7 +58,7 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
     /**
      * Contains the layout data returned for the frontend regarding edit pages.
      */
-    private data class EditLayoutData(val data: Any?, val ui: UILayout?)
+    class EditLayoutData(val data: Any?, val ui: UILayout?)
 
     /**
      * Contains the data, layout and filter settings served by [getInitialList].
@@ -266,7 +266,7 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
         return restHelper.buildResponse(item)
     }
 
-    private fun getById(id: Int?): O? {
+    protected fun getById(id: Int?): O? {
         val item = baseDao.getById(id)
         if (item == null)
             return null
