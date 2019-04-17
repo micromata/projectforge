@@ -15,7 +15,7 @@ class ReactSelect extends React.Component {
 
     setSelected(newValue) {
         const {id, changeDataField} = this.props;
-
+console.log(newValue);
         changeDataField(id, newValue);
     }
 
@@ -29,6 +29,7 @@ class ReactSelect extends React.Component {
             labelProperty,
             valueProperty
         } = this.props;
+        console.log(values);
         return (<React.Fragment>
                 <span className={style.text}>{label}</span>
                 <Select

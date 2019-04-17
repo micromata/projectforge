@@ -1,9 +1,6 @@
 package org.projectforge.rest
 
-import com.google.gson.*
 import org.apache.commons.lang3.StringUtils
-import org.bouncycastle.asn1.x509.X509ObjectIdentifiers.id
-import org.json.simple.JSONObject
 import org.projectforge.business.address.*
 import org.projectforge.business.image.ImageService
 import org.projectforge.framework.i18n.translate
@@ -13,11 +10,11 @@ import org.projectforge.rest.AddressImageServicesRest.Companion.SESSION_IMAGE_AT
 import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.core.ResultSet
+import org.projectforge.rest.json.LabelValueTypeAdapter
 import org.projectforge.sms.SmsSenderConfig
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import java.lang.reflect.Type
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.Path
 
@@ -35,8 +32,10 @@ class AddressRest()
                           var imageUrl: String? = null,
                           var previewImageUrl: String? = null)
 
+    private val addressBookTypeAdapter = LabelValueTypeAdapter<AddressbookDO>("id", "title")
+
     init {
-        restHelper.add(AddressbookDO::class.java, AddressbookDOSerializer())
+        restHelper.add(AddressbookDO::class.java, addressBookTypeAdapter)
     }
 
     @Autowired
@@ -272,20 +271,6 @@ class AddressRest()
         if ((item as AddressDO).imageData != null || item.imageDataPreview != null) {
             item.imageData = byteArrayOf(1)
             item.imageDataPreview = byteArrayOf(1)
-        }
-    }
-
-    /**
-     * Needed for json serialization
-     */
-    class AddressbookDOSerializer : JsonSerializer<org.projectforge.business.address.AddressbookDO> {
-        @Synchronized
-        override fun serialize(obj: org.projectforge.business.address.AddressbookDO?, type: Type, jsonSerializationContext: JsonSerializationContext): JsonElement? {
-            if (obj == null) return null
-            val result = JsonObject()
-            result.add("id", JsonPrimitive(obj.id))
-            result.add("title", JsonPrimitive(obj.title))
-            return result
         }
     }
 }
