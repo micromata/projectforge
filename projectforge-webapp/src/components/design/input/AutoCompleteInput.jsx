@@ -59,6 +59,7 @@ class AutoComplete extends Component {
                 {...props}
                 autoComplete={autoCompletion}
                 setValue={this.handleInputChange}
+                single
                 value={{ searchString: value }}
             />
         );
