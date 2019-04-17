@@ -34,7 +34,7 @@ class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, Timeshee
         get() = TaskTreeHelper.getTaskTree()
 
     /**
-     * For exporting list of addresses.
+     * For exporting list of tiesheets.
      */
     private class Timesheet(val timesheet: TimesheetDO,
                             val id: Int, // Needed for history Service
