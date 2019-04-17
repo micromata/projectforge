@@ -35,5 +35,5 @@ export const getObjectFromQuery = query => (
     // build the final object
     .reduce((accumulator, current) => ({
         ...accumulator,
-        [current[0]]: current[1],
+        [current[0]]: current[1] || true,
     }), {});
