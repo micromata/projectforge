@@ -15,7 +15,6 @@ class ReactSelect extends React.Component {
 
     setSelected(newValue) {
         const {id, changeDataField} = this.props;
-console.log(newValue);
         changeDataField(id, newValue);
     }
 
@@ -29,7 +28,6 @@ console.log(newValue);
             labelProperty,
             valueProperty
         } = this.props;
-        console.log(values);
         return (<React.Fragment>
                 <span className={style.text}>{label}</span>
                 <Select
@@ -40,6 +38,7 @@ console.log(newValue);
                     options={values}
                     getOptionValue={(option) => (option[valueProperty])}
                     getOptionLabel={(option) => (option[labelProperty])}
+                    onChange={this.setSelected}
                 />
                 <AdditionalLabel title={additionalLabel}/>
             </React.Fragment>
