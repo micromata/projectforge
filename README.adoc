@@ -61,6 +61,8 @@ Start by simply running main (in `projectforge-application/src/main/java`): +
 
 == Quickstart with PostgreSQL
 
+You may use PostgreSQL instead of the built-in data base.
+
 === Using PostgresSQL (Docker)
 
 * Choose and set a database password: +
@@ -85,11 +87,11 @@ spring.datasource.driver-class-name=org.postgresql.Driver
 |Stop|`docker stop projectforge-postgres`
 |Start|`docker start projectforge-postgres`
 |Import dump (optional)|`docker run -v ~/ProjectForgeBackup/pf.sql:/mnt/pf.sql -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:11.2 psql -h postgres -U projectforge -q -f /mnt/pf.sql  2>&1 > log.txt`
+|PSQL|`docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:11.2 psql -h postgres -U projectforge`
 |Reset passwords (optional)|`update t_pf_user SET password='SHA{BC871652288E56E306CFA093BEFC3FFCD0ED8872}', password_salt=null, email='m.developer@acme.com';` +
 password is now `test123`.
 |Clear calendar subscriptions (optional)|`update t_plugin_calendar set ext_subscription=false;` +
 This is useful for avoiding a lot of external calendar calls if your productive data contains a lot of users with calendar subscriptions.
-|PSQL|`docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:11.2 psql -h postgres -U projectforge`
 |Uninstall|`docker rm projectforge-postgres`
 |===
 
