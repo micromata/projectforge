@@ -2,6 +2,8 @@ package org.projectforge.rest
 
 import com.google.gson.*
 import org.apache.commons.lang3.StringUtils
+import org.bouncycastle.asn1.x509.X509ObjectIdentifiers.id
+import org.json.simple.JSONObject
 import org.projectforge.business.address.*
 import org.projectforge.business.image.ImageService
 import org.projectforge.framework.i18n.translate
@@ -163,7 +165,9 @@ class AddressRest()
                                 .add(UIRow()
                                         .add(UICol(length = 8)
                                                 .add(UIMultiSelect("addressbookList", lc,
-                                                        values=  addressbooks)))
+                                                        values = addressbooks,
+                                                        labelProperty = "title",
+                                                        valueProperty = "id")))
                                         .add(UICol(length = 4)
                                                 .add(UICheckbox("favorite", label = "favorite")))))
                         .add(UIFieldset(6)
@@ -279,8 +283,8 @@ class AddressRest()
         override fun serialize(obj: org.projectforge.business.address.AddressbookDO?, type: Type, jsonSerializationContext: JsonSerializationContext): JsonElement? {
             if (obj == null) return null
             val result = JsonObject()
-            result.add("value", JsonPrimitive(obj.id))
-            result.add("label", JsonPrimitive(obj.title))
+            result.add("id", JsonPrimitive(obj.id))
+            result.add("title", JsonPrimitive(obj.title))
             return result
         }
     }

@@ -73,6 +73,11 @@ public class AddressbookDO extends BaseUserGroupRightsDO
   {
   }
 
+  public AddressbookDO(int id)
+  {
+    setId(id);
+  }
+
   /**
    * @return the title
    */

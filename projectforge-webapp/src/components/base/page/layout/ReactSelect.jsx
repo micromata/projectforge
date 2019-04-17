@@ -26,8 +26,9 @@ class ReactSelect extends React.Component {
             id,
             values,
             data,
+            labelProperty,
+            valueProperty
         } = this.props;
-        console.log(id, data)
         return (<React.Fragment>
                 <span className={style.text}>{label}</span>
                 <Select
@@ -36,6 +37,8 @@ class ReactSelect extends React.Component {
                     defaultValue={data[id]}
                     isMulti
                     options={values}
+                    getOptionValue={(option) => (option[valueProperty])}
+                    getOptionLabel={(option) => (option[labelProperty])}
                 />
                 <AdditionalLabel title={additionalLabel}/>
             </React.Fragment>
@@ -48,10 +51,13 @@ ReactSelect.propTypes = {
     data: dataPropType.isRequired,
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
-    values: PropTypes.arrayOf(PropTypes.shape({
-        label: PropTypes.string,
-        value: PropTypes.string,
-    })).isRequired,
+    values: PropTypes.arrayOf(PropTypes.object).isRequired,
+    valueProperty : PropTypes.string,
+    labelProperty : PropTypes.string,
 };
 
+ReactSelect.defaultProps = {
+    valueProperty: 'value',
+    labelProperty: 'label'
+};
 export default ReactSelect;
