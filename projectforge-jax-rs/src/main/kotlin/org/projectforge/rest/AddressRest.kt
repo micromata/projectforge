@@ -152,23 +152,26 @@ class AddressRest()
      */
     override fun createEditLayout(dataObject: AddressDO?): UILayout {
         val addressbookDOs = addressbookDao.allAddressbooksWithFullAccess
-        val addressbooks = mutableListOf<AutoCompletion.Entry<Int>>()
+        val addressbooks = mutableListOf<UISelectValue<Int>>()
         addressbookDOs.forEach {
-            addressbooks.add(AutoCompletion.Entry(it.id, it.title))
+            addressbooks.add(UISelectValue(it.id, it.title))
         }
         val layout = super.createEditLayout(dataObject)
-                .add(UIGroup()
-                        .add(UIMultiSelect("addressbookList", lc,
-                                autoCompletion = AutoCompletion<Int>(values = addressbooks))))
                 //autoCompletion = AutoCompletion(url = "addressBook/ac?search="))))
                 .add(UIRow()
-                        .add(UIFieldset(6).add(lc, "contactStatus"))
                         .add(UIFieldset(6)
                                 .add(UIRow()
                                         .add(UICol(length = 8)
-                                                .add(lc, "addressStatus"))
+                                                .add(UIMultiSelect("addressbookList", lc,
+                                                        values=  addressbooks)))
                                         .add(UICol(length = 4)
-                                                .add(UICheckbox("favorite", label = "favorite"))))))
+                                                .add(UICheckbox("favorite", label = "favorite")))))
+                        .add(UIFieldset(6)
+                                .add(UIRow()
+                                        .add(UICol(length = 6)
+                                                .add(lc, "addressStatus"))
+                                        .add(UICol(length = 6)
+                                                .add(lc, "contactStatus")))))
                 .add(UIRow()
                         .add(UIFieldset(6)
                                 .add(lc, "name", "firstName")
@@ -276,8 +279,8 @@ class AddressRest()
         override fun serialize(obj: org.projectforge.business.address.AddressbookDO?, type: Type, jsonSerializationContext: JsonSerializationContext): JsonElement? {
             if (obj == null) return null
             val result = JsonObject()
-            result.add("id", JsonPrimitive(obj.id))
-            result.add("title", JsonPrimitive(obj.title))
+            result.add("value", JsonPrimitive(obj.id))
+            result.add("label", JsonPrimitive(obj.title))
             return result
         }
     }

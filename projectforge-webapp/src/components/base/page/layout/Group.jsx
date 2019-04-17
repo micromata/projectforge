@@ -52,7 +52,7 @@ function LayoutGroup(
                     case 'TABLE':
                         Tag = LayoutTable;
                         break;
-                    case 'MULTISELECT_':
+                    case 'MULTI_SELECT':
                         Tag = ReactSelect;
                         break;
                     case 'CUSTOMIZED':
