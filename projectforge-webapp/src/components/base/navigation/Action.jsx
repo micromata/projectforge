@@ -39,9 +39,9 @@ class NavigationAction extends React.Component {
                 );
             case 'DOWNLOAD':
                 return (
-                    <a href={getServiceURL(url)} target="_blank" rel="noopener noreferrer">
+                    <NavLink href={getServiceURL(url)} target="_blank" rel="noopener noreferrer">
                         {title}
-                    </a>
+                    </NavLink>
                 );
             case 'LINK':
                 return (

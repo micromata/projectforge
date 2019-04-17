@@ -1,4 +1,4 @@
-import { faChevronDown } from '@fortawesome/free-solid-svg-icons/index';
+import { faChevronDown, faCog } from '@fortawesome/free-solid-svg-icons/index';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome/index';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -14,10 +14,16 @@ function NavigationDropdown(
         id,
     },
 ) {
+    let displayTitle = title;
+
+    if (id === 'GEAR') {
+        displayTitle = <FontAwesomeIcon icon={faCog} />;
+    }
+
     return (
         <UncontrolledDropdown nav>
             <DropdownToggle nav>
-                {title}
+                {displayTitle}
                 <FontAwesomeIcon icon={faChevronDown} />
             </DropdownToggle>
             <DropdownMenu>
