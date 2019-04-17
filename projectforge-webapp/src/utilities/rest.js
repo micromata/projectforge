@@ -23,10 +23,14 @@ export const handleHTTPErrors = (response) => {
     return response;
 };
 
-export const getObjectFromQuery = query => query
+export const getObjectFromQuery = query => (
+    query
     // get each param in 'key=value' format
-    .match(/[^&?]+/gm)
-    // split each param to ['key', 'value']
+        .match(/[^&?]+/gm)
+    // if no matches found, work with empty array
+    || []
+)
+// split each param to ['key', 'value']
     .map(param => param.split(/=/))
     // build the final object
     .reduce((accumulator, current) => ({
