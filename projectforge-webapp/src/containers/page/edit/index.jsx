@@ -9,14 +9,15 @@ import PageNavigation from '../../../components/base/page/Navigation';
 import { Alert, Container, TabContent, TabPane, } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
 import { getTranslation } from '../../../utilities/layout';
+import { getObjectFromQuery } from '../../../utilities/rest';
 import style from '../../ProjectForge.module.scss';
 import EditHistory from './history';
 
 class EditPage extends React.Component {
     componentDidMount() {
-        const { load, match } = this.props;
+        const { load, location, match } = this.props;
 
-        load(match.params.category, match.params.id);
+        load(match.params.category, match.params.id, getObjectFromQuery(location.search || ''));
     }
 
     render() {
@@ -107,6 +108,11 @@ EditPage.propTypes = {
     changeDataField: PropTypes.func.isRequired,
     match: PropTypes.shape({}).isRequired,
     load: PropTypes.func.isRequired,
+    location: PropTypes.shape({
+        hash: PropTypes.string,
+        pathname: PropTypes.string,
+        search: PropTypes.string,
+    }).isRequired,
     ui: PropTypes.shape({
         translations: PropTypes.shape({}),
     }).isRequired,

@@ -42,10 +42,12 @@ export const updateFailure = validationMessages => ({
     payload: { validationMessages },
 });
 
-export const loadEdit = (category, id) => (dispatch) => {
+export const loadEdit = (category, id, additionalParams) => (dispatch) => {
     dispatch(loadBegin(category));
 
-    const params = {};
+    const params = {
+        ...additionalParams,
+    };
 
     if (id) {
         params.id = id;
