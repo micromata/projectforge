@@ -46,7 +46,7 @@ class AddressRest()
     @Autowired
     private lateinit var smsSenderConfig: SmsSenderConfig
 
-    override fun onGetItemAndLayout(request: HttpServletRequest) {
+    override fun onGetItemAndLayout(request: HttpServletRequest, item: AddressDO, editLayoutData: EditLayoutData) {
         ExpiringSessionAttributes.removeAttribute(request.session, SESSION_IMAGE_ATTR)
     }
 
