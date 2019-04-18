@@ -42,10 +42,12 @@ export const updateFailure = validationMessages => ({
     payload: { validationMessages },
 });
 
-export const loadEdit = (category, id) => (dispatch) => {
+export const loadEdit = (category, id, additionalParams) => (dispatch) => {
     dispatch(loadBegin(category));
 
-    const params = {};
+    const params = {
+        ...additionalParams,
+    };
 
     if (id) {
         params.id = id;
@@ -106,10 +108,8 @@ export const updatePageData = () => (dispatch, getState) => {
 
 export const changeField = (id, newValue) => dispatch => dispatch(fieldChanged(id, newValue));
 
-export const abort = () => (dispatch, getState) => {
-    const { category } = getState().editPage;
-
-    redirectToCategory(category);
+export const abort = () => () => {
+    history.goBack(1);
 };
 
 export const callEndpointWithData = (category, endpoint, data, dispatch, method = 'POST') => {

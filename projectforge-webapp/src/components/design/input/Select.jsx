@@ -49,7 +49,7 @@ class Select extends Component {
         if (typeof options[0] !== 'object') {
             options = options.map(option => ({
                 value: option,
-                title: option,
+                label: option,
             }));
         }
 
@@ -69,7 +69,7 @@ class Select extends Component {
                         type="text"
                         id={id}
                         className={style.select}
-                        value={value.title}
+                        value={value.label}
                         onFocus={() => this.setActive(true)}
                         onBlur={() => this.setActive(false)}
                         readOnly
@@ -92,7 +92,7 @@ class Select extends Component {
                                     role="button"
                                     tabIndex={-1}
                                 >
-                                    {option.title}
+                                    {option.label}
                                     {selected === option.value
                                         ? <FontAwesomeIcon icon={faCheckCircle} />
                                         : ''}

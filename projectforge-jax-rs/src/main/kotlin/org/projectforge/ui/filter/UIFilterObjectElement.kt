@@ -14,7 +14,7 @@ open class UIFilterObjectElement(
         /**
          * This filter option is an autocompletion field.
          */
-        var autoCompletion: AutoCompletion? = null
+        var autoCompletion: AutoCompletion<*>? = null
 ) :UIFilterElement(id, FilterType.OBJECT) {
     enum class Type { STRING, DATE, CHOICE }
 }

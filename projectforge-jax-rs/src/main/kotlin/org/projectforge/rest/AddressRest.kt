@@ -1,21 +1,23 @@
 package org.projectforge.rest
 
-import com.google.gson.*
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.address.*
+import org.projectforge.business.book.BookStatus
+import org.projectforge.business.book.BookType
 import org.projectforge.business.image.ImageService
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.AddressImageServicesRest.Companion.SESSION_IMAGE_ATTR
 import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.core.ResultSet
+import org.projectforge.rest.json.LabelValueTypeAdapter
 import org.projectforge.sms.SmsSenderConfig
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import java.lang.reflect.Type
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.Path
 
@@ -33,8 +35,10 @@ class AddressRest()
                           var imageUrl: String? = null,
                           var previewImageUrl: String? = null)
 
+    private val addressBookTypeAdapter = LabelValueTypeAdapter<AddressbookDO>("id", "title")
+
     init {
-        restHelper.add(AddressbookDO::class.java, AddressbookDOSerializer())
+        restHelper.add(AddressbookDO::class.java, addressBookTypeAdapter)
     }
 
     @Autowired
@@ -46,7 +50,20 @@ class AddressRest()
     @Autowired
     private lateinit var smsSenderConfig: SmsSenderConfig
 
-    override fun onGetItemAndLayout(request: HttpServletRequest) {
+
+    /**
+     * Initializes new books for adding.
+     */
+    override fun newBaseDO(): AddressDO {
+        val address = super.newBaseDO()
+        address.addressStatus = AddressStatus.UPTODATE
+        address.contactStatus = ContactStatus.ACTIVE
+        address.addressbookList = mutableSetOf()
+        address.addressbookList?.add(addressbookDao.globalAddressbook)
+        return address
+    }
+
+    override fun onGetItemAndLayout(request: HttpServletRequest, item: AddressDO, editLayoutData: EditLayoutData) {
         ExpiringSessionAttributes.removeAttribute(request.session, SESSION_IMAGE_ATTR)
     }
 
@@ -64,6 +81,10 @@ class AddressRest()
     override fun validate(validationErrors: MutableList<ValidationError>, obj: AddressDO) {
         if (StringUtils.isAllBlank(obj.name, obj.firstName, obj.organization)) {
             validationErrors.add(ValidationError(translate("address.form.error.toFewFields"), fieldId = "name"))
+        }
+        if (obj.addressbookList.isNullOrEmpty()) {
+            validationErrors.add(ValidationError(translateMsg("validation.error.fieldRequired",
+                    translate("address.addressbooks")), fieldId = "addressbooks"))
         }
     }
 
@@ -108,6 +129,7 @@ class AddressRest()
                         .add(addressLC, "name", "firstName", "organization", "email")
                         .add(UITableColumn("phoneNumbers", "address.phoneNumbers", dataType = UIDataType.CUSTOMIZED))
                         .add(lc, "addressbookList"))
+        layout.getTableColumnById("address.lastUpdate").formatter = Formatter.DATE
         LayoutUtils.addListFilterContainer(layout,
                 UICheckbox("filter", label = "filter"),
                 UICheckbox("newest", label = "filter.newest"),
@@ -151,26 +173,32 @@ class AddressRest()
      */
     override fun createEditLayout(dataObject: AddressDO?): UILayout {
         val addressbookDOs = addressbookDao.allAddressbooksWithFullAccess
-        val addressbooks = mutableListOf<AutoCompletion.Entry>()
+        val addressbooks = mutableListOf<UISelectValue<Int>>()
         addressbookDOs.forEach {
-            addressbooks.add(AutoCompletion.Entry(it.id, it.title))
+            addressbooks.add(UISelectValue(it.id, it.title))
         }
         val layout = super.createEditLayout(dataObject)
-                .add(UIGroup()
-                        .add(UIMultiSelect("addressbookList", lc,
-                                autoCompletion = AutoCompletion(values = addressbooks))))
+                //autoCompletion = AutoCompletion(url = "addressBook/ac?search="))))
                 .add(UIRow()
-                        .add(UIFieldset(6).add(lc, "contactStatus"))
                         .add(UIFieldset(6)
                                 .add(UIRow()
                                         .add(UICol(length = 8)
-                                                .add(lc, "addressStatus"))
+                                                .add(UIMultiSelect("addressbookList", lc,
+                                                        values = addressbooks,
+                                                        labelProperty = "title",
+                                                        valueProperty = "id")))
                                         .add(UICol(length = 4)
-                                                .add(UICheckbox("favorite", label = "favorite"))))))
+                                                .add(UICheckbox("favorite", label = "favorite")))))
+                        .add(UIFieldset(6)
+                                .add(UIRow()
+                                        .add(UICol(length = 6)
+                                                .add(lc, "addressStatus"))
+                                        .add(UICol(length = 6)
+                                                .add(lc, "contactStatus")))))
                 .add(UIRow()
                         .add(UIFieldset(6)
                                 .add(lc, "name", "firstName")
-                                .add(UISelect("form", lc).buildValues(FormOfAddress::class.java))
+                                .add(UISelect<String>("form", lc).buildValues(FormOfAddress::class.java))
                                 .add(lc, "title", "email", "privateEmail"))
                         .add(UIFieldset(6)
                                 .add(lc, "birthday", "communicationLanguage", "organization", "division", "positionText", "website")))
@@ -263,20 +291,6 @@ class AddressRest()
         if ((item as AddressDO).imageData != null || item.imageDataPreview != null) {
             item.imageData = byteArrayOf(1)
             item.imageDataPreview = byteArrayOf(1)
-        }
-    }
-
-    /**
-     * Needed for json serialization
-     */
-    class AddressbookDOSerializer : JsonSerializer<org.projectforge.business.address.AddressbookDO> {
-        @Synchronized
-        override fun serialize(obj: org.projectforge.business.address.AddressbookDO?, type: Type, jsonSerializationContext: JsonSerializationContext): JsonElement? {
-            if (obj == null) return null
-            val result = JsonObject()
-            result.add("id", JsonPrimitive(obj.id))
-            result.add("title", JsonPrimitive(obj.title))
-            return result
         }
     }
 }

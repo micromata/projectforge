@@ -45,3 +45,8 @@ export {
     MENU_LOAD_FAILURE,
     loadMenu,
 } from './menu';
+
+export {
+    REST_ADD_TOAST,
+    performGetCall,
+} from './rest';

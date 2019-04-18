@@ -56,8 +56,8 @@ class TaskServicesRest() {
                val responsibleUser: PFUserDO? = null,
                val cost2List: MutableList<Cost2>? = null) {
         constructor(node: TaskNode) : this(id = node.task.id, title = node.task.title, shortDescription = node.task.shortDescription,
-                protectTimesheetsUntil = PFDate.from(node.task.protectTimesheetsUntil), reference = node.task.reference, priority = node.task.priority,
-                status = node.task.status, responsibleUser = node.task.responsibleUser) {
+                protectTimesheetsUntil = PFDate.from(node.task.protectTimesheetsUntil), reference = node.task.reference,
+                priority = node.task.priority, status = node.task.status, responsibleUser = node.task.responsibleUser) {
         }
     }
 
@@ -77,9 +77,11 @@ class TaskServicesRest() {
     @Autowired
     private lateinit var userPreferencesService: UserPreferencesService
 
-    private val taskTree = TaskTreeHelper.getTaskTree()
-
     private val restHelper = RestHelper()
+
+    private val taskTree: TaskTree
+        /** Lazy init, because test cases failed due to NPE in TenantRegistryMap. */
+        get() = TaskTreeHelper.getTaskTree()
 
     /**
      * Gets the user's task tree as tree matching the filter. The open task nodes will be restored from the user's prefs.

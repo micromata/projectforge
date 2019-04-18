@@ -25,7 +25,6 @@ package org.projectforge.web;
 
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.systeminfo.SystemInfoCache;
 import org.projectforge.menu.builder.MenuCreator;
@@ -57,10 +56,10 @@ public class CallAllPagesTest extends WicketPageTestBase
       // Not yet checked:
       ScriptExecutePage.class };
 
-  @AfterAll
-  public static void logNumberOfTestesPages()
-  {
+  @Override
+  protected void afterAll() {
     log.info("Number of tested Wicket pages: " + counter);
+    recreateDataBase();
   }
 
   @Test

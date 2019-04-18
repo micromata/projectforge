@@ -5,15 +5,15 @@ import { Route, Router, Switch } from 'react-router-dom';
 import { loadUserStatus, loginUser } from '../actions';
 import LoginView from '../components/authentication/LoginView';
 import Footer from '../components/base/footer';
-import Navigation from '../components/base/navigation';
+import GlobalNavigation from '../components/base/navigation/GlobalNavigation';
 import TopBar from '../components/base/topbar';
 import { Container } from '../components/design';
 import history from '../utilities/history';
+import CalendarPage from './page/CalendarPage';
 import EditPage from './page/edit';
 import InputTestPage from './page/InputTest';
 import ListPage from './page/list';
-import CalendarPage from './page/CalendarPage';
-import TaskTreePage from "./page/TaskTreePage";
+import TaskTreePage from './page/TaskTreePage';
 
 class ProjectForge extends React.Component {
     componentDidMount() {
@@ -36,23 +36,7 @@ class ProjectForge extends React.Component {
             content = (
                 <Router history={history}>
                     <React.Fragment>
-                        <Navigation
-                            // TODO: REMOVE CUSTOM ENTRIES
-                            entries={[
-                                {
-                                    name: 'Bücher',
-                                    url: '/book/',
-                                },
-                                {
-                                    name: 'Adressbücher',
-                                    url: '/address/',
-                                },
-                                {
-                                    name: 'Input Test',
-                                    url: '/inputTest',
-                                },
-                            ]}
-                        />
+                        <GlobalNavigation />
                         <Container fluid>
                             <Switch>
                                 <Route

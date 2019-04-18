@@ -3,11 +3,13 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { loadList } from '../../../actions';
-import LayoutGroup from '../../../components/base/page/layout/Group';
+import Navigation from '../../../components/base/navigation';
+import LayoutGroup from '../../../components/base/page/layout/LayoutGroup';
 import PageNavigation from '../../../components/base/page/Navigation';
 import { Alert, Button, NavItem } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
 import { dataPropType } from '../../../utilities/propTypes';
+import { getObjectFromQuery } from '../../../utilities/rest';
 import SearchFilter from './SearchFilter';
 
 class ListPage extends React.Component {
@@ -30,9 +32,9 @@ class ListPage extends React.Component {
     }
 
     loadInitialList() {
-        const { load, match } = this.props;
+        const { load, location, match } = this.props;
 
-        load(match.params.category);
+        load(match.params.category, getObjectFromQuery(location.search || ''));
     }
 
     render() {
@@ -61,6 +63,7 @@ class ListPage extends React.Component {
                             +
                         </Button>
                     </NavItem>
+                    <Navigation entries={ui.pageMenu || []} />
                 </PageNavigation>
                 <SearchFilter />
                 <LayoutGroup
@@ -78,6 +81,9 @@ ListPage.propTypes = {
     data: dataPropType.isRequired,
     load: PropTypes.func.isRequired,
     loading: PropTypes.bool.isRequired,
+    location: PropTypes.shape({
+        search: PropTypes.string,
+    }).isRequired,
     match: PropTypes.shape({}).isRequired,
     ui: PropTypes.shape({
         layout: PropTypes.arrayOf(PropTypes.shape({

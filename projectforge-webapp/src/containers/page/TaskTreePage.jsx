@@ -5,6 +5,7 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 
 import {getServiceURL} from '../../utilities/rest';
 import style from "../../components/base/page/Page.module.scss";
+import history from "../../utilities/history";
 
 
 class TaskTreePage extends React.Component {
@@ -14,6 +15,14 @@ class TaskTreePage extends React.Component {
         translations: []
     };
 
+    handleRowClick(id) {
+        history.push(`/task/edit/${id}`);
+    }
+
+    handleEventClick(event, openId, closeId) {
+        this.fetch(null, openId, closeId);
+        event.stopPropagation();
+    }
 
     fetch = (initial, open, close) => {
         this.setState({
@@ -77,19 +86,21 @@ class TaskTreePage extends React.Component {
                         }
                         let link = indent;
                         if (task.treeStatus === 'OPENED') {
-                            link = <div className={'tree-nav'} onClick={() => this.fetch(null, null, task.id)}>
-                                {indent}
-                                <div className={'tree-link-close'}>
-                                    <div className={'tree-icon'}><FontAwesomeIcon icon={faFolderOpen}/></div>
-                                    {task.title}</div>
-                            </div>;
+                            link =
+                                <div className={'tree-nav'} onClick={(event) => this.handleEventClick(event, null, task.id)}>
+                                    {indent}
+                                    <div className={'tree-link-close'}>
+                                        <div className={'tree-icon'}><FontAwesomeIcon icon={faFolderOpen}/></div>
+                                        {task.title}</div>
+                                </div>;
                         } else if (task.treeStatus === 'CLOSED') {
-                            link = <div className={'tree-nav'} onClick={() => this.fetch(null, task.id, null)}>
-                                {indent}
-                                <div className={'tree-link-close'}>
-                                    <div className={'tree-icon'}><FontAwesomeIcon icon={faFolder}/></div>
-                                    {task.title}</div>
-                            </div>;
+                            link =
+                                <div className={'tree-nav'} onClick={(event) => this.handleEventClick(event, task.id, null)}>
+                                    {indent}
+                                    <div className={'tree-link-close'}>
+                                        <div className={'tree-icon'}><FontAwesomeIcon icon={faFolder}/></div>
+                                        {task.title}</div>
+                                </div>;
                         } else {
                             link = <div className={'tree-nav'}>
                                 {indent}
@@ -101,7 +112,7 @@ class TaskTreePage extends React.Component {
                         let responsibleUser = task.responsibleUser ? task.responsibleUser.fullname : '';
                         return (
                             <tr key={`table-body-row-${task.id}`}
-                                onClick={this.handleRowClick}
+                                onClick={() => this.handleRowClick(task.id)}
                                 className={style.clickable}
                             >
                                 <td>{link}</td>
@@ -131,7 +142,7 @@ class TaskTreePage extends React.Component {
     constructor(props) {
         super(props);
         this.fetch = this.fetch.bind(this);
-
+        this.handleRowClick = this.handleRowClick.bind(this);
     }
 }
 

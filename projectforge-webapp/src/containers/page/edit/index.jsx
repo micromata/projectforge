@@ -2,21 +2,23 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import { changeEditFormField, loadEditPage } from '../../../actions';
+import Navigation from '../../../components/base/navigation';
 import ActionGroup from '../../../components/base/page/action/Group';
 import TabNavigation from '../../../components/base/page/edit/TabNavigation';
-import LayoutGroup from '../../../components/base/page/layout/Group';
+import LayoutGroup from '../../../components/base/page/layout/LayoutGroup';
 import PageNavigation from '../../../components/base/page/Navigation';
 import { Alert, Container, TabContent, TabPane, } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
 import { getTranslation } from '../../../utilities/layout';
+import { getObjectFromQuery } from '../../../utilities/rest';
 import style from '../../ProjectForge.module.scss';
 import EditHistory from './history';
 
 class EditPage extends React.Component {
     componentDidMount() {
-        const { load, match } = this.props;
+        const { load, location, match } = this.props;
 
-        load(match.params.category, match.params.id);
+        load(match.params.category, match.params.id, getObjectFromQuery(location.search || ''));
     }
 
     render() {
@@ -61,7 +63,9 @@ class EditPage extends React.Component {
 
         return (
             <LoadingContainer loading={loading}>
-                <PageNavigation current={ui.title} />
+                <PageNavigation current={ui.title}>
+                    <Navigation entries={ui.pageMenu || []} />
+                </PageNavigation>
                 <TabNavigation
                     tabs={tabs}
                     activeTab={activeTab}
@@ -76,7 +80,7 @@ class EditPage extends React.Component {
                                 <LayoutGroup
                                     content={ui.layout}
                                     data={data}
-                                    translation={ui.translations}
+                                    translations={ui.translations}
                                     changeDataField={changeDataField}
                                     validation={validation}
                                 />
@@ -91,7 +95,7 @@ class EditPage extends React.Component {
                                     <EditHistory
                                         category={category}
                                         id={id}
-                                        translation={ui.translations}
+                                        translations={ui.translations}
                                     />
                                 </Container>
                             </TabPane>
@@ -107,6 +111,11 @@ EditPage.propTypes = {
     changeDataField: PropTypes.func.isRequired,
     match: PropTypes.shape({}).isRequired,
     load: PropTypes.func.isRequired,
+    location: PropTypes.shape({
+        hash: PropTypes.string,
+        pathname: PropTypes.string,
+        search: PropTypes.string,
+    }).isRequired,
     ui: PropTypes.shape({
         translations: PropTypes.shape({}),
     }).isRequired,

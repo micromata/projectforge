@@ -53,11 +53,11 @@ export const dataUpdateSuccess = data => ({
     payload: { data },
 });
 
-export const loadList = category => (dispatch) => {
+export const loadList = (category, additionalParams) => (dispatch) => {
     dispatch(loadBegin(category));
 
     return fetch(
-        getServiceURL(`${category}/initialList`),
+        getServiceURL(`${category}/initialList`, additionalParams),
         {
             method: 'GET',
             credentials: 'include',

@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { setListFilter } from '../../../actions';
 import ActionGroup from '../../../components/base/page/action/Group';
-import LayoutGroup from '../../../components/base/page/layout/Group';
+import LayoutGroup from '../../../components/base/page/layout/LayoutGroup';
 import {
     Card,
     CardBody,
@@ -63,21 +63,19 @@ class SearchFilter extends Component {
         } = this.props;
 
         const { filter: newFilter } = this.state;
-        // TODO: REPLACE DATE AND TIME WITH PICKERS
-        const searchFilter = getNamedContainer('searchFilter', namedContainers) || { content: [] };
 
         return (
             <Card>
                 <CardBody>
                     <MultiSelect
                         additionalLabel="WIP: New Search Filter"
-                        autoComplete={searchFilter.content}
+                        autoComplete={[]}
+                        autoCompleteForm="$AUTOCOMPLETE:"
                         id="complexSearchFilter"
                         label="Suchfilter"
                         pills
                         setValue={this.setFilterValue}
                         value={newFilter}
-                        {...getNamedContainer('searchFilter', namedContainers)}
                     />
                     <form>
                         <Input

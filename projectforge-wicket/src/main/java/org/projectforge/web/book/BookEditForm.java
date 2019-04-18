@@ -133,6 +133,13 @@ public class BookEditForm extends AbstractEditForm<BookDO, BookEditPage>
           new PropertyModel<String>(data, "authors"));
       fs.add(dependentFormComponents[0] = authors);
     }
+
+
+
+
+
+
+
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
       // DropDownChoice bookType
@@ -176,6 +183,14 @@ public class BookEditForm extends AbstractEditForm<BookDO, BookEditPage>
       });
       fs.add(dependentFormComponents[2] = signature);
     }
+
+
+
+
+
+
+
+
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
       // ISBN
@@ -201,6 +216,14 @@ public class BookEditForm extends AbstractEditForm<BookDO, BookEditPage>
           new PropertyModel<String>(data, "editor"));
       fs.add(dependentFormComponents[4] = editor);
     }
+
+
+
+
+
+
+
+
     gridBuilder.newGridPanel();
     {
       // Abstract
@@ -212,6 +235,10 @@ public class BookEditForm extends AbstractEditForm<BookDO, BookEditPage>
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("comment"));
       fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<String>(data, "comment")));
     }
+
+
+
+
     if (isNew() == false) {
       {
         // Lend out

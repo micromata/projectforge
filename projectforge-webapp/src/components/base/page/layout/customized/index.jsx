@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import CustomizedAddressImage from './components/AddressImage';
+import CustomizedAddressImage from './components/CustomizedAddressImage';
 import CustomizedImageDataPreview from './components/ImageDataPreview';
 import CustomizedBookLendOutComponent from './components/BookLendOut';
 

@@ -41,6 +41,11 @@ import static org.junit.jupiter.api.Assertions.*;
 public class XmlStreamTest extends AbstractTestBase {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(XmlStreamTest.class);
 
+  @Override
+  protected void afterAll() {
+    recreateDataBase();
+  }
+
   @Test
   public void testWrite() {
     final XmlObjectWriter writer = new XmlObjectWriter();
