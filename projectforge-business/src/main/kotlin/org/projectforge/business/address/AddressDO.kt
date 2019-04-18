@@ -277,7 +277,7 @@ class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
             inverseJoinColumns = [JoinColumn(name = "addressbook_id", referencedColumnName = "PK")],
             indexes = [javax.persistence.Index(name = "idx_fk_t_addressbook_address_address_id", columnList = "address_id"),
                 javax.persistence.Index(name = "idx_fk_t_addressbook_address_addressbook_id", columnList = "addressbook_id")])
-    var addressbookList: Set<AddressbookDO>? = HashSet()
+    var addressbookList: MutableSet<AddressbookDO>? = HashSet()
 
     // @FieldBridge(impl = HibernateSearchInstantMessagingBridge.class)
     // @Field(index = Index.YES /*TOKENIZED*/, store = Store.NO)
