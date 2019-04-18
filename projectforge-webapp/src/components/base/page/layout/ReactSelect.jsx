@@ -5,6 +5,7 @@ import PropTypes from "prop-types";
 import {dataPropType} from "../../../../utilities/propTypes";
 import style from "../../../design/input/Input.module.scss";
 import AdditionalLabel from "../../../design/input/AdditionalLabel";
+import {getTranslation} from "../../../../utilities/layout";
 
 class ReactSelect extends React.Component {
     constructor(props) {
@@ -25,8 +26,6 @@ class ReactSelect extends React.Component {
             id,
             values,
             data,
-            labelProperty,
-            valueProperty
         } = this.props;
         return (<React.Fragment>
                 <span className={style.text}>{label}</span>
@@ -34,11 +33,12 @@ class ReactSelect extends React.Component {
                     //closeMenuOnSelect={false}
                     components={makeAnimated()}
                     defaultValue={data[id]}
-                    isMulti
+                    isMulti={this.props.isMulti}
                     options={values}
-                    getOptionValue={(option) => (option[valueProperty])}
-                    getOptionLabel={(option) => (option[labelProperty])}
+                    getOptionValue={(option) => (option[this.props.valueProperty])}
+                    getOptionLabel={(option) => (option[this.props.labelProperty])}
                     onChange={this.setSelected}
+                    placeholder={this.props.translations['select.placeholder']}
                 />
                 <AdditionalLabel title={additionalLabel}/>
             </React.Fragment>
@@ -54,10 +54,12 @@ ReactSelect.propTypes = {
     values: PropTypes.arrayOf(PropTypes.object).isRequired,
     valueProperty : PropTypes.string,
     labelProperty : PropTypes.string,
+    isMulti: PropTypes.bool,
 };
 
 ReactSelect.defaultProps = {
     valueProperty: 'value',
-    labelProperty: 'label'
+    labelProperty: 'label',
+    isMulti: false
 };
 export default ReactSelect;

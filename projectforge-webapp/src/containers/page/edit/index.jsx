@@ -80,7 +80,7 @@ class EditPage extends React.Component {
                                 <LayoutGroup
                                     content={ui.layout}
                                     data={data}
-                                    translation={ui.translations}
+                                    translations={ui.translations}
                                     changeDataField={changeDataField}
                                     validation={validation}
                                 />
@@ -95,7 +95,7 @@ class EditPage extends React.Component {
                                     <EditHistory
                                         category={category}
                                         id={id}
-                                        translation={ui.translations}
+                                        translations={ui.translations}
                                     />
                                 </Container>
                             </TabPane>

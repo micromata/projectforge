@@ -3,7 +3,7 @@ import React from 'react';
 import { Alert } from '../../../../components/design';
 import LoadingContainer from '../../../../components/design/loading-container';
 import { getServiceURL, handleHTTPErrors } from '../../../../utilities/rest';
-import HistoryEntry from './Entry';
+import HistoryEntry from './HistoryEntry';
 
 class EditHistory extends React.Component {
     constructor(props) {
@@ -49,7 +49,7 @@ class EditHistory extends React.Component {
     }
 
     render() {
-        const { translation } = this.props;
+        const { translations } = this.props;
         const { loading, error, history } = this.state;
 
         if (error) {
@@ -67,7 +67,7 @@ class EditHistory extends React.Component {
                     <HistoryEntry
                         key={`history-entry-at-${entry.modifiedAt}`}
                         entry={entry}
-                        translation={translation}
+                        translations={translations}
                     />
                 ))}
             </LoadingContainer>
@@ -78,13 +78,13 @@ class EditHistory extends React.Component {
 EditHistory.propTypes = {
     category: PropTypes.string.isRequired,
     id: PropTypes.string.isRequired,
-    translation: PropTypes.shape({
+    translations: PropTypes.shape({
         changes: PropTypes.string,
     }),
 };
 
 EditHistory.defaultProps = {
-    translation: undefined,
+    translations: undefined,
 };
 
 export default EditHistory;
