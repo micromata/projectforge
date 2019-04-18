@@ -10,7 +10,7 @@ import {connect} from 'react-redux';
 import {getServiceURL} from '../../utilities/rest';
 import CalendarToolBar from './CalendarToolBar';
 
-import 'moment/locale/de';
+import 'moment/min/locales';
 import history from "../../utilities/history";
 
 const localizer = BigCalendar.momentLocalizer(moment_timezone); // or globalizeLocalizer
