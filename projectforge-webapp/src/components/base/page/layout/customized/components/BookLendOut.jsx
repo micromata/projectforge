@@ -9,7 +9,7 @@ function CustomizedBookLendOutComponent(
         data,
         handBack,
         lendOut,
-        translation,
+        translations,
         user,
     },
 ) {
@@ -22,7 +22,7 @@ function CustomizedBookLendOutComponent(
                 {user.username === data.lendOutBy.username
                     ? (
                         <Button color="danger" onClick={handBack}>
-                            {translation['book.returnBook']}
+                            {translations['book.returnBook']}
                         </Button>
                     )
                     : undefined}
@@ -34,14 +34,14 @@ function CustomizedBookLendOutComponent(
         <React.Fragment>
             {information}
             <Button color="link" onClick={lendOut}>
-                {translation['book.lendOut']}
+                {translations['book.lendOut']}
             </Button>
         </React.Fragment>
     );
 }
 
 CustomizedBookLendOutComponent.propTypes = {
-    translation: PropTypes.shape({
+    translations: PropTypes.shape({
         'book.lendOut': PropTypes.string,
         'book.returnBook': PropTypes.string,
     }).isRequired,

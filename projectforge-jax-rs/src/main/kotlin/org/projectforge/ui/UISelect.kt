@@ -3,10 +3,10 @@ package org.projectforge.ui
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.i18n.translate
 
-data class UISelect(val id: String,
+data class UISelect<T>(val id: String,
                     @Transient
                     override val layoutSettings: LayoutContext? = null,
-                    val values: MutableList<UISelectValue> = mutableListOf(),
+                    val values: MutableList<UISelectValue<T>> = mutableListOf(),
                     val required: Boolean? = null,
                     override var label: String? = null,
                     override var additionalLabel: String? = null,
@@ -16,11 +16,11 @@ data class UISelect(val id: String,
     private val log = org.slf4j.LoggerFactory.getLogger(LayoutUtils::class.java)
 
 
-    fun buildValues(i18nEnum: Class<out Enum<*>>) : UISelect {
+    fun buildValues(i18nEnum: Class<out Enum<*>>) : UISelect<T> {
         getEnumValues(i18nEnum).forEach { value ->
             if (value is I18nEnum) {
                 val translation = translate(value.i18nKey)
-                add(UISelectValue(value.name, translation))
+                add(UISelectValue<T>(value.name as T, translation))
             } else {
                 log.error("UISelect supports only enums of type I18nEnum, not '${value}': '${this}'")
             }
@@ -28,7 +28,7 @@ data class UISelect(val id: String,
         return this
     }
 
-    fun add(selectValue: UISelectValue): UISelect {
+    fun add(selectValue: UISelectValue<T>): UISelect<T> {
         values.add(selectValue)
         return this
     }

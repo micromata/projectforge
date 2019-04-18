@@ -24,11 +24,12 @@
 package org.projectforge.web.wicket.converter;
 
 import org.apache.wicket.util.convert.ConversionException;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.TestSetup;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -37,7 +38,12 @@ import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class MyDateConverterTest extends AbstractTestBase {
+public class MyDateConverterTest {
+  @BeforeAll
+  static void setup() {
+    TestSetup.init();
+  }
+
   @Test
   public void preProcessInput() {
     final int year = Calendar.getInstance(Locale.GERMAN).get(Calendar.YEAR);
@@ -104,7 +110,7 @@ public class MyDateConverterTest extends AbstractTestBase {
     user.setTimeZone(DateHelper.EUROPE_BERLIN);
     user.setLocale(Locale.GERMAN);
     user.setDateFormat("dd.MM.yyyy");
-    ThreadLocalUserContext.setUser(getUserGroupCache(), user);
+    ThreadLocalUserContext.setUser(null, user);
     user = ThreadLocalUserContext.getUser(); // ThreadLocalUserContext made a copy!
     Date testDate = createDate(1970, 10, 21, 0, 0, 0, 0, DateHelper.EUROPE_BERLIN);
     assertEquals("21.11.1970", conv.convertToString(testDate, Locale.GERMAN));
@@ -128,7 +134,7 @@ public class MyDateConverterTest extends AbstractTestBase {
     final PFUserDO user = new PFUserDO();
     user.setTimeZone(timeZone);
     user.setDateFormat("dd.MM.yyyy");
-    ThreadLocalUserContext.setUser(getUserGroupCache(), user);
+    ThreadLocalUserContext.setUser(null, user);
     Date testDate = createDate(1970, 9, 21, 0, 0, 0, 0, timeZone);
     Date date = conv.convertToObject("21.10.1970", Locale.GERMAN);
     assertDates(testDate, date);
@@ -189,7 +195,8 @@ public class MyDateConverterTest extends AbstractTestBase {
     final MyDateConverter conv = new MyDateConverter();
     final PFUserDO user = new PFUserDO();
     user.setTimeZone(timeZone);
-    ThreadLocalUserContext.setUser(getUserGroupCache(), user);
+    user.setDateFormat("MM/dd/yyyy");
+    ThreadLocalUserContext.setUser(null, user);
     Date testDate = createDate(1970, 9, 21, 0, 0, 0, 0, timeZone);
     Date date = conv.convertToObject("10/21/1970", Locale.ENGLISH);
     assertDates(testDate, date);

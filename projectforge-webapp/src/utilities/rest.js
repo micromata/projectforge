@@ -22,3 +22,18 @@ export const handleHTTPErrors = (response) => {
 
     return response;
 };
+
+export const getObjectFromQuery = query => (
+    query
+    // get each param in 'key=value' format
+        .match(/[^&?]+/gm)
+    // if no matches found, work with empty array
+    || []
+)
+// split each param to ['key', 'value']
+    .map(param => param.split(/=/))
+    // build the final object
+    .reduce((accumulator, current) => ({
+        ...accumulator,
+        [current[0]]: current[1] || true,
+    }), {});

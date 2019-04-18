@@ -24,6 +24,7 @@
 package org.projectforge.web.registry;
 
 import org.apache.commons.lang3.Validate;
+import org.apache.wicket.Page;
 import org.apache.wicket.markup.html.WebPage;
 import org.projectforge.framework.persistence.DaoConst;
 import org.projectforge.framework.persistence.api.BaseDao;
@@ -248,6 +249,14 @@ public class WebRegistry
   public Map<String, Class<? extends WebPage>> getMountPages()
   {
     return mountPages;
+  }
+
+  public String getMountPoint(Class<? extends Page> pageClass) {
+    for (Map.Entry<String, Class<? extends WebPage>> entry : mountPages.entrySet()) {
+      if (pageClass.equals(entry.getValue()))
+        return "wa/" + entry.getKey();
+    }
+    return "wa/wicket/bookmarkable/" + pageClass.getName();
   }
 
   public void init()

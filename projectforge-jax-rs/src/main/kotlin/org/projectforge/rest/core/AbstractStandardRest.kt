@@ -1,7 +1,6 @@
 package org.projectforge.rest.core
 
 import org.apache.commons.beanutils.PropertyUtils
-import org.bouncycastle.asn1.x509.X509ObjectIdentifiers.id
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -14,7 +13,6 @@ import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.JsonUtils
 import org.projectforge.rest.MessageType
 import org.projectforge.rest.ResponseData
-import org.projectforge.rest.config.ProjectForgeRestConfiguration
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
 import org.springframework.beans.BeanUtils
@@ -58,7 +56,7 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
     /**
      * Contains the layout data returned for the frontend regarding edit pages.
      */
-    private data class EditLayoutData(val data: Any?, val ui: UILayout?)
+    class EditLayoutData(val data: Any?, val ui: UILayout?)
 
     /**
      * Contains the data, layout and filter settings served by [getInitialList].
@@ -140,7 +138,7 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
     }
 
     fun getFullRestPath(): String {
-        return "${ProjectForgeRestConfiguration.REST_WEB_APP_URL}${getRestPath()}"
+        return "${getRestPath()}"
     }
 
     open fun createEditLayout(dataObject: O?): UILayout {
@@ -266,7 +264,7 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
         return restHelper.buildResponse(item)
     }
 
-    private fun getById(id: Int?): O? {
+    protected fun getById(id: Int?): O? {
         val item = baseDao.getById(id)
         if (item == null)
             return null
@@ -284,7 +282,6 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
     @Path("edit")
     @Produces(MediaType.APPLICATION_JSON)
     fun getItemAndLayout(@Context request: HttpServletRequest, @QueryParam("id") id: Int?): Response {
-        onGetItemAndLayout(request)
         val item: O?
         if (id != null) {
             item = getById(id)
@@ -295,8 +292,13 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
         layout.addTranslations("changes")
         layout.postProcessPageMenu()
         val result = EditLayoutData(item, layout)
+        onGetItemAndLayout(request, item, result)
         return restHelper.buildResponse(result)
     }
+
+    open protected fun onGetItemAndLayout(request: HttpServletRequest, item : O, editLayoutData : EditLayoutData) {
+    }
+
 
     /**
      * Gets the autocomletion list for the given property and search string.
@@ -305,14 +307,11 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
      * @return list of strings as json.
      */
     @GET
-    @Path("autoCompletion")
+    @Path("ac")
     @Produces(MediaType.APPLICATION_JSON)
     fun getAutoCompletion(@QueryParam("property") property: String?, @QueryParam("search") searchString: String?): Response {
         val result = baseDao.getAutocompletion(property, searchString)
         return restHelper.buildResponse(result)
-    }
-
-    internal open fun onGetItemAndLayout(request: HttpServletRequest) {
     }
 
     /**

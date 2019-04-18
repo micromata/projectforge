@@ -1,5 +1,6 @@
 package org.projectforge.rest
 
+import org.projectforge.business.task.TaskTree
 import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetDao
@@ -28,10 +29,12 @@ class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, Timeshee
     @Autowired
     private lateinit var userPreferencesService: UserPreferencesService
 
-    private val taskTree = TaskTreeHelper.getTaskTree()
+    private val taskTree: TaskTree
+        /** Lazy init, because test cases failed due to NPE in TenantRegistryMap. */
+        get() = TaskTreeHelper.getTaskTree()
 
     /**
-     * For exporting list of addresses.
+     * For exporting list of tiesheets.
      */
     private class Timesheet(val timesheet: TimesheetDO,
                             val id: Int, // Needed for history Service

@@ -162,7 +162,7 @@ class UILayout {
             is UIGroup -> addAllElements(list, element.content)
             is UIRow -> addAllCols(list, element.content)
             is UICol -> addAllElements(list, element.content)
-            is UISelect -> element.values.forEach { list.add(it) }
+            is UISelect<*> -> element.values.forEach { list.add(it) }
             is UITable -> element.columns.forEach { list.add(it) }
         }
     }

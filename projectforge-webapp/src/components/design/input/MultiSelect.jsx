@@ -21,6 +21,7 @@ class MultiSelect extends Component {
         this.handleBadgeDelete = this.handleBadgeDelete.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
         this.selectFromDropdown = this.selectFromDropdown.bind(this);
+        this.setSelectIndex = this.setSelectIndex.bind(this);
         this.handleInputKey = this.handleInputKey.bind(this);
         this.getFilteredValueKeys = this.getFilteredValueKeys.bind(this);
         this.editValue = this.editValue.bind(this);
@@ -29,7 +30,8 @@ class MultiSelect extends Component {
     getDropdownValues() {
         const { value, autoComplete } = this.props;
 
-        return autoComplete.filter(({ id }) => id.includes(value.searchString));
+        return autoComplete.filter(entry => entry.toLowerCase()
+            .includes(value.searchString.toLowerCase()));
     }
 
     getFilteredValueKeys() {
@@ -38,6 +40,12 @@ class MultiSelect extends Component {
         // filter searchString and deleted values
         return Object.keys(value)
             .filter(key => key !== 'searchString' && value[key] !== undefined);
+    }
+
+    setSelectIndex(index) {
+        this.setState({
+            selectIndex: index,
+        });
     }
 
     editValue(key) {
@@ -61,7 +69,8 @@ class MultiSelect extends Component {
         setValue('searchString', event.target.value);
     }
 
-    selectFromDropdown(index) {
+    selectFromDropdown(index, target) {
+        const { autoCompleteForm, single } = this.props;
         const values = this.getDropdownValues();
 
         if (values.length <= index) {
@@ -70,11 +79,19 @@ class MultiSelect extends Component {
 
         const { setValue } = this.props;
 
-        setValue('searchString', `${values[index].id}:`);
+        setValue('searchString', autoCompleteForm.replace('$AUTOCOMPLETE', values[index]));
+
+        if (single && target !== undefined) {
+            target.blur();
+        }
     }
 
     handleInputKey(event) {
-        const { setValue, pills, value } = this.props;
+        const {
+            setValue,
+            pills,
+            value,
+        } = this.props;
         const { selectIndex } = this.state;
 
         switch (event.key) {
@@ -100,8 +117,14 @@ class MultiSelect extends Component {
             case ' ':
             case 'Enter': {
                 // handling dropdown selection
-                if (selectIndex > -1 && selectIndex < this.getDropdownValues().length) {
-                    this.selectFromDropdown(selectIndex);
+                if (
+                    event.key === 'Enter'
+                    && selectIndex > -1
+                    && selectIndex < this.getDropdownValues().length
+                ) {
+                    event.stopPropagation();
+                    event.preventDefault();
+                    this.selectFromDropdown(selectIndex, event.target);
                     return;
                 }
 
@@ -141,10 +164,7 @@ class MultiSelect extends Component {
                     newValue = dropdownLength - 1;
                 }
 
-                this.setState({
-                    selectIndex: newValue,
-                });
-
+                this.setSelectIndex(newValue);
                 break;
             }
             default:
@@ -178,6 +198,7 @@ class MultiSelect extends Component {
             dropdownContent = (
                 <DropdownSelectContent
                     select={this.selectFromDropdown}
+                    setSelected={this.setSelectIndex}
                     values={this.getDropdownValues()}
                     selectIndex={selectIndex}
                 />
@@ -227,16 +248,18 @@ MultiSelect.propTypes = {
         searchString: PropTypes.string,
     }).isRequired,
     additionalLabel: PropTypes.string,
-    autoComplete: PropTypes.arrayOf(PropTypes.shape({
-        id: PropTypes.string,
-    })),
+    autoComplete: PropTypes.arrayOf(PropTypes.string),
+    autoCompleteForm: PropTypes.string,
     pills: PropTypes.bool,
+    single: PropTypes.bool,
 };
 
 MultiSelect.defaultProps = {
     additionalLabel: undefined,
-    pills: false,
     autoComplete: undefined,
+    autoCompleteForm: '$AUTOCOMPLETE',
+    pills: false,
+    single: false,
 };
 
 export default MultiSelect;

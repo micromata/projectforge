@@ -40,12 +40,6 @@ public class AbstractHistorizableBaseDOTest extends AbstractTestBase
   @Autowired
   private PfEmgrFactory emf;
 
-  @Override
-  protected void initDb()
-  {
-    init(false);
-  }
-
   @Test
   public void testNonHistorizableProperties()
   {

@@ -25,6 +25,7 @@ package org.projectforge.test;
 
 import de.micromata.genome.db.jpa.history.api.HistoryEntry;
 import de.micromata.genome.db.jpa.history.entities.EntityOpType;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -68,6 +69,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 
 /**
+ * Every test should finish with a valid database with test cases. If not, the test should call recreateDatabase() on afterAll!
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @ExtendWith(SpringExtension.class)
@@ -162,14 +164,19 @@ public abstract class AbstractTestBase {
 
   protected int mCount = 0;
 
-  private static boolean recreateDatabase = true;
-
   private static boolean initialized = false;
 
+  private static AbstractTestBase instance = null;
 
   @BeforeAll
   public static void _beforeAll() {
-    recreateDatabase = true;
+    initialized = false;
+  }
+
+  @AfterAll
+  public static void _afterAll() {
+    instance.afterAll();
+    instance = null;
     initialized = false;
   }
 
@@ -180,17 +187,29 @@ public abstract class AbstractTestBase {
 
   }
 
+  /**
+   * Override this as afterAll, but non static.
+   * Every test should finish with a valid database with test cases. If not, the test should call recreateDatabase() on afterAll!
+   */
+  protected void afterAll() {
+
+  }
+
   @BeforeEach
   void beforeEach() {
-    if (recreateDatabase) {
-      recreateDatabase = false;
-      recreateDataBase();
+    if (instance == null) {
+      instance = this; // Store instance for afterAll method.
+      //System.out.println("******** " + instance.getClass());
     }
     if (!initialized) {
       initialized = true;
+      if (getUser(ADMIN) == null) {
+        recreateDataBase();
+      }
       beforeAll();
     }
   }
+
 
   /**
    * Will be called once (BeforeClass). You may it call in your test to get a fresh database in your test class for your

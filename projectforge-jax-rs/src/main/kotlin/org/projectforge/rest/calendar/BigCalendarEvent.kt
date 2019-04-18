@@ -2,7 +2,7 @@ package org.projectforge.rest.calendar
 
 import java.util.*
 
-class BigCalendarEvent(val title: String,
+class BigCalendarEvent(val title: String?,
                        val start: Date,
                        val end: Date,
                        val allDay: Boolean? = null,

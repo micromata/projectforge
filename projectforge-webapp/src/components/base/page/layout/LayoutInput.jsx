@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { dataPropType } from '../../../../utilities/propTypes';
 import { CheckBox, Input, TextArea } from '../../../design';
+import AutoComplete from '../../../design/input/AutoCompleteInput';
 
 class LayoutInput extends Component {
     constructor(props) {
@@ -40,6 +41,8 @@ class LayoutInput extends Component {
     render() {
         const {
             additionalLabel,
+            autoCompletionUrl,
+            changeDataField,
             data,
             focus,
             id,
@@ -57,7 +60,13 @@ class LayoutInput extends Component {
 
         switch (type) {
             case 'INPUT':
-                Tag = Input;
+                if (autoCompletionUrl) {
+                    Tag = AutoComplete;
+                    properties.autoCompletionUrl = autoCompletionUrl;
+                    properties.onChange = changeDataField;
+                } else {
+                    Tag = Input;
+                }
                 break;
             case 'TEXTAREA':
                 Tag = TextArea;
@@ -92,9 +101,9 @@ class LayoutInput extends Component {
                 additionalLabel={additionalLabel}
                 label={label}
                 id={id}
-                {...properties}
                 onChange={this.handleInputChange}
                 value={value}
+                {...properties}
             />
         );
     }
@@ -104,6 +113,7 @@ LayoutInput.propTypes = {
     data: dataPropType.isRequired,
     label: PropTypes.string.isRequired,
     additionalLabel: PropTypes.string,
+    autoCompletionUrl: PropTypes.string,
     changeDataField: PropTypes.func,
     focus: PropTypes.bool,
     id: PropTypes.string,
@@ -119,6 +129,7 @@ LayoutInput.propTypes = {
 
 LayoutInput.defaultProps = {
     additionalLabel: undefined,
+    autoCompletionUrl: undefined,
     changeDataField: undefined,
     focus: false,
     id: undefined,

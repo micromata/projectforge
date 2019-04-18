@@ -8,6 +8,7 @@ import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.JsonUtils
 import org.projectforge.rest.converter.DateTimeFormat
 import org.projectforge.rest.json.JsonCreator
+import org.projectforge.rest.json.LabelValueTypeAdapter
 import org.projectforge.ui.ValidationError
 import java.net.URI
 import java.time.LocalDate
@@ -61,7 +62,7 @@ class RestHelper(
         return Response.status(Response.Status.NOT_FOUND).entity("Requested item not found.").build()
     }
 
-    fun buildResponseBadRequest(msg : String): Response {
+    fun buildResponseBadRequest(msg: String): Response {
         return Response.status(Response.Status.BAD_REQUEST).entity(msg).build()
     }
 
@@ -135,15 +136,15 @@ class RestHelper(
         try {
             val length = jsString.length
             val formatter =
-            when {
-                length > 19 -> jsonDateTimeFormatter
-                length > 16 -> jsonDateTimeSecondsFormatter
-                length > 10 -> jsonDateTimeMinutesFormatter
-                else -> jsonDateFormatter
-            }
+                    when {
+                        length > 19 -> jsonDateTimeFormatter
+                        length > 16 -> jsonDateTimeSecondsFormatter
+                        length > 10 -> jsonDateTimeMinutesFormatter
+                        else -> jsonDateFormatter
+                    }
             if (formatter != jsonDateFormatter)
-            return PFDateTime.parseUTCDate(jsString, formatter)
-            val local =  LocalDate.parse(jsString, jsonDateFormatter) // Parses UTC as local date.
+                return PFDateTime.parseUTCDate(jsString, formatter)
+            val local = LocalDate.parse(jsString, jsonDateFormatter) // Parses UTC as local date.
             return PFDateTime.from(local)
         } catch (ex: DateTimeParseException) {
             log.error("Error while parsing date '$jsString': ${ex.message}.")
