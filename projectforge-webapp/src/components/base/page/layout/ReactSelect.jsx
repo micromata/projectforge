@@ -5,7 +5,6 @@ import PropTypes from "prop-types";
 import {dataPropType} from "../../../../utilities/propTypes";
 import style from "../../../design/input/Input.module.scss";
 import AdditionalLabel from "../../../design/input/AdditionalLabel";
-import {getTranslation} from "../../../../utilities/layout";
 
 class ReactSelect extends React.Component {
     constructor(props) {
@@ -27,10 +26,12 @@ class ReactSelect extends React.Component {
             values,
             data,
         } = this.props;
-        const defaultValue = (typeof data[id] === 'object') ? data[id] : {
-            value: data[id],
-            label: data[id],
-        }
+        let defaultValue = data[id];
+        if (defaultValue && typeof data[id] !== 'object')
+            defaultValue = {
+                value: data[id],
+                label: data[id],
+            };
         return (<React.Fragment>
                 <span className={style.text}>{label}</span>
                 <Select
@@ -39,6 +40,7 @@ class ReactSelect extends React.Component {
                     defaultValue={defaultValue}
                     isMulti={this.props.isMulti}
                     options={values}
+                    isClearable={!this.props.isRequired}
                     getOptionValue={(option) => (option[this.props.valueProperty])}
                     getOptionLabel={(option) => (option[this.props.labelProperty])}
                     onChange={this.setSelected}
@@ -56,14 +58,16 @@ ReactSelect.propTypes = {
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
     values: PropTypes.arrayOf(PropTypes.object).isRequired,
-    valueProperty : PropTypes.string,
-    labelProperty : PropTypes.string,
+    valueProperty: PropTypes.string,
+    labelProperty: PropTypes.string,
     isMulti: PropTypes.bool,
+    isRequired: PropTypes.bool,
 };
 
 ReactSelect.defaultProps = {
     valueProperty: 'value',
     labelProperty: 'label',
-    isMulti: false
+    isMulti: false,
+    isRequired: false,
 };
 export default ReactSelect;
