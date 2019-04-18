@@ -2,6 +2,8 @@ package org.projectforge.rest
 
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.address.*
+import org.projectforge.business.book.BookStatus
+import org.projectforge.business.book.BookType
 import org.projectforge.business.image.ImageService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -47,6 +49,19 @@ class AddressRest()
 
     @Autowired
     private lateinit var smsSenderConfig: SmsSenderConfig
+
+
+    /**
+     * Initializes new books for adding.
+     */
+    override fun newBaseDO(): AddressDO {
+        val address = super.newBaseDO()
+        address.addressStatus = AddressStatus.UPTODATE
+        address.contactStatus = ContactStatus.ACTIVE
+        address.addressbookList = mutableSetOf()
+        address.addressbookList?.add(addressbookDao.globalAddressbook)
+        return address
+    }
 
     override fun onGetItemAndLayout(request: HttpServletRequest, item: AddressDO, editLayoutData: EditLayoutData) {
         ExpiringSessionAttributes.removeAttribute(request.session, SESSION_IMAGE_ATTR)
