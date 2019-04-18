@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.address.*
 import org.projectforge.business.image.ImageService
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.AddressImageServicesRest.Companion.SESSION_IMAGE_ATTR
@@ -65,6 +66,10 @@ class AddressRest()
     override fun validate(validationErrors: MutableList<ValidationError>, obj: AddressDO) {
         if (StringUtils.isAllBlank(obj.name, obj.firstName, obj.organization)) {
             validationErrors.add(ValidationError(translate("address.form.error.toFewFields"), fieldId = "name"))
+        }
+        if (obj.addressbookList.isNullOrEmpty()) {
+            validationErrors.add(ValidationError(translateMsg("validation.error.fieldRequired",
+                    translate("address.addressbooks")), fieldId = "addressbooks"))
         }
     }
 
