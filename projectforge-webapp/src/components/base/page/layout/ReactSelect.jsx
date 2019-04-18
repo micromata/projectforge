@@ -27,12 +27,16 @@ class ReactSelect extends React.Component {
             values,
             data,
         } = this.props;
+        const defaultValue = (typeof data[id] === 'object') ? data[id] : {
+            value: data[id],
+            label: data[id],
+        }
         return (<React.Fragment>
                 <span className={style.text}>{label}</span>
                 <Select
                     //closeMenuOnSelect={false}
                     components={makeAnimated()}
-                    defaultValue={data[id]}
+                    defaultValue={defaultValue}
                     isMulti={this.props.isMulti}
                     options={values}
                     getOptionValue={(option) => (option[this.props.valueProperty])}
