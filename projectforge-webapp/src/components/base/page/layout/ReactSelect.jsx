@@ -27,11 +27,9 @@ class ReactSelect extends React.Component {
             data,
         } = this.props;
         let defaultValue = data[id];
-        if (defaultValue && typeof data[id] !== 'object')
-            defaultValue = {
-                value: data[id],
-                label: data[id],
-            };
+        if (defaultValue && typeof data[id] !== 'object') {
+            defaultValue = values.find(value => value[this.props.valueProperty] === data[id]);
+        }
         return (<React.Fragment>
                 <span className={style.text}>{label}</span>
                 <Select
