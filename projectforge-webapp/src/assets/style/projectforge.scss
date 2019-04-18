@@ -67,9 +67,39 @@ nav.bg-light {
     border-radius: 3px;
     height: 25px;
 
+    &:first-child {
+      padding-left: 8px;
+    }
+
     .nav-link {
       padding: 3px 6px 0 0px;
       font-size: 13px;
+    }
+  }
+}
+
+.ml-auto.nav {
+
+ .nav-item {
+    background: #FFF;
+    margin-left: 10px;
+    height: 25px;
+    border-radius: 3px;
+
+    span,
+    a {
+      font-size: 13px;
+      padding: 0;
+      padding: 3px 9px 3px 9px;
+      cursor: pointer;
+      line-height: 20px;
+      border-radius: 3px;
+      margin: 0;
+      color: #666 !important;
+
+      &:hover {
+        color: #000 !important;
+      }
     }
   }
 }
