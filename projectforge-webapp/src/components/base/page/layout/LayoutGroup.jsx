@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {Col, FormGroup, Row} from '../../../design';
 import CustomizedLayout from './customized';
+import LayoutDayPickerInput from './LayoutDayPickerInput';
 import LayoutInput from './LayoutInput';
 import LayoutLabel from './LayoutLabel';
 import ReactSelect from './ReactSelect';
@@ -37,6 +38,12 @@ function LayoutGroup(
                         Tag = LayoutLabel;
                         break;
                     case 'INPUT':
+                        if (component.dataType === 'DATE') {
+                            Tag = LayoutDayPickerInput
+                        } else {
+                            Tag = LayoutInput;
+                        }
+                        break;
                     case 'CHECKBOX':
                     case 'TEXTAREA':
                         Tag = LayoutInput;
