@@ -47,6 +47,7 @@ class LayoutUtils {
                     .addAction(UIButton("reset", style = UIStyle.DANGER))
                     .addAction(UIButton("search", style = UIStyle.PRIMARY, default = true))
             process(layout)
+            layout.addTranslations("select.placeholder")
             return layout
         }
 
@@ -112,7 +113,7 @@ class LayoutUtils {
                 layout.addAction(UIButton("create", style = UIStyle.PRIMARY, default = true))
             }
             process(layout)
-            layout.addTranslations("label.historyOfChanges")
+            layout.addTranslations("label.historyOfChanges", "select.placeholder")
             return layout
         }
 
