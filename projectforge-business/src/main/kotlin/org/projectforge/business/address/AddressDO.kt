@@ -81,7 +81,7 @@ class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
     @PropertyInfo(i18nKey = "gender")
     @Field
     @get:Enumerated(EnumType.STRING)
-    @get:Column(name = "form", length = 10)
+    @get:Column(name = "form", length = 10, nullable = false)
     var form: FormOfAddress? = null
 
     @PropertyInfo(i18nKey = "address.title")
