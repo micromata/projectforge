@@ -48,9 +48,13 @@ class TeamEventRest() : AbstractStandardRest<TeamEventDO, TeamEventDao, TeamEven
         val subject = UIInput("subject", lc)
         subject.focus = true
         val layout = super.createEditLayout(dataObject)
-                .add(UISelect<Int>("calendar", values = calendarSelectValues.toMutableList()))
-                .add(subject)
-                .add(lc, "location", "note", "startDate", "endDate", "allDay")
+                .add(UIRow()
+                        .add(UIFieldset(6)
+                                .add(UISelect<Int>("calendar", values = calendarSelectValues.toMutableList(), label = "plugins.teamcal.event.teamCal"))
+                                .add(subject)
+                                .add(lc, "location", "note"))
+                        .add(UIFieldset(6)
+                                .add(lc, "startDate", "endDate", "allDay")))
 
         return LayoutUtils.processEditPage(layout, dataObject)
     }
