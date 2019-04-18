@@ -47,7 +47,7 @@ class LayoutUtils {
                     .addAction(UIButton("reset", style = UIStyle.DANGER))
                     .addAction(UIButton("search", style = UIStyle.PRIMARY, default = true))
             process(layout)
-            layout.addTranslations("select.placeholder")
+            addCommonTranslations(layout)
             return layout
         }
 
@@ -113,8 +113,13 @@ class LayoutUtils {
                 layout.addAction(UIButton("create", style = UIStyle.PRIMARY, default = true))
             }
             process(layout)
-            layout.addTranslations("label.historyOfChanges", "select.placeholder")
+            layout.addTranslations("label.historyOfChanges")
+            addCommonTranslations(layout)
             return layout
+        }
+
+        private fun addCommonTranslations(layout : UILayout) {
+            layout.addTranslations( "select.placeholder", "calendar.today")
         }
 
         /**
