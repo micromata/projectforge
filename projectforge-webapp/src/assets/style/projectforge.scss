@@ -50,10 +50,27 @@ nav.bg-light {
 .container-fluid nav.navbar.navbar-light {
   background: #007480 !important;
   box-shadow: none;
+  height: 45px;
+  padding-left: 20px;
 
   ul li {
     color: #fff !important;
     font-weight: 600;
+  }
+
+  .dropdown {
+    margin-left: 10px;
+  }
+
+  .dropdown.nav-item {
+    background: #fff;
+    border-radius: 3px;
+    height: 25px;
+
+    .nav-link {
+      padding: 3px 6px 0 0px;
+      font-size: 13px;
+    }
   }
 }
 
@@ -70,10 +87,11 @@ ul {
       font-size: 16px;
       font-weight: 500;
       line-height: 1;
-      padding: 1px 5px;
+      padding: 5px 9px;
       border-radius: 3px;
       position: relative;
       top: -2px;
+      border: none;
   }
 }
 
@@ -147,6 +165,10 @@ fieldset {
     background: #fff !important;
     color: #a4a4a4 !important;
     border: 2px solid #E6E6E6 !important;
+  }
+
+  &.btn-warning {
+    color: #DC3545 !important;
   }
 }
 
