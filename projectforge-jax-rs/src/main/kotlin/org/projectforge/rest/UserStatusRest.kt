@@ -35,6 +35,7 @@ open class UserStatusRest {
                         var locale: Locale? = null,
                         var timeZone: String? = null,
                         var dateFormat: String? = null,
+                        var jsDateFormat: String? = null,
                         var dateFormatShort: String? = null,
                         var timestampFormatMinutes: String? = null,
                         var timestampFormatSeconds: String? = null,
@@ -76,11 +77,21 @@ open class UserStatusRest {
                 timestampFormatMillis = DateFormats.getFormatString(DateFormatType.DATE_TIME_MILLIS),
                 firstDayOfWeekNo = firstDayOfWeekNo,
                 firstDayOfWeek = WEEKDAYS[firstDayOfWeekNo])
+        userData.jsDateFormat = convertToJavascriptFormat(userData.dateFormat)
 
         val systemData = SystemData(appname = ProjectForgeVersion.APP_ID,
                 version = ProjectForgeVersion.VERSION_STRING,
                 releaseTimestamp = ProjectForgeVersion.RELEASE_TIMESTAMP,
                 releaseDate = ProjectForgeVersion.RELEASE_DATE)
         return RestHelper().buildResponse(Result(userData, systemData))
+    }
+
+    /**
+     * 'dd.MM.yyyy' -> 'DD.MM.YYYY'.
+     */
+    private fun convertToJavascriptFormat(dateFormat: String?): String? {
+        if (dateFormat == null) return null
+        return dateFormat.replace('d', 'D', false)
+                .replace('y', 'Y', false);
     }
 }
