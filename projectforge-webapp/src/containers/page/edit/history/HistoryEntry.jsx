@@ -30,7 +30,7 @@ function HistoryEntry(
             modifiedAt,
             modifiedByUser,
         },
-        translation,
+        translations,
     },
 ) {
     const [active, setActive] = React.useState(false);
@@ -107,7 +107,7 @@ function HistoryEntry(
 
                     <h5>
                         <strong>
-                            {getTranslation('changes', translation)}
+                            {getTranslation('changes', translations)}
                             :
                         </strong>
                     </h5>
@@ -175,13 +175,13 @@ HistoryEntry.propTypes = {
         operation: PropTypes.string,
         operationType: PropTypes.string,
     }).isRequired,
-    translation: PropTypes.shape({
+    translations: PropTypes.shape({
         changes: PropTypes.string,
     }),
 };
 
 HistoryEntry.defaultProps = {
-    translation: undefined,
+    translations: undefined,
 };
 
 export default HistoryEntry;

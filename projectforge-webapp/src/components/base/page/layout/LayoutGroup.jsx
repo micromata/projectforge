@@ -1,13 +1,11 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Col, FormGroup, Row } from '../../../design';
+import {Col, FormGroup, Row} from '../../../design';
 import CustomizedLayout from './customized';
 import LayoutInput from './LayoutInput';
 import LayoutLabel from './LayoutLabel';
-import LayoutSelect from './LayoutSelect';
 import ReactSelect from './ReactSelect';
 import LayoutTable from './table';
-import MultiSelect from "../../../design/input/MultiSelect";
 
 function LayoutGroup(
     {
@@ -21,6 +19,9 @@ function LayoutGroup(
 ) {
     let GroupTag;
     const groupProperties = {};
+    const {
+        translations
+    } = props;
 
     const children = (
         <React.Fragment>
@@ -41,7 +42,7 @@ function LayoutGroup(
                         Tag = LayoutInput;
                         break;
                     case 'SELECT':
-                        Tag = LayoutSelect;
+                        Tag = ReactSelect;
                         break;
                     case 'GROUP':
                     case 'ROW':
@@ -66,13 +67,13 @@ function LayoutGroup(
                             </p>
                         );
                 }
-
                 return (
                     <Tag
                         data={data}
                         {...props}
                         {...component}
                         {...properties}
+                        {...translations}
                         key={`layout-group-component-${component.key}-${data.id}`}
                     />
                 );
@@ -122,6 +123,7 @@ LayoutGroup.propTypes = {
     title: PropTypes.string,
     type: PropTypes.string,
     validation: PropTypes.shape({}),
+    translations: PropTypes.shape({}),
 };
 
 LayoutGroup.defaultProps = {

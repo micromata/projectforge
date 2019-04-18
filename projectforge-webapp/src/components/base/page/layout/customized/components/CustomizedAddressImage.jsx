@@ -91,7 +91,7 @@ class CustomizedAddressImage extends Component {
     }
 
     render() {
-        const { data, translation } = this.props;
+        const { data, translations } = this.props;
         const { loading, error, src } = this.state;
         let image;
 
@@ -108,7 +108,7 @@ class CustomizedAddressImage extends Component {
                         color="danger"
                     >
                         <FontAwesomeIcon icon={faTrash} />
-                        {` ${translation.delete}`}
+                        {` ${translations.delete}`}
                     </Button>
                 </React.Fragment>
             );
@@ -117,11 +117,11 @@ class CustomizedAddressImage extends Component {
         return (
             <LoadingContainer loading={loading} className={style.addressImageContainer}>
                 {error
-                    ? <Alert color="danger">{translation['address.image.upload.error']}</Alert>
+                    ? <Alert color="danger">{translations['address.image.upload.error']}</Alert>
                     : undefined}
                 {image}
                 <DropArea setFiles={this.handleFileChange}>
-                    {translation['file.upload.dropArea']}
+                    {translations['file.upload.dropArea']}
                 </DropArea>
             </LoadingContainer>
         );
@@ -131,7 +131,7 @@ class CustomizedAddressImage extends Component {
 CustomizedAddressImage.propTypes = {
     changeDataField: PropTypes.func.isRequired,
     data: dataPropType.isRequired,
-    translation: PropTypes.shape({
+    translations: PropTypes.shape({
         'address.image.upload.error': PropTypes.string,
         delete: PropTypes.string,
         'file.upload.dropArea': PropTypes.string,
