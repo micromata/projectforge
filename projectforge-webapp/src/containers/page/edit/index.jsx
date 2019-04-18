@@ -5,7 +5,7 @@ import { changeEditFormField, loadEditPage } from '../../../actions';
 import Navigation from '../../../components/base/navigation';
 import ActionGroup from '../../../components/base/page/action/Group';
 import TabNavigation from '../../../components/base/page/edit/TabNavigation';
-import LayoutGroup from '../../../components/base/page/layout/Group';
+import LayoutGroup from '../../../components/base/page/layout/LayoutGroup';
 import PageNavigation from '../../../components/base/page/Navigation';
 import { Alert, Container, TabContent, TabPane, } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';

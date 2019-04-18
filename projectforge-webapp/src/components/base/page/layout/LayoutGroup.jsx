@@ -2,9 +2,9 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { Col, FormGroup, Row } from '../../../design';
 import CustomizedLayout from './customized';
-import LayoutInput from './Input';
-import LayoutLabel from './Label';
-import LayoutSelect from './Select';
+import LayoutInput from './LayoutInput';
+import LayoutLabel from './LayoutLabel';
+import LayoutSelect from './LayoutSelect';
 import ReactSelect from './ReactSelect';
 import LayoutTable from './table';
 import MultiSelect from "../../../design/input/MultiSelect";
@@ -54,6 +54,7 @@ function LayoutGroup(
                         break;
                     case 'MULTI_SELECT':
                         Tag = ReactSelect;
+                        properties.isMulti = true;
                         break;
                     case 'CUSTOMIZED':
                         Tag = CustomizedLayout;
