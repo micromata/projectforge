@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { loadList } from '../../../actions';
 import Navigation from '../../../components/base/navigation';
-import LayoutGroup from '../../../components/base/page/layout/Group';
+import LayoutGroup from '../../../components/base/page/layout/LayoutGroup';
 import PageNavigation from '../../../components/base/page/Navigation';
 import { Alert, Button, NavItem } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';

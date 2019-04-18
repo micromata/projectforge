@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { setListFilter } from '../../../actions';
 import ActionGroup from '../../../components/base/page/action/Group';
-import LayoutGroup from '../../../components/base/page/layout/Group';
+import LayoutGroup from '../../../components/base/page/layout/LayoutGroup';
 import {
     Card,
     CardBody,
