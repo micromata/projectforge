@@ -47,7 +47,7 @@ class TaskSelect extends React.Component {
                         if (recentAncestor) {
                             const parentTaskId = recentAncestor;
                             removeLink = (
-                                <a onClick={() => this.setParentTask(task, parentTaskId)}>
+                                <a href={'#'} onClick={() => this.setParentTask(task, parentTaskId)}>
                                     <FontAwesomeIcon icon={faTimesCircle} className={style.icon}/>
                                 </a>);
                         }
@@ -76,7 +76,7 @@ class TaskSelect extends React.Component {
                 {(() => {
                     if (recentAncestor) {
                         return (
-                            <a onClick={() => this.setParentTask(task, recentAncestor)}>
+                            <a href={'#'} onClick={() => this.setParentTask(task, recentAncestor)}>
                                 <FontAwesomeIcon icon={faTimesCircle} className={style.icon} />
                             </a>
                         );
