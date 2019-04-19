@@ -316,5 +316,11 @@ div.rc-time-picker-panel-select {
 }
 
 input.rc-time-picker-input {
-  width: 6em;
+  width: 6em !important;
+}
+
+// DayPicker
+
+div.DayPickerInput input {
+  width: 8em;
 }
