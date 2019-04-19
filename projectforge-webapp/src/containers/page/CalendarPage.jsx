@@ -23,7 +23,8 @@ class CalendarPage extends React.Component {
         events: [],
         specialDays: [],
         date: undefined,
-        viewType: undefined
+        viewType: undefined,
+        calendar: ''
     };
 
     // ToDo
@@ -81,7 +82,8 @@ class CalendarPage extends React.Component {
         if (specialDay && specialDay.holidayTitle) {
             dayInfo = `${specialDay.holidayTitle} `;
         }
-        return <React.Fragment><a href={'#'} onClick={() => this.navigateToDay(obj.date)}>{dayInfo}{obj.label}</a></React.Fragment>;
+        return <React.Fragment><a href={'#'}
+                                  onClick={() => this.navigateToDay(obj.date)}>{dayInfo}{obj.label}</a></React.Fragment>;
     }
 
     dayStyle = (date) => {
@@ -198,7 +200,25 @@ class CalendarPage extends React.Component {
     };
 
     // A callback fired when a date selection is made. Only fires when selectable is true.
-    onSelectSlot = () => {
+    onSelectSlot = (slotInfo) => {
+        fetch(getServiceURL('calendar/action', {
+            action: 'select',
+            start: slotInfo.start ? slotInfo.start.toJSON() : '',
+            end: slotInfo.end ? slotInfo.end.toJSON() : '',
+            calendar: this.state.calendar
+        }), {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(json => {
+                const redirectUrl = json.url;
+                history.push(redirectUrl);
+            })
+            .catch(() => this.setState({initialized: false, failed: true}));
 
     };
 
@@ -214,8 +234,8 @@ class CalendarPage extends React.Component {
 
     // Callback fired when dragging a selection in the Time views.
     // Returning false from the handler will prevent a selection.
-    onSelecting = () => {
-
+    onSelecting = (event) => {
+        console.log("onSelecting", event);
     };
 
     componentDidMount() {
@@ -226,7 +246,7 @@ class CalendarPage extends React.Component {
         if (!this.state.initialized)
             return <React.Fragment>Loading...</React.Fragment>;
         let initTime = new Date(this.state.date.getDate());
-        initTime.setHours( 8);
+        initTime.setHours(8);
         initTime.setMinutes(0);
         return (
             <DragAndDropCalendar
@@ -247,6 +267,8 @@ class CalendarPage extends React.Component {
                 endAccessor="end"
                 onRangeChange={this.onRangeChange}
                 onSelectEvent={this.onSelectEvent}
+                onSelectSlot={this.onSelectSlot}
+                selectable={true}
                 eventPropGetter={this.eventStyle}
                 dayPropGetter={this.dayStyle}
                 showMultiDayTimes={true}
@@ -264,7 +286,7 @@ class CalendarPage extends React.Component {
                     agenda: {
                         event: this.renderAgendaEvent,
                     },
-                    toolbar : CalendarToolBar
+                    toolbar: CalendarToolBar
                 }}
             />
         );

@@ -16,7 +16,7 @@ import javax.ws.rs.Path
 class TeamEventRest() : AbstractStandardRest<TeamEventDO, TeamEventDao, TeamEventFilter>(
         TeamEventDao::class.java,
         TeamEventFilter::class.java,
-        "plugins.teamcal.title") {
+        "plugins.teamcal.event.title") {
 
     @Autowired
     private lateinit var teamCalDao: TeamCalDao

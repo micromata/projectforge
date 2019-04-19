@@ -7,6 +7,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.converter.DateTimeFormat
 import org.projectforge.rest.core.RestHelper
+import org.projectforge.ui.ResponseAction
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.time.LocalDate
@@ -77,6 +78,26 @@ class CalendarServicesRest() {
             else -> CalendarViewType.MONTH
         }
         return buildEvents(start, end, view)
+    }
+
+    @GET
+    @Path("action")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun action(@QueryParam("action") action: String?,
+               @QueryParam("start") start: String?,
+               @QueryParam("end") end: String?,
+               /**
+                * The default calendar name or null (default) for creating time sheets.
+                */
+               @QueryParam("calendar") calendar: String?): Response {
+        if (action != null && action != "select")
+            return restHelper.buildResponseBadRequest("Action '$action' not supported. Supported action is only 'select'.")
+        val startDate = if (start != null) restHelper.parseJSDateTime(start)?.toEpochSeconds() else null
+        val endDate = if (end != null) restHelper.parseJSDateTime(end)?.toEpochSeconds() else null
+        if (calendar.isNullOrBlank())
+            return restHelper.buildResponseAction(ResponseAction("timesheet/edit?start=$startDate&end=$endDate"))
+        else
+            return restHelper.buildResponseAction(ResponseAction("teamEvent/edit?start=$startDate&end=$endDate"))
     }
 
     private fun buildEvents(startParam: PFDateTime? = null, endParam: PFDateTime? = null, viewParam: CalendarViewType? = null): Response {
