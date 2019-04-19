@@ -1,4 +1,6 @@
+import PropTypes from 'prop-types';
 import moment from 'moment';
+import {connect} from "react-redux";
 
 const DATE_FORMATTER = 'DATE';
 const COST2_FORMATTER = 'COST2';
@@ -8,7 +10,14 @@ const USER_FORMATTER = 'USER';
 const TASK_FORMATTER = 'TASK_PATH';
 const TIMESTAMP_MINUTES_FORMATTER = 'TIMESTAMP_MINUTES';
 
-const format = (formatter, data, dateFormat, timestampFormatMinutes) => {
+function Formatter(
+    {
+        formatter,
+        data,
+        dateFormat,
+        timestampFormatMinutes
+    },
+) {
     if (!data) {
         return '';
     }
@@ -17,21 +26,33 @@ const format = (formatter, data, dateFormat, timestampFormatMinutes) => {
             return data.formattedNumber;
         case CUSTOMER_FORMATTER:
             return data.name;
+        case DATE_FORMATTER:
+            return moment(data).format(dateFormat);
         case PROJECT_FORMATTER:
             return data.name;
         case TASK_FORMATTER:
             return data.title;
         case TIMESTAMP_MINUTES_FORMATTER:
-            // TODO: GET DATE FORMAT FROM SERVER
-            return moment(data).format('DD.MM.YYYY hh:mm:ss');//timestampFormatMinutes); @Fin: hier gebraucht
-        case DATE_FORMATTER:
-            // TODO: GET DATE FORMAT FROM SERVER
-            return moment(data).format('DD.MM.YYYY');//dateFormat); @Fin: und hier gebraucht
+            return moment(data).format(timestampFormatMinutes);
         case USER_FORMATTER:
             return data.fullname;
         default:
             return data;
     }
+}
+
+Formatter.propTypes = {
+    formatter: PropTypes.string,
+    data: PropTypes.shape({}),
 };
 
-export default format;
+Formatter.defaultProps = {
+    formatter: undefined,
+};
+
+const mapStateToProps = ({authentication}) => ({
+    dateFormat: authentication.user.jsDateFormat,
+    timestampFormatMinutes: authentication.user.jsTimestampFormatMinutes,
+});
+
+export default connect(mapStateToProps)(Formatter);

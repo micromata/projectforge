@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {connect} from 'react-redux';
-import format from '../../../../../utilities/format';
+import Formatter from '../../../Formatter'
 import history from '../../../../../utilities/history';
 import {tableColumnsPropType} from '../../../../../utilities/propTypes';
 import style from '../../Page.module.scss';
@@ -32,7 +32,7 @@ class TableRow extends React.Component {
                     let value = Object.getByString(data, id);
 
                     if (formatter) {
-                        value = format(formatter, value);//, this.props.dateFormat, this.props.timestampFormatMinutes);
+                        value = <Formatter formatter={formatter} data={{value}}/>;
                     } else if (dataType === 'CUSTOMIZED') {
                         value = <CustomizedLayout id={id} data={data}/>;
                     }
@@ -56,7 +56,6 @@ TableRow.propTypes = {
     }).isRequired,
 };
 
-//const mapStateToProps = ({authentication}, state) => ({ // @Fin: brauche hier die authentication bzw. in format.js:
 const mapStateToProps = state => ({
     category: state.listPage.category,
     //dateFormat: authentication.user.dateFormat,
