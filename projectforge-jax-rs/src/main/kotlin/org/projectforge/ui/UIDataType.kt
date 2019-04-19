@@ -1,9 +1,11 @@
 package org.projectforge.ui
 
 enum class UIDataType {
-    STRING,
+    CUSTOMIZED,
     DATE,
     LOCALE,
     PICTURE,
-    CUSTOMIZED
+    STRING,
+    TASK,
+    TIMESTAMP
 }
