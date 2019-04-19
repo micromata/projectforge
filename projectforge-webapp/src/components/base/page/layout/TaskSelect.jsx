@@ -11,11 +11,28 @@ class TaskSelect extends React.Component {
         this.setParentTask = this.setParentTask.bind(this);
     }
 
-    setParentTask(ancestorId) {
+    setParentTask(task, ancestorId) {
         const { id, changeDataField } = this.props;
-        changeDataField(id, ancestorId);
-        console.log(ancestorId);
-    };
+        const newTask = {
+            id: ancestorId,
+            path: [],
+        };
+        let finished;
+        task.path.map((ancestor) => {
+            if (ancestor.id === ancestorId) {
+                finished = true;
+                newTask.title = ancestor.title;
+            }
+            if (!finished) {
+                newTask.path.push({
+                    id: ancestor.id,
+                    title: ancestor.title,
+                });
+            }
+        });
+        console.log(newTask)
+        changeDataField(id, newTask);
+    }
 
     render() {
         const { label, data, id } = this.props;
@@ -28,9 +45,9 @@ class TaskSelect extends React.Component {
                     task.path.map((ancestor) => {
                         let removeLink;
                         if (recentAncestor) {
-                            const taskId = recentAncestor;
+                            const parentTaskId = recentAncestor;
                             removeLink = (
-                                <a onClick={() => this.setParentTask(taskId)}>
+                                <a onClick={() => this.setParentTask(task, parentTaskId)}>
                                     <FontAwesomeIcon icon={faTimesCircle} className={style.icon}/>
                                 </a>);
                         }
@@ -56,9 +73,16 @@ class TaskSelect extends React.Component {
                     {task.title}
                 </a>
                 {' '}
-                <a onClick={() => this.setParentTask(recentAncestor)}>
-                    <FontAwesomeIcon icon={faTimesCircle} className={style.icon} />
-                </a>
+                {(() => {
+                    if (recentAncestor) {
+                        return (
+                            <a onClick={() => this.setParentTask(task, recentAncestor)}>
+                                <FontAwesomeIcon icon={faTimesCircle} className={style.icon} />
+                            </a>
+                        );
+                    }
+                    return '';
+                })()}
             </React.Fragment>
         );
     }
