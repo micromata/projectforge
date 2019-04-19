@@ -366,14 +366,6 @@ open class MenuCreator() {
             return null // No access
         val menuItem = menuItemDef.createMenu(parent, menuCreatorContext)
 
-        // Demo entries:
-        menuItem.badge =
-                when (menuItemDef.id) {
-                    "ADDRESS_LIST" -> MenuBadge(12)
-                    "BOOK_LIST" -> MenuBadge(9, tooltip = "This is a dummy badge counter for books.")
-                    else -> menuItem.badge
-                }
-
         parent?.add(menuItem)
         menuItemDef.childs?.forEach { childMenuItemDef ->
             build(menuItem, childMenuItemDef, menuCreatorContext)
