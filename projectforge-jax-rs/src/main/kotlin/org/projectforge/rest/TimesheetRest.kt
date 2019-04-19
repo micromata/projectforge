@@ -136,7 +136,10 @@ class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, Timeshee
      */
     override fun createEditLayout(dataObject: TimesheetDO?): UILayout {
         val layout = super.createEditLayout(dataObject)
-                .add(lc, "task", "kost2", "user", "startTime", "stopTime")
+                .add(lc, "task", "kost2", "user")
+                .add(UIGroup()
+                        .add(UILabel("timePeriod"))
+                        .add(UICustomized("dayRange")))
                 .add(UICustomized("taskConsumption"))
                 .add(lc, "location", "description")
         return LayoutUtils.processEditPage(layout, dataObject)
