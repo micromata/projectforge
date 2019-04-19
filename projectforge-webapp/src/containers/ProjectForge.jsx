@@ -68,7 +68,7 @@ class ProjectForge extends React.Component {
             content = (
                 <LoginView
                     // TODO: EXAMPLE DATA, REPLACE WITH REAL DATA FROM REST API
-                    motd="Please try user demo with password demo123. Have a lot of fun!"
+                    motd="[Please try user demo with password demo123. Have a lot of fun!]"
                     login={login}
                     loading={loginInProgress}
                     error={loginError}
