@@ -41,7 +41,10 @@ class TaskDOSerializer : JsonSerializer<TaskDO> {
         val list = TaskTreeHelper.getTaskTree().getPathToRoot(obj.parentTaskId)
         val pathArray = JsonArray()
         list?.forEach {
-            pathArray.add(it.task.title)
+            val ancestor = JsonObject()
+            ancestor.add("id", JsonPrimitive(it.task.id))
+            ancestor.add("title", JsonPrimitive(it.task.title))
+            pathArray.add(ancestor)
         }
         result.add("path", pathArray)
         return result
