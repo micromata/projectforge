@@ -10,6 +10,7 @@ import org.projectforge.framework.time.PFDate
 import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.ui.*
 import org.springframework.stereotype.Component
+import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.Path
 
 @Component
@@ -18,8 +19,8 @@ class PostausgangRest() : AbstractStandardRest<PostausgangDO, PostausgangDao, Po
     /**
      * Initializes new outbox mails for adding.
      */
-    override fun newBaseDO(): PostausgangDO {
-        val outbox = super.newBaseDO()
+    override fun newBaseDO(request: HttpServletRequest): PostausgangDO {
+        val outbox = super.newBaseDO(request)
         outbox.datum = PFDate.now().asSqlDate()
         outbox.type = PostType.BRIEF
         return outbox

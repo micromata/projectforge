@@ -105,7 +105,7 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
     @Autowired
     private lateinit var listFilterService: ListFilterService
 
-    open fun newBaseDO(): O {
+    open fun newBaseDO(request: HttpServletRequest): O {
         return baseDao.doClass.newInstance()
     }
 
@@ -285,7 +285,7 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
         val item: O?
         if (id != null) {
             item = getById(id)
-        } else item = newBaseDO()
+        } else item = newBaseDO(request)
         if (item == null)
             return restHelper.buildResponseItemNotFound()
         val layout = createEditLayout(item)

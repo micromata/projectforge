@@ -7,6 +7,7 @@ import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.rest.core.Validation
 import org.projectforge.ui.*
 import org.springframework.stereotype.Component
+import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.Path
 
 @Component
@@ -15,8 +16,8 @@ class BookRest() : AbstractStandardRest<BookDO, BookDao, BookFilter>(BookDao::cl
     /**
      * Initializes new books for adding.
      */
-    override fun newBaseDO(): BookDO {
-        val book = super.newBaseDO()
+    override fun newBaseDO(request: HttpServletRequest): BookDO {
+        val book = super.newBaseDO(request)
         book.status = BookStatus.PRESENT
         book.type = BookType.BOOK
         return book

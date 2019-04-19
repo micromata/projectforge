@@ -6,6 +6,7 @@ import org.projectforge.framework.time.PFDate
 import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.ui.*
 import org.springframework.stereotype.Component
+import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.Path
 
 @Component
@@ -14,8 +15,8 @@ class ContractRest() : AbstractStandardRest<ContractDO, ContractDao, ContractFil
     /**
      * Initializes new outbox mails for adding.
      */
-    override fun newBaseDO(): ContractDO {
-        val contract = super.newBaseDO()
+    override fun newBaseDO(request: HttpServletRequest): ContractDO {
+        val contract = super.newBaseDO(request)
         contract.date = PFDate.now().asSqlDate()
         return contract
     }

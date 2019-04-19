@@ -18,6 +18,7 @@ import org.projectforge.rest.core.ResultSet
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.Path
 
 @Component
@@ -46,26 +47,16 @@ class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, Timeshee
     /**
      * Initializes new timesheets for adding.
      */
-    override fun newBaseDO(): TimesheetDO {
-        val sheet = super.newBaseDO()
-        //val startTimeInMillis = WicketUtils.getAsLong(parameters, PARAMETER_KEY_START_DATE_IN_MILLIS)
-        //val stopTimeInMillis = WicketUtils.getAsLong(parameters, PARAMETER_KEY_STOP_DATE_IN_MILLIS)
-        val startTimeMillis: Long? = null // Optional parameter given to edit page.
-        val stopTimeMillis: Long? = null // Optional parameter given to edit page.
-        val startDate = PFDateTime.from(startTimeMillis) // If startTime == null, now is set.
-        var stopDate: PFDateTime? = null
+    override fun newBaseDO(request: HttpServletRequest): TimesheetDO {
+        val sheet = super.newBaseDO(request)
+        val startTimeMillis = restHelper.parseLong(request, "start")
+        val endTimeMillis = restHelper.parseLong(request, "end")
         if (startTimeMillis != null) {
-            //sheet.setStartDate(startTimeInMillis!!)
-            //if (stopTimeInMillis == null) {
-            //    getData().stopTime = Timestamp(startTimeInMillis!!) // Default is time sheet with zero duration.
-            //}
+            sheet.setStartDate(startTimeMillis * 1000)
         }
-        if (stopTimeMillis != null)
-            stopDate = PFDateTime.from(stopTimeMillis)
-        else
-            stopDate = startDate
-        sheet.startTime = startDate.asSqlTimestamp()
-        sheet.stopTime = stopDate.asSqlTimestamp()
+        if (endTimeMillis != null) {
+            sheet.setStopDate(endTimeMillis * 1000)
+        }
         val userId: Int? = null // Optional parameter given to edit page
         if (userId != null) {
             baseDao.setUser(sheet, userId)

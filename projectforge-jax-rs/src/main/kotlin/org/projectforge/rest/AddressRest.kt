@@ -54,8 +54,8 @@ class AddressRest()
     /**
      * Initializes new books for adding.
      */
-    override fun newBaseDO(): AddressDO {
-        val address = super.newBaseDO()
+    override fun newBaseDO(request: HttpServletRequest): AddressDO {
+        val address = super.newBaseDO(request)
         address.addressStatus = AddressStatus.UPTODATE
         address.contactStatus = ContactStatus.ACTIVE
         address.addressbookList = mutableSetOf()
