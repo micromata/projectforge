@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
+import moment_timezone from 'moment-timezone';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
 import MomentLocaleUtils, {formatDate, parseDate} from "react-day-picker/moment";
 
@@ -15,27 +16,28 @@ class LayoutDayPickerInput extends Component {
     constructor(props) {
         super(props);
 
-        this.handleInputChange = this.handleInputChange.bind(this);
+        this.handleDayChange = this.handleDayChange.bind(this);
         const {locale, jsDateFormat} = this.props;
+        const useLocale = (locale) ? locale : 'en';
         this.state = {
-            locale: locale ? locale : 'de',
+            locale: useLocale,
             dateFormat: jsDateFormat
-        }
+        };
     }
 
-    handleInputChange(event) {
+    handleDayChange(day) {
         const {id, changeDataField} = this.props;
 
         if (!id || !changeDataField) {
             return;
         }
-        changeDataField(id, event.target.value);
+        const isoDate = moment_timezone(day).format('YYYY-MM-DD');
+        changeDataField(id, isoDate);
     }
 
     render() {
         const {
             additionalLabel,
-            changeDataField,
             data,
             focus,
             id,
@@ -68,6 +70,7 @@ class LayoutDayPickerInput extends Component {
                     parseDate={parseDate}
                     format={this.state.dateFormat}
                     value={value ? formatDate(value, this.state.dateFormat) : undefined}
+                    onDayChange={this.handleDayChange}
                     dayPickerProps={{
                         localeUtils: MomentLocaleUtils,
                         locale: "de",
