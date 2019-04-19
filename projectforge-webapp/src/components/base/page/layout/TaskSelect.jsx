@@ -17,13 +17,11 @@ class TaskSelect extends React.Component {
             id: ancestorId,
             path: [],
         };
-        let finished;
         task.path.forEach((ancestor) => {
             if (ancestor.id === ancestorId) {
-                finished = true;
                 newTask.title = ancestor.title;
             }
-            if (!finished) {
+            if (!newTask.title) {
                 newTask.path.push({
                     id: ancestor.id,
                     title: ancestor.title,
