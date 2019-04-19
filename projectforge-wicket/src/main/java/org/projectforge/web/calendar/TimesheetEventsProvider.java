@@ -156,7 +156,7 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider
             breakEvent.setTextColor("#666666").setBackgroundColor("#F9F9F9").setColor("#F9F9F9");
             events.put(breakId, breakEvent);
             final TimesheetDO breakTimesheet = new TimesheetDO().setStartDate(lastStopTime.toDate())
-                .setStopTime(startTime.getMillis());
+                .setStopDate(startTime.getMillis());
             breaksMap.put(breakId, breakTimesheet);
           }
           lastStopTime = stopTime;

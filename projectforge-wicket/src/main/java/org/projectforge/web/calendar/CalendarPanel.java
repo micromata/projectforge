@@ -147,11 +147,11 @@ public class CalendarPanel extends Panel
               final Integer firstHourOfDay = filter.getFirstHour();
               final DateTime start = range.getStart().withHourOfDay(firstHourOfDay != null ? firstHourOfDay : 8);
               final long millis = DateHelper.getDateTimeAsMillis(start);
-              timesheet.setStartDate(millis).setStopTime(millis);
+              timesheet.setStartDate(millis).setStopDate(millis);
             }
           } else {
             timesheet.setStartDate(DateHelper.getDateTimeAsMillis(range.getStart()))//
-                .setStopTime(DateHelper.getDateTimeAsMillis(range.getEnd()));
+                .setStopDate(DateHelper.getDateTimeAsMillis(range.getEnd()));
           }
           if (filter.getTimesheetUserId() != null) {
             timesheetDao.setUser(timesheet, filter.getTimesheetUserId());

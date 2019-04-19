@@ -338,7 +338,7 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
   public void refresh()
   {
     // form.getSearchFilter().setStartTime(new DateHolder(form.getSearchFilter().getStartTime()).setBeginOfWeek().getDate());
-    // form.getSearchFilter().setStopTime(new DateHolder(form.getSearchFilter().getStopTime()).setEndOfWeek().getDate());
+    // form.getSearchFilter().setStopDate(new DateHolder(form.getSearchFilter().getStopTime()).setEndOfWeek().getDate());
     form.startDate.markModelAsChanged();
     form.stopDate.markModelAsChanged();
     super.refresh();
