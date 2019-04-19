@@ -10,14 +10,15 @@ import org.projectforge.framework.time.PFDate
 import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.ui.*
 import org.springframework.stereotype.Component
+import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.Path
 
 @Component
 @Path("incomingMail")
 class PosteingangRest(): AbstractStandardRest<PosteingangDO, PosteingangDao, PostFilter>(PosteingangDao::class.java, PostFilter::class.java, "orga.posteingang.title") {
 
-    override fun newBaseDO(): PosteingangDO {
-        val inbox = super.newBaseDO()
+    override fun newBaseDO(request: HttpServletRequest): PosteingangDO {
+        val inbox = super.newBaseDO(request)
         inbox.datum = PFDate.now().asSqlDate()
         inbox.type = PostType.BRIEF
         return inbox

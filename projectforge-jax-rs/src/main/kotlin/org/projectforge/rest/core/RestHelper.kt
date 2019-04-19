@@ -156,6 +156,18 @@ class RestHelper(
         }
     }
 
+    fun parseLong(request : HttpServletRequest, parameter : String): Long? {
+        val value = request.getParameter(parameter)
+        if (value == null)
+            return null
+        try {
+            return value.toLong()
+        } catch (ex: DateTimeParseException) {
+            log.error("Error while parsing date millis '$value': ${ex.message}.")
+            return null
+        }
+    }
+
     companion object {
         private val jsonDateTimeFormatter = DateTimeFormatter.ofPattern(DateTimeFormat.JS_DATE_TIME_MILLIS.pattern)
         private val jsonDateTimeSecondsFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
