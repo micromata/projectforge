@@ -8,31 +8,25 @@ const USER_FORMATTER = 'USER';
 const TASK_FORMATTER = 'TASK_PATH';
 const TIMESTAMP_MINUTES_FORMATTER = 'TIMESTAMP_MINUTES';
 
-export const TEXT_SINCE_TIMESTAMP = 'TEXT_SINCE_TIMESTAMP';
-
-const format = (formatter, data) => {
+const format = (formatter, data, dateFormat, timestampFormatMinutes) => {
     if (!data) {
         return '';
     }
-
     switch (formatter) {
         case COST2_FORMATTER:
             return data.formattedNumber;
         case CUSTOMER_FORMATTER:
             return data.name;
-        case DATE_FORMATTER:
-            return data.toLocaleString();
         case PROJECT_FORMATTER:
             return data.name;
         case TASK_FORMATTER:
             return data.title;
-        case TEXT_SINCE_TIMESTAMP:
-            return `${moment
-                .duration(new Date().getTime() - new Date(data).getTime(), 'ms')
-                .humanize()} ago`;
         case TIMESTAMP_MINUTES_FORMATTER:
             // TODO: GET DATE FORMAT FROM SERVER
-            return new Date(Date.parse(data)).toLocaleString();
+            return moment(data).format('DD.MM.YYYY hh:mm:ss');//timestampFormatMinutes); @Fin: hier gebraucht
+        case DATE_FORMATTER:
+            // TODO: GET DATE FORMAT FROM SERVER
+            return moment(data).format('DD.MM.YYYY');//dateFormat); @Fin: und hier gebraucht
         case USER_FORMATTER:
             return data.fullname;
         default:
