@@ -9,7 +9,6 @@ class LayoutInput extends Component {
         super(props);
 
         this.handleInputChange = this.handleInputChange.bind(this);
-        this.handleSelectChange = this.handleSelectChange.bind(this);
     }
 
     handleInputChange(event) {
@@ -28,14 +27,7 @@ class LayoutInput extends Component {
             default:
                 newValue = event.target.value;
         }
-
         changeDataField(id, newValue);
-    }
-
-    handleSelectChange(value) {
-        const { id, changeDataField } = this.props;
-
-        changeDataField(id, value);
     }
 
     render() {
