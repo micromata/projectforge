@@ -8,6 +8,7 @@ import LayoutLabel from './LayoutLabel';
 import ReactSelect from './ReactSelect';
 import LayoutTable from './table';
 import Timestamp from './Timestamp';
+import TaskSelect from './TaskSelect';
 
 function LayoutGroup(
     {
@@ -41,6 +42,8 @@ function LayoutGroup(
                             Tag = LayoutDayPickerInput;
                         } else if (component.dataType === 'TIMESTAMP') {
                             Tag = Timestamp;
+                        } else if (component.dataType === 'TASK') {
+                            Tag = TaskSelect;
                         } else {
                             Tag = LayoutInput;
                         }
