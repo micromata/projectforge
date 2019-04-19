@@ -80,10 +80,7 @@ class TaskTreePage extends React.Component {
                     </thead>
                     <tbody>
                     {this.state.nodes.map(task => {
-                        let indent = [];
-                        for (let i = 0; i < task.indent; i++) {
-                            indent.push(<div className={'tree-nav-space'}>&nbsp;</div>);
-                        }
+                        let indent = <div className={'tree-nav-space'} style={{marginLeft: `${task.indent * 1.5}em`}}>&nbsp;</div>
                         let link = indent;
                         if (task.treeStatus === 'OPENED') {
                             link =

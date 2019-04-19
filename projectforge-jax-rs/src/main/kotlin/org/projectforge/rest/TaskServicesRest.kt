@@ -107,7 +107,7 @@ class TaskServicesRest() {
         openTask(ctx, open)
         closeTask(ctx, close)
         //UserPreferencesHelper.putEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS, expansion.getIds(), true)
-        val indent = if (table == true) 0 else null
+        val indent = if (table == true) -1 else null
         buildTree(ctx, root, rootNode, indent)
         val result = Result(root)
         if (initial == true) {
