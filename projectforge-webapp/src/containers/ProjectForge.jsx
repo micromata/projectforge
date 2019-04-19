@@ -10,7 +10,7 @@ import TopBar from '../components/base/topbar';
 import { Container } from '../components/design';
 import history from '../utilities/history';
 import CalendarPage from './page/CalendarPage';
-import EditPage from './page/edit';
+import EditPage from './page/edit/EditPage';
 import InputTestPage from './page/InputTest';
 import ListPage from './page/list';
 import TaskTreePage from './page/TaskTreePage';
