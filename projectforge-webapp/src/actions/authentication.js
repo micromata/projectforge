@@ -1,4 +1,4 @@
-import { getServiceURL, handleHTTPErrors, } from '../utilities/rest';
+import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
 
 export const USER_LOGIN_BEGIN = 'USER_LOGIN_BEGIN';
 export const USER_LOGIN_SUCCESS = 'USER_LOGIN_SUCCESS';

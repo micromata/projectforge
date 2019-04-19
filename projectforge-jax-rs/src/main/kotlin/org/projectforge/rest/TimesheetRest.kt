@@ -144,6 +144,7 @@ class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, Timeshee
                 .add(dayRange)
                 .add(UICustomized("taskConsumption"))
                 .add(lc, "location", "description")
+                .addTranslations("until")
         return LayoutUtils.processEditPage(layout, dataObject)
     }
 
