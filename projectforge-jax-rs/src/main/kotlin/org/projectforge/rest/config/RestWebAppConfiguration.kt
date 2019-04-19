@@ -12,7 +12,6 @@ import org.projectforge.web.rest.MyExceptionMapper
 
 /**
  * This class configures all rest services available for the React client.
- * Created by blumenstein on 26.01.17.
  */
 class RestWebAppConfiguration : ResourceConfig() {
     init {

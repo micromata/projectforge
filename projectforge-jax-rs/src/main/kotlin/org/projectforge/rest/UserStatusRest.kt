@@ -1,14 +1,12 @@
 package org.projectforge.rest
 
-import org.projectforge.ProjectForgeVersion
 import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.common.DateFormatType
-import org.projectforge.framework.configuration.ConfigurationParam
-import org.projectforge.framework.configuration.GlobalConfiguration
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.TimeNotation
 import org.projectforge.rest.core.RestHelper
+import org.projectforge.rest.pub.SystemStatusRest
 import org.springframework.stereotype.Component
 import java.util.*
 import javax.servlet.http.HttpServletRequest
@@ -46,14 +44,8 @@ open class UserStatusRest {
                         var firstDayOfWeek: String? = null,
                         var timeNotation: TimeNotation? = null)
 
-    data class SystemData(var appname: String? = null,
-                          var version: String? = null,
-                          var releaseTimestamp: String? = null,
-                          var releaseDate: String? = null,
-                          var messageOfTheDay: String? = null)
-
     data class Result(val userData: UserData,
-                      val systemData: SystemData)
+                      val systemData: SystemStatusRest.SystemData)
 
     private val log = org.slf4j.LoggerFactory.getLogger(UserStatusRest::class.java)
 
@@ -82,12 +74,7 @@ open class UserStatusRest {
                 firstDayOfWeek = WEEKDAYS[firstDayOfWeekNo])
         userData.jsDateFormat = convertToJavascriptFormat(userData.dateFormat)
 
-        val systemData = SystemData(appname = ProjectForgeVersion.APP_ID,
-                version = ProjectForgeVersion.VERSION_STRING,
-                releaseTimestamp = ProjectForgeVersion.RELEASE_TIMESTAMP,
-                releaseDate = ProjectForgeVersion.RELEASE_DATE)
-        systemData.messageOfTheDay = GlobalConfiguration.getInstance()
-                .getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY)
+        val systemData = SystemStatusRest.getSystemData()
         return RestHelper().buildResponse(Result(userData, systemData))
     }
 
