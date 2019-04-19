@@ -69,7 +69,7 @@ class TimesheetEventsProvider() {
                         breakEvent.setTextColor("#666666").setBackgroundColor("#F9F9F9").setColor("#F9F9F9")
                         events.put(breakId, breakEvent)
                         val breakTimesheet = TimesheetDO().setStartDate(lastStopTime.toDate())
-                                .setStopTime(startTime.millis)
+                                .setStopDate(startTime.millis)
                         breaksMap.put(breakId, breakTimesheet)
                     }
                     lastStopTime = stopTime*/

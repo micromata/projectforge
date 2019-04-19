@@ -218,9 +218,8 @@ class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
         return this
     }
 
-    @Deprecated("Used by Wicket calendar.")
     @Transient
-    fun setStopTime(millis: Long): TimesheetDO {
+    fun setStopDate(millis: Long): TimesheetDO {
         stopTime = Timestamp(millis)
         return this
     }
