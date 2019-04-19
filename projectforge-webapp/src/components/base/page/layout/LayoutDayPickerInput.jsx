@@ -67,7 +67,7 @@ class LayoutDayPickerInput extends Component {
                     formatDate={formatDate}
                     parseDate={parseDate}
                     format={this.state.dateFormat}
-                    value={formatDate(new Date(), this.state.dateFormat)}
+                    value={value ? formatDate(value, this.state.dateFormat) : undefined}
                     dayPickerProps={{
                         localeUtils: MomentLocaleUtils,
                         locale: "de",
@@ -102,7 +102,7 @@ LayoutDayPickerInput.defaultProps = {
 };
 
 const mapStateToProps = ({authentication}) => ({
-    dateFormat: authentication.user.dateFormat,
+    jsDateFormat: authentication.user.jsDateFormat,
     locale: authentication.user.locale,
 });
 
