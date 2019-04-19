@@ -3,6 +3,8 @@ package org.projectforge.rest
 import org.projectforge.ProjectForgeVersion
 import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.common.DateFormatType
+import org.projectforge.framework.configuration.ConfigurationParam
+import org.projectforge.framework.configuration.GlobalConfiguration
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.TimeNotation
@@ -47,7 +49,8 @@ open class UserStatusRest {
     data class SystemData(var appname: String? = null,
                           var version: String? = null,
                           var releaseTimestamp: String? = null,
-                          var releaseDate: String? = null)
+                          var releaseDate: String? = null,
+                          var messageOfTheDay: String? = null)
 
     data class Result(val userData: UserData,
                       val systemData: SystemData)
@@ -83,6 +86,8 @@ open class UserStatusRest {
                 version = ProjectForgeVersion.VERSION_STRING,
                 releaseTimestamp = ProjectForgeVersion.RELEASE_TIMESTAMP,
                 releaseDate = ProjectForgeVersion.RELEASE_DATE)
+        systemData.messageOfTheDay = GlobalConfiguration.getInstance()
+                .getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY)
         return RestHelper().buildResponse(Result(userData, systemData))
     }
 
