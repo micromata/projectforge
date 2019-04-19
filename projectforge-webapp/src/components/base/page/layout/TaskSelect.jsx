@@ -18,7 +18,7 @@ class TaskSelect extends React.Component {
             path: [],
         };
         let finished;
-        task.path.map((ancestor) => {
+        task.path.forEach((ancestor) => {
             if (ancestor.id === ancestorId) {
                 finished = true;
                 newTask.title = ancestor.title;
@@ -30,7 +30,6 @@ class TaskSelect extends React.Component {
                 });
             }
         });
-        console.log(newTask)
         changeDataField(id, newTask);
     }
 
