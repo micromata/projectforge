@@ -1,10 +1,10 @@
 import React from 'react';
 import Select from 'react-select';
 import makeAnimated from 'react-select/lib/animated';
-import PropTypes from "prop-types";
-import {dataPropType} from "../../../../utilities/propTypes";
-import style from "../../../design/input/Input.module.scss";
-import AdditionalLabel from "../../../design/input/AdditionalLabel";
+import PropTypes from 'prop-types';
+import { dataPropType } from '../../../../utilities/propTypes';
+import style from '../../../design/input/Input.module.scss';
+import AdditionalLabel from '../../../design/input/AdditionalLabel';
 
 class ReactSelect extends React.Component {
     constructor(props) {
@@ -14,7 +14,7 @@ class ReactSelect extends React.Component {
     }
 
     setSelected(newValue) {
-        const {id, changeDataField} = this.props;
+        const { id, changeDataField } = this.props;
         changeDataField(id, newValue);
     }
 
@@ -25,24 +25,30 @@ class ReactSelect extends React.Component {
             id,
             values,
             data,
+            isMulti,
+            isRequired,
+            valueProperty,
+            labelProperty,
+            translations,
         } = this.props;
         let defaultValue = data[id];
         if (defaultValue && typeof data[id] !== 'object') {
             defaultValue = values.find(value => value[this.props.valueProperty] === data[id]);
         }
-        return (<React.Fragment>
+        return (
+            <React.Fragment>
                 <span className={style.text}>{label}</span>
                 <Select
-                    //closeMenuOnSelect={false}
+                    // closeMenuOnSelect={false}
                     components={makeAnimated()}
                     defaultValue={defaultValue}
-                    isMulti={this.props.isMulti}
+                    isMulti={isMulti}
                     options={values}
-                    isClearable={!this.props.isRequired}
-                    getOptionValue={(option) => (option[this.props.valueProperty])}
-                    getOptionLabel={(option) => (option[this.props.labelProperty])}
+                    isClearable={!isRequired}
+                    getOptionValue={option => (option[valueProperty])}
+                    getOptionLabel={option => (option[labelProperty])}
                     onChange={this.setSelected}
-                    placeholder={this.props.translations['select.placeholder']}
+                    placeholder={translations['select.placeholder']}
                 />
                 <AdditionalLabel title={additionalLabel}/>
             </React.Fragment>
