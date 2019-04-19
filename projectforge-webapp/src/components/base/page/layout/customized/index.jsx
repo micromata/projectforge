@@ -3,11 +3,15 @@ import React from 'react';
 import CustomizedAddressImage from './components/CustomizedAddressImage';
 import CustomizedImageDataPreview from './components/ImageDataPreview';
 import CustomizedBookLendOutComponent from './components/BookLendOut';
+import DayRange from './components/DayRange'
 
 function CustomizedLayout({ id, ...props }) {
     let Tag;
 
     switch (id) {
+        case 'dayRange':
+            Tag = DayRange;
+            break;
         case 'book.lendOutComponent':
             Tag = CustomizedBookLendOutComponent;
             break;
