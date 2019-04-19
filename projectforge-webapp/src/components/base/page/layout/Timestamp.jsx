@@ -62,7 +62,6 @@ class Timestamp extends Component {
             locale,
             label,
             additionalLabel,
-            translations,
         } = this.props;
 
         const { date } = this.state;
@@ -105,7 +104,6 @@ Timestamp.propTypes = {
     timeNotation: PropTypes.string,
     label: PropTypes.string,
     additionalLabel: PropTypes.string,
-    translations: PropTypes.shape({}).isRequired,
 };
 
 Timestamp.defaultProps = {

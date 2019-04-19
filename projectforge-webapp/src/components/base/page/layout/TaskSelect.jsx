@@ -1,6 +1,7 @@
 import { faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
+import { Button } from 'reactstrap';
 import PropTypes from 'prop-types';
 import style from '../../../design/input/Input.module.scss';
 
@@ -44,9 +45,13 @@ class TaskSelect extends React.Component {
                         if (recentAncestor) {
                             const parentTaskId = recentAncestor;
                             removeLink = (
-                                <a href={'#'} onClick={() => this.setParentTask(task, parentTaskId)}>
+                                <Button
+                                    color="link"
+                                    onClick={() => this.setParentTask(task, parentTaskId)}
+                                    style={{ padding: '0px' }}
+                                >
                                     <FontAwesomeIcon icon={faTimesCircle} className={style.icon}/>
-                                </a>);
+                                </Button>);
                         }
                         recentAncestor = ancestor.id;
                         return (
@@ -69,13 +74,16 @@ class TaskSelect extends React.Component {
                 <a href={`/task/edit/${task.id}`}>
                     {task.title}
                 </a>
-                {' '}
                 {(() => {
                     if (recentAncestor) {
                         return (
-                            <a href={'#'} onClick={() => this.setParentTask(task, recentAncestor)}>
+                            <Button
+                                color="link"
+                                onClick={() => this.setParentTask(task, recentAncestor)}
+                                style={{ padding: '0px' }}
+                            >
                                 <FontAwesomeIcon icon={faTimesCircle} className={style.icon} />
-                            </a>
+                            </Button>
                         );
                     }
                     return '';
