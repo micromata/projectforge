@@ -15,10 +15,11 @@ class DayRange extends Component {
     constructor(props) {
         super(props);
 
-        const { data } = props;
+        const { data, values } = props;
+        const startDateId = values.startDateId;
 
         this.state = {
-            day : data,
+            day : startDateId ? Object.getByString(data, startDateId) : undefined,
             startTime : undefined,
             stopTime : undefined // might be a time of the following day.
         };
@@ -28,13 +29,14 @@ class DayRange extends Component {
         const {
             data,
             jsDateFormat: dateFormat,
-            startDateId,
-            endDateId,
-            label,
+            values,
             additionalLabel,
             locale,
             validation,
         } = this.props;
+        const label = values.label;
+        const startDateId = values.startDateId;
+        const endDateId = values.endDateId;
 
         return (
             <React.Fragment>
@@ -70,9 +72,11 @@ class DayRange extends Component {
 DayRange.propTypes = {
     changeDataField: PropTypes.func.isRequired,
     data: PropTypes.shape({}).isRequired,
-    startDateId: PropTypes.string.isRequired,
-    endDateId: PropTypes.string.isRequired,
-    label: PropTypes.string,
+    values : PropTypes.shape({
+        startDateId: PropTypes.string.isRequired,
+        endDateId: PropTypes.string.isRequired,
+        label: PropTypes.string,
+    }).isRequired,
     additionalLabel: PropTypes.string,
     validation: {},
 };
