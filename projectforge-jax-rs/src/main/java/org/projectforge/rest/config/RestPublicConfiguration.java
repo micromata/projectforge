@@ -12,8 +12,5 @@ public class RestPublicConfiguration extends ResourceConfig
   public RestPublicConfiguration()
   {
     register(PFVersionCheckRest.class);
-
-    // Kotlin stuff:
-    register(SimpleLoginRest.class);
   }
 }

@@ -57,6 +57,8 @@ public class RestPaths
 
   public static final String REST_WEB_APP = "rs";
 
+  public static final String REST_WEB_APP_PUBLIC = "rsPublic";
+
   public static final String ADDRESS = "address";
 
   public static final String AUTHENTICATE = "authenticate";
