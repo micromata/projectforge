@@ -16,6 +16,7 @@
     "moment-timezone": "^0.5.23",
     "node-sass": "^4.11.0",
     "prop-types": "^15.7.2",
+    "rc-time-picker": "^3.6.4",
     "react": "^16.8.3",
     "react-big-calendar": "^0.20.4",
     "react-cookies": "^0.1.0",

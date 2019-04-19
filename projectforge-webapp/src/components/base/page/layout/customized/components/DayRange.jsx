@@ -3,6 +3,8 @@ import React, { Component } from 'react';
 import 'moment/min/locales';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
+import 'rc-time-picker/assets/index.css';
+import TimePicker from 'rc-time-picker';
 import MomentLocaleUtils, { formatDate, parseDate } from 'react-day-picker/moment';
 import { connect } from 'react-redux';
 import style from '../../../../../design/input/Input.module.scss';
@@ -23,11 +25,17 @@ class DayRange extends Component {
             startTime: undefined,
             stopTime: undefined, // might be a time of the following day.
         };
+        this.onStartTimeChange = this.onStartTimeChange.bind(this);
+    }
+
+    onStartTimeChange(value) {
+        //console.log(value && value.format('HH:mm'));
     }
 
     render() {
         const {
             jsDateFormat: dateFormat,
+            timeNotation,
             locale,
             values,
             additionalLabel,
@@ -52,16 +60,19 @@ class DayRange extends Component {
                     }}
                     placeholder={dateFormat}
                 />
-                <input
-                    type="text"
-                    id={startDateId}
-                    value={startTime}
+                <TimePicker
+                    showSecond={false}
+                    minuteStep={5}
+                    allowEmpty={false}
+                    use12Hours={timeNotation === 'H12'}
+                    onChange={this.onStartTimeChange}
                 />
-                {translations['until']}
-                <input
-                    type="text"
-                    id={endDateId}
-                    value={stopTime}
+                ' '{translations.until}' '
+                <TimePicker
+                    showSecond={false}
+                    minuteStep={15}
+                    allowEmpty={false}
+                    use12Hours={timeNotation === 'H12'}
                 />
                 <AdditionalLabel title={additionalLabel} />
             </React.Fragment>
@@ -79,21 +90,21 @@ DayRange.propTypes = {
     }).isRequired,
     jsDateFormat: PropTypes.string.isRequired,
     locale: PropTypes.string,
+    timeNotation: PropTypes.string,
     additionalLabel: PropTypes.string,
-    translations: PropTypes.arrayOf(PropTypes.string),
-    validation: {},
+    translations: PropTypes.shape({}).isRequired,
 };
 
 DayRange.defaultProps = {
     additionalLabel: undefined,
     locale: 'en',
-    translations: [],
-    validation: {},
+    timeNotation: 'H24',
 };
 
 const mapStateToProps = ({ authentication }) => ({
     jsDateFormat: authentication.user.jsDateFormat,
     locale: authentication.user.locale,
+    timeNotation: authentication.user.timeNotation,
 });
 
 export default connect(mapStateToProps)(DayRange);
