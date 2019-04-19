@@ -8,7 +8,7 @@ import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.JsonUtils
 import org.projectforge.rest.converter.DateTimeFormat
 import org.projectforge.rest.json.JsonCreator
-import org.projectforge.rest.json.LabelValueTypeAdapter
+import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.ValidationError
 import java.net.URI
 import java.time.LocalDate
@@ -122,6 +122,10 @@ class RestHelper(
 
     fun buildUri(request: HttpServletRequest, path: String): URI {
         return URI("${getRootUrl(request)}/$path")
+    }
+
+    fun buildResponseAction(responseAction: ResponseAction): Response {
+        return Response.status(Response.Status.OK).entity(responseAction).build()
     }
 
     fun getRootUrl(request: HttpServletRequest): String {
