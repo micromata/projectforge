@@ -2,6 +2,7 @@ package org.projectforge.ui
 
 import de.micromata.genome.jpa.metainf.ColumnMetadata
 import de.micromata.genome.jpa.metainf.ColumnMetadataBean
+import org.projectforge.business.task.TaskDO
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
@@ -60,8 +61,10 @@ object ElementsRegistry {
                         }
                     }
                     Boolean::class.java -> UICheckbox(property)
-                    Date::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.DATE)
+                    Date::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.TIMESTAMP)
                     java.sql.Date::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.DATE)
+                    java.sql.Timestamp::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.TIMESTAMP)
+                    TaskDO::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.TASK)
                     Locale::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.LOCALE)
                     else -> null
                 }

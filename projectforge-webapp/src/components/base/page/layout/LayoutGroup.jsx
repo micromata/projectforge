@@ -1,12 +1,13 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import {Col, FormGroup, Row} from '../../../design';
+import { Col, FormGroup, Row } from '../../../design';
 import CustomizedLayout from './customized';
 import LayoutDayPickerInput from './LayoutDayPickerInput';
 import LayoutInput from './LayoutInput';
 import LayoutLabel from './LayoutLabel';
 import ReactSelect from './ReactSelect';
 import LayoutTable from './table';
+import Timestamp from './Timestamp';
 
 function LayoutGroup(
     {
@@ -20,9 +21,7 @@ function LayoutGroup(
 ) {
     let GroupTag;
     const groupProperties = {};
-    const {
-        translations
-    } = props;
+    const { translations } = props;
 
     const children = (
         <React.Fragment>
@@ -39,7 +38,9 @@ function LayoutGroup(
                         break;
                     case 'INPUT':
                         if (component.dataType === 'DATE') {
-                            Tag = LayoutDayPickerInput
+                            Tag = LayoutDayPickerInput;
+                        } else if (component.dataType === 'TIMESTAMP') {
+                            Tag = Timestamp;
                         } else {
                             Tag = LayoutInput;
                         }
@@ -141,6 +142,7 @@ LayoutGroup.defaultProps = {
     title: undefined,
     type: 'CONTAINER',
     validation: {},
+    translations: {},
 };
 
 export default LayoutGroup;
