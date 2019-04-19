@@ -43,6 +43,10 @@ class PFDateTime {
         return localDate!!
     }
 
+    fun toEpochSeconds(): Long {
+        return dateTime.toEpochSecond()
+    }
+
     /**
      * Date part as ISO string: "yyyy-MM-dd".
      */
