@@ -64,6 +64,7 @@ class TaskTreePage extends React.Component {
         const translations = this.state.translations;
         return <Card>
             <CardBody>
+                [ToDo: Root task]
                 <Table striped hover responsive>
                     <thead>
                     <tr>
@@ -81,7 +82,8 @@ class TaskTreePage extends React.Component {
                     </thead>
                     <tbody>
                     {this.state.nodes.map(task => {
-                        let indent = <div className={'tree-nav-space'} style={{marginLeft: `${task.indent * 1.5}em`}}>&nbsp;</div>
+                        const indentWidth = task.indent > 0 ? task.indent * 1.5 : 0;
+                        let indent = <div className={'tree-nav-space'} style={{marginLeft: `${indentWidth}em`}}>&nbsp;</div>
                         let link = indent;
                         if (task.treeStatus === 'OPENED') {
                             link =
