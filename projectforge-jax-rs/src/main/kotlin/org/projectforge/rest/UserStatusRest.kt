@@ -35,11 +35,14 @@ open class UserStatusRest {
                         var locale: Locale? = null,
                         var timeZone: String? = null,
                         var dateFormat: String? = null,
-                        var jsDateFormat: String? = null,
                         var dateFormatShort: String? = null,
                         var timestampFormatMinutes: String? = null,
                         var timestampFormatSeconds: String? = null,
                         var timestampFormatMillis: String? = null,
+                        var jsDateFormat: String? = null,
+                        var jsDateFormatShort: String? = null,
+                        var jsTimestampFormatMinutes: String? = null,
+                        var jsTimestampFormatSeconds: String? = null,
                         var firstDayOfWeekNo: Int? = null,
                         var firstDayOfWeek: String? = null,
                         var timeNotation: TimeNotation? = null)
@@ -73,13 +76,16 @@ open class UserStatusRest {
                 firstDayOfWeekNo = firstDayOfWeekNo,
                 firstDayOfWeek = WEEKDAYS[firstDayOfWeekNo])
         userData.jsDateFormat = convertToJavascriptFormat(userData.dateFormat)
+        userData.jsDateFormatShort = convertToJavascriptFormat(userData.dateFormatShort)
+        userData.jsTimestampFormatMinutes = convertToJavascriptFormat(userData.timestampFormatMinutes)
+        userData.jsTimestampFormatSeconds = convertToJavascriptFormat(userData.timestampFormatSeconds)
 
         val systemData = SystemStatusRest.getSystemData()
         return RestHelper().buildResponse(Result(userData, systemData))
     }
 
     /**
-     * 'dd.MM.yyyy' -> 'DD.MM.YYYY'.
+     * 'dd.MM.yyyy HH:mm:ss' -> 'DD.MM.YYYY HH:mm:ss'.
      */
     private fun convertToJavascriptFormat(dateFormat: String?): String? {
         if (dateFormat == null) return null
