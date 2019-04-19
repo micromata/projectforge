@@ -308,3 +308,13 @@ div.tree-nav-space {
     margin-left: 0;
   }
 }
+
+// Time picker
+
+div.rc-time-picker-panel-select {
+  max-height: 400px !important;
+}
+
+input.rc-time-picker-input {
+  width: 6em;
+}
