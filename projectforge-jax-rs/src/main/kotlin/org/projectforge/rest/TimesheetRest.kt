@@ -12,7 +12,6 @@ import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.DateTimeFormatter
-import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.ui.*
@@ -49,13 +48,13 @@ class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, Timeshee
      */
     override fun newBaseDO(request: HttpServletRequest): TimesheetDO {
         val sheet = super.newBaseDO(request)
-        val startTimeMillis = restHelper.parseLong(request, "start")
-        val endTimeMillis = restHelper.parseLong(request, "end")
-        if (startTimeMillis != null) {
-            sheet.setStartDate(startTimeMillis * 1000)
+        val startTimeEpochSeconds = restHelper.parseLong(request, "start")
+        val endTimeEpochSeconds = restHelper.parseLong(request, "end")
+        if (startTimeEpochSeconds != null) {
+            sheet.setStartDate(startTimeEpochSeconds * 1000)
         }
-        if (endTimeMillis != null) {
-            sheet.setStopDate(endTimeMillis * 1000)
+        if (endTimeEpochSeconds != null) {
+            sheet.setStopDate(endTimeEpochSeconds * 1000)
         }
         val userId: Int? = null // Optional parameter given to edit page
         if (userId != null) {
