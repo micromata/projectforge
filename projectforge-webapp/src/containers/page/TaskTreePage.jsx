@@ -1,4 +1,5 @@
 import React from 'react';
+import { Alert } from 'reactstrap';
 import {Card, CardBody, Table} from '../../components/design';
 import {faFile, faFolder, faFolderOpen} from '@fortawesome/free-regular-svg-icons';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
@@ -127,6 +128,9 @@ class TaskTreePage extends React.Component {
                     })}
                     </tbody>
                 </Table>
+                <Alert color="info">
+                    {translations['task.tree.info']}
+                </Alert>
             </CardBody>
         </Card>
     };

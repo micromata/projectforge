@@ -115,6 +115,7 @@ class TaskServicesRest() {
             val translations = result.translations!!
             translations.put("task", translate("task"))
             translations.put("task.consumption", translate("task.consumption"))
+            translations.put("task.tree.info", translate("task.tree.info"))
         }
         return restHelper.buildResponse(result)
     }
