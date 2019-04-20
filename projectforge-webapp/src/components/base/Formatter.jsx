@@ -1,6 +1,8 @@
+import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
-import {connect} from "react-redux";
+import { connect } from 'react-redux';
+import CustomizedLayout from './page/layout/customized';
 
 const DATE_FORMATTER = 'DATE';
 const COST2_FORMATTER = 'COST2';
@@ -14,43 +16,79 @@ function Formatter(
     {
         formatter,
         data,
+        id,
+        dataType,
         dateFormat,
-        timestampFormatMinutes
+        timestampFormatMinutes,
     },
 ) {
-    if (!data) {
-        return '';
+    if (dataType === 'CUSTOMIZED') {
+        return <CustomizedLayout id={id} data={data} />;
     }
-    switch (formatter) {
-        case COST2_FORMATTER:
-            return data.formattedNumber;
-        case CUSTOMER_FORMATTER:
-            return data.name;
-        case DATE_FORMATTER:
-            return moment(data).format(dateFormat);
-        case PROJECT_FORMATTER:
-            return data.name;
-        case TASK_FORMATTER:
-            return data.title;
-        case TIMESTAMP_MINUTES_FORMATTER:
-            return moment(data).format(timestampFormatMinutes);
-        case USER_FORMATTER:
-            return data.fullname;
-        default:
-            return data;
+    const value = Object.getByString(data, id);
+    if (!value) {
+        return <React.Fragment />;
     }
+    if (formatter) {
+        let result;
+        switch (formatter) {
+            case COST2_FORMATTER:
+                result = value.formattedNumber;
+                break;
+            case CUSTOMER_FORMATTER:
+                result = value.name;
+                break;
+            case DATE_FORMATTER:
+                result = moment(value).format(dateFormat);
+                break;
+            case PROJECT_FORMATTER:
+                result = value.name;
+                break;
+            case TASK_FORMATTER:
+                result = value.title;
+                break;
+            case TIMESTAMP_MINUTES_FORMATTER:
+                result = moment(value).format(timestampFormatMinutes);
+                break;
+            case USER_FORMATTER:
+                result = value.fullname;
+                break;
+            default:
+                result = value;
+        }
+        return <React.Fragment>{result}</React.Fragment>;
+    }
+    let result = value;
+    if (dataType) {
+        switch (dataType) {
+            case 'DATE':
+                result = moment(value).format(timestampFormatMinutes);
+                break;
+            default:
+        }
+    }
+    return <React.Fragment>{result}</React.Fragment>;
 }
 
 Formatter.propTypes = {
-    formatter: PropTypes.string,
     data: PropTypes.shape({}),
+    id: PropTypes.string,
+    formatter: PropTypes.string,
+    dataType: PropTypes.string,
+    dateFormat: PropTypes.string,
+    timestampFormatMinutes: PropTypes.string,
 };
 
 Formatter.defaultProps = {
+    data: undefined,
+    id: undefined,
     formatter: undefined,
+    dataType: undefined,
+    dateFormat: 'DD/MM/YYYY',
+    timestampFormatMinutes: 'DD.MM.YYYY HH:mm',
 };
 
-const mapStateToProps = ({authentication}) => ({
+const mapStateToProps = ({ authentication }) => ({
     dateFormat: authentication.user.jsDateFormat,
     timestampFormatMinutes: authentication.user.jsTimestampFormatMinutes,
 });
