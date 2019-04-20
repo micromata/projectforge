@@ -35,45 +35,49 @@ class TaskSelect extends React.Component {
     render() {
         const { label, data, id } = this.props;
         const task = Object.getByString(data, id);
+        const labelElement = task ? '' : <span className={style.text}>{label}</span>;
         let recentAncestor;
-        return (
+        const taskPath = !task ? '' : task.path.map((ancestor) => {
+            let removeLink;
+            if (recentAncestor) {
+                const parentTaskId = recentAncestor;
+                removeLink = (
+                    <Button
+                        color="link"
+                        onClick={() => this.setParentTask(task, parentTaskId)}
+                        style={{ padding: '0px' }}
+                    >
+                        <FontAwesomeIcon
+                            icon={faTimesCircle}
+                            className={style.icon}
+                            color="lightGray"
+                        />
+                    </Button>);
+            }
+            recentAncestor = ancestor.id;
+            return (
+                <React.Fragment key={ancestor.id}>
+                    <a href={`/task/edit/${ancestor.id}`}>
+                        {ancestor.title}
+                    </a>
+                    {' '}
+                    {removeLink}
+                    <span style={{
+                        fontWeight: 'bold',
+                        color: 'red',
+                        fontSize: '1.2em',
+                    }}
+                    >
+                        {' | '}
+                    </span>
+                </React.Fragment>);
+        });
+        const currentTask = !task ? '' : (
             <React.Fragment>
-                <span className={style.text}>{label}</span>
-                {
-                    task.path.map((ancestor) => {
-                        let removeLink;
-                        if (recentAncestor) {
-                            const parentTaskId = recentAncestor;
-                            removeLink = (
-                                <Button
-                                    color="link"
-                                    onClick={() => this.setParentTask(task, parentTaskId)}
-                                    style={{ padding: '0px' }}
-                                >
-                                    <FontAwesomeIcon icon={faTimesCircle} className={style.icon}/>
-                                </Button>);
-                        }
-                        recentAncestor = ancestor.id;
-                        return (
-                            <React.Fragment key={ancestor.id}>
-                                <a href={`/task/edit/${ancestor.id}`}>
-                                    {ancestor.title}
-                                </a>
-                                {' '}
-                                {removeLink}
-                                <span style={{
-                                    fontWeight: 'bold',
-                                    color: 'red',
-                                    fontSize: '1.2em',
-                                }}
-                                >
-                                    {' | '}
-                                </span>
-                            </React.Fragment>);
-                    })}
                 <a href={`/task/edit/${task.id}`}>
                     {task.title}
                 </a>
+                {' '}
                 {(() => {
                     if (recentAncestor) {
                         return (
@@ -82,12 +86,23 @@ class TaskSelect extends React.Component {
                                 onClick={() => this.setParentTask(task, recentAncestor)}
                                 style={{ padding: '0px' }}
                             >
-                                <FontAwesomeIcon icon={faTimesCircle} className={style.icon} />
+                                <FontAwesomeIcon
+                                    icon={faTimesCircle}
+                                    className={style.icon}
+                                    color="lightGray"
+                                />
                             </Button>
                         );
                     }
                     return '';
                 })()}
+            </React.Fragment>
+        );
+        return (
+            <React.Fragment>
+                {labelElement}
+                {taskPath}
+                {currentTask}
             </React.Fragment>
         );
     }

@@ -112,7 +112,7 @@ class DayRange extends Component {
                     formatDate={formatDate}
                     parseDate={parseDate}
                     format={dateFormat}
-                    value={startDate.toDate()}
+                    value={startDate ? startDate.toDate() : undefined}
                     onDayChange={this.handleDayChange}
                     dayPickerProps={{
                         locale,
