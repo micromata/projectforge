@@ -86,25 +86,17 @@ class TaskTreePanel extends React.Component {
                         <tbody>
                             {nodes.map((task) => {
                                 const indentWidth = task.indent > 0 ? task.indent * 1.5 : 0;
-                                const indent = (
-                                    <div
-                                        className="tree-nav-space"
-                                        style={{ marginLeft: `${indentWidth}em` }}
-                                    >
-                                        &nbsp;
-                                    </div>
-                                );
-                                let link = indent;
+                                let link;
                                 if (task.treeStatus === 'OPENED') {
                                     link = (
                                         <div
                                             role="presentation"
                                             className="tree-nav"
+                                            style={{ marginLeft: `${indentWidth}em` }}
                                             onClick={(event) => {
                                                 this.handleEventClick(event, null, task.id);
                                             }}
                                         >
-                                            {indent}
                                             <div className="tree-link-close">
                                                 <div className="tree-icon">
                                                     <FontAwesomeIcon icon={faFolderOpen} />
@@ -118,11 +110,11 @@ class TaskTreePanel extends React.Component {
                                         <div
                                             role="presentation"
                                             className="tree-nav"
+                                            style={{ marginLeft: `${indentWidth}em` }}
                                             onClick={(event) => {
                                                 this.handleEventClick(event, task.id, null);
                                             }}
                                         >
-                                            {indent}
                                             <div className="tree-link-close">
                                                 <div className="tree-icon">
                                                     <FontAwesomeIcon icon={faFolder} />
@@ -134,8 +126,10 @@ class TaskTreePanel extends React.Component {
                                 } else {
                                     link = (
                                         <div className="tree-nav">
-                                            {indent}
-                                            <div className="tree-leaf">
+                                            <div
+                                                className="tree-leaf"
+                                                style={{ marginLeft: `${indentWidth}em` }}
+                                            >
                                                 <div className="tree-icon">
                                                     <FontAwesomeIcon icon={faFile} />
                                                 </div>
