@@ -118,8 +118,8 @@ class LayoutUtils {
             return layout
         }
 
-        private fun addCommonTranslations(layout : UILayout) {
-            layout.addTranslations( "select.placeholder", "calendar.today")
+        private fun addCommonTranslations(layout: UILayout) {
+            layout.addTranslations("select.placeholder", "calendar.today")
         }
 
         /**
@@ -128,6 +128,23 @@ class LayoutUtils {
          */
         internal fun buildLabelInputElement(layoutSettings: LayoutContext, id: String): UIElement? {
             return ElementsRegistry.buildElement(layoutSettings, id)
+        }
+
+        /**
+         * @param createRowCol If true, a new [UIRow] containing a new [UICol] with the given element is returned,
+         * otherwise the element itself without any other operation.
+         * @return The element itself or the surrounding [UIRow].
+         */
+        internal fun prepareElementToAdd(element: UIElement, createRowCol: Boolean): UIElement {
+            if (createRowCol == true) {
+                val row = UIRow()
+                val col = UICol()
+                row.add(col)
+                col.add(element)
+                return row
+            } else {
+                return element
+            }
         }
 
         internal fun setLabels(elementInfo: ElementsRegistry.ElementInfo?, element: UILabelledElement) {
