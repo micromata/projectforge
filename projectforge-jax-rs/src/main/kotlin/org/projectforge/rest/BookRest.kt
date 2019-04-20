@@ -42,7 +42,6 @@ class BookRest() : AbstractStandardRest<BookDO, BookDao, BookFilter>(BookDao::cl
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
                         .add(lc, "created", "yearOfPublishing", "signature", "authors", "title", "keywords", "lendOutBy"))
-        layout.getTableColumnById("created").formatter = Formatter.TIMESTAMP_MINUTES
         layout.getTableColumnById("lendOutBy").formatter = Formatter.USER
         LayoutUtils.addListFilterContainer(layout, "present", "missed", "disposed",
                 filterClass = BookFilter::class.java)
