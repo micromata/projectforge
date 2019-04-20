@@ -1,15 +1,19 @@
-import { faTimesCircle } from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faStream, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
-import { Button } from 'reactstrap';
+import { Button, Modal, ModalBody, ModalHeader } from 'reactstrap';
 import PropTypes from 'prop-types';
 import style from '../../../design/input/Input.module.scss';
+import TaskTreePanel from '../../../../containers/panel/TaskTreePanel';
 
 class TaskSelect extends React.Component {
     constructor(props) {
         super(props);
-
+        this.state = {
+            taskTreeModal: false,
+        };
         this.setParentTask = this.setParentTask.bind(this);
+        this.toggleTaskTreeModal = this.toggleTaskTreeModal.bind(this);
     }
 
     setParentTask(task, ancestorId) {
@@ -32,8 +36,15 @@ class TaskSelect extends React.Component {
         changeDataField(id, newTask);
     }
 
+    toggleTaskTreeModal() {
+        this.setState(prevState => ({
+            taskTreeModal: !prevState.taskTreeModal,
+        }));
+    }
+
     render() {
         const { label, data, id } = this.props;
+        const { taskTreeModal } = this.state;
         const task = Object.getByString(data, id);
         const labelElement = task ? '' : <span className={style.text}>{label}</span>;
         let recentAncestor;
@@ -52,7 +63,8 @@ class TaskSelect extends React.Component {
                             className={style.icon}
                             color="lightGray"
                         />
-                    </Button>);
+                    </Button>
+                );
             }
             recentAncestor = ancestor.id;
             return (
@@ -70,7 +82,8 @@ class TaskSelect extends React.Component {
                     >
                         {' | '}
                     </span>
-                </React.Fragment>);
+                </React.Fragment>
+            );
         });
         const currentTask = !task ? '' : (
             <React.Fragment>
@@ -103,6 +116,24 @@ class TaskSelect extends React.Component {
                 {labelElement}
                 {taskPath}
                 {currentTask}
+                <Button color="link" className="selectPanelIconLinks" onClick={this.toggleTaskTreeModal}>
+                    <FontAwesomeIcon
+                        icon={faSearch}
+                        className={style.icon}
+                    />
+                </Button>
+                <Button color="link" className="selectPanelIconLinks" onClick={this.toggleTaskTreeModal}>
+                    <FontAwesomeIcon
+                        icon={faStream}
+                        className={style.icon}
+                    />
+                </Button>
+                <Modal isOpen={taskTreeModal} className="modal-xl" toggle={this.toggleTaskTreeModal} fade={false}>
+                    <ModalHeader toggle={this.toggleTaskTreeModal}>Modal title</ModalHeader>
+                    <ModalBody>
+                        <TaskTreePanel />
+                    </ModalBody>
+                </Modal>
             </React.Fragment>
         );
     }
