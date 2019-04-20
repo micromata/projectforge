@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Alert } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFile, faFolder, faFolderOpen } from '@fortawesome/free-regular-svg-icons';
@@ -6,14 +7,8 @@ import { Card, CardBody, Table } from '../../components/design';
 
 import { getServiceURL } from '../../utilities/rest';
 import style from '../../components/base/page/Page.module.scss';
-import history from '../../utilities/history';
-
 
 class TaskTreePanel extends React.Component {
-    static handleRowClick(id) {
-        history.push(`/task/edit/${id}`);
-    }
-
     constructor(props) {
         super(props);
         this.state = {
@@ -22,10 +17,18 @@ class TaskTreePanel extends React.Component {
         };
 
         this.fetch = this.fetch.bind(this);
+        this.handleRowClick = this.handleRowClick.bind(this);
     }
 
     componentDidMount() {
         this.fetch('true');
+    }
+
+    handleRowClick(id) {
+        const { onTaskSelect } = this.props;
+        if (onTaskSelect) {
+            onTaskSelect(id);
+        }
     }
 
     handleEventClick(event, openId, closeId) {
@@ -171,5 +174,13 @@ class TaskTreePanel extends React.Component {
         );
     }
 }
+
+TaskTreePanel.propTypes = {
+    onTaskSelect: PropTypes.func,
+};
+
+TaskTreePanel.defaultProps = {
+    onTaskSelect: undefined,
+};
 
 export default (TaskTreePanel);
