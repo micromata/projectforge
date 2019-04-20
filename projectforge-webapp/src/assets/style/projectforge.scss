@@ -270,29 +270,21 @@ svg.fa-chevron-down {
 // Task tree
 
 div.tree-nav {
-  float: left;
   white-space: nowrap;
 }
 
 div.tree-link-close {
-  float: left;
 }
 
 div.tree-link-open {
-  float: left;
 }
 
 div.tree-leaf {
-  float: left;
 }
 
 div.tree-icon {
+  float: left;
   width: 1.5em;
-  float: left;
-}
-
-div.tree-nav-space {
-  float: left;
 }
 
 // FontAwesome buttons in TaskSelect etc.
