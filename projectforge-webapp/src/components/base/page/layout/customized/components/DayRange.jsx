@@ -69,7 +69,10 @@ class DayRange extends Component {
             // Assume next day for endDate:
             endDate.add(1, 'days');
         }
-        this.setState({ startDate, endDate });
+        this.setState({
+            startDate,
+            endDate
+        });
         const { changeDataField, values } = this.props;
         const { startDateId, endDateId } = values;
         changeDataField(startDateId, startDate.toDate());
@@ -92,7 +95,7 @@ class DayRange extends Component {
 
     render() {
         const {
-            jsDateFormat: dateFormat,
+            dateFormat,
             timeNotation,
             locale,
             values,
@@ -137,7 +140,7 @@ class DayRange extends Component {
                     use12Hours={timeNotation === 'H12'}
                     onChange={this.onEndTimeChange}
                 />
-                <AdditionalLabel title={additionalLabel} />
+                <AdditionalLabel title={additionalLabel}/>
             </React.Fragment>
         );
     }
@@ -151,7 +154,7 @@ DayRange.propTypes = {
         endDateId: PropTypes.string,
         label: PropTypes.string,
     }).isRequired,
-    jsDateFormat: PropTypes.string.isRequired,
+    dateFormat: PropTypes.string.isRequired,
     locale: PropTypes.string,
     timeNotation: PropTypes.string,
     additionalLabel: PropTypes.string,
@@ -165,7 +168,7 @@ DayRange.defaultProps = {
 };
 
 const mapStateToProps = ({ authentication }) => ({
-    jsDateFormat: authentication.user.jsDateFormat,
+    dateFormat: authentication.user.jsDateFormat,
     locale: authentication.user.locale,
     timeNotation: authentication.user.timeNotation,
 });
