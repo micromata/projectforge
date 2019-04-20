@@ -14,7 +14,12 @@ You can build the webapp via `yarn build` or `npm run build`.
 3. Start web server with hot-code-replacement:
    1. Run `yarn start` or `npm start` in terminal.
    2. Open browser (if not started automatically) on yarn/npm port (default is 3000).
-   
+
 Now you can modify the Web files directly in the directory ```projectforge-webapp``` and
 any change is automatically deployed instantly for your web browser.
+   
+## Working with IntelliJ (ESLINT)
+ProjectForge uses linting:
+1. Preferences -> JavaScript -> JavaScipt language version -> React JSX
+2. Preferecses -> JavaScrpt -> Code Quality Tools -> ESLint -> Automatic ESLint configuration
 
