@@ -89,13 +89,13 @@ class TaskTreePanel extends React.Component {
                                 <th>{translations.task}</th>
                                 <th>{translations['task.consumption']}</th>
                                 <th>[Kost2]</th>
-                                {!shortForm ? <th>[Auftraege]</th> : ''}
+                                {!shortForm ? <th>[Auftraege]</th> : undefined}
                                 <th>[Kurzbeschreibung]</th>
-                                {!shortForm ? <th>[Schutz bis]</th> : ''}
-                                {!shortForm ? <th>[Referenz]</th> : ''}
-                                {!shortForm ? <th>[Prioritaet]</th> : ''}
-                                {!shortForm ? <th>[Status]</th> : ''}
-                                {!shortForm ? <th>[verantwortlich]</th> : ''}
+                                {!shortForm ? <th>[Schutz bis]</th> : undefined}
+                                {!shortForm ? <th>[Referenz]</th> : undefined}
+                                {!shortForm ? <th>[Prioritaet]</th> : undefined}
+                                {!shortForm ? <th>[Status]</th> : undefined}
+                                {!shortForm ? <th>[verantwortlich]</th> : undefined}
                             </tr>
                         </thead>
                         <tbody>
@@ -168,13 +168,13 @@ class TaskTreePanel extends React.Component {
                                         <td>{link}</td>
                                         <td>...</td>
                                         <td>...</td>
-                                        {!shortForm ? <td>...</td> : ''}
+                                        {!shortForm ? <td>...</td> : undefined}
                                         <td>{task.shortDescription}</td>
-                                        {!shortForm ? <td>...</td> : ''}
-                                        {!shortForm ? <td>{task.reference}</td> : ''}
-                                        {!shortForm ? <td>{task.priority}</td> : ''}
-                                        {!shortForm ? <td>{task.status}</td> : ''}
-                                        {!shortForm ? <td>{responsibleUser}</td> : ''}
+                                        {!shortForm ? <td>...</td> : undefined}
+                                        {!shortForm ? <td>{task.reference}</td> : undefined}
+                                        {!shortForm ? <td>{task.priority}</td> : undefined}
+                                        {!shortForm ? <td>{task.status}</td> : undefined}
+                                        {!shortForm ? <td>{responsibleUser}</td> : undefined}
                                     </tr>
                                 );
                             })}
