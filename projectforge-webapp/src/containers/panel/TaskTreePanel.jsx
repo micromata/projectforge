@@ -53,6 +53,7 @@ class TaskTreePanel extends React.Component {
         const doOpen = (initial) ? open || highlightTaskId || '' : open || '';
         fetch(getServiceURL('task/tree', {
             table: 'true', // Result expected as table not as tree.
+            initial,
             open: doOpen,
             close: close || '',
         }), {
@@ -76,8 +77,9 @@ class TaskTreePanel extends React.Component {
     render() {
         const { nodes, translations } = this.state;
         if (!nodes) {
-            return <div>Loading...</div>;
+            return <div>...</div>;
         }
+        const { shortForm, highlightTaskId } = this.props;
         return (
             <Card>
                 <CardBody>
@@ -88,13 +90,13 @@ class TaskTreePanel extends React.Component {
                                 <th>{translations.task}</th>
                                 <th>{translations['task.consumption']}</th>
                                 <th>[Kost2]</th>
-                                <th>[Auftraege]</th>
+                                {!shortForm ? <th>[Auftraege]</th> : ''}
                                 <th>[Kurzbeschreibung]</th>
-                                <th>[Schutz bis]</th>
-                                <th>[Referenz]</th>
-                                <th>[Prioritaet]</th>
-                                <th>[Status]</th>
-                                <th>[verantwortlich]</th>
+                                {!shortForm ? <th>[Schutz bis]</th> : ''}
+                                {!shortForm ? <th>[Referenz]</th> : ''}
+                                {!shortForm ? <th>[Prioritaet]</th> : ''}
+                                {!shortForm ? <th>[Status]</th> : ''}
+                                {!shortForm ? <th>[verantwortlich]</th> : ''}
                             </tr>
                         </thead>
                         <tbody>
@@ -153,7 +155,6 @@ class TaskTreePanel extends React.Component {
                                     );
                                 }
                                 const responsibleUser = task.responsibleUser ? task.responsibleUser.fullname : '';
-                                const { highlightTaskId } = this.props;
                                 const highlighted = (highlightTaskId === task.id);
                                 return (
                                     <tr
@@ -168,13 +169,13 @@ class TaskTreePanel extends React.Component {
                                         <td>{link}</td>
                                         <td>...</td>
                                         <td>...</td>
-                                        <td>...</td>
+                                        {!shortForm ? <td>...</td> : ''}
                                         <td>{task.shortDescription}</td>
-                                        <td>...</td>
-                                        <td>{task.reference}</td>
-                                        <td>{task.priority}</td>
-                                        <td>{task.status}</td>
-                                        <td>{responsibleUser}</td>
+                                        {!shortForm ? <td>...</td> : ''}
+                                        {!shortForm ? <td>{task.reference}</td> : ''}
+                                        {!shortForm ? <td>{task.priority}</td> : ''}
+                                        {!shortForm ? <td>{task.status}</td> : ''}
+                                        {!shortForm ? <td>{responsibleUser}</td> : ''}
                                     </tr>
                                 );
                             })}
@@ -192,11 +193,13 @@ class TaskTreePanel extends React.Component {
 TaskTreePanel.propTypes = {
     onTaskSelect: PropTypes.func,
     highlightTaskId: PropTypes.number,
+    shortForm: PropTypes.bool,
 };
 
 TaskTreePanel.defaultProps = {
     onTaskSelect: undefined,
     highlightTaskId: undefined,
+    shortForm: false,
 };
 
 export default (TaskTreePanel);
