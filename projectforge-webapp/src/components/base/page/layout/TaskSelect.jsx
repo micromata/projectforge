@@ -1,7 +1,7 @@
 import { faSearch, faStream, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
-import { Alert, Button, Modal, ModalBody, ModalHeader } from 'reactstrap';
+import { Button, Modal, ModalBody, ModalHeader } from 'reactstrap';
 import PropTypes from 'prop-types';
 import style from '../../../design/input/Input.module.scss';
 import TaskTreePanel from '../../../../containers/panel/TaskTreePanel';
@@ -15,13 +15,16 @@ class TaskSelect extends React.Component {
             taskTreeModalHighlight: undefined,
             task: undefined,
         };
+
         this.setTask = this.setTask.bind(this);
         this.toggleTaskTreeModal = this.toggleTaskTreeModal.bind(this);
     }
 
     componentDidMount() {
         const { variables } = this.props;
-        this.setState({ task: variables.task });
+        this.setState({
+            task: variables.task,
+        });
     }
 
     setTask(taskId) {
@@ -45,6 +48,7 @@ class TaskSelect extends React.Component {
                     if (onKost2Changed) {
                         onKost2Changed(task.kost2List);
                     }
+                    this.setState({ task });
                 }
             })
             .catch(() => this.setState({}));
@@ -66,21 +70,10 @@ class TaskSelect extends React.Component {
     }
 
     render() {
-        const { label, data, id } = this.props;
+        const { label } = this.props;
         const { task } = this.state;
 
         const { taskTreeModal, taskTreeModalHighlight } = this.state;
-        const taskId = task ? task.id : undefined;
-        const modelTask = Object.getByString(data, id);
-        const modelTaskId = modelTask ? modelTask.id : undefined;
-        if (taskId !== modelTaskId) {
-            return (
-                <Alert color="danger">
-                    Internal error. Please contact the developers. (TaskSelect:taskID !==
-                    modelTaskId!).
-                </Alert>
-            );
-        }
         const labelElement = task ? '' : <span className={style.text}>{label}</span>;
         let recentAncestorId;
         const taskPath = (!task || !task.path) ? '' : task.path.map((ancestor) => {
@@ -189,7 +182,7 @@ class TaskSelect extends React.Component {
                     <ModalBody>
                         <TaskTreePanel
                             onTaskSelect={this.setTask}
-                            highlightTaskId={taskTreeModalHighlight || task.id}
+                            highlightTaskId={taskTreeModalHighlight || (task ? task.id : undefined)}
                             shortForm
                         />
                     </ModalBody>
