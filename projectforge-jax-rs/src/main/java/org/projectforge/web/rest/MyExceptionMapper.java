@@ -9,7 +9,7 @@ import javax.ws.rs.ext.Provider;
 
 @Provider
 public class MyExceptionMapper implements ExceptionMapper<UnrecognizedPropertyException> {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RestUserFilter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MyExceptionMapper.class);
 
   @Override
   public Response toResponse(UnrecognizedPropertyException exception) {
