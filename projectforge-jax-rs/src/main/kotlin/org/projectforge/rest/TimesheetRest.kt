@@ -140,14 +140,12 @@ class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, Timeshee
         dayRange.add("endDateId", "stopTime")
         dayRange.add("label", translate("timePeriod"))
         val layout = super.createEditLayout(dataObject)
-                .add(lc, "task")
-                .add(UICustomized("timesheet.edit.kost2", values = mutableMapOf("id" to "kost2")))
+                .add(UICustomized("timesheet.edit.taskAndKost2", values = mutableMapOf("id" to "kost2")))
                 .add(lc, "user")
                 .add(dayRange)
                 .add(UICustomized("taskConsumption"))
                 .add(lc, "location", "description")
-                .addTranslations("until")
-                .addTranslations("fibu.kost2")
+                .addTranslations("until","fibu.kost2", "task")
         return LayoutUtils.processEditPage(layout, dataObject)
     }
 
