@@ -46,11 +46,11 @@ class TaskSelect extends React.Component {
         const { taskTreeModal } = this.state;
         const task = Object.getByString(data, id);
         const labelElement = task ? '' : <span className={style.text}>{label}</span>;
-        let recentAncestor;
+        let recentAncestorId;
         const taskPath = (!task || !task.path) ? '' : task.path.map((ancestor) => {
             let removeLink;
-            if (recentAncestor) {
-                const parentTaskId = recentAncestor;
+            if (recentAncestorId) {
+                const parentTaskId = recentAncestorId;
                 removeLink = (
                     <Button
                         color="link"
@@ -65,7 +65,7 @@ class TaskSelect extends React.Component {
                     </Button>
                 );
             }
-            recentAncestor = ancestor.id;
+            recentAncestorId = ancestor.id;
             return (
                 <React.Fragment key={ancestor.id}>
                     {ancestor.title}
@@ -87,11 +87,11 @@ class TaskSelect extends React.Component {
                 {task.title}
                 {' '}
                 {(() => {
-                    if (recentAncestor) {
+                    if (recentAncestorId) {
                         return (
                             <Button
                                 color="link"
-                                onClick={() => this.setParentTask(task, recentAncestor)}
+                                onClick={() => this.setTask(recentAncestorId)}
                                 style={{ padding: '0px' }}
                             >
                                 <FontAwesomeIcon
