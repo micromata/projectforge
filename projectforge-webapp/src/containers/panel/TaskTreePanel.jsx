@@ -83,7 +83,6 @@ class TaskTreePanel extends React.Component {
         return (
             <Card>
                 <CardBody>
-                    [ToDo: Root task]
                     <Table striped hover responsive>
                         <thead>
                             <tr>

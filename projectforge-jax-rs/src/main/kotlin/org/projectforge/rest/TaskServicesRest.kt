@@ -7,9 +7,11 @@ import org.projectforge.business.task.TaskFilter
 import org.projectforge.business.task.TaskNode
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.tasktree.TaskTreeHelper
+import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.service.UserPreferencesService
 import org.projectforge.common.i18n.Priority
 import org.projectforge.common.task.TaskStatus
+import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -70,6 +72,9 @@ class TaskServicesRest {
     private val log = org.slf4j.LoggerFactory.getLogger(TaskServicesRest::class.java)
 
     @Autowired
+    private lateinit var accessChecker: AccessChecker;
+
+    @Autowired
     private lateinit var taskDao: TaskDao
 
     @Autowired
@@ -109,6 +114,11 @@ class TaskServicesRest {
         //UserPreferencesHelper.putEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS, expansion.getIds(), true)
         val indent = if (table == true) 0 else null
         buildTree(ctx, root, rootNode, indent)
+        if (table == true && (accessChecker.isLoggedInUserMemberOfAdminGroup() ||
+                accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP))) {
+            // Append root node for admins and financial staff only in table view for displaying purposes.
+            root.childs?.add(Task(rootNode))
+        }
         val result = Result(root)
         if (initial == true) {
             result.translations = mutableMapOf()
