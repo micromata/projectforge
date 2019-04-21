@@ -35,14 +35,10 @@ import javax.ws.rs.core.Response
  * by these rest services.
  */
 @Component
-abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter> {
-    constructor(baseDaoClazz: Class<B>,
-                filterClazz: Class<F>,
-                i18nKeyPrefix: String) {
-        this.baseDaoClazz = baseDaoClazz
-        this.filterClazz = filterClazz
-        this.i18nKeyPrefix = i18nKeyPrefix
-    }
+abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter>(
+        private val baseDaoClazz: Class<B>,
+        private val filterClazz: Class<F>,
+        private val i18nKeyPrefix: String) {
 
     @PostConstruct
     private fun postConstruct() {
@@ -50,7 +46,7 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
     }
 
     companion object {
-        val GEAR_MENU = "GEAR"
+        const val GEAR_MENU = "GEAR"
     }
 
     /**
@@ -74,8 +70,6 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
      */
     protected lateinit var lc: LayoutContext
 
-    protected val i18nKeyPrefix: String
-
     protected val baseDao: B
         get() {
             if (_baseDao == null) {
@@ -83,10 +77,6 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
             }
             return _baseDao ?: throw AssertionError("Set to null by another thread")
         }
-
-    protected var baseDaoClazz: Class<B>
-
-    protected var filterClazz: Class<F>
 
     /**
      * The React frontend works with local dates.
@@ -138,7 +128,7 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
     }
 
     fun getFullRestPath(): String {
-        return "${getRestPath()}"
+        return getRestPath()
     }
 
     open fun createEditLayout(dataObject: O?): UILayout {
@@ -163,7 +153,7 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
                 } else {
                     when (value) {
                         is String -> {
-                            if (value.isNullOrBlank()) {
+                            if (value.isBlank()) {
                                 error = true
                             }
                         }
@@ -258,16 +248,12 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
     fun getItem(@PathParam("id") id: Int?): Response {
-        val item = getById(id)
-        if (item == null)
-            return restHelper.buildResponseItemNotFound()
+        val item = getById(id) ?: return restHelper.buildResponseItemNotFound()
         return restHelper.buildResponse(item)
     }
 
     protected fun getById(id: Int?): O? {
-        val item = baseDao.getById(id)
-        if (item == null)
-            return null
+        val item = baseDao.getById(id) ?: return null
         processItemBeforeExport(item)
         return item
     }
@@ -282,12 +268,7 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
     @Path("edit")
     @Produces(MediaType.APPLICATION_JSON)
     fun getItemAndLayout(@Context request: HttpServletRequest, @QueryParam("id") id: Int?): Response {
-        val item: O?
-        if (id != null) {
-            item = getById(id)
-        } else item = newBaseDO(request)
-        if (item == null)
-            return restHelper.buildResponseItemNotFound()
+        val item = (if (null != id) getById(id) else newBaseDO(request)) ?: return restHelper.buildResponseItemNotFound()
         val layout = createEditLayout(item)
         layout.addTranslations("changes")
         layout.postProcessPageMenu()
@@ -296,12 +277,12 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
         return restHelper.buildResponse(result)
     }
 
-    open protected fun onGetItemAndLayout(request: HttpServletRequest, item : O, editLayoutData : EditLayoutData) {
+    protected open fun onGetItemAndLayout(request: HttpServletRequest, item: O, editLayoutData: EditLayoutData) {
     }
 
 
     /**
-     * Gets the autocomletion list for the given property and search string.
+     * Gets the autocompletion list for the given property and search string.
      * @param property The property (field of the data) used to search.
      * @param searchString
      * @return list of strings as json.
@@ -323,13 +304,10 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
     @Produces(MediaType.APPLICATION_JSON)
     fun getHistory(@PathParam("id") id: Int?): Response {
         if (id == null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(Response.Status.BAD_REQUEST).build()
         }
-        val item = getById(id)
-        if (item == null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-        val historyEntries = baseDao.getHistoryEntries(item);
+        val item = getById(id) ?: return Response.status(Response.Status.BAD_REQUEST).build()
+        val historyEntries = baseDao.getHistoryEntries(item)
         return restHelper.buildResponse(historyService.format(historyEntries))
     }
 
