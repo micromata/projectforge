@@ -24,10 +24,10 @@ class TaskTreePanel extends React.Component {
         this.fetch('true');
     }
 
-    handleRowClick(id) {
+    handleRowClick(id, task) {
         const { onTaskSelect } = this.props;
         if (onTaskSelect) {
-            onTaskSelect(id);
+            onTaskSelect(id, task);
         }
     }
 
@@ -142,7 +142,7 @@ class TaskTreePanel extends React.Component {
                                 return (
                                     <tr
                                         key={`table-body-row-${task.id}`}
-                                        onClick={() => this.handleRowClick(task.id)}
+                                        onClick={() => this.handleRowClick(task.id, task)}
                                         className={style.clickable}
                                     >
                                         <td>{link}</td>

@@ -5,6 +5,7 @@ import { Button, Modal, ModalBody, ModalHeader } from 'reactstrap';
 import PropTypes from 'prop-types';
 import style from '../../../design/input/Input.module.scss';
 import TaskTreePanel from '../../../../containers/panel/TaskTreePanel';
+import { getServiceURL } from '../../../../utilities/rest';
 
 class TaskSelect extends React.Component {
     constructor(props) {
@@ -12,28 +13,26 @@ class TaskSelect extends React.Component {
         this.state = {
             taskTreeModal: false,
         };
-        this.setParentTask = this.setParentTask.bind(this);
+        this.setTask = this.setTask.bind(this);
         this.toggleTaskTreeModal = this.toggleTaskTreeModal.bind(this);
     }
 
-    setParentTask(task, ancestorId) {
-        const { id, changeDataField } = this.props;
-        const newTask = {
-            id: ancestorId,
-            path: [],
-        };
-        task.path.forEach((ancestor) => {
-            if (ancestor.id === ancestorId) {
-                newTask.title = ancestor.title;
-            }
-            if (!newTask.title) {
-                newTask.path.push({
-                    id: ancestor.id,
-                    title: ancestor.title,
-                });
-            }
-        });
-        changeDataField(id, newTask);
+    setTask(taskId) {
+        this.setState({ taskTreeModal: false });
+        fetch(getServiceURL(`task/info/${taskId}`), {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                Accept: 'application/json',
+            },
+        })
+            .then(response => response.json())
+            .then((json) => {
+                const task = json;
+                const { id, changeDataField } = this.props;
+                changeDataField(id, task);
+            })
+            .catch(() => this.setState({}));
     }
 
     toggleTaskTreeModal() {
@@ -48,14 +47,14 @@ class TaskSelect extends React.Component {
         const task = Object.getByString(data, id);
         const labelElement = task ? '' : <span className={style.text}>{label}</span>;
         let recentAncestor;
-        const taskPath = !task ? '' : task.path.map((ancestor) => {
+        const taskPath = (!task || !task.path) ? '' : task.path.map((ancestor) => {
             let removeLink;
             if (recentAncestor) {
                 const parentTaskId = recentAncestor;
                 removeLink = (
                     <Button
                         color="link"
-                        onClick={() => this.setParentTask(task, parentTaskId)}
+                        onClick={() => this.setTask(parentTaskId)}
                         style={{ padding: '0px' }}
                     >
                         <FontAwesomeIcon
@@ -69,9 +68,7 @@ class TaskSelect extends React.Component {
             recentAncestor = ancestor.id;
             return (
                 <React.Fragment key={ancestor.id}>
-                    <a href={`/task/edit/${ancestor.id}`}>
-                        {ancestor.title}
-                    </a>
+                    {ancestor.title}
                     {' '}
                     {removeLink}
                     <span style={{
@@ -87,9 +84,7 @@ class TaskSelect extends React.Component {
         });
         const currentTask = !task ? '' : (
             <React.Fragment>
-                <a href={`/task/edit/${task.id}`}>
-                    {task.title}
-                </a>
+                {task.title}
                 {' '}
                 {(() => {
                     if (recentAncestor) {
@@ -116,22 +111,35 @@ class TaskSelect extends React.Component {
                 {labelElement}
                 {taskPath}
                 {currentTask}
-                <Button color="link" className="selectPanelIconLinks" onClick={this.toggleTaskTreeModal}>
+                <Button
+                    color="link"
+                    className="selectPanelIconLinks"
+                    onClick={this.toggleTaskTreeModal}
+                >
                     <FontAwesomeIcon
                         icon={faSearch}
                         className={style.icon}
                     />
                 </Button>
-                <Button color="link" className="selectPanelIconLinks" onClick={this.toggleTaskTreeModal}>
+                <Button
+                    color="link"
+                    className="selectPanelIconLinks"
+                    onClick={this.toggleTaskTreeModal}
+                >
                     <FontAwesomeIcon
                         icon={faStream}
                         className={style.icon}
                     />
                 </Button>
-                <Modal isOpen={taskTreeModal} className="modal-xl" toggle={this.toggleTaskTreeModal} fade={false}>
+                <Modal
+                    isOpen={taskTreeModal}
+                    className="modal-xl"
+                    toggle={this.toggleTaskTreeModal}
+                    fade={false}
+                >
                     <ModalHeader toggle={this.toggleTaskTreeModal}>Modal title</ModalHeader>
                     <ModalBody>
-                        <TaskTreePanel />
+                        <TaskTreePanel onTaskSelect={this.setTask} />
                     </ModalBody>
                 </Modal>
             </React.Fragment>

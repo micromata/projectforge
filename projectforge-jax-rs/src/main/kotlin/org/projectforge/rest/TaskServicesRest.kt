@@ -1,6 +1,7 @@
 package org.projectforge.rest
 
 import org.projectforge.business.fibu.AuftragsPositionsStatus
+import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskFilter
 import org.projectforge.business.task.TaskNode
@@ -16,10 +17,7 @@ import org.projectforge.framework.time.PFDate
 import org.projectforge.rest.core.RestHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import javax.ws.rs.GET
-import javax.ws.rs.Path
-import javax.ws.rs.Produces
-import javax.ws.rs.QueryParam
+import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
@@ -28,8 +26,8 @@ import javax.ws.rs.core.Response
  */
 @Component
 @Path("task")
-class TaskServicesRest() {
-    class Cost2(val number: String, val title: String)
+class TaskServicesRest {
+    class Kost2(val number: String, val cost2Art: String)
     class OrderPosition(val number: Int, val personDays: Int?, val title: String, status: AuftragsPositionsStatus?)
     class Order(val number: String,
                 val title: String,
@@ -50,15 +48,15 @@ class TaskServicesRest() {
                val title: String? = null,
                val shortDescription: String? = null,
                val protectTimesheetsUntil: PFDate? = null,
-               val reference: String?,
+               val reference: String? = null,
                val priority: Priority? = null,
                val status: TaskStatus? = null,
                val responsibleUser: PFUserDO? = null,
-               val cost2List: MutableList<Cost2>? = null) {
+               var kost2List: List<Kost2>? = null,
+               var path: List<Task>? = null) {
         constructor(node: TaskNode) : this(id = node.task.id, title = node.task.title, shortDescription = node.task.shortDescription,
                 protectTimesheetsUntil = PFDate.from(node.task.protectTimesheetsUntil), reference = node.task.reference,
-                priority = node.task.priority, status = node.task.status, responsibleUser = node.task.responsibleUser) {
-        }
+                priority = node.task.priority, status = node.task.status, responsibleUser = node.task.responsibleUser)
     }
 
     class Result(val root: Task,
@@ -99,9 +97,11 @@ class TaskServicesRest() {
                 @QueryParam("close") close: Int?,
                 @QueryParam("table") table: Boolean?)
             : Response {
+        @Suppress("UNCHECKED_CAST")
         val openNodes = userPreferencesService.getEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS) as MutableSet<Int>
         val rootNode = taskTree.rootTaskNode
         val root = Task(rootNode)
+        addKost2List(root)
         root.childs = mutableListOf()
         val ctx = BuildContext(ThreadLocalUserContext.getUser(), TaskFilter(), root, openNodes)
         openTask(ctx, open)
@@ -113,15 +113,46 @@ class TaskServicesRest() {
         if (initial == true) {
             result.translations = mutableMapOf()
             val translations = result.translations!!
-            translations.put("task", translate("task"))
-            translations.put("task.consumption", translate("task.consumption"))
-            translations.put("task.tree.info", translate("task.tree.info"))
+            translations["task"] = translate("task")
+            translations["task.consumption"] = translate("task.consumption")
+            translations["task.tree.info"] = translate("task.tree.info")
         }
         return restHelper.buildResponse(result)
     }
 
     /**
-     * @param targetTask Task to put the childs in. For table view, this is always the root task, for tree view targetTask and task are the same.
+     * Gets the task data including kost2 information if any and its path.
+     * @param id Task id.
+     * @return json
+     */
+    @GET
+    @Path("info/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun getTaskInfo(@PathParam("id") id: Int?): Response {
+        val taskNode = taskTree.getTaskNodeById(id) ?: return restHelper.buildResponseItemNotFound()
+        val task = Task(taskNode)
+        addKost2List(task)
+        val pathToRoot = taskTree.getPathToRoot(taskNode.parentId)
+        val pathArray = mutableListOf<Task>()
+        pathToRoot?.forEach {
+            val ancestor = Task(id = it.task.id, title = it.task.title)
+            pathArray.add(ancestor)
+        }
+        task.path = pathArray
+        return restHelper.buildResponse(task)
+    }
+
+    private fun addKost2List(task: Task) {
+        val kost2DOList = taskTree.getKost2List(task.id)
+        if (!kost2DOList.isNullOrEmpty()) {
+            val kost2List: List<Kost2> = kost2DOList.map {
+                Kost2((it as Kost2DO).formattedNumber, it.kost2Art.name)
+            }
+            task.kost2List = kost2List
+        }
+    }
+
+    /**
      * @param indent null for tree view, int for table view.
      */
     private fun buildTree(ctx: BuildContext, task: Task, taskNode: TaskNode, indent: Int? = null) {
@@ -136,6 +167,7 @@ class TaskServicesRest() {
             childs.forEach {
                 if (ctx.taskFilter.match(it, taskDao, ctx.user)) {
                     val child = Task(it)
+                    addKost2List(child)
                     if (indent != null) {
                         ctx.rootTask.childs!!.add(child) // All childs are added to root task (table view!)
                         child.indent = indent
@@ -159,7 +191,7 @@ class TaskServicesRest() {
             return
         val taskNode = taskTree.getTaskNodeById(taskId)
         if (taskNode == null) {
-            log.warn("Task with id ${taskId} not found to open.")
+            log.warn("Task with id $taskId not found to open.")
             return
         }
         ctx.openedNodes.add(taskId)
@@ -175,7 +207,7 @@ class TaskServicesRest() {
             return
         val taskNode = taskTree.getTaskNodeById(taskId)
         if (taskNode == null) {
-            log.warn("Task with id ${taskId} not found to close.")
+            log.warn("Task with id $taskId not found to close.")
             return
         }
         ctx.openedNodes.remove(taskId)
