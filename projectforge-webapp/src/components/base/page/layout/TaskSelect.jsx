@@ -13,9 +13,15 @@ class TaskSelect extends React.Component {
         this.state = {
             taskTreeModal: false,
             taskTreeModalHighlight: undefined,
+            task: undefined,
         };
         this.setTask = this.setTask.bind(this);
         this.toggleTaskTreeModal = this.toggleTaskTreeModal.bind(this);
+    }
+
+    componentDidMount() {
+        const { variables } = this.props;
+        this.setState({ task: variables.task });
     }
 
     setTask(taskId) {
@@ -30,6 +36,7 @@ class TaskSelect extends React.Component {
             .then(response => response.json())
             .then((json) => {
                 const task = json;
+                this.setState({ task: task });
                 if (task) {
                     const newTask = { id: task.id };
                     const { id, changeDataField } = this.props;
@@ -55,14 +62,10 @@ class TaskSelect extends React.Component {
     }
 
     render() {
-        const {
-            label,
-            data,
-            id,
-            variables
-        } = this.props;
+        const { label, data, id } = this.props;
+        const { task } = this.state;
+
         const { taskTreeModal, taskTreeModalHighlight } = this.state;
-        const task = variables ? variables.task : undefined;
         const taskId = task ? task.id : undefined;
         const modelTask = Object.getByString(data, id);
         const modelTaskId = modelTask ? modelTask.id : undefined;
