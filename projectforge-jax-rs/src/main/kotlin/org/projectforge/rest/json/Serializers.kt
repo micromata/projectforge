@@ -44,6 +44,7 @@ class TaskDOSerializer : JsonSerializer<TaskDO> {
             pathList.add(ancestor)
         }
         task.path = pathList
+        TaskServicesRest.addKost2List(task)
         val result = jsonSerializationContext.serialize(task)
         return result
     }

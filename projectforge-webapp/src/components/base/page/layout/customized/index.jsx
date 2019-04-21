@@ -3,7 +3,8 @@ import React from 'react';
 import CustomizedAddressImage from './components/CustomizedAddressImage';
 import CustomizedImageDataPreview from './components/ImageDataPreview';
 import CustomizedBookLendOutComponent from './components/BookLendOut';
-import DayRange from './components/DayRange'
+import DayRange from './components/DayRange';
+import TimesheetEditKost2 from './components/TimesheetEditKost2';
 
 function CustomizedLayout({ id, ...props }) {
     let Tag;
@@ -14,6 +15,9 @@ function CustomizedLayout({ id, ...props }) {
             break;
         case 'book.lendOutComponent':
             Tag = CustomizedBookLendOutComponent;
+            break;
+        case 'timesheet.edit.kost2':
+            Tag = TimesheetEditKost2;
             break;
         case 'address.edit.image':
             Tag = CustomizedAddressImage;
@@ -27,7 +31,6 @@ function CustomizedLayout({ id, ...props }) {
     if (!Tag) {
         return <span>{`Customzied field '${id}' not found.`}</span>;
     }
-
     return <Tag id={id} {...props} />;
 }
 
