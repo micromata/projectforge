@@ -32,8 +32,9 @@ class ReactSelect extends React.Component {
             translations,
         } = this.props;
         let defaultValue = Object.getByString(data, id);
-        if (defaultValue && typeof defaultValue !== 'object') {
-            defaultValue = values.find(value => value[valueProperty] === defaultValue);
+        if (defaultValue) {
+            const value = (typeof defaultValue === 'object') ? defaultValue[valueProperty] : defaultValue;
+            defaultValue = values.find(it => it[valueProperty] === value);
         }
         return (
             <React.Fragment>
