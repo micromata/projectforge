@@ -12,6 +12,7 @@ class TaskSelect extends React.Component {
         super(props);
         this.state = {
             taskTreeModal: false,
+            taskTreeModalHighlight: undefined,
         };
         this.setTask = this.setTask.bind(this);
         this.toggleTaskTreeModal = this.toggleTaskTreeModal.bind(this);
@@ -38,12 +39,21 @@ class TaskSelect extends React.Component {
     toggleTaskTreeModal() {
         this.setState(prevState => ({
             taskTreeModal: !prevState.taskTreeModal,
+            taskTreeModalHighlight: undefined, // Reset to highlight current task.
         }));
+    }
+
+    // Opens the task tree modal dialog with the given task highlighted.
+    openTaskTreeModal(taskId) {
+        this.setState({
+            taskTreeModal: true,
+            taskTreeModalHighlight: taskId, // Highlight selected ancestor task.
+        });
     }
 
     render() {
         const { label, data, id } = this.props;
-        const { taskTreeModal } = this.state;
+        const { taskTreeModal, taskTreeModalHighlight } = this.state;
         const task = Object.getByString(data, id);
         const labelElement = task ? '' : <span className={style.text}>{label}</span>;
         let recentAncestorId;
@@ -68,7 +78,9 @@ class TaskSelect extends React.Component {
             recentAncestorId = ancestor.id;
             return (
                 <React.Fragment key={ancestor.id}>
-                    {ancestor.title}
+                    <span className="onclick" onClick={() => this.openTaskTreeModal(ancestor.id)} role="presentation">
+                        {ancestor.title}
+                    </span>
                     {' '}
                     {removeLink}
                     <span style={{
@@ -84,7 +96,9 @@ class TaskSelect extends React.Component {
         });
         const currentTask = !task ? '' : (
             <React.Fragment>
-                {task.title}
+                <span className="onclick" onClick={() => this.openTaskTreeModal(task.id)} role="presentation">
+                    {task.title}
+                </span>
                 {' '}
                 {(() => {
                     if (recentAncestorId) {
@@ -141,7 +155,7 @@ class TaskSelect extends React.Component {
                     <ModalBody>
                         <TaskTreePanel
                             onTaskSelect={this.setTask}
-                            highlightTaskId={task.id}
+                            highlightTaskId={taskTreeModalHighlight || task.id}
                             shortForm
                         />
                     </ModalBody>
