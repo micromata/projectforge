@@ -31,9 +31,9 @@ class ReactSelect extends React.Component {
             labelProperty,
             translations,
         } = this.props;
-        let defaultValue = data[id];
-        if (defaultValue && typeof data[id] !== 'object') {
-            defaultValue = values.find(value => value[this.props.valueProperty] === data[id]);
+        let defaultValue = Object.getByString(data, id);
+        if (defaultValue && typeof defaultValue !== 'object') {
+            defaultValue = values.find(value => value[valueProperty] === defaultValue);
         }
         return (
             <React.Fragment>
@@ -50,7 +50,7 @@ class ReactSelect extends React.Component {
                     onChange={this.setSelected}
                     placeholder={translations['select.placeholder']}
                 />
-                <AdditionalLabel title={additionalLabel}/>
+                <AdditionalLabel title={additionalLabel} />
             </React.Fragment>
         );
     }
@@ -61,14 +61,17 @@ ReactSelect.propTypes = {
     data: dataPropType.isRequired,
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
+    additionalLabel: PropTypes.string,
     values: PropTypes.arrayOf(PropTypes.object).isRequired,
     valueProperty: PropTypes.string,
     labelProperty: PropTypes.string,
     isMulti: PropTypes.bool,
     isRequired: PropTypes.bool,
+    translations: PropTypes.shape({}).isRequired,
 };
 
 ReactSelect.defaultProps = {
+    additionalLabel: undefined,
     valueProperty: 'value',
     labelProperty: 'label',
     isMulti: false,
