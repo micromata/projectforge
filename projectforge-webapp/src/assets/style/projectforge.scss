@@ -4,6 +4,7 @@ html {
   font-size: 62.5%;
   -webkit-tap-highlight-color: transparent;
   font-family: sans-serif;
+  scroll-behavior: smooth;
 }
 
 body {
@@ -32,8 +33,8 @@ div[class*="TopBar_"] {
 }
 
 nav.bg-light {
-  background: #F8F9FA !important;background: #F8F9FA;
-  box-shadow: 0 2px 4px 0 rgba(0,0,0,0.50);
+  background: #F8F9FA !important;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.50);
 
   ul li a {
     color: #4D4D4D !important;
@@ -80,7 +81,7 @@ nav.bg-light {
 
 .ml-auto.nav {
 
- .nav-item {
+  .nav-item {
     background: #FFF;
     margin-left: 10px;
     height: 25px;
@@ -113,15 +114,15 @@ nav.bg-light {
 
 ul {
   li.nav-item a.btn {
-      margin-left: 10px !important;
-      font-size: 16px;
-      font-weight: 500;
-      line-height: 1;
-      padding: 5px 9px;
-      border-radius: 3px;
-      position: relative;
-      top: -2px;
-      border: none;
+    margin-left: 10px !important;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1;
+    padding: 5px 9px;
+    border-radius: 3px;
+    position: relative;
+    top: -2px;
+    border: none;
   }
 }
 
@@ -164,8 +165,8 @@ body {
 fieldset {
   //border: 1px solid #dedede;
   //box-shadow: 0 0 3px 2px rgba(0,0,0,0.15);
-  box-shadow: 0 1px 1px 0 rgba(60,64,67,.08),
-  0 1px 3px 1px rgba(60,64,67,.16);
+  box-shadow: 0 1px 1px 0 rgba(60, 64, 67, .08),
+  0 1px 3px 1px rgba(60, 64, 67, .16);
   padding: 25px;
   margin-bottom: 20px;
 
