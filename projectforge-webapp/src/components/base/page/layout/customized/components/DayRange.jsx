@@ -12,7 +12,7 @@ import style from '../../../../../design/input/Input.module.scss';
 import AdditionalLabel from '../../../../../design/input/AdditionalLabel';
 
 /**
- * Range of day for tiem sheets.
+ * Range of day for time sheets.
  */
 class DayRange extends Component {
     constructor(props) {
