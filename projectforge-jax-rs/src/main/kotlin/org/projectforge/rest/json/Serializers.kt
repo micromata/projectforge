@@ -5,7 +5,6 @@ import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
-import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.TenantDO
 import org.projectforge.registry.Registry
@@ -37,14 +36,6 @@ class TaskDOSerializer : JsonSerializer<TaskDO> {
     override fun serialize(obj: TaskDO?, type: Type, jsonSerializationContext: JsonSerializationContext): JsonElement? {
         if (obj == null) return null
         val task = TaskServicesRest.Task(obj.id, title=obj.title)
-        val list = TaskTreeHelper.getTaskTree().getPathToRoot(obj.parentTaskId)
-        val pathList = mutableListOf<TaskServicesRest.Task>()
-        list?.forEach {
-            val ancestor = TaskServicesRest.Task(it.task.id, title = it.task.title)
-            pathList.add(ancestor)
-        }
-        task.path = pathList
-        TaskServicesRest.addKost2List(task)
         val result = jsonSerializationContext.serialize(task)
         return result
     }

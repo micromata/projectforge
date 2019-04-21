@@ -141,7 +141,7 @@ class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, Timeshee
         dayRange.add("label", translate("timePeriod"))
         val layout = super.createEditLayout(dataObject)
                 .add(lc, "task")
-                .add(UICustomized("timesheet.edit.kost2", values = mutableMapOf("id" to "kost2.id")))
+                .add(UICustomized("timesheet.edit.kost2", values = mutableMapOf("id" to "kost2")))
                 .add(lc, "user")
                 .add(dayRange)
                 .add(UICustomized("taskConsumption"))
@@ -151,6 +151,13 @@ class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, Timeshee
         return LayoutUtils.processEditPage(layout, dataObject)
     }
 
+    override fun addVariablesForEditPage(item: TimesheetDO): Map<String, Any>? {
+        val task = TaskServicesRest.createTask(item.taskId)
+        if (task == null)
+            return null
+        val variables = mutableMapOf<String, Any>("task" to task)
+        return variables
+    }
 
     private fun getTimesheetPrefData(): TimesheetPrefData {
         val prefKey = "timesheetEditPref";
