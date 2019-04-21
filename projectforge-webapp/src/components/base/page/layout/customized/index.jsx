@@ -4,7 +4,7 @@ import CustomizedAddressImage from './components/CustomizedAddressImage';
 import CustomizedImageDataPreview from './components/ImageDataPreview';
 import CustomizedBookLendOutComponent from './components/BookLendOut';
 import DayRange from './components/DayRange';
-import TimesheetEditKost2 from './components/TimesheetEditKost2';
+import TimesheetEditTaskAndKost2 from './components/TimesheetEditTaskAndKost2';
 
 function CustomizedLayout({ id, ...props }) {
     let Tag;
@@ -16,8 +16,8 @@ function CustomizedLayout({ id, ...props }) {
         case 'book.lendOutComponent':
             Tag = CustomizedBookLendOutComponent;
             break;
-        case 'timesheet.edit.kost2':
-            Tag = TimesheetEditKost2;
+        case 'timesheet.edit.taskAndKost2':
+            Tag = TimesheetEditTaskAndKost2;
             break;
         case 'address.edit.image':
             Tag = CustomizedAddressImage;

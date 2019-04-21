@@ -26,6 +26,7 @@ class TaskSelect extends React.Component {
 
     setTask(taskId) {
         this.setState({ taskTreeModal: false });
+        const { onKost2Changed } = this.props;
         fetch(getServiceURL(`task/info/${taskId}`), {
             method: 'GET',
             credentials: 'include',
@@ -36,11 +37,14 @@ class TaskSelect extends React.Component {
             .then(response => response.json())
             .then((json) => {
                 const task = json;
-                this.setState({ task: task });
+                this.setState({ task });
                 if (task) {
                     const newTask = { id: task.id };
                     const { id, changeDataField } = this.props;
                     changeDataField(id, newTask);
+                    if (onKost2Changed) {
+                        onKost2Changed(task.kost2List);
+                    }
                 }
             })
             .catch(() => this.setState({}));
@@ -201,6 +205,11 @@ TaskSelect.propTypes = {
     variables: PropTypes.shape({}).isRequired,
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
+    onKost2Changed: PropTypes.func,
+};
+
+TaskSelect.defaultProps = {
+    onKost2Changed: undefined,
 };
 
 export default TaskSelect;
