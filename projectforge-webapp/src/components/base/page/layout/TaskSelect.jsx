@@ -139,7 +139,11 @@ class TaskSelect extends React.Component {
                 >
                     <ModalHeader toggle={this.toggleTaskTreeModal}>Modal title</ModalHeader>
                     <ModalBody>
-                        <TaskTreePanel onTaskSelect={this.setTask} highlightTaskId={task.id} />
+                        <TaskTreePanel
+                            onTaskSelect={this.setTask}
+                            highlightTaskId={task.id}
+                            shortForm
+                        />
                     </ModalBody>
                 </Modal>
             </React.Fragment>
