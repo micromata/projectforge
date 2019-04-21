@@ -14,6 +14,7 @@ function LayoutGroup(
     {
         content,
         data,
+        variables,
         length,
         title,
         type,
@@ -81,6 +82,7 @@ function LayoutGroup(
                 return (
                     <Tag
                         data={data}
+                        variables={variables}
                         {...props}
                         {...component}
                         {...properties}
@@ -130,6 +132,7 @@ LayoutGroup.propTypes = {
     /* eslint-disable-next-line react/forbid-prop-types */
     content: PropTypes.array,
     data: PropTypes.shape({}),
+    variables: PropTypes.shape({}),
     length: PropTypes.number,
     title: PropTypes.string,
     type: PropTypes.string,
@@ -141,6 +144,7 @@ LayoutGroup.defaultProps = {
     changeDataField: undefined,
     content: [],
     data: {},
+    variables: {},
     length: undefined,
     title: undefined,
     type: 'CONTAINER',

@@ -12,6 +12,7 @@ const initialState = {
     error: undefined,
     ui: {},
     data: {},
+    variables: {},
     category: '',
 };
 
@@ -30,6 +31,7 @@ const reducer = (state = initialState, { type, payload }) => {
                 ...state,
                 loading: false,
                 data: payload.data,
+                variables: payload.variables,
                 ui: payload.ui,
             };
         case EDIT_PAGE_LOAD_FAILURE:

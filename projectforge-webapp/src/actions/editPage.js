@@ -15,11 +15,12 @@ export const loadBegin = category => ({
     payload: { category },
 });
 
-export const loadSuccess = (data, ui) => ({
+export const loadSuccess = (data, ui, variables) => ({
     type: EDIT_PAGE_LOAD_SUCCESS,
     payload: {
         data,
         ui,
+        variables,
     },
 });
 
@@ -62,7 +63,7 @@ export const loadEdit = (category, id, additionalParams) => (dispatch) => {
     )
         .then(handleHTTPErrors)
         .then(response => response.json())
-        .then(json => dispatch(loadSuccess(json.data, json.ui)))
+        .then(json => dispatch(loadSuccess(json.data, json.ui, json.variables)))
         .catch(error => dispatch(loadFailure(error.message)));
 };
 

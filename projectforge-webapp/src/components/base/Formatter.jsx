@@ -16,6 +16,7 @@ function Formatter(
     {
         formatter,
         data,
+        variables,
         id,
         dataType,
         dateFormat,
@@ -23,7 +24,7 @@ function Formatter(
     },
 ) {
     if (dataType === 'CUSTOMIZED') {
-        return <CustomizedLayout id={id} data={data} />;
+        return <CustomizedLayout id={id} data={data} variables={variables} />;
     }
     const value = Object.getByString(data, id);
     if (!value) {
@@ -72,6 +73,7 @@ function Formatter(
 
 Formatter.propTypes = {
     data: PropTypes.shape({}),
+    variables: PropTypes.shape({}),
     id: PropTypes.string,
     formatter: PropTypes.string,
     dataType: PropTypes.string,
@@ -81,6 +83,7 @@ Formatter.propTypes = {
 
 Formatter.defaultProps = {
     data: undefined,
+    variables: undefined,
     id: undefined,
     formatter: undefined,
     dataType: undefined,

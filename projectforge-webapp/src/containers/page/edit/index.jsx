@@ -25,6 +25,7 @@ class EditPage extends React.Component {
         const {
             changeDataField,
             data,
+            variables,
             error,
             loading,
             ui,
@@ -80,6 +81,7 @@ class EditPage extends React.Component {
                                 <LayoutGroup
                                     content={ui.layout}
                                     data={data}
+                                    variables={variables}
                                     translations={ui.translations}
                                     changeDataField={changeDataField}
                                     validation={validation}
@@ -122,11 +124,13 @@ EditPage.propTypes = {
     validation: PropTypes.shape({}),
     error: PropTypes.string,
     data: PropTypes.shape({}),
+    variables: PropTypes.shape({}),
     loading: PropTypes.bool,
 };
 
 EditPage.defaultProps = {
     data: [],
+    variables: {},
     error: undefined,
     loading: false,
     validation: {},
@@ -137,6 +141,7 @@ const mapStateToProps = state => ({
     error: state.editPage.error,
     loading: state.editPage.loading,
     data: state.editPage.data,
+    variables: state.editPage.variables,
     validation: state.editPage.validation,
 });
 
