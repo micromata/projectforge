@@ -29,7 +29,7 @@ import javax.ws.rs.core.Response
 @Component
 @Path("task")
 class TaskServicesRest {
-    class Kost2(val number: String, val cost2Art: String)
+    class Kost2(val id: Int, val number: String, val title: String)
     class OrderPosition(val number: Int, val personDays: Int?, val title: String, status: AuftragsPositionsStatus?)
     class Order(val number: String,
                 val title: String,
@@ -64,6 +64,18 @@ class TaskServicesRest {
     class Result(val root: Task,
                  var translations: MutableMap<String, String>? = null)
 
+    companion object {
+        fun addKost2List(task: Task) {
+            val kost2DOList = TaskTreeHelper.getTaskTree().getKost2List(task.id)
+            if (!kost2DOList.isNullOrEmpty()) {
+                val kost2List: List<Kost2> = kost2DOList.map {
+                    Kost2((it as Kost2DO).id, it.formattedNumber, "${it.formattedNumber} - ${it.kost2Art.name}")
+                }
+                task.kost2List = kost2List
+            }
+        }
+    }
+
     private class BuildContext(val user: PFUserDO,
                                val taskFilter: TaskFilter,
                                val rootTask: Task, // Only for table view.
@@ -72,7 +84,7 @@ class TaskServicesRest {
     private val log = org.slf4j.LoggerFactory.getLogger(TaskServicesRest::class.java)
 
     @Autowired
-    private lateinit var accessChecker: AccessChecker;
+    private lateinit var accessChecker: AccessChecker
 
     @Autowired
     private lateinit var taskDao: TaskDao
@@ -115,7 +127,7 @@ class TaskServicesRest {
         val indent = if (table == true) 0 else null
         buildTree(ctx, root, rootNode, indent)
         if (table == true && (accessChecker.isLoggedInUserMemberOfAdminGroup() ||
-                accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP))) {
+                        accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP))) {
             // Append root node for admins and financial staff only in table view for displaying purposes.
             root.childs?.add(Task(rootNode))
         }
@@ -150,16 +162,6 @@ class TaskServicesRest {
         }
         task.path = pathArray
         return restHelper.buildResponse(task)
-    }
-
-    private fun addKost2List(task: Task) {
-        val kost2DOList = taskTree.getKost2List(task.id)
-        if (!kost2DOList.isNullOrEmpty()) {
-            val kost2List: List<Kost2> = kost2DOList.map {
-                Kost2((it as Kost2DO).formattedNumber, it.kost2Art.name)
-            }
-            task.kost2List = kost2List
-        }
     }
 
     /**
