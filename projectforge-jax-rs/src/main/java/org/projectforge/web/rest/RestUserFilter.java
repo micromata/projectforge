@@ -156,13 +156,17 @@ public class RestUserFilter implements Filter {
           }
         }
         if (user == null) {
-          log.error("Neither "
-                  + Authentication.AUTHENTICATION_USER_ID
-                  + " nor "
-                  + Authentication.AUTHENTICATION_USERNAME
-                  + "/"
-                  + Authentication.AUTHENTICATION_PASSWORD
-                  + " is given for rest call: " + ((HttpServletRequest) request).getRequestURI() + " . Rest call forbidden.");
+          String requestURI = ((HttpServletRequest) request).getRequestURI();
+          // Don't log error for userStatus (used by React client for checking weather the user is logged in or not).
+          if (requestURI == null || !requestURI.equals("/rs/userStatus")) {
+            log.error("Neither "
+                    + Authentication.AUTHENTICATION_USER_ID
+                    + " nor "
+                    + Authentication.AUTHENTICATION_USERNAME
+                    + "/"
+                    + Authentication.AUTHENTICATION_PASSWORD
+                    + " is given for rest call: " + requestURI + " . Rest call forbidden.");
+          }
         }
       }
     }
