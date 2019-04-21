@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { Alert } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFile, faFolder, faFolderOpen } from '@fortawesome/free-regular-svg-icons';
+import classNames from 'classnames';
 import { Card, CardBody, Table } from '../../components/design';
 
 import { getServiceURL } from '../../utilities/rest';
@@ -14,7 +15,9 @@ class TaskTreePanel extends React.Component {
         this.state = {
             nodes: [],
             translations: [],
+            scrolled: false, // Scroll only once to highlighted row.
         };
+        this.myScrollRef = React.createRef();
 
         this.fetch = this.fetch.bind(this);
         this.handleRowClick = this.handleRowClick.bind(this);
@@ -22,6 +25,15 @@ class TaskTreePanel extends React.Component {
 
     componentDidMount() {
         this.fetch('true');
+    }
+
+    componentDidUpdate() {
+        const { scrolled } = this.state;
+        if (this.myScrollRef.current && !scrolled) {
+            window.scrollTo(0, this.myScrollRef.current.offsetTop);
+            /* eslint-disable-next-line */
+            this.setState({ scrolled: true });
+        }
     }
 
     handleRowClick(id, task) {
@@ -37,9 +49,11 @@ class TaskTreePanel extends React.Component {
     }
 
     fetch(initial, open, close) {
+        const { highlightTaskId } = this.props;
+        const doOpen = (initial) ? open || highlightTaskId || '' : open || '';
         fetch(getServiceURL('task/tree', {
             table: 'true', // Result expected as table not as tree.
-            open: open || '',
+            open: doOpen,
             close: close || '',
         }), {
             method: 'GET',
@@ -139,11 +153,17 @@ class TaskTreePanel extends React.Component {
                                     );
                                 }
                                 const responsibleUser = task.responsibleUser ? task.responsibleUser.fullname : '';
+                                const { highlightTaskId } = this.props;
+                                const highlighted = (highlightTaskId === task.id);
                                 return (
                                     <tr
                                         key={`table-body-row-${task.id}`}
                                         onClick={() => this.handleRowClick(task.id, task)}
-                                        className={style.clickable}
+                                        className={classNames({
+                                            [style.clickable]: true,
+                                            [style.highlighted]: highlighted,
+                                        })}
+                                        ref={highlighted ? this.myScrollRef : undefined}
                                     >
                                         <td>{link}</td>
                                         <td>...</td>
@@ -171,10 +191,12 @@ class TaskTreePanel extends React.Component {
 
 TaskTreePanel.propTypes = {
     onTaskSelect: PropTypes.func,
+    highlightTaskId: PropTypes.number,
 };
 
 TaskTreePanel.defaultProps = {
     onTaskSelect: undefined,
+    highlightTaskId: undefined,
 };
 
 export default (TaskTreePanel);
