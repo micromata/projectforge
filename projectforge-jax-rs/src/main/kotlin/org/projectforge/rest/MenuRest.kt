@@ -38,7 +38,7 @@ class MenuRest {
         item.add(MenuItem("SendFeedback", i18nKey = "menu.gear.feedback", url = "wa/feedback"))
         item.add(MenuItem("MyAccount", i18nKey = "menu.myAccount", url = "wa/myAccount"))
         item.add(MenuItem("MyLeaveAccount", i18nKey = "menu.vacation.leaveaccount", url = "wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationViewPage"))
-        item.add(MenuItem("Logout", i18nKey = "menu.logout", url = "rs/logout", type = MenuItemTargetType.RESTCALL))
+        item.add(MenuItem("Logout", i18nKey = "menu.logout", url = "logout", type = MenuItemTargetType.RESTCALL))
         item.subMenu?.forEach { it.postProcess() }
         val menu = Menus(mainMenu, favoritesMenu, myAccountMenu)
         return RestHelper().buildResponse(menu)
