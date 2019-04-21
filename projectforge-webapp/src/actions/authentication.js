@@ -52,7 +52,7 @@ export const loadUserStatus = () => (dispatch) => {
 export const login = (username, password, keepSignedIn) => (dispatch) => {
     dispatch(userLoginBegin());
     return fetch(
-        getServiceURL('../publicRest/login'),
+        getServiceURL('../rsPublic/login'),
         {
             method: 'POST',
             headers: {
