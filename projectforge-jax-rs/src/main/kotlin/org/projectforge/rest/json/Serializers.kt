@@ -9,6 +9,7 @@ import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.TenantDO
 import org.projectforge.registry.Registry
+import org.projectforge.rest.TaskServicesRest
 import java.lang.reflect.Type
 
 
@@ -35,18 +36,15 @@ class TaskDOSerializer : JsonSerializer<TaskDO> {
     @Synchronized
     override fun serialize(obj: TaskDO?, type: Type, jsonSerializationContext: JsonSerializationContext): JsonElement? {
         if (obj == null) return null
-        val result = JsonObject()
-        result.add("id", JsonPrimitive(obj.id))
-        result.add("title", JsonPrimitive(obj.title))
+        val task = TaskServicesRest.Task(obj.id, title=obj.title)
         val list = TaskTreeHelper.getTaskTree().getPathToRoot(obj.parentTaskId)
-        val pathArray = JsonArray()
+        val pathList = mutableListOf<TaskServicesRest.Task>()
         list?.forEach {
-            val ancestor = JsonObject()
-            ancestor.add("id", JsonPrimitive(it.task.id))
-            ancestor.add("title", JsonPrimitive(it.task.title))
-            pathArray.add(ancestor)
+            val ancestor = TaskServicesRest.Task(it.task.id, title = it.task.title)
+            pathList.add(ancestor)
         }
-        result.add("path", pathArray)
+        task.path = pathList
+        val result = jsonSerializationContext.serialize(task)
         return result
     }
 }
