@@ -51,8 +51,9 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
 
     /**
      * Contains the layout data returned for the frontend regarding edit pages.
+     * @param variables Additional variables / data provided for the edit page.
      */
-    class EditLayoutData(val data: Any?, val ui: UILayout?)
+    class EditLayoutData(val data: Any?, val ui: UILayout?, var variables : Map<String, Any>? = null)
 
     /**
      * Contains the data, layout and filter settings served by [getInitialList].
@@ -268,18 +269,28 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
     @Path("edit")
     @Produces(MediaType.APPLICATION_JSON)
     fun getItemAndLayout(@Context request: HttpServletRequest, @QueryParam("id") id: Int?): Response {
-        val item = (if (null != id) getById(id) else newBaseDO(request)) ?: return restHelper.buildResponseItemNotFound()
+        val item = (if (null != id) getById(id) else newBaseDO(request))
+                ?: return restHelper.buildResponseItemNotFound()
         val layout = createEditLayout(item)
         layout.addTranslations("changes")
         layout.postProcessPageMenu()
         val result = EditLayoutData(item, layout)
         onGetItemAndLayout(request, item, result)
+       val additionalVariables = addVariablesForEditPage(item)
+        if (additionalVariables != null)
+            result.variables = additionalVariables
         return restHelper.buildResponse(result)
     }
 
     protected open fun onGetItemAndLayout(request: HttpServletRequest, item: O, editLayoutData: EditLayoutData) {
     }
 
+    /**
+     * Use this method to add customized variables for your edit page for the initial call.
+     */
+    protected open fun addVariablesForEditPage(item: O) : Map<String, Any>? {
+        return null
+    }
 
     /**
      * Gets the autocompletion list for the given property and search string.

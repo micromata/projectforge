@@ -1,7 +1,7 @@
 import { faSearch, faStream, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
-import { Button, Modal, ModalBody, ModalHeader } from 'reactstrap';
+import { Alert, Button, Modal, ModalBody, ModalHeader } from 'reactstrap';
 import PropTypes from 'prop-types';
 import style from '../../../design/input/Input.module.scss';
 import TaskTreePanel from '../../../../containers/panel/TaskTreePanel';
@@ -30,8 +30,11 @@ class TaskSelect extends React.Component {
             .then(response => response.json())
             .then((json) => {
                 const task = json;
-                const { id, changeDataField } = this.props;
-                changeDataField(id, task);
+                if (task) {
+                    const newTask = { id: task.id };
+                    const { id, changeDataField } = this.props;
+                    changeDataField(id, newTask);
+                }
             })
             .catch(() => this.setState({}));
     }
@@ -52,9 +55,25 @@ class TaskSelect extends React.Component {
     }
 
     render() {
-        const { label, data, id } = this.props;
+        const {
+            label,
+            data,
+            id,
+            variables
+        } = this.props;
         const { taskTreeModal, taskTreeModalHighlight } = this.state;
-        const task = Object.getByString(data, id);
+        const task = variables ? variables.task : undefined;
+        const taskId = task ? task.id : undefined;
+        const modelTask = Object.getByString(data, id);
+        const modelTaskId = modelTask ? modelTask.id : undefined;
+        if (taskId !== modelTaskId) {
+            return (
+                <Alert color="danger">
+                    Internal error. Please contact the developers. (TaskSelect:taskID !==
+                    modelTaskId!).
+                </Alert>
+            );
+        }
         const labelElement = task ? '' : <span className={style.text}>{label}</span>;
         let recentAncestorId;
         const taskPath = (!task || !task.path) ? '' : task.path.map((ancestor) => {
@@ -78,7 +97,11 @@ class TaskSelect extends React.Component {
             recentAncestorId = ancestor.id;
             return (
                 <React.Fragment key={ancestor.id}>
-                    <span className="onclick" onClick={() => this.openTaskTreeModal(ancestor.id)} role="presentation">
+                    <span
+                        className="onclick"
+                        onClick={() => this.openTaskTreeModal(ancestor.id)}
+                        role="presentation"
+                    >
                         {ancestor.title}
                     </span>
                     {' '}
@@ -96,7 +119,11 @@ class TaskSelect extends React.Component {
         });
         const currentTask = !task ? '' : (
             <React.Fragment>
-                <span className="onclick" onClick={() => this.openTaskTreeModal(task.id)} role="presentation">
+                <span
+                    className="onclick"
+                    onClick={() => this.openTaskTreeModal(task.id)}
+                    role="presentation"
+                >
                     {task.title}
                 </span>
                 {' '}
@@ -168,6 +195,7 @@ class TaskSelect extends React.Component {
 TaskSelect.propTypes = {
     changeDataField: PropTypes.func.isRequired,
     data: PropTypes.shape({}).isRequired,
+    variables: PropTypes.shape({}).isRequired,
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
 };

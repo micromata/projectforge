@@ -65,6 +65,23 @@ class TaskServicesRest {
                  var translations: MutableMap<String, String>? = null)
 
     companion object {
+        fun createTask(id: Int?): Task? {
+            if (id == null)
+                return null
+            val taskTree = TaskTreeHelper.getTaskTree()
+            val taskNode = taskTree.getTaskNodeById(id) ?: return null
+            val task = Task(taskNode)
+            addKost2List(task)
+            val pathToRoot = taskTree.getPathToRoot(taskNode.parentId)
+            val pathArray = mutableListOf<Task>()
+            pathToRoot?.forEach {
+                val ancestor = Task(id = it.task.id, title = it.task.title)
+                pathArray.add(ancestor)
+            }
+            task.path = pathArray
+            return task
+        }
+
         fun addKost2List(task: Task) {
             val kost2DOList = TaskTreeHelper.getTaskTree().getKost2List(task.id)
             if (!kost2DOList.isNullOrEmpty()) {
@@ -151,16 +168,9 @@ class TaskServicesRest {
     @Path("info/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     fun getTaskInfo(@PathParam("id") id: Int?): Response {
-        val taskNode = taskTree.getTaskNodeById(id) ?: return restHelper.buildResponseItemNotFound()
-        val task = Task(taskNode)
-        addKost2List(task)
-        val pathToRoot = taskTree.getPathToRoot(taskNode.parentId)
-        val pathArray = mutableListOf<Task>()
-        pathToRoot?.forEach {
-            val ancestor = Task(id = it.task.id, title = it.task.title)
-            pathArray.add(ancestor)
-        }
-        task.path = pathArray
+        val task = createTask(id)
+        if (task == null)
+            return restHelper.buildResponseItemNotFound()
         return restHelper.buildResponse(task)
     }
 
