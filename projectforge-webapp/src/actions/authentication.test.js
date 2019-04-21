@@ -62,7 +62,7 @@ describe('login', () => {
         fetchMock
             .mock(
                 (url, options) => {
-                    if (url !== '/publicRest/login' || options.method !== 'POST') {
+                    if (url !== '/rsPublic/login' || options.method !== 'POST') {
                         return false;
                     }
 
@@ -101,7 +101,7 @@ describe('login', () => {
         fetchMock
             .mock(
                 (url, options) => {
-                    if (url !== '/publicRest/login' || options.method !== 'POST') {
+                    if (url !== '/√/login' || options.method !== 'POST') {
                         return false;
                     }
 
@@ -139,7 +139,7 @@ describe('login', () => {
 
     it('creates USER_LOGIN_FAILURE when fetching login has been failed', () => {
         fetchMock
-            .mock('/publicRest/login', 401)
+            .mock('/rsPublic/login', 401)
             .catch(() => {
                 throw new Error('mock failed');
             });
