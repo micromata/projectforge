@@ -1,4 +1,5 @@
-import { faSearch, faStream, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
+import { faTimesCircle, faStream } from '@fortawesome/free-solid-svg-icons';
+import { faStar } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import { Button, Modal, ModalBody, ModalHeader } from 'reactstrap';
@@ -158,7 +159,7 @@ class TaskSelect extends React.Component {
                     onClick={this.toggleTaskTreeModal}
                 >
                     <FontAwesomeIcon
-                        icon={faSearch}
+                        icon={faStream}
                         className={style.icon}
                     />
                 </Button>
@@ -166,9 +167,10 @@ class TaskSelect extends React.Component {
                     color="link"
                     className="selectPanelIconLinks"
                     onClick={this.toggleTaskTreeModal}
+                    disabled
                 >
                     <FontAwesomeIcon
-                        icon={faStream}
+                        icon={faStar}
                         className={style.icon}
                     />
                 </Button>
