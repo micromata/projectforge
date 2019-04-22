@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { getServiceURL } from '../../../../utilities/rest';
 import ReactSelect from './ReactSelect';
+import style from '../../../design/input/Input.module.scss';
 
 class UserSelect extends React.Component {
     constructor(props) {
@@ -56,6 +57,7 @@ class UserSelect extends React.Component {
                     loadOptions={this.loadOptions}
                     isRequired={required}
                     getOptionLabel={UserSelect.getOptionLabel}
+                    className={style.userSelect}
                 />
             </React.Fragment>
         );
