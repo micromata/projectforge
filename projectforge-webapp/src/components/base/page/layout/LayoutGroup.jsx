@@ -5,11 +5,11 @@ import CustomizedLayout from './customized';
 import LayoutDayPickerInput from './LayoutDayPickerInput';
 import LayoutInput from './LayoutInput';
 import LayoutLabel from './LayoutLabel';
-import ReactSelect from './ReactSelect';
 import LayoutTable from './table';
 import Timestamp from './Timestamp';
 import TaskSelect from './TaskSelect';
 import UserSelect from './UserSelect';
+import UncontrolledReactSelect from './UncontrolledReactSelect';
 
 function LayoutGroup(
     {
@@ -57,7 +57,7 @@ function LayoutGroup(
                         Tag = LayoutInput;
                         break;
                     case 'SELECT':
-                        Tag = ReactSelect;
+                        Tag = UncontrolledReactSelect;
                         break;
                     case 'GROUP':
                     case 'ROW':
@@ -69,7 +69,7 @@ function LayoutGroup(
                         Tag = LayoutTable;
                         break;
                     case 'MULTI_SELECT':
-                        Tag = ReactSelect;
+                        Tag = UncontrolledReactSelect;
                         properties.isMulti = true;
                         break;
                     case 'CUSTOMIZED':

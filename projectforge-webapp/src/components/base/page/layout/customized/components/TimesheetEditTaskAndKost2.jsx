@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import 'moment/min/locales';
 import 'react-day-picker/lib/style.css';
 import 'rc-time-picker/assets/index.css';
-import ReactSelect from '../../ReactSelect';
 import TaskSelect from '../../TaskSelect';
+import UncontrolledReactSelect from '../../UncontrolledReactSelect';
 
 /**
  * Kost2 selection for editing time sheets.
@@ -46,7 +46,7 @@ class TimesheetEditTaskAndKost2 extends React.Component {
                 <div className="row">
                     <div className="col col-sm-6">
                         <div className="form-group">
-                            <ReactSelect
+                            <UncontrolledReactSelect
                                 label={translations['fibu.kost2']}
                                 data={data}
                                 id={values.id}

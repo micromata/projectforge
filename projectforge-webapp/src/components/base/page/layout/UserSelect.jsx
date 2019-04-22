@@ -4,9 +4,9 @@ import { faSmile, faSmileWink } from '@fortawesome/free-regular-svg-icons';
 import { Button, UncontrolledTooltip } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { connect } from 'react-redux';
-import ReactSelect from './ReactSelect';
 import style from '../../../design/input/Input.module.scss';
 import { getServiceURL } from '../../../../utilities/rest';
+import UncontrolledReactSelect from './UncontrolledReactSelect';
 
 class UserSelect extends React.Component {
     constructor(props) {
@@ -78,7 +78,7 @@ class UserSelect extends React.Component {
         const showSelectMe = (!value || value.id !== userId);
         return (
             <div className="form-row">
-                <ReactSelect
+                <UncontrolledReactSelect
                     label={label}
                     data={data}
                     id={id}
