@@ -32,7 +32,7 @@ class ReactSelect extends React.Component {
             translations,
         } = this.props;
         let defaultValue = Object.getByString(data, id);
-        if (defaultValue) {
+        if (defaultValue && values && values.length) {
             const value = (typeof defaultValue === 'object') ? defaultValue[valueProperty] : defaultValue;
             defaultValue = values.find(it => it[valueProperty] === value);
         }
