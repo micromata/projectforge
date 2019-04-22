@@ -7,15 +7,19 @@ import { connect } from 'react-redux';
 import style from '../../../design/input/Input.module.scss';
 import { getServiceURL } from '../../../../utilities/rest';
 import UncontrolledReactSelect from './UncontrolledReactSelect';
+import ReactSelect from './ReactSelect';
 
 class UserSelect extends React.Component {
     constructor(props) {
         super(props);
+        const dataValue = UncontrolledReactSelect.extractDataValue(props);
         this.state = {
+            value: dataValue,
             selectMeIcon: faSmile,
         };
 
         this.loadOptions = this.loadOptions.bind(this);
+        this.onChange = this.onChange.bind(this);
         this.selectMe = this.selectMe.bind(this);
         this.selectMeHover = this.selectMeHover.bind(this);
         this.selectMeUnHover = this.selectMeUnHover.bind(this);
@@ -26,6 +30,12 @@ class UserSelect extends React.Component {
             return '';
         }
         return `${option.fullname} (${option.username})`;
+    }
+
+    onChange(newValue) {
+        this.setState({ value: newValue });
+        const { id, changeDataField } = this.props;
+        changeDataField(id, newValue);
     }
 
     loadOptions(inputValue, callback) {
@@ -52,7 +62,13 @@ class UserSelect extends React.Component {
             username,
             fullname,
         } = this.props;
-        changeDataField(id, { id: userId, username, fullname }, true);
+        const me = {
+            id: userId,
+            username,
+            fullname,
+        };
+        this.setState({ value: me });
+        changeDataField(id, me);
     }
 
     selectMeHover() {
@@ -64,31 +80,28 @@ class UserSelect extends React.Component {
     }
 
     render() {
+        const { value } = this.state;
         const {
-            data,
-            id,
-            changeDataField,
-            label,
-            translations,
             required,
             userId,
+            translations,
+            ...props
         } = this.props;
         const { selectMeIcon } = this.state;
-        const value = Object.getByString(data, id);
         const showSelectMe = (!value || value.id !== userId);
+
         return (
             <div className="form-row">
-                <UncontrolledReactSelect
-                    label={label}
-                    data={data}
-                    id={id}
+                <ReactSelect
+                    value={value}
+                    onChange={this.onChange}
+                    {...props}
                     values={[]}
-                    changeDataField={changeDataField}
-                    translations={translations}
                     valueProperty="id"
                     labelProperty="fullname"
                     loadOptions={this.loadOptions}
                     isRequired={required}
+                    translations={translations}
                     getOptionLabel={UserSelect.getOptionLabel}
                     className={style.userSelect}
                 />

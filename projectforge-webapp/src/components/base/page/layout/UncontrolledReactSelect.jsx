@@ -4,14 +4,13 @@ import { dataPropType } from '../../../../utilities/propTypes';
 import ReactSelect from './ReactSelect';
 
 class UncontrolledReactSelect extends React.Component {
-    constructor(props) {
-        super(props);
+    static extractDataValue(props) {
         const {
             id,
             values,
             data,
             valueProperty,
-        } = this.props;
+        } = props;
         let dataValue = Object.getByString(data, id);
         if (dataValue && values && values.length && values.length > 0) {
             // For react-select it seems to be important, that the current selected element matches
@@ -19,6 +18,12 @@ class UncontrolledReactSelect extends React.Component {
             const valueOfArray = (typeof dataValue === 'object') ? dataValue[valueProperty] : dataValue;
             dataValue = values.find(it => it[valueProperty] === valueOfArray);
         }
+        return dataValue;
+    }
+
+    constructor(props) {
+        super(props);
+        const dataValue = UncontrolledReactSelect.extractDataValue(props);
         this.state = { value: dataValue };
 
         this.onChange = this.onChange.bind(this);
