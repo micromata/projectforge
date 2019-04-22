@@ -6,12 +6,6 @@ import ReactSelect from './ReactSelect';
 class UncontrolledReactSelect extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { value: undefined };
-
-        this.onChange = this.onChange.bind(this);
-    }
-
-    componentDidMount() {
         const {
             id,
             values,
@@ -25,7 +19,9 @@ class UncontrolledReactSelect extends React.Component {
             const valueOfArray = (typeof dataValue === 'object') ? dataValue[valueProperty] : dataValue;
             dataValue = values.find(it => it[valueProperty] === valueOfArray);
         }
-        this.setState({ value: dataValue });
+        this.state = { value: dataValue };
+
+        this.onChange = this.onChange.bind(this);
     }
 
     onChange(newValue) {
