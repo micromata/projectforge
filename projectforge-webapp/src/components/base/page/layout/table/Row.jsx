@@ -5,6 +5,7 @@ import Formatter from '../../../Formatter';
 import history from '../../../../../utilities/history';
 import { tableColumnsPropType } from '../../../../../utilities/propTypes';
 import style from '../../Page.module.scss';
+import CustomizedLayout from '../customized';
 
 class TableRow extends React.Component {
     constructor(props) {
@@ -20,7 +21,7 @@ class TableRow extends React.Component {
     }
 
     render() {
-        const { columns, data } = this.props;
+        const { columns, data, variables } = this.props;
 
         return (
             <tr
@@ -28,14 +29,22 @@ class TableRow extends React.Component {
                 className={style.clickable}
             >
                 {columns.map(({ id, formatter, dataType }) => {
-                    return (
-                        <td key={`table-body-row-${data.id}-column-${id}`}>
+                    let element;
+                    if (dataType === 'CUSTOMIZED') {
+                        element = <CustomizedLayout id={id} data={data} variables={variables} />;
+                    } else {
+                        element = (
                             <Formatter
                                 formatter={formatter}
                                 data={data}
                                 id={id}
                                 dataType={dataType}
                             />
+                        );
+                    }
+                    return (
+                        <td key={`table-body-row-${data.id}-column-${id}`}>
+                            {element}
                         </td>
                     );
                 })}
@@ -50,6 +59,11 @@ TableRow.propTypes = {
     data: PropTypes.shape({
         id: PropTypes.number,
     }).isRequired,
+    variables: PropTypes.shape({}),
+};
+
+TableRow.defaultProps = {
+    variables: undefined,
 };
 
 const mapStateToProps = state => ({
