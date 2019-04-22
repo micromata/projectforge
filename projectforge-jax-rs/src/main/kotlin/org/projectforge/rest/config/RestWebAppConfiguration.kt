@@ -32,6 +32,8 @@ class RestWebAppConfiguration : ResourceConfig() {
         register(TeamCalRest::class.java)
         register(TeamEventRest::class.java)
         register(TimesheetRest::class.java)
+        register(UserRest::class.java)
+        register(UserServicesRest::class.java)
 
         // Organization
         register(ContractRest::class.java)

@@ -6,10 +6,13 @@ import ReactSelect from './ReactSelect';
 class UserSelect extends React.Component {
     constructor(props) {
         super(props);
+
+        this.loadOptions = this.loadOptions.bind(this);
     }
 
-    setTask(taskId) {
-        fetch(getServiceURL(`task/info/${taskId}`), {
+    loadOptions(inputValue, callback) {
+        fetch(getServiceURL('user/aco',
+            { search: inputValue }), {
             method: 'GET',
             credentials: 'include',
             headers: {
@@ -18,10 +21,10 @@ class UserSelect extends React.Component {
         })
             .then(response => response.json())
             .then((json) => {
-                const user = json;
+                callback(json);
             })
             .catch(() => this.setState({}));
-    }
+    };
 
     render() {
         const {
@@ -42,6 +45,7 @@ class UserSelect extends React.Component {
                     translations={translations}
                     valueProperty="id"
                     labelProperty="username"
+                    loadOptions={this.loadOptions}
                 />
             </React.Fragment>
         );
@@ -57,7 +61,6 @@ UserSelect.propTypes = {
     translations: PropTypes.shape({}).isRequired,
 };
 
-UserSelect.defaultProps = {
-};
+UserSelect.defaultProps = {};
 
 export default UserSelect;
