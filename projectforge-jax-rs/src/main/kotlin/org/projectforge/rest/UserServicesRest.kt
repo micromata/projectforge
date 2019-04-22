@@ -38,6 +38,9 @@ class UserServicesRest {
         val filter = BaseSearchFilter()
         filter.setSearchFields("username", "firstname", "lastname", "email")
         filter.searchString = searchString
-        return restHelper.buildResponse(userDao.getList(filter))
+        val result = userDao.getList(filter)
+        if (searchString.isNullOrBlank())
+            result.removeIf { it.isDeactivated } // Remove deactivated users when returning all. Show deactivated users only if search string is given.
+        return restHelper.buildResponse(result)
     }
 }
