@@ -31,7 +31,7 @@ class TaskTreePanel extends React.Component {
         const { scrolled } = this.state;
         if (this.myScrollRef.current && !scrolled) {
             window.scrollTo(0, this.myScrollRef.current.offsetTop);
-            /* eslint-disable-next-line */
+            /* eslint-disable-next-line react/no-did-update-set-state */
             this.setState({ scrolled: true });
         }
     }
