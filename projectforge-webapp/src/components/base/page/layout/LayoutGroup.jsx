@@ -9,6 +9,7 @@ import ReactSelect from './ReactSelect';
 import LayoutTable from './table';
 import Timestamp from './Timestamp';
 import TaskSelect from './TaskSelect';
+import UserSelect from './UserSelect';
 
 function LayoutGroup(
     {
@@ -45,6 +46,8 @@ function LayoutGroup(
                             Tag = Timestamp;
                         } else if (component.dataType === 'TASK') {
                             Tag = TaskSelect;
+                        } else if (component.dataType === 'USER') {
+                            Tag = UserSelect;
                         } else {
                             Tag = LayoutInput;
                         }

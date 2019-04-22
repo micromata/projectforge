@@ -7,5 +7,6 @@ enum class UIDataType {
     PICTURE,
     STRING,
     TASK,
-    TIMESTAMP
+    TIMESTAMP,
+    USER
 }
