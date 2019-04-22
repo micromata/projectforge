@@ -1,6 +1,7 @@
 package org.projectforge.rest
 
 import org.projectforge.business.fibu.AuftragsPositionsStatus
+import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskFilter
@@ -29,7 +30,7 @@ import javax.ws.rs.core.Response
 @Component
 @Path("task")
 class TaskServicesRest {
-    class Kost2(val id: Int, val number: String, val title: String)
+    class Kost2(val id: Int, val title: String)
     class OrderPosition(val number: Int, val personDays: Int?, val title: String, status: AuftragsPositionsStatus?)
     class Order(val number: String,
                 val title: String,
@@ -86,7 +87,7 @@ class TaskServicesRest {
             val kost2DOList = TaskTreeHelper.getTaskTree().getKost2List(task.id)
             if (!kost2DOList.isNullOrEmpty()) {
                 val kost2List: List<Kost2> = kost2DOList.map {
-                    Kost2((it as Kost2DO).id, it.formattedNumber, "${it.formattedNumber} - ${it.kost2Art.name}")
+                    Kost2((it as Kost2DO).id, KostFormatter.format(it, 80))
                 }
                 task.kost2List = kost2List
             }
