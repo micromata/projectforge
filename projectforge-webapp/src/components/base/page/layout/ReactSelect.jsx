@@ -39,8 +39,10 @@ class ReactSelect extends React.Component {
             defaultValue = values.find(it => it[valueProperty] === value);
         }
         let Tag = Select;
+        let defaultOptions;
         if (loadOptions) {
             Tag = AsyncSelect;
+            defaultOptions = true;
         }
         return (
             <React.Fragment>
@@ -56,6 +58,7 @@ class ReactSelect extends React.Component {
                     getOptionLabel={option => (option[labelProperty])}
                     onChange={this.setSelected}
                     loadOptions={loadOptions}
+                    defaultOptions={defaultOptions}
                     placeholder={translations['select.placeholder']}
                 />
                 <AdditionalLabel title={additionalLabel} />
