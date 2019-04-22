@@ -23,9 +23,8 @@
 
 package org.projectforge.business.task;
 
-import java.util.HashMap;
-import java.util.HashSet;
-
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
@@ -33,8 +32,8 @@ import org.projectforge.common.task.TaskStatus;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
-import com.thoughtworks.xstream.annotations.XStreamAlias;
-import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import java.util.HashMap;
+import java.util.HashSet;
 
 @XStreamAlias("TaskFilter")
 public class TaskFilter extends BaseSearchFilter
@@ -51,9 +50,6 @@ public class TaskFilter extends BaseSearchFilter
 
   @XStreamAsAttribute
   private boolean closed;
-
-  @XStreamAsAttribute
-  private boolean deleted;
 
   /**
    * Used by match filter for avoiding multiple traversing of the tree. Should be empty before building a task node
@@ -84,19 +80,6 @@ public class TaskFilter extends BaseSearchFilter
   public void setClosed(final boolean closed)
   {
     this.closed = closed;
-  }
-
-  @Override
-  public boolean isDeleted()
-  {
-    return deleted;
-  }
-
-  @Override
-  public TaskFilter setDeleted(final boolean deleted)
-  {
-    this.deleted = deleted;
-    return this;
   }
 
   public boolean isNotOpened()
@@ -138,7 +121,7 @@ public class TaskFilter extends BaseSearchFilter
   /**
    * Needed by TaskTreeTable to show and hide nodes.<br/>
    * Don't forget to call resetMatch before!
-   * 
+   *
    * @param node Node to check.
    * @param taskDao Needed for access checking.
    * @param user Needed for access checking.
