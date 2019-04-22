@@ -65,9 +65,9 @@ class PFDate(val date: LocalDate) {
          * Creates mindnight [ZonedDateTime] from given [LocalDate].
          */
         @JvmStatic
-        fun from(date: java.util.Date?): PFDate {
+        fun from(date: java.util.Date?): PFDate? {
             if (date == null)
-                return now()
+                return null
             return PFDate(date.toInstant()
                     .atZone(ZoneId.of("UTC"))
                     .toLocalDate())

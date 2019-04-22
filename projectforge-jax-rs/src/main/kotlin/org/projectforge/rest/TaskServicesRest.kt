@@ -13,7 +13,7 @@ import org.projectforge.business.user.service.UserPreferencesService
 import org.projectforge.common.i18n.Priority
 import org.projectforge.common.task.TaskStatus
 import org.projectforge.framework.access.AccessChecker
-import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.createTranslations
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDate
@@ -151,11 +151,19 @@ class TaskServicesRest {
         }
         val result = Result(root)
         if (initial == true) {
-            result.translations = mutableMapOf()
-            val translations = result.translations!!
-            translations["task"] = translate("task")
-            translations["task.consumption"] = translate("task.consumption")
-            translations["task.tree.info"] = translate("task.tree.info")
+            result.translations = createTranslations(
+                    "fibu.auftrag.auftraege",
+                    "fibu.kost2",
+                    "priority",
+                    "shortDescription",
+                    "status",
+                    "task",
+                    "task.assignedUser",
+                    "task.consumption",
+                    "task.protectTimesheetsUntil",
+                    "task.protectTimesheetsUntil.short",
+                    "task.reference",
+                    "task.tree.info")
         }
         return restHelper.buildResponse(result)
     }

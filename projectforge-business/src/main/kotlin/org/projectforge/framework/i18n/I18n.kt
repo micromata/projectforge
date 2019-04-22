@@ -18,3 +18,10 @@ fun autoTranslate(text: String?): String {
         return text.substring(1)
     return translate(text)
 }
+
+fun createTranslations(vararg i18nKeys: String, translations : MutableMap<String, String> = mutableMapOf()): MutableMap<String, String> {
+    i18nKeys.forEach {
+        translations.put(it, translate(it))
+    }
+    return translations
+}

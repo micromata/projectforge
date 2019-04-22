@@ -145,7 +145,7 @@ class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, Timeshee
                 .add(dayRange)
                 .add(UICustomized("taskConsumption"))
                 .add(lc, "location", "description")
-                .add(UIRow().add(UICol().add(UILabel("'ToDo: Validation, resetting Kost2-Combobox after task selection. Testing..."))))
+                .add(UIRow().add(UICol().add(UILabel("'ToDo: Validation, resetting Kost2-Combobox after task selection, Location-AC, favorites, templates, Testing..."))))
                 .addTranslations("until","fibu.kost2", "task")
         return LayoutUtils.processEditPage(layout, dataObject)
     }
