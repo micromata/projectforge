@@ -33,6 +33,7 @@ class ReactSelect extends React.Component {
             translations,
             loadOptions,
             getOptionLabel,
+            className,
         } = this.props;
         let defaultValue = Object.getByString(data, id);
         if (defaultValue && values && values.length) {
@@ -61,6 +62,7 @@ class ReactSelect extends React.Component {
                     loadOptions={loadOptions}
                     defaultOptions={defaultOptions}
                     placeholder={translations['select.placeholder']}
+                    className={className}
                 />
                 <AdditionalLabel title={additionalLabel} />
             </React.Fragment>
@@ -82,6 +84,7 @@ ReactSelect.propTypes = {
     translations: PropTypes.shape({}).isRequired,
     loadOptions: PropTypes.func,
     getOptionLabel: PropTypes.func,
+    className: PropTypes.string,
 };
 
 ReactSelect.defaultProps = {
@@ -92,5 +95,6 @@ ReactSelect.defaultProps = {
     isRequired: false,
     loadOptions: undefined,
     getOptionLabel: undefined,
+    className: undefined,
 };
 export default ReactSelect;
