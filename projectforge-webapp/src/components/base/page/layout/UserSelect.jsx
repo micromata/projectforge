@@ -33,6 +33,7 @@ class UserSelect extends React.Component {
             changeDataField,
             label,
             translations,
+            required,
         } = this.props;
         return (
             <React.Fragment>
@@ -46,6 +47,7 @@ class UserSelect extends React.Component {
                     valueProperty="id"
                     labelProperty="username"
                     loadOptions={this.loadOptions}
+                    isRequired={required}
                 />
             </React.Fragment>
         );
@@ -55,12 +57,15 @@ class UserSelect extends React.Component {
 UserSelect.propTypes = {
     changeDataField: PropTypes.func.isRequired,
     data: PropTypes.shape({}).isRequired,
+    required: PropTypes.bool,
     variables: PropTypes.shape({}).isRequired,
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
     translations: PropTypes.shape({}).isRequired,
 };
 
-UserSelect.defaultProps = {};
+UserSelect.defaultProps = {
+    required: undefined,
+};
 
 export default UserSelect;
