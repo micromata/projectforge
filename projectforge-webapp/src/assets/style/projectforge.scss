@@ -242,6 +242,11 @@ svg.fa-chevron-down {
 
 // Calendar
 
+.rbc-allday-cell {
+  max-height: 100px;
+  overflow-y: auto;
+}
+
 .rbc-event {
   color: #222222;
   borderRadius: 3px;
