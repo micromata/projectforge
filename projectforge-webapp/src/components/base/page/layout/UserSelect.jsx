@@ -45,7 +45,7 @@ class UserSelect extends React.Component {
                     changeDataField={changeDataField}
                     translations={translations}
                     valueProperty="id"
-                    labelProperty="username"
+                    labelProperty="fullname"
                     loadOptions={this.loadOptions}
                     isRequired={required}
                 />
