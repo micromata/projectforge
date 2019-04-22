@@ -1,14 +1,24 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { getServiceURL } from '../../../../utilities/rest';
+import { faSmile, faSmileWink } from '@fortawesome/free-regular-svg-icons';
+import { Button, UncontrolledTooltip } from 'reactstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { connect } from 'react-redux';
 import ReactSelect from './ReactSelect';
 import style from '../../../design/input/Input.module.scss';
+import { getServiceURL } from '../../../../utilities/rest';
 
 class UserSelect extends React.Component {
     constructor(props) {
         super(props);
+        this.state = {
+            selectMeIcon: faSmile,
+        };
 
         this.loadOptions = this.loadOptions.bind(this);
+        this.selectMe = this.selectMe.bind(this);
+        this.selectMeHover = this.selectMeHover.bind(this);
+        this.selectMeUnHover = this.selectMeUnHover.bind(this);
     }
 
     static getOptionLabel(option) {
@@ -34,6 +44,25 @@ class UserSelect extends React.Component {
             .catch(() => this.setState({}));
     }
 
+    selectMe() {
+        const {
+            id,
+            changeDataField,
+            userId,
+            username,
+            fullname,
+        } = this.props;
+        changeDataField(id, { id: userId, username, fullname }, true);
+    }
+
+    selectMeHover() {
+        this.setState({ selectMeIcon: faSmileWink });
+    }
+
+    selectMeUnHover() {
+        this.setState({ selectMeIcon: faSmile });
+    }
+
     render() {
         const {
             data,
@@ -42,9 +71,13 @@ class UserSelect extends React.Component {
             label,
             translations,
             required,
+            userId,
         } = this.props;
+        const { selectMeIcon } = this.state;
+        const value = Object.getByString(data, id);
+        const showSelectMe = (!value || value.id !== userId);
         return (
-            <React.Fragment>
+            <div className="form-row">
                 <ReactSelect
                     label={label}
                     data={data}
@@ -59,7 +92,25 @@ class UserSelect extends React.Component {
                     getOptionLabel={UserSelect.getOptionLabel}
                     className={style.userSelect}
                 />
-            </React.Fragment>
+                <div style={{ display: showSelectMe ? 'block' : 'none' }}>
+                    <Button
+                        id="selectMe"
+                        color="link"
+                        className="selectPanelIconLinks"
+                        onClick={this.selectMe}
+                        onMouseEnter={this.selectMeHover}
+                        onMouseLeave={this.selectMeUnHover}
+                    >
+                        <FontAwesomeIcon
+                            icon={selectMeIcon}
+                            className={style.icon}
+                        />
+                    </Button>
+                    <UncontrolledTooltip placement="right" target="selectMe">
+                        {translations['tooltip.selectMe']}
+                    </UncontrolledTooltip>
+                </div>
+            </div>
         );
     }
 }
@@ -72,10 +123,19 @@ UserSelect.propTypes = {
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
     translations: PropTypes.shape({}).isRequired,
+    userId: PropTypes.number.isRequired,
+    username: PropTypes.string.isRequired,
+    fullname: PropTypes.string.isRequired,
 };
 
 UserSelect.defaultProps = {
     required: undefined,
 };
 
-export default UserSelect;
+const mapStateToProps = ({ authentication }) => ({
+    userId: authentication.user.userId,
+    username: authentication.user.username,
+    fullname: authentication.user.fullname,
+});
+
+export default connect(mapStateToProps)(UserSelect);

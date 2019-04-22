@@ -35,10 +35,12 @@ class ReactSelect extends React.Component {
             getOptionLabel,
             className,
         } = this.props;
-        let defaultValue = Object.getByString(data, id);
-        if (defaultValue && values && values.length) {
-            const value = (typeof defaultValue === 'object') ? defaultValue[valueProperty] : defaultValue;
-            defaultValue = values.find(it => it[valueProperty] === value);
+        let value = Object.getByString(data, id);
+        if (value && values && values.length && values.length > 0) {
+            // For react-select it seems to be important, that the current selected element matches
+            // its value of the values list.
+            const valueOfArray = (typeof value === 'object') ? value[valueProperty] : value;
+            value = values.find(it => it[valueProperty] === valueOfArray);
         }
         let Tag = Select;
         let defaultOptions;
@@ -52,7 +54,7 @@ class ReactSelect extends React.Component {
                 <Tag
                     // closeMenuOnSelect={false}
                     components={makeAnimated()}
-                    defaultValue={defaultValue}
+                    value={value}
                     isMulti={isMulti}
                     options={values}
                     isClearable={!isRequired}
@@ -63,6 +65,7 @@ class ReactSelect extends React.Component {
                     defaultOptions={defaultOptions}
                     placeholder={translations['select.placeholder']}
                     className={className}
+                    cache={{}}
                 />
                 <AdditionalLabel title={additionalLabel} />
             </React.Fragment>
