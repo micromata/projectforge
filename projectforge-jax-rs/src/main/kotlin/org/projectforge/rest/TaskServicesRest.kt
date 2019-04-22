@@ -167,6 +167,7 @@ class TaskServicesRest {
         openTask(ctx, open)
         closeTask(ctx, close)
         //UserPreferencesHelper.putEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS, expansion.getIds(), true)
+        filter.resetMatch() // taskFilter caches visibility, reset needed first.
         val indent = if (table == true) 0 else null
         buildTree(ctx, root, rootNode, indent)
         if (table == true && (accessChecker.isLoggedInUserMemberOfAdminGroup() ||
