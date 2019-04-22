@@ -1,30 +1,52 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Alert } from 'reactstrap';
+import { Alert, Col, Row } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFile, faFolder, faFolderOpen } from '@fortawesome/free-regular-svg-icons';
 import classNames from 'classnames';
-import { Card, CardBody, Table } from '../../components/design';
+/* eslint-disable-next-line object-curly-newline */
+import { Card, CardBody, Input, Table } from '../../components/design';
 
 import { getServiceURL } from '../../utilities/rest';
 import style from '../../components/base/page/Page.module.scss';
 import Formatter from '../../components/base/Formatter';
+import LoadingContainer from '../../components/design/loading-container';
+import CheckBox from '../../components/design/input/CheckBox';
 
 class TaskTreePanel extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            loading: true,
             nodes: [],
             translations: [],
+            filter: {
+                searchString: '',
+            },
         };
         this.myScrollRef = React.createRef();
 
         this.fetch = this.fetch.bind(this);
         this.handleRowClick = this.handleRowClick.bind(this);
+        this.handleInputChange = this.handleInputChange.bind(this);
+        this.setFilterValue = this.setFilterValue.bind(this);
     }
 
     componentDidMount() {
         this.fetch('true');
+    }
+
+    setFilterValue(id, value) {
+        this.setState(({ filter }) => ({
+            filter: {
+                ...filter,
+                [id]: value,
+            },
+        }));
+    }
+
+    handleInputChange(event) {
+        this.setFilterValue(event.target.id, event.target.value);
     }
 
     handleRowClick(id, task) {
@@ -40,6 +62,7 @@ class TaskTreePanel extends React.Component {
     }
 
     fetch(initial, open, close) {
+        this.setState({ loading: true });
         const { highlightTaskId } = this.props;
         const doOpen = (initial) ? open || highlightTaskId || '' : open || '';
         fetch(getServiceURL('task/tree', {
@@ -59,6 +82,7 @@ class TaskTreePanel extends React.Component {
                 const { root, translations } = json;
                 this.setState({
                     nodes: root.childs,
+                    loading: false,
                 });
                 if (initial && this.myScrollRef.current) {
                     // Scroll only once on initial call to highlighted row:
@@ -66,34 +90,83 @@ class TaskTreePanel extends React.Component {
                 }
                 if (translations) this.setState({ translations }); // Only returned on initial call.
             })
-            .catch(() => this.setState({}));
+            .catch(() => this.setState({ loading: false }));
     }
 
     render() {
-        const { nodes, translations } = this.state;
+        const { filter, nodes, translations, loading } = this.state;
         if (!nodes) {
             return <div>...</div>;
         }
         const { shortForm, highlightTaskId } = this.props;
+        /* eslint-disable indent, react/jsx-indent, react/jsx-tag-spacing */
+        // Don't know, why IntelliJ's auto format fails...
         return (
-            <Card>
-                <CardBody>
-                    <Table striped hover responsive>
-                        <thead>
+            <LoadingContainer loading={loading}>
+                <Card>
+                    <CardBody>
+                        <form>
+                            <Row>
+                                <Col sm={6}>
+                                    <Input
+                                        label={translations.searchFilter || 'search'}
+                                        id="searchString"
+                                        value={filter.searchString}
+                                        onChange={this.handleInputChange}
+                                    />
+                                </Col>
+                                <Col sm={6}>
+                                    <Row>
+                                        <CheckBox
+                                            label={translations['task.status.opened'] || 'opened'}
+                                            id="opened"
+                                        />
+                                        <CheckBox
+                                            label={translations['task.status.notOpened'] || 'notOpened'}
+                                            id="notOpened"
+                                        />
+                                        <CheckBox
+                                            label={translations['task.status.closed'] || 'closed'}
+                                            id="closed"
+                                        />
+                                        <CheckBox
+                                            label={translations.deleted || 'deleted'}
+                                            id="deleted"
+                                            color="danger"
+                                        />
+                                    </Row>
+                                </Col>
+                            </Row>
+
+                        </form>
+                    </CardBody>
+                </Card>
+                <Card>
+                    <CardBody>
+                        <Table striped hover responsive>
+                            <thead>
                             <tr>
                                 <th>{translations.task}</th>
                                 <th>{translations['task.consumption']}</th>
                                 <th>{translations['fibu.kost2']}</th>
-                                {!shortForm ? <th>{translations['fibu.auftrag.auftraege']}</th> : undefined}
+                                {!shortForm
+                                    ? <th>{translations['fibu.auftrag.auftraege']}</th> : undefined}
                                 <th>{translations.shortDescription}</th>
-                                {!shortForm ? <th>{translations['task.protectTimesheetsUntil.short']}</th> : undefined}
+                                {!shortForm
+                                    ? (
+                                        <th>
+                                            {translations['task.protectTimesheetsUntil.short']}
+                                        </th>
+                                    )
+                                    : undefined}
                                 {!shortForm ? <th>{translations['task.reference']}</th> : undefined}
                                 {!shortForm ? <th>{translations.priority}</th> : undefined}
                                 {!shortForm ? <th>{translations.status}</th> : undefined}
-                                {!shortForm ? <th>{translations['task.assignedUser']}</th> : undefined}
+                                {!shortForm
+                                    ? <th>{translations['task.assignedUser']}</th> : undefined}
                             </tr>
-                        </thead>
-                        <tbody>
+                            </thead>
+                            <tbody>
                             {nodes.map((task) => {
                                 const indentWidth = task.indent > 0 ? task.indent * 1.5 : 0;
                                 let link;
@@ -109,7 +182,7 @@ class TaskTreePanel extends React.Component {
                                         >
                                             <div className="tree-link-close">
                                                 <div className="tree-icon">
-                                                    <FontAwesomeIcon icon={faFolderOpen} />
+                                                    <FontAwesomeIcon icon={faFolderOpen}/>
                                                 </div>
                                                 {task.title}
                                             </div>
@@ -127,7 +200,7 @@ class TaskTreePanel extends React.Component {
                                         >
                                             <div className="tree-link-close">
                                                 <div className="tree-icon">
-                                                    <FontAwesomeIcon icon={faFolder} />
+                                                    <FontAwesomeIcon icon={faFolder}/>
                                                 </div>
                                                 {task.title}
                                             </div>
@@ -141,7 +214,7 @@ class TaskTreePanel extends React.Component {
                                                 style={{ marginLeft: `${indentWidth}em` }}
                                             >
                                                 <div className="tree-icon">
-                                                    <FontAwesomeIcon icon={faFile} />
+                                                    <FontAwesomeIcon icon={faFile}/>
                                                 </div>
                                                 {task.title}
                                             </div>
@@ -166,14 +239,14 @@ class TaskTreePanel extends React.Component {
                                         {!shortForm ? <td>...</td> : undefined}
                                         <td>{task.shortDescription}</td>
                                         {!shortForm ? (
-                                            <td>
-                                                <Formatter
-                                                    formatter="DATE"
-                                                    data={task.protectTimesheetsUntil}
-                                                    id="date"
-                                                />
-                                            </td>
-                                        )
+                                                <td>
+                                                    <Formatter
+                                                        formatter="DATE"
+                                                        data={task.protectTimesheetsUntil}
+                                                        id="date"
+                                                    />
+                                                </td>
+                                            )
                                             : undefined}
                                         {!shortForm ? <td>{task.reference}</td> : undefined}
                                         {!shortForm ? <td>{task.priority}</td> : undefined}
@@ -182,13 +255,14 @@ class TaskTreePanel extends React.Component {
                                     </tr>
                                 );
                             })}
-                        </tbody>
-                    </Table>
-                    <Alert color="info">
-                        {translations['task.tree.info']}
-                    </Alert>
-                </CardBody>
-            </Card>
+                            </tbody>
+                        </Table>
+                        <Alert color="info">
+                            {translations['task.tree.info']}
+                        </Alert>
+                    </CardBody>
+                </Card>
+            </LoadingContainer>
         );
     }
 }

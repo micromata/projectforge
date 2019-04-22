@@ -152,9 +152,11 @@ class TaskServicesRest {
         val result = Result(root)
         if (initial == true) {
             result.translations = createTranslations(
+                    "deleted",
                     "fibu.auftrag.auftraege",
                     "fibu.kost2",
                     "priority",
+                    "searchFilter",
                     "shortDescription",
                     "status",
                     "task",
@@ -162,6 +164,9 @@ class TaskServicesRest {
                     "task.consumption",
                     "task.protectTimesheetsUntil",
                     "task.protectTimesheetsUntil.short",
+                    "task.status.closed",
+                    "task.status.notOpened",
+                    "task.status.opened",
                     "task.reference",
                     "task.tree.info")
         }
