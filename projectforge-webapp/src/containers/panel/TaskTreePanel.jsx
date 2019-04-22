@@ -15,7 +15,6 @@ class TaskTreePanel extends React.Component {
         this.state = {
             nodes: [],
             translations: [],
-            scrolled: false, // Scroll only once to highlighted row.
         };
         this.myScrollRef = React.createRef();
 
@@ -25,15 +24,6 @@ class TaskTreePanel extends React.Component {
 
     componentDidMount() {
         this.fetch('true');
-    }
-
-    componentDidUpdate() {
-        const { scrolled } = this.state;
-        if (this.myScrollRef.current && !scrolled) {
-            window.scrollTo(0, this.myScrollRef.current.offsetTop);
-            /* eslint-disable-next-line react/no-did-update-set-state */
-            this.setState({ scrolled: true });
-        }
     }
 
     handleRowClick(id, task) {
@@ -69,6 +59,10 @@ class TaskTreePanel extends React.Component {
                 this.setState({
                     nodes: root.childs,
                 });
+                if (initial && this.myScrollRef.current) {
+                    // Scroll only once on initial call to highlighted row:
+                    window.scrollTo(0, this.myScrollRef.current.offsetTop);
+                }
                 if (translations) this.setState({ translations }); // Only returned on initial call.
             })
             .catch(() => this.setState({}));
