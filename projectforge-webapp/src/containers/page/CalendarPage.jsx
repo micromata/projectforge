@@ -1,4 +1,4 @@
-import moment_timezone from 'moment-timezone';
+import timezone from 'moment-timezone';
 import PropTypes from 'prop-types';
 import React from 'react';
 import BigCalendar from 'react-big-calendar';
@@ -6,248 +6,326 @@ import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import {connect} from 'react-redux';
-import {getServiceURL} from '../../utilities/rest';
+import { connect } from 'react-redux';
+import { getServiceURL } from '../../utilities/rest';
 import CalendarToolBar from './CalendarToolBar';
 
 import 'moment/min/locales';
-import history from "../../utilities/history";
+import history from '../../utilities/history';
 
-const localizer = BigCalendar.momentLocalizer(moment_timezone); // or globalizeLocalizer
+const localizer = BigCalendar.momentLocalizer(timezone); // or globalizeLocalizer
 
 const DragAndDropCalendar = withDragAndDrop(BigCalendar);
 
 class CalendarPage extends React.Component {
-    state = {
-        initalized: false,
-        events: [],
-        specialDays: [],
-        date: undefined,
-        viewType: undefined,
-        calendar: ''
-    };
-
-    // ToDo
-    // DateHeader for statistics.
-
-    renderEvent = ({event}) => {
-        let location = undefined;
-        let desc = undefined;
-        let formattedDuration = undefined;
-        if (event.location) location = <React.Fragment>{event.location}<br/></React.Fragment>;
-        if (event.desc) desc = <React.Fragment>{event.description}<br/></React.Fragment>;
-        if (event.formattedDuration) formattedDuration =
-            <React.Fragment>{event.formattedDuration}<br/></React.Fragment>;
+    static renderEvent(event) {
+        let location;
+        let desc;
+        let formattedDuration;
+        if (event.location) {
+            location = (
+                <React.Fragment>
+                    {event.location}
+                    <br/>
+                </React.Fragment>
+            );
+        }
+        if (event.desc) {
+            desc = (
+                <React.Fragment>
+                    {event.description}
+                    <br/>
+                </React.Fragment>
+            );
+        }
+        if (event.formattedDuration) {
+            formattedDuration = (
+                <React.Fragment>
+                    {event.formattedDuration}
+                    <br/>
+                </React.Fragment>
+            );
+        }
         return (
             <React.Fragment>
                 <p><strong>{event.title}</strong></p>
-                {location}{desc}{formattedDuration}
+                {location}
+                {desc}
+                {formattedDuration}
             </React.Fragment>
-        )
-    };
+        );
+    }
 
-    renderMonthEvent = ({event}) => {
+    static renderMonthEvent(event) {
         return (<React.Fragment>{event.title}</React.Fragment>);
-    };
+    }
 
-    renderAgendaEvent = ({event}) => {
+    static renderAgendaEvent(event) {
         return (
             <React.Fragment>
                 {event.title}
             </React.Fragment>
-        )
-    };
+        );
+    }
 
-    eventStyle = (event) => {
-        if (this.state.viewType === 'agenda')
+    /*static convertJsonDates(e) {
+        Object.assign({}, e, {
+            start: new Date(e.start),
+            end: new Date(e.end),
+        });
+    }*/
+
+
+// Callback fired when a calendar event is selected.
+    static onSelectEvent(event) {
+        history.push(event.link);
+    }
+
+
+    constructor(props) {
+        super(props);
+
+        const { firstDayOfWeek, timeZone, locale } = this.props;
+        const useLocale = locale || 'en';
+        timezone.tz.setDefault(timeZone);
+        timezone.updateLocale(useLocale,
+            {
+                week: {
+                    dow: firstDayOfWeek, // First day of week (got from UserStatus).
+                    doy: 1, // First day of year (not yet supported).
+                },
+            });
+
+        this.state = {
+            initialized: false,
+            events: [],
+            specialDays: [],
+            date: undefined,
+            viewType: undefined,
+            calendar: '',
+        };
+
+        this.renderDateHeader = this.renderDateHeader.bind(this);
+        this.eventStyle = this.eventStyle.bind(this);
+        this.dayStyle = this.dayStyle.bind(this);
+        this.navigateToDay = this.navigateToDay.bind(this);
+        this.fetchEvents = this.fetchEvents.bind(this);
+        this.fetchInitial = this.fetchInitial.bind(this);
+        this.onRangeChange = this.onRangeChange.bind(this);
+        this.onSelectSlot = this.onSelectSlot.bind(this);
+        this.onDoubleClickEvent = this.onDoubleClickEvent.bind(this);
+        this.onSelecting = this.onSelecting.bind(this);
+        this.onNavigate = this.onNavigate.bind(this);
+        this.onView = this.onView.bind(this);
+        this.convertJsonDates = this.convertJsonDates.bind(this);
+    }
+
+    componentDidMount() {
+        this.fetchInitial();
+    }
+
+    convertJsonDates = e => Object.assign({}, e, {
+        start: new Date(e.start),
+        end: new Date(e.end),
+    });
+
+
+    // ToDo
+    // DateHeader for statistics.
+
+    onNavigate(date) {
+        this.setState({ date });
+    }
+
+    onView(obj) {
+    }
+
+    // Callback fired when the visible date range changes. Returns an Array of dates or an object
+    // with start and end dates for BUILTIN views.
+    onRangeChange(event, view) {
+        this.setState({ viewType: view });
+        const { start, end } = event;
+        let myStart;
+        let myEnd;
+        if (view === 'month' || view === 'agenda') {
+            myStart = start;
+            myEnd = end;
+        } else {
+            const [element] = event;
+            myStart = element;
+        }
+        // console.log("start:", myStart, "end", myEnd, view)
+        this.fetchEvents(myStart, myEnd, view);
+    }
+
+    // A callback fired when a date selection is made. Only fires when selectable is true.
+    onSelectSlot(slotInfo) {
+        const { calendar } = this.state;
+        fetch(getServiceURL('calendar/action', {
+            action: 'select',
+            start: slotInfo.start ? slotInfo.start.toJSON() : '',
+            end: slotInfo.end ? slotInfo.end.toJSON() : '',
+            calendar,
+        }), {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                Accept: 'application/json',
+            },
+        })
+            .then(response => response.json())
+            .then((json) => {
+                const redirectUrl = json.url;
+                history.push(redirectUrl);
+            })
+            .catch(() => this.setState({
+                initialized: false,
+            }));
+    }
+
+    // Callback fired when a calendar event is clicked twice.
+    onDoubleClickEvent() {
+
+    }
+
+    // Callback fired when dragging a selection in the Time views.
+    // Returning false from the handler will prevent a selection.
+    onSelecting(event) {
+        console.log('onSelecting', event);
+    }
+
+    eventStyle(event) {
+        const { viewType } = this.state;
+        if (viewType === 'agenda') {
             return { // Don't change style for agenda:
-                className: ''
+                className: '',
             };
+        }
         // Event is always undefined!!!
         const backgroundColor = (event && event.bgColor) ? event.bgColor : undefined;
         const textColor = (event && event.fgColor) ? event.fgColor : undefined;
         const cssClass = (event && event.cssClass) ? event.cssClass : undefined;
         return {
             style: {
-                backgroundColor: backgroundColor,
-                color: textColor
+                backgroundColor,
+                color: textColor,
             },
-            className: cssClass
+            className: cssClass,
         };
-    };
-    renderDateHeader = (obj) => {
-        const isoDate = moment_timezone(obj.date).format('YYYY-MM-DD');
-        const specialDay = this.state.specialDays[isoDate];
-        let dayInfo = '';
-        if (specialDay && specialDay.holidayTitle) {
-            dayInfo = `${specialDay.holidayTitle} `;
-        }
-        return <React.Fragment><a href={'#'}
-                                  onClick={() => this.navigateToDay(obj.date)}>{dayInfo}{obj.label}</a></React.Fragment>;
     }
 
-    dayStyle = (date) => {
-        const isoDate = moment_timezone(date).format('YYYY-MM-DD');
-        const specialDay = this.state.specialDays[isoDate];
-        if (!specialDay)
-            return;
-        let className = 'holiday';
-        if (specialDay.workingDay)
-            className = 'holiday-workday';
-        else if (specialDay.weekend) {
-            if (specialDay.holiday)
-                className = 'weekend-holiday';
-            else
-                className = 'weekend';
-        } else
-            className = 'holiday';
-        return {
-            className: className
+    dayStyle(date) {
+        const { specialDays } = this.state;
+        const isoDate = timezone(date)
+            .format('YYYY-MM-DD');
+        const specialDay = specialDays[isoDate];
+        if (!specialDay) {
+            return '';
         }
-    };
+        let className = 'holiday';
+        if (specialDay.workingDay) {
+            className = 'holiday-workday';
+        } else if (specialDay.weekend) {
+            if (specialDay.holiday) {
+                className = 'weekend-holiday';
+            } else {
+                className = 'weekend';
+            }
+        } else {
+            className = 'holiday';
+        }
+        return { className };
+    }
 
-    navigateToDay = (e) => {
+    navigateToDay(e) {
         this.setState({
             date: e,
-            viewType: 'day'
-        })
+            viewType: 'day',
+        });
     }
 
-    convertJsonDates = e => Object.assign({}, e, {
-        start: new Date(e.start),
-        end: new Date(e.end)
-    });
-
-    fetchInitial = () => {
-        this.setState({
-            failed: false
-        });
+    fetchInitial() {
         fetch(getServiceURL('calendar/initial'), {
             method: 'GET',
             credentials: 'include',
             headers: {
-                'Accept': 'application/json'
-            }
+                Accept: 'application/json',
+            },
         })
             .then(response => response.json())
-            .then(json => {
-                const date = json.date;
-                const viewType = json.viewType;
-                const events = json.events;
-                const specialDays = json.specialDays;
+            .then((json) => {
+                const {
+                    date,
+                    viewType,
+                    events,
+                    specialDays,
+                } = json;
                 this.setState({
+                    initialized: true,
                     date: new Date(date),
-                    viewType: viewType,
+                    viewType,
                     events: events.map(this.convertJsonDates),
-                    specialDays: specialDays,
-                    initialized: true
-                })
+                    specialDays,
+                });
             })
-            .catch(() => this.setState({initialized: false, failed: true}));
-    };
+            .catch(error => alert(`Internal error: ${error}`));
+    }
 
-    fetchEvents = (start, end, view) => {
-        this.setState({
-            failed: false
-        });
+    fetchEvents(start, end, view) {
         fetch(getServiceURL('calendar/events', {
             start: start ? start.toJSON() : '',
             end: end ? end.toJSON() : '',
-            view: view ? view : 'month'
+            view: view || 'month',
         }), {
             method: 'GET',
             credentials: 'include',
             headers: {
-                'Accept': 'application/json'
-            }
+                Accept: 'application/json',
+            },
         })
             .then(response => response.json())
-            .then(json => {
-                const events = json.events;
-                const specialDays = json.specialDays;
+            .then((json) => {
+                const { events, specialDays } = json;
                 this.setState({
                     events: events.map(this.convertJsonDates),
-                    specialDays: specialDays,
-                })
+                    specialDays,
+                });
             })
-            .catch(() => this.setState({failed: true}));
-    };
+            .catch(error => alert(`Internal error: ${error}`));
+    }
 
-    onNavigate = (date) => {
-        this.setState({date: date})
-    };
-
-    onView = (obj) => {
-    };
-
-    // Callback fired when the visible date range changes. Returns an Array of dates or an object with start and end dates for BUILTIN views.
-    onRangeChange = (event, view) => {
-        let viewType = view;
-        if (view) {
-            this.setState({viewType: view});
-        } else
-            viewType = this.state.viewType;
-        let start;
-        let end;
-        if (viewType === 'month' || viewType === 'agenda') {
-            start = event.start;
-            end = event.end;
-        } else {
-            start = event[0];
+    renderDateHeader(obj) {
+        const { specialDays } = this.state;
+        const isoDate = timezone(obj.date)
+            .format('YYYY-MM-DD');
+        const specialDay = specialDays[isoDate];
+        let dayInfo = '';
+        if (specialDay && specialDay.holidayTitle) {
+            dayInfo = `${specialDay.holidayTitle} `;
         }
-        // console.log("start:", start, "end", end, viewType)
-        this.fetchEvents(start, end, viewType);
-    };
-
-    // A callback fired when a date selection is made. Only fires when selectable is true.
-    onSelectSlot = (slotInfo) => {
-        fetch(getServiceURL('calendar/action', {
-            action: 'select',
-            start: slotInfo.start ? slotInfo.start.toJSON() : '',
-            end: slotInfo.end ? slotInfo.end.toJSON() : '',
-            calendar: this.state.calendar
-        }), {
-            method: 'GET',
-            credentials: 'include',
-            headers: {
-                'Accept': 'application/json'
-            }
-        })
-            .then(response => response.json())
-            .then(json => {
-                const redirectUrl = json.url;
-                history.push(redirectUrl);
-            })
-            .catch(() => this.setState({initialized: false, failed: true}));
-
-    };
-
-    // Callback fired when a calendar event is selected.
-    onSelectEvent = (event) => {
-        history.push(event.link);
-    };
-
-    // Callback fired when a calendar event is clicked twice.
-    onDoubleClickEvent = () => {
-
-    };
-
-    // Callback fired when dragging a selection in the Time views.
-    // Returning false from the handler will prevent a selection.
-    onSelecting = (event) => {
-        console.log("onSelecting", event);
-    };
-
-    componentDidMount() {
-        this.fetchInitial()
-    };
+        return (
+            <React.Fragment>
+                <div
+                    role="presentation"
+                    onClick={() => this.navigateToDay(obj.date)}
+                >
+                    {dayInfo}
+                    {obj.label}
+                </div>
+            </React.Fragment>
+        );
+    }
 
     render() {
-        if (!this.state.initialized)
+        const { initialized } = this.state;
+        if (!initialized) {
             return <React.Fragment>Loading...</React.Fragment>;
-        let initTime = new Date(this.state.date.getDate());
+        }
+        const { events, date } = this.state;
+        let initTime = new Date(date.getDate());
         initTime.setHours(8);
         initTime.setMinutes(0);
+        console.log(events);
         return (
             <DragAndDropCalendar
                 style={{
@@ -255,7 +333,7 @@ class CalendarPage extends React.Component {
                     height: 'calc(100vh - 164px)',
                 }}
                 localizer={localizer}
-                events={this.state.events}
+                events={events}
                 step={30}
                 defaultView={this.state.viewType}
                 view={this.state.viewType}
@@ -266,73 +344,44 @@ class CalendarPage extends React.Component {
                 onNavigate={this.onNavigate}
                 endAccessor="end"
                 onRangeChange={this.onRangeChange}
-                onSelectEvent={this.onSelectEvent}
+                onSelectEvent={CalendarPage.onSelectEvent}
                 onSelectSlot={this.onSelectSlot}
-                selectable={true}
+                selectable
                 eventPropGetter={this.eventStyle}
                 dayPropGetter={this.dayStyle}
-                showMultiDayTimes={true}
+                showMultiDayTimes
                 timeslots={1}
                 scrollToTime={initTime}
                 components={{
-                    event: this.renderEvent,
+                    event: CalendarPage.renderEvent,
                     month: {
-                        event: this.renderMonthEvent,
-                        dateHeader: this.renderDateHeader
+                        event: CalendarPage.renderMonthEvent,
+                        dateHeader: CalendarPage.renderDateHeader,
                     },
                     week: {
-                        //header: this.renderDateHeader
+                        //header: CalendarPage.renderDateHeader
                     },
                     agenda: {
-                        event: this.renderAgendaEvent,
+                        event: CalendarPage.renderAgendaEvent,
                     },
-                    toolbar: CalendarToolBar
+                    toolbar: CalendarToolBar,
                 }}
             />
         );
     }
-
-    constructor(props) {
-        super(props);
-
-        const {firstDayOfWeek, timeZone, locale} = this.props;
-        const useLocale = (locale) ? locale : 'en'
-        moment_timezone.tz.setDefault(timeZone);
-        moment_timezone.locale(useLocale,
-            {
-                week: {
-                    dow: firstDayOfWeek, // First day of week (got from UserStatus).
-                    doy: 1, // First day of year (not yet supported).
-                }
-            });
-
-        this.convertJsonDates = this.convertJsonDates.bind(this);
-        this.renderEvent = this.renderEvent.bind(this);
-        this.renderMonthEvent = this.renderMonthEvent.bind(this);
-        this.renderAgendaEvent = this.renderAgendaEvent.bind(this);
-        this.renderDateHeader = this.renderDateHeader.bind(this);
-        this.eventStyle = this.eventStyle.bind(this);
-        this.dayStyle = this.dayStyle.bind(this);
-        this.navigateToDay = this.navigateToDay.bind(this);
-        this.fetchEvents = this.fetchEvents.bind(this);
-        this.fetchInitial = this.fetchInitial.bind(this);
-        this.onRangeChange = this.onRangeChange.bind(this);
-        this.onSelectSlot = this.onSelectSlot.bind(this);
-        this.onSelectEvent = this.onSelectEvent.bind(this);
-        this.onDoubleClickEvent = this.onDoubleClickEvent.bind(this);
-        this.onSelecting = this.onSelecting.bind(this);
-        this.onNavigate = this.onNavigate.bind(this);
-        this.onView = this.onView.bind(this);
-    }
 }
 
-CalendarPage.defaultProps = {
+CalendarPage.propTypes = {
     firstDayOfWeek: PropTypes.number.isRequired,
-    timeZone: PropTypes.number.isRequired,
-    locale: PropTypes.String
+    timeZone: PropTypes.string.isRequired,
+    locale: PropTypes.string,
 };
 
-const mapStateToProps = ({authentication}) => ({
+CalendarPage.defaultProps = {
+    locale: undefined,
+};
+
+const mapStateToProps = ({ authentication }) => ({
     firstDayOfWeek: authentication.user.firstDayOfWeekNo,
     timeZone: authentication.user.timeZone,
     locale: authentication.user.locale,
