@@ -19,10 +19,10 @@ class TaskTreePanel extends React.Component {
         this.state = {
             loading: true,
             nodes: [],
-            translations: [],
+            translations: undefined,
             filter: {
                 searchString: '',
-                openend: true,
+                opened: true,
                 notOpened: true,
                 closed: false,
                 deleted: false,
@@ -41,13 +41,13 @@ class TaskTreePanel extends React.Component {
         this.fetch('true');
     }
 
-    setFilterValue(id, value) {
+    setFilterValue(id, value, callback) {
         this.setState(({ filter }) => ({
             filter: {
                 ...filter,
                 [id]: value,
             },
-        }));
+        }), callback);
     }
 
     handleInputChange(event) {
@@ -55,7 +55,9 @@ class TaskTreePanel extends React.Component {
     }
 
     handleCheckBoxChange(event) {
-        this.setFilterValue(event.target.id, event.target.checked);
+        this.setFilterValue(event.target.id, event.target.checked, () => {
+            this.fetch();
+        });
     }
 
 
@@ -95,7 +97,7 @@ class TaskTreePanel extends React.Component {
         })
             .then(response => response.json())
             .then((json) => {
-                const { root, translations } = json;
+                const { root, translations, initFilter } = json;
                 this.setState({
                     nodes: root.childs,
                     loading: false,
@@ -105,7 +107,7 @@ class TaskTreePanel extends React.Component {
                     window.scrollTo(0, this.myScrollRef.current.offsetTop);
                 }
                 if (translations) this.setState({ translations }); // Only returned on initial call.
-                if (initial && filter) this.setState({ filter });
+                if (initial && initFilter) this.setState({ filter: initFilter });
             })
             .catch(() => this.setState({ loading: false }));
     }
@@ -119,176 +121,191 @@ class TaskTreePanel extends React.Component {
         } = this.state;
         const { shortForm, highlightTaskId } = this.props;
         /* eslint-disable indent, react/jsx-indent, react/jsx-tag-spacing */
+        const content = (translations) ? (
+                <React.Fragment>
+                    <Card>
+                        <CardBody>
+                            <form>
+                                <Row>
+                                    <Col sm={6}>
+                                        <Input
+                                            label={translations.searchFilter}
+                                            id="searchString"
+                                            value={filter.searchString}
+                                            onChange={this.handleInputChange}
+                                        />
+                                    </Col>
+                                    <Col sm={6}>
+                                        <Row>
+                                            <CheckBox
+                                                label={translations['task.status.opened']}
+                                                id="opened"
+                                                onChange={this.handleCheckBoxChange}
+                                                checked={filter.opened}
+                                            />
+                                            <CheckBox
+                                                label={translations['task.status.notOpened']}
+                                                id="notOpened"
+                                                onChange={this.handleCheckBoxChange}
+                                                checked={filter.notOpened}
+                                            />
+                                            <CheckBox
+                                                label={translations['task.status.closed']}
+                                                id="closed"
+                                                onChange={this.handleCheckBoxChange}
+                                                checked={filter.closed}
+                                            />
+                                            <CheckBox
+                                                label={translations.deleted}
+                                                id="deleted"
+                                                onChange={this.handleCheckBoxChange}
+                                                checked={filter.deleted}
+                                                color="danger"
+                                            />
+                                        </Row>
+                                    </Col>
+                                </Row>
+
+                            </form>
+                        </CardBody>
+                    </Card>
+                    <Card>
+                        <CardBody>
+                            <Table striped hover responsive>
+                                <thead>
+                                <tr>
+                                    <th>{translations.task}</th>
+                                    <th>{translations['task.consumption']}</th>
+                                    <th>{translations['fibu.kost2']}</th>
+                                    {!shortForm
+                                        ? <th>{translations['fibu.auftrag.auftraege']}</th> : undefined}
+                                    <th>{translations.shortDescription}</th>
+                                    {!shortForm
+                                        ? (
+                                            <th>
+                                                {translations['task.protectTimesheetsUntil.short']}
+                                            </th>
+                                        )
+                                        : undefined}
+                                    {!shortForm
+                                        ? <th>{translations['task.reference']}</th> : undefined}
+                                    {!shortForm
+                                        ? <th>{translations.priority}</th> : undefined}
+                                    {!shortForm
+                                        ? <th>{translations.status}</th> : undefined}
+                                    {!shortForm
+                                        ? <th>{translations['task.assignedUser']}</th> : undefined}
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {nodes.map((task) => {
+                                    const indentWidth = task.indent > 0 ? task.indent * 1.5 : 0;
+                                    let link;
+                                    if (task.treeStatus === 'OPENED') {
+                                        link = (
+                                            <div
+                                                role="presentation"
+                                                className="tree-nav"
+                                                style={{ marginLeft: `${indentWidth}em` }}
+                                                onClick={(event) => {
+                                                    this.handleEventClick(event, null, task.id);
+                                                }}
+                                            >
+                                                <div className="tree-link-close">
+                                                    <div className="tree-icon">
+                                                        <FontAwesomeIcon
+                                                            icon={faFolderOpen}
+                                                        />
+                                                    </div>
+                                                    {task.title}
+                                                </div>
+                                            </div>
+                                        );
+                                    } else if (task.treeStatus === 'CLOSED') {
+                                        link = (
+                                            <div
+                                                role="presentation"
+                                                className="tree-nav"
+                                                style={{ marginLeft: `${indentWidth}em` }}
+                                                onClick={(event) => {
+                                                    this.handleEventClick(event, task.id, null);
+                                                }}
+                                            >
+                                                <div className="tree-link-close">
+                                                    <div className="tree-icon">
+                                                        <FontAwesomeIcon icon={faFolder}/>
+                                                    </div>
+                                                    {task.title}
+                                                </div>
+                                            </div>
+                                        );
+                                    } else {
+                                        link = (
+                                            <div className="tree-nav">
+                                                <div
+                                                    className="tree-leaf"
+                                                    style={{ marginLeft: `${indentWidth}em` }}
+                                                >
+                                                    <div className="tree-icon">
+                                                        <FontAwesomeIcon icon={faFile}/>
+                                                    </div>
+                                                    {task.title}
+                                                </div>
+                                            </div>
+                                        );
+                                    }
+                                    const responsibleUser = task.responsibleUser ? task.responsibleUser.fullname : '';
+                                    const highlighted = (highlightTaskId === task.id);
+                                    return (
+                                        <tr
+                                            key={`table-body-row-${task.id}`}
+                                            onClick={() => this.handleRowClick(task.id, task)}
+                                            className={classNames({
+                                                [style.clickable]: true,
+                                                [style.highlighted]: highlighted,
+                                            })}
+                                            ref={highlighted ? this.myScrollRef : undefined}
+                                        >
+                                            <td>{link}</td>
+                                            <td>...</td>
+                                            <td>...</td>
+                                            {!shortForm ? <td>...</td> : undefined}
+                                            <td>{task.shortDescription}</td>
+                                            {!shortForm ? (
+                                                    <td>
+                                                        <Formatter
+                                                            formatter="DATE"
+                                                            data={task.protectTimesheetsUntil}
+                                                            id="date"
+                                                        />
+                                                    </td>
+                                                )
+                                                : undefined}
+                                            {!shortForm
+                                                ? <td>{task.reference}</td> : undefined}
+                                            {!shortForm
+                                                ? <td>{task.priority}</td> : undefined}
+                                            {!shortForm
+                                                ? <td>{task.status}</td> : undefined}
+                                            {!shortForm
+                                                ? <td>{responsibleUser}</td> : undefined}
+                                        </tr>
+                                    );
+                                })}
+                                </tbody>
+                            </Table>
+                            <Alert color="info">
+                                {translations['task.tree.info']}
+                            </Alert>
+                        </CardBody>
+                    </Card>
+                </React.Fragment>
+            )
+            : <div>...</div>;
         // Don't know, why IntelliJ's auto format fails...
         return (
             <LoadingContainer loading={loading}>
-                <Card>
-                    <CardBody>
-                        <form>
-                            <Row>
-                                <Col sm={6}>
-                                    <Input
-                                        label={translations.searchFilter || 'search'}
-                                        id="searchString"
-                                        value={filter.searchString}
-                                        onChange={this.handleInputChange}
-                                    />
-                                </Col>
-                                <Col sm={6}>
-                                    <Row>
-                                        <CheckBox
-                                            label={translations['task.status.opened'] || 'opened'}
-                                            id="opened"
-                                            onChange={this.handleCheckBoxChange}
-                                            checked={filter.opened}
-                                        />
-                                        <CheckBox
-                                            label={translations['task.status.notOpened'] || 'notOpened'}
-                                            id="notOpened"
-                                            onChange={this.handleCheckBoxChange}
-                                            checked={filter.notOpened}
-                                        />
-                                        <CheckBox
-                                            label={translations['task.status.closed'] || 'closed'}
-                                            id="closed"
-                                            onChange={this.handleCheckBoxChange}
-                                            checked={filter.closed}
-                                        />
-                                        <CheckBox
-                                            label={translations.deleted || 'deleted'}
-                                            id="deleted"
-                                            onChange={this.handleCheckBoxChange}
-                                            checked={filter.deleted}
-                                            color="danger"
-                                        />
-                                    </Row>
-                                </Col>
-                            </Row>
-
-                        </form>
-                    </CardBody>
-                </Card>
-                <Card>
-                    <CardBody>
-                        <Table striped hover responsive>
-                            <thead>
-                            <tr>
-                                <th>{translations.task}</th>
-                                <th>{translations['task.consumption']}</th>
-                                <th>{translations['fibu.kost2']}</th>
-                                {!shortForm
-                                    ? <th>{translations['fibu.auftrag.auftraege']}</th> : undefined}
-                                <th>{translations.shortDescription}</th>
-                                {!shortForm
-                                    ? (
-                                        <th>
-                                            {translations['task.protectTimesheetsUntil.short']}
-                                        </th>
-                                    )
-                                    : undefined}
-                                {!shortForm ? <th>{translations['task.reference']}</th> : undefined}
-                                {!shortForm ? <th>{translations.priority}</th> : undefined}
-                                {!shortForm ? <th>{translations.status}</th> : undefined}
-                                {!shortForm
-                                    ? <th>{translations['task.assignedUser']}</th> : undefined}
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {nodes.map((task) => {
-                                const indentWidth = task.indent > 0 ? task.indent * 1.5 : 0;
-                                let link;
-                                if (task.treeStatus === 'OPENED') {
-                                    link = (
-                                        <div
-                                            role="presentation"
-                                            className="tree-nav"
-                                            style={{ marginLeft: `${indentWidth}em` }}
-                                            onClick={(event) => {
-                                                this.handleEventClick(event, null, task.id);
-                                            }}
-                                        >
-                                            <div className="tree-link-close">
-                                                <div className="tree-icon">
-                                                    <FontAwesomeIcon icon={faFolderOpen}/>
-                                                </div>
-                                                {task.title}
-                                            </div>
-                                        </div>
-                                    );
-                                } else if (task.treeStatus === 'CLOSED') {
-                                    link = (
-                                        <div
-                                            role="presentation"
-                                            className="tree-nav"
-                                            style={{ marginLeft: `${indentWidth}em` }}
-                                            onClick={(event) => {
-                                                this.handleEventClick(event, task.id, null);
-                                            }}
-                                        >
-                                            <div className="tree-link-close">
-                                                <div className="tree-icon">
-                                                    <FontAwesomeIcon icon={faFolder}/>
-                                                </div>
-                                                {task.title}
-                                            </div>
-                                        </div>
-                                    );
-                                } else {
-                                    link = (
-                                        <div className="tree-nav">
-                                            <div
-                                                className="tree-leaf"
-                                                style={{ marginLeft: `${indentWidth}em` }}
-                                            >
-                                                <div className="tree-icon">
-                                                    <FontAwesomeIcon icon={faFile}/>
-                                                </div>
-                                                {task.title}
-                                            </div>
-                                        </div>
-                                    );
-                                }
-                                const responsibleUser = task.responsibleUser ? task.responsibleUser.fullname : '';
-                                const highlighted = (highlightTaskId === task.id);
-                                return (
-                                    <tr
-                                        key={`table-body-row-${task.id}`}
-                                        onClick={() => this.handleRowClick(task.id, task)}
-                                        className={classNames({
-                                            [style.clickable]: true,
-                                            [style.highlighted]: highlighted,
-                                        })}
-                                        ref={highlighted ? this.myScrollRef : undefined}
-                                    >
-                                        <td>{link}</td>
-                                        <td>...</td>
-                                        <td>...</td>
-                                        {!shortForm ? <td>...</td> : undefined}
-                                        <td>{task.shortDescription}</td>
-                                        {!shortForm ? (
-                                                <td>
-                                                    <Formatter
-                                                        formatter="DATE"
-                                                        data={task.protectTimesheetsUntil}
-                                                        id="date"
-                                                    />
-                                                </td>
-                                            )
-                                            : undefined}
-                                        {!shortForm ? <td>{task.reference}</td> : undefined}
-                                        {!shortForm ? <td>{task.priority}</td> : undefined}
-                                        {!shortForm ? <td>{task.status}</td> : undefined}
-                                        {!shortForm ? <td>{responsibleUser}</td> : undefined}
-                                    </tr>
-                                );
-                            })}
-                            </tbody>
-                        </Table>
-                        <Alert color="info">
-                            {translations['task.tree.info']}
-                        </Alert>
-                    </CardBody>
-                </Card>
+                {content}
             </LoadingContainer>
         );
     }

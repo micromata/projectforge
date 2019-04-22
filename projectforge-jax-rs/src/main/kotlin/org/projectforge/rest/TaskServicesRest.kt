@@ -66,7 +66,7 @@ class TaskServicesRest {
     }
 
     class Result(val root: Task,
-                 var filter: TaskFilter? = null,
+                 var initFilter: TaskFilter? = null,
                  var translations: MutableMap<String, String>? = null)
 
     companion object {
@@ -143,6 +143,7 @@ class TaskServicesRest {
                 @QueryParam("open") open: Int?,
                 @QueryParam("close") close: Int?,
                 @QueryParam("table") table: Boolean?,
+                @QueryParam("searchString") searchString: String?,
                 @QueryParam("opened") opened: Boolean?,
                 @QueryParam("notOpened") notOpened: Boolean?,
                 @QueryParam("closed") closed: Boolean?,
@@ -156,6 +157,7 @@ class TaskServicesRest {
             if (notOpened != null) filter.isNotOpened = notOpened
             if (closed != null) filter.isClosed = closed
             if (deleted != null) filter.isDeleted = deleted
+            filter.setSearchString(searchString);
         }
         val rootNode = taskTree.rootTaskNode
         val root = Task(rootNode)
@@ -174,7 +176,7 @@ class TaskServicesRest {
         }
         val result = Result(root)
         if (initial == true) {
-            result.filter = filter
+            result.initFilter = filter
             result.translations = createTranslations(
                     "deleted",
                     "fibu.auftrag.auftraege",
