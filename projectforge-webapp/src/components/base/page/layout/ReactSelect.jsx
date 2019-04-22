@@ -10,22 +10,40 @@ import AdditionalLabel from '../../../design/input/AdditionalLabel';
 class ReactSelect extends React.Component {
     constructor(props) {
         super(props);
+        this.state = { value: undefined };
 
         this.setSelected = this.setSelected.bind(this);
     }
 
+    componentDidMount() {
+        const {
+            id,
+            values,
+            data,
+            valueProperty,
+        } = this.props;
+        let dataValue = Object.getByString(data, id);
+        if (dataValue && values && values.length && values.length > 0) {
+            // For react-select it seems to be important, that the current selected element matches
+            // its value of the values list.
+            const valueOfArray = (typeof dataValue === 'object') ? dataValue[valueProperty] : dataValue;
+            dataValue = values.find(it => it[valueProperty] === valueOfArray);
+        }
+        this.setState({ value: dataValue });
+    }
+
     setSelected(newValue) {
+        this.setState({ value: newValue });
         const { id, changeDataField } = this.props;
         changeDataField(id, newValue);
     }
 
     render() {
+        const { value } = this.state;
         const {
             label,
             additionalLabel,
-            id,
             values,
-            data,
             isMulti,
             isRequired,
             valueProperty,
@@ -35,13 +53,6 @@ class ReactSelect extends React.Component {
             getOptionLabel,
             className,
         } = this.props;
-        let value = Object.getByString(data, id);
-        if (value && values && values.length && values.length > 0) {
-            // For react-select it seems to be important, that the current selected element matches
-            // its value of the values list.
-            const valueOfArray = (typeof value === 'object') ? value[valueProperty] : value;
-            value = values.find(it => it[valueProperty] === valueOfArray);
-        }
         let Tag = Select;
         let defaultOptions;
         if (loadOptions) {
@@ -67,7 +78,7 @@ class ReactSelect extends React.Component {
                     className={className}
                     cache={{}}
                 />
-                <AdditionalLabel title={additionalLabel} />
+                <AdditionalLabel title={additionalLabel}/>
             </React.Fragment>
         );
     }
