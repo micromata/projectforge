@@ -39,7 +39,7 @@ nav.bg-light {
   ul li a {
     color: #4D4D4D !important;
     font-size: 14px;
-    margin-left: 15px;
+    //margin-left: 15px; // Zu viel Platzverbrauch bei vielen Menüeinträgen.
   }
 
   ul li a.btn {
