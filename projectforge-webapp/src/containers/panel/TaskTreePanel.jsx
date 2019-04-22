@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Alert, Col, Row } from 'reactstrap';
+import { Alert, Button, Col, Row } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFile, faFolder, faFolderOpen } from '@fortawesome/free-regular-svg-icons';
 import classNames from 'classnames';
@@ -34,11 +34,17 @@ class TaskTreePanel extends React.Component {
         this.handleRowClick = this.handleRowClick.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
         this.handleCheckBoxChange = this.handleCheckBoxChange.bind(this);
+        this.onSubmit = this.onSubmit.bind(this);
         this.setFilterValue = this.setFilterValue.bind(this);
     }
 
     componentDidMount() {
         this.fetch('true');
+    }
+
+    onSubmit(event) {
+        this.fetch();
+        event.preventDefault();
     }
 
     setFilterValue(id, value, callback) {
@@ -59,7 +65,6 @@ class TaskTreePanel extends React.Component {
             this.fetch();
         });
     }
-
 
     handleRowClick(id, task) {
         const { onTaskSelect } = this.props;
@@ -137,6 +142,13 @@ class TaskTreePanel extends React.Component {
                                     </Col>
                                     <Col sm={6}>
                                         <Row>
+                                            <Button
+                                                color="primary"
+                                                onClick={this.onSubmit}
+                                                type="submit"
+                                            >
+                                                {translations.search}
+                                            </Button>
                                             <CheckBox
                                                 label={translations['task.status.opened']}
                                                 id="opened"

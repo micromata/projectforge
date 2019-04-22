@@ -183,6 +183,7 @@ class TaskServicesRest {
                     "fibu.auftrag.auftraege",
                     "fibu.kost2",
                     "priority",
+                    "search",
                     "searchFilter",
                     "shortDescription",
                     "status",
