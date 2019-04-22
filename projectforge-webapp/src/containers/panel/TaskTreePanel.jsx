@@ -22,6 +22,10 @@ class TaskTreePanel extends React.Component {
             translations: [],
             filter: {
                 searchString: '',
+                openend: true,
+                notOpened: true,
+                closed: false,
+                deleted: false,
             },
         };
         this.myScrollRef = React.createRef();
@@ -29,6 +33,7 @@ class TaskTreePanel extends React.Component {
         this.fetch = this.fetch.bind(this);
         this.handleRowClick = this.handleRowClick.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
+        this.handleCheckBoxChange = this.handleCheckBoxChange.bind(this);
         this.setFilterValue = this.setFilterValue.bind(this);
     }
 
@@ -49,6 +54,11 @@ class TaskTreePanel extends React.Component {
         this.setFilterValue(event.target.id, event.target.value);
     }
 
+    handleCheckBoxChange(event) {
+        this.setFilterValue(event.target.id, event.target.checked);
+    }
+
+
     handleRowClick(id, task) {
         const { onTaskSelect } = this.props;
         if (onTaskSelect) {
@@ -63,6 +73,7 @@ class TaskTreePanel extends React.Component {
 
     fetch(initial, open, close) {
         this.setState({ loading: true });
+        const { filter } = this.state;
         const { highlightTaskId } = this.props;
         const doOpen = (initial) ? open || highlightTaskId || '' : open || '';
         fetch(getServiceURL('task/tree', {
@@ -70,6 +81,11 @@ class TaskTreePanel extends React.Component {
             initial,
             open: doOpen,
             close: close || '',
+            searchString: filter.searchString,
+            opened: filter.opened,
+            notOpened: filter.notOpened,
+            closed: filter.closed,
+            deleted: filter.deleted,
         }), {
             method: 'GET',
             credentials: 'include',
@@ -89,15 +105,18 @@ class TaskTreePanel extends React.Component {
                     window.scrollTo(0, this.myScrollRef.current.offsetTop);
                 }
                 if (translations) this.setState({ translations }); // Only returned on initial call.
+                if (initial && filter) this.setState({ filter });
             })
             .catch(() => this.setState({ loading: false }));
     }
 
     render() {
-        const { filter, nodes, translations, loading } = this.state;
-        if (!nodes) {
-            return <div>...</div>;
-        }
+        const {
+            filter,
+            nodes,
+            translations,
+            loading,
+        } = this.state;
         const { shortForm, highlightTaskId } = this.props;
         /* eslint-disable indent, react/jsx-indent, react/jsx-tag-spacing */
         // Don't know, why IntelliJ's auto format fails...
@@ -120,18 +139,26 @@ class TaskTreePanel extends React.Component {
                                         <CheckBox
                                             label={translations['task.status.opened'] || 'opened'}
                                             id="opened"
+                                            onChange={this.handleCheckBoxChange}
+                                            checked={filter.opened}
                                         />
                                         <CheckBox
                                             label={translations['task.status.notOpened'] || 'notOpened'}
                                             id="notOpened"
+                                            onChange={this.handleCheckBoxChange}
+                                            checked={filter.notOpened}
                                         />
                                         <CheckBox
                                             label={translations['task.status.closed'] || 'closed'}
                                             id="closed"
+                                            onChange={this.handleCheckBoxChange}
+                                            checked={filter.closed}
                                         />
                                         <CheckBox
                                             label={translations.deleted || 'deleted'}
                                             id="deleted"
+                                            onChange={this.handleCheckBoxChange}
+                                            checked={filter.deleted}
                                             color="danger"
                                         />
                                     </Row>
