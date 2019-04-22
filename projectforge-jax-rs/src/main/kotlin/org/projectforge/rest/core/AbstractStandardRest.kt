@@ -272,7 +272,7 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
         val item = (if (null != id) getById(id) else newBaseDO(request))
                 ?: return restHelper.buildResponseItemNotFound()
         val layout = createEditLayout(item)
-        layout.addTranslations("changes")
+        layout.addTranslations("changes", "tooltip.selectMe")
         layout.postProcessPageMenu()
         val result = EditLayoutData(item, layout)
         onGetItemAndLayout(request, item, result)
