@@ -17,10 +17,13 @@ import org.projectforge.framework.i18n.createTranslations
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDate
+import org.projectforge.rest.core.ListFilterService
 import org.projectforge.rest.core.RestHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
+import javax.ws.rs.core.Context
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
@@ -63,6 +66,7 @@ class TaskServicesRest {
     }
 
     class Result(val root: Task,
+                 var filter: TaskFilter? = null,
                  var translations: MutableMap<String, String>? = null)
 
     companion object {
@@ -105,6 +109,9 @@ class TaskServicesRest {
     private lateinit var accessChecker: AccessChecker
 
     @Autowired
+    private lateinit var listFilterService: ListFilterService
+
+    @Autowired
     private lateinit var taskDao: TaskDao
 
     @Autowired
@@ -122,23 +129,39 @@ class TaskServicesRest {
      * @param open Optional task to open in the tree (if a descendent child of closed tasks, all ancestor tasks will be opened as well).
      * @param close Optional task to close.
      * @param table If true, the result will be returned flat with indent counter of each task node, otherwise a tree object is returned.
+     * @param opened Show opened tasks. For initial = true, this value is ignored.
+     * @param notOpened Show un-opened tasks. For initial = true, this value is ignored.
+     * @param closed Show closed tasks. For initial = true, this value is ignored.
+     * @param deleted Show deleted tasks. For initial = true, this value is ignored.
      * @return json
      */
     @GET
     @Path("tree")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getTree(@QueryParam("initial") initial: Boolean?,
+    fun getTree(@Context request: HttpServletRequest,
+                @QueryParam("initial") initial: Boolean?,
                 @QueryParam("open") open: Int?,
                 @QueryParam("close") close: Int?,
-                @QueryParam("table") table: Boolean?)
+                @QueryParam("table") table: Boolean?,
+                @QueryParam("opened") opened: Boolean?,
+                @QueryParam("notOpened") notOpened: Boolean?,
+                @QueryParam("closed") closed: Boolean?,
+                @QueryParam("deleted") deleted: Boolean?)
             : Response {
         @Suppress("UNCHECKED_CAST")
         val openNodes = userPreferencesService.getEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS) as MutableSet<Int>
+        val filter = listFilterService.getSearchFilter(request.session, TaskFilter::class.java) as TaskFilter
+        if (!(initial == true)) {
+            if (opened != null) filter.isOpened = opened
+            if (notOpened != null) filter.isNotOpened = notOpened
+            if (closed != null) filter.isClosed = closed
+            if (deleted != null) filter.isDeleted = deleted
+        }
         val rootNode = taskTree.rootTaskNode
         val root = Task(rootNode)
         addKost2List(root)
         root.childs = mutableListOf()
-        val ctx = BuildContext(ThreadLocalUserContext.getUser(), TaskFilter(), root, openNodes)
+        val ctx = BuildContext(ThreadLocalUserContext.getUser(), filter, root, openNodes)
         openTask(ctx, open)
         closeTask(ctx, close)
         //UserPreferencesHelper.putEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS, expansion.getIds(), true)
@@ -151,6 +174,7 @@ class TaskServicesRest {
         }
         val result = Result(root)
         if (initial == true) {
+            result.filter = filter
             result.translations = createTranslations(
                     "deleted",
                     "fibu.auftrag.auftraege",
