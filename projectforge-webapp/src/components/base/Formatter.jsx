@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import { connect } from 'react-redux';
-import CustomizedLayout from './page/layout/customized';
 
 const DATE_FORMATTER = 'DATE';
 const COST2_FORMATTER = 'COST2';
@@ -16,16 +15,12 @@ function Formatter(
     {
         formatter,
         data,
-        variables,
         id,
         dataType,
         dateFormat,
         timestampFormatMinutes,
     },
 ) {
-    if (dataType === 'CUSTOMIZED') {
-        return <CustomizedLayout id={id} data={data} variables={variables} />;
-    }
     const value = Object.getByString(data, id);
     if (!value) {
         return <React.Fragment />;
@@ -40,7 +35,8 @@ function Formatter(
                 result = value.name;
                 break;
             case DATE_FORMATTER:
-                result = moment(value).format(dateFormat);
+                result = moment(value)
+                    .format(dateFormat);
                 break;
             case PROJECT_FORMATTER:
                 result = value.name;
@@ -49,7 +45,8 @@ function Formatter(
                 result = value.title;
                 break;
             case TIMESTAMP_MINUTES_FORMATTER:
-                result = moment(value).format(timestampFormatMinutes);
+                result = moment(value)
+                    .format(timestampFormatMinutes);
                 break;
             case USER_FORMATTER:
                 result = value.fullname;
@@ -61,11 +58,8 @@ function Formatter(
     }
     let result = value;
     if (dataType) {
-        switch (dataType) {
-            case 'DATE':
-                result = moment(value).format(timestampFormatMinutes);
-                break;
-            default:
+        if (dataType === 'DATE') {
+            result = moment(value).format(timestampFormatMinutes);
         }
     }
     return <React.Fragment>{result}</React.Fragment>;
@@ -73,7 +67,6 @@ function Formatter(
 
 Formatter.propTypes = {
     data: PropTypes.shape({}),
-    variables: PropTypes.shape({}),
     id: PropTypes.string,
     formatter: PropTypes.string,
     dataType: PropTypes.string,
@@ -83,7 +76,6 @@ Formatter.propTypes = {
 
 Formatter.defaultProps = {
     data: undefined,
-    variables: undefined,
     id: undefined,
     formatter: undefined,
     dataType: undefined,
