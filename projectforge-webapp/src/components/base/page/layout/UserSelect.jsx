@@ -10,6 +10,13 @@ class UserSelect extends React.Component {
         this.loadOptions = this.loadOptions.bind(this);
     }
 
+    static getOptionLabel(option) {
+        if (!option) {
+            return '';
+        }
+        return `${option.fullname} (${option.username})`;
+    }
+
     loadOptions(inputValue, callback) {
         fetch(getServiceURL('user/aco',
             { search: inputValue }), {
@@ -24,7 +31,7 @@ class UserSelect extends React.Component {
                 callback(json);
             })
             .catch(() => this.setState({}));
-    };
+    }
 
     render() {
         const {
@@ -48,6 +55,7 @@ class UserSelect extends React.Component {
                     labelProperty="fullname"
                     loadOptions={this.loadOptions}
                     isRequired={required}
+                    getOptionLabel={UserSelect.getOptionLabel}
                 />
             </React.Fragment>
         );

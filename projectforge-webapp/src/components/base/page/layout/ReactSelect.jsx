@@ -32,6 +32,7 @@ class ReactSelect extends React.Component {
             labelProperty,
             translations,
             loadOptions,
+            getOptionLabel,
         } = this.props;
         let defaultValue = Object.getByString(data, id);
         if (defaultValue && values && values.length) {
@@ -55,7 +56,7 @@ class ReactSelect extends React.Component {
                     options={values}
                     isClearable={!isRequired}
                     getOptionValue={option => (option[valueProperty])}
-                    getOptionLabel={option => (option[labelProperty])}
+                    getOptionLabel={getOptionLabel || (option => (option[labelProperty]))}
                     onChange={this.setSelected}
                     loadOptions={loadOptions}
                     defaultOptions={defaultOptions}
@@ -80,6 +81,7 @@ ReactSelect.propTypes = {
     isRequired: PropTypes.bool,
     translations: PropTypes.shape({}).isRequired,
     loadOptions: PropTypes.func,
+    getOptionLabel: PropTypes.func,
 };
 
 ReactSelect.defaultProps = {
@@ -89,5 +91,6 @@ ReactSelect.defaultProps = {
     isMulti: false,
     isRequired: false,
     loadOptions: undefined,
+    getOptionLabel: undefined,
 };
 export default ReactSelect;
