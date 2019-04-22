@@ -44,7 +44,7 @@ class TimesheetEditTaskAndKost2 extends React.Component {
         if (Array.isArray(kost2List) && kost2List.length) {
             kost2Row = (
                 <div className="row">
-                    <div className="col col-sm-4">
+                    <div className="col col-sm-6">
                         <div className="form-group">
                             <ReactSelect
                                 label={translations['fibu.kost2']}
