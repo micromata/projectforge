@@ -88,7 +88,7 @@ class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
     @get:Column(length = 100)
     var location: String? = null
 
-    @PropertyInfo(i18nKey = "description")
+    @PropertyInfo(i18nKey = "timesheet.description")
     @UserPrefParameter(i18nKey = "description", multiline = true)
     @Field
     @get:Column(length = 4000)
