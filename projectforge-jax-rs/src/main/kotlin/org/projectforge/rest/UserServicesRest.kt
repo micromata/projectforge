@@ -32,9 +32,9 @@ class UserServicesRest {
      * @return json
      */
     @GET
-    @Path("ac")
+    @Path("aco")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getTaskInfo(@QueryParam("search") searchString: String?): Response {
+    fun getAutocCmpletionObjects(@QueryParam("search") searchString: String?): Response {
         val filter = BaseSearchFilter()
         filter.setSearchFields("username", "firstname", "lastname", "email")
         filter.searchString = searchString

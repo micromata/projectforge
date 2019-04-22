@@ -1,5 +1,6 @@
 import React from 'react';
 import Select from 'react-select';
+import AsyncSelect from 'react-select/lib/Async';
 import makeAnimated from 'react-select/lib/animated';
 import PropTypes from 'prop-types';
 import { dataPropType } from '../../../../utilities/propTypes';
@@ -30,16 +31,21 @@ class ReactSelect extends React.Component {
             valueProperty,
             labelProperty,
             translations,
+            loadOptions,
         } = this.props;
         let defaultValue = Object.getByString(data, id);
         if (defaultValue && values && values.length) {
             const value = (typeof defaultValue === 'object') ? defaultValue[valueProperty] : defaultValue;
             defaultValue = values.find(it => it[valueProperty] === value);
         }
+        let Tag = Select;
+        if (loadOptions) {
+            Tag = AsyncSelect;
+        }
         return (
             <React.Fragment>
                 <span className={style.text}>{label}</span>
-                <Select
+                <Tag
                     // closeMenuOnSelect={false}
                     components={makeAnimated()}
                     defaultValue={defaultValue}
@@ -49,6 +55,7 @@ class ReactSelect extends React.Component {
                     getOptionValue={option => (option[valueProperty])}
                     getOptionLabel={option => (option[labelProperty])}
                     onChange={this.setSelected}
+                    loadOptions={loadOptions}
                     placeholder={translations['select.placeholder']}
                 />
                 <AdditionalLabel title={additionalLabel} />
@@ -69,6 +76,7 @@ ReactSelect.propTypes = {
     isMulti: PropTypes.bool,
     isRequired: PropTypes.bool,
     translations: PropTypes.shape({}).isRequired,
+    loadOptions: PropTypes.func,
 };
 
 ReactSelect.defaultProps = {
@@ -77,5 +85,6 @@ ReactSelect.defaultProps = {
     labelProperty: 'label',
     isMulti: false,
     isRequired: false,
+    loadOptions: undefined,
 };
 export default ReactSelect;
