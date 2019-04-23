@@ -25,4 +25,4 @@ export const brightness = (color) => {
     return brightnessRGB(rgb.r, rgb.g, rgb.b);
 };
 
-export const black = color => brightness(color) < 100;
+export const black = color => brightness(color) > 180;

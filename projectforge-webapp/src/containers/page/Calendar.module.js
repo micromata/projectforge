@@ -1,7 +1,7 @@
 import { black } from '../../utilities/colorAcrobatics';
 
 const getBackgroundColor = (data) => {
-    return data.style ? data.style.bgColor || '#fff' : '#fff';
+    return data.style ? data.style.bgColor || '#eee' : '#eee';
 };
 
 export const customStyles = {
@@ -22,7 +22,7 @@ export const customStyles = {
             ...styles,
             backgroundColor,
             opacity,
-            color: black(backgroundColor) ? 'white' : 'black',
+            color: black(backgroundColor) ? 'black' : 'white',
         };
     },
     multiValue: (styles, { data }) => {
@@ -33,11 +33,11 @@ export const customStyles = {
     },
     multiValueLabel: (styles, { data }) => ({
         ...styles,
-        color: black(getBackgroundColor(data)) ? 'white' : 'black',
+        color: black(getBackgroundColor(data)) ? 'black' : 'white',
     }),
     multiValueRemove: (styles, { data }) => ({
         ...styles,
-        color: black(getBackgroundColor(data)) ? 'white' : 'black',
+        color: black(getBackgroundColor(data)) ? 'black' : 'white',
         ':hover': {
             opacity: '0.5',
         },
