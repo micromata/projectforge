@@ -192,7 +192,7 @@ class CalendarPanel extends React.Component {
         console.log('onSelecting', event);
     }
 
-    converJsonDates(e) {
+    convertJsonDates(e) {
         return Object.assign({}, e, {
             start: new Date(e.start),
             end: new Date(e.end),
@@ -329,7 +329,7 @@ class CalendarPanel extends React.Component {
                     onView={this.onView}
                     views={['month', 'work_week', 'week', 'day', 'agenda']}
                     startAccessor="start"
-                    date={this.state.date}
+                    date={date}
                     onNavigate={this.onNavigate}
                     endAccessor="end"
                     onRangeChange={this.onRangeChange}
@@ -367,7 +367,7 @@ CalendarPanel.propTypes = {
     timeZone: PropTypes.string.isRequired,
     locale: PropTypes.string,
     topHeight: PropTypes.string,
-    defautlDate: PropTypes.instanceOf(Date),
+    defaultDate: PropTypes.instanceOf(Date),
     defaultView: PropTypes.string,
 };
 
