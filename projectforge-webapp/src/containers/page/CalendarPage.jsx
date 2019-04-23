@@ -5,6 +5,7 @@ import makeAnimated from 'react-select/lib/animated';
 import CalendarPanel from '../panel/CalendarPanel';
 import { getServiceURL } from '../../utilities/rest';
 import LoadingContainer from '../../components/design/loading-container';
+import { customStyles } from './Calendar.module';
 
 class CalendarPage extends React.Component {
     constructor(props) {
@@ -13,14 +14,21 @@ class CalendarPage extends React.Component {
         this.state = {
             date: new Date(),
             view: 'week',
+            teamCalendars: undefined,
+            activeCalendars: [],
             translations: undefined,
-        }
+        };
 
         this.fetchInitial = this.fetchInitial.bind(this);
+        this.onChange = this.onChange.bind(this);
     }
 
     componentDidMount() {
         this.fetchInitial();
+    }
+
+    onChange(activeCalendars) {
+        this.setState({ activeCalendars });
     }
 
     fetchInitial() {
@@ -37,11 +45,15 @@ class CalendarPage extends React.Component {
                 const {
                     date,
                     view,
+                    teamCalendars,
+                    activeCalendars,
                     translations,
                 } = json;
                 this.setState({
                     loading: false,
                     date: new Date(date),
+                    teamCalendars,
+                    activeCalendars,
                     view,
                     translations,
                 });
@@ -54,6 +66,8 @@ class CalendarPage extends React.Component {
             loading,
             date,
             view,
+            teamCalendars,
+            activeCalendars,
             translations,
         } = this.state;
         if (!translations) {
@@ -65,22 +79,24 @@ class CalendarPage extends React.Component {
                     <CardBody>
                         <form>
                             <Row>
-                                <Col sm={6}>
+                                <Col sm={11}>
                                     <Select
                                         components={makeAnimated()}
-                                        value=""
                                         isMulti
-                                        options={[]}
+                                        defaultValue={activeCalendars}
+                                        closeMenuOnSelect={false}
+                                        options={teamCalendars}
                                         isClearable
-                                        // getOptionValue={option => (option[valueProperty])}
-                                        // getOptionLabel={getOptionLabel || (option => (option[labelProperty]))}
-                                        // onChange={onChange}
+                                        getOptionValue={option => (option.id)}
+                                        getOptionLabel={option => (option.title)}
+                                        styles={customStyles}
+                                        onChange={this.onChange}
                                         // loadOptions={loadOptions}
                                         // defaultOptions={defaultOptions}
                                         placeholder={translations['select.placeholder']}
                                     />
                                 </Col>
-                                <Col sm={6}>
+                                <Col sm={1}>
                                     <Row>
                                         <Button
                                             color="primary"
@@ -99,6 +115,7 @@ class CalendarPage extends React.Component {
                 <CalendarPanel
                     defautlDate={date}
                     defaultView={view}
+                    activeCalendars={activeCalendars}
                     topHeight="225px"
                 />
             </LoadingContainer>

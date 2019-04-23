@@ -85,7 +85,7 @@ public class TeamEventDaoRest
   private TeamCalCache teamCalCache;
 
   /**
-   * @param calendarIds  The id's of the calendars to search for events (comma separated). If not given, all calendars
+   * @param calendarIds  The id's of the calendarIds to search for events (comma separated). If not given, all calendarIds
    *                     owned by the context user are assumed.
    * @param daysInFuture Get events from today until daysInFuture (default is 30). Maximum allowed value is 90.
    */
@@ -131,7 +131,7 @@ public class TeamEventDaoRest
   /**
    * Rest call for {@link TeamEventDao#getEventList(TeamEventFilter, boolean)}
    *
-   * @param calendarIds  The id's of the calendars to search for events (comma separated). If not given, all calendars
+   * @param calendarIds  The id's of the calendarIds to search for events (comma separated). If not given, all calendarIds
    *                     owned by the context user are assumed.
    * @param daysInFuture Get events from today until daysInFuture (default is 30). Maximum allowed value is 90.
    */

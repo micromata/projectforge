@@ -1,92 +1,74 @@
 package org.projectforge.rest.calendar
 
-import com.google.gson.annotations.SerializedName
-import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter
-import org.projectforge.business.user.service.UserPreferencesService
-import org.projectforge.framework.i18n.createTranslations
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
-import org.projectforge.rest.converter.DateTimeFormat
 import org.projectforge.rest.core.RestHelper
 import org.projectforge.ui.ResponseAction
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.time.LocalDate
+import java.util.*
 import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
+/**
+ * Rest services for getting events.
+ */
 @Component
 @Path("calendar")
-class CalendarServicesRest() {
+class CalendarServicesRest {
+    enum class ACCESS { OWNER, FULL, READ, MINIMAL, NONE }
 
     internal class CalendarData(val date: LocalDate,
-                                val view: CalendarViewType = CalendarViewType.MONTH,
-                                val events: List<BigCalendarEvent>,
-                                val specialDays: Map<String, HolidayAndWeekendProvider.SpecialDayInfo>)
+                                @Suppress("unused") val events: List<BigCalendarEvent>,
+                                @Suppress("unused") val specialDays: Map<String, HolidayAndWeekendProvider.SpecialDayInfo>)
 
-    internal class CalendarInit(val date: LocalDate,
-                                var view: CalendarViewType? = CalendarViewType.MONTH,
-                                var translations: Map<String, String>? = null)
+    /**
+     * CalendarFilter to request calendar events as POST param. Dates are required as JavaScript ISO date time strings
+     * (start and end).
+     */
+    class CalendarFilter(var start: Date? = null,
+                         /** Optional, if view is given. */
+                         var end: Date? = null,
+                         /** Will be ignored if end is given. */
+                         var view: String? = null,
+                         var timesheetUserId: Int? = null,
+                         /** The team calendarIds to display. */
+                         var activeCalendarIds: List<Int>? = null)
 
     private class DateTimeRange(var start: PFDateTime,
                                 var end: PFDateTime? = null)
-
-    enum class CalendarViewType {
-        @SerializedName("month")
-        MONTH,
-        @SerializedName("week")
-        WEEK,
-        @SerializedName("day")
-        DAY,
-        @SerializedName("agenda")
-        AGENDA
-    }
-
-    companion object {
-        val OLD_USERPREF_KEY = "TeamCalendarPage.userPrefs";
-        val USERPREF_KEY = "calendar.displaySettings";
-    }
-
-    @Autowired
-    private lateinit var timesheetsProvider: TimesheetEventsProvider
 
     @Autowired
     private lateinit var teamCalEventsProvider: TeamCalEventsProvider
 
     @Autowired
-    private lateinit var userPreferenceService: UserPreferencesService
+    private lateinit var timesheetsProvider: TimesheetEventsProvider
+
+    @Autowired
+    private lateinit var calendarConfigServicesRest: CalendarConfigServicesRest
 
     private val restHelper = RestHelper()
 
-    @GET
-    @Path("initial")
-    @Produces(MediaType.APPLICATION_JSON)
-    fun getInitialCalendar(): Response {
-        val initial = CalendarInit(LocalDate.now())
-        initial.translations= createTranslations("search", "select.placeholder")
-        return restHelper.buildResponse(initial)
-    }
-
-    @GET
+    @POST
     @Path("events")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    fun getEvents(@QueryParam("start") startParam: String?, @QueryParam("end") endParam: String?, @QueryParam("view") viewParam: String?): Response {
-        val start = restHelper.parseJSDateTime(startParam)
-        if (start == null) {
-            val msg = "Rest service 'events' must be called with at least one valid start date (of pattern '${DateTimeFormat.JS_DATE_TIME_MILLIS.pattern}')."
-            return restHelper.buildResponseBadRequest(msg)
+    fun getEvents(filter: CalendarFilter): Response {
+        if (filter.start == null) {
+            return restHelper.buildResponseBadRequest("At least start date required for getting events.")
         }
-        val end = restHelper.parseJSDateTime(endParam)
-        val view = when (viewParam) {
-            "week" -> CalendarViewType.WEEK
-            "day" -> CalendarViewType.DAY
-            "agenda" -> CalendarViewType.AGENDA
-            else -> CalendarViewType.MONTH
-        }
-        return buildEvents(start, end, view)
+        val userId = ThreadLocalUserContext.getUserId()
+        filter.timesheetUserId = userId // TODO: get from client
+        val activeFilter = calendarConfigServicesRest.getUsersSettings().getActiveFilter() // TODO: get from client
+        filter.activeCalendarIds = activeFilter?.calendarIds
+        return buildEvents(filter)
     }
 
+    /**
+     * The users selected a slot in the calendar.
+     */
     @GET
     @Path("action")
     @Produces(MediaType.APPLICATION_JSON)
@@ -101,54 +83,35 @@ class CalendarServicesRest() {
             return restHelper.buildResponseBadRequest("Action '$action' not supported. Supported action is only 'select'.")
         val startDate = if (start != null) restHelper.parseJSDateTime(start)?.toEpochSeconds() else null
         val endDate = if (end != null) restHelper.parseJSDateTime(end)?.toEpochSeconds() else null
-        if (calendar.isNullOrBlank())
-            return restHelper.buildResponseAction(ResponseAction("timesheet/edit?start=$startDate&end=$endDate"))
+        return if (calendar.isNullOrBlank())
+            restHelper.buildResponseAction(ResponseAction("timesheet/edit?start=$startDate&end=$endDate"))
         else
-            return restHelper.buildResponseAction(ResponseAction("teamEvent/edit?start=$startDate&end=$endDate"))
+            restHelper.buildResponseAction(ResponseAction("teamEvent/edit?start=$startDate&end=$endDate"))
     }
 
-    private fun buildEvents(startParam: PFDateTime? = null, endParam: PFDateTime? = null, viewParam: CalendarViewType? = null): Response {
+    private fun buildEvents(filter: CalendarFilter): Response { //startParam: PFDateTime? = null, endParam: PFDateTime? = null, viewParam: CalendarViewType? = null): Response {
         val events = mutableListOf<BigCalendarEvent>()
-        val settings = getUsersSettings()
-        val view =
-                if (viewParam != null)
-                    viewParam
-                else if (settings.viewType != null)
-                    settings.viewType
-                else
-                    CalendarViewType.MONTH
-        val range: DateTimeRange
-        if (startParam == null)
-            range = DateTimeRange(PFDateTime.from(settings.startDate), endParam)
-        else
-            range = DateTimeRange(startParam, endParam)
-        adjustRange(range, view)
-        //if (filter.isShowTimesheets) {
-        timesheetsProvider.addTimesheetEvents(range.start, range.end!!,
-                ThreadLocalUserContext.getUserId(),
-                events)
-        // }
-        val idx = settings.activeDisplayFilterIndex
-        val active: CalendarsDisplayFilter?
-        if (idx < settings.displayFilters?.list.size)
-            active = settings.displayFilters.list[idx]
-        else
-            active = null
-        if (active != null)
-            teamCalEventsProvider.addEvents(range.start, range.end!!, events, active)
+        // val settings = getUsersSettings()
+        val range = DateTimeRange(PFDateTime.from(filter.start)!!, PFDateTime.from(filter.end))
+        adjustRange(range, CalendarView.from(filter.view))
+        val timesheetUserId = filter.timesheetUserId
+        if (timesheetUserId != null) {
+            timesheetsProvider.addTimesheetEvents(range.start, range.end!!, timesheetUserId, events)
+        }
+        teamCalEventsProvider.addEvents(range.start, range.end!!, events, filter.activeCalendarIds, calendarConfigServicesRest.getStyleMap())
         val specialDays = HolidayAndWeekendProvider.getSpecialDayInfos(range.start, range.end!!)
         var counter = 0
         events.forEach {
             it.id = "e-${counter++}"
         }
-        val result = CalendarData(range.start.dateTime.toLocalDate(), view!!, events, specialDays)
+        val result = CalendarData(range.start.dateTime.toLocalDate(), events, specialDays)
         return restHelper.buildResponse(result)
     }
 
     /**
      * Adjustes the range (start and end) if end is not given.
      */
-    private fun adjustRange(range: DateTimeRange, view: CalendarViewType?) {
+    private fun adjustRange(range: DateTimeRange, view: CalendarView?) {
         if (range.end != null) {
             if (range.start.daysBetween(range.end!!) > 50)
                 throw BadRequestException("Requested range for calendar to big. Max. number of days between start and end must not higher than 50.")
@@ -156,11 +119,11 @@ class CalendarServicesRest() {
         }
         val start = range.start
         when (view) {
-            CalendarViewType.WEEK -> {
+            CalendarView.WEEK -> {
                 range.start = start.getBeginOfWeek()
                 range.end = range.start.plusDays(7)
             }
-            CalendarViewType.DAY -> {
+            CalendarView.DAY -> {
                 range.start = start.getBeginOfDay()
                 range.end = range.start.plusDays(1)
             }
@@ -170,24 +133,6 @@ class CalendarServicesRest() {
                 range.end = start.getEndOfMonth()
             }
         }
-    }
-
-    private fun getUsersSettings(): CalendarDisplaySettings {
-        var settings = userPreferenceService.getEntry(CalendarDisplaySettings::class.java, "ignore")//USERPREF_KEY)
-        if (settings == null) {
-            // No current user pref entry available. Try the old one (from release 6.* / Wicket Calendarpage):
-            val oldFilter = userPreferenceService.getEntry(TeamCalCalendarFilter::class.java, OLD_USERPREF_KEY)
-            oldFilter.viewType
-            settings = CalendarDisplaySettings()
-            settings.copyFrom(oldFilter)
-            userPreferenceService.putEntry(USERPREF_KEY, settings, true)
-            settings.saveDisplayFilters(userPreferenceService)
-        }
-        if (settings.startDate == null)
-            settings.startDate = LocalDate.now()
-        if (settings.viewType == null)
-            settings.viewType = CalendarViewType.MONTH
-        return settings
     }
 }
 

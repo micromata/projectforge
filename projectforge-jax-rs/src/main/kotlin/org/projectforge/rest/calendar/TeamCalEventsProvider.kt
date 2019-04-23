@@ -21,16 +21,19 @@ class TeamCalEventsProvider() {
     fun addEvents(start: PFDateTime,
                   end: PFDateTime,
                   events: MutableList<BigCalendarEvent>,
-                  displayFilter: CalendarsDisplayFilter) {
+                  teamCalendarIds: List<Int>?,
+                  styleMap: CalendarStyleMap) {
+        if (teamCalendarIds.isNullOrEmpty())
+            return
         val eventFilter = TeamEventFilter()
-        eventFilter.teamCals = displayFilter.calendarColorMapping.keys
+        eventFilter.teamCals = teamCalendarIds
         eventFilter.startDate = start.asUtilDate()
         eventFilter.endDate = end.asUtilDate()
         eventFilter.user = ThreadLocalUserContext.getUser()
         val teamEvents = teamEventDao.getEventList(eventFilter, true)
         teamEvents?.forEach {
             val eventDO: TeamEventDO
-            val recurrentEvent : Boolean
+            val recurrentEvent: Boolean
             if (it is TeamEventDO) {
                 eventDO = it
                 recurrentEvent = false
@@ -38,13 +41,13 @@ class TeamCalEventsProvider() {
                 eventDO = (it as TeamRecurrenceEvent).master
                 recurrentEvent = true
             }
-
-            val bgColor = displayFilter.calendarColorMapping.get(eventDO.getCalendarId())
             val recurrentDate = if (recurrentEvent) "?recurrentDate=${it.startDate.time / 1000}" else ""
             val link = "teamEvent/edit/${eventDO.id}$recurrentDate"
             val allDay = eventDO.isAllDay()
+            val style = styleMap.get(eventDO.calendarId)
             events.add(BigCalendarEvent(it.subject, it.startDate, it.endDate, allDay,
-                    location = it.location, desc = it.note, link = link, bgColor = bgColor))
+                    location = it.location, desc = it.note, link = link,
+                    bgColor = style?.bgColor, fgColor = style?.fgColor))
         }
     }
 }
