@@ -23,13 +23,6 @@
 
 package org.projectforge.business.teamcal.admin;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
 import org.projectforge.business.user.UserRightId;
@@ -43,9 +36,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.*;
+
 /**
  * Caches all calendars.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
@@ -62,6 +57,10 @@ public class TeamCalCache extends AbstractCache
 
   private Map<Integer, TeamCalDO> calendarMap;
 
+  public TeamCalRight getTeamCalRight() {
+    return teamCalRight;
+  }
+
   public TeamCalDO getCalendar(final Integer calendarId)
   {
     checkRefresh();
@@ -70,7 +69,7 @@ public class TeamCalCache extends AbstractCache
 
   /**
    * Get ordered calendars (by title and id).
-   * 
+   *
    * @return All accessible calendars of the context user (as owner or with full, read-only or minimal access).
    */
   public Collection<TeamCalDO> getAllAccessibleCalendars()
@@ -106,7 +105,7 @@ public class TeamCalCache extends AbstractCache
 
   /**
    * Get ordered calendars (by title and id).
-   * 
+   *
    * @return All accessible calendars of the context user (as owner or with full, read-only or minimal access).
    */
   public Collection<TeamCalDO> getAllOwnCalendars()
