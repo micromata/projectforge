@@ -8,7 +8,7 @@ enum class CalendarView {
     @SerializedName("week")
     WEEK,
     @SerializedName("workWeek")
-    wORK_WEEK,
+    WORK_WEEK,
     @SerializedName("day")
     DAY,
     @SerializedName("agenda")
