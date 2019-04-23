@@ -1,13 +1,15 @@
-import { black } from '../../utilities/colorAcrobatics';
-
 const getBackgroundColor = (data) => {
     return data.style ? data.style.bgColor || '#eee' : '#eee';
+};
+
+const getForegroundColor = (data) => {
+    return data.style ? data.style.fgColor || '#222' : '#222';
 };
 
 export const customStyles = {
     control: styles => ({
         ...styles,
-        backgroundColor: 'white',
+        backgroundColor: '#eee',
     }),
     option: (styles, {
         data,
@@ -22,7 +24,7 @@ export const customStyles = {
             ...styles,
             backgroundColor,
             opacity,
-            color: black(backgroundColor) ? 'black' : 'white',
+            color: getForegroundColor(data),
         };
     },
     multiValue: (styles, { data }) => {
@@ -33,11 +35,11 @@ export const customStyles = {
     },
     multiValueLabel: (styles, { data }) => ({
         ...styles,
-        color: black(getBackgroundColor(data)) ? 'black' : 'white',
+        color: getForegroundColor(data),
     }),
     multiValueRemove: (styles, { data }) => ({
         ...styles,
-        color: black(getBackgroundColor(data)) ? 'black' : 'white',
+        color: getForegroundColor(data),
         ':hover': {
             opacity: '0.5',
         },
