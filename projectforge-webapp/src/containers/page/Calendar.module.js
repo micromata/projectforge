@@ -9,7 +9,10 @@ const getForegroundColor = (data) => {
 export const customStyles = {
     control: styles => ({
         ...styles,
-        backgroundColor: '#eee',
+    }),
+    container: base => ({
+        ...base,
+        zIndex: '999',
     }),
     option: (styles, {
         data,
