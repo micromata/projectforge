@@ -69,19 +69,10 @@ class CalendarPanel extends React.Component {
         );
     }
 
-    /*static convertJsonDates(e) {
-        Object.assign({}, e, {
-            start: new Date(e.start),
-            end: new Date(e.end),
-        });
-    }*/
-
-
 // Callback fired when a calendar event is selected.
     static onSelectEvent(event) {
         history.push(event.link);
     }
-
 
     constructor(props) {
         super(props);
@@ -97,13 +88,16 @@ class CalendarPanel extends React.Component {
                 },
             });
 
+        const { defaultDate, defaultView } = props;
+
         this.state = {
             loading: false,
-            initialized: false,
-            events: [],
-            specialDays: [],
-            date: undefined,
-            viewType: undefined,
+            events: undefined,
+            specialDays: undefined,
+            date: defaultDate,
+            view: defaultView,
+            start: defaultDate,
+            end: undefined,
             calendar: '',
         };
 
@@ -112,7 +106,6 @@ class CalendarPanel extends React.Component {
         this.dayStyle = this.dayStyle.bind(this);
         this.navigateToDay = this.navigateToDay.bind(this);
         this.fetchEvents = this.fetchEvents.bind(this);
-        this.fetchInitial = this.fetchInitial.bind(this);
         this.onRangeChange = this.onRangeChange.bind(this);
         this.onSelectSlot = this.onSelectSlot.bind(this);
         this.onDoubleClickEvent = this.onDoubleClickEvent.bind(this);
@@ -123,7 +116,7 @@ class CalendarPanel extends React.Component {
     }
 
     componentDidMount() {
-        this.fetchInitial();
+        this.fetchEvents();
     }
 
     convertJsonDates = e => Object.assign({}, e, {
@@ -145,26 +138,30 @@ class CalendarPanel extends React.Component {
     // Callback fired when the visible date range changes. Returns an Array of dates or an object
     // with start and end dates for BUILTIN views.
     onRangeChange(event, newView) {
-        const { viewType } = this.state;
-        let view = newView;
+        const { view } = this.state;
+        let useView = newView;
         if (newView) {
-            this.setState({ viewType: newView });
+            this.setState({ view: newView });
         } else {
-            // newView isn't given (view not changed), so get viewType from state:
-            view = viewType;
+            // newView isn't given (view not changed), so get view from state:
+            useView = view;
         }
         const { start, end } = event;
-        let myStart;
-        let myEnd;
-        if (view === 'month' || view === 'agenda') {
-            myStart = start;
-            myEnd = end;
+        let newStart;
+        let newEnd;
+        if (useView === 'month' || useView === 'agenda') {
+            newStart = start;
+            newEnd = end;
         } else {
             const [element] = event;
-            myStart = element;
+            newStart = element;
         }
-        // console.log("start:", myStart, "end", myEnd, view)
-        this.fetchEvents(myStart, myEnd, view);
+        this.setState({
+            start: newStart,
+            end: newEnd,
+            view: useView
+        }, () => this.fetchEvents());
+        // console.log("start:", myStart, "end", myEnd, useView)
     }
 
     // A callback fired when a date selection is made. Only fires when selectable is true.
@@ -187,9 +184,7 @@ class CalendarPanel extends React.Component {
                 const redirectUrl = json.url;
                 history.push(redirectUrl);
             })
-            .catch(() => this.setState({
-                initialized: false,
-            }));
+            .catch(error => alert(`Internal error: ${error}`));
     }
 
     // Callback fired when a calendar event is clicked twice.
@@ -253,36 +248,8 @@ class CalendarPanel extends React.Component {
         });
     }
 
-    fetchInitial() {
-        this.setState({ loading: true });
-        fetch(getServiceURL('calendar/initial'), {
-            method: 'GET',
-            credentials: 'include',
-            headers: {
-                Accept: 'application/json',
-            },
-        })
-            .then(response => response.json())
-            .then((json) => {
-                const {
-                    date,
-                    viewType,
-                    events,
-                    specialDays,
-                } = json;
-                this.setState({
-                    initialized: true,
-                    loading: false,
-                    date: new Date(date),
-                    viewType,
-                    events: events.map(this.convertJsonDates),
-                    specialDays,
-                });
-            })
-            .catch(error => alert(`Internal error: ${error}`));
-    }
-
-    fetchEvents(start, end, view) {
+    fetchEvents() {
+        const { start, end, view } = this.state;
         this.setState({ loading: true });
         fetch(getServiceURL('calendar/events', {
             start: start ? start.toJSON() : '',
@@ -330,16 +297,19 @@ class CalendarPanel extends React.Component {
     }
 
     render() {
-        const { initialized } = this.state;
-        if (!initialized) {
-            return <React.Fragment>Loading...</React.Fragment>;
+        const { events, loading } = this.state;
+        if (!events) {
+            return (
+                <LoadingContainer loading={loading}>
+                    ...
+                </LoadingContainer>
+            );
         }
-        const { events, date, loading } = this.state;
+        const { date, view } = this.state;
         const { topHeight } = this.props;
         let initTime = new Date(date.getDate());
         initTime.setHours(8);
         initTime.setMinutes(0);
-        console.log(`calc(100vh - ${topHeight})`)
         return (
             <LoadingContainer loading={loading}>
                 <DragAndDropCalendar
@@ -350,8 +320,7 @@ class CalendarPanel extends React.Component {
                     localizer={localizer}
                     events={events}
                     step={30}
-                    defaultView={this.state.viewType}
-                    view={this.state.viewType}
+                    view={view}
                     onView={this.onView}
                     views={['month', 'work_week', 'week', 'day', 'agenda']}
                     startAccessor="start"
@@ -392,11 +361,15 @@ CalendarPanel.propTypes = {
     timeZone: PropTypes.string.isRequired,
     locale: PropTypes.string,
     topHeight: PropTypes.string,
+    defautlDate: PropTypes.instanceOf(Date),
+    defaultView: PropTypes.string,
 };
 
 CalendarPanel.defaultProps = {
     locale: undefined,
     topHeight: '164px',
+    defaultDate: new Date(),
+    defaultView: 'month',
 };
 
 const mapStateToProps = ({ authentication }) => ({

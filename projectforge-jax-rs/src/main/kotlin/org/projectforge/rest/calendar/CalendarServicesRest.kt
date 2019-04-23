@@ -3,6 +3,7 @@ package org.projectforge.rest.calendar
 import com.google.gson.annotations.SerializedName
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter
 import org.projectforge.business.user.service.UserPreferencesService
+import org.projectforge.framework.i18n.createTranslations
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.converter.DateTimeFormat
@@ -20,9 +21,13 @@ import javax.ws.rs.core.Response
 class CalendarServicesRest() {
 
     internal class CalendarData(val date: LocalDate,
-                                val viewType: CalendarViewType = CalendarViewType.MONTH,
+                                val view: CalendarViewType = CalendarViewType.MONTH,
                                 val events: List<BigCalendarEvent>,
                                 val specialDays: Map<String, HolidayAndWeekendProvider.SpecialDayInfo>)
+
+    internal class CalendarInit(val date: LocalDate,
+                                var view: CalendarViewType? = CalendarViewType.MONTH,
+                                var translations: Map<String, String>? = null)
 
     private class DateTimeRange(var start: PFDateTime,
                                 var end: PFDateTime? = null)
@@ -58,7 +63,9 @@ class CalendarServicesRest() {
     @Path("initial")
     @Produces(MediaType.APPLICATION_JSON)
     fun getInitialCalendar(): Response {
-        return buildEvents();
+        val initial = CalendarInit(LocalDate.now())
+        initial.translations= createTranslations("search", "select.placeholder")
+        return restHelper.buildResponse(initial)
     }
 
     @GET
