@@ -41,7 +41,7 @@ class CalendarStyle(var bgColor: String? = null, var fgColor: String? = null) {
         }
 
         fun black(color: String?): Boolean {
-            return brightness(color) > 200
+            return brightness(color) > 180
         }
     }
 }
