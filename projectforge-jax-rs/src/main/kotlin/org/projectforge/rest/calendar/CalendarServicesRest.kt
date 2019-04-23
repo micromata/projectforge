@@ -61,8 +61,6 @@ class CalendarServicesRest {
         }
         val userId = ThreadLocalUserContext.getUserId()
         filter.timesheetUserId = userId // TODO: get from client
-        val activeFilter = calendarConfigServicesRest.getUsersSettings().getActiveFilter() // TODO: get from client
-        filter.activeCalendarIds = activeFilter?.calendarIds
         return buildEvents(filter)
     }
 

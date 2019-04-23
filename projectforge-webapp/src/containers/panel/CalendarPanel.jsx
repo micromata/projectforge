@@ -119,6 +119,13 @@ class CalendarPanel extends React.Component {
         this.fetchEvents();
     }
 
+    componentDidUpdate(prevProps) {
+        const { activeCalendars } = this.props;
+        if (prevProps.activeCalendars.length !== activeCalendars.length) {
+            this.fetchEvents();
+        }
+    }
+
     // ToDo
     // DateHeader for statistics.
 
