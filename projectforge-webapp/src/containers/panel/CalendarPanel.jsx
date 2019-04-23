@@ -69,7 +69,7 @@ class CalendarPanel extends React.Component {
         );
     }
 
-// Callback fired when a calendar event is selected.
+    // Callback fired when a calendar event is selected.
     static onSelectEvent(event) {
         history.push(event.link);
     }
@@ -250,17 +250,21 @@ class CalendarPanel extends React.Component {
 
     fetchEvents() {
         const { start, end, view } = this.state;
+        const { activeCalendars } = this.props;
+        const activeCalendarIds = activeCalendars ? activeCalendars.map(obj => obj.id) : [];
         this.setState({ loading: true });
-        fetch(getServiceURL('calendar/events', {
-            start: start ? start.toJSON() : '',
-            end: end ? end.toJSON() : '',
-            view: view || 'month',
-        }), {
-            method: 'GET',
+        fetch(getServiceURL('calendar/events'), {
+            method: 'POST',
             credentials: 'include',
             headers: {
-                Accept: 'application/json',
+                'Content-Type': 'application/json',
             },
+            body: JSON.stringify({
+                start: start ? start.toJSON() : null,
+                end: end ? end.toJSON() : null,
+                view: view,
+                activeCalendarIds,
+            }),
         })
             .then(response => response.json())
             .then((json) => {
@@ -357,6 +361,7 @@ class CalendarPanel extends React.Component {
 }
 
 CalendarPanel.propTypes = {
+    activeCalendars: PropTypes.arrayOf(PropTypes.shape({})),
     firstDayOfWeek: PropTypes.number.isRequired,
     timeZone: PropTypes.string.isRequired,
     locale: PropTypes.string,
@@ -366,6 +371,7 @@ CalendarPanel.propTypes = {
 };
 
 CalendarPanel.defaultProps = {
+    activeCalendars: [],
     locale: undefined,
     topHeight: '164px',
     defaultDate: new Date(),

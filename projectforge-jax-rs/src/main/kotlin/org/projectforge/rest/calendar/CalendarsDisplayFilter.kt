@@ -24,6 +24,7 @@
 package org.projectforge.rest.calendar
 
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute
+import org.projectforge.business.teamcal.filter.TemplateEntry
 
 /**
  * Persist the settings of one named filter entry.
@@ -33,10 +34,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute
  */
 class CalendarsDisplayFilter {
 
-    /**
-     * Mapping of colors (String as HTML hexcode) to calendars ([TeamCalDO.id]).
-     */
-    val calendarColorMapping = mutableMapOf<Int, String>()
+    val calendarIds = mutableListOf<Int>()
 
     @XStreamAsAttribute
     var name: String? = null
@@ -72,7 +70,29 @@ class CalendarsDisplayFilter {
     @XStreamAsAttribute
     var showPlanning: Boolean? = null
 
-    fun setColorMapping(calId: Int, colorCode: String) {
-        calendarColorMapping.put(calId, colorCode)
+    companion object {
+        // LEGACY STUFF:
+
+        /**
+         * For re-using legacy filters (from ProjetForge version up to 6, Wicket-Calendar).
+         */
+        internal fun copyFrom(templateEntry: TemplateEntry?): CalendarsDisplayFilter {
+            val displayFilter = CalendarsDisplayFilter()
+            if (templateEntry != null) {
+                displayFilter.defaultCalendarId = templateEntry.defaultCalendarId
+                displayFilter.name = templateEntry.name
+                displayFilter.showBirthdays = templateEntry.isShowBirthdays
+                displayFilter.showBreaks = templateEntry.isShowBreaks
+                displayFilter.showPlanning = templateEntry.isShowPlanning
+                displayFilter.showStatistics = templateEntry.isShowStatistics
+                displayFilter.timesheetUserId = templateEntry.timesheetUserId
+                displayFilter.showTimesheets = templateEntry.isShowTimesheets
+                templateEntry.calendarProperties?.forEach {
+                    displayFilter.calendarIds.add(it.calId)
+                }
+            }
+            return displayFilter
+        }
     }
+
 }

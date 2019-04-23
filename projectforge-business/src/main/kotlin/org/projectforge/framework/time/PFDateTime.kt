@@ -6,7 +6,6 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
 import java.util.*
-import java.time.ZonedDateTime
 
 
 
@@ -58,6 +57,13 @@ class PFDateTime {
      * Date part as ISO string: "yyyy-MM-dd HH:mm".
      */
     fun dateTimeAsIsoString() :String {
+        return isoDateTimeFormatterMinutes.format(dateTime)
+    }
+
+    /**
+     * Date part as JavaScript string: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'".
+     */
+    fun dateTimeAsJavaScriptString() :String {
         return isoDateTimeFormatterMinutes.format(dateTime)
     }
 
@@ -155,9 +161,9 @@ class PFDateTime {
          * Creates mindnight [ZonedDateTime] from given [LocalDate].
          */
         @JvmStatic
-        fun from(date: java.util.Date?): PFDateTime {
+        fun from(date: java.util.Date?, nowIfNull : Boolean = false): PFDateTime? {
             if (date == null)
-                return now()
+                return if (nowIfNull) now() else null
             val dateTime = date.toInstant().atZone(getUsersZoneId());
             return PFDateTime(dateTime)
         }
@@ -206,6 +212,7 @@ class PFDateTime {
 
         private val isoDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         private val isoDateTimeFormatterMinutes = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+        private val jsDateTimeFormatterMinutes = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
        // private val jsonDateTimeFormatter = DateTimeFormatter.ofPattern(DateTimeFormat.JS_DATE_TIME_MILLIS.pattern)
     }
 }

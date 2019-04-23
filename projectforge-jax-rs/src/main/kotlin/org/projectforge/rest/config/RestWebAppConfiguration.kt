@@ -3,6 +3,7 @@ package org.projectforge.rest.config
 import org.glassfish.jersey.media.multipart.MultiPartFeature
 import org.glassfish.jersey.server.ResourceConfig
 import org.projectforge.rest.*
+import org.projectforge.rest.calendar.CalendarConfigServicesRest
 import org.projectforge.rest.calendar.CalendarServicesRest
 import org.projectforge.rest.calendar.TeamEventRest
 import org.projectforge.rest.orga.ContractRest
@@ -26,6 +27,7 @@ class RestWebAppConfiguration : ResourceConfig() {
         register(AddressServicesRest::class.java)
         register(BookRest::class.java)
         register(BookServicesRest::class.java)
+        register(CalendarConfigServicesRest::class.java)
         register(CalendarServicesRest::class.java)
         register(TaskRest::class.java)
         register(TaskServicesRest::class.java)

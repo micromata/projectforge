@@ -27,7 +27,6 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter
 import org.projectforge.business.teamcal.filter.ViewType
 import org.projectforge.business.user.service.UserPreferencesService
-import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDateTimeUtils
 import java.time.LocalDate
 
@@ -59,16 +58,18 @@ class CalendarDisplaySettings {
     //var slot30: Boolean? = null
 
     @XStreamAsAttribute
-    var viewType: CalendarServicesRest.CalendarViewType? = null
+    var view: CalendarView? = null
 
-    companion object {
-        private val log = org.slf4j.LoggerFactory.getLogger(CalendarDisplaySettings::class.java)
-        val DEFAULT_COLOR = "#FAAF26"
-        private val USERPREF_KEY_FILTERS = "calendar.listOfDisplayFilters";
+    internal fun getActiveFilter(): CalendarsDisplayFilter? {
+        if (activeDisplayFilterIndex >= 0 && activeDisplayFilterIndex < displayFilters.list.size) {
+            // Get the user's active filter:
+            return displayFilters.list[activeDisplayFilterIndex]
+        }
+        return null
     }
 
     internal fun loadDisplayFilters(userPreferenceService: UserPreferencesService) {
-        var filter = userPreferenceService.getEntry(ListOfDisplayFilters::class.java, USERPREF_KEY_FILTERS)
+        val filter = userPreferenceService.getEntry(ListOfDisplayFilters::class.java, USERPREF_KEY_FILTERS)
         if (filter == null)
         // No filters stored yet.
             return
@@ -80,44 +81,41 @@ class CalendarDisplaySettings {
     }
 
 
-    // LEGACY STUFF:
+    companion object {
+        const val DEFAULT_COLOR = "#FAAF26"
+        private const val USERPREF_KEY_FILTERS = "calendar.listOfDisplayFilters"
 
-    /**
-     * For re-using legacy filters (from ProjetForge version up to 6, Wicket-Calendar).
-     */
-    internal fun copyFrom(oldFilter: TeamCalCalendarFilter?) {
-        if (oldFilter != null) {
-            activeDisplayFilterIndex = oldFilter.activeTemplateEntryIndex
-            //firstHour = oldFilter.firstHour
-            //slot30 = oldFilter.isSlot30
-            startDate = PFDateTimeUtils.convertToLocalDate(oldFilter.startDate)
-            viewType = convert(oldFilter.viewType)
-            oldFilter.templateEntries?.forEach { templateEntry ->
-                val displayFilter = CalendarsDisplayFilter()
-                displayFilter.defaultCalendarId = templateEntry.defaultCalendarId
-                displayFilter.name = templateEntry.name
-                displayFilter.showBirthdays = templateEntry.isShowBirthdays
-                displayFilter.showBreaks = templateEntry.isShowBreaks
-                displayFilter.showPlanning = templateEntry.isShowPlanning
-                displayFilter.showStatistics = templateEntry.isShowStatistics
-                displayFilter.timesheetUserId = templateEntry.timesheetUserId
-                displayFilter.showTimesheets = templateEntry.isShowTimesheets
-                templateEntry.calendarProperties?.forEach {
-                    displayFilter.setColorMapping(it.calId, it.colorCode)
+        // LEGACY STUFF:
+
+        /**
+         * For re-using legacy filters (from ProjetForge version up to 6, Wicket-Calendar).
+         */
+        internal fun copyFrom(oldFilter: TeamCalCalendarFilter?): CalendarDisplaySettings {
+            val settings = CalendarDisplaySettings()
+            if (oldFilter != null) {
+                settings.activeDisplayFilterIndex = oldFilter.activeTemplateEntryIndex
+                //firstHour = oldFilter.firstHour
+                //slot30 = oldFilter.isSlot30
+                settings.startDate = PFDateTimeUtils.convertToLocalDate(oldFilter.startDate)
+                settings.view = convert(oldFilter.viewType)
+                oldFilter.templateEntries?.forEach { templateEntry ->
+                    val displayFilter = CalendarsDisplayFilter.copyFrom(templateEntry)
+                    settings.displayFilters.list.add(displayFilter)
                 }
-                displayFilters.list.add(displayFilter)
+            }
+            return settings
+        }
+
+        /**
+         * For re-using legacy filters (from ProjetForge version up to 6, Wicket-Calendar).
+         */
+        private fun convert(oldViewType: ViewType?): CalendarView? {
+            return when (oldViewType) {
+                ViewType.BASIC_WEEK -> CalendarView.WEEK
+                ViewType.BASIC_DAY -> CalendarView.DAY
+                else -> CalendarView.MONTH
             }
         }
-    }
 
-    /**
-     * For re-using legacy filters (from ProjetForge version up to 6, Wicket-Calendar).
-     */
-    private fun convert(oldViewType: ViewType?): CalendarServicesRest.CalendarViewType? {
-        return when (oldViewType) {
-            ViewType.BASIC_WEEK -> CalendarServicesRest.CalendarViewType.WEEK
-            ViewType.BASIC_DAY -> CalendarServicesRest.CalendarViewType.DAY
-            else -> CalendarServicesRest.CalendarViewType.MONTH
-        }
     }
 }
