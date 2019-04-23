@@ -27,7 +27,7 @@ class CalendarPanel extends React.Component {
             location = (
                 <React.Fragment>
                     {event.location}
-                    <br/>
+                    <br />
                 </React.Fragment>
             );
         }
@@ -35,7 +35,7 @@ class CalendarPanel extends React.Component {
             desc = (
                 <React.Fragment>
                     {event.description}
-                    <br/>
+                    <br />
                 </React.Fragment>
             );
         }
@@ -43,7 +43,7 @@ class CalendarPanel extends React.Component {
             formattedDuration = (
                 <React.Fragment>
                     {event.formattedDuration}
-                    <br/>
+                    <br />
                 </React.Fragment>
             );
         }
@@ -160,7 +160,7 @@ class CalendarPanel extends React.Component {
         this.setState({
             start: newStart,
             end: newEnd,
-            view: useView
+            view: useView,
         }, () => this.fetchEvents());
         // console.log("start:", myStart, "end", myEnd, useView)
     }
@@ -270,7 +270,7 @@ class CalendarPanel extends React.Component {
             body: JSON.stringify({
                 start: start ? start.toJSON() : null,
                 end: end ? end.toJSON() : null,
-                view: view,
+                view,
                 activeCalendarIds,
             }),
         })
@@ -319,7 +319,7 @@ class CalendarPanel extends React.Component {
         }
         const { date, view } = this.state;
         const { topHeight } = this.props;
-        let initTime = new Date(date.getDate());
+        const initTime = new Date(date.getDate());
         initTime.setHours(8);
         initTime.setMinutes(0);
         return (
@@ -355,7 +355,7 @@ class CalendarPanel extends React.Component {
                             dateHeader: CalendarPanel.renderDateHeader,
                         },
                         week: {
-                            //header: CalendarPanel.renderDateHeader
+                            // header: CalendarPanel.renderDateHeader
                         },
                         agenda: {
                             event: CalendarPanel.renderAgendaEvent,
