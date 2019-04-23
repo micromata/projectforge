@@ -119,12 +119,6 @@ class CalendarPanel extends React.Component {
         this.fetchEvents();
     }
 
-    convertJsonDates = e => Object.assign({}, e, {
-        start: new Date(e.start),
-        end: new Date(e.end),
-    });
-
-
     // ToDo
     // DateHeader for statistics.
 
@@ -196,6 +190,13 @@ class CalendarPanel extends React.Component {
     // Returning false from the handler will prevent a selection.
     onSelecting(event) {
         console.log('onSelecting', event);
+    }
+
+    converJsonDates(e) {
+        return Object.assign({}, e, {
+            start: new Date(e.start),
+            end: new Date(e.end),
+        });
     }
 
     eventStyle(event) {
