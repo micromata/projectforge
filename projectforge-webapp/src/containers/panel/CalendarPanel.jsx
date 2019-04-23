@@ -335,15 +335,17 @@ class CalendarPanel extends React.Component {
             return <React.Fragment>Loading...</React.Fragment>;
         }
         const { events, date, loading } = this.state;
+        const { topHeight } = this.props;
         let initTime = new Date(date.getDate());
         initTime.setHours(8);
         initTime.setMinutes(0);
+        console.log(`calc(100vh - ${topHeight})`)
         return (
             <LoadingContainer loading={loading}>
                 <DragAndDropCalendar
                     style={{
-                        minHeight: 800,
-                        height: 'calc(100vh - 164px)',
+                        minHeight: 500,
+                        height: `calc(100vh - ${topHeight})`,
                     }}
                     localizer={localizer}
                     events={events}
@@ -389,10 +391,12 @@ CalendarPanel.propTypes = {
     firstDayOfWeek: PropTypes.number.isRequired,
     timeZone: PropTypes.string.isRequired,
     locale: PropTypes.string,
+    topHeight: PropTypes.string,
 };
 
 CalendarPanel.defaultProps = {
     locale: undefined,
+    topHeight: '164px',
 };
 
 const mapStateToProps = ({ authentication }) => ({
