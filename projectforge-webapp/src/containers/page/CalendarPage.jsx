@@ -1,11 +1,16 @@
 import React from 'react';
-import { Button, Card, CardBody, Col, Row } from 'reactstrap';
+/* eslint-disable-next-line object-curly-newline */
+import { Button, Card, CardBody, Col, Modal, ModalBody, ModalHeader, Row } from 'reactstrap';
 import Select from 'react-select';
 import makeAnimated from 'react-select/lib/animated';
+import { faCog } from '@fortawesome/free-solid-svg-icons';
+import { faStar } from '@fortawesome/free-regular-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import CalendarPanel from '../panel/CalendarPanel';
 import { getServiceURL } from '../../utilities/rest';
 import LoadingContainer from '../../components/design/loading-container';
 import { customStyles } from './Calendar.module';
+import style from '../../components/design/input/Input.module.scss';
 
 class CalendarPage extends React.Component {
     constructor(props) {
@@ -17,10 +22,12 @@ class CalendarPage extends React.Component {
             teamCalendars: undefined,
             activeCalendars: [],
             translations: undefined,
+            settingsModal: false,
         };
 
         this.fetchInitial = this.fetchInitial.bind(this);
         this.onChange = this.onChange.bind(this);
+        this.toggleSettingsModal = this.toggleSettingsModal.bind(this);
     }
 
     componentDidMount() {
@@ -30,6 +37,12 @@ class CalendarPage extends React.Component {
     onChange(activeCalendars) {
         activeCalendars.sort((a, b) => a.title.localeCompare(b.title));
         this.setState({ activeCalendars });
+    }
+
+    toggleSettingsModal() {
+        this.setState(prevState => ({
+            settingsModal: !prevState.settingsModal,
+        }));
     }
 
     fetchInitial() {
@@ -70,6 +83,7 @@ class CalendarPage extends React.Component {
             teamCalendars,
             activeCalendars,
             translations,
+            settingsModal,
         } = this.state;
         if (!translations) {
             return <div>...</div>;
@@ -100,11 +114,27 @@ class CalendarPage extends React.Component {
                                 <Col sm={1}>
                                     <Row>
                                         <Button
-                                            color="primary"
-                                            onClick={this.onSubmit}
-                                            type="submit"
+                                            color="link"
+                                            className="selectPanelIconLinks"
+                                            onClick={this.toggleTaskTreeModal}
+                                            disabled
                                         >
-                                            {translations.search}
+                                            <FontAwesomeIcon
+                                                icon={faStar}
+                                                className={style.icon}
+                                                size="lg"
+                                            />
+                                        </Button>
+                                        <Button
+                                            color="link"
+                                            className="selectPanelIconLinks"
+                                            onClick={this.toggleSettingsModal}
+                                        >
+                                            <FontAwesomeIcon
+                                                icon={faCog}
+                                                className={style.icon}
+                                                size="lg"
+                                            />
                                         </Button>
                                     </Row>
                                 </Col>
@@ -119,6 +149,15 @@ class CalendarPage extends React.Component {
                     activeCalendars={activeCalendars}
                     topHeight="225px"
                 />
+                <Modal
+                    isOpen={settingsModal}
+                    toggle={this.toggleSettingsModal}
+                >
+                    <ModalHeader toggle={this.settingsModal}>Modal title</ModalHeader>
+                    <ModalBody>
+                        Stuff goes here
+                    </ModalBody>
+                </Modal>
             </LoadingContainer>
         );
     }
