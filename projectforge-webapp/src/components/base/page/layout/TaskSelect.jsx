@@ -28,8 +28,8 @@ class TaskSelect extends React.Component {
         });
     }
 
-    setTask(taskId, task) {
-        if (task) {
+    setTask(taskId, selectedTask) {
+        if (selectedTask) { // Only given by TaskTreePanel.
             this.setState({ taskTreeModal: false });
         }
         if (!taskId) {
@@ -83,28 +83,33 @@ class TaskSelect extends React.Component {
         const { taskTreeModal, taskTreeModalHighlight } = this.state;
         const { translations, showInline } = this.props;
         const labelElement = task ? '' : <span className={style.text}>{label}</span>;
-        let recentAncestorId;
-        const taskPath = (!task || !task.path) ? '' : task.path.map((ancestor) => {
-            let removeLink;
-            {
-                const parentTaskId = recentAncestorId;
-                removeLink = (
-                    <Button
-                        color="link"
-                        onClick={() => this.setTask(parentTaskId)}
-                        style={{ padding: '0px' }}
-                    >
-                        <FontAwesomeIcon
-                            icon={faTimesCircle}
-                            className={style.icon}
-                            color="lightGray"
-                        />
-                    </Button>
-                );
-            }
-            recentAncestorId = ancestor.id;
-            return (
-                <React.Fragment key={ancestor.id}>
+
+        let taskPath;
+        if (task) {
+            const path = [...task.path];
+            path.push(task);
+            let recentAncestorId;
+            taskPath = path.map((ancestor) => {
+                let removeLink;
+                {
+                    const parentTaskId = recentAncestorId;
+                    removeLink = (
+                        <Button
+                            color="link"
+                            onClick={() => this.setTask(parentTaskId)}
+                            style={{ padding: '0px' }}
+                        >
+                            <FontAwesomeIcon
+                                icon={faTimesCircle}
+                                className={style.icon}
+                                color="lightGray"
+                            />
+                        </Button>
+                    );
+                }
+                recentAncestorId = ancestor.id;
+                return (
+                    <React.Fragment key={ancestor.id}>
                     <span
                         className="onclick"
                         onClick={() => this.openTaskTreeModal(ancestor.id)}
@@ -112,49 +117,20 @@ class TaskSelect extends React.Component {
                     >
                         {ancestor.title}
                     </span>
-                    {' '}
-                    {removeLink}
-                    <span style={{
-                        fontWeight: 'bold',
-                        color: 'red',
-                        fontSize: '1.2em',
-                    }}
-                    >
+                        {' '}
+                        {removeLink}
+                        <span style={{
+                            fontWeight: 'bold',
+                            color: 'red',
+                            fontSize: '1.2em',
+                        }}
+                        >
                         {' | '}
                     </span>
-                </React.Fragment>
-            );
-        });
-        const currentTask = !task ? '' : (
-            <React.Fragment>
-                <span
-                    className="onclick"
-                    onClick={() => this.openTaskTreeModal(task.id)}
-                    role="presentation"
-                >
-                    {task.title}
-                </span>
-                {' '}
-                {(() => {
-                    if (recentAncestorId) {
-                        return (
-                            <Button
-                                color="link"
-                                onClick={() => this.setTask(recentAncestorId)}
-                                style={{ padding: '0px' }}
-                            >
-                                <FontAwesomeIcon
-                                    icon={faTimesCircle}
-                                    className={style.icon}
-                                    color="lightGray"
-                                />
-                            </Button>
-                        );
-                    }
-                    return '';
-                })()}
-            </React.Fragment>
-        );
+                    </React.Fragment>
+                );
+            });
+        }
         const taskTreePanel = (
             <TaskTreePanel
                 onTaskSelect={this.setTask}
@@ -163,7 +139,14 @@ class TaskSelect extends React.Component {
             />
         );
         const taskPanel = showInline ? (
-            <Collapse isOpen={taskTreeModal} style={{ maxHeight: '600px', overflow: 'scroll', scroll: 'auto' }}>
+            <Collapse
+                isOpen={taskTreeModal}
+                style={{
+                    maxHeight: '600px',
+                    overflow: 'scroll',
+                    scroll: 'auto',
+                }}
+            >
                 {taskTreePanel}
             </Collapse>
         ) : (
@@ -187,7 +170,6 @@ class TaskSelect extends React.Component {
             <React.Fragment>
                 {labelElement}
                 {taskPath}
-                {currentTask}
                 <Button
                     color="link"
                     className="selectPanelIconLinks"

@@ -42,6 +42,13 @@ class TaskTreePanel extends React.Component {
         this.fetch('true');
     }
 
+    componentDidUpdate(prevProps) {
+        const { highlightTaskId } = this.props;
+        if (highlightTaskId !== prevProps.highlightTaskId) {
+            this.fetch('true');
+        }
+    }
+
     onSubmit(event) {
         this.fetch();
         event.preventDefault();
