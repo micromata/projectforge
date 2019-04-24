@@ -13,7 +13,7 @@ class TaskSelect extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            taskTreeModal: false,
+            taskTreePanelVisible: false,
             taskTreeModalHighlight: undefined,
             task: undefined,
         };
@@ -38,13 +38,14 @@ class TaskSelect extends React.Component {
 
     setTask(taskId, selectedTask) {
         if (selectedTask) { // Only given by TaskTreePanel.
-            this.setState({ taskTreeModal: false });
+            this.setState({ taskTreePanelVisible: false });
         }
         const { id, changeDataField, onKost2Changed } = this.props;
         if (!taskId) {
             this.setState({ task: undefined });
             changeDataField(id, undefined);
             onKost2Changed();
+            this.setState({ taskTreePanelVisible: false });
             return;
         }
         fetch(getServiceURL(`task/info/${taskId}`), {
@@ -75,13 +76,13 @@ class TaskSelect extends React.Component {
      */
     handleClickOutside(event) {
         if (this.taskPanelRef && !this.taskPanelRef.current.contains(event.target)) {
-            this.setState({ taskTreeModal: false });
+            this.setState({ taskTreePanelVisible: false });
         }
     }
 
     toggleTaskTreeModal() {
         this.setState(prevState => ({
-            taskTreeModal: !prevState.taskTreeModal,
+            taskTreePanelVisible: !prevState.taskTreePanelVisible,
             taskTreeModalHighlight: undefined, // Reset to highlight current task.
         }));
     }
@@ -89,7 +90,7 @@ class TaskSelect extends React.Component {
     // Opens the task tree modal dialog with the given task highlighted.
     openTaskTreeModal(taskId) {
         this.setState({
-            taskTreeModal: true,
+            taskTreePanelVisible: true,
             taskTreeModalHighlight: taskId, // Highlight selected ancestor task.
         });
     }
@@ -98,7 +99,7 @@ class TaskSelect extends React.Component {
         const { label } = this.props;
         const { task } = this.state;
 
-        const { taskTreeModal, taskTreeModalHighlight } = this.state;
+        const { taskTreePanelVisible, taskTreeModalHighlight } = this.state;
         const { translations, showInline } = this.props;
         const labelElement = task ? '' : <span className={style.text}>{label}</span>;
 
@@ -158,7 +159,7 @@ class TaskSelect extends React.Component {
         );
         const taskPanel = showInline ? (
             <Collapse
-                isOpen={taskTreeModal}
+                isOpen={taskTreePanelVisible}
                 style={{
                     maxHeight: '600px',
                     overflow: 'scroll',
@@ -169,7 +170,7 @@ class TaskSelect extends React.Component {
             </Collapse>
         ) : (
             <Modal
-                isOpen={taskTreeModal}
+                isOpen={taskTreePanelVisible}
                 className="modal-xl"
                 toggle={this.toggleTaskTreeModal}
                 fade={false}
