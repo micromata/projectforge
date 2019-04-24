@@ -81,10 +81,18 @@ class CalendarServicesRest {
             return restHelper.buildResponseBadRequest("Action '$action' not supported. Supported action is only 'select'.")
         val startDate = if (start != null) restHelper.parseJSDateTime(start)?.toEpochSeconds() else null
         val endDate = if (end != null) restHelper.parseJSDateTime(end)?.toEpochSeconds() else null
-        return if (calendar.isNullOrBlank())
-            restHelper.buildResponseAction(ResponseAction("timesheet/edit?start=$startDate&end=$endDate"))
-        else
-            restHelper.buildResponseAction(ResponseAction("teamEvent/edit?start=$startDate&end=$endDate"))
+
+        val category: String;
+        if (calendar.isNullOrBlank()) {
+            category = "timesheet"
+        } else {
+            category = "teamEvent"
+        }
+        val responseAction = ResponseAction("$category/edit?start=$startDate&end=$endDate")
+        responseAction.variables["category"] = category;
+        responseAction.variables["startDate"] = startDate;
+        responseAction.variables["endDate"] = endDate;
+        return restHelper.buildResponseAction(responseAction)
     }
 
     private fun buildEvents(filter: CalendarFilter): Response { //startParam: PFDateTime? = null, endParam: PFDateTime? = null, viewParam: CalendarViewType? = null): Response {

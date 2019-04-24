@@ -1,7 +1,7 @@
 import timezone from 'moment-timezone';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Modal, ModalBody, ModalHeader } from 'reactstrap';
+import { Modal, ModalBody } from 'reactstrap';
 import BigCalendar from 'react-big-calendar';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 
@@ -12,7 +12,6 @@ import { getServiceURL } from '../../utilities/rest';
 import CalendarToolBar from './CalendarToolBar';
 
 import 'moment/min/locales';
-import history from '../../utilities/history';
 import LoadingContainer from '../../components/design/loading-container';
 import TimesheetEditPanel from './TimesheetEditPanel';
 
@@ -100,6 +99,8 @@ class CalendarPanel extends React.Component {
                 visible: false,
                 category: undefined,
                 dbId: undefined,
+                startDate: undefined,
+                endDate: undefined,
             },
         };
 
@@ -175,14 +176,15 @@ class CalendarPanel extends React.Component {
             editPanel: {
                 visible: true,
                 category: event.category,
-                dbId: event.dbId
+                dbId: event.dbId,
+                startDate: undefined,
+                endDate: undefined,
             },
         });
     }
 
     // A callback fired when a date selection is made. Only fires when selectable is true.
     onSelectSlot(slotInfo) {
-        console.log(slotInfo);
         const { calendar } = this.state;
         fetch(getServiceURL('calendar/action', {
             action: 'select',
@@ -198,8 +200,15 @@ class CalendarPanel extends React.Component {
         })
             .then(response => response.json())
             .then((json) => {
-                const redirectUrl = json.url;
-                history.push(redirectUrl);
+                const { variables } = json;
+                this.setState({
+                    editPanel: {
+                        visible: true,
+                        category: variables.category,
+                        startDate: variables.startDate,
+                        endDate: variables.endDate,
+                    },
+                });
             })
             .catch(error => alert(`Internal error: ${error}`));
     }
@@ -350,7 +359,13 @@ class CalendarPanel extends React.Component {
         let editModalContent;
         if (editPanel.visible) {
             if (editPanel.category === 'timesheet') {
-                editModalContent = <TimesheetEditPanel timesheetId={editPanel.dbId}/>;
+                editModalContent = (
+                    <TimesheetEditPanel
+                        timesheetId={editPanel.dbId ? editPanel.dbId.toString() : ''}
+                        startDate={editPanel.startDate}
+                        endDate={editPanel.endDate}
+                    />
+                );
             } else {
                 editModalContent = <div>Event...</div>;
             }

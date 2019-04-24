@@ -4,7 +4,9 @@ package org.projectforge.ui
  * Given as response of a rest call to inform the client on how to proceed.
  */
 class ResponseAction(val url: String?,
-                     val targetType: TargetType? = TargetType.REDIRECT)
+                     val targetType: TargetType? = TargetType.REDIRECT) {
+    val variables = mutableMapOf<String, Any?>()
+}
 
 enum class TargetType {
     /**
