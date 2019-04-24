@@ -2,6 +2,7 @@ import { faStream, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 import { faStar } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
+/* eslint-disable-next-line object-curly-newline */
 import { Button, Collapse, Modal, ModalBody, ModalHeader } from 'reactstrap';
 import PropTypes from 'prop-types';
 import style from '../../../design/input/Input.module.scss';
@@ -16,16 +17,23 @@ class TaskSelect extends React.Component {
             taskTreeModalHighlight: undefined,
             task: undefined,
         };
+        this.taskPanelRef = React.createRef();
 
         this.setTask = this.setTask.bind(this);
         this.toggleTaskTreeModal = this.toggleTaskTreeModal.bind(this);
+        this.handleClickOutside = this.handleClickOutside.bind(this);
     }
 
     componentDidMount() {
+        document.addEventListener('mousedown', this.handleClickOutside);
         const { variables } = this.props;
         this.setState({
             task: variables.task,
         });
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('mousedown', this.handleClickOutside);
     }
 
     setTask(taskId, selectedTask) {
@@ -59,6 +67,15 @@ class TaskSelect extends React.Component {
                 }
             })
             .catch(() => this.setState({}));
+    }
+
+    /**
+     * Alert if clicked on outside of element
+     */
+    handleClickOutside(event) {
+        if (this.taskPanelRef && !this.taskPanelRef.current.contains(event.target)) {
+            this.setState({ taskTreeModal: false });
+        }
     }
 
     toggleTaskTreeModal() {
@@ -110,13 +127,13 @@ class TaskSelect extends React.Component {
                 recentAncestorId = ancestor.id;
                 return (
                     <React.Fragment key={ancestor.id}>
-                    <span
-                        className="onclick"
-                        onClick={() => this.openTaskTreeModal(ancestor.id)}
-                        role="presentation"
-                    >
-                        {ancestor.title}
-                    </span>
+                        <span
+                            className="onclick"
+                            onClick={() => this.openTaskTreeModal(ancestor.id)}
+                            role="presentation"
+                        >
+                            {ancestor.title}
+                        </span>
                         {' '}
                         {removeLink}
                         <span style={{
@@ -125,8 +142,8 @@ class TaskSelect extends React.Component {
                             fontSize: '1.2em',
                         }}
                         >
-                        {' | '}
-                    </span>
+                            {' | '}
+                        </span>
                     </React.Fragment>
                 );
             });
@@ -167,7 +184,7 @@ class TaskSelect extends React.Component {
             </Modal>
         );
         return (
-            <React.Fragment>
+            <div ref={this.taskPanelRef}>
                 {labelElement}
                 {taskPath}
                 <Button
@@ -192,7 +209,7 @@ class TaskSelect extends React.Component {
                     />
                 </Button>
                 {taskPanel}
-            </React.Fragment>
+            </div>
         );
     }
 }
