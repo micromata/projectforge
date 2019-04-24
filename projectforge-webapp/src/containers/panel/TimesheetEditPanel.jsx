@@ -16,8 +16,9 @@ class TimesheetEditPanel extends React.Component {
                 id: timesheetId,
             },
         };
+        const search = startDate ? `start=${startDate}&end=${endDate}` : '';
         const location = {
-            search: 'date=1235',
+            search,
         };
         return (
             <EditPage
@@ -29,9 +30,9 @@ class TimesheetEditPanel extends React.Component {
 }
 
 TimesheetEditPanel.propTypes = {
-    timesheetId: PropTypes.number,
-    startDate: PropTypes.instanceOf(Date),
-    endDate: PropTypes.instanceOf(Date),
+    timesheetId: PropTypes.string,
+    startDate: PropTypes.number, // Epoch seconds
+    endDate: PropTypes.number, // Epoch seconds
 };
 
 TimesheetEditPanel.defaultProps = {
