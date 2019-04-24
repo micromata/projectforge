@@ -82,11 +82,11 @@ class TaskTreePanel extends React.Component {
         this.setState({ loading: true });
         const { filter } = this.state;
         const { highlightTaskId } = this.props;
-        const doOpen = (initial) ? open || highlightTaskId || '' : open || '';
         fetch(getServiceURL('task/tree', {
             table: 'true', // Result expected as table not as tree.
             initial,
-            open: doOpen,
+            open: open || '',
+            highlightedTaskId: highlightTaskId || '',
             close: close || '',
             searchString: filter.searchString,
             opened: filter.opened,
@@ -132,7 +132,7 @@ class TaskTreePanel extends React.Component {
                         <CardBody>
                             <form>
                                 <Row>
-                                    <Col sm={6}>
+                                    <Col sm={5}>
                                         <Input
                                             label={translations.searchFilter}
                                             id="searchString"
@@ -140,7 +140,7 @@ class TaskTreePanel extends React.Component {
                                             onChange={this.handleInputChange}
                                         />
                                     </Col>
-                                    <Col sm={6}>
+                                    <Col sm={7}>
                                         <Row>
                                             <Button
                                                 color="primary"
