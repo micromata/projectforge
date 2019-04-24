@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+/* eslint-disable-next-line object-curly-newline */
 import { Alert, Button, Col, Row } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFile, faFolder, faFolderOpen } from '@fortawesome/free-regular-svg-icons';
