@@ -46,7 +46,7 @@ class TeamCalEventsProvider() {
             val allDay = eventDO.isAllDay()
             val style = styleMap.get(eventDO.calendarId)
             events.add(BigCalendarEvent(it.subject, it.startDate, it.endDate, allDay,
-                    location = it.location, desc = it.note, link = link,
+                    location = it.location, desc = it.note, category = "event", dbId = eventDO.id,
                     bgColor = style?.bgColor, fgColor = style?.fgColor))
         }
     }

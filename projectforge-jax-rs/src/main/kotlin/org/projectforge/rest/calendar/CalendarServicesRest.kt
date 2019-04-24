@@ -100,7 +100,7 @@ class CalendarServicesRest {
         val specialDays = HolidayAndWeekendProvider.getSpecialDayInfos(range.start, range.end!!)
         var counter = 0
         events.forEach {
-            it.id = "e-${counter++}"
+            it.key = "e-${counter++}"
         }
         val result = CalendarData(range.start.dateTime.toLocalDate(), events, specialDays)
         return restHelper.buildResponse(result)
