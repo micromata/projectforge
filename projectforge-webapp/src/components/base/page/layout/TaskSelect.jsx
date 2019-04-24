@@ -1,8 +1,8 @@
-import { faTimesCircle, faStream } from '@fortawesome/free-solid-svg-icons';
+import { faStream, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 import { faStar } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
-import { Button, Modal, ModalBody, ModalHeader } from 'reactstrap';
+import { Button, Collapse, Modal, ModalBody, ModalHeader } from 'reactstrap';
 import PropTypes from 'prop-types';
 import style from '../../../design/input/Input.module.scss';
 import TaskTreePanel from '../../../../containers/panel/TaskTreePanel';
@@ -30,6 +30,10 @@ class TaskSelect extends React.Component {
 
     setTask(taskId) {
         this.setState({ taskTreeModal: false });
+        if (!taskId) {
+            this.setState({ task: undefined });
+            return;
+        }
         const { onKost2Changed } = this.props;
         fetch(getServiceURL(`task/info/${taskId}`), {
             method: 'GET',
@@ -75,12 +79,12 @@ class TaskSelect extends React.Component {
         const { task } = this.state;
 
         const { taskTreeModal, taskTreeModalHighlight } = this.state;
-        const { translations } = this.props;
+        const { translations, showInline } = this.props;
         const labelElement = task ? '' : <span className={style.text}>{label}</span>;
         let recentAncestorId;
         const taskPath = (!task || !task.path) ? '' : task.path.map((ancestor) => {
             let removeLink;
-            if (recentAncestorId) {
+            {
                 const parentTaskId = recentAncestorId;
                 removeLink = (
                     <Button
@@ -149,6 +153,31 @@ class TaskSelect extends React.Component {
                 })()}
             </React.Fragment>
         );
+        const taskTreePanel = (
+            <TaskTreePanel
+                onTaskSelect={this.setTask}
+                highlightTaskId={taskTreeModalHighlight || (task ? task.id : undefined)}
+                shortForm
+            />
+        );
+        const taskPanel = showInline ? (
+            <Collapse isOpen={taskTreeModal} style={{ maxHeight: '600px', overflow: 'scroll', scroll: 'auto' }}>
+                {taskTreePanel}
+            </Collapse>
+        ) : (
+            <Modal
+                isOpen={taskTreeModal}
+                className="modal-xl"
+                toggle={this.toggleTaskTreeModal}
+                fade={false}
+            >
+                <ModalHeader
+                    toggle={this.toggleTaskTreeModal}>{translations['task.title.list.select']}</ModalHeader>
+                <ModalBody>
+                    {taskTreePanel}
+                </ModalBody>
+            </Modal>
+        );
         return (
             <React.Fragment>
                 {labelElement}
@@ -175,21 +204,7 @@ class TaskSelect extends React.Component {
                         className={style.icon}
                     />
                 </Button>
-                <Modal
-                    isOpen={taskTreeModal}
-                    className="modal-xl"
-                    toggle={this.toggleTaskTreeModal}
-                    fade={false}
-                >
-                    <ModalHeader toggle={this.toggleTaskTreeModal}>{translations['task.title.list.select']}</ModalHeader>
-                    <ModalBody>
-                        <TaskTreePanel
-                            onTaskSelect={this.setTask}
-                            highlightTaskId={taskTreeModalHighlight || (task ? task.id : undefined)}
-                            shortForm
-                        />
-                    </ModalBody>
-                </Modal>
+                {taskPanel}
             </React.Fragment>
         );
     }
@@ -202,11 +217,13 @@ TaskSelect.propTypes = {
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
     onKost2Changed: PropTypes.func,
+    showInline: PropTypes.bool,
     translations: PropTypes.shape({}).isRequired,
 };
 
 TaskSelect.defaultProps = {
     onKost2Changed: undefined,
+    showInline: true,
 };
 
 export default TaskSelect;
