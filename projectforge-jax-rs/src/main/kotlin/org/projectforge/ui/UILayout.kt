@@ -1,5 +1,6 @@
 package org.projectforge.ui
 
+import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.MenuItem
 
@@ -28,9 +29,7 @@ class UILayout {
      * @return this for chaining.
      */
     fun addTranslations(vararg i18nKeys: String): UILayout {
-        i18nKeys.forEach {
-            translations.put(it, translate(it))
-        }
+        addTranslations(*i18nKeys, translations = translations)
         return this
     }
 

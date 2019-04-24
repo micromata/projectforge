@@ -1,5 +1,6 @@
 package org.projectforge.ui
 
+import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
@@ -13,6 +14,9 @@ class LayoutUtils {
     companion object {
         private val log = org.slf4j.LoggerFactory.getLogger(LayoutUtils::class.java)
 
+        fun addCommonTranslations(translations: MutableMap<String, String>) {
+            addTranslations("select.placeholder", "calendar.today", "task.title.list.select", translations = translations)
+        }
         /**
          * Auto-detects max-length of input fields (by referring the @Column annotations of clazz) and
          * i18n-keys (by referring the [org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn] annotations of clazz).
@@ -119,7 +123,7 @@ class LayoutUtils {
         }
 
         private fun addCommonTranslations(layout: UILayout) {
-            layout.addTranslations("select.placeholder", "calendar.today", "task.title.list.select")
+            addCommonTranslations(layout.translations)
         }
 
         /**

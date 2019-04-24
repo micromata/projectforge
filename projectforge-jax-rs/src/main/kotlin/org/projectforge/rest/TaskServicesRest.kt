@@ -13,7 +13,7 @@ import org.projectforge.business.user.service.UserPreferencesService
 import org.projectforge.common.i18n.Priority
 import org.projectforge.common.task.TaskStatus
 import org.projectforge.framework.access.AccessChecker
-import org.projectforge.framework.i18n.createTranslations
+import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDate
@@ -178,7 +178,7 @@ class TaskServicesRest {
         val result = Result(root)
         if (initial == true) {
             result.initFilter = filter
-            result.translations = createTranslations(
+            result.translations = addTranslations(
                     "deleted",
                     "fibu.auftrag.auftraege",
                     "fibu.kost2",

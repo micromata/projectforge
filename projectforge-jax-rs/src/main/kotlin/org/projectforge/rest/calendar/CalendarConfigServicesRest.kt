@@ -3,7 +3,7 @@ package org.projectforge.rest.calendar
 import org.projectforge.business.teamcal.admin.TeamCalCache
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter
 import org.projectforge.business.user.service.UserPreferencesService
-import org.projectforge.framework.i18n.createTranslations
+import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.core.RestHelper
 import org.springframework.beans.factory.annotation.Autowired
@@ -78,7 +78,7 @@ class CalendarConfigServicesRest {
                     style = styleMap.get(id)) // Add the styles of the styleMap to the exported calendar.
         }
 
-        initial.translations = createTranslations("search", "select.placeholder")
+        initial.translations = addTranslations( "select.placeholder", "plugins.teamcal.calendar.filterDialog.title")
         return restHelper.buildResponse(initial)
     }
 
