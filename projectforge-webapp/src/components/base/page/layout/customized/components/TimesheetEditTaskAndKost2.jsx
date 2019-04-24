@@ -73,6 +73,7 @@ class TimesheetEditTaskAndKost2 extends React.Component {
                                 id="task"
                                 label={translations.task}
                                 onKost2Changed={this.changeKost2List}
+                                translations={translations}
                             />
                         </div>
                     </div>
