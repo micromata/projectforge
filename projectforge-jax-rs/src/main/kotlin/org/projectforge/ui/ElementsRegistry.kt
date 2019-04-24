@@ -81,6 +81,8 @@ object ElementsRegistry {
                     unavailableElementsSet.add(mapKey)
                     return UILabel("??? ${mapKey} ???")
                 }
+            } else {
+                log.warn("Unsupported property type '${elementInfo.propertyType}': ${mapKey}")
             }
         }
         if (element is UILabelledElement) {

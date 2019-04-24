@@ -40,6 +40,7 @@ import javax.persistence.*
         indexes = [javax.persistence.Index(name = "idx_fk_t_contract_tenant_id", columnList = "tenant_id")])
 class ContractDO : DefaultBaseDO() {
 
+    // TODO: Support int input field
     @PropertyInfo(i18nKey = "legalAffaires.contract.number")
     @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
     @get:Column(name = "number")
