@@ -119,7 +119,7 @@ class LayoutUtils {
         }
 
         private fun addCommonTranslations(layout: UILayout) {
-            layout.addTranslations("select.placeholder", "calendar.today")
+            layout.addTranslations("select.placeholder", "calendar.today", "task.title.list.select")
         }
 
         /**

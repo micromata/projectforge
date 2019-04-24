@@ -75,6 +75,7 @@ class TaskSelect extends React.Component {
         const { task } = this.state;
 
         const { taskTreeModal, taskTreeModalHighlight } = this.state;
+        const { translations } = this.props;
         const labelElement = task ? '' : <span className={style.text}>{label}</span>;
         let recentAncestorId;
         const taskPath = (!task || !task.path) ? '' : task.path.map((ancestor) => {
@@ -180,7 +181,7 @@ class TaskSelect extends React.Component {
                     toggle={this.toggleTaskTreeModal}
                     fade={false}
                 >
-                    <ModalHeader toggle={this.toggleTaskTreeModal}>Modal title</ModalHeader>
+                    <ModalHeader toggle={this.toggleTaskTreeModal}>{translations['task.title.list.select']}</ModalHeader>
                     <ModalBody>
                         <TaskTreePanel
                             onTaskSelect={this.setTask}
@@ -201,6 +202,7 @@ TaskSelect.propTypes = {
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
     onKost2Changed: PropTypes.func,
+    translations: PropTypes.shape({}).isRequired,
 };
 
 TaskSelect.defaultProps = {
