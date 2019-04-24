@@ -28,8 +28,10 @@ class TaskSelect extends React.Component {
         });
     }
 
-    setTask(taskId) {
-        this.setState({ taskTreeModal: false });
+    setTask(taskId, task) {
+        if (task) {
+            this.setState({ taskTreeModal: false });
+        }
         if (!taskId) {
             this.setState({ task: undefined });
             return;
@@ -172,7 +174,10 @@ class TaskSelect extends React.Component {
                 fade={false}
             >
                 <ModalHeader
-                    toggle={this.toggleTaskTreeModal}>{translations['task.title.list.select']}</ModalHeader>
+                    toggle={this.toggleTaskTreeModal}
+                >
+                    {translations['task.title.list.select']}
+                </ModalHeader>
                 <ModalBody>
                     {taskTreePanel}
                 </ModalBody>
