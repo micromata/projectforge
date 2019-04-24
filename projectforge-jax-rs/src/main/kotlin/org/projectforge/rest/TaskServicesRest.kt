@@ -28,7 +28,7 @@ import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
 /**
- * For uploading address immages.
+ * For serving the task tree as tree or table..
  */
 @Component
 @Path("task")
@@ -101,7 +101,8 @@ class TaskServicesRest {
     private class BuildContext(val user: PFUserDO,
                                val taskFilter: TaskFilter,
                                val rootTask: Task, // Only for table view.
-                               val openedNodes: MutableSet<Int>)
+                               val openedNodes: MutableSet<Int>,
+                               var highlightedTaskNode: TaskNode? = null)
 
     private val log = org.slf4j.LoggerFactory.getLogger(TaskServicesRest::class.java)
 
@@ -142,6 +143,7 @@ class TaskServicesRest {
                 @QueryParam("initial") initial: Boolean?,
                 @QueryParam("open") open: Int?,
                 @QueryParam("close") close: Int?,
+                @QueryParam("highlightedTaskId") highlightedTaskId: Int?,
                 @QueryParam("table") table: Boolean?,
                 @QueryParam("searchString") searchString: String?,
                 @QueryParam("opened") opened: Boolean?,
@@ -152,20 +154,25 @@ class TaskServicesRest {
         @Suppress("UNCHECKED_CAST")
         val openNodes = userPreferencesService.getEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS) as MutableSet<Int>
         val filter = listFilterService.getSearchFilter(request.session, TaskFilter::class.java) as TaskFilter
-        if (!(initial == true)) {
-            if (opened != null) filter.isOpened = opened
-            if (notOpened != null) filter.isNotOpened = notOpened
-            if (closed != null) filter.isClosed = closed
-            if (deleted != null) filter.isDeleted = deleted
-            filter.setSearchString(searchString);
-        }
+
+        if (opened != null) filter.isOpened = opened
+        if (notOpened != null) filter.isNotOpened = notOpened
+        if (closed != null) filter.isClosed = closed
+        if (deleted != null) filter.isDeleted = deleted
+        filter.setSearchString(searchString);
+
         val rootNode = taskTree.rootTaskNode
         val root = Task(rootNode)
         addKost2List(root)
         root.childs = mutableListOf()
         val ctx = BuildContext(ThreadLocalUserContext.getUser(), filter, root, openNodes)
+        if (highlightedTaskId != null) {
+            ctx.highlightedTaskNode = taskTree.getTaskNodeById(highlightedTaskId)
+        }
         openTask(ctx, open)
         closeTask(ctx, close)
+        if (initial == true)
+            openTask(ctx, highlightedTaskId) // Only open on initial call.
         //UserPreferencesHelper.putEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS, expansion.getIds(), true)
         filter.resetMatch() // taskFilter caches visibility, reset needed first.
         val indent = if (table == true) 0 else null
@@ -228,20 +235,42 @@ class TaskServicesRest {
             task.treeStatus = TreeStatus.OPENED
             val childs = taskNode.childs.toMutableList()
             childs.sortBy({ it.task.title })
-            childs.forEach {
-                if (ctx.taskFilter.match(it, taskDao, ctx.user)) {
-                    val child = Task(it)
+            childs.forEach { node ->
+                if (ctx.taskFilter.match(node, taskDao, ctx.user)) {
+                    val child = Task(node)
                     addKost2List(child)
                     if (indent != null) {
-                        ctx.rootTask.childs!!.add(child) // All childs are added to root task (table view!)
-                        child.indent = indent
-                        buildTree(ctx, child, it, indent + 1) // Build as table (all childs are direct childs of root node.
+                        var hidden = false;
+                        val highlightedTaskNode = ctx.highlightedTaskNode
+                        if (highlightedTaskNode != null) {
+                            // Show only ancestor, the highlighted node itself and descendants. siblings only for leafs.
+                            // Following if-else cascade should be written much shorter, but less understandable!
+                            if (highlightedTaskNode.isRootNode) {
+                                // Show all nodes, because they are descendants of the root node.
+                            } else if (node.descendantIds.contains(highlightedTaskNode.id)) {
+                                // Show current node, because its an ancestor of the highlighted node.
+                                log.debug("Current node ${node.task.title} is ancestor of highlighted node: ${!hidden}")
+                            } else if (!highlightedTaskNode.hasChilds()) {
+                                // Node is a leaf node, so show also all siblings:
+                                hidden = !highlightedTaskNode.parent.descendantIds.contains(node.id)
+                                log.debug("Current node ${node.task.title} is sibling of highlighted node: ${!hidden}")
+                            } else {
+                                hidden = !(highlightedTaskNode.taskId == node.taskId ||      // highlighted node == current?
+                                        highlightedTaskNode.descendantIds.contains(node.id)) // node is descendant of highlighted?
+                                log.debug("Current node ${node.task.title} is descendant of highlighted node: ${!hidden}")
+                            }
+                        }
+                        if (!hidden) {
+                            ctx.rootTask.childs!!.add(child) // All childs are added to root task (table view!)
+                            child.indent = indent
+                            buildTree(ctx, child, node, indent + 1) // Build as table (all childs are direct childs of root node.
+                        }
                     } else {
                         // TaskNode has childs and is opened:
                         if (task.childs == null)
                             task.childs = mutableListOf()
                         task.childs!!.add(child)
-                        buildTree(ctx, child, it, null) // Build as tree
+                        buildTree(ctx, child, node, null) // Build as tree
                     }
                 }
             }
