@@ -40,11 +40,13 @@ class TaskSelect extends React.Component {
         if (selectedTask) { // Only given by TaskTreePanel.
             this.setState({ taskTreeModal: false });
         }
+        const { id, changeDataField, onKost2Changed } = this.props;
         if (!taskId) {
             this.setState({ task: undefined });
+            changeDataField(id, undefined);
+            onKost2Changed();
             return;
         }
-        const { onKost2Changed } = this.props;
         fetch(getServiceURL(`task/info/${taskId}`), {
             method: 'GET',
             credentials: 'include',
@@ -58,7 +60,6 @@ class TaskSelect extends React.Component {
                 this.setState({ task });
                 if (task) {
                     const newTask = { id: task.id };
-                    const { id, changeDataField } = this.props;
                     changeDataField(id, newTask);
                     if (onKost2Changed) {
                         onKost2Changed(task.kost2List);

@@ -137,55 +137,51 @@ class TaskTreePanel extends React.Component {
                 <React.Fragment>
                     <Card>
                         <CardBody>
-                            <form>
-                                <Row>
-                                    <Col sm={5}>
-                                        <Input
-                                            label={translations.searchFilter}
-                                            id="searchString"
-                                            value={filter.searchString}
-                                            onChange={this.handleInputChange}
+                            <Row>
+                                <Col sm={5}>
+                                    <Input
+                                        label={translations.searchFilter}
+                                        id="searchString"
+                                        value={filter.searchString}
+                                        onChange={this.handleInputChange}
+                                    />
+                                </Col>
+                                <Col sm={7}>
+                                    <Row>
+                                        <Button
+                                            color="primary"
+                                            onClick={this.onSubmit}
+                                        >
+                                            {translations.search}
+                                        </Button>
+                                        <CheckBox
+                                            label={translations['task.status.opened']}
+                                            id="opened"
+                                            onChange={this.handleCheckBoxChange}
+                                            checked={filter.opened}
                                         />
-                                    </Col>
-                                    <Col sm={7}>
-                                        <Row>
-                                            <Button
-                                                color="primary"
-                                                onClick={this.onSubmit}
-                                                type="submit"
-                                            >
-                                                {translations.search}
-                                            </Button>
-                                            <CheckBox
-                                                label={translations['task.status.opened']}
-                                                id="opened"
-                                                onChange={this.handleCheckBoxChange}
-                                                checked={filter.opened}
-                                            />
-                                            <CheckBox
-                                                label={translations['task.status.notOpened']}
-                                                id="notOpened"
-                                                onChange={this.handleCheckBoxChange}
-                                                checked={filter.notOpened}
-                                            />
-                                            <CheckBox
-                                                label={translations['task.status.closed']}
-                                                id="closed"
-                                                onChange={this.handleCheckBoxChange}
-                                                checked={filter.closed}
-                                            />
-                                            <CheckBox
-                                                label={translations.deleted}
-                                                id="deleted"
-                                                onChange={this.handleCheckBoxChange}
-                                                checked={filter.deleted}
-                                                color="danger"
-                                            />
-                                        </Row>
-                                    </Col>
-                                </Row>
-
-                            </form>
+                                        <CheckBox
+                                            label={translations['task.status.notOpened']}
+                                            id="notOpened"
+                                            onChange={this.handleCheckBoxChange}
+                                            checked={filter.notOpened}
+                                        />
+                                        <CheckBox
+                                            label={translations['task.status.closed']}
+                                            id="closed"
+                                            onChange={this.handleCheckBoxChange}
+                                            checked={filter.closed}
+                                        />
+                                        <CheckBox
+                                            label={translations.deleted}
+                                            id="deleted"
+                                            onChange={this.handleCheckBoxChange}
+                                            checked={filter.deleted}
+                                            color="danger"
+                                        />
+                                    </Row>
+                                </Col>
+                            </Row>
                         </CardBody>
                     </Card>
                     <Card>
