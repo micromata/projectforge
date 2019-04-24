@@ -117,6 +117,7 @@ class UserSelect extends React.Component {
                         <FontAwesomeIcon
                             icon={selectMeIcon}
                             className={style.icon}
+                            size="lg"
                         />
                     </Button>
                     <UncontrolledTooltip placement="right" target="selectMe">
