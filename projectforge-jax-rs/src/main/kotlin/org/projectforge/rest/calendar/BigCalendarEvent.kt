@@ -14,10 +14,11 @@ class BigCalendarEvent(val title: String?,
                        val fgColor: String? = null,
                        val bgColor: String? = null,
                        val cssClass: String? = null,
-                       val link: String? = null) {
+                       val category: String,
+                       val dbId: Int? = null) {
     /**
-     * Must be unique in the list of events. Will be used for pop-overs. The index of the list will be used: 'e-1', 'e-2', ...
+     * Must be unique in the list of events. The index of the list will be used: 'e-1', 'e-2', ...
      * Will be set by [CalendarServicesRest].
      */
-   internal var id : String? = null
+   internal var key : String? = null
 }

@@ -1,6 +1,7 @@
 import timezone from 'moment-timezone';
 import PropTypes from 'prop-types';
 import React from 'react';
+import { Modal, ModalBody, ModalHeader } from 'reactstrap';
 import BigCalendar from 'react-big-calendar';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 
@@ -13,6 +14,7 @@ import CalendarToolBar from './CalendarToolBar';
 import 'moment/min/locales';
 import history from '../../utilities/history';
 import LoadingContainer from '../../components/design/loading-container';
+import TimesheetEditPanel from './TimesheetEditPanel';
 
 const localizer = BigCalendar.momentLocalizer(timezone); // or globalizeLocalizer
 
@@ -27,7 +29,7 @@ class CalendarPanel extends React.Component {
             location = (
                 <React.Fragment>
                     {event.location}
-                    <br />
+                    <br/>
                 </React.Fragment>
             );
         }
@@ -35,7 +37,7 @@ class CalendarPanel extends React.Component {
             desc = (
                 <React.Fragment>
                     {event.description}
-                    <br />
+                    <br/>
                 </React.Fragment>
             );
         }
@@ -43,7 +45,7 @@ class CalendarPanel extends React.Component {
             formattedDuration = (
                 <React.Fragment>
                     {event.formattedDuration}
-                    <br />
+                    <br/>
                 </React.Fragment>
             );
         }
@@ -67,11 +69,6 @@ class CalendarPanel extends React.Component {
                 {event.title}
             </React.Fragment>
         );
-    }
-
-    // Callback fired when a calendar event is selected.
-    static onSelectEvent(event) {
-        history.push(event.link);
     }
 
     constructor(props) {
@@ -99,6 +96,11 @@ class CalendarPanel extends React.Component {
             start: defaultDate,
             end: undefined,
             calendar: '',
+            editPanel: {
+                visible: false,
+                category: undefined,
+                dbId: undefined,
+            },
         };
 
         this.renderDateHeader = this.renderDateHeader.bind(this);
@@ -108,11 +110,13 @@ class CalendarPanel extends React.Component {
         this.fetchEvents = this.fetchEvents.bind(this);
         this.onRangeChange = this.onRangeChange.bind(this);
         this.onSelectSlot = this.onSelectSlot.bind(this);
+        this.onSelectEvent = this.onSelectEvent.bind(this);
         this.onDoubleClickEvent = this.onDoubleClickEvent.bind(this);
         this.onSelecting = this.onSelecting.bind(this);
         this.onNavigate = this.onNavigate.bind(this);
         this.onView = this.onView.bind(this);
         this.convertJsonDates = this.convertJsonDates.bind(this);
+        this.toggleEditModal = this.toggleEditModal.bind(this);
     }
 
     componentDidMount() {
@@ -165,8 +169,20 @@ class CalendarPanel extends React.Component {
         // console.log("start:", myStart, "end", myEnd, useView)
     }
 
+    // Callback fired when a calendar event is selected.
+    onSelectEvent(event) {
+        this.setState({
+            editPanel: {
+                visible: true,
+                category: event.category,
+                dbId: event.dbId
+            },
+        });
+    }
+
     // A callback fired when a date selection is made. Only fires when selectable is true.
     onSelectSlot(slotInfo) {
+        console.log(slotInfo);
         const { calendar } = this.state;
         fetch(getServiceURL('calendar/action', {
             action: 'select',
@@ -197,6 +213,15 @@ class CalendarPanel extends React.Component {
     // Returning false from the handler will prevent a selection.
     onSelecting(event) {
         console.log('onSelecting', event);
+    }
+
+    toggleEditModal() {
+        this.setState(prevState => ({
+            editPanel: {
+                ...prevState.editPanel,
+                visible: !prevState.editPanel.visible,
+            },
+        }));
     }
 
     convertJsonDates(e) {
@@ -317,11 +342,19 @@ class CalendarPanel extends React.Component {
                 </LoadingContainer>
             );
         }
-        const { date, view } = this.state;
+        const { date, view, editPanel } = this.state;
         const { topHeight } = this.props;
         const initTime = new Date(date.getDate());
         initTime.setHours(8);
         initTime.setMinutes(0);
+        let editModalContent;
+        if (editPanel.visible) {
+            if (editPanel.category === 'timesheet') {
+                editModalContent = <TimesheetEditPanel timesheetId={editPanel.dbId}/>;
+            } else {
+                editModalContent = <div>Event...</div>;
+            }
+        }
         return (
             <LoadingContainer loading={loading}>
                 <DragAndDropCalendar
@@ -340,7 +373,7 @@ class CalendarPanel extends React.Component {
                     onNavigate={this.onNavigate}
                     endAccessor="end"
                     onRangeChange={this.onRangeChange}
-                    onSelectEvent={CalendarPanel.onSelectEvent}
+                    onSelectEvent={this.onSelectEvent}
                     onSelectSlot={this.onSelectSlot}
                     selectable
                     eventPropGetter={this.eventStyle}
@@ -363,6 +396,17 @@ class CalendarPanel extends React.Component {
                         toolbar: CalendarToolBar,
                     }}
                 />
+                <Modal
+                    isOpen={editPanel.visible}
+                    className="modal-xl"
+                    toggle={this.toggleEditModal}
+                    fade={false}
+                >
+                    <ModalBody>
+                        {editModalContent}
+                    </ModalBody>
+                </Modal>
+
             </LoadingContainer>
         );
     }

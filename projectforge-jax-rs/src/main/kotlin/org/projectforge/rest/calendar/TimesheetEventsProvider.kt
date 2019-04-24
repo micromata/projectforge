@@ -87,7 +87,7 @@ class TimesheetEventsProvider() {
             val link = "timesheet/edit/${timesheet.id}"
             events.add(BigCalendarEvent(title, timesheet.startTime!!, timesheet .stopTime!!, null,
                     location =  timesheet.location, desc = description, tooltip=tooltip, formattedDuration = formattedDuration, outOfRange = outOfRange,
-                    cssClass = "timesheet", link = link))
+                    cssClass = "timesheet", category = "timesheet", dbId = timesheet.id))
 
             /*  if (ctx.month == startTime.month()) {
                   ctx.totalDuration += timesheet.duration
