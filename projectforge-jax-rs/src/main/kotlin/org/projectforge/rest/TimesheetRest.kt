@@ -12,6 +12,7 @@ import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.DateTimeFormatter
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.ui.*
@@ -51,10 +52,12 @@ class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, Timeshee
         val startTimeEpochSeconds = restHelper.parseLong(request, "start")
         val endTimeEpochSeconds = restHelper.parseLong(request, "end")
         if (startTimeEpochSeconds != null) {
-            sheet.setStartDate(startTimeEpochSeconds * 1000)
+            val start = PFDateTime.from(startTimeEpochSeconds * 1000)
+            sheet.startTime = start.asSqlTimestamp()
         }
         if (endTimeEpochSeconds != null) {
-            sheet.setStopDate(endTimeEpochSeconds * 1000)
+            val stop = PFDateTime.from(endTimeEpochSeconds * 1000)
+            sheet.stopTime = stop.asSqlTimestamp()
         }
         val userId: Int? = null // Optional parameter given to edit page
         if (userId != null) {
