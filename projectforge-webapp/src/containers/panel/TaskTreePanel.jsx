@@ -35,6 +35,7 @@ class TaskTreePanel extends React.Component {
         this.handleInputChange = this.handleInputChange.bind(this);
         this.handleCheckBoxChange = this.handleCheckBoxChange.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
+        this.onKeyDown = this.onKeyDown.bind(this);
         this.setFilterValue = this.setFilterValue.bind(this);
     }
 
@@ -52,6 +53,14 @@ class TaskTreePanel extends React.Component {
     onSubmit(event) {
         this.fetch();
         event.preventDefault();
+    }
+
+    onKeyDown(event) {
+        if (event.keyCode === 13) {
+            this.fetch();
+            event.preventDefault();
+            event.stopPropagation();
+        }
     }
 
     setFilterValue(id, value, callback) {
@@ -144,6 +153,7 @@ class TaskTreePanel extends React.Component {
                                         id="searchString"
                                         value={filter.searchString}
                                         onChange={this.handleInputChange}
+                                        onKeyDown={this.onKeyDown}
                                     />
                                 </Col>
                                 <Col sm={7}>
