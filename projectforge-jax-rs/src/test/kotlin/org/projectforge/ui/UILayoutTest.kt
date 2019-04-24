@@ -49,34 +49,20 @@ class UILayoutTest : AbstractTestBase() {
         var jsonValidator = JsonValidator(jsonString)
 
         assertEquals("???book.title.edit???", jsonValidator.get("title")) // translations not available in test.
-        assertField(jsonValidator.getMap("layout[0]"), "title", 255.0, "STRING", "???book.title???", type = "INPUT", key = "el-1")
-        assertEquals(true, jsonValidator.getBoolean("layout[0].focus"))
-        assertField(jsonValidator.getMap("layout[1]"), "authors", 1000.0, null, "???book.authors???", type = "TEXTAREA", key = "el-2")
+        val title = jsonValidator.findParentMap("id", "title","layout[0]");
+        assertField(title, "title", 255.0, "STRING", "???book.title???", type = "INPUT", key = "el-3")
+        assertEquals(true, title!!["focus"])
+
+        val authors = jsonValidator.findParentMap("id", "authors", "layout[1]")
+        assertField(authors, "authors", 1000.0, null, "???book.authors???", type = "TEXTAREA", key = "el-6")
         assertNull(jsonValidator.getBoolean("layout[1].focus"))
 
         assertEquals("ROW", jsonValidator.get("layout[2].type"))
-        assertEquals("el-3", jsonValidator.get("layout[2].key"))
+        assertEquals("el-7", jsonValidator.get("layout[2].key"))
 
         assertEquals(6.0, jsonValidator.getDouble("layout[2].content[0].length"))
         assertEquals("COL", jsonValidator.get("layout[2].content[0].type"))
-        assertEquals("el-4", jsonValidator.get("layout[2].content[0].key"))
-
-        // layout -> content (ROW) -> content (COL) -> content (ROW) -> content (COL) -> id
-        var path = "layout[2].content[0].content[0].content[0].content[0]"
-        assertEquals("type", jsonValidator.get("$path.id"))
-        assertEquals("???book.type???", jsonValidator.get("$path.label"))
-        assertEquals("SELECT", jsonValidator.get("$path.type"))
-        assertEquals("el-7", jsonValidator.get("$path.key"))
-        assertEquals(8, jsonValidator.getList("$path.values")?.size)
-        assertEquals("BOOK", jsonValidator.get("$path.values[0].value"))
-        assertEquals("???book.type.book???", jsonValidator.get("$path.values[0].label"))
-
-        assertEquals("FIELDSET", jsonValidator.get("layout[4].type"))
-        assertEquals("???book.lending???", jsonValidator.get("layout[4].title"))
-        assertEquals("book.lendOutComponent", jsonValidator.get("layout[4].content[0].id"))
-        assertEquals("CUSTOMIZED", jsonValidator.get("layout[4].content[0].type"))
-        assertEquals("el-18", jsonValidator.get("layout[4].content[0].key"))
-
+        assertEquals("el-8", jsonValidator.get("layout[2].content[0].key"))
     }
 
     @Test
@@ -95,7 +81,6 @@ class UILayoutTest : AbstractTestBase() {
         assertEquals("???created???", jsonValidator.get("layout[0].columns[0].title"))
         assertEquals("DATE", jsonValidator.get("layout[0].columns[0].dataType"))
         assertEquals(true, jsonValidator.getBoolean("layout[0].columns[0].sortable"))
-        assertEquals("TIMESTAMP_MINUTES", jsonValidator.get("layout[0].columns[0].formatter"))
         assertEquals("TABLE_COLUMN", jsonValidator.get("layout[0].columns[0].type"))
         assertEquals("el-2", jsonValidator.get("layout[0].columns[0].key"))
 

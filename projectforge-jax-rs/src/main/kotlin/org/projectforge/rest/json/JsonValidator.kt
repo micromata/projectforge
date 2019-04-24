@@ -15,6 +15,45 @@ class JsonValidator {
         map = parseJson(json)
     }
 
+
+    /**
+     * Finds the first sub element of path (or from root) with matching the field value.
+     * @param path: Path must represent a map.
+     * @return The map where the element is in.
+     */
+    fun findParentMap(field: String, value: String, path: String? = null): Map<String, Any?>? {
+        val start = if (path != null) getMap(path) else map;
+        start?.forEach {
+            val result = find(field, value, it.value)
+            if (result != null)
+                return result // Found, return the map the found element is in.
+        }
+        return null
+    }
+
+    private fun find(field: String, value: String, element: Any?): Map<String, Any?>? {
+        if (element == null)
+            return null
+        if (element is Map<*, *>) {
+            if (element[field] == value) {
+                return element as Map<String, Any?> // Found
+            }
+            element.forEach {
+                val result = find(field, value, it.value)
+                if (result != null)
+                    return result // Found!
+            }
+            return null
+        } else if (element is List<*>) { // Array
+            element.forEach {
+                val result = find(field, value, it)
+                if (result != null)
+                    return result // Found!
+            }
+        }
+        return null
+    }
+
     fun get(path: String): String? {
         val result = getElement(path)
         if (result == null)
