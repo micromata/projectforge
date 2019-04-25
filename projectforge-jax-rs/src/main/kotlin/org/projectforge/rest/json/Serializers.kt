@@ -10,7 +10,7 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.TenantDO
 import org.projectforge.registry.Registry
-import org.projectforge.rest.TaskServicesRest
+import org.projectforge.rest.task.TaskServicesRest
 import java.lang.reflect.Type
 
 

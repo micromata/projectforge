@@ -15,6 +15,7 @@ import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.rest.core.ResultSet
+import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -137,7 +138,7 @@ class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, Timeshee
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: TimesheetDO?): UILayout {
+    override fun createEditLayout(dataObject: TimesheetDO): UILayout {
         val dayRange = UICustomized("dayRange")
         dayRange.add("startDateId", "startTime")
         dayRange.add("endDateId", "stopTime")

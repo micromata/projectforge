@@ -1,4 +1,4 @@
-package org.projectforge.rest
+package org.projectforge.rest.task
 
 import org.projectforge.business.fibu.AuftragsPositionsStatus
 import org.projectforge.business.fibu.KostFormatter
@@ -59,7 +59,8 @@ class TaskServicesRest {
                val status: TaskStatus? = null,
                val responsibleUser: PFUserDO? = null,
                var kost2List: List<Kost2>? = null,
-               var path: List<Task>? = null) {
+               var path: List<Task>? = null,
+               var consumption: Consumption? = null) {
         constructor(node: TaskNode) : this(id = node.task.id, title = node.task.title, shortDescription = node.task.shortDescription,
                 protectTimesheetsUntil = PFDate.from(node.task.protectTimesheetsUntil), reference = node.task.reference,
                 priority = node.task.priority, status = node.task.status, responsibleUser = node.task.responsibleUser)
@@ -77,6 +78,7 @@ class TaskServicesRest {
             val taskNode = taskTree.getTaskNodeById(id) ?: return null
             val task = Task(taskNode)
             addKost2List(task)
+            task.consumption = Consumption.create(taskNode)
             val pathToRoot = taskTree.getPathToRoot(taskNode.parentId)
             val pathArray = mutableListOf<Task>()
             pathToRoot?.forEach {
@@ -239,6 +241,7 @@ class TaskServicesRest {
                 if (ctx.taskFilter.match(node, taskDao, ctx.user)) {
                     val child = Task(node)
                     addKost2List(child)
+                    child.consumption = Consumption.create(node)
                     if (indent != null) {
                         var hidden = false;
                         val highlightedTaskNode = ctx.highlightedTaskNode

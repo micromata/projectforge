@@ -39,7 +39,7 @@ class TeamCalRest() : AbstractStandardRest<TeamCalDO, TeamCalDao, TeamCalFilter>
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: TeamCalDO?): UILayout {
+    override fun createEditLayout(dataObject: TeamCalDO): UILayout {
         val layout = super.createEditLayout(dataObject)
                 .add(lc, "task", "kost2", "user", "startTime", "stopTime")
                 .add(UICustomized("taskConsumption"))

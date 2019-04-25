@@ -50,7 +50,7 @@ class PostausgangRest() : AbstractStandardRest<PostausgangDO, PostausgangDao, Po
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: PostausgangDO?): UILayout {
+    override fun createEditLayout(dataObject: PostausgangDO): UILayout {
         val receiver = UIInput("empfaenger", lc) // Input-field instead of text-area (length > 255)
         receiver.focus = true
         receiver.enableAutoCompletion(this)

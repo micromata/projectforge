@@ -51,7 +51,7 @@ class BookRest() : AbstractStandardRest<BookDO, BookDao, BookFilter>(BookDao::cl
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: BookDO?): UILayout {
+    override fun createEditLayout(dataObject: BookDO): UILayout {
         val layout = super.createEditLayout(dataObject)
                 .add(lc, "title", "authors")
                 .add(UIRow()

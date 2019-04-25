@@ -33,7 +33,7 @@ class UserRest()
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: PFUserDO?): UILayout {
+    override fun createEditLayout(dataObject: PFUserDO): UILayout {
         val layout = super.createEditLayout(dataObject)
                 .add(lc, "username")
 

@@ -66,6 +66,7 @@ object ElementsRegistry {
                     java.sql.Date::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.DATE)
                     java.sql.Timestamp::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.TIMESTAMP)
                     PFUserDO::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.USER)
+                    Integer::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.INT)
                     TaskDO::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.TASK)
                     Locale::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.LOCALE)
                     else -> null
