@@ -47,8 +47,8 @@ class Timestamp extends Component {
         const { date } = this.state;
         const newDate = timezone(value);
         newDate.set({
-            hour: date.hours(),
-            minute: date.minutes(),
+            hour: date ? date.hours() : 0,
+            minute: date ? date.minutes() : 0,
             second: 0,
             millisecond: 0,
         });
@@ -72,7 +72,7 @@ class Timestamp extends Component {
                     formatDate={formatDate}
                     parseDate={parseDate}
                     format={dateFormat}
-                    value={date.toDate()}
+                    value={date ? date.toDate() : undefined}
                     onDayChange={this.handleDayChange}
                     dayPickerProps={{
                         locale,
