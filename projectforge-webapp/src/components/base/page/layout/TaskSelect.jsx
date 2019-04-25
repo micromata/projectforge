@@ -8,6 +8,7 @@ import PropTypes from 'prop-types';
 import style from '../../../design/input/Input.module.scss';
 import TaskTreePanel from '../../../../containers/panel/task/TaskTreePanel';
 import { getServiceURL } from '../../../../utilities/rest';
+import taskStyle from './TaskSelect.module.scss';
 
 class TaskSelect extends React.Component {
     constructor(props) {
@@ -132,8 +133,8 @@ class TaskSelect extends React.Component {
                     );
                 }
                 recentAncestorId = ancestor.id;
-                return (
-                    <React.Fragment key={ancestor.id}>
+                const title = (ancestor.id === taskTreeModalHighlight)
+                    ? <span className={taskStyle.highlighted}>{ancestor.title}</span> : (
                         <span
                             className="onclick"
                             onClick={() => this.openTaskTreeModal(ancestor.id)}
@@ -141,6 +142,10 @@ class TaskSelect extends React.Component {
                         >
                             {ancestor.title}
                         </span>
+                    );
+                return (
+                    <React.Fragment key={ancestor.id}>
+                        {title}
                         {' '}
                         {removeLink}
                         <span style={{
