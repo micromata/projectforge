@@ -60,7 +60,8 @@ class TaskServicesRest {
                val responsibleUser: PFUserDO? = null,
                var kost2List: List<Kost2>? = null,
                var path: List<Task>? = null,
-               var consumption: Consumption? = null) {
+               var consumption: Consumption? = null,
+               var orderList: MutableList<Order>? = null) {
         constructor(node: TaskNode) : this(id = node.task.id, title = node.task.title, shortDescription = node.task.shortDescription,
                 protectTimesheetsUntil = PFDate.from(node.task.protectTimesheetsUntil), reference = node.task.reference,
                 priority = node.task.priority, status = node.task.status, responsibleUser = node.task.responsibleUser)
@@ -68,7 +69,10 @@ class TaskServicesRest {
 
     class Result(val root: Task,
                  var initFilter: TaskFilter? = null,
-                 var translations: MutableMap<String, String>? = null)
+                 var translations: MutableMap<String, String>? = null) {
+        /** Only for table view: If optional columns are empty for all returned tasks, they are marked as false in this map. */
+        var columnsVisibility: MutableMap<String, Boolean>? = null
+    }
 
     companion object {
         fun createTask(id: Int?): Task? {
@@ -186,6 +190,21 @@ class TaskServicesRest {
             root.childs?.add(Task(rootNode))
         }
         val result = Result(root)
+        if (table == true) {
+            val columnsVisibility = mutableMapOf<String, Boolean>()
+            columnsVisibility["consumption"] = true
+            columnsVisibility["shortDescription"] = true
+            columnsVisibility["status"] = true
+            root.childs?.forEach { task ->
+                registerVisibleColumn(columnsVisibility, "kost2", !task.kost2List.isNullOrEmpty())
+                registerVisibleColumn(columnsVisibility, "orders", !task.orderList.isNullOrEmpty())
+                registerVisibleColumn(columnsVisibility, "protectionUntil", task.protectTimesheetsUntil != null)
+                registerVisibleColumn(columnsVisibility, "reference", !task.reference.isNullOrBlank())
+                registerVisibleColumn(columnsVisibility, "priority", task.priority != null)
+                registerVisibleColumn(columnsVisibility, "assignedUser", task.responsibleUser != null)
+            }
+            result.columnsVisibility = columnsVisibility
+        }
         if (initial == true) {
             result.initFilter = filter
             result.translations = addTranslations(
@@ -209,6 +228,14 @@ class TaskServicesRest {
                     "task.tree.info")
         }
         return restHelper.buildResponse(result)
+    }
+
+    private fun registerVisibleColumn(columnsVisibility: MutableMap<String, Boolean>, column: String, value: Boolean) {
+        if (columnsVisibility[column] == null) {
+            columnsVisibility[column] = value // Store first value (true or false).
+        } else if (value && columnsVisibility[column] != true) {
+            columnsVisibility[column] = true
+        }
     }
 
     /**
