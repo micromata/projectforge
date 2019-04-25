@@ -68,6 +68,7 @@ class CalendarPanel extends React.Component {
         this.onSelectSlot = this.onSelectSlot.bind(this);
         this.onSelectEvent = this.onSelectEvent.bind(this);
         this.onNavigate = this.onNavigate.bind(this);
+        this.onView = this.onView.bind(this);
         this.convertJsonDates = this.convertJsonDates.bind(this);
         this.toggleEditModal = this.toggleEditModal.bind(this);
     }
@@ -88,6 +89,10 @@ class CalendarPanel extends React.Component {
 
     onNavigate(date) {
         this.setState({ date });
+    }
+
+    onView(view) {
+        this.setState({ view });
     }
 
     // Callback fired when the visible date range changes. Returns an Array of dates or an object
@@ -277,6 +282,7 @@ class CalendarPanel extends React.Component {
                     events={events}
                     step={30}
                     view={view}
+                    onView={this.onView}
                     views={['month', 'work_week', 'week', 'day', 'agenda']}
                     startAccessor="start"
                     date={date}
