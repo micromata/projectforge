@@ -13,10 +13,14 @@ import CalendarToolBar from './CalendarToolBar';
 
 import 'moment/min/locales';
 import LoadingContainer from '../../components/design/loading-container';
-import TimesheetEditPanel from './TimesheetEditPanel';
-
-/* eslint-disable-next-line object-curly-newline */
-import { renderEvent, renderMonthEvent, renderAgendaEvent, renderDateHeader, dayStyle } from './CalendarRendering';
+import CalendarEntryEditPanel from './CalendarEntryEditPanel';
+import {
+    dayStyle,
+    renderAgendaEvent,
+    renderDateHeader,
+    renderEvent,
+    renderMonthEvent,
+} from './CalendarRendering';
 
 const localizer = BigCalendar.momentLocalizer(timezone); // or globalizeLocalizer
 
@@ -63,10 +67,7 @@ class CalendarPanel extends React.Component {
         this.onRangeChange = this.onRangeChange.bind(this);
         this.onSelectSlot = this.onSelectSlot.bind(this);
         this.onSelectEvent = this.onSelectEvent.bind(this);
-        this.onDoubleClickEvent = this.onDoubleClickEvent.bind(this);
-        this.onSelecting = this.onSelecting.bind(this);
         this.onNavigate = this.onNavigate.bind(this);
-        this.onView = this.onView.bind(this);
         this.convertJsonDates = this.convertJsonDates.bind(this);
         this.toggleEditModal = this.toggleEditModal.bind(this);
     }
@@ -87,9 +88,6 @@ class CalendarPanel extends React.Component {
 
     onNavigate(date) {
         this.setState({ date });
-    }
-
-    onView(obj) {
     }
 
     // Callback fired when the visible date range changes. Returns an Array of dates or an object
@@ -164,17 +162,6 @@ class CalendarPanel extends React.Component {
             .catch(error => alert(`Internal error: ${error}`));
     }
 
-    // Callback fired when a calendar event is clicked twice.
-    onDoubleClickEvent() {
-
-    }
-
-    // Callback fired when dragging a selection in the Time views.
-    // Returning false from the handler will prevent a selection.
-    onSelecting(event) {
-        console.log('onSelecting', event);
-    }
-
     toggleEditModal() {
         this.setState(prevState => ({
             editPanel: {
@@ -212,7 +199,7 @@ class CalendarPanel extends React.Component {
     }
 
     navigateToDay(e) {
-        console.log("*** ToDo: navigate to day.", e)
+        console.log('*** ToDo: navigate to day.', e);
         this.setState({
             date: e,
             viewType: 'day',
@@ -270,17 +257,14 @@ class CalendarPanel extends React.Component {
         initTime.setMinutes(0);
         let editModalContent;
         if (editPanel.visible) {
-            if (editPanel.category === 'timesheet') {
-                editModalContent = (
-                    <TimesheetEditPanel
-                        timesheetId={editPanel.dbId ? editPanel.dbId.toString() : ''}
-                        startDate={editPanel.startDate}
-                        endDate={editPanel.endDate}
-                    />
-                );
-            } else {
-                editModalContent = <div>Event...</div>;
-            }
+            editModalContent = (
+                <CalendarEntryEditPanel
+                    category={editPanel.category}
+                    dbId={editPanel.dbId ? editPanel.dbId.toString() : ''}
+                    startDate={editPanel.startDate}
+                    endDate={editPanel.endDate}
+                />
+            );
         }
         return (
             <LoadingContainer loading={loading}>
@@ -293,7 +277,6 @@ class CalendarPanel extends React.Component {
                     events={events}
                     step={30}
                     view={view}
-                    onView={this.onView}
                     views={['month', 'work_week', 'week', 'day', 'agenda']}
                     startAccessor="start"
                     date={date}
@@ -312,7 +295,9 @@ class CalendarPanel extends React.Component {
                         event: renderEvent,
                         month: {
                             event: renderMonthEvent,
-                            dateHeader: entry => renderDateHeader(entry, specialDays, this.navigateToDay),
+                            dateHeader: entry => renderDateHeader(entry,
+                                specialDays,
+                                this.navigateToDay),
                         },
                         week: {
                             // header: renderDateHeader

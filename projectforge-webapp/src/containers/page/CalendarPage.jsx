@@ -157,7 +157,8 @@ class CalendarPage extends React.Component {
                 >
                     <ModalHeader toggle={this.settingsModal}>{translations['plugins.teamcal.calendar.filterDialog.title']}</ModalHeader>
                     <ModalBody>
-                        [ToDo: Standardkalendar, Zeitberichtsuser, Optionen: Pausen, Statistik, Geburtstage, Planungen, Farben?]
+                        [ToDo: Standardkalendar, Zeitberichtsuser, Optionen: Pausen, Statistik,
+                        Geburtstage, Planungen, Farben?]
                         <br />
                         [ToDo: Buttons Übernehmen, Reset]
                     </ModalBody>
