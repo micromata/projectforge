@@ -279,8 +279,11 @@ class TaskServicesRest {
                             if (highlightedTaskNode.isRootNode) {
                                 // Show all nodes, because they are descendants of the root node.
                             } else if (highlightedTaskNode.ancestorIds.contains(node.id)) {
-                                // Show current node, because its an ancestor of the highlighted node.
                                 log.debug("Current node ${node.task.title} is ancestor of highlighted node: ${!hidden}")
+                                // Don't show ancestor nodes:
+                                hidden = true
+                                // But proceed with child nodes:
+                                buildTree(ctx, child, node, indent) // Build as table (all childs are direct childs of root node.
                             } else if (!highlightedTaskNode.hasChilds()) {
                                 // Node is a leaf node, so show also all siblings:
                                 hidden = !node.ancestorIds.contains(highlightedTaskNode.parent.id)
