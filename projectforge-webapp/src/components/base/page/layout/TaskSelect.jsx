@@ -6,7 +6,7 @@ import React from 'react';
 import { Button, Collapse, Modal, ModalBody, ModalHeader } from 'reactstrap';
 import PropTypes from 'prop-types';
 import style from '../../../design/input/Input.module.scss';
-import TaskTreePanel from '../../../../containers/panel/TaskTreePanel';
+import TaskTreePanel from '../../../../containers/panel/task/TaskTreePanel';
 import { getServiceURL } from '../../../../utilities/rest';
 
 class TaskSelect extends React.Component {
@@ -96,11 +96,13 @@ class TaskSelect extends React.Component {
     }
 
     render() {
-        const { label } = this.props;
-        const { task } = this.state;
-
-        const { taskTreePanelVisible, taskTreeModalHighlight } = this.state;
-        const { translations, showInline } = this.props;
+        const { taskTreePanelVisible, taskTreeModalHighlight, task } = this.state;
+        const {
+            translations,
+            showInline,
+            label,
+            showRootForAdmins,
+        } = this.props;
         const labelElement = task ? '' : <span className={style.text}>{label}</span>;
 
         let taskPath;
@@ -155,6 +157,7 @@ class TaskSelect extends React.Component {
                 onTaskSelect={this.setTask}
                 highlightTaskId={taskTreeModalHighlight || (task ? task.id : undefined)}
                 shortForm
+                showRootForAdmins={showRootForAdmins}
             />
         );
         const taskPanel = showInline ? (
@@ -224,12 +227,14 @@ TaskSelect.propTypes = {
     label: PropTypes.string.isRequired,
     onKost2Changed: PropTypes.func,
     showInline: PropTypes.bool,
+    showRootForAdmins: PropTypes.bool,
     translations: PropTypes.shape({}).isRequired,
 };
 
 TaskSelect.defaultProps = {
     onKost2Changed: undefined,
     showInline: true,
+    showRootForAdmins: false,
 };
 
 export default TaskSelect;

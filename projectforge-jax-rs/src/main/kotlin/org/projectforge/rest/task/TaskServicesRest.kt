@@ -151,7 +151,8 @@ class TaskServicesRest {
                 @QueryParam("opened") opened: Boolean?,
                 @QueryParam("notOpened") notOpened: Boolean?,
                 @QueryParam("closed") closed: Boolean?,
-                @QueryParam("deleted") deleted: Boolean?)
+                @QueryParam("deleted") deleted: Boolean?,
+                @QueryParam("showRootForAdmins") showRootForAdmins: Boolean?)
             : Response {
         @Suppress("UNCHECKED_CAST")
         val openNodes = userPreferencesService.getEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS) as MutableSet<Int>
@@ -179,7 +180,7 @@ class TaskServicesRest {
         filter.resetMatch() // taskFilter caches visibility, reset needed first.
         val indent = if (table == true) 0 else null
         buildTree(ctx, root, rootNode, indent)
-        if (table == true && (accessChecker.isLoggedInUserMemberOfAdminGroup() ||
+        if (showRootForAdmins == true && table == true && (accessChecker.isLoggedInUserMemberOfAdminGroup() ||
                         accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP))) {
             // Append root node for admins and financial staff only in table view for displaying purposes.
             root.childs?.add(Task(rootNode))

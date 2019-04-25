@@ -6,14 +6,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFile, faFolder, faFolderOpen } from '@fortawesome/free-regular-svg-icons';
 import classNames from 'classnames';
 /* eslint-disable-next-line object-curly-newline */
-import { Card, CardBody, Input, Table } from '../../components/design';
+import { Card, CardBody, Input, Table } from '../../../components/design';
 
-import { getServiceURL } from '../../utilities/rest';
-import style from '../../components/base/page/Page.module.scss';
-import Formatter from '../../components/base/Formatter';
-import LoadingContainer from '../../components/design/loading-container';
-import CheckBox from '../../components/design/input/CheckBox';
-import ConsumptionBar from './task/ConsumptionBar'
+import { getServiceURL } from '../../../utilities/rest';
+import style from '../../../components/base/page/Page.module.scss';
+import Formatter from '../../../components/base/Formatter';
+import LoadingContainer from '../../../components/design/loading-container';
+import CheckBox from '../../../components/design/input/CheckBox';
+import ConsumptionBar from './ConsumptionBar'
 
 class TaskTreePanel extends React.Component {
     constructor(props) {
@@ -99,7 +99,7 @@ class TaskTreePanel extends React.Component {
     fetch(initial, open, close) {
         this.setState({ loading: true });
         const { filter } = this.state;
-        const { highlightTaskId } = this.props;
+        const { highlightTaskId, showRootForAdmins } = this.props;
         fetch(getServiceURL('task/tree', {
             table: 'true', // Result expected as table not as tree.
             initial,
@@ -111,6 +111,7 @@ class TaskTreePanel extends React.Component {
             notOpened: filter.notOpened,
             closed: filter.closed,
             deleted: filter.deleted,
+            showRootForAdmins
         }), {
             method: 'GET',
             credentials: 'include',
@@ -344,12 +345,14 @@ TaskTreePanel.propTypes = {
     onTaskSelect: PropTypes.func,
     highlightTaskId: PropTypes.number,
     shortForm: PropTypes.bool,
+    showRootForAdmins: PropTypes.bool,
 };
 
 TaskTreePanel.defaultProps = {
     onTaskSelect: undefined,
     highlightTaskId: undefined,
     shortForm: false,
+    showRootForAdmins: false,
 };
 
 export default (TaskTreePanel);
