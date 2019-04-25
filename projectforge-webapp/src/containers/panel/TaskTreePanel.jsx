@@ -13,6 +13,7 @@ import style from '../../components/base/page/Page.module.scss';
 import Formatter from '../../components/base/Formatter';
 import LoadingContainer from '../../components/design/loading-container';
 import CheckBox from '../../components/design/input/CheckBox';
+import ConsumptionBar from './task/ConsumptionBar'
 
 class TaskTreePanel extends React.Component {
     constructor(props) {
@@ -293,7 +294,9 @@ class TaskTreePanel extends React.Component {
                                             ref={highlighted ? this.myScrollRef : undefined}
                                         >
                                             <td>{link}</td>
-                                            <td>...</td>
+                                            <td>
+                                                <ConsumptionBar progress={task.consumption} />
+                                            </td>
                                             <td>...</td>
                                             {!shortForm ? <td>...</td> : undefined}
                                             <td>{task.shortDescription}</td>
