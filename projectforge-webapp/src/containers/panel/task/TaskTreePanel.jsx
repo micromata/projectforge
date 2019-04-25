@@ -13,7 +13,7 @@ import style from '../../../components/base/page/Page.module.scss';
 import Formatter from '../../../components/base/Formatter';
 import LoadingContainer from '../../../components/design/loading-container';
 import CheckBox from '../../../components/design/input/CheckBox';
-import ConsumptionBar from './ConsumptionBar'
+import ConsumptionBar from './ConsumptionBar';
 
 class TaskTreePanel extends React.Component {
     constructor(props) {
@@ -22,6 +22,7 @@ class TaskTreePanel extends React.Component {
             loading: false,
             nodes: [],
             translations: undefined,
+            columnsVisibility: [],
             filter: {
                 searchString: '',
                 opened: true,
@@ -111,7 +112,7 @@ class TaskTreePanel extends React.Component {
             notOpened: filter.notOpened,
             closed: filter.closed,
             deleted: filter.deleted,
-            showRootForAdmins
+            showRootForAdmins,
         }), {
             method: 'GET',
             credentials: 'include',
@@ -121,10 +122,16 @@ class TaskTreePanel extends React.Component {
         })
             .then(response => response.json())
             .then((json) => {
-                const { root, translations, initFilter } = json;
+                const {
+                    root,
+                    translations,
+                    initFilter,
+                    columnsVisibility,
+                } = json;
                 this.setState({
                     nodes: root.childs,
                     loading: false,
+                    columnsVisibility: columnsVisibility || [],
                 });
                 if (initial && this.myScrollRef.current) {
                     // Scroll only once on initial call to highlighted row:
@@ -142,6 +149,7 @@ class TaskTreePanel extends React.Component {
             nodes,
             translations,
             loading,
+            columnsVisibility,
         } = this.state;
         const { shortForm, highlightTaskId } = this.props;
         /* eslint-disable indent, react/jsx-indent, react/jsx-tag-spacing */
@@ -204,24 +212,24 @@ class TaskTreePanel extends React.Component {
                                 <tr>
                                     <th>{translations.task}</th>
                                     <th>{translations['task.consumption']}</th>
-                                    <th>{translations['fibu.kost2']}</th>
-                                    {!shortForm
+                                    {columnsVisibility.kost2 ? <th>{translations['fibu.kost2']}</th> : undefined}
+                                    {!shortForm && columnsVisibility.orders
                                         ? <th>{translations['fibu.auftrag.auftraege']}</th> : undefined}
                                     <th>{translations.shortDescription}</th>
-                                    {!shortForm
+                                    {!shortForm && columnsVisibility.protectionUntil
                                         ? (
                                             <th>
                                                 {translations['task.protectTimesheetsUntil.short']}
                                             </th>
                                         )
                                         : undefined}
-                                    {!shortForm
+                                    {!shortForm && columnsVisibility.reference
                                         ? <th>{translations['task.reference']}</th> : undefined}
-                                    {!shortForm
+                                    {!shortForm && columnsVisibility.priority
                                         ? <th>{translations.priority}</th> : undefined}
                                     {!shortForm
                                         ? <th>{translations.status}</th> : undefined}
-                                    {!shortForm
+                                    {!shortForm && columnsVisibility.assignedUser
                                         ? <th>{translations['task.assignedUser']}</th> : undefined}
                                 </tr>
                                 </thead>
@@ -298,10 +306,12 @@ class TaskTreePanel extends React.Component {
                                             <td>
                                                 <ConsumptionBar progress={task.consumption} />
                                             </td>
-                                            <td>...</td>
-                                            {!shortForm ? <td>...</td> : undefined}
+                                            {columnsVisibility.kost2 ? <td>...</td> : undefined }
+                                            {!shortForm && columnsVisibility.orders
+                                                ? <td>...</td> : undefined}
                                             <td>{task.shortDescription}</td>
-                                            {!shortForm ? (
+                                            {!shortForm && columnsVisibility.protectionUntil
+                                                ? (
                                                     <td>
                                                         <Formatter
                                                             formatter="DATE"
@@ -311,13 +321,13 @@ class TaskTreePanel extends React.Component {
                                                     </td>
                                                 )
                                                 : undefined}
-                                            {!shortForm
+                                            {!shortForm && columnsVisibility.reference
                                                 ? <td>{task.reference}</td> : undefined}
-                                            {!shortForm
+                                            {!shortForm && columnsVisibility.priority
                                                 ? <td>{task.priority}</td> : undefined}
                                             {!shortForm
                                                 ? <td>{task.status}</td> : undefined}
-                                            {!shortForm
+                                            {!shortForm && columnsVisibility.assignedUser
                                                 ? <td>{responsibleUser}</td> : undefined}
                                         </tr>
                                     );
