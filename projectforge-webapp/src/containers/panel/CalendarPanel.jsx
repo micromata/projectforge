@@ -15,61 +15,14 @@ import 'moment/min/locales';
 import LoadingContainer from '../../components/design/loading-container';
 import TimesheetEditPanel from './TimesheetEditPanel';
 
+/* eslint-disable-next-line object-curly-newline */
+import { renderEvent, renderMonthEvent, renderAgendaEvent, renderDateHeader, dayStyle } from './CalendarRendering';
+
 const localizer = BigCalendar.momentLocalizer(timezone); // or globalizeLocalizer
 
 const DragAndDropCalendar = withDragAndDrop(BigCalendar);
 
 class CalendarPanel extends React.Component {
-    static renderEvent(event) {
-        let location;
-        let desc;
-        let formattedDuration;
-        if (event.location) {
-            location = (
-                <React.Fragment>
-                    {event.location}
-                    <br/>
-                </React.Fragment>
-            );
-        }
-        if (event.desc) {
-            desc = (
-                <React.Fragment>
-                    {event.description}
-                    <br/>
-                </React.Fragment>
-            );
-        }
-        if (event.formattedDuration) {
-            formattedDuration = (
-                <React.Fragment>
-                    {event.formattedDuration}
-                    <br/>
-                </React.Fragment>
-            );
-        }
-        return (
-            <React.Fragment>
-                <p><strong>{event.title}</strong></p>
-                {location}
-                {desc}
-                {formattedDuration}
-            </React.Fragment>
-        );
-    }
-
-    static renderMonthEvent(event) {
-        return (<React.Fragment>{event.title}</React.Fragment>);
-    }
-
-    static renderAgendaEvent(event) {
-        return (
-            <React.Fragment>
-                {event.title}
-            </React.Fragment>
-        );
-    }
-
     constructor(props) {
         super(props);
 
@@ -104,9 +57,7 @@ class CalendarPanel extends React.Component {
             },
         };
 
-        this.renderDateHeader = this.renderDateHeader.bind(this);
         this.eventStyle = this.eventStyle.bind(this);
-        this.dayStyle = this.dayStyle.bind(this);
         this.navigateToDay = this.navigateToDay.bind(this);
         this.fetchEvents = this.fetchEvents.bind(this);
         this.onRangeChange = this.onRangeChange.bind(this);
@@ -260,30 +211,8 @@ class CalendarPanel extends React.Component {
         };
     }
 
-    dayStyle(date) {
-        const { specialDays } = this.state;
-        const isoDate = timezone(date)
-            .format('YYYY-MM-DD');
-        const specialDay = specialDays[isoDate];
-        if (!specialDay) {
-            return '';
-        }
-        let className = 'holiday';
-        if (specialDay.workingDay) {
-            className = 'holiday-workday';
-        } else if (specialDay.weekend) {
-            if (specialDay.holiday) {
-                className = 'weekend-holiday';
-            } else {
-                className = 'weekend';
-            }
-        } else {
-            className = 'holiday';
-        }
-        return { className };
-    }
-
     navigateToDay(e) {
+        console.log("*** ToDo: navigate to day.", e)
         this.setState({
             date: e,
             viewType: 'day',
@@ -320,28 +249,6 @@ class CalendarPanel extends React.Component {
             .catch(error => alert(`Internal error: ${error}`));
     }
 
-    renderDateHeader(obj) {
-        const { specialDays } = this.state;
-        const isoDate = timezone(obj.date)
-            .format('YYYY-MM-DD');
-        const specialDay = specialDays[isoDate];
-        let dayInfo = '';
-        if (specialDay && specialDay.holidayTitle) {
-            dayInfo = `${specialDay.holidayTitle} `;
-        }
-        return (
-            <React.Fragment>
-                <div
-                    role="presentation"
-                    onClick={() => this.navigateToDay(obj.date)}
-                >
-                    {dayInfo}
-                    {obj.label}
-                </div>
-            </React.Fragment>
-        );
-    }
-
     render() {
         const { events, loading } = this.state;
         if (!events) {
@@ -351,7 +258,12 @@ class CalendarPanel extends React.Component {
                 </LoadingContainer>
             );
         }
-        const { date, view, editPanel } = this.state;
+        const {
+            date,
+            view,
+            editPanel,
+            specialDays,
+        } = this.state;
         const { topHeight } = this.props;
         const initTime = new Date(date.getDate());
         initTime.setHours(8);
@@ -392,21 +304,21 @@ class CalendarPanel extends React.Component {
                     onSelectSlot={this.onSelectSlot}
                     selectable
                     eventPropGetter={this.eventStyle}
-                    dayPropGetter={this.dayStyle}
+                    dayPropGetter={day => dayStyle(day, specialDays)}
                     showMultiDayTimes
                     timeslots={1}
                     scrollToTime={initTime}
                     components={{
-                        event: CalendarPanel.renderEvent,
+                        event: renderEvent,
                         month: {
-                            event: CalendarPanel.renderMonthEvent,
-                            dateHeader: CalendarPanel.renderDateHeader,
+                            event: renderMonthEvent,
+                            dateHeader: entry => renderDateHeader(entry, specialDays, this.navigateToDay),
                         },
                         week: {
-                            // header: CalendarPanel.renderDateHeader
+                            // header: renderDateHeader
                         },
                         agenda: {
-                            event: CalendarPanel.renderAgendaEvent,
+                            event: renderAgendaEvent,
                         },
                         toolbar: CalendarToolBar,
                     }}
