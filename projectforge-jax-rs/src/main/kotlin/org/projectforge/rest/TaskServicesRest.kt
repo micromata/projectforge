@@ -247,16 +247,16 @@ class TaskServicesRest {
                             // Following if-else cascade should be written much shorter, but less understandable!
                             if (highlightedTaskNode.isRootNode) {
                                 // Show all nodes, because they are descendants of the root node.
-                            } else if (node.descendantIds.contains(highlightedTaskNode.id)) {
+                            } else if (highlightedTaskNode.ancestorIds.contains(node.id)) {
                                 // Show current node, because its an ancestor of the highlighted node.
                                 log.debug("Current node ${node.task.title} is ancestor of highlighted node: ${!hidden}")
                             } else if (!highlightedTaskNode.hasChilds()) {
                                 // Node is a leaf node, so show also all siblings:
-                                hidden = !highlightedTaskNode.parent.descendantIds.contains(node.id)
+                                hidden = !node.ancestorIds.contains(highlightedTaskNode.parent.id)
                                 log.debug("Current node ${node.task.title} is sibling of highlighted node: ${!hidden}")
                             } else {
                                 hidden = !(highlightedTaskNode.taskId == node.taskId ||      // highlighted node == current?
-                                        highlightedTaskNode.descendantIds.contains(node.id)) // node is descendant of highlighted?
+                                        node.ancestorIds.contains(highlightedTaskNode.id)) // node is descendant of highlighted?
                                 log.debug("Current node ${node.task.title} is descendant of highlighted node: ${!hidden}")
                             }
                         }
