@@ -45,7 +45,7 @@ class TaskSelect extends React.Component {
             this.setState({ task: undefined });
             changeDataField(id, undefined);
             onKost2Changed();
-            this.setState({ taskTreePanelVisible: false });
+            // this.setState({ taskTreePanelVisible: false }); // Keep tree open after unselect all.
             return;
         }
         fetch(getServiceURL(`task/info/${taskId}`), {
