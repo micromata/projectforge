@@ -48,7 +48,7 @@ class PosteingangRest(): AbstractStandardRest<PosteingangDO, PosteingangDao, Pos
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: PosteingangDO?): UILayout {
+    override fun createEditLayout(dataObject: PosteingangDO): UILayout {
         val sender = UIInput("absender", lc) // Input-field instead of text-area (length > 255)
         sender.focus = true
         sender.enableAutoCompletion(this)

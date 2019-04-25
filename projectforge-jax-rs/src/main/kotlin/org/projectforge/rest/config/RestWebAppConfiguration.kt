@@ -9,6 +9,8 @@ import org.projectforge.rest.calendar.TeamEventRest
 import org.projectforge.rest.orga.ContractRest
 import org.projectforge.rest.orga.PostausgangRest
 import org.projectforge.rest.orga.PosteingangRest
+import org.projectforge.rest.task.TaskRest
+import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.web.rest.MyExceptionMapper
 
 /**

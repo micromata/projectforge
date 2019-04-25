@@ -132,7 +132,7 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
         return getRestPath()
     }
 
-    open fun createEditLayout(dataObject: O?): UILayout {
+    open fun createEditLayout(dataObject: O): UILayout {
         val titleKey = if (dataObject?.id != null) "$i18nKeyPrefix.edit" else "$i18nKeyPrefix.add"
         return UILayout(titleKey)
     }

@@ -40,7 +40,7 @@ class TeamEventRest() : AbstractStandardRest<TeamEventDO, TeamEventDao, TeamEven
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: TeamEventDO?): UILayout {
+    override fun createEditLayout(dataObject: TeamEventDO): UILayout {
         val calendars = teamCalDao.getAllCalendarsWithFullAccess()
         val calendarSelectValues = calendars.map { it ->
             UISelectValue<Int>(it.id, it.title)
@@ -48,13 +48,27 @@ class TeamEventRest() : AbstractStandardRest<TeamEventDO, TeamEventDao, TeamEven
         val subject = UIInput("subject", lc)
         subject.focus = true
         val layout = super.createEditLayout(dataObject)
+        if (dataObject.hasRecurrence()) {
+            layout.add(UIFieldset(12, title = "plugins.teamcal.event.recurrence.change.text")
+                    .add(UIGroup()
+                            .add(UICheckbox("all", label = "plugins.teamcal.event.recurrence.change.text.all"))
+                            .add(UICheckbox("future", label = "plugins.teamcal.event.recurrence.change.future"))
+                            .add(UICheckbox("single", label = "plugins.teamcal.event.recurrence.change.single"))
+                    ))
+        }
+        layout.add(UIFieldset(12)
                 .add(UIRow()
-                        .add(UIFieldset(6)
+                        .add(UICol(6)
                                 .add(UISelect<Int>("calendar", values = calendarSelectValues.toMutableList(), label = "plugins.teamcal.event.teamCal"))
                                 .add(subject)
+                                .add(lc, "attendees")
                                 .add(lc, "location", "note"))
-                        .add(UIFieldset(6)
-                                .add(lc, "startDate", "endDate", "allDay")))
+                        .add(UICol(6)
+                                .add(lc, "startDate", "endDate", "allDay")
+                                .add(UIFieldset(12)
+                                        .add(UICustomized("reminder")))
+                                .add(UIFieldset(12)
+                                        .add(UICustomized("recurrence"))))))
 
         return LayoutUtils.processEditPage(layout, dataObject)
     }

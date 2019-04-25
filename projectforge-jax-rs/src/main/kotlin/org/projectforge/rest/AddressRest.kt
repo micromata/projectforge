@@ -2,8 +2,6 @@ package org.projectforge.rest
 
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.address.*
-import org.projectforge.business.book.BookStatus
-import org.projectforge.business.book.BookType
 import org.projectforge.business.image.ImageService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -171,7 +169,7 @@ class AddressRest()
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: AddressDO?): UILayout {
+    override fun createEditLayout(dataObject: AddressDO): UILayout {
         val addressbookDOs = addressbookDao.allAddressbooksWithFullAccess
         val addressbooks = mutableListOf<UISelectValue<Int>>()
         addressbookDOs.forEach {

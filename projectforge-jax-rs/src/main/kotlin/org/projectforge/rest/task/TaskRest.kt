@@ -1,4 +1,4 @@
-package org.projectforge.rest
+package org.projectforge.rest.task
 
 import org.projectforge.business.address.AddressbookDao
 import org.projectforge.business.task.TaskDO
@@ -41,7 +41,7 @@ class TaskRest()
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: TaskDO?): UILayout {
+    override fun createEditLayout(dataObject: TaskDO): UILayout {
         val layout = super.createEditLayout(dataObject)
                 .add(lc, "title")
 

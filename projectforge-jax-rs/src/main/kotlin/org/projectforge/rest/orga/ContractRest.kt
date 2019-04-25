@@ -1,6 +1,8 @@
 package org.projectforge.rest.orga
 
-import org.projectforge.business.orga.*
+import org.projectforge.business.orga.ContractDO
+import org.projectforge.business.orga.ContractDao
+import org.projectforge.business.orga.ContractFilter
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDate
 import org.projectforge.rest.core.AbstractStandardRest
@@ -45,7 +47,7 @@ class ContractRest() : AbstractStandardRest<ContractDO, ContractDao, ContractFil
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: ContractDO?): UILayout {
+    override fun createEditLayout(dataObject: ContractDO): UILayout {
         val title = UIInput("title", lc).enableAutoCompletion(this)
         val coContractorA = UIInput("coContractorA", lc).enableAutoCompletion(this)
         val coContractorB = UIInput("coContractorB", lc).enableAutoCompletion(this)
