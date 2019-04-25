@@ -1,5 +1,5 @@
 import React from 'react';
-import TaskTreePanel from '../panel/TaskTreePanel';
+import TaskTreePanel from '../panel/task/TaskTreePanel';
 import history from '../../utilities/history';
 
 class TaskTreePage extends React.Component {
@@ -8,7 +8,12 @@ class TaskTreePage extends React.Component {
     }
 
     render() {
-        return <TaskTreePanel onTaskSelect={TaskTreePage.onTaskSelect} />;
+        return (
+            <TaskTreePanel
+                onTaskSelect={TaskTreePage.onTaskSelect}
+                showRootForAdmins
+            />
+        );
     }
 }
 
