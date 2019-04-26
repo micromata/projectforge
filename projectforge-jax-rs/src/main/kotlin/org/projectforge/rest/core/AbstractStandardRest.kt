@@ -19,7 +19,6 @@ import org.springframework.beans.BeanUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
-import java.io.Serializable
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
@@ -419,30 +418,52 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
     }
 
     /**
-     * Will only be called on success.
-     * @param id Data base id (pk) of the stored new object.
+     * Will only be called on success. Simply call [afterEdit].
      */
-    internal open fun afterSave(obj: O, id: Serializable?): Response {
-        return Response.ok(ResponseAction(restPath).addVariable("id", id ?: -1)).build()
+    internal open fun afterSave(obj: O): Response {
+        return afterEdit(obj)
     }
 
+    /**
+     * Will only be called on success. Simply call [afterEdit].
+     */
     internal open fun afterUpdate(obj: O): Response {
-        return Response.ok(ResponseAction(restPath).addVariable("id", obj.id ?: -1)).build()
+        return afterEdit(obj)
     }
 
+    /**
+     * Will only be called on success. Simply call [afterEdit].
+     */
     internal open fun afterDelete(obj: O): Response {
-        return Response.ok(ResponseAction(restPath).addVariable("id", obj.id ?: -1)).build()
+        return afterEdit(obj)
     }
 
+    /**
+     * Will only be called on success. Simply call [afterEdit].
+     */
     internal open fun afterMarkAsDeleted(obj: O): Response {
-        return Response.ok(ResponseAction(restPath).addVariable("id", obj.id ?: -1)).build()
+        return afterEdit(obj)
     }
 
+    /**
+     * Will only be called on success. Simply call [afterEdit].
+     */
     internal open fun afterUndelete(obj: O): Response {
-        return Response.ok(ResponseAction(restPath).addVariable("id", obj.id ?: -1)).build()
+        return afterEdit(obj)
     }
 
+    /**
+     * Will only be called on success. Simply call [afterEdit].
+     */
     internal open fun cancelEdit(request: HttpServletRequest, obj: O, restPath: String): Response {
+        return afterEdit(obj)
+    }
+
+    /**
+     * Will be called after create, update, delete, markAsDeleted, undelete and cancel.
+     * @return ResponseAction with the url of the standard list page.
+     */
+    internal open fun afterEdit(obj: O): Response {
         return Response.ok(ResponseAction(restPath).addVariable("id", obj.id ?: -1)).build()
     }
 

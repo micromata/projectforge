@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.Path
+import javax.ws.rs.core.Response
 
 @Component
 @Path("timesheet")
@@ -97,6 +98,9 @@ class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, Timeshee
         }
     }
 
+    override fun afterEdit(obj: TimesheetDO): Response {
+        return Response.ok(ResponseAction("calendar").addVariable("id", obj.id ?: -1)).build()
+    }
 
     override fun processResultSetBeforeExport(resultSet: ResultSet<Any>) {
         val list: List<TimesheetRest.Timesheet> = resultSet.resultSet.map { it ->
