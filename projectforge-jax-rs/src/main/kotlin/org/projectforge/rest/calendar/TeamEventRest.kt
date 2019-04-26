@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.Path
+import javax.ws.rs.core.Response
 
 @Component
 @Path("teamEvent")
@@ -26,6 +27,9 @@ class TeamEventRest() : AbstractStandardRest<TeamEventDO, TeamEventDao, TeamEven
         println("TeamEventRest: recurrentDate=$recurrentDateString")
     }
 
+    override fun afterEdit(obj: TeamEventDO): Response {
+        return Response.ok(ResponseAction("calendar").addVariable("id", obj.id ?: -1)).build()
+    }
 
     /**
      * LAYOUT List page

@@ -84,10 +84,12 @@ class RestHelper(
             dataObjectRest.beforeSaveOrUpdate(request, obj)
             var id = baseDao.saveOrUpdate(obj) ?: obj.id
             dataObjectRest.afterSaveOrUpdate(obj)
-            if (isNew)
-                return dataObjectRest.afterSave(obj, id)
-            else
+            if (isNew) {
+                obj.id = id as Int
+                return dataObjectRest.afterSave(obj)
+            } else {
                 return dataObjectRest.afterUpdate(obj)
+            }
         }
         // Validation error occurred:
         val json = getJsonCreator().toJson(validationErrorsList)
