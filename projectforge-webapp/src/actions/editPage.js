@@ -67,8 +67,6 @@ export const loadEdit = (category, id, additionalParams) => (dispatch) => {
         .catch(error => dispatch(loadFailure(error.message)));
 };
 
-const redirectToCategory = category => history.push(`/${category}/`);
-
 export const updatePageData = () => (dispatch, getState) => {
     dispatch(updateBegin());
 
@@ -89,8 +87,11 @@ export const updatePageData = () => (dispatch, getState) => {
     )
         .then((response) => {
             if (response.status === 200) {
-                redirectToCategory(category);
-                return;
+                response.json()
+                    .then((json) => {
+                        const { url } = json;
+                        history.push(`/${url}/`);
+                    });
             }
 
             if (response.status === 406) {
@@ -114,7 +115,7 @@ export const changeField = (id, newValue, preserveObject) => (dispatch) => {
         return dispatch(fieldChanged(id, { id: newValue.id }));
     }
     return dispatch(fieldChanged(id, newValue));
-}
+};
 
 export const abort = () => () => {
     history.goBack(1);
@@ -135,7 +136,26 @@ export const callEndpointWithData = (category, endpoint, data, dispatch, method 
         },
     )
         .then(handleHTTPErrors)
-        .then(() => redirectToCategory(category))
+        .then((response) => {
+            if (response.status === 200) {
+                response.json()
+                    .then((json) => {
+                        const { url } = json;
+                        history.push(`/${url}/`);
+                    });
+            }
+
+            if (response.status === 406) {
+                response.json()
+                    .then(json => dispatch(updateFailure(json.reduce((map, obj) => ({
+                        ...map,
+                        [obj.fieldId]: obj.message,
+                    }), {}))));
+                return;
+            }
+
+            throw new Error(response.status);
+        })
         .catch(error => dispatch(loadFailure(error)));
 };
 
