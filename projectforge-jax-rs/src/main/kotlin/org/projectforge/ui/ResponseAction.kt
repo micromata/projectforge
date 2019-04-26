@@ -5,7 +5,20 @@ package org.projectforge.ui
  */
 class ResponseAction(val url: String?,
                      val targetType: TargetType? = TargetType.REDIRECT) {
-    val variables = mutableMapOf<String, Any?>()
+    internal var variables: MutableMap<String, Any>? = null
+
+    /**
+     * @return this for chaining.
+     */
+    fun addVariable(variable: String, value: Any?) :ResponseAction {
+        if (value != null) {
+            if (variables == null) {
+                variables = mutableMapOf()
+            }
+            variables!![variable] = value
+        }
+        return this
+    }
 }
 
 enum class TargetType {

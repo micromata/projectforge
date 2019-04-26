@@ -89,9 +89,9 @@ class CalendarServicesRest {
             category = "teamEvent"
         }
         val responseAction = ResponseAction("$category/edit?start=$startDate&end=$endDate")
-        responseAction.variables["category"] = category;
-        responseAction.variables["startDate"] = startDate;
-        responseAction.variables["endDate"] = endDate;
+                .addVariable("category", category)
+                .addVariable("startDate", startDate)
+                .addVariable("endDate", endDate)
         return restHelper.buildResponseAction(responseAction)
     }
 

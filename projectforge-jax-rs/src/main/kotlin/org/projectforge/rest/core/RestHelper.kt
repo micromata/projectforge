@@ -35,7 +35,7 @@ class RestHelper(
      * Late initialization needed, because especially in test cases in [Configuration] the [TenantService]
      * isn't available on start-up.
      */
-    private fun getJsonCreator(): JsonCreator {
+    fun getJsonCreator(): JsonCreator {
         if (_jsonCreator == null) {
             _jsonCreator = JsonCreator()
             adapterMap.forEach {
@@ -85,35 +85,49 @@ class RestHelper(
             var id = baseDao.saveOrUpdate(obj) ?: obj.id
             dataObjectRest.afterSaveOrUpdate(obj)
             if (isNew)
-                dataObjectRest.afterSave(obj)
+                return dataObjectRest.afterSave(obj, id)
             else
-                dataObjectRest.afterUpdate(obj)
-            val json = getJsonCreator().toJson(id)
-            return Response.ok(json).build()
+                return dataObjectRest.afterUpdate(obj)
         }
         // Validation error occurred:
         val json = getJsonCreator().toJson(validationErrorsList)
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(json).build()
     }
 
-    fun <O : ExtendedBaseDO<Int>>
-            undelete(baseDao: BaseDao<O>, obj: O, validationErrorsList: List<ValidationError>?)
+    fun <O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter>
+            undelete(baseDao: BaseDao<O>, obj: O,
+                     dataObjectRest: AbstractStandardRest<O, B, F>,
+                     validationErrorsList: List<ValidationError>?)
             : Response {
         if (validationErrorsList.isNullOrEmpty()) {
-            var id = baseDao.undelete(obj)
-            val json = getJsonCreator().toJson(id)
-            return Response.ok(json).build()
+            baseDao.undelete(obj)
+            return dataObjectRest.afterUndelete(obj)
         }
         // Validation error occurred:
         val json = JsonUtils.toJson(validationErrorsList)
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(json).build()
     }
 
-    fun <O : ExtendedBaseDO<Int>> markAsDeleted(baseDao: BaseDao<O>, obj: O, validationErrorsList: List<ValidationError>?): Response {
+    fun <O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter>
+            markAsDeleted(baseDao: BaseDao<O>, obj: O,
+                          dataObjectRest: AbstractStandardRest<O, B, F>,
+                          validationErrorsList: List<ValidationError>?): Response {
         if (validationErrorsList.isNullOrEmpty()) {
             baseDao.markAsDeleted(obj)
-            val json = getJsonCreator().toJson(obj)
-            return Response.ok(json).build()
+            return dataObjectRest.afterMarkAsDeleted(obj)
+        }
+        // Validation error occurred:
+        val json = getJsonCreator().toJson(validationErrorsList)
+        return Response.status(Response.Status.NOT_ACCEPTABLE).entity(json).build()
+    }
+
+    fun <O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter>
+            delete(baseDao: BaseDao<O>, obj: O,
+                   dataObjectRest: AbstractStandardRest<O, B, F>,
+                   validationErrorsList: List<ValidationError>?): Response {
+        if (validationErrorsList.isNullOrEmpty()) {
+            baseDao.delete(obj)
+            return dataObjectRest.afterDelete(obj)
         }
         // Validation error occurred:
         val json = getJsonCreator().toJson(validationErrorsList)
@@ -156,7 +170,7 @@ class RestHelper(
         }
     }
 
-    fun parseLong(request : HttpServletRequest, parameter : String): Long? {
+    fun parseLong(request: HttpServletRequest, parameter: String): Long? {
         val value = request.getParameter(parameter)
         if (value == null)
             return null
