@@ -122,7 +122,7 @@ EditPage.propTypes = {
         translations: PropTypes.shape({}),
     }).isRequired,
     validation: PropTypes.shape({}),
-    error: PropTypes.string,
+    error: PropTypes.any,
     data: PropTypes.shape({}),
     variables: PropTypes.shape({}),
     loading: PropTypes.bool,
