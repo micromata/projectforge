@@ -94,7 +94,7 @@ LayoutDayPickerInput.propTypes = {
     jsDateFormat: PropTypes.string.isRequired,
     locale: PropTypes.string,
     required: PropTypes.bool,
-    translations: PropTypes.arrayOf(PropTypes.string),
+    translations: PropTypes.shape({}).isRequired,
     validation: PropTypes.shape({}),
 };
 
@@ -105,7 +105,6 @@ LayoutDayPickerInput.defaultProps = {
     id: undefined,
     locale: 'en',
     required: false,
-    translations: [],
     validation: {},
 };
 
