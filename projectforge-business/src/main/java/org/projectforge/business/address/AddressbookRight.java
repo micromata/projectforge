@@ -36,6 +36,8 @@ import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
+import java.util.Objects;
+
 /**
  * @author Florian Blumenstein
  */
@@ -75,12 +77,12 @@ public class AddressbookRight extends UserRightAccessCheck<AddressbookDO>
   @Override
   public boolean hasSelectAccess(final PFUserDO user, final AddressbookDO obj)
   {
-    if (isOwner(user, obj) == true || accessChecker.isUserMemberOfAdminGroup(user) == true || checkGlobal(obj) || accessChecker.isLoggedInUserMemberOfGroup(
+    if (isOwner(user, obj) || accessChecker.isUserMemberOfAdminGroup(user) || checkGlobal(obj) || accessChecker.isLoggedInUserMemberOfGroup(
         ProjectForgeGroup.ORGA_TEAM)) {
       return true;
     }
     final Integer userId = user.getId();
-    if (hasFullAccess(obj, userId) == true || hasReadonlyAccess(obj, userId) == true) {
+    if (hasFullAccess(obj, userId) || hasReadonlyAccess(obj, userId)) {
       return true;
     }
     return false;
@@ -107,7 +109,7 @@ public class AddressbookRight extends UserRightAccessCheck<AddressbookDO>
   @Override
   public boolean hasInsertAccess(final PFUserDO user, final AddressbookDO obj)
   {
-    return isOwner(user, obj) == true || accessChecker.isUserMemberOfAdminGroup(user) == true || checkGlobal(obj) || accessChecker.isLoggedInUserMemberOfGroup(
+    return isOwner(user, obj) || accessChecker.isUserMemberOfAdminGroup(user) || checkGlobal(obj) || accessChecker.isLoggedInUserMemberOfGroup(
         ProjectForgeGroup.ORGA_TEAM) || hasFullAccess(obj, user.getId());
   }
 
@@ -120,7 +122,7 @@ public class AddressbookRight extends UserRightAccessCheck<AddressbookDO>
   @Override
   public boolean hasUpdateAccess(final PFUserDO user, final AddressbookDO obj, final AddressbookDO oldObj)
   {
-    return hasInsertAccess(user, oldObj) == true;
+    return hasInsertAccess(user, oldObj);
   }
 
   /**
@@ -133,7 +135,7 @@ public class AddressbookRight extends UserRightAccessCheck<AddressbookDO>
   @Override
   public boolean hasDeleteAccess(final PFUserDO user, final AddressbookDO obj, final AddressbookDO oldObj)
   {
-    return hasInsertAccess(user, oldObj) == true;
+    return hasInsertAccess(user, oldObj);
   }
 
   /**
@@ -146,23 +148,23 @@ public class AddressbookRight extends UserRightAccessCheck<AddressbookDO>
     if (obj == null) {
       return true;
     }
-    return hasInsertAccess(user, obj) == true;
+    return hasInsertAccess(user, obj);
   }
 
   public boolean isOwner(final PFUserDO user, final AddressbookDO ab)
   {
-    if (ab == null) {
+    if (ab == null || ab.getOwner() == null) {
       return false;
     }
-    return ObjectUtils.equals(user.getId(), ab.getOwnerId()) == true;
+    return ObjectUtils.equals(user.getId(), Objects.requireNonNull(ab.getOwner()).getId());
   }
 
   public boolean isOwner(final Integer userId, final AddressbookDO ab)
   {
-    if (ab == null || userId == null) {
+    if (ab == null || userId == null || ab.getOwner() == null) {
       return false;
     }
-    return ObjectUtils.equals(userId, ab.getOwnerId()) == true;
+    return ObjectUtils.equals(userId, Objects.requireNonNull(ab.getOwner()).getId());
   }
 
   public boolean isMemberOfAtLeastOneGroup(final PFUserDO user, final Integer... groupIds)
@@ -181,9 +183,9 @@ public class AddressbookRight extends UserRightAccessCheck<AddressbookDO>
     if (ab == null || userId == null) {
       return DataobjectAccessType.NONE;
     }
-    if (hasFullAccess(ab, userId) == true) {
+    if (hasFullAccess(ab, userId)) {
       return DataobjectAccessType.FULL;
-    } else if (hasReadonlyAccess(ab, userId) == true) {
+    } else if (hasReadonlyAccess(ab, userId)) {
       return DataobjectAccessType.READONLY;
     }
     return DataobjectAccessType.NONE;
@@ -194,7 +196,7 @@ public class AddressbookRight extends UserRightAccessCheck<AddressbookDO>
     if (ab == null || userId == null) {
       return false;
     }
-    if (isOwner(userId, ab) == true) {
+    if (isOwner(userId, ab)) {
       return true;
     }
     final Integer[] groupIds = StringHelper.splitToIntegers(ab.getFullAccessGroupIds(), ",");
@@ -207,7 +209,7 @@ public class AddressbookRight extends UserRightAccessCheck<AddressbookDO>
     if (ab == null || userId == null) {
       return false;
     }
-    if (hasFullAccess(ab, userId) == true) {
+    if (hasFullAccess(ab, userId)) {
       // User has full access (which is more than read-only access).
       return false;
     }
@@ -218,7 +220,7 @@ public class AddressbookRight extends UserRightAccessCheck<AddressbookDO>
 
   private boolean hasAccess(final Integer[] groupIds, final Integer[] userIds, final Integer userId)
   {
-    if (getUserGroupCache().isUserMemberOfAtLeastOneGroup(userId, groupIds) == true || accessChecker.isLoggedInUserMemberOfGroup(
+    if (getUserGroupCache().isUserMemberOfAtLeastOneGroup(userId, groupIds) || accessChecker.isLoggedInUserMemberOfGroup(
         ProjectForgeGroup.ORGA_TEAM)) {
       return true;
     }
@@ -229,7 +231,7 @@ public class AddressbookRight extends UserRightAccessCheck<AddressbookDO>
       if (id == null) {
         continue;
       }
-      if (id.equals(userId) == true) {
+      if (id.equals(userId)) {
         return true;
       }
     }

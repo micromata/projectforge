@@ -163,7 +163,7 @@ open class MenuCreator() {
                 .add(MenuItemDef(MenuItemDefId.VACATION, "wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationListPage",
                         badgeCounter = { vacationService.getOpenLeaveApplicationsForUser(ThreadLocalUserContext.getUser()).toInt() }))
                 .add(MenuItemDef(MenuItemDefId.BOOK_LIST, "book"))
-                .add(MenuItemDef(MenuItemDefId.ADDRESSBOOK_LIST, "wa/wicket/bookmarkable/org.projectforge.web.address.AddressbookListPage"))
+                .add(MenuItemDef(MenuItemDefId.ADDRESSBOOK_LIST, "addressBook"))
                 .add(MenuItemDef(MenuItemDefId.ADDRESS_LIST, "address"))
         if (configurationService.telephoneSystemUrl.isNotEmpty())
             commonMenu.add(MenuItemDef(MenuItemDefId.PHONE_CALL, "wa/phoneCall"))

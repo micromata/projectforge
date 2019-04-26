@@ -56,6 +56,7 @@ class ContractRest() : AbstractStandardRest<ContractDO, ContractDao, ContractFil
         val signerA = UIInput("signerA", lc).enableAutoCompletion(this)
         val signerB = UIInput("signerB", lc).enableAutoCompletion(this)
 
+
         val layout = super.createEditLayout(dataObject)
                 .add(UIRow()
                         .add(UICol()

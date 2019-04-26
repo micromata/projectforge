@@ -107,7 +107,7 @@ public class AddressbookEditForm extends AbstractEditForm<AddressbookDO, Address
 
     // checking visibility rights
     final AddressbookRight right = new AddressbookRight(accessChecker);
-    if (isNew() == true || right.hasUpdateAccess(getUser(), data, data) == true) {
+    if (isNew() || right.hasUpdateAccess(getUser(), data, data)) {
       access = true;
     }
 
@@ -142,7 +142,7 @@ public class AddressbookEditForm extends AbstractEditForm<AddressbookDO, Address
     gridBuilder.newSplitPanel(GridSize.COL50);
     // ID
     {
-      if (isNew() == false && accessChecker.isLoggedInUserMemberOfAdminGroup() == true) {
+      if (isNew() == false && accessChecker.isLoggedInUserMemberOfAdminGroup()) {
         final FieldsetPanel fs = gridBuilder.newFieldset(getString("addressbook.id"));
         fs.add(new Label(fs.newChildId(), data.getId()));
       }
@@ -154,7 +154,7 @@ public class AddressbookEditForm extends AbstractEditForm<AddressbookDO, Address
       }
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("addressbook.owner")).suppressLabelForWarning();
       if (accessChecker.isLoggedInUserMemberOfAdminGroup() == true
-          || ObjectUtils.equals(data.getOwnerId(), getUserId()) == true) {
+          || ObjectUtils.equals(data.getOwner().getId(), getUserId()) == true) {
         final UserSelectPanel userSelectPanel = new UserSelectPanel(fs.newChildId(),
             new PropertyModel<PFUserDO>(data, "owner"), parentPage,
             "ownerId");
@@ -188,7 +188,7 @@ public class AddressbookEditForm extends AbstractEditForm<AddressbookDO, Address
         final Select2MultiChoice<PFUserDO> users = new Select2MultiChoice<PFUserDO>(fs.getSelect2MultiChoiceId(),
             new PropertyModel<Collection<PFUserDO>>(this.fullAccessUsersListHelper, "assignedItems"), usersProvider);
         users.setMarkupId("fullAccessUsers").setOutputMarkupId(true);
-        fs.setEnabled(isGlobalAddressbook(data) == false);
+        fs.setEnabled(!isGlobalAddressbook(data));
         fs.add(users);
       }
       {
@@ -210,7 +210,7 @@ public class AddressbookEditForm extends AbstractEditForm<AddressbookDO, Address
             new PropertyModel<Collection<PFUserDO>>(this.readonlyAccessUsersListHelper, "assignedItems"),
             usersProvider);
         users.setMarkupId("readOnlyAccessUsers").setOutputMarkupId(true);
-        fs.setEnabled(isGlobalAddressbook(data) == false);
+        fs.setEnabled(!isGlobalAddressbook(data));
         fs.add(users);
       }
 
@@ -232,10 +232,10 @@ public class AddressbookEditForm extends AbstractEditForm<AddressbookDO, Address
           }
         }
         final Select2MultiChoice<GroupDO> groups = new Select2MultiChoice<GroupDO>(fs.getSelect2MultiChoiceId(),
-            new PropertyModel<Collection<GroupDO>>(this.fullAccessGroupsListHelper, "assignedItems"),
+            new PropertyModel<>(this.fullAccessGroupsListHelper, "assignedItems"),
             new GroupsWicketProvider(groupService));
         groups.setMarkupId("fullAccessGroups").setOutputMarkupId(true);
-        fs.setEnabled(isGlobalAddressbook(data) == false);
+        fs.setEnabled(!isGlobalAddressbook(data));
         fs.add(groups);
       }
       {
@@ -253,10 +253,10 @@ public class AddressbookEditForm extends AbstractEditForm<AddressbookDO, Address
           }
         }
         final Select2MultiChoice<GroupDO> groups = new Select2MultiChoice<GroupDO>(fs.getSelect2MultiChoiceId(),
-            new PropertyModel<Collection<GroupDO>>(this.readonlyAccessGroupsListHelper, "assignedItems"),
+            new PropertyModel<>(this.readonlyAccessGroupsListHelper, "assignedItems"),
             new GroupsWicketProvider(groupService));
         groups.setMarkupId("readOnlyAccessGroups").setOutputMarkupId(true);
-        fs.setEnabled(isGlobalAddressbook(data) == false);
+        fs.setEnabled(!isGlobalAddressbook(data));
         fs.add(groups);
       }
     }
