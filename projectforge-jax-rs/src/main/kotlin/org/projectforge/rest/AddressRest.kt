@@ -173,7 +173,7 @@ class AddressRest()
         val addressbookDOs = addressbookDao.allAddressbooksWithFullAccess
         val addressbooks = mutableListOf<UISelectValue<Int>>()
         addressbookDOs.forEach {
-            addressbooks.add(UISelectValue(it.id, it.title))
+            addressbooks.add(UISelectValue(it.id, it.title!!))
         }
         val layout = super.createEditLayout(dataObject)
                 //autoCompletion = AutoCompletion(url = "addressBook/ac?search="))))

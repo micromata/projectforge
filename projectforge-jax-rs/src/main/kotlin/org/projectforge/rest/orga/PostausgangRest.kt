@@ -1,6 +1,5 @@
 package org.projectforge.rest.orga
 
-import org.projectforge.business.book.BookFilter
 import org.projectforge.business.orga.PostFilter
 import org.projectforge.business.orga.PostType
 import org.projectforge.business.orga.PostausgangDO
@@ -43,7 +42,7 @@ class PostausgangRest() : AbstractStandardRest<PostausgangDO, PostausgangDao, Po
                         .add(lc, "datum", "empfaenger", "person", "inhalt", "bemerkung", "type"))
         layout.getTableColumnById("datum").formatter = Formatter.DATE
         LayoutUtils.addListFilterContainer(layout, UILabel("'TODO: date range"),
-                filterClass = BookFilter::class.java)
+                filterClass = PostFilter::class.java)
         return LayoutUtils.processListPage(layout)
     }
 

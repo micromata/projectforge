@@ -99,15 +99,15 @@ public class AddressbookListForm extends AbstractListForm<AddressbookFilter, Add
         @Override
         public boolean isVisible()
         {
-          return getSearchFilter().isDeleted() == false;
+          return !getSearchFilter().isDeleted();
         }
       };
       radioGroupPanel.add(radioGroup);
-      radioGroup.add(new Model<AddressbookFilter.OwnerType>(AddressbookFilter.OwnerType.ALL), getString("filter.all"));
-      radioGroup.add(new Model<AddressbookFilter.OwnerType>(AddressbookFilter.OwnerType.OWN), getString("addressbook.own"));
-      radioGroup.add(new Model<AddressbookFilter.OwnerType>(AddressbookFilter.OwnerType.OTHERS), getString("addressbook.others"));
-      if (accessChecker.isLoggedInUserMemberOfAdminGroup() == true) {
-        radioGroup.add(new Model<AddressbookFilter.OwnerType>(AddressbookFilter.OwnerType.ADMIN), getString("addressbook.adminAccess"));
+      radioGroup.add(new Model<>(AddressbookFilter.OwnerType.ALL), getString("filter.all"));
+      radioGroup.add(new Model<>(AddressbookFilter.OwnerType.OWN), getString("addressbook.own"));
+      radioGroup.add(new Model<>(AddressbookFilter.OwnerType.OTHERS), getString("addressbook.others"));
+      if (accessChecker.isLoggedInUserMemberOfAdminGroup()) {
+        radioGroup.add(new Model<>(AddressbookFilter.OwnerType.ADMIN), getString("addressbook.adminAccess"));
       }
     }
     final DivPanel checkBoxesPanel = new DivPanel(optionsFieldsetPanel.newChildId(), DivType.BTN_GROUP)
@@ -117,7 +117,7 @@ public class AddressbookListForm extends AbstractListForm<AddressbookFilter, Add
       {
 
         // Show check box panel only if user selects others addressbooks.
-        return getSearchFilter().isDeleted() == false && (getSearchFilter().isAll() == true || getSearchFilter().isOthers() == true);
+        return !getSearchFilter().isDeleted() && (getSearchFilter().isAll() == true || getSearchFilter().isOthers() == true);
       }
     };
     optionsFieldsetPanel.add(checkBoxesPanel);
