@@ -117,10 +117,6 @@ export const changeField = (id, newValue, preserveObject) => (dispatch) => {
     return dispatch(fieldChanged(id, newValue));
 };
 
-export const abort = () => () => {
-    history.goBack(1);
-};
-
 export const callEndpointWithData = (category, endpoint, data, dispatch, method = 'POST') => {
     dispatch(updateBegin());
 
@@ -158,6 +154,13 @@ export const callEndpointWithData = (category, endpoint, data, dispatch, method 
         })
         .catch(error => dispatch(loadFailure(error)));
 };
+
+export const abort = () => (dispatch, getState) => {
+    const { category, data } = getState().editPage;
+
+    callEndpointWithData(category, 'cancel', data, dispatch, 'POST');
+};
+
 
 export const markAsDeleted = () => (dispatch, getState) => {
     const { category, data } = getState().editPage;
