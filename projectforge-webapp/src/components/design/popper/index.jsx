@@ -5,7 +5,6 @@ import ReactDOM from 'react-dom';
 import { Manager, Popper as PopperJs, Reference } from 'react-popper';
 import style from './Popper.module.scss';
 
-// Notice: Not Ready yet, use Popovers from react-strap instead.
 function Popper(
     {
         className,
@@ -40,8 +39,7 @@ function Popper(
                         </div>
                     )}
                 </PopperJs>,
-                // TODO ADD DYNAMIC ELEMENT
-                document.getElementById('test'),
+                document.body,
             )}
         </Manager>
     );
