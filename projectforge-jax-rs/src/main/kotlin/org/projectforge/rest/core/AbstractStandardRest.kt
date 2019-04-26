@@ -19,6 +19,7 @@ import org.springframework.beans.BeanUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
+import java.io.Serializable
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
@@ -53,7 +54,7 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
      * Contains the layout data returned for the frontend regarding edit pages.
      * @param variables Additional variables / data provided for the edit page.
      */
-    class EditLayoutData(val data: Any?, val ui: UILayout?, var variables : Map<String, Any>? = null)
+    class EditLayoutData(val data: Any?, val ui: UILayout?, var variables: Map<String, Any>? = null)
 
     /**
      * Contains the data, layout and filter settings served by [getInitialList].
@@ -276,7 +277,7 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
         layout.postProcessPageMenu()
         val result = EditLayoutData(item, layout)
         onGetItemAndLayout(request, item, result)
-       val additionalVariables = addVariablesForEditPage(item)
+        val additionalVariables = addVariablesForEditPage(item)
         if (additionalVariables != null)
             result.variables = additionalVariables
         return restHelper.buildResponse(result)
@@ -288,7 +289,7 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
     /**
      * Use this method to add customized variables for your edit page for the initial call.
      */
-    protected open fun addVariablesForEditPage(item: O) : Map<String, Any>? {
+    protected open fun addVariablesForEditPage(item: O): Map<String, Any>? {
         return null
     }
 
@@ -354,24 +355,51 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
     }
 
     /**
-     * The given object (marked as deleted) will be undeleted.
+     * The given object (marked as deleted before) will be undeleted.
      */
     @PUT
     @Path(RestPaths.UNDELETE)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     fun undelete(obj: O): Response {
-        return restHelper.undelete(baseDao, obj, validate(obj))
+        return restHelper.undelete(baseDao, obj, this, validate(obj))
     }
 
     /**
-     * The given object is marked as deleted.
+     * The given object will be deleted.
+     * Please note, if you try to delete a historizable data base object, an exception will be thrown.
      */
     @DELETE
     @Path(RestPaths.MARK_AS_DELETED)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     fun markAsDeleted(obj: O): Response {
-        return restHelper.markAsDeleted(baseDao, obj, validate(obj))
+        return restHelper.markAsDeleted(baseDao, obj, this, validate(obj))
+    }
+
+    /**
+     * The given object is marked as deleted.
+     * Please note, if you try to mark a non-historizable data base object, an exception will be thrown.
+     */
+    @DELETE
+    @Path(RestPaths.DELETE)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    fun delete(obj: O): Response {
+        return restHelper.delete(baseDao, obj, this, validate(obj))
+    }
+
+    /**
+     * Use this service for cancelling editing. The purpose of this method is only, to tell the client where
+     * to redirect after cancellation.
+     * @return ResponseAction
+     */
+    @PUT
+    @Path(RestPaths.CANCEL)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    fun cancelEdit(@Context request: HttpServletRequest, obj: O): Response {
+        return cancelEdit(request, obj, getRestPath())
     }
 
     /**
@@ -390,10 +418,32 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
     internal open fun afterSaveOrUpdate(obj: O) {
     }
 
-    internal open fun afterSave(obj: O) {
+    /**
+     * Will only be called on success.
+     * @param id Data base id (pk) of the stored new object.
+     */
+    internal open fun afterSave(obj: O, id: Serializable?): Response {
+        return Response.ok(ResponseAction(restPath).addVariable("id", id ?: -1)).build()
     }
 
-    internal open fun afterUpdate(obj: O) {
+    internal open fun afterUpdate(obj: O): Response {
+        return Response.ok(ResponseAction(restPath).addVariable("id", obj.id ?: -1)).build()
+    }
+
+    internal open fun afterDelete(obj: O): Response {
+        return Response.ok(ResponseAction(restPath).addVariable("id", obj.id ?: -1)).build()
+    }
+
+    internal open fun afterMarkAsDeleted(obj: O): Response {
+        return Response.ok(ResponseAction(restPath).addVariable("id", obj.id ?: -1)).build()
+    }
+
+    internal open fun afterUndelete(obj: O): Response {
+        return Response.ok(ResponseAction(restPath).addVariable("id", obj.id ?: -1)).build()
+    }
+
+    internal open fun cancelEdit(request: HttpServletRequest, obj: O, restPath: String): Response {
+        return Response.ok(ResponseAction(restPath).addVariable("id", obj.id ?: -1)).build()
     }
 
     internal open fun filterList(resultSet: MutableList<O>, filter: F): List<O> {
