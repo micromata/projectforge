@@ -268,6 +268,7 @@ class CalendarPanel extends React.Component {
                     dbId={editPanel.dbId ? editPanel.dbId.toString() : ''}
                     startDate={editPanel.startDate}
                     endDate={editPanel.endDate}
+                    afterEdit={this.toggleEditModal}
                 />
             );
         }

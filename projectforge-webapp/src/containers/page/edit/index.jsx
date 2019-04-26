@@ -126,6 +126,7 @@ EditPage.propTypes = {
     data: PropTypes.shape({}),
     variables: PropTypes.shape({}),
     loading: PropTypes.bool,
+    afterEdit: PropTypes.func,
 };
 
 EditPage.defaultProps = {
@@ -134,6 +135,7 @@ EditPage.defaultProps = {
     error: undefined,
     loading: false,
     validation: {},
+    afterEdit: undefined,
 };
 
 const mapStateToProps = state => ({

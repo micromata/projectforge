@@ -9,6 +9,7 @@ function CalendarEntryEditPanel(
         dbId,
         startDate,
         endDate,
+        afterEdit,
     },
 ) {
     const match = {
@@ -27,6 +28,7 @@ function CalendarEntryEditPanel(
             <EditPage
                 location={location}
                 match={match}
+                afterEdit={afterEdit}
             />
         </div>
     );
@@ -37,6 +39,7 @@ CalendarEntryEditPanel.propTypes = {
     category: PropTypes.string,
     startDate: PropTypes.number, // Epoch seconds
     endDate: PropTypes.number, // Epoch seconds
+    afterEdit: PropTypes.func.isRequired,
 };
 
 CalendarEntryEditPanel.defaultProps = {
