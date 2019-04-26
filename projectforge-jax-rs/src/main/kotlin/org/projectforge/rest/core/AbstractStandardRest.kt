@@ -394,7 +394,7 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
      * to redirect after cancellation.
      * @return ResponseAction
      */
-    @PUT
+    @POST
     @Path(RestPaths.CANCEL)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
