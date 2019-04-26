@@ -60,6 +60,7 @@ NavigationAction.propTypes = {
     title: PropTypes.string.isRequired,
     url: PropTypes.string.isRequired,
     type: PropTypes.oneOf([
+        'REDIRECT',
         'RESTCALL',
         'DOWNLOAD',
         'LINK',
