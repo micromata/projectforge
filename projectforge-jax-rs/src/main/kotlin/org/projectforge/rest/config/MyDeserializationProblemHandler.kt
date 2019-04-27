@@ -16,23 +16,22 @@ class MyDeserializationProblemHandler : DeserializationProblemHandler() {
 
     val validationErrors = mutableListOf<ValidationError>()
 
-    override fun handleWeirdNativeValue(ctxt: DeserializationContext?, targetType: JavaType?, valueToConvert: Any?, p: JsonParser?): Any {
-        log.info("handleWeirdNativeValue")
+    override fun handleWeirdNativeValue(ctxt: DeserializationContext, targetType: JavaType?, valueToConvert: Any?, p: JsonParser?): Any {
+        logError(ctxt, "handleWeirdNativeValue", valueToConvert)
         return super.handleWeirdNativeValue(ctxt, targetType, valueToConvert, p)
     }
 
-    override fun handleWeirdNumberValue(ctxt: DeserializationContext?, targetType: Class<*>?, valueToConvert: Number?, failureMsg: String?): Any {
-        log.info("handleWeirdNumberValue")
+    override fun handleWeirdNumberValue(ctxt: DeserializationContext, targetType: Class<*>?, valueToConvert: Number?, failureMsg: String?): Any {
+        logError(ctxt, "handleWeirdNumberValue", valueToConvert)
         return super.handleWeirdNumberValue(ctxt, targetType, valueToConvert, failureMsg)
     }
 
-    override fun handleUnexpectedToken(ctxt: DeserializationContext?, targetType: Class<*>?, t: JsonToken?, p: JsonParser?, failureMsg: String?): Any {
-        log.info("handleUnexpectedToken")
+    override fun handleUnexpectedToken(ctxt: DeserializationContext, targetType: Class<*>?, t: JsonToken?, p: JsonParser?, failureMsg: String?): Any {
+        logError(ctxt, "handleUnexpectedToken", t)
         return super.handleUnexpectedToken(ctxt, targetType, t, p, failureMsg)
     }
 
     override fun handleWeirdStringValue(ctxt: DeserializationContext, targetType: Class<*>?, valueToConvert: String?, failureMsg: String?): Any {
-        log.info("handleWeirdStringValue")
         var i18nKey: String? = null
         var result: Any? = null
         when (targetType) {
@@ -64,36 +63,44 @@ class MyDeserializationProblemHandler : DeserializationProblemHandler() {
             validationErrors.add(ValidationError(translate(i18nKey), field, i18nKey))
             return result
         }
+        logError(ctxt, "handleWeirdStringValue", valueToConvert)
         return super.handleWeirdStringValue(ctxt, targetType, valueToConvert, failureMsg)
     }
 
-    override fun handleInstantiationProblem(ctxt: DeserializationContext?, instClass: Class<*>?, argument: Any?, t: Throwable?): Any {
-        log.info("handleInstantiationProblem")
+    override fun handleInstantiationProblem(ctxt: DeserializationContext, instClass: Class<*>?, argument: Any?, t: Throwable?): Any {
+        logError(ctxt, "handleInstantiationProblem", null)
         return super.handleInstantiationProblem(ctxt, instClass, argument, t)
     }
 
-    override fun handleWeirdKey(ctxt: DeserializationContext?, rawKeyType: Class<*>?, keyValue: String?, failureMsg: String?): Any {
-        log.info("handleWeirdKey")
+    override fun handleWeirdKey(ctxt: DeserializationContext, rawKeyType: Class<*>?, keyValue: String?, failureMsg: String?): Any {
+        logError(ctxt, "handleWeirdKey", keyValue)
         return super.handleWeirdKey(ctxt, rawKeyType, keyValue, failureMsg)
     }
 
-    override fun handleUnknownProperty(ctxt: DeserializationContext?, p: JsonParser?, deserializer: JsonDeserializer<*>?, beanOrClass: Any?, propertyName: String?): Boolean {
-        log.info("handleUnknownProperty")
+    override fun handleUnknownProperty(ctxt: DeserializationContext, p: JsonParser?, deserializer: JsonDeserializer<*>?, beanOrClass: Any?, propertyName: String?): Boolean {
+        logError(ctxt, "handleUnknownProperty", propertyName)
         return super.handleUnknownProperty(ctxt, p, deserializer, beanOrClass, propertyName)
     }
 
-    override fun handleMissingInstantiator(ctxt: DeserializationContext?, instClass: Class<*>?, valueInsta: ValueInstantiator?, p: JsonParser?, msg: String?): Any {
-        log.info("handleMissingInstantiator")
+    override fun handleMissingInstantiator(ctxt: DeserializationContext, instClass: Class<*>?, valueInsta: ValueInstantiator?, p: JsonParser?, msg: String?): Any {
+        logError(ctxt, "handleMissingInstantiator", msg)
         return super.handleMissingInstantiator(ctxt, instClass, valueInsta, p, msg)
     }
 
-    override fun handleMissingTypeId(ctxt: DeserializationContext?, baseType: JavaType?, idResolver: TypeIdResolver?, failureMsg: String?): JavaType {
-        log.info("handleMissingInstantiator")
+    override fun handleMissingTypeId(ctxt: DeserializationContext, baseType: JavaType?, idResolver: TypeIdResolver?, failureMsg: String?): JavaType {
+        logError(ctxt, "handleMissingTypeId", failureMsg)
         return super.handleMissingTypeId(ctxt, baseType, idResolver, failureMsg)
     }
 
-    override fun handleUnknownTypeId(ctxt: DeserializationContext?, baseType: JavaType?, subTypeId: String?, idResolver: TypeIdResolver?, failureMsg: String?): JavaType {
-        log.info("handleUnknownTypeId")
+    override fun handleUnknownTypeId(ctxt: DeserializationContext, baseType: JavaType?, subTypeId: String?, idResolver: TypeIdResolver?, failureMsg: String?): JavaType {
+        logError(ctxt, "handleUnknownTypeId", failureMsg)
         return super.handleUnknownTypeId(ctxt, baseType, subTypeId, idResolver, failureMsg)
+    }
+
+    private fun logError(ctxt: DeserializationContext, method:String, valueToConvert: Any?) {
+        val field = ctxt.parser.currentName
+        val clazz = ctxt.parser.currentValue::class.java
+        log.error("Json parse error ($method) for $clazz.$field: $valueToConvert")
+
     }
 }
