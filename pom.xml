@@ -286,6 +286,7 @@
     <postgresql.version>42.2.2</postgresql.version>
     <hsqldb.version>2.4.0</hsqldb.version>
     <codehaus-jackson.version>1.9.13</codehaus-jackson.version>
+    <jackson.version>2.9.8</jackson.version>
     <powermock.version>1.6.6</powermock.version>
     <mockito2.version>2.0.42-beta</mockito2.version>
     <joda-time.version>2.0</joda-time.version>
