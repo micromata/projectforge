@@ -89,8 +89,7 @@ export const updatePageData = () => (dispatch, getState) => {
             if (response.status === 200) {
                 response.json()
                     .then((json) => {
-                        const { url } = json;
-                        history.push(`/${url}/`);
+                        history.push(json.url);
                     });
             }
 
@@ -136,7 +135,6 @@ export const callEndpointWithData = (category, endpoint, data, dispatch, method 
             if (response.status === 200) {
                 response.json()
                     .then((json) => {
-                        console.log(json, json.url)
                         history.push(json.url);
                     });
             }
