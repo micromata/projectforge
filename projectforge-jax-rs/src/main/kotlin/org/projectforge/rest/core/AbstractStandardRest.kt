@@ -12,6 +12,7 @@ import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.MessageType
 import org.projectforge.rest.ResponseData
+import org.projectforge.rest.config.Rest
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
 import org.springframework.beans.BeanUtils
@@ -61,7 +62,12 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
 
     private var _baseDao: B? = null
 
+    /**
+     * e. g. /rs/address (/rs/{category}
+     */
     private var restPath: String? = null
+
+    private var category: String? = null
 
     /**
      * The layout context is needed to examine the data objects for maxLength, nullable, dataType etc.
@@ -123,6 +129,13 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
             restPath = requestMapping?.value?.joinToString("/") { it } ?: "/"
         }
         return restPath!!
+    }
+
+    fun getCategory(): String {
+        if (category == null) {
+            category = getRestPath().removePrefix("${Rest.URL}/")
+        }
+        return category!!
     }
 
     fun getFullRestPath(): String {
@@ -427,7 +440,7 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
      * @return ResponseAction with the url of the standard list page.
      */
     internal open fun afterEdit(obj: O): ResponseAction {
-        return ResponseAction(restPath).addVariable("id", obj.id ?: -1)
+        return ResponseAction("/${getCategory()}").addVariable("id", obj.id ?: -1)
     }
 
     internal open fun filterList(resultSet: MutableList<O>, filter: F): List<O> {
