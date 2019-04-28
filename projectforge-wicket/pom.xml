@@ -114,6 +114,10 @@
             <artifactId>jackson-mapper-asl</artifactId>
             <version>${codehaus-jackson.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <sourceDirectory>src/main/java</sourceDirectory>

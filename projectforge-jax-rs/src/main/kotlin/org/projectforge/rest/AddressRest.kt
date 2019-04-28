@@ -12,7 +12,6 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.core.ResultSet
-import org.projectforge.rest.json.LabelValueTypeAdapter
 import org.projectforge.sms.SmsSenderConfig
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,11 +33,11 @@ class AddressRest()
                           var imageUrl: String? = null,
                           var previewImageUrl: String? = null)
 
-    private val addressBookTypeAdapter = LabelValueTypeAdapter<AddressbookDO>("id", "title")
+    //    private val addressBookTypeAdapter = LabelValueTypeAdapter<AddressbookDO>("id", "title")
 
-    init {
-        restHelper.add(AddressbookDO::class.java, addressBookTypeAdapter)
-    }
+    // init {
+    //      restHelper.add(AddressbookDO::class.java, addressBookTypeAdapter)
+    // }
 
     @Autowired
     private lateinit var addressbookDao: AddressbookDao

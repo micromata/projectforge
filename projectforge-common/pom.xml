@@ -39,9 +39,5 @@
       <artifactId>joda-time</artifactId>
       <version>${joda-time.version}</version>
     </dependency>
-    <dependency>
-      <groupId>com.google.code.gson</groupId>
-      <artifactId>gson</artifactId>
-    </dependency>
   </dependencies>
 </project>

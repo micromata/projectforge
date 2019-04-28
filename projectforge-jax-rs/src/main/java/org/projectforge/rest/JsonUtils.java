@@ -23,56 +23,52 @@
 
 package org.projectforge.rest;
 
-import java.lang.reflect.Type;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.projectforge.rest.converter.DateTimeTypeAdapter;
-import org.projectforge.rest.converter.DateTypeAdapter;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
-
 /**
  * Serialization and deserialization for rest calls.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public class JsonUtils
-{
-  private static Map<Class< ? >, Object> typeAdapterMap = new HashMap<Class< ? >, Object>();
+public class JsonUtils {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(JsonUtils.class);
 
-  public static void add(final Class< ? > cls, final Object typeAdapter)
-  {
+  private static Map<Class<?>, Object> typeAdapterMap = new HashMap<Class<?>, Object>();
+
+  public static void add(final Class<?> cls, final Object typeAdapter) {
     typeAdapterMap.put(cls, typeAdapter);
   }
 
-  public static String toJson(final Object obj)
-  {
-    return createGson().toJson(obj);
+  public static String toJson(final Object obj) {
+    ObjectMapper mapper = createMapper();
+    try {
+      return mapper.writeValueAsString(obj);
+    } catch (JsonProcessingException ex) {
+      log.error(ex.getMessage(), ex);
+      return "";
+    }
   }
 
-  public static <T> T fromJson(final String json, final Class<T> classOfT) throws JsonSyntaxException
-  {
-    return createGson().fromJson(json, classOfT);
-
+  public static <T> T fromJson(final String json, final Class<T> classOfT) throws IOException {
+    ObjectMapper mapper = new ObjectMapper();
+    return mapper.readValue(json, classOfT);
   }
 
-  @SuppressWarnings("unchecked")
-  public static <T> T fromJson(final String json, final Type typeOfT) throws JsonSyntaxException
-  {
-    return (T) createGson().fromJson(json, typeOfT); // Cast (T) needed for Java 1.6.
-  }
-
-  private static Gson createGson()
-  {
+  private static ObjectMapper createMapper() {
+    ObjectMapper mapper = new ObjectMapper();
+    return mapper;
+/*    mapper.re
     final GsonBuilder builder = new GsonBuilder()//
-    .registerTypeAdapter(java.sql.Date.class, new DateTypeAdapter())//
-    .registerTypeAdapter(java.util.Date.class, new DateTimeTypeAdapter());
-    for (final Map.Entry<Class< ? >, Object> entry : typeAdapterMap.entrySet()) {
+            .registerTypeAdapter(java.sql.Date.class, new DateTypeAdapter())//
+            .registerTypeAdapter(java.util.Date.class, new DateTimeTypeAdapter());
+    for (final Map.Entry<Class<?>, Object> entry : typeAdapterMap.entrySet()) {
       builder.registerTypeHierarchyAdapter(entry.getKey(), entry.getValue());
     }
-    return builder.create();
+    return builder.create();*/
   }
 }

@@ -23,26 +23,22 @@
 
 package org.projectforge.rest;
 
-import java.util.Collection;
-
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Response;
-
 import org.projectforge.model.rest.CalendarEventObject;
 import org.projectforge.model.rest.CalendarObject;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.model.rest.UserObject;
 
-import com.google.gson.reflect.TypeToken;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.util.Collection;
 
-public class TeamCalClientMain
-{
+public class TeamCalClientMain {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamCalClientMain.class);
 
-  public static void main(final String[] args)
-  {
+  public static void main(final String[] args) throws IOException {
     final Client client = ClientBuilder.newClient();
     final UserObject user = RestClientMain.authenticate(client);
 
@@ -53,9 +49,7 @@ public class TeamCalClientMain
     }
     String json = (String) response.getEntity();
     log.info(json);
-    final Collection<CalendarObject> calendars = JsonUtils.fromJson(json, new TypeToken<Collection<CalendarObject>>()
-    {
-    }.getType());
+    final Collection<CalendarObject> calendars = JsonUtils.fromJson(json, Collection.class);
     for (final CalendarObject calendar : calendars) {
       log.info(calendar.toString());
     }
@@ -69,10 +63,7 @@ public class TeamCalClientMain
     }
     json = (String) response.getEntity();
     log.info(json);
-    final Collection<CalendarEventObject> events = JsonUtils.fromJson(json,
-        new TypeToken<Collection<CalendarEventObject>>()
-        {
-        }.getType());
+    final Collection<CalendarEventObject> events = JsonUtils.fromJson(json, Collection.class);
     for (final CalendarEventObject event : events) {
       log.info(event.toString());
     }
