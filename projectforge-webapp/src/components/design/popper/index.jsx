@@ -10,7 +10,9 @@ function Popper(
         className,
         children,
         direction,
+        isOpen,
         target,
+        ...props
     },
 ) {
     return (
@@ -18,29 +20,32 @@ function Popper(
             <Reference>
                 {({ ref }) => <div ref={ref}>{target}</div>}
             </Reference>
-            {ReactDOM.createPortal(
-                <PopperJs placement={direction}>
-                    {(
-                        {
-                            ref,
-                            style: popperStyle,
-                            placement,
-                            arrowProps,
-                        },
-                    ) => (
-                        <div
-                            ref={ref}
-                            style={popperStyle}
-                            data-placement={placement}
-                            className={classNames(style.popper, className)}
-                        >
-                            {children}
-                            <div ref={arrowProps.ref} style={arrowProps.style} />
-                        </div>
-                    )}
-                </PopperJs>,
-                document.body,
-            )}
+            {isOpen
+                ? ReactDOM.createPortal(
+                    <PopperJs placement={direction}>
+                        {(
+                            {
+                                ref,
+                                style: popperStyle,
+                                placement,
+                                arrowProps,
+                            },
+                        ) => (
+                            <div
+                                ref={ref}
+                                style={popperStyle}
+                                data-placement={placement}
+                                className={classNames(style.popper, className)}
+                                {...props}
+                            >
+                                {children}
+                                <div ref={arrowProps.ref} style={arrowProps.style} />
+                            </div>
+                        )}
+                    </PopperJs>,
+                    document.body,
+                )
+                : undefined}
         </Manager>
     );
 }
@@ -50,11 +55,13 @@ Popper.propTypes = {
     target: PropTypes.node.isRequired,
     className: PropTypes.string,
     direction: PropTypes.string,
+    isOpen: PropTypes.bool,
 };
 
 Popper.defaultProps = {
     className: undefined,
     direction: 'auto',
+    isOpen: false,
 };
 
 export default Popper;
