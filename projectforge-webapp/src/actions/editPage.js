@@ -108,10 +108,16 @@ export const updatePageData = () => (dispatch, getState) => {
 };
 
 // preserveObject avoids the replacement of the object by its id. Default is undefined.
-export const changeField = (id, newValue, preserveObject) => (dispatch) => {
-    if (!preserveObject && typeof newValue === 'object' && newValue.id) {
-        // For objects such as PFUserDO, TaskDO only the id (pk) is needed to provide to the server.
-        return dispatch(fieldChanged(id, { id: newValue.id }));
+export const changeField = (id, newValue) => (dispatch) => {
+    console.log(id, newValue);
+    if (typeof newValue === 'object' && newValue) {
+        if (newValue.id) {
+            // For objects such as PFUserDO, TaskDO only needs the id (pk).
+            return dispatch(fieldChanged(id, { id: newValue.id }));
+        }
+        if (newValue.value) { // For Select boxes.
+            return dispatch(fieldChanged(id, newValue.value));
+        }
     }
     return dispatch(fieldChanged(id, newValue));
 };
