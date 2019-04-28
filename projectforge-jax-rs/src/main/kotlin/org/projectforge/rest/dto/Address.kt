@@ -1,6 +1,7 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.address.*
+import org.projectforge.framework.utils.LabelValueBean
 import java.sql.Date
 import java.util.*
 
@@ -42,13 +43,20 @@ class Address(var contactStatus: ContactStatus? = null,
               var fingerprint: String? = null,
               var comment: String? = null,
               var birthday: Date? = null,
-              var imageData: ByteArray? = null,
-              var imageDataPreview: ByteArray? = null,
+              var imageUrl: String? = null,
+              var previewImageUrl: String? = null,
+              var instantMessaging: MutableList<LabelValueBean<InstantMessagingType, String>>? = null,
               var addressbookList: MutableSet<Addressbook>? = null
 ) : BaseObject<AddressDO>() {
 
     override fun copyFrom(src: AddressDO) {
         super.copyFrom(src)
+        if (src.imageData != null) {
+            imageUrl = "address/image/$id"
+        }
+        if (src.imageDataPreview != null) {
+            previewImageUrl = "address/imagePreview/$id}"
+        }
         if (!src.addressbookList.isNullOrEmpty()) {
             addressbookList = mutableSetOf()
             src.addressbookList?.forEach { srcAddressbook ->
