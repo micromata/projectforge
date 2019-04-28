@@ -33,7 +33,6 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.Collection;
 
 public class TeamCalClientMain {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamCalClientMain.class);
@@ -47,9 +46,9 @@ public class TeamCalClientMain {
     if (response.getStatus() != Response.Status.OK.getStatusCode()) {
       throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
     }
-    String json = (String) response.getEntity();
+    String json =response.readEntity(String.class);
     log.info(json);
-    final Collection<CalendarObject> calendars = JsonUtils.fromJson(json, Collection.class);
+    final CalendarObject[] calendars = JsonUtils.fromJson(json, CalendarObject[].class);
     for (final CalendarObject calendar : calendars) {
       log.info(calendar.toString());
     }
@@ -63,7 +62,7 @@ public class TeamCalClientMain {
     }
     json = (String) response.getEntity();
     log.info(json);
-    final Collection<CalendarEventObject> events = JsonUtils.fromJson(json, Collection.class);
+    final CalendarEventObject[] events = JsonUtils.fromJson(json, CalendarEventObject[].class);
     for (final CalendarEventObject event : events) {
       log.info(event.toString());
     }
