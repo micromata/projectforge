@@ -1,5 +1,8 @@
 package org.projectforge.rest.core
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import org.projectforge.rest.core.MagicFilterEntry.MatchType
+
 class MagicFilterEntry(
         /**
          * Optional name of a field for a field specific search. Null for global search.
@@ -51,6 +54,7 @@ class MagicFilterEntry(
 
     internal enum class Type { NONE, STRING_SEARCH, FIELD_STRING_SEARCH, FIELD_RANGE_SEARCH, FIELD_VALUES_SEARCH }
 
+    @JsonIgnore
     private val log = org.slf4j.LoggerFactory.getLogger(MagicFilterEntry::class.java)
 
     internal fun type(): Type {
