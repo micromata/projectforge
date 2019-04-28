@@ -51,7 +51,7 @@ open class BaseObject<T : DefaultBaseDO>(var id: Int? = null,
                 if (field.name != "log" && field.name != "serialVersionUID" && field.name != "Companion") {
                     try {
                         srcField = srcClazz.getDeclaredField(field.name)
-                        if (srcField != null && srcField.type == type) {
+                        if (srcField != null && srcField.type == type && !Collection::class.java.isAssignableFrom(type)) {
                             srcField.setAccessible(true);
                             field.setAccessible(true);
                             field.set(dest, srcField.get(src))

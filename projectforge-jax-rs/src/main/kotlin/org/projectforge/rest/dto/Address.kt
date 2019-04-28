@@ -1,9 +1,6 @@
 package org.projectforge.rest.dto
 
-import org.projectforge.business.address.AddressDO
-import org.projectforge.business.address.AddressStatus
-import org.projectforge.business.address.ContactStatus
-import org.projectforge.business.address.FormOfAddress
+import org.projectforge.business.address.*
 import java.sql.Date
 import java.util.*
 
@@ -49,6 +46,7 @@ class Address(var contactStatus: ContactStatus? = null,
               var imageDataPreview: ByteArray? = null,
               var addressbookList: MutableSet<Addressbook>? = null
 ) : BaseObject<AddressDO>() {
+
     override fun copyFrom(src: AddressDO) {
         super.copyFrom(src)
         if (!src.addressbookList.isNullOrEmpty()) {
@@ -57,6 +55,18 @@ class Address(var contactStatus: ContactStatus? = null,
                 val addressbook = Addressbook()
                 addressbook.copyFromMinimal(srcAddressbook)
                 addressbookList!!.add(addressbook)
+            }
+        }
+    }
+
+    override fun copyTo(dest: AddressDO) {
+        super.copyTo(dest)
+        if (!addressbookList.isNullOrEmpty()) {
+            dest.addressbookList = mutableSetOf()
+            addressbookList?.forEach { srcAddressbook ->
+                val addressbook = AddressbookDO()
+                srcAddressbook.copyTo(addressbook)
+                dest.addressbookList!!.add(addressbook)
             }
         }
     }
