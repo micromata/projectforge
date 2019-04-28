@@ -8,12 +8,15 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
+import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.TenantDO
+import org.projectforge.rest.calendar.TeamCalDOSerializer
 import org.projectforge.rest.json.*
 import org.projectforge.ui.UIMultiSelect
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import java.time.LocalDate
 
 @Configuration
 open class JacksonConfiguration {
@@ -33,16 +36,22 @@ open class JacksonConfiguration {
 
 
         val module = SimpleModule()
-        //module.addSerializer(java.sql.Date::class.java, DateTypeAdapter());
-        //add(java.util.Date::class.java, DateTimeTypeAdapter(DateTimeFormat.JS_DATE_TIME_MILLIS))
-        //add(java.time.LocalDate::class.java, LocalDateTypeAdapter())
+        module.addSerializer(LocalDate::class.java, LocalDateSerializer())
+        module.addDeserializer(LocalDate::class.java, LocalDateDeserializer())
+
+        module.addSerializer(java.util.Date::class.java, UtilDateSerializer())
+        module.addDeserializer(java.util.Date::class.java, UtilDateDeserializer())
+
+        module.addSerializer(java.sql.Date::class.java, SqlDateSerializer())
+        module.addDeserializer(java.sql.Date::class.java, SqlDateDeserializer())
+
         module.addSerializer(Kost2DO::class.java, Kost2DOSerializer())
         module.addSerializer(PFUserDO::class.java, PFUserDOSerializer())
         module.addSerializer(TaskDO::class.java, TaskDOSerializer())
         module.addSerializer(TenantDO::class.java, TenantDOSerializer())
 
         // Calendar serializers
-        //add(TeamCalDO::class.java, TeamCalDOSerializer())
+        module.addSerializer(TeamCalDO::class.java, TeamCalDOSerializer())
 
         // UI
         module.addSerializer(UIMultiSelect::class.java, UIMultiSelectTypeSerializer())

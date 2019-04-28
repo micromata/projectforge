@@ -23,21 +23,20 @@
 
 package org.projectforge.rest;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.Properties;
+import org.projectforge.ProjectForgeVersion;
+import org.projectforge.model.rest.RestPaths;
+import org.projectforge.model.rest.ServerInfo;
+import org.projectforge.model.rest.UserObject;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import org.projectforge.ProjectForgeVersion;
-import org.projectforge.model.rest.RestPaths;
-import org.projectforge.model.rest.ServerInfo;
-import org.projectforge.model.rest.UserObject;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Properties;
 
 public class RestClientMain
 {
@@ -45,7 +44,7 @@ public class RestClientMain
 
   private static String url, username, password;
 
-  public static void main(final String[] args)
+  public static void main(final String[] args) throws IOException
   {
     final Client client = ClientBuilder.newClient();
     final UserObject user = authenticate(client);
@@ -67,7 +66,7 @@ public class RestClientMain
 
   }
 
-  public static UserObject authenticate(final Client client)
+  public static UserObject authenticate(final Client client) throws IOException
   {
     initialize();
     return authenticate(client, username, password);
@@ -76,7 +75,7 @@ public class RestClientMain
   /**
    * @return authentication token for further rest calls.
    */
-  public static UserObject authenticate(final Client client, final String username, final String password)
+  public static UserObject authenticate(final Client client, final String username, final String password) throws IOException
   {
     initialize();
     // http://localhost:8080/ProjectForge/rest/authenticate/getToken // username / password
@@ -113,7 +112,7 @@ public class RestClientMain
     return res;
   }
 
-  public static void initialContact(final Client client, final UserObject user)
+  public static void initialContact(final Client client, final UserObject user) throws IOException
   {
     initialize();
     // http://localhost:8080/ProjectForge/rest/authenticate/initialContact?clientVersion=5.0 // userId / token

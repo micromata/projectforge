@@ -1,20 +1,23 @@
 package org.projectforge.rest.calendar
 
-import com.google.gson.*
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.core.JsonProcessingException
+import com.fasterxml.jackson.databind.SerializerProvider
+import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
-import java.lang.reflect.Type
+import java.io.IOException
 
 
 /**
  * Serialization for TeamCalDO etc.
  */
-class TeamCalDOSerializer : JsonSerializer<TeamCalDO> {
-    @Synchronized
-    override fun serialize(obj: TeamCalDO?, type: Type, jsonSerializationContext: JsonSerializationContext): JsonElement? {
-        if (obj == null) return null
-        val result = JsonObject()
-        result.add("id", JsonPrimitive(obj.id))
-        result.add("title", JsonPrimitive(obj.title))
-        return result
+class TeamCalDOSerializer : StdSerializer<TeamCalDO>(TeamCalDO::class.java) {
+    @Throws(IOException::class, JsonProcessingException::class)
+    override fun serialize(value: TeamCalDO?, jgen: JsonGenerator, provider: SerializerProvider) {
+        if (value == null) return
+        jgen.writeStartObject()
+        jgen.writeNumberField("id", value.id)
+        jgen.writeStringField("title", value.title)
+        jgen.writeEndObject()
     }
 }

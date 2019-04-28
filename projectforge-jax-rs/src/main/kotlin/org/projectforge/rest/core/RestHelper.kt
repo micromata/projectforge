@@ -3,7 +3,6 @@ package org.projectforge.rest.core
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.converter.DateTimeFormat
 import org.projectforge.ui.ResponseAction
@@ -14,23 +13,12 @@ import java.net.URI
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
-import java.util.*
 import javax.servlet.http.HttpServletRequest
 
 
-class RestHelper(
-        /**
-         * If not set, the user's time zone will be used (from [ThreadLocalUserContext]).
-         */
-        var timeZone: TimeZone? = null) {
+class RestHelper() {
 
     private val log = org.slf4j.LoggerFactory.getLogger(RestHelper::class.java)
-
-    private val adapterMap = mutableMapOf<Class<*>, Any>()
-
-    fun add(cls: Class<*>, typeAdapter: Any) {
-        adapterMap.put(cls, typeAdapter)
-    }
 
     fun <O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter>
             getList(dataObjectRest: AbstractStandardRest<O, B, F>, baseDao: BaseDao<O>, filter: F)

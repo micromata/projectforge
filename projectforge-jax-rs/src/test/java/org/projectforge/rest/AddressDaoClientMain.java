@@ -23,28 +23,24 @@
 
 package org.projectforge.rest;
 
-import java.util.Calendar;
-import java.util.Collection;
-
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Response;
-
 import org.projectforge.model.rest.AddressObject;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.model.rest.UserObject;
 import org.projectforge.rest.converter.DateTimeFormat;
 
-import com.google.gson.reflect.TypeToken;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.util.Calendar;
+import java.util.Collection;
 
-public class AddressDaoClientMain
-{
+public class AddressDaoClientMain {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressDaoClientMain.class);
 
   @SuppressWarnings("unused")
-  public static void main(final String[] args)
-  {
+  public static void main(final String[] args) throws IOException {
     final Client client = ClientBuilder.newClient();
     final UserObject user = RestClientMain.authenticate(client);
 
@@ -55,12 +51,12 @@ public class AddressDaoClientMain
 
     // http://localhost:8080/ProjectForge/rest/task/tree // userId / token
     WebTarget webResource = client.target(RestClientMain.getUrl() + RestPaths.buildListPath(RestPaths.ADDRESS))
-        .queryParam("search", "");
+            .queryParam("search", "");
     if (modifiedSince != null) {
       webResource = webResource.queryParam("modifiedSince", "" + modifiedSince);
     }
     webResource = RestClientMain.setConnectionSettings(webResource,
-        new ConnectionSettings().setDateTimeFormat(DateTimeFormat.MILLIS_SINCE_1970));
+            new ConnectionSettings().setDateTimeFormat(DateTimeFormat.MILLIS_SINCE_1970));
     final Response response = RestClientMain.getClientResponse(webResource, user);
     if (response.getStatus() != Response.Status.OK.getStatusCode()) {
       log.error("Failed : HTTP error code : " + response.getStatus());
@@ -68,9 +64,7 @@ public class AddressDaoClientMain
     }
     final String json = (String) response.getEntity();
     log.info(json);
-    final Collection<AddressObject> col = JsonUtils.fromJson(json, new TypeToken<Collection<AddressObject>>()
-    {
-    }.getType());
+    final Collection<AddressObject> col = JsonUtils.fromJson(json, Collection.class);
     for (final AddressObject address : col) {
       log.info(address.getFirstName() + " " + address.getName());
     }
