@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
+import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.kost.Kost2DO
@@ -24,6 +25,7 @@ class PFUserDOSerializer : StdSerializer<PFUserDO>(PFUserDO::class.java) {
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: PFUserDO?, jgen: JsonGenerator, provider: SerializerProvider) {
         if (value == null) {
+            jgen.writeNull()
             return
         }
         val user = User(value.id, value.username, value.fullname)
@@ -37,7 +39,10 @@ class PFUserDOSerializer : StdSerializer<PFUserDO>(PFUserDO::class.java) {
 class TaskDOSerializer : StdSerializer<TaskDO>(TaskDO::class.java) {
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: TaskDO?, jgen: JsonGenerator, provider: SerializerProvider) {
-        if (value == null) return
+        if (value == null) {
+            jgen.writeNull()
+            return
+        }
         val task = TaskServicesRest.Task(value.id, title = value.title)
         jgen.writeObject(task)
     }
@@ -53,7 +58,10 @@ class Kost2DOSerializer : StdSerializer<Kost2DO>(Kost2DO::class.java) {
 
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: Kost2DO?, jgen: JsonGenerator, provider: SerializerProvider) {
-        if (value == null) return
+        if (value == null){
+            jgen.writeNull()
+            return
+        }
         val kost2 = Kost2(value.id, value.description)
         if (value.projekt != null) {
             val projektDao = Registry.instance.getEntry(ProjektDao::class.java)?.dao as ProjektDao
@@ -80,8 +88,28 @@ class TenantDOSerializer : StdSerializer<TenantDO>(TenantDO::class.java) {
 
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: TenantDO?, jgen: JsonGenerator, provider: SerializerProvider) {
-        if (value == null) return
+        if (value == null) {
+            jgen.writeNull()
+            return
+        }
         val tenant = Tenant(value.id, value.name)
         jgen.writeObject(tenant)
+    }
+}
+
+/**
+ * Serialization for AddressbookDO
+ */
+class AddressbookDOSerializer : StdSerializer<AddressbookDO>(AddressbookDO::class.java) {
+    private class Addressbook(val id: Int, val title: String?)
+
+    @Throws(IOException::class, JsonProcessingException::class)
+    override fun serialize(value: AddressbookDO?, jgen: JsonGenerator, provider: SerializerProvider) {
+        if (value == null) {
+            jgen.writeNull()
+            return
+        }
+        val addressbook = Addressbook(value.id, value.title)
+        jgen.writeObject(addressbook)
     }
 }
