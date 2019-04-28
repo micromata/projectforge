@@ -1,66 +1,72 @@
 package org.projectforge.rest.json
 
-import com.google.gson.*
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.core.JsonProcessingException
+import com.fasterxml.jackson.databind.SerializerProvider
+import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import org.projectforge.ui.AutoCompletion
 import org.projectforge.ui.UIMultiSelect
-import java.lang.reflect.Type
+import java.io.IOException
 
 /**
  * Serialization.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class UIMultiSelectTypeSerializer : JsonSerializer<UIMultiSelect> {
+class UIMultiSelectTypeSerializer : StdSerializer<UIMultiSelect>(UIMultiSelect::class.java) {
 
-    @Synchronized
-    public override fun serialize(obj: UIMultiSelect, type: Type, jsonSerializationContext: JsonSerializationContext): JsonElement? {
-        if (obj == null) return null
-        val result = JsonObject()
+    @Throws(IOException::class, JsonProcessingException::class)
+    override fun serialize(value: UIMultiSelect?, jgen: JsonGenerator, provider: SerializerProvider) {
+        if (value == null) return
 
-        val valueProperty = obj.valueProperty ?: "value"
-        val labelProperty = obj.labelProperty ?: "label"
+        val valueProperty = value.valueProperty ?: "value"
+        val labelProperty = value.labelProperty ?: "label"
 
-        JsonCreator.addJsonPrimitive(result, "id", obj.id)
-        JsonCreator.addJsonPrimitive(result, "type", obj.type.name)
-        JsonCreator.addJsonPrimitive(result, "key", obj.key)
-        JsonCreator.addJsonPrimitive(result, "required", obj.required)
-        JsonCreator.addJsonPrimitive(result, "label", obj.label)
-        JsonCreator.addJsonPrimitive(result, "additionalLabel", obj.additionalLabel)
-        JsonCreator.addJsonPrimitive(result, "tooltip", obj.tooltip)
-        val values = JsonArray()
-        JsonCreator.addJsonPrimitive(result, "labelProperty", obj.labelProperty)
-        JsonCreator.addJsonPrimitive(result, "valueProperty", obj.valueProperty)
-        result.add("values", values)
-        obj.values?.forEach {
+        jgen.writeStartObject();
+        jgen.writeStringField("id", value.id)
+        jgen.writeStringField("type", value.type.name)
+        jgen.writeStringField("key", value.key)
+        JacksonUtils.writeField(jgen, "required", value.required)
+        JacksonUtils.writeField(jgen, "label", value.label)
+        JacksonUtils.writeField(jgen, "additionalLabel", value.additionalLabel)
+        JacksonUtils.writeField(jgen, "tooltip", value.tooltip)
+        JacksonUtils.writeField(jgen, "labelProperty", value.labelProperty)
+        JacksonUtils.writeField(jgen, "valueProperty", value.valueProperty)
+
+        jgen.writeArrayFieldStart("values")
+        value.values?.forEach {
             if (it.value != null) {
-                val value = JsonObject()
-                JsonCreator.addJsonPrimitive(value, valueProperty, it.value)
-                JsonCreator.addJsonPrimitive(value, labelProperty, it.label)
-                values.add(value)
+                jgen.writeStartObject();
+                JacksonUtils.writeField(jgen,  valueProperty, it.value)
+                jgen.writeStringField(labelProperty, it.label)
+                jgen.writeEndObject()
             }
         }
-        if (obj.autoCompletion != null) {
-            val autoCompletion = JsonObject()
-            result.add("autoCompletion", autoCompletion)
-            val ac = obj.autoCompletion
-            JsonCreator.addJsonPrimitive(autoCompletion, "minChars", ac?.minChars)
-            JsonCreator.addJsonPrimitive(autoCompletion, "url", ac?.url)
-            writeEntries(autoCompletion, ac?.values, "values", valueProperty, labelProperty)
-            writeEntries(autoCompletion, ac?.recent, "recent", valueProperty, labelProperty)
+        jgen.writeEndArray()
+
+        if (value.autoCompletion != null) {
+            jgen.writeStartObject("autoCompletion")
+            val ac = value.autoCompletion
+            JacksonUtils.writeField(jgen, "minChars", ac?.minChars)
+            JacksonUtils.writeField(jgen, "url", ac?.url)
+            JacksonUtils.writeField(jgen, "minChars", ac?.minChars)
+            writeEntries(jgen, ac?.values, "values", valueProperty, labelProperty)
+            writeEntries(jgen, ac?.recent, "recent", valueProperty, labelProperty)
+            jgen.writeEndObject()
         }
-        return result
+        jgen.writeEndObject()
     }
 
-    private fun writeEntries(parent : JsonObject, entries : List<AutoCompletion.Entry<out Any?>>?, property : String, valueProperty : String, labelProperty : String) {
+    private fun writeEntries(jgen: JsonGenerator, entries: List<AutoCompletion.Entry<out Any?>>?, property: String, valueProperty: String, labelProperty: String) {
         if (entries != null) {
-            val values = JsonArray()
-            parent.add(property, values)
+            jgen.writeArrayFieldStart(property)
             entries.forEach {
-                val entry = JsonObject()
-                JsonCreator.addJsonPrimitive(entry, valueProperty, it.value)
-                JsonCreator.addJsonPrimitive(entry, labelProperty, it.label)
-                JsonCreator.addJsonPrimitive(entry, "allSearchableFields", it.allSearchableFields)
-                values.add(entry)
+                jgen.writeStartObject();
+                JacksonUtils.writeField(jgen, valueProperty, it.value)
+                jgen.writeStringField( labelProperty, it.label)
+                JacksonUtils.writeField(jgen, "allSearchableFields", it.allSearchableFields)
+                jgen.writeEndObject()
             }
+            jgen.writeEndArray()
         }
     }
 }

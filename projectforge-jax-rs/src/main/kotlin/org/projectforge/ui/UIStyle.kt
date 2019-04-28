@@ -1,20 +1,20 @@
 package org.projectforge.ui
 
-import com.google.gson.annotations.SerializedName
+import com.fasterxml.jackson.annotation.JsonProperty
 
 enum class UIStyle {
-    @SerializedName("danger")
+    @JsonProperty("danger")
     DANGER,
-    @SerializedName("info")
+    @JsonProperty("info")
     INFO,
-    @SerializedName("link")
+    @JsonProperty("link")
     LINK,
-    @SerializedName("primary")
+    @JsonProperty("primary")
     PRIMARY,
-    @SerializedName("secondary")
+    @JsonProperty("secondary")
     SECONDARY,
-    @SerializedName("success")
+    @JsonProperty("success")
     SUCCESS,
-    @SerializedName("warning")
+    @JsonProperty("warning")
     WARNING
 }

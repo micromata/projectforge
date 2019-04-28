@@ -7,19 +7,16 @@ import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.menu.builder.FavoritesMenuCreator
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuCreatorContext
-import org.projectforge.rest.core.RestHelper
+import org.projectforge.rest.config.Rest
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
-import javax.ws.rs.GET
-import javax.ws.rs.Path
-import javax.ws.rs.Produces
-import javax.ws.rs.core.MediaType
-import javax.ws.rs.core.Response
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
-@Component
-@Path("menu")
+@RestController
+@RequestMapping("${Rest.URL}/menu")
 class MenuRest {
-    internal class Menus(val mainMenu: Menu, val favoritesMenu: Menu, val myAccountMenu: Menu)
+    class Menus(val mainMenu: Menu, val favoritesMenu: Menu, val myAccountMenu: Menu)
 
     @Autowired
     private lateinit var menuCreator: MenuCreator
@@ -27,9 +24,8 @@ class MenuRest {
     @Autowired
     private lateinit var favoritesMenuCreator: FavoritesMenuCreator
 
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    fun getMenu(): Response {
+    @GetMapping
+    fun getMenu(): Menus {
         val mainMenu = menuCreator.build(MenuCreatorContext(ThreadLocalUserContext.getUser()))
         val favoritesMenu = favoritesMenuCreator.getDefaultFavoriteMenu()
         val myAccountMenu = Menu()
@@ -40,7 +36,6 @@ class MenuRest {
         item.add(MenuItem("MyLeaveAccount", i18nKey = "menu.vacation.leaveaccount", url = "wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationViewPage"))
         item.add(MenuItem("Logout", i18nKey = "menu.logout", url = "logout", type = MenuItemTargetType.RESTCALL))
         item.subMenu?.forEach { it.postProcess() }
-        val menu = Menus(mainMenu, favoritesMenu, myAccountMenu)
-        return RestHelper().buildResponse(menu)
+        return Menus(mainMenu, favoritesMenu, myAccountMenu)
     }
 }

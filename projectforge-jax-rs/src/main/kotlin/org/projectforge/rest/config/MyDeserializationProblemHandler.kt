@@ -79,7 +79,7 @@ class MyDeserializationProblemHandler : DeserializationProblemHandler() {
 
     override fun handleUnknownProperty(ctxt: DeserializationContext, p: JsonParser?, deserializer: JsonDeserializer<*>?, beanOrClass: Any?, propertyName: String?): Boolean {
         logError(ctxt, "handleUnknownProperty", propertyName)
-        return super.handleUnknownProperty(ctxt, p, deserializer, beanOrClass, propertyName)
+        return true // Mark the problem as solved
     }
 
     override fun handleMissingInstantiator(ctxt: DeserializationContext, instClass: Class<*>?, valueInsta: ValueInstantiator?, p: JsonParser?, msg: String?): Any {
@@ -100,7 +100,6 @@ class MyDeserializationProblemHandler : DeserializationProblemHandler() {
     private fun logError(ctxt: DeserializationContext, method:String, valueToConvert: Any?) {
         val field = ctxt.parser.currentName
         val clazz = ctxt.parser.currentValue::class.java
-        log.error("Json parse error ($method) for $clazz.$field: $valueToConvert")
-
+        log.warn("Json parse error ($method) for $clazz.$field: $valueToConvert")
     }
 }

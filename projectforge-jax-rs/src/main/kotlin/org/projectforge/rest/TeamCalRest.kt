@@ -3,16 +3,15 @@ package org.projectforge.rest
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.admin.TeamCalFilter
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
-import org.projectforge.business.timesheet.TimesheetDO
-import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.timesheet.TimesheetFilter
+import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.ui.*
-import org.springframework.stereotype.Component
-import javax.ws.rs.Path
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
-@Component
-@Path("teamCal")
+@RestController
+@RequestMapping("${Rest.URL}/teamCal")
 class TeamCalRest() : AbstractStandardRest<TeamCalDO, TeamCalDao, TeamCalFilter>(TeamCalDao::class.java, TeamCalFilter::class.java, "plugins.teamcal.title") {
 
     override fun validate(validationErrors: MutableList<ValidationError>, obj: TeamCalDO) {

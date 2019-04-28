@@ -5,34 +5,32 @@ import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter
 import org.projectforge.business.user.service.UserPreferencesService
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.RestHelper
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
-import javax.ws.rs.GET
-import javax.ws.rs.Path
-import javax.ws.rs.Produces
-import javax.ws.rs.core.MediaType
-import javax.ws.rs.core.Response
 
 /**
  * Rest services for the user's settings of calendar filters.
  */
-@Component
-@Path("calendar")
+@RestController
+@RequestMapping("${Rest.URL}/calendar")
 class CalendarConfigServicesRest {
     enum class ACCESS { OWNER, FULL, READ, MINIMAL, NONE }
 
-    internal class CalendarInit(val date: LocalDate,
-                                @Suppress("unused") var view: CalendarView? = CalendarView.WEEK,
-                                var teamCalendars: List<StyledTeamCalendar>? = null,
-                                var storedFilters: List<String>? = null,
-                                var activeFilter: CalendarsDisplayFilter? = null,
-                                var activeCalendars: List<StyledTeamCalendar>? = null,
-                                var styleMap: CalendarStyleMap? = null,
-                                var translations: Map<String, String>? = null)
+    class CalendarInit(val date: LocalDate,
+                       @Suppress("unused") var view: CalendarView? = CalendarView.WEEK,
+                       var teamCalendars: List<StyledTeamCalendar>? = null,
+                       var storedFilters: List<String>? = null,
+                       var activeFilter: CalendarsDisplayFilter? = null,
+                       var activeCalendars: List<StyledTeamCalendar>? = null,
+                       var styleMap: CalendarStyleMap? = null,
+                       var translations: Map<String, String>? = null)
 
-    internal class StyledTeamCalendar(teamCalendar: TeamCalendar?, var style: CalendarStyle? = null)
+    class StyledTeamCalendar(teamCalendar: TeamCalendar?, var style: CalendarStyle? = null)
         : TeamCalendar(teamCalendar?.id, teamCalendar?.title)
 
     companion object {
@@ -51,10 +49,8 @@ class CalendarConfigServicesRest {
 
     private val restHelper = RestHelper()
 
-    @GET
-    @Path("initial")
-    @Produces(MediaType.APPLICATION_JSON)
-    fun getInitialCalendar(): Response {
+    @GetMapping("initial")
+    fun getInitialCalendar(): CalendarInit {
         val initial = CalendarInit(LocalDate.now())
         val list = teamCalCache.allAccessibleCalendars
         val userId = ThreadLocalUserContext.getUserId()
@@ -66,7 +62,7 @@ class CalendarConfigServicesRest {
         val styleMap = getStyleMap()
         initial.styleMap = styleMap
 
-        initial.teamCalendars = calendars.map {cal ->
+        initial.teamCalendars = calendars.map { cal ->
             StyledTeamCalendar(calendars.find { it.id == cal.id },
                     style = styleMap.get(cal.id)) // Add the styles of the styleMap to the exported calendar.
         }
@@ -78,8 +74,8 @@ class CalendarConfigServicesRest {
                     style = styleMap.get(id)) // Add the styles of the styleMap to the exported calendar.
         }
 
-        initial.translations = addTranslations( "select.placeholder", "plugins.teamcal.calendar.filterDialog.title")
-        return restHelper.buildResponse(initial)
+        initial.translations = addTranslations("select.placeholder", "plugins.teamcal.calendar.filterDialog.title")
+        return initial
     }
 
     internal fun getUsersSettings(): CalendarDisplaySettings {

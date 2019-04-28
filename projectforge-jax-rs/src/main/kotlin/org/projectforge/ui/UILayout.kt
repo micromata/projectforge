@@ -85,7 +85,6 @@ class UILayout {
         return this
     }
 
-
     fun getAllElements(): List<Any> {
         val list = mutableListOf<Any>()
         addAllElements(list, layout)

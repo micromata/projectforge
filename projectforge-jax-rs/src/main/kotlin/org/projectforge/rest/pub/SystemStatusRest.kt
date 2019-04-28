@@ -3,21 +3,17 @@ package org.projectforge.rest.pub
 import org.projectforge.ProjectForgeVersion
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.configuration.GlobalConfiguration
-import org.projectforge.rest.core.RestHelper
-import org.springframework.stereotype.Component
+import org.projectforge.rest.config.Rest
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
-import javax.ws.rs.GET
-import javax.ws.rs.Path
-import javax.ws.rs.Produces
-import javax.ws.rs.core.Context
-import javax.ws.rs.core.MediaType
-import javax.ws.rs.core.Response
 
 /**
  * This rest service should be available without login (public).
  */
-@Component
-@Path("systemStatus")
+@RestController
+@RequestMapping("${Rest.PUBLIC_URL}")
 open class SystemStatusRest {
     data class SystemData(var appname: String? = null,
                           var version: String? = null,
@@ -25,10 +21,9 @@ open class SystemStatusRest {
                           var releaseDate: String? = null,
                           var messageOfTheDay: String? = null)
 
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    fun loginTest(@Context request: HttpServletRequest): Response {
-        return RestHelper().buildResponse(getSystemData())
+    @GetMapping("systemStatus")
+    fun loginTest(request: HttpServletRequest): SystemData {
+        return getSystemData()
     }
 
     companion object {

@@ -43,13 +43,13 @@ class TaskTreePanel extends React.Component {
     }
 
     componentDidMount() {
-        this.fetch('true');
+        this.fetch(true);
     }
 
     componentDidUpdate(prevProps) {
         const { highlightTaskId } = this.props;
         if (highlightTaskId !== prevProps.highlightTaskId) {
-            this.fetch('true');
+            this.fetch(true);
         }
     }
 
@@ -93,7 +93,7 @@ class TaskTreePanel extends React.Component {
     }
 
     handleEventClick(event, openId, closeId) {
-        this.fetch(null, openId, closeId);
+        this.fetch(false, openId, closeId);
         event.stopPropagation();
     }
 
@@ -102,8 +102,8 @@ class TaskTreePanel extends React.Component {
         const { filter } = this.state;
         const { highlightTaskId, showRootForAdmins } = this.props;
         fetch(getServiceURL('task/tree', {
-            table: 'true', // Result expected as table not as tree.
-            initial,
+            table: true, // Result expected as table not as tree.
+            initial: initial || '',
             open: open || '',
             highlightedTaskId: highlightTaskId || '',
             close: close || '',

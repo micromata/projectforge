@@ -1,17 +1,17 @@
 package org.projectforge.rest.calendar
 
-import com.google.gson.annotations.SerializedName
+import com.fasterxml.jackson.annotation.JsonProperty
 
 enum class CalendarView {
-    @SerializedName("month")
+    @JsonProperty("month")
     MONTH,
-    @SerializedName("week")
+    @JsonProperty("week")
     WEEK,
-    @SerializedName("workWeek")
+    @JsonProperty("workWeek")
     WORK_WEEK,
-    @SerializedName("day")
+    @JsonProperty("day")
     DAY,
-    @SerializedName("agenda")
+    @JsonProperty("agenda")
     AGENDA;
 
     companion object {

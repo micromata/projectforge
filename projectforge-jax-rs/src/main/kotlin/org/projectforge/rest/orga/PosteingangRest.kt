@@ -1,20 +1,20 @@
 package org.projectforge.rest.orga
 
-import org.projectforge.business.book.BookFilter
 import org.projectforge.business.orga.PostFilter
 import org.projectforge.business.orga.PostType
 import org.projectforge.business.orga.PosteingangDO
 import org.projectforge.business.orga.PosteingangDao
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDate
+import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.ui.*
-import org.springframework.stereotype.Component
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
-import javax.ws.rs.Path
 
-@Component
-@Path("incomingMail")
+@RestController
+@RequestMapping("${Rest.URL}/incomingMail")
 class PosteingangRest(): AbstractStandardRest<PosteingangDO, PosteingangDao, PostFilter>(PosteingangDao::class.java, PostFilter::class.java, "orga.posteingang.title") {
 
     override fun newBaseDO(request: HttpServletRequest): PosteingangDO {

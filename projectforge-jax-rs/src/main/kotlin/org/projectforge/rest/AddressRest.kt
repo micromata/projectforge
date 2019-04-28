@@ -8,6 +8,7 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.AddressImageServicesRest.Companion.SESSION_IMAGE_ATTR
+import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.core.ResultSet
@@ -15,13 +16,13 @@ import org.projectforge.rest.json.LabelValueTypeAdapter
 import org.projectforge.sms.SmsSenderConfig
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
-import javax.ws.rs.Path
 
 
-@Component
-@Path("address")
+@RestController
+@RequestMapping("${Rest.URL}/address")
 class AddressRest()
     : AbstractStandardRest<AddressDO, AddressDao, AddressFilter>(AddressDao::class.java, AddressFilter::class.java, "address.title") {
 
@@ -47,7 +48,6 @@ class AddressRest()
 
     @Autowired
     private lateinit var smsSenderConfig: SmsSenderConfig
-
 
     /**
      * Initializes new books for adding.

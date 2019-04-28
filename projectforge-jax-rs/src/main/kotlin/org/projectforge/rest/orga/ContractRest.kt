@@ -5,14 +5,15 @@ import org.projectforge.business.orga.ContractDao
 import org.projectforge.business.orga.ContractFilter
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDate
+import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.ui.*
-import org.springframework.stereotype.Component
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
-import javax.ws.rs.Path
 
-@Component
-@Path("contract")
+@RestController
+@RequestMapping("${Rest.URL}/contract")
 class ContractRest() : AbstractStandardRest<ContractDO, ContractDao, ContractFilter>(ContractDao::class.java, ContractFilter::class.java, "legalAffaires.contract.title") {
     /**
      * Initializes new outbox mails for adding.

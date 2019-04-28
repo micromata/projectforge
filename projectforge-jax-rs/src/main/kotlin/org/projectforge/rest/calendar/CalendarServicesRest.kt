@@ -2,21 +2,22 @@ package org.projectforge.rest.calendar
 
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.RestHelper
 import org.projectforge.ui.ResponseAction
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
 import java.util.*
-import javax.ws.rs.*
-import javax.ws.rs.core.MediaType
-import javax.ws.rs.core.Response
+import javax.ws.rs.BadRequestException
 
 /**
  * Rest services for getting events.
  */
-@Component
-@Path("calendar")
+@RestController
+@RequestMapping("${Rest.URL}/calendar")
 class CalendarServicesRest {
     enum class ACCESS { OWNER, FULL, READ, MINIMAL, NONE }
 
@@ -51,34 +52,30 @@ class CalendarServicesRest {
 
     private val restHelper = RestHelper()
 
-    @POST
-    @Path("events")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    fun getEvents(filter: CalendarFilter): Response {
+    @PostMapping("events")
+    fun getEvents(@RequestBody filter: CalendarFilter): ResponseEntity<Any> {
         if (filter.start == null) {
-            return restHelper.buildResponseBadRequest("At least start date required for getting events.")
+            return ResponseEntity("At least start date required for getting events.", HttpStatus.BAD_REQUEST)
         }
         val userId = ThreadLocalUserContext.getUserId()
         filter.timesheetUserId = userId // TODO: get from client
-        return buildEvents(filter)
+        return ResponseEntity(buildEvents(filter), HttpStatus.OK)
     }
 
     /**
      * The users selected a slot in the calendar.
      */
-    @GET
-    @Path("action")
-    @Produces(MediaType.APPLICATION_JSON)
-    fun action(@QueryParam("action") action: String?,
-               @QueryParam("start") start: String?,
-               @QueryParam("end") end: String?,
+    @GetMapping("action")
+    fun action(@RequestParam("action") action: String?,
+               @RequestParam("start") start: String?,
+               @RequestParam("end") end: String?,
                /**
                 * The default calendar name or null (default) for creating time sheets.
                 */
-               @QueryParam("calendar") calendar: String?): Response {
+               @RequestParam("calendar") calendar: String?)
+            : ResponseEntity<Any> {
         if (action != null && action != "select")
-            return restHelper.buildResponseBadRequest("Action '$action' not supported. Supported action is only 'select'.")
+            return ResponseEntity("Action '$action' not supported. Supported action is only 'select'.", HttpStatus.BAD_REQUEST)
         val startDate = if (start != null) restHelper.parseJSDateTime(start)?.toEpochSeconds() else null
         val endDate = if (end != null) restHelper.parseJSDateTime(end)?.toEpochSeconds() else null
 
@@ -92,10 +89,10 @@ class CalendarServicesRest {
                 .addVariable("category", category)
                 .addVariable("startDate", startDate)
                 .addVariable("endDate", endDate)
-        return restHelper.buildResponseAction(responseAction)
+        return ResponseEntity(responseAction, HttpStatus.OK)
     }
 
-    private fun buildEvents(filter: CalendarFilter): Response { //startParam: PFDateTime? = null, endParam: PFDateTime? = null, viewParam: CalendarViewType? = null): Response {
+    private fun buildEvents(filter: CalendarFilter): CalendarData { //startParam: PFDateTime? = null, endParam: PFDateTime? = null, viewParam: CalendarViewType? = null): Response {
         val events = mutableListOf<BigCalendarEvent>()
         // val settings = getUsersSettings()
         val range = DateTimeRange(PFDateTime.from(filter.start)!!, PFDateTime.from(filter.end))
@@ -110,8 +107,7 @@ class CalendarServicesRest {
         events.forEach {
             it.key = "e-${counter++}"
         }
-        val result = CalendarData(range.start.dateTime.toLocalDate(), events, specialDays)
-        return restHelper.buildResponse(result)
+        return CalendarData(range.start.dateTime.toLocalDate(), events, specialDays)
     }
 
     /**

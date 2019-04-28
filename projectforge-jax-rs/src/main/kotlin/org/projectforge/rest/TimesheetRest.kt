@@ -13,18 +13,18 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
-import javax.ws.rs.Path
-import javax.ws.rs.core.Response
 
-@Component
-@Path("timesheet")
+@RestController
+@RequestMapping("${Rest.URL}/timesheet")
 class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, TimesheetFilter>(TimesheetDao::class.java, TimesheetFilter::class.java, "timesheet.title") {
 
     private val dateTimeFormatter = DateTimeFormatter.instance();
@@ -98,8 +98,8 @@ class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, Timeshee
         }
     }
 
-    override fun afterEdit(obj: TimesheetDO): Response {
-        return Response.ok(ResponseAction("calendar").addVariable("id", obj.id ?: -1)).build()
+    override fun afterEdit(obj: TimesheetDO): ResponseAction {
+        return ResponseAction("calendar").addVariable("id", obj.id ?: -1)
     }
 
     override fun processResultSetBeforeExport(resultSet: ResultSet<Any>) {
