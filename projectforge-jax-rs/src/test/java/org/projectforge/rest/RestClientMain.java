@@ -88,7 +88,7 @@ public class RestClientMain
       log.error("Error while trying to connect to: " + url);
       throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
     }
-    final String json = (String) response.getEntity();
+    String json = response.readEntity(String.class);
     log.info(json);
     final UserObject user = JsonUtils.fromJson(json, UserObject.class);
     if (user == null) {
@@ -185,7 +185,7 @@ public class RestClientMain
       password = "demo123";
     }
     if (url == null) {
-      url = "http://localhost:8080/ProjectForge";
+      url = "http://localhost:8080";
     }
     if (prop == null) {
       log.info("For customized url and username/password please create file '"
