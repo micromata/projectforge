@@ -1,20 +1,12 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import CreatableSelect from 'react-select/lib/Creatable';
 import { setListFilter } from '../../../actions';
 import ActionGroup from '../../../components/base/page/action/Group';
+import EditableMultiValueLabel from '../../../components/base/page/layout/EditableMultiValueLabel';
 import LayoutGroup from '../../../components/base/page/layout/LayoutGroup';
-import {
-    Card,
-    CardBody,
-    Col,
-    FormGroup,
-    Input,
-    Label,
-    Row,
-    Select,
-} from '../../../components/design';
-import MultiSelect from '../../../components/design/input/MultiSelect';
+import { Card, CardBody, Col, FormGroup, Label, Row, Select, } from '../../../components/design';
 import { getNamedContainer } from '../../../utilities/layout';
 import { buttonPropType } from '../../../utilities/propTypes';
 
@@ -23,23 +15,26 @@ class SearchFilter extends Component {
         super(props);
 
         this.state = {
-            filter: {
-                searchString: '',
-            },
+            filter: {},
         };
 
         this.handleInputChange = this.handleInputChange.bind(this);
         this.handleSelectChange = this.handleSelectChange.bind(this);
-        this.setFilterValue = this.setFilterValue.bind(this);
+        this.handleFilterChange = this.handleFilterChange.bind(this);
+        this.getOptionLabel = this.getOptionLabel.bind(this);
     }
 
-    setFilterValue(id, value) {
-        this.setState(({ filter }) => ({
-            filter: {
-                ...filter,
-                [id]: value,
-            },
-        }));
+    getOptionLabel(option) {
+        // disable eslint because variable is provided by react-select and can't be changed.
+        /* eslint-disable-next-line no-underscore-dangle */
+        if (option.__isNew__) {
+            return option.label;
+        }
+
+        const { filter } = this.state;
+        const value = filter[option.id];
+
+        return `${option.id}${value ? `: ${value}` : ''}`;
     }
 
     handleInputChange(event) {
@@ -54,6 +49,18 @@ class SearchFilter extends Component {
         setFilter('maxRows', value);
     }
 
+    handleFilterChange(id, newValue) {
+        const { setFilter } = this.props;
+
+        setFilter(id, newValue);
+        this.setState(({ filter }) => ({
+            filter: {
+                ...filter,
+                [id]: newValue,
+            },
+        }));
+    }
+
     render() {
         const {
             actions,
@@ -61,28 +68,38 @@ class SearchFilter extends Component {
             namedContainers,
             setFilter,
         } = this.props;
+        const {
+            filter: newFilter,
+        } = this.state;
 
-        const { filter: newFilter } = this.state;
+        console.log(filter);
+
+        let options = [];
+        const searchFilter = getNamedContainer('searchFilter', namedContainers);
+
+        if (searchFilter) {
+            options = searchFilter.content.map(option => ({
+                ...option,
+                value: option.key,
+                label: option.id,
+            }));
+        }
 
         return (
             <Card>
                 <CardBody>
-                    <MultiSelect
-                        additionalLabel="WIP: New Search Filter"
-                        autoComplete={[]}
-                        autoCompleteForm="$AUTOCOMPLETE:"
-                        id="complexSearchFilter"
-                        label="Suchfilter"
-                        pills
-                        setValue={this.setFilterValue}
-                        value={newFilter}
-                    />
                     <form>
-                        <Input
-                            label="[Suchfilter]"
-                            id="searchString"
-                            value={filter.searchString}
-                            onChange={this.handleInputChange}
+                        <CreatableSelect
+                            name="searchFilter"
+                            options={options}
+                            isClearable
+                            isMulti
+                            components={{
+                                MultiValueLabel: EditableMultiValueLabel,
+                            }}
+                            setMultiValue={this.handleFilterChange}
+                            values={newFilter}
+                            getOptionLabel={this.getOptionLabel}
                         />
                         <Row>
                             <Col sm={8}>
