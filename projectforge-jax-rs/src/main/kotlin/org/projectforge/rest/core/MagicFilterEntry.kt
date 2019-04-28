@@ -10,13 +10,13 @@ class MagicFilterEntry(
          */
         var search: String? = null,
         /**
-         * The match strategy for the string search.
+         * The match strategy for the string search. [MatchType.STARTS_WITH] is the default.
          */
-        var matchType: MatchType? = MatchType.STARTS_WITH,
+        var matchType: MatchType? = null,
         /**
          * Find entries where the given field is equals to this given single value.
          */
-        var singleValue: Any? = null,
+        var value: Any? = null,
         /**
          * Find entries where the given field is equals or higher than the given fromValue (range search).
          */
@@ -36,11 +36,11 @@ class MagicFilterEntry(
          */
         CONTAINS,
         /**
-         * '*string*'
+         * 'string'
          */
         EXACT,
         /**
-         * 'string'
+         * 'string*' (default)
          */
         STARTS_WITH,
         /**
@@ -56,8 +56,8 @@ class MagicFilterEntry(
     internal fun type(): Type {
         val valuesGiven = !values.isNullOrEmpty()
         if (field == null) {
-            if (singleValue != null || fromValue != null || toValue != null || valuesGiven) {
-                log.warn("MagicFilterEntry inconsistent: No field given, singleValue, fromValue, toValue and values are ignored.")
+            if (value != null || fromValue != null || toValue != null || valuesGiven) {
+                log.warn("MagicFilterEntry inconsistent: No field given, value, fromValue, toValue and values are ignored.")
             }
             if (search.isNullOrBlank()) {
                 return Type.NONE
@@ -65,8 +65,8 @@ class MagicFilterEntry(
             return Type.STRING_SEARCH
         }
         if (search.isNullOrBlank()) {
-            if (singleValue != null || fromValue != null || toValue != null || valuesGiven) {
-                log.warn("MagicFilterEntry inconsistent for field '$field' search ('$search'): singleValue, fromValue, toValue and values are ignored.")
+            if (value != null || fromValue != null || toValue != null || valuesGiven) {
+                log.warn("MagicFilterEntry inconsistent for field '$field' search ('$search'): value, fromValue, toValue and values are ignored.")
             }
             return Type.FIELD_STRING_SEARCH
         }
