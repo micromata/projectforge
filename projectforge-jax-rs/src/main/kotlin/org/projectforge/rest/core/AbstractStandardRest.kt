@@ -232,8 +232,8 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
      * Get the list of all items matching the given filter.
      */
     @RequestMapping(RestPaths.LIST)
-    fun <O> getList(request: HttpServletRequest, @RequestBody filter: F): ResultSet<Any> {
-        val resultSet = restHelper.getList(this, baseDao, filter)
+    fun <O> getList(request: HttpServletRequest, @RequestBody filter: MagicFilter<F>): ResultSet<Any> {
+        val resultSet = restHelper.getList(this, baseDao, filter.prepareQueryFilter(filterClazz))
         processResultSetBeforeExport(resultSet)
         val storedFilter = listFilterService.getSearchFilter(request.session, filterClazz)
         BeanUtils.copyProperties(filter, storedFilter)
