@@ -13,7 +13,7 @@ import org.projectforge.framework.persistence.user.entities.TenantDO
 import org.projectforge.registry.Registry
 import org.projectforge.rest.task.TaskServicesRest
 import java.io.IOException
-import java.math.BigDecimal
+
 
 /**
  * Serialization for PFUserDO etc.

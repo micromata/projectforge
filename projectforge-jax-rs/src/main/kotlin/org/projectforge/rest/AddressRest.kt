@@ -33,12 +33,6 @@ class AddressRest()
                           var imageUrl: String? = null,
                           var previewImageUrl: String? = null)
 
-    //    private val addressBookTypeAdapter = LabelValueTypeAdapter<AddressbookDO>("id", "title")
-
-    // init {
-    //      restHelper.add(AddressbookDO::class.java, addressBookTypeAdapter)
-    // }
-
     @Autowired
     private lateinit var addressbookDao: AddressbookDao
 
