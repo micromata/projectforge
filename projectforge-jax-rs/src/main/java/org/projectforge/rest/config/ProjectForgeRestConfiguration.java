@@ -1,16 +1,25 @@
 package org.projectforge.rest.config;
 
-import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.projectforge.model.rest.RestPaths;
+import org.projectforge.web.rest.RestUserFilter;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class ProjectForgeRestConfiguration {
-  public static final String REST_WEB_APP_URL = "/" + RestPaths.REST_WEB_APP + "/";
-  public static final String REST_WEB_APP_PUBLIC_URL = "/" + RestPaths.REST_WEB_APP_PUBLIC + "/";
+  /**
+   * Replaced by {@link Rest#URL}
+   */
+  @Deprecated
+  public static final String REST_WEB_APP_URL = Rest.URL + "/";
+  /**
+   * Replaced by {@link Rest#PUBLIC_URL}
+   */
+  @Deprecated
+  public static final String REST_WEB_APP_PUBLIC_URL = Rest.PUBLIC_URL + "/";
 
   @Bean
   public ServletRegistrationBean publicJersey() {
@@ -33,26 +42,11 @@ public class ProjectForgeRestConfiguration {
   }
 
   @Bean
-  public ServletRegistrationBean webAppJersey() {
-    ResourceConfig resourceConfig = new RestWebAppConfiguration();
-    resourceConfig.register(ObjectMapperResolver.class);
-    ServletContainer container = new ServletContainer(resourceConfig);
-    ServletRegistrationBean webAppJersey = new ServletRegistrationBean(container);
-    webAppJersey.addUrlMappings(REST_WEB_APP_URL + "*");
-    webAppJersey.setName("RestWebapp");
-    webAppJersey.setLoadOnStartup(0);
-    return webAppJersey;
-  }
-
-  @Bean
-  public ServletRegistrationBean webAppPublicJersey() {
-    ResourceConfig resourceConfig = new RestWebAppPublicConfiguration();
-    resourceConfig.register(ObjectMapperResolver.class);
-    ServletContainer container = new ServletContainer(resourceConfig);
-    ServletRegistrationBean webAppJersey = new ServletRegistrationBean(container);
-    webAppJersey.addUrlMappings(REST_WEB_APP_PUBLIC_URL + "*");
-    webAppJersey.setName("RestWebappPublic");
-    webAppJersey.setLoadOnStartup(0);
-    return webAppJersey;
+  public FilterRegistrationBean<RestUserFilter> webAppJersey() {
+    FilterRegistrationBean<RestUserFilter> registrationBean
+            = new FilterRegistrationBean<>();
+    registrationBean.setFilter(new RestUserFilter());
+    registrationBean.addUrlPatterns(Rest.URL + "*");
+    return registrationBean;
   }
 }

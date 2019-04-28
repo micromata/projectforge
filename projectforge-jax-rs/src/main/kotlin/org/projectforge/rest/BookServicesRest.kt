@@ -3,21 +3,20 @@ package org.projectforge.rest
 import org.projectforge.business.book.BookDO
 import org.projectforge.business.book.BookDao
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUserId
+import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.RestHelper
+import org.projectforge.ui.ResponseAction
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import java.util.*
 import javax.servlet.http.HttpServletRequest
-import javax.ws.rs.Consumes
-import javax.ws.rs.POST
-import javax.ws.rs.Path
-import javax.ws.rs.Produces
-import javax.ws.rs.core.Context
-import javax.ws.rs.core.MediaType
-import javax.ws.rs.core.Response
 
-@Component
-@Path("book")
+@RestController
+@RequestMapping("${Rest.URL}/book")
 class BookServicesRest() {
 
     @Autowired
@@ -30,11 +29,8 @@ class BookServicesRest() {
     /**
      * Lends the given book out by the logged-in user.
      */
-    @POST
-    @Path("lendOut")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    fun lendOut(@Context request: HttpServletRequest, book: BookDO): Response {
+    @PostMapping("lendOut")
+    fun lendOut(request: HttpServletRequest, @RequestBody book: BookDO): ResponseEntity<ResponseAction> {
         book.lendOutDate = Date()
         bookDao.setLendOutBy(book, getUserId())
         return restHelper.saveOrUpdate(request, bookDao, book, bookRest, bookRest.validate(book))
@@ -43,11 +39,8 @@ class BookServicesRest() {
     /**
      * Returns the given book by the logged-in user.
      */
-    @POST
-    @Path("returnBook")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    fun returnBook(@Context request: HttpServletRequest, book: BookDO): Response {
+    @PostMapping("returnBook")
+    fun returnBook( request: HttpServletRequest, @RequestBody book: BookDO): ResponseEntity<ResponseAction> {
         book.lendOutBy = null
         book.lendOutDate = null
         book.lendOutComment = null

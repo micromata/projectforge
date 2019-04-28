@@ -7,28 +7,29 @@ import org.projectforge.business.address.AddressExport
 import org.projectforge.business.address.AddressFilter
 import org.projectforge.business.address.PersonalAddressDao
 import org.projectforge.framework.time.DateHelper
+import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.*
 import org.projectforge.ui.UIStyle
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
+import org.springframework.core.io.ByteArrayResource
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import java.io.IOException
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.util.*
 import javax.servlet.http.HttpServletRequest
-import javax.ws.rs.GET
-import javax.ws.rs.Path
-import javax.ws.rs.PathParam
-import javax.ws.rs.Produces
-import javax.ws.rs.core.Context
-import javax.ws.rs.core.MediaType
-import javax.ws.rs.core.Response
 
 /**
  * For uploading address immages.
  */
-@Component
-@Path("address")
+@RestController
+@RequestMapping("${Rest.URL}/address")
 class AddressServicesRest() {
 
     companion object {
@@ -56,32 +57,30 @@ class AddressServicesRest() {
 
     private val restHelper = RestHelper()
 
-    @GET
-    @Path("exportFavoritesVCards")
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    fun exportFavoritesVCards(): Response {
+    @GetMapping("exportFavoritesVCards")
+    fun exportFavoritesVCards(): ResponseEntity<Any> {
         log.info("Exporting personal address book as vcards.")
         val list = addressDao.favoriteVCards
         if (CollectionUtils.isEmpty(list) == true) {
-            return restHelper.buildResponse(ResponseData("address.book.hasNoVCards", messageType = MessageType.TOAST, style = UIStyle.WARNING))
+            return ResponseEntity(ResponseData("address.book.hasNoVCards", messageType = MessageType.TOAST, style = UIStyle.WARNING), HttpStatus.NOT_FOUND)
         }
         val filename = ("ProjectForge-PersonalAddressBook_" + DateHelper.getDateAsFilenameSuffix(Date())
                 + ".vcf")
         val writer = StringWriter()
         addressDao.exportFavoriteVCards(writer, list)
-        val builder = Response.ok(writer.toString())
-        builder.header("Content-Disposition", "attachment; filename=$filename")
-        return builder.build()
+
+        return ResponseEntity.ok()
+                .contentType(org.springframework.http.MediaType.parseMediaType("application/octet-stream"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
+                .body(writer.toString());
     }
 
     /**
      * Exports all the addresses with the last used filter. If the user works with different browser windows and devices, the result may not match
      * the current displayed list. The recent search result is used (stored in [AbstractStandardRest.getList] or [AbstractStandardRest.getInitialList].
      */
-    @GET
-    @Path("exportFavoritesExcel")
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    fun exportFavoritesExcel(@Context request: HttpServletRequest): Response {
+    @GetMapping("exportFavoritesExcel")
+    fun exportFavoritesExcel(request: HttpServletRequest): ResponseEntity<Any> {
         log.info("Exporting personal address book as Excel file.")
         var storedFilter = listFilterService.getSearchFilter(request.session, AddressFilter::class.java)
         val list = addressDao.getList(storedFilter)
@@ -92,37 +91,37 @@ class AddressServicesRest() {
 
         val xls = addressExport.export(list, personalAddressMap)
         if (xls == null || xls.size == 0) {
-            return restHelper.buildResponse(ResponseData("address.book.hasNoVCards", messageType = MessageType.TOAST, style = UIStyle.WARNING))
+            return ResponseEntity(ResponseData("address.book.hasNoVCards", messageType = MessageType.TOAST, style = UIStyle.WARNING), HttpStatus.NOT_FOUND)
         }
         val filename = ("ProjectForge-AddressExport_" + DateHelper.getDateAsFilenameSuffix(Date())
                 + ".xls")
-        val builder = Response.ok(xls)
-        builder.header("Content-Disposition", "attachment; filename=$filename")
-        return builder.build()
+
+        val resource = ByteArrayResource(xls)
+        return ResponseEntity.ok()
+                .contentType(org.springframework.http.MediaType.parseMediaType("application/octet-stream"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
+                .body(resource);
     }
 
-    @GET
-    @Path("exportFavoritePhoneList")
-    @Produces(MediaType.TEXT_PLAIN)
-    fun exportFavoritePhoneList(): Response {
+    @GetMapping("exportFavoritePhoneList")
+    fun exportFavoritePhoneList(): ResponseEntity<Any> {
         log.info("Exporting personal phone list as txt file.")
         val list = addressDao.favoritePhoneEntries
         if (CollectionUtils.isEmpty(list) == true) {
-            return restHelper.buildResponse(ResponseData("address.book.hasNoPhoneNumbers", messageType = MessageType.TOAST, style = UIStyle.WARNING))
+            return ResponseEntity(ResponseData("address.book.hasNoPhoneNumbers", messageType = MessageType.TOAST, style = UIStyle.WARNING), HttpStatus.NOT_FOUND)
         }
         val filename = ("ProjectForge-PersonalPhoneList_" + DateHelper.getDateAsFilenameSuffix(Date())
                 + ".txt")
         val writer = StringWriter()
         addressDao.exportFavoritePhoneList(writer, list)
-        val builder = Response.ok(writer.toString())
-        builder.header("Content-Disposition", "attachment; filename=$filename")
-        return builder.build()
+        return ResponseEntity.ok()
+                .contentType(org.springframework.http.MediaType.parseMediaType("application/octet-stream"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
+                .body(writer.toString());
     }
 
-    @GET
-    @Path("downloadAppleScript")
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    fun downloadAppleScript(): Response {
+    @GetMapping("downloadAppleScript")
+    fun downloadAppleScript(): ResponseEntity<Any> {
         log.info("Downloading AppleScript.")
         var content: ByteArray?
         val file = APPLE_SCRIPT_DIR + APPLE_SCRIPT_FOR_ADDRESS_BOOK
@@ -138,24 +137,25 @@ class AddressServicesRest() {
             throw RuntimeException(ex)
         }
         val filename = (APPLE_SCRIPT_FOR_ADDRESS_BOOK)
-        val builder = Response.ok(content)
-        builder.header("Content-Disposition", "attachment; filename=$filename")
-        return builder.build()
+        val resource = ByteArrayResource(content)
+        return ResponseEntity.ok()
+                .contentType(org.springframework.http.MediaType.parseMediaType("application/octet-stream"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
+                .body(resource);
     }
 
-    @GET
-    @Path("exportVCard/{id}")
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    fun exportVCard(@PathParam("id") id: Int?): Response {
+    @GetMapping("exportVCard/{id}")
+    fun exportVCard(@PathVariable("id") id: Int?): ResponseEntity<Any> {
         val address = addressDao.getById(id)
         if (address == null)
-            return restHelper.buildResponseItemNotFound()
+            return ResponseEntity(HttpStatus.NOT_FOUND)
         val filename = ("ProjectForge-" + ReplaceUtils.encodeFilename(address.fullName) + "_"
                 + DateHelper.getDateAsFilenameSuffix(Date()) + ".vcf")
         val writer = StringWriter()
         addressDao.exportVCard(PrintWriter(writer), address)
-        val builder = Response.ok(writer.toString())
-        builder.header("Content-Disposition", "attachment; filename=$filename")
-        return builder.build()
+        return ResponseEntity.ok()
+                .contentType(org.springframework.http.MediaType.parseMediaType("application/octet-stream"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
+                .body(writer.toString());
     }
 }

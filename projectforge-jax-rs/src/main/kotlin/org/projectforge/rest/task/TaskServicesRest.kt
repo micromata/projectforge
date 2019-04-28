@@ -17,21 +17,20 @@ import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDate
+import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.ListFilterService
 import org.projectforge.rest.core.RestHelper
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
-import javax.ws.rs.*
-import javax.ws.rs.core.Context
-import javax.ws.rs.core.MediaType
-import javax.ws.rs.core.Response
 
 /**
  * For serving the task tree as tree or table..
  */
-@Component
-@Path("task")
+@RestController
+@RequestMapping("${Rest.URL}/task")
 class TaskServicesRest {
     class Kost2(val id: Int, val title: String)
     class OrderPosition(val number: Int, val personDays: Int?, val title: String, status: AuftragsPositionsStatus?)
@@ -142,22 +141,20 @@ class TaskServicesRest {
      * @param deleted Show deleted tasks. For initial = true, this value is ignored.
      * @return json
      */
-    @GET
-    @Path("tree")
-    @Produces(MediaType.APPLICATION_JSON)
-    fun getTree(@Context request: HttpServletRequest,
-                @QueryParam("initial") initial: Boolean?,
-                @QueryParam("open") open: Int?,
-                @QueryParam("close") close: Int?,
-                @QueryParam("highlightedTaskId") highlightedTaskId: Int?,
-                @QueryParam("table") table: Boolean?,
-                @QueryParam("searchString") searchString: String?,
-                @QueryParam("opened") opened: Boolean?,
-                @QueryParam("notOpened") notOpened: Boolean?,
-                @QueryParam("closed") closed: Boolean?,
-                @QueryParam("deleted") deleted: Boolean?,
-                @QueryParam("showRootForAdmins") showRootForAdmins: Boolean?)
-            : Response {
+    @GetMapping("tree")
+    fun getTree(request: HttpServletRequest,
+                @RequestParam("initial") initial: Boolean?,
+                @RequestParam("open") open: Int?,
+                @RequestParam("close") close: Int?,
+                @RequestParam("highlightedTaskId") highlightedTaskId: Int?,
+                @RequestParam("table") table: Boolean?,
+                @RequestParam("searchString") searchString: String?,
+                @RequestParam("opened") opened: Boolean?,
+                @RequestParam("notOpened") notOpened: Boolean?,
+                @RequestParam("closed") closed: Boolean?,
+                @RequestParam("deleted") deleted: Boolean?,
+                @RequestParam("showRootForAdmins") showRootForAdmins: Boolean?)
+            : Result {
         @Suppress("UNCHECKED_CAST")
         val openNodes = userPreferencesService.getEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS) as MutableSet<Int>
         val filter = listFilterService.getSearchFilter(request.session, TaskFilter::class.java) as TaskFilter
@@ -227,7 +224,7 @@ class TaskServicesRest {
                     "task.reference",
                     "task.tree.info")
         }
-        return restHelper.buildResponse(result)
+        return result
     }
 
     private fun registerVisibleColumn(columnsVisibility: MutableMap<String, Boolean>, column: String, value: Boolean) {
@@ -243,14 +240,12 @@ class TaskServicesRest {
      * @param id Task id.
      * @return json
      */
-    @GET
-    @Path("info/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    fun getTaskInfo(@PathParam("id") id: Int?): Response {
+    @GetMapping("info/{id}")
+    fun getTaskInfo(@PathVariable("id") id: Int?): ResponseEntity<Task> {
         val task = createTask(id)
         if (task == null)
-            return restHelper.buildResponseItemNotFound()
-        return restHelper.buildResponse(task)
+            return ResponseEntity(HttpStatus.NOT_FOUND)
+        return ResponseEntity(task, HttpStatus.OK)
     }
 
     /**

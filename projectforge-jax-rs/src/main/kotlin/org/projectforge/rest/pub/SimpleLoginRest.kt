@@ -15,6 +15,7 @@ import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.configuration.GlobalConfiguration
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.RestHelper
 import org.projectforge.ui.UILabel
 import org.projectforge.ui.UILayout
@@ -22,23 +23,21 @@ import org.projectforge.ui.UINamedContainer
 import org.projectforge.web.rest.RestUserFilter.executeLogin
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
-import org.springframework.stereotype.Component
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
 import java.net.InetAddress
 import java.net.UnknownHostException
 import javax.servlet.ServletRequest
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-import javax.ws.rs.*
-import javax.ws.rs.core.Context
-import javax.ws.rs.core.MediaType
-import javax.ws.rs.core.Response
 
 /**
  * This rest service should be available without login (public).
  */
-@Component
-@Path("login")
+@RestController
+@RequestMapping("${Rest.PUBLIC_URL}/login")
 open class SimpleLoginRest {
     data class LoginData(var username: String? = null, var password: String? = null, var stayLoggedIn: Boolean? = null)
 
@@ -55,27 +54,24 @@ open class SimpleLoginRest {
 
     private val restHelper = RestHelper()
 
-    @GET
-    @Path("layout")
-    @Produces(MediaType.APPLICATION_JSON)
-    fun getLayout(): Response {
+    @GetMapping("layout")
+    fun getLayout(): UILayout {
         val layout = UILayout("login.title")
                 .addTranslations("username", "password", "login.stayLoggedIn", "login.stayLoggedIn.tooltip")
                 //.addTranslation("messageOfTheDay")
         layout.add(UINamedContainer("messageOfTheDay").add(UILabel(label = GlobalConfiguration.getInstance().getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY))))
-        return restHelper.buildResponse(layout)
+        return layout
     }
 
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    fun login(@Context request: HttpServletRequest,
-              @Context response: HttpServletResponse,
-              loginData: LoginData)
-            : Response {
+    @PostMapping
+    fun login(@RequestBody loginData: LoginData,
+              request: HttpServletRequest,
+              response: HttpServletResponse)
+            : ResponseEntity<String> {
         val loginResultStatus = _login(request, response, loginData)
         if (loginResultStatus == LoginResultStatus.SUCCESS)
-            return Response.ok().build()
-        return Response.status(Response.Status.UNAUTHORIZED).build()
+            return ResponseEntity.ok("Success")
+        return ResponseEntity(HttpStatus.UNAUTHORIZED)
     }
 
     private fun _login(request: HttpServletRequest, response: HttpServletResponse, loginData: LoginData): LoginResultStatus {

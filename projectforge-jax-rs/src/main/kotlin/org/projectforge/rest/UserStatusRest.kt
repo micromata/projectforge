@@ -5,23 +5,21 @@ import org.projectforge.common.DateFormatType
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.TimeNotation
-import org.projectforge.rest.core.RestHelper
+import org.projectforge.rest.config.Rest
 import org.projectforge.rest.pub.SystemStatusRest
-import org.springframework.stereotype.Component
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import java.util.*
 import javax.servlet.http.HttpServletRequest
-import javax.ws.rs.GET
-import javax.ws.rs.Path
-import javax.ws.rs.Produces
-import javax.ws.rs.core.Context
-import javax.ws.rs.core.MediaType
-import javax.ws.rs.core.Response
 
 /**
  * This rest service should be available without login (public).
  */
-@Component
-@Path("userStatus")
+@RestController
+@RequestMapping("${Rest.URL}/userStatus")
 open class UserStatusRest {
     companion object {
         internal val WEEKDAYS = arrayOf("-", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY")
@@ -53,12 +51,11 @@ open class UserStatusRest {
 
     private val log = org.slf4j.LoggerFactory.getLogger(UserStatusRest::class.java)
 
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    fun loginTest(@Context request: HttpServletRequest): Response {
+    @GetMapping
+    fun loginTest(request: HttpServletRequest): ResponseEntity<Result> {
         val user = UserFilter.getUser(request)
         if (user == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).build()
+            return ResponseEntity(HttpStatus.UNAUTHORIZED)
         }
         val firstDayOfWeekNo = ThreadLocalUserContext.getJodaFirstDayOfWeek() // Mon - 1, Tue - 2, ..., Sun - 7
         val userData = UserData(username = user.username,
@@ -83,7 +80,7 @@ open class UserStatusRest {
         userData.jsTimestampFormatSeconds = convertToJavascriptFormat(userData.timestampFormatSeconds)
 
         val systemData = SystemStatusRest.getSystemData()
-        return RestHelper().buildResponse(Result(userData, systemData))
+        return ResponseEntity<Result>(Result(userData, systemData), HttpStatus.OK)
     }
 
     /**

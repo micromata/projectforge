@@ -4,18 +4,18 @@ import org.projectforge.business.address.AddressbookDao
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskFilter
+import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.ui.LayoutUtils
 import org.projectforge.ui.UILayout
 import org.projectforge.ui.UITable
 import org.projectforge.ui.ValidationError
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
-import javax.ws.rs.Path
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
-
-@Component
-@Path("task")
+@RestController
+@RequestMapping("${Rest.URL}/taskCal")
 class TaskRest()
     : AbstractStandardRest<TaskDO, TaskDao, TaskFilter>(TaskDao::class.java, TaskFilter::class.java, "task.title") {
 

@@ -4,16 +4,16 @@ import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.event.TeamEventDao
 import org.projectforge.business.teamcal.event.TeamEventFilter
 import org.projectforge.business.teamcal.event.model.TeamEventDO
+import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
-import javax.ws.rs.Path
-import javax.ws.rs.core.Response
 
-@Component
-@Path("teamEvent")
+@RestController
+@RequestMapping("${Rest.URL}/teamEventCal")
 class TeamEventRest() : AbstractStandardRest<TeamEventDO, TeamEventDao, TeamEventFilter>(
         TeamEventDao::class.java,
         TeamEventFilter::class.java,
@@ -27,8 +27,8 @@ class TeamEventRest() : AbstractStandardRest<TeamEventDO, TeamEventDao, TeamEven
         println("TeamEventRest: recurrentDate=$recurrentDateString")
     }
 
-    override fun afterEdit(obj: TeamEventDO): Response {
-        return Response.ok(ResponseAction("calendar").addVariable("id", obj.id ?: -1)).build()
+    override fun afterEdit(obj: TeamEventDO): ResponseAction {
+        return ResponseAction("calendar").addVariable("id", obj.id ?: -1)
     }
 
     /**

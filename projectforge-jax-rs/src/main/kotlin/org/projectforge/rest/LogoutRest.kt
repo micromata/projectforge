@@ -1,27 +1,23 @@
 package org.projectforge.rest
 
-import aQute.bnd.osgi.Constants.headers
 import org.projectforge.business.user.UserXmlPreferencesCache
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.filter.UserFilter
+import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.RestHelper
 import org.projectforge.ui.UIStyle
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-import javax.ws.rs.GET
-import javax.ws.rs.Path
-import javax.ws.rs.Produces
-import javax.ws.rs.core.Context
-import javax.ws.rs.core.MediaType
-import javax.ws.rs.core.Response
 
 /**
  * This rest service should be available without login (public).
  */
-@Component
-@Path("logout")
+@RestController
+@RequestMapping("${Rest.URL}/logout")
 open class LogoutRest {
     private val log = org.slf4j.LoggerFactory.getLogger(LogoutRest::class.java)
 
@@ -33,11 +29,10 @@ open class LogoutRest {
 
     private val restHelper = RestHelper()
 
-    @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    fun logout(@Context request: HttpServletRequest,
-              @Context response: HttpServletResponse)
-            : Response {
+    @GetMapping
+    fun logout(request: HttpServletRequest,
+              response: HttpServletResponse)
+            : ResponseData {
         val stayLoggedInCookie = cookieService.getStayLoggedInCookie(request)
         val user =  UserFilter.getUser(request)
         if (user != null) {
@@ -53,6 +48,7 @@ open class LogoutRest {
         if (stayLoggedInCookie != null) {
             response.addCookie(stayLoggedInCookie)
         }
-        return restHelper.buildResponse(ResponseData("logout.successful", messageType = MessageType.TOAST, style = UIStyle.SUCCESS)) //Response.temporaryRedirect(restHelper.buildUri(request, "login")).build()
+        return ResponseData("logout.successful", messageType = MessageType.TOAST, style = UIStyle.SUCCESS)
+        //Response.temporaryRedirect(restHelper.buildUri(request, "login")).build()
     }
 }

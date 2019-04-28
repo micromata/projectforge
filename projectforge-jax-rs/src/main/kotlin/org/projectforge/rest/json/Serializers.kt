@@ -1,8 +1,9 @@
 package org.projectforge.rest.json
 
-import com.google.gson.JsonElement
-import com.google.gson.JsonSerializationContext
-import com.google.gson.JsonSerializer
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.core.JsonProcessingException
+import com.fasterxml.jackson.databind.SerializerProvider
+import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.kost.Kost2DO
@@ -11,50 +12,52 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.TenantDO
 import org.projectforge.registry.Registry
 import org.projectforge.rest.task.TaskServicesRest
-import java.lang.reflect.Type
-
+import java.io.IOException
+import java.math.BigDecimal
 
 /**
  * Serialization for PFUserDO etc.
  */
-class PFUserDOSerializer : JsonSerializer<PFUserDO> {
+class PFUserDOSerializer : StdSerializer<PFUserDO>(PFUserDO::class.java) {
     private class User(val id: Int, val username: String?, val fullname: String?)
 
-    @Synchronized
-    override fun serialize(obj: PFUserDO?, type: Type, jsonSerializationContext: JsonSerializationContext): JsonElement? {
-        if (obj == null) return null
-        val user = User(obj.id, obj.username, obj.fullname)
-        return jsonSerializationContext.serialize(user)
+    @Throws(IOException::class, JsonProcessingException::class)
+    override fun serialize(value: PFUserDO?, jgen: JsonGenerator, provider: SerializerProvider) {
+        if (value == null) {
+            return
+        }
+        val user = User(value.id, value.username, value.fullname)
+        jgen.writeObject(user)
     }
 }
 
 /**
  * Serialization for TaskDO etc.
  */
-class TaskDOSerializer : JsonSerializer<TaskDO> {
-    @Synchronized
-    override fun serialize(obj: TaskDO?, type: Type, jsonSerializationContext: JsonSerializationContext): JsonElement? {
-        if (obj == null) return null
-        val task = TaskServicesRest.Task(obj.id, title = obj.title)
-        return jsonSerializationContext.serialize(task)
+class TaskDOSerializer : StdSerializer<TaskDO>(TaskDO::class.java) {
+    @Throws(IOException::class, JsonProcessingException::class)
+    override fun serialize(value: TaskDO?, jgen: JsonGenerator, provider: SerializerProvider) {
+        if (value == null) return
+        val task = TaskServicesRest.Task(value.id, title = value.title)
+        jgen.writeObject(task)
     }
 }
 
 /**
  * Serialization for Kost2DO etc.
  */
-class Kost2DOSerializer : JsonSerializer<Kost2DO> {
+class Kost2DOSerializer : StdSerializer<Kost2DO>(Kost2DO::class.java) {
     private class Kunde(val id: Int, val name: String?)
     private class Projekt(val id: Int, val name: String?, var kunde: Kunde? = null)
     private class Kost2(val id: Int, val description: String?, var projekt: Projekt? = null)
 
-    @Synchronized
-    override fun serialize(obj: Kost2DO?, type: Type, jsonSerializationContext: JsonSerializationContext): JsonElement? {
-        if (obj == null) return null
-        val kost2 = Kost2(obj.id, obj.description)
-        if (obj.projekt != null) {
+    @Throws(IOException::class, JsonProcessingException::class)
+    override fun serialize(value: Kost2DO?, jgen: JsonGenerator, provider: SerializerProvider) {
+        if (value == null) return
+        val kost2 = Kost2(value.id, value.description)
+        if (value.projekt != null) {
             val projektDao = Registry.instance.getEntry(ProjektDao::class.java)?.dao as ProjektDao
-            val projektDO = projektDao.getById(obj.projektId)
+            val projektDO = projektDao.getById(value.projektId)
             if (projektDO != null) {
                 val projekt = Projekt(projektDO.id, projektDO.name)
                 if (projektDO.kunde != null) {
@@ -68,17 +71,17 @@ class Kost2DOSerializer : JsonSerializer<Kost2DO> {
                 kost2.projekt = projekt
             }
         }
-        return jsonSerializationContext.serialize(kost2)
+        jgen.writeObject(kost2)
     }
 }
 
-class TenantDOSerializer : JsonSerializer<TenantDO> {
+class TenantDOSerializer : StdSerializer<TenantDO>(TenantDO::class.java) {
     private class Tenant(val id: Int, val name: String?)
 
-    @Synchronized
-    override fun serialize(obj: TenantDO?, type: Type, jsonSerializationContext: JsonSerializationContext): JsonElement? {
-        if (obj == null) return null
-        val tenant = Tenant(obj.id, obj.name)
-        return jsonSerializationContext.serialize(tenant)
+    @Throws(IOException::class, JsonProcessingException::class)
+    override fun serialize(value: TenantDO?, jgen: JsonGenerator, provider: SerializerProvider) {
+        if (value == null) return
+        val tenant = Tenant(value.id, value.name)
+        jgen.writeObject(tenant)
     }
 }

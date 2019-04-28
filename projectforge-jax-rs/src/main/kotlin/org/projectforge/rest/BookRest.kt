@@ -3,15 +3,16 @@ package org.projectforge.rest
 import org.projectforge.Const
 import org.projectforge.business.book.*
 import org.projectforge.framework.i18n.translate
+import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.rest.core.Validation
 import org.projectforge.ui.*
-import org.springframework.stereotype.Component
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
-import javax.ws.rs.Path
 
-@Component
-@Path("book")
+@RestController
+@RequestMapping("${Rest.URL}/book")
 class BookRest() : AbstractStandardRest<BookDO, BookDao, BookFilter>(BookDao::class.java, BookFilter::class.java, "book.title") {
     /**
      * Initializes new books for adding.

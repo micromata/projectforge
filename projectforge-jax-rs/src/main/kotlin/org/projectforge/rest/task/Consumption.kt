@@ -1,6 +1,6 @@
 package org.projectforge.rest.task
 
-import com.google.gson.annotations.SerializedName
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.business.task.TaskNode
 import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.framework.i18n.translate
@@ -19,17 +19,17 @@ class Consumption(
         val id: Int?) {
 
     enum class Status {
-        @SerializedName("progress-done")
+        @JsonProperty("progress-done")
         DONE,
-        @SerializedName("progress-none")
+        @JsonProperty("progress-none")
         NONE,
-        @SerializedName("progress-80")
+        @JsonProperty("progress-80")
         PROGRESS_80,
-        @SerializedName("progress-90")
+        @JsonProperty("progress-90")
         PROGRESS_90,
-        @SerializedName("progress-overbooked")
+        @JsonProperty("progress-overbooked")
         OVERBOOKED,
-        @SerializedName("progress-overbooked-min")
+        @JsonProperty("progress-overbooked-min")
         OVERBOOKED_MIN
     }
 

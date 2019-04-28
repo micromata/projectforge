@@ -40,6 +40,7 @@ import org.projectforge.rest.converter.DateTimeFormat;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.stereotype.Component;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
@@ -54,6 +55,7 @@ import java.io.IOException;
  * @author Daniel Ludwig (d.ludwig@micromata.de)
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
+@Component
 public class RestUserFilter implements Filter {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RestUserFilter.class);
 

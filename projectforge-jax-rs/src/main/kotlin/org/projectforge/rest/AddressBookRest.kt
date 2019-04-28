@@ -3,13 +3,12 @@ package org.projectforge.rest
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.address.AddressbookDao
 import org.projectforge.business.address.AddressbookFilter
+import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.ui.*
-import org.springframework.stereotype.Component
-import javax.ws.rs.Path
+import org.springframework.web.bind.annotation.RequestMapping
 
-@Component
-@Path("addressBook")
+@RequestMapping("${Rest.URL}/addressBook")
 class AddressBookRest() : AbstractStandardRest<AddressbookDO, AddressbookDao, AddressbookFilter>(AddressbookDao::class.java, AddressbookFilter::class.java, "addressbook.title") {
 
     /**

@@ -23,27 +23,20 @@
 
 package org.projectforge.rest.converter;
 
+import com.google.gson.*;
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.rest.ConnectionSettings;
+
 import java.lang.reflect.Type;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
-import org.apache.commons.lang3.StringUtils;
-import org.projectforge.rest.ConnectionSettings;
-
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
-import com.google.gson.JsonSyntaxException;
-
 /**
  * Serialization and deserialization for dates in ISO format and UTC time-zone.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class DateTypeAdapter implements JsonSerializer<Date>, JsonDeserializer<Date>
 {
