@@ -111,7 +111,7 @@ class UILayoutTest : AbstractTestBase() {
         assertEquals(2, jsonValidator.getList("actions")?.size)
         assertEquals("reset", jsonValidator.get("actions[0].id"))
         assertEquals("???reset???", jsonValidator.get("actions[0].title"))
-        assertEquals("danger", jsonValidator.get("actions[0].style"))
+        assertEquals("DANGER", jsonValidator.get("actions[0].style")) // Gson doesn't know JsonProperty of Jacskon (DANGER -> danger.)
         assertEquals("BUTTON", jsonValidator.get("actions[0].type"))
         assertEquals("el-15", jsonValidator.get("actions[0].key"))
 
