@@ -25,7 +25,6 @@ class UncontrolledReactSelect extends React.Component {
     constructor(props) {
         super(props);
         const dataValue = UncontrolledReactSelect.extractDataValue(props);
-        console.log(dataValue)
         this.state = {
             value: dataValue,
         };

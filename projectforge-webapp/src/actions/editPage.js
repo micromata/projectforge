@@ -109,7 +109,6 @@ export const updatePageData = () => (dispatch, getState) => {
 
 // preserveObject avoids the replacement of the object by its id. Default is undefined.
 export const changeField = (id, newValue) => (dispatch) => {
-    console.log(id, newValue);
     if (typeof newValue === 'object' && newValue) {
         if (newValue.id) {
             // For objects such as PFUserDO, TaskDO only needs the id (pk).
