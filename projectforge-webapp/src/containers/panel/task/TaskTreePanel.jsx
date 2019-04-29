@@ -42,6 +42,13 @@ class TaskTreePanel extends React.Component {
         this.setFilterValue = this.setFilterValue.bind(this);
     }
 
+    componentDidMount() {
+        const { visible } = this.props;
+        if (visible) {
+            this.fetch(true); // Needed for TaskTreePage
+        }
+    }
+
     componentDidUpdate(prevProps) {
         const { translations, loading } = this.state;
         const { highlightTaskId, visible } = this.props;
@@ -97,6 +104,7 @@ class TaskTreePanel extends React.Component {
     }
 
     fetch(initial, open, close) {
+        console.log(initial)
         this.setState({ loading: true }, () => {
             const { filter } = this.state;
             const { highlightTaskId, showRootForAdmins } = this.props;

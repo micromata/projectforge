@@ -12,6 +12,7 @@ class TaskTreePage extends React.Component {
             <TaskTreePanel
                 onTaskSelect={TaskTreePage.onTaskSelect}
                 showRootForAdmins
+                visible
             />
         );
     }
