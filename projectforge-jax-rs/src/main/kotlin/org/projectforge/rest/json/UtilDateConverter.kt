@@ -52,9 +52,12 @@ class UtilDateSerializer : StdSerializer<java.util.Date>(java.util.Date::class.j
             jgen.writeNull()
             return
         }
-        val formatter = DateTimeFormatter.ofPattern(DateTimeFormat.JS_DATE_TIME_MILLIS.pattern).withZone(ZoneOffset.UTC)
         val dateFormatAsString = formatter.format(value.toInstant())
         jgen.writeString(dateFormatAsString)
+    }
+
+    companion object {
+        private val formatter = DateTimeFormatter.ofPattern(DateTimeFormat.JS_DATE_TIME_MILLIS.pattern).withZone(ZoneOffset.UTC)
     }
 }
 
@@ -70,15 +73,18 @@ class UtilDateDeserializer : StdDeserializer<java.util.Date>(java.util.Date::cla
             return null
         }
         if (StringUtils.isNumeric(dateString) == true) {
-            val date = java.sql.Date(dateString.toLong())
+            val date = java.util.Date(dateString.toLong())
             return date;
         }
         try {
-            val formatter = DateTimeFormatter.ofPattern(DateTimeFormat.JS_DATE_TIME_MILLIS.pattern).withZone(ZoneOffset.UTC)
-            val date = LocalDateTime.parse(dateString, formatter);
-            return java.sql.Date.valueOf(date.toLocalDate())
+            val date = LocalDateTime.parse(dateString, formatter)
+            return java.util.Date.from(date.toInstant(ZoneOffset.UTC))
         } catch (e: ParseException) {
             throw JsonParseException(p, dateString, e);
         }
+    }
+
+    companion object {
+        private val formatter = DateTimeFormatter.ofPattern(DateTimeFormat.JS_DATE_TIME_MILLIS.pattern).withZone(ZoneOffset.UTC)
     }
 }
