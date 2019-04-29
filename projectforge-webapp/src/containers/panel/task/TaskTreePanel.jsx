@@ -104,7 +104,6 @@ class TaskTreePanel extends React.Component {
     }
 
     fetch(initial, open, close) {
-        console.log(initial)
         this.setState({ loading: true }, () => {
             const { filter } = this.state;
             const { highlightTaskId, showRootForAdmins } = this.props;
