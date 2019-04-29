@@ -42,13 +42,12 @@ class TaskTreePanel extends React.Component {
         this.setFilterValue = this.setFilterValue.bind(this);
     }
 
-    componentDidMount() {
-        this.fetch(true);
-    }
-
     componentDidUpdate(prevProps) {
-        const { highlightTaskId } = this.props;
-        if (highlightTaskId !== prevProps.highlightTaskId) {
+        const { translations, loading } = this.state;
+        const { highlightTaskId, visible } = this.props;
+        if (highlightTaskId !== prevProps.highlightTaskId // Highlighted task changed: fetch
+            // Now visible and not yet fetched: fetch:
+            || (!translations && !loading && visible && !prevProps.visible)) {
             this.fetch(true);
         }
     }
@@ -98,49 +97,52 @@ class TaskTreePanel extends React.Component {
     }
 
     fetch(initial, open, close) {
-        this.setState({ loading: true });
-        const { filter } = this.state;
-        const { highlightTaskId, showRootForAdmins } = this.props;
-        fetch(getServiceURL('task/tree', {
-            table: true, // Result expected as table not as tree.
-            initial: initial || '',
-            open: open || '',
-            highlightedTaskId: highlightTaskId || '',
-            close: close || '',
-            searchString: filter.searchString,
-            opened: filter.opened,
-            notOpened: filter.notOpened,
-            closed: filter.closed,
-            deleted: filter.deleted,
-            showRootForAdmins,
-        }), {
-            method: 'GET',
-            credentials: 'include',
-            headers: {
-                Accept: 'application/json',
-            },
-        })
-            .then(response => response.json())
-            .then((json) => {
-                const {
-                    root,
-                    translations,
-                    initFilter,
-                    columnsVisibility,
-                } = json;
-                this.setState({
-                    nodes: root.childs,
-                    loading: false,
-                    columnsVisibility: columnsVisibility || [],
-                });
-                if (initial && this.myScrollRef.current) {
-                    // Scroll only once on initial call to highlighted row:
-                    window.scrollTo(0, this.myScrollRef.current.offsetTop);
-                }
-                if (translations) this.setState({ translations }); // Only returned on initial call.
-                if (initial && initFilter) this.setState({ filter: initFilter });
+        this.setState({ loading: true }, () => {
+            const { filter } = this.state;
+            const { highlightTaskId, showRootForAdmins } = this.props;
+            fetch(getServiceURL('task/tree', {
+                table: true, // Result expected as table not as tree.
+                initial: initial || '',
+                open: open || '',
+                highlightedTaskId: highlightTaskId || '',
+                close: close || '',
+                searchString: filter.searchString,
+                opened: filter.opened,
+                notOpened: filter.notOpened,
+                closed: filter.closed,
+                deleted: filter.deleted,
+                showRootForAdmins,
+            }), {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    Accept: 'application/json',
+                },
             })
-            .catch(() => this.setState({ loading: false }));
+                .then(response => response.json())
+                .then((json) => {
+                    const {
+                        root,
+                        translations,
+                        initFilter,
+                        columnsVisibility,
+                    } = json;
+                    this.setState({
+                        nodes: root.childs,
+                        loading: false,
+                        columnsVisibility: columnsVisibility || [],
+                    });
+                    if (initial && this.myScrollRef.current) {
+                        // Scroll only once on initial call to highlighted row:
+                        window.scrollTo(0, this.myScrollRef.current.offsetTop);
+                    }
+                    if (translations) { // Only returned on initial call.
+                        this.setState({ translations });
+                    }
+                    if (initial && initFilter) this.setState({ filter: initFilter });
+                })
+                .catch(() => this.setState({ loading: false }));
+        });
     }
 
     render() {
@@ -212,7 +214,8 @@ class TaskTreePanel extends React.Component {
                                 <tr>
                                     <th>{translations.task}</th>
                                     <th>{translations['task.consumption']}</th>
-                                    {columnsVisibility.kost2 ? <th>{translations['fibu.kost2']}</th> : undefined}
+                                    {columnsVisibility.kost2 ?
+                                        <th>{translations['fibu.kost2']}</th> : undefined}
                                     {!shortForm && columnsVisibility.orders
                                         ? <th>{translations['fibu.auftrag.auftraege']}</th> : undefined}
                                     <th>{translations.shortDescription}</th>
@@ -304,9 +307,9 @@ class TaskTreePanel extends React.Component {
                                         >
                                             <td>{link}</td>
                                             <td>
-                                                <ConsumptionBar progress={task.consumption} />
+                                                <ConsumptionBar progress={task.consumption}/>
                                             </td>
-                                            {columnsVisibility.kost2 ? <td>...</td> : undefined }
+                                            {columnsVisibility.kost2 ? <td>...</td> : undefined}
                                             {!shortForm && columnsVisibility.orders
                                                 ? <td>...</td> : undefined}
                                             <td>{task.shortDescription}</td>
@@ -356,6 +359,7 @@ TaskTreePanel.propTypes = {
     highlightTaskId: PropTypes.number,
     shortForm: PropTypes.bool,
     showRootForAdmins: PropTypes.bool,
+    visible: PropTypes.bool.isRequired,
 };
 
 TaskTreePanel.defaultProps = {
