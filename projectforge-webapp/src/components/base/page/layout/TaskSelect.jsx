@@ -166,6 +166,7 @@ class TaskSelect extends React.Component {
                 highlightTaskId={taskTreeModalHighlight || (task ? task.id : undefined)}
                 shortForm
                 showRootForAdmins={showRootForAdmins}
+                visible={taskTreePanelVisible}
             />
         );
         const taskPanel = showInline ? (
