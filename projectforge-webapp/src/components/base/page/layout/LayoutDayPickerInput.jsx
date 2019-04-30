@@ -24,11 +24,12 @@ class LayoutDayPickerInput extends React.Component {
             return;
         }
 
-        changeDataField(
-            id,
-            timezone(day)
-                .format('YYYY-MM-DD'),
-        );
+        if (!day) {
+            // Reset day.
+            changeDataField(id, null);
+        } else {
+            changeDataField(id, timezone(day).format('YYYY-MM-DD'));
+        }
     }
 
     render() {
