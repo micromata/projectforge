@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 
 @RestController
-@RequestMapping("${Rest.URL}/teamEventCal")
+@RequestMapping("${Rest.URL}/teamEvent")
 class TeamEventRest() : AbstractStandardRest<TeamEventDO, TeamEventDao, TeamEventFilter>(
         TeamEventDao::class.java,
         TeamEventFilter::class.java,
