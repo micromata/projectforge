@@ -42,6 +42,11 @@
       <artifactId>projectforge-jax-rs</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>projectforge-webapp</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <!-- PF 'Plugins' -->
     <dependency>
