@@ -7,10 +7,7 @@ import org.projectforge.business.task.TaskFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.rest.dto.Task
-import org.projectforge.ui.LayoutUtils
-import org.projectforge.ui.UILayout
-import org.projectforge.ui.UITable
-import org.projectforge.ui.ValidationError
+import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -59,7 +56,8 @@ class TaskRest()
      */
     override fun createEditLayout(dataObject: TaskDO): UILayout {
         val layout = super.createEditLayout(dataObject)
-                .add(lc, "title")
+                .add(lc, "parentTask", "title", "status", "priority", "responsibleUser", "shortDescription", "reference", "description")
+        layout.add(UIRow().add(UICol().add(UIInput("protectTimesheetsUntil", lc, dataType = UIDataType.DATE))))
 
         return LayoutUtils.processEditPage(layout, dataObject)
     }
