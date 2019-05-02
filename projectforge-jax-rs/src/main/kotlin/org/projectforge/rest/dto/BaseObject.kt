@@ -110,7 +110,7 @@ open class BaseObject<T : DefaultBaseDO>(var id: Int? = null,
     }
 
     /**
-     * Copy only minimal fields. Id at default, if not overridden.
+     * Copy only minimal fields. Id at default, if not overridden. This method is usally used for embedded objects.
      */
     open fun copyFromMinimal(src: T) {
         id = src.id
