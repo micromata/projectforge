@@ -165,8 +165,8 @@ class PFDateTime {
             if (date == null)
                 return if (nowIfNull) now() else null
             if (date is java.sql.Date) { // Yes, this occurs!
-                val date = date.toLocalDate()
-                return PFDateTime.from(date)
+                val localDate = date.toLocalDate()
+                return PFDateTime.from(localDate)
             } else {
                 val dateTime = date.toInstant().atZone(getUsersZoneId());
                 return PFDateTime(dateTime)
