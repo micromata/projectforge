@@ -6,6 +6,10 @@ import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Field
 import java.util.*
 
+/**
+ * BaseObject is a DTO representation of a DefaultBaseDO. It copies most fields automatically by name and type from
+ * DTO to DefaultBaseDO and vice versa.
+ */
 open class BaseObject<T : DefaultBaseDO>(var id: Int? = null,
                                          var created: Date? = null,
                                          var isDeleted: Boolean? = null,
@@ -71,6 +75,7 @@ open class BaseObject<T : DefaultBaseDO>(var id: Int? = null,
                                 }
                             } else {
                                 if (BaseObject::class.java.isAssignableFrom(destType) && DefaultBaseDO::class.java.isAssignableFrom(srcField.type)) {
+                                    // Copy DefaultBaseDO -> BaseObject
                                     srcField.setAccessible(true);
                                     val srcValue = srcField.get(src)
                                     if (srcValue != null) {
@@ -79,6 +84,17 @@ open class BaseObject<T : DefaultBaseDO>(var id: Int? = null,
                                         destField.setAccessible(true)
                                         destField.set(dest, instance)
                                     }
+                                } else if (DefaultBaseDO::class.java.isAssignableFrom(destType) && BaseObject::class.java.isAssignableFrom(srcField.type)) {
+                                    // Copy BaseObject -> DefaultBaseDO
+                                    srcField.setAccessible(true);
+                                    val srcValue = srcField.get(src)
+                                    if (srcValue != null) {
+                                        val instance = destType.newInstance()
+                                        (instance as DefaultBaseDO).id = (srcValue as BaseObject<*>).id
+                                        destField.setAccessible(true)
+                                        destField.set(dest, instance)
+                                    }
+
                                 } else {
                                     if (srcField.type.isPrimitive) { // boolean, ....
                                         var value: Any? = null
