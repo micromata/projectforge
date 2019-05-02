@@ -33,7 +33,11 @@ import javax.servlet.http.HttpSession
  * It's recommended for the frontend to develop generic list and edit pages by using the layout information served
  * by these rest services.
  */
-abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter>(
+abstract class AbstractStandardRest<
+        O : ExtendedBaseDO<Int>,
+        DTO : Any, // DTO may be equals to O if no special data transfer objects are used.
+        B : BaseDao<O>,
+        F : BaseSearchFilter>(
         private val baseDaoClazz: Class<B>,
         private val filterClazz: Class<F>,
         private val i18nKeyPrefix: String) {
@@ -87,6 +91,12 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
      */
     protected var restHelper = RestHelper()
 
+    /**
+     * If true, T (data transfer objects will be used). If false, the data base objects will be used for the
+     * rest interface. If true, the transform methods must be implemented.
+     */
+    protected var useDTO = false
+
     @Autowired
     private lateinit var accessChecker: AccessChecker
 
@@ -131,7 +141,7 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
         return restPath!!
     }
 
-    fun getCategory(): String {
+    private fun getCategory(): String {
         if (category == null) {
             category = getRestPath().removePrefix("${Rest.URL}/")
         }
@@ -198,7 +208,7 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
         val filter: F = listFilterService.getSearchFilter(session, filterClazz) as F
         if (filter.maxRows <= 0)
             filter.maxRows = 50
-        filter.setSortAndLimitMaxRowsWhileSelect(true)
+        filter.isSortAndLimitMaxRowsWhileSelect = true
         val resultSet = restHelper.getList(this, baseDao, filter)
         processResultSetBeforeExport(resultSet)
         val layout = createListLayout()
@@ -232,7 +242,7 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
      * Get the list of all items matching the given filter.
      */
     @RequestMapping(RestPaths.LIST)
-    fun <O> getList(request: HttpServletRequest, @RequestBody filter: MagicFilter<F>): ResultSet<Any> {
+    fun getList(request: HttpServletRequest, @RequestBody filter: MagicFilter<F>): ResultSet<Any> {
         val resultSet = restHelper.getList(this, baseDao, filter.prepareQueryFilter(filterClazz))
         processResultSetBeforeExport(resultSet)
         val storedFilter = listFilterService.getSearchFilter(request.session, filterClazz)
@@ -241,7 +251,27 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
     }
 
     open fun processResultSetBeforeExport(resultSet: ResultSet<Any>) {
+        if (useDTO) {
+            val orig = resultSet.resultSet
+            resultSet.resultSet = orig.map {
+                transformDO(it as O)
+            }
+        }
         resultSet.resultSet.forEach { processItemBeforeExport(it) }
+    }
+
+    /**
+     * Must be overridden if flag [useDTO] is true. Throws [UnsupportedOperationException] at default.
+     */
+    open fun transformDO(obj: O): DTO {
+        throw UnsupportedOperationException("Method transform(O) must be implemented if flag useDTO is set to true.")
+    }
+
+    /**
+     * Must be overridden if flag [useDTO] is true. Throws [UnsupportedOperationException] at default.
+     */
+    open fun transformDTO(dto: DTO): O {
+        throw UnsupportedOperationException("Method transform(Any)  must be implemented if flag useDTO is set to true.")
     }
 
     /**
@@ -250,9 +280,12 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
      * layout will be also included if the id is not given.
      */
     @GetMapping("{id}")
-    fun getItem(@PathVariable("id") id: Int?): ResponseEntity<O> {
+    fun getItem(@PathVariable("id") id: Int?): ResponseEntity<Any> {
         val item = getById(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
-        return ResponseEntity<O>(item, HttpStatus.OK)
+        if (useDTO) {
+            return ResponseEntity<Any>(transformDO(item), HttpStatus.OK)
+        }
+        return ResponseEntity<Any>(item, HttpStatus.OK)
     }
 
     protected fun getById(id: Int?): O? {
@@ -275,7 +308,12 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
         val layout = createEditLayout(item)
         layout.addTranslations("changes", "tooltip.selectMe")
         layout.postProcessPageMenu()
-        val result = EditLayoutData(item, layout)
+        val result =
+                if (useDTO) {
+                    EditLayoutData(transformDO(item), layout)
+                } else {
+                    EditLayoutData(item, layout)
+                }
         onGetItemAndLayout(request, item, result)
         val additionalVariables = addVariablesForEditPage(item)
         if (additionalVariables != null)
@@ -319,7 +357,9 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
         return ResponseEntity<List<HistoryService.DisplayHistoryEntry>>(historyService.format(historyEntries), HttpStatus.OK)
     }
 
-
+    /**
+     * Override this method for manipulating entries before exporting them (list and edit view).
+     */
     open fun processItemBeforeExport(item: Any) {
     }
 
@@ -339,16 +379,18 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
      * Use this service for adding new items as well as updating existing items (id isn't null).
      */
     @PutMapping(RestPaths.SAVE_OR_UDATE)
-    fun saveOrUpdate(request: HttpServletRequest, @RequestBody obj: O): ResponseEntity<ResponseAction> {
-        return restHelper.saveOrUpdate(request, baseDao, obj, this, validate(obj))
+    fun saveOrUpdate(request: HttpServletRequest, @RequestBody T: DTO): ResponseEntity<ResponseAction> {
+        val dbObj = asDO(T)
+        return restHelper.saveOrUpdate(request, baseDao, dbObj, this, validate(dbObj))
     }
 
     /**
      * The given object (marked as deleted before) will be undeleted.
      */
     @PutMapping(RestPaths.UNDELETE)
-    fun undelete(@RequestBody obj: O): ResponseEntity<ResponseAction> {
-        return restHelper.undelete(baseDao, obj, this, validate(obj))
+    fun undelete(@RequestBody T: DTO): ResponseEntity<ResponseAction> {
+        val dbObj = asDO(T)
+        return restHelper.undelete(baseDao, dbObj, this, validate(dbObj))
     }
 
     /**
@@ -356,8 +398,9 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
      * Please note, if you try to delete a historizable data base object, an exception will be thrown.
      */
     @DeleteMapping(RestPaths.MARK_AS_DELETED)
-    fun markAsDeleted(@RequestBody obj: O): ResponseEntity<ResponseAction> {
-        return restHelper.markAsDeleted(baseDao, obj, this, validate(obj))
+    fun markAsDeleted(@RequestBody T: DTO): ResponseEntity<ResponseAction> {
+        val dbObj = asDO(T)
+        return restHelper.markAsDeleted(baseDao, dbObj, this, validate(dbObj))
     }
 
     /**
@@ -365,8 +408,9 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
      * Please note, if you try to mark a non-historizable data base object, an exception will be thrown.
      */
     @DeleteMapping(RestPaths.DELETE)
-    fun delete(@RequestBody obj: O): ResponseEntity<ResponseAction> {
-        return restHelper.delete(baseDao, obj, this, validate(obj))
+    fun delete(@RequestBody T: DTO): ResponseEntity<ResponseAction> {
+        val dbObj = asDO(T)
+        return restHelper.delete(baseDao, dbObj, this, validate(dbObj))
     }
 
     /**
@@ -375,8 +419,9 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
      * @return ResponseAction
      */
     @PostMapping(RestPaths.CANCEL)
-    fun cancelEdit(request: HttpServletRequest, @RequestBody obj: O): ResponseAction {
-        return cancelEdit(request, obj, getRestPath())
+    fun cancelEdit(request: HttpServletRequest, @RequestBody T: DTO): ResponseAction {
+        val dbObj = asDO(T)
+        return cancelEdit(request, dbObj, getRestPath())
     }
 
     /**
@@ -448,5 +493,13 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
             return resultSet.take(filter.maxRows)
         }
         return resultSet
+    }
+
+    private fun asDO(dto: DTO): O {
+        return if (useDTO) {
+            transformDTO(dto)
+        } else {
+            dto as O
+        }
     }
 }

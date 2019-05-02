@@ -9,7 +9,7 @@ import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 
 @RequestMapping("${Rest.URL}/addressBook")
-class AddressBookRest() : AbstractStandardRest<AddressbookDO, AddressbookDao, AddressbookFilter>(AddressbookDao::class.java, AddressbookFilter::class.java, "addressbook.title") {
+class AddressBookRest() : AbstractStandardRest<AddressbookDO, AddressbookDO, AddressbookDao, AddressbookFilter>(AddressbookDao::class.java, AddressbookFilter::class.java, "addressbook.title") {
 
     /**
      * LAYOUT List page

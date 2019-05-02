@@ -24,8 +24,10 @@
 package org.projectforge.business.address
 
 import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.hibernate.search.annotations.*
-import org.hibernate.search.annotations.Index
+import org.hibernate.search.annotations.ClassBridge
+import org.hibernate.search.annotations.Field
+import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsBridge
 import org.projectforge.common.anots.PropertyInfo
@@ -68,12 +70,12 @@ class AddressbookDO : BaseUserGroupRightsDO() {
         return hcb.hashCode()
     }
 
-    override fun equals(o: Any?): Boolean {
-        if (this === o) return true
-        if (o == null || o !is AddressbookDO) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || other !is AddressbookDO) {
             return false
         }
-        return Objects.equals(this.id, o.id)
+        return Objects.equals(this.id, other.id)
     }
 
     /**

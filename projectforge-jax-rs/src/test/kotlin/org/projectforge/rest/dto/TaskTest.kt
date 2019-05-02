@@ -43,8 +43,8 @@ class TaskTest {
         assertNotNull(dest.responsibleUser)
         assertEquals("kai", dest.responsibleUser?.username)
         assertNull(dest.responsibleUser?.email, "Do not copy email for minimal copy.")
-        assertTrue(dest.protectionOfPrivacy)
-        assertFalse(dest.kost2IsBlackList)
+        assertTrue(dest.protectionOfPrivacy == true)
+        assertFalse(dest.kost2IsBlackList == true)
 
 
         dest = Task()
