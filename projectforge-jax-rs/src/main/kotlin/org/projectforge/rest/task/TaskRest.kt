@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("${Rest.URL}/taskCal")
+@RequestMapping("${Rest.URL}/task")
 class TaskRest()
     : AbstractStandardRest<TaskDO, TaskDao, TaskFilter>(TaskDao::class.java, TaskFilter::class.java, "task.title") {
 
