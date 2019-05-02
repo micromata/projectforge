@@ -202,6 +202,7 @@
     <module>projectforge-model</module>
     <module>projectforge-business</module>
     <module>projectforge-jax-rs</module>
+    <module>projectforge-webapp</module>
     <module>projectforge-wicket</module>
     <module>plugins</module>
     <module>projectforge-application</module>
@@ -215,6 +216,7 @@
         <module>projectforge-model</module>
         <module>projectforge-business</module>
         <module>projectforge-jax-rs</module>
+        <module>projectforge-webapp</module>
         <module>projectforge-wicket</module>
         <module>plugins</module>
         <module>projectforge-application</module>
