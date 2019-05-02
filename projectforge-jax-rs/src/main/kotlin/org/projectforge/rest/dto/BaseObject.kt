@@ -48,11 +48,18 @@ open class BaseObject<T : DefaultBaseDO>(var id: Int? = null,
             val srcClazz = src.javaClass
             destFields.forEach { destField ->
                 val destType = destField.type
-                var srcField: Field?
-                if (destField.name != "log" && destField.name != "serialVersionUID" && destField.name != "Companion") {
-                    // Fields log, serialVersionUID and Companion may result in Exceptions and shouldn't be copied in any case.
+                var srcField: Field? = null
+                if (destField.name != "log"
+                        && destField.name != "serialVersionUID"
+                        && destField.name != "Companion"
+                        && !destField.name.startsWith("$")) {
+                    // Fields log, serialVersionUID, Companion and $* may result in Exceptions and shouldn't be copied in any case.
                     try {
                         srcField = srcClazz.getDeclaredField(destField.name)
+                    } catch (ex: Exception) {
+                        log.debug("srcField named '${destField.name}' not found in class '$srcClazz'. Can't copy it to destination of type '$destClazz'. Ignoring...")
+                    }
+                    try {
                         if (srcField != null) {
                             if (srcField.type == destType) {
                                 if (Collection::class.java.isAssignableFrom(destType)) {
@@ -69,7 +76,7 @@ open class BaseObject<T : DefaultBaseDO>(var id: Int? = null,
                                     if (srcValue != null) {
                                         val instance = destType.newInstance()
                                         (instance as BaseObject<*>)._copyFromMinimal(srcValue)
-                                        destField.setAccessible(true);
+                                        destField.setAccessible(true)
                                         destField.set(dest, instance)
                                     }
                                 } else {
@@ -86,7 +93,7 @@ open class BaseObject<T : DefaultBaseDO>(var id: Int? = null,
                                             destField.set(dest, value)
                                         }
                                     } else {
-                                        log.error("Unsupported field to copy from '$srcClazz.${destField.name}' of type '${srcField.type.name}' to '$destClazz.${destField.name}' of type '${destType.name}'.")
+                                        log.debug("Unsupported field to copy from '$srcClazz.${destField.name}' of type '${srcField.type.name}' to '$destClazz.${destField.name}' of type '${destType.name}'.")
                                     }
                                 }
                             }
