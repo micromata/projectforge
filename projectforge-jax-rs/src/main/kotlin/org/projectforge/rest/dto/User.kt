@@ -6,6 +6,10 @@ class User(id: Int? = null,
            var username: String? = null,
            var firstname: String? = null,
            var lastname: String? = null,
+           /**
+            * Only for displaying purposes. Will be ignored on save or update.
+            */
+           var fullname: String? = null,
            var description: String? = null,
            var email: String? = null
 ) : BaseObject<PFUserDO>(id = id) {
@@ -13,5 +17,6 @@ class User(id: Int? = null,
     override fun copyFromMinimal(src: PFUserDO) {
         super.copyFromMinimal(src)
         username = src.username
+        fullname = src.fullname
     }
 }
