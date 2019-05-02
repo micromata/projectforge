@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/incomingMail")
-class PosteingangRest(): AbstractStandardRest<PosteingangDO, PosteingangDao, PostFilter>(PosteingangDao::class.java, PostFilter::class.java, "orga.posteingang.title") {
+class PosteingangRest(): AbstractStandardRest<PosteingangDO, PosteingangDO, PosteingangDao, PostFilter>(PosteingangDao::class.java, PostFilter::class.java, "orga.posteingang.title") {
 
     override fun newBaseDO(request: HttpServletRequest): PosteingangDO {
         val inbox = super.newBaseDO(request)

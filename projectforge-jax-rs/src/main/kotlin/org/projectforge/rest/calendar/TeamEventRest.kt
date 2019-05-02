@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/teamEvent")
-class TeamEventRest() : AbstractStandardRest<TeamEventDO, TeamEventDao, TeamEventFilter>(
+class TeamEventRest() : AbstractStandardRest<TeamEventDO, TeamEventDO, TeamEventDao, TeamEventFilter>(
         TeamEventDao::class.java,
         TeamEventFilter::class.java,
         "plugins.teamcal.event.title") {
@@ -22,7 +22,7 @@ class TeamEventRest() : AbstractStandardRest<TeamEventDO, TeamEventDao, TeamEven
     @Autowired
     private lateinit var teamCalDao: TeamCalDao
 
-    override protected fun onGetItemAndLayout(request: HttpServletRequest, item: TeamEventDO, editLayoutData: EditLayoutData) {
+    override protected fun onGetItemAndLayout(request: HttpServletRequest, item: TeamEventDO, editLayoutData: AbstractStandardRest.EditLayoutData) {
         val recurrentDateString = request.getParameter("recurrentDate")
         println("TeamEventRest: recurrentDate=$recurrentDateString")
     }
