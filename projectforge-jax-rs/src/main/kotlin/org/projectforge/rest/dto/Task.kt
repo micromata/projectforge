@@ -35,12 +35,10 @@ class Task(var parentTask: Task? = null,
 
     override fun copyFromMinimal(src: TaskDO) {
         super.copyFromMinimal(src)
-        if (src is TaskDO) {
             title = src.title
-            if (src.parentTask != null) {
-                parentTask = Task()
-                parentTask?.copyFromMinimal(src.parentTask)
-            }
+        if (src.parentTask != null) {
+            parentTask = Task()
+            parentTask?.copyFromMinimal(src.parentTask)
         }
     }
 }
