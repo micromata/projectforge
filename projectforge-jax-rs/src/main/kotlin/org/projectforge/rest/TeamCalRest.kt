@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/teamCal")
-class TeamCalRest() : AbstractStandardRest<TeamCalDO, TeamCalDao, TeamCalFilter>(TeamCalDao::class.java, TeamCalFilter::class.java, "plugins.teamcal.title") {
+class TeamCalRest() : AbstractStandardRest<TeamCalDO, TeamCalDO, TeamCalDao, TeamCalFilter>(TeamCalDao::class.java, TeamCalFilter::class.java, "plugins.teamcal.title") {
 
     override fun validate(validationErrors: MutableList<ValidationError>, obj: TeamCalDO) {
     }

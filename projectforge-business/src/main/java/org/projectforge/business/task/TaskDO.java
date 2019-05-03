@@ -23,40 +23,18 @@
 
 package org.projectforge.business.task;
 
-import java.math.BigDecimal;
-import java.util.Date;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.persistence.UniqueConstraint;
-
+import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.hibernate.search.annotations.Analyze;
-import org.hibernate.search.annotations.ClassBridge;
-import org.hibernate.search.annotations.DateBridge;
-import org.hibernate.search.annotations.EncodingType;
-import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.FieldBridge;
 import org.hibernate.search.annotations.Index;
-import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.IndexedEmbedded;
-import org.hibernate.search.annotations.Resolution;
-import org.hibernate.search.annotations.Store;
+import org.hibernate.search.annotations.*;
 import org.hibernate.search.bridge.builtin.IntegerBridge;
 import org.projectforge.business.gantt.GanttObjectType;
 import org.projectforge.business.gantt.GanttRelationType;
 import org.projectforge.common.StringHelper;
+import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.common.task.TaskStatus;
 import org.projectforge.common.task.TimesheetBookingStatus;
@@ -64,12 +42,14 @@ import org.projectforge.framework.persistence.api.ShortDisplayNameCapable;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
-import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist;
+import javax.persistence.*;
+import java.math.BigDecimal;
+import java.util.Date;
 
 /**
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @Entity
 @Indexed
@@ -104,18 +84,24 @@ public class TaskDO extends DefaultBaseDO implements ShortDisplayNameCapable, Cl
 
   private static final long serialVersionUID = -9167354530511386533L;
 
+  @PropertyInfo(i18nKey = "task.parentTask")
   private TaskDO parentTask = null;
 
+  @PropertyInfo(i18nKey = "task.title")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String title;
 
+  @PropertyInfo(i18nKey = "status")
   private TaskStatus status = TaskStatus.N;
 
+  @PropertyInfo(i18nKey = "priority")
   private Priority priority;
 
+  @PropertyInfo(i18nKey = "shortDescription")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String shortDescription;
 
+  @PropertyInfo(i18nKey = "description")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String description;
 
@@ -123,44 +109,55 @@ public class TaskDO extends DefaultBaseDO implements ShortDisplayNameCapable, Cl
   @Deprecated
   @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */, store = Store.NO,
   bridge = @FieldBridge(impl = IntegerBridge.class))
+  @PropertyInfo(i18nKey = "task.progress")
   private Integer progress;
 
   @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */, store = Store.NO,
           bridge = @FieldBridge(impl = IntegerBridge.class))
+  @PropertyInfo(i18nKey = "task.maxHours")
   private Integer maxHours;
 
   /** -&gt; Gantt */
   @Deprecated
   @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
   @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+  @PropertyInfo(i18nKey = "gantt.startDate")
   private Date startDate;
 
   /** -&gt; Gantt */
   @Deprecated
   @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
   @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+  @PropertyInfo(i18nKey = "gantt.endDate")
   private Date endDate;
 
   /** -&gt; Gantt */
   @Deprecated
+  @PropertyInfo(i18nKey = "gantt.duration")
   private BigDecimal duration;
 
   @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
   @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+  @PropertyInfo(i18nKey = "task.protectTimesheetsUntil")
   private Date protectTimesheetsUntil;
 
   @IndexedEmbedded(depth = 1)
+  @PropertyInfo(i18nKey = "task.assignedUser")
   private PFUserDO responsibleUser;
 
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
+  @PropertyInfo(i18nKey = "task.reference")
   private String reference;
 
+  @PropertyInfo(i18nKey = "task.timesheetBooking")
   private TimesheetBookingStatus timesheetBookingStatus = TimesheetBookingStatus.DEFAULT;
 
+  @PropertyInfo(i18nKey = "fibu.kost2")
   private String kost2BlackWhiteList;
 
   private boolean kost2IsBlackList;
 
+  @PropertyInfo(i18nKey = "task.protectionOfPrivacy")
   private boolean protectionOfPrivacy;
 
   @Deprecated
@@ -169,22 +166,27 @@ public class TaskDO extends DefaultBaseDO implements ShortDisplayNameCapable, Cl
   /** -&gt; Gantt */
   @Deprecated
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
+  @PropertyInfo(i18nKey = "task.parentTask")
   private String workpackageCode;
 
   /** -&gt; Gantt */
   @Deprecated
+  @PropertyInfo(i18nKey = "task.parentTask")
   private Integer ganttPredecessorOffset;
 
   /** -&gt; Gantt */
   @Deprecated
+  @PropertyInfo(i18nKey = "task.parentTask")
   private GanttRelationType ganttRelationType;
 
   /** -&gt; Gantt */
   @Deprecated
+  @PropertyInfo(i18nKey = "task.parentTask")
   private GanttObjectType ganttObjectType;
 
   /** -&gt; Gantt */
   @Deprecated
+  @PropertyInfo(i18nKey = "task.parentTask")
   private TaskDO ganttPredecessor;
 
   @Column(name = "description", length = DESCRIPTION_LENGTH)
@@ -241,7 +243,7 @@ public class TaskDO extends DefaultBaseDO implements ShortDisplayNameCapable, Cl
 
   /**
    * Please use getTitle() instead. getName() should only be used in Groovy scripts.
-   * 
+   *
    * @return The title.
    */
   @Deprecated
@@ -291,7 +293,7 @@ public class TaskDO extends DefaultBaseDO implements ShortDisplayNameCapable, Cl
    * diesem Datum die Zeitberichte bereits berechnet wurden. Nur die Buchhaltung (PF_Finance) kann noch Änderungen
    * vornehmen. Auch können diese Zeitberichte nicht mehr in der Dauer geändert oder gelöscht bzw. außerhalb des Tasks
    * verschoben werden.
-   * 
+   *
    * @return
    */
   @Column(name = "protect_timesheets_until")
@@ -438,7 +440,7 @@ public class TaskDO extends DefaultBaseDO implements ShortDisplayNameCapable, Cl
 
   /**
    * Get the items of the kost2 black white list as string array.
-   * 
+   *
    * @return The items as string array or null, if black white list is null.
    * @see StringHelper#splitAndTrim(String, String)
    */
@@ -450,7 +452,7 @@ public class TaskDO extends DefaultBaseDO implements ShortDisplayNameCapable, Cl
 
   /**
    * Get the items of the kost2 black white list as string array.
-   * 
+   *
    * @return The items as string array or null, if black white list is null.
    * @see StringHelper#splitAndTrim(String, String)
    */
@@ -491,7 +493,7 @@ public class TaskDO extends DefaultBaseDO implements ShortDisplayNameCapable, Cl
   /**
    * If set then normal user are not allowed to select (read) the time sheets of other users of this task and all sub
    * tasks. This is important e. g. for hiding the days of illness of an employee.
-   * 
+   *
    * @return True if the flag is set.
    */
   @Column(name = "protectionOfPrivacy", nullable = false, columnDefinition = "BOOLEAN DEFAULT 'false'")
@@ -548,7 +550,7 @@ public class TaskDO extends DefaultBaseDO implements ShortDisplayNameCapable, Cl
 
   /**
    * Duration in days.
-   * 
+   *
    * @see org.projectforge.business.gantt.GanttTask#getDuration()
    */
   /** -&gt; Gantt */
@@ -722,7 +724,7 @@ public class TaskDO extends DefaultBaseDO implements ShortDisplayNameCapable, Cl
 
   /**
    * Used for building read-only clone in ScriptingTaskNode.
-   * 
+   *
    * @see java.lang.Object#clone()
    */
   @Override

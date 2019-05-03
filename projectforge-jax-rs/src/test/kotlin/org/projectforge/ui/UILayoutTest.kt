@@ -115,7 +115,7 @@ class UILayoutTest : AbstractTestBase() {
         assertEquals("BUTTON", jsonValidator.get("actions[0].type"))
         assertEquals("el-15", jsonValidator.get("actions[0].key"))
 
-        assertEquals("primary", jsonValidator.get("actions[1].style"))
+        assertEquals("PRIMARY", jsonValidator.get("actions[1].style")) // Gson doesn't know JsonProperty of Jacskon.
     }
 
     private fun assertField(element: Map<String, *>?, id: String, maxLength: Double, dataType: String?, label: String, type: String, key: String) {
