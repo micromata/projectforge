@@ -28,9 +28,9 @@ class AddressBookRest() : AbstractStandardRest<AddressbookDO, AddressbookDO, Add
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
-                        .add(lc, "title", "description", "owner", "accessright", "last modification"))
+                        .add(lc, "title", "description", "owner", "accessright", "last_update"))
         layout.getTableColumnById("owner").formatter = Formatter.USER
-        layout.getTableColumnById("last modification").formatter = Formatter.TIMESTAMP_MINUTES
+        layout.getTableColumnById("last_update").formatter = Formatter.TIMESTAMP_MINUTES
         return LayoutUtils.processListPage(layout)
     }
 

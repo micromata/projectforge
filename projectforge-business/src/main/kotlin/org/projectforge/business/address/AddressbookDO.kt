@@ -43,7 +43,7 @@ import javax.persistence.*
 @Entity
 @Indexed
 @ClassBridge(name = "usersgroups", impl = HibernateSearchUsersGroupsBridge::class)
-@Table(name = "T_ADDRESSBOOK", indexes = [javax.persistence.Index(name = "idx_fk_t_addressbook_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_ADDRESSBOOK", indexes = [Index(name = "idx_fk_t_addressbook_tenant_id", columnList = "tenant_id")])
 class AddressbookDO : BaseUserGroupRightsDO() {
 
     @PropertyInfo(i18nKey = "addressbook.title")
@@ -83,8 +83,7 @@ class AddressbookDO : BaseUserGroupRightsDO() {
      * @return
      */
     override fun toString(): String {
-        return object : ReflectionToString(this) {
-        }.toString()
+        return object : ReflectionToString(this) {}.toString()
     }
 
     companion object {
