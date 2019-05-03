@@ -4,7 +4,7 @@ import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.address.AddressbookDao
 import org.projectforge.business.address.AddressbookFilter
 import org.projectforge.business.group.service.GroupService
-import org.projectforge.business.user.UserDao
+import org.projectforge.business.user.service.UserService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.rest.dto.Addressbook
@@ -26,10 +26,10 @@ class AddressBookRest() : AbstractStandardRest<AddressbookDO, Addressbook, Addre
     }
 
     @Autowired
-    var groupService: GroupService? = null
+    private lateinit var groupService: GroupService
 
     @Autowired
-    var userDao: UserDao? = null
+    private lateinit var userService: UserService
 
     // Needed to use as dto.
     override fun transformDO(obj: AddressbookDO): Addressbook {
@@ -62,18 +62,15 @@ class AddressBookRest() : AbstractStandardRest<AddressbookDO, Addressbook, Addre
      * LAYOUT Edit page
      */
     override fun createEditLayout(dataObject: AddressbookDO): UILayout {
-        val groupDOs = groupService?.sortedGroups
-        val groups = mutableListOf<UISelectValue<Int>>()
-        groupDOs?.forEach {
-            groups.add(UISelectValue(it.id, it.name))
+        val allGroups = mutableListOf<UISelectValue<Int>>()
+        groupService.sortedGroups?.forEach {
+            allGroups.add(UISelectValue(it.id, it.name))
         }
 
-        // val usersProvider = UsersProvider(userDao)
-        //val userDOs = usersProvider.sortedUsers
-        val users = mutableListOf<UISelectValue<Int>>()
-        //userDOs?.forEach {
-        //    groups.add(UISelectValue(it.id, it.fullname))
-        //}
+        val allUsers = mutableListOf<UISelectValue<Int>>()
+        userService.sortedUsers?.forEach {
+            allGroups.add(UISelectValue(it.id, it.fullname))
+        }
 
         val layout = super.createEditLayout(dataObject)
                 .add(UIRow()
@@ -84,21 +81,29 @@ class AddressBookRest() : AbstractStandardRest<AddressbookDO, Addressbook, Addre
                                 .add(lc, "owner")))
                 .add(UIRow()
                         .add(UICol()
-                                .add(UIMultiSelect("userList", lc,
-                                        values = users,
+                                .add(UIMultiSelect("fullAccessUserIds", lc,
+                                        label = "addressbook.fullAccess",
+                                        additionalLabel = "access.users",
+                                        values = allUsers,
                                         labelProperty = "fullname",
                                         valueProperty = "id"))
-                                .add(UIMultiSelect("userList", lc,
-                                        values = users,
+                                .add(UIMultiSelect("readonlyAccessUserIds", lc,
+                                        label = "addressbook.readonlyAccess",
+                                        additionalLabel = "access.users",
+                                        values = allUsers,
                                         labelProperty = "fullname",
                                         valueProperty = "id")))
                         .add(UICol()
-                                .add(UIMultiSelect("userList", lc,
-                                        values = groups,
+                                .add(UIMultiSelect("fullAccessGroupIds", lc,
+                                        label = "addressbook.fullAccess",
+                                        additionalLabel = "access.groups",
+                                        values = allGroups,
                                         labelProperty = "name",
                                         valueProperty = "id"))
-                                .add(UIMultiSelect("userList", lc,
-                                        values = groups,
+                                .add(UIMultiSelect("readonlyAccessUserIds", lc,
+                                        label = "addressbook.readonlyAccess",
+                                        additionalLabel = "access.groups",
+                                        values = allGroups,
                                         labelProperty = "name",
                                         valueProperty = "id"))))
         return LayoutUtils.processEditPage(layout, dataObject)

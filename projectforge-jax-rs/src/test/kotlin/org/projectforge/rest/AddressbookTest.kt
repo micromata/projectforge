@@ -22,8 +22,6 @@ class AddressbookTest {
         checkIntList(book.fullAccessUserIds, 1, 2, 3)
         assertNull(book.readonlyAccessGroupIds)
         checkIntList(book.readonlyAccessUserIds, 1, 3)
-        assertNull(book.minimalAccessGroupIds)
-        assertNull(book.minimalAccessUserIds)
 
         bookDO = AddressbookDO()
         book.copyTo(bookDO)
@@ -31,8 +29,6 @@ class AddressbookTest {
         assertEquals("1, 2, 3", bookDO.fullAccessUserIds)
         assertNull( bookDO.readonlyAccessGroupIds)
         assertEquals("1, 3", bookDO.readonlyAccessUserIds)
-        assertNull( bookDO.minimalAccessGroupIds)
-        assertNull( bookDO.minimalAccessUserIds)
     }
 
     private fun checkIntList(intList: List<Int>?, vararg expected: Int) {
