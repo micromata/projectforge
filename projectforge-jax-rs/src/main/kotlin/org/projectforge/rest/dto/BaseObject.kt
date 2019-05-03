@@ -6,6 +6,10 @@ import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Field
 import java.util.*
 
+/**
+ * BaseObject is a DTO representation of a DefaultBaseDO. It copies most fields automatically by name and type from
+ * DTO to DefaultBaseDO and vice versa.
+ */
 open class BaseObject<T : DefaultBaseDO>(var id: Int? = null,
                                          var created: Date? = null,
                                          var isDeleted: Boolean? = null,
@@ -42,22 +46,79 @@ open class BaseObject<T : DefaultBaseDO>(var id: Int? = null,
         private val log = org.slf4j.LoggerFactory.getLogger(BaseObject::class.java)
 
         private fun copy(src: Any, dest: Any) {
-            val fields = dest.javaClass.getDeclaredFields()
-            AccessibleObject.setAccessible(fields, true)
+            val destClazz = dest.javaClass
+            val destFields = destClazz.getDeclaredFields()
+            AccessibleObject.setAccessible(destFields, true)
             val srcClazz = src.javaClass
-            fields.forEach { field ->
-                val type = field.type
+            destFields.forEach { destField ->
+                val destType = destField.type
                 var srcField: Field? = null
-                if (field.name != "log" && field.name != "serialVersionUID" && field.name != "Companion") {
+                if (destField.name != "log"
+                        && destField.name != "serialVersionUID"
+                        && destField.name != "Companion"
+                        && !destField.name.startsWith("$")) {
+                    // Fields log, serialVersionUID, Companion and $* may result in Exceptions and shouldn't be copied in any case.
                     try {
-                        srcField = srcClazz.getDeclaredField(field.name)
-                        if (srcField != null && srcField.type == type && !Collection::class.java.isAssignableFrom(type)) {
-                            srcField.setAccessible(true);
-                            field.setAccessible(true);
-                            field.set(dest, srcField.get(src))
+                        srcField = srcClazz.getDeclaredField(destField.name)
+                    } catch (ex: Exception) {
+                        log.debug("srcField named '${destField.name}' not found in class '$srcClazz'. Can't copy it to destination of type '$destClazz'. Ignoring...")
+                    }
+                    try {
+                        if (srcField != null) {
+                            if (srcField.type == destType) {
+                                if (Collection::class.java.isAssignableFrom(destType)) {
+                                    // Do not copy collections automatically (for now).
+                                } else {
+                                    srcField.setAccessible(true);
+                                    destField.setAccessible(true);
+                                    destField.set(dest, srcField.get(src))
+                                }
+                            } else {
+                                if (BaseObject::class.java.isAssignableFrom(destType) && DefaultBaseDO::class.java.isAssignableFrom(srcField.type)) {
+                                    // Copy DefaultBaseDO -> BaseObject
+                                    srcField.setAccessible(true);
+                                    val srcValue = srcField.get(src)
+                                    if (srcValue != null) {
+                                        val instance = destType.newInstance()
+                                        (instance as BaseObject<*>)._copyFromMinimal(srcValue)
+                                        destField.setAccessible(true)
+                                        destField.set(dest, instance)
+                                    }
+                                } else if (DefaultBaseDO::class.java.isAssignableFrom(destType) && BaseObject::class.java.isAssignableFrom(srcField.type)) {
+                                    // Copy BaseObject -> DefaultBaseDO
+                                    srcField.setAccessible(true);
+                                    val srcValue = srcField.get(src)
+                                    if (srcValue != null) {
+                                        val instance = destType.newInstance()
+                                        (instance as DefaultBaseDO).id = (srcValue as BaseObject<*>).id
+                                        destField.setAccessible(true)
+                                        destField.set(dest, instance)
+                                    }
+
+                                } else {
+                                    if (srcField.type.isPrimitive) { // boolean, ....
+                                        var value: Any? = null
+                                        if (srcField.type == kotlin.Boolean::class.java) {
+                                            srcField.setAccessible(true);
+                                            value = (srcField.get(src) == true)
+                                        } else {
+                                            log.error("Unsupported field to copy from '$srcClazz.${destField.name}' of type '${srcField.type.name}' to '$destClazz.${destField.name}' of type '${destType.name}'.")
+                                        }
+                                        if (value != null) {
+                                            destField.setAccessible(true);
+                                            destField.set(dest, value)
+                                        }
+                                    } else {
+                                        log.debug("Unsupported field to copy from '$srcClazz.${destField.name}' of type '${srcField.type.name}' to '$destClazz.${destField.name}' of type '${destType.name}'.")
+                                    }
+                                }
+                            }
+                        } else {
+                            // srcField not found. Can't copy.
+                            log.debug("srcField named '${destField.name}' not found in class '$srcClazz'. Can't copy it to destination of type '$destClazz'.")
                         }
                     } catch (ex: Exception) {
-                        log.error("Error while copiing field '${field.name}' from $srcClazz to ${dest.javaClass}: ${ex.message}")
+                        log.error("Error while copiing field '${destField.name}' from $srcClazz to ${dest.javaClass}: ${ex.message}", ex)
                     }
                 }
             }
@@ -65,9 +126,17 @@ open class BaseObject<T : DefaultBaseDO>(var id: Int? = null,
     }
 
     /**
-     * Copy only minimal fields. Id at default, if not overridden.
+     * Copy only minimal fields. Id at default, if not overridden. This method is usally used for embedded objects.
      */
     open fun copyFromMinimal(src: T) {
         id = src.id
+    }
+
+    private fun _copyFromMinimal(src: Any?) {
+        if (src == null) {
+            // Nothing to copy
+            return
+        }
+        copyFromMinimal(src as T)
     }
 }

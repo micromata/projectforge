@@ -20,11 +20,9 @@ const reducer = (state = initialState, { type, payload }) => {
     switch (type) {
         case EDIT_PAGE_LOAD_BEGIN:
             return {
-                ...state,
+                ...initialState,
                 loading: true,
-                error: undefined,
                 category: payload.category,
-                validation: undefined,
             };
         case EDIT_PAGE_LOAD_SUCCESS:
             return {

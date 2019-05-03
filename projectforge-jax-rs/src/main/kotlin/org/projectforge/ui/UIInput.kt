@@ -18,7 +18,7 @@ data class UIInput(val id: String,
     /**
      * @return this for chaining.
      */
-    fun enableAutoCompletion(services: AbstractStandardRest<*, *, *>):UIInput {
+    fun enableAutoCompletion(services: AbstractStandardRest<*, *, *, *>):UIInput {
         autoCompletionUrl = "${services.getFullRestPath()}/ac?property=${id}&search="
         return this
     }

@@ -57,6 +57,7 @@ nav.bg-light {
   ul li {
     color: #fff !important;
     font-weight: 600;
+    font-size: 16px;
   }
 
   .dropdown {
@@ -211,8 +212,8 @@ fieldset {
   a[class*="Page_active_"] {
     background: #fff;
     color: #009BA3 !important;
-    font-weight: 400;
-    font-size: 15px;
+    font-weight: 500;
+    font-size: 14px;
     border: none !important;
     border-bottom: 1px solid #fff !important;
     border-top: 1px solid #007480 !important;
@@ -221,7 +222,7 @@ fieldset {
   a[class*="_navTab_"] {
     background: #fff;
     color: #676767;
-    font-size: 15px;
+    font-size: 14px;
     padding-left: 20px;
     padding-right: 20px;
     margin-right: 10px;

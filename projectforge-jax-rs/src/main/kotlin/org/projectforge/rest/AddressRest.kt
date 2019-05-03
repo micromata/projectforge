@@ -23,7 +23,7 @@ import javax.servlet.http.HttpServletRequest
 @RestController
 @RequestMapping("${Rest.URL}/address")
 class AddressRest()
-    : AbstractStandardRest<AddressDO, AddressDao, AddressFilter>(AddressDao::class.java, AddressFilter::class.java, "address.title") {
+    : AbstractStandardRest<AddressDO, AddressDO, AddressDao, AddressFilter>(AddressDao::class.java, AddressFilter::class.java, "address.title") {
 
     /**
      * For exporting list of addresses.
@@ -54,7 +54,7 @@ class AddressRest()
         return address
     }
 
-    override fun onGetItemAndLayout(request: HttpServletRequest, item: AddressDO, editLayoutData: EditLayoutData) {
+    override fun onGetItemAndLayout(request: HttpServletRequest, item: AddressDO, editLayoutData: AbstractStandardRest.EditLayoutData) {
         ExpiringSessionAttributes.removeAttribute(request.session, SESSION_IMAGE_ATTR)
     }
 
@@ -193,12 +193,13 @@ class AddressRest()
                                 .add(lc, "title", "email", "privateEmail"))
                         .add(UIFieldset(6)
                                 .add(lc, "birthday", "communicationLanguage", "organization", "division", "positionText", "website")))
-                .add(UIFieldset(12)
-                        .add(UIRow()
-                                .add(UICol(6)
-                                        .add(lc, "businessPhone", "mobilePhone", "fax"))
-                                .add(UICol(6)
-                                        .add(lc, "privatePhone", "privateMobilePhone"))))
+                .add(UIRow()
+                        .add(UIFieldset(12)
+                                .add(UIRow()
+                                        .add(UICol(6)
+                                                .add(lc, "businessPhone", "mobilePhone", "fax"))
+                                        .add(UICol(6)
+                                                .add(lc, "privatePhone", "privateMobilePhone")))))
                 .add(UIRow()
                         .add(UIFieldset(6, title = "address.heading.businessAddress")
                                 .add(lc, "addressText")
@@ -224,25 +225,26 @@ class AddressRest()
                                                 .add(UIInput("postalCountry", lc)))
                                         .add(UICol(length = 6)
                                                 .add(UIInput("postalState", lc))))))
-                .add(UIFieldset()
-                        .add(UIRow()
-                                .add(UICol(6)
-                                        .add(UILabel("address.heading.privateAddress"))
-                                        .add(lc, "privateAddressText")
-                                        .add(UIRow()
-                                                .add(UICol(length = 2)
-                                                        .add(UIInput("privateZipCode", lc)))
-                                                .add(UICol(length = 10)
-                                                        .add(UIInput("privateCity", lc))))
-                                        .add(UIRow()
-                                                .add(UICol(length = 6)
-                                                        .add(UIInput("privateCountry", lc)))
-                                                .add(UICol(length = 6)
-                                                        .add(UIInput("privateState", lc)))))
-                                .add(UICol(6)
-                                        .add(UILabel("address.image"))
-                                        .add(UICustomized("address.edit.image"))))
-                        .add(lc, "comment"))
+                .add(UIRow()
+                        .add(UIFieldset()
+                                .add(UIRow()
+                                        .add(UICol(6)
+                                                .add(UILabel("address.heading.privateAddress"))
+                                                .add(lc, "privateAddressText")
+                                                .add(UIRow()
+                                                        .add(UICol(length = 2)
+                                                                .add(UIInput("privateZipCode", lc)))
+                                                        .add(UICol(length = 10)
+                                                                .add(UIInput("privateCity", lc))))
+                                                .add(UIRow()
+                                                        .add(UICol(length = 6)
+                                                                .add(UIInput("privateCountry", lc)))
+                                                        .add(UICol(length = 6)
+                                                                .add(UIInput("privateState", lc)))))
+                                        .add(UICol(6)
+                                                .add(UILabel("address.image"))
+                                                .add(UICustomized("address.edit.image"))))
+                                .add(lc, "comment")))
 
         layout.getInputById("name").focus = true
         layout.getTextAreaById("comment").cssClass = CssClassnames.MT_5

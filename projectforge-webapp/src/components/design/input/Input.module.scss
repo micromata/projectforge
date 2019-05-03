@@ -16,7 +16,7 @@
     .text {
       position: absolute;
       top: 0;
-      left: 3px;
+      left: 15px;
       color: #555;
       @include transition-transform-extra(.3s, translate(2px, 1em) scale(1, 1), color .3s);
       transform-origin: top left;
@@ -24,10 +24,11 @@
     }
 
     .input {
-      padding-left: 5px;
+      padding-left: 15px;
+      padding-bottom: 0;
       width: 100%;
       position: relative;
-      top: 1.3em;
+      top: 1.6em;
       background-color: transparent;
       border: none;
       border-bottom: 1px solid #deddde;
@@ -46,7 +47,7 @@
 
       .text {
         color: #a5a2a5;
-        @include transform(translate(0, 0) scale(.8,.8));
+        @include transform(translate(0, 0) scale(.7,.7));
       }
     }
 
@@ -335,3 +336,23 @@
 .userSelect {
   width: 30em;
 }
+
+div[class*="Input_formGroup_"] {
+  height: 45px;
+  margin-bottom: 13px;
+
+  span[class*="Input_text_"] {
+    margin-top: 5px;
+  }
+}
+
+div[class*="Input_additionalLabel_"] span {
+  margin-left: 15px !important;
+}
+
+[class^="css-"][class$="-control"] {
+  border: none;
+  border-bottom: 1px solid #deddde;
+  border-radius: 0;
+}
+
