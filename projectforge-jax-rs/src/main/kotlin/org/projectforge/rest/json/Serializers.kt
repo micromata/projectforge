@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import org.projectforge.business.address.AddressbookDO
+import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.kost.Kost2DO
@@ -80,6 +81,23 @@ class Kost2DOSerializer : StdSerializer<Kost2DO>(Kost2DO::class.java) {
             }
         }
         jgen.writeObject(kost2)
+    }
+}
+
+/**
+ * Serialization for KundeDO
+ */
+class KundeDOSerializer : StdSerializer<KundeDO>(KundeDO::class.java) {
+    private class Kunde(val id: Int?, val name: String?)
+
+    @Throws(IOException::class, JsonProcessingException::class)
+    override fun serialize(value: KundeDO?, jgen: JsonGenerator, provider: SerializerProvider) {
+        if (value == null) {
+            jgen.writeNull()
+            return
+        }
+        val kunde = Kunde(value.id, value.name)
+        jgen.writeObject(kunde)
     }
 }
 
