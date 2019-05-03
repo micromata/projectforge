@@ -23,29 +23,16 @@
 
 package org.projectforge.business.fibu
 
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.EnumType
-import javax.persistence.Enumerated
-import javax.persistence.FetchType
-import javax.persistence.Id
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.Table
-import javax.persistence.Transient
-
 import org.apache.commons.lang3.StringUtils
 import org.apache.lucene.analysis.standard.ClassicAnalyzer
 import org.hibernate.search.annotations.Analyzer
 import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Index
 import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.Store
-import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.IManualIndex
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
-import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
+import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import javax.persistence.*
 
 /**
  * Jeder Kunde bei Micromata hat eine Kundennummer. Die Kundennummer ist Bestandteil von KOST2 (2.-4. Ziffer). Aufträge
@@ -57,7 +44,7 @@ import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseD
 @Indexed
 @Table(name = "T_FIBU_KUNDE", indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_kunde_konto_id", columnList = "konto_id"), javax.persistence.Index(name = "idx_fk_t_fibu_kunde_tenant_id", columnList = "tenant_id")])
 @Analyzer(impl = ClassicAnalyzer::class)
-class KundeDO : BaseUserGroupRightsDO(), ShortDisplayNameCapable, IManualIndex {
+class KundeDO: DefaultBaseDO(), ShortDisplayNameCapable, IManualIndex {
 
     override fun getId(): Int? {
         return bereich
