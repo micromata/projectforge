@@ -31,7 +31,7 @@ class TaskRest()
 
     override fun transformDTO(dto: Task): TaskDO {
         val taskDO = TaskDO()
-        (dto as Task).copyTo(taskDO)
+        dto.copyTo(taskDO)
         return taskDO
     }
 
