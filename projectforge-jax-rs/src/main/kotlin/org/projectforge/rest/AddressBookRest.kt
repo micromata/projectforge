@@ -8,7 +8,6 @@ import org.projectforge.business.user.UserDao
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.ui.*
-import org.projectforge.web.user.UsersProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -45,12 +44,12 @@ class AddressBookRest() : AbstractStandardRest<AddressbookDO, AddressbookDO, Add
             groups.add(UISelectValue(it.id, it.name))
         }
 
-        val usersProvider = UsersProvider(userDao)
-        val userDOs = usersProvider.sortedUsers
+       // val usersProvider = UsersProvider(userDao)
+        //val userDOs = usersProvider.sortedUsers
         val users = mutableListOf<UISelectValue<Int>>()
-        userDOs?.forEach {
-            groups.add(UISelectValue(it.id, it.fullname))
-        }
+        //userDOs?.forEach {
+        //    groups.add(UISelectValue(it.id, it.fullname))
+        //}
 
         val layout = super.createEditLayout(dataObject)
                 .add(UIRow()
