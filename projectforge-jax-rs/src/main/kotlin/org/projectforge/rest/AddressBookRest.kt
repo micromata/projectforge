@@ -35,6 +35,12 @@ class AddressBookRest() : AbstractStandardRest<AddressbookDO, Addressbook, Addre
     override fun transformDO(obj: AddressbookDO): Addressbook {
         val addressbook = Addressbook()
         addressbook.copyFrom(obj)
+        // Group names needed by React client (for ReactSelect):
+        addressbook.fullAccessGroups?.forEach { it.name = groupService.getGroupname(it.id) }
+        addressbook.readonlyAccessGroups?.forEach { it.name = groupService.getGroupname(it.id) }
+        // Usernames needed by React client (for ReactSelect):
+        addressbook.fullAccessUsers?.forEach { it.fullname = userService.getUser(it.id)?.fullname }
+        addressbook.readonlyAccessUsers?.forEach { it.fullname = userService.getUser(it.id)?.fullname }
         return addressbook
     }
 
@@ -44,7 +50,6 @@ class AddressBookRest() : AbstractStandardRest<AddressbookDO, Addressbook, Addre
         dto.copyTo(addressbookDO)
         return addressbookDO
     }
-
 
     /**
      * LAYOUT List page
@@ -69,7 +74,7 @@ class AddressBookRest() : AbstractStandardRest<AddressbookDO, Addressbook, Addre
 
         val allUsers = mutableListOf<UISelectValue<Int>>()
         userService.sortedUsers?.forEach {
-            allGroups.add(UISelectValue(it.id, it.fullname))
+            allUsers.add(UISelectValue(it.id, it.fullname))
         }
 
         val layout = super.createEditLayout(dataObject)
@@ -81,26 +86,26 @@ class AddressBookRest() : AbstractStandardRest<AddressbookDO, Addressbook, Addre
                                 .add(lc, "owner")))
                 .add(UIRow()
                         .add(UICol()
-                                .add(UIMultiSelect("fullAccessUserIds", lc,
+                                .add(UIMultiSelect("fullAccessUsers", lc,
                                         label = "addressbook.fullAccess",
                                         additionalLabel = "access.users",
                                         values = allUsers,
                                         labelProperty = "fullname",
                                         valueProperty = "id"))
-                                .add(UIMultiSelect("readonlyAccessUserIds", lc,
+                                .add(UIMultiSelect("readonlyAccessUsers", lc,
                                         label = "addressbook.readonlyAccess",
                                         additionalLabel = "access.users",
                                         values = allUsers,
                                         labelProperty = "fullname",
                                         valueProperty = "id")))
                         .add(UICol()
-                                .add(UIMultiSelect("fullAccessGroupIds", lc,
+                                .add(UIMultiSelect("fullAccessGroups", lc,
                                         label = "addressbook.fullAccess",
                                         additionalLabel = "access.groups",
                                         values = allGroups,
                                         labelProperty = "name",
                                         valueProperty = "id"))
-                                .add(UIMultiSelect("readonlyAccessUserIds", lc,
+                                .add(UIMultiSelect("readonlyAccessGroups", lc,
                                         label = "addressbook.readonlyAccess",
                                         additionalLabel = "access.groups",
                                         values = allGroups,
