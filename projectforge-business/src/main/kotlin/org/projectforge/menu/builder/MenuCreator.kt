@@ -224,7 +224,7 @@ open class MenuCreator() {
                                     isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
                         }))
         if (Configuration.getInstance().isCostConfigured()) {
-            fibuMenu.add(MenuItemDef(MenuItemDefId.CUSTOMER_LIST, "wa/customerList",
+            fibuMenu.add(MenuItemDef(MenuItemDefId.CUSTOMER_LIST, "customer",
                     checkAccess = { isInGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP) }))
                     .add(MenuItemDef(MenuItemDefId.PROJECT_LIST, "wa/projectList",
                             checkAccess = {
