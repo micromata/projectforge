@@ -65,7 +65,7 @@ class LayoutDayPickerInput extends React.Component {
 
         return (
             <React.Fragment>
-                <span className={style.text}>{label}</span>
+                <span className={style.dayPickerLabel}>{label}</span>
                 <DayPickerInput
                     formatDate={formatDate}
                     parseDate={parseDate}
