@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/customer")
-class KundeRest() : AbstractStandardRest<KundeDO, KundeDao, BaseSearchFilter>(KundeDao::class.java, BaseSearchFilter::class.java, "fibu.kunde.title") {
+class KundeRest() : AbstractStandardRest<KundeDO, KundeDO, KundeDao, BaseSearchFilter>(KundeDao::class.java, BaseSearchFilter::class.java, "fibu.kunde.title") {
 
     /**
      * LAYOUT List page
