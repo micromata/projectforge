@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.rest.dto.Addressbook
+import org.projectforge.rest.dto.BaseObject
 
 class AddressbookTest {
 
@@ -18,10 +19,10 @@ class AddressbookTest {
         val book = Addressbook()
         book.copyFrom(bookDO)
 
-        checkIntList(book.fullAccessGroupIds, 1)
-        checkIntList(book.fullAccessUserIds, 1, 2, 3)
-        assertNull(book.readonlyAccessGroupIds)
-        checkIntList(book.readonlyAccessUserIds, 1, 3)
+        checkIntList(book.fullAccessGroups, 1)
+        checkIntList(book.fullAccessUsers, 1, 2, 3)
+        assertNull(book.readonlyAccessGroups)
+        checkIntList(book.readonlyAccessUsers, 1, 3)
 
         bookDO = AddressbookDO()
         book.copyTo(bookDO)
@@ -31,14 +32,14 @@ class AddressbookTest {
         assertEquals("1, 3", bookDO.readonlyAccessUserIds)
     }
 
-    private fun checkIntList(intList: List<Int>?, vararg expected: Int) {
+    private fun checkIntList(intList: List<BaseObject<*>>?, vararg expected: Int) {
         assertNotNull(intList)
         if (intList == null) {
             return
         }
         assertEquals(expected.size, intList.size)
         intList.forEachIndexed { index, element ->
-            assertEquals(expected[index], element)
+            assertEquals(expected[index], element.id)
         }
     }
 }
