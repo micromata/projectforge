@@ -9,9 +9,7 @@ class Addressbook(var title: String? = null,
                   var fullAccessGroupIds: MutableList<Int>? = null,
                   var fullAccessUserIds: MutableList<Int>? = null,
                   var readonlyAccessGroupIds: MutableList<Int>? = null,
-                  var readonlyAccessUserIds: MutableList<Int>? = null,
-                  var minimalAccessGroupIds: MutableList<Int>? = null,
-                  var minimalAccessUserIds: MutableList<Int>? = null
+                  var readonlyAccessUserIds: MutableList<Int>? = null
 ) : BaseObject<AddressbookDO>() {
 
     // The user and group ids are stored as csv list of integers in the data base.
@@ -21,8 +19,6 @@ class Addressbook(var title: String? = null,
         fullAccessUserIds = toIntList(src.fullAccessUserIds)
         readonlyAccessGroupIds = toIntList(src.readonlyAccessGroupIds)
         readonlyAccessUserIds = toIntList(src.readonlyAccessUserIds)
-        minimalAccessGroupIds = toIntList(src.minimalAccessGroupIds)
-        minimalAccessUserIds = toIntList(src.minimalAccessUserIds)
     }
 
     // The user and group ids are stored as csv list of integers in the data base.
@@ -32,8 +28,6 @@ class Addressbook(var title: String? = null,
         dest.fullAccessUserIds = toString(fullAccessUserIds)
         dest.readonlyAccessGroupIds = toString(readonlyAccessGroupIds)
         dest.readonlyAccessUserIds = toString(readonlyAccessUserIds)
-        dest.minimalAccessGroupIds = toString(minimalAccessGroupIds)
-        dest.minimalAccessUserIds = toString(minimalAccessUserIds)
     }
 
     private fun toString(intList: List<Int>?): String? {
