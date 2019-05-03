@@ -20,7 +20,7 @@ import java.io.IOException
  * Serialization for PFUserDO etc.
  */
 class PFUserDOSerializer : StdSerializer<PFUserDO>(PFUserDO::class.java) {
-    private class User(val id: Int, val username: String?, val fullname: String?)
+    private class User(val id: Int?, val username: String?, val fullname: String?)
 
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: PFUserDO?, jgen: JsonGenerator, provider: SerializerProvider) {
@@ -52,9 +52,9 @@ class TaskDOSerializer : StdSerializer<TaskDO>(TaskDO::class.java) {
  * Serialization for Kost2DO etc.
  */
 class Kost2DOSerializer : StdSerializer<Kost2DO>(Kost2DO::class.java) {
-    private class Kunde(val id: Int, val name: String?)
-    private class Projekt(val id: Int, val name: String?, var kunde: Kunde? = null)
-    private class Kost2(val id: Int, val description: String?, var projekt: Projekt? = null)
+    private class Kunde(val id: Int?, val name: String?)
+    private class Projekt(val id: Int?, val name: String?, var kunde: Kunde? = null)
+    private class Kost2(val id: Int?, val description: String?, var projekt: Projekt? = null)
 
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: Kost2DO?, jgen: JsonGenerator, provider: SerializerProvider) {
@@ -84,7 +84,7 @@ class Kost2DOSerializer : StdSerializer<Kost2DO>(Kost2DO::class.java) {
 }
 
 class TenantDOSerializer : StdSerializer<TenantDO>(TenantDO::class.java) {
-    private class Tenant(val id: Int, val name: String?)
+    private class Tenant(val id: Int?, val name: String?)
 
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: TenantDO?, jgen: JsonGenerator, provider: SerializerProvider) {
@@ -101,7 +101,7 @@ class TenantDOSerializer : StdSerializer<TenantDO>(TenantDO::class.java) {
  * Serialization for AddressbookDO
  */
 class AddressbookDOSerializer : StdSerializer<AddressbookDO>(AddressbookDO::class.java) {
-    private class Addressbook(val id: Int, val title: String?)
+    private class Addressbook(val id: Int?, val title: String?)
 
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: AddressbookDO?, jgen: JsonGenerator, provider: SerializerProvider) {
