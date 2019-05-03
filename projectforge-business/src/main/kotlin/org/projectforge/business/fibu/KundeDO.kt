@@ -146,7 +146,6 @@ class KundeDO : AbstractHistorizableBaseDO<Int>(), ShortDisplayNameCapable, IMan
     }
 
     companion object {
-        @JvmStatic
         val MAX_ID = 999
     }
 }
