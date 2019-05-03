@@ -35,8 +35,8 @@ class KundeRest() : AbstractStandardRest<KundeDO, Kunde, KundeDao, BaseSearchFil
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
-                        .add(lc, "bereich", "identifier", "name", "division", "konto", "status", "description"))
-        //layout.getTableColumnById("konto").formatter = Formatter.USER
+                        .add(lc, "nummer", "identifier", "name", "division", "konto", "status", "description"))
+        layout.getTableColumnById("konto").formatter = Formatter.KONTO
         return LayoutUtils.processListPage(layout)
     }
 

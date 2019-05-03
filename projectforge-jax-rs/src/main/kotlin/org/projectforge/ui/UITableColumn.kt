@@ -13,6 +13,7 @@ enum class Formatter {
     DATE,
     COST2,
     CUSTOMER,
+    KONTO,
     PROJECT,
     TASK_PATH,
     TIMESTAMP_MINUTES,

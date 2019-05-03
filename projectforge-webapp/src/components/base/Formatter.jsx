@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 const DATE_FORMATTER = 'DATE';
 const COST2_FORMATTER = 'COST2';
 const CUSTOMER_FORMATTER = 'CUSTOMER';
+const KONTO_FORMATTER = 'KONTO';
 const PROJECT_FORMATTER = 'PROJECT';
 const USER_FORMATTER = 'USER';
 const TASK_FORMATTER = 'TASK_PATH';
@@ -33,6 +34,9 @@ function Formatter(
                 break;
             case CUSTOMER_FORMATTER:
                 result = value.name;
+                break;
+            case KONTO_FORMATTER:
+                result = `${value.nummer} - ${value.bezeichnung}`;
                 break;
             case DATE_FORMATTER:
                 result = moment(value)
