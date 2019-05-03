@@ -3,7 +3,7 @@ package org.projectforge.ui
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.HibernateUtils
-import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 
 /**
  * Utils for the Layout classes for handling auto max-length (get from JPA entities) and translations as well as
@@ -99,7 +99,7 @@ class LayoutUtils {
          * Calls also fun [process].
          * @see LayoutUtils.process
          */
-        fun processEditPage(layout: UILayout, data: DefaultBaseDO?): UILayout {
+        fun processEditPage(layout: UILayout, data: AbstractHistorizableBaseDO<Int>?): UILayout {
             layout.addAction(UIButton("cancel", style = UIStyle.DANGER))
             if (data != null && data.id != null) {
                 if (data.isDeleted)
