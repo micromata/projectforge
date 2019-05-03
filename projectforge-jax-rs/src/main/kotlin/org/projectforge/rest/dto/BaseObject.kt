@@ -1,6 +1,6 @@
 package org.projectforge.rest.dto
 
-import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 import org.projectforge.framework.persistence.user.entities.TenantDO
 import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Field
@@ -10,11 +10,11 @@ import java.util.*
  * BaseObject is a DTO representation of a DefaultBaseDO. It copies most fields automatically by name and type from
  * DTO to DefaultBaseDO and vice versa.
  */
-open class BaseObject<T : DefaultBaseDO>(var id: Int? = null,
-                                         var created: Date? = null,
-                                         var isDeleted: Boolean? = null,
-                                         var lastUpdate: Date? = null,
-                                         var tenantId: Int? = null) {
+open class BaseObject<T : AbstractHistorizableBaseDO<Int>>(var id: Int? = null,
+                                                           var created: Date? = null,
+                                                           var isDeleted: Boolean? = null,
+                                                           var lastUpdate: Date? = null,
+                                                           var tenantId: Int? = null) {
     /**
      * Full and deep copy of the object. Should be extended by inherited classes.
      */
@@ -74,8 +74,8 @@ open class BaseObject<T : DefaultBaseDO>(var id: Int? = null,
                                     destField.set(dest, srcField.get(src))
                                 }
                             } else {
-                                if (BaseObject::class.java.isAssignableFrom(destType) && DefaultBaseDO::class.java.isAssignableFrom(srcField.type)) {
-                                    // Copy DefaultBaseDO -> BaseObject
+                                if (BaseObject::class.java.isAssignableFrom(destType) && AbstractHistorizableBaseDO::class.java.isAssignableFrom(srcField.type)) {
+                                    // Copy AbstractHistorizableBaseDO -> BaseObject
                                     srcField.setAccessible(true);
                                     val srcValue = srcField.get(src)
                                     if (srcValue != null) {
@@ -84,13 +84,13 @@ open class BaseObject<T : DefaultBaseDO>(var id: Int? = null,
                                         destField.setAccessible(true)
                                         destField.set(dest, instance)
                                     }
-                                } else if (DefaultBaseDO::class.java.isAssignableFrom(destType) && BaseObject::class.java.isAssignableFrom(srcField.type)) {
-                                    // Copy BaseObject -> DefaultBaseDO
+                                } else if (AbstractHistorizableBaseDO::class.java.isAssignableFrom(destType) && BaseObject::class.java.isAssignableFrom(srcField.type)) {
+                                    // Copy BaseObject -> AbstractHistorizableBaseDO
                                     srcField.setAccessible(true);
                                     val srcValue = srcField.get(src)
                                     if (srcValue != null) {
                                         val instance = destType.newInstance()
-                                        (instance as DefaultBaseDO).id = (srcValue as BaseObject<*>).id
+                                        (instance as AbstractHistorizableBaseDO<*>).id = (srcValue as BaseObject<*>).id
                                         destField.setAccessible(true)
                                         destField.set(dest, instance)
                                     }

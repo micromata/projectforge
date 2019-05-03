@@ -246,7 +246,7 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
         return;
       }
       numberRange = customer.getNummernkreis();
-      number = customer.getBereich();
+      number = customer.getNummer();
     }
     boolean differs = false;
     if (numberRange >= 0 && cost2.getNummernkreis() != numberRange) {

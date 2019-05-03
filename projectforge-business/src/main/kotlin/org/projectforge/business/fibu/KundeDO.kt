@@ -25,8 +25,9 @@ package org.projectforge.business.fibu
 
 import org.apache.commons.lang3.StringUtils
 import org.apache.lucene.analysis.standard.ClassicAnalyzer
-import org.hibernate.search.annotations.*
-import org.hibernate.search.annotations.Index
+import org.hibernate.search.annotations.Analyzer
+import org.hibernate.search.annotations.Field
+import org.hibernate.search.annotations.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.IManualIndex
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
@@ -52,11 +53,22 @@ class KundeDO : AbstractHistorizableBaseDO<Int>(), ShortDisplayNameCapable, IMan
      *
      * @see .getId
      */
-    @get:Transient
-    var bereich: Int? = null
+    @get:Id
+    @get:Column(name = "pk")
+    var nummer: Int? = null
+
+    @Transient
+    override fun getId(): Int? {
+        return nummer
+    }
+
+    override fun setId(value: Int?) {
+        nummer = value
+    }
+
 
     @PropertyInfo(i18nKey = "fibu.kunde.name")
-    @Field(index = Index.YES, store = Store.NO)
+    @Field
     @get:Column(length = 255, nullable = false)
     var name: String? = null
 
@@ -66,23 +78,23 @@ class KundeDO : AbstractHistorizableBaseDO<Int>(), ShortDisplayNameCapable, IMan
      * @return
      */
     @PropertyInfo(i18nKey = "fibu.kunde.identifier")
-    @Field(index = Index.YES, store = Store.NO)
+    @Field
     @get:Column(length = 20)
     var identifier: String? = null
 
     @PropertyInfo(i18nKey = "fibu.kunde.division")
-    @Field(index = Index.YES, store = Store.NO)
+    @Field
     @get:Column(length = 255)
     var division: String? = null
 
     @PropertyInfo(i18nKey = "status")
-    @Field(index = Index.YES, store = Store.NO)
+    @Field
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 30)
     var status: KundeStatus? = null
 
     @PropertyInfo(i18nKey = "description")
-    @Field(index = Index.YES, store = Store.NO)
+    @Field
     @get:Column(length = 4000)
     var description: String? = null
 
@@ -101,7 +113,7 @@ class KundeDO : AbstractHistorizableBaseDO<Int>(), ShortDisplayNameCapable, IMan
      * @return "5.###" ("5.<kunde id>")</kunde> */
     val kost: String
         @Transient
-        get() = "5." + KostFormatter.format3Digits(bereich)
+        get() = "5." + KostFormatter.format3Digits(nummer)
 
     /**
      * 1. Ziffer des Kostenträgers: Ist für Kunden immer 5.
@@ -124,17 +136,6 @@ class KundeDO : AbstractHistorizableBaseDO<Int>(), ShortDisplayNameCapable, IMan
     val kontoId: Int?
         @Transient
         get() = if (konto != null) konto!!.id else null
-
-    /** Ziffer 2-4 von KOST2 (000-999). Ist der primary key.  */
-    @Id
-    @Column(name = "pk")
-    override fun getId(): Int? {
-        return bereich
-    }
-
-    override fun setId(id: Int?) {
-        this.bereich = id
-    }
 
     /**
      * @see org.projectforge.framework.persistence.api.ShortDisplayNameCapable.getShortDisplayName

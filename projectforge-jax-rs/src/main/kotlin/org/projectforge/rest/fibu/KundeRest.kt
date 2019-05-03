@@ -5,13 +5,29 @@ import org.projectforge.business.fibu.KundeDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractStandardRest
+import org.projectforge.rest.dto.Kunde
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/customer")
-class KundeRest() : AbstractStandardRest<KundeDO, KundeDO, KundeDao, BaseSearchFilter>(KundeDao::class.java, BaseSearchFilter::class.java, "fibu.kunde.title") {
+class KundeRest() : AbstractStandardRest<KundeDO, Kunde, KundeDao, BaseSearchFilter>(KundeDao::class.java, BaseSearchFilter::class.java, "fibu.kunde.title") {
+    init {
+        useDTO = true
+    }
+
+    override fun transformDO(obj: KundeDO): Kunde {
+        val kunde = Kunde()
+        kunde.copyFrom(obj)
+        return kunde
+    }
+
+    override fun transformDTO(dto: Kunde): KundeDO {
+        val kundeDO = KundeDO()
+        dto.copyTo(kundeDO)
+        return kundeDO
+    }
 
     /**
      * LAYOUT List page
