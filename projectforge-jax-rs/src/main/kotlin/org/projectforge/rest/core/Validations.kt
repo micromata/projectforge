@@ -2,6 +2,8 @@ package org.projectforge.rest.core
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.databind.exc.InvalidFormatException
+import org.projectforge.ui.ResponseAction
+import org.projectforge.ui.ValidationError
 import org.springframework.beans.TypeMismatchException
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
@@ -32,6 +34,7 @@ import javax.validation.ConstraintViolationException
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @ControllerAdvice
 class CustomRestExceptionHandler : ResponseEntityExceptionHandler() {
+    private val log = org.slf4j.LoggerFactory.getLogger(CustomRestExceptionHandler::class.java)
 
 // 400
 
@@ -155,10 +158,11 @@ class CustomRestExceptionHandler : ResponseEntityExceptionHandler() {
             val value = cause.value
             val path = cause.path
             val field = cause.path[0].fieldName
-            val apiError = ApiError(HttpStatus.BAD_REQUEST, "Invalid format")
-            apiError.add(ApiValidationFieldError(field, value, cause.message))
-            return ResponseEntity(apiError, HttpHeaders(), apiError.status)
+            val validationErrors = mutableListOf<ValidationError>()
+            validationErrors.add(ValidationError(cause.message, field))
+            return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
         }
+        log.error(ex.message)
         return super.handleExceptionInternal(ex, body, headers, status, request)
     }
 }
