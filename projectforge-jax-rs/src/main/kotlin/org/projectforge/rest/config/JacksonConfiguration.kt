@@ -26,8 +26,6 @@ open class JacksonConfiguration {
     @Bean
     open fun objectMapper(): ObjectMapper {
         val mapper = ObjectMapper()
-        val problemHandler = MyDeserializationProblemHandler()
-        mapper.addHandler(problemHandler)
         mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true)
         mapper.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false)
         //mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
