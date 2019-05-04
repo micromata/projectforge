@@ -2,11 +2,8 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import { changeEditFormField, loadEditPage } from '../../../actions';
-import Navigation from '../../../components/base/navigation';
-import ActionGroup from '../../../components/base/page/action/Group';
+import DynamicLayout from '../../../components/base/dynamicLayout';
 import TabNavigation from '../../../components/base/page/edit/TabNavigation';
-import LayoutGroup from '../../../components/base/page/layout/LayoutGroup';
-import PageNavigation from '../../../components/base/page/Navigation';
 import { Alert, Container, TabContent, TabPane, } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
 import { getTranslation } from '../../../utilities/layout';
@@ -64,9 +61,6 @@ class EditPage extends React.Component {
 
         return (
             <LoadingContainer loading={loading}>
-                <PageNavigation current={ui.title}>
-                    <Navigation entries={ui.pageMenu || []} />
-                </PageNavigation>
                 <TabNavigation
                     tabs={tabs}
                     activeTab={activeTab}
@@ -78,15 +72,7 @@ class EditPage extends React.Component {
                     <TabPane tabId="edit">
                         <Container fluid>
                             <form>
-                                <LayoutGroup
-                                    content={ui.layout}
-                                    data={data}
-                                    variables={variables}
-                                    translations={ui.translations}
-                                    changeDataField={changeDataField}
-                                    validation={validation}
-                                />
-                                <ActionGroup actions={ui.actions} />
+                                <DynamicLayout ui={ui} data={data} />
                             </form>
                         </Container>
                     </TabPane>

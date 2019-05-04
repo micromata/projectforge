@@ -26,6 +26,7 @@ class NavigationAction extends React.Component {
     render() {
         const { type, title, url } = this.props;
 
+        // TODO: IMPLEMENT REDIRECT
         switch (type) {
             case 'RESTCALL':
                 return (
@@ -49,6 +50,7 @@ class NavigationAction extends React.Component {
                         {title}
                     </NavLink>
                 );
+            case 'TEXT':
             default:
                 return <span className="nav-link">{title}</span>;
         }
@@ -58,17 +60,19 @@ class NavigationAction extends React.Component {
 NavigationAction.propTypes = {
     getCall: PropTypes.func.isRequired,
     title: PropTypes.string.isRequired,
-    url: PropTypes.string.isRequired,
     type: PropTypes.oneOf([
         'REDIRECT',
         'RESTCALL',
         'DOWNLOAD',
         'LINK',
+        'TEXT',
     ]),
+    url: PropTypes.string,
 };
 
 NavigationAction.defaultProps = {
     type: 'LINK',
+    url: '',
 };
 
 const mapStateToProps = () => ({});
