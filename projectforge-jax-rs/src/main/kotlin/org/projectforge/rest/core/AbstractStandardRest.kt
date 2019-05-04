@@ -135,23 +135,23 @@ abstract class AbstractStandardRest<
         return layout
     }
 
+    /**
+     * Relative rest path (without leading /rs
+     */
     fun getRestPath(): String {
         if (restPath == null) {
             val requestMapping = this::class.annotations.find { it is RequestMapping } as? RequestMapping
-            restPath = requestMapping?.value?.joinToString("/") { it } ?: "/"
+            val url = requestMapping?.value?.joinToString("/") { it } ?: "/"
+            restPath = url.substringAfter("${Rest.URL}/")
         }
         return restPath!!
     }
 
-    fun getCategory(): String {
+    private fun getCategory(): String {
         if (category == null) {
             category = getRestPath().removePrefix("${Rest.URL}/")
         }
         return category!!
-    }
-
-    fun getFullRestPath(): String {
-        return getRestPath()
     }
 
     open fun createEditLayout(dataObject: O): UILayout {
