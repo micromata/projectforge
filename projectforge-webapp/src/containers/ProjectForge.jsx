@@ -14,6 +14,7 @@ import EditPage from './page/edit';
 import InputTestPage from './page/InputTest';
 import ListPage from './page/list';
 import TaskTreePage from './page/TaskTreePage';
+import IndexPage from './page/IndexPage';
 
 class ProjectForge extends React.Component {
     componentDidMount() {
@@ -39,6 +40,11 @@ class ProjectForge extends React.Component {
                         <GlobalNavigation />
                         <Container fluid>
                             <Switch>
+                                <Route
+                                    exact
+                                    path="/"
+                                    component={IndexPage}
+                                />
                                 <Route
                                     path="/calendar"
                                     component={CalendarPage}
