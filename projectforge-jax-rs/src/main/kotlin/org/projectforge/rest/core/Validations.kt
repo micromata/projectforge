@@ -10,6 +10,7 @@ import org.springframework.core.annotation.Order
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.validation.BindException
 import org.springframework.validation.FieldError
 import org.springframework.validation.ObjectError
@@ -99,12 +100,26 @@ class CustomRestExceptionHandler : ResponseEntityExceptionHandler() {
         return ResponseEntity(apiError, HttpHeaders(), apiError.status)
     }
 
+    override fun handleHttpMessageNotReadable(ex: HttpMessageNotReadableException, headers: HttpHeaders, status: HttpStatus, request: WebRequest): ResponseEntity<Any> {
+        val cause = ex.cause
+        if (cause is InvalidFormatException) {
+            val value = cause.value
+            val path = cause.path
+            val field = cause.path[0].fieldName
+            val validationErrors = mutableListOf<ValidationError>()
+            validationErrors.add(ValidationError(cause.message, field))
+            return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
+        }
+        log.error(ex.message)
+        return super.handleHttpMessageNotReadable(ex, headers, status, request)
+    }
+
     // 404
 
     override fun handleNoHandlerFoundException(ex: NoHandlerFoundException, headers: HttpHeaders, status: HttpStatus, request: WebRequest): ResponseEntity<Any> {
         logger.info(ex.javaClass.name)
         //
-        val error = "No handler found for " + ex.httpMethod + " " + ex.requestURL
+            val error = "No handler found for " + ex.httpMethod + " " + ex.requestURL
 
         val apiError = ApiError(HttpStatus.NOT_FOUND, ex.localizedMessage, error)
         return ResponseEntity(apiError, HttpHeaders(), apiError.status)
@@ -147,23 +162,6 @@ class CustomRestExceptionHandler : ResponseEntityExceptionHandler() {
         //
         val apiError = ApiError(HttpStatus.INTERNAL_SERVER_ERROR, ex.localizedMessage)
         return ResponseEntity(apiError, HttpHeaders(), apiError.status)
-    }
-
-    /**
-     * Ugly: must handle InvalidFormatException here :-(
-     */
-    override fun handleExceptionInternal(ex: java.lang.Exception, body: Any?, headers: HttpHeaders, status: HttpStatus, request: WebRequest): ResponseEntity<Any> {
-        val cause = ex.cause
-        if (cause is InvalidFormatException) {
-            val value = cause.value
-            val path = cause.path
-            val field = cause.path[0].fieldName
-            val validationErrors = mutableListOf<ValidationError>()
-            validationErrors.add(ValidationError(cause.message, field))
-            return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
-        }
-        log.error(ex.message)
-        return super.handleExceptionInternal(ex, body, headers, status, request)
     }
 }
 

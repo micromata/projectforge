@@ -45,6 +45,8 @@ open class JacksonConfiguration {
         module.addSerializer(java.sql.Date::class.java, SqlDateSerializer())
         module.addDeserializer(java.sql.Date::class.java, SqlDateDeserializer())
 
+        module.addDeserializer(java.lang.Integer::class.java, IntDeserializer())
+
         module.addSerializer(Kost2DO::class.java, Kost2DOSerializer())
         module.addSerializer(KundeDO::class.java, KundeDOSerializer())
 
