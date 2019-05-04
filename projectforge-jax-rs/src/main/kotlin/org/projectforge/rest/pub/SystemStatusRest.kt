@@ -35,7 +35,7 @@ class SystemStatusRest {
                     version = ProjectForgeVersion.VERSION_STRING,
                     releaseTimestamp = ProjectForgeVersion.RELEASE_TIMESTAMP,
                     releaseDate = ProjectForgeVersion.RELEASE_DATE,
-                    logoUrl = LogoServiceRest.getLogoUrl())
+                    logoUrl = LogoServiceRest.logoUrl)
             systemStatus.messageOfTheDay = GlobalConfiguration.getInstance()
                     .getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY)
             return systemStatus
