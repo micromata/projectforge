@@ -20,10 +20,12 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.validation.Errors
 import org.springframework.web.bind.annotation.*
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpSession
+import javax.validation.Valid
 
 /**
  * This is the base class for all fronted functionality regarding query, editing etc. It also serves layout
@@ -141,7 +143,7 @@ abstract class AbstractStandardRest<
         return restPath!!
     }
 
-    private fun getCategory(): String {
+    fun getCategory(): String {
         if (category == null) {
             category = getRestPath().removePrefix("${Rest.URL}/")
         }
@@ -379,7 +381,7 @@ abstract class AbstractStandardRest<
      * Use this service for adding new items as well as updating existing items (id isn't null).
      */
     @PutMapping(RestPaths.SAVE_OR_UDATE)
-    fun saveOrUpdate(request: HttpServletRequest, @RequestBody T: DTO): ResponseEntity<ResponseAction> {
+    fun saveOrUpdate(request: HttpServletRequest, @Valid @RequestBody T: DTO, errors: Errors): ResponseEntity<ResponseAction> {
         val dbObj = asDO(T)
         return restHelper.saveOrUpdate(request, baseDao, dbObj, this, validate(dbObj))
     }
