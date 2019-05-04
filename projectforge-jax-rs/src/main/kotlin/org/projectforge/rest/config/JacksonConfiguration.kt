@@ -47,7 +47,10 @@ open class JacksonConfiguration {
 
         module.addSerializer(Kost2DO::class.java, Kost2DOSerializer())
         module.addSerializer(KundeDO::class.java, KundeDOSerializer())
+
         module.addSerializer(PFUserDO::class.java, PFUserDOSerializer())
+        module.addDeserializer(PFUserDO::class.java, PFUserDODeserializer())
+
         module.addSerializer(TaskDO::class.java, TaskDOSerializer())
         module.addSerializer(TenantDO::class.java, TenantDOSerializer())
         module.addSerializer(AddressbookDO::class.java, AddressbookDOSerializer())
