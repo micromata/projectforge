@@ -111,6 +111,14 @@
       <artifactId>spring-boot-starter-jersey</artifactId>
     </dependency>
 
+    <!-- https://mvnrepository.com/artifact/org.springframework/spring-webmvc -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-webmvc</artifactId>
+      <version>5.1.6.RELEASE</version>
+    </dependency>
+
+
     <!-- https://mvnrepository.com/artifact/org.glassfish.jersey.media/jersey-media-multipart -->
     <dependency>
       <groupId>org.glassfish.jersey.media</groupId>
