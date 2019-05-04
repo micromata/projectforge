@@ -95,10 +95,12 @@ export const updatePageData = () => (dispatch, getState) => {
 
             if (response.status === 406) {
                 response.json()
-                    .then(json => dispatch(updateFailure(json.reduce((map, obj) => ({
-                        ...map,
-                        [obj.fieldId]: obj.message,
-                    }), {}))));
+                    .then(({ validationErrors }) => dispatch(
+                        updateFailure(validationErrors.reduce((map, obj) => ({
+                            ...map,
+                            [obj.fieldId]: obj.message,
+                        }), {})),
+                    ));
                 return;
             }
 
