@@ -31,7 +31,7 @@ class MenuRest {
         val mainMenu = menuCreator.build(MenuCreatorContext(ThreadLocalUserContext.getUser()))
         val favoritesMenu = favoritesMenuCreator.getDefaultFavoriteMenu()
         val goClassicsMenu = MenuItemDef("GoClassics", "goreact.menu.classics")
-        goClassicsMenu.url = "/wa"
+        goClassicsMenu.url = "wa"
         favoritesMenu.add(goClassicsMenu)
 
         val myAccountMenu = Menu()
