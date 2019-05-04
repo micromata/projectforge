@@ -1,6 +1,7 @@
 package org.projectforge.rest.core
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.databind.exc.InvalidFormatException
 import org.springframework.beans.TypeMismatchException
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
@@ -145,7 +146,19 @@ class CustomRestExceptionHandler : ResponseEntityExceptionHandler() {
         return ResponseEntity(apiError, HttpHeaders(), apiError.status)
     }
 
+    /**
+     * Ugly: must handle InvalidFormatException here :-(
+     */
     override fun handleExceptionInternal(ex: java.lang.Exception, body: Any?, headers: HttpHeaders, status: HttpStatus, request: WebRequest): ResponseEntity<Any> {
+        val cause = ex.cause
+        if (cause is InvalidFormatException) {
+            val value = cause.value
+            val path = cause.path
+            val field = cause.path[0].fieldName
+            val apiError = ApiError(HttpStatus.BAD_REQUEST, "Invalid format")
+            apiError.add(ApiValidationFieldError(field, value, cause.message))
+            return ResponseEntity(apiError, HttpHeaders(), apiError.status)
+        }
         return super.handleExceptionInternal(ex, body, headers, status, request)
     }
 }
@@ -153,7 +166,7 @@ class CustomRestExceptionHandler : ResponseEntityExceptionHandler() {
 class ApiError(var status: HttpStatus,
                var message: String? = null,
                var debugMessage: String? = null
-               ) {
+) {
     val subErrors = mutableListOf<ApiSubError>()
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd hh:mm:ss")
     val timestamp: LocalDateTime
