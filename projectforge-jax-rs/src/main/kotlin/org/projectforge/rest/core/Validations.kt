@@ -2,6 +2,7 @@ package org.projectforge.rest.core
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.databind.exc.InvalidFormatException
+import org.projectforge.framework.i18n.translate
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.ValidationError
 import org.springframework.beans.TypeMismatchException
@@ -107,7 +108,7 @@ class CustomRestExceptionHandler : ResponseEntityExceptionHandler() {
             val path = cause.path
             val field = cause.path[0].fieldName
             val validationErrors = mutableListOf<ValidationError>()
-            validationErrors.add(ValidationError(cause.message, field))
+            validationErrors.add(ValidationError(translate("validation.error.format.integer"), field))
             return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
         }
         log.error(ex.message)
