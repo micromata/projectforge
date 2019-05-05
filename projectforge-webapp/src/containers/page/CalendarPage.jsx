@@ -1,22 +1,23 @@
+import { faStar } from '@fortawesome/free-regular-svg-icons';
+import { faCog } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
+import Select from 'react-select';
 /* eslint-disable-next-line object-curly-newline */
 import { Button, Card, CardBody, Col, Modal, ModalBody, ModalHeader, Row } from 'reactstrap';
-import Select from 'react-select';
-import makeAnimated from 'react-select/lib/animated';
-import { faCog } from '@fortawesome/free-solid-svg-icons';
-import { faStar } from '@fortawesome/free-regular-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import CalendarPanel from '../panel/CalendarPanel';
-import { getServiceURL } from '../../utilities/rest';
-import LoadingContainer from '../../components/design/loading-container';
-import { customStyles } from './Calendar.module';
+import EditableMultiValueLabel from '../../components/base/page/layout/EditableMultiValueLabel';
 import style from '../../components/design/input/Input.module.scss';
+import LoadingContainer from '../../components/design/loading-container';
+import { getServiceURL } from '../../utilities/rest';
+import CalendarPanel from '../panel/CalendarPanel';
+import { customStyles } from './Calendar.module';
 
 class CalendarPage extends React.Component {
     constructor(props) {
         super(props);
 
         this.state = {
+            colors: {},
             date: new Date(),
             view: 'week',
             teamCalendars: undefined,
@@ -28,6 +29,7 @@ class CalendarPage extends React.Component {
         this.fetchInitial = this.fetchInitial.bind(this);
         this.onChange = this.onChange.bind(this);
         this.toggleSettingsModal = this.toggleSettingsModal.bind(this);
+        this.handleMultiValueChange = this.handleMultiValueChange.bind(this);
     }
 
     componentDidMount() {
@@ -75,19 +77,37 @@ class CalendarPage extends React.Component {
             .catch(error => alert(`Internal error: ${error}`));
     }
 
+    handleMultiValueChange(id, newValue) {
+        this.setState(({ colors }) => ({
+            colors: {
+                ...colors,
+                [id]: newValue,
+            },
+        }));
+    }
+
     render() {
         const {
-            loading,
-            date,
-            view,
-            teamCalendars,
             activeCalendars,
-            translations,
+            colors,
+            date,
+            loading,
             settingsModal,
+            teamCalendars,
+            translations,
+            view,
         } = this.state;
+
         if (!translations) {
             return <div>...</div>;
         }
+
+        const options = teamCalendars.map(option => ({
+            ...option,
+            filterType: 'COLOR_PICKER',
+            label: option.title,
+        }));
+
         return (
             <LoadingContainer loading={loading}>
                 <Card>
@@ -96,19 +116,23 @@ class CalendarPage extends React.Component {
                             <Row>
                                 <Col sm={11}>
                                     <Select
-                                        components={makeAnimated()}
-                                        isMulti
-                                        defaultValue={activeCalendars}
                                         closeMenuOnSelect={false}
-                                        options={teamCalendars}
-                                        isClearable
-                                        getOptionValue={option => (option.id)}
+                                        components={{
+                                            MultiValueLabel: EditableMultiValueLabel,
+                                        }}
+                                        defaultValue={activeCalendars}
                                         getOptionLabel={option => (option.title)}
-                                        styles={customStyles}
+                                        getOptionValue={option => (option.id)}
+                                        isClearable
+                                        isMulti
                                         onChange={this.onChange}
+                                        options={options}
+                                        placeholder={translations['select.placeholder']}
+                                        setMultiValue={this.handleMultiValueChange}
+                                        styles={customStyles}
+                                        values={colors}
                                         // loadOptions={loadOptions}
                                         // defaultOptions={defaultOptions}
-                                        placeholder={translations['select.placeholder']}
                                     />
                                 </Col>
                                 <Col sm={1}>
@@ -155,7 +179,9 @@ class CalendarPage extends React.Component {
                     modalTransition={{ timeout: 100 }}
                     backdropTransition={{ timeout: 150 }}
                 >
-                    <ModalHeader toggle={this.settingsModal}>{translations['plugins.teamcal.calendar.filterDialog.title']}</ModalHeader>
+                    <ModalHeader toggle={this.settingsModal}>
+                        {translations['plugins.teamcal.calendar.filterDialog.title']}
+                    </ModalHeader>
                     <ModalBody>
                         [ToDo: Standardkalendar, Zeitberichtsuser, Optionen: Pausen, Statistik,
                         Geburtstage, Planungen, Farben?]
