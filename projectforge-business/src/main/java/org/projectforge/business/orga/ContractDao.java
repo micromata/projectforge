@@ -23,8 +23,6 @@
 
 package org.projectforge.business.orga;
 
-import java.util.List;
-
 import org.apache.commons.lang3.Validate;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.RechnungDO;
@@ -40,6 +38,8 @@ import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -106,20 +106,20 @@ public class ContractDao extends BaseDao<ContractDO>
   {
     if (obj.getNumber() == null) {
       throw new UserException("validation.required.valueNotPresent", new MessageParam("legalAffaires.contract.number",
-          MessageParamType.I18N_KEY));
+          MessageParamType.I18N_KEY)).setField("number");
     }
     if (obj.getId() == null) {
       // New contract
       final Integer next = getNextNumber(obj);
       if (next.intValue() != obj.getNumber().intValue()) {
-        throw new UserException("legalAffaires.contract.error.numberNotConsecutivelyNumbered");
+        throw new UserException("legalAffaires.contract.error.numberNotConsecutivelyNumbered").setField("number");
       }
     } else {
       final List<RechnungDO> list = (List<RechnungDO>) getHibernateTemplate().find(
           "from ContractDO c where c.number = ? and c.id <> ?",
           new Object[] { obj.getNumber(), obj.getId() });
       if (list != null && list.size() > 0) {
-        throw new UserException("legalAffaires.contract.error.numberAlreadyExists");
+        throw new UserException("legalAffaires.contract.error.numberAlreadyExists").setField("number");
       }
     }
   }
