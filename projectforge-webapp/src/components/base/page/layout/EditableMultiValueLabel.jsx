@@ -44,13 +44,16 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
         case 'STRING':
             input = (
                 <Input
-                    label={label}
-                    id={data.id}
+                    label={data.label}
+                    id={`editable-multi-value-input-${data.id}`}
                     value={value}
                     onChange={event => setValue(event.target.value)}
                     autoFocus
                 />
             );
+            break;
+        case 'COLOR_PICKER':
+            // TODO: IMPLEMENT COLOR PICKER
             break;
         // Case for plain searchString without filterType
         case undefined:
@@ -122,7 +125,7 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
 
 EditableMultiValueLabel.propTypes = {
     data: PropTypes.shape({
-        id: PropTypes.string,
+        id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
         filterType: PropTypes.string,
     }).isRequired,
     selectProps: PropTypes.shape({
