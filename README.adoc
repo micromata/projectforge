@@ -6,6 +6,12 @@ controlling and managing work-break-down-structures (e. g. together with JIRA as
 Full documentation on: http://www.projectforge.org/pf-en/Documentation
 Please visit: https://www.projectforge.org/documentation/developer-guide.html
 
+.Version 7.0 will be releases soon
+****
+We're working on refactoring ProjectForge's frontend. We will introduce ReactJS and Kotlin (in addition to Java).
+ProjectForge will be controlled by a new Rest API for most CRUD operations. Stay tuned!
+****
+
 == Quickstart from command line
 
 [NOTE]
