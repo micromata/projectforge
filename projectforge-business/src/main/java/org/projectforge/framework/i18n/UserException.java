@@ -47,7 +47,7 @@ public class UserException extends ProjectForgeException
 
   protected MessageParam[] msgParams;
 
-  protected String field;
+  protected String causedByField;
 
   /**
    * @param i18nKey Key for the localized message.
@@ -81,14 +81,14 @@ public class UserException extends ProjectForgeException
   }
 
   /**
-   * @return Name of the affected field, if any.
+   * @return Name of the causedByField, the exception is caused by, if any.
    */
-  public String getField() {
-    return field;
+  public String getCausedByField() {
+    return causedByField;
   }
 
-  public UserException setField(String field) {
-    this.field = field;
+  public UserException setCausedByField(String causedByField) {
+    this.causedByField = causedByField;
     return this;
   }
 

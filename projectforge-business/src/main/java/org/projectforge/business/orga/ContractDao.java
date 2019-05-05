@@ -106,20 +106,20 @@ public class ContractDao extends BaseDao<ContractDO>
   {
     if (obj.getNumber() == null) {
       throw new UserException("validation.required.valueNotPresent", new MessageParam("legalAffaires.contract.number",
-          MessageParamType.I18N_KEY)).setField("number");
+          MessageParamType.I18N_KEY)).setCausedByField("number");
     }
     if (obj.getId() == null) {
       // New contract
       final Integer next = getNextNumber(obj);
       if (next.intValue() != obj.getNumber().intValue()) {
-        throw new UserException("legalAffaires.contract.error.numberNotConsecutivelyNumbered").setField("number");
+        throw new UserException("legalAffaires.contract.error.numberNotConsecutivelyNumbered").setCausedByField("number");
       }
     } else {
       final List<RechnungDO> list = (List<RechnungDO>) getHibernateTemplate().find(
           "from ContractDO c where c.number = ? and c.id <> ?",
           new Object[] { obj.getNumber(), obj.getId() });
       if (list != null && list.size() > 0) {
-        throw new UserException("legalAffaires.contract.error.numberAlreadyExists").setField("number");
+        throw new UserException("legalAffaires.contract.error.numberAlreadyExists").setCausedByField("number");
       }
     }
   }

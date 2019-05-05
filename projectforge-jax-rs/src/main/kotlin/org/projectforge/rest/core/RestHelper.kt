@@ -49,7 +49,7 @@ class RestHelper() {
         } catch (ex: UserException) {
             log.error("Error while trying to save/update object '${obj::class.java}' with id #${obj.id}: message=${ex.i18nKey}, params='${ex.msgParams?.joinToString() { it.toString() }}'")
             val error = ValidationError(translateMsg(ex), messageId = ex.i18nKey)
-            if (!ex.field.isNullOrBlank()) error.fieldId = ex.field
+            if (!ex.causedByField.isNullOrBlank()) error.fieldId = ex.causedByField
             val errors = listOf(error)
             return ResponseEntity(ResponseAction(validationErrors = errors), HttpStatus.NOT_ACCEPTABLE)
         }
