@@ -49,7 +49,7 @@ class KundeRest() : AbstractStandardRest<KundeDO, Kunde, KundeDao, BaseSearchFil
         val layout = super.createEditLayout(dataObject)
                 .add(UIRow()
                         .add(UICol()
-                                .add(lc, "bereich", "name")
+                                .add(lc, "nummer", "name")
                                 .add(konto)
                                 .add(lc, "identifier", "division", "description", "status")))
         return LayoutUtils.processEditPage(layout, dataObject)

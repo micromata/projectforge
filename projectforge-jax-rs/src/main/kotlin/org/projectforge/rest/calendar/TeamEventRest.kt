@@ -47,7 +47,7 @@ class TeamEventRest() : AbstractStandardRest<TeamEventDO, TeamEventDO, TeamEvent
     override fun createEditLayout(dataObject: TeamEventDO): UILayout {
         val calendars = teamCalDao.getAllCalendarsWithFullAccess()
         val calendarSelectValues = calendars.map { it ->
-            UISelectValue<Int>(it.id, it.title)
+            UISelectValue<Int>(it.id, it.title!!)
         }
         val subject = UIInput("subject", lc)
         subject.focus = true
