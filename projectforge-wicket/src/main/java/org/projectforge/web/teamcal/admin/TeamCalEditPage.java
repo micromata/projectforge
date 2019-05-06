@@ -84,7 +84,7 @@ public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm
       addContentMenuEntry(menu);
       final TeamCalRight right = new TeamCalRight(accessChecker);
       if (isNew() == true
-          || right.hasFullAccess(getData(), getUserId()) == true && getData().isExternalSubscription() == false) {
+          || right.hasFullAccess(getData(), getUserId()) && !getData().getExternalSubscription()) {
         menu = new ContentMenuEntryPanel(getNewContentMenuChildId(), new Link<Void>(ContentMenuEntryPanel.LINK_ID)
         {
           @Override
@@ -95,7 +95,7 @@ public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm
             final TeamCalImportPage importPage = new TeamCalImportPage(parameters);
             importPage.setReturnToPage(TeamCalEditPage.this);
             setResponsePage(importPage);
-          };
+          }
         }, getString("import")).setTooltip(getString("plugins.teamcal.import.ics.tooltip"));
         addContentMenuEntry(menu);
       }
@@ -112,7 +112,7 @@ public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm
     teamCalDao.setReadonlyAccessGroups(getData(), form.readonlyAccessGroupsListHelper.getAssignedItems());
     teamCalDao.setMinimalAccessGroups(getData(), form.minimalAccessGroupsListHelper.getAssignedItems());
     TeamCalDO data = form.getData();
-    if (data.isExternalSubscription() == false) {
+    if (!data.getExternalSubscription()) {
       data.setExternalSubscriptionUrl("");
       data.setExternalSubscriptionUpdateInterval(null);
     }

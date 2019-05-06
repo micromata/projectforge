@@ -1,18 +1,42 @@
 package org.projectforge.rest
 
+import org.projectforge.business.fibu.KundeDO
+import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.admin.TeamCalFilter
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.timesheet.TimesheetFilter
+import org.projectforge.business.user.service.UserService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractStandardRest
+import org.projectforge.rest.dto.Kunde
+import org.projectforge.rest.dto.TeamCal
 import org.projectforge.ui.*
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/teamCal")
-class TeamCalRest() : AbstractStandardRest<TeamCalDO, TeamCalDO, TeamCalDao, TeamCalFilter>(TeamCalDao::class.java, TeamCalFilter::class.java, "plugins.teamcal.title") {
+class TeamCalRest() : AbstractStandardRest<TeamCalDO, TeamCal, TeamCalDao, TeamCalFilter>(TeamCalDao::class.java, TeamCalFilter::class.java, "plugins.teamcal.title") {
+
+    @Autowired
+    private lateinit var groupService: GroupService
+
+    @Autowired
+    private lateinit var userService: UserService
+
+    override fun transformDO(obj: TeamCalDO): TeamCal {
+        val kunde = TeamCal()
+        kunde.copyFrom(obj)
+        return kunde
+    }
+
+    override fun transformDTO(dto: TeamCal): TeamCalDO {
+        val kundeDO = TeamCalDO()
+        dto.copyTo(kundeDO)
+        return kundeDO
+    }
 
     override fun validate(validationErrors: MutableList<ValidationError>, obj: TeamCalDO) {
     }
@@ -23,13 +47,10 @@ class TeamCalRest() : AbstractStandardRest<TeamCalDO, TeamCalDO, TeamCalDao, Tea
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
-                        .add(lc, "", "titel")
-                        .add(UITableColumn("kost2.project.customer", "fibu.kunde", formatter = Formatter.CUSTOMER))
-                        .add(UITableColumn("kost2.project", "fibu.projekt", formatter = Formatter.PROJECT))
-                        .add(UITableColumn("kost2", "fibu.kost2", formatter = Formatter.COST2))
-                        .add(lc,  "location", "description"))
-        layout.getTableColumnById("user").formatter = Formatter.USER
-        layout.getTableColumnById("task").formatter = Formatter.TASK_PATH
+                        .add(lc, "title", "externalSubscriptionUrl", "description", "owner",
+                                "accessright", "last_update", "externalSubscription"))
+        layout.getTableColumnById("owner").formatter = Formatter.USER
+        layout.getTableColumnById("last_update").formatter = Formatter.TIMESTAMP_MINUTES
         LayoutUtils.addListFilterContainer(layout, "longFormat", "recursive",
                 filterClass = TimesheetFilter::class.java)
         return LayoutUtils.processListPage(layout)
@@ -39,10 +60,62 @@ class TeamCalRest() : AbstractStandardRest<TeamCalDO, TeamCalDO, TeamCalDao, Tea
      * LAYOUT Edit page
      */
     override fun createEditLayout(dataObject: TeamCalDO): UILayout {
+        val allGroups = mutableListOf<UISelectValue<Int>>()
+        groupService.sortedGroups?.forEach {
+            allGroups.add(UISelectValue(it.id, it.name))
+        }
+
+        val allUsers = mutableListOf<UISelectValue<Int>>()
+        userService.sortedUsers?.forEach {
+            allUsers.add(UISelectValue(it.id, it.fullname))
+        }
+
         val layout = super.createEditLayout(dataObject)
-                .add(lc, "task", "kost2", "user", "startTime", "stopTime")
-                .add(UICustomized("taskConsumption"))
-                .add(lc, "location", "description")
+                .add(UIRow()
+                        .add(UICol()
+                                .add(lc, "title")
+                                .add(lc, "description"))
+                        .add(UICol()
+                                .add(lc, "owner")))
+                .add(UIRow()
+                        .add(UICol()
+                                .add(UIMultiSelect("fullAccessUsers", lc,
+                                        label = "addressbook.fullAccess",
+                                        additionalLabel = "access.users",
+                                        values = allUsers,
+                                        labelProperty = "fullname",
+                                        valueProperty = "id"))
+                                .add(UIMultiSelect("readonlyAccessUsers", lc,
+                                        label = "addressbook.readonlyAccess",
+                                        additionalLabel = "access.users",
+                                        values = allUsers,
+                                        labelProperty = "fullname",
+                                        valueProperty = "id"))
+                                .add(UIMultiSelect("minimalAccessUsers", lc,
+                                        label = "plugins.teamcal.minimalAccess",
+                                        additionalLabel = "access.users",
+                                        values = allUsers,
+                                        labelProperty = "fullname",
+                                        valueProperty = "id")))
+                        .add(UICol()
+                                .add(UIMultiSelect("fullAccessGroups", lc,
+                                        label = "addressbook.fullAccess",
+                                        additionalLabel = "access.groups",
+                                        values = allGroups,
+                                        labelProperty = "name",
+                                        valueProperty = "id"))
+                                .add(UIMultiSelect("readonlyAccessGroups", lc,
+                                        label = "addressbook.readonlyAccess",
+                                        additionalLabel = "access.groups",
+                                        values = allGroups,
+                                        labelProperty = "name",
+                                        valueProperty = "id"))
+                                .add(UIMultiSelect("minimalAccessUsers", lc,
+                                        label = "plugins.teamcal.minimalAccess",
+                                        additionalLabel = "access.groups",
+                                        values = allUsers,
+                                        labelProperty = "name",
+                                        valueProperty = "id"))))
         return LayoutUtils.processEditPage(layout, dataObject)
     }
 }
