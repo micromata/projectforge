@@ -5,6 +5,7 @@ import org.projectforge.business.teamcal.event.TeamEventDao
 import org.projectforge.business.teamcal.event.TeamEventFilter
 import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AbstractBaseObjectRest
 import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -14,7 +15,7 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/teamEvent")
-class TeamEventRest() : AbstractStandardRest<TeamEventDO, TeamEventDO, TeamEventDao, TeamEventFilter>(
+class TeamEventRest() : AbstractStandardRest<TeamEventDO, TeamEventDao, TeamEventFilter>(
         TeamEventDao::class.java,
         TeamEventFilter::class.java,
         "plugins.teamcal.event.title") {
@@ -22,7 +23,7 @@ class TeamEventRest() : AbstractStandardRest<TeamEventDO, TeamEventDO, TeamEvent
     @Autowired
     private lateinit var teamCalDao: TeamCalDao
 
-    override protected fun onGetItemAndLayout(request: HttpServletRequest, item: TeamEventDO, editLayoutData: AbstractStandardRest.EditLayoutData) {
+    override protected fun onGetItemAndLayout(request: HttpServletRequest, item: TeamEventDO, editLayoutData: AbstractBaseObjectRest.EditLayoutData) {
         val recurrentDateString = request.getParameter("recurrentDate")
         println("TeamEventRest: recurrentDate=$recurrentDateString")
     }

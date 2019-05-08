@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/outgoingMail")
-class PostausgangRest() : AbstractStandardRest<PostausgangDO, PostausgangDO, PostausgangDao, PostFilter>(PostausgangDao::class.java, PostFilter::class.java, "orga.postausgang.title") {
+class PostausgangRest() : AbstractStandardRest<PostausgangDO, PostausgangDao, PostFilter>(PostausgangDao::class.java, PostFilter::class.java, "orga.postausgang.title") {
     /**
      * Initializes new outbox mails for adding.
      */

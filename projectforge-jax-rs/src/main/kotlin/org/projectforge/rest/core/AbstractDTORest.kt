@@ -12,11 +12,16 @@ import org.projectforge.framework.persistence.api.ExtendedBaseDO
  * It's recommended for the frontend to develop generic list and edit pages by using the layout information served
  * by these rest services.
  */
-abstract class AbstractStandardRest<
+abstract class AbstractDTORest<
         O : ExtendedBaseDO<Int>,
+        DTO: Any,
         B : BaseDao<O>,
         F : BaseSearchFilter>(
         private val baseDaoClazz: Class<B>,
         private val filterClazz: Class<F>,
         private val i18nKeyPrefix: String)
-    : AbstractBaseObjectRest<O, O, B, F>(baseDaoClazz, filterClazz, i18nKeyPrefix)
+    : AbstractBaseObjectRest<O, DTO, B, F>(baseDaoClazz, filterClazz, i18nKeyPrefix) {
+    init {
+        useDTO = true
+    }
+}
