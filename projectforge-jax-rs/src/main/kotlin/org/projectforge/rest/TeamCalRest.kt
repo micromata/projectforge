@@ -80,13 +80,13 @@ class TeamCalRest() : AbstractStandardRest<TeamCalDO, TeamCal, TeamCalDao, TeamC
                 .add(UIRow()
                         .add(UICol()
                                 .add(UIMultiSelect("fullAccessUsers", lc,
-                                        label = "addressbook.fullAccess",
+                                        label = "plugins.teamcal.fullAccess",
                                         additionalLabel = "access.users",
                                         values = allUsers,
                                         labelProperty = "fullname",
                                         valueProperty = "id"))
                                 .add(UIMultiSelect("readonlyAccessUsers", lc,
-                                        label = "addressbook.readonlyAccess",
+                                        label = "plugins.teamcal.readonlyAccess",
                                         additionalLabel = "access.users",
                                         values = allUsers,
                                         labelProperty = "fullname",
@@ -99,13 +99,13 @@ class TeamCalRest() : AbstractStandardRest<TeamCalDO, TeamCal, TeamCalDao, TeamC
                                         valueProperty = "id")))
                         .add(UICol()
                                 .add(UIMultiSelect("fullAccessGroups", lc,
-                                        label = "addressbook.fullAccess",
+                                        label = "plugins.teamcal.fullAccess",
                                         additionalLabel = "access.groups",
                                         values = allGroups,
                                         labelProperty = "name",
                                         valueProperty = "id"))
                                 .add(UIMultiSelect("readonlyAccessGroups", lc,
-                                        label = "addressbook.readonlyAccess",
+                                        label = "plugins.teamcal.readonlyAccess",
                                         additionalLabel = "access.groups",
                                         values = allGroups,
                                         labelProperty = "name",
