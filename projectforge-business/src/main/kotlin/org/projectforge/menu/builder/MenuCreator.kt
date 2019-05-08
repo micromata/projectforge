@@ -243,7 +243,7 @@ open class MenuCreator() {
         //
         menuItemDefHolder.add(MenuItemDef(MenuItemDefId.COST, requiredGroups = *FIBU_ORGA_HR_GROUPS,
                 checkAccess = { Configuration.getInstance().isCostConfigured() }))
-                .add(MenuItemDef(MenuItemDefId.ACCOUNT_LIST, "wa/accountList",
+                .add(MenuItemDef(MenuItemDefId.ACCOUNT_LIST, "konto",
                         checkAccess = {
                             hasRight(KontoDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
                                     isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
