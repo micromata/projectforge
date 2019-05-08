@@ -190,6 +190,12 @@ fieldset {
 
   &.btn-primary {
     background: #32912E !important;
+    border: 1px solid #32912E !important;
+    max-height: 33px;
+
+    &:hover {
+      border: 1px solid #32912E !important;
+    }
   }
 
   &.btn-danger,
@@ -332,4 +338,22 @@ input.rc-time-picker-input {
 
 div.DayPickerInput input {
   width: 8em;
+}
+
+
+div[class^="Popper-"] {
+  border-color: #dfdfdf !important;
+}
+
+div[class^="Popper_popper__"] {
+  border: 1px solid #dfdfdf !important;
+  padding: 10px;
+}
+
+.rbc-addons-dnd.rbc-calendar {
+  margin-top: 40px !important;
+
+  .rbc-btn-group {
+    background: #FFF;
+  }
 }
