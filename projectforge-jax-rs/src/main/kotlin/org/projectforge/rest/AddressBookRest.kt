@@ -6,7 +6,7 @@ import org.projectforge.business.address.AddressbookFilter
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractStandardRest
+import org.projectforge.rest.core.AbstractDTORest
 import org.projectforge.rest.dto.Addressbook
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -15,16 +15,11 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/addressBook")
-class AddressBookRest() : AbstractStandardRest<AddressbookDO, Addressbook, AddressbookDao, AddressbookFilter>(
+class AddressBookRest() : AbstractDTORest<AddressbookDO, Addressbook, AddressbookDao, AddressbookFilter>(
         AddressbookDao::class.java,
         AddressbookFilter::class.java,
         "addressbook.title"
 ) {
-    init {
-        // AddressbookDO is used by AddressDO, so it is an embedded object and MUST use a dto:
-        useDTO = true
-    }
-
     @Autowired
     private lateinit var groupService: GroupService
 

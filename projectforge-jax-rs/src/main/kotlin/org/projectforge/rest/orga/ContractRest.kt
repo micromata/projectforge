@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/contract")
-class ContractRest() : AbstractStandardRest<ContractDO, ContractDO, ContractDao, ContractFilter>(ContractDao::class.java, ContractFilter::class.java, "legalAffaires.contract.title") {
+class ContractRest() : AbstractStandardRest<ContractDO, ContractDao, ContractFilter>(ContractDao::class.java, ContractFilter::class.java, "legalAffaires.contract.title") {
     /**
      * Initializes new outbox mails for adding.
      */

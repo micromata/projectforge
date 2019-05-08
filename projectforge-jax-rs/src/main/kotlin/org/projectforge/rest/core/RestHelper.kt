@@ -24,7 +24,7 @@ class RestHelper() {
     private val log = org.slf4j.LoggerFactory.getLogger(RestHelper::class.java)
 
     fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
-            getList(dataObjectRest: AbstractStandardRest<O, DTO, B, F>, baseDao: BaseDao<O>, filter: F)
+            getList(dataObjectRest: AbstractBaseObjectRest<O, DTO, B, F>, baseDao: BaseDao<O>, filter: F)
             : ResultSet<Any> {
         filter.isSortAndLimitMaxRowsWhileSelect = true
         val list = baseDao.getList(filter)
@@ -35,7 +35,7 @@ class RestHelper() {
     fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
             saveOrUpdate(request: HttpServletRequest,
                          baseDao: BaseDao<O>, obj: O,
-                         dataObjectRest: AbstractStandardRest<O, DTO, B, F>,
+                         dataObjectRest: AbstractBaseObjectRest<O, DTO, B, F>,
                          validationErrorsList: List<ValidationError>?)
             : ResponseEntity<ResponseAction> {
         if (!validationErrorsList.isNullOrEmpty()) {
@@ -64,7 +64,7 @@ class RestHelper() {
 
     fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
             undelete(baseDao: BaseDao<O>, obj: O,
-                     dataObjectRest: AbstractStandardRest<O, DTO, B, F>,
+                     dataObjectRest: AbstractBaseObjectRest<O, DTO, B, F>,
                      validationErrorsList: List<ValidationError>?)
             : ResponseEntity<ResponseAction> {
         if (validationErrorsList.isNullOrEmpty()) {
@@ -77,7 +77,7 @@ class RestHelper() {
 
     fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
             markAsDeleted(baseDao: BaseDao<O>, obj: O,
-                          dataObjectRest: AbstractStandardRest<O, DTO, B, F>,
+                          dataObjectRest: AbstractBaseObjectRest<O, DTO, B, F>,
                           validationErrorsList: List<ValidationError>?)
             : ResponseEntity<ResponseAction> {
         if (validationErrorsList.isNullOrEmpty()) {
@@ -90,7 +90,7 @@ class RestHelper() {
 
     fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
             delete(baseDao: BaseDao<O>, obj: O,
-                   dataObjectRest: AbstractStandardRest<O, DTO, B, F>,
+                   dataObjectRest: AbstractBaseObjectRest<O, DTO, B, F>,
                    validationErrorsList: List<ValidationError>?)
             : ResponseEntity<ResponseAction> {
         if (validationErrorsList.isNullOrEmpty()) {

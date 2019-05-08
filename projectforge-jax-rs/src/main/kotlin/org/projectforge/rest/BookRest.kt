@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/book")
-class BookRest() : AbstractStandardRest<BookDO, BookDO, BookDao, BookFilter>(BookDao::class.java, BookFilter::class.java, "book.title") {
+class BookRest() : AbstractStandardRest<BookDO, BookDao, BookFilter>(BookDao::class.java, BookFilter::class.java, "book.title") {
     /**
      * Initializes new books for adding.
      */
