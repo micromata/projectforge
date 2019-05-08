@@ -87,26 +87,26 @@ class AddressBookRest() : AbstractStandardRest<AddressbookDO, Addressbook, Addre
                 .add(UIRow()
                         .add(UICol()
                                 .add(UIMultiSelect("fullAccessUsers", lc,
-                                        label = "plugins.teamcal.fullAccess",
+                                        label = "addressbook.fullAccess",
                                         additionalLabel = "access.users",
                                         values = allUsers,
                                         labelProperty = "fullname",
                                         valueProperty = "id"))
                                 .add(UIMultiSelect("readonlyAccessUsers", lc,
-                                        label = "plugins.teamcal.readonlyAccess",
+                                        label = "addressbook.readonlyAccess",
                                         additionalLabel = "access.users",
                                         values = allUsers,
                                         labelProperty = "fullname",
                                         valueProperty = "id")))
                         .add(UICol()
                                 .add(UIMultiSelect("fullAccessGroups", lc,
-                                        label = "plugins.teamcal.fullAccess",
+                                        label = "addressbook.fullAccess",
                                         additionalLabel = "access.groups",
                                         values = allGroups,
                                         labelProperty = "name",
                                         valueProperty = "id"))
                                 .add(UIMultiSelect("readonlyAccessGroups", lc,
-                                        label = "plugins.teamcal.readonlyAccess",
+                                        label = "addressbook.readonlyAccess",
                                         additionalLabel = "access.groups",
                                         values = allGroups,
                                         labelProperty = "name",
