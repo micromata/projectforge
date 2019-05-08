@@ -1,6 +1,5 @@
 package org.projectforge.rest
 
-import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.admin.TeamCalFilter
@@ -9,7 +8,6 @@ import org.projectforge.business.timesheet.TimesheetFilter
 import org.projectforge.business.user.service.UserService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractStandardRest
-import org.projectforge.rest.dto.Kunde
 import org.projectforge.rest.dto.TeamCal
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
