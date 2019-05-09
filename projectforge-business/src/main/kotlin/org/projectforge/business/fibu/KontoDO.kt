@@ -23,28 +23,18 @@
 
 package org.projectforge.business.fibu
 
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.EnumType
-import javax.persistence.Enumerated
-import javax.persistence.Table
-import javax.persistence.Transient
-import javax.persistence.UniqueConstraint
-
+import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.apache.commons.lang3.ObjectUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.search.annotations.Analyze
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.FieldBridge
-import org.hibernate.search.annotations.Index
 import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.Store
 import org.hibernate.search.bridge.builtin.IntegerBridge
+import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-
-import de.micromata.genome.db.jpa.history.api.WithHistory
-import org.projectforge.common.anots.PropertyInfo
+import javax.persistence.*
 
 @Entity
 @Indexed
@@ -69,7 +59,7 @@ class KontoDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     @PropertyInfo(i18nKey = "status")
     @Field(analyze = Analyze.NO)
-    @Enumerated(EnumType.STRING)
+    @get:Enumerated(EnumType.STRING)
     @get:Column(length = 10)
     var status: KontoStatus? = null
 
