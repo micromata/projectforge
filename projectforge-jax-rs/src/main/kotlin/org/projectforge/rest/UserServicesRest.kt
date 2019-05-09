@@ -4,7 +4,6 @@ import org.projectforge.business.user.UserDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.RestHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -22,8 +21,6 @@ class UserServicesRest {
 
     @Autowired
     private lateinit var userDao: UserDao
-
-    private val restHelper = RestHelper()
 
     /**
      * Gets the task data including kost2 information if any and its path.

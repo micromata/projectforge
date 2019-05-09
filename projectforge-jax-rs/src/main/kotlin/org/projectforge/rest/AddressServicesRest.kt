@@ -8,7 +8,10 @@ import org.projectforge.business.address.AddressFilter
 import org.projectforge.business.address.PersonalAddressDao
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.*
+import org.projectforge.rest.core.AbstractDORest
+import org.projectforge.rest.core.ListFilterService
+import org.projectforge.rest.core.ReplaceUtils
+import org.projectforge.rest.core.ResultSet
 import org.projectforge.ui.UIStyle
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ByteArrayResource
@@ -54,8 +57,6 @@ class AddressServicesRest() {
 
     @Autowired
     private lateinit var personalAddressDao: PersonalAddressDao
-
-    private val restHelper = RestHelper()
 
     @GetMapping("exportFavoritesVCards")
     fun exportFavoritesVCards(): ResponseEntity<Any> {

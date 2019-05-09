@@ -3,7 +3,6 @@ package org.projectforge.rest
 import org.projectforge.business.address.AddressDao
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.ExpiringSessionAttributes
-import org.projectforge.rest.core.RestHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.core.io.Resource
@@ -31,8 +30,6 @@ class AddressImageServicesRest() {
 
     @Autowired
     private lateinit var addressDao: AddressDao
-
-    private val restHelper = RestHelper()
 
     /**
      * If given and greater 0, the image will be added to the address with the given id (pk), otherwise the image is

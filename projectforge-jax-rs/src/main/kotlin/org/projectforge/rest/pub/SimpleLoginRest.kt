@@ -16,7 +16,6 @@ import org.projectforge.framework.configuration.GlobalConfiguration
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.RestHelper
 import org.projectforge.ui.UILabel
 import org.projectforge.ui.UILayout
 import org.projectforge.ui.UINamedContainer
@@ -51,8 +50,6 @@ open class SimpleLoginRest {
 
     @Autowired
     private lateinit var cookieService: CookieService
-
-    private val restHelper = RestHelper()
 
     @GetMapping("layout")
     fun getLayout(): UILayout {

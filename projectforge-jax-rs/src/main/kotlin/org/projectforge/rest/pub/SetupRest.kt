@@ -4,7 +4,6 @@ import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.configuration.GlobalConfiguration
 import org.projectforge.framework.persistence.database.DatabaseService
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.RestHelper
 import org.projectforge.ui.UILabel
 import org.projectforge.ui.UILayout
 import org.projectforge.ui.UINamedContainer
@@ -30,19 +29,17 @@ open class SetupRest {
     @Autowired
     private lateinit var databaseService: DatabaseService
 
-    private val restHelper = RestHelper()
-
     @GetMapping("layout")
     fun getLayout(): UILayout {
         val layout = UILayout("administration.setup.title")
         if (databaseService.databaseTablesWithEntriesExists()) {
             log.error("Data-base isn't empty: SetupPage shouldn't be used...")
             return layout
-           // throw RestartResponseException(SetupPage::class.java!!)
+            // throw RestartResponseException(SetupPage::class.java!!)
         }
-                layout
+        layout
                 .addTranslations("username", "password", "login.stayLoggedIn", "login.stayLoggedIn.tooltip")
-                //.addTranslation("messageOfTheDay")
+        //.addTranslation("messageOfTheDay")
         layout.add(UINamedContainer("messageOfTheDay").add(UILabel(label = GlobalConfiguration.getInstance().getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY))))
         return layout
     }
