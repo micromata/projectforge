@@ -6,7 +6,7 @@ import org.projectforge.business.orga.ContractFilter
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDate
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractStandardRest
+import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/contract")
-class ContractRest() : AbstractStandardRest<ContractDO, ContractDao, ContractFilter>(ContractDao::class.java, ContractFilter::class.java, "legalAffaires.contract.title") {
+class ContractRest() : AbstractDORest<ContractDO, ContractDao, ContractFilter>(ContractDao::class.java, ContractFilter::class.java, "legalAffaires.contract.title") {
     /**
      * Initializes new outbox mails for adding.
      */

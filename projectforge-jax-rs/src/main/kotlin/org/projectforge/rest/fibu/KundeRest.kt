@@ -5,7 +5,6 @@ import org.projectforge.business.fibu.KundeDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTORest
-import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.rest.dto.Kunde
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping

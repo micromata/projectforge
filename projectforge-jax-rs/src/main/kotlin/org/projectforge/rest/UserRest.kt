@@ -5,7 +5,6 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTORest
-import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.rest.dto.User
 import org.projectforge.ui.LayoutUtils
 import org.projectforge.ui.UILayout
@@ -19,6 +18,17 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("${Rest.URL}/user")
 class UserRest()
     : AbstractDTORest<PFUserDO, User, UserDao, BaseSearchFilter>(UserDao::class.java, BaseSearchFilter::class.java, "user.title") {
+    override fun transformDO(obj: PFUserDO): User {
+        val user = User()
+        user.copyFrom(obj)
+        return user
+    }
+
+    override fun transformDTO(dto: User): PFUserDO {
+        val userDO = PFUserDO()
+        dto.copyTo(userDO)
+        return userDO
+    }
 
     @Autowired
     private lateinit var userDao: UserDao

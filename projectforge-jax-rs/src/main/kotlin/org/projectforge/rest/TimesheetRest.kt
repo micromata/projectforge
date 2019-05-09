@@ -14,7 +14,7 @@ import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractStandardRest
+import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
@@ -25,7 +25,7 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/timesheet")
-class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, TimesheetFilter>(TimesheetDao::class.java, TimesheetFilter::class.java, "timesheet.title") {
+class TimesheetRest() : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilter>(TimesheetDao::class.java, TimesheetFilter::class.java, "timesheet.title") {
 
     private val dateTimeFormatter = DateTimeFormatter.instance();
 
