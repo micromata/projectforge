@@ -77,7 +77,7 @@ class AddressServicesRest() {
 
     /**
      * Exports all the addresses with the last used filter. If the user works with different browser windows and devices, the result may not match
-     * the current displayed list. The recent search result is used (stored in [AbstractStandardRest.getList] or [AbstractStandardRest.getInitialList].
+     * the current displayed list. The recent search result is used (stored in [AbstractDORest.getList] or [AbstractDORest.getInitialList].
      */
     @GetMapping("exportFavoritesExcel")
     fun exportFavoritesExcel(request: HttpServletRequest): ResponseEntity<Any> {

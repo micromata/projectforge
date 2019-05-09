@@ -35,7 +35,7 @@ import javax.validation.Valid
  * It's recommended for the frontend to develop generic list and edit pages by using the layout information served
  * by these rest services.
  */
-abstract class AbstractBaseObjectRest<
+abstract class AbstractBaseRest<
         O : ExtendedBaseDO<Int>,
         DTO : Any, // DTO may be equals to O if no special data transfer objects are used.
         B : BaseDao<O>,
@@ -93,12 +93,6 @@ abstract class AbstractBaseObjectRest<
      */
     protected var restHelper = RestHelper()
 
-    /**
-     * If true, T (data transfer objects will be used). If false, the data base objects will be used for the
-     * rest interface. If true, the transform methods must be implemented.
-     */
-    internal var useDTO = false
-
     @Autowired
     private lateinit var accessChecker: AccessChecker
 
@@ -155,7 +149,7 @@ abstract class AbstractBaseObjectRest<
     }
 
     open fun createEditLayout(dataObject: O): UILayout {
-        val titleKey = if (dataObject?.id != null) "$i18nKeyPrefix.edit" else "$i18nKeyPrefix.add"
+        val titleKey = if (dataObject.id != null) "$i18nKeyPrefix.edit" else "$i18nKeyPrefix.add"
         return UILayout(titleKey)
     }
 
@@ -252,29 +246,7 @@ abstract class AbstractBaseObjectRest<
         return resultSet
     }
 
-    open fun processResultSetBeforeExport(resultSet: ResultSet<Any>) {
-        if (useDTO) {
-            val orig = resultSet.resultSet
-            resultSet.resultSet = orig.map {
-                transformDO(it as O)
-            }
-        }
-        resultSet.resultSet.forEach { processItemBeforeExport(it) }
-    }
-
-    /**
-     * Must be overridden if flag [useDTO] is true. Throws [UnsupportedOperationException] at default.
-     */
-    open fun transformDO(obj: O): DTO {
-        throw UnsupportedOperationException("Method transform(O) must be implemented if flag useDTO is set to true.")
-    }
-
-    /**
-     * Must be overridden if flag [useDTO] is true. Throws [UnsupportedOperationException] at default.
-     */
-    open fun transformDTO(dto: DTO): O {
-        throw UnsupportedOperationException("Method transform(Any)  must be implemented if flag useDTO is set to true.")
-    }
+    abstract fun processResultSetBeforeExport(resultSet: ResultSet<Any>)
 
     /**
      * Gets the item from the database.
@@ -284,11 +256,10 @@ abstract class AbstractBaseObjectRest<
     @GetMapping("{id}")
     fun getItem(@PathVariable("id") id: Int?): ResponseEntity<Any> {
         val item = getById(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
-        if (useDTO) {
-            return ResponseEntity<Any>(transformDO(item), HttpStatus.OK)
-        }
-        return ResponseEntity<Any>(item, HttpStatus.OK)
+        return returnItem(item)
     }
+
+    abstract fun returnItem(item: O): ResponseEntity<Any>
 
     protected fun getById(id: Int?): O? {
         val item = baseDao.getById(id) ?: return null
@@ -310,18 +281,15 @@ abstract class AbstractBaseObjectRest<
         val layout = createEditLayout(item)
         layout.addTranslations("changes", "tooltip.selectMe")
         layout.postProcessPageMenu()
-        val result =
-                if (useDTO) {
-                    EditLayoutData(transformDO(item), layout)
-                } else {
-                    EditLayoutData(item, layout)
-                }
+        val result = createEditLayoutData(item, layout)
         onGetItemAndLayout(request, item, result)
         val additionalVariables = addVariablesForEditPage(item)
         if (additionalVariables != null)
             result.variables = additionalVariables
         return ResponseEntity<EditLayoutData>(result, HttpStatus.OK)
     }
+
+    abstract internal fun createEditLayoutData(item: O, layout: UILayout): EditLayoutData
 
     protected open fun onGetItemAndLayout(request: HttpServletRequest, item: O, editLayoutData: EditLayoutData) {
     }
@@ -497,11 +465,5 @@ abstract class AbstractBaseObjectRest<
         return resultSet
     }
 
-    private fun asDO(dto: DTO): O {
-        return if (useDTO) {
-            transformDTO(dto)
-        } else {
-            dto as O
-        }
-    }
+    abstract internal fun asDO(dto: DTO): O
 }
