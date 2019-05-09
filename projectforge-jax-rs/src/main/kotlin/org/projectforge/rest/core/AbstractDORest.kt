@@ -28,8 +28,8 @@ abstract class AbstractDORest<
         resultSet.resultSet.forEach { processItemBeforeExport(it) }
     }
 
-    override fun asDO(o: O): O {
-        return o
+    override fun asDO(dto: O): O {
+        return dto
     }
 
     override fun createEditLayoutData(item: O, layout: UILayout): EditLayoutData {
