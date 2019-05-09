@@ -15,6 +15,7 @@ import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDORest
+import org.projectforge.rest.core.RestHelper
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
@@ -51,8 +52,8 @@ class TimesheetRest() : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilte
      */
     override fun newBaseDO(request: HttpServletRequest): TimesheetDO {
         val sheet = super.newBaseDO(request)
-        val startTimeEpochSeconds = restHelper.parseLong(request, "start")
-        val endTimeEpochSeconds = restHelper.parseLong(request, "end")
+        val startTimeEpochSeconds = RestHelper.parseLong(request, "start")
+        val endTimeEpochSeconds = RestHelper.parseLong(request, "end")
         if (startTimeEpochSeconds != null) {
             val start = PFDateTime.from(startTimeEpochSeconds * 1000)
             sheet.startTime = start.asSqlTimestamp()

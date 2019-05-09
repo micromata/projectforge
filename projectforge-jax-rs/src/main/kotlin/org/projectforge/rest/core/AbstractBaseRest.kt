@@ -88,11 +88,6 @@ abstract class AbstractBaseRest<
             return _baseDao ?: throw AssertionError("Set to null by another thread")
         }
 
-    /**
-     * The React frontend works with local dates.
-     */
-    protected var restHelper = RestHelper()
-
     @Autowired
     private lateinit var accessChecker: AccessChecker
 
@@ -205,7 +200,7 @@ abstract class AbstractBaseRest<
         if (filter.maxRows <= 0)
             filter.maxRows = 50
         filter.isSortAndLimitMaxRowsWhileSelect = true
-        val resultSet = restHelper.getList(this, baseDao, filter)
+        val resultSet = getList(this, baseDao, filter)
         processResultSetBeforeExport(resultSet)
         val layout = createListLayout()
                 .addTranslations("table.showing")
@@ -239,7 +234,7 @@ abstract class AbstractBaseRest<
      */
     @RequestMapping(RestPaths.LIST)
     fun getList(request: HttpServletRequest, @RequestBody filter: MagicFilter<F>): ResultSet<Any> {
-        val resultSet = restHelper.getList(this, baseDao, filter.prepareQueryFilter(filterClazz))
+        val resultSet = getList(this, baseDao, filter.prepareQueryFilter(filterClazz))
         processResultSetBeforeExport(resultSet)
         val storedFilter = listFilterService.getSearchFilter(request.session, filterClazz)
         BeanUtils.copyProperties(filter, storedFilter)
@@ -351,7 +346,7 @@ abstract class AbstractBaseRest<
     @PutMapping(RestPaths.SAVE_OR_UDATE)
     fun saveOrUpdate(request: HttpServletRequest, @Valid @RequestBody T: DTO, errors: Errors): ResponseEntity<ResponseAction> {
         val dbObj = asDO(T)
-        return restHelper.saveOrUpdate(request, baseDao, dbObj, this, validate(dbObj))
+        return saveOrUpdate(request, baseDao, dbObj, this, validate(dbObj))
     }
 
     /**
@@ -360,7 +355,7 @@ abstract class AbstractBaseRest<
     @PutMapping(RestPaths.UNDELETE)
     fun undelete(@RequestBody T: DTO): ResponseEntity<ResponseAction> {
         val dbObj = asDO(T)
-        return restHelper.undelete(baseDao, dbObj, this, validate(dbObj))
+        return undelete(baseDao, dbObj, this, validate(dbObj))
     }
 
     /**
@@ -370,7 +365,7 @@ abstract class AbstractBaseRest<
     @DeleteMapping(RestPaths.MARK_AS_DELETED)
     fun markAsDeleted(@RequestBody T: DTO): ResponseEntity<ResponseAction> {
         val dbObj = asDO(T)
-        return restHelper.markAsDeleted(baseDao, dbObj, this, validate(dbObj))
+        return markAsDeleted(baseDao, dbObj, this, validate(dbObj))
     }
 
     /**
@@ -380,7 +375,7 @@ abstract class AbstractBaseRest<
     @DeleteMapping(RestPaths.DELETE)
     fun delete(@RequestBody T: DTO): ResponseEntity<ResponseAction> {
         val dbObj = asDO(T)
-        return restHelper.delete(baseDao, dbObj, this, validate(dbObj))
+        return delete(baseDao, dbObj, this, validate(dbObj))
     }
 
     /**
