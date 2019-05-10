@@ -28,14 +28,14 @@ abstract class AbstractDTORest<
     override fun processResultSetBeforeExport(resultSet: ResultSet<Any>) {
         val orig = resultSet.resultSet
         resultSet.resultSet = orig.map {
-            transformDO(it as O)
+            transformDO(it as O, false)
         }
     }
 
     /**
      * Must be overridden if flag [useDTO] is true. Throws [UnsupportedOperationException] at default.
      */
-    abstract fun transformDO(obj: O): DTO
+    abstract fun transformDO(obj: O, editMode : Boolean): DTO
 
     /**
      * Must be overridden if flag [useDTO] is true. Throws [UnsupportedOperationException] at default.
@@ -47,10 +47,10 @@ abstract class AbstractDTORest<
     }
 
     override fun createEditLayoutData(item: O, layout: UILayout): EditLayoutData {
-        return EditLayoutData(transformDO(item), layout)
+        return EditLayoutData(transformDO(item, true), layout)
     }
 
     override fun returnItem(item: O): ResponseEntity<Any> {
-        return ResponseEntity<Any>(transformDO(item), HttpStatus.OK)
+        return ResponseEntity<Any>(transformDO(item, true), HttpStatus.OK)
     }
 }

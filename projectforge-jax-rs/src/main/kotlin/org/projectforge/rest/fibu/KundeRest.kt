@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("${Rest.URL}/customer")
 class KundeRest() : AbstractDTORest<KundeDO, Kunde, KundeDao, BaseSearchFilter>(KundeDao::class.java, BaseSearchFilter::class.java, "fibu.kunde.title") {
-    override fun transformDO(obj: KundeDO): Kunde {
+    override fun transformDO(obj: KundeDO, editMode : Boolean): Kunde {
         val kunde = Kunde()
         kunde.copyFrom(obj)
         return kunde

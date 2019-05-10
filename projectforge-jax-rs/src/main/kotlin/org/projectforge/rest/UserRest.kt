@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("${Rest.URL}/user")
 class UserRest()
     : AbstractDTORest<PFUserDO, User, UserDao, BaseSearchFilter>(UserDao::class.java, BaseSearchFilter::class.java, "user.title") {
-    override fun transformDO(obj: PFUserDO): User {
+    override fun transformDO(obj: PFUserDO, editMode : Boolean): User {
         val user = User()
         user.copyFrom(obj)
         return user
