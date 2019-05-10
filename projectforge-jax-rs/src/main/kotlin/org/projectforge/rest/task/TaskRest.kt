@@ -20,7 +20,7 @@ class TaskRest()
     @Autowired
     private lateinit var taskDao: AddressbookDao
 
-    override fun transformDO(obj: TaskDO): Task {
+    override fun transformDO(obj: TaskDO, editMode : Boolean): Task {
         val task = Task()
         task.copyFrom(obj)
         return task

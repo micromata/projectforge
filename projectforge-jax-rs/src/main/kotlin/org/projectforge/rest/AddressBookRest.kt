@@ -27,7 +27,7 @@ class AddressBookRest() : AbstractDTORest<AddressbookDO, Addressbook, Addressboo
     private lateinit var userService: UserService
 
     // Needed to use as dto.
-    override fun transformDO(obj: AddressbookDO): Addressbook {
+    override fun transformDO(obj: AddressbookDO, editMode : Boolean): Addressbook {
         val addressbook = Addressbook()
         addressbook.copyFrom(obj)
         // Group names needed by React client (for ReactSelect):

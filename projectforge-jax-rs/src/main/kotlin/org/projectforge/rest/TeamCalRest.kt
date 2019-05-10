@@ -4,8 +4,11 @@ import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.admin.TeamCalFilter
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
+import org.projectforge.business.teamcal.admin.right.TeamCalRight
 import org.projectforge.business.timesheet.TimesheetFilter
 import org.projectforge.business.user.service.UserService
+import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTORest
 import org.projectforge.rest.dto.TeamCal
@@ -24,16 +27,34 @@ class TeamCalRest() : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao, TeamCalFil
     @Autowired
     private lateinit var userService: UserService
 
-    override fun transformDO(obj: TeamCalDO): TeamCal {
-        val kunde = TeamCal()
-        kunde.copyFrom(obj)
-        return kunde
+    @Autowired
+    private lateinit var accessChecker: AccessChecker
+
+    override fun transformDO(obj: TeamCalDO, editMode: Boolean): TeamCal {
+        val teamCal = TeamCal()
+        teamCal.copyFrom(obj)
+        var anonymize = true;
+        if (editMode) {
+            if (obj.id != null) {
+                val right = TeamCalRight(accessChecker)
+                if (right.hasUpdateAccess(ThreadLocalUserContext.getUser(), obj, obj)) {
+                    // User has update access right, so don't remove externalSubscriptionUrl due to privacy reasons:
+                    anonymize = false
+                }
+            }
+        }
+        if (anonymize) {
+            // In list view and for users hasn't access to update the current object, the url will be anonymized due to privacy.
+            teamCal.externalSubscriptionUrlAnonymized = obj.externalSubscriptionUrlAnonymized
+            teamCal.externalSubscriptionUrl = null // Due to privacy reasons! Must be changed for editing mode.
+        }
+        return teamCal
     }
 
     override fun transformDTO(dto: TeamCal): TeamCalDO {
-        val kundeDO = TeamCalDO()
-        dto.copyTo(kundeDO)
-        return kundeDO
+        val teamCalDO = TeamCalDO()
+        dto.copyTo(teamCalDO)
+        return teamCalDO
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, obj: TeamCalDO) {
@@ -45,7 +66,7 @@ class TeamCalRest() : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao, TeamCalFil
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
-                        .add(lc, "title", "externalSubscriptionUrl", "description", "owner",
+                        .add(lc, "title", "externalSubscriptionUrlAnonymized", "description", "owner",
                                 "accessright", "last_update", "externalSubscription"))
         layout.getTableColumnById("owner").formatter = Formatter.USER
         layout.getTableColumnById("last_update").formatter = Formatter.TIMESTAMP_MINUTES
