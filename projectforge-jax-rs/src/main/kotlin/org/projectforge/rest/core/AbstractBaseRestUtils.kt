@@ -34,7 +34,7 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
         // Validation error occurred:
         return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)
     }
-    val isNew = obj.id == null
+    val isNew = obj.id == null || obj.created == null // obj.created is needed for KundeDO (id isn't null for inserting new customers).
     dataObjectRest.beforeSaveOrUpdate(request, obj)
     try {
        baseDao.saveOrUpdate(obj) ?: obj.id
