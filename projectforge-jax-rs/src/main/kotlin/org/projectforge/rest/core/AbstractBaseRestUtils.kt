@@ -48,6 +48,7 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
     }
     dataObjectRest.afterSaveOrUpdate(obj)
     if (isNew) {
+        // TODO: Never succeeding cast, creating new entries is not possible because of this.
         obj.id = id as Int
         return ResponseEntity(dataObjectRest.afterSave(obj), HttpStatus.OK)
     } else {
