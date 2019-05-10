@@ -46,7 +46,6 @@ import javax.persistence.*
         indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_kunde_konto_id", columnList = "konto_id"),
             javax.persistence.Index(name = "idx_fk_t_fibu_kunde_tenant_id", columnList = "tenant_id")])
 @Analyzer(impl = ClassicAnalyzer::class)
-// TODO: Cannot add a new customer with a new number.
 class KundeDO : AbstractHistorizableBaseDO<Int>(), ShortDisplayNameCapable, IManualIndex {
 
     /**
