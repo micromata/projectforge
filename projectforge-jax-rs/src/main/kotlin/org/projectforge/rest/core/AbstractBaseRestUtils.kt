@@ -1,6 +1,5 @@
 package org.projectforge.rest.core
 
-import org.bouncycastle.asn1.x509.X509ObjectIdentifiers.id
 import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDao
@@ -38,7 +37,7 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
     val isNew = obj.id == null
     dataObjectRest.beforeSaveOrUpdate(request, obj)
     try {
-        var id = baseDao.saveOrUpdate(obj) ?: obj.id
+       baseDao.saveOrUpdate(obj) ?: obj.id
     } catch (ex: UserException) {
         log.error("Error while trying to save/update object '${obj::class.java}' with id #${obj.id}: message=${ex.i18nKey}, params='${ex.msgParams?.joinToString() { it.toString() }}'")
         val error = ValidationError(translateMsg(ex), messageId = ex.i18nKey)
@@ -48,8 +47,6 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
     }
     dataObjectRest.afterSaveOrUpdate(obj)
     if (isNew) {
-        // TODO: Never succeeding cast, creating new entries is not possible because of this.
-        obj.id = id as Int
         return ResponseEntity(dataObjectRest.afterSave(obj), HttpStatus.OK)
     } else {
         return ResponseEntity(dataObjectRest.afterUpdate(obj), HttpStatus.OK)
