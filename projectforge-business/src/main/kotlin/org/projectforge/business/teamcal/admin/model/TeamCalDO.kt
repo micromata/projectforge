@@ -23,31 +23,18 @@
 
 package org.projectforge.business.teamcal.admin.model
 
-import javax.persistence.Basic
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.FetchType
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.Table
-import javax.persistence.Transient
-
+import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.annotations.Type
-import org.hibernate.search.annotations.ClassBridge
-import org.hibernate.search.annotations.Field
+import org.hibernate.search.annotations.*
 import org.hibernate.search.annotations.Index
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
-import org.hibernate.search.annotations.Store
 import org.projectforge.business.common.BaseUserGroupRightsDO
+import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.ReflectionToString
-
-import de.micromata.genome.db.jpa.history.api.NoHistory
-import org.projectforge.common.anots.PropertyInfo
+import javax.persistence.*
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -120,7 +107,6 @@ class TeamCalDO : BaseUserGroupRightsDO() {
      */
     // Slash after domain found
     // Shorten http://www.projectforge.org/cal/... -> http://www.projectforge.org
-    // TODO: How to display this on the list page? Annotation doesn't work because of variable being final
     val externalSubscriptionUrlAnonymized: String
         @Transient
         get() {
