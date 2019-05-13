@@ -33,7 +33,7 @@ class TeamCalRest() : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao, TeamCalFil
     override fun transformDO(obj: TeamCalDO, editMode: Boolean): TeamCal {
         val teamCal = TeamCal()
         teamCal.copyFrom(obj)
-        var anonymize = true;
+        var anonymize = true
         if (editMode) {
             if (obj.id != null) {
                 val right = TeamCalRight(accessChecker)
