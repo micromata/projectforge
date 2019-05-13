@@ -202,7 +202,7 @@ open class MenuCreator() {
         menuItemDefHolder.add(MenuItemDef(MenuItemDefId.HR,
                 checkAccess =
                 { isInGroup(ProjectForgeGroup.HR_GROUP) }))
-                .add(MenuItemDef(MenuItemDefId.EMPLOYEE_LIST, "wa/employeeList",
+                .add(MenuItemDef(MenuItemDefId.EMPLOYEE_LIST, "employee",
                         requiredUserRightId = EmployeeDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
                 .add(MenuItemDef(MenuItemDefId.EMPLOYEE_SALARY_LIST, "wa/employeeSalaryList",
                         requiredUserRightId = EmployeeSalaryDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
