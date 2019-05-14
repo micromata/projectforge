@@ -15,12 +15,13 @@ export const loadBegin = category => ({
     payload: { category },
 });
 
-export const loadSuccess = (data, ui, variables) => ({
+export const loadSuccess = (data, ui, variables, onClose) => ({
     type: EDIT_PAGE_LOAD_SUCCESS,
     payload: {
         data,
         ui,
         variables,
+        onClose,
     },
 });
 
@@ -43,7 +44,7 @@ export const updateFailure = validationMessages => ({
     payload: { validationMessages },
 });
 
-export const loadEdit = (category, id, additionalParams) => (dispatch) => {
+export const loadEdit = (category, id, additionalParams, onClose) => (dispatch) => {
     dispatch(loadBegin(category));
 
     const params = {
@@ -63,7 +64,7 @@ export const loadEdit = (category, id, additionalParams) => (dispatch) => {
     )
         .then(handleHTTPErrors)
         .then(response => response.json())
-        .then(json => dispatch(loadSuccess(json.data, json.ui, json.variables)))
+        .then(json => dispatch(loadSuccess(json.data, json.ui, json.variables, onClose)))
         .catch(error => dispatch(loadFailure(error.message)));
 };
 
@@ -84,7 +85,7 @@ export const changeField = (id, newValue) => (dispatch) => {
 export const callEndpointWithData = (endpoint, method = 'POST') => (dispatch, getState) => {
     dispatch(updateBegin());
 
-    const { category, data } = getState().editPage;
+    const { category, data, onClose } = getState().editPage;
 
     return fetch(
         getServiceURL(`${category}/${endpoint}`),
@@ -101,8 +102,10 @@ export const callEndpointWithData = (endpoint, method = 'POST') => (dispatch, ge
             if (response.status === 200) {
                 return response.json()
                     .then((json) => {
-                        console.log(json.url);
                         history.push(json.url);
+                        if (onClose) {
+                            onClose(json);
+                        }
                     });
             }
 
