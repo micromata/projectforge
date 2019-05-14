@@ -66,12 +66,16 @@ class TeamCalDO : BaseUserGroupRightsDO() {
     @get:Column(name = "ext_subscription", nullable = false, columnDefinition = "BOOLEAN DEFAULT 'false'")
     var externalSubscription: Boolean = false
 
+    /**
+     * This hash value is used for detecting changes of an subscribed calendar.
+     */
     @NoHistory
     @get:Column(length = 255, name = "ext_subscription_hash")
     var externalSubscriptionHash: String? = null
 
     /**
-     * This calendar is a subscription of an external calendar.
+     * This calendar is a subscription of an external calendar. This URL shouldn't be visible for users without
+     * full access, because this field may contain personal user settings of a cloud calendar.
      *
      * @return The subscription url.
      */
@@ -89,6 +93,10 @@ class TeamCalDO : BaseUserGroupRightsDO() {
     @get:Column(name = "ext_subscription_update_interval")
     var externalSubscriptionUpdateInterval: Int? = null
 
+    /**
+     * This binary contains all the events of a subscribed calendar and might be large. Don't export this field to
+     * any client because it may contain private data.
+     */
     @NoHistory
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column(name = "ext_subscription_calendar_binary")
