@@ -31,6 +31,7 @@ const reducer = (state = initialState, { type, payload }) => {
                 data: payload.data,
                 variables: payload.variables,
                 ui: payload.ui,
+                onClose: payload.onClose,
             };
         case EDIT_PAGE_LOAD_FAILURE:
             return {

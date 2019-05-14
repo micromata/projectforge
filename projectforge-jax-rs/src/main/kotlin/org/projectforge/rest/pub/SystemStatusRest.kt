@@ -9,17 +9,19 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 
+
 /**
  * This rest service should be available without login (public).
  */
 @RestController
 @RequestMapping("${Rest.PUBLIC_URL}")
-open class SystemStatusRest {
+class SystemStatusRest {
     data class SystemData(var appname: String? = null,
                           var version: String? = null,
                           var releaseTimestamp: String? = null,
                           var releaseDate: String? = null,
-                          var messageOfTheDay: String? = null)
+                          var messageOfTheDay: String? = null,
+                          var logoUrl: String? = null)
 
     @GetMapping("systemStatus")
     fun loginTest(request: HttpServletRequest): SystemData {
@@ -27,11 +29,13 @@ open class SystemStatusRest {
     }
 
     companion object {
-        fun getSystemData(): SystemData {
-            val systemStatus = SystemData(appname = ProjectForgeVersion.APP_ID,
+        fun getSystemData(): SystemStatusRest.SystemData {
+
+            val systemStatus = SystemStatusRest.SystemData(appname = ProjectForgeVersion.APP_ID,
                     version = ProjectForgeVersion.VERSION_STRING,
                     releaseTimestamp = ProjectForgeVersion.RELEASE_TIMESTAMP,
-                    releaseDate = ProjectForgeVersion.RELEASE_DATE)
+                    releaseDate = ProjectForgeVersion.RELEASE_DATE,
+                    logoUrl = LogoServiceRest.logoUrl)
             systemStatus.messageOfTheDay = GlobalConfiguration.getInstance()
                     .getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY)
             return systemStatus

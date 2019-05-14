@@ -5,7 +5,7 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskFilter
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractStandardRest
+import org.projectforge.rest.core.AbstractDTORest
 import org.projectforge.rest.dto.Task
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -15,15 +15,12 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("${Rest.URL}/task")
 class TaskRest()
-    : AbstractStandardRest<TaskDO, Task, TaskDao, TaskFilter>(TaskDao::class.java, TaskFilter::class.java, "task.title") {
-    init {
-        useDTO = true
-    }
+    : AbstractDTORest<TaskDO, Task, TaskDao, TaskFilter>(TaskDao::class.java, TaskFilter::class.java, "task.title") {
 
     @Autowired
     private lateinit var taskDao: AddressbookDao
 
-    override fun transformDO(obj: TaskDO): Task {
+    override fun transformDO(obj: TaskDO, editMode : Boolean): Task {
         val task = Task()
         task.copyFrom(obj)
         return task

@@ -53,6 +53,7 @@ class KundeDO : AbstractHistorizableBaseDO<Int>(), ShortDisplayNameCapable, IMan
      *
      * @see .getId
      */
+    @PropertyInfo(i18nKey = "fibu.kunde.nummer")
     @get:Id
     @get:Column(name = "pk")
     var nummer: Int? = null

@@ -6,6 +6,14 @@ controlling and managing work-break-down-structures (e. g. together with JIRA as
 Full documentation on: http://www.projectforge.org/pf-en/Documentation
 Please visit: https://www.projectforge.org/documentation/developer-guide.html
 
+== Version 7.0 will be released soon...
+
+[NOTE]
+====
+We're working on refactoring ProjectForge's frontend. We will introduce ReactJS and Kotlin (in addition to Java).
+ProjectForge will be controlled by a new Rest API for most CRUD operations. Stay tuned!
+====
+
 == Quickstart from command line
 
 [NOTE]
@@ -18,7 +26,7 @@ If you just want to run it, please download it from https://sourceforge.net/proj
    https://github.com/micromata/projectforge.git
 2. Ensure running *Java 1.8* (*not* 1.9+): `java -version`.
 3. Build ProjectForge:  
-   `mvn clean install -DskipTests=true`
+   `mvn clean install -DskipTests`
 4. Run ProjectForge:
    `java -jar projectforge-application/target/projectforge-application-X.X.X.jar`
 5. Open your browser:
@@ -59,7 +67,7 @@ Please note, that Java version 8 is needed for developing and running ProjectFor
 Start by simply running main (in `projectforge-application/src/main/java`): +
    `org.projectforge.start.ProjectForgeApplication.java`
 
-== Quickstart with PostgreSQL
+== Quickstart with PostgreSQL (optional)
 
 You may use PostgreSQL instead of the built-in data base.
 
@@ -123,6 +131,8 @@ Please have a lock at all available config parameters: https://github.com/microm
 
 == Adding your own plugins
 ProjectForge support plugins. The existing menu can be modified and own entities and functionalities can be added.
+
+Please note: We're working highly on a new release (will be published soon). Wicket will be replaced by Wicket technology. The implementation of plugins will be changed as well.
 
 The menu is customizable (you can add or remove menu entries in the config.xml file).
 Deploy your plugins by adding your jar(s) to the plugin directory next to the jar file. In eclipse you have to add the plugin project to the run configuration classpath. The jars contains both, the Java classes and the web pages (Wicket-pages). Nothing more is needed.

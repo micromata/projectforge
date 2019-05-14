@@ -7,7 +7,7 @@ import org.projectforge.business.orga.PostausgangDao
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDate
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractStandardRest
+import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/outgoingMail")
-class PostausgangRest() : AbstractStandardRest<PostausgangDO, PostausgangDO, PostausgangDao, PostFilter>(PostausgangDao::class.java, PostFilter::class.java, "orga.postausgang.title") {
+class PostausgangRest() : AbstractDORest<PostausgangDO, PostausgangDao, PostFilter>(PostausgangDao::class.java, PostFilter::class.java, "orga.postausgang.title") {
     /**
      * Initializes new outbox mails for adding.
      */

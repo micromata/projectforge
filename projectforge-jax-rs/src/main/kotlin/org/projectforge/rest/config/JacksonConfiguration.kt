@@ -26,8 +26,6 @@ open class JacksonConfiguration {
     @Bean
     open fun objectMapper(): ObjectMapper {
         val mapper = ObjectMapper()
-        val problemHandler = MyDeserializationProblemHandler()
-        mapper.addHandler(problemHandler)
         mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true)
         mapper.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false)
         //mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
@@ -47,9 +45,14 @@ open class JacksonConfiguration {
         module.addSerializer(java.sql.Date::class.java, SqlDateSerializer())
         module.addDeserializer(java.sql.Date::class.java, SqlDateDeserializer())
 
+        module.addDeserializer(java.lang.Integer::class.java, IntDeserializer())
+
         module.addSerializer(Kost2DO::class.java, Kost2DOSerializer())
         module.addSerializer(KundeDO::class.java, KundeDOSerializer())
+
         module.addSerializer(PFUserDO::class.java, PFUserDOSerializer())
+        module.addDeserializer(PFUserDO::class.java, PFUserDODeserializer())
+
         module.addSerializer(TaskDO::class.java, TaskDOSerializer())
         module.addSerializer(TenantDO::class.java, TenantDOSerializer())
         module.addSerializer(AddressbookDO::class.java, AddressbookDOSerializer())
