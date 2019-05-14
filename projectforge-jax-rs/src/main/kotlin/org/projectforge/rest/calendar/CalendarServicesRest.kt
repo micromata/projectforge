@@ -50,8 +50,6 @@ class CalendarServicesRest {
     @Autowired
     private lateinit var calendarConfigServicesRest: CalendarConfigServicesRest
 
-    private val restHelper = RestHelper()
-
     @PostMapping("events")
     fun getEvents(@RequestBody filter: CalendarFilter): ResponseEntity<Any> {
         if (filter.start == null) {
@@ -76,8 +74,8 @@ class CalendarServicesRest {
             : ResponseEntity<Any> {
         if (action != null && action != "select")
             return ResponseEntity("Action '$action' not supported. Supported action is only 'select'.", HttpStatus.BAD_REQUEST)
-        val startDate = if (start != null) restHelper.parseJSDateTime(start)?.toEpochSeconds() else null
-        val endDate = if (end != null) restHelper.parseJSDateTime(end)?.toEpochSeconds() else null
+        val startDate = if (start != null) RestHelper.parseJSDateTime(start)?.toEpochSeconds() else null
+        val endDate = if (end != null) RestHelper.parseJSDateTime(end)?.toEpochSeconds() else null
 
         val category: String;
         if (calendar.isNullOrBlank()) {

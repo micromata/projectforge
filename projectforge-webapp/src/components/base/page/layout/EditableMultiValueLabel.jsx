@@ -10,8 +10,10 @@ import Popper from '../../../design/popper';
 const stopEventPropagation = event => event.stopPropagation();
 
 function EditableMultiValueLabel({ data, selectProps, ...props }) {
+    const initialValue = selectProps.values[data.id] || '';
+
     const [isOpen, setIsOpen] = React.useState(true);
-    const [value, setValue] = React.useState(selectProps.values[data.id] || '');
+    const [value, setValue] = React.useState(initialValue);
 
     const popperRef = React.useRef(null);
 
@@ -29,6 +31,13 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
     });
 
     let input;
+    let { label } = data;
+
+    // disable eslint because variable is provided by react-select and can't be changed.
+    /* eslint-disable-next-line no-underscore-dangle */
+    if (!data.__isNew__) {
+        label = `${label}${initialValue ? `: ${initialValue}` : ''}`;
+    }
 
     // Handle Different Types of Filters
     switch (data.filterType) {
@@ -36,12 +45,15 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
             input = (
                 <Input
                     label={data.label}
-                    id={data.id}
+                    id={`editable-multi-value-input-${data.id}`}
                     value={value}
                     onChange={event => setValue(event.target.value)}
                     autoFocus
                 />
             );
+            break;
+        case 'COLOR_PICKER':
+            // TODO: IMPLEMENT COLOR PICKER
             break;
         // Case for plain searchString without filterType
         case undefined:
@@ -95,7 +107,9 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                         data={data}
                         selectProps={selectProps}
                         {...props}
-                    />
+                    >
+                        {label}
+                    </components.MultiValueLabel>
                 </div>
             )}
         >
@@ -111,7 +125,7 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
 
 EditableMultiValueLabel.propTypes = {
     data: PropTypes.shape({
-        id: PropTypes.string,
+        id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
         filterType: PropTypes.string,
     }).isRequired,
     selectProps: PropTypes.shape({

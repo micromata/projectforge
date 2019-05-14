@@ -1,6 +1,6 @@
 package org.projectforge.ui
 
-import org.projectforge.rest.core.AbstractStandardRest
+import org.projectforge.rest.core.AbstractBaseRest
 
 data class UIInput(val id: String,
                    @Transient
@@ -18,8 +18,8 @@ data class UIInput(val id: String,
     /**
      * @return this for chaining.
      */
-    fun enableAutoCompletion(services: AbstractStandardRest<*, *, *, *>):UIInput {
-        autoCompletionUrl = "${services.getFullRestPath()}/ac?property=${id}&search="
+    fun enableAutoCompletion(services: AbstractBaseRest<*, *, *, *>):UIInput {
+        autoCompletionUrl = "${services.getRestPath()}/ac?property=${id}&search="
         return this
     }
 }

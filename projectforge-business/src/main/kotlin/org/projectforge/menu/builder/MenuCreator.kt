@@ -159,7 +159,7 @@ open class MenuCreator() {
         //
         val commonMenu = menuItemDefHolder.add(MenuItemDef(MenuItemDefId.COMMON))
                 .add(MenuItemDef(MenuItemDefId.CALENDAR, "calendar"))
-                .add(MenuItemDef(MenuItemDefId.TEAMCALENDAR, "wa/wicket/bookmarkable/org.projectforge.web.teamcal.admin.TeamCalListPage"))
+                .add(MenuItemDef(MenuItemDefId.TEAMCALENDAR, "teamCal"))
                 .add(MenuItemDef(MenuItemDefId.VACATION, "wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationListPage",
                         badgeCounter = { vacationService.getOpenLeaveApplicationsForUser(ThreadLocalUserContext.getUser()).toInt() }))
                 .add(MenuItemDef(MenuItemDefId.BOOK_LIST, "book"))
@@ -202,7 +202,7 @@ open class MenuCreator() {
         menuItemDefHolder.add(MenuItemDef(MenuItemDefId.HR,
                 checkAccess =
                 { isInGroup(ProjectForgeGroup.HR_GROUP) }))
-                .add(MenuItemDef(MenuItemDefId.EMPLOYEE_LIST, "wa/employeeList",
+                .add(MenuItemDef(MenuItemDefId.EMPLOYEE_LIST, "employee",
                         requiredUserRightId = EmployeeDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
                 .add(MenuItemDef(MenuItemDefId.EMPLOYEE_SALARY_LIST, "wa/employeeSalaryList",
                         requiredUserRightId = EmployeeSalaryDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
@@ -243,7 +243,7 @@ open class MenuCreator() {
         //
         menuItemDefHolder.add(MenuItemDef(MenuItemDefId.COST, requiredGroups = *FIBU_ORGA_HR_GROUPS,
                 checkAccess = { Configuration.getInstance().isCostConfigured() }))
-                .add(MenuItemDef(MenuItemDefId.ACCOUNT_LIST, "wa/accountList",
+                .add(MenuItemDef(MenuItemDefId.ACCOUNT_LIST, "konto",
                         checkAccess = {
                             hasRight(KontoDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
                                     isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)

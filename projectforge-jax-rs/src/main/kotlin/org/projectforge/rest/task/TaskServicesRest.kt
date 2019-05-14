@@ -19,7 +19,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDate
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.ListFilterService
-import org.projectforge.rest.core.RestHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -122,8 +121,6 @@ class TaskServicesRest {
 
     @Autowired
     private lateinit var userPreferencesService: UserPreferencesService
-
-    private val restHelper = RestHelper()
 
     private val taskTree: TaskTree
         /** Lazy init, because test cases failed due to NPE in TenantRegistryMap. */

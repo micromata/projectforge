@@ -20,10 +20,12 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.validation.Errors
 import org.springframework.web.bind.annotation.*
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpSession
+import javax.validation.Valid
 
 /**
  * This is the base class for all fronted functionality regarding query, editing etc. It also serves layout
@@ -33,7 +35,7 @@ import javax.servlet.http.HttpSession
  * It's recommended for the frontend to develop generic list and edit pages by using the layout information served
  * by these rest services.
  */
-abstract class AbstractStandardRest<
+abstract class AbstractBaseRest<
         O : ExtendedBaseDO<Int>,
         DTO : Any, // DTO may be equals to O if no special data transfer objects are used.
         B : BaseDao<O>,
@@ -86,17 +88,6 @@ abstract class AbstractStandardRest<
             return _baseDao ?: throw AssertionError("Set to null by another thread")
         }
 
-    /**
-     * The React frontend works with local dates.
-     */
-    protected var restHelper = RestHelper()
-
-    /**
-     * If true, T (data transfer objects will be used). If false, the data base objects will be used for the
-     * rest interface. If true, the transform methods must be implemented.
-     */
-    protected var useDTO = false
-
     @Autowired
     private lateinit var accessChecker: AccessChecker
 
@@ -133,10 +124,14 @@ abstract class AbstractStandardRest<
         return layout
     }
 
+    /**
+     * Relative rest path (without leading /rs
+     */
     fun getRestPath(): String {
         if (restPath == null) {
             val requestMapping = this::class.annotations.find { it is RequestMapping } as? RequestMapping
-            restPath = requestMapping?.value?.joinToString("/") { it } ?: "/"
+            val url = requestMapping?.value?.joinToString("/") { it } ?: "/"
+            restPath = url.substringAfter("${Rest.URL}/")
         }
         return restPath!!
     }
@@ -148,12 +143,8 @@ abstract class AbstractStandardRest<
         return category!!
     }
 
-    fun getFullRestPath(): String {
-        return getRestPath()
-    }
-
     open fun createEditLayout(dataObject: O): UILayout {
-        val titleKey = if (dataObject?.id != null) "$i18nKeyPrefix.edit" else "$i18nKeyPrefix.add"
+        val titleKey = if (dataObject.id != null) "$i18nKeyPrefix.edit" else "$i18nKeyPrefix.add"
         return UILayout(titleKey)
     }
 
@@ -209,7 +200,7 @@ abstract class AbstractStandardRest<
         if (filter.maxRows <= 0)
             filter.maxRows = 50
         filter.isSortAndLimitMaxRowsWhileSelect = true
-        val resultSet = restHelper.getList(this, baseDao, filter)
+        val resultSet = getList(this, baseDao, filter)
         processResultSetBeforeExport(resultSet)
         val layout = createListLayout()
                 .addTranslations("table.showing")
@@ -243,36 +234,14 @@ abstract class AbstractStandardRest<
      */
     @RequestMapping(RestPaths.LIST)
     fun getList(request: HttpServletRequest, @RequestBody filter: MagicFilter<F>): ResultSet<Any> {
-        val resultSet = restHelper.getList(this, baseDao, filter.prepareQueryFilter(filterClazz))
+        val resultSet = getList(this, baseDao, filter.prepareQueryFilter(filterClazz))
         processResultSetBeforeExport(resultSet)
         val storedFilter = listFilterService.getSearchFilter(request.session, filterClazz)
         BeanUtils.copyProperties(filter, storedFilter)
         return resultSet
     }
 
-    open fun processResultSetBeforeExport(resultSet: ResultSet<Any>) {
-        if (useDTO) {
-            val orig = resultSet.resultSet
-            resultSet.resultSet = orig.map {
-                transformDO(it as O)
-            }
-        }
-        resultSet.resultSet.forEach { processItemBeforeExport(it) }
-    }
-
-    /**
-     * Must be overridden if flag [useDTO] is true. Throws [UnsupportedOperationException] at default.
-     */
-    open fun transformDO(obj: O): DTO {
-        throw UnsupportedOperationException("Method transform(O) must be implemented if flag useDTO is set to true.")
-    }
-
-    /**
-     * Must be overridden if flag [useDTO] is true. Throws [UnsupportedOperationException] at default.
-     */
-    open fun transformDTO(dto: DTO): O {
-        throw UnsupportedOperationException("Method transform(Any)  must be implemented if flag useDTO is set to true.")
-    }
+    abstract fun processResultSetBeforeExport(resultSet: ResultSet<Any>)
 
     /**
      * Gets the item from the database.
@@ -282,11 +251,10 @@ abstract class AbstractStandardRest<
     @GetMapping("{id}")
     fun getItem(@PathVariable("id") id: Int?): ResponseEntity<Any> {
         val item = getById(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
-        if (useDTO) {
-            return ResponseEntity<Any>(transformDO(item), HttpStatus.OK)
-        }
-        return ResponseEntity<Any>(item, HttpStatus.OK)
+        return returnItem(item)
     }
+
+    abstract fun returnItem(item: O): ResponseEntity<Any>
 
     protected fun getById(id: Int?): O? {
         val item = baseDao.getById(id) ?: return null
@@ -308,18 +276,15 @@ abstract class AbstractStandardRest<
         val layout = createEditLayout(item)
         layout.addTranslations("changes", "tooltip.selectMe")
         layout.postProcessPageMenu()
-        val result =
-                if (useDTO) {
-                    EditLayoutData(transformDO(item), layout)
-                } else {
-                    EditLayoutData(item, layout)
-                }
+        val result = createEditLayoutData(item, layout)
         onGetItemAndLayout(request, item, result)
         val additionalVariables = addVariablesForEditPage(item)
         if (additionalVariables != null)
             result.variables = additionalVariables
         return ResponseEntity<EditLayoutData>(result, HttpStatus.OK)
     }
+
+    abstract internal fun createEditLayoutData(item: O, layout: UILayout): EditLayoutData
 
     protected open fun onGetItemAndLayout(request: HttpServletRequest, item: O, editLayoutData: EditLayoutData) {
     }
@@ -379,9 +344,9 @@ abstract class AbstractStandardRest<
      * Use this service for adding new items as well as updating existing items (id isn't null).
      */
     @PutMapping(RestPaths.SAVE_OR_UDATE)
-    fun saveOrUpdate(request: HttpServletRequest, @RequestBody T: DTO): ResponseEntity<ResponseAction> {
+    fun saveOrUpdate(request: HttpServletRequest, @Valid @RequestBody T: DTO, errors: Errors): ResponseEntity<ResponseAction> {
         val dbObj = asDO(T)
-        return restHelper.saveOrUpdate(request, baseDao, dbObj, this, validate(dbObj))
+        return saveOrUpdate(request, baseDao, dbObj, this, validate(dbObj))
     }
 
     /**
@@ -390,7 +355,7 @@ abstract class AbstractStandardRest<
     @PutMapping(RestPaths.UNDELETE)
     fun undelete(@RequestBody T: DTO): ResponseEntity<ResponseAction> {
         val dbObj = asDO(T)
-        return restHelper.undelete(baseDao, dbObj, this, validate(dbObj))
+        return undelete(baseDao, dbObj, this, validate(dbObj))
     }
 
     /**
@@ -400,7 +365,7 @@ abstract class AbstractStandardRest<
     @DeleteMapping(RestPaths.MARK_AS_DELETED)
     fun markAsDeleted(@RequestBody T: DTO): ResponseEntity<ResponseAction> {
         val dbObj = asDO(T)
-        return restHelper.markAsDeleted(baseDao, dbObj, this, validate(dbObj))
+        return markAsDeleted(baseDao, dbObj, this, validate(dbObj))
     }
 
     /**
@@ -410,7 +375,7 @@ abstract class AbstractStandardRest<
     @DeleteMapping(RestPaths.DELETE)
     fun delete(@RequestBody T: DTO): ResponseEntity<ResponseAction> {
         val dbObj = asDO(T)
-        return restHelper.delete(baseDao, dbObj, this, validate(dbObj))
+        return delete(baseDao, dbObj, this, validate(dbObj))
     }
 
     /**
@@ -495,11 +460,5 @@ abstract class AbstractStandardRest<
         return resultSet
     }
 
-    private fun asDO(dto: DTO): O {
-        return if (useDTO) {
-            transformDTO(dto)
-        } else {
-            dto as O
-        }
-    }
+    abstract internal fun asDO(dto: DTO): O
 }

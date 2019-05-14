@@ -23,14 +23,14 @@
 
 package org.projectforge.framework.i18n;
 
-import java.util.ResourceBundle;
-
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.projectforge.framework.api.ProjectForgeException;
 
+import java.util.ResourceBundle;
+
 /**
  * This Exception will be thrown by the application and the message should be displayed.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class UserException extends ProjectForgeException
@@ -46,6 +46,8 @@ public class UserException extends ProjectForgeException
   protected Object[] params;
 
   protected MessageParam[] msgParams;
+
+  protected String causedByField;
 
   /**
    * @param i18nKey Key for the localized message.
@@ -76,6 +78,18 @@ public class UserException extends ProjectForgeException
   {
     this(i18nKey);
     this.msgParams = msgParams;
+  }
+
+  /**
+   * @return Name of the causedByField, the exception is caused by, if any.
+   */
+  public String getCausedByField() {
+    return causedByField;
+  }
+
+  public UserException setCausedByField(String causedByField) {
+    this.causedByField = causedByField;
+    return this;
   }
 
   /**

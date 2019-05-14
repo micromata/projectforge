@@ -129,7 +129,7 @@ public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditP
     final FieldsetPanel fieldSet = gridBuilder.newFieldset(getString("user.myAccount.teamcalwhitelist"));
     this.teamCalRestWhiteList = teamCalCache.getAllFullAccessCalendars();
     Integer[] teamCalBlackListIds = userXmlPreferencesDao
-        .getDeserializedUserPreferencesByUserId(ThreadLocalUserContext.getUserId(), TeamCalDO.TEAMCALRESTBLACKLIST, Integer[].class);
+        .getDeserializedUserPreferencesByUserId(ThreadLocalUserContext.getUserId(), TeamCalDO.Companion.getTEAMCALRESTBLACKLIST(), Integer[].class);
     if (teamCalBlackListIds != null && teamCalBlackListIds.length > 0) {
       Arrays.stream(teamCalBlackListIds).forEach(calId -> teamCalRestWhiteList.remove(teamCalCache.getCalendar(calId)));
     }

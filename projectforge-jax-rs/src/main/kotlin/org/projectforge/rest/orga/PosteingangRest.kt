@@ -7,7 +7,7 @@ import org.projectforge.business.orga.PosteingangDao
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDate
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractStandardRest
+import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/incomingMail")
-class PosteingangRest(): AbstractStandardRest<PosteingangDO, PosteingangDO, PosteingangDao, PostFilter>(PosteingangDao::class.java, PostFilter::class.java, "orga.posteingang.title") {
+class PosteingangRest(): AbstractDORest<PosteingangDO, PosteingangDao, PostFilter>(PosteingangDao::class.java, PostFilter::class.java, "orga.posteingang.title") {
 
     override fun newBaseDO(request: HttpServletRequest): PosteingangDO {
         val inbox = super.newBaseDO(request)

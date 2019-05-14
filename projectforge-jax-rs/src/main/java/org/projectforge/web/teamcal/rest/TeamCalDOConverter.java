@@ -49,7 +49,7 @@ public class TeamCalDOConverter
     DOConverter.copyFields(cal, src);
     cal.setTitle(src.getTitle());
     cal.setDescription(src.getDescription());
-    cal.setExternalSubscription(src.isExternalSubscription());
+    cal.setExternalSubscription(src.getExternalSubscription());
     final TeamCalRight right = (TeamCalRight) userRights.getRight(UserRightId.PLUGIN_CALENDAR);
     cal.setMinimalAccess(right.hasMinimalAccess(src, userId));
     cal.setReadonlyAccess(right.hasReadonlyAccess(src, userId));

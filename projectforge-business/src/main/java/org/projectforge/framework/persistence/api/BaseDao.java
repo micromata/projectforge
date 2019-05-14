@@ -23,26 +23,14 @@
 
 package org.projectforge.framework.persistence.api;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import de.micromata.genome.db.jpa.history.api.DiffEntry;
+import de.micromata.genome.db.jpa.history.api.HistoryEntry;
+import de.micromata.genome.util.runtime.ClassUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.PredicateUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.LockMode;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
+import org.hibernate.*;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.search.FullTextQuery;
 import org.hibernate.search.FullTextSession;
@@ -83,9 +71,9 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import de.micromata.genome.db.jpa.history.api.DiffEntry;
-import de.micromata.genome.db.jpa.history.api.HistoryEntry;
-import de.micromata.genome.util.runtime.ClassUtils;
+import java.io.Serializable;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -670,7 +658,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   public Serializable saveOrUpdate(final O obj) throws AccessException
   {
     Serializable id = null;
-    if (obj.getId() != null) {
+    if (obj.getId() != null && obj.getCreated() != null) { // obj.created is needed for KundeDO (id isn't null for inserting new customers).
       update(obj);
     } else {
       id = save(obj);

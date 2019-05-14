@@ -9,7 +9,8 @@ import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.AddressImageServicesRest.Companion.SESSION_IMAGE_ATTR
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractStandardRest
+import org.projectforge.rest.core.AbstractBaseRest
+import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.sms.SmsSenderConfig
@@ -23,7 +24,7 @@ import javax.servlet.http.HttpServletRequest
 @RestController
 @RequestMapping("${Rest.URL}/address")
 class AddressRest()
-    : AbstractStandardRest<AddressDO, AddressDO, AddressDao, AddressFilter>(AddressDao::class.java, AddressFilter::class.java, "address.title") {
+    : AbstractDORest<AddressDO, AddressDao, AddressFilter>(AddressDao::class.java, AddressFilter::class.java, "address.title") {
 
     /**
      * For exporting list of addresses.
@@ -54,7 +55,7 @@ class AddressRest()
         return address
     }
 
-    override fun onGetItemAndLayout(request: HttpServletRequest, item: AddressDO, editLayoutData: AbstractStandardRest.EditLayoutData) {
+    override fun onGetItemAndLayout(request: HttpServletRequest, item: AddressDO, editLayoutData: AbstractBaseRest.EditLayoutData) {
         ExpiringSessionAttributes.removeAttribute(request.session, SESSION_IMAGE_ATTR)
     }
 
