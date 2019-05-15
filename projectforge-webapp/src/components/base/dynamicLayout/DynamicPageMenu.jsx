@@ -6,13 +6,8 @@ import Navigation from '../navigation';
 import { DynamicLayoutContext } from './context';
 
 function DynamicPageMenu({ menu, title }) {
-    // Return fragment when the menu is undefined
-    if (menu === undefined || menu.length === 0) {
-        return <React.Fragment />;
-    }
-
-    // Work with copy of menu
-    const navigationMenu = [...menu];
+    // Work with clone of menu
+    const navigationMenu = [...menu || []];
 
     // Load options from context
     const { options } = React.useContext(DynamicLayoutContext);
@@ -24,6 +19,11 @@ function DynamicPageMenu({ menu, title }) {
             type: 'TEXT',
             key: 'dynamic-page-menu-title',
         });
+    }
+
+    // Return fragment when the menu is empty
+    if (navigationMenu === undefined || navigationMenu.length === 0) {
+        return <React.Fragment />;
     }
 
     // Build a navigation with the menu(-entries) from the props.
