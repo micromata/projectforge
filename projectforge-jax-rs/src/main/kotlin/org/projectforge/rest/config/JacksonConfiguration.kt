@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.fibu.KundeDO
+import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
@@ -47,6 +48,7 @@ open class JacksonConfiguration {
 
         module.addDeserializer(java.lang.Integer::class.java, IntDeserializer())
 
+        module.addSerializer(Kost1DO::class.java, Kost1DOSerializer())
         module.addSerializer(Kost2DO::class.java, Kost2DOSerializer())
         module.addSerializer(KundeDO::class.java, KundeDOSerializer())
 

@@ -11,6 +11,7 @@ data class UITableColumn(var id: String,
 
 enum class Formatter {
     DATE,
+    COST1,
     COST2,
     CUSTOMER,
     KONTO,

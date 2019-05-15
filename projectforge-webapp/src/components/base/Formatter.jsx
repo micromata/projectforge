@@ -4,6 +4,7 @@ import moment from 'moment';
 import { connect } from 'react-redux';
 
 const DATE_FORMATTER = 'DATE';
+const COST1_FORMATTER = 'COST1';
 const COST2_FORMATTER = 'COST2';
 const CUSTOMER_FORMATTER = 'CUSTOMER';
 const KONTO_FORMATTER = 'KONTO';
@@ -29,6 +30,9 @@ function Formatter(
     if (formatter) {
         let result;
         switch (formatter) {
+            case COST1_FORMATTER:
+                result = value.formattedNumber;
+                break;
             case COST2_FORMATTER:
                 result = value.formattedNumber;
                 break;
