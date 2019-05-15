@@ -3,16 +3,23 @@ import React from 'react';
 import { menuItemPropType } from '../../../utilities/propTypes';
 import { Navbar } from '../../design';
 import Navigation from '../navigation';
+import { DynamicLayoutContext } from './context';
 
 function DynamicPageMenu({ menu, title }) {
     // Return fragment when the menu is undefined
-    if (menu === undefined) {
+    if (menu === undefined || menu.length === 0) {
         return <React.Fragment />;
     }
 
-    // Add the title as the first entry.
-    if (title) {
-        menu.unshift({
+    // Work with copy of menu
+    const navigationMenu = [...menu];
+
+    // Load options from context
+    const { options } = React.useContext(DynamicLayoutContext);
+
+    // Add the title as the first entry if present and option showPageMenuTitle is true.
+    if (options.showPageMenuTitle && title) {
+        navigationMenu.unshift({
             title,
             type: 'TEXT',
             key: 'dynamic-page-menu-title',
@@ -23,7 +30,7 @@ function DynamicPageMenu({ menu, title }) {
     return (
         <Navbar>
             <Navigation
-                entries={menu}
+                entries={navigationMenu}
                 // Let the menu float to the right.
                 className="ml-auto"
             />
