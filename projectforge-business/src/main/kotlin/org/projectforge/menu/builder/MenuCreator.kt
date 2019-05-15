@@ -3,6 +3,7 @@ package org.projectforge.menu.builder
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.*
 import org.projectforge.business.fibu.datev.DatevImportDao
+import org.projectforge.business.fibu.kost.Kost1Dao
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.humanresources.HRPlanningDao
 import org.projectforge.business.login.Login
@@ -248,9 +249,9 @@ open class MenuCreator() {
                             hasRight(KontoDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
                                     isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
                         }))
-                .add(MenuItemDef(MenuItemDefId.COST1_LIST, "wa/cost1List",
+                .add(MenuItemDef(MenuItemDefId.COST1_LIST, "kost1",
                         checkAccess = {
-                            hasRight(Kost2Dao.USER_RIGHT_ID, *READONLY_READWRITE) ||
+                            hasRight(Kost1Dao.USER_RIGHT_ID, *READONLY_READWRITE) ||
                                     isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
                         }))
                 .add(MenuItemDef(MenuItemDefId.COST2_LIST, "wa/cost2List",
