@@ -8,11 +8,13 @@ import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.ProjektDao
+import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.TenantDO
 import org.projectforge.registry.Registry
+import org.projectforge.rest.dto.Kost1
 import org.projectforge.rest.task.TaskServicesRest
 import java.io.IOException
 
@@ -35,7 +37,7 @@ class PFUserDOSerializer : StdSerializer<PFUserDO>(PFUserDO::class.java) {
 }
 
 /**
- * Serialization for TaskDO etc.
+ * Serialization for TaskDO.
  */
 class TaskDOSerializer : StdSerializer<TaskDO>(TaskDO::class.java) {
     @Throws(IOException::class, JsonProcessingException::class)
@@ -50,7 +52,7 @@ class TaskDOSerializer : StdSerializer<TaskDO>(TaskDO::class.java) {
 }
 
 /**
- * Serialization for Kost2DO etc.
+ * Serialization for Kost2DO.
  */
 class Kost2DOSerializer : StdSerializer<Kost2DO>(Kost2DO::class.java) {
     private class Kunde(val id: Int?, val name: String?)
@@ -59,7 +61,7 @@ class Kost2DOSerializer : StdSerializer<Kost2DO>(Kost2DO::class.java) {
 
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: Kost2DO?, jgen: JsonGenerator, provider: SerializerProvider) {
-        if (value == null){
+        if (value == null) {
             jgen.writeNull()
             return
         }
@@ -81,6 +83,22 @@ class Kost2DOSerializer : StdSerializer<Kost2DO>(Kost2DO::class.java) {
             }
         }
         jgen.writeObject(kost2)
+    }
+}
+
+/**
+ * Serialization for Kost1DO.
+ */
+class Kost1DOSerializer : StdSerializer<Kost1DO>(Kost1DO::class.java) {
+    @Throws(IOException::class, JsonProcessingException::class)
+    override fun serialize(value: Kost1DO?, jgen: JsonGenerator, provider: SerializerProvider) {
+        if (value == null) {
+            jgen.writeNull()
+            return
+        }
+        val kost1 = Kost1(value.id, nummernkreis = value.nummernkreis, bereich = value.bereich, teilbereich = value.teilbereich, endziffer = value.endziffer,
+                description = value.description, formattedNumber = value.formattedNumber)
+        jgen.writeObject(kost1)
     }
 }
 
