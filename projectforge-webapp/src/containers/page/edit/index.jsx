@@ -16,9 +16,19 @@ import EditHistory from './history';
 
 class EditPage extends React.Component {
     componentDidMount() {
-        const { load, location, match } = this.props;
+        const {
+            load,
+            location,
+            match,
+            onClose,
+        } = this.props;
 
-        load(match.params.category, match.params.id, getObjectFromQuery(location.search || ''));
+        load(
+            match.params.category,
+            match.params.id,
+            getObjectFromQuery(location.search || ''),
+            onClose,
+        );
     }
 
     render() {
@@ -111,45 +121,49 @@ class EditPage extends React.Component {
 
 EditPage.propTypes = {
     changeDataField: PropTypes.func.isRequired,
-    match: PropTypes.shape({}).isRequired,
     load: PropTypes.func.isRequired,
     location: PropTypes.shape({
         hash: PropTypes.string,
         pathname: PropTypes.string,
         search: PropTypes.string,
     }).isRequired,
+    match: PropTypes.shape({}).isRequired,
     ui: PropTypes.shape({
         translations: PropTypes.shape({}),
     }).isRequired,
-    validation: PropTypes.shape({}),
-    error: PropTypes.any,
     data: PropTypes.shape({}),
-    variables: PropTypes.shape({}),
+    error: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.number,
+        PropTypes.object,
+    ]),
     loading: PropTypes.bool,
-    afterEdit: PropTypes.func,
+    onClose: PropTypes.func,
+    validation: PropTypes.shape({}),
+    variables: PropTypes.shape({}),
 };
 
 EditPage.defaultProps = {
     data: [],
-    variables: {},
     error: undefined,
     loading: false,
+    onClose: undefined,
     validation: {},
-    afterEdit: undefined,
+    variables: {},
 };
 
 const mapStateToProps = state => ({
-    ui: state.editPage.ui,
+    data: state.editPage.data,
     error: state.editPage.error,
     loading: state.editPage.loading,
-    data: state.editPage.data,
-    variables: state.editPage.variables,
+    ui: state.editPage.ui,
     validation: state.editPage.validation,
+    variables: state.editPage.variables,
 });
 
 const actions = {
-    load: loadEditPage,
     changeDataField: changeEditFormField,
+    load: loadEditPage,
 };
 
 export default connect(mapStateToProps, actions)(EditPage);
