@@ -28,7 +28,7 @@ function CalendarEntryEditPanel(
             <EditPage
                 location={location}
                 match={match}
-                afterEdit={afterEdit}
+                onClose={afterEdit}
             />
         </div>
     );
