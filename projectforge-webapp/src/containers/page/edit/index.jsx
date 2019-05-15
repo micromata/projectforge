@@ -82,7 +82,15 @@ class EditPage extends React.Component {
                     <TabPane tabId="edit">
                         <Container fluid>
                             <form>
-                                <DynamicLayout ui={ui} data={data} />
+                                <DynamicLayout
+                                    ui={ui}
+                                    data={data}
+                                    options={{
+                                        displayPageMenu: id !== undefined,
+                                        setBrowserTitle: true,
+                                        showPageMenuTitle: false,
+                                    }}
+                                />
                             </form>
                         </Container>
                     </TabPane>
