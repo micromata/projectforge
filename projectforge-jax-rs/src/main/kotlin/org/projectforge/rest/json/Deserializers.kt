@@ -6,11 +6,13 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.node.IntNode
 import org.apache.commons.lang3.StringUtils
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import java.math.BigDecimal
 
 
 /**
- * Deserialization for PFUserDO etc.
+ * Deserialization for PFUserDO.
  */
 class PFUserDODeserializer : StdDeserializer<PFUserDO>(PFUserDO::class.java) {
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): PFUserDO? {
@@ -24,7 +26,7 @@ class PFUserDODeserializer : StdDeserializer<PFUserDO>(PFUserDO::class.java) {
 
 
 /**
- * Deserialization for PFUserDO etc.
+ * Deserialization for Integers.
  */
 class IntDeserializer : StdDeserializer<Integer>(Integer::class.java) {
 
@@ -38,6 +40,5 @@ class IntDeserializer : StdDeserializer<Integer>(Integer::class.java) {
         } catch (ex: NumberFormatException) {
             throw ctxt.weirdStringException(str, Integer::class.java, "Can't parse integer.")
         }
-
     }
 }
