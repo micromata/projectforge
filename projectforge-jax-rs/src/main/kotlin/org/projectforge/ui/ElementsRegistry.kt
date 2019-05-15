@@ -8,6 +8,7 @@ import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.BeanUtils
+import java.math.BigDecimal
 import java.util.*
 import javax.persistence.Basic
 import javax.persistence.Column
@@ -67,6 +68,7 @@ object ElementsRegistry {
                     java.sql.Timestamp::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.TIMESTAMP)
                     PFUserDO::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.USER)
                     Integer::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.INT)
+                    BigDecimal::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.DECIMAL)
                     TaskDO::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.TASK)
                     Locale::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.LOCALE)
                     else -> null

@@ -19,6 +19,7 @@ import org.projectforge.rest.json.*
 import org.projectforge.ui.UIMultiSelect
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import java.math.BigDecimal
 import java.time.LocalDate
 
 @Configuration
@@ -47,6 +48,7 @@ open class JacksonConfiguration {
         module.addDeserializer(java.sql.Date::class.java, SqlDateDeserializer())
 
         module.addDeserializer(java.lang.Integer::class.java, IntDeserializer())
+        module.addDeserializer(BigDecimal::class.java, BigDecimalDeserializer())
 
         module.addSerializer(Kost1DO::class.java, Kost1DOSerializer())
         module.addSerializer(Kost2DO::class.java, Kost2DOSerializer())
