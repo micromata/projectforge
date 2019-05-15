@@ -3,13 +3,12 @@ package org.projectforge.rest.dto
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeStatus
 import org.projectforge.business.fibu.Gender
-import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.math.BigDecimal
 import java.util.*
 
 class Employee(var user: PFUserDO? = null,
-               var kost1: Kost1DO? = null,
+               var kost1: Kost1? = null,
                var status: EmployeeStatus? = null,
                var position: String? = null,
                var eintrittsDatum: Date? = null,
@@ -30,4 +29,4 @@ class Employee(var user: PFUserDO? = null,
                var state: String? = null,
                var comment: String? = null
                )
-    : BaseObject<EmployeeDO>() {}
+    : BaseObject<EmployeeDO>()
