@@ -1,9 +1,11 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import { menuItemPropType } from '../../../utilities/propTypes';
 import {
     defaultValues as dynamicLayoutContextDefaultValues,
     DynamicLayoutContext,
 } from './context';
+import renderLayout from './components/DynamicRenderer';
 import DynamicPageMenu from './DynamicPageMenu';
 
 function DynamicLayout({ ui, options }) {
@@ -29,12 +31,14 @@ function DynamicLayout({ ui, options }) {
             value={{
                 ui,
                 options,
+                renderLayout,
             }}
         >
             {/* Render Page Menu if the option displayPageMenu is true. */
                 displayPageMenu
                     ? <DynamicPageMenu menu={pageMenu} title={title} />
                     : undefined}
+            {renderLayout(ui.layout)}
         </DynamicLayoutContext.Provider>
     );
 }
@@ -43,7 +47,7 @@ DynamicLayout.propTypes = {
     // UI Prop
     ui: PropTypes.shape({
         title: PropTypes.string,
-        // TODO PAGEMENU PROPTYPE
+        pageMenu: PropTypes.arrayOf(menuItemPropType),
     }).isRequired,
     // Customization options
     options: PropTypes.shape({
