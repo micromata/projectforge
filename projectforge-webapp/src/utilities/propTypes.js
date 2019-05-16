@@ -49,3 +49,16 @@ export const tableColumnsPropType = PropTypes.arrayOf(PropTypes.shape({
 export const badgePropType = PropTypes.shape({
     counter: PropTypes.number,
 });
+
+// Supported types for the DynamicLayout
+export const dynamicTypePropType = PropTypes.oneOf([
+    'ROW',
+    'COL',
+    'INPUT',
+]);
+
+// Content PropType for DynamicLayout
+export const contentPropType = PropTypes.shape({
+    type: dynamicTypePropType.isRequired,
+    key: PropTypes.string.isRequired,
+});
