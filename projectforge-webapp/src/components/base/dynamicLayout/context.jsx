@@ -40,7 +40,7 @@ export const defaultValues = {
      *
      * @param {(Object|function(Object):Object)} The new data as an object or an function that
      *  except the current data and calculates the new data to be set.
-     * @param {function(Object):void} The callback function will be called when the new Data was
+     * @param {function(Object):void=} The callback function will be called when the new Data was
      *  set.
      *
      * @returns {Promise<Object>} If you want to use the promise architecture instead of a callback
