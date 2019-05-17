@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import DynamicInput from './DynamicInput';
 
+// All types of 'INPUT' will be resolved here.
 function DynamicInputResolver({ dataType, ...props }) {
     let Tag;
 
@@ -20,6 +21,7 @@ function DynamicInputResolver({ dataType, ...props }) {
 
 DynamicInputResolver.propTypes = {
     dataType: PropTypes.oneOf([
+        // All dataTypes yet implemented for type 'INPUT'.
         'STRING',
     ]).isRequired,
 };
