@@ -122,10 +122,8 @@ class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableAttr<I
     @Deprecated("Don't use the status field anymore, this is replaced by the status within the internalattrschema.xml")
     @PropertyInfo(i18nKey = "status")
     @Field
-    @get:Deprecated("Don't use the status field anymore, this is replaced by the status within the internalattrschema.xml\"")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "employee_status", length = 30)
-    @set:Deprecated("Don't use the status field anymore, this is replaced by the status within the internalattrschema.xml\"")
     var status: EmployeeStatus? = null
 
     @PropertyInfo(i18nKey = "address.positionText")
