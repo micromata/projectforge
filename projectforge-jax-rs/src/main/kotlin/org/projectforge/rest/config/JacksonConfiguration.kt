@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import org.projectforge.business.address.AddressbookDO
+import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
@@ -32,9 +33,9 @@ open class JacksonConfiguration {
         mapper.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false)
         //mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
         //mapper.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, true)
-        mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE);
-        mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
+        mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL)
 
 
         val module = SimpleModule()
@@ -60,6 +61,7 @@ open class JacksonConfiguration {
         module.addSerializer(TaskDO::class.java, TaskDOSerializer())
         module.addSerializer(TenantDO::class.java, TenantDOSerializer())
         module.addSerializer(AddressbookDO::class.java, AddressbookDOSerializer())
+        module.addSerializer(EmployeeDO::class.java, EmployeeDOSerializer())
 
         // Calendar serializers
         module.addSerializer(TeamCalDO::class.java, TeamCalDOSerializer())
@@ -67,7 +69,7 @@ open class JacksonConfiguration {
         // UI
         module.addSerializer(UIMultiSelect::class.java, UIMultiSelectTypeSerializer())
 
-        mapper.registerModule(module);
-        return mapper;
+        mapper.registerModule(module)
+        return mapper
     }
 }

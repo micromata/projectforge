@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import org.projectforge.business.address.AddressbookDO
+import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.ProjektDao
@@ -147,5 +148,22 @@ class AddressbookDOSerializer : StdSerializer<AddressbookDO>(AddressbookDO::clas
         }
         val addressbook = Addressbook(value.id, value.title)
         jgen.writeObject(addressbook)
+    }
+}
+
+/**
+ * Serialization for EmployeeDO
+ */
+class EmployeeDOSerializer : StdSerializer<EmployeeDO>(EmployeeDO::class.java) {
+    private class Employee(val id: Int?, val username: String?, val fullname: String?)
+
+    @Throws(IOException::class, JsonProcessingException::class)
+    override fun serialize(value: EmployeeDO?, jgen: JsonGenerator, provider: SerializerProvider) {
+        if (value == null) {
+            jgen.writeNull()
+            return
+        }
+        val employee = Employee(value.id, value.user?.username, value.user?.fullname)
+        jgen.writeObject(employee)
     }
 }
