@@ -1,6 +1,6 @@
 import React from 'react';
 import DynamicGroup from './DynamicGroup';
-import DynamicInput from './DynamicInput';
+import DynamicInputResolver from './input/DynamicInputResolver';
 
 export default (content) => {
     if (!content) {
@@ -19,7 +19,7 @@ export default (content) => {
                         Tag = DynamicGroup;
                         break;
                     case 'INPUT':
-                        Tag = DynamicInput;
+                        Tag = DynamicInputResolver;
                         break;
                     default:
                         return <React.Fragment key={componentKey} />;
