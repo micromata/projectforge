@@ -8,7 +8,7 @@ import {
 import renderLayout from './components/DynamicRenderer';
 import DynamicPageMenu from './DynamicPageMenu';
 
-function DynamicLayout({ ui, options }) {
+function DynamicLayout({ ui, options, ...props }) {
     // Destructure the 'ui' prop.
     const {
         title,
@@ -29,9 +29,11 @@ function DynamicLayout({ ui, options }) {
     return (
         <DynamicLayoutContext.Provider
             value={{
+                ...dynamicLayoutContextDefaultValues,
                 ui,
                 options,
                 renderLayout,
+                ...props,
             }}
         >
             {/* Render Page Menu if the option displayPageMenu is true. */
