@@ -20,12 +20,36 @@ class EditPage extends React.Component {
             onClose,
         } = this.props;
 
+        this.setData = this.setData.bind(this);
+
         load(
             match.params.category,
             match.params.id,
             getObjectFromQuery(location.search || ''),
             onClose,
         );
+    }
+
+    async setData(newData, callback) {
+        // Load some props from redux
+        const { data, changeDataField } = this.props;
+
+        // compute new data if it's a function.
+        const computedNewData = typeof newData === 'function' ? newData(data) : newData;
+
+        Object.keys(computedNewData)
+            .forEach(key => changeDataField(key, computedNewData[key]));
+
+        const absoluteNewData = {
+            ...data,
+            ...computedNewData,
+        };
+
+        if (callback) {
+            callback(absoluteNewData);
+        }
+
+        return absoluteNewData;
     }
 
     render() {
@@ -90,6 +114,7 @@ class EditPage extends React.Component {
                                         setBrowserTitle: true,
                                         showPageMenuTitle: false,
                                     }}
+                                    setData={this.setData}
                                 />
                             </form>
                         </Container>
