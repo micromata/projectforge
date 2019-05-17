@@ -119,14 +119,13 @@ class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableAttr<I
     @get:JoinColumn(name = "kost1_id", nullable = true)
     var kost1: Kost1DO? = null
 
-    // don't use the status field anymore, this is replaced by the status within the internalattrschema.xml
-    @Deprecated("")
+    @Deprecated("Don't use the status field anymore, this is replaced by the status within the internalattrschema.xml")
     @PropertyInfo(i18nKey = "status")
     @Field
-    @get:Deprecated("")
+    @get:Deprecated("Don't use the status field anymore, this is replaced by the status within the internalattrschema.xml\"")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "employee_status", length = 30)
-    @set:Deprecated("")
+    @set:Deprecated("Don't use the status field anymore, this is replaced by the status within the internalattrschema.xml\"")
     var status: EmployeeStatus? = null
 
     @PropertyInfo(i18nKey = "address.positionText")
