@@ -98,38 +98,44 @@ class TeamCalRest() : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao, TeamCalFil
                                 .add(lc, "owner")))
                 .add(UIRow()
                         .add(UICol()
-                                .add(UIMultiSelect("fullAccessUsers", lc,
+                                .add(UISelect("fullAccessUsers", lc,
+                                        multi = true,
                                         label = "plugins.teamcal.fullAccess",
                                         additionalLabel = "access.users",
                                         values = allUsers,
                                         labelProperty = "fullname",
                                         valueProperty = "id"))
-                                .add(UIMultiSelect("readonlyAccessUsers", lc,
+                                .add(UISelect("readonlyAccessUsers", lc,
+                                        multi = true,
                                         label = "plugins.teamcal.readonlyAccess",
                                         additionalLabel = "access.users",
                                         values = allUsers,
                                         labelProperty = "fullname",
                                         valueProperty = "id"))
-                                .add(UIMultiSelect("minimalAccessUsers", lc,
+                                .add(UISelect("minimalAccessUsers", lc,
+                                        multi = true,
                                         label = "plugins.teamcal.minimalAccess",
                                         additionalLabel = "access.users",
                                         values = allUsers,
                                         labelProperty = "fullname",
                                         valueProperty = "id")))
                         .add(UICol()
-                                .add(UIMultiSelect("fullAccessGroups", lc,
+                                .add(UISelect("fullAccessGroups", lc,
+                                        multi = true,
                                         label = "plugins.teamcal.fullAccess",
                                         additionalLabel = "access.groups",
                                         values = allGroups,
                                         labelProperty = "name",
                                         valueProperty = "id"))
-                                .add(UIMultiSelect("readonlyAccessGroups", lc,
+                                .add(UISelect("readonlyAccessGroups", lc,
+                                        multi = true,
                                         label = "plugins.teamcal.readonlyAccess",
                                         additionalLabel = "access.groups",
                                         values = allGroups,
                                         labelProperty = "name",
                                         valueProperty = "id"))
-                                .add(UIMultiSelect("minimalAccessUsers", lc,
+                                .add(UISelect("minimalAccessUsers", lc,
+                                        multi = true,
                                         label = "plugins.teamcal.minimalAccess",
                                         additionalLabel = "access.groups",
                                         values = allUsers,

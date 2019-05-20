@@ -81,26 +81,30 @@ class AddressBookRest() : AbstractDTORest<AddressbookDO, Addressbook, Addressboo
                                 .add(lc, "owner")))
                 .add(UIRow()
                         .add(UICol()
-                                .add(UIMultiSelect("fullAccessUsers", lc,
+                                .add(UISelect("fullAccessUsers", lc,
+                                        multi = true,
                                         label = "addressbook.fullAccess",
                                         additionalLabel = "access.users",
                                         values = allUsers,
                                         labelProperty = "fullname",
                                         valueProperty = "id"))
-                                .add(UIMultiSelect("readonlyAccessUsers", lc,
+                                .add(UISelect("readonlyAccessUsers", lc,
+                                        multi = true,
                                         label = "addressbook.readonlyAccess",
                                         additionalLabel = "access.users",
                                         values = allUsers,
                                         labelProperty = "fullname",
                                         valueProperty = "id")))
                         .add(UICol()
-                                .add(UIMultiSelect("fullAccessGroups", lc,
+                                .add(UISelect("fullAccessGroups", lc,
+                                        multi = true,
                                         label = "addressbook.fullAccess",
                                         additionalLabel = "access.groups",
                                         values = allGroups,
                                         labelProperty = "name",
                                         valueProperty = "id"))
-                                .add(UIMultiSelect("readonlyAccessGroups", lc,
+                                .add(UISelect("readonlyAccessGroups", lc,
+                                        multi = true,
                                         label = "addressbook.readonlyAccess",
                                         additionalLabel = "access.groups",
                                         values = allGroups,

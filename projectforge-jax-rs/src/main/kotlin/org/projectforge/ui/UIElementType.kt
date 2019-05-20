@@ -9,7 +9,6 @@ enum class UIElementType {
     TEXTAREA,
     INPUT,
     SELECT,
-    MULTI_SELECT,
     CHECKBOX,
     TABLE,
     TABLE_COLUMN,
