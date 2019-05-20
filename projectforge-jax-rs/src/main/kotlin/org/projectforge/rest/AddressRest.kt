@@ -175,7 +175,8 @@ class AddressRest()
                         .add(UIFieldset(6)
                                 .add(UIRow()
                                         .add(UICol(length = 8)
-                                                .add(UIMultiSelect("addressbookList", lc,
+                                                .add(UISelect("addressbookList", lc,
+                                                        multi = true,
                                                         values = addressbooks,
                                                         labelProperty = "title",
                                                         valueProperty = "id")))

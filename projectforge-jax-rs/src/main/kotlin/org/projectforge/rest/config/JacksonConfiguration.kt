@@ -17,7 +17,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.TenantDO
 import org.projectforge.rest.calendar.TeamCalDOSerializer
 import org.projectforge.rest.json.*
-import org.projectforge.ui.UIMultiSelect
+import org.projectforge.ui.UISelect
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.math.BigDecimal
@@ -67,7 +67,7 @@ open class JacksonConfiguration {
         module.addSerializer(TeamCalDO::class.java, TeamCalDOSerializer())
 
         // UI
-        module.addSerializer(UIMultiSelect::class.java, UIMultiSelectTypeSerializer())
+        module.addSerializer(UISelect::class.java, UISelectTypeSerializer())
 
         mapper.registerModule(module)
         return mapper
