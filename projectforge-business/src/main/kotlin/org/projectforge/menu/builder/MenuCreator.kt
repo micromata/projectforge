@@ -322,7 +322,7 @@ open class MenuCreator() {
                             Login.getInstance().isWlanPasswordChangeSupported(ThreadLocalUserContext.getUser())
                         }))
                 .add(MenuItemDef(MenuItemDefId.USER_LIST, "wa/userList")) // Visible for all.
-                .add(MenuItemDef(MenuItemDefId.GROUP_LIST, "wa/groupList")) // Visible for all.
+                .add(MenuItemDef(MenuItemDefId.GROUP_LIST, "group")) // Visible for all.
                 .add(MenuItemDef(MenuItemDefId.ACCESS_LIST, "wa/accessList")) // Visible for all.
                 .add(MenuItemDef(MenuItemDefId.SYSTEM, "wa/admin", requiredGroups = *arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
 
