@@ -418,6 +418,8 @@ class AuftragDO : DefaultBaseDO() {
                 .filter { pos -> !pos.isDeleted }
                 .collect<List<AuftragsPositionDO>, Any>(Collectors.toList<AuftragsPositionDO>() as Collector<in AuftragsPositionDO, Any, List<AuftragsPositionDO>>?)
 
+    // TODO (Jan): Try simply this: get() = getPositionen().filter { !it.isDeleted}
+
     /**
      * @return The sum of person days of all positions.
      */
