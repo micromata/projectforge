@@ -23,48 +23,22 @@
 
 package org.projectforge.business.fibu
 
-import java.math.BigDecimal
-import java.sql.Date
-import java.util.ArrayList
-import java.util.Collections
-import java.util.stream.Collectors
-
-import javax.persistence.CascadeType
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.EnumType
-import javax.persistence.Enumerated
-import javax.persistence.FetchType
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.OneToMany
-import javax.persistence.Table
-import javax.persistence.Transient
-import javax.persistence.UniqueConstraint
-
+import de.micromata.genome.db.jpa.history.api.NoHistory
+import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.IndexColumn
-import org.hibernate.search.annotations.Analyze
-import org.hibernate.search.annotations.DateBridge
-import org.hibernate.search.annotations.EncodingType
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Fields
-import org.hibernate.search.annotations.Index
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
-import org.hibernate.search.annotations.Resolution
-import org.hibernate.search.annotations.Store
+import org.hibernate.search.annotations.*
+import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.framework.xstream.XmlObjectReader
-
-import de.micromata.genome.db.jpa.history.api.NoHistory
-import de.micromata.genome.db.jpa.history.api.WithHistory
-import org.projectforge.common.anots.PropertyInfo
-import java.util.stream.Collector
+import java.math.BigDecimal
+import java.sql.Date
+import java.util.*
+import javax.persistence.*
 
 /**
  * Repräsentiert einen Auftrag oder ein Angebot. Ein Angebot kann abgelehnt oder durch ein anderes ersetzt werden, muss
@@ -414,11 +388,7 @@ class AuftragDO : DefaultBaseDO() {
      */
     val positionenExcludingDeleted: List<AuftragsPositionDO>
         @Transient
-        get() = getPositionen().stream()
-                .filter { pos -> !pos.isDeleted }
-                .collect<List<AuftragsPositionDO>, Any>(Collectors.toList<AuftragsPositionDO>() as Collector<in AuftragsPositionDO, Any, List<AuftragsPositionDO>>?)
-
-    // TODO (Jan): Try simply this: get() = getPositionen().filter { !it.isDeleted}
+        get() = getPositionen().filter { !it.isDeleted }
 
     /**
      * @return The sum of person days of all positions.
