@@ -81,7 +81,7 @@ class TeamCalRest() : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao, TeamCalFil
     override fun createEditLayout(dataObject: TeamCalDO): UILayout {
         val allGroups = mutableListOf<UISelectValue<Int>>()
         groupService.sortedGroups?.forEach {
-            allGroups.add(UISelectValue(it.id, it.name))
+            allGroups.add(UISelectValue(it.id, it.name!!))
         }
 
         val allUsers = mutableListOf<UISelectValue<Int>>()
