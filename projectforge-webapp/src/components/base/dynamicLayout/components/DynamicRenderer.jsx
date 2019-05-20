@@ -1,6 +1,7 @@
 import React from 'react';
 import DynamicFieldset from './DynamicFieldset';
 import DynamicGroup from './DynamicGroup';
+import DynamicLabel from './DynamicLabel';
 import DynamicInputResolver from './input/DynamicInputResolver';
 
 // Renders the components out of a content array.
@@ -17,8 +18,8 @@ export default (content) => {
 
                 // See all allowed types in propTypes.js -> dynamicTypePropType
                 switch (type) {
-                    case 'ROW':
                     case 'COL':
+                    case 'ROW':
                         Tag = DynamicGroup;
                         break;
                     case 'FIELDSET':
@@ -26,6 +27,9 @@ export default (content) => {
                         break;
                     case 'INPUT':
                         Tag = DynamicInputResolver;
+                        break;
+                    case 'LABEL':
+                        Tag = DynamicLabel;
                         break;
                     default:
                         return <React.Fragment key={componentKey} />;
