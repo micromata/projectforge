@@ -46,6 +46,7 @@ import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.common.StringHelper
+import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
@@ -59,6 +60,7 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 @AUserRightId("ADMIN_CORE")
 class GroupDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
+    @PropertyInfo(i18nKey = "name")
     @Field
     @get:Column(length = 100)
     var name: String? = null
@@ -110,20 +112,25 @@ class GroupDO : DefaultBaseDO(), ShortDisplayNameCapable {
     // return this;
     // }
 
+    @PropertyInfo(i18nKey = "organization")
     @Field
     @get:Column(length = 100)
     var organization: String? = null
 
+    @PropertyInfo(i18nKey = "description")
     @Field
     @get:Column(length = 1000)
     var description: String? = null
 
     private var usernames: String? = null
 
+    @PropertyInfo(i18nKey = "ldap")
     @Field
     @get:Column(name = "ldap_values", length = 4000)
     var ldapValues: String? = null
 
+    // TODO: Type Set not yet supported
+    @PropertyInfo(i18nKey = "group.assignedUsers")
     @ContainedIn
     @IndexedEmbedded(depth = 1)
     @get:ManyToMany(targetEntity = PFUserDO::class, cascade = [CascadeType.PERSIST, CascadeType.MERGE], fetch = FetchType.EAGER)
