@@ -336,7 +336,9 @@ public class LdapMasterLoginHandlerTest extends AbstractTestBase
 
   private Integer createGroup(final String name, final String description)
   {
-    final GroupDO group = new GroupDO().setName(name).setDescription(description);
+    final GroupDO group = new GroupDO();
+    group.setName(name);
+    group.setDescription(description);
     return (Integer) groupDao.internalSave(group);
   }
 
