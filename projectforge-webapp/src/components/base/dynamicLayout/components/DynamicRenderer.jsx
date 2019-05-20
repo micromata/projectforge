@@ -1,7 +1,9 @@
 import React from 'react';
+import DynamicFieldset from './DynamicFieldset';
 import DynamicGroup from './DynamicGroup';
 import DynamicInputResolver from './input/DynamicInputResolver';
 
+// Renders the components out of a content array.
 export default (content) => {
     if (!content) {
         return <React.Fragment />;
@@ -13,10 +15,14 @@ export default (content) => {
                 const componentKey = `dynamic-layout-${key}`;
                 let Tag;
 
+                // See all allowed types in propTypes.js -> dynamicTypePropType
                 switch (type) {
                     case 'ROW':
                     case 'COL':
                         Tag = DynamicGroup;
+                        break;
+                    case 'FIELDSET':
+                        Tag = DynamicFieldset;
                         break;
                     case 'INPUT':
                         Tag = DynamicInputResolver;

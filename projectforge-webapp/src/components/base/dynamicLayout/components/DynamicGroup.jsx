@@ -18,6 +18,9 @@ function DynamicGroup({ content, type }) {
         case 'COL':
             Tag = Col;
             break;
+        case 'FRAGMENT':
+            Tag = React.Fragment;
+            break;
         // When no type detected, use React.Fragment
         default:
             Tag = React.Fragment;
@@ -33,6 +36,7 @@ DynamicGroup.propTypes = {
         // Supported Group Types
         'ROW',
         'COL',
+        'FRAGMENT',
     ]).isRequired,
 };
 
