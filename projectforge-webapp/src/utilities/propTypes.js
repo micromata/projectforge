@@ -52,9 +52,11 @@ export const badgePropType = PropTypes.shape({
 
 // Supported types for the DynamicLayout
 export const dynamicTypePropType = PropTypes.oneOf([
-    'ROW',
     'COL',
+    'FIELDSET',
     'INPUT',
+    'LABEL',
+    'ROW',
 ]);
 
 // Content PropType for DynamicLayout
