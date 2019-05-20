@@ -64,7 +64,7 @@ class AddressBookRest() : AbstractDTORest<AddressbookDO, Addressbook, Addressboo
     override fun createEditLayout(dataObject: AddressbookDO): UILayout {
         val allGroups = mutableListOf<UISelectValue<Int>>()
         groupService.sortedGroups?.forEach {
-            allGroups.add(UISelectValue(it.id, it.name))
+            allGroups.add(UISelectValue(it.id, it.name!!))
         }
 
         val allUsers = mutableListOf<UISelectValue<Int>>()
