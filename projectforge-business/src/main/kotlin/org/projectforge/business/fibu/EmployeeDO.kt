@@ -23,38 +23,20 @@
 
 package org.projectforge.business.fibu
 
-import java.io.Serializable
-import java.math.BigDecimal
-import java.util.ArrayList
-import java.util.Date
-
-import javax.persistence.CascadeType
-import javax.persistence.Column
-import javax.persistence.Convert
-import javax.persistence.Entity
-import javax.persistence.EnumType
-import javax.persistence.Enumerated
-import javax.persistence.FetchType
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.MapKey
-import javax.persistence.OneToMany
-import javax.persistence.Table
-import javax.persistence.Transient
-import javax.persistence.UniqueConstraint
-
+import de.micromata.genome.db.jpa.history.api.HistoryProperty
+import de.micromata.genome.db.jpa.history.impl.TabAttrHistoryPropertyConverter
+import de.micromata.genome.db.jpa.history.impl.TimependingHistoryPropertyConverter
+import de.micromata.genome.db.jpa.tabattr.api.EntityWithConfigurableAttr
+import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr
+import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO
+import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
+import de.micromata.genome.jpa.ComplexEntity
+import de.micromata.genome.jpa.ComplexEntityVisitor
+import de.micromata.mgc.jpa.hibernatesearch.api.HibernateSearchInfo
+import de.micromata.mgc.jpa.hibernatesearch.bridges.TimeableListFieldBridge
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
-import org.hibernate.search.annotations.Analyze
-import org.hibernate.search.annotations.DateBridge
-import org.hibernate.search.annotations.EncodingType
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.FieldBridge
-import org.hibernate.search.annotations.Index
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
-import org.hibernate.search.annotations.Resolution
-import org.hibernate.search.annotations.Store
+import org.hibernate.search.annotations.*
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.anots.StringAlphanumericSort
@@ -67,20 +49,11 @@ import org.projectforge.framework.persistence.history.ToStringFieldBridge
 import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.Constants
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-
-import de.micromata.genome.db.jpa.history.api.HistoryProperty
-import de.micromata.genome.db.jpa.history.impl.TabAttrHistoryPropertyConverter
-import de.micromata.genome.db.jpa.history.impl.TimependingHistoryPropertyConverter
-import de.micromata.genome.db.jpa.tabattr.api.EntityWithConfigurableAttr
-import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
-import de.micromata.genome.jpa.ComplexEntity
-import de.micromata.genome.jpa.ComplexEntityVisitor
-import de.micromata.mgc.jpa.hibernatesearch.api.HibernateSearchInfo
-import de.micromata.mgc.jpa.hibernatesearch.bridges.TimeableListFieldBridge
+import java.io.Serializable
+import java.math.BigDecimal
+import java.util.*
+import javax.persistence.*
 
 /**
  * Repräsentiert einen Mitarbeiter. Ein Mitarbeiter ist einem ProjectForge-Benutzer zugeordnet und enthält
@@ -93,7 +66,8 @@ import de.micromata.mgc.jpa.hibernatesearch.bridges.TimeableListFieldBridge
 @HibernateSearchInfo(fieldInfoProvider = HibernateSearchAttrSchemaFieldInfoProvider::class, param = "employee")
 @Table(name = "t_fibu_employee", uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_employee_kost1_id", columnList = "kost1_id"), javax.persistence.Index(name = "idx_fk_t_fibu_employee_user_id", columnList = "user_id"), javax.persistence.Index(name = "idx_fk_t_fibu_employee_tenant_id", columnList = "tenant_id")])
 @AUserRightId("HR_EMPLOYEE")
-class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableAttr<Int, EmployeeTimedDO>, ComplexEntity, EntityWithConfigurableAttr, Comparable<Any> {
+open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableAttr<Int, EmployeeTimedDO>, ComplexEntity, EntityWithConfigurableAttr, Comparable<Any> {
+    // The class must be declared as open for mocking in VacationServiceTest.
 
     /**
      * The ProjectForge user assigned to this employee.
@@ -158,7 +132,7 @@ class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableAttr<I
     @Field(analyze = Analyze.NO)
     @FieldBridge(impl = ToStringFieldBridge::class)
     @get:Column
-    var urlaubstage: Int? = null
+    open var urlaubstage: Int? = null // Open needed for mocking in VacationServiceTest
 
     @Field(store = Store.YES)
     @FieldBridge(impl = TimeableListFieldBridge::class)
