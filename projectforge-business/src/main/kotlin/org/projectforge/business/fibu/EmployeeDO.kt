@@ -81,7 +81,7 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
     @IndexedEmbedded(depth = 1, includePaths = ["firstname", "lastname", "description", "organization"])
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "user_id", nullable = false)
-    var user: PFUserDO? = null
+    open var user: PFUserDO? = null
 
     /**
      * Dem Benutzer zugeordneter Kostenträger Kost1 für den Monatsreport.
@@ -91,42 +91,42 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "kost1_id", nullable = true)
-    var kost1: Kost1DO? = null
+    open var kost1: Kost1DO? = null
 
     @Deprecated("Don't use the status field anymore, this is replaced by the status within the internalattrschema.xml")
     @PropertyInfo(i18nKey = "status")
     @Field
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "employee_status", length = 30)
-    var status: EmployeeStatus? = null
+    open var status: EmployeeStatus? = null
 
     @PropertyInfo(i18nKey = "address.positionText")
     @Field
     @get:Column(name = "position_text", length = 244)
-    var position: String? = null
+    open var position: String? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.eintrittsdatum")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "eintritt")
-    var eintrittsDatum: Date? = null
+    open var eintrittsDatum: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.austrittsdatum")
     @Field
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "austritt")
-    var austrittsDatum: Date? = null
+    open var austrittsDatum: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.division")
     @Field
     @get:Column(length = 255)
-    var abteilung: String? = null
+    open var abteilung: String? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.staffNumber")
     @Field
     @StringAlphanumericSort
     @get:Column(length = 255)
-    var staffNumber: String? = null
+    open var staffNumber: String? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.urlaubstage")
     @Field(analyze = Analyze.NO)
@@ -144,65 +144,65 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
     @Field(analyze = Analyze.NO)
     @FieldBridge(impl = ToStringFieldBridge::class)
     @get:Column(name = "weekly_working_hours", scale = 5, precision = 10)
-    var weeklyWorkingHours: BigDecimal? = null
+    open var weeklyWorkingHours: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.birthday")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column
-    var birthday: Date? = null
+    open var birthday: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.accountHolder")
     @Field
     @get:Column(length = 255, name = "account_holder")
-    var accountHolder: String? = null
+    open var accountHolder: String? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.iban")
     @Field
     @get:Column(length = 50)
-    var iban: String? = null
+    open var iban: String? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.bic")
     @Field
     @get:Column(length = 11)
-    var bic: String? = null
+    open var bic: String? = null
 
     @PropertyInfo(i18nKey = "gender")
     @Field
     @Convert(converter = GenderConverter::class)
     @get:Column
     // use the GenderConverter instead of @Enumerated to persist the correct ISO/IEC 5218 integer representation of the gender
-    var gender: Gender? = null
+    open var gender: Gender? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.street")
     @Field
     @get:Column(length = 255)
-    var street: String? = null
+    open var street: String? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.zipCode")
     @Field
     @get:Column(length = 255)
-    var zipCode: String? = null
+    open var zipCode: String? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.city")
     @Field
     @get:Column(length = 255)
-    var city: String? = null
+    open var city: String? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.country")
     @Field
     @get:Column(length = 255)
-    var country: String? = null
+    open var country: String? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.state")
     @Field
     @get:Column(length = 255)
-    var state: String? = null
+    open var state: String? = null
 
     @PropertyInfo(i18nKey = "comment")
     @Field
     @get:Column(length = Constants.COMMENT_LENGTH)
-    var comment: String? = null
+    open var comment: String? = null
 
     val kost1Id: Int?
         @Transient
@@ -251,7 +251,7 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
         return timeableAttributes
     }
 
-    fun setTimeableAttributes(timeableAttributes: MutableList<EmployeeTimedDO>) {
+    open fun setTimeableAttributes(timeableAttributes: MutableList<EmployeeTimedDO>) {
         this.timeableAttributes = timeableAttributes
     }
 
