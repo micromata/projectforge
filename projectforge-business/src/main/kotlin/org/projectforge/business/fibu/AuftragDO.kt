@@ -491,12 +491,12 @@ class AuftragDO : DefaultBaseDO() {
     @IndexColumn(name = "number", base = 1)
     private fun getPositionen(): List<AuftragsPositionDO> {
         if (this.positionen == null) {
-            log.debug("The list of AuftragsPositionDO is null. AuftragDO id: " + this.id!!)
+            log.debug("The list of AuftragsPositionDO is null. AuftragDO id: " + this.id)
             return emptyList()
         }
         for (aPosition in this.positionen!!) {
             if (aPosition == null) {
-                log.debug("AuftragsPositionDO is null in list. AuftragDO id: " + this.id!!)
+                log.debug("AuftragsPositionDO is null in list. AuftragDO id: " + this.id)
             }
         }
         return this.positionen!!
