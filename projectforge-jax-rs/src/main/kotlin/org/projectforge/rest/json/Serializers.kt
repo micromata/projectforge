@@ -12,6 +12,7 @@ import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
+import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.TenantDO
 import org.projectforge.registry.Registry
@@ -34,6 +35,23 @@ class PFUserDOSerializer : StdSerializer<PFUserDO>(PFUserDO::class.java) {
         }
         val user = User(value.id, value.username, value.fullname)
         jgen.writeObject(user)
+    }
+}
+
+/**
+ * Serialization for GroupDO.
+ */
+class GroupDOSerializer : StdSerializer<GroupDO>(GroupDO::class.java) {
+    private class Group(val id: Int?, val name: String?)
+
+    @Throws(IOException::class, JsonProcessingException::class)
+    override fun serialize(value: GroupDO?, jgen: JsonGenerator, provider: SerializerProvider) {
+        if (value == null) {
+            jgen.writeNull()
+            return
+        }
+        val group = Group(value.id, name = value.name)
+        jgen.writeObject(group)
     }
 }
 
