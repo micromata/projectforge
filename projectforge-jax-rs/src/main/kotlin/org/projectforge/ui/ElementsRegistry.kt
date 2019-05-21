@@ -77,7 +77,7 @@ object ElementsRegistry {
             if (elementInfo.propertyType.isEnum) {
                 if (I18nEnum::class.java.isAssignableFrom(elementInfo.propertyType)) {
                     @Suppress("UNCHECKED_CAST")
-                    element = UISelect<String>(property, layoutSettings = layoutSettings)
+                    element = UISelect<String>(property, required = elementInfo.required, layoutSettings = layoutSettings)
                             .buildValues(i18nEnum = elementInfo.propertyType as Class<out Enum<*>>)
                 } else {
                     log.warn("Properties of enum not implementing I18nEnum not yet supported: ${mapKey}.")

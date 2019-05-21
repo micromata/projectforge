@@ -3,7 +3,9 @@ package org.projectforge.ui
 import com.google.gson.GsonBuilder
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.projectforge.business.address.AddressDO
 import org.projectforge.business.book.BookDO
+import org.projectforge.rest.AddressRest
 import org.projectforge.rest.BookRest
 import org.projectforge.rest.json.JsonValidator
 import org.projectforge.test.AbstractTestBase
@@ -12,6 +14,24 @@ import org.springframework.beans.factory.annotation.Autowired
 class UILayoutTest : AbstractTestBase() {
     @Autowired
     lateinit var bookRest: BookRest
+
+    @Autowired
+    lateinit var addressRest: AddressRest
+
+    @Test
+    fun testAddressEditLayout() {
+        logon(TEST_ADMIN_USER) // Needed for getting address books.
+        val gson = GsonBuilder().create()
+        val address = AddressDO()
+        var jsonString = gson.toJson(addressRest.createEditLayout(address))
+        var jsonValidator = JsonValidator(jsonString)
+
+        var map = jsonValidator.findParentMap("id", "addressStatus")
+        assertEquals(true, map!!["required"] as Boolean)
+
+        map = jsonValidator.findParentMap("id", "form")
+        assertEquals(true, map!!["required"] as Boolean)
+    }
 
     @Test
     fun testEditBookActionButtons() {
@@ -49,7 +69,7 @@ class UILayoutTest : AbstractTestBase() {
         var jsonValidator = JsonValidator(jsonString)
 
         assertEquals("???book.title.edit???", jsonValidator.get("title")) // translations not available in test.
-        val title = jsonValidator.findParentMap("id", "title","layout[0]");
+        val title = jsonValidator.findParentMap("id", "title", "layout[0]");
         assertField(title, "title", 255.0, "STRING", "???book.title???", type = "INPUT", key = "el-3")
         assertEquals(true, title!!["focus"])
 
