@@ -23,24 +23,17 @@
 
 package org.projectforge.business.fibu;
 
-import java.math.BigDecimal;
-import java.sql.Date;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.persistence.UniqueConstraint;
-
-import org.apache.commons.lang3.ObjectUtils;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
+
+import javax.persistence.*;
+import java.math.BigDecimal;
+import java.sql.Date;
+import java.util.Objects;
 
 /**
  * @author Werner Feder (werner.feder@t-online.de)
@@ -58,6 +51,8 @@ public class PaymentScheduleDO extends DefaultBaseDO implements ShortDisplayName
 {
   private static final long serialVersionUID = -8024212050762584171L;
 
+  // @JsonIgnore needed due to circular references.
+  @JsonIgnore
   private AuftragDO auftrag;
 
   /**
@@ -201,10 +196,10 @@ public class PaymentScheduleDO extends DefaultBaseDO implements ShortDisplayName
   {
     if (o instanceof PaymentScheduleDO) {
       final PaymentScheduleDO other = (PaymentScheduleDO) o;
-      if (ObjectUtils.equals(this.getNumber(), other.getNumber()) == false) {
+      if (Objects.equals(this.getNumber(), other.getNumber()) == false) {
         return false;
       }
-      if (ObjectUtils.equals(this.getAuftragId(), other.getAuftragId()) == false) {
+      if (Objects.equals(this.getAuftragId(), other.getAuftragId()) == false) {
         return false;
       }
       return true;
