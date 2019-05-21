@@ -9,7 +9,8 @@ import org.projectforge.ui.UISelect
 import java.io.IOException
 
 /**
- * Serialization.
+ * Serialization. This serialization is needed, because the values of UI Select are serialized with a customizable
+ * attribute name (labelProperty and valueProperty).
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 class UISelectTypeSerializer : StdSerializer<UISelect<*>>(UISelect::class.java) {
@@ -34,8 +35,8 @@ class UISelectTypeSerializer : StdSerializer<UISelect<*>>(UISelect::class.java) 
         value.values?.forEach {
             if (it.value != null) {
                 jgen.writeStartObject();
-                JacksonUtils.writeField(jgen, value.valueProperty, it.value)
-                jgen.writeStringField(value.labelProperty, it.label)
+                JacksonUtils.writeField(jgen, value.valueProperty, it.value) // Custom serialization needed.
+                jgen.writeStringField(value.labelProperty, it.label)         // Custom serialization needed.
                 jgen.writeEndObject()
             }
         }
@@ -46,8 +47,8 @@ class UISelectTypeSerializer : StdSerializer<UISelect<*>>(UISelect::class.java) 
             val ac = value.autoCompletion
             JacksonUtils.writeField(jgen, "minChars", ac?.minChars)
             JacksonUtils.writeField(jgen, "url", ac?.url)
-            writeEntries(jgen, ac?.values, "values", value.valueProperty, value.labelProperty)
-            writeEntries(jgen, ac?.recent, "recent", value.valueProperty, value.labelProperty)
+            writeEntries(jgen, ac?.values, "values", value.valueProperty, value.labelProperty) // See above.
+            writeEntries(jgen, ac?.recent, "recent", value.valueProperty, value.labelProperty) // See above.
             jgen.writeEndObject()
         }
         jgen.writeEndObject()
