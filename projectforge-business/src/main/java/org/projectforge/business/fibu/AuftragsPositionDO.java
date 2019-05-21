@@ -23,35 +23,20 @@
 
 package org.projectforge.business.fibu;
 
-import java.math.BigDecimal;
-import java.sql.Date;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.persistence.UniqueConstraint;
-
-import org.apache.commons.lang3.ObjectUtils;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.hibernate.search.annotations.Analyze;
-import org.hibernate.search.annotations.ClassBridge;
-import org.hibernate.search.annotations.DateBridge;
-import org.hibernate.search.annotations.EncodingType;
 import org.hibernate.search.annotations.Index;
-import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.Resolution;
-import org.hibernate.search.annotations.Store;
+import org.hibernate.search.annotations.*;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
+
+import javax.persistence.*;
+import java.math.BigDecimal;
+import java.sql.Date;
+import java.util.Objects;
 
 /**
  * Repräsentiert eine Position innerhalb eines Auftrags oder eines Angebots.
@@ -77,6 +62,8 @@ public class AuftragsPositionDO extends DefaultBaseDO implements ShortDisplayNam
 
   private short number;
 
+  // @JsonIgnore needed due to circular references.
+  @JsonIgnore
   private AuftragDO auftrag;
 
   private TaskDO task;
@@ -391,8 +378,8 @@ public class AuftragsPositionDO extends DefaultBaseDO implements ShortDisplayNam
   {
     if (o instanceof AuftragsPositionDO) {
       final AuftragsPositionDO other = (AuftragsPositionDO) o;
-      return ObjectUtils.equals(this.getNumber(), other.getNumber()) &&
-          ObjectUtils.equals(this.getAuftragId(), other.getAuftragId());
+      return Objects.equals(this.getNumber(), other.getNumber()) &&
+          Objects.equals(this.getAuftragId(), other.getAuftragId());
     }
     return false;
   }
