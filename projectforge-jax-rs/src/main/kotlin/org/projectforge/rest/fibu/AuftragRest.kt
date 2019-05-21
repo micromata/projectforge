@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("${Rest.URL}/auftrag")
+@RequestMapping("${Rest.URL}/order")
 class AuftragRest() : AbstractDORest<AuftragDO, AuftragDao, BaseSearchFilter>(AuftragDao::class.java, BaseSearchFilter::class.java, "fibu.auftrag.title") {
 
     /**
