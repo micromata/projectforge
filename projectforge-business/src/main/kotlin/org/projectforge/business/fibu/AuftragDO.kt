@@ -50,8 +50,17 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "t_fibu_auftrag", uniqueConstraints = [UniqueConstraint(columnNames = ["nummer", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_contact_person_fk", columnList = "contact_person_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_projectManager_fk", columnList = "projectmanager_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_headofbusinessmanager_fk", columnList = "headofbusinessmanager_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_salesmanager_fk", columnList = "salesmanager_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_kunde_fk", columnList = "kunde_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_projekt_fk", columnList = "projekt_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_tenant_id", columnList = "tenant_id")])
-@WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [AuftragsPositionDO::class, PaymentScheduleDO::class])
+@Table(name = "t_fibu_auftrag",
+        uniqueConstraints = [UniqueConstraint(columnNames = ["nummer", "tenant_id"])],
+        indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_contact_person_fk", columnList = "contact_person_fk"),
+            javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_projectManager_fk", columnList = "projectmanager_fk"),
+            javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_headofbusinessmanager_fk", columnList = "headofbusinessmanager_fk"),
+            javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_salesmanager_fk", columnList = "salesmanager_fk"),
+            javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_kunde_fk", columnList = "kunde_fk"),
+            javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_projekt_fk", columnList = "projekt_fk"),
+            javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_tenant_id", columnList = "tenant_id")])
+@WithHistory(noHistoryProperties = ["lastUpdate", "created"],
+        nestedEntities = [AuftragsPositionDO::class, PaymentScheduleDO::class])
 class AuftragDO : DefaultBaseDO() {
 
     /**
@@ -164,11 +173,10 @@ class AuftragDO : DefaultBaseDO() {
      * @return the XML representation of the uiStatus.
      * @see AuftragUIStatus
      */
-    @NoHistory
+    @get:NoHistory
     @get:Column(name = "ui_status_as_xml", length = 10000)
     var uiStatusAsXml: String? = null
 
-    @NoHistory
     private var uiStatus: AuftragUIStatus? = null
 
     /**
