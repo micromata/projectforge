@@ -13,6 +13,7 @@ import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
+import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.TenantDO
 import org.projectforge.rest.calendar.TeamCalDOSerializer
@@ -58,6 +59,7 @@ open class JacksonConfiguration {
         module.addSerializer(PFUserDO::class.java, PFUserDOSerializer())
         module.addDeserializer(PFUserDO::class.java, PFUserDODeserializer())
 
+        module.addSerializer(GroupDO::class.java, GroupDOSerializer())
         module.addSerializer(TaskDO::class.java, TaskDOSerializer())
         module.addSerializer(TenantDO::class.java, TenantDOSerializer())
         module.addSerializer(AddressbookDO::class.java, AddressbookDOSerializer())
