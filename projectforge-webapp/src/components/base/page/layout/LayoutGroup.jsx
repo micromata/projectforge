@@ -58,7 +58,6 @@ function LayoutGroup(
                         break;
                     case 'SELECT':
                         Tag = UncontrolledReactSelect;
-                        properties.isMulti = component.multi;
                         break;
                     case 'GROUP':
                     case 'ROW':

@@ -10,10 +10,10 @@ class UncontrolledReactSelect extends React.Component {
             values,
             data,
             valueProperty,
-            isMulti,
+            multi,
         } = props;
         let dataValue = Object.getByString(data, id);
-        if (!isMulti && dataValue && values && values.length && values.length > 0) {
+        if (!multi && dataValue && values && values.length && values.length > 0) {
             // For react-select it seems to be important, that the current selected element matches
             // its value of the values list.
             const valueOfArray = (typeof dataValue === 'object') ? dataValue[valueProperty] : dataValue;
@@ -62,8 +62,8 @@ UncontrolledReactSelect.propTypes = {
     values: PropTypes.arrayOf(PropTypes.object).isRequired,
     valueProperty: PropTypes.string,
     labelProperty: PropTypes.string,
-    isMulti: PropTypes.bool,
-    isRequired: PropTypes.bool,
+    multi: PropTypes.bool,
+    required: PropTypes.bool,
     translations: PropTypes.shape({}).isRequired,
     loadOptions: PropTypes.func,
     getOptionLabel: PropTypes.func,
@@ -74,8 +74,8 @@ UncontrolledReactSelect.defaultProps = {
     additionalLabel: undefined,
     valueProperty: 'value',
     labelProperty: 'label',
-    isMulti: false,
-    isRequired: false,
+    multi: false,
+    required: false,
     loadOptions: undefined,
     getOptionLabel: undefined,
     className: undefined,
