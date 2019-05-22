@@ -23,14 +23,13 @@
 
 package org.projectforge.business.timesheet;
 
-import java.util.Collection;
-import java.util.List;
-
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.utils.RecentQueue;
 
-import com.thoughtworks.xstream.annotations.XStreamAlias;
+import java.util.Collection;
+import java.util.List;
 
 
 /**
@@ -47,7 +46,7 @@ public class TimesheetPrefData
   RecentQueue<Integer> recentTasks;
 
   RecentQueue<String> recentLocations;
-  
+
   public TimesheetPrefData()
   {
   }
@@ -72,11 +71,11 @@ public class TimesheetPrefData
       recentLocations = new RecentQueue<String>(MAX_RECENT);
     }
   }
-  
+
   /**
    * @return Recent entry at first position.
    */
-  public TimesheetPrefEntry getNewesRecentEntry() {
+  public TimesheetPrefEntry getRecentEntry() {
     return getRecentEntry(0);
   }
 
