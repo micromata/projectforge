@@ -12,6 +12,7 @@ const PROJECT_FORMATTER = 'PROJECT';
 const USER_FORMATTER = 'USER';
 const TASK_FORMATTER = 'TASK_PATH';
 const TIMESTAMP_MINUTES_FORMATTER = 'TIMESTAMP_MINUTES';
+const AUFTRAGPOSITION_FORMATTER = "AUFTRAG_POSITION";
 
 function Formatter(
     {
@@ -58,6 +59,9 @@ function Formatter(
                 break;
             case USER_FORMATTER:
                 result = value.fullname;
+                break;
+            case AUFTRAGPOSITION_FORMATTER:
+                result = value.number;
                 break;
             default:
                 result = value;
