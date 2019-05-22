@@ -62,16 +62,6 @@ class AddressBookRest() : AbstractDTORest<AddressbookDO, Addressbook, Addressboo
      * LAYOUT Edit page
      */
     override fun createEditLayout(dataObject: AddressbookDO): UILayout {
-        val allGroups = mutableListOf<UISelectValue<Int>>()
-        groupService.sortedGroups?.forEach {
-            allGroups.add(UISelectValue(it.id, it.name!!))
-        }
-
-        val allUsers = mutableListOf<UISelectValue<Int>>()
-        userService.sortedUsers?.forEach {
-            allUsers.add(UISelectValue(it.id, it.fullname))
-        }
-
         val layout = super.createEditLayout(dataObject)
                 .add(UIRow()
                         .add(UICol()
@@ -85,29 +75,29 @@ class AddressBookRest() : AbstractDTORest<AddressbookDO, Addressbook, Addressboo
                                         multi = true,
                                         label = "addressbook.fullAccess",
                                         additionalLabel = "access.users",
-                                        autoCompletion = AutoCompletion<Int>(url = "users/aco"),
+                                        autoCompletion = AutoCompletion<Int>(url = "user/aco"),
                                         labelProperty = "fullname",
                                         valueProperty = "id"))
                                 .add(UISelect<Int>("readonlyAccessUsers", lc,
                                         multi = true,
                                         label = "addressbook.readonlyAccess",
                                         additionalLabel = "access.users",
-                                        autoCompletion = AutoCompletion<Int>(url = "users/aco"),
+                                        autoCompletion = AutoCompletion<Int>(url = "user/aco"),
                                         labelProperty = "fullname",
                                         valueProperty = "id")))
                         .add(UICol()
-                                .add(UISelect("fullAccessGroups", lc,
+                                .add(UISelect<Int>("fullAccessGroups", lc,
                                         multi = true,
                                         label = "addressbook.fullAccess",
                                         additionalLabel = "access.groups",
-                                        values = allGroups,
+                                        autoCompletion = AutoCompletion<Int>(url = "group/aco"),
                                         labelProperty = "name",
                                         valueProperty = "id"))
-                                .add(UISelect("readonlyAccessGroups", lc,
+                                .add(UISelect<Int>("readonlyAccessGroups", lc,
                                         multi = true,
                                         label = "addressbook.readonlyAccess",
                                         additionalLabel = "access.groups",
-                                        values = allGroups,
+                                        autoCompletion = AutoCompletion<Int>(url = "group/aco"),
                                         labelProperty = "name",
                                         valueProperty = "id"))))
         return LayoutUtils.processEditPage(layout, dataObject)
