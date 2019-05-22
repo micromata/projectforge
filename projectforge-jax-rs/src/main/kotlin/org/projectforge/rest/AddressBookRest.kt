@@ -81,18 +81,18 @@ class AddressBookRest() : AbstractDTORest<AddressbookDO, Addressbook, Addressboo
                                 .add(lc, "owner")))
                 .add(UIRow()
                         .add(UICol()
-                                .add(UISelect("fullAccessUsers", lc,
+                                .add(UISelect<Int>("fullAccessUsers", lc,
                                         multi = true,
                                         label = "addressbook.fullAccess",
                                         additionalLabel = "access.users",
-                                        values = allUsers,
+                                        autoCompletion = AutoCompletion<Int>(url = "users/aco"),
                                         labelProperty = "fullname",
                                         valueProperty = "id"))
-                                .add(UISelect("readonlyAccessUsers", lc,
+                                .add(UISelect<Int>("readonlyAccessUsers", lc,
                                         multi = true,
                                         label = "addressbook.readonlyAccess",
                                         additionalLabel = "access.users",
-                                        values = allUsers,
+                                        autoCompletion = AutoCompletion<Int>(url = "users/aco"),
                                         labelProperty = "fullname",
                                         valueProperty = "id")))
                         .add(UICol()

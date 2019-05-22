@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { dataPropType } from '../../../../utilities/propTypes';
 import ReactSelect from './ReactSelect';
+import { getServiceURL } from '../../../../utilities/rest';
 
 class UncontrolledReactSelect extends React.Component {
     static extractDataValue(props) {
@@ -30,6 +31,7 @@ class UncontrolledReactSelect extends React.Component {
         };
 
         this.onChange = this.onChange.bind(this);
+        this.loadOptions = this.loadOptions.bind(this);
     }
 
     onChange(newValue) {
@@ -38,15 +40,34 @@ class UncontrolledReactSelect extends React.Component {
         changeDataField(id, newValue);
     }
 
+    loadOptions(inputValue, callback) {
+        const { url } = this.props;
+        fetch(getServiceURL(url,
+            { search: inputValue }), {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                Accept: 'application/json',
+            },
+        })
+            .then(response => response.json())
+            .then((json) => {
+                callback(json);
+            })
+            .catch(() => this.setState({}));
+    }
+
     render() {
         const { value } = this.state;
         const {
+            url,
             ...props
         } = this.props;
         return (
             <ReactSelect
                 value={value}
                 onChange={this.onChange}
+                loadOptions={(url && url.length > 0) ? this.loadOptions : undefined}
                 {...props}
             />
         );
@@ -59,24 +80,25 @@ UncontrolledReactSelect.propTypes = {
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
     additionalLabel: PropTypes.string,
-    values: PropTypes.arrayOf(PropTypes.object).isRequired,
+    values: PropTypes.arrayOf(PropTypes.object),
     valueProperty: PropTypes.string,
     labelProperty: PropTypes.string,
     multi: PropTypes.bool,
     required: PropTypes.bool,
     translations: PropTypes.shape({}).isRequired,
-    loadOptions: PropTypes.func,
+    url: PropTypes.string,
     getOptionLabel: PropTypes.func,
     className: PropTypes.string,
 };
 
 UncontrolledReactSelect.defaultProps = {
     additionalLabel: undefined,
+    values: undefined,
     valueProperty: 'value',
     labelProperty: 'label',
     multi: false,
     required: false,
-    loadOptions: undefined,
+    url: undefined,
     getOptionLabel: undefined,
     className: undefined,
 };
