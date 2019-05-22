@@ -138,7 +138,7 @@ class AddressServicesRest() {
             throw RuntimeException(ex)
         }
         val filename = (APPLE_SCRIPT_FOR_ADDRESS_BOOK)
-        val resource = ByteArrayResource(content)
+        val resource = ByteArrayResource(content!!)
         return ResponseEntity.ok()
                 .contentType(org.springframework.http.MediaType.parseMediaType("application/octet-stream"))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")

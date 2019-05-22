@@ -20,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.validation.Errors
 import org.springframework.web.bind.annotation.*
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
@@ -196,6 +195,7 @@ abstract class AbstractBaseRest<
     @GetMapping("initialList")
     open fun getInitialList(session: HttpSession): InitialListData {
         //val test = providers.getContextResolver(MyObjectMapper::class.java,  MediaType.WILDCARD_TYPE)
+        @Suppress("UNCHECKED_CAST")
         val filter: F = listFilterService.getSearchFilter(session, filterClazz) as F
         if (filter.maxRows <= 0)
             filter.maxRows = 50
@@ -204,7 +204,7 @@ abstract class AbstractBaseRest<
         processResultSetBeforeExport(resultSet)
         val layout = createListLayout()
                 .addTranslations("table.showing")
-        layout.add(LayoutListFilterUtils.createNamedContainer(baseDao, lc))
+        layout.add(LayoutListFilterUtils.createNamedContainer(baseDao))
         layout.postProcessPageMenu()
         return InitialListData(ui = layout, data = resultSet, filter = filter)
     }
@@ -344,7 +344,7 @@ abstract class AbstractBaseRest<
      * Use this service for adding new items as well as updating existing items (id isn't null).
      */
     @PutMapping(RestPaths.SAVE_OR_UDATE)
-    fun saveOrUpdate(request: HttpServletRequest, @Valid @RequestBody T: DTO, errors: Errors): ResponseEntity<ResponseAction> {
+    fun saveOrUpdate(request: HttpServletRequest, @Valid @RequestBody T: DTO): ResponseEntity<ResponseAction> {
         val dbObj = asDO(T)
         return saveOrUpdate(request, baseDao, dbObj, this, validate(dbObj))
     }

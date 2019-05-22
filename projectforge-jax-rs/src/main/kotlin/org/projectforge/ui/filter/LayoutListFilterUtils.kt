@@ -2,7 +2,6 @@ package org.projectforge.ui.filter
 
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.ui.AutoCompletion
-import org.projectforge.ui.LayoutContext
 import org.projectforge.ui.UINamedContainer
 
 /**
@@ -10,7 +9,7 @@ import org.projectforge.ui.UINamedContainer
  */
 class LayoutListFilterUtils {
     companion object {
-        fun createNamedContainer(baseDao: BaseDao<*>, lc: LayoutContext): UINamedContainer {
+        fun createNamedContainer(baseDao: BaseDao<*>): UINamedContainer {
             val container = UINamedContainer("searchFilter")
             container.add(UIFilterObjectElement("modifiedByUser",
                     autoCompletion = AutoCompletion(2,

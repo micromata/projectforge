@@ -27,6 +27,7 @@ class PFUserDODeserializer : StdDeserializer<PFUserDO>(PFUserDO::class.java) {
 /**
  * Deserialization for Integers.
  */
+@Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 class IntDeserializer : StdDeserializer<Integer>(Integer::class.java) {
 
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext): Integer? {

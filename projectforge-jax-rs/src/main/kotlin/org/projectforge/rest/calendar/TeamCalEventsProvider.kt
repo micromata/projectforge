@@ -42,7 +42,7 @@ class TeamCalEventsProvider() {
                 recurrentEvent = true
             }
             val recurrentDate = if (recurrentEvent) "?recurrentDate=${it.startDate.time / 1000}" else ""
-            val link = "teamEvent/edit/${eventDO.id}$recurrentDate"
+            //val link = "teamEvent/edit/${eventDO.id}$recurrentDate"
             val allDay = eventDO.isAllDay()
             val style = styleMap.get(eventDO.calendarId)
             events.add(BigCalendarEvent(it.subject, it.startDate, it.endDate, allDay,

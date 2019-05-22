@@ -36,6 +36,7 @@ class UISelect<T>(val id: String,
         getEnumValues(i18nEnum).forEach { value ->
             if (value is I18nEnum) {
                 val translation = translate(value.i18nKey)
+                @Suppress("UNCHECKED_CAST")
                 newvalues.add(UISelectValue(value.name as T, translation))
             } else {
                 log.error("UISelect supports only enums of type I18nEnum, not '${value}': '${this}'")

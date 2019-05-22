@@ -127,8 +127,8 @@ object ElementsRegistry {
             if (!(colinfo.isNullable) || propertyInfo.required)
                 elementInfo.required = true
         }
-        elementInfo.i18nKey = getNullIfEmpty(propertyInfo?.i18nKey)
-        elementInfo.additionalI18nKey = getNullIfEmpty(propertyInfo?.additionalI18nKey)
+        elementInfo.i18nKey = getNullIfEmpty(propertyInfo.i18nKey)
+        elementInfo.additionalI18nKey = getNullIfEmpty(propertyInfo.additionalI18nKey)
 
         ensureClassMap(clazz).put(property, elementInfo)
         return elementInfo

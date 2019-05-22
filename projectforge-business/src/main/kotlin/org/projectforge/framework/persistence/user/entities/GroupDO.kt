@@ -23,21 +23,6 @@
 
 package org.projectforge.framework.persistence.user.entities
 
-import java.util.ArrayList
-import java.util.HashSet
-
-import javax.persistence.CascadeType
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.FetchType
-import javax.persistence.JoinColumn
-import javax.persistence.JoinTable
-import javax.persistence.ManyToMany
-import javax.persistence.Table
-import javax.persistence.Transient
-import javax.persistence.UniqueConstraint
-
-import org.apache.commons.lang3.ObjectUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.apache.commons.lang3.builder.ToStringBuilder
 import org.hibernate.Hibernate
@@ -50,6 +35,8 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import java.util.*
+import javax.persistence.*
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -159,9 +146,7 @@ class GroupDO : DefaultBaseDO(), ShortDisplayNameCapable {
         }
         val list = ArrayList<String>()
         for (user in assignedUsers!!) {
-            if (user != null) {
-                list.add(user.username)
-            }
+            list.add(user.username)
         }
         usernames = StringHelper.listToString(list, ", ", true)
         return usernames as String
@@ -198,10 +183,9 @@ class GroupDO : DefaultBaseDO(), ShortDisplayNameCapable {
         return builder.toString()
     }
 
-    override fun equals(o: Any?): Boolean {
-        if (o is GroupDO) {
-            val other = o as GroupDO?
-            return ObjectUtils.equals(name, other!!.name)
+    override fun equals(other: Any?): Boolean {
+        if (other is GroupDO) {
+            return Objects.equals(name, other.name)
         }
         return false
     }

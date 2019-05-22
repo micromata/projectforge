@@ -100,7 +100,7 @@ class AddressRest()
 
     override fun afterSaveOrUpdate(obj: AddressDO) {
         // TODO: see AddressEditPage
-        val address = baseDao.getOrLoad(obj.getId())
+        //val address = baseDao.getOrLoad(obj.getId())
         //val personalAddress = form.addressEditSupport.personalAddress
         //personalAddress.setAddress(address)
         //personalAddressDao.setOwner(personalAddress, getUserId()) // Set current logged in user as owner.
@@ -150,7 +150,7 @@ class AddressRest()
                 tooltipTitle = "address.book.exportFavoritePhoneList.tooltip.title",
                 tooltip = "address.book.exportFavoritePhoneList.tooltip.content",
                 type = MenuItemTargetType.DOWNLOAD))
-        layout.add(exportMenu, menuIndex++)
+        layout.add(exportMenu, menuIndex)
         layout.getMenuById(GEAR_MENU)?.add(MenuItem("address.exportAppleScript4Notes",
                 i18nKey = "address.book.export.appleScript4Notes",
                 url = "${getRestPath()}/downloadAppleScript",
@@ -249,7 +249,7 @@ class AddressRest()
         layout.getInputById("name").focus = true
         layout.getTextAreaById("comment").cssClass = CssClassnames.MT_5
         layout.addTranslations("delete", "file.upload.dropArea", "address.image.upload.error")
-        if (dataObject?.id != null) {
+        if (dataObject.id != null) {
             layout.add(MenuItem("address.printView",
                     i18nKey = "printView",
                     url = "wa/addressView?id=${dataObject.id}",

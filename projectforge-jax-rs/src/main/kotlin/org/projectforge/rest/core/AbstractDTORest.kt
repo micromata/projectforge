@@ -28,6 +28,7 @@ abstract class AbstractDTORest<
     override fun processResultSetBeforeExport(resultSet: ResultSet<Any>) {
         val orig = resultSet.resultSet
         resultSet.resultSet = orig.map {
+            @Suppress("UNCHECKED_CAST")
             transformDO(it as O, false)
         }
     }
