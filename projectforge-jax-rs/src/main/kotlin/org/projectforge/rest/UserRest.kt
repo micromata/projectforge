@@ -11,6 +11,7 @@ import org.projectforge.ui.UILayout
 import org.projectforge.ui.UITable
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 
@@ -51,5 +52,14 @@ class UserRest()
                 .add(lc, "username")
 
         return LayoutUtils.processEditPage(layout, dataObject)
+    }
+
+    override val autoCompleteSearchFields = arrayOf("username", "firstname", "lastname", "email")
+
+    override fun getAutoCompletionObjects(@RequestParam("search") searchString: String?): MutableList<PFUserDO> {
+        val result = super.getAutoCompletionObjects(searchString)
+        if (searchString.isNullOrBlank())
+            result.removeIf { it.isDeactivated } // Remove deactivated users when returning all. Show deactivated users only if search string is given.
+        return result
     }
 }
