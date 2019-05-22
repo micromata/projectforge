@@ -1,4 +1,5 @@
 import React from 'react';
+import DynamicCustomized from './customized';
 import DynamicFieldset from './DynamicFieldset';
 import DynamicGroup from './DynamicGroup';
 import DynamicLabel from './DynamicLabel';
@@ -21,6 +22,9 @@ export default (content) => {
                     case 'COL':
                     case 'ROW':
                         Tag = DynamicGroup;
+                        break;
+                    case 'CUSTOMIZED':
+                        Tag = DynamicCustomized;
                         break;
                     case 'FIELDSET':
                         Tag = DynamicFieldset;
