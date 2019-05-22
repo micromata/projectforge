@@ -1,5 +1,9 @@
 // https://stackoverflow.com/a/6491621
 Object.getByString = (object, multiKey) => {
+    if (!multiKey) {
+        return undefined;
+    }
+
     let obj = object;
 
     multiKey
@@ -10,8 +14,7 @@ Object.getByString = (object, multiKey) => {
         // split at dots
         .split('.')
         .forEach((key) => {
-            if (obj)
-              obj = obj[key];
+            if (obj) obj = obj[key];
         });
 
     return obj;
