@@ -1,8 +1,8 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import { dataPropType } from '../../../../utilities/propTypes';
+import { getServiceURL, handleHTTPErrors } from '../../../../utilities/rest';
 import ReactSelect from './ReactSelect';
-import { getServiceURL } from '../../../../utilities/rest';
 
 class UncontrolledReactSelect extends React.Component {
     static extractDataValue(props) {
@@ -41,8 +41,8 @@ class UncontrolledReactSelect extends React.Component {
     }
 
     loadOptions(inputValue, callback) {
-        const { url } = this.props;
-        fetch(getServiceURL(url,
+        const { autoCompletion } = this.props;
+        fetch(getServiceURL(autoCompletion.url,
             { search: inputValue }), {
             method: 'GET',
             credentials: 'include',
@@ -50,10 +50,12 @@ class UncontrolledReactSelect extends React.Component {
                 Accept: 'application/json',
             },
         })
+            .then(handleHTTPErrors) // Catch http status codes like 404 etc.
             .then(response => response.json())
             .then((json) => {
                 callback(json);
             })
+            // TODO CATCH ERROR
             .catch(() => this.setState({}));
     }
 
