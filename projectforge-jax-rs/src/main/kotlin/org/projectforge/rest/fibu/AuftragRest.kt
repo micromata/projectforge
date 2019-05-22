@@ -19,7 +19,14 @@ class AuftragRest() : AbstractDORest<AuftragDO, AuftragDao, BaseSearchFilter>(Au
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
-                        .add(lc, "nummer", "status", "bezeichnung", "description"))
+                        .add(lc, "nummer", "kunde", "projekt", "titel", "positionen", "personDays", "referenz", "assignedPersons", "erfassungsDatum", "entscheidungsDatum", "nettoSumme", "beauftragtNettoSumme", "fakturiertSum", "zuFakturierenSum", "periodOfPerformanceBegin", "periodOfPerformanceEnd", "probabilityOfOccurrence"))
+        layout.getTableColumnById("kunde").formatter = Formatter.CUSTOMER
+        layout.getTableColumnById("projekt").formatter = Formatter.PROJECT
+        layout.getTableColumnById("positionen").formatter = Formatter.AUFTRAG_POSITION
+        layout.getTableColumnById("erfassungsDatum").formatter = Formatter.DATE
+        layout.getTableColumnById("entscheidungsDatum").formatter = Formatter.DATE
+        layout.getTableColumnById("periodOfPerformanceBegin").formatter = Formatter.DATE
+        layout.getTableColumnById("periodOfPerformanceEnd").formatter = Formatter.DATE
         return LayoutUtils.processListPage(layout)
     }
 
@@ -30,7 +37,10 @@ class AuftragRest() : AbstractDORest<AuftragDO, AuftragDao, BaseSearchFilter>(Au
         val layout = super.createEditLayout(dataObject)
                 .add(UIRow()
                         .add(UICol()
-                                .add(lc, "nummer", "status", "bezeichnung", "description")))
+                                .add(lc, "nummer", "nettoSumme")))
+                .add(UIRow()
+                        .add(UICol()
+                                .add(lc, "title")))
         return LayoutUtils.processEditPage(layout, dataObject)
     }
 }

@@ -10,6 +10,7 @@ data class UITableColumn(var id: String,
     : UIElement(UIElementType.TABLE_COLUMN)
 
 enum class Formatter {
+    AUFTRAG_POSITION,
     DATE,
     COST1,
     COST2,
