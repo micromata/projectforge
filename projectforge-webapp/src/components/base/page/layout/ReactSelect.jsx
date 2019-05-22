@@ -57,7 +57,7 @@ ReactSelect.propTypes = {
     label: PropTypes.string.isRequired,
     additionalLabel: PropTypes.string,
     value: PropTypes.any,
-    values: PropTypes.arrayOf(PropTypes.object).isRequired,
+    values: PropTypes.arrayOf(PropTypes.object),
     valueProperty: PropTypes.string,
     labelProperty: PropTypes.string,
     multi: PropTypes.bool,
