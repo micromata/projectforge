@@ -96,7 +96,6 @@ class UserSelect extends React.Component {
                     value={value}
                     onChange={this.onChange}
                     {...props}
-                    values={[]}
                     valueProperty="id"
                     labelProperty="fullname"
                     loadOptions={this.loadOptions}
