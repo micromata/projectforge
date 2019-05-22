@@ -60,9 +60,10 @@ class UncontrolledReactSelect extends React.Component {
     render() {
         const { value } = this.state;
         const {
-            url,
+            autoCompletion,
             ...props
         } = this.props;
+        const url = autoCompletion ? autoCompletion.url : undefined;
         return (
             <ReactSelect
                 value={value}
@@ -86,7 +87,9 @@ UncontrolledReactSelect.propTypes = {
     multi: PropTypes.bool,
     required: PropTypes.bool,
     translations: PropTypes.shape({}).isRequired,
-    url: PropTypes.string,
+    autoCompletion: PropTypes.shape({
+        url: PropTypes.string,
+    }),
     getOptionLabel: PropTypes.func,
     className: PropTypes.string,
 };
@@ -98,7 +101,7 @@ UncontrolledReactSelect.defaultProps = {
     labelProperty: 'label',
     multi: false,
     required: false,
-    url: undefined,
+    autoCompletion: undefined,
     getOptionLabel: undefined,
     className: undefined,
 };
