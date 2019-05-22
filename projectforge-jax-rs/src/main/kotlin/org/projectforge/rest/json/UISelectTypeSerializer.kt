@@ -31,19 +31,21 @@ class UISelectTypeSerializer : StdSerializer<UISelect<*>>(UISelect::class.java) 
         JacksonUtils.writeField(jgen, "labelProperty", value.labelProperty)
         JacksonUtils.writeField(jgen, "valueProperty", value.valueProperty)
 
-        jgen.writeArrayFieldStart("values")
-        value.values?.forEach {
-            if (it.value != null) {
-                jgen.writeStartObject();
-                JacksonUtils.writeField(jgen, value.valueProperty, it.value) // Custom serialization needed.
-                jgen.writeStringField(value.labelProperty, it.label)         // Custom serialization needed.
-                jgen.writeEndObject()
+        if (!value.values.isNullOrEmpty()) {
+            jgen.writeArrayFieldStart("values")
+            value.values?.forEach {
+                if (it.value != null) {
+                    jgen.writeStartObject();
+                    JacksonUtils.writeField(jgen, value.valueProperty, it.value) // Custom serialization needed.
+                    jgen.writeStringField(value.labelProperty, it.label)         // Custom serialization needed.
+                    jgen.writeEndObject()
+                }
             }
+            jgen.writeEndArray()
         }
-        jgen.writeEndArray()
 
         if (value.autoCompletion != null) {
-            jgen.writeStartObject("autoCompletion")
+            jgen.writeObjectFieldStart("autoCompletion")
             val ac = value.autoCompletion
             JacksonUtils.writeField(jgen, "minChars", ac?.minChars)
             JacksonUtils.writeField(jgen, "url", ac?.url)
@@ -60,7 +62,7 @@ class UISelectTypeSerializer : StdSerializer<UISelect<*>>(UISelect::class.java) 
             entries.forEach {
                 jgen.writeStartObject();
                 JacksonUtils.writeField(jgen, valueProperty, it.value)
-                jgen.writeStringField( labelProperty, it.label)
+                jgen.writeStringField(labelProperty, it.label)
                 JacksonUtils.writeField(jgen, "allSearchableFields", it.allSearchableFields)
                 jgen.writeEndObject()
             }
