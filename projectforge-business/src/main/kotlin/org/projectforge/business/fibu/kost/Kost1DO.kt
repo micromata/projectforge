@@ -23,27 +23,17 @@
 
 package org.projectforge.business.fibu.kost
 
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.EnumType
-import javax.persistence.Enumerated
-import javax.persistence.Table
-import javax.persistence.Transient
-import javax.persistence.UniqueConstraint
-
+import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.search.annotations.Analyze
 import org.hibernate.search.annotations.ClassBridge
 import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Index
 import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.Store
 import org.projectforge.business.fibu.KostFormatter
+import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-
-import de.micromata.genome.db.jpa.history.api.WithHistory
-import org.projectforge.common.anots.PropertyInfo
+import javax.persistence.*
 
 @Entity
 @Indexed
@@ -122,10 +112,9 @@ class Kost1DO : DefaultBaseDO(), ShortDisplayNameCapable {
      * @see java.lang.Object.equals
      */
 
-    override fun equals(o: Any?): Boolean {
-        if (o is Kost1DO) {
-            val other = o as Kost1DO?
-            return (this.nummernkreis == other!!.nummernkreis && this.bereich == other.bereich
+    override fun equals(other: Any?): Boolean {
+        if (other is Kost1DO) {
+            return (this.nummernkreis == other.nummernkreis && this.bereich == other.bereich
                     && this.teilbereich == other.teilbereich && this.endziffer == other.endziffer)
         }
         return false

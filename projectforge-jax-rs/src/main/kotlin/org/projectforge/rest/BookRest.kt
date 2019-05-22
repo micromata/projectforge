@@ -33,6 +33,7 @@ class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::class.ja
     /** Needed only for deprecated task object. */
     override fun processItemBeforeExport(item: Any) {
         super.processItemBeforeExport(item)
+        @Suppress("DEPRECATION")
         (item as BookDO).task = null
     }
 
@@ -65,7 +66,7 @@ class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::class.ja
                                 .add(lc, "isbn", "publisher", "editor")))
                 .add(lc, "keywords")
 
-        if (dataObject?.id != null) // Show lend out functionality only for existing books:
+        if (dataObject.id != null) // Show lend out functionality only for existing books:
             layout.add(UIFieldset(title = "book.lending")
                     .add(UICustomized("book.lendOutComponent"))
                     .add(lc, "lendOutComment"))

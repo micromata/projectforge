@@ -307,7 +307,7 @@ class AuftragDO : DefaultBaseDO() {
             var first = true
             if (this.projekt != null) {
                 if (projekt!!.kunde != null) {
-                    if (first == true) {
+                    if (first) {
                         first = false
                     } else {
                         buf.append("; ")
@@ -315,9 +315,7 @@ class AuftragDO : DefaultBaseDO() {
                     buf.append(projekt!!.kunde.name)
                 }
                 if (StringUtils.isNotBlank(projekt!!.name) == true) {
-                    if (first == true) {
-                        first = false
-                    } else {
+                    if (!first) {
                         buf.append(" - ")
                     }
                     buf.append(projekt!!.name)
@@ -501,11 +499,6 @@ class AuftragDO : DefaultBaseDO() {
         if (this.positionen == null) {
             log.debug("The list of AuftragsPositionDO is null. AuftragDO id: " + this.id)
             return emptyList()
-        }
-        for (aPosition in this.positionen!!) {
-            if (aPosition == null) {
-                log.debug("AuftragsPositionDO is null in list. AuftragDO id: " + this.id)
-            }
         }
         return this.positionen!!
     }

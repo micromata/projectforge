@@ -285,43 +285,40 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
         return super.getAttrs()
     }
 
-    override fun equals(o: Any?): Boolean {
-        if (o == null || o is EmployeeDO == false) {
+    override fun equals(other: Any?): Boolean {
+        if (other !is EmployeeDO)
             return false
-        }
-        val other = o as EmployeeDO?
-        if (other!!.pk == null) {
+        if (other.pk == null) {
             return false
         }
         return if (this.pk == other.pk) {
             true
-        } else super.equals(o)
+        } else super.equals(other)
     }
 
     override fun hashCode(): Int {
         return if (pk != null) 31 * pk.hashCode() else super.hashCode()
     }
 
-    override operator fun compareTo(o: Any): Int {
-        if (!(o is EmployeeDO)) {
+    override operator fun compareTo(other: Any): Int {
+        if (other !is EmployeeDO) {
             return 0
         }
-        if (this.user == null && o.user == null) {
+        if (this.user == null && other.user == null) {
             return 0
         }
-        if (this.user == null && o.user == null) {
+        if (this.user == null && other.user == null) {
             return 0
         }
-        if (this.user != null && o.user == null) {
+        if (this.user != null && other.user == null) {
             return 1
         }
-        if (this.user == null && o.user != null) {
+        if (this.user == null && other.user != null) {
             return -1
         }
-        var result = 0
-        result = this.user!!.lastname.compareTo(o.user!!.lastname)
+        var result = this.user!!.lastname.compareTo(other.user!!.lastname)
         if (result == 0) {
-            result = this.user!!.firstname.compareTo(o.user!!.firstname)
+            result = this.user!!.firstname.compareTo(other.user!!.firstname)
         }
         return result
     }

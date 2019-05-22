@@ -151,18 +151,14 @@ class TeamCalDO : BaseUserGroupRightsDO() {
     /**
      * @see java.lang.Object.equals
      */
-    override fun equals(obj: Any?): Boolean {
-        if (obj == null) {
+    override fun equals(other: Any?): Boolean {
+        if (other !is TeamCalDO) {
             return false
         }
-        if (this === obj) {
+        if (this === other) {
             return true
         }
-        if (obj is TeamCalDO == false) {
-            return false
-        }
-        val other = obj as TeamCalDO?
-        return if (this.id == other!!.id) {
+        return if (this.id == other.id) {
             true
         } else StringUtils.equals(title, other.title)
     }
