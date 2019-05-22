@@ -2,6 +2,7 @@ package org.projectforge.rest.core
 
 import org.apache.commons.beanutils.PropertyUtils
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDao
@@ -42,6 +43,11 @@ abstract class AbstractBaseRest<
         private val baseDaoClazz: Class<B>,
         private val filterClazz: Class<F>,
         private val i18nKeyPrefix: String) {
+    /**
+     * If [getAutoCompletion] is called without a special property to search for, all properties will be searched for,
+     * given by this attribute. If null, an exception is thrown, if [getAutoCompletion] is called without a property.
+     */
+    protected open val autoCompleteSearchFields: Array<String>? = null
 
     @PostConstruct
     private fun postConstruct() {
@@ -301,11 +307,29 @@ abstract class AbstractBaseRest<
      * @param property The property (field of the data) used to search.
      * @param searchString
      * @return list of strings as json.
+     * @see BaseDao.getAutocompletion
      */
     @GetMapping("ac")
-    fun getAutoCompletion(@RequestParam("property") property: String?, @RequestParam("search") searchString: String?)
+    fun getAutoCompletionForProperty(@RequestParam("property") property: String, @RequestParam("search") searchString: String?)
             : List<String> {
         return baseDao.getAutocompletion(property, searchString)
+    }
+
+    /**
+     * Gets the autocompletion list for the given search string by searching in all properties defined by [autoCompleteSearchFields].
+     * If [autoCompleteSearchFields] is not given an [InternalErrorException] will be thrown.
+     * @param searchString
+     * @return list of found objects.
+     */
+    @GetMapping("aco")
+    open fun getAutoCompletionObjects(@RequestParam("search") searchString: String?): MutableList<O> {
+        if (autoCompleteSearchFields.isNullOrEmpty()) {
+            throw RuntimeException("Can't call getAutoCompletion without property, because no autoCompleteSearchFields are configured by the developers for this entity.")
+        }
+        val filter = BaseSearchFilter()
+        filter.searchString = searchString
+        filter.setSearchFields(*autoCompleteSearchFields!!)
+        return baseDao.getList(filter)
     }
 
     /**
