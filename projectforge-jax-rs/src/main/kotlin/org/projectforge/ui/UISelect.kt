@@ -1,8 +1,11 @@
 package org.projectforge.ui
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.i18n.translate
+import org.projectforge.rest.json.UISelectTypeSerializer
 
+@JsonSerialize(using = UISelectTypeSerializer::class)
 class UISelect<T>(val id: String,
                   @Transient
                   override val layoutSettings: LayoutContext? = null,
