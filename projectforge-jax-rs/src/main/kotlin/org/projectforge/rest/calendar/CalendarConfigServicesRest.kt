@@ -82,7 +82,8 @@ class CalendarConfigServicesRest {
             val oldFilter = userPreferenceService.getEntry(TeamCalCalendarFilter::class.java, OLD_USERPREF_KEY)
             oldFilter.viewType
             settings = CalendarDisplaySettings.copyFrom(oldFilter)
-            userPreferenceService.putEntry(SETTINGS_USERPREF_KEY, settings, true)
+            log.warn("**** Please remove test mode: User's settings will not be persisted.") // Remove uncomment following line:
+            // userPreferenceService.putEntry(SETTINGS_USERPREF_KEY, settings, true)
             settings.saveDisplayFilters(userPreferenceService)
         }
         if (settings.startDate == null)
@@ -98,7 +99,8 @@ class CalendarConfigServicesRest {
             // No current user pref entry available. Try the old one (from release 6.* / Wicket Calendarpage):
             val oldFilter = userPreferenceService.getEntry(TeamCalCalendarFilter::class.java, OLD_USERPREF_KEY)
             styleMap = CalendarStyleMap.copyFrom(oldFilter)
-            userPreferenceService.putEntry(CALENDARSTYLE_MAP_USERPREF_KEY, styleMap, true)
+            log.warn("**** Please remove test mode: User's calendarStyleMap will not be persisted.") // Remove uncomment following line:
+            //userPreferenceService.putEntry(CALENDARSTYLE_MAP_USERPREF_KEY, styleMap, true)
         }
         return styleMap
     }
