@@ -3,7 +3,6 @@ package org.projectforge.rest
 import org.projectforge.business.address.AddressDao
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.ExpiringSessionAttributes
-import org.projectforge.rest.core.RestHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.core.io.Resource
@@ -32,17 +31,15 @@ class AddressImageServicesRest() {
     @Autowired
     private lateinit var addressDao: AddressDao
 
-    private val restHelper = RestHelper()
-
     /**
      * If given and greater 0, the image will be added to the address with the given id (pk), otherwise the image is
      * stored in the user's session and will be used for the next update or save event.
      */
     @PostMapping("uploadImage/{id}")
-    fun uploadFile(@PathVariable("id") id: Int, @RequestParam("file") file: MultipartFile, request: HttpServletRequest):
+    fun uploadFile(@PathVariable("id") id: Int?, @RequestParam("file") file: MultipartFile, request: HttpServletRequest):
             ResponseEntity<String> {
         val filename = file.originalFilename
-        if (!filename.endsWith(".png", true)) {
+        if (filename == null || !filename.endsWith(".png", true)) {
             return ResponseEntity("Unsupported file: ${filename}. Only png files supported", HttpStatus.BAD_REQUEST)
         }
         val bytes = file.bytes

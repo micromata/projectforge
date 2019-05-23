@@ -1,16 +1,20 @@
 package org.projectforge.rest.dto
 
-import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 import org.projectforge.framework.persistence.user.entities.TenantDO
 import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Field
 import java.util.*
 
-open class BaseObject<T : DefaultBaseDO>(var id: Int? = null,
-                                         var created: Date? = null,
-                                         var isDeleted: Boolean? = null,
-                                         var lastUpdate: Date? = null,
-                                         var tenantId: Int? = null) {
+/**
+ * BaseObject is a DTO representation of a DefaultBaseDO. It copies most fields automatically by name and type from
+ * DTO to DefaultBaseDO and vice versa.
+ */
+open class BaseObject<T : AbstractHistorizableBaseDO<Int>>(var id: Int? = null,
+                                                           var created: Date? = null,
+                                                           var isDeleted: Boolean? = null,
+                                                           var lastUpdate: Date? = null,
+                                                           var tenantId: Int? = null) {
     /**
      * Full and deep copy of the object. Should be extended by inherited classes.
      */
@@ -48,11 +52,18 @@ open class BaseObject<T : DefaultBaseDO>(var id: Int? = null,
             val srcClazz = src.javaClass
             destFields.forEach { destField ->
                 val destType = destField.type
-                var srcField: Field?
-                if (destField.name != "log" && destField.name != "serialVersionUID" && destField.name != "Companion") {
-                    // Fields log, serialVersionUID and Companion may result in Exceptions and shouldn't be copied in any case.
+                var srcField: Field? = null
+                if (destField.name != "log"
+                        && destField.name != "serialVersionUID"
+                        && destField.name != "Companion"
+                        && !destField.name.startsWith("$")) {
+                    // Fields log, serialVersionUID, Companion and $* may result in Exceptions and shouldn't be copied in any case.
                     try {
                         srcField = srcClazz.getDeclaredField(destField.name)
+                    } catch (ex: Exception) {
+                        log.debug("srcField named '${destField.name}' not found in class '$srcClazz'. Can't copy it to destination of type '$destClazz'. Ignoring...")
+                    }
+                    try {
                         if (srcField != null) {
                             if (srcField.type == destType) {
                                 if (Collection::class.java.isAssignableFrom(destType)) {
@@ -63,15 +74,27 @@ open class BaseObject<T : DefaultBaseDO>(var id: Int? = null,
                                     destField.set(dest, srcField.get(src))
                                 }
                             } else {
-                                if (BaseObject::class.java.isAssignableFrom(destType) && DefaultBaseDO::class.java.isAssignableFrom(srcField.type)) {
+                                if (BaseObject::class.java.isAssignableFrom(destType) && AbstractHistorizableBaseDO::class.java.isAssignableFrom(srcField.type)) {
+                                    // Copy AbstractHistorizableBaseDO -> BaseObject
                                     srcField.setAccessible(true);
                                     val srcValue = srcField.get(src)
                                     if (srcValue != null) {
                                         val instance = destType.newInstance()
                                         (instance as BaseObject<*>)._copyFromMinimal(srcValue)
-                                        destField.setAccessible(true);
+                                        destField.setAccessible(true)
                                         destField.set(dest, instance)
                                     }
+                                } else if (AbstractHistorizableBaseDO::class.java.isAssignableFrom(destType) && BaseObject::class.java.isAssignableFrom(srcField.type)) {
+                                    // Copy BaseObject -> AbstractHistorizableBaseDO
+                                    srcField.setAccessible(true);
+                                    val srcValue = srcField.get(src)
+                                    if (srcValue != null) {
+                                        val instance = destType.newInstance()
+                                        (instance as AbstractHistorizableBaseDO<*>).id = (srcValue as BaseObject<*>).id
+                                        destField.setAccessible(true)
+                                        destField.set(dest, instance)
+                                    }
+
                                 } else {
                                     if (srcField.type.isPrimitive) { // boolean, ....
                                         var value: Any? = null
@@ -86,7 +109,7 @@ open class BaseObject<T : DefaultBaseDO>(var id: Int? = null,
                                             destField.set(dest, value)
                                         }
                                     } else {
-                                        log.error("Unsupported field to copy from '$srcClazz.${destField.name}' of type '${srcField.type.name}' to '$destClazz.${destField.name}' of type '${destType.name}'.")
+                                        log.debug("Unsupported field to copy from '$srcClazz.${destField.name}' of type '${srcField.type.name}' to '$destClazz.${destField.name}' of type '${destType.name}'.")
                                     }
                                 }
                             }
@@ -103,7 +126,7 @@ open class BaseObject<T : DefaultBaseDO>(var id: Int? = null,
     }
 
     /**
-     * Copy only minimal fields. Id at default, if not overridden.
+     * Copy only minimal fields. Id at default, if not overridden. This method is usally used for embedded objects.
      */
     open fun copyFromMinimal(src: T) {
         id = src.id
@@ -114,6 +137,7 @@ open class BaseObject<T : DefaultBaseDO>(var id: Int? = null,
             // Nothing to copy
             return
         }
+        @Suppress("UNCHECKED_CAST")
         copyFromMinimal(src as T)
     }
 }

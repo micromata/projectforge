@@ -6,7 +6,6 @@ import org.projectforge.business.user.service.UserPreferencesService
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.RestHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -46,8 +45,6 @@ class CalendarConfigServicesRest {
 
     @Autowired
     private lateinit var userPreferenceService: UserPreferencesService
-
-    private val restHelper = RestHelper()
 
     @GetMapping("initial")
     fun getInitialCalendar(): CalendarInit {

@@ -10,11 +10,13 @@ import org.projectforge.business.user.service.UserPreferencesService
 import org.projectforge.common.DateFormatType
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractStandardRest
+import org.projectforge.rest.core.AbstractDORest
+import org.projectforge.rest.core.RestHelper
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
@@ -25,7 +27,7 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/timesheet")
-class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, TimesheetFilter>(TimesheetDao::class.java, TimesheetFilter::class.java, "timesheet.title") {
+class TimesheetRest() : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilter>(TimesheetDao::class.java, TimesheetFilter::class.java, "timesheet.title") {
 
     private val dateTimeFormatter = DateTimeFormatter.instance();
 
@@ -51,8 +53,8 @@ class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, Timeshee
      */
     override fun newBaseDO(request: HttpServletRequest): TimesheetDO {
         val sheet = super.newBaseDO(request)
-        val startTimeEpochSeconds = restHelper.parseLong(request, "start")
-        val endTimeEpochSeconds = restHelper.parseLong(request, "end")
+        val startTimeEpochSeconds = RestHelper.parseLong(request, "start")
+        val endTimeEpochSeconds = RestHelper.parseLong(request, "end")
         if (startTimeEpochSeconds != null) {
             val start = PFDateTime.from(startTimeEpochSeconds * 1000)
             sheet.startTime = start.asSqlTimestamp()
@@ -66,9 +68,21 @@ class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, Timeshee
             baseDao.setUser(sheet, userId)
         }
         val pref = getTimesheetPrefData()
-        val entry = pref.getNewesRecentEntry()
-        if (sheet.taskId == null && entry != null) {
-            baseDao.setTask(sheet, entry.taskId)
+        val entry = pref.getRecentEntry()
+        if (entry != null) {
+            if (entry.taskId != null) {
+                baseDao.setTask(sheet, entry.taskId)
+                if (entry.kost2Id != null) {
+                    baseDao.setKost2(sheet, entry.kost2Id)
+                }
+            }
+            sheet.location = entry.location
+            sheet.description = entry.description
+        }
+        if (entry?.userId != null) {
+            baseDao.setUser(sheet, entry.userId)
+        } else {
+            baseDao.setUser(sheet, ThreadLocalUserContext.getUserId()) // Use current user.
         }
         return sheet
     }
@@ -152,9 +166,10 @@ class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, Timeshee
                 .add(lc, "user")
                 .add(dayRange)
                 .add(UICustomized("taskConsumption"))
-                .add(lc, "location", "description")
-                .add(UIRow().add(UICol().add(UILabel("'ToDo: Validation, resetting Kost2-Combobox after task selection, Location-AC, favorites, templates, Testing..."))))
-                .addTranslations("until","fibu.kost2", "task")
+                .add(UIInput("location", lc).enableAutoCompletion(this))
+                .add(lc, "description")
+                .add(UIRow().add(UICol().add(UILabel("'ToDo: Validation, resetting Kost2-Combobox after task selection, favorites, templates, Testing..."))))
+                .addTranslations("until", "fibu.kost2", "task")
         return LayoutUtils.processEditPage(layout, dataObject)
     }
 
@@ -170,7 +185,11 @@ class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, Timeshee
         val prefKey = "timesheetEditPref";
         var pref: TimesheetPrefData? = userPreferencesService.getEntry(TimesheetPrefData::class.java, prefKey)
         if (pref == null) {
-            pref = TimesheetPrefData()
+            val oldPrefKey = "org.projectforge.web.timesheet.TimesheetEditPage" // From Wicket version.
+            pref = userPreferencesService.getEntry(TimesheetPrefData::class.java, oldPrefKey)
+            if (pref == null) {
+                pref = TimesheetPrefData()
+            }
             userPreferencesService.putEntry(prefKey, pref, true)
         }
         return pref

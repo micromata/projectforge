@@ -7,11 +7,13 @@ import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.menu.builder.FavoritesMenuCreator
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuCreatorContext
+import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.rest.config.Rest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+
 
 @RestController
 @RequestMapping("${Rest.URL}/menu")
@@ -28,6 +30,10 @@ class MenuRest {
     fun getMenu(): Menus {
         val mainMenu = menuCreator.build(MenuCreatorContext(ThreadLocalUserContext.getUser()))
         val favoritesMenu = favoritesMenuCreator.getDefaultFavoriteMenu()
+        val goClassicsMenu = MenuItemDef("GoClassics", "goreact.menu.classics")
+        goClassicsMenu.url = "wa"
+        favoritesMenu.add(goClassicsMenu)
+
         val myAccountMenu = Menu()
         val item = MenuItem("username", ThreadLocalUserContext.getUser()?.fullname)
         myAccountMenu.add(item)

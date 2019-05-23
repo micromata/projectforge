@@ -222,8 +222,8 @@ public class TeamCalEditForm extends AbstractEditForm<TeamCalDO, TeamCalEditPage
         protected void onUpdate(final AjaxRequestTarget target)
         {
           // update visibility
-          fsExternalSubscriptionUrl.getFieldset().setVisible(data.isExternalSubscription() == true);
-          fsExternalSubscriptionInterval.getFieldset().setVisible(data.isExternalSubscription() == true);
+          fsExternalSubscriptionUrl.getFieldset().setVisible(data.getExternalSubscription() == true);
+          fsExternalSubscriptionInterval.getFieldset().setVisible(data.getExternalSubscription() == true);
           // update components through ajax
           target.add(fsExternalSubscriptionUrl.getFieldset());
           target.add(fsExternalSubscriptionInterval.getFieldset());
@@ -235,7 +235,7 @@ public class TeamCalEditForm extends AbstractEditForm<TeamCalDO, TeamCalEditPage
       fsExternalSubscriptionUrl = gridBuilder.newFieldset(getString("plugins.teamcal.externalsubscription.url"));
       fsExternalSubscriptionUrl.getFieldset().setOutputMarkupId(true);
       fsExternalSubscriptionUrl.getFieldset().setOutputMarkupPlaceholderTag(true);
-      fsExternalSubscriptionUrl.getFieldset().setVisible(data.isExternalSubscription() == true);
+      fsExternalSubscriptionUrl.getFieldset().setVisible(data.getExternalSubscription() == true);
       fsExternalSubscriptionUrl.addHelpIcon(new ResourceModel("plugins.teamcal.externalsubscription.label.tooltip"),
           new ResourceModel(
               "plugins.teamcal.externalsubscription.url.tooltip"));
@@ -250,7 +250,7 @@ public class TeamCalEditForm extends AbstractEditForm<TeamCalDO, TeamCalEditPage
           .newFieldset(getString("plugins.teamcal.externalsubscription.updateInterval"));
       fsExternalSubscriptionInterval.getFieldset().setOutputMarkupId(true);
       fsExternalSubscriptionInterval.getFieldset().setOutputMarkupPlaceholderTag(true);
-      fsExternalSubscriptionInterval.getFieldset().setVisible(data.isExternalSubscription() == true);
+      fsExternalSubscriptionInterval.getFieldset().setVisible(data.getExternalSubscription() == true);
 
       final IChoiceRenderer<Integer> intervalRenderer = new IChoiceRenderer<Integer>()
       {

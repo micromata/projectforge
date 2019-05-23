@@ -271,7 +271,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
             final LdapGroup ldapGroup = getLdapGroup(ldapGroups, group);
             if (ldapGroup == null) {
               updatedLdapGroup.setOrganizationalUnit(groupBase);
-              if (group.isDeleted() == false && group.isLocalGroup() == false) {
+              if (group.isDeleted() == false && group.getLocalGroup() == false) {
                 // Do not add deleted or local groups.
                 setMembers(updatedLdapGroup, group.getAssignedUsers(), ldapUserMap);
                 ldapGroupDao.create(ctx, groupBase, updatedLdapGroup);
@@ -279,7 +279,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
               }
             } else {
               updatedLdapGroup.setOrganizationalUnit(ldapGroup.getOrganizationalUnit());
-              if (group.isDeleted() == true || group.isLocalGroup() == true) {
+              if (group.isDeleted() == true || group.getLocalGroup() == true) {
                 // Deleted and local users shouldn't be synchronized with LDAP:
                 ldapGroupDao.delete(ctx, updatedLdapGroup);
                 deleted++;

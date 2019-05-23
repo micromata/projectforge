@@ -9,7 +9,8 @@ import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.AddressImageServicesRest.Companion.SESSION_IMAGE_ATTR
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractStandardRest
+import org.projectforge.rest.core.AbstractBaseRest
+import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.sms.SmsSenderConfig
@@ -23,7 +24,7 @@ import javax.servlet.http.HttpServletRequest
 @RestController
 @RequestMapping("${Rest.URL}/address")
 class AddressRest()
-    : AbstractStandardRest<AddressDO, AddressDao, AddressFilter>(AddressDao::class.java, AddressFilter::class.java, "address.title") {
+    : AbstractDORest<AddressDO, AddressDao, AddressFilter>(AddressDao::class.java, AddressFilter::class.java, "address.title") {
 
     /**
      * For exporting list of addresses.
@@ -54,7 +55,7 @@ class AddressRest()
         return address
     }
 
-    override fun onGetItemAndLayout(request: HttpServletRequest, item: AddressDO, editLayoutData: EditLayoutData) {
+    override fun onGetItemAndLayout(request: HttpServletRequest, item: AddressDO, editLayoutData: AbstractBaseRest.EditLayoutData) {
         ExpiringSessionAttributes.removeAttribute(request.session, SESSION_IMAGE_ATTR)
     }
 
@@ -99,7 +100,7 @@ class AddressRest()
 
     override fun afterSaveOrUpdate(obj: AddressDO) {
         // TODO: see AddressEditPage
-        val address = baseDao.getOrLoad(obj.getId())
+        //val address = baseDao.getOrLoad(obj.getId())
         //val personalAddress = form.addressEditSupport.personalAddress
         //personalAddress.setAddress(address)
         //personalAddressDao.setOwner(personalAddress, getUserId()) // Set current logged in user as owner.
@@ -149,7 +150,7 @@ class AddressRest()
                 tooltipTitle = "address.book.exportFavoritePhoneList.tooltip.title",
                 tooltip = "address.book.exportFavoritePhoneList.tooltip.content",
                 type = MenuItemTargetType.DOWNLOAD))
-        layout.add(exportMenu, menuIndex++)
+        layout.add(exportMenu, menuIndex)
         layout.getMenuById(GEAR_MENU)?.add(MenuItem("address.exportAppleScript4Notes",
                 i18nKey = "address.book.export.appleScript4Notes",
                 url = "${getRestPath()}/downloadAppleScript",
@@ -174,7 +175,8 @@ class AddressRest()
                         .add(UIFieldset(6)
                                 .add(UIRow()
                                         .add(UICol(length = 8)
-                                                .add(UIMultiSelect("addressbookList", lc,
+                                                .add(UISelect("addressbookList", lc,
+                                                        multi = true,
                                                         values = addressbooks,
                                                         labelProperty = "title",
                                                         valueProperty = "id")))
@@ -188,17 +190,16 @@ class AddressRest()
                                                 .add(lc, "contactStatus")))))
                 .add(UIRow()
                         .add(UIFieldset(6)
-                                .add(lc, "name", "firstName")
-                                .add(UISelect<String>("form", lc).buildValues(FormOfAddress::class.java))
-                                .add(lc, "title", "email", "privateEmail"))
+                                .add(lc, "name", "firstName", "form", "title", "email", "privateEmail"))
                         .add(UIFieldset(6)
                                 .add(lc, "birthday", "communicationLanguage", "organization", "division", "positionText", "website")))
-                .add(UIFieldset(12)
-                        .add(UIRow()
-                                .add(UICol(6)
-                                        .add(lc, "businessPhone", "mobilePhone", "fax"))
-                                .add(UICol(6)
-                                        .add(lc, "privatePhone", "privateMobilePhone"))))
+                .add(UIRow()
+                        .add(UIFieldset(12)
+                                .add(UIRow()
+                                        .add(UICol(6)
+                                                .add(lc, "businessPhone", "mobilePhone", "fax"))
+                                        .add(UICol(6)
+                                                .add(lc, "privatePhone", "privateMobilePhone")))))
                 .add(UIRow()
                         .add(UIFieldset(6, title = "address.heading.businessAddress")
                                 .add(lc, "addressText")
@@ -224,30 +225,31 @@ class AddressRest()
                                                 .add(UIInput("postalCountry", lc)))
                                         .add(UICol(length = 6)
                                                 .add(UIInput("postalState", lc))))))
-                .add(UIFieldset()
-                        .add(UIRow()
-                                .add(UICol(6)
-                                        .add(UILabel("address.heading.privateAddress"))
-                                        .add(lc, "privateAddressText")
-                                        .add(UIRow()
-                                                .add(UICol(length = 2)
-                                                        .add(UIInput("privateZipCode", lc)))
-                                                .add(UICol(length = 10)
-                                                        .add(UIInput("privateCity", lc))))
-                                        .add(UIRow()
-                                                .add(UICol(length = 6)
-                                                        .add(UIInput("privateCountry", lc)))
-                                                .add(UICol(length = 6)
-                                                        .add(UIInput("privateState", lc)))))
-                                .add(UICol(6)
-                                        .add(UILabel("address.image"))
-                                        .add(UICustomized("address.edit.image"))))
-                        .add(lc, "comment"))
+                .add(UIRow()
+                        .add(UIFieldset()
+                                .add(UIRow()
+                                        .add(UICol(6)
+                                                .add(UILabel("address.heading.privateAddress"))
+                                                .add(lc, "privateAddressText")
+                                                .add(UIRow()
+                                                        .add(UICol(length = 2)
+                                                                .add(UIInput("privateZipCode", lc)))
+                                                        .add(UICol(length = 10)
+                                                                .add(UIInput("privateCity", lc))))
+                                                .add(UIRow()
+                                                        .add(UICol(length = 6)
+                                                                .add(UIInput("privateCountry", lc)))
+                                                        .add(UICol(length = 6)
+                                                                .add(UIInput("privateState", lc)))))
+                                        .add(UICol(6)
+                                                .add(UILabel("address.image"))
+                                                .add(UICustomized("address.edit.image"))))
+                                .add(lc, "comment")))
 
         layout.getInputById("name").focus = true
         layout.getTextAreaById("comment").cssClass = CssClassnames.MT_5
         layout.addTranslations("delete", "file.upload.dropArea", "address.image.upload.error")
-        if (dataObject?.id != null) {
+        if (dataObject.id != null) {
             layout.add(MenuItem("address.printView",
                     i18nKey = "printView",
                     url = "wa/addressView?id=${dataObject.id}",

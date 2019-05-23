@@ -23,12 +23,6 @@
 
 package org.projectforge.business.task;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -45,13 +39,18 @@ import org.projectforge.framework.persistence.api.IdObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 /**
  * Represents a single task as part of the TaskTree. The data of a task node is stored in the database.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class TaskNode implements IdObject<Integer>, Serializable
-{
+public class TaskNode implements IdObject<Integer>, Serializable {
   private static final long serialVersionUID = -3759574521842841341L;
 
   /**
@@ -94,25 +93,21 @@ public class TaskNode implements IdObject<Integer>, Serializable
    */
   private final List<GroupTaskAccessDO> groupTaskAccessList = new ArrayList<GroupTaskAccessDO>();
 
-  public TaskNode()
-  {
+  public TaskNode() {
   }
 
   /**
    * @return True, if the parent task id of the underlying task is null, false otherwise.
    */
-  public boolean isRootNode()
-  {
+  public boolean isRootNode() {
     return this.task.getParentTaskId() == null;
   }
 
-  public void setTask(final TaskDO task)
-  {
+  public void setTask(final TaskDO task) {
     this.task = task;
   }
 
-  public TaskDO getTask()
-  {
+  public TaskDO getTask() {
     return this.task;
   }
 
@@ -120,21 +115,18 @@ public class TaskNode implements IdObject<Integer>, Serializable
    * The id of this task given by the database.
    */
   @Override
-  public Integer getId()
-  {
+  public Integer getId() {
     return task.getId();
   }
 
   /**
    * The id of this task given by the database.
    */
-  public Integer getTaskId()
-  {
+  public Integer getTaskId() {
     return task.getId();
   }
 
-  public Integer getParentId()
-  {
+  public Integer getParentId() {
     if (parent == null) {
       return null;
     }
@@ -144,13 +136,11 @@ public class TaskNode implements IdObject<Integer>, Serializable
   /**
    * Returns the parent task.
    */
-  public TaskNode getParent()
-  {
+  public TaskNode getParent() {
     return this.parent;
   }
 
-  public void internalSetParent(final TaskNode parent)
-  {
+  public void internalSetParent(final TaskNode parent) {
     this.parent = parent;
     if (parent != null) {
       parent.addChild(this);
@@ -161,8 +151,7 @@ public class TaskNode implements IdObject<Integer>, Serializable
    * @return The reference of the assigned task, or if not given or blank of the parent task node. If the parent task
    * node has no reference the grand parent task reference will be assumed and so on.
    */
-  public String getReference()
-  {
+  public String getReference() {
     if (StringUtils.isNotBlank(task.getReference()) == true) {
       return task.getReference();
     } else if (parent != null) {
@@ -179,8 +168,7 @@ public class TaskNode implements IdObject<Integer>, Serializable
    * @return null, if now project is assigned to this task or ancestor tasks.
    * @see ProjektDO#getTask()
    */
-  public ProjektDO getProjekt()
-  {
+  public ProjektDO getProjekt() {
     return getProjekt(true);
   }
 
@@ -192,8 +180,7 @@ public class TaskNode implements IdObject<Integer>, Serializable
    * @return null, if now project is assigned to this task or ancestor tasks.
    * @see ProjektDO#getTask()
    */
-  public ProjektDO getProjekt(final boolean recursive)
-  {
+  public ProjektDO getProjekt(final boolean recursive) {
     if (projekt != null) {
       return projekt;
     } else if (recursive == true && parent != null) {
@@ -203,16 +190,14 @@ public class TaskNode implements IdObject<Integer>, Serializable
     }
   }
 
-  public boolean isDeleted()
-  {
+  public boolean isDeleted() {
     return task.isDeleted();
   }
 
   /**
    * @return True if this node is closed/deleted or any ancestor node is closed/deleted.
    */
-  public boolean isFinished()
-  {
+  public boolean isFinished() {
     if (task.isDeleted() || task.getStatus() == TaskStatus.C) {
       return true;
     }
@@ -225,20 +210,17 @@ public class TaskNode implements IdObject<Integer>, Serializable
   /**
    * @return the bookableForTimesheets
    */
-  public boolean isBookableForTimesheets()
-  {
+  public boolean isBookableForTimesheets() {
     return bookableForTimesheets;
   }
 
-  public List<Integer> getDescendantIds()
-  {
+  public List<Integer> getDescendantIds() {
     final List<Integer> descendants = new ArrayList<Integer>();
     getDescendantIds(descendants);
     return descendants;
   }
 
-  private void getDescendantIds(final List<Integer> descendants)
-  {
+  private void getDescendantIds(final List<Integer> descendants) {
     if (this.childs != null) {
       for (final TaskNode node : this.childs) {
         if (descendants.contains(node.getId()) == false) {
@@ -250,15 +232,13 @@ public class TaskNode implements IdObject<Integer>, Serializable
     }
   }
 
-  public List<Integer> getAncestorIds()
-  {
+  public List<Integer> getAncestorIds() {
     final List<Integer> ancestors = new ArrayList<Integer>();
     getAncestorIds(ancestors);
     return ancestors;
   }
 
-  private void getAncestorIds(final List<Integer> ancestors)
-  {
+  private void getAncestorIds(final List<Integer> ancestors) {
     if (this.parent != null) {
       if (ancestors.contains(this.parent.getId()) == false) {
         // Paranoia setting for cyclic references.
@@ -271,8 +251,7 @@ public class TaskNode implements IdObject<Integer>, Serializable
   /**
    * Returns all childs of this task in an ArrayList with elements from type TaskNode.
    */
-  public List<TaskNode> getChilds()
-  {
+  public List<TaskNode> getChilds() {
     if (this.childs == null) {
       this.childs = new ArrayList<TaskNode>();
     }
@@ -282,16 +261,14 @@ public class TaskNode implements IdObject<Integer>, Serializable
   /**
    * Has this task any childs?
    */
-  public boolean hasChilds()
-  {
+  public boolean hasChilds() {
     return this.childs != null && this.childs.size() > 0 ? true : false;
   }
 
   /**
    * Checks if the given node is a child / descendant of this node.
    */
-  public boolean isParentOf(final TaskNode node)
-  {
+  public boolean isParentOf(final TaskNode node) {
     if (this.childs == null) {
       return false;
     }
@@ -305,19 +282,31 @@ public class TaskNode implements IdObject<Integer>, Serializable
     return false;
   }
 
+  public String getPathAsString() {
+    StringBuilder sb = new StringBuilder();
+    List<TaskNode> list = getPathToRoot();
+    boolean first = true;
+    for (TaskNode node : list) {
+      if (first)
+        first = false;
+      else
+        sb.append(" -> ");
+      sb.append(node.getTask().getTitle());
+    }
+    return sb.toString();
+  }
+
   /**
    * Returns the path to the root node in an ArrayList. The list contains also the current task.
    */
-  public List<TaskNode> getPathToRoot()
-  {
+  public List<TaskNode> getPathToRoot() {
     return getPathToAncestor(null);
   }
 
   /**
    * Returns the path to the parent node in an ArrayList.
    */
-  public List<TaskNode> getPathToAncestor(final Integer ancestorTaskId)
-  {
+  public List<TaskNode> getPathToAncestor(final Integer ancestorTaskId) {
     if (this.parent == null || this.task.getId().equals(ancestorTaskId) == true) {
       return new ArrayList<TaskNode>();
     }
@@ -330,8 +319,7 @@ public class TaskNode implements IdObject<Integer>, Serializable
    * Sets / changes the parent of this node. This method does not modify the parent task! So it should be called only by
    * TaskTree.
    */
-  void setParent(final TaskNode parent)
-  {
+  void setParent(final TaskNode parent) {
     if (parent != null) {
       if (parent.getId().equals(getId()) == true || this.isParentOf(parent)) {
         log.error("Oups, cyclic reference detection: taskId = " + getId() + ", parentTaskId = " + parent.getId());
@@ -346,8 +334,7 @@ public class TaskNode implements IdObject<Integer>, Serializable
    * Adds a new task as a child of this node. It does not check wether this task already exist as child or not! This
    * method does not modify the child task!
    */
-  void addChild(final TaskNode child)
-  {
+  void addChild(final TaskNode child) {
     if (child != null) {
       if (child.getId().equals(getId()) == true || child.isParentOf(this)) {
         log.error("Oups, cyclic reference detection: taskId = " + getId() + ", parentTaskId = " + parent.getId());
@@ -363,8 +350,7 @@ public class TaskNode implements IdObject<Integer>, Serializable
   /**
    * Removes a child task of this node. This method does not modify the child task!
    */
-  void removeChild(final TaskNode child)
-  {
+  void removeChild(final TaskNode child) {
     if (child == null) {
       log.error("Oups, child is null, can't remove it from parent.");
     } else if (this.childs == null) {
@@ -387,8 +373,7 @@ public class TaskNode implements IdObject<Integer>, Serializable
    * @see AccessType
    * @see OperationType
    */
-  public boolean hasPermission(final Integer groupId, final AccessType accessType, final OperationType opType)
-  {
+  public boolean hasPermission(final Integer groupId, final AccessType accessType, final OperationType opType) {
     final GroupTaskAccessDO groupAccess = getGroupTaskAccess(groupId);
     if (groupAccess == null) {
       if (parent != null) {
@@ -400,8 +385,7 @@ public class TaskNode implements IdObject<Integer>, Serializable
     return groupAccess.hasPermission(accessType, opType);
   }
 
-  public boolean isPermissionRecursive(final Integer groupId)
-  {
+  public boolean isPermissionRecursive(final Integer groupId) {
     final GroupTaskAccessDO groupAccess = getGroupTaskAccess(groupId);
     return groupAccess == null || groupAccess.isRecursive() == true;
   }
@@ -412,8 +396,7 @@ public class TaskNode implements IdObject<Integer>, Serializable
    * @param groupId
    * @return The GroupTaskAccessDO or null if not exists.
    */
-  GroupTaskAccessDO getGroupTaskAccess(final Integer groupId)
-  {
+  GroupTaskAccessDO getGroupTaskAccess(final Integer groupId) {
     Validate.notNull(groupId);
     for (final GroupTaskAccessDO access : groupTaskAccessList) {
       if (groupId.equals(access.getGroupId()) == true) {
@@ -429,8 +412,7 @@ public class TaskNode implements IdObject<Integer>, Serializable
    *
    * @param GroupTaskAccessDO
    */
-  void setGroupTaskAccess(final GroupTaskAccessDO groupTaskAccess)
-  {
+  void setGroupTaskAccess(final GroupTaskAccessDO groupTaskAccess) {
     Validate.isTrue(ObjectUtils.equals(this.getTaskId(), groupTaskAccess.getTaskId()) == true);
     // TODO: Should be called after update and insert into database.
     if (log.isInfoEnabled() == true) {
@@ -448,8 +430,7 @@ public class TaskNode implements IdObject<Integer>, Serializable
    * @param groupId
    * @return true if an entry was found and removed, otherwise false.
    */
-  boolean removeGroupTaskAccess(final Integer groupId)
-  {
+  boolean removeGroupTaskAccess(final Integer groupId) {
     // TODO: Should be called after deleting from database.
     Validate.notNull(groupId);
     boolean result = false;
@@ -472,8 +453,7 @@ public class TaskNode implements IdObject<Integer>, Serializable
    * @param recursive If true, then the durations of all time sheets of the sub tasks will be added.
    * @return
    */
-  public long getDuration(final TaskTree taskTree, final boolean recursive)
-  {
+  public long getDuration(final TaskTree taskTree, final boolean recursive) {
     if (totalDuration < 0) {
       taskTree.readTotalDuration(this.getId());
     }
@@ -488,27 +468,24 @@ public class TaskNode implements IdObject<Integer>, Serializable
   }
 
   @Override
-  public boolean equals(final Object o)
-  {
+  public boolean equals(final Object o) {
     if (o instanceof TaskNode) {
       final TaskNode other = (TaskNode) o;
       return ObjectUtils.equals(this.getParentId(), other.getParentId()) == true
-          && ObjectUtils.equals(this.getTask().getTitle(), other.getTask().getTitle()) == true;
+              && ObjectUtils.equals(this.getTask().getTitle(), other.getTask().getTitle()) == true;
     }
     return false;
   }
 
   @Override
-  public int hashCode()
-  {
+  public int hashCode() {
     final HashCodeBuilder hcb = new HashCodeBuilder();
     hcb.append(this.getParentId()).append(this.getTask().getTitle());
     return hcb.toHashCode();
   }
 
   @Override
-  public String toString()
-  {
+  public String toString() {
     final ToStringBuilder sb = new ToStringBuilder(this);
     sb.append("id", getId());
     Object parentId = null;
@@ -522,10 +499,9 @@ public class TaskNode implements IdObject<Integer>, Serializable
     return sb.toString();
   }
 
-  Element addXMLElement(final Element parent)
-  {
+  Element addXMLElement(final Element parent) {
     final Element el = parent.addElement("task").addAttribute("id", String.valueOf(this.getId()))
-        .addAttribute("name", this.task.getTitle());
+            .addAttribute("name", this.task.getTitle());
     if (this.childs != null) {
       for (final TaskNode node : this.childs) {
         node.addXMLElement(el);

@@ -131,7 +131,8 @@ public class TimesheetBookingTest extends AbstractTestBase {
     final AuftragDO auftrag = new AuftragDO()
             .addPosition(new AuftragsPositionDO().setTask(getTask("TBT-5.1")).setTitel("Pos 1"))
             .addPosition(new AuftragsPositionDO().setTask(getTask("TBT-5.2.1.1")).setTitel("Pos 2"));
-    auftragDao.save(auftrag.setNummer(auftragDao.getNextNumber(auftrag)));
+    auftrag.setNummer(auftragDao.getNextNumber(auftrag));
+    auftragDao.save(auftrag);
     logon(getUser(AbstractTestBase.TEST_USER));
     TimesheetDO sheet = createNewSheet();
     sheet.setTask(getTask("TBT-5"));

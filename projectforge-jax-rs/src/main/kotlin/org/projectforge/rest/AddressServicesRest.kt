@@ -8,7 +8,10 @@ import org.projectforge.business.address.AddressFilter
 import org.projectforge.business.address.PersonalAddressDao
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.*
+import org.projectforge.rest.core.AbstractDORest
+import org.projectforge.rest.core.ListFilterService
+import org.projectforge.rest.core.ReplaceUtils
+import org.projectforge.rest.core.ResultSet
 import org.projectforge.ui.UIStyle
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ByteArrayResource
@@ -55,8 +58,6 @@ class AddressServicesRest() {
     @Autowired
     private lateinit var personalAddressDao: PersonalAddressDao
 
-    private val restHelper = RestHelper()
-
     @GetMapping("exportFavoritesVCards")
     fun exportFavoritesVCards(): ResponseEntity<Any> {
         log.info("Exporting personal address book as vcards.")
@@ -77,7 +78,7 @@ class AddressServicesRest() {
 
     /**
      * Exports all the addresses with the last used filter. If the user works with different browser windows and devices, the result may not match
-     * the current displayed list. The recent search result is used (stored in [AbstractStandardRest.getList] or [AbstractStandardRest.getInitialList].
+     * the current displayed list. The recent search result is used (stored in [AbstractDORest.getList] or [AbstractDORest.getInitialList].
      */
     @GetMapping("exportFavoritesExcel")
     fun exportFavoritesExcel(request: HttpServletRequest): ResponseEntity<Any> {
@@ -137,7 +138,7 @@ class AddressServicesRest() {
             throw RuntimeException(ex)
         }
         val filename = (APPLE_SCRIPT_FOR_ADDRESS_BOOK)
-        val resource = ByteArrayResource(content)
+        val resource = ByteArrayResource(content!!)
         return ResponseEntity.ok()
                 .contentType(org.springframework.http.MediaType.parseMediaType("application/octet-stream"))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")

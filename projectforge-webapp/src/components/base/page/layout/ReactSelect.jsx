@@ -12,8 +12,8 @@ function ReactSelect(
         additionalLabel,
         value,
         values,
-        isMulti,
-        isRequired,
+        multi,
+        required,
         valueProperty,
         labelProperty,
         translations,
@@ -36,9 +36,9 @@ function ReactSelect(
                 // closeMenuOnSelect={false}
                 components={makeAnimated()}
                 value={value}
-                isMulti={isMulti}
+                isMulti={multi}
                 options={values}
-                isClearable={!isRequired}
+                isClearable={!required}
                 getOptionValue={option => (option[valueProperty])}
                 getOptionLabel={getOptionLabel || (option => (option[labelProperty]))}
                 onChange={onChange}
@@ -57,11 +57,11 @@ ReactSelect.propTypes = {
     label: PropTypes.string.isRequired,
     additionalLabel: PropTypes.string,
     value: PropTypes.any,
-    values: PropTypes.arrayOf(PropTypes.object).isRequired,
+    values: PropTypes.arrayOf(PropTypes.object),
     valueProperty: PropTypes.string,
     labelProperty: PropTypes.string,
-    isMulti: PropTypes.bool,
-    isRequired: PropTypes.bool,
+    multi: PropTypes.bool,
+    required: PropTypes.bool,
     translations: PropTypes.shape({}).isRequired,
     loadOptions: PropTypes.func,
     getOptionLabel: PropTypes.func,
@@ -74,8 +74,8 @@ ReactSelect.defaultProps = {
     additionalLabel: undefined,
     valueProperty: 'value',
     labelProperty: 'label',
-    isMulti: false,
-    isRequired: false,
+    multi: false,
+    required: false,
     loadOptions: undefined,
     getOptionLabel: undefined,
     onChange: undefined,

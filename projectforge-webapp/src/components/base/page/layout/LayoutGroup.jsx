@@ -68,10 +68,6 @@ function LayoutGroup(
                     case 'TABLE':
                         Tag = LayoutTable;
                         break;
-                    case 'MULTI_SELECT':
-                        Tag = UncontrolledReactSelect;
-                        properties.isMulti = true;
-                        break;
                     case 'CUSTOMIZED':
                         Tag = CustomizedLayout;
                         break;

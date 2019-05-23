@@ -2,6 +2,7 @@ package org.projectforge.rest.core
 
 import org.apache.commons.beanutils.PropertyUtils
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDao
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.*
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpSession
+import javax.validation.Valid
 
 /**
  * This is the base class for all fronted functionality regarding query, editing etc. It also serves layout
@@ -33,10 +35,19 @@ import javax.servlet.http.HttpSession
  * It's recommended for the frontend to develop generic list and edit pages by using the layout information served
  * by these rest services.
  */
-abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter>(
+abstract class AbstractBaseRest<
+        O : ExtendedBaseDO<Int>,
+        DTO : Any, // DTO may be equals to O if no special data transfer objects are used.
+        B : BaseDao<O>,
+        F : BaseSearchFilter>(
         private val baseDaoClazz: Class<B>,
         private val filterClazz: Class<F>,
         private val i18nKeyPrefix: String) {
+    /**
+     * If [getAutoCompletion] is called without a special property to search for, all properties will be searched for,
+     * given by this attribute. If null, an exception is thrown, if [getAutoCompletion] is called without a property.
+     */
+    protected open val autoCompleteSearchFields: Array<String>? = null
 
     @PostConstruct
     private fun postConstruct() {
@@ -82,11 +93,6 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
             return _baseDao ?: throw AssertionError("Set to null by another thread")
         }
 
-    /**
-     * The React frontend works with local dates.
-     */
-    protected var restHelper = RestHelper()
-
     @Autowired
     private lateinit var accessChecker: AccessChecker
 
@@ -123,27 +129,27 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
         return layout
     }
 
+    /**
+     * Relative rest path (without leading /rs
+     */
     fun getRestPath(): String {
         if (restPath == null) {
             val requestMapping = this::class.annotations.find { it is RequestMapping } as? RequestMapping
-            restPath = requestMapping?.value?.joinToString("/") { it } ?: "/"
+            val url = requestMapping?.value?.joinToString("/") { it } ?: "/"
+            restPath = url.substringAfter("${Rest.URL}/")
         }
         return restPath!!
     }
 
-    fun getCategory(): String {
+    private fun getCategory(): String {
         if (category == null) {
             category = getRestPath().removePrefix("${Rest.URL}/")
         }
         return category!!
     }
 
-    fun getFullRestPath(): String {
-        return getRestPath()
-    }
-
     open fun createEditLayout(dataObject: O): UILayout {
-        val titleKey = if (dataObject?.id != null) "$i18nKeyPrefix.edit" else "$i18nKeyPrefix.add"
+        val titleKey = if (dataObject.id != null) "$i18nKeyPrefix.edit" else "$i18nKeyPrefix.add"
         return UILayout(titleKey)
     }
 
@@ -195,15 +201,16 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
     @GetMapping("initialList")
     open fun getInitialList(session: HttpSession): InitialListData {
         //val test = providers.getContextResolver(MyObjectMapper::class.java,  MediaType.WILDCARD_TYPE)
+        @Suppress("UNCHECKED_CAST")
         val filter: F = listFilterService.getSearchFilter(session, filterClazz) as F
         if (filter.maxRows <= 0)
             filter.maxRows = 50
-        filter.setSortAndLimitMaxRowsWhileSelect(true)
-        val resultSet = restHelper.getList(this, baseDao, filter)
+        filter.isSortAndLimitMaxRowsWhileSelect = true
+        val resultSet = getList(this, baseDao, filter)
         processResultSetBeforeExport(resultSet)
         val layout = createListLayout()
                 .addTranslations("table.showing")
-        layout.add(LayoutListFilterUtils.createNamedContainer(baseDao, lc))
+        layout.add(LayoutListFilterUtils.createNamedContainer(baseDao))
         layout.postProcessPageMenu()
         return InitialListData(ui = layout, data = resultSet, filter = filter)
     }
@@ -232,17 +239,15 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
      * Get the list of all items matching the given filter.
      */
     @RequestMapping(RestPaths.LIST)
-    fun <O> getList(request: HttpServletRequest, @RequestBody filter: MagicFilter<F>): ResultSet<Any> {
-        val resultSet = restHelper.getList(this, baseDao, filter.prepareQueryFilter(filterClazz))
+    fun getList(request: HttpServletRequest, @RequestBody filter: MagicFilter<F>): ResultSet<Any> {
+        val resultSet = getList(this, baseDao, filter.prepareQueryFilter(filterClazz))
         processResultSetBeforeExport(resultSet)
         val storedFilter = listFilterService.getSearchFilter(request.session, filterClazz)
         BeanUtils.copyProperties(filter, storedFilter)
         return resultSet
     }
 
-    open fun processResultSetBeforeExport(resultSet: ResultSet<Any>) {
-        resultSet.resultSet.forEach { processItemBeforeExport(it) }
-    }
+    abstract fun processResultSetBeforeExport(resultSet: ResultSet<Any>)
 
     /**
      * Gets the item from the database.
@@ -250,10 +255,12 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
      * layout will be also included if the id is not given.
      */
     @GetMapping("{id}")
-    fun getItem(@PathVariable("id") id: Int?): ResponseEntity<O> {
+    fun getItem(@PathVariable("id") id: Int?): ResponseEntity<Any> {
         val item = getById(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
-        return ResponseEntity<O>(item, HttpStatus.OK)
+        return returnItem(item)
     }
+
+    abstract fun returnItem(item: O): ResponseEntity<Any>
 
     protected fun getById(id: Int?): O? {
         val item = baseDao.getById(id) ?: return null
@@ -275,13 +282,15 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
         val layout = createEditLayout(item)
         layout.addTranslations("changes", "tooltip.selectMe")
         layout.postProcessPageMenu()
-        val result = EditLayoutData(item, layout)
+        val result = createEditLayoutData(item, layout)
         onGetItemAndLayout(request, item, result)
         val additionalVariables = addVariablesForEditPage(item)
         if (additionalVariables != null)
             result.variables = additionalVariables
         return ResponseEntity<EditLayoutData>(result, HttpStatus.OK)
     }
+
+    abstract internal fun createEditLayoutData(item: O, layout: UILayout): EditLayoutData
 
     protected open fun onGetItemAndLayout(request: HttpServletRequest, item: O, editLayoutData: EditLayoutData) {
     }
@@ -298,11 +307,29 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
      * @param property The property (field of the data) used to search.
      * @param searchString
      * @return list of strings as json.
+     * @see BaseDao.getAutocompletion
      */
     @GetMapping("ac")
-    fun getAutoCompletion(@RequestParam("property") property: String?, @RequestParam("search") searchString: String?)
+    fun getAutoCompletionForProperty(@RequestParam("property") property: String, @RequestParam("search") searchString: String?)
             : List<String> {
         return baseDao.getAutocompletion(property, searchString)
+    }
+
+    /**
+     * Gets the autocompletion list for the given search string by searching in all properties defined by [autoCompleteSearchFields].
+     * If [autoCompleteSearchFields] is not given an [InternalErrorException] will be thrown.
+     * @param searchString
+     * @return list of found objects.
+     */
+    @GetMapping("aco")
+    open fun getAutoCompletionObjects(@RequestParam("search") searchString: String?): MutableList<O> {
+        if (autoCompleteSearchFields.isNullOrEmpty()) {
+            throw RuntimeException("Can't call getAutoCompletion without property, because no autoCompleteSearchFields are configured by the developers for this entity.")
+        }
+        val filter = BaseSearchFilter()
+        filter.searchString = searchString
+        filter.setSearchFields(*autoCompleteSearchFields!!)
+        return baseDao.getList(filter)
     }
 
     /**
@@ -319,7 +346,9 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
         return ResponseEntity<List<HistoryService.DisplayHistoryEntry>>(historyService.format(historyEntries), HttpStatus.OK)
     }
 
-
+    /**
+     * Override this method for manipulating entries before exporting them (list and edit view).
+     */
     open fun processItemBeforeExport(item: Any) {
     }
 
@@ -339,16 +368,18 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
      * Use this service for adding new items as well as updating existing items (id isn't null).
      */
     @PutMapping(RestPaths.SAVE_OR_UDATE)
-    fun saveOrUpdate(request: HttpServletRequest, @RequestBody obj: O): ResponseEntity<ResponseAction> {
-        return restHelper.saveOrUpdate(request, baseDao, obj, this, validate(obj))
+    fun saveOrUpdate(request: HttpServletRequest, @Valid @RequestBody T: DTO): ResponseEntity<ResponseAction> {
+        val dbObj = asDO(T)
+        return saveOrUpdate(request, baseDao, dbObj, this, validate(dbObj))
     }
 
     /**
      * The given object (marked as deleted before) will be undeleted.
      */
     @PutMapping(RestPaths.UNDELETE)
-    fun undelete(@RequestBody obj: O): ResponseEntity<ResponseAction> {
-        return restHelper.undelete(baseDao, obj, this, validate(obj))
+    fun undelete(@RequestBody T: DTO): ResponseEntity<ResponseAction> {
+        val dbObj = asDO(T)
+        return undelete(baseDao, dbObj, this, validate(dbObj))
     }
 
     /**
@@ -356,8 +387,9 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
      * Please note, if you try to delete a historizable data base object, an exception will be thrown.
      */
     @DeleteMapping(RestPaths.MARK_AS_DELETED)
-    fun markAsDeleted(@RequestBody obj: O): ResponseEntity<ResponseAction> {
-        return restHelper.markAsDeleted(baseDao, obj, this, validate(obj))
+    fun markAsDeleted(@RequestBody T: DTO): ResponseEntity<ResponseAction> {
+        val dbObj = asDO(T)
+        return markAsDeleted(baseDao, dbObj, this, validate(dbObj))
     }
 
     /**
@@ -365,8 +397,9 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
      * Please note, if you try to mark a non-historizable data base object, an exception will be thrown.
      */
     @DeleteMapping(RestPaths.DELETE)
-    fun delete(@RequestBody obj: O): ResponseEntity<ResponseAction> {
-        return restHelper.delete(baseDao, obj, this, validate(obj))
+    fun delete(@RequestBody T: DTO): ResponseEntity<ResponseAction> {
+        val dbObj = asDO(T)
+        return delete(baseDao, dbObj, this, validate(dbObj))
     }
 
     /**
@@ -375,8 +408,9 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
      * @return ResponseAction
      */
     @PostMapping(RestPaths.CANCEL)
-    fun cancelEdit(request: HttpServletRequest, @RequestBody obj: O): ResponseAction {
-        return cancelEdit(request, obj, getRestPath())
+    fun cancelEdit(request: HttpServletRequest, @RequestBody T: DTO): ResponseAction {
+        val dbObj = asDO(T)
+        return cancelEdit(request, dbObj, getRestPath())
     }
 
     /**
@@ -449,4 +483,6 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
         }
         return resultSet
     }
+
+    abstract internal fun asDO(dto: DTO): O
 }

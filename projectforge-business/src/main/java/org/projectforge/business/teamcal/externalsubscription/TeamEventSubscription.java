@@ -108,7 +108,7 @@ public class TeamEventSubscription implements Serializable
     currentInitializedHash = null;
     lastUpdated = null;
     String url = teamCalDO.getExternalSubscriptionUrl();
-    if (teamCalDO.isExternalSubscription() == false || StringUtils.isEmpty(url)) {
+    if (!teamCalDO.getExternalSubscription() || StringUtils.isEmpty(url)) {
       // No external subscription.
       clear();
       return;

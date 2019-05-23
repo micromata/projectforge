@@ -15,12 +15,13 @@ export const loadBegin = category => ({
     payload: { category },
 });
 
-export const loadSuccess = (data, ui, variables) => ({
+export const loadSuccess = (data, ui, variables, onClose) => ({
     type: EDIT_PAGE_LOAD_SUCCESS,
     payload: {
         data,
         ui,
         variables,
+        onClose,
     },
 });
 
@@ -43,7 +44,7 @@ export const updateFailure = validationMessages => ({
     payload: { validationMessages },
 });
 
-export const loadEdit = (category, id, additionalParams) => (dispatch) => {
+export const loadEdit = (category, id, additionalParams, onClose) => (dispatch) => {
     dispatch(loadBegin(category));
 
     const params = {
@@ -63,48 +64,8 @@ export const loadEdit = (category, id, additionalParams) => (dispatch) => {
     )
         .then(handleHTTPErrors)
         .then(response => response.json())
-        .then(json => dispatch(loadSuccess(json.data, json.ui, json.variables)))
+        .then(json => dispatch(loadSuccess(json.data, json.ui, json.variables, onClose)))
         .catch(error => dispatch(loadFailure(error.message)));
-};
-
-export const updatePageData = () => (dispatch, getState) => {
-    dispatch(updateBegin());
-
-    const { data, category } = getState().editPage;
-
-    fetch(
-        getServiceURL(`${category}/saveorupdate`),
-        {
-            method: 'PUT',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                ...data,
-            }),
-        },
-    )
-        .then((response) => {
-            if (response.status === 200) {
-                response.json()
-                    .then((json) => {
-                        history.push(json.url);
-                    });
-            }
-
-            if (response.status === 406) {
-                response.json()
-                    .then(json => dispatch(updateFailure(json.reduce((map, obj) => ({
-                        ...map,
-                        [obj.fieldId]: obj.message,
-                    }), {}))));
-                return;
-            }
-
-            throw new Error(response.status);
-        })
-        .catch(error => dispatch(loadFailure(error)));
 };
 
 // preserveObject avoids the replacement of the object by its id. Default is undefined.
@@ -121,10 +82,12 @@ export const changeField = (id, newValue) => (dispatch) => {
     return dispatch(fieldChanged(id, newValue));
 };
 
-export const callEndpointWithData = (category, endpoint, data, dispatch, method = 'POST') => {
+export const callEndpointWithData = (endpoint, method = 'POST') => (dispatch, getState) => {
     dispatch(updateBegin());
 
-    fetch(
+    const { category, data, onClose } = getState().editPage;
+
+    return fetch(
         getServiceURL(`${category}/${endpoint}`),
         {
             method,
@@ -135,22 +98,25 @@ export const callEndpointWithData = (category, endpoint, data, dispatch, method 
             body: JSON.stringify(data),
         },
     )
-        .then(handleHTTPErrors)
         .then((response) => {
             if (response.status === 200) {
-                response.json()
+                return response.json()
                     .then((json) => {
                         history.push(json.url);
+                        if (onClose) {
+                            onClose(json);
+                        }
                     });
             }
 
             if (response.status === 406) {
-                response.json()
-                    .then(json => dispatch(updateFailure(json.reduce((map, obj) => ({
-                        ...map,
-                        [obj.fieldId]: obj.message,
-                    }), {}))));
-                return;
+                return response.json()
+                    .then(({ validationErrors }) => dispatch(
+                        updateFailure(validationErrors.reduce((map, obj) => ({
+                            ...map,
+                            [obj.fieldId]: obj.message,
+                        }), {})),
+                    ));
             }
 
             throw new Error(response.status);
@@ -158,27 +124,12 @@ export const callEndpointWithData = (category, endpoint, data, dispatch, method 
         .catch(error => dispatch(loadFailure(error)));
 };
 
-export const abort = () => (dispatch, getState) => {
-    const { category, data } = getState().editPage;
+export const updatePageData = () => callEndpointWithData('saveorupdate', 'PUT');
 
-    callEndpointWithData(category, 'cancel', data, dispatch, 'POST');
-};
+export const abort = () => callEndpointWithData('cancel');
 
+export const markAsDeleted = () => callEndpointWithData('markAsDeleted', 'DELETE');
 
-export const markAsDeleted = () => (dispatch, getState) => {
-    const { category, data } = getState().editPage;
+export const undelete = () => callEndpointWithData('undelete', 'PUT');
 
-    callEndpointWithData(category, 'markAsDeleted', data, dispatch, 'DELETE');
-};
-
-export const undelete = () => (dispatch, getState) => {
-    const { category, data } = getState().editPage;
-
-    callEndpointWithData(category, 'undelete', data, dispatch, 'PUT');
-};
-
-export const clone = () => (dispatch, getState) => {
-    const { category, data } = getState().editPage;
-
-    callEndpointWithData(category, 'clone', data, dispatch);
-};
+export const clone = () => callEndpointWithData('clone');
