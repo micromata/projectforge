@@ -23,28 +23,12 @@
 
 package org.projectforge.business.humanresources;
 
-import java.math.BigDecimal;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.hibernate.search.annotations.Analyze;
-import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.FieldBridge;
 import org.hibernate.search.annotations.Index;
-import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.IndexedEmbedded;
-import org.hibernate.search.annotations.Store;
+import org.hibernate.search.annotations.*;
 import org.hibernate.search.bridge.builtin.IntegerBridge;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
@@ -54,6 +38,9 @@ import org.projectforge.framework.persistence.api.ShortDisplayNameCapable;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.ObjectHelper;
+
+import javax.persistence.*;
+import java.math.BigDecimal;
 
 /**
  * @author Mario Groß (m.gross@micromata.de)
@@ -70,6 +57,7 @@ public class HRPlanningEntryDO extends DefaultBaseDO implements ShortDisplayName
 {
   private static final long serialVersionUID = -7788797217095084177L;
 
+  @JsonManagedReference
   @IndexedEmbedded(depth = 3)
   private HRPlanningDO planning;
 

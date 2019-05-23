@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu
 
+import com.fasterxml.jackson.annotation.JsonBackReference
 import de.micromata.genome.db.jpa.history.api.HistoryProperty
 import de.micromata.genome.db.jpa.history.impl.TabAttrHistoryPropertyConverter
 import de.micromata.genome.db.jpa.history.impl.TimependingHistoryPropertyConverter
@@ -134,6 +135,7 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
     @get:Column
     open var urlaubstage: Int? = null // Open needed for mocking in VacationServiceTest
 
+    @JsonBackReference
     @Field(store = Store.YES)
     @FieldBridge(impl = TimeableListFieldBridge::class)
     @IndexedEmbedded(depth = 2)
