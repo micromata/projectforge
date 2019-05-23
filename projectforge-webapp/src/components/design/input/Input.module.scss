@@ -356,3 +356,15 @@ div[class*="Input_additionalLabel_"] span {
   border-radius: 0;
 }
 
+form div[class^="css-"][class$="-container"] {
+  margin-bottom: 30px;
+}
+
+svg[class^="css-"] {
+  color: #009BA3;
+}
+
+[class$="-multiValue"] {
+  font-size: 120%;
+}
+
