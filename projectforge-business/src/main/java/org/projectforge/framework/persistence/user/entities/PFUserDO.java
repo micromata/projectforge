@@ -336,7 +336,7 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable {
 
   /**
    * PLEASE NOTE: Be very careful of modifying this method and don't remove this method! Otherwise
-   * data as passwords may be displayed in log files etc.
+   * data as password hashes may be displayed in log files etc.
    * Returns string containing all fields (except the password) of given user object (via ReflectionToStringBuilder).
    */
   @Override
