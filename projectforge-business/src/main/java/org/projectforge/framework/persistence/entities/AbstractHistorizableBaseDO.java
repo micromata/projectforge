@@ -23,21 +23,25 @@
 
 package org.projectforge.framework.persistence.entities;
 
-import java.io.Serializable;
+import de.micromata.genome.db.jpa.history.api.WithHistory;
+import org.projectforge.framework.ToStringUtil;
 
 import javax.persistence.MappedSuperclass;
-
-import de.micromata.genome.db.jpa.history.api.WithHistory;
+import java.io.Serializable;
 
 /**
  * Declares lastUpdate and created as invalidHistorizableProperties.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @MappedSuperclass
 @WithHistory(noHistoryProperties = { "lastUpdate", "created" })
 public abstract class AbstractHistorizableBaseDO<I extends Serializable>extends AbstractBaseDO<I>
 {
-  private static final long serialVersionUID = -5980671510045450615L;
+  @Override
+  public String toString() {
+    return ToStringUtil.toJsonString(this);
+  }
 
+  private static final long serialVersionUID = -5980671510045450615L;
 }

@@ -26,7 +26,6 @@ package org.projectforge.framework.persistence.entities;
 import org.apache.lucene.analysis.standard.ClassicAnalyzer;
 import org.hibernate.search.annotations.Analyzer;
 import org.projectforge.common.anots.PropertyInfo;
-import org.projectforge.framework.ToStringUtil;
 
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
@@ -60,10 +59,5 @@ public class DefaultBaseDO extends AbstractHistorizableBaseDO<Integer>
   public void setId(final Integer id)
   {
     this.id = id;
-  }
-
-  @Override
-  public String toString() {
-    return ToStringUtil.toJsonString(this);
   }
 }
