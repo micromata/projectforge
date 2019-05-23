@@ -1,9 +1,10 @@
-package org.projectforge.rest.json
+package org.projectforge.framework
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
 class JsonValidator {
+    val json : String
     private val map: Map<String, Any?>
 
     private val attrPattern = """[a-z_0-9-]*"""
@@ -12,6 +13,7 @@ class JsonValidator {
     private val attrRegexWithIndex = attrPatternWithIndex.toRegex(RegexOption.IGNORE_CASE)
 
     constructor(json: String) {
+        this.json = json
         map = parseJson(json)
     }
 
