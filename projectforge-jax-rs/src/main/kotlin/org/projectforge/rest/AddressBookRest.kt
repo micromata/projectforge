@@ -3,13 +3,48 @@ package org.projectforge.rest
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.address.AddressbookDao
 import org.projectforge.business.address.AddressbookFilter
+import org.projectforge.business.group.service.GroupService
+import org.projectforge.business.user.service.UserService
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractStandardRest
+import org.projectforge.rest.core.AbstractDTORest
+import org.projectforge.rest.dto.Addressbook
 import org.projectforge.ui.*
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
+@RestController
 @RequestMapping("${Rest.URL}/addressBook")
-class AddressBookRest() : AbstractStandardRest<AddressbookDO, AddressbookDao, AddressbookFilter>(AddressbookDao::class.java, AddressbookFilter::class.java, "addressbook.title") {
+class AddressBookRest() : AbstractDTORest<AddressbookDO, Addressbook, AddressbookDao, AddressbookFilter>(
+        AddressbookDao::class.java,
+        AddressbookFilter::class.java,
+        "addressbook.title"
+) {
+    @Autowired
+    private lateinit var groupService: GroupService
+
+    @Autowired
+    private lateinit var userService: UserService
+
+    // Needed to use as dto.
+    override fun transformDO(obj: AddressbookDO, editMode : Boolean): Addressbook {
+        val addressbook = Addressbook()
+        addressbook.copyFrom(obj)
+        // Group names needed by React client (for ReactSelect):
+        addressbook.fullAccessGroups?.forEach { it.name = groupService.getGroupname(it.id) }
+        addressbook.readonlyAccessGroups?.forEach { it.name = groupService.getGroupname(it.id) }
+        // Usernames needed by React client (for ReactSelect):
+        addressbook.fullAccessUsers?.forEach { it.fullname = userService.getUser(it.id)?.fullname }
+        addressbook.readonlyAccessUsers?.forEach { it.fullname = userService.getUser(it.id)?.fullname }
+        return addressbook
+    }
+
+    // Needed to use as dto.
+    override fun transformDTO(dto: Addressbook): AddressbookDO {
+        val addressbookDO = AddressbookDO()
+        dto.copyTo(addressbookDO)
+        return addressbookDO
+    }
 
     /**
      * LAYOUT List page
@@ -17,9 +52,9 @@ class AddressBookRest() : AbstractStandardRest<AddressbookDO, AddressbookDao, Ad
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
-                        .add(lc, "title", "description", "owner", "accessright", "last modification"))
+                        .add(lc, "title", "description", "owner", "accessright", "last_update"))
         layout.getTableColumnById("owner").formatter = Formatter.USER
-        layout.getTableColumnById("last modification").formatter = Formatter.TIMESTAMP_MINUTES
+        layout.getTableColumnById("last_update").formatter = Formatter.TIMESTAMP_MINUTES
         return LayoutUtils.processListPage(layout)
     }
 
@@ -36,11 +71,35 @@ class AddressBookRest() : AbstractStandardRest<AddressbookDO, AddressbookDao, Ad
                                 .add(lc, "owner")))
                 .add(UIRow()
                         .add(UICol()
-                                .add(lc, "fullaccess_user")
-                                .add(lc, "readaccess_user"))
+                                .add(UISelect<Int>("fullAccessUsers", lc,
+                                        multi = true,
+                                        label = "addressbook.fullAccess",
+                                        additionalLabel = "access.users",
+                                        autoCompletion = AutoCompletion<Int>(url = "user/aco"),
+                                        labelProperty = "fullname",
+                                        valueProperty = "id"))
+                                .add(UISelect<Int>("readonlyAccessUsers", lc,
+                                        multi = true,
+                                        label = "addressbook.readonlyAccess",
+                                        additionalLabel = "access.users",
+                                        autoCompletion = AutoCompletion<Int>(url = "user/aco"),
+                                        labelProperty = "fullname",
+                                        valueProperty = "id")))
                         .add(UICol()
-                                .add(lc, "fullaccess_group")
-                                .add(lc, "readaccess_group")))
+                                .add(UISelect<Int>("fullAccessGroups", lc,
+                                        multi = true,
+                                        label = "addressbook.fullAccess",
+                                        additionalLabel = "access.groups",
+                                        autoCompletion = AutoCompletion<Int>(url = "group/aco"),
+                                        labelProperty = "name",
+                                        valueProperty = "id"))
+                                .add(UISelect<Int>("readonlyAccessGroups", lc,
+                                        multi = true,
+                                        label = "addressbook.readonlyAccess",
+                                        additionalLabel = "access.groups",
+                                        autoCompletion = AutoCompletion<Int>(url = "group/aco"),
+                                        labelProperty = "name",
+                                        valueProperty = "id"))))
         return LayoutUtils.processEditPage(layout, dataObject)
     }
 }

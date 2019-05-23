@@ -104,7 +104,7 @@ public class MyAccountEditPage extends AbstractEditPage<PFUserDO, MyAccountEditF
     Collection<TeamCalDO> teamCalRestBlackList = teamCalCache.getAllFullAccessCalendars();
     teamCalRestBlackList.removeAll(teamCalRestWhiteList);
     Integer[] blackListIds = teamCalRestBlackList.stream().map(cal -> cal.getId()).toArray(size -> new Integer[size]);
-    userXmlPreferencesDao.saveOrUpdate(ThreadLocalUserContext.getUserId(), TeamCalDO.TEAMCALRESTBLACKLIST, blackListIds, true);
+    userXmlPreferencesDao.saveOrUpdate(ThreadLocalUserContext.getUserId(), TeamCalDO.Companion.getTEAMCALRESTBLACKLIST(), blackListIds, true);
 
     userXmlPreferencesDao.saveOrUpdate(ThreadLocalUserContext.getUserId(), "disableSnowEffectPermant", form.getDisableSnowEffectPermant(), true);
     userXmlPreferencesCache.putEntry(ThreadLocalUserContext.getUserId(), "disableSnowEffectPermant", form.getDisableSnowEffectPermant(), true);

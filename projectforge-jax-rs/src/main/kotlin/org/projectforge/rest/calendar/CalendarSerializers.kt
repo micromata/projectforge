@@ -12,12 +12,15 @@ import java.io.IOException
  * Serialization for TeamCalDO etc.
  */
 class TeamCalDOSerializer : StdSerializer<TeamCalDO>(TeamCalDO::class.java) {
+    private class TeamCal(val id: Int?, val title: String?)
+
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: TeamCalDO?, jgen: JsonGenerator, provider: SerializerProvider) {
-        if (value == null) return
-        jgen.writeStartObject()
-        jgen.writeNumberField("id", value.id)
-        jgen.writeStringField("title", value.title)
-        jgen.writeEndObject()
+        if (value == null) {
+            jgen.writeNull()
+            return
+        }
+        val teamCal = TeamCal(value.id, value.title)
+        jgen.writeObject(teamCal)
     }
 }

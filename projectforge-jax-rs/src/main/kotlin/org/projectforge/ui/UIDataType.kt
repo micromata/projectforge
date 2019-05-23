@@ -4,6 +4,7 @@ enum class UIDataType {
     AMOUNT,
     CUSTOMIZED,
     DATE,
+    DECIMAL,
     INT,
     LOCALE,
     PICTURE,

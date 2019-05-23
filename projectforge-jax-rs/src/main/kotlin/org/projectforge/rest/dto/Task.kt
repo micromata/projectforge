@@ -24,8 +24,8 @@ class Task(var parentTask: Task? = null,
            var reference: String? = null,
            var timesheetBookingStatus: TimesheetBookingStatus? = null,
            var kost2BlackWhiteList: String? = null,
-           var kost2IsBlackList: Boolean = false,
-           var protectionOfPrivacy: Boolean = false,
+           var kost2IsBlackList: Boolean? = null,
+           var protectionOfPrivacy: Boolean? = null,
            var workpackageCode: String? = null,
            var ganttPredecessorOffset: Int? = null,
            var ganttRelationType: GanttRelationType? = null,
@@ -35,12 +35,10 @@ class Task(var parentTask: Task? = null,
 
     override fun copyFromMinimal(src: TaskDO) {
         super.copyFromMinimal(src)
-        if (src is TaskDO) {
-            title = src.title
-            if (src.parentTask != null) {
-                parentTask = Task()
-                parentTask?.copyFromMinimal(src.parentTask)
-            }
+        title = src.title
+        if (src.parentTask != null) {
+            parentTask = Task()
+            parentTask?.copyFromMinimal(src.parentTask)
         }
     }
 }

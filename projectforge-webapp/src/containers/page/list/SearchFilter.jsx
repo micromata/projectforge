@@ -21,20 +21,6 @@ class SearchFilter extends Component {
         this.handleInputChange = this.handleInputChange.bind(this);
         this.handleSelectChange = this.handleSelectChange.bind(this);
         this.handleFilterChange = this.handleFilterChange.bind(this);
-        this.getOptionLabel = this.getOptionLabel.bind(this);
-    }
-
-    getOptionLabel(option) {
-        // disable eslint because variable is provided by react-select and can't be changed.
-        /* eslint-disable-next-line no-underscore-dangle */
-        if (option.__isNew__) {
-            return option.label;
-        }
-
-        const { filter } = this.state;
-        const value = filter[option.id];
-
-        return `${option.id}${value ? `: ${value}` : ''}`;
     }
 
     handleInputChange(event) {
@@ -72,8 +58,6 @@ class SearchFilter extends Component {
             filter: newFilter,
         } = this.state;
 
-        console.log(filter);
-
         let options = [];
         const searchFilter = getNamedContainer('searchFilter', namedContainers);
 
@@ -99,7 +83,6 @@ class SearchFilter extends Component {
                             }}
                             setMultiValue={this.handleFilterChange}
                             values={newFilter}
-                            getOptionLabel={this.getOptionLabel}
                         />
                         <Row>
                             <Col sm={8}>

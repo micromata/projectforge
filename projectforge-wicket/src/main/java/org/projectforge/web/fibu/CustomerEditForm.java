@@ -70,7 +70,7 @@ public class CustomerEditForm extends AbstractEditForm<KundeDO, CustomerEditPage
       // Number
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.nummer"));
       final MinMaxNumberField<Integer> number = new MinMaxNumberField<Integer>(InputPanel.WICKET_ID,
-          new PropertyModel<Integer>(data, "id"), 0, KundeDO.MAX_ID)
+          new PropertyModel<Integer>(data, "id"), 0, KundeDO.Companion.getMAX_ID())
       {
         @SuppressWarnings({ "unchecked", "rawtypes" })
         @Override

@@ -29,9 +29,7 @@ import org.apache.wicket.model.Model;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.menu.Menu;
 import org.projectforge.menu.MenuItem;
-import org.projectforge.menu.builder.FavoritesMenuCreator;
-import org.projectforge.menu.builder.MenuCreator;
-import org.projectforge.menu.builder.MenuCreatorContext;
+import org.projectforge.menu.builder.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -53,6 +51,9 @@ public class WicketMenuBuilder {
 
   public WicketMenu getFavoriteMenu() {
     Menu menu = favoritesMenuCreator.getDefaultFavoriteMenu();
+    MenuItemDef reactMenu = new MenuItemDef( "GoReact", "goreact.menu.new");
+    reactMenu.setUrl("/");
+    menu.add(reactMenu);
     return buildMenuTree(menu);
   }
 
@@ -101,6 +102,7 @@ public class WicketMenuBuilder {
     else
       entry.name = "???";
     entry.pageClass = menuItemRegistry.getPageClass(item.getId());
+    entry.url = item.getUrl();
     if (item.getBadge() != null) {
       entry.setBadgeCounter(new Model<Integer>() {
         @Override

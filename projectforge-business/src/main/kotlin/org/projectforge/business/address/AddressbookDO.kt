@@ -24,14 +24,15 @@
 package org.projectforge.business.address
 
 import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.hibernate.search.annotations.*
-import org.hibernate.search.annotations.Index
+import org.hibernate.search.annotations.ClassBridge
+import org.hibernate.search.annotations.Field
+import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsBridge
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.persistence.utils.ReflectionToString
 import java.util.*
 import javax.persistence.*
 
@@ -41,7 +42,7 @@ import javax.persistence.*
 @Entity
 @Indexed
 @ClassBridge(name = "usersgroups", impl = HibernateSearchUsersGroupsBridge::class)
-@Table(name = "T_ADDRESSBOOK", indexes = [javax.persistence.Index(name = "idx_fk_t_addressbook_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_ADDRESSBOOK", indexes = [Index(name = "idx_fk_t_addressbook_tenant_id", columnList = "tenant_id")])
 class AddressbookDO : BaseUserGroupRightsDO() {
 
     @PropertyInfo(i18nKey = "addressbook.title")
@@ -68,24 +69,11 @@ class AddressbookDO : BaseUserGroupRightsDO() {
         return hcb.hashCode()
     }
 
-    override fun equals(o: Any?): Boolean {
-        if (this === o) return true
-        if (o == null || o !is AddressbookDO) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || other !is AddressbookDO) {
             return false
         }
-        return Objects.equals(this.id, o.id)
-    }
-
-    /**
-     * @param user
-     * @return
-     */
-    override fun toString(): String {
-        return object : ReflectionToString(this) {
-        }.toString()
-    }
-
-    companion object {
-        private val serialVersionUID = 2869412345643084605L
+        return Objects.equals(this.id, other.id)
     }
 }

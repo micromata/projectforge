@@ -105,11 +105,24 @@
       <version>${kotlin.version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>com.fasterxml.jackson.module</groupId>
+      <artifactId>jackson-module-kotlin</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-jersey</artifactId>
     </dependency>
+
+    <!-- https://mvnrepository.com/artifact/org.springframework/spring-webmvc -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-webmvc</artifactId>
+      <version>5.1.6.RELEASE</version>
+    </dependency>
+
 
     <!-- https://mvnrepository.com/artifact/org.glassfish.jersey.media/jersey-media-multipart -->
     <dependency>

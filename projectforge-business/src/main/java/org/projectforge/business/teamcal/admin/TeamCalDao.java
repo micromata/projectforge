@@ -332,7 +332,7 @@ public class TeamCalDao extends BaseDao<TeamCalDO>
   protected void afterSave(final TeamCalDO obj)
   {
     super.afterSave(obj);
-    if (obj.isExternalSubscription() == true) {
+    if (obj.getExternalSubscription()) {
       getTeamEventExternalSubscriptionCache().updateCache(obj);
     }
   }
@@ -343,14 +343,14 @@ public class TeamCalDao extends BaseDao<TeamCalDO>
     super.afterUpdate(obj, dbObj);
     if (obj != null
         && dbObj != null
-        && obj.isExternalSubscription() == true
-        && StringUtils.equals(obj.getExternalSubscriptionUrl(), dbObj.getExternalSubscriptionUrl()) == false) {
+        && obj.getExternalSubscription()
+        && !StringUtils.equals(obj.getExternalSubscriptionUrl(), dbObj.getExternalSubscriptionUrl())) {
       // only update if the url has changed!
       getTeamEventExternalSubscriptionCache().updateCache(obj);
     }
     // if calendar is present in subscription cache and is not an external subscription anymore -> cleanup!
     if (obj != null
-        && obj.isExternalSubscription() == false
+        && !obj.getExternalSubscription()
         && getTeamEventExternalSubscriptionCache().isExternalSubscribedCalendar(obj.getId())) {
       obj.setExternalSubscriptionCalendarBinary(null);
       obj.setExternalSubscriptionUrl(null);

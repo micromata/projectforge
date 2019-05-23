@@ -119,7 +119,7 @@ public class TeamCalCalendarPage extends CalendarPage
     }
     for (final Integer calId : visibleCalendarIds) {
       final TeamCalDO teamCalDO = teamCalCache.getCalendar(calId);
-      if (teamCalDO == null || teamCalDO.isExternalSubscription() == false) {
+      if (teamCalDO == null || !teamCalDO.getExternalSubscription()) {
         // Nothing to do.
         continue;
       }

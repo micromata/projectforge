@@ -227,8 +227,4 @@ class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
     override fun compareTo(other: TimesheetDO): Int {
         return startTime?.compareTo(other.startTime) ?: 1;
     }
-
-    companion object {
-        private val serialVersionUID = 4239370656510694224L
-    }
 }

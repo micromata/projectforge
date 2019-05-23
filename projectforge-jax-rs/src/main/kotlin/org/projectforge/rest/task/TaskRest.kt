@@ -5,11 +5,9 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskFilter
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractStandardRest
-import org.projectforge.ui.LayoutUtils
-import org.projectforge.ui.UILayout
-import org.projectforge.ui.UITable
-import org.projectforge.ui.ValidationError
+import org.projectforge.rest.core.AbstractDTORest
+import org.projectforge.rest.dto.Task
+import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -17,10 +15,22 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("${Rest.URL}/task")
 class TaskRest()
-    : AbstractStandardRest<TaskDO, TaskDao, TaskFilter>(TaskDao::class.java, TaskFilter::class.java, "task.title") {
+    : AbstractDTORest<TaskDO, Task, TaskDao, TaskFilter>(TaskDao::class.java, TaskFilter::class.java, "task.title") {
 
     @Autowired
     private lateinit var taskDao: AddressbookDao
+
+    override fun transformDO(obj: TaskDO, editMode : Boolean): Task {
+        val task = Task()
+        task.copyFrom(obj)
+        return task
+    }
+
+    override fun transformDTO(dto: Task): TaskDO {
+        val taskDO = TaskDO()
+        dto.copyTo(taskDO)
+        return taskDO
+    }
 
     override fun validate(validationErrors: MutableList<ValidationError>, obj: TaskDO) {
         /* if (StringUtils.isAllBlank(obj.name, obj.firstName, obj.organization)) {
@@ -43,7 +53,8 @@ class TaskRest()
      */
     override fun createEditLayout(dataObject: TaskDO): UILayout {
         val layout = super.createEditLayout(dataObject)
-                .add(lc, "title")
+                .add(lc, "parentTask", "title", "status", "priority", "responsibleUser", "shortDescription", "reference", "description")
+        layout.add(UIRow().add(UICol().add(UIInput("protectTimesheetsUntil", lc, dataType = UIDataType.DATE))))
 
         return LayoutUtils.processEditPage(layout, dataObject)
     }

@@ -6,7 +6,7 @@ import org.projectforge.business.orga.ContractFilter
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDate
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractStandardRest
+import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/contract")
-class ContractRest() : AbstractStandardRest<ContractDO, ContractDao, ContractFilter>(ContractDao::class.java, ContractFilter::class.java, "legalAffaires.contract.title") {
+class ContractRest() : AbstractDORest<ContractDO, ContractDao, ContractFilter>(ContractDao::class.java, ContractFilter::class.java, "legalAffaires.contract.title") {
     /**
      * Initializes new outbox mails for adding.
      */
@@ -61,17 +61,11 @@ class ContractRest() : AbstractStandardRest<ContractDO, ContractDao, ContractFil
         val layout = super.createEditLayout(dataObject)
                 .add(UIRow()
                         .add(UICol()
-                                .add(lc, "number")
-                                .add(lc, "date")
+                                .add(lc, "number", "date")
                                 .add(title)
-                                .add(lc, "type")
-                                .add(lc, "status"))
+                                .add(lc, "type", "status"))
                         .add(UICol()
-                                .add(lc, "reference")
-                                .add(lc, "resubmissionOnDate")
-                                .add(lc, "dueDate")
-                                .add(lc, "signingDate")
-                                .add(lc, "validFrom")))
+                                .add(lc, "reference", "resubmissionOnDate", "dueDate", "signingDate", "validFrom")))
                 .add(UIRow()
                         .add(UICol()
                                 .add(coContractorA)
@@ -81,8 +75,7 @@ class ContractRest() : AbstractStandardRest<ContractDO, ContractDao, ContractFil
                                 .add(coContractorB)
                                 .add(contractPersonB)
                                 .add(signerB)))
-                .add(lc, "text")
-                .add(lc, "filing")
+                .add(lc, "text", "filing")
         return LayoutUtils.processEditPage(layout, dataObject)
     }
 }

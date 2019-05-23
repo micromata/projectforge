@@ -4,7 +4,6 @@ import org.projectforge.business.user.UserXmlPreferencesCache
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.RestHelper
 import org.projectforge.ui.UIStyle
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
@@ -25,16 +24,14 @@ open class LogoutRest {
     private lateinit var cookieService: CookieService
 
     @Autowired
-    private lateinit  var userXmlPreferencesCache : UserXmlPreferencesCache
-
-    private val restHelper = RestHelper()
+    private lateinit var userXmlPreferencesCache: UserXmlPreferencesCache
 
     @GetMapping
     fun logout(request: HttpServletRequest,
-              response: HttpServletResponse)
+               response: HttpServletResponse)
             : ResponseData {
         val stayLoggedInCookie = cookieService.getStayLoggedInCookie(request)
-        val user =  UserFilter.getUser(request)
+        val user = UserFilter.getUser(request)
         if (user != null) {
             userXmlPreferencesCache.flushToDB(user.getId())
             userXmlPreferencesCache.clear(user.getId())

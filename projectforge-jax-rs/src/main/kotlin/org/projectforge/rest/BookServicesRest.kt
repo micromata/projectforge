@@ -4,7 +4,7 @@ import org.projectforge.business.book.BookDO
 import org.projectforge.business.book.BookDao
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUserId
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.RestHelper
+import org.projectforge.rest.core.saveOrUpdate
 import org.projectforge.ui.ResponseAction
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -25,7 +25,6 @@ class BookServicesRest() {
     @Autowired
     private lateinit var bookRest: BookRest
 
-    private val restHelper = RestHelper()
     /**
      * Lends the given book out by the logged-in user.
      */
@@ -33,7 +32,7 @@ class BookServicesRest() {
     fun lendOut(request: HttpServletRequest, @RequestBody book: BookDO): ResponseEntity<ResponseAction> {
         book.lendOutDate = Date()
         bookDao.setLendOutBy(book, getUserId())
-        return restHelper.saveOrUpdate(request, bookDao, book, bookRest, bookRest.validate(book))
+        return saveOrUpdate(request, bookDao, book, bookRest, bookRest.validate(book))
     }
 
     /**
@@ -44,6 +43,6 @@ class BookServicesRest() {
         book.lendOutBy = null
         book.lendOutDate = null
         book.lendOutComment = null
-        return restHelper.saveOrUpdate(request, bookDao, book, bookRest, bookRest.validate(book))
+        return saveOrUpdate(request, bookDao, book, bookRest, bookRest.validate(book))
     }
 }

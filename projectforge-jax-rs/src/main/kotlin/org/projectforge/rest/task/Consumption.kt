@@ -35,10 +35,8 @@ class Consumption(
 
     companion object {
         fun create(node: TaskNode): Consumption? {
-            var maxHours: Int? = null
-            var finished = false
-            maxHours = node.getTask().getMaxHours()
-            finished = node.isFinished()
+            var maxHours = node.getTask().getMaxHours()
+            var finished = node.isFinished()
             val taskTree = TaskTreeHelper.getTaskTree()
             val maxDays: BigDecimal?
             if (maxHours != null && maxHours.toInt() == 0) {
@@ -46,11 +44,8 @@ class Consumption(
             } else {
                 maxDays = NumberHelper.setDefaultScale(taskTree.getPersonDays(node))
             }
-            var usage = if (node != null)
-                BigDecimal(node.getDuration(taskTree, true)).divide(DateHelper.SECONDS_PER_WORKING_DAY, 2,
-                        BigDecimal.ROUND_HALF_UP)
-            else
-                BigDecimal.ZERO
+            var usage = BigDecimal(node.getDuration(taskTree, true)).divide(DateHelper.SECONDS_PER_WORKING_DAY, 2,
+                    BigDecimal.ROUND_HALF_UP)
             usage = NumberHelper.setDefaultScale(usage)
 
             val percentage = if (maxDays != null && maxDays.toDouble() > 0)

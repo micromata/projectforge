@@ -4,7 +4,7 @@ import org.projectforge.Const
 import org.projectforge.business.book.*
 import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractStandardRest
+import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.rest.core.Validation
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/book")
-class BookRest() : AbstractStandardRest<BookDO, BookDao, BookFilter>(BookDao::class.java, BookFilter::class.java, "book.title") {
+class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::class.java, BookFilter::class.java, "book.title") {
     /**
      * Initializes new books for adding.
      */
@@ -33,6 +33,7 @@ class BookRest() : AbstractStandardRest<BookDO, BookDao, BookFilter>(BookDao::cl
     /** Needed only for deprecated task object. */
     override fun processItemBeforeExport(item: Any) {
         super.processItemBeforeExport(item)
+        @Suppress("DEPRECATION")
         (item as BookDO).task = null
     }
 
@@ -65,7 +66,7 @@ class BookRest() : AbstractStandardRest<BookDO, BookDao, BookFilter>(BookDao::cl
                                 .add(lc, "isbn", "publisher", "editor")))
                 .add(lc, "keywords")
 
-        if (dataObject?.id != null) // Show lend out functionality only for existing books:
+        if (dataObject.id != null) // Show lend out functionality only for existing books:
             layout.add(UIFieldset(title = "book.lending")
                     .add(UICustomized("book.lendOutComponent"))
                     .add(lc, "lendOutComment"))

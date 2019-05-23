@@ -61,6 +61,8 @@ class CalendarDisplaySettings {
     var view: CalendarView? = null
 
     internal fun getActiveFilter(): CalendarsDisplayFilter? {
+        if (displayFilters == null)
+            return null
         if (activeDisplayFilterIndex >= 0 && activeDisplayFilterIndex < displayFilters.list.size) {
             // Get the user's active filter:
             return displayFilters.list[activeDisplayFilterIndex]
