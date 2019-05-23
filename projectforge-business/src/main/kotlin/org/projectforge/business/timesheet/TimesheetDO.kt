@@ -35,7 +35,6 @@ import org.projectforge.framework.time.DateHolder
 import org.projectforge.framework.time.DatePrecision
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.TimePeriod
-import org.projectforge.framework.toJsonString
 import java.sql.Timestamp
 import java.util.*
 import javax.persistence.*
@@ -225,15 +224,7 @@ class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
         return this
     }
 
-    override fun toString(): String {
-        return toJsonString(this)
-    }
-
     override fun compareTo(other: TimesheetDO): Int {
         return startTime?.compareTo(other.startTime) ?: 1;
-    }
-
-    companion object {
-        private val serialVersionUID = 4239370656510694224L
     }
 }

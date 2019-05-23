@@ -35,9 +35,20 @@ fun toJsonString(obj: Any, vararg ignoreEmbeddedSerializers: Class<out Any>): St
     return ToStringUtil.toJsonString(obj, ignoreEmbeddedSerializers)
 }
 
-internal class ToStringUtil {
+class ToStringUtil {
 
     companion object {
+        /**
+         * Helper method to serialize objects as json strings and to use it in toString method.
+         * @param obj Object to serialize as json string.
+         * @param ignoreEmbeddedSerializers Most embedded objects of type [DefaultBaseDO] are serialized in short form (id and short info field).
+         *        If this param constains a class of a [DefaultBaseDO], this object will be serialized with all fields.
+         */
+        @JvmStatic
+        fun toJsonString(obj: Any, vararg ignoreEmbeddedSerializers: Class<out Any>): String {
+            return toJsonString(obj, ignoreEmbeddedSerializers)
+        }
+
         internal fun toJsonString(obj: Any, ignoreEmbeddedSerializers: Array<out Class<out Any>>): String {
             val mapper = ObjectMapper()
             mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)

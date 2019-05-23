@@ -33,7 +33,6 @@ import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsB
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.persistence.utils.ReflectionToString
 import java.util.*
 import javax.persistence.*
 
@@ -76,17 +75,5 @@ class AddressbookDO : BaseUserGroupRightsDO() {
             return false
         }
         return Objects.equals(this.id, other.id)
-    }
-
-    /**
-     * @param user
-     * @return
-     */
-    override fun toString(): String {
-        return object : ReflectionToString(this) {}.toString()
-    }
-
-    companion object {
-        private val serialVersionUID = 2869412345643084605L
     }
 }
