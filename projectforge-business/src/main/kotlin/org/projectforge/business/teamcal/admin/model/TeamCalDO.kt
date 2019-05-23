@@ -23,6 +23,7 @@
 
 package org.projectforge.business.teamcal.admin.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
@@ -33,7 +34,6 @@ import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.persistence.utils.ReflectionToString
 import javax.persistence.*
 
 /**
@@ -70,6 +70,7 @@ class TeamCalDO : BaseUserGroupRightsDO() {
      * This hash value is used for detecting changes of an subscribed calendar.
      */
     @NoHistory
+    @JsonIgnore
     @get:Column(length = 255, name = "ext_subscription_hash")
     var externalSubscriptionHash: String? = null
 
@@ -98,6 +99,7 @@ class TeamCalDO : BaseUserGroupRightsDO() {
      * any client because it may contain private data.
      */
     @NoHistory
+    @JsonIgnore
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column(name = "ext_subscription_calendar_binary")
     @get:Type(type = "binary")
@@ -163,26 +165,7 @@ class TeamCalDO : BaseUserGroupRightsDO() {
         } else StringUtils.equals(title, other.title)
     }
 
-    /**
-     * Returns string containing all fields (except the externalSubscriptionCalendarBinary) of given object (via
-     * ReflectionToStringBuilder).
-     *
-     * @param user
-     * @return
-     */
-    override fun toString(): String {
-        return object : ReflectionToString(this) {
-            override fun accept(f: java.lang.reflect.Field): Boolean {
-                return (super.accept(f)
-                        && "externalSubscriptionCalendarBinary" != f.name
-                        && "externalSubscriptionHash" != f.name)
-            }
-        }.toString()
-    }
-
     companion object {
-        private val serialVersionUID = 2869432134443084605L
-
         val TEAMCALRESTBLACKLIST = "teamCalRestBlackList"
     }
 }

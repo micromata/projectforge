@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.persistence.user.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.micromata.genome.db.jpa.history.api.NoHistory;
 import de.micromata.genome.jpa.metainf.EntityDependencies;
 import org.apache.commons.lang3.ArrayUtils;
@@ -77,6 +78,7 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable {
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String jiraUsername;
   @NoHistory
+  @JsonIgnore
   private String password;
 
   private Date lastPasswordChange;
@@ -104,10 +106,13 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable {
   private String email;
 
   @NoHistory
+  @JsonIgnore
   private String stayLoggedInKey;
   @NoHistory
+  @JsonIgnore
   private String authenticationToken;
   @NoHistory
+  @JsonIgnore
   private String passwordSalt;
 
   @NoHistory
@@ -330,10 +335,9 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable {
   }
 
   /**
+   * PLEASE NOTE: Be very careful of modifying this method and don't remove this method! Otherwise
+   * data as passwords may be displayed in log files etc.
    * Returns string containing all fields (except the password) of given user object (via ReflectionToStringBuilder).
-   *
-   * @param user
-   * @return
    */
   @Override
   public String toString() {

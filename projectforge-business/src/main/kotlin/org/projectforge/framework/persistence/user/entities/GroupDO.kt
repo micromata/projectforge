@@ -24,7 +24,6 @@
 package org.projectforge.framework.persistence.user.entities
 
 import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.apache.commons.lang3.builder.ToStringBuilder
 import org.hibernate.Hibernate
 import org.hibernate.search.annotations.ContainedIn
 import org.hibernate.search.annotations.Field
@@ -158,29 +157,6 @@ class GroupDO : DefaultBaseDO(), ShortDisplayNameCapable {
         }
         this.assignedUsers!!.add(user)
         this.usernames = null
-    }
-
-    override fun toString(): String {
-        val builder = ToStringBuilder(this)
-        builder.append("id", id)
-        builder.append("name", name)
-        builder.append("organization", organization)
-        builder.append("description", description)
-        if (safeAssignedUsers != null) {
-            val sb = StringBuilder()
-            var first = true
-            for (user in this.assignedUsers!!) {
-                if (first == true)
-                    first = false
-                else
-                    sb.append(", ")
-                sb.append(user.displayUsername)
-            }
-            builder.append("assignedUsers", sb.toString())
-        } else {
-            builder.append("assignedUsers", "LazyCollection")
-        }
-        return builder.toString()
     }
 
     override fun equals(other: Any?): Boolean {
