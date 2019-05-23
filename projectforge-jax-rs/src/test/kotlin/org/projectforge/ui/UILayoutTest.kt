@@ -7,7 +7,7 @@ import org.projectforge.business.address.AddressDO
 import org.projectforge.business.book.BookDO
 import org.projectforge.rest.AddressRest
 import org.projectforge.rest.BookRest
-import org.projectforge.rest.json.JsonValidator
+import org.projectforge.framework.JsonValidator
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 

@@ -35,6 +35,7 @@ import org.projectforge.framework.time.DateHolder
 import org.projectforge.framework.time.DatePrecision
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.TimePeriod
+import org.projectforge.framework.toJsonString
 import java.sql.Timestamp
 import java.util.*
 import javax.persistence.*
@@ -222,6 +223,10 @@ class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
     fun setStopDate(millis: Long): TimesheetDO {
         stopTime = Timestamp(millis)
         return this
+    }
+
+    override fun toString(): String {
+        return toJsonString(this)
     }
 
     override fun compareTo(other: TimesheetDO): Int {
