@@ -23,26 +23,16 @@
 
 package org.projectforge.business.fibu;
 
-import java.util.List;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OrderColumn;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.persistence.UniqueConstraint;
-
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import org.hibernate.search.annotations.Indexed;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
 
+import javax.persistence.*;
+import java.util.List;
+
 /**
  * Repräsentiert eine Position innerhalb einer Eingangsrechnung.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
@@ -62,6 +52,7 @@ public class EingangsrechnungsPositionDO extends AbstractRechnungsPositionDO
 
   private EingangsrechnungDO eingangsrechnung;
 
+  @JsonManagedReference
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "eingangsrechnung_fk", nullable = false)
   public EingangsrechnungDO getEingangsrechnung()

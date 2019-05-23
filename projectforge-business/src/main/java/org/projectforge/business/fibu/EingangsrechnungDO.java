@@ -23,29 +23,17 @@
 
 package org.projectforge.business.fibu;
 
-import java.math.BigDecimal;
-import java.util.List;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import de.micromata.genome.db.jpa.history.api.WithHistory;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.IndexColumn;
-import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.FieldBridge;
 import org.hibernate.search.annotations.Index;
-import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.Store;
+import org.hibernate.search.annotations.*;
 import org.projectforge.common.anots.PropertyInfo;
 
-import de.micromata.genome.db.jpa.history.api.WithHistory;
+import javax.persistence.*;
+import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * Eingehende Rechnungen.
@@ -111,6 +99,7 @@ public class EingangsrechnungDO extends AbstractRechnungDO<EingangsrechnungsPosi
     this.referenz = referenz;
   }
 
+  @JsonBackReference
   @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "eingangsrechnung",
       targetEntity = EingangsrechnungsPositionDO.class)
   @IndexColumn(name = "number", base = 1)

@@ -23,29 +23,13 @@
 
 package org.projectforge.business.fibu;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import org.hibernate.search.annotations.*;
+import org.projectforge.business.fibu.kost.KostZuweisungDO;
+
+import javax.persistence.*;
 import java.sql.Date;
 import java.util.List;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OrderColumn;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.persistence.UniqueConstraint;
-
-import org.hibernate.search.annotations.DateBridge;
-import org.hibernate.search.annotations.EncodingType;
-import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.IndexedEmbedded;
-import org.hibernate.search.annotations.Resolution;
-import org.projectforge.business.fibu.kost.KostZuweisungDO;
 
 /**
  * Repräsentiert eine Position innerhalb eine Rechnung.
@@ -82,6 +66,7 @@ public class RechnungsPositionDO extends AbstractRechnungsPositionDO
   private Date periodOfPerformanceEnd;
 
   @Override
+  @JsonManagedReference
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "rechnung_fk", nullable = false)
   public RechnungDO getRechnung()

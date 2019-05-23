@@ -59,6 +59,8 @@ class ToStringUtil {
             val module = SimpleModule()
             module.addSerializer(java.util.Date::class.java, UtilDateSerializer())
             module.addSerializer(java.sql.Date::class.java, SqlDateSerializer())
+            module.addSerializer(TenantDO::class.java, TenantSerializer())
+
             register(module, GroupDO::class.java, GroupSerializer(), obj, ignoreEmbeddedSerializers)
             register(module, Kost1DO::class.java, Kost1Serializer(), obj, ignoreEmbeddedSerializers)
             register(module, Kost2DO::class.java, Kost2Serializer(), obj, ignoreEmbeddedSerializers)
@@ -66,7 +68,6 @@ class ToStringUtil {
             register(module, PFUserDO::class.java, UserSerializer(), obj, ignoreEmbeddedSerializers)
             register(module, ProjektDO::class.java, ProjektSerializer(), obj, ignoreEmbeddedSerializers)
             register(module, TaskDO::class.java, TaskSerializer(), obj, ignoreEmbeddedSerializers)
-            register(module, TenantDO::class.java, TenantSerializer(), obj, ignoreEmbeddedSerializers)
             mapper.registerModule(module)
             return mapper.writeValueAsString(obj)
         }
@@ -180,9 +181,9 @@ class ToStringUtil {
                 jgen.writeNull()
                 return
             }
-            jgen.writeString(formatter.format(value.toInstant()))
+            jgen.writeString(formatter.format(value.toLocalDate()))
         }
 
-        private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneOffset.UTC)
+        private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneOffset.UTC)
     }
 }
