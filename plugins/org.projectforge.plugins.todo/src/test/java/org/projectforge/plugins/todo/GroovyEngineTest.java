@@ -74,7 +74,10 @@ public class GroovyEngineTest extends AbstractTestBase {
   @Test
   public void mailTemplateTest() {
     final GroovyEngine engine = new GroovyEngine(configurationService, Locale.GERMAN, TimeZone.getTimeZone("UTC"));
-    engine.putVariable("recipient", new PFUserDO().setFirstname("Kai").setLastname("Reinhard"));
+    PFUserDO user = new PFUserDO();
+    user.setFirstname("Kai");
+    user.setLastname("Reinhard");
+    engine.putVariable("recipient", user);
     engine.putVariable("todo", new ToDoDO().setType(ToDoType.IMPROVEMENT).setPriority(Priority.HIGH));
     engine.putVariable("history", new ArrayList<DisplayHistoryEntry>());
     engine.putVariable("requestUrl", "https://localhost:8443/wa/toDoEditPage/id/42");

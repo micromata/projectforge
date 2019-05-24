@@ -80,7 +80,7 @@ public class UserContext implements Serializable
     if (user.hasSecretFieldValues() == true) {
       log.warn(
           "Should instantiate UserContext with user containing secret values (makes now a copy of the given user).");
-      this.user = PFUserDO.createCopyWithoutSecretFields(user);
+      this.user = PFUserDO.Companion.createCopyWithoutSecretFields(user);
     } else {
       this.user = user;
     }
@@ -116,7 +116,7 @@ public class UserContext implements Serializable
     if (user.hasSecretFieldValues() == true) {
       log.warn(
           "Oups, userCache contains user (id=" + user.getId() + ") with secret values, please contact developers.");
-      this.user = PFUserDO.createCopyWithoutSecretFields(updatedUser);
+      this.user = PFUserDO.Companion.createCopyWithoutSecretFields(updatedUser);
     } else {
       this.user = updatedUser;
     }

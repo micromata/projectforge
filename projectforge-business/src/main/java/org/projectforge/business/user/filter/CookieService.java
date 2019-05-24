@@ -67,7 +67,7 @@ public class CookieService
       // update the cookie, especially the max age
       addStayLoggedInCookie(request, response, stayLoggedInCookie);
       log.info("User successfully logged in using stay-logged-in method: " + user.getUserDisplayname());
-      return new UserContext(PFUserDO.createCopyWithoutSecretFields(user), userDao.getUserGroupCache());
+      return new UserContext(PFUserDO.Companion.createCopyWithoutSecretFields(user), userDao.getUserGroupCache());
     }
     return null;
   }

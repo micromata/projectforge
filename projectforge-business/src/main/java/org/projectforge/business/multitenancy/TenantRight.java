@@ -61,7 +61,7 @@ public class TenantRight extends UserRightAccessCheck<TenantDO>
     if (GlobalConfiguration.getInstance().isMultiTenancyConfigured() == false) {
       return false;
     }
-    if (user.isSuperAdmin() == true) {
+    if (user.getSuperAdmin() == true) {
       return true;
     }
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.ADMIN_GROUP) == false) {

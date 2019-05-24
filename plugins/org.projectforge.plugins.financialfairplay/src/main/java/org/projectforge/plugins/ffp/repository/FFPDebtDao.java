@@ -121,9 +121,9 @@ public class FFPDebtDao extends BaseDao<FFPDebtDO>
 
   private boolean checkRemoveUser(final FFPDebtDO debt)
   {
-    return debt.getFrom().isDeactivated()
+    return debt.getFrom().getDeactivated()
         || debt.getFrom().isDeleted()
-        || debt.getTo().isDeactivated()
+        || debt.getTo().getDeactivated()
         || debt.getTo().isDeleted();
   }
 }

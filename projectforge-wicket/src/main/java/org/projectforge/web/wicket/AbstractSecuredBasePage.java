@@ -64,7 +64,7 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage
     if (getUser() == null) {
       throw new RestartResponseException(LoginPage.class);
     }
-    if (isAccess4restrictedUsersAllowed() == false && getUser().isRestrictedUser() == true) {
+    if (isAccess4restrictedUsersAllowed() == false && getUser().getRestrictedUser() == true) {
       throw new RestartResponseException(ChangePasswordPage.class);
     }
   }

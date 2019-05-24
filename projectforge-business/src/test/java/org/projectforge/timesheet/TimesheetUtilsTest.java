@@ -45,7 +45,10 @@ public class TimesheetUtilsTest extends AbstractTestBase {
   public void testBeginOfTimesheets() {
     timeZone = DateHelper.EUROPE_BERLIN;
     locale = new Locale("DE_de");
-    ThreadLocalUserContext.setUser(getUserGroupCache(), new PFUserDO().setTimeZone(timeZone).setLocale(locale));
+    PFUserDO user = new PFUserDO();
+    user.setTimeZone(timeZone);
+    user.setLocale(locale);
+    ThreadLocalUserContext.setUser(getUserGroupCache(), user);
     final PFUserDO user1 = new PFUserDO();
     user1.setId(1);
     final PFUserDO user2 = new PFUserDO();

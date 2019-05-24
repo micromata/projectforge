@@ -134,7 +134,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
   public LoginResult checkLogin(final String username, final String password)
   {
     PFUserDO user = userService.getByUsername(username);
-    if (user != null && user.isLocalUser() == true) {
+    if (user != null && user.getLocalUser() == true) {
       return loginDefaultHandler.checkLogin(username, password);
     }
     final LoginResult loginResult = new LoginResult();
@@ -220,7 +220,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
   @Override
   public boolean isPasswordChangeSupported(final PFUserDO user)
   {
-    return user.isLocalUser();
+    return user.getLocalUser();
   }
 
   @Override
@@ -292,7 +292,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
               dbUser = userService.getByUsername(user.getUsername());
             }
             if (dbUser != null) {
-              if (dbUser.isLocalUser() == true) {
+              if (dbUser.getLocalUser() == true) {
                 // Ignore local users.
                 log.warn("Please note: the user '"
                     + dbUser.getUsername()
@@ -324,7 +324,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
         }
         for (final PFUserDO dbUser : dbUsers) {
           try {
-            if (dbUser.isLocalUser() == true) {
+            if (dbUser.getLocalUser() == true) {
               // Ignore local users.
               ++localUsers;
               continue;

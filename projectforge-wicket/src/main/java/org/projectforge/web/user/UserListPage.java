@@ -152,7 +152,7 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
           final IModel<PFUserDO> rowModel)
       {
         final PFUserDO user = rowModel.getObject();
-        if (user.isDeactivated() == false) {
+        if (user.getDeactivated() == false) {
           item.add(new IconPanel(componentId, IconType.ACCEPT));
         } else {
           item.add(new IconPanel(componentId, IconType.DENY));
