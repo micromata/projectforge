@@ -7,5 +7,5 @@ interface UILabelledElement {
     /**
      * Only the clazz property of layout setting is used for getting i18n keys from the entity fields if not given.
      */
-    val layoutSettings : LayoutContext?
+    val layoutContext : LayoutContext?
 }

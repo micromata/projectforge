@@ -2,7 +2,7 @@ package org.projectforge.ui
 
 data class UITextArea(val id: String,
                       @Transient
-                      override val layoutSettings: LayoutContext? = null,
+                      override val layoutContext: LayoutContext? = null,
                       var maxLength: Int? = null,
                       /**
                        * Number of rows to display initially.

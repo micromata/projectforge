@@ -6,7 +6,7 @@ import org.springframework.util.ClassUtils
 
 data class UIInput(val id: String,
                    @Transient
-                   override val layoutSettings: LayoutContext? = null,
+                   override val layoutContext: LayoutContext? = null,
                    var maxLength: Int? = null,
                    var required: Boolean? = null,
                    var focus: Boolean? = null,
