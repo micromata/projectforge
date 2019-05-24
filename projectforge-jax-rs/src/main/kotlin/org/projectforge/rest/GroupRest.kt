@@ -2,20 +2,27 @@ package org.projectforge.rest
 
 import org.projectforge.business.user.GroupDao
 import org.projectforge.business.user.GroupFilter
+import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTORest
 import org.projectforge.rest.dto.Group
 import org.projectforge.ui.*
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/group")
 class GroupRest() : AbstractDTORest<GroupDO, Group, GroupDao, GroupFilter>(GroupDao::class.java, GroupFilter::class.java, "group.title") {
+
+    @Autowired
+    private lateinit var userService: UserService
+
     override fun transformDO(obj: GroupDO, editMode : Boolean): Group {
         val group = Group()
         group.copyFrom(obj)
+        group.assignedUsers?.forEach { it.fullname = userService.getUser(it.id)?.fullname }
         return group
     }
 
@@ -44,7 +51,13 @@ class GroupRest() : AbstractDTORest<GroupDO, Group, GroupDao, GroupFilter>(Group
                         .add(UICol()
                                 .add(lc, "name", "organization", "description"))
                         .add(UICol()
-                                .add(lc, "assignedUsers")))
+                                .add(UISelect<Int>("assignedUsers", lc,
+                                        multi = true,
+                                        label = "group.assignedUsers",
+                                        additionalLabel = "access.users",
+                                        autoCompletion = AutoCompletion<Int>(url = "user/aco"),
+                                        labelProperty = "fullname",
+                                        valueProperty = "id"))))
         return LayoutUtils.processEditPage(layout, dataObject)
     }
 
