@@ -269,7 +269,8 @@ public class InitTestDB
   public void initDatabase()
   {
     final PFUserDO origUser = ThreadLocalUserContext.getUser();
-    final PFUserDO initUser = new PFUserDO().setUsername("Init-database-pseudo-user");
+    final PFUserDO initUser = new PFUserDO();
+    initUser.setUsername("Init-database-pseudo-user");
     initUser.setId(-1);
     initUser.addRight(new UserRightDO(UserRightId.HR_EMPLOYEE, UserRightValue.READWRITE));
     ThreadLocalUserContext.setUser(getUserGroupCache(), initUser);

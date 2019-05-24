@@ -50,7 +50,7 @@ public class LoginService {
   private LoginHandler loginHandler;
 
   private void internalLogin(final WebPage page, final PFUserDO user) {
-    final UserContext userContext = new UserContext(PFUserDO.createCopyWithoutSecretFields(user),
+    final UserContext userContext = new UserContext(PFUserDO.Companion.createCopyWithoutSecretFields(user),
             getUserGroupCache());
     ((MySession) page.getSession()).login(userContext, page.getRequest());
     UserFilter.login(WicketUtils.getHttpServletRequest(page.getRequest()), userContext);

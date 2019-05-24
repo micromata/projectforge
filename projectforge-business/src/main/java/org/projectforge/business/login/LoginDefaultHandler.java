@@ -178,7 +178,10 @@ public class LoginDefaultHandler implements LoginHandler
             user.setPasswordSalt(saltString);
           }
           user.setId(pk);
-          user.setUsername(username).setFirstname(firstname).setLastname(lastname).setPassword(password);
+          user.setUsername(username);
+          user.setFirstname(firstname);
+          user.setLastname(lastname);
+          user.setPassword(password);
           return user;
         }
         return null;

@@ -54,8 +54,13 @@ public class PFUserDOConverterTest extends AbstractTestBase
   public void convert()
   {
     final Date now = new Date();
-    PFUserDO user = new PFUserDO().setUsername("k.reinhard").setFirstname("Kai").setLastname("Reinhard")
-        .setEmail("k.reinhard@micromata.de").setDescription("Developer").setOrganization("Micromata GmbH");
+    PFUserDO user = new PFUserDO();
+    user.setUsername("k.reinhard");
+    user.setFirstname("Kai");
+    user.setLastname("Reinhard");
+    user.setEmail("k.reinhard@micromata.de");
+    user.setDescription("Developer");
+    user.setOrganization("Micromata GmbH");
     user.setId(42);
     user.setLastWlanPasswordChange(now);
 
@@ -118,9 +123,14 @@ public class PFUserDOConverterTest extends AbstractTestBase
   private PFUserDO createUser(final String username, final String firstname, final String lastname, final String email,
       final String organization, final String description)
   {
-    return new PFUserDO().setUsername(username).setFirstname(firstname).setLastname(lastname).setEmail(email)
-        .setOrganization(organization)
-        .setDescription(description);
+    PFUserDO user = new PFUserDO();
+    user.setUsername(username);
+    user.setFirstname(firstname);
+    user.setLastname(lastname);
+    user.setEmail(email);
+    user.setOrganization(organization);
+    user.setDescription(description);
+    return user;
   }
 
   private void assertUser(final PFUserDO user, final String username, final String firstname, final String lastname,
@@ -180,7 +190,8 @@ public class PFUserDOConverterTest extends AbstractTestBase
   @Test
   public void testLdapValues()
   {
-    PFUserDO user = new PFUserDO().setLdapValues("");
+    PFUserDO user = new PFUserDO();
+    user.setLdapValues("");
     user.setUsername("kai");
     LdapUser ldapUser = pfUserDOConverter.convert(user);
     LdapTestUtils.assertPosixAccountValues(ldapUser, null, null, null, null);

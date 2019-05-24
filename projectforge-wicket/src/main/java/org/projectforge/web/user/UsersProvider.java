@@ -68,7 +68,7 @@ public class UsersProvider extends ChoiceProvider<PFUserDO>
       final Collection<PFUserDO> allusers = getUserGroupCache().getAllUsers();
       final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
       for (final PFUserDO user : allusers) {
-        if (user.isDeleted() == false && user.isDeactivated() == false
+        if (user.isDeleted() == false && user.getDeactivated() == false
             && userDao.hasSelectAccess(loggedInUser, user, false) == true) {
           sortedUsers.add(user);
         }

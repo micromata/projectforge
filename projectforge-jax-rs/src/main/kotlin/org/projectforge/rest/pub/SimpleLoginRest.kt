@@ -89,7 +89,7 @@ open class SimpleLoginRest {
         log.info("User successfully logged in: " + user.displayUsername)
         if (loginData.stayLoggedIn == true) {
             val loggedInUser = userService.getById(user.id)
-            val cookie = Cookie(Const.COOKIE_NAME_FOR_STAY_LOGGED_IN, "${loggedInUser.getId()}:${loggedInUser.getUsername()}:${userService.getStayLoggedInKey(user.id)}")
+            val cookie = Cookie(Const.COOKIE_NAME_FOR_STAY_LOGGED_IN, "${loggedInUser.getId()}:${loggedInUser.username}:${userService.getStayLoggedInKey(user.id)}")
             cookieService.addStayLoggedInCookie(request, response, cookie)
         }
         // Execute login:

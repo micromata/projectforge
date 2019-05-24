@@ -175,7 +175,7 @@ public class TenantChecker implements Serializable
     if (user == null) {
       return false;
     }
-    return GlobalConfiguration.getInstance().isMultiTenancyConfigured() == true && user.isSuperAdmin() == true;
+    return GlobalConfiguration.getInstance().isMultiTenancyConfigured() == true && user.getSuperAdmin() == true;
   }
 
   public void isTenantSet(final BaseDO obj, final boolean setTenantIfNotExist)

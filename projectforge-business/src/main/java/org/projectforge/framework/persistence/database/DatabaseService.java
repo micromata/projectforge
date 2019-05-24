@@ -89,8 +89,7 @@ public class DatabaseService
 
   public static final String DEFAULT_ADMIN_USER = "admin";
 
-  private static final PFUserDO SYSTEM_ADMIN_PSEUDO_USER = new PFUserDO()
-      .setUsername("System admin user only for internal usage");
+  private static final PFUserDO SYSTEM_ADMIN_PSEUDO_USER = new PFUserDO();
 
   @Autowired
   private ApplicationContext applicationContext;
@@ -161,6 +160,8 @@ public class DatabaseService
     if (databaseTablesWithEntriesExists() == true) {
       databaseNotEmpty();
     }
+
+    SYSTEM_ADMIN_PSEUDO_USER.setUsername("System admin user only for internal usage");
 
     TenantDO defaultTenant = tenantService.getDefaultTenant();
 

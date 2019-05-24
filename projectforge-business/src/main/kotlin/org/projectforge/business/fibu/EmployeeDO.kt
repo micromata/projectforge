@@ -318,9 +318,9 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
         if (this.user == null && other.user != null) {
             return -1
         }
-        var result = this.user!!.lastname.compareTo(other.user!!.lastname)
+        var result = this.user!!.lastname!!.compareTo(other.user!!.lastname!!)
         if (result == 0) {
-            result = this.user!!.firstname.compareTo(other.user!!.firstname)
+            result = this.user!!.firstname!!.compareTo(other.user!!.firstname!!)
         }
         return result
     }

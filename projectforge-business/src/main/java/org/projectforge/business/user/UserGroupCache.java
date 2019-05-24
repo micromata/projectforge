@@ -514,7 +514,7 @@ public class UserGroupCache extends AbstractCache
           continue;
         }
       }
-      final PFUserDO copiedUser = PFUserDO.createCopyWithoutSecretFields(user);
+      final PFUserDO copiedUser = PFUserDO.Companion.createCopyWithoutSecretFields(user);
       uMap.put(user.getId(), copiedUser);
     }
     log.info("Loading all groups ...");

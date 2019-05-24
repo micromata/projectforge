@@ -95,7 +95,7 @@ public class UserService
     final Collection<PFUserDO> allusers = getUserGroupCache().getAllUsers();
     final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
     for (final PFUserDO user : allusers) {
-      if (user.isDeleted() == false && user.isDeactivated() == false
+      if (user.isDeleted() == false && user.getDeactivated() == false
               && userDao.hasSelectAccess(loggedInUser, user, false) == true) {
         sortedUsers.add(user);
       }
@@ -164,7 +164,7 @@ public class UserService
 
   public List<PFUserDO> getAllActiveUsers()
   {
-    return getAllUsers().stream().filter(u -> u.isDeactivated() == false && u.isDeleted() == false).collect(Collectors.toList());
+    return getAllUsers().stream().filter(u -> u.getDeactivated() == false && u.isDeleted() == false).collect(Collectors.toList());
   }
 
   /**
