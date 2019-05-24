@@ -58,11 +58,13 @@ class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
     @PropertyInfo(i18nKey = "address.contactStatus")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "contact_status", length = 20, nullable = false)
+    @Field
     var contactStatus = ContactStatus.ACTIVE
 
     @PropertyInfo(i18nKey = "address.addressStatus")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "address_status", length = 20, nullable = false)
+    @Field
     var addressStatus = AddressStatus.UPTODATE
 
     @get:Column(name = "uid")
