@@ -236,7 +236,7 @@ class LayoutUtils {
         internal fun getLabelTransformation(label: String?, labelledElement: UIElement? = null, additionalLabel: Boolean = false): String? {
             if (label == null) {
                 if (labelledElement is UILabelledElement) {
-                    val layoutSettings = labelledElement.layoutSettings
+                    val layoutSettings = labelledElement.layoutContext
                     if (layoutSettings != null) {
                         val id = getId(labelledElement)
                         if (id != null) {

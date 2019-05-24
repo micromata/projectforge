@@ -8,7 +8,7 @@ import org.projectforge.rest.json.UISelectTypeSerializer
 @JsonSerialize(using = UISelectTypeSerializer::class)
 class UISelect<T>(val id: String,
                   @Transient
-                  override val layoutSettings: LayoutContext? = null,
+                  override val layoutContext: LayoutContext? = null,
                   var values: List<UISelectValue<T>>? = null,
                   val required: Boolean? = null,
                   /**

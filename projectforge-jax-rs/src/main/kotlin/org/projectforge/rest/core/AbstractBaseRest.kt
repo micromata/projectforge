@@ -210,7 +210,7 @@ abstract class AbstractBaseRest<
         processResultSetBeforeExport(resultSet)
         val layout = createListLayout()
                 .addTranslations("table.showing")
-        layout.add(LayoutListFilterUtils.createNamedContainer(baseDao))
+        layout.add(LayoutListFilterUtils.createNamedContainer(baseDao, lc))
         layout.postProcessPageMenu()
         return InitialListData(ui = layout, data = resultSet, filter = filter)
     }
