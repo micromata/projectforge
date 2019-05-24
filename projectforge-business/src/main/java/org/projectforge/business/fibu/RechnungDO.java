@@ -23,40 +23,20 @@
 
 package org.projectforge.business.fibu;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import de.micromata.genome.db.jpa.history.api.WithHistory;
+import org.hibernate.annotations.IndexColumn;
+import org.hibernate.search.annotations.Index;
+import org.hibernate.search.annotations.*;
+import org.hibernate.search.bridge.builtin.IntegerBridge;
+import org.projectforge.common.anots.PropertyInfo;
+
+import javax.persistence.*;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.persistence.UniqueConstraint;
-
-import org.hibernate.annotations.IndexColumn;
-import org.hibernate.search.annotations.Analyze;
-import org.hibernate.search.annotations.DateBridge;
-import org.hibernate.search.annotations.EncodingType;
-import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.FieldBridge;
-import org.hibernate.search.annotations.Index;
-import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.IndexedEmbedded;
-import org.hibernate.search.annotations.Resolution;
-import org.hibernate.search.annotations.Store;
-import org.hibernate.search.bridge.builtin.IntegerBridge;
-import org.projectforge.common.anots.PropertyInfo;
-
-import de.micromata.genome.db.jpa.history.api.WithHistory;
 
 /**
  * Geplante und gestellte Rechnungen.
@@ -300,6 +280,7 @@ public class RechnungDO extends AbstractRechnungDO<RechnungsPositionDO> implemen
     return (this.status == RechnungStatus.BEZAHLT && this.bezahlDatum != null && this.zahlBetrag != null);
   }
 
+  @JsonBackReference
   @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "rechnung")
   @IndexColumn(name = "number", base = 1)
   @Override

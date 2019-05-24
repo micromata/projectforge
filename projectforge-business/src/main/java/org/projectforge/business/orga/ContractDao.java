@@ -23,6 +23,7 @@
 
 package org.projectforge.business.orga;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.RechnungDO;
@@ -45,24 +46,29 @@ import java.util.List;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-public class ContractDao extends BaseDao<ContractDO>
-{
+public class ContractDao extends BaseDao<ContractDO> {
   public final static int START_NUMBER = 1000;
 
   public static final UserRightId USER_RIGHT_ID = UserRightId.ORGA_CONTRACTS;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ContractDao.class);
 
-  public ContractDao()
-  {
+  public ContractDao() {
     super(ContractDO.class);
     userRightId = USER_RIGHT_ID;
   }
 
+  private static final String[] ENABLED_AUTOCOMPLETION_PROPERTIES = {"title", "coContractorA", "coContractorB", "contractPersonA", "contractPersonB", "signerA", "signerB"};
+
+  @Override
+  public boolean isAutocompletionPropertyEnabled(String property) {
+    // All users with select access for contracts have access to all contracts, therefore no special select checking for single entities is needed.
+    return ArrayUtils.contains(ENABLED_AUTOCOMPLETION_PROPERTIES, property);
+  }
+
   @Override
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public List<ContractDO> getList(final BaseSearchFilter filter) throws AccessException
-  {
+  public List<ContractDO> getList(final BaseSearchFilter filter) throws AccessException {
     final ContractFilter myFilter;
     if (filter instanceof ContractFilter) {
       myFilter = (ContractFilter) filter;
@@ -89,8 +95,7 @@ public class ContractDao extends BaseDao<ContractDO>
    * @return
    */
   @SuppressWarnings("unchecked")
-  public int[] getYears()
-  {
+  public int[] getYears() {
     final List<Object[]> list = getSession().createQuery("select min(date), max(date) from ContractDO t").list();
     return SQLHelper.getYears(list);
   }
@@ -102,11 +107,10 @@ public class ContractDao extends BaseDao<ContractDO>
    */
   @SuppressWarnings("unchecked")
   @Override
-  protected void onSaveOrModify(final ContractDO obj)
-  {
+  protected void onSaveOrModify(final ContractDO obj) {
     if (obj.getNumber() == null) {
       throw new UserException("validation.required.valueNotPresent", new MessageParam("legalAffaires.contract.number",
-          MessageParamType.I18N_KEY)).setCausedByField("number");
+              MessageParamType.I18N_KEY)).setCausedByField("number");
     }
     if (obj.getId() == null) {
       // New contract
@@ -116,8 +120,8 @@ public class ContractDao extends BaseDao<ContractDO>
       }
     } else {
       final List<RechnungDO> list = (List<RechnungDO>) getHibernateTemplate().find(
-          "from ContractDO c where c.number = ? and c.id <> ?",
-          new Object[] { obj.getNumber(), obj.getId() });
+              "from ContractDO c where c.number = ? and c.id <> ?",
+              new Object[]{obj.getNumber(), obj.getId()});
       if (list != null && list.size() > 0) {
         throw new UserException("legalAffaires.contract.error.numberAlreadyExists").setCausedByField("number");
       }
@@ -132,8 +136,7 @@ public class ContractDao extends BaseDao<ContractDO>
    */
   @SuppressWarnings("unchecked")
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public Integer getNextNumber(final ContractDO contract)
-  {
+  public Integer getNextNumber(final ContractDO contract) {
     if (contract.getId() != null) {
       final ContractDO orig = internalGetById(contract.getId());
       if (orig.getNumber() != null) {
@@ -152,8 +155,7 @@ public class ContractDao extends BaseDao<ContractDO>
   }
 
   @Override
-  public ContractDO newInstance()
-  {
+  public ContractDO newInstance() {
     return new ContractDO();
   }
 }

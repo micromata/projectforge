@@ -23,33 +23,19 @@
 
 package org.projectforge.business.fibu;
 
-import java.io.Serializable;
-import java.util.Map;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.MapKey;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.persistence.UniqueConstraint;
-
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
+import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO;
+import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO;
+import de.micromata.genome.db.jpa.tabattr.entities.TimeableBaseDO;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.IndexedEmbedded;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.api.IdObject;
 
-import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO;
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO;
-import de.micromata.genome.db.jpa.tabattr.entities.TimeableBaseDO;
+import javax.persistence.*;
+import java.io.Serializable;
+import java.util.Map;
 
 /**
  *
@@ -71,6 +57,7 @@ public class EmployeeTimedDO extends TimeableBaseDO<EmployeeTimedDO, Integer>
     implements TimeableAttrRow<Integer>, IdObject<Integer>
 {
 
+  @JsonManagedReference
   @PropertyInfo(i18nKey = "fibu.employee")
   @IndexedEmbedded(depth = 2)
   private EmployeeDO employee;

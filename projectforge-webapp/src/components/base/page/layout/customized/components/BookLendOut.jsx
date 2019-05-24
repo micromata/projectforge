@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
+import moment from 'moment';
 import { lendOutBook, returnBook } from '../../../../../../actions/customized';
 import { Button } from '../../../../../design';
 
@@ -10,7 +11,7 @@ function CustomizedBookLendOutComponent(
         handBack,
         lendOut,
         translations,
-        user,
+        timestampFormatMinutes,
     },
 ) {
     let information;
@@ -18,14 +19,12 @@ function CustomizedBookLendOutComponent(
     if (data.lendOutBy && data.lendOutDate) {
         information = (
             <React.Fragment>
-                <span>{`${data.lendOutBy.fullname}, ${data.lendOutDate}`}</span>
-                {user.username === data.lendOutBy.username
-                    ? (
-                        <Button color="danger" onClick={handBack}>
-                            {translations['book.returnBook']}
-                        </Button>
-                    )
-                    : undefined}
+                <span>
+                    {`${data.lendOutBy.fullname}, ${moment(data.lendOutDate).format(timestampFormatMinutes)}`}
+                </span>
+                <Button color="danger" onClick={handBack}>
+                    {translations['book.returnBook']}
+                </Button>
             </React.Fragment>
         );
     }
@@ -33,7 +32,7 @@ function CustomizedBookLendOutComponent(
     return (
         <React.Fragment>
             {information}
-            <Button color="link" onClick={lendOut}>
+            <Button color="outline-primary" onClick={lendOut}>
                 {translations['book.lendOut']}
             </Button>
         </React.Fragment>
@@ -47,16 +46,17 @@ CustomizedBookLendOutComponent.propTypes = {
     }).isRequired,
     handBack: PropTypes.func.isRequired,
     lendOut: PropTypes.func.isRequired,
-    user: PropTypes.shape({}).isRequired,
     data: PropTypes.shape({}),
+    timestampFormatMinutes: PropTypes.string,
 };
 
 CustomizedBookLendOutComponent.defaultProps = {
     data: {},
+    timestampFormatMinutes: 'DD.MM.YYYY HH:mm',
 };
 
-const mapStateToProps = state => ({
-    user: state.authentication.user,
+const mapStateToProps = ({ authentication }) => ({
+    timestampFormatMinutes: authentication.user.jsTimestampFormatMinutes,
 });
 
 const actions = {
