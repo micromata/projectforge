@@ -154,8 +154,12 @@ body {
 .footer {
   position: absolute;
   margin-top: -20px;
-}
 
+  a {
+    font-size: 13px !important;
+    padding: 5px;
+  }
+}
 
 .form-group {
   margin-bottom: 2.3rem;
@@ -185,12 +189,13 @@ fieldset {
 
 .btn {
   font-size: 15px;
-  padding: 5px 15px;
+  padding: 0 15px;
+  min-height: 36px;
   border-radius: 3px;
 
   &.btn-primary {
     background: #32912E !important;
-    border: 1px solid #32912E !important;
+    border: 2px solid #32912E !important;
     max-height: 33px;
 
     &:hover {
@@ -208,6 +213,10 @@ fieldset {
   &.btn-warning {
     color: #DC3545 !important;
   }
+}
+
+.btn-group {
+  margin-top: 20px;
 }
 
 // NavTabs
@@ -356,4 +365,27 @@ div[class^="Popper_popper__"] {
   .rbc-btn-group {
     background: #FFF;
   }
+}
+
+span[class^="Input_text__"] {
+  top: -6px !important;
+}
+
+label[class^="Input_textAreaLabel__"] {
+  display: block;
+  margin: 20px 0;
+}
+
+.DayPickerInput {
+  margin-left: 15px;
+
+  input {
+    padding: 3px;
+    padding-left: 10px;
+    font-size: 14px;
+  }
+}
+
+div[class^="Input_formGroup__"] {
+  height: auto !important;
 }
