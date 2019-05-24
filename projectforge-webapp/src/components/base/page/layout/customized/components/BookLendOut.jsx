@@ -33,7 +33,7 @@ function CustomizedBookLendOutComponent(
     return (
         <React.Fragment>
             {information}
-            <Button color="link" onClick={lendOut}>
+            <Button color="outline-primary" onClick={lendOut}>
                 {translations['book.lendOut']}
             </Button>
         </React.Fragment>
