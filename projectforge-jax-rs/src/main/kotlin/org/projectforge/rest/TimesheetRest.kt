@@ -22,6 +22,7 @@ import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 
@@ -127,6 +128,18 @@ class TimesheetRest() : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilte
                     duration = dateTimeFormatter.getFormattedDuration(it.timePeriod))
         }
         resultSet.resultSet = list
+    }
+
+    override fun isAutocompletionPropertyEnabled(property: String): Boolean {
+        return property == "location"
+    }
+
+    override fun getAutoCompletionForProperty(@RequestParam("property") property: String, @RequestParam("search") searchString: String?)
+            : List<String> {
+        if (property == "location") {
+            return baseDao.getLocationAutocompletion(searchString)
+        }
+        return super.getAutoCompletionForProperty(property, searchString)
     }
 
     /**

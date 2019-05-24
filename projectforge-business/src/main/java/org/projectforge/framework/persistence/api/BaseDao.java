@@ -1467,6 +1467,22 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   }
 
   /**
+   * SECURITY ADVICE:
+   * For security reasons every property must be enabled for autocompletion. Otherwise the user may select
+   * to much information, because only generic select access of an entity is checked. Example: The user has
+   * select access to users, therefore he may select all password fields!!!
+   * <br/>
+   * Refer implementation of ContractDao as example.
+   *
+   * @param property
+   * @return
+   */
+  public boolean isAutocompletionPropertyEnabled(String property) {
+    return false;
+  }
+
+  /**
+   * SECURITY ADVICE:
    * Only generic check access will be done. The matching entries will not be checked!
    *
    * @param property     Property of the data base entity.
@@ -1477,6 +1493,10 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   @SuppressWarnings("unchecked")
   public List<String> getAutocompletion(final String property, final String searchString) {
     checkLoggedInUserSelectAccess();
+    if (!isAutocompletionPropertyEnabled(property)) {
+      log.warn("Security alert: The user tried to select property '" + property + "' of entity '" + this.clazz.getName() + "'.");
+      return new ArrayList<>();
+    }
     if (StringUtils.isBlank(searchString) == true) {
       return new ArrayList<>();
     }
