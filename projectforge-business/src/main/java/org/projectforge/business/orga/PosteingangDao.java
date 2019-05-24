@@ -23,8 +23,7 @@
 
 package org.projectforge.business.orga;
 
-import java.util.List;
-
+import org.apache.commons.lang3.ArrayUtils;
 import org.hibernate.criterion.Order;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.BaseDao;
@@ -34,6 +33,8 @@ import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Repository
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
@@ -47,9 +48,16 @@ public class PosteingangDao extends BaseDao<PosteingangDO>
     userRightId = USER_RIGHT_ID;
   }
 
+  private static final String[] ENABLED_AUTOCOMPLETION_PROPERTIES = {"absender", "person", "inhalt"};
+
+  @Override
+  public boolean isAutocompletionPropertyEnabled(String property) {
+    return ArrayUtils.contains(ENABLED_AUTOCOMPLETION_PROPERTIES, property);
+  }
+
   /**
    * List of all years with invoices: select min(datum), max(datum) from t_fibu_rechnung.
-   * 
+   *
    * @return
    */
   @SuppressWarnings("unchecked")
