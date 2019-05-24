@@ -85,7 +85,7 @@ abstract class AbstractBaseRest<
      */
     protected lateinit var lc: LayoutContext
 
-    protected val baseDao: B
+    val baseDao: B
         get() {
             if (_baseDao == null) {
                 _baseDao = applicationContext.getBean(baseDaoClazz)
@@ -303,14 +303,24 @@ abstract class AbstractBaseRest<
     }
 
     /**
+     * Proxy for [BaseDao.isAutocompletionPropertyEnabled]
+     */
+    open fun isAutocompletionPropertyEnabled(property: String): Boolean {
+        return baseDao.isAutocompletionPropertyEnabled(property)
+    }
+
+    /**
      * Gets the autocompletion list for the given property and search string.
+     * <br/>
+     * Please note: You must enable properties in [BaseDao], otherwise a security warning is logged and an empty
+     * list is returned.
      * @param property The property (field of the data) used to search.
      * @param searchString
      * @return list of strings as json.
      * @see BaseDao.getAutocompletion
      */
     @GetMapping("ac")
-    fun getAutoCompletionForProperty(@RequestParam("property") property: String, @RequestParam("search") searchString: String?)
+    open fun getAutoCompletionForProperty(@RequestParam("property") property: String, @RequestParam("search") searchString: String?)
             : List<String> {
         return baseDao.getAutocompletion(property, searchString)
     }

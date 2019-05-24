@@ -293,7 +293,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
     return result;
   }
 
-  //TODO: 
+  //TODO:
   //  public List<TimesheetDO> getTimeperiodOverlapList(final TimesheetListFilter actionFilter)
   //  {
   //    if (actionFilter.getUserId() != null) {
@@ -801,9 +801,6 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
   public List<String> getLocationAutocompletion(final String searchString)
   {
     checkLoggedInUserSelectAccess();
-    if (StringUtils.isBlank(searchString) == true) {
-      return null;
-    }
     final String s = "select distinct location from "
         + clazz.getSimpleName()
         + " t where deleted=false and t.user.id = ? and lastUpdate > ? and lower(t.location) like ?) order by t.location";
