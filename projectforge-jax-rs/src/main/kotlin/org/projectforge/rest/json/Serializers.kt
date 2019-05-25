@@ -33,7 +33,7 @@ class PFUserDOSerializer : StdSerializer<PFUserDO>(PFUserDO::class.java) {
             jgen.writeNull()
             return
         }
-        val user = User(value.id, value.username, value.fullname)
+        val user = User(value.id, value.username, value.getFullname())
         jgen.writeObject(user)
     }
 }
@@ -181,7 +181,7 @@ class EmployeeDOSerializer : StdSerializer<EmployeeDO>(EmployeeDO::class.java) {
             jgen.writeNull()
             return
         }
-        val employee = Employee(value.id, value.user?.username, value.user?.fullname)
+        val employee = Employee(value.id, value.user?.username, value.user?.getFullname())
         jgen.writeObject(employee)
     }
 }

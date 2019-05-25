@@ -86,7 +86,7 @@ class TeamCalRest() : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao, TeamCalFil
 
         val allUsers = mutableListOf<UISelectValue<Int>>()
         userService.sortedUsers?.forEach {
-            allUsers.add(UISelectValue(it.id, it.fullname))
+            allUsers.add(UISelectValue(it.id, it.getFullname()))
         }
 
         val layout = super.createEditLayout(dataObject)
