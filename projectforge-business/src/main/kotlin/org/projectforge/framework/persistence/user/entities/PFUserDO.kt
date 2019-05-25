@@ -26,20 +26,19 @@ package org.projectforge.framework.persistence.user.entities
 import com.fasterxml.jackson.annotation.JsonIgnore
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import de.micromata.genome.jpa.metainf.EntityDependencies
-import org.apache.commons.lang3.ArrayUtils
-import org.apache.commons.lang3.ObjectUtils
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
 import org.joda.time.DateTimeZone
+import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.configuration.Configuration
+import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.api.ModificationStatus
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.framework.persistence.utils.ReflectionToString
 import org.projectforge.framework.time.TimeNotation
 import java.io.Serializable
 import java.sql.Timestamp
@@ -51,7 +50,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_PF_USER", uniqueConstraints = [UniqueConstraint(columnNames = ["username"])], indexes = [javax.persistence.Index(name = "idx_fk_t_pf_user_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_PF_USER", uniqueConstraints = [UniqueConstraint(columnNames = ["username"])], indexes = [Index(name = "idx_fk_t_pf_user_tenant_id", columnList = "tenant_id")])
 @EntityDependencies(referencedBy = [TenantDO::class])
 class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
@@ -133,7 +132,6 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      */
     @Field
     @get:Column(length = 255)
-    // TODO: Validate.isTrue(firstname == null || firstname.length <= 255, firstname)
     var firstname: String? = null
 
     /**
@@ -148,7 +146,6 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      */
     @Field
     @get:Column(length = 255)
-    // TODO: Validate.isTrue(description == null || description.length <= 255, description)
     var description: String? = null
 
     /**
@@ -158,7 +155,6 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      */
     @Field
     @get:Column(length = 255)
-    // TODO: Validate.isTrue(email == null || email.length <= 255, email)
     var email: String? = null
 
     /**
@@ -192,7 +188,6 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * Zeitstempel des letzten erfolgreichen Logins.
      *
      * @return Returns the lastLogin.
-     * @param lastLogin The lastLogin to set.
      */
     @NoHistory
     @get:Column
@@ -202,7 +197,6 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * Die Anzahl der erfolglosen Logins. Dieser Wert wird bei dem nächsten erfolgreichen Login auf 0 zurück gesetzt.
      *
      * @return Returns the loginFailures.
-     * @param loginFailures The loginFailures to set.
      */
     @NoHistory
     @get:Column
@@ -211,7 +205,51 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @get:Column
     var locale: Locale? = null
 
-    private var timeZone: TimeZone? = null
+    /**
+     * Ensures time zone. If no time zone is given for the user, the configured default time zone is returned.
+     * @see Configuration.getInstance.defaultTimeZone
+     */
+    private var _timeZoneObject: TimeZone? = null
+
+    val timeZoneObject: TimeZone
+        @Transient
+        get() =
+            _timeZoneObject ?: Configuration.getInstance().defaultTimeZone
+
+    /**
+     * @return For example "Europe/Berlin" if time zone is given otherwise empty string.
+     */
+    @Column(name = "time_zone")
+    fun getTimeZone(): String? {
+        return _timeZoneObject?.id
+    }
+
+    fun setTimeZone(timeZoneId: String?) {
+        if (!timeZoneId.isNullOrBlank()) {
+            _timeZoneObject = TimeZone.getTimeZone(timeZoneId)
+        } else {
+            _timeZoneObject = null
+        }
+    }
+
+    fun setTimeZone(timeZone: TimeZone?) {
+        setTimeZoneObject(timeZone)
+    }
+
+    fun setTimeZoneObject(timeZone: TimeZone?) {
+        _timeZoneObject = timeZone
+    }
+
+    /**
+     * @return For example "Europe/Berlin" if time zone is given otherwise empty string.
+     */
+    val timeZoneDisplayName: String
+        @Transient
+        get() = timeZoneObject.displayName
+
+    val dateTimeZone: DateTimeZone
+        @Transient
+        get() = DateTimeZone.forID(timeZoneObject.id)
 
     /**
      * The locale given from the client (e. g. from the browser by the http request). This locale is needed by
@@ -297,7 +335,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     /**
      * LDAP values as key-value-pairs, e. g. gidNumber=1000,uidNumber=1001,homeDirectory="/home/kai",shell="/bin/bash".
-     * For handling of string values see [org.apache.commons.csv.writer.CSVWriter]. This field is handled by the
+     * For handling of the values as xmk see [org.projectforge.business.ldap.PFUserDOConverter]. This field is handled by the
      * ldap package and has no further effect in ProjectForge's core package.
      *
      * @return the ldapValues
@@ -313,37 +351,10 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @get:Column(name = "ssh_public_key", length = 4096)
     var sshPublicKey: String? = null
 
-    /**
-     * @return For example "Europe/Berlin" if time zone is given otherwise empty string.
-     */
-    val timeZoneDisplayName: String
-        @Transient
-        get() = if (timeZone == null) {
-            ""
-        } else timeZone!!.displayName
-
-    var timeZoneObject: TimeZone
-        @Transient
-        get() = if (timeZone != null) {
-            this.timeZone!!
-        } else {
-            Configuration.getInstance().defaultTimeZone
-        }
-        set(timeZone) {
-            this.timeZone = timeZone
-        }
-
-    val dateTimeZone: DateTimeZone
-        @Transient
-        get() {
-            val timeZone = timeZoneObject
-            return DateTimeZone.forID(timeZone.id)
-        }
-
     val userDisplayname: String?
         @Transient
         get() {
-            val str = fullname
+            val str = getFullname()
             return if (StringUtils.isNotBlank(str)) {
                 str + " (" + this.username + ")"
             } else this.username
@@ -352,28 +363,28 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     /**
      * Gibt den Vor- und Nachnamen zurück, falls gegeben. Vor- und Nachname sind durch ein Leerzeichen getrennt.
      *
-     * @return String
+     * @return first name and last name, separated by space.
      */
+    @Transient
+    fun getFullname(): String {
+        val name = StringBuffer()
+        if (this.firstname != null) {
+            name.append(this.firstname).append(" ")
+        }
+        if (this.lastname != null) {
+            name.append(this.lastname)
+        }
+
+        return name.toString()
+    }
+
     /**
      * This setter does nothing. It's only a nop method for deserialization (do not fail on PFUserDO.fullname).
      * @param ignore
      */
-    // Do nothing (only for deserialization.
-    var fullname: String
-        @Transient
-        get() {
-            val name = StringBuffer()
-            if (this.firstname != null) {
-                name.append(this.firstname)
-                name.append(" ")
-            }
-            if (this.lastname != null) {
-                name.append(this.lastname)
-            }
-
-            return name.toString()
-        }
-        set(ignore) {}
+    @Suppress("unused")
+    fun setFullname(@Suppress("UNUSED_PARAMETER") ignore: String?) {
+    }
 
     /**
      * @return The JIRA user name or if not given the user name (assuming that the JIRA user name is same as ProjectForge
@@ -381,11 +392,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      */
     val jiraUsernameOrUsername: String?
         @Transient
-        get() = if (StringUtils.isNotEmpty(jiraUsername)) {
-            this.jiraUsername
-        } else {
-            this.username
-        }
+        get() = if (jiraUsername.isNullOrBlank()) this.username else this.jiraUsername
 
     val displayUsername: String?
         @Transient
@@ -397,85 +404,66 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     }
 
     /**
-     * @return For example "Europe/Berlin" if time zone is given otherwise empty string.
-     */
-    @Column(name = "time_zone")
-    fun getTimeZone(): String {
-        return if (timeZone == null) {
-            ""
-        } else timeZone!!.id
-    }
-
-    fun setTimeZone(timeZoneId: String) {
-        if (StringUtils.isNotBlank(timeZoneId)) {
-            setTimeZone(TimeZone.getTimeZone(timeZoneId))
-        }
-    }
-
-    /**
-     * @param timeZone
-     * @return this for chaining.
-     */
-    fun setTimeZone(timeZone: TimeZone): PFUserDO {
-        this.timeZone = timeZone
-        return this
-    }
-
-    /**
      * PLEASE NOTE: Be very careful of modifying this method and don't remove this method! Otherwise
      * data as password hashes may be displayed in log files etc.
      * Returns string containing all fields (except the password) of given user object (via ReflectionToStringBuilder).
      */
     override fun toString(): String {
-        return object : ReflectionToString(this) {
-            override fun accept(f: java.lang.reflect.Field): Boolean {
-                return (super.accept(f)
-                        && "password" != f.name
-                        && "stayLoggedInKey" != f.name
-                        && "passwordSalt" != f.name
-                        && "authenticationToken" != f.name)
-            }
-        }.toString()
+        val user = createCopyWithoutSecretFields(this)
+        if (!user.password.isNullOrEmpty()
+                || !user.passwordSalt.isNullOrEmpty()
+                || !user.authenticationToken.isNullOrEmpty()
+                || !user.stayLoggedInKey.isNullOrEmpty())
+            throw InternalErrorException("Security alert in PFUserDO.toString(): secret fields is given but not allowed here!")
+        return ToStringUtil.toJsonString(user)
     }
 
-    override fun equals(o: Any?): Boolean {
-        if (o is PFUserDO) {
-            val other = o as PFUserDO?
-            return ObjectUtils.equals(this.username, other!!.username)
+    override fun equals(other: Any?): Boolean {
+        if (other is PFUserDO) {
+            return Objects.equals(this.username, other.username)
         }
         return false
     }
 
     override fun hashCode(): Int {
-        return if (this.username == null) 0 else this.username!!.hashCode()
+        return this.username?.hashCode() ?: 0
     }
 
     override fun copyValuesFrom(src: BaseDO<out Serializable>, vararg ignoreFields: String): ModificationStatus {
-        var ignoreFields = ignoreFields
-        // TODO BUG too much magic.
-        ignoreFields = ArrayUtils.add(ignoreFields, "password") as Array<String> // NPE save considering ignoreFields
+        val ignore = arrayOf("password", "passwordSalt", "stayLoggedInKey", "authenticationToken")
+        ignore.plus(ignoreFields)
+        //val ignore = ArrayUtils.add(ignoreFields, "password") as Array<String> // NPE save considering ignoreFields
         val user = src as PFUserDO
-        var modificationStatus = AbstractBaseDO.copyValues(user, this, *ignoreFields)
-        if (user.password != null) {
-            if (!(user.password == password)) {
-                modificationStatus = ModificationStatus.MAJOR
-            }
+        var modificationStatus = AbstractBaseDO.copyValues(user, this, *ignore)
+        // Do not copy secret fields by default, but modification of them should be detected and processed:
+        if (user.password != null && user.password != this.password) {
             this.password = user.password
             checkAndFixPassword()
+            modificationStatus = ModificationStatus.MAJOR
+        }
+        if (user.passwordSalt != null && user.passwordSalt != this.passwordSalt) {
+            this.passwordSalt = user.passwordSalt
+            modificationStatus = ModificationStatus.MAJOR
+        }
+        if (user.stayLoggedInKey != null && user.stayLoggedInKey != this.stayLoggedInKey) {
+            this.stayLoggedInKey = user.stayLoggedInKey
+            modificationStatus = ModificationStatus.MAJOR
+        }
+        if (user.authenticationToken != null && user.authenticationToken != this.authenticationToken) {
+            this.authenticationToken = user.authenticationToken
+            modificationStatus = ModificationStatus.MAJOR
         }
         return modificationStatus
     }
 
     /**
      * If password is not given as "SHA{..." then it will be set to null due to security reasons.
-     *
-     *
-     * TODO DESIGNBUG
      */
     fun checkAndFixPassword() {
-        if (StringUtils.isNotEmpty(this.password) &&
-                !this.password!!.startsWith("SHA{") && !
-                (this.password == NOPASSWORD)) {
+        val pw = this.password
+        if (!pw.isNullOrEmpty() &&
+                !pw.startsWith("SHA{") &&
+                (pw != NOPASSWORD)) {
             this.password = null
             log.error("Password for user '" + this.username + "' is not given SHA encrypted. Ignoring it.")
         }
@@ -534,7 +522,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
             return null
         }
         for (right in this.rights!!) {
-            if (right.rightIdString == rightId.id == true) {
+            if (right.rightIdString == rightId.id) {
                 return right
             }
         }
@@ -560,7 +548,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     companion object {
         private val log = org.slf4j.LoggerFactory.getLogger(PFUserDO::class.java)
 
-        private val NOPASSWORD = "--- none ---"
+        private const val NOPASSWORD = "--- none ---"
 
         /**
          * @return A copy of the given user without copying the secret fields (password, passwordSalt, stayLoggedInKey or
@@ -568,11 +556,12 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
          */
         fun createCopyWithoutSecretFields(srcUser: PFUserDO): PFUserDO {
             val user = PFUserDO()
-            user.copyValuesFrom(srcUser, "password", "passwordSalt", "stayLoggedInKey", "authenticationToken")
-            // password is already ignored.
-            // WRONG
+            user.copyValuesFrom(srcUser)
+            // Needed, if following fields were changed (then they were copied), also paranoia setting:
             user.password = null
-
+            user.passwordSalt = null
+            user.stayLoggedInKey = null
+            user.authenticationToken = null
             return user
         }
     }

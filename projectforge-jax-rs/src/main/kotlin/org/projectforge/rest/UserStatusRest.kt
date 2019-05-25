@@ -60,7 +60,7 @@ open class UserStatusRest {
         val firstDayOfWeekNo = ThreadLocalUserContext.getJodaFirstDayOfWeek() // Mon - 1, Tue - 2, ..., Sun - 7
         val userData = UserData(username = user.username,
                 organization = user.organization,
-                fullname = user.fullname,
+                fullname = user.getFullname(),
                 firstName = user.firstname,
                 lastName = user.lastname,
                 userId = user.id,

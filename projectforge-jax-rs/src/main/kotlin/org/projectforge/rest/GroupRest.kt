@@ -22,7 +22,14 @@ class GroupRest() : AbstractDTORest<GroupDO, Group, GroupDao, GroupFilter>(Group
     override fun transformDO(obj: GroupDO, editMode : Boolean): Group {
         val group = Group()
         group.copyFrom(obj)
-        group.assignedUsers?.forEach { it.fullname = userService.getUser(it.id)?.fullname }
+        group.assignedUsers?.forEach {
+            val user = userService.getUser(it.id)
+            if (user != null) {
+                it.username = user.username
+                it.firstname = user.firstname
+                it.lastname = user.lastname
+            }
+        }
         return group
     }
 

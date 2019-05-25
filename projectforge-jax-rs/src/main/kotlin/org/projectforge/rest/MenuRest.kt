@@ -35,7 +35,7 @@ class MenuRest {
         favoritesMenu.add(goClassicsMenu)
 
         val myAccountMenu = Menu()
-        val item = MenuItem("username", ThreadLocalUserContext.getUser()?.fullname)
+        val item = MenuItem("username", ThreadLocalUserContext.getUser()?.getFullname())
         myAccountMenu.add(item)
         item.add(MenuItem("SendFeedback", i18nKey = "menu.gear.feedback", url = "wa/feedback"))
         item.add(MenuItem("MyAccount", i18nKey = "menu.myAccount", url = "wa/myAccount"))

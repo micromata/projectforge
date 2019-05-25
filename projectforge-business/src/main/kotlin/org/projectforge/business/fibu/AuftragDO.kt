@@ -473,21 +473,17 @@ class AuftragDO : DefaultBaseDO() {
         @Transient
         get() {
             val result = ArrayList<String>()
-            if (projectManager != null) {
-                result.add(projectManager!!.fullname)
-            }
-            if (headOfBusinessManager != null) {
-                result.add(headOfBusinessManager!!.fullname)
-            }
-            if (salesManager != null) {
-                result.add(salesManager!!.fullname)
-            }
-            if (contactPerson != null) {
-                result.add(contactPerson!!.fullname)
-            }
+            addUser(result,projectManager)
+            addUser(result,headOfBusinessManager)
+            addUser(result,salesManager)
+            addUser(result,contactPerson)
             return result.joinToString("; ")
         }
 
+    private fun addUser(result : ArrayList<String>, user : PFUserDO?) {
+        if (user != null)
+            result.add(user.getFullname())
+    }
 
     /**
      * Get the position entries for this object.

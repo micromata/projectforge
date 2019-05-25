@@ -34,8 +34,8 @@ class AddressBookRest() : AbstractDTORest<AddressbookDO, Addressbook, Addressboo
         addressbook.fullAccessGroups?.forEach { it.name = groupService.getGroupname(it.id) }
         addressbook.readonlyAccessGroups?.forEach { it.name = groupService.getGroupname(it.id) }
         // Usernames needed by React client (for ReactSelect):
-        addressbook.fullAccessUsers?.forEach { it.fullname = userService.getUser(it.id)?.fullname }
-        addressbook.readonlyAccessUsers?.forEach { it.fullname = userService.getUser(it.id)?.fullname }
+        addressbook.fullAccessUsers?.forEach { it.fullname = userService.getUser(it.id)?.getFullname() }
+        addressbook.readonlyAccessUsers?.forEach { it.fullname = userService.getUser(it.id)?.getFullname() }
         return addressbook
     }
 

@@ -25,10 +25,11 @@ package org.projectforge.business.user;
 
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.test.AbstractTestBase;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class PFUserDOTest
+public class PFUserDOTest extends AbstractTestBase
 {
   @Test
   public void testCreateUserWithoutSecretFields()
@@ -61,5 +62,18 @@ public class PFUserDOTest
     assertNull(user.getPasswordSalt());
     assertNull(user.getAuthenticationToken());
     assertNull(user.getStayLoggedInKey());
+  }
+
+  @Test
+  public void testToString() {
+    PFUserDO user = new PFUserDO();
+    user.setUsername("test");
+    user.setPassword("123");
+    user.setAuthenticationToken("123");
+    user.setPasswordSalt("123");
+    user.setStayLoggedInKey("123");
+    String str = user.toString();
+    assertFalse(str.contains("123"), "Secret fields must be ommitted!");
+    assertFalse(str.contains("***"), "Secret fields are ignored: @JsonIgnore");
   }
 }
