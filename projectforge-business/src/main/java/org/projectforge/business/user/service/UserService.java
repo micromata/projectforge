@@ -1,15 +1,5 @@
 package org.projectforge.business.user.service;
 
-import java.io.Serializable;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.configuration.ConfigurationService;
@@ -36,6 +26,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.Serializable;
+import java.sql.Timestamp;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService
@@ -484,11 +479,9 @@ public class UserService
         log.warn("Deleted/deactivated user tried to login: " + user);
         return null;
       }
-      final PFUserDO contextUser = new PFUserDO();
-      contextUser.copyValuesFrom(user);
+      final PFUserDO contextUser = PFUserDO.createCopyWithoutSecretFields(user);
       contextUser.setLoginFailures(loginFailures); // Restore loginFailures for current user session.
       contextUser.setLastLogin(lastLogin); // Restore lastLogin for current user session.
-      contextUser.setPassword(null);
       return contextUser;
     }
     userDao.updateIncrementLoginFailure(username);
