@@ -35,6 +35,7 @@ import de.micromata.genome.jpa.ComplexEntity
 import de.micromata.genome.jpa.ComplexEntityVisitor
 import de.micromata.mgc.jpa.hibernatesearch.api.HibernateSearchInfo
 import de.micromata.mgc.jpa.hibernatesearch.bridges.TimeableListFieldBridge
+import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
 import org.hibernate.search.annotations.*
@@ -208,15 +209,11 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
 
     val kost1Id: Int?
         @Transient
-        get() = if (this.kost1 == null) {
-            null
-        } else kost1!!.id
+        get() = kost1?.id
 
     val userId: Int?
         @Transient
-        get() = if (this.user == null) {
-            null
-        } else user!!.id
+        get() = user?.id
 
     override fun copyValuesFrom(source: BaseDO<out Serializable>, vararg ignoreFields: String): ModificationStatus {
         var modificationStatus = super.copyValuesFrom(source, "timeableAttributes")
@@ -306,21 +303,14 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
         if (other !is EmployeeDO) {
             return 0
         }
-        if (this.user == null && other.user == null) {
-            return 0
-        }
-        if (this.user == null && other.user == null) {
-            return 0
-        }
-        if (this.user != null && other.user == null) {
-            return 1
-        }
-        if (this.user == null && other.user != null) {
-            return -1
-        }
-        var result = this.user!!.lastname!!.compareTo(other.user!!.lastname!!)
+        if (this.user == other.user) return 0
+        val u1 = this.user
+        val u2 = other.user
+        if (u1 == null) return -1
+        if (u2 == null) return 1
+        var result = StringUtils.compare(u1.lastname, u2.lastname)
         if (result == 0) {
-            result = this.user!!.firstname!!.compareTo(other.user!!.firstname!!)
+            result = return StringUtils.compare(u1.firstname, u2.firstname)
         }
         return result
     }

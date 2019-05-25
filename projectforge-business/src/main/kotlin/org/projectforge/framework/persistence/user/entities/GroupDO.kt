@@ -144,8 +144,9 @@ class GroupDO : DefaultBaseDO(), ShortDisplayNameCapable {
             return ""
         }
         val list = ArrayList<String>()
-        for (user in assignedUsers!!) {
-            list.add(user.username!!)
+        assignedUsers?.forEach {
+            val username = it.username
+            if (username != null) list.add(username)
         }
         usernames = StringHelper.listToString(list, ", ", true)
         return usernames as String
