@@ -74,6 +74,22 @@ public class PFUserDOTest extends AbstractTestBase
     user.setStayLoggedInKey("123");
     String str = user.toString();
     assertFalse(str.contains("123"), "Secret fields must be ommitted!");
-    assertFalse(str.contains("***"), "Secret fields are ignored: @JsonIgnore");
+  }
+
+  @Test
+  public void testCopyValues() {
+    PFUserDO user = new PFUserDO();
+    user.setUsername("test");
+    user.setPassword("123");
+    user.setAuthenticationToken("123");
+    user.setPasswordSalt("123");
+    user.setStayLoggedInKey("123");
+    PFUserDO user2 = PFUserDO.Companion.createCopyWithoutSecretFields(user);
+    assertFalse(user2.hasSecretFieldValues());
+    assertEquals("test", user2.getUsername());
+    user2 = new PFUserDO();
+    user2.copyValuesFrom(user);
+    assertTrue(user2.hasSecretFieldValues());
+    assertEquals("test", user2.getUsername());
   }
 }

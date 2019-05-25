@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.persistence.user.entities
 
+import com.fasterxml.jackson.annotation.JsonBackReference
 import com.fasterxml.jackson.annotation.JsonIgnore
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import de.micromata.genome.jpa.metainf.EntityDependencies
@@ -37,7 +38,6 @@ import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.api.ModificationStatus
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
-import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.time.TimeNotation
 import java.io.Serializable
@@ -321,6 +321,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @get:Column(name = "personal_meb_identifiers", length = 255)
     var personalMebMobileNumbers: String? = null
 
+    @JsonBackReference
     @get:OneToMany(fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "user")
     var rights: MutableSet<UserRightDO>? = HashSet()
 
@@ -410,10 +411,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      */
     override fun toString(): String {
         val user = createCopyWithoutSecretFields(this)
-        if (!user.password.isNullOrEmpty()
-                || !user.passwordSalt.isNullOrEmpty()
-                || !user.authenticationToken.isNullOrEmpty()
-                || !user.stayLoggedInKey.isNullOrEmpty())
+        if (user.hasSecretFieldValues())
             throw InternalErrorException("Security alert in PFUserDO.toString(): secret fields is given but not allowed here!")
         return ToStringUtil.toJsonString(user)
     }
@@ -429,31 +427,12 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
         return this.username?.hashCode() ?: 0
     }
 
+    /**
+     * Security advice: Please use [PFUserDO.createCopyWithoutSecretFields] instead. This method calls simply
+     * super. It's only there for checking security issues of callers.
+     */
     override fun copyValuesFrom(src: BaseDO<out Serializable>, vararg ignoreFields: String): ModificationStatus {
-        val ignore = arrayOf("password", "passwordSalt", "stayLoggedInKey", "authenticationToken")
-        ignore.plus(ignoreFields)
-        //val ignore = ArrayUtils.add(ignoreFields, "password") as Array<String> // NPE save considering ignoreFields
-        val user = src as PFUserDO
-        var modificationStatus = AbstractBaseDO.copyValues(user, this, *ignore)
-        // Do not copy secret fields by default, but modification of them should be detected and processed:
-        if (user.password != null && user.password != this.password) {
-            this.password = user.password
-            checkAndFixPassword()
-            modificationStatus = ModificationStatus.MAJOR
-        }
-        if (user.passwordSalt != null && user.passwordSalt != this.passwordSalt) {
-            this.passwordSalt = user.passwordSalt
-            modificationStatus = ModificationStatus.MAJOR
-        }
-        if (user.stayLoggedInKey != null && user.stayLoggedInKey != this.stayLoggedInKey) {
-            this.stayLoggedInKey = user.stayLoggedInKey
-            modificationStatus = ModificationStatus.MAJOR
-        }
-        if (user.authenticationToken != null && user.authenticationToken != this.authenticationToken) {
-            this.authenticationToken = user.authenticationToken
-            modificationStatus = ModificationStatus.MAJOR
-        }
-        return modificationStatus
+        return super.copyValuesFrom(src, *ignoreFields)
     }
 
     /**
@@ -541,8 +520,10 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * @return If any of the secret fields is given (password, passwordSalt, stayLoggedInKey or authenticationToken).
      */
     fun hasSecretFieldValues(): Boolean {
-        return (this.password != null || this.passwordSalt != null || this.stayLoggedInKey != null
-                || this.authenticationToken != null)
+        return (!this.password.isNullOrEmpty()
+                || !this.passwordSalt.isNullOrEmpty()
+                || !this.stayLoggedInKey.isNullOrEmpty()
+                || !this.authenticationToken.isNullOrEmpty())
     }
 
     companion object {
@@ -554,10 +535,11 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
          * @return A copy of the given user without copying the secret fields (password, passwordSalt, stayLoggedInKey or
          * authenticationToken).
          */
+        @JvmStatic
         fun createCopyWithoutSecretFields(srcUser: PFUserDO): PFUserDO {
             val user = PFUserDO()
-            user.copyValuesFrom(srcUser)
-            // Needed, if following fields were changed (then they were copied), also paranoia setting:
+            user.copyValuesFrom(srcUser, "password", "passwordSalt", "stayLoggedInKey", "authenticationToken")
+            // Paranoia setting (fields shouldn't be copied):
             user.password = null
             user.passwordSalt = null
             user.stayLoggedInKey = null
