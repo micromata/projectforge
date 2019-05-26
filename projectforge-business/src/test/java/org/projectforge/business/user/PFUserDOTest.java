@@ -29,10 +29,10 @@ import org.projectforge.test.AbstractTestBase;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class PFUserDOTest extends AbstractTestBase
+ class PFUserDOTest extends AbstractTestBase
 {
   @Test
-  public void testCreateUserWithoutSecretFields()
+   void testCreateUserWithoutSecretFields()
   {
     PFUserDO user = new PFUserDO();
     assertFalse(user.hasSecretFieldValues());
@@ -65,7 +65,7 @@ public class PFUserDOTest extends AbstractTestBase
   }
 
   @Test
-  public void testToString() {
+   void testToString() {
     PFUserDO user = new PFUserDO();
     user.setUsername("test");
     user.setPassword("123");
@@ -77,19 +77,44 @@ public class PFUserDOTest extends AbstractTestBase
   }
 
   @Test
-  public void testCopyValues() {
+   void testCopyValues() {
     PFUserDO user = new PFUserDO();
     user.setUsername("test");
     user.setPassword("123");
     user.setAuthenticationToken("123");
     user.setPasswordSalt("123");
     user.setStayLoggedInKey("123");
-    PFUserDO user2 = PFUserDO.Companion.createCopyWithoutSecretFields(user);
+    PFUserDO user2 = PFUserDO.createCopyWithoutSecretFields(user);
     assertFalse(user2.hasSecretFieldValues());
     assertEquals("test", user2.getUsername());
     user2 = new PFUserDO();
     user2.copyValuesFrom(user);
     assertTrue(user2.hasSecretFieldValues());
     assertEquals("test", user2.getUsername());
+  }
+
+  @Test
+  void testDisplayName() {
+    PFUserDO user = new PFUserDO();
+    user.setUsername("kai");
+    assertEquals("kai", user.getUserDisplayName());
+    user.setFirstname("Kai");
+    assertEquals("Kai (kai)", user.getUserDisplayName());
+    user.setLastname("Reinhard");
+    assertEquals("Kai Reinhard (kai)", user.getUserDisplayName());
+    user.setFirstname(null);
+    assertEquals("Reinhard (kai)", user.getUserDisplayName());
+  }
+
+  @Test
+  void testFullName() {
+    PFUserDO user = new PFUserDO();
+    assertEquals("", user.getFullname());
+    user.setFirstname("Kai");
+    assertEquals("Kai", user.getFullname());
+    user.setLastname("Reinhard");
+    assertEquals("Kai Reinhard", user.getFullname());
+    user.setFirstname(null);
+    assertEquals("Reinhard", user.getFullname());
   }
 }

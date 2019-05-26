@@ -16,7 +16,7 @@ import de.micromata.genome.jpa.metainf.EntityMetadata;
 
 /**
  * Restore History entries with new Pks.
- * 
+ *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
  */
@@ -84,7 +84,7 @@ public class PfHistoryMasterXmlBeforePersistListener implements JpaXmlBeforePers
     }
     Integer pk = user.getId();
     if (pk == null) {
-      LOG.warn("User id is null: " + user.getDisplayUsername());
+      LOG.warn("User id is null: " + user.getUserDisplayName());
       return;
     }
     String spk = Integer.toString(pk);

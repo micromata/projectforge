@@ -88,13 +88,13 @@ public class UserTest extends AbstractTestBase {
   public void testGetUserDisplayname() {
     final PFUserDO user = new PFUserDO();
     user.setUsername("hurzel");
-    assertEquals("hurzel", user.getUserDisplayname(), "getUserDisplayname");
+    assertEquals("hurzel", user.getUserDisplayName(), "getUserDisplayname");
     user.setLastname("Reinhard");
     assertEquals("Reinhard", user.getFullname(), "getFullname");
-    assertEquals("Reinhard (hurzel)", user.getUserDisplayname(), "getUserDisplayname");
+    assertEquals("Reinhard (hurzel)", user.getUserDisplayName(), "getUserDisplayname");
     user.setFirstname("Kai");
     assertEquals("Kai Reinhard", user.getFullname(), "getFullname");
-    assertEquals("Kai Reinhard (hurzel)", user.getUserDisplayname(), "getUserDisplayname");
+    assertEquals("Kai Reinhard (hurzel)", user.getUserDisplayName(), "getUserDisplayname");
   }
 
   @Test
@@ -326,7 +326,7 @@ public class UserTest extends AbstractTestBase {
   // TODO HISTORY
   //  /**
   //   * Checks if the history entry contains all and only all expected entries in old and new value.
-  //   * 
+  //   *
   //   * @param entry
   //   * @param expectedAssignedUserNames
   //   * @param expectedUnassignedUserNames
@@ -343,7 +343,7 @@ public class UserTest extends AbstractTestBase {
   //
   //  /**
   //   * Checks if the history entry contains all and only all expected entries in old and new value.
-  //   * 
+  //   *
   //   * @param entry
   //   * @param expectedAssignedGroupNames
   //   * @param expectedUnassignedGroupNames

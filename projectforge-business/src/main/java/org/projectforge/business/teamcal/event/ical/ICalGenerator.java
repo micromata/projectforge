@@ -1,34 +1,21 @@
 package org.projectforge.business.teamcal.event.ical;
 
-import static org.projectforge.business.teamcal.event.ical.ICalConverterStore.*;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
-
+import net.fortuna.ical4j.data.CalendarOutputter;
+import net.fortuna.ical4j.model.Calendar;
+import net.fortuna.ical4j.model.Component;
+import net.fortuna.ical4j.model.component.VEvent;
+import net.fortuna.ical4j.model.property.*;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.calendar.CalendarUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
-import net.fortuna.ical4j.data.CalendarOutputter;
-import net.fortuna.ical4j.model.Calendar;
-import net.fortuna.ical4j.model.Component;
-import net.fortuna.ical4j.model.component.VEvent;
-import net.fortuna.ical4j.model.property.CalScale;
-import net.fortuna.ical4j.model.property.DtEnd;
-import net.fortuna.ical4j.model.property.DtStart;
-import net.fortuna.ical4j.model.property.Method;
-import net.fortuna.ical4j.model.property.ProdId;
-import net.fortuna.ical4j.model.property.Summary;
-import net.fortuna.ical4j.model.property.Uid;
-import net.fortuna.ical4j.model.property.Version;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.*;
+
+import static org.projectforge.business.teamcal.event.ical.ICalConverterStore.*;
 
 public class ICalGenerator
 {
@@ -100,7 +87,7 @@ public class ICalGenerator
   {
     // creating a new calendar
     this.calendar = new Calendar();
-    calendar.getProperties().add(new ProdId("-//" + user.getDisplayUsername() + "//ProjectForge//" + locale.toString().toUpperCase()));
+    calendar.getProperties().add(new ProdId("-//" + user.getShortDisplayName() + "//ProjectForge//" + locale.toString().toUpperCase()));
     calendar.getProperties().add(Version.VERSION_2_0);
     calendar.getProperties().add(CalScale.GREGORIAN);
 

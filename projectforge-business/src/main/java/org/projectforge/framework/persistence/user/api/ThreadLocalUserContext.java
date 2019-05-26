@@ -88,14 +88,14 @@ public class ThreadLocalUserContext
     final PFUserDO oldUser = getUser();
     PFUserDO newUser = userContext != null ? userContext.getUser() : null;
     if (log.isDebugEnabled() == true) {
-      log.debug("setUserInfo: " + newUser != null ? newUser.getDisplayUsername()
+      log.debug("setUserInfo: " + newUser != null ? newUser.getUserDisplayName()
           : "null" + ", was: " + oldUser != null ? oldUser
-          .getDisplayUsername() : "null");
+          .getUserDisplayName() : "null");
     }
     threadLocalUserContext.set(userContext);
     if (log.isDebugEnabled() == true) {
       newUser = getUser();
-      log.debug("user is now: " + newUser != null ? newUser.getDisplayUsername() : "null");
+      log.debug("user is now: " + newUser != null ? newUser.getUserDisplayName() : "null");
     }
   }
 

@@ -105,7 +105,7 @@ public class LoginDefaultHandler implements LoginHandler
     if (user != null) {
       log.info("User with valid username/password: " + username + "/****");
       if (user.hasSystemAccess() == false) {
-        log.info("User has no system access (is deleted/deactivated): " + user.getDisplayUsername());
+        log.info("User has no system access (is deleted/deactivated): " + user.getUserDisplayName());
         return loginResult.setLoginResultStatus(LoginResultStatus.LOGIN_EXPIRED);
       } else {
         return loginResult.setLoginResultStatus(LoginResultStatus.SUCCESS).setUser(user);
