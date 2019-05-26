@@ -35,6 +35,7 @@ import org.hibernate.criterion.Restrictions;
 import org.hibernate.search.FullTextQuery;
 import org.hibernate.search.FullTextSession;
 import org.hibernate.search.Search;
+import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
@@ -95,10 +96,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * DEBUG flag. remove later
    */
   public static final boolean NO_UPDATE_MAGIC = true;
-  /**
-   * DEBUG flag. remove later
-   */
-  public static final boolean USE_SEARCH_SERVIVE = false;
   /**
    * DEBUG flag. Not sure, if always has be flushed.
    */
@@ -230,6 +227,9 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
         return obj;
       }
     }
+    log.error("*************");
+    log.error("************* Security alert: Why is this code used?! It's without access checking. To be fixed before next release.");
+    log.error("*************");
     final O result = getSession().load(clazz, id);
     return result;
   }
@@ -325,9 +325,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> getList(final QueryFilter filter) throws AccessException {
     long begin = System.currentTimeMillis();
-    if (USE_SEARCH_SERVIVE == true) {
-      return searchService.getList(filter, getEntityClass());
-    }
     checkLoggedInUserSelectAccess();
     if (accessChecker.isRestrictedUser() == true) {
       return new ArrayList<>();
@@ -458,7 +455,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    *
    * @param idSet
    * @param entry
-   * @see org.projectforge.business.fibu.AuftragDao#contains(Set, org.projectforge.business.fibu.AuftragDO)
+   * @see org.projectforge.business.fibu.AuftragDao#contains(Set, AuftragDO)
    */
   protected boolean contains(final Set<Integer> idSet, final O entry) {
     if (idSet == null) {
