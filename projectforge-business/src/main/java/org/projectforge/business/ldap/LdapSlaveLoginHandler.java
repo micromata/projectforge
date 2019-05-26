@@ -277,7 +277,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
       {
         log.info("Updating LDAP...");
         final List<LdapUser> ldapUsers = getAllLdapUsers(ctx);
-        final List<PFUserDO> dbUsers = userService.loadAll();
+        final List<PFUserDO> dbUsers = userService.internalLoadAll();
         final List<PFUserDO> users = new ArrayList<PFUserDO>(ldapUsers.size());
         int error = 0, unmodified = 0, created = 0, updated = 0, deleted = 0, undeleted = 0, ignoredLocalUsers = 0,
             localUsers = 0;

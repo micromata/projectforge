@@ -525,7 +525,12 @@ public class UserService implements UserChangedListener {
     return userDao.update(user);
   }
 
-  public List<PFUserDO> loadAll() {
+  /**
+   * Without access checking!!! Secret fields are cleared.
+   *
+   * @see UserDao#internalLoadAll()
+   */
+  public List<PFUserDO> internalLoadAll() {
     return userDao.internalLoadAll();
   }
 
