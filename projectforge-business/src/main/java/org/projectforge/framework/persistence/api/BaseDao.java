@@ -216,22 +216,18 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   public O getOrLoad(final Integer id) {
     if (isIdValid(id) == false) {
       return null;
-    } else {
-      final O obj = internalGetById(id);
-      if (obj == null) {
-        //throw new RuntimeException("Object with id " + id + " not found for class " + clazz);
-        return null;
-      }
-      if (tenantChecker.isPartOfCurrentTenant(obj) == true
-              && hasLoggedInUserSelectAccess(obj, false) == true) {
-        return obj;
-      }
     }
-    log.error("*************");
-    log.error("************* Security alert: Why is this code used?! It's without access checking. To be fixed before next release.");
-    log.error("*************");
-    final O result = getSession().load(clazz, id);
-    return result;
+    final O obj = internalGetById(id);
+    if (obj == null) {
+      log.error("Can't load object of type " + getDOClass().getName() + ". Object with given id #" + id + " not found.");
+      return null;
+    }
+    if (tenantChecker.isPartOfCurrentTenant(obj) == true
+            && hasLoggedInUserSelectAccess(obj, false) == true) {
+      return obj;
+    }
+    log.error("Access violation. Can't return object for user, access denied for " + getDOClass().getName() + ": " + obj);
+    return null;
   }
 
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
