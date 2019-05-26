@@ -226,8 +226,8 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
             && hasLoggedInUserSelectAccess(obj, false) == true) {
       return obj;
     }
-    log.error("Access violation. Can't return object for user, access denied for " + getDOClass().getName() + ": " + obj);
-    return null;
+    final O result = getSession().load(clazz, id);
+    return result;
   }
 
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)

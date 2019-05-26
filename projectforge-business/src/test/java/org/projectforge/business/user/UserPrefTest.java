@@ -48,7 +48,7 @@ public class UserPrefTest extends AbstractTestBase
   @Test
   public void convertPrefParameters()
   {
-    final PFUserDO user = getUser(AbstractTestBase.TEST_ADMIN_USER);
+    final PFUserDO user = getUser(AbstractTestBase.TEST_USER);
     logon(user);
     final PFUserDO user2 = getUser(AbstractTestBase.TEST_USER2);
     final TaskDO task = initTestDB.addTask("UserPrefTest", "root");
