@@ -23,16 +23,10 @@
 
 package org.projectforge.web.rest;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import org.projectforge.AppVersion;
 import org.projectforge.Version;
 import org.projectforge.business.user.UserDao;
+import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.model.rest.RestPaths;
@@ -42,6 +36,13 @@ import org.projectforge.rest.JsonUtils;
 import org.projectforge.web.rest.converter.PFUserDOConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 /**
  * REST interface for authentication (tests) and getting the authentication token on initial contact.
@@ -71,6 +72,9 @@ public class AuthenticationRest
   @Autowired
   private UserDao userDao;
 
+  @Autowired
+  private UserService userService;
+
   /**
    * Authentication via http header authenticationUsername and authenticationPassword.<br/>
    * For getting the user's authentication token. This token can be stored in the client (e. g. mobile app). The user's
@@ -90,7 +94,7 @@ public class AuthenticationRest
       throw new IllegalArgumentException("No user given for the rest call: authenticate/getToken.");
     }
     final UserObject userObject = PFUserDOConverter.getUserObject(user);
-    final String authenticationToken = userDao.getAuthenticationToken(user.getId());
+    final String authenticationToken = userService.getAuthenticationToken(user.getId());
     userObject.setAuthenticationToken(authenticationToken);
     final String json = JsonUtils.toJson(userObject);
     return Response.ok(json).build();

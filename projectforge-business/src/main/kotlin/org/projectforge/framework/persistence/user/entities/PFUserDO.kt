@@ -350,7 +350,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
         @Transient
         get() {
             val str = getFullname()
-            return if (str.isNullOrBlank())
+            return if (str.isBlank())
                 this.username
             else
                 "$str (${this.username})"
@@ -391,7 +391,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     override fun copyValuesFrom(src: BaseDO<out Serializable>, vararg ignoreFields: String): ModificationStatus {
         val modificationStatus = super.copyValuesFrom(src, *ignoreFields)
         checkAndFixPassword()
-        return modificationStatus;
+        return modificationStatus
     }
 
     /**
@@ -487,6 +487,17 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
                 || !this.authenticationToken.isNullOrEmpty())
     }
 
+    /**
+     * Clears any given secret field (password, passwordSalt, stayLoggedInKey or authenticationToken) by setting them to null.
+     */
+    fun clearSecretFields() {
+        this.password = null
+        this.passwordSalt = null
+        this.stayLoggedInKey = null
+        this.authenticationToken = null
+    }
+
+
     companion object {
         private val log = org.slf4j.LoggerFactory.getLogger(PFUserDO::class.java)
 
@@ -501,10 +512,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
             val user = PFUserDO()
             user.copyValuesFrom(srcUser, "password", "passwordSalt", "stayLoggedInKey", "authenticationToken")
             // Paranoia setting (fields shouldn't be copied):
-            user.password = null
-            user.passwordSalt = null
-            user.stayLoggedInKey = null
-            user.authenticationToken = null
+            user.clearSecretFields()
             return user
         }
     }

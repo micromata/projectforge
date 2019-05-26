@@ -112,17 +112,11 @@ public class RestUserFilter implements Filter {
 
       final Integer userId = NumberHelper.parseInteger(userString);
       if (userId != null) {
-        final String cachedAuthenticationToken = userService.getCachedAuthenticationToken(userId);
         final String authenticationToken = getAttribute(req, Authentication.AUTHENTICATION_TOKEN);
-
-        if (cachedAuthenticationToken == null) {
-          log.error(Authentication.AUTHENTICATION_USER_ID + " '" + userId + "' does not exist. Rest call forbidden.");
-        } else if (authenticationToken == null) {
-          log.error(Authentication.AUTHENTICATION_TOKEN + " not given for userId '" + userId + "'. Rest call forbidden.");
-        } else if (authenticationToken.equals(cachedAuthenticationToken) == false) {
-          log.error(
-                  Authentication.AUTHENTICATION_TOKEN + " doesn't match for " + Authentication.AUTHENTICATION_USER_ID + " '" + userId + "'. Rest call forbidden.");
-        } else {
+        if (userService.checkAuthenticationToken(userId,
+                authenticationToken,
+                Authentication.AUTHENTICATION_USER_ID,
+                Authentication.AUTHENTICATION_TOKEN)) {
           user = userService.getUser(userId);
         }
       } else {
