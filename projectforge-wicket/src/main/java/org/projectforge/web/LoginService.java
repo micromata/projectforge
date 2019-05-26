@@ -84,7 +84,7 @@ public class LoginService {
       log.info("Admin login for maintenance (data-base update) successful for user '" + username + "'.");
       throw new RestartResponseException(SystemUpdatePage.class);
     }
-    log.info("User successfully logged in: " + user.getDisplayUsername());
+    log.info("User successfully logged in: " + user.getUserDisplayName());
     if (userWantsToStayLoggedIn == true) {
       final PFUserDO loggedInUser = userService.getById(user.getId());
       final Cookie cookie = new Cookie(Const.COOKIE_NAME_FOR_STAY_LOGGED_IN, loggedInUser.getId()

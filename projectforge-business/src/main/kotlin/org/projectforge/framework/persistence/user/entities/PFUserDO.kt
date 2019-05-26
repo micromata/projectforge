@@ -27,7 +27,6 @@ import com.fasterxml.jackson.annotation.JsonBackReference
 import com.fasterxml.jackson.annotation.JsonIgnore
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import de.micromata.genome.jpa.metainf.EntityDependencies
-import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
 import org.joda.time.DateTimeZone
@@ -58,7 +57,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     private var attributeMap: MutableMap<String, Any>? = null
 
     /**
-     * @return Returns the username.
+     * The unique username.
      */
     @Field
     @get:Column(length = 255, nullable = false)
@@ -73,8 +72,6 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     /**
      * Encoded password of the user (SHA-1).
-     *
-     * @return Returns the password.
      */
     @NoHistory
     @JsonIgnore
@@ -82,7 +79,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     var password: String? = null
 
     /**
-     * @return the lastPasswordChange.
+     * Timesamp of the lastPasswordChange.
      */
     @get:Column(name = "last_password_change")
     var lastPasswordChange: Date? = null
@@ -92,8 +89,6 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     /**
      * A local user will not be synchronized with any external user management system.
-     *
-     * @return the localUser
      */
     @get:Column(name = "local_user", nullable = false)
     var localUser: Boolean = false
@@ -102,16 +97,12 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * A restricted user has only the ability to log-in and to change his password. This is useful if ProjectForge runs in
      * master mode for managing an external LDAP system. Then this user is a LDAP user but has no other functionality than
      * change password in the ProjectForge system itself.
-     *
-     * @return the restrictedUser
      */
     @get:Column(name = "restricted_user", nullable = false)
     var restrictedUser: Boolean = false
 
     /**
      * A deactivated user has no more system access.
-     *
-     * @return the deactivated
      */
     @get:Column(nullable = false)
     var deactivated: Boolean = false
@@ -120,29 +111,20 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * A super admin is able to administer tenants. For tenants the user must be assigned to PF_Admin if he should be an
      * administrator of the tenant's objects. This flag is therefore independent of the right to administer objects of
      * tenants itself.
-
      */
     @get:Column(name = "super_admin", nullable = false, columnDefinition = "boolean DEFAULT false")
     var superAdmin: Boolean = false
 
-    /**
-     * Der Vorname des Benutzer.
-     *
-     * @return Returns the firstname.
-     */
     @Field
     @get:Column(length = 255)
     var firstname: String? = null
 
-    /**
-     * @return Returns the lastname.
-     */
     @Field
     @get:Column(length = 255)
     var lastname: String? = null
 
     /**
-     * @return Returns the description.
+     * Optional description of the user.
      */
     @Field
     @get:Column(length = 255)
@@ -150,8 +132,6 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     /**
      * Die E-Mail Adresse des Benutzers, falls vorhanden.
-     *
-     * @return Returns the email.
      */
     @Field
     @get:Column(length = 255)
@@ -168,8 +148,6 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     /**
      * The authentication token is usable for download links of the user (without further login). This is used e. g. for
      * ics download links of the team calendars.
-     *
-     * @return the authenticationToken
      */
     @NoHistory
     @JsonIgnore
@@ -177,7 +155,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     var authenticationToken: String? = null
 
     /**
-     * @return the saltString for giving salt to hashed password.
+     * The saltString for giving salt to hashed password.
      */
     @NoHistory
     @JsonIgnore
@@ -186,8 +164,6 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     /**
      * Zeitstempel des letzten erfolgreichen Logins.
-     *
-     * @return Returns the lastLogin.
      */
     @NoHistory
     @get:Column
@@ -195,8 +171,6 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     /**
      * Die Anzahl der erfolglosen Logins. Dieser Wert wird bei dem nächsten erfolgreichen Login auf 0 zurück gesetzt.
-     *
-     * @return Returns the loginFailures.
      */
     @NoHistory
     @get:Column
@@ -217,7 +191,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
             _timeZoneObject ?: Configuration.getInstance().defaultTimeZone
 
     /**
-     * @return For example "Europe/Berlin" if time zone is given otherwise empty string.
+     * For example "Europe/Berlin" if time zone is given otherwise empty string.
      */
     @Column(name = "time_zone")
     fun getTimeZone(): String? {
@@ -241,7 +215,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     }
 
     /**
-     * @return For example "Europe/Berlin" if time zone is given otherwise empty string.
+     * For example "Europe/Berlin" if time zone is given otherwise empty string.
      */
     val timeZoneDisplayName: String
         @Transient
@@ -255,8 +229,6 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * The locale given from the client (e. g. from the browser by the http request). This locale is needed by
      * ThreadLocalUserContext for getting the browser locale if the user's locale is null and the request's locale is not
      * available.
-     *
-     * @return
      */
     @get:Transient
     var clientLocale: Locale? = null
@@ -268,9 +240,6 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      *  * dd.MM.yyyy: 21.02.2011, German format (day of month first)
      *  * dd/MM/yyyy: 21/02/2011, British and French format (day of month first)
      *  * MM/dd/yyyy: 02/21/2011, American format (month first)
-     *
-     *
-     * @return
      */
     @get:Column(name = "date_format", length = 20)
     var dateFormat: String? = null
@@ -281,17 +250,12 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      *  * DD.MM.YYYY: 21.02.2011, German format (day of month first)
      *  * DD/MM/YYYY: 21/02/2011, British and French format (day of month first)
      *  * MM/DD/YYYY: 02/21/2011, American format (month first)
-     *
-     *
-     * @return
      */
     @get:Column(name = "excel_date_format", length = 20)
     var excelDateFormat: String? = null
 
     /**
      * 0 - sunday, 1 - monday etc.
-     *
-     * @return the firstDayOfWeek
      */
     @get:Column(name = "first_day_of_week")
     var firstDayOfWeek: Int? = null
@@ -328,8 +292,6 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     /**
      * If true (default) then the user is highlighted in the human resource planning page if not planned for the actual
      * week.
-     *
-     * @return the hrPlanning
      */
     @get:Column(name = "hr_planning", nullable = false)
     var hrPlanning = true
@@ -338,28 +300,17 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * LDAP values as key-value-pairs, e. g. gidNumber=1000,uidNumber=1001,homeDirectory="/home/kai",shell="/bin/bash".
      * For handling of the values as xmk see [org.projectforge.business.ldap.PFUserDOConverter]. This field is handled by the
      * ldap package and has no further effect in ProjectForge's core package.
-     *
-     * @return the ldapValues
      */
     @Field
     @get:Column(name = "ldap_values", length = 4000)
     var ldapValues: String? = null
 
     /**
-     * @return the sshPublicKey
+     * The user's sshPublicKey, if any.
      */
     @Field
     @get:Column(name = "ssh_public_key", length = 4096)
     var sshPublicKey: String? = null
-
-    val userDisplayname: String?
-        @Transient
-        get() {
-            val str = getFullname()
-            return if (StringUtils.isNotBlank(str)) {
-                str + " (" + this.username + ")"
-            } else this.username
-        }
 
     /**
      * Gibt den Vor- und Nachnamen zurück, falls gegeben. Vor- und Nachname sind durch ein Leerzeichen getrennt.
@@ -368,15 +319,15 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      */
     @Transient
     fun getFullname(): String {
-        val name = StringBuffer()
-        if (this.firstname != null) {
-            name.append(this.firstname).append(" ")
+        val first = this.firstname
+        val last = this.lastname
+        return if (first.isNullOrBlank()) {
+            if (last.isNullOrBlank()) ""
+            else last
+        } else {
+            if (last.isNullOrBlank()) first
+            else "$first $last"
         }
-        if (this.lastname != null) {
-            name.append(this.lastname)
-        }
-
-        return name.toString()
     }
 
     /**
@@ -395,9 +346,15 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
         @Transient
         get() = if (jiraUsername.isNullOrBlank()) this.username else this.jiraUsername
 
-    val displayUsername: String?
+    val userDisplayName: String?
         @Transient
-        get() = shortDisplayName
+        get() {
+            val str = getFullname()
+            return if (str.isNullOrBlank())
+                this.username
+            else
+                "$str (${this.username})"
+        }
 
     @Transient
     override fun getShortDisplayName(): String? {
@@ -429,10 +386,12 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     /**
      * Security advice: Please use [PFUserDO.createCopyWithoutSecretFields] instead. This method calls simply
-     * super. It's only there for checking security issues of callers.
+     * super and [checkAndFixPassword]. It's also there for checking security issues of callers.
      */
     override fun copyValuesFrom(src: BaseDO<out Serializable>, vararg ignoreFields: String): ModificationStatus {
-        return super.copyValuesFrom(src, *ignoreFields)
+        val modificationStatus = super.copyValuesFrom(src, *ignoreFields)
+        checkAndFixPassword()
+        return modificationStatus;
     }
 
     /**
@@ -481,11 +440,13 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     /**
      * @return this for chaining.
      */
-    fun setNoPassword(): PFUserDO {
+    fun setNoPassword() {
         this.password = NOPASSWORD
-        return this
     }
 
+    /**
+     * @return this for chaining.
+     */
     fun addRight(right: UserRightDO): PFUserDO {
         if (this.rights == null) {
             this.rights = HashSet()

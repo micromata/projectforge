@@ -86,7 +86,7 @@ open class SimpleLoginRest {
             log.warn("******* Update of ProjectForge required first. Please login via old login page. LoginService should be used instead.")
             return LoginResultStatus.FAILED
         }
-        log.info("User successfully logged in: " + user.displayUsername)
+        log.info("User successfully logged in: " + user.userDisplayName)
         if (loginData.stayLoggedIn == true) {
             val loggedInUser = userService.getById(user.id)
             val cookie = Cookie(Const.COOKIE_NAME_FOR_STAY_LOGGED_IN, "${loggedInUser.getId()}:${loggedInUser.username}:${userService.getStayLoggedInKey(user.id)}")
