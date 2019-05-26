@@ -86,7 +86,7 @@ public class LoginService {
     }
     log.info("User successfully logged in: " + user.getUserDisplayName());
     if (userWantsToStayLoggedIn == true) {
-      final PFUserDO loggedInUser = userService.getById(user.getId());
+      final PFUserDO loggedInUser = userService.internalGetById(user.getId());
       final Cookie cookie = new Cookie(Const.COOKIE_NAME_FOR_STAY_LOGGED_IN, loggedInUser.getId()
               + ":"
               + loggedInUser.getUsername()

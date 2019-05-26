@@ -23,16 +23,8 @@
 
 package org.projectforge.business.user;
 
-import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
+import de.micromata.genome.jpa.Clauses;
+import de.micromata.genome.jpa.CriteriaUpdate;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -46,10 +38,7 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
-import org.projectforge.framework.persistence.api.BaseDao;
-import org.projectforge.framework.persistence.api.BaseSearchFilter;
-import org.projectforge.framework.persistence.api.ModificationStatus;
-import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
@@ -65,8 +54,9 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import de.micromata.genome.jpa.Clauses;
-import de.micromata.genome.jpa.CriteriaUpdate;
+import java.io.Serializable;
+import java.sql.Timestamp;
+import java.util.*;
 
 /**
  *
@@ -92,7 +82,7 @@ public class UserDao extends BaseDao<PFUserDO>
 
   /**
    * Register given listener. The listener is called every time a user was inserted, updated or deleted.
-   * 
+   *
    * @param userChangedListener
    */
   public void register(final UserChangedListener userChangedListener)
@@ -170,6 +160,84 @@ public class UserDao extends BaseDao<PFUserDO>
     return list;
   }
 
+
+  /**
+   * Removes secret fields for security reasons.
+   * @throws AccessException
+   * @see BaseDao#internalGetList(QueryFilter)
+   */
+  @Override
+  public List<PFUserDO> internalGetList(QueryFilter filter) throws AccessException {
+    List<PFUserDO> list = super.internalGetList(filter);
+    for (final PFUserDO user : list) {
+      user.clearSecretFields(); // For security reasons.
+    }
+    return list;
+  }
+
+  /**
+   * Removes secret fields for security reasons.
+   * @see BaseDao#internalLoadAll()
+   */
+  @Override
+  public List<PFUserDO> internalLoadAll() {
+    List<PFUserDO> list = super.internalLoadAll();
+    for (final PFUserDO user : list) {
+      user.clearSecretFields(); // For security reasons.
+    }
+    return list;
+  }
+
+  /**
+   * Removes secret fields for security reasons.
+   * @see BaseDao#internalLoadAll(TenantDO)
+   */
+  @Override
+  public List<PFUserDO> internalLoadAll(TenantDO tenant) {
+    List<PFUserDO> list = super.internalLoadAll(tenant);
+    for (final PFUserDO user : list) {
+      user.clearSecretFields(); // For security reasons.
+    }
+    return list;
+  }
+
+  /**
+   * Removes secret fields for security reasons.
+   * @see BaseDao#internalLoad(Collection)
+   */
+  @Override
+  public List<PFUserDO> internalLoad(Collection<? extends Serializable> idList) {
+    List<PFUserDO> list =  super.internalLoad(idList);
+    for (final PFUserDO user : list) {
+      user.clearSecretFields(); // For security reasons.
+    }
+    return list;
+  }
+
+  /**
+   * Removes secret fields for security reasons.
+   * @see BaseDao#getListByIds(Collection)
+   */
+  @Override
+  public List<PFUserDO> getListByIds(Collection<? extends Serializable> idList) {
+    List<PFUserDO> list = super.getListByIds(idList);
+    for (final PFUserDO user : list) {
+      user.clearSecretFields(); // For security reasons.
+    }
+    return list;
+  }
+
+  /**
+   * Removes secret fields for security reasons.
+   * @see BaseDao#getOrLoad(Integer)
+   */
+  @Override
+  public PFUserDO getOrLoad(Integer id) {
+    PFUserDO user = super.getOrLoad(id);
+    if (user != null) user.clearSecretFields(); // For security reasons.
+    return user;
+  }
+
   public Collection<Integer> getAssignedGroups(final PFUserDO user)
   {
     return getUserGroupCache().getUserGroups(user);
@@ -194,8 +262,7 @@ public class UserDao extends BaseDao<PFUserDO>
   }
 
   /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#onChange(org.projectforge.core.ExtendedBaseDO,
-   *      org.projectforge.core.ExtendedBaseDO)
+   * @see org.projectforge.framework.persistence.api.BaseDao#onChange(ExtendedBaseDO, ExtendedBaseDO)
    */
   @Override
   protected void onChange(final PFUserDO obj, final PFUserDO dbObj)
@@ -204,7 +271,7 @@ public class UserDao extends BaseDao<PFUserDO>
   }
 
   /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#afterSave(org.projectforge.core.ExtendedBaseDO)
+   * @see org.projectforge.framework.persistence.api.BaseDao#afterSave(ExtendedBaseDO)
    */
   @Override
   protected void afterSave(final PFUserDO obj)
@@ -216,8 +283,7 @@ public class UserDao extends BaseDao<PFUserDO>
   }
 
   /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#afterUpdate(org.projectforge.core.ExtendedBaseDO,
-   *      org.projectforge.core.ExtendedBaseDO)
+   * @see org.projectforge.framework.persistence.api.BaseDao#afterUpdate(ExtendedBaseDO, ExtendedBaseDO)
    */
   @Override
   protected void afterUpdate(final PFUserDO obj, final PFUserDO dbObj)
@@ -229,7 +295,7 @@ public class UserDao extends BaseDao<PFUserDO>
   }
 
   /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#afterUndelete(org.projectforge.core.ExtendedBaseDO)
+   * @see org.projectforge.framework.persistence.api.BaseDao#afterUndelete(ExtendedBaseDO)
    */
   @Override
   protected void afterUndelete(final PFUserDO obj)
@@ -241,7 +307,7 @@ public class UserDao extends BaseDao<PFUserDO>
   }
 
   /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#afterDelete(org.projectforge.core.ExtendedBaseDO)
+   * @see org.projectforge.framework.persistence.api.BaseDao#afterDelete(ExtendedBaseDO)
    */
   @Override
   protected void afterDelete(final PFUserDO obj)
@@ -253,7 +319,7 @@ public class UserDao extends BaseDao<PFUserDO>
   }
 
   /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#afterSaveOrModify(org.projectforge.core.ExtendedBaseDO)
+   * @see org.projectforge.framework.persistence.api.BaseDao#afterSaveOrModify(ExtendedBaseDO)
    */
   @Override
   protected void afterSaveOrModify(final PFUserDO obj)
@@ -264,7 +330,7 @@ public class UserDao extends BaseDao<PFUserDO>
   }
 
   /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasAccess(Object, OperationType)
+   * @see org.projectforge.framework.persistence.api.BaseDao#hasAccess(PFUserDO, ExtendedBaseDO, ExtendedBaseDO, OperationType, boolean)
    */
   @Override
   public boolean hasAccess(final PFUserDO user, final PFUserDO obj, final PFUserDO oldObj,
@@ -277,7 +343,7 @@ public class UserDao extends BaseDao<PFUserDO>
   /**
    * @return false, if no admin user and the context user is not at minimum in one groups assigned to the given user or
    *         false. Also deleted and deactivated users are only visible for admin users.
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess(org.projectforge.core.BaseDO, boolean)
+   * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess(PFUserDO, ExtendedBaseDO, boolean) )
    * @see AccessChecker#areUsersInSameGroup(PFUserDO, PFUserDO)
    */
   @Override
@@ -366,7 +432,7 @@ public class UserDao extends BaseDao<PFUserDO>
 
   /**
    * Does an user with the given username already exists? Works also for existing users (if username was modified).
-   * 
+   *
    * @param user
    * @return
    */
@@ -389,13 +455,6 @@ public class UserDao extends BaseDao<PFUserDO>
     return false;
   }
 
-  /**
-   * Get authentication key by user. ; )
-   *
-   * @param userName
-   * @param authKey
-   * @return
-   */
   @SuppressWarnings("unchecked")
   public PFUserDO getUserByAuthenticationToken(final Integer userId, final String authKey)
   {
@@ -416,7 +475,7 @@ public class UserDao extends BaseDao<PFUserDO>
   /**
    * Returns the user's authentication token if exists (must be not blank with a size >= 10). If not, a new token key
    * will be generated.
-   * 
+   *
    * @param userId
    * @return
    */
@@ -427,6 +486,9 @@ public class UserDao extends BaseDao<PFUserDO>
     if (StringUtils.isBlank(user.getAuthenticationToken()) || user.getAuthenticationToken().trim().length() < 10) {
       user.setAuthenticationToken(createAuthenticationToken());
       log.info("Authentication token renewed for user: " + userId + " - " + user.getUsername());
+      for (final UserChangedListener userChangedListener : userChangedListeners) {
+        userChangedListener.afterUserChanged(user, OperationType.UPDATE);
+      }
     }
     return user.getAuthenticationToken();
   }
@@ -445,6 +507,9 @@ public class UserDao extends BaseDao<PFUserDO>
     final PFUserDO user = internalGetById(userId);
     user.setAuthenticationToken(createAuthenticationToken());
     log.info("Authentication token renewed for user: " + userId + " - " + user.getUsername());
+    for (final UserChangedListener userChangedListener : userChangedListeners) {
+      userChangedListener.afterUserChanged(user, OperationType.UPDATE);
+    }
   }
 
   private String createAuthenticationToken()
@@ -467,7 +532,7 @@ public class UserDao extends BaseDao<PFUserDO>
   /**
    * User can modify own setting, this method ensures that only such properties will be updated, the user's are allowed
    * to.
-   * 
+   *
    * @param user
    */
   @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
@@ -493,8 +558,8 @@ public class UserDao extends BaseDao<PFUserDO>
 
   /**
    * Gets history entries of super and adds all history entries of the AuftragsPositionDO childs.
-   * 
-   * @see org.projectforge.framework.persistence.api.BaseDao#getDisplayHistoryEntries(org.projectforge.core.ExtendedBaseDO)
+   *
+   * @see org.projectforge.framework.persistence.api.BaseDao#getDisplayHistoryEntries(ExtendedBaseDO)
    */
   @Override
   public List<DisplayHistoryEntry> getDisplayHistoryEntries(final PFUserDO obj)
@@ -536,9 +601,8 @@ public class UserDao extends BaseDao<PFUserDO>
 
   /**
    * Re-index all dependent objects only if the username, first or last name was changed.
-   * 
-   * @see org.projectforge.framework.persistence.api.BaseDao#wantsReindexAllDependentObjects(org.projectforge.core.ExtendedBaseDO,
-   *      org.projectforge.core.ExtendedBaseDO)
+   *
+   * @see org.projectforge.framework.persistence.api.BaseDao#wantsReindexAllDependentObjects(ExtendedBaseDO, ExtendedBaseDO)
    */
   @Override
   protected boolean wantsReindexAllDependentObjects(final PFUserDO obj, final PFUserDO dbObj)
