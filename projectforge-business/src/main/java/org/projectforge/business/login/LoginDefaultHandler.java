@@ -23,14 +23,6 @@
 
 package org.projectforge.business.login;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import javax.sql.DataSource;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.PredicateUtils;
 import org.projectforge.business.group.service.GroupService;
@@ -45,6 +37,13 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Service;
+
+import javax.sql.DataSource;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 @Service
 public class LoginDefaultHandler implements LoginHandler
@@ -254,7 +253,7 @@ public class LoginDefaultHandler implements LoginHandler
   public List<PFUserDO> getAllUsers()
   {
     try {
-      return userService.loadAll();
+      return userService.internalLoadAll();
     } catch (final Exception ex) {
       //Needed for migration, when tenant table not available.
       log.error(

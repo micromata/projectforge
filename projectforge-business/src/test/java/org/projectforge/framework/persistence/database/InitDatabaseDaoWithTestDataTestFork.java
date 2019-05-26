@@ -116,7 +116,7 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase
     assertTrue(userGroupCache.isUserMemberOfAdminGroup(initialAdminUser.getId()));
     assertTrue(userGroupCache.isUserMemberOfFinanceGroup(initialAdminUser.getId()));
 
-    final List<PFUserDO> userList = userService.loadAll();
+    final List<PFUserDO> userList = userService.internalLoadAll();
     assertTrue(userList.size() > 0);
     for (final PFUserDO user : userList) {
       assertNull("For security reasons the stay-logged-in-key should be null.", user.getStayLoggedInKey());

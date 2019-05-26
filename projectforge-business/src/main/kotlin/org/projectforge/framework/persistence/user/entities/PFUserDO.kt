@@ -367,7 +367,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * Returns string containing all fields (except the password) of given user object (via ReflectionToStringBuilder).
      */
     override fun toString(): String {
-        val user = createCopyWithoutSecretFields(this)
+        val user = createCopyWithoutSecretFields(this)!!
         if (user.hasSecretFieldValues())
             throw InternalErrorException("Security alert in PFUserDO.toString(): secret fields is given but not allowed here!")
         return ToStringUtil.toJsonString(user)
@@ -508,7 +508,9 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
          * authenticationToken).
          */
         @JvmStatic
-        fun createCopyWithoutSecretFields(srcUser: PFUserDO): PFUserDO {
+        fun createCopyWithoutSecretFields(srcUser: PFUserDO?): PFUserDO? {
+            if (srcUser == null)
+                return null
             val user = PFUserDO()
             user.copyValuesFrom(srcUser, "password", "passwordSalt", "stayLoggedInKey", "authenticationToken")
             // Paranoia setting (fields shouldn't be copied):
