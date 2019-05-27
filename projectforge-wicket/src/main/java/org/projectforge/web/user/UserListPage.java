@@ -143,7 +143,7 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
       }
     });
     columns.add(new CellItemListenerPropertyColumn<PFUserDO>(new Model<String>(getString("user.activated")),
-        getSortable("deactivated",
+            getSortable("deactivated",
             sortable),
         "deactivated", cellItemListener)
     {

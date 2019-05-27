@@ -30,6 +30,7 @@ import de.micromata.genome.jpa.metainf.EntityDependencies
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
 import org.joda.time.DateTimeZone
+import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.InternalErrorException
@@ -59,6 +60,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     /**
      * The unique username.
      */
+    @PropertyInfo(i18nKey = "user.username")
     @Field
     @get:Column(length = 255, nullable = false)
     var username: String? = null
@@ -66,6 +68,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     /**
      * JIRA user name (if differ from the ProjectForge's user name) is used e. g. in MEB for creating new issues.
      */
+    @PropertyInfo(i18nKey = "user.jiraUsername")
     @Field
     @get:Column(name = "jira_username", length = 100)
     var jiraUsername: String? = null
@@ -73,6 +76,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     /**
      * Encoded password of the user (SHA-1).
      */
+    @PropertyInfo(i18nKey = "password")
     @NoHistory
     @JsonIgnore
     @get:Column(length = 50)
@@ -90,6 +94,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     /**
      * A local user will not be synchronized with any external user management system.
      */
+    @PropertyInfo(i18nKey = "user.localUser")
     @get:Column(name = "local_user", nullable = false)
     var localUser: Boolean = false
 
@@ -104,6 +109,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     /**
      * A deactivated user has no more system access.
      */
+    @PropertyInfo(i18nKey = "user.activated")
     @get:Column(nullable = false)
     var deactivated: Boolean = false
 
@@ -115,10 +121,12 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @get:Column(name = "super_admin", nullable = false, columnDefinition = "boolean DEFAULT false")
     var superAdmin: Boolean = false
 
+    @PropertyInfo(i18nKey = "firstName")
     @Field
     @get:Column(length = 255)
     var firstname: String? = null
 
+    @PropertyInfo(i18nKey = "name")
     @Field
     @get:Column(length = 255)
     var lastname: String? = null
@@ -126,6 +134,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     /**
      * Optional description of the user.
      */
+    @PropertyInfo(i18nKey = "description")
     @Field
     @get:Column(length = 255)
     var description: String? = null
@@ -133,6 +142,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     /**
      * Die E-Mail Adresse des Benutzers, falls vorhanden.
      */
+    @PropertyInfo(i18nKey = "email")
     @Field
     @get:Column(length = 255)
     var email: String? = null
@@ -149,6 +159,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * The authentication token is usable for download links of the user (without further login). This is used e. g. for
      * ics download links of the team calendars.
      */
+    @PropertyInfo(i18nKey = "user.authenticationToken")
     @NoHistory
     @JsonIgnore
     @get:Column(name = "authentication_token", length = 100)
@@ -165,6 +176,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     /**
      * Zeitstempel des letzten erfolgreichen Logins.
      */
+    @PropertyInfo(i18nKey = "login.lastLogin")
     @NoHistory
     @get:Column
     var lastLogin: Timestamp? = null
@@ -183,6 +195,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * Ensures time zone. If no time zone is given for the user, the configured default time zone is returned.
      * @see Configuration.getInstance.defaultTimeZone
      */
+    @PropertyInfo(i18nKey = "timezone")
     private var _timeZoneObject: TimeZone? = null
 
     val timeZoneObject: TimeZone
@@ -241,6 +254,8 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      *  * dd/MM/yyyy: 21/02/2011, British and French format (day of month first)
      *  * MM/dd/yyyy: 02/21/2011, American format (month first)
      */
+    @PropertyInfo(i18nKey = "dateformat")
+    @Field
     @get:Column(name = "date_format", length = 20)
     var dateFormat: String? = null
 
@@ -251,6 +266,8 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      *  * DD/MM/YYYY: 21/02/2011, British and French format (day of month first)
      *  * MM/DD/YYYY: 02/21/2011, American format (month first)
      */
+    @PropertyInfo(i18nKey = "dateformat.xls")
+    @Field
     @get:Column(name = "excel_date_format", length = 20)
     var excelDateFormat: String? = null
 
@@ -260,10 +277,13 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @get:Column(name = "first_day_of_week")
     var firstDayOfWeek: Int? = null
 
+    @PropertyInfo(i18nKey = "timeNotation")
+    @Field
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "time_notation", length = 6)
     var timeNotation: TimeNotation? = null
 
+    @PropertyInfo(i18nKey = "organization")
     @Field
     @get:Column(length = 255)
     var organization: String? = null
@@ -272,6 +292,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * Eine kommaseparierte Liste mit den Kennungen des/der Telefon(e) des Mitarbeiters an der unterstützten
      * Telefonanlage,  zur Direktwahl aus ProjectForge heraus.
      */
+    @PropertyInfo(i18nKey = "user.personalPhoneIdentifiers")
     @Field
     @get:Column(name = "personal_phone_identifiers", length = 255)
     var personalPhoneIdentifiers: String? = null
@@ -281,10 +302,12 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * this user. <br></br>
      * This is a feature from the Mobile Enterprise Blogging.
      */
+    @PropertyInfo(i18nKey = "user.personalMebMobileNumbers")
     @Field
     @get:Column(name = "personal_meb_identifiers", length = 255)
     var personalMebMobileNumbers: String? = null
 
+    @PropertyInfo(i18nKey = "access.rights")
     @JsonBackReference
     @get:OneToMany(fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "user")
     var rights: MutableSet<UserRightDO>? = HashSet()
@@ -293,6 +316,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * If true (default) then the user is highlighted in the human resource planning page if not planned for the actual
      * week.
      */
+    @PropertyInfo(i18nKey = "user.hrPlanningEnabled")
     @get:Column(name = "hr_planning", nullable = false)
     var hrPlanning = true
 
@@ -301,6 +325,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * For handling of the values as xmk see [org.projectforge.business.ldap.PFUserDOConverter]. This field is handled by the
      * ldap package and has no further effect in ProjectForge's core package.
      */
+    @PropertyInfo(i18nKey = "user.ldapValues")
     @Field
     @get:Column(name = "ldap_values", length = 4000)
     var ldapValues: String? = null
@@ -308,6 +333,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     /**
      * The user's sshPublicKey, if any.
      */
+    @PropertyInfo(i18nKey = "user.sshPublicKey")
     @Field
     @get:Column(name = "ssh_public_key", length = 4096)
     var sshPublicKey: String? = null

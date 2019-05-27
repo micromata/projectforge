@@ -321,7 +321,7 @@ open class MenuCreator() {
                             // The visibility of this menu entry is evaluated by the login handler implementation.
                             Login.getInstance().isWlanPasswordChangeSupported(ThreadLocalUserContext.getUser())
                         }))
-                .add(MenuItemDef(MenuItemDefId.USER_LIST, "wa/userList")) // Visible for all.
+                .add(MenuItemDef(MenuItemDefId.USER_LIST, "user")) // Visible for all.
                 .add(MenuItemDef(MenuItemDefId.GROUP_LIST, "group")) // Visible for all.
                 .add(MenuItemDef(MenuItemDefId.ACCESS_LIST, "wa/accessList")) // Visible for all.
                 .add(MenuItemDef(MenuItemDefId.SYSTEM, "wa/admin", requiredGroups = *arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
