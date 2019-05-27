@@ -22,6 +22,7 @@ class MenuItemDef {
     constructor(defId: MenuItemDefId,
                 url: String? = null,
                 badgeCounter: (() -> Int?)? = null,
+                badgeTooltipKey: String? = null,
                 checkAccess: (() -> Boolean)? = null,
                 visibleForRestrictedUsers: Boolean = false,
                 requiredUserRightId: IUserRightId? = null,
@@ -45,8 +46,6 @@ class MenuItemDef {
      * Usable for e. g. plugins without [MenuItemDef] available.
      * @param id Should be unique inside one top menu.
      * @param i18nKey Used for translation.
-     * @param url The target url.
-     * @param checkAccess Dynamic check access for the logged in user. The menu is visible if [checkAccess] is null or returns true.
      */
     constructor(id: String,
                 i18nKey: String) {
@@ -70,7 +69,7 @@ class MenuItemDef {
     var requiredUserRightValues: Array<UserRightValue>? = null
 
     var badgeCounter: (() -> Int?)? = null
-    var badgeTooltipKey: String? = null
+    private var badgeTooltipKey: String? = null
 
     internal var childs: MutableList<MenuItemDef>? = null
 
@@ -98,15 +97,15 @@ class MenuItemDef {
 
     /**
      * @param parentMenu Only needed for building unique keys
-     * @param menuBuilderContext
+     * @param menuCreatorContext
      */
     internal fun createMenu(parentMenu: MenuItem?, menuCreatorContext: MenuCreatorContext): MenuItem {
         val title = if (menuCreatorContext.translate) translate(i18nKey) else i18nKey
         val menuItem = MenuItem(id, title = title!!, i18nKey = i18nKey, url = this.url)
         if (parentMenu != null)
-            menuItem.key = "${parentMenu.key}.${id}"
+            menuItem.key = "${parentMenu.key}.$id"
         else
-            menuItem.key = "${id}"
+            menuItem.key = id
         val counter = badgeCounter?.invoke()
         if (counter ?: -1 > 0) {
             menuItem.badge = MenuBadge(counter, style = "danger")
