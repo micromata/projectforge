@@ -112,19 +112,19 @@ public class SkillMatrixPlugin extends AbstractPlugin {
             TrainingAttendeeEditPage.class);
 
     // Register the menu entry as sub menu entry of the misc menu:
-    MenuItemDef skillMenu = new MenuItemDef(ID_SKILL_TOP_LEVEL, I18N_KEY_SKILL_MENU_ENTRY);
+    MenuItemDef skillMenu = MenuItemDef.create(ID_SKILL_TOP_LEVEL, I18N_KEY_SKILL_MENU_ENTRY);
     pluginWicketRegistrationService.registerTopLevelMenuItem(skillMenu, SkillTreePage.class);
 
     pluginWicketRegistrationService.registerMenuItem(skillMenu.getId(),
-            new MenuItemDef(ID_SKILL_TREE, I18N_KEY_SKILLTREE_MENU_ENTRY), SkillTreePage.class);
+            MenuItemDef.create(ID_SKILL_TREE, I18N_KEY_SKILLTREE_MENU_ENTRY), SkillTreePage.class);
     pluginWicketRegistrationService.registerMenuItem(skillMenu.getId(),
-            new MenuItemDef(ID_SKILL_RATING, I18N_KEY_SKILLRATING_MENU_ENTRY), SkillRatingListPage.class);
+            MenuItemDef.create(ID_SKILL_RATING, I18N_KEY_SKILLRATING_MENU_ENTRY), SkillRatingListPage.class);
     pluginWicketRegistrationService.registerMenuItem(skillMenu.getId(),
-            new MenuItemDef(ID_SKILL, I18N_KEY_SKILL_MENU_ENTRY), SkillListPage.class);
+            MenuItemDef.create(ID_SKILL, I18N_KEY_SKILL_MENU_ENTRY), SkillListPage.class);
     pluginWicketRegistrationService.registerMenuItem(skillMenu.getId(),
-            new MenuItemDef(ID_SKILL_TRAINING, I18N_KEY_SKILLTRAINING_MENU_ENTRY), TrainingListPage.class);
+            MenuItemDef.create(ID_SKILL_TRAINING, I18N_KEY_SKILLTRAINING_MENU_ENTRY), TrainingListPage.class);
     pluginWicketRegistrationService.registerMenuItem(skillMenu.getId(),
-            new MenuItemDef(ID_SKILL_TRAINING_ATTENDEE, I18N_KEY_SKILLTRAINING_ATTENDEE_MENU_ENTRY), TrainingAttendeeListPage.class);
+            MenuItemDef.create(ID_SKILL_TRAINING_ATTENDEE, I18N_KEY_SKILLTRAINING_ATTENDEE_MENU_ENTRY), TrainingAttendeeListPage.class);
 
     // .setMobileMenu(SkillRatingMobileListPage.class, 10));
 

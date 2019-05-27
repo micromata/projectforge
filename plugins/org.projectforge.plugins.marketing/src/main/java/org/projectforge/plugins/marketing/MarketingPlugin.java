@@ -36,12 +36,11 @@ import java.util.List;
 
 /**
  * Your plugin initialization. Register all your components such as i18n files, data-access object etc.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-public class MarketingPlugin extends AbstractPlugin
-{
+public class MarketingPlugin extends AbstractPlugin {
   public static final String ADDRESS_CAMPAIGN_ID = "addressCampaign";
 
   public static final String ADDRESS_CAMPAIGN_VALUE_ID = "addressCampaignValues";
@@ -51,8 +50,8 @@ public class MarketingPlugin extends AbstractPlugin
   // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of
   // each test).
   // The entities are inserted in ascending order and deleted in descending order.
-  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[] { AddressCampaignDO.class,
-      AddressCampaignValueDO.class };
+  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[]{AddressCampaignDO.class,
+          AddressCampaignValueDO.class};
 
   @Autowired
   AddressDao addressDao;
@@ -67,25 +66,24 @@ public class MarketingPlugin extends AbstractPlugin
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
   @Override
-  protected void initialize()
-  {
+  protected void initialize() {
     // DatabaseUpdateDao is needed by the updater:
     MarketingPluginUpdates.dao = myDatabaseUpdater;
     // Register it:
     register(ADDRESS_CAMPAIGN_ID, AddressCampaignDao.class, addressCampaignDao, "plugins.marketing.addressCampaign");
     register(ADDRESS_CAMPAIGN_VALUE_ID, AddressCampaignValueDao.class, addressCampaignValueDao,
-        "plugins.marketing.addressCampaignValue")
+            "plugins.marketing.addressCampaignValue")
             .setSearchable(false);
 
     // Register the web part:
     pluginWicketRegistrationService.registerWeb(ADDRESS_CAMPAIGN_ID, AddressCampaignListPage.class,
-        AddressCampaignEditPage.class);
+            AddressCampaignEditPage.class);
     pluginWicketRegistrationService.registerWeb(ADDRESS_CAMPAIGN_VALUE_ID, AddressCampaignValueListPage.class,
-        AddressCampaignValueEditPage.class);
+            AddressCampaignValueEditPage.class);
 
     // Register the menu entry as sub menu entry of the misc menu:
-    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, new MenuItemDef(ADDRESS_CAMPAIGN_ID, "plugins.marketing.addressCampaign.menu"), AddressCampaignListPage.class);
-    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, new MenuItemDef(ADDRESS_CAMPAIGN_VALUE_ID, "plugins.marketing.addressCampaignValue.menu"), AddressCampaignValueListPage.class);
+    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, MenuItemDef.create(ADDRESS_CAMPAIGN_ID, "plugins.marketing.addressCampaign.menu"), AddressCampaignListPage.class);
+    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, MenuItemDef.create(ADDRESS_CAMPAIGN_VALUE_ID, "plugins.marketing.addressCampaignValue.menu"), AddressCampaignValueListPage.class);
 
     // Define the access management:
     registerRight(new AddressCampaignRight(accessChecker));
@@ -99,14 +97,12 @@ public class MarketingPlugin extends AbstractPlugin
    * @see org.projectforge.plugins.core.AbstractPlugin#getUpdateEntries()
    */
   @Override
-  public List<UpdateEntry> getUpdateEntries()
-  {
+  public List<UpdateEntry> getUpdateEntries() {
     return MarketingPluginUpdates.getUpdateEntries();
   }
 
   @Override
-  public UpdateEntry getInitializationUpdateEntry()
-  {
+  public UpdateEntry getInitializationUpdateEntry() {
     return MarketingPluginUpdates.getInitializationUpdateEntry();
   }
 }
