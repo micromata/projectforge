@@ -76,12 +76,10 @@ public class BankingPlugin extends AbstractPlugin {
     // registerWeb(BANK_ACCOUNT_BALANCE_ID, BankAccountBalanceListPage.class, BankAccountBalanceEditPage.class);
 
 
-
-
-    MenuItemDef menuEntry = new MenuItemDef(BANK_ACCOUNT_ID, "plugins.banking.account.menu");
+    MenuItemDef menuEntry = MenuItemDef.create(BANK_ACCOUNT_ID, "plugins.banking.account.menu");
     menuEntry.setRequiredUserRightId(BankingPluginUserRightsId.PLUGIN_BANK_ACCOUNT);
     menuEntry.setRequiredUserRightValues(UserRightService.READONLY_READWRITE);
-    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.FIBU,menuEntry,
+    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.FIBU, menuEntry,
             BankAccountListPage.class);
 
     // Define the access management:

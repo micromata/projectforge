@@ -37,8 +37,7 @@ import org.springframework.stereotype.Component;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-public class ToDoPlugin extends AbstractPlugin
-{
+public class ToDoPlugin extends AbstractPlugin {
   public static final String ID = "toDo";
 
   public static final String ADDRESS = "address";
@@ -50,7 +49,7 @@ public class ToDoPlugin extends AbstractPlugin
   // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of
   // each test).
   // The entities are inserted in ascending order and deleted in descending order.
-  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[] { ToDoDO.class };
+  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[]{ToDoDO.class};
 
   @Autowired
   private ToDoDao toDoDao;
@@ -62,8 +61,7 @@ public class ToDoPlugin extends AbstractPlugin
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
    */
   @Override
-  protected void initialize()
-  {
+  protected void initialize() {
     // DatabaseUpdateDao is needed by the updater:
     ToDoPluginUpdates.dao = myDatabaseUpdater;
     toDoDao = (ToDoDao) applicationContext.getBean("toDoDao");
@@ -75,7 +73,7 @@ public class ToDoPlugin extends AbstractPlugin
     pluginWicketRegistrationService.registerWeb(ID, ToDoListPage.class, ToDoEditPage.class, ADDRESS, false); // Insert at second position after Address entry (for SearchPage).
 
     // Register the menu entry as sub menu entry of the misc menu:
-    MenuItemDef todomenu = new MenuItemDef( ID, "plugins.todo.menu");
+    MenuItemDef todomenu = MenuItemDef.create(ID, "plugins.todo.menu");
     todomenu.setBadgeCounter(() -> toDoDao.getOpenToDoEntries(null));
     pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, todomenu, ToDoListPage.class);
 
@@ -93,8 +91,7 @@ public class ToDoPlugin extends AbstractPlugin
    * @see org.projectforge.plugins.core.AbstractPlugin#getInitializationUpdateEntry()
    */
   @Override
-  public UpdateEntry getInitializationUpdateEntry()
-  {
+  public UpdateEntry getInitializationUpdateEntry() {
     return ToDoPluginUpdates.getInitializationUpdateEntry();
   }
 }

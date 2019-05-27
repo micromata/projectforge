@@ -74,11 +74,11 @@ public class FinancialFairPlayPlugin extends AbstractPlugin {
     pluginWicketRegistrationService.registerWeb(ID);
 
     pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC,
-            new MenuItemDef("financialfairplay_eventlist", "plugins.ffp.submenu.financialfairplay.eventlist"), FFPEventListPage.class);
+            MenuItemDef.create("financialfairplay_eventlist", "plugins.ffp.submenu.financialfairplay.eventlist"), FFPEventListPage.class);
 
-    MenuItemDef menu = new MenuItemDef("financialfairplay_dept", "plugins.ffp.submenu.financialfairplay.dept");
+    MenuItemDef menu = MenuItemDef.create("financialfairplay_dept", "plugins.ffp.submenu.financialfairplay.dept");
     menu.setBadgeCounter(() -> {
-       return eventService.getOpenDebts(ThreadLocalUserContext.getUser());
+      return eventService.getOpenDebts(ThreadLocalUserContext.getUser());
     });
     pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, menu, FFPDebtListPage.class);
 
