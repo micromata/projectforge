@@ -17,12 +17,10 @@ import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.Configuration
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.api.UserRightService.*
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.Menu
-import org.projectforge.menu.MenuBadge
 import org.projectforge.menu.MenuItem
 import org.projectforge.sms.SmsSenderConfig
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,10 +31,10 @@ import org.springframework.stereotype.Component
  */
 // open only needed for Wicket (for using proxies)
 @Component
-open class MenuCreator() {
+open class MenuCreator {
     private val log = org.slf4j.LoggerFactory.getLogger(MenuCreator::class.java)
 
-    internal class MenuItemDefHolder() {
+    internal class MenuItemDefHolder {
         internal val menuItems: MutableList<MenuItemDef> = mutableListOf()
         fun add(menuItem: MenuItemDef): MenuItemDef {
             menuItems.add(menuItem)
@@ -103,9 +101,7 @@ open class MenuCreator() {
      */
     fun add(parentId: String, menuItemDef: MenuItemDef): MenuItemDef {
         val parent = findById(parentId)
-        if (parent == null) {
-            throw java.lang.IllegalArgumentException("Can't append menu '${menuItemDef.id}' to parent '${parentId}'. Parent not found.")
-        }
+                ?: throw java.lang.IllegalArgumentException("Can't append menu '${menuItemDef.id}' to parent '$parentId'. Parent not found.")
         // Check if ID already exists
         if (findById(parent, menuItemDef.id) != null) {
             throw IllegalArgumentException(("Duplicated menu ID '${menuItemDef.id}' for entry '${menuItemDef.i18nKey}'"))
@@ -144,7 +140,7 @@ open class MenuCreator() {
 
     @Synchronized
     private fun initialize() {
-        if (initialized == true)
+        if (initialized)
             return
         initialized = true
         if (!this::configurationService.isInitialized) {
@@ -170,7 +166,7 @@ open class MenuCreator() {
             commonMenu.add(MenuItemDef(MenuItemDefId.PHONE_CALL, "wa/phoneCall"))
         if (smsSenderConfig.isSmsConfigured())
             commonMenu.add(MenuItemDef(MenuItemDefId.SEND_SMS, "wa/sendSms"))
-        if (Configuration.getInstance().isMebConfigured())
+        if (Configuration.getInstance().isMebConfigured)
             commonMenu.add(MenuItemDef(MenuItemDefId.MEB, "wa/mebList",
                     badgeCounter = { mebDao.getRecentMEBEntries(null) })) // MenuNewCounterMeb
         commonMenu.add(MenuItemDef(MenuItemDefId.SEARCH, "wa/search"))
@@ -224,7 +220,7 @@ open class MenuCreator() {
                             hasRight(EingangsrechnungDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
                                     isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
                         }))
-        if (Configuration.getInstance().isCostConfigured()) {
+        if (Configuration.getInstance().isCostConfigured) {
             fibuMenu.add(MenuItemDef(MenuItemDefId.CUSTOMER_LIST, "customer",
                     checkAccess = { isInGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP) }))
                     .add(MenuItemDef(MenuItemDefId.PROJECT_LIST, "wa/projectList",
@@ -243,7 +239,7 @@ open class MenuCreator() {
         // COST
         //
         menuItemDefHolder.add(MenuItemDef(MenuItemDefId.COST, requiredGroups = *FIBU_ORGA_HR_GROUPS,
-                checkAccess = { Configuration.getInstance().isCostConfigured() }))
+                checkAccess = { Configuration.getInstance().isCostConfigured }))
                 .add(MenuItemDef(MenuItemDefId.ACCOUNT_LIST, "konto",
                         checkAccess = {
                             hasRight(KontoDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
@@ -277,10 +273,10 @@ open class MenuCreator() {
         // Only visible if cost is configured:
         reportingMenu.add(MenuItemDef(MenuItemDefId.ACCOUNTING_RECORD_LIST, "wa/accountingRecordList",
                 requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP),
-                checkAccess = { Configuration.getInstance().isCostConfigured() }))
+                checkAccess = { Configuration.getInstance().isCostConfigured }))
                 .add(MenuItemDef(MenuItemDefId.DATEV_IMPORT, "wa/datevImport",
                         requiredUserRightId = DatevImportDao.USER_RIGHT_ID, requiredUserRightValues = arrayOf(UserRightValue.TRUE),
-                        checkAccess = { Configuration.getInstance().isCostConfigured() }))
+                        checkAccess = { Configuration.getInstance().isCostConfigured }))
 
         //////////////////////////////////////
         //
@@ -377,7 +373,7 @@ open class MenuCreator() {
     private fun checkAccess(menuBuilderContext: MenuCreatorContext, menuItemDef: MenuItemDef): Boolean {
         if (menuItemDef.checkAccess?.invoke() == false)
             return false
-        if (accessChecker.isRestrictedUser && menuItemDef.visibleForRestrictedUsers == false)
+        if (accessChecker.isRestrictedUser && !menuItemDef.visibleForRestrictedUsers)
             return false
         if (!menuItemDef.requiredGroups.isNullOrEmpty() && !isInGroup(menuBuilderContext, menuItemDef.requiredGroups!!)) {
             return false
@@ -388,12 +384,12 @@ open class MenuCreator() {
         if (userRightId != null && !hasRight(menuBuilderContext, userRightId, menuItemDef.requiredUserRightValues)) {
             return false
         }
-        return true;
+        return true
     }
 
     private fun hasRight(menuBuilderContext: MenuCreatorContext, rightId: IUserRightId, values: Array<UserRightValue>?): Boolean {
         if (values.isNullOrEmpty()) {
-            log.warn("Can't check user right '${rightId}' against null values.")
+            log.warn("Can't check user right '$rightId' against null values.")
             return false
         }
         return accessChecker.hasRight(menuBuilderContext.user, rightId, false, *values)
