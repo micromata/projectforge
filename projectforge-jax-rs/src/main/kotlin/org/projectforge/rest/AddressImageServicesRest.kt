@@ -36,10 +36,10 @@ class AddressImageServicesRest() {
      * stored in the user's session and will be used for the next update or save event.
      */
     @PostMapping("uploadImage/{id}")
-    fun uploadFile(@PathVariable("id") id: Int, @RequestParam("file") file: MultipartFile, request: HttpServletRequest):
+    fun uploadFile(@PathVariable("id") id: Int?, @RequestParam("file") file: MultipartFile, request: HttpServletRequest):
             ResponseEntity<String> {
         val filename = file.originalFilename
-        if (!filename.endsWith(".png", true)) {
+        if (filename == null || !filename.endsWith(".png", true)) {
             return ResponseEntity("Unsupported file: ${filename}. Only png files supported", HttpStatus.BAD_REQUEST)
         }
         val bytes = file.bytes

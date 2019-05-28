@@ -7,7 +7,6 @@ import org.projectforge.rest.config.Rest
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import javax.servlet.http.HttpServletRequest
 
 
 /**
@@ -24,7 +23,7 @@ class SystemStatusRest {
                           var logoUrl: String? = null)
 
     @GetMapping("systemStatus")
-    fun loginTest(request: HttpServletRequest): SystemData {
+    fun loginTest(): SystemData {
         return getSystemData()
     }
 

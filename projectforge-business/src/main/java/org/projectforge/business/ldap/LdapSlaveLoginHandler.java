@@ -23,12 +23,6 @@
 
 package org.projectforge.business.ldap;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import javax.naming.NameNotFoundException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.login.LoginDefaultHandler;
 import org.projectforge.business.login.LoginResult;
@@ -39,6 +33,11 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import javax.naming.NameNotFoundException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * This LDAP login handler acts as a LDAP slave, meaning, that LDAP will be accessed in read-only mode. There are 3
@@ -134,7 +133,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
   public LoginResult checkLogin(final String username, final String password)
   {
     PFUserDO user = userService.getByUsername(username);
-    if (user != null && user.isLocalUser() == true) {
+    if (user != null && user.getLocalUser() == true) {
       return loginDefaultHandler.checkLogin(username, password);
     }
     final LoginResult loginResult = new LoginResult();
@@ -163,7 +162,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
       }
       userService.update(user);
       if (user.hasSystemAccess() == false) {
-        log.info("User has no system access (is deleted/deactivated): " + user.getDisplayUsername());
+        log.info("User has no system access (is deleted/deactivated): " + user.getUserDisplayName());
         return loginResult.setLoginResultStatus(LoginResultStatus.LOGIN_EXPIRED);
       }
     }
@@ -220,7 +219,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
   @Override
   public boolean isPasswordChangeSupported(final PFUserDO user)
   {
-    return user.isLocalUser();
+    return user.getLocalUser();
   }
 
   @Override
@@ -278,7 +277,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
       {
         log.info("Updating LDAP...");
         final List<LdapUser> ldapUsers = getAllLdapUsers(ctx);
-        final List<PFUserDO> dbUsers = userService.loadAll();
+        final List<PFUserDO> dbUsers = userService.internalLoadAll();
         final List<PFUserDO> users = new ArrayList<PFUserDO>(ldapUsers.size());
         int error = 0, unmodified = 0, created = 0, updated = 0, deleted = 0, undeleted = 0, ignoredLocalUsers = 0,
             localUsers = 0;
@@ -292,7 +291,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
               dbUser = userService.getByUsername(user.getUsername());
             }
             if (dbUser != null) {
-              if (dbUser.isLocalUser() == true) {
+              if (dbUser.getLocalUser() == true) {
                 // Ignore local users.
                 log.warn("Please note: the user '"
                     + dbUser.getUsername()
@@ -324,7 +323,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
         }
         for (final PFUserDO dbUser : dbUsers) {
           try {
-            if (dbUser.isLocalUser() == true) {
+            if (dbUser.getLocalUser() == true) {
               // Ignore local users.
               ++localUsers;
               continue;

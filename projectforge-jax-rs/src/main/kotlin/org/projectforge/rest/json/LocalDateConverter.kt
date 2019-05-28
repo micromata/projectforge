@@ -46,6 +46,10 @@ class LocalDateSerializer : StdSerializer<LocalDate>(LocalDate::class.java) {
 
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: LocalDate?, jgen: JsonGenerator, provider: SerializerProvider) {
+        if (value == null) {
+            jgen.writeNull()
+            return
+        }
         val dateFormatAsString = jsonDateTimeFormatter.format(value)
         jgen.writeString(dateFormatAsString)
     }

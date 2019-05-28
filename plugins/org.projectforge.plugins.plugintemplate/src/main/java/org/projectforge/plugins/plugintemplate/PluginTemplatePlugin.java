@@ -75,7 +75,7 @@ public class PluginTemplatePlugin extends AbstractPlugin {
     jerseyConfiguration.register(PluginTemplateRest.class);
 
     pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC,
-            new MenuItemDef("plugintemplate", "plugins.plugintemplate.submenu.plugintemplate.list"),
+            MenuItemDef.create("plugintemplate", "plugins.plugintemplate.submenu.plugintemplate.list"),
             PluginTemplateListPage.class);
 
     // Define the access management:

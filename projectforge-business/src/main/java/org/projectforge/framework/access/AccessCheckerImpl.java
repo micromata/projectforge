@@ -876,7 +876,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
     if (user == null) {
       return false;
     }
-    return user.isRestrictedUser();
+    return user.getRestrictedUser();
   }
 
   /**

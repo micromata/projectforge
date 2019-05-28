@@ -137,6 +137,7 @@ open class BaseObject<T : AbstractHistorizableBaseDO<Int>>(var id: Int? = null,
             // Nothing to copy
             return
         }
+        @Suppress("UNCHECKED_CAST")
         copyFromMinimal(src as T)
     }
 }

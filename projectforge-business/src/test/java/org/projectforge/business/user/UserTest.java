@@ -88,13 +88,13 @@ public class UserTest extends AbstractTestBase {
   public void testGetUserDisplayname() {
     final PFUserDO user = new PFUserDO();
     user.setUsername("hurzel");
-    assertEquals("hurzel", user.getUserDisplayname(), "getUserDisplayname");
+    assertEquals("hurzel", user.getUserDisplayName(), "getUserDisplayname");
     user.setLastname("Reinhard");
     assertEquals("Reinhard", user.getFullname(), "getFullname");
-    assertEquals("Reinhard (hurzel)", user.getUserDisplayname(), "getUserDisplayname");
+    assertEquals("Reinhard (hurzel)", user.getUserDisplayName(), "getUserDisplayname");
     user.setFirstname("Kai");
     assertEquals("Kai Reinhard", user.getFullname(), "getFullname");
-    assertEquals("Kai Reinhard (hurzel)", user.getUserDisplayname(), "getUserDisplayname");
+    assertEquals("Kai Reinhard (hurzel)", user.getUserDisplayName(), "getUserDisplayname");
   }
 
   @Test
@@ -105,7 +105,7 @@ public class UserTest extends AbstractTestBase {
     user.setPassword("Hurzel");
     user.setDescription("Description");
     final Serializable id = userService.save(user);
-    user = userService.getById(id);
+    user = userService.internalGetById(id);
     assertEquals("UserTest", user.getUsername());
     assertNull(user.getPassword()); // Not SHA, should be ignored.
     assertEquals("Description", user.getDescription());
@@ -113,13 +113,13 @@ public class UserTest extends AbstractTestBase {
     user.setDescription("Description\ntest");
     user.setPassword("secret");
     userService.update(user);
-    user = userService.getById(id);
+    user = userService.internalGetById(id);
     assertEquals("Description\ntest", user.getDescription());
     assertEquals(Integer.valueOf(1), user.getTenant() != null ? user.getTenant().getPk() : Integer.valueOf(-1));
     assertNull(user.getPassword()); // Not SHA, should be ignored.
     user.setPassword("SHA{...}");
     userService.update(user);
-    user = userService.getById(id);
+    user = userService.internalGetById(id);
     assertEquals("SHA{...}", user.getPassword());
     assertEquals(Integer.valueOf(1), user.getTenant() != null ? user.getTenant().getPk() : Integer.valueOf(-1));
   }
@@ -294,7 +294,7 @@ public class UserTest extends AbstractTestBase {
     txTemplate.execute(new TransactionCallback() {
       @Override
       public Object doInTransaction(final TransactionStatus status) {
-        final PFUserDO dbUser = userService.getById(ids[1]);
+        final PFUserDO dbUser = userService.internalGetById(ids[1]);
         final PFUserDO user = new PFUserDO();
         user.copyValuesFrom(dbUser);
         assertFalse(userService.doesUsernameAlreadyExist(user), "Username does not exist.");
@@ -310,7 +310,7 @@ public class UserTest extends AbstractTestBase {
     txTemplate.execute(new TransactionCallback() {
       @Override
       public Object doInTransaction(final TransactionStatus status) {
-        final PFUserDO user = userService.getById(ids[1]);
+        final PFUserDO user = userService.internalGetById(ids[1]);
         assertFalse(userService.doesUsernameAlreadyExist(user), "Signature does not exist.");
         return null;
       }
@@ -326,7 +326,7 @@ public class UserTest extends AbstractTestBase {
   // TODO HISTORY
   //  /**
   //   * Checks if the history entry contains all and only all expected entries in old and new value.
-  //   * 
+  //   *
   //   * @param entry
   //   * @param expectedAssignedUserNames
   //   * @param expectedUnassignedUserNames
@@ -343,7 +343,7 @@ public class UserTest extends AbstractTestBase {
   //
   //  /**
   //   * Checks if the history entry contains all and only all expected entries in old and new value.
-  //   * 
+  //   *
   //   * @param entry
   //   * @param expectedAssignedGroupNames
   //   * @param expectedUnassignedGroupNames

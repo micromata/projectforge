@@ -54,7 +54,7 @@ class HistoryService {
                     modifiedAt = it.modifiedAt,
                     timeAgo = TimeAgo.getMessage(it.modifiedAt),
                     modifiedByUserId = it.modifiedBy,
-                    modifiedByUser = user?.fullname,
+                    modifiedByUser = user?.getFullname(),
                     operationType = it.entityOpType,
                     operation = translate(it.entityOpType))
             var clazz: Class<*>? = null

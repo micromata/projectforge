@@ -23,32 +23,10 @@
 
 package org.projectforge.business.humanresources;
 
-import java.math.BigDecimal;
-import java.sql.Date;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.persistence.UniqueConstraint;
-
-import org.hibernate.search.annotations.Analyze;
-import org.hibernate.search.annotations.ContainedIn;
-import org.hibernate.search.annotations.DateBridge;
-import org.hibernate.search.annotations.EncodingType;
-import org.hibernate.search.annotations.Field;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import de.micromata.genome.db.jpa.history.api.WithHistory;
 import org.hibernate.search.annotations.Index;
-import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.IndexedEmbedded;
-import org.hibernate.search.annotations.Resolution;
+import org.hibernate.search.annotations.*;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
@@ -57,12 +35,17 @@ import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.time.DayHolder;
 
-import de.micromata.genome.db.jpa.history.api.WithHistory;
+import javax.persistence.*;
+import java.math.BigDecimal;
+import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 /**
- * 
+ *
  * @author Mario Groß (m.gross@micromata.de)
- * 
+ *
  */
 @Entity
 @Indexed
@@ -88,6 +71,7 @@ public class HRPlanningDO extends DefaultBaseDO
   @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
   private Date week;
 
+  @JsonBackReference
   @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
   @ContainedIn
   private List<HRPlanningEntryDO> entries;
@@ -152,7 +136,7 @@ public class HRPlanningDO extends DefaultBaseDO
 
   /**
    * The employee assigned to this planned week.
-   * 
+   *
    * @return the user
    */
   @ManyToOne(fetch = FetchType.LAZY)
@@ -207,7 +191,7 @@ public class HRPlanningDO extends DefaultBaseDO
   /**
    * Deletes the given entry from the list of entries if not already persisted. If the entry is already persisted then
    * the entry will be marked as deleted. Undelete is possible by adding a entry with the same status/project again.
-   * 
+   *
    * @param entry
    */
   public void deleteEntry(final HRPlanningEntryDO entry)

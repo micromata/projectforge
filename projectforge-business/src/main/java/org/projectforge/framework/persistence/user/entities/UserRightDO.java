@@ -23,32 +23,20 @@
 
 package org.projectforge.framework.persistence.user.entities;
 
-import java.io.Serializable;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.persistence.UniqueConstraint;
-
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.hibernate.search.annotations.Analyze;
-import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Index;
-import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.IndexedEmbedded;
+import org.hibernate.search.annotations.*;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
+
+import javax.persistence.*;
+import java.io.Serializable;
 
 @Entity
 @Indexed
@@ -70,6 +58,7 @@ public class UserRightDO extends DefaultBaseDO implements Comparable<UserRightDO
   @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
   protected UserRightValue value;
 
+  @JsonManagedReference
   @IndexedEmbedded(depth = 1)
   protected PFUserDO user;
 

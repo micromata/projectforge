@@ -91,7 +91,7 @@ public class GroupDOConverter
     ldapGroup.setDescription(pfGroup.getDescription());
     if (pfGroup.getAssignedUsers() != null) {
       for (final PFUserDO user : pfGroup.getAssignedUsers()) {
-        if (user.isDeactivated() == true || user.isDeleted() == true) {
+        if (user.getDeactivated() == true || user.isDeleted() == true) {
           // Do not add deleted or deactivated users.
           continue;
         }

@@ -241,7 +241,7 @@
     <maven-surefire-plugin-version>3.0.0-M3</maven-surefire-plugin-version>
     <java.version>1.8</java.version>
 
-    <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
+    <!--kotlin.compiler.incremental>true</kotlin.compiler.incremental--> <!-- It's experimentell, so don't use it for now -->
 
     <hibernate.version>5.0.5.Final</hibernate.version>
     <mgc.version>3.0.9</mgc.version>

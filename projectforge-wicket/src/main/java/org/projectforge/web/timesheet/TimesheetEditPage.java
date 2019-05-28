@@ -23,17 +23,9 @@
 
 package org.projectforge.web.timesheet;
 
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.CompareToBuilder;
-import org.slf4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.ProjektDO;
@@ -57,6 +49,10 @@ import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
 import org.projectforge.web.wicket.WicketUtils;
+import org.slf4j.Logger;
+
+import java.sql.Timestamp;
+import java.util.*;
 
 @EditPage(defaultReturnPage = TimesheetListPage.class)
 public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEditForm, TimesheetDao>
@@ -177,7 +173,7 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
       final TimesheetPrefData pref = getTimesheetPrefData();
       TimesheetPrefEntry entry = null;
       if (pref != null) {
-        entry = pref.getNewesRecentEntry();
+        entry = pref.getRecentEntry();
         if (getData().getTaskId() == null && entry != null) {
           getBaseDao().setTask(getData(), entry.getTaskId());
         }
@@ -212,7 +208,7 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
 
   /**
    * Return list for table with all recent used time sheets.
-   * 
+   *
    * @return
    */
   protected List<TimesheetDO> getRecentTimesheets()
@@ -291,7 +287,7 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
   /**
    * Sets the id of the current time sheet to null and the user to the logged in user and returns to the input page.
    * This results in adding a new time sheet. (Does not clone TimesheetEditAction!)
-   * 
+   *
    * @see org.projectforge.web.wicket.AbstractEditPage#cloneData()
    */
   @Override

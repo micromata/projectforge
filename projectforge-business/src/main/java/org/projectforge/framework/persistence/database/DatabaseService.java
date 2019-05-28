@@ -1,31 +1,6 @@
 package org.projectforge.framework.persistence.database;
 
-import java.io.Serializable;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TimeZone;
-import java.util.TreeSet;
-
-import javax.annotation.PostConstruct;
-import javax.persistence.Column;
-import javax.persistence.Persistence;
-import javax.persistence.UniqueConstraint;
-import javax.sql.DataSource;
-
+import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.address.AddressbookDO;
@@ -38,25 +13,11 @@ import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.tasktree.TaskTreeHelper;
-import org.projectforge.business.user.GroupDao;
-import org.projectforge.business.user.ProjectForgeGroup;
-import org.projectforge.business.user.UserDao;
-import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.business.user.UserRightDao;
-import org.projectforge.business.user.UserRightId;
-import org.projectforge.business.user.UserRightValue;
+import org.projectforge.business.user.*;
 import org.projectforge.common.DatabaseDialect;
 import org.projectforge.common.StringHelper;
 import org.projectforge.common.task.TaskStatus;
-import org.projectforge.continuousdb.DatabaseExecutor;
-import org.projectforge.continuousdb.DatabaseResultRow;
-import org.projectforge.continuousdb.DatabaseResultRowEntry;
-import org.projectforge.continuousdb.DatabaseSupport;
-import org.projectforge.continuousdb.SystemUpdater;
-import org.projectforge.continuousdb.Table;
-import org.projectforge.continuousdb.TableAttribute;
-import org.projectforge.continuousdb.TableAttributeType;
-import org.projectforge.continuousdb.UpdateEntry;
+import org.projectforge.continuousdb.*;
 import org.projectforge.continuousdb.hibernate.TableAttributeHookImpl;
 import org.projectforge.continuousdb.jdbc.DatabaseExecutorImpl;
 import org.projectforge.framework.access.AccessChecker;
@@ -80,7 +41,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
+import javax.annotation.PostConstruct;
+import javax.persistence.Column;
+import javax.persistence.Persistence;
+import javax.persistence.UniqueConstraint;
+import javax.sql.DataSource;
+import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.*;
 
 @Service
 public class DatabaseService
@@ -89,8 +60,11 @@ public class DatabaseService
 
   public static final String DEFAULT_ADMIN_USER = "admin";
 
-  private static final PFUserDO SYSTEM_ADMIN_PSEUDO_USER = new PFUserDO()
-      .setUsername("System admin user only for internal usage");
+  private static final PFUserDO SYSTEM_ADMIN_PSEUDO_USER = new PFUserDO();
+
+  static {
+    SYSTEM_ADMIN_PSEUDO_USER.setUsername("System admin user only for internal usage");
+  }
 
   @Autowired
   private ApplicationContext applicationContext;

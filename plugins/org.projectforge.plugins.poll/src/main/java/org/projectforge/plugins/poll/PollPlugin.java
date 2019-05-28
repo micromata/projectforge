@@ -45,10 +45,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * 
  */
-public class PollPlugin extends AbstractPlugin
-{
+public class PollPlugin extends AbstractPlugin {
   public static final String ID = "poll";
 
   public static final String RESOURCE_BUNDLE_NAME = "PollI18nResources";
@@ -58,9 +56,9 @@ public class PollPlugin extends AbstractPlugin
   // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of
   // each test).
   // The entities are inserted in ascending order and deleted in descending order.
-  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[] { PollDO.class, PollEventDO.class,
-      PollAttendeeDO.class,
-      PollResultDO.class };
+  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[]{PollDO.class, PollEventDO.class,
+          PollAttendeeDO.class,
+          PollResultDO.class};
 
   /**
    * This dao should be defined in pluginContext.xml (as resources) for proper initialization.
@@ -80,17 +78,16 @@ public class PollPlugin extends AbstractPlugin
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
    */
   @Override
-  protected void initialize()
-  {
+  protected void initialize() {
     // DatabaseUpdateDao is needed by the updater:
     PollPluginUpdates.dao = myDatabaseUpdater;
     final RegistryEntry entry = new RegistryEntry(ID, PollDao.class, pollDao, "plugins.poll");
     final RegistryEntry eventEntry = new RegistryEntry("pollEvent", PollEventDao.class,
-        pollEventDao, "plugins.poll");
+            pollEventDao, "plugins.poll");
     final RegistryEntry attendeeEntry = new RegistryEntry("pollAttendee", PollAttendeeDao.class,
-        pollAttendeeDao, "plugins.poll");
+            pollAttendeeDao, "plugins.poll");
     final RegistryEntry resultEntry = new RegistryEntry("pollResult", PollResultDao.class,
-        pollResultDao, "plugins.poll");
+            pollResultDao, "plugins.poll");
 
     // The CalendarDao is automatically available by the scripting engine!
     register(entry);
@@ -108,7 +105,7 @@ public class PollPlugin extends AbstractPlugin
     pluginWicketRegistrationService.addMountPage("newPollOverview", NewPollOverviewPage.class);
     // Register the menu entry as sub menu entry of the misc menu:
 
-    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, new MenuItemDef(ID, "plugins.poll.menu"),
+    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, MenuItemDef.create(ID, "plugins.poll.menu"),
             PollListPage.class);
 
     // Define the access management:
@@ -128,23 +125,19 @@ public class PollPlugin extends AbstractPlugin
    * @param pollDao the calendarDao to set
    * @return this for chaining.
    */
-  public void setPollDao(final PollDao pollDao)
-  {
+  public void setPollDao(final PollDao pollDao) {
     this.pollDao = pollDao;
   }
 
-  public void setPollEventDao(final PollEventDao pollEventDao)
-  {
+  public void setPollEventDao(final PollEventDao pollEventDao) {
     this.pollEventDao = pollEventDao;
   }
 
-  public void setPollAttendeeDao(final PollAttendeeDao pollAttendeeDao)
-  {
+  public void setPollAttendeeDao(final PollAttendeeDao pollAttendeeDao) {
     this.pollAttendeeDao = pollAttendeeDao;
   }
 
-  public void setPollResultDao(final PollResultDao pollResultDao)
-  {
+  public void setPollResultDao(final PollResultDao pollResultDao) {
     this.pollResultDao = pollResultDao;
   }
 
@@ -152,8 +145,7 @@ public class PollPlugin extends AbstractPlugin
    * @see org.projectforge.plugins.core.AbstractPlugin#getInitializationUpdateEntry()
    */
   @Override
-  public UpdateEntry getInitializationUpdateEntry()
-  {
+  public UpdateEntry getInitializationUpdateEntry() {
     return PollPluginUpdates.getInitializationUpdateEntry();
   }
 }

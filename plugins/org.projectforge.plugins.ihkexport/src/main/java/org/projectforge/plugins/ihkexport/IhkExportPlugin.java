@@ -58,7 +58,7 @@ public class IhkExportPlugin extends AbstractPlugin {
     pluginWicketRegistrationService.registerWeb(ID);
 
     // Register the menu entry as sub menu entry of the misc menu:
-    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, new MenuItemDef(ID, "plugins.ihkexport.menu"),
+    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, MenuItemDef.create(ID, "plugins.ihkexport.menu"),
             IhkExportPage.class);
 
     // Define the access management:

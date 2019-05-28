@@ -23,38 +23,22 @@
 
 package org.projectforge.business.fibu
 
-import java.io.Serializable
-import java.math.BigDecimal
-import java.util.ArrayList
-import java.util.Date
-
-import javax.persistence.CascadeType
-import javax.persistence.Column
-import javax.persistence.Convert
-import javax.persistence.Entity
-import javax.persistence.EnumType
-import javax.persistence.Enumerated
-import javax.persistence.FetchType
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.MapKey
-import javax.persistence.OneToMany
-import javax.persistence.Table
-import javax.persistence.Transient
-import javax.persistence.UniqueConstraint
-
+import com.fasterxml.jackson.annotation.JsonBackReference
+import de.micromata.genome.db.jpa.history.api.HistoryProperty
+import de.micromata.genome.db.jpa.history.impl.TabAttrHistoryPropertyConverter
+import de.micromata.genome.db.jpa.history.impl.TimependingHistoryPropertyConverter
+import de.micromata.genome.db.jpa.tabattr.api.EntityWithConfigurableAttr
+import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr
+import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO
+import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
+import de.micromata.genome.jpa.ComplexEntity
+import de.micromata.genome.jpa.ComplexEntityVisitor
+import de.micromata.mgc.jpa.hibernatesearch.api.HibernateSearchInfo
+import de.micromata.mgc.jpa.hibernatesearch.bridges.TimeableListFieldBridge
+import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
-import org.hibernate.search.annotations.Analyze
-import org.hibernate.search.annotations.DateBridge
-import org.hibernate.search.annotations.EncodingType
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.FieldBridge
-import org.hibernate.search.annotations.Index
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
-import org.hibernate.search.annotations.Resolution
-import org.hibernate.search.annotations.Store
+import org.hibernate.search.annotations.*
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.anots.StringAlphanumericSort
@@ -67,20 +51,11 @@ import org.projectforge.framework.persistence.history.ToStringFieldBridge
 import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.Constants
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-
-import de.micromata.genome.db.jpa.history.api.HistoryProperty
-import de.micromata.genome.db.jpa.history.impl.TabAttrHistoryPropertyConverter
-import de.micromata.genome.db.jpa.history.impl.TimependingHistoryPropertyConverter
-import de.micromata.genome.db.jpa.tabattr.api.EntityWithConfigurableAttr
-import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
-import de.micromata.genome.jpa.ComplexEntity
-import de.micromata.genome.jpa.ComplexEntityVisitor
-import de.micromata.mgc.jpa.hibernatesearch.api.HibernateSearchInfo
-import de.micromata.mgc.jpa.hibernatesearch.bridges.TimeableListFieldBridge
+import java.io.Serializable
+import java.math.BigDecimal
+import java.util.*
+import javax.persistence.*
 
 /**
  * Repräsentiert einen Mitarbeiter. Ein Mitarbeiter ist einem ProjectForge-Benutzer zugeordnet und enthält
@@ -93,7 +68,8 @@ import de.micromata.mgc.jpa.hibernatesearch.bridges.TimeableListFieldBridge
 @HibernateSearchInfo(fieldInfoProvider = HibernateSearchAttrSchemaFieldInfoProvider::class, param = "employee")
 @Table(name = "t_fibu_employee", uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_employee_kost1_id", columnList = "kost1_id"), javax.persistence.Index(name = "idx_fk_t_fibu_employee_user_id", columnList = "user_id"), javax.persistence.Index(name = "idx_fk_t_fibu_employee_tenant_id", columnList = "tenant_id")])
 @AUserRightId("HR_EMPLOYEE")
-class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableAttr<Int, EmployeeTimedDO>, ComplexEntity, EntityWithConfigurableAttr, Comparable<Any> {
+open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableAttr<Int, EmployeeTimedDO>, ComplexEntity, EntityWithConfigurableAttr, Comparable<Any> {
+    // The class must be declared as open for mocking in VacationServiceTest.
 
     /**
      * The ProjectForge user assigned to this employee.
@@ -107,7 +83,7 @@ class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableAttr<I
     @IndexedEmbedded(depth = 1, includePaths = ["firstname", "lastname", "description", "organization"])
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "user_id", nullable = false)
-    var user: PFUserDO? = null
+    open var user: PFUserDO? = null
 
     /**
      * Dem Benutzer zugeordneter Kostenträger Kost1 für den Monatsreport.
@@ -117,52 +93,50 @@ class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableAttr<I
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "kost1_id", nullable = true)
-    var kost1: Kost1DO? = null
+    open var kost1: Kost1DO? = null
 
-    // don't use the status field anymore, this is replaced by the status within the internalattrschema.xml
-    @Deprecated("")
+    @Deprecated("Don't use the status field anymore, this is replaced by the status within the internalattrschema.xml")
     @PropertyInfo(i18nKey = "status")
     @Field
-    @get:Deprecated("")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "employee_status", length = 30)
-    @set:Deprecated("")
-    var status: EmployeeStatus? = null
+    open var status: EmployeeStatus? = null
 
     @PropertyInfo(i18nKey = "address.positionText")
     @Field
     @get:Column(name = "position_text", length = 244)
-    var position: String? = null
+    open var position: String? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.eintrittsdatum")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "eintritt")
-    var eintrittsDatum: Date? = null
+    open var eintrittsDatum: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.austrittsdatum")
     @Field
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "austritt")
-    var austrittsDatum: Date? = null
+    open var austrittsDatum: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.division")
     @Field
     @get:Column(length = 255)
-    var abteilung: String? = null
+    open var abteilung: String? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.staffNumber")
     @Field
     @StringAlphanumericSort
     @get:Column(length = 255)
-    var staffNumber: String? = null
+    open var staffNumber: String? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.urlaubstage")
     @Field(analyze = Analyze.NO)
     @FieldBridge(impl = ToStringFieldBridge::class)
     @get:Column
-    var urlaubstage: Int? = null
+    open var urlaubstage: Int? = null // Open needed for mocking in VacationServiceTest
 
+    @JsonBackReference
     @Field(store = Store.YES)
     @FieldBridge(impl = TimeableListFieldBridge::class)
     @IndexedEmbedded(depth = 2)
@@ -173,77 +147,73 @@ class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableAttr<I
     @Field(analyze = Analyze.NO)
     @FieldBridge(impl = ToStringFieldBridge::class)
     @get:Column(name = "weekly_working_hours", scale = 5, precision = 10)
-    var weeklyWorkingHours: BigDecimal? = null
+    open var weeklyWorkingHours: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.birthday")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column
-    var birthday: Date? = null
+    open var birthday: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.accountHolder")
     @Field
     @get:Column(length = 255, name = "account_holder")
-    var accountHolder: String? = null
+    open var accountHolder: String? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.iban")
     @Field
     @get:Column(length = 50)
-    var iban: String? = null
+    open var iban: String? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.bic")
     @Field
     @get:Column(length = 11)
-    var bic: String? = null
+    open var bic: String? = null
 
     @PropertyInfo(i18nKey = "gender")
     @Field
     @Convert(converter = GenderConverter::class)
     @get:Column
     // use the GenderConverter instead of @Enumerated to persist the correct ISO/IEC 5218 integer representation of the gender
-    var gender: Gender? = null
+    open var gender: Gender? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.street")
     @Field
     @get:Column(length = 255)
-    var street: String? = null
+    open var street: String? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.zipCode")
     @Field
     @get:Column(length = 255)
-    var zipCode: String? = null
+    open var zipCode: String? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.city")
     @Field
     @get:Column(length = 255)
-    var city: String? = null
+    open var city: String? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.country")
     @Field
     @get:Column(length = 255)
-    var country: String? = null
+    open var country: String? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.state")
     @Field
     @get:Column(length = 255)
-    var state: String? = null
+    open var state: String? = null
 
     @PropertyInfo(i18nKey = "comment")
     @Field
     @get:Column(length = Constants.COMMENT_LENGTH)
-    var comment: String? = null
+    open var comment: String? = null
 
     val kost1Id: Int?
         @Transient
-        get() = if (this.kost1 == null) {
-            null
-        } else kost1!!.id
+        get() = kost1?.id
 
     val userId: Int?
         @Transient
-        get() = if (this.user == null) {
-            null
-        } else user!!.id
+        get() = user?.id
 
     override fun copyValuesFrom(source: BaseDO<out Serializable>, vararg ignoreFields: String): ModificationStatus {
         var modificationStatus = super.copyValuesFrom(source, "timeableAttributes")
@@ -280,7 +250,7 @@ class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableAttr<I
         return timeableAttributes
     }
 
-    fun setTimeableAttributes(timeableAttributes: MutableList<EmployeeTimedDO>) {
+    open fun setTimeableAttributes(timeableAttributes: MutableList<EmployeeTimedDO>) {
         this.timeableAttributes = timeableAttributes
     }
 
@@ -314,43 +284,33 @@ class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableAttr<I
         return super.getAttrs()
     }
 
-    override fun equals(o: Any?): Boolean {
-        if (o == null || o is EmployeeDO == false) {
+    override fun equals(other: Any?): Boolean {
+        if (other !is EmployeeDO)
             return false
-        }
-        val other = o as EmployeeDO?
-        if (other!!.pk == null) {
+        if (other.pk == null) {
             return false
         }
         return if (this.pk == other.pk) {
             true
-        } else super.equals(o)
+        } else super.equals(other)
     }
 
     override fun hashCode(): Int {
         return if (pk != null) 31 * pk.hashCode() else super.hashCode()
     }
 
-    override operator fun compareTo(o: Any): Int {
-        if (!(o is EmployeeDO)) {
+    override operator fun compareTo(other: Any): Int {
+        if (other !is EmployeeDO) {
             return 0
         }
-        if (this.user == null && o.user == null) {
-            return 0
-        }
-        if (this.user == null && o.user == null) {
-            return 0
-        }
-        if (this.user != null && o.user == null) {
-            return 1
-        }
-        if (this.user == null && o.user != null) {
-            return -1
-        }
-        var result = 0
-        result = this.user!!.lastname.compareTo(o.user!!.lastname)
+        if (this.user == other.user) return 0
+        val u1 = this.user
+        val u2 = other.user
+        if (u1 == null) return -1
+        if (u2 == null) return 1
+        var result = StringUtils.compare(u1.lastname, u2.lastname)
         if (result == 0) {
-            result = this.user!!.firstname.compareTo(o.user!!.firstname)
+            result = return StringUtils.compare(u1.firstname, u2.firstname)
         }
         return result
     }

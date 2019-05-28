@@ -35,7 +35,7 @@ import org.projectforge.framework.persistence.database.DatabaseService;
  * required by any later release of this to-do plugin. <br/>
  * This is a part of the convenient auto update functionality of ProjectForge. You only have to insert update methods
  * here for any further release (with e. g. required data-base modifications). ProjectForge will do the rest.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class MemoPluginUpdates
@@ -45,7 +45,7 @@ public class MemoPluginUpdates
   @SuppressWarnings("serial")
   public static UpdateEntry getInitializationUpdateEntry()
   {
-    return new UpdateEntryImpl(MemoPlugin.ID, "2011-03-08", "Adds table T_PLUGIN_MEMO.")
+    return new UpdateEntryImpl(MemoPlugin.Companion.getID(), "2011-03-08", "Adds table T_PLUGIN_MEMO.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()

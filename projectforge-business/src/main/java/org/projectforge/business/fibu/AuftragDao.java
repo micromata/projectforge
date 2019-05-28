@@ -23,21 +23,6 @@
 
 package org.projectforge.business.fibu;
 
-import java.math.BigDecimal;
-import java.sql.Date;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.hibernate.Criteria;
@@ -55,10 +40,7 @@ import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.i18n.MessageParam;
 import org.projectforge.framework.i18n.MessageParamType;
 import org.projectforge.framework.i18n.UserException;
-import org.projectforge.framework.persistence.api.BaseDao;
-import org.projectforge.framework.persistence.api.BaseSearchFilter;
-import org.projectforge.framework.persistence.api.HibernateUtils;
-import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
@@ -71,6 +53,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.sql.Date;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 public class AuftragDao extends BaseDao<AuftragDO>
@@ -636,8 +623,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
   }
 
   /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#prepareHibernateSearch(org.projectforge.core.ExtendedBaseDO,
-   * org.projectforge.framework.access.OperationType)
+   * @see org.projectforge.framework.persistence.api.BaseDao#prepareHibernateSearch(ExtendedBaseDO, OperationType)
    */
   @Override
   protected void prepareHibernateSearch(final AuftragDO obj, final OperationType operationType)
@@ -729,7 +715,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
   /**
    * Gets history entries of super and adds all history entries of the AuftragsPositionDO childs.
    *
-   * @see org.projectforge.framework.persistence.api.BaseDao#getDisplayHistoryEntries(org.projectforge.core.ExtendedBaseDO)
+   * @see org.projectforge.framework.persistence.api.BaseDao#getDisplayHistoryEntries(ExtendedBaseDO)
    */
   @Override
   public List<DisplayHistoryEntry> getDisplayHistoryEntries(final AuftragDO obj)
@@ -786,8 +772,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
   /**
    * Returns also true, if idSet contains the id of any order position.
    *
-   * @see org.projectforge.framework.persistence.api.BaseDao#contains(java.util.Set,
-   * org.projectforge.core.ExtendedBaseDO)
+   * @see org.projectforge.framework.persistence.api.BaseDao#contains(Set, ExtendedBaseDO)
    */
   @Override
   protected boolean contains(final Set<Integer> idSet, final AuftragDO entry)

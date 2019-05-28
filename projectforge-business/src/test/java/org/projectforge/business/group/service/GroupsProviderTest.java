@@ -74,7 +74,8 @@ public class GroupsProviderTest
   private GroupDO cg(final String name, final int id)
   {
     final GroupDO group = new GroupDO();
-    group.setName(name).setId(id);
+    group.setName(name);
+    group.setId(id);
     return group;
   }
 
