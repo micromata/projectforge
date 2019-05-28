@@ -498,7 +498,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
         @Override
         public Boolean getObject()
         {
-          return data.isDeactivated() == false;
+          return data.getDeactivated() == false;
         }
 
         @Override

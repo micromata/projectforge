@@ -189,7 +189,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
             final LdapUser ldapUser = getLdapUser(ldapUsers, user);
             if (ldapUser == null) {
               updatedLdapUser.setOrganizationalUnit(userBase);
-              if (user.isDeleted() == false && user.isLocalUser() == false) {
+              if (user.isDeleted() == false && user.getLocalUser() == false) {
                 // Do not add deleted or local users.
                 // TODO: if (ldapConfig.isSupportPosixAccounts() == true &&) {
                 // updatedLdapUser.addObjectClass(LdapUserDao.OBJECT_CLASS_POSIX_ACCOUNT);
@@ -203,7 +203,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
               updatedLdapUser.setOrganizationalUnit(ldapUser.getOrganizationalUnit());
               // Otherwise the NT password will be deleted in copy function below:
               updatedLdapUser.setSambaNTPassword(ldapUser.getSambaNTPassword());
-              if (user.isDeleted() == true || user.isLocalUser() == true) {
+              if (user.isDeleted() == true || user.getLocalUser() == true) {
                 // Deleted and local users shouldn't be synchronized with LDAP:
                 ldapUserDao.delete(ctx, updatedLdapUser);
                 deleted++;
@@ -271,7 +271,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
             final LdapGroup ldapGroup = getLdapGroup(ldapGroups, group);
             if (ldapGroup == null) {
               updatedLdapGroup.setOrganizationalUnit(groupBase);
-              if (group.isDeleted() == false && group.isLocalGroup() == false) {
+              if (group.isDeleted() == false && group.getLocalGroup() == false) {
                 // Do not add deleted or local groups.
                 setMembers(updatedLdapGroup, group.getAssignedUsers(), ldapUserMap);
                 ldapGroupDao.create(ctx, groupBase, updatedLdapGroup);
@@ -279,7 +279,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
               }
             } else {
               updatedLdapGroup.setOrganizationalUnit(ldapGroup.getOrganizationalUnit());
-              if (group.isDeleted() == true || group.isLocalGroup() == true) {
+              if (group.isDeleted() == true || group.getLocalGroup() == true) {
                 // Deleted and local users shouldn't be synchronized with LDAP:
                 ldapGroupDao.delete(ctx, updatedLdapGroup);
                 deleted++;
@@ -331,7 +331,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
   public void passwordChanged(final PFUserDO user, final String newPassword)
   {
     final LdapUser ldapUser = ldapUserDao.findById(user.getId());
-    if (user.isDeleted() == true || user.isLocalUser() == true) {
+    if (user.isDeleted() == true || user.getLocalUser() == true) {
       // Don't change passwords of such users.
       return;
     }
@@ -348,7 +348,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
   public void wlanPasswordChanged(final PFUserDO user, final String newPassword)
   {
     final LdapUser ldapUser = ldapUserDao.findById(user.getId());
-    if (user.isDeleted() == true || user.isLocalUser() == true) {
+    if (user.isDeleted() == true || user.getLocalUser() == true) {
       // Don't change passwords of such users.
       return;
     }

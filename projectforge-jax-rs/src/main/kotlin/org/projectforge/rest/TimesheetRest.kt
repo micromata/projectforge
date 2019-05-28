@@ -10,6 +10,7 @@ import org.projectforge.business.user.service.UserPreferencesService
 import org.projectforge.common.DateFormatType
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.PFDateTime
@@ -21,6 +22,7 @@ import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 
@@ -67,9 +69,21 @@ class TimesheetRest() : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilte
             baseDao.setUser(sheet, userId)
         }
         val pref = getTimesheetPrefData()
-        val entry = pref.getNewesRecentEntry()
-        if (sheet.taskId == null && entry != null) {
-            baseDao.setTask(sheet, entry.taskId)
+        val entry = pref.getRecentEntry()
+        if (entry != null) {
+            if (entry.taskId != null) {
+                baseDao.setTask(sheet, entry.taskId)
+                if (entry.kost2Id != null) {
+                    baseDao.setKost2(sheet, entry.kost2Id)
+                }
+            }
+            sheet.location = entry.location
+            sheet.description = entry.description
+        }
+        if (entry?.userId != null) {
+            baseDao.setUser(sheet, entry.userId)
+        } else {
+            baseDao.setUser(sheet, ThreadLocalUserContext.getUserId()) // Use current user.
         }
         return sheet
     }
@@ -116,6 +130,18 @@ class TimesheetRest() : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilte
         resultSet.resultSet = list
     }
 
+    override fun isAutocompletionPropertyEnabled(property: String): Boolean {
+        return property == "location"
+    }
+
+    override fun getAutoCompletionForProperty(@RequestParam("property") property: String, @RequestParam("search") searchString: String?)
+            : List<String> {
+        if (property == "location") {
+            return baseDao.getLocationAutocompletion(searchString)
+        }
+        return super.getAutoCompletionForProperty(property, searchString)
+    }
+
     /**
      * LAYOUT List page
      */
@@ -153,9 +179,10 @@ class TimesheetRest() : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilte
                 .add(lc, "user")
                 .add(dayRange)
                 .add(UICustomized("taskConsumption"))
-                .add(lc, "location", "description")
-                .add(UIRow().add(UICol().add(UILabel("'ToDo: Validation, resetting Kost2-Combobox after task selection, Location-AC, favorites, templates, Testing..."))))
-                .addTranslations("until","fibu.kost2", "task")
+                .add(UIInput("location", lc).enableAutoCompletion(this))
+                .add(lc, "description")
+                .add(UIRow().add(UICol().add(UILabel("'ToDo: Validation, resetting Kost2-Combobox after task selection, favorites, templates, Testing..."))))
+                .addTranslations("until", "fibu.kost2", "task")
         return LayoutUtils.processEditPage(layout, dataObject)
     }
 
@@ -171,7 +198,11 @@ class TimesheetRest() : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilte
         val prefKey = "timesheetEditPref";
         var pref: TimesheetPrefData? = userPreferencesService.getEntry(TimesheetPrefData::class.java, prefKey)
         if (pref == null) {
-            pref = TimesheetPrefData()
+            val oldPrefKey = "org.projectforge.web.timesheet.TimesheetEditPage" // From Wicket version.
+            pref = userPreferencesService.getEntry(TimesheetPrefData::class.java, oldPrefKey)
+            if (pref == null) {
+                pref = TimesheetPrefData()
+            }
             userPreferencesService.putEntry(prefKey, pref, true)
         }
         return pref

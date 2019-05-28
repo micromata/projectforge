@@ -2,6 +2,7 @@ package org.projectforge.rest.core
 
 import org.apache.commons.beanutils.PropertyUtils
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDao
@@ -20,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.validation.Errors
 import org.springframework.web.bind.annotation.*
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
@@ -43,6 +43,11 @@ abstract class AbstractBaseRest<
         private val baseDaoClazz: Class<B>,
         private val filterClazz: Class<F>,
         private val i18nKeyPrefix: String) {
+    /**
+     * If [getAutoCompletion] is called without a special property to search for, all properties will be searched for,
+     * given by this attribute. If null, an exception is thrown, if [getAutoCompletion] is called without a property.
+     */
+    protected open val autoCompleteSearchFields: Array<String>? = null
 
     @PostConstruct
     private fun postConstruct() {
@@ -80,7 +85,7 @@ abstract class AbstractBaseRest<
      */
     protected lateinit var lc: LayoutContext
 
-    protected val baseDao: B
+    val baseDao: B
         get() {
             if (_baseDao == null) {
                 _baseDao = applicationContext.getBean(baseDaoClazz)
@@ -196,6 +201,7 @@ abstract class AbstractBaseRest<
     @GetMapping("initialList")
     open fun getInitialList(session: HttpSession): InitialListData {
         //val test = providers.getContextResolver(MyObjectMapper::class.java,  MediaType.WILDCARD_TYPE)
+        @Suppress("UNCHECKED_CAST")
         val filter: F = listFilterService.getSearchFilter(session, filterClazz) as F
         if (filter.maxRows <= 0)
             filter.maxRows = 50
@@ -297,15 +303,43 @@ abstract class AbstractBaseRest<
     }
 
     /**
+     * Proxy for [BaseDao.isAutocompletionPropertyEnabled]
+     */
+    open fun isAutocompletionPropertyEnabled(property: String): Boolean {
+        return baseDao.isAutocompletionPropertyEnabled(property)
+    }
+
+    /**
      * Gets the autocompletion list for the given property and search string.
+     * <br/>
+     * Please note: You must enable properties in [BaseDao], otherwise a security warning is logged and an empty
+     * list is returned.
      * @param property The property (field of the data) used to search.
      * @param searchString
      * @return list of strings as json.
+     * @see BaseDao.getAutocompletion
      */
     @GetMapping("ac")
-    fun getAutoCompletion(@RequestParam("property") property: String?, @RequestParam("search") searchString: String?)
+    open fun getAutoCompletionForProperty(@RequestParam("property") property: String, @RequestParam("search") searchString: String?)
             : List<String> {
         return baseDao.getAutocompletion(property, searchString)
+    }
+
+    /**
+     * Gets the autocompletion list for the given search string by searching in all properties defined by [autoCompleteSearchFields].
+     * If [autoCompleteSearchFields] is not given an [InternalErrorException] will be thrown.
+     * @param searchString
+     * @return list of found objects.
+     */
+    @GetMapping("aco")
+    open fun getAutoCompletionObjects(@RequestParam("search") searchString: String?): MutableList<O> {
+        if (autoCompleteSearchFields.isNullOrEmpty()) {
+            throw RuntimeException("Can't call getAutoCompletion without property, because no autoCompleteSearchFields are configured by the developers for this entity.")
+        }
+        val filter = BaseSearchFilter()
+        filter.searchString = searchString
+        filter.setSearchFields(*autoCompleteSearchFields!!)
+        return baseDao.getList(filter)
     }
 
     /**
@@ -344,7 +378,7 @@ abstract class AbstractBaseRest<
      * Use this service for adding new items as well as updating existing items (id isn't null).
      */
     @PutMapping(RestPaths.SAVE_OR_UDATE)
-    fun saveOrUpdate(request: HttpServletRequest, @Valid @RequestBody T: DTO, errors: Errors): ResponseEntity<ResponseAction> {
+    fun saveOrUpdate(request: HttpServletRequest, @Valid @RequestBody T: DTO): ResponseEntity<ResponseAction> {
         val dbObj = asDO(T)
         return saveOrUpdate(request, baseDao, dbObj, this, validate(dbObj))
     }

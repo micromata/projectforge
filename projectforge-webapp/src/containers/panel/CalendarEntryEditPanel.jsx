@@ -24,7 +24,6 @@ function CalendarEntryEditPanel(
     };
     return (
         <div>
-            time slot select (uses selection from previous).
             <EditPage
                 location={location}
                 match={match}

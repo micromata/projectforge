@@ -25,35 +25,96 @@ package org.projectforge.business.user;
 
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.test.AbstractTestBase;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class PFUserDOTest
+ class PFUserDOTest extends AbstractTestBase
 {
   @Test
-  public void testCreateUserWithoutSecretFields()
+   void testCreateUserWithoutSecretFields()
   {
     PFUserDO user = new PFUserDO();
     assertFalse(user.hasSecretFieldValues());
     user.setPassword("test");
     assertTrue(user.hasSecretFieldValues());
-    user.setPassword(null).setStayLoggedInKey("test");
+    user.setPassword(null);
+    user.setStayLoggedInKey("test");
     assertTrue(user.hasSecretFieldValues());
-    user.setAuthenticationToken("test").setStayLoggedInKey(null);
+    user.setAuthenticationToken("test");
+    user.setStayLoggedInKey(null);
     assertTrue(user.hasSecretFieldValues());
-    user.setAuthenticationToken(null).setPasswordSalt("test");
+    user.setAuthenticationToken(null);
+    user.setPasswordSalt("test");
     assertTrue(user.hasSecretFieldValues());
     user.setPasswordSalt(null);
     assertFalse(user.hasSecretFieldValues());
-    user.setPassword("pw").setPasswordSalt("ps").setAuthenticationToken("at").setStayLoggedInKey("st");
+    user.setPassword("pw");
+    user.setPasswordSalt("ps");
+    user.setAuthenticationToken("at");
+    user.setStayLoggedInKey("st");
     assertEquals("pw", user.getPassword());
     assertEquals("ps", user.getPasswordSalt());
     assertEquals("at", user.getAuthenticationToken());
     assertEquals("st", user.getStayLoggedInKey());
-    user = PFUserDO.createCopyWithoutSecretFields(user);
+    user = PFUserDO.Companion.createCopyWithoutSecretFields(user);
     assertNull(user.getPassword());
     assertNull(user.getPasswordSalt());
     assertNull(user.getAuthenticationToken());
     assertNull(user.getStayLoggedInKey());
+  }
+
+  @Test
+   void testToString() {
+    PFUserDO user = new PFUserDO();
+    user.setUsername("test");
+    user.setPassword("123");
+    user.setAuthenticationToken("123");
+    user.setPasswordSalt("123");
+    user.setStayLoggedInKey("123");
+    String str = user.toString();
+    assertFalse(str.contains("123"), "Secret fields must be ommitted!");
+  }
+
+  @Test
+   void testCopyValues() {
+    PFUserDO user = new PFUserDO();
+    user.setUsername("test");
+    user.setPassword("123");
+    user.setAuthenticationToken("123");
+    user.setPasswordSalt("123");
+    user.setStayLoggedInKey("123");
+    PFUserDO user2 = PFUserDO.createCopyWithoutSecretFields(user);
+    assertFalse(user2.hasSecretFieldValues());
+    assertEquals("test", user2.getUsername());
+    user2 = new PFUserDO();
+    user2.copyValuesFrom(user);
+    assertTrue(user2.hasSecretFieldValues());
+    assertEquals("test", user2.getUsername());
+  }
+
+  @Test
+  void testDisplayName() {
+    PFUserDO user = new PFUserDO();
+    user.setUsername("kai");
+    assertEquals("kai", user.getUserDisplayName());
+    user.setFirstname("Kai");
+    assertEquals("Kai (kai)", user.getUserDisplayName());
+    user.setLastname("Reinhard");
+    assertEquals("Kai Reinhard (kai)", user.getUserDisplayName());
+    user.setFirstname(null);
+    assertEquals("Reinhard (kai)", user.getUserDisplayName());
+  }
+
+  @Test
+  void testFullName() {
+    PFUserDO user = new PFUserDO();
+    assertEquals("", user.getFullname());
+    user.setFirstname("Kai");
+    assertEquals("Kai", user.getFullname());
+    user.setLastname("Reinhard");
+    assertEquals("Kai Reinhard", user.getFullname());
+    user.setFirstname(null);
+    assertEquals("Reinhard", user.getFullname());
   }
 }

@@ -73,7 +73,7 @@ public class LicenseManagementPlugin extends AbstractPlugin {
     pluginWicketRegistrationService.registerWeb(ID, LicenseListPage.class, LicenseEditPage.class);
 
     // Register the menu entry as sub menu entry of the misc menu:
-    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, new MenuItemDef(ID, "plugins.licensemanagement.menu"),
+    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, MenuItemDef.create(ID, "plugins.licensemanagement.menu"),
             LicenseListPage.class);
 
     // Define the access management:

@@ -4,6 +4,7 @@ import moment from 'moment';
 import { connect } from 'react-redux';
 
 const DATE_FORMATTER = 'DATE';
+const COST1_FORMATTER = 'COST1';
 const COST2_FORMATTER = 'COST2';
 const CUSTOMER_FORMATTER = 'CUSTOMER';
 const KONTO_FORMATTER = 'KONTO';
@@ -11,6 +12,7 @@ const PROJECT_FORMATTER = 'PROJECT';
 const USER_FORMATTER = 'USER';
 const TASK_FORMATTER = 'TASK_PATH';
 const TIMESTAMP_MINUTES_FORMATTER = 'TIMESTAMP_MINUTES';
+const AUFTRAGPOSITION_FORMATTER = "AUFTRAG_POSITION";
 
 function Formatter(
     {
@@ -29,6 +31,9 @@ function Formatter(
     if (formatter) {
         let result;
         switch (formatter) {
+            case COST1_FORMATTER:
+                result = value.formattedNumber;
+                break;
             case COST2_FORMATTER:
                 result = value.formattedNumber;
                 break;
@@ -54,6 +59,9 @@ function Formatter(
                 break;
             case USER_FORMATTER:
                 result = value.fullname;
+                break;
+            case AUFTRAGPOSITION_FORMATTER:
+                result = value.number;
                 break;
             default:
                 result = value;

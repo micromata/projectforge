@@ -108,11 +108,11 @@ public class PFUserDOConverter
     ldapUser.setDescription(user.getDescription());
     ldapUser.setMail(user.getEmail());
     ldapUser.setDeleted(user.isDeleted());
-    ldapUser.setDeactivated(user.isDeactivated());
-    if (user.isDeactivated() == true) {
+    ldapUser.setDeactivated(user.getDeactivated());
+    if (user.getDeactivated() == true) {
       ldapUser.setMail(LdapUserDao.DEACTIVATED_MAIL);
     }
-    ldapUser.setRestrictedUser(user.isRestrictedUser());
+    ldapUser.setRestrictedUser(user.getRestrictedUser());
     setLdapValues(ldapUser, user.getLdapValues());
     ldapUser.setSambaPwdLastSet(user.getLastWlanPasswordChange() != null ? user.getLastWlanPasswordChange() : user.getCreated());
     return ldapUser;

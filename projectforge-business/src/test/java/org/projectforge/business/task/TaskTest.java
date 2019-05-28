@@ -184,6 +184,7 @@ public class TaskTest extends AbstractTestBase {
     // Now we move u.2.3 to u.1.1:
     final TaskDO tu_2_3 = taskDao.internalGetById(getTask("u.2.3").getId());
     tu_2_3.setTitle("u.1.1");
+    logon(AbstractTestBase.ADMIN);
     taskDao.setParentTask(tu_2_3, getTask("u.1").getId());
     taskDao.internalUpdate(tu_2_3);
     assertEquals(2, u2.getChilds().size(), "Should have exact 2 childs");

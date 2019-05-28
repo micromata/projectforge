@@ -23,14 +23,6 @@
 
 package org.projectforge.business.login;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import javax.sql.DataSource;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.PredicateUtils;
 import org.projectforge.business.group.service.GroupService;
@@ -45,6 +37,13 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Service;
+
+import javax.sql.DataSource;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 @Service
 public class LoginDefaultHandler implements LoginHandler
@@ -105,7 +104,7 @@ public class LoginDefaultHandler implements LoginHandler
     if (user != null) {
       log.info("User with valid username/password: " + username + "/****");
       if (user.hasSystemAccess() == false) {
-        log.info("User has no system access (is deleted/deactivated): " + user.getDisplayUsername());
+        log.info("User has no system access (is deleted/deactivated): " + user.getUserDisplayName());
         return loginResult.setLoginResultStatus(LoginResultStatus.LOGIN_EXPIRED);
       } else {
         return loginResult.setLoginResultStatus(LoginResultStatus.SUCCESS).setUser(user);
@@ -178,7 +177,10 @@ public class LoginDefaultHandler implements LoginHandler
             user.setPasswordSalt(saltString);
           }
           user.setId(pk);
-          user.setUsername(username).setFirstname(firstname).setLastname(lastname).setPassword(password);
+          user.setUsername(username);
+          user.setFirstname(firstname);
+          user.setLastname(lastname);
+          user.setPassword(password);
           return user;
         }
         return null;
@@ -211,7 +213,7 @@ public class LoginDefaultHandler implements LoginHandler
   @Override
   public boolean checkStayLoggedIn(final PFUserDO user)
   {
-    final PFUserDO dbUser = userService.getById(user.getId());
+    final PFUserDO dbUser = userService.internalGetById(user.getId());
     if (dbUser != null && dbUser.hasSystemAccess() == true) {
       return true;
     }
@@ -251,7 +253,7 @@ public class LoginDefaultHandler implements LoginHandler
   public List<PFUserDO> getAllUsers()
   {
     try {
-      return userService.loadAll();
+      return userService.internalLoadAll();
     } catch (final Exception ex) {
       //Needed for migration, when tenant table not available.
       log.error(

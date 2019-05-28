@@ -8,6 +8,7 @@ import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.BeanUtils
+import java.math.BigDecimal
 import java.util.*
 import javax.persistence.Basic
 import javax.persistence.Column
@@ -56,26 +57,27 @@ object ElementsRegistry {
                     String::class.java -> {
                         val maxLength = elementInfo.maxLength
                         if (maxLength != null && maxLength > 255) {
-                            UITextArea(property, maxLength = elementInfo.maxLength, layoutSettings = layoutSettings)
+                            UITextArea(property, maxLength = elementInfo.maxLength, layoutContext = layoutSettings)
                         } else {
-                            UIInput(property, maxLength = elementInfo.maxLength, required = elementInfo.required, layoutSettings = layoutSettings)
+                            UIInput(property, maxLength = elementInfo.maxLength, required = elementInfo.required, layoutContext = layoutSettings)
                         }
                     }
                     Boolean::class.java -> UICheckbox(property)
-                    Date::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.TIMESTAMP)
-                    java.sql.Date::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.DATE)
-                    java.sql.Timestamp::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.TIMESTAMP)
-                    PFUserDO::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.USER)
-                    Integer::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.INT)
-                    TaskDO::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.TASK)
-                    Locale::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.LOCALE)
+                    Date::class.java -> UIInput(property, required = elementInfo.required, layoutContext = layoutSettings, dataType = UIDataType.TIMESTAMP)
+                    java.sql.Date::class.java -> UIInput(property, required = elementInfo.required, layoutContext = layoutSettings, dataType = UIDataType.DATE)
+                    java.sql.Timestamp::class.java -> UIInput(property, required = elementInfo.required, layoutContext = layoutSettings, dataType = UIDataType.TIMESTAMP)
+                    PFUserDO::class.java -> UIInput(property, required = elementInfo.required, layoutContext = layoutSettings, dataType = UIDataType.USER)
+                    Integer::class.java -> UIInput(property, required = elementInfo.required, layoutContext = layoutSettings, dataType = UIDataType.INT)
+                    BigDecimal::class.java -> UIInput(property, required = elementInfo.required, layoutContext = layoutSettings, dataType = UIDataType.DECIMAL)
+                    TaskDO::class.java -> UIInput(property, required = elementInfo.required, layoutContext = layoutSettings, dataType = UIDataType.TASK)
+                    Locale::class.java -> UIInput(property, required = elementInfo.required, layoutContext = layoutSettings, dataType = UIDataType.LOCALE)
                     else -> null
                 }
         if (element == null) {
             if (elementInfo.propertyType.isEnum) {
                 if (I18nEnum::class.java.isAssignableFrom(elementInfo.propertyType)) {
                     @Suppress("UNCHECKED_CAST")
-                    element = UISelect<String>(property, layoutSettings = layoutSettings)
+                    element = UISelect<String>(property, required = elementInfo.required, layoutContext = layoutSettings)
                             .buildValues(i18nEnum = elementInfo.propertyType as Class<out Enum<*>>)
                 } else {
                     log.warn("Properties of enum not implementing I18nEnum not yet supported: ${mapKey}.")
@@ -125,8 +127,8 @@ object ElementsRegistry {
             if (!(colinfo.isNullable) || propertyInfo.required)
                 elementInfo.required = true
         }
-        elementInfo.i18nKey = getNullIfEmpty(propertyInfo?.i18nKey)
-        elementInfo.additionalI18nKey = getNullIfEmpty(propertyInfo?.additionalI18nKey)
+        elementInfo.i18nKey = getNullIfEmpty(propertyInfo.i18nKey)
+        elementInfo.additionalI18nKey = getNullIfEmpty(propertyInfo.additionalI18nKey)
 
         ensureClassMap(clazz).put(property, elementInfo)
         return elementInfo

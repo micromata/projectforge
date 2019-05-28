@@ -12,7 +12,30 @@ import org.projectforge.menu.MenuItem
  * Defines one menu item once. The [MenuCreator] creates the user menu item from this definition dynamically dependent
  * e. g. on the user's access.
  */
-class MenuItemDef {
+class MenuItemDef(
+        /**
+         * Needed for unique keys for React frontend.
+         */
+        val id: String,
+        val i18nKey: String,
+        var url: String? = null,
+        var badgeCounter: (() -> Int?)? = null,
+        private var badgeTooltipKey: String? = null,
+        var checkAccess: (() -> Boolean)? = null,
+        var visibleForRestrictedUsers: Boolean = false,
+        var requiredUserRightId: IUserRightId? = null,
+        var requiredUserRight: UserRight? = null,
+        var requiredUserRightValues: Array<UserRightValue>? = null,
+        vararg requiredGroups: ProjectForgeGroup) {
+
+    var requiredGroups: Array<ProjectForgeGroup>? = null
+
+    internal var childs: MutableList<MenuItemDef>? = null
+
+    init {
+        this.requiredGroups = arrayOf(*requiredGroups)
+    }
+
     /**
      * Usable for e. g. plugins without [MenuItemDef] available.
      * @param defId For getting the key and i18nKey.
@@ -22,57 +45,25 @@ class MenuItemDef {
     constructor(defId: MenuItemDefId,
                 url: String? = null,
                 badgeCounter: (() -> Int?)? = null,
+                badgeTooltipKey: String? = null,
                 checkAccess: (() -> Boolean)? = null,
                 visibleForRestrictedUsers: Boolean = false,
                 requiredUserRightId: IUserRightId? = null,
                 requiredUserRight: UserRight? = null,
                 requiredUserRightValues: Array<UserRightValue>? = null,
-                vararg requiredGroups: ProjectForgeGroup) {
-        this.id = defId.id
-        this.i18nKey = defId.getI18nKey()
-        this.badgeCounter = badgeCounter
-        this.badgeTooltipKey = badgeTooltipKey
-        this.url = url
-        this.checkAccess = checkAccess
-        this.visibleForRestrictedUsers = visibleForRestrictedUsers
-        this.requiredGroups = arrayOf(*requiredGroups)
-        this.requiredUserRightId = requiredUserRightId
-        this.requiredUserRight = requiredUserRight
-        this.requiredUserRightValues = requiredUserRightValues
-    }
-
-    /**
-     * Usable for e. g. plugins without [MenuItemDef] available.
-     * @param id Should be unique inside one top menu.
-     * @param i18nKey Used for translation.
-     * @param url The target url.
-     * @param checkAccess Dynamic check access for the logged in user. The menu is visible if [checkAccess] is null or returns true.
-     */
-    constructor(id: String,
-                i18nKey: String) {
-        this.id = id
-        this.i18nKey = i18nKey
-    }
-
-    /**
-     * Needed for unique keys for React frontend.
-     */
-    val id: String
-    var title: String? = null
-    var i18nKey: String? = null
-    var url: String? = null
-    var visibleForRestrictedUsers: Boolean = false
-
-    var checkAccess: (() -> Boolean)? = null
-    var requiredGroups: Array<ProjectForgeGroup>? = null
-    var requiredUserRightId: IUserRightId? = null
-    var requiredUserRight: UserRight? = null
-    var requiredUserRightValues: Array<UserRightValue>? = null
-
-    var badgeCounter: (() -> Int?)? = null
-    var badgeTooltipKey: String? = null
-
-    internal var childs: MutableList<MenuItemDef>? = null
+                vararg requiredGroups: ProjectForgeGroup)
+            : this(
+            defId.id,
+            defId.getI18nKey(),
+            url = url,
+            badgeCounter = badgeCounter,
+            badgeTooltipKey = badgeTooltipKey,
+            visibleForRestrictedUsers = visibleForRestrictedUsers,
+            checkAccess = checkAccess,
+            requiredUserRightId = requiredUserRightId,
+            requiredUserRight = requiredUserRight,
+            requiredUserRightValues = requiredUserRightValues,
+            requiredGroups = *requiredGroups)
 
     @Synchronized
     internal fun add(item: MenuItemDef): MenuItemDef {
@@ -98,15 +89,15 @@ class MenuItemDef {
 
     /**
      * @param parentMenu Only needed for building unique keys
-     * @param menuBuilderContext
+     * @param menuCreatorContext
      */
     internal fun createMenu(parentMenu: MenuItem?, menuCreatorContext: MenuCreatorContext): MenuItem {
         val title = if (menuCreatorContext.translate) translate(i18nKey) else i18nKey
-        val menuItem = MenuItem(id, title = title!!, i18nKey = i18nKey, url = this.url)
+        val menuItem = MenuItem(id, title = title, i18nKey = i18nKey, url = this.url)
         if (parentMenu != null)
-            menuItem.key = "${parentMenu.key}.${id}"
+            menuItem.key = "${parentMenu.key}.$id"
         else
-            menuItem.key = "${id}"
+            menuItem.key = id
         val counter = badgeCounter?.invoke()
         if (counter ?: -1 > 0) {
             menuItem.badge = MenuBadge(counter, style = "danger")
@@ -114,5 +105,23 @@ class MenuItemDef {
                 menuItem.badge?.tooltip = translate(badgeTooltipKey)
         }
         return menuItem
+    }
+
+    companion object {
+        /**
+         * For Java code, because Kotlin constructors with named parameter doesn't work in Java code.
+         */
+        @JvmStatic
+        fun create(id: String, i18nKey: String): MenuItemDef {
+            return MenuItemDef(id, i18nKey)
+        }
+
+        /**
+         * For Java code, because Kotlin constructors with named parameter doesn't work in Java code.
+         */
+        @JvmStatic
+        fun create(id: String, i18nKey: String, url: String): MenuItemDef {
+            return MenuItemDef(id, i18nKey, url = url)
+        }
     }
 }

@@ -23,12 +23,7 @@
 
 package org.projectforge.business.user;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.io.Serializable;
-import java.util.Iterator;
-import java.util.List;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.timesheet.TimesheetDO;
@@ -37,9 +32,13 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.junit.jupiter.api.Test;
+
+import java.io.Serializable;
+import java.util.Iterator;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class UserPrefTest extends AbstractTestBase
 {

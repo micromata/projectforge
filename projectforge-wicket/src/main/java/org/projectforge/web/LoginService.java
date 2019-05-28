@@ -50,7 +50,7 @@ public class LoginService {
   private LoginHandler loginHandler;
 
   private void internalLogin(final WebPage page, final PFUserDO user) {
-    final UserContext userContext = new UserContext(PFUserDO.createCopyWithoutSecretFields(user),
+    final UserContext userContext = new UserContext(PFUserDO.Companion.createCopyWithoutSecretFields(user),
             getUserGroupCache());
     ((MySession) page.getSession()).login(userContext, page.getRequest());
     UserFilter.login(WicketUtils.getHttpServletRequest(page.getRequest()), userContext);
@@ -84,9 +84,9 @@ public class LoginService {
       log.info("Admin login for maintenance (data-base update) successful for user '" + username + "'.");
       throw new RestartResponseException(SystemUpdatePage.class);
     }
-    log.info("User successfully logged in: " + user.getDisplayUsername());
+    log.info("User successfully logged in: " + user.getUserDisplayName());
     if (userWantsToStayLoggedIn == true) {
-      final PFUserDO loggedInUser = userService.getById(user.getId());
+      final PFUserDO loggedInUser = userService.internalGetById(user.getId());
       final Cookie cookie = new Cookie(Const.COOKIE_NAME_FOR_STAY_LOGGED_IN, loggedInUser.getId()
               + ":"
               + loggedInUser.getUsername()

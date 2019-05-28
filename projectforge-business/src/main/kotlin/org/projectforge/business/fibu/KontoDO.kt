@@ -24,7 +24,6 @@
 package org.projectforge.business.fibu
 
 import de.micromata.genome.db.jpa.history.api.WithHistory
-import org.apache.commons.lang3.ObjectUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.search.annotations.Analyze
 import org.hibernate.search.annotations.Field
@@ -34,6 +33,7 @@ import org.hibernate.search.bridge.builtin.IntegerBridge
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import java.util.*
 import javax.persistence.*
 
 @Entity
@@ -72,12 +72,11 @@ class KontoDO : DefaultBaseDO(), ShortDisplayNameCapable {
         return formatKonto(this)
     }
 
-    override fun equals(o: Any?): Boolean {
-        if (o is KontoDO) {
-            val other = o as KontoDO?
-            return if (ObjectUtils.equals(this.nummer, other!!.nummer) == false) {
+    override fun equals(other: Any?): Boolean {
+        if (other is KontoDO) {
+            return if (!Objects.equals(this.nummer, other.nummer)) {
                 false
-            } else ObjectUtils.equals(this.bezeichnung, other.bezeichnung)
+            } else Objects.equals(this.bezeichnung, other.bezeichnung)
         }
         return false
     }

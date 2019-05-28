@@ -8,7 +8,7 @@ data class UILabel(
          */
         var labelFor: String? = null,
         @Transient
-        override val layoutSettings: LayoutContext? = null,
+        override val layoutContext: LayoutContext? = null,
         @Transient
         var reference: UIElement? = null,
         override var additionalLabel: String? = null,

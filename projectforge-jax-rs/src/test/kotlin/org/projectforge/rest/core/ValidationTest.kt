@@ -43,7 +43,7 @@ class ValidationTest {
         fun setup() {
             ConfigXml(".")
             val user = PFUserDO()
-            user.setLocale(Locale.GERMAN)
+            user.locale = Locale.GERMAN
             ThreadLocalUserContext.setUserContext(UserContext(user, null))
         }
     }

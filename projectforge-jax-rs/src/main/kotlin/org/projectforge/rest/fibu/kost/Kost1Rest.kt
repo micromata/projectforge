@@ -1,0 +1,51 @@
+package org.projectforge.rest.fibu.kost
+
+import org.projectforge.business.fibu.KostFormatter
+import org.projectforge.business.fibu.kost.Kost1DO
+import org.projectforge.business.fibu.kost.Kost1Dao
+import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AbstractDTORest
+import org.projectforge.rest.dto.Kost1
+import org.projectforge.ui.*
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
+
+@RestController
+@RequestMapping("${Rest.URL}/kost1")
+class Kost1Rest() : AbstractDTORest<Kost1DO, Kost1, Kost1Dao, BaseSearchFilter>(Kost1Dao::class.java, BaseSearchFilter::class.java, "fibu.kost1.title") {
+    override fun transformDO(obj: Kost1DO, editMode : Boolean): Kost1 {
+        val kost1 = Kost1()
+        kost1.copyFrom(obj)
+        kost1.formattedNumber = KostFormatter.format(obj)
+        return kost1
+    }
+
+    override fun transformDTO(dto: Kost1): Kost1DO {
+        val kost1DO = Kost1DO()
+        dto.copyTo(kost1DO)
+        return kost1DO
+    }
+
+    /**
+     * LAYOUT List page
+     */
+    override fun createListLayout(): UILayout {
+        val layout = super.createListLayout()
+                .add(UITable.UIResultSetTable()
+                        .add(lc, "formattedNumber", "description", "kostentraegerStatus"))
+        return LayoutUtils.processListPage(layout)
+    }
+
+    /**
+     * LAYOUT Edit page
+     */
+    override fun createEditLayout(dataObject: Kost1DO): UILayout {
+        // TODO: EditPage needs customized component for the cost 1 id
+        val layout = super.createEditLayout(dataObject)
+                .add(UIRow()
+                        .add(UICol()
+                                .add(lc, "nummer", "description", "kostentraegerStatus")))
+        return LayoutUtils.processEditPage(layout, dataObject)
+    }
+}

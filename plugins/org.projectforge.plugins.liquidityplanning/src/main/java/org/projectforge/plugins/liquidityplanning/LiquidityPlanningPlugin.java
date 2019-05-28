@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
-import org.projectforge.business.user.UserRightValue;
 import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
@@ -79,7 +78,7 @@ public class LiquidityPlanningPlugin extends AbstractPlugin {
     pluginWicketRegistrationService.addMountPage("liquidityForecast", LiquidityForecastPage.class);
 
     // Register the menu entry as sub menu entry of the reporting menu:
-    MenuItemDef menuEntry = new MenuItemDef(ID, "plugins.liquidityplanning.menu");
+    MenuItemDef menuEntry = MenuItemDef.create(ID, "plugins.liquidityplanning.menu");
     menuEntry.setRequiredUserRightId(LiquidityplanningPluginUserRightId.PLUGIN_LIQUIDITY_PLANNING);
     menuEntry.setRequiredUserRightValues(UserRightService.READONLY_READWRITE);
     pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.REPORTING, menuEntry, LiquidityEntryListPage.class);

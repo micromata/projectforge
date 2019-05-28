@@ -13,6 +13,8 @@ class MagicFilter<F : BaseSearchFilter>(
          */
         val entries: MutableList<MagicFilterEntry>? = null
 ) {
+    internal val log = org.slf4j.LoggerFactory.getLogger(MagicFilter::class.java)
+
     /**
      * Creates the search filter for the data-base query.
      * @param filterClass Needed for creating a new filter instance if not yet given.
@@ -28,11 +30,18 @@ class MagicFilter<F : BaseSearchFilter>(
         entries.forEach { entry ->
             when (entry.type()) {
                 MagicFilterEntry.Type.STRING_SEARCH -> {
-                    searchStrings.add("${entry.getSearchStringStrategy()}")
+                    searchStrings.add(entry.getSearchStringStrategy())
                 }
                 MagicFilterEntry.Type.FIELD_STRING_SEARCH -> {
                     searchStrings.add("${entry.field}:${entry.getSearchStringStrategy()}")
                 }
+                MagicFilterEntry.Type.FIELD_VALUES_SEARCH -> {
+                    log.warn("Unsupported field search: ${entry.type()}.")
+                }
+                MagicFilterEntry.Type.FIELD_RANGE_SEARCH -> {
+                    log.warn("Unsupported field search: ${entry.type()}.")
+                }
+                MagicFilterEntry.Type.NONE -> { }
             }
         }
         return filter

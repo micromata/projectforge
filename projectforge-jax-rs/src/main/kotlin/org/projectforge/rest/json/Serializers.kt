@@ -5,14 +5,18 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import org.projectforge.business.address.AddressbookDO
+import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.ProjektDao
+import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
+import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.TenantDO
 import org.projectforge.registry.Registry
+import org.projectforge.rest.dto.Kost1
 import org.projectforge.rest.task.TaskServicesRest
 import java.io.IOException
 
@@ -29,13 +33,30 @@ class PFUserDOSerializer : StdSerializer<PFUserDO>(PFUserDO::class.java) {
             jgen.writeNull()
             return
         }
-        val user = User(value.id, value.username, value.fullname)
+        val user = User(value.id, value.username, value.getFullname())
         jgen.writeObject(user)
     }
 }
 
 /**
- * Serialization for TaskDO etc.
+ * Serialization for GroupDO.
+ */
+class GroupDOSerializer : StdSerializer<GroupDO>(GroupDO::class.java) {
+    private class Group(val id: Int?, val name: String?)
+
+    @Throws(IOException::class, JsonProcessingException::class)
+    override fun serialize(value: GroupDO?, jgen: JsonGenerator, provider: SerializerProvider) {
+        if (value == null) {
+            jgen.writeNull()
+            return
+        }
+        val group = Group(value.id, name = value.name)
+        jgen.writeObject(group)
+    }
+}
+
+/**
+ * Serialization for TaskDO.
  */
 class TaskDOSerializer : StdSerializer<TaskDO>(TaskDO::class.java) {
     @Throws(IOException::class, JsonProcessingException::class)
@@ -50,7 +71,7 @@ class TaskDOSerializer : StdSerializer<TaskDO>(TaskDO::class.java) {
 }
 
 /**
- * Serialization for Kost2DO etc.
+ * Serialization for Kost2DO.
  */
 class Kost2DOSerializer : StdSerializer<Kost2DO>(Kost2DO::class.java) {
     private class Kunde(val id: Int?, val name: String?)
@@ -59,7 +80,7 @@ class Kost2DOSerializer : StdSerializer<Kost2DO>(Kost2DO::class.java) {
 
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: Kost2DO?, jgen: JsonGenerator, provider: SerializerProvider) {
-        if (value == null){
+        if (value == null) {
             jgen.writeNull()
             return
         }
@@ -81,6 +102,22 @@ class Kost2DOSerializer : StdSerializer<Kost2DO>(Kost2DO::class.java) {
             }
         }
         jgen.writeObject(kost2)
+    }
+}
+
+/**
+ * Serialization for Kost1DO.
+ */
+class Kost1DOSerializer : StdSerializer<Kost1DO>(Kost1DO::class.java) {
+    @Throws(IOException::class, JsonProcessingException::class)
+    override fun serialize(value: Kost1DO?, jgen: JsonGenerator, provider: SerializerProvider) {
+        if (value == null) {
+            jgen.writeNull()
+            return
+        }
+        val kost1 = Kost1(value.id, nummernkreis = value.nummernkreis, bereich = value.bereich, teilbereich = value.teilbereich, endziffer = value.endziffer,
+                description = value.description, formattedNumber = value.formattedNumber)
+        jgen.writeObject(kost1)
     }
 }
 
@@ -129,5 +166,22 @@ class AddressbookDOSerializer : StdSerializer<AddressbookDO>(AddressbookDO::clas
         }
         val addressbook = Addressbook(value.id, value.title)
         jgen.writeObject(addressbook)
+    }
+}
+
+/**
+ * Serialization for EmployeeDO
+ */
+class EmployeeDOSerializer : StdSerializer<EmployeeDO>(EmployeeDO::class.java) {
+    private class Employee(val id: Int?, val username: String?, val fullname: String?)
+
+    @Throws(IOException::class, JsonProcessingException::class)
+    override fun serialize(value: EmployeeDO?, jgen: JsonGenerator, provider: SerializerProvider) {
+        if (value == null) {
+            jgen.writeNull()
+            return
+        }
+        val employee = Employee(value.id, value.user?.username, value.user?.getFullname())
+        jgen.writeObject(employee)
     }
 }

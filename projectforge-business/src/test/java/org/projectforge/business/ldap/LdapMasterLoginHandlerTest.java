@@ -215,7 +215,10 @@ public class LdapMasterLoginHandlerTest extends AbstractTestBase
     loginHandler.initialize();
     Login.getInstance().setLoginHandler(loginHandler);
     logon(AbstractTestBase.TEST_ADMIN_USER);
-    final PFUserDO user = new PFUserDO().setUsername("kai").setFirstname("Kai").setLastname("Reinhard");
+    final PFUserDO user = new PFUserDO();
+    user.setUsername("kai");
+    user.setFirstname("Kai");
+    user.setLastname("Reinhard");
     userService.createEncryptedPassword(user, "successful");
     userService.save(user);
     Assertions.assertEquals(LoginResultStatus.SUCCESS, loginHandler.checkLogin("kai", "successful").getLoginResultStatus());
@@ -329,14 +332,19 @@ public class LdapMasterLoginHandlerTest extends AbstractTestBase
   private Integer createUser(final String username, final String password, final String firstname,
       final String lastname)
   {
-    final PFUserDO user = new PFUserDO().setUsername(username).setFirstname(firstname).setLastname(lastname);
+    final PFUserDO user = new PFUserDO();
+    user.setUsername(username);
+    user.setFirstname(firstname);
+    user.setLastname(lastname);
     userService.createEncryptedPassword(user, password);
     return (Integer) userService.save(user);
   }
 
   private Integer createGroup(final String name, final String description)
   {
-    final GroupDO group = new GroupDO().setName(name).setDescription(description);
+    final GroupDO group = new GroupDO();
+    group.setName(name);
+    group.setDescription(description);
     return (Integer) groupDao.internalSave(group);
   }
 

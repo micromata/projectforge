@@ -1,7 +1,6 @@
 package org.projectforge.business.teamcal.service;
 
 import org.projectforge.business.teamcal.model.CalendarFeedConst;
-import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -11,9 +10,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class CalendarFeedService
 {
-  @Autowired
-  private UserDao userDao;
-
   @Autowired
   private UserService userService;
 
@@ -56,7 +52,7 @@ public class CalendarFeedService
   public String getUrl(final String additionalParams)
   {
     final PFUserDO user = ThreadLocalUserContext.getUser();
-    final String authenticationKey = userDao.getAuthenticationToken(user.getId());
+    final String authenticationKey = userService.getAuthenticationToken(user.getId());
     final StringBuilder buf = new StringBuilder();
     buf.append("token=").append(authenticationKey);
     if (additionalParams != null) {

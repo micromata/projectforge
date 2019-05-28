@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("${Rest.URL}/employee")
 class EmployeeRest() : AbstractDTORest<EmployeeDO, Employee, EmployeeDao, EmployeeFilter>(EmployeeDao::class.java, EmployeeFilter::class.java, "fibu.employee.title") {
-    override fun transformDO(obj: EmployeeDO, editMode : Boolean): Employee {
+    override fun transformDO(obj: EmployeeDO, editMode: Boolean): Employee {
         val employee = Employee()
         employee.copyFrom(obj)
         return employee
@@ -31,8 +31,9 @@ class EmployeeRest() : AbstractDTORest<EmployeeDO, Employee, EmployeeDao, Employ
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
-                        .add(lc, "user", "status", "staffNumber", "kost1",
-                                "position", "abteilung", "eintrittsDatum", "austrittsDatum", "comment"))
+                        .add(lc, "user", "status", "staffNumber")
+                        .add(UITableColumn("kost1", "fibu.kost1", formatter = Formatter.COST1))
+                        .add(lc, "position", "abteilung", "eintrittsDatum", "austrittsDatum", "comment"))
         layout.getTableColumnById("user").formatter = Formatter.USER
         return LayoutUtils.processListPage(layout)
     }

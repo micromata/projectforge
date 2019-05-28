@@ -1,15 +1,5 @@
 package org.projectforge.business.user.service;
 
-import java.io.Serializable;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.configuration.ConfigurationService;
@@ -18,11 +8,13 @@ import org.projectforge.business.login.PasswordCheckResult;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.password.PasswordQualityService;
+import org.projectforge.business.user.UserChangedListener;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UsersComparator;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessChecker;
+import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.configuration.SecurityConfig;
 import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.framework.persistence.api.ModificationStatus;
@@ -37,9 +29,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.Serializable;
+import java.sql.Timestamp;
+import java.util.*;
+import java.util.stream.Collectors;
+
 @Service
-public class UserService
-{
+public class UserService implements UserChangedListener {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserService.class);
 
   private static final short STAY_LOGGED_IN_KEY_LENGTH = 20;
@@ -50,29 +46,39 @@ public class UserService
 
   private UserGroupCache userGroupCache;
 
-  @Autowired
+  private Map<Integer, String> authenticationTokenCache = new HashMap<>();
+
   private ConfigurationService configurationService;
 
-  @Autowired
   private UserDao userDao;
 
-  @Autowired
   private AccessChecker accessChecker;
 
-  @Autowired
   private TenantService tenantService;
 
-  @Autowired
   private PasswordQualityService passwordQualityService;
 
   private final UsersComparator usersComparator = new UsersComparator();
+
+  @Autowired
+  public UserService(AccessChecker accessChecker,
+                     ConfigurationService configurationService,
+                     PasswordQualityService passwordQualityService,
+                     TenantService tenantService,
+                     UserDao userDao) {
+    this.accessChecker = accessChecker;
+    this.configurationService = configurationService;
+    this.passwordQualityService = passwordQualityService;
+    this.tenantService = tenantService;
+    this.userDao = userDao;
+    userDao.register(this);
+  }
 
   /**
    * @param userIds
    * @return
    */
-  public List<String> getUserNames(final String userIds)
-  {
+  public List<String> getUserNames(final String userIds) {
     if (StringUtils.isEmpty(userIds) == true) {
       return null;
     }
@@ -89,13 +95,12 @@ public class UserService
     return list;
   }
 
-  public Collection<PFUserDO> getSortedUsers()
-  {
+  public Collection<PFUserDO> getSortedUsers() {
     TreeSet<PFUserDO> sortedUsers = new TreeSet<PFUserDO>(usersComparator);
     final Collection<PFUserDO> allusers = getUserGroupCache().getAllUsers();
     final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
     for (final PFUserDO user : allusers) {
-      if (user.isDeleted() == false && user.isDeactivated() == false
+      if (user.isDeleted() == false && user.getDeactivated() == false
               && userDao.hasSelectAccess(loggedInUser, user, false) == true) {
         sortedUsers.add(user);
       }
@@ -107,8 +112,7 @@ public class UserService
    * @param userIds
    * @return
    */
-  public Collection<PFUserDO> getSortedUsers(final String userIds)
-  {
+  public Collection<PFUserDO> getSortedUsers(final String userIds) {
     if (StringUtils.isEmpty(userIds) == true) {
       return null;
     }
@@ -125,8 +129,7 @@ public class UserService
     return sortedUsers;
   }
 
-  public String getUserIds(final Collection<PFUserDO> users)
-  {
+  public String getUserIds(final Collection<PFUserDO> users) {
     final StringBuffer buf = new StringBuffer();
     boolean first = true;
     for (final PFUserDO user : users) {
@@ -140,16 +143,14 @@ public class UserService
   /**
    * @return the useruserCache
    */
-  private UserGroupCache getUserGroupCache()
-  {
+  private UserGroupCache getUserGroupCache() {
     if (userGroupCache == null) {
       userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     }
     return userGroupCache;
   }
 
-  public List<PFUserDO> getAllUsers()
-  {
+  public List<PFUserDO> getAllUsers() {
     try {
       TenantDO tenant = ThreadLocalUserContext.getUser().getTenant() != null ? ThreadLocalUserContext.getUser().getTenant() : tenantService.getDefaultTenant();
       return userDao.internalLoadAll(tenant);
@@ -162,30 +163,29 @@ public class UserService
     }
   }
 
-  public List<PFUserDO> getAllActiveUsers()
-  {
-    return getAllUsers().stream().filter(u -> u.isDeactivated() == false && u.isDeleted() == false).collect(Collectors.toList());
+  public List<PFUserDO> getAllActiveUsers() {
+    return getAllUsers().stream().filter(u -> u.getDeactivated() == false && u.isDeleted() == false).collect(Collectors.toList());
   }
 
   /**
-   * for faster access (due to permanent usage e. g. by subscription of calendars
-   *
    * @param userId
+   * @param authenticationToken
+   * @param userIdAttribute     The required http attribute (only for logging purposes)
+   * @param tokenAttribute      The required http attribute (only for logging purposes)
    * @return
    */
-  public String getCachedAuthenticationToken(final Integer userId)
-  {
-    final PFUserDO user = getUserGroupCache().getUser(userId);
-    if (user == null) {
-      return null;
+  public boolean checkAuthenticationToken(final Integer userId, String authenticationToken, String userIdAttribute, String tokenAttribute) {
+    String storedAuthenticationToken = getAuthenticationToken(userId);
+    if (storedAuthenticationToken == null) {
+      log.error(userIdAttribute + " '" + userId + "' does not exist. Authentication failed.");
+    } else if (authenticationToken == null) {
+      log.error(tokenAttribute + " not given for userId '" + userId + "'. Authentication failed.");
+    } else if (authenticationToken.equals(storedAuthenticationToken)) {
+      return true;
+    } else {
+      log.error(tokenAttribute + " doesn't match for " + userIdAttribute + " '" + userId + "'. Authentication failed.");
     }
-
-    final String authenticationToken = user.getAuthenticationToken();
-    if (StringUtils.isBlank(authenticationToken) == false && authenticationToken.trim().length() >= 10) {
-      return authenticationToken;
-    }
-
-    return userDao.getAuthenticationToken(userId);
+    return false;
   }
 
   /**
@@ -194,11 +194,13 @@ public class UserService
    * @return The decrypted string.
    * @see Crypt#decrypt(String, String)
    */
-  public String decrypt(final Integer userId, final String encryptedString)
-  {
-    // final PFUserDO user = userCache.getUser(userId); // for faster access (due to permanent usage e. g. by subscription of calendars
-    // (ics).
-    final String authenticationToken = StringUtils.rightPad(getCachedAuthenticationToken(userId), 32, "x");
+  public String decrypt(final Integer userId, final String encryptedString) {
+    String storedAuthenticationToken = getAuthenticationToken(userId);
+    if (storedAuthenticationToken == null) {
+      log.warn("Can't get authentication token for user " + userId + ". So can't decrypt encrypted string.");
+      return "";
+    }
+    final String authenticationToken = StringUtils.rightPad(storedAuthenticationToken, 32, "x");
     return Crypt.decrypt(authenticationToken, encryptedString);
   }
 
@@ -211,9 +213,13 @@ public class UserService
    * @return The base64 encoded result (url safe).
    * @see Crypt#encrypt(String, String)
    */
-  public String encrypt(final Integer userId, final String data)
-  {
-    final String authenticationToken = StringUtils.rightPad(getCachedAuthenticationToken(userId), 32, "x");
+  public String encrypt(final Integer userId, final String data) {
+    String storedAuthenticationToken = getAuthenticationToken(userId);
+    if (storedAuthenticationToken == null) {
+      log.warn("Can't get authentication token for user " + userId + ". So can't encrypt string.");
+      return "";
+    }
+    final String authenticationToken = StringUtils.rightPad(storedAuthenticationToken, 32, "x");
     return Crypt.encrypt(authenticationToken, data);
   }
 
@@ -224,18 +230,15 @@ public class UserService
    * @return
    * @see #encrypt(Integer, String)
    */
-  public String encrypt(final String data)
-  {
+  public String encrypt(final String data) {
     return encrypt(ThreadLocalUserContext.getUserId(), data);
   }
 
-  public PFUserDO getUser(Integer userId)
-  {
+  public PFUserDO getUser(Integer userId) {
     return getUserGroupCache().getUser(userId);
   }
 
-  public Collection<Integer> getAssignedTenants(final PFUserDO user)
-  {
+  public Collection<Integer> getAssignedTenants(final PFUserDO user) {
     final PFUserDO u = getUserGroupCache().getUser(user.getId());
     return userDao.getAssignedTenants(u);
   }
@@ -247,16 +250,14 @@ public class UserService
    * @param password as clear text.
    * @see Crypt#digest(String)
    */
-  public void createEncryptedPassword(final PFUserDO user, final String password)
-  {
+  public void createEncryptedPassword(final PFUserDO user, final String password) {
     final String saltString = createSaltString();
     user.setPasswordSalt(saltString);
     final String encryptedPassword = Crypt.digest(getPepperString() + saltString + password);
     user.setPassword(encryptedPassword);
   }
 
-  private String createSaltString()
-  {
+  private String createSaltString() {
     return NumberHelper.getSecureRandomBase64String(10);
   }
 
@@ -270,8 +271,7 @@ public class UserService
    * @return Error message key if any check failed or null, if successfully changed.
    */
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
-  public List<I18nKeyAndParams> changePassword(PFUserDO user, final String oldPassword, final String newPassword)
-  {
+  public List<I18nKeyAndParams> changePassword(PFUserDO user, final String oldPassword, final String newPassword) {
     Validate.notNull(user);
     Validate.notNull(oldPassword);
     Validate.notNull(newPassword);
@@ -303,8 +303,7 @@ public class UserService
    * @return Error message key if any check failed or null, if successfully changed.
    */
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
-  public List<I18nKeyAndParams> changeWlanPassword(PFUserDO user, final String loginPassword, final String newWlanPassword)
-  {
+  public List<I18nKeyAndParams> changeWlanPassword(PFUserDO user, final String loginPassword, final String newWlanPassword) {
     Validate.notNull(user);
     Validate.notNull(loginPassword);
     Validate.notNull(newWlanPassword);
@@ -326,8 +325,7 @@ public class UserService
     return Collections.emptyList();
   }
 
-  public void onPasswordChange(final PFUserDO user, final boolean createHistoryEntry)
-  {
+  public void onPasswordChange(final PFUserDO user, final boolean createHistoryEntry) {
     user.checkAndFixPassword();
     if (user.getPassword() != null) {
       user.setStayLoggedInKey(createStayLoggedInKey());
@@ -345,8 +343,7 @@ public class UserService
     }
   }
 
-  public void onWlanPasswordChange(final PFUserDO user, final boolean createHistoryEntry)
-  {
+  public void onWlanPasswordChange(final PFUserDO user, final boolean createHistoryEntry) {
     if (createHistoryEntry) {
       HistoryBaseDaoAdapter.wrappHistoryUpdate(user, () -> {
         user.setLastWlanPasswordChange(new Date());
@@ -357,15 +354,13 @@ public class UserService
     }
   }
 
-  private String createStayLoggedInKey()
-  {
+  private String createStayLoggedInKey() {
     return NumberHelper.getSecureRandomUrlSaveString(STAY_LOGGED_IN_KEY_LENGTH);
   }
 
   @SuppressWarnings("unchecked")
   @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
-  protected PFUserDO getUser(final String username, final String password, final boolean updateSaltAndPepperIfNeeded)
-  {
+  protected PFUserDO getUser(final String username, final String password, final boolean updateSaltAndPepperIfNeeded) {
     final List<PFUserDO> list = userDao.findByUsername(username);
     if (list == null || list.isEmpty() == true || list.get(0) == null) {
       return null;
@@ -390,18 +385,22 @@ public class UserService
    * @param password as clear text.
    * @return true if the password matches the user's password.
    */
-  public PasswordCheckResult checkPassword(final PFUserDO user, final String password)
-  {
+  public PasswordCheckResult checkPassword(final PFUserDO user, final String password) {
     if (user == null) {
       log.warn("User not given in checkPassword(PFUserDO, String) method.");
       return PasswordCheckResult.FAILED;
     }
-    final String userPassword = user.getPassword();
+    final PFUserDO internalUser = userDao.internalGetById(user.getId());
+    if (internalUser == null) {
+      log.warn("Can't load user; " + user.getId());
+      return PasswordCheckResult.FAILED;
+    }
+    final String userPassword = internalUser.getPassword();
     if (StringUtils.isBlank(userPassword) == true) {
       log.warn("User's password is blank, can't checkPassword(PFUserDO, String) for user with id " + user.getId());
       return PasswordCheckResult.FAILED;
     }
-    String saltString = user.getPasswordSalt();
+    String saltString = internalUser.getPasswordSalt();
     if (saltString == null) {
       saltString = "";
     }
@@ -440,8 +439,7 @@ public class UserService
    * @return
    */
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
-  public String getStayLoggedInKey(final Integer userId)
-  {
+  public String getStayLoggedInKey(final Integer userId) {
     final PFUserDO user = userDao.internalGetById(userId);
     if (StringUtils.isBlank(user.getStayLoggedInKey()) || user.getStayLoggedInKey().trim().length() < 10) {
       user.setStayLoggedInKey(createStayLoggedInKey());
@@ -454,8 +452,7 @@ public class UserService
    * Renews the user's stay-logged-in key (random string sequence).
    */
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
-  public void renewStayLoggedInKey(final Integer userId)
-  {
+  public void renewStayLoggedInKey(final Integer userId) {
     if (ThreadLocalUserContext.getUserId().equals(userId) == false) {
       // Only admin users are able to renew authentication token of other users:
       accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
@@ -469,8 +466,7 @@ public class UserService
   /**
    * Ohne Zugangsbegrenzung. Wird bei Anmeldung benötigt.
    */
-  public PFUserDO authenticateUser(final String username, final String password)
-  {
+  public PFUserDO authenticateUser(final String username, final String password) {
     Validate.notNull(username);
     Validate.notNull(password);
 
@@ -484,19 +480,16 @@ public class UserService
         log.warn("Deleted/deactivated user tried to login: " + user);
         return null;
       }
-      final PFUserDO contextUser = new PFUserDO();
-      contextUser.copyValuesFrom(user);
+      final PFUserDO contextUser = PFUserDO.createCopyWithoutSecretFields(user);
       contextUser.setLoginFailures(loginFailures); // Restore loginFailures for current user session.
       contextUser.setLastLogin(lastLogin); // Restore lastLogin for current user session.
-      contextUser.setPassword(null);
       return contextUser;
     }
     userDao.updateIncrementLoginFailure(username);
     return null;
   }
 
-  private String getPepperString()
-  {
+  private String getPepperString() {
     final SecurityConfig securityConfig = configurationService.getSecurityConfig();
     if (securityConfig != null) {
       return securityConfig.getPasswordPepper();
@@ -504,48 +497,44 @@ public class UserService
     return "";
   }
 
-  public PFUserDO getByUsername(String username)
-  {
+  public PFUserDO getByUsername(String username) {
     return userDao.getInternalByName(username);
   }
 
-  public PFUserDO getById(Serializable id)
-  {
+  public PFUserDO getById(Serializable id) {
+    return userDao.getById(id);
+  }
+
+  public PFUserDO internalGetById(Serializable id) {
     return userDao.internalGetById(id);
   }
 
-  public Integer save(PFUserDO user)
-  {
+  public Integer save(PFUserDO user) {
     return userDao.internalSave(user);
   }
 
-  public void markAsDeleted(PFUserDO user)
-  {
+  public void markAsDeleted(PFUserDO user) {
     userDao.internalMarkAsDeleted(user);
   }
 
-  public boolean doesUsernameAlreadyExist(PFUserDO user)
-  {
+  public boolean doesUsernameAlreadyExist(PFUserDO user) {
     return userDao.doesUsernameAlreadyExist(user);
   }
 
-  public String getAuthenticationToken(int userId)
-  {
-    return userDao.getAuthenticationToken(userId);
-  }
-
-  public ModificationStatus update(PFUserDO user)
-  {
+  public ModificationStatus update(PFUserDO user) {
     return userDao.update(user);
   }
 
-  public List<PFUserDO> loadAll()
-  {
+  /**
+   * Without access checking!!! Secret fields are cleared.
+   *
+   * @see UserDao#internalLoadAll()
+   */
+  public List<PFUserDO> internalLoadAll() {
     return userDao.internalLoadAll();
   }
 
-  public String getNormalizedPersonalPhoneIdentifiers(final PFUserDO user)
-  {
+  public String getNormalizedPersonalPhoneIdentifiers(final PFUserDO user) {
     if (StringUtils.isNotBlank(user.getPersonalPhoneIdentifiers()) == true) {
       final String[] ids = getPersonalPhoneIdentifiers(user);
       if (ids != null) {
@@ -565,8 +554,7 @@ public class UserService
     return null;
   }
 
-  public String[] getPersonalPhoneIdentifiers(final PFUserDO user)
-  {
+  public String[] getPersonalPhoneIdentifiers(final PFUserDO user) {
     final String[] tokens = StringUtils.split(user.getPersonalPhoneIdentifiers(), ", ;|");
     if (tokens == null) {
       return null;
@@ -591,28 +579,23 @@ public class UserService
     return result;
   }
 
-  public UserDao getUserDao()
-  {
+  public UserDao getUserDao() {
     return userDao;
   }
 
-  public void updateMyAccount(PFUserDO data)
-  {
+  public void updateMyAccount(PFUserDO data) {
     userDao.updateMyAccount(data);
   }
 
-  public void undelete(PFUserDO dbUser)
-  {
+  public void undelete(PFUserDO dbUser) {
     userDao.internalUndelete(dbUser);
   }
 
-  public PFUserDO getUserByAuthenticationToken(Integer userId, String authKey)
-  {
+  public PFUserDO getUserByAuthenticationToken(Integer userId, String authKey) {
     return userDao.getUserByAuthenticationToken(userId, authKey);
   }
 
-  public List<PFUserDO> findUserByMail(String email)
-  {
+  public List<PFUserDO> findUserByMail(String email) {
     List<PFUserDO> userList = new ArrayList<>();
     for (PFUserDO user : getUserGroupCache().getAllUsers()) {
       if (user.getEmail() != null && user.getEmail().toLowerCase().equals(email.toLowerCase())) {
@@ -622,4 +605,30 @@ public class UserService
     return userList;
   }
 
+  /**
+   * Uses an internal cache for faster access. The cache is automatically renewed if the authentication token was changed.
+   *
+   * @param userId
+   * @return The user's authentication token (will be created if not given yet).
+   * @see UserDao#getAuthenticationToken(Integer)
+   */
+  public String getAuthenticationToken(Integer userId) {
+    String authenticationToken = this.authenticationTokenCache.get(userId);
+    if (authenticationToken == null) {
+      authenticationToken = userDao.getAuthenticationToken(userId);
+      this.authenticationTokenCache.put(userId, authenticationToken);
+    }
+    return authenticationToken;
+  }
+
+  /**
+   * Clears authentication token.
+   *
+   * @param user
+   * @param operationType
+   */
+  @Override
+  public void afterUserChanged(PFUserDO user, OperationType operationType) {
+    this.authenticationTokenCache.remove(user.getId());
+  }
 }

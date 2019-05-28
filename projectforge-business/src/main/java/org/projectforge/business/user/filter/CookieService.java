@@ -1,9 +1,5 @@
 package org.projectforge.business.user.filter;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.Const;
 import org.projectforge.business.login.Login;
@@ -14,6 +10,10 @@ import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.stereotype.Service;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 @Service
 public class CookieService
@@ -61,13 +61,13 @@ public class CookieService
         return null;
       }
       if (Login.getInstance().checkStayLoggedIn(user) == false) {
-        log.warn("Stay-logged-in wasn't accepted by the login handler: " + user.getUserDisplayname());
+        log.warn("Stay-logged-in wasn't accepted by the login handler: " + user.getUserDisplayName());
         return null;
       }
       // update the cookie, especially the max age
       addStayLoggedInCookie(request, response, stayLoggedInCookie);
-      log.info("User successfully logged in using stay-logged-in method: " + user.getUserDisplayname());
-      return new UserContext(PFUserDO.createCopyWithoutSecretFields(user), userDao.getUserGroupCache());
+      log.info("User successfully logged in using stay-logged-in method: " + user.getUserDisplayName());
+      return new UserContext(PFUserDO.Companion.createCopyWithoutSecretFields(user), userDao.getUserGroupCache());
     }
     return null;
   }

@@ -1,4 +1,4 @@
-package org.projectforge.rest.json
+package org.projectforge.framework
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test

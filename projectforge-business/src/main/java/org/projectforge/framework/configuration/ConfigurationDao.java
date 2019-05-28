@@ -84,7 +84,7 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
       final Integer adminUserId = ThreadLocalUserContext.getUserId();
       final PFUserDO adminUser = userDao.getById(adminUserId);
       log.info("Enabling current user as super admin (for administer tenants) because he has enabled multi-tenancy: "
-          + adminUser.getDisplayUsername());
+          + adminUser.getUserDisplayName());
       adminUser.setSuperAdmin(true);
       userDao.update(adminUser);
     }

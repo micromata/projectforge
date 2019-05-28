@@ -73,7 +73,7 @@ public class HRListResourceLinkPanel extends Panel
     userRepeater.removeAll();
     final List<PFUserDO> unplannedUsers = hrDao.getUnplannedResources(hrViewData);
     for (final PFUserDO user : unplannedUsers) {
-      if (user.isHrPlanning() == false || user.hasSystemAccess() == false) {
+      if (user.getHrPlanning() == false || user.hasSystemAccess() == false) {
         continue;
       }
       final WebMarkupContainer container = new WebMarkupContainer(userRepeater.newChildId());

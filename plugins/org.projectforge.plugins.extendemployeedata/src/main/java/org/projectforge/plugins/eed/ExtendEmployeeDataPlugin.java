@@ -89,7 +89,7 @@ public class ExtendEmployeeDataPlugin extends AbstractPlugin {
   }
 
   private void register(String menuId, String i18nKey, Class<? extends Page> pageClass, UserRightId userRightId, UserRightValue... userRightValues) {
-    MenuItemDef menuEntry = new MenuItemDef(menuId, i18nKey);
+    MenuItemDef menuEntry = MenuItemDef.create(menuId, i18nKey);
     menuEntry.setRequiredUserRightId(userRightId);
     menuEntry.setRequiredUserRightValues(userRightValues);
     pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.HR, menuEntry, pageClass);
