@@ -15,6 +15,7 @@ enum class Formatter {
     COST1,
     COST2,
     CUSTOMER,
+    GROUP,
     KONTO,
     PROJECT,
     TASK_PATH,
