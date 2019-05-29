@@ -1,4 +1,4 @@
-package org.projectforge.rest
+package org.projectforge.plugins.memo.rest
 
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.plugins.memo.MemoDO
@@ -12,17 +12,13 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/memo")
-class MemoRest() : AbstractDORest<MemoDO, MemoDao, BaseSearchFilter>(MemoDao::class.java, BaseSearchFilter::class.java, "memo.title") {
+class MemoRest() : AbstractDORest<MemoDO, MemoDao, BaseSearchFilter>(MemoDao::class.java, BaseSearchFilter::class.java, "plugins.memo.title") {
     /**
      * Initializes new memos for adding.
      */
     override fun newBaseDO(request: HttpServletRequest): MemoDO {
         val memo = super.newBaseDO(request)
         return memo
-    }
-
-    override fun validate(validationErrors: MutableList<ValidationError>, obj: MemoDO) {
-
     }
 
     /**
