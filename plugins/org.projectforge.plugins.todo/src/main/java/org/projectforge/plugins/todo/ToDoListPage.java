@@ -95,7 +95,7 @@ public class ToDoListPage extends AbstractListPage<ToDoListForm, ToDoDao, ToDoDO
         final ToDoDO toDo = rowModel.getObject();
         appendCssClasses(item, toDo.getId(), toDo.isDeleted());
         if (toDo.isDeleted() == false) {
-          if (toDo.isRecent() == true && ObjectUtils.equals(getUserId(), toDo.getAssigneeId()) == true) {
+          if (toDo.getRecent() == true && ObjectUtils.equals(getUserId(), toDo.getAssigneeId()) == true) {
             appendCssClasses(item, RowCssClass.IMPORTANT_ROW);
           }
         }
