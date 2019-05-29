@@ -47,7 +47,7 @@ class MemoPlugin : AbstractPlugin() {
     private lateinit var pluginWicketRegistrationService: PluginWicketRegistrationService
 
     @Autowired
-    private lateinit var menuCreateor: MenuCreator
+    private lateinit var menuCreator: MenuCreator
 
     override fun initialize() {
         // DatabaseUpdateDao is needed by the updater:
