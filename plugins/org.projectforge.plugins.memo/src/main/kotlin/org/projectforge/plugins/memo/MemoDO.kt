@@ -28,7 +28,7 @@ import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.Constants
-import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
+import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import javax.persistence.*
 
@@ -44,7 +44,7 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "T_PLUGIN_MEMO", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_memo_owner_fk", columnList = "owner_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_memo_tenant_id", columnList = "tenant_id")])
-class MemoDO : AbstractHistorizableBaseDO<Int>() {
+class MemoDO : AbstractBaseDO<Int>() {
 
     @PropertyInfo(i18nKey = "id")
     private var id: Int? = null
