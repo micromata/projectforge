@@ -19,6 +19,7 @@ export {
     changeField as changeEditFormField,
     updatePageData as updateEditPageData,
     abort as abortEditPage,
+    deleteIt,
     markAsDeleted,
     undelete,
     clone,

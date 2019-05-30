@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import {
     abortEditPage,
     clone,
+    deleteIt,
     markAsDeleted,
     resetListFilter,
     undelete,
@@ -81,6 +82,7 @@ const actions = {
     cancel: abortEditPage,
     reset: resetListFilter,
     search: updateList,
+    deleteIt,
     markAsDeleted,
     undelete,
     clone,

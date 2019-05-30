@@ -4,6 +4,7 @@ import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
+import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 
 /**
  * Utils for the Layout classes for handling auto max-length (get from JPA entities) and translations as well as
@@ -17,6 +18,7 @@ class LayoutUtils {
         fun addCommonTranslations(translations: MutableMap<String, String>) {
             addTranslations("select.placeholder", "calendar.today", "task.title.list.select", translations = translations)
         }
+
         /**
          * Auto-detects max-length of input fields (by referring the @Column annotations of clazz) and
          * i18n-keys (by referring the [org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn] annotations of clazz).
@@ -101,11 +103,17 @@ class LayoutUtils {
          */
         fun processEditPage(layout: UILayout, data: AbstractBaseDO<Int>?): UILayout {
             layout.addAction(UIButton("cancel", style = UIStyle.DANGER))
-            if (data != null && data.id != null) {
-                if (data.isDeleted)
-                    layout.addAction(UIButton("undelete", style = UIStyle.WARNING))
-                else
-                    layout.addAction(UIButton("markAsDeleted", style = UIStyle.WARNING))
+            if (HistoryBaseDaoAdapter.isHistorizable(data)) {
+                // 99% of the objects are historizable (undeletable):
+                if (data != null && data.id != null) {
+                    if (data.isDeleted)
+                        layout.addAction(UIButton("undelete", style = UIStyle.WARNING))
+                    else
+                        layout.addAction(UIButton("markAsDeleted", style = UIStyle.WARNING))
+                }
+            } else {
+                // MemoDO for example isn't historizable:
+                layout.addAction(UIButton("deleteIt", style = UIStyle.WARNING))
             }
             //if (restService.prepareClone(restService.newBaseDO())) {
             //    layout.addAction(UIButton("clone", style = UIButtonStyle.PRIMARY))
@@ -190,6 +198,7 @@ class LayoutUtils {
                                 "cancel" -> "cancel"
                                 "clone" -> "clone"
                                 "create" -> "create"
+                                "deleteIt" -> "delete"
                                 "markAsDeleted" -> "markAsDeleted"
                                 "reset" -> "reset"
                                 "search" -> "search"
