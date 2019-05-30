@@ -25,7 +25,6 @@ package org.projectforge.plugins.memo
 
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
@@ -55,7 +54,6 @@ class MemoDO : AbstractBaseDO<Int>() {
     var subject: String? = null
 
     @PropertyInfo(i18nKey = "plugins.memo.owner")
-    @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "owner_fk")
     var owner: PFUserDO? = null
