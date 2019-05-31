@@ -23,32 +23,21 @@
 
 package org.projectforge.business.user;
 
-import java.io.Serializable;
-import java.util.Date;
-
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.persistence.UniqueConstraint;
-
+import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist;
+import de.micromata.genome.jpa.DbRecord;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 
-import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist;
-import de.micromata.genome.jpa.DbRecord;
+import javax.persistence.*;
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * For persistency of UserPreferencesData (stores them serialized).
- * 
+ * The data are stored as xml.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @Entity
 @Table(name = "T_USER_XML_PREFS",
@@ -127,8 +116,8 @@ public class UserXmlPreferencesDO implements Serializable, DbRecord<Integer>
   }
 
   /**
-   * The employee assigned to this timesheet.
-   * 
+   * The owner of this preference.
+   *
    * @return the user
    */
   @ManyToOne(fetch = FetchType.LAZY)
@@ -177,7 +166,7 @@ public class UserXmlPreferencesDO implements Serializable, DbRecord<Integer>
 
   /**
    * Contains the serialized settings, stored in the database.
-   * 
+   *
    * @return
    */
   @Column(length = MAX_SERIALIZED_LENGTH)
@@ -213,9 +202,9 @@ public class UserXmlPreferencesDO implements Serializable, DbRecord<Integer>
   }
 
   /**
-   * 
+   *
    * Last update will be modified automatically for every update of the database object.
-   * 
+   *
    * @return
    */
   @Basic
@@ -251,7 +240,7 @@ public class UserXmlPreferencesDO implements Serializable, DbRecord<Integer>
 
   /**
    * Sets CURRENT_VERSION as version.
-   * 
+   *
    * @see #CURRENT_VERSION
    * @return this for chaining.
    */
