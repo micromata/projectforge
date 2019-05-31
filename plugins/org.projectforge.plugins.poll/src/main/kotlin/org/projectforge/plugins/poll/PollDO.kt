@@ -25,6 +25,7 @@ package org.projectforge.plugins.poll
 
 import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.IndexedEmbedded
+import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
@@ -43,17 +44,21 @@ import javax.persistence.Table
 @Table(name = "T_PLUGIN_POLL", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_poll_tenant_id", columnList = "tenant_id")])
 class PollDO : DefaultBaseDO() {
 
+    @PropertyInfo(i18nKey = "plugins.teamcal.owner")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "owner_fk")
     var owner: PFUserDO? = null
 
+    @PropertyInfo(i18nKey = "plugins.poll.new.title")
     @get:Column
     var title: String? = null
 
+    @PropertyInfo(i18nKey = "plugins.poll.new.location")
     @get:Column
     var location: String? = null
 
+    @PropertyInfo(i18nKey = "plugins.poll.new.description")
     @get:Column
     var description: String? = null
 
@@ -80,13 +85,13 @@ class PollDO : DefaultBaseDO() {
             return false
         if (javaClass != other.javaClass)
             return false
-        val other = other as PollDO?
+        val o = other as PollDO?
         if (id == null) {
-            return if (other!!.id != null)
+            return if (o!!.id != null)
                 false
             else
-                super.equals(other)
-        } else if (id != other!!.id)
+                super.equals(o)
+        } else if (id != o!!.id)
             return false
         return true
     }
