@@ -41,23 +41,16 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
     }
 
     /**
-     * Date part as ISO string: "yyyy-MM-dd".
-     */
-    fun dateAsIsoString(): String {
-        return isoDateFormatter.format(dateTime)
-    }
-
-    /**
      * Date part as ISO string: "yyyy-MM-dd HH:mm" in UTC.
      */
-    fun dateTimeAsIsoString(): String {
+    fun asIsoString(): String {
         return isoDateTimeFormatterMinutes.format(dateTime)
     }
 
     /**
      * Date as JavaScript string: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'" (UTC).
      */
-    fun dateTimeAsJavaScriptString(): String {
+    fun asJavaScriptString(): String {
         return jsDateTimeFormatter.format(dateTime)
     }
 

@@ -65,10 +65,10 @@ class PFDateTimeTest {
 
     @Test
     fun parseTest() {
-        assertEquals("2019-03-31 22:00", PFDateTime.parseUTCDate("1554069600")!!.dateTimeAsIsoString())
-        assertEquals("2019-03-31 22:00", PFDateTime.parseUTCDate("2019-03-31 22:00:00")!!.dateTimeAsIsoString())
-        assertEquals("2019-03-31 22:00", PFDateTime.parseUTCDate("2019-03-31 22:00")!!.dateTimeAsIsoString())
-        assertEquals("2019-03-31 22:00", PFDateTime.parseUTCDate("2019-03-31T22:00:00.000Z")!!.dateTimeAsIsoString())
+        assertEquals("2019-03-31 22:00", PFDateTime.parseUTCDate("1554069600")!!.asIsoString())
+        assertEquals("2019-03-31 22:00", PFDateTime.parseUTCDate("2019-03-31 22:00:00")!!.asIsoString())
+        assertEquals("2019-03-31 22:00", PFDateTime.parseUTCDate("2019-03-31 22:00")!!.asIsoString())
+        assertEquals("2019-03-31 22:00", PFDateTime.parseUTCDate("2019-03-31T22:00:00.000Z")!!.asIsoString())
         try {
             PFDateTime.parseUTCDate("2019-03-31")
             fail("Exception expected, because 2019-03-31 isn't parseable due to missing time of day.")
