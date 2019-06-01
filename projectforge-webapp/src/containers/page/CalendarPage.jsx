@@ -168,7 +168,7 @@ class CalendarPage extends React.Component {
                     </CardBody>
                 </Card>
                 <CalendarPanel
-                    defautlDate={date}
+                    defaultDate={date}
                     defaultView={view}
                     activeCalendars={activeCalendars}
                     topHeight="225px"

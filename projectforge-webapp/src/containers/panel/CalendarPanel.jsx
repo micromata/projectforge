@@ -223,8 +223,8 @@ class CalendarPanel extends React.Component {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                start: start ? start.toJSON() : null,
-                end: end ? end.toJSON() : null,
+                start,
+                end,
                 view,
                 activeCalendarIds,
             }),

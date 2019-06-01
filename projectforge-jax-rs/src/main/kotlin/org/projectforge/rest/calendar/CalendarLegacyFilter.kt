@@ -7,6 +7,12 @@ import org.projectforge.framework.time.PFDateTimeUtils
 
 /**
  * For re-using legacy filters (from ProjectForge version up to 6, Wicket-Calendar).
+ *
+ * Some helpful sql statements for testing the migration:
+ *
+ * select * from t_user_xml_prefs where user_id=2 and key like 'calendar.%';
+ *
+ * delete from t_user_xml_prefs where user_id=2 and key  like 'calendar.%';
  */
 internal class CalendarLegacyFilter(val state: CalendarFilterState,
                                     val list: CalendarFilterList,

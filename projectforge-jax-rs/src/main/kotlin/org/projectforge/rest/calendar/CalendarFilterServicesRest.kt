@@ -4,7 +4,7 @@ import org.projectforge.business.teamcal.admin.TeamCalCache
 import org.projectforge.business.user.service.UserPreferencesService
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.time.PFDate
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.config.Rest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
@@ -19,7 +19,7 @@ import java.util.*
 @RestController
 @RequestMapping("${Rest.URL}/calendar")
 class CalendarFilterServicesRest {
-    class CalendarInit(var date: LocalDate? = null,
+    class CalendarInit(var date: PFDateTime? = null,
                        @Suppress("unused") var view: CalendarView? = CalendarView.WEEK,
                        var teamCalendars: List<StyledTeamCalendar>? = null,
                        var storedFilters: List<String>? = null,
@@ -63,7 +63,7 @@ class CalendarFilterServicesRest {
                     style = styleMap.get(cal.id)) // Add the styles of the styleMap to the exported calendar.
         }
         val state = getFilterState()
-        initial.date = state.startDate ?: LocalDate.now()
+        initial.date = PFDateTime.from(state.startDate)
         initial.view = state.view
         initial.activeFilter = getFilterList().getActiveFilter(state.activeFilterIndex)
 
@@ -127,7 +127,7 @@ class CalendarFilterServicesRest {
     internal fun updateCalendarFilterState(startDate: Date?, view: CalendarView?) {
         val state = getFilterState()
         if (startDate != null) {
-            state.startDate = PFDate.from(startDate)?.date
+            state.startDate = PFDateTime.from(startDate)!!.asLocalDate()
         }
         if (view != null)
             state.view = view
