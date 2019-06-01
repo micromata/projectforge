@@ -7,7 +7,7 @@ enum class CalendarView {
     MONTH,
     @JsonProperty("week")
     WEEK,
-    @JsonProperty("workWeek")
+    @JsonProperty("work_week")
     WORK_WEEK,
     @JsonProperty("day")
     DAY,
@@ -15,6 +15,7 @@ enum class CalendarView {
     AGENDA;
 
     companion object {
-        fun from(name: String?) = if (name == null) null else valueOf(name.toUpperCase())
+        fun from(name: String?) = if (name == null) null
+        else valueOf(name.toUpperCase())
     }
 }
