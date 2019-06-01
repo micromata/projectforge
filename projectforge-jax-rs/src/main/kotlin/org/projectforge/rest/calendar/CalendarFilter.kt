@@ -35,7 +35,7 @@ import org.projectforge.business.teamcal.filter.TemplateEntry
  */
 class CalendarFilter {
 
-    val calendarIds = mutableListOf<Int>()
+    var calendarIds = mutableListOf<Int>()
 
     @XStreamAsAttribute
     var name: String? = null

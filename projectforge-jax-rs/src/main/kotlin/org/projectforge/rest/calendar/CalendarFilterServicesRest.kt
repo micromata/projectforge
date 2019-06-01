@@ -124,7 +124,7 @@ class CalendarFilterServicesRest {
         return legacyFilter
     }
 
-    internal fun updateCalendarFilterState(startDate: Date?, view: CalendarView?) {
+    internal fun updateCalendarFilter(startDate: Date?, view: CalendarView?, activeCalendarIds: List<Int>?) {
         val state = getFilterState()
         if (startDate != null) {
             var startDay = PFDateTime.from(startDate)!!.asLocalDate()
@@ -134,8 +134,17 @@ class CalendarFilterServicesRest {
             }
             state.startDate = startDay
         }
-        if (view != null)
+        if (view != null) {
             state.view = view
+        }
+        if (!activeCalendarIds.isNullOrEmpty()) {
+            val activeFilter = getFilterList().getActiveFilter(state.activeFilterIndex)
+            if (activeFilter == null) {
+                log.warn("Active filter for user not found. Can't update active calendar id's in filter.")
+            } else {
+                activeFilter.calendarIds = activeCalendarIds.toMutableList()
+            }
+        }
     }
 }
 
