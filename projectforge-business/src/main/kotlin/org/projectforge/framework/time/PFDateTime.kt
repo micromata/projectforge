@@ -55,10 +55,10 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
     }
 
     /**
-     * Date part as JavaScript string: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'".
+     * Date as JavaScript string: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'" (UTC).
      */
     fun dateTimeAsJavaScriptString(): String {
-        return isoDateTimeFormatterMinutes.format(dateTime)
+        return jsDateTimeFormatter.format(dateTime)
     }
 
     fun getZone(): ZoneId {
