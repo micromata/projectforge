@@ -50,7 +50,9 @@ internal class CalendarLegacyFilter(val state: CalendarFilterState,
          */
         private fun convert(oldViewType: ViewType?): CalendarView? {
             return when (oldViewType) {
+                ViewType.AGENDA_WEEK -> CalendarView.WEEK
                 ViewType.BASIC_WEEK -> CalendarView.WEEK
+                ViewType.AGENDA_DAY -> CalendarView.DAY
                 ViewType.BASIC_DAY -> CalendarView.DAY
                 else -> CalendarView.MONTH
             }
