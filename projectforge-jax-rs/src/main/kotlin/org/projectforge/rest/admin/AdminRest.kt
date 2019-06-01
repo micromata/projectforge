@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/admin")
-class DevelopmentRest() {
+class AdminRest() {
     @Autowired
     private lateinit var accessChecker: AccessChecker
     @Autowired
