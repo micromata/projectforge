@@ -38,9 +38,9 @@ class CalendarServicesRest {
                          /** The team calendarIds to display. */
                          var activeCalendarIds: List<Int>? = null,
                          /**
-                          *  If true, then this filter settings updates the fields of the user's active filter.
+                          *  If true, then this filter updates the fields of the user's calendar state (start date and view).
                           *  If the user calls the calendar page next time, this properties are restored. */
-                         var updateActiveDisplayFilter: Boolean? = false)
+                         var updateState: Boolean? = false)
 
     private class DateTimeRange(var start: PFDateTime,
                                 var end: PFDateTime? = null)
@@ -97,7 +97,7 @@ class CalendarServicesRest {
     private fun buildEvents(filter: CalendarFilter): CalendarData { //startParam: PFDateTime? = null, endParam: PFDateTime? = null, viewParam: CalendarViewType? = null): Response {
         val events = mutableListOf<BigCalendarEvent>()
         val view = CalendarView.from(filter.view)
-        if (filter.updateActiveDisplayFilter == true) {
+        if (filter.updateState == true) {
             calendarConfigServicesRest.updateCalendarFilterState(filter.start, view)
         }
         val range = DateTimeRange(PFDateTime.from(filter.start)!!, PFDateTime.from(filter.end))

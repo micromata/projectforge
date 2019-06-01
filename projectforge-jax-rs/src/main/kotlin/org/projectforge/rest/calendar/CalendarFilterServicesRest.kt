@@ -127,7 +127,12 @@ class CalendarFilterServicesRest {
     internal fun updateCalendarFilterState(startDate: Date?, view: CalendarView?) {
         val state = getFilterState()
         if (startDate != null) {
-            state.startDate = PFDateTime.from(startDate)!!.asLocalDate()
+            var startDay = PFDateTime.from(startDate)!!.asLocalDate()
+            if (view == CalendarView.MONTH && startDay.dayOfMonth != 1) {
+                // Adjusting the begin of month (startDate might be a day of the end of the previous month, if shown.
+                startDay = startDay.withDayOfMonth(1).plusMonths(1)
+            }
+            state.startDate = startDay
         }
         if (view != null)
             state.view = view

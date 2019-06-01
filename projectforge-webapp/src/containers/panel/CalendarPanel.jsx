@@ -227,6 +227,7 @@ class CalendarPanel extends React.Component {
                 end,
                 view,
                 activeCalendarIds,
+                updateState: true,
             }),
         })
             .then(response => response.json())
