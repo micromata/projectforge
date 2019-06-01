@@ -16,6 +16,7 @@ import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.TenantDO
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.calendar.TeamCalDOSerializer
 import org.projectforge.rest.json.*
 import org.springframework.context.annotation.Bean
@@ -41,6 +42,9 @@ open class JacksonConfiguration {
         val module = SimpleModule()
         module.addSerializer(LocalDate::class.java, LocalDateSerializer())
         module.addDeserializer(LocalDate::class.java, LocalDateDeserializer())
+
+        module.addSerializer(PFDateTime::class.java, PFDateTimeSerializer())
+        module.addDeserializer(PFDateTime::class.java, PFDateTimeDeserializer())
 
         module.addSerializer(java.util.Date::class.java, UtilDateSerializer())
         module.addDeserializer(java.util.Date::class.java, UtilDateDeserializer())
