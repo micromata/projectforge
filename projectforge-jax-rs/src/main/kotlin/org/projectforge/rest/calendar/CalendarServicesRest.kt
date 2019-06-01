@@ -98,7 +98,7 @@ class CalendarServicesRest {
         val events = mutableListOf<BigCalendarEvent>()
         val view = CalendarView.from(filter.view)
         if (filter.updateState == true) {
-            calendarConfigServicesRest.updateCalendarFilterState(filter.start, view)
+            calendarConfigServicesRest.updateCalendarFilter(filter.start, view, filter.activeCalendarIds)
         }
         val range = DateTimeRange(PFDateTime.from(filter.start)!!, PFDateTime.from(filter.end))
         adjustRange(range, view)
