@@ -27,12 +27,13 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute
 import org.projectforge.business.teamcal.filter.TemplateEntry
 
 /**
- * Persist the settings of one named filter entry.
+ * Persist the settings of one named filter entry. The user may configure a list of filters and my switch the active
+ * calendar filter.
  *
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
-class CalendarsDisplayFilter {
+class CalendarFilter {
 
     val calendarIds = mutableListOf<Int>()
 
@@ -76,8 +77,8 @@ class CalendarsDisplayFilter {
         /**
          * For re-using legacy filters (from ProjetForge version up to 6, Wicket-Calendar).
          */
-        internal fun copyFrom(templateEntry: TemplateEntry?): CalendarsDisplayFilter {
-            val displayFilter = CalendarsDisplayFilter()
+        internal fun copyFrom(templateEntry: TemplateEntry?): CalendarFilter {
+            val displayFilter = CalendarFilter()
             if (templateEntry != null) {
                 displayFilter.defaultCalendarId = templateEntry.defaultCalendarId
                 displayFilter.name = templateEntry.name

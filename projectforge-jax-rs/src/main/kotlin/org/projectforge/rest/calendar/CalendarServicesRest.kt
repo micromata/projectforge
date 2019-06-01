@@ -36,7 +36,11 @@ class CalendarServicesRest {
                          var view: String? = null,
                          var timesheetUserId: Int? = null,
                          /** The team calendarIds to display. */
-                         var activeCalendarIds: List<Int>? = null)
+                         var activeCalendarIds: List<Int>? = null,
+                         /**
+                          *  If true, then this filter settings updates the fields of the user's active filter.
+                          *  If the user calls the calendar page next time, this properties are restored. */
+                         var updateActiveDisplayFilter: Boolean? = false)
 
     private class DateTimeRange(var start: PFDateTime,
                                 var end: PFDateTime? = null)
@@ -48,7 +52,7 @@ class CalendarServicesRest {
     private lateinit var timesheetsProvider: TimesheetEventsProvider
 
     @Autowired
-    private lateinit var calendarConfigServicesRest: CalendarConfigServicesRest
+    private lateinit var calendarConfigServicesRest: CalendarFilterServicesRest
 
     @PostMapping("events")
     fun getEvents(@RequestBody filter: CalendarFilter): ResponseEntity<Any> {
@@ -92,9 +96,12 @@ class CalendarServicesRest {
 
     private fun buildEvents(filter: CalendarFilter): CalendarData { //startParam: PFDateTime? = null, endParam: PFDateTime? = null, viewParam: CalendarViewType? = null): Response {
         val events = mutableListOf<BigCalendarEvent>()
-        // val settings = getUsersSettings()
+        val view = CalendarView.from(filter.view)
+        if (filter.updateActiveDisplayFilter == true) {
+            calendarConfigServicesRest.updateCalendarFilterState(filter.start, view)
+        }
         val range = DateTimeRange(PFDateTime.from(filter.start)!!, PFDateTime.from(filter.end))
-        adjustRange(range, CalendarView.from(filter.view))
+        adjustRange(range, view)
         val timesheetUserId = filter.timesheetUserId
         if (timesheetUserId != null) {
             timesheetsProvider.addTimesheetEvents(range.start, range.end!!, timesheetUserId, events)
