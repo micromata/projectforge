@@ -31,13 +31,6 @@ import java.time.LocalDate
  * displayed date range viewed by the user.
  */
 class CalendarFilterState {
-    /**
-     * The user may define several display filters of Type [CalendarFilter]. This index
-     * marks the current active filter to use.
-     */
-    @XStreamAsAttribute
-    var activeFilterIndex = -1
-
     @XStreamAsAttribute
     var startDate: LocalDate? = null
 

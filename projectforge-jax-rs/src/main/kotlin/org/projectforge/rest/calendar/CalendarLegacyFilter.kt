@@ -10,12 +10,15 @@ import org.projectforge.framework.time.PFDateTimeUtils
  *
  * Some helpful sql statements for testing the migration:
  *
- * select * from t_user_xml_prefs where user_id=2 and key like 'calendar.%';
+ * select key, serializedSettings from t_user_xml_prefs where user_id=2 and key like 'calendar.%';
  *
  * delete from t_user_xml_prefs where user_id=2 and key  like 'calendar.%';
+ *
+ * You may extract settings by using AdminRest.main
  */
 internal class CalendarLegacyFilter(val state: CalendarFilterState,
-                                    val list: CalendarFilterList,
+                                    val list: CalendarFilterFavorites,
+                                    val current: CalendarFilter,
                                     val styleMap: CalendarStyleMap) {
     companion object {
         // LEGACY STUFF:
@@ -30,16 +33,16 @@ internal class CalendarLegacyFilter(val state: CalendarFilterState,
                     ?: return null
 
             val state = CalendarFilterState()
-            val filterList = CalendarFilterList()
+            val filterList = CalendarFilterFavorites()
             val styleMap = CalendarStyleMap()
-            state.activeFilterIndex = oldFilter.activeTemplateEntryIndex
+            val currentFilter = CalendarFilter.copyFrom(oldFilter.activeTemplateEntry)
             //firstHour = oldFilter.firstHour
             //slot30 = oldFilter.isSlot30
             state.startDate = PFDateTimeUtils.convertToLocalDate(oldFilter.startDate)
             state.view = convert(oldFilter.viewType)
             oldFilter.templateEntries?.forEach { templateEntry ->
                 val displayFilter = CalendarFilter.copyFrom(templateEntry)
-                filterList.list.add(displayFilter)
+                filterList.add(displayFilter)
             }
             oldFilter.templateEntries?.forEach { templateEntry ->
                 templateEntry.calendarProperties?.forEach {
@@ -48,7 +51,7 @@ internal class CalendarLegacyFilter(val state: CalendarFilterState,
                     }
                 }
             }
-            return CalendarLegacyFilter(state, filterList, styleMap)
+            return CalendarLegacyFilter(state, filterList, currentFilter, styleMap)
         }
 
         /**
