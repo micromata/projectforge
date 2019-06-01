@@ -68,19 +68,18 @@ class UtilDateSerializer : StdSerializer<java.util.Date>(java.util.Date::class.j
 class UtilDateDeserializer : StdDeserializer<java.util.Date>(java.util.Date::class.java) {
 
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): java.util.Date? {
-        val dateString = p.getText()
+        val dateString = p.text
         if (StringUtils.isBlank(dateString)) {
             return null
         }
-        if (StringUtils.isNumeric(dateString) == true) {
-            val date = java.util.Date(dateString.toLong())
-            return date;
+        if (StringUtils.isNumeric(dateString)) {
+            return java.util.Date(dateString.toLong())
         }
         try {
             val date = LocalDateTime.parse(dateString, formatter)
             return java.util.Date.from(date.toInstant(ZoneOffset.UTC))
         } catch (e: ParseException) {
-            throw JsonParseException(p, dateString, e);
+            throw JsonParseException(p, dateString, e)
         }
     }
 
