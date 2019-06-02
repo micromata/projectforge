@@ -3,10 +3,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { components } from 'react-select';
+import CalendarStyler from '../../../../containers/panel/calendar/CalendarStyler';
 import { Button } from '../../../design';
 import Input from '../../../design/input';
 import Popper from '../../../design/popper';
-import CalendarStyler from '../../../../containers/panel/calendar/CalendarStyler';
 
 const stopEventPropagation = event => event.stopPropagation();
 
@@ -73,6 +73,13 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
 
     // Function to set value in react-select
     const submitValue = () => {
+        switch (data.filterType) {
+            case 'COLOR_PICKER':
+                // TODO SERVER CALL HERE
+                break;
+            default:
+        }
+
         setIsOpen(false);
         selectProps.setMultiValue(data.id, value);
     };
