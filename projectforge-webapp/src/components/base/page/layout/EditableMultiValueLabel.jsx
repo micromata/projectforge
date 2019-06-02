@@ -7,6 +7,7 @@ import CalendarStyler from '../../../../containers/panel/calendar/CalendarStyler
 import { Button } from '../../../design';
 import Input from '../../../design/input';
 import Popper from '../../../design/popper';
+import { getServiceURL } from '../../../../utilities/rest';
 
 const stopEventPropagation = event => event.stopPropagation();
 
@@ -55,11 +56,8 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
             break;
         case 'COLOR_PICKER':
             input = (
-                <React.Fragment>
-                    <CalendarStyler calendarId={data.id} />
-                </React.Fragment>
+                <CalendarStyler calendar={data} />
             );
-            // TODO: IMPLEMENT COLOR PICKER
             break;
         // Case for plain searchString without filterType
         case undefined:
@@ -75,7 +73,14 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
     const submitValue = () => {
         switch (data.filterType) {
             case 'COLOR_PICKER':
-                // TODO SERVER CALL HERE
+                fetch(getServiceURL('calendar/changeStyle', {
+                    calendarId: data.id,
+                    bgColor: data.bgColor,
+                }), {
+                    method: 'GET',
+                    credentials: 'include',
+                })
+                    .catch(error => alert(`Internal error: ${error}`));
                 break;
             default:
         }
