@@ -14,7 +14,7 @@ const stopEventPropagation = event => event.stopPropagation();
 function EditableMultiValueLabel({ data, selectProps, ...props }) {
     const initialValue = selectProps.values[data.id] || '';
 
-    const [isOpen, setIsOpen] = React.useState(true);
+    const [isOpen, setIsOpen] = React.useState(false);
     const [value, setValue] = React.useState(initialValue);
 
     const popperRef = React.useRef(null);
