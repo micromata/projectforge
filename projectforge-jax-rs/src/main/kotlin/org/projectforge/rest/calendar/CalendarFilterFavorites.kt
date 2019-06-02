@@ -38,7 +38,7 @@ class CalendarFilterFavorites() {
     }
 
     fun getAutoName(prefix: String? = null): String {
-        var _prefix = prefix ?: translate("plugins.teamcal.calendar.filterDialog.newTemplateName")
+        var _prefix = prefix ?: translate("calendar.filter.untitled")
         if (list.isEmpty()) {
             return _prefix
         }
