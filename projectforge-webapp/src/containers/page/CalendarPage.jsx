@@ -180,7 +180,7 @@ class CalendarPage extends React.Component {
                     backdropTransition={{ timeout: 150 }}
                 >
                     <ModalHeader toggle={this.settingsModal}>
-                        {translations['plugins.teamcal.calendar.filterDialog.title']}
+                        {translations['calendar.filter.dialog.title']}
                     </ModalHeader>
                     <ModalBody>
                         [ToDo: Standardkalendar, Zeitberichtsuser, Optionen: Pausen, Statistik,

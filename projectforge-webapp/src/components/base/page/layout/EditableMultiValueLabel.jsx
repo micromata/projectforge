@@ -6,6 +6,7 @@ import { components } from 'react-select';
 import { Button } from '../../../design';
 import Input from '../../../design/input';
 import Popper from '../../../design/popper';
+import CalendarStyler from '../../../../containers/panel/calendar/CalendarStyler';
 
 const stopEventPropagation = event => event.stopPropagation();
 
@@ -53,6 +54,11 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
             );
             break;
         case 'COLOR_PICKER':
+            input = (
+                <React.Fragment>
+                    <CalendarStyler calendarId={data.id} />
+                </React.Fragment>
+            );
             // TODO: IMPLEMENT COLOR PICKER
             break;
         // Case for plain searchString without filterType
@@ -116,7 +122,7 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
             <div ref={popperRef}>
                 {input}
                 <Button color="success" block onClick={submitValue}>
-                    <FontAwesomeIcon icon={faCheck} />
+                    <FontAwesomeIcon icon={faCheck}/>
                 </Button>
             </div>
         </Popper>

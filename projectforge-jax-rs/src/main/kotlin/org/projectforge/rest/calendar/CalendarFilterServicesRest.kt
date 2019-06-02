@@ -9,6 +9,7 @@ import org.projectforge.rest.config.Rest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 import java.util.*
@@ -76,8 +77,28 @@ class CalendarFilterServicesRest {
         val favorites = getFilterFavorites()
         initial.filterFavorites = favorites.getFavoriteNames()
 
-        initial.translations = addTranslations("select.placeholder", "plugins.teamcal.calendar.filterDialog.title")
+        initial.translations = addTranslations(
+                "select.placeholder",
+                "calendar.filter.dialog.title",
+                "calendar.filter.visible")
         return initial
+    }
+
+    @GetMapping("changeStyle")
+    fun changeCalendarStyle(@RequestParam("calendarId", required = true) calendarId: Int,
+                            @RequestParam("bgColor") bgColor: String?) {
+        var style = getStyleMap().get(calendarId)
+        if (style == null) {
+            style = CalendarStyle()
+            getStyleMap().add(calendarId, style)
+        }
+        if (!bgColor.isNullOrBlank()) {
+            if (CalendarStyle.validateHexCode(bgColor)) {
+                style.bgColor = bgColor
+            } else {
+                throw IllegalArgumentException("Hex code of color doesn't fit '#a1b' or '#a1b2c3', can't change background color: '$bgColor'.")
+            }
+        }
     }
 
     // Ensures filter list (stored one, restored from legacy filter or a empty new one).
