@@ -1,47 +1,72 @@
 import { faTimesCircle } from '@fortawesome/free-solid-svg-icons';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import PropTypes from 'prop-types';
 import React from 'react';
 import { Button } from '../../../../../design';
 import inputStyle from '../../../../../design/input/Input.module.scss';
-import taskStyle from './Ta'
+import style from './TaskSelect.module.scss';
+import TaskTitle from './TaskTitle';
 
-function TaskPath({ path, setTask, modalHighlight }) {
+function TaskPath(
+    {
+        modalHighlight,
+        openModal,
+        path,
+        setTask,
+    },
+) {
     let recentAncecstorId;
 
     return (
         <React.Fragment>
             {path.map((ancestor) => {
                 const parenTaskId = recentAncecstorId;
-                let removeLink = (
-                    <Button
-                        color="link"
-                        onClick={() => setTask(parenTaskId)}
-                        style={{ padding: 0 }}
-                    >
-                        <FontAwesomeIcon
-                            icon={faTimesCircle}
-                            className={inputStyle.icon}
-                            color="lightGray"
-                        />
-                    </Button>
-                );
-
                 recentAncecstorId = ancestor.id;
 
-                // TODO: LAST POINT OF EDIT
                 return (
                     <React.Fragment key={ancestor.id}>
-                        {ancestor.id === modalHighlight
-                        ? <span className={}></span>}
+                        <TaskTitle
+                            id={ancestor.id}
+                            isHighlighted={ancestor.id === modalHighlight}
+                            title={ancestor.title}
+                            openTaskTree={openModal}
+                        />
+                        {' '}
+                        <Button
+                            color="link"
+                            onClick={() => setTask(parenTaskId)}
+                            style={{ padding: 0 }}
+                        >
+                            <FontAwesomeIcon
+                                icon={faTimesCircle}
+                                className={inputStyle.icon}
+                                color="lightGray"
+                            />
+                        </Button>
+                        <span className={style.divider}>
+                            {' | '}
+                        </span>
                     </React.Fragment>
-                )
+                );
             })}
         </React.Fragment>
     );
 }
 
-TaskPath.propTypes = {};
+TaskPath.propTypes = {
+    path: PropTypes.arrayOf(PropTypes.shape({
+        id: PropTypes.number.isRequired,
+        title: PropTypes.string.isRequired,
+    })).isRequired,
+    modalHighlight: PropTypes.number,
+    openModal: PropTypes.func,
+    setTask: PropTypes.func,
+};
 
-TaskPath.defaultProps = {};
+TaskPath.defaultProps = {
+    modalHighlight: undefined,
+    openModal: undefined,
+    setTask: undefined,
+};
 
 export default TaskPath;
