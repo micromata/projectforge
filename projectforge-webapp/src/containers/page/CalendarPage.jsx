@@ -5,13 +5,13 @@ import React from 'react';
 import Select from 'react-select';
 /* eslint-disable-next-line object-curly-newline */
 import { Button, Card, CardBody, Col, Popover, PopoverBody, Row } from 'reactstrap';
+import PopoverHeader from 'reactstrap/es/PopoverHeader';
 import EditableMultiValueLabel from '../../components/base/page/layout/EditableMultiValueLabel';
 import style from '../../components/design/input/Input.module.scss';
 import LoadingContainer from '../../components/design/loading-container';
 import { getServiceURL } from '../../utilities/rest';
 import CalendarPanel from '../panel/calendar/CalendarPanel';
 import { customStyles } from './Calendar.module';
-import PopoverHeader from 'reactstrap/es/PopoverHeader';
 
 class CalendarPage extends React.Component {
     constructor(props) {
@@ -121,7 +121,11 @@ class CalendarPage extends React.Component {
                                         components={{
                                             MultiValueLabel: EditableMultiValueLabel,
                                         }}
-                                        defaultValue={activeCalendars}
+                                        defaultValue={activeCalendars.map(option => ({
+                                            ...option,
+                                            filterType: 'COLOR_PICKER',
+                                            label: option.title,
+                                        }))}
                                         getOptionLabel={option => (option.title)}
                                         getOptionValue={option => (option.id)}
                                         isClearable
