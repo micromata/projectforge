@@ -1,5 +1,6 @@
 import React from 'react';
 import Select from 'react-select';
+import { UncontrolledTooltip } from 'reactstrap';
 import AsyncSelect from 'react-select/lib/Async';
 import makeAnimated from 'react-select/lib/animated';
 import PropTypes from 'prop-types';
@@ -7,7 +8,7 @@ import { faQuestion } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import style from '../../../design/input/Input.module.scss';
 import AdditionalLabel from '../../../design/input/AdditionalLabel';
-import { UncontrolledTooltip } from 'reactstrap';
+import revisedRandomId from '../../../../utilities/revisedRandomId';
 
 function ReactSelect(
     {
@@ -33,21 +34,25 @@ function ReactSelect(
         Tag = AsyncSelect;
         defaultOptions = true;
     }
-    const tooltipElement = tooltip ? (
-        <React.Fragment>
-            <span>{' '}</span>
-            <FontAwesomeIcon
-                icon={faQuestion}
-                className={style.icon}
-                size="sm"
-                id={`rs-${label}`}
-                style={{ color: 'gold' }}
-            />
-            <UncontrolledTooltip placement="right" target={`rs-${label}`}>
-                {tooltip}
-            </UncontrolledTooltip>
-        </React.Fragment>
-    ) : undefined;
+    let tooltipElement;
+    if (tooltip) {
+        const tooltipId = `rs-${revisedRandomId()}`;
+        tooltipElement = (
+            <React.Fragment>
+                <span>{' '}</span>
+                <FontAwesomeIcon
+                    icon={faQuestion}
+                    className={style.icon}
+                    size="sm"
+                    id={tooltipId}
+                    style={{ color: 'gold' }}
+                />
+                <UncontrolledTooltip placement="right" target={tooltipId}>
+                    {tooltip}
+                </UncontrolledTooltip>
+            </React.Fragment>
+        );
+    }
     return (
         <React.Fragment>
             <span className={style.text}>{label}</span>
