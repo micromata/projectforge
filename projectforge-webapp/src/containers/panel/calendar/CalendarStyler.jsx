@@ -40,12 +40,12 @@ class CalendarStyler extends Component {
 
     render() {
         const { background, visible } = this.state;
-        // const { translations } = this.props;
+        const { calendar } = this.props;
         return (
             <React.Fragment>
                 <CheckBox
                     // label={translations['calendar.filter.visible']}
-                    label="[calendar.filter.visible]"
+                    label={calendar.title}
                     id="opened"
                     onChange={this.handleVisibilityChange}
                     checked={visible}

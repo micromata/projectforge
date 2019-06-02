@@ -105,7 +105,9 @@ class CalendarFilterServicesRest {
         initial.translations = addTranslations(
                 "select.placeholder",
                 "calendar.filter.dialog.title",
-                "calendar.filter.visible")
+                "calendar.filter.visible",
+                "calendar.defaultCalendar",
+                "calendar.defaultCalendar.tooltip")
         return initial
     }
 
