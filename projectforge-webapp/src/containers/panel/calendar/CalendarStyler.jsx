@@ -10,10 +10,10 @@ import { getServiceURL } from '../../../utilities/rest';
 class CalendarStyler extends Component {
     constructor(props) {
         super(props);
-        const { background, visible } = this.props;
+        const { background, calendar } = this.props;
         this.state = {
             background,
-            visible,
+            visible: calendar.visible,
         };
         this.handleBackgroundColorChange = this.handleBackgroundColorChange.bind(this);
         this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
@@ -21,22 +21,15 @@ class CalendarStyler extends Component {
 
     handleBackgroundColorChange(color) {
         this.setState({ background: color.hex });
-        const { calendarId } = this.props;
-        fetch(getServiceURL('calendar/changeStyle', {
-            calendarId,
-            bgColor: color.hex,
-        }), {
-            method: 'GET',
-            credentials: 'include',
-        })
-            .catch(error => alert(`Internal error: ${error}`));
+        const { calendar } = this.props;
+        calendar.bgColor = color.hex;
     }
 
     handleVisibilityChange(event) {
         this.setState({ visible: event.target.checked });
-        const { calendarId } = this.props;
+        const { calendar } = this.props;
         fetch(getServiceURL('calendar/setVisibility', {
-            calendarId,
+            calendarId: calendar.id,
             visible: event.target.checked,
         }), {
             method: 'GET',
@@ -68,15 +61,16 @@ class CalendarStyler extends Component {
 }
 
 CalendarStyler.propTypes = {
-    calendarId: PropTypes.number.isRequired,
+    calendar: PropTypes.shape({
+        id: PropTypes.number.isRequired,
+        visible: PropTypes.bool,
+    }).isRequired,
     background: PropTypes.string,
-    visible: PropTypes.bool,
     // translations: PropTypes.shape({}).isRequired,
 };
 
 CalendarStyler.defaultProps = {
     background: '#777',
-    visible: true,
 };
 
 export default (CalendarStyler);
