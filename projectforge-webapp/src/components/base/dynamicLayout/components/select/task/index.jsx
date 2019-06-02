@@ -1,8 +1,17 @@
 import React from 'react';
 import { getServiceURL, handleHTTPErrors } from '../../../../../../utilities/rest';
+import inputStyle from '../../../../../design/input/Input.module.scss';
 import { DynamicLayoutContext } from '../../../context';
+import TaskPath from './TaskPath';
 
-function DynamicTaskSelect({ id, onKost2Changed, variables }) {
+function DynamicTaskSelect(
+    {
+        id,
+        label,
+        onKost2Changed,
+        variables,
+    },
+) {
     const { setData } = React.useContext(DynamicLayoutContext);
 
     const [panelVisibile, setPanelVisible] = React.useState(false);
@@ -82,17 +91,12 @@ function DynamicTaskSelect({ id, onKost2Changed, variables }) {
         setModalHighlight(taskId); // Highlight selected ancestor task.
     };
 
-    const taskPath;
-    let taskPath;
-
-    if (task) {
-        const path = [...task.path, task];
-
-        let recentAncestorId;
-    }
-
     return (
-        <React.Fragment />
+        <div>
+            {task
+                ? <TaskPath path={[...task.path, task]} />
+                : <span className={inputStyle.text}>{label}</span>}
+        </div>
     );
 }
 
