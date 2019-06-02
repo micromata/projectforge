@@ -3,6 +3,7 @@ package org.projectforge.rest.calendar
 import org.projectforge.business.teamcal.admin.TeamCalCache
 import org.projectforge.business.user.service.UserPreferencesService
 import org.projectforge.framework.i18n.addTranslations
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.config.Rest
@@ -26,6 +27,12 @@ class CalendarFilterServicesRest {
                        var filterFavorites: List<String>? = null,
                        var currentFilter: CalendarFilter? = null,
                        var activeCalendars: List<StyledTeamCalendar>? = null,
+                       /**
+                        * This is the list of possible default calendars (with full access). The user may choose one which is
+                        * used as default if creating a new event. The pseudo calendar -1 for own time sheets is
+                        * prepended. If chosen, new time sheets will be created at default.
+                        */
+                       var listOfDefaultCalendars: List<TeamCalendar>? = null,
                        var styleMap: CalendarStyleMap? = null,
                        var translations: Map<String, String>? = null)
 
@@ -83,6 +90,18 @@ class CalendarFilterServicesRest {
         val favorites = getFilterFavorites()
         initial.filterFavorites = favorites.getFavoriteNames()
 
+        val listOfDefaultCalendars = mutableListOf<TeamCalendar>()
+        initial.activeCalendars?.forEach { activeCal ->
+            val cal = calendars.find { it.id == activeCal.id }
+            if (cal != null && (cal.access == TeamCalendar.ACCESS.OWNER || cal.access == TeamCalendar.ACCESS.FULL)) {
+                // Calendar with full access:
+                listOfDefaultCalendars.add(TeamCalendar(id = cal.id, title = cal.title))
+            }
+        }
+        listOfDefaultCalendars.sortBy { it.title?.toLowerCase() }
+        listOfDefaultCalendars.add(0, TeamCalendar(id = -1, title = translate("calendar.option.timesheeets"))) // prepend time sheet pseudo calendar
+        initial.listOfDefaultCalendars = listOfDefaultCalendars
+
         initial.translations = addTranslations(
                 "select.placeholder",
                 "calendar.filter.dialog.title",
@@ -109,7 +128,7 @@ class CalendarFilterServicesRest {
 
     @GetMapping("setVisibility")
     fun setVisibility(@RequestParam("calendarId", required = true) calendarId: Int,
-                            @RequestParam("visible", required = true) visible: Boolean) {
+                      @RequestParam("visible", required = true) visible: Boolean) {
         val currentFilter = getCurrentFilter()
         currentFilter.setVisibility(calendarId, visible)
     }
