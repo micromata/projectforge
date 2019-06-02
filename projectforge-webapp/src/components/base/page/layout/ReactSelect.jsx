@@ -3,8 +3,11 @@ import Select from 'react-select';
 import AsyncSelect from 'react-select/lib/Async';
 import makeAnimated from 'react-select/lib/animated';
 import PropTypes from 'prop-types';
+import { faQuestion } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import style from '../../../design/input/Input.module.scss';
 import AdditionalLabel from '../../../design/input/AdditionalLabel';
+import { UncontrolledTooltip } from 'reactstrap';
 
 function ReactSelect(
     {
@@ -21,6 +24,7 @@ function ReactSelect(
         getOptionLabel,
         onChange,
         className,
+        tooltip,
     },
 ) {
     let Tag = Select;
@@ -29,9 +33,25 @@ function ReactSelect(
         Tag = AsyncSelect;
         defaultOptions = true;
     }
+    const tooltipElement = tooltip ? (
+        <React.Fragment>
+            <span>{' '}</span>
+            <FontAwesomeIcon
+                icon={faQuestion}
+                className={style.icon}
+                size="sm"
+                id={`rs-${label}`}
+                style={{ color: 'gold' }}
+            />
+            <UncontrolledTooltip placement="right" target={`rs-${label}`}>
+                {tooltip}
+            </UncontrolledTooltip>
+        </React.Fragment>
+    ) : undefined;
     return (
         <React.Fragment>
             <span className={style.text}>{label}</span>
+            {tooltipElement}
             <Tag
                 // closeMenuOnSelect={false}
                 components={makeAnimated()}
@@ -67,6 +87,7 @@ ReactSelect.propTypes = {
     getOptionLabel: PropTypes.func,
     onChange: PropTypes.func,
     className: PropTypes.string,
+    tooltip: PropTypes.string,
 };
 
 ReactSelect.defaultProps = {
@@ -80,5 +101,6 @@ ReactSelect.defaultProps = {
     getOptionLabel: undefined,
     onChange: undefined,
     className: undefined,
+    tooltip: undefined,
 };
 export default ReactSelect;
