@@ -4,12 +4,10 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { components } from 'react-select';
 import CalendarStyler from '../../../../containers/panel/calendar/CalendarStyler';
+import { getServiceURL } from '../../../../utilities/rest';
 import { Button } from '../../../design';
 import Input from '../../../design/input';
 import Popper from '../../../design/popper';
-import { getServiceURL } from '../../../../utilities/rest';
-
-const stopEventPropagation = event => event.stopPropagation();
 
 function EditableMultiValueLabel({ data, selectProps, ...props }) {
     const initialValue = selectProps.values[data.id] || '';
@@ -90,12 +88,10 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
     };
 
     const selectHandler = {
-        // Cancel all the react-select events
-        onMouseDownCapture: stopEventPropagation,
-        onMouseDown: stopEventPropagation,
-        onClick: stopEventPropagation,
+        onClick: event => event.stopPropagation(),
+        onMouseDown: event => event.stopPropagation(),
         onKeyDown: (event) => {
-            stopEventPropagation(event);
+            event.stopPropagation();
 
             switch (event.key) {
                 case 'Escape':
