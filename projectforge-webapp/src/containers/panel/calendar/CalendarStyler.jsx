@@ -34,6 +34,15 @@ class CalendarStyler extends Component {
 
     handleVisibilityChange(event) {
         this.setState({ visible: event.target.checked });
+        const { calendarId } = this.props;
+        fetch(getServiceURL('calendar/setVisibility', {
+            calendarId,
+            visible: event.target.checked,
+        }), {
+            method: 'GET',
+            credentials: 'include',
+        })
+            .catch(error => alert(`Internal error: ${error}`));
     }
 
     render() {
@@ -48,33 +57,11 @@ class CalendarStyler extends Component {
                     onChange={this.handleVisibilityChange}
                     checked={visible}
                 />
-                <p>
-                    Im ColorPicker lassen sich oben
-                    <br/>
-                    im Farbfeld und im Slider die
-                    <br/>
-                    Farben nicht auswählen. Dies
-                    <br/>
-                    müsste an Popper liegen, da das
-                    <br/>
-                    Colorpicking funktioniert, wenn
-                    <br/>
-                    der ColorPicker woanders eingebunden
-                    <br/>
-                    wird.
-                </p>
                 <SketchPicker
                     color={background}
                     onChangeComplete={this.handleBackgroundColorChange}
                     disableAlpha
                 />
-                <p>
-                    Wie kann ich submitValue überschreiben?
-                    <br/>
-                    Erst dann soll die Farbe gefetched
-                    <br/>
-                    werden.
-                </p>
             </React.Fragment>
         );
     }

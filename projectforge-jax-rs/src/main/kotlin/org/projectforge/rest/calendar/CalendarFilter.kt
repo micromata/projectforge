@@ -67,7 +67,47 @@ class CalendarFilter(@XStreamAsAttribute
                      @XStreamAsAttribute
                      var showPlanning: Boolean? = null) {
 
-    var calendarIds = mutableListOf<Int>()
+    internal var calendarIds = mutableSetOf<Int>()
+
+    internal var invisibleCalendars = mutableSetOf<Int>()
+
+    fun addCalendarId(calendarId: Int) {
+        ensureSets()
+        calendarIds.add(calendarId)
+        invisibleCalendars.remove(calendarId) // New added calendars should be visible.
+    }
+
+    fun removeCalendarId(calendarId: Int) {
+        ensureSets()
+        calendarIds.remove(calendarId)
+        invisibleCalendars.remove(calendarId)
+    }
+
+    fun setVisibility(calendarId: Int, visible: Boolean) {
+        ensureSets()
+        if (visible) {
+            invisibleCalendars.remove(calendarId)
+        } else {
+            invisibleCalendars.add(calendarId)
+        }
+    }
+
+    fun isVisible(calendarId: Int): Boolean {
+        ensureSets()
+        return calendarIds.contains(calendarId) && !invisibleCalendars.contains(calendarId)
+    }
+
+    /**
+     * Sets may be null directly after deserialization. This method also tidies up the list of invisible calendars by
+     * removing invisible calendars not contained in the main calendar set.
+     */
+    @Suppress("SENSELESS_COMPARISON")
+    internal fun ensureSets() {
+        if (calendarIds == null) calendarIds = mutableSetOf() // Might be null after deserialization.
+        if (invisibleCalendars == null) invisibleCalendars = mutableSetOf() // Might be null after deserialization.
+        else
+            invisibleCalendars.removeIf { !calendarIds.contains(it) } // Tidy up: remove invisible ids if not in main list.
+    }
 
     companion object {
         // LEGACY STUFF:
@@ -87,7 +127,7 @@ class CalendarFilter(@XStreamAsAttribute
                 displayFilter.timesheetUserId = templateEntry.timesheetUserId
                 displayFilter.showTimesheets = templateEntry.isShowTimesheets
                 templateEntry.calendarProperties?.forEach {
-                    displayFilter.calendarIds.add(it.calId)
+                    displayFilter.addCalendarId(it.calId)
                 }
             }
             return displayFilter

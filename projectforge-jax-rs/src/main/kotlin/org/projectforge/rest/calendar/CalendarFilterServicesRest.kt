@@ -29,12 +29,14 @@ class CalendarFilterServicesRest {
                        var styleMap: CalendarStyleMap? = null,
                        var translations: Map<String, String>? = null)
 
-    class StyledTeamCalendar(teamCalendar: TeamCalendar?, var style: CalendarStyle? = null)
+    class StyledTeamCalendar(teamCalendar: TeamCalendar?,
+                             var style: CalendarStyle? = null,
+                             val visible: Boolean = true)
         : TeamCalendar(teamCalendar?.id, teamCalendar?.title)
 
     companion object {
         private const val PREF_KEY_FILTERLIST = "calendar.filter.list"
-        private const val PREF_KEY_CURRENT_FILTER = "calendar.filter.current"
+        internal const val PREF_KEY_CURRENT_FILTER = "calendar.filter.current"
         private const val PREF_KEY_STATE = "calendar.state"
         private const val PREF_KEY_STYLES = "calendar.styles"
     }
@@ -57,6 +59,9 @@ class CalendarFilterServicesRest {
         }.toMutableList()
         calendars.removeIf { it.access == TeamCalendar.ACCESS.NONE } // Don't annoy admins.
 
+        val currentFilter = getCurrentFilter()
+        initial.currentFilter = currentFilter
+
         val styleMap = getStyleMap()
         initial.styleMap = styleMap
 
@@ -67,11 +72,12 @@ class CalendarFilterServicesRest {
         val state = getFilterState()
         initial.date = PFDateTime.from(state.startDate)
         initial.view = state.view
-        initial.currentFilter = getCurrentFilter()
 
-        initial.activeCalendars = initial.currentFilter?.calendarIds?.map { id ->
+        initial.activeCalendars = currentFilter.calendarIds.map { id ->
             StyledTeamCalendar(calendars.find { it.id == id },
-                    style = styleMap.get(id)) // Add the styles of the styleMap to the exported calendar.
+                    style = styleMap.get(id), // Add the styles of the styleMap to the exported calendar.
+                    visible = currentFilter.isVisible(id)
+            )
         }
 
         val favorites = getFilterFavorites()
@@ -99,6 +105,13 @@ class CalendarFilterServicesRest {
                 throw IllegalArgumentException("Hex code of color doesn't fit '#a1b' or '#a1b2c3', can't change background color: '$bgColor'.")
             }
         }
+    }
+
+    @GetMapping("setVisibility")
+    fun setVisibility(@RequestParam("calendarId", required = true) calendarId: Int,
+                            @RequestParam("visible", required = true) visible: Boolean) {
+        val currentFilter = getCurrentFilter()
+        currentFilter.setVisibility(calendarId, visible)
     }
 
     // Ensures filter list (stored one, restored from legacy filter or a empty new one).
@@ -161,7 +174,9 @@ class CalendarFilterServicesRest {
         return legacyFilter
     }
 
-    internal fun updateCalendarFilter(startDate: Date?, view: CalendarView?, activeCalendarIds: List<Int>?) {
+    internal fun updateCalendarFilter(startDate: Date?,
+                                      view: CalendarView?,
+                                      activeCalendarIds: Set<Int>?) {
         val state = getFilterState()
         if (startDate != null) {
             var startDay = PFDateTime.from(startDate)!!.asLocalDate()
@@ -176,7 +191,8 @@ class CalendarFilterServicesRest {
         }
         if (!activeCalendarIds.isNullOrEmpty()) {
             val currentFilter = getCurrentFilter()
-            currentFilter.calendarIds = activeCalendarIds.toMutableList()
+            currentFilter.calendarIds = activeCalendarIds.toMutableSet()
+            currentFilter.ensureSets()
         }
     }
 }
