@@ -4,14 +4,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import Select from 'react-select';
 /* eslint-disable-next-line object-curly-newline */
-import { Button, Card, CardBody, Col, Popover, PopoverBody, Row } from 'reactstrap';
-import PopoverHeader from 'reactstrap/es/PopoverHeader';
+import { Button, Card, CardBody, Col, Container, Popover, PopoverBody, PopoverHeader, Row } from 'reactstrap';
 import EditableMultiValueLabel from '../../components/base/page/layout/EditableMultiValueLabel';
 import style from '../../components/design/input/Input.module.scss';
 import LoadingContainer from '../../components/design/loading-container';
 import { getServiceURL } from '../../utilities/rest';
 import CalendarPanel from '../panel/calendar/CalendarPanel';
 import { customStyles } from './Calendar.module';
+import UncontrolledReactSelect from '../../components/base/page/layout/UncontrolledReactSelect';
 
 class CalendarPage extends React.Component {
     constructor(props) {
@@ -23,6 +23,8 @@ class CalendarPage extends React.Component {
             view: 'week',
             teamCalendars: undefined,
             activeCalendars: [],
+            listOfDefaultCalendars: [],
+            defaultCalendar: undefined,
             translations: undefined,
             settingsPopoverOpen: false,
         };
@@ -31,6 +33,7 @@ class CalendarPage extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.toggleSettingsPopover = this.toggleSettingsPopover.bind(this);
         this.handleMultiValueChange = this.handleMultiValueChange.bind(this);
+        this.changeDefaultCalendar = this.changeDefaultCalendar.bind(this);
     }
 
     componentDidMount() {
@@ -46,6 +49,10 @@ class CalendarPage extends React.Component {
         this.setState(prevState => ({
             settingsPopoverOpen: !prevState.settingsPopoverOpen,
         }));
+    }
+
+    changeDefaultCalendar(defaultCalendar) {
+        this.setState({ defaultCalendar });
     }
 
     fetchInitial() {
@@ -64,6 +71,7 @@ class CalendarPage extends React.Component {
                     view,
                     teamCalendars,
                     activeCalendars,
+                    listOfDefaultCalendars,
                     translations,
                 } = json;
                 this.setState({
@@ -71,6 +79,7 @@ class CalendarPage extends React.Component {
                     date: new Date(date),
                     teamCalendars,
                     activeCalendars,
+                    listOfDefaultCalendars,
                     view,
                     translations,
                 });
@@ -90,6 +99,7 @@ class CalendarPage extends React.Component {
     render() {
         const {
             activeCalendars,
+            listOfDefaultCalendars,
             colors,
             date,
             loading,
@@ -178,14 +188,41 @@ class CalendarPage extends React.Component {
                     activeCalendars={activeCalendars}
                     topHeight="225px"
                 />
-                <Popover placement="bottom-end" isOpen={settingsPopoverOpen} target="settingsPopover" toggle={this.toggleSettingsPopover}>
+                <Popover
+                    placement="bottom-end"
+                    isOpen={settingsPopoverOpen}
+                    target="settingsPopover"
+                    toggle={this.toggleSettingsPopover}
+                >
                     <PopoverHeader toggle={this.settingsPopoverOpen}>
                         {translations['calendar.filter.dialog.title']}
                     </PopoverHeader>
                     <PopoverBody>
-                        [ToDo: Standardkalendar, Zeitberichtsuser, Optionen: Pausen, Statistik,
-                        Geburtstage, Planungen, Farben?]
-                        <br />
+                        <Container>
+                            <Row>
+                                <Col>
+                                    <UncontrolledReactSelect
+                                        label={translations['calendar.filter.dialog.title']}
+                                        //data={data}
+                                        id="id"
+                                        values={listOfDefaultCalendars}
+                                        changeDataField={this.changeDefaultCalendar}
+                                        translations={translations}
+                                        valueProperty="id"
+                                        labelProperty="title"
+                                    />
+                                </Col>
+                            </Row>
+                            <Row>
+                                <Col>Zeitberichtsuser</Col>
+                            </Row>
+                            <Row>
+                                <Col>
+                                    Optionen: Pausen, Statistik,
+                                    Geburtstage, Planungen
+                                </Col>
+                            </Row>
+                        </Container>
                         [ToDo: Buttons Übernehmen, Reset]
                     </PopoverBody>
                 </Popover>
