@@ -4,13 +4,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import Select from 'react-select';
 /* eslint-disable-next-line object-curly-newline */
-import { Button, Card, CardBody, Col, Modal, ModalBody, ModalHeader, Row } from 'reactstrap';
+import { Button, Card, CardBody, Col, Popover, PopoverBody, Row } from 'reactstrap';
 import EditableMultiValueLabel from '../../components/base/page/layout/EditableMultiValueLabel';
 import style from '../../components/design/input/Input.module.scss';
 import LoadingContainer from '../../components/design/loading-container';
 import { getServiceURL } from '../../utilities/rest';
 import CalendarPanel from '../panel/calendar/CalendarPanel';
 import { customStyles } from './Calendar.module';
+import PopoverHeader from 'reactstrap/es/PopoverHeader';
 
 class CalendarPage extends React.Component {
     constructor(props) {
@@ -23,12 +24,12 @@ class CalendarPage extends React.Component {
             teamCalendars: undefined,
             activeCalendars: [],
             translations: undefined,
-            settingsModal: false,
+            settingsPopoverOpen: false,
         };
 
         this.fetchInitial = this.fetchInitial.bind(this);
         this.onChange = this.onChange.bind(this);
-        this.toggleSettingsModal = this.toggleSettingsModal.bind(this);
+        this.toggleSettingsPopover = this.toggleSettingsPopover.bind(this);
         this.handleMultiValueChange = this.handleMultiValueChange.bind(this);
     }
 
@@ -41,9 +42,9 @@ class CalendarPage extends React.Component {
         this.setState({ activeCalendars });
     }
 
-    toggleSettingsModal() {
+    toggleSettingsPopover() {
         this.setState(prevState => ({
-            settingsModal: !prevState.settingsModal,
+            settingsPopoverOpen: !prevState.settingsPopoverOpen,
         }));
     }
 
@@ -92,7 +93,7 @@ class CalendarPage extends React.Component {
             colors,
             date,
             loading,
-            settingsModal,
+            settingsPopoverOpen,
             teamCalendars,
             translations,
             view,
@@ -138,13 +139,13 @@ class CalendarPage extends React.Component {
                                 <Col sm={1}>
                                     <Row>
                                         <Button
+                                            id="settingsPopover"
                                             color="link"
                                             className="selectPanelIconLinks"
-                                            onClick={this.toggleTaskTreeModal}
-                                            disabled
+                                            onClick={this.toggleSettingsPopover}
                                         >
                                             <FontAwesomeIcon
-                                                icon={faStar}
+                                                icon={faCog}
                                                 className={style.icon}
                                                 size="lg"
                                             />
@@ -152,10 +153,10 @@ class CalendarPage extends React.Component {
                                         <Button
                                             color="link"
                                             className="selectPanelIconLinks"
-                                            onClick={this.toggleSettingsModal}
+                                            disabled
                                         >
                                             <FontAwesomeIcon
-                                                icon={faCog}
+                                                icon={faStar}
                                                 className={style.icon}
                                                 size="lg"
                                             />
@@ -173,22 +174,17 @@ class CalendarPage extends React.Component {
                     activeCalendars={activeCalendars}
                     topHeight="225px"
                 />
-                <Modal
-                    isOpen={settingsModal}
-                    toggle={this.toggleSettingsModal}
-                    modalTransition={{ timeout: 100 }}
-                    backdropTransition={{ timeout: 150 }}
-                >
-                    <ModalHeader toggle={this.settingsModal}>
+                <Popover placement="bottom-end" isOpen={settingsPopoverOpen} target="settingsPopover" toggle={this.toggleSettingsPopover}>
+                    <PopoverHeader toggle={this.settingsPopoverOpen}>
                         {translations['calendar.filter.dialog.title']}
-                    </ModalHeader>
-                    <ModalBody>
+                    </PopoverHeader>
+                    <PopoverBody>
                         [ToDo: Standardkalendar, Zeitberichtsuser, Optionen: Pausen, Statistik,
                         Geburtstage, Planungen, Farben?]
                         <br />
                         [ToDo: Buttons Übernehmen, Reset]
-                    </ModalBody>
-                </Modal>
+                    </PopoverBody>
+                </Popover>
             </LoadingContainer>
         );
     }
