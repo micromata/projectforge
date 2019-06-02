@@ -27,6 +27,7 @@ export const customStyles = {
             ...styles,
             backgroundColor,
             opacity,
+            textDecoration: (!data.visible) ? 'line-through' : undefined,
             color: getForegroundColor(data),
         };
     },
@@ -38,6 +39,7 @@ export const customStyles = {
     },
     multiValueLabel: (styles, { data }) => ({
         ...styles,
+        textDecoration: (!data.visible) ? 'line-through' : undefined,
         color: getForegroundColor(data),
     }),
     multiValueRemove: (styles, { data }) => ({

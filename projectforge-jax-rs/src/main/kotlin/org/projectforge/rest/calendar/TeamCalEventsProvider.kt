@@ -21,7 +21,7 @@ class TeamCalEventsProvider() {
     fun addEvents(start: PFDateTime,
                   end: PFDateTime,
                   events: MutableList<BigCalendarEvent>,
-                  teamCalendarIds: List<Int>?,
+                  teamCalendarIds: Set<Int>?,
                   styleMap: CalendarStyleMap) {
         if (teamCalendarIds.isNullOrEmpty())
             return
