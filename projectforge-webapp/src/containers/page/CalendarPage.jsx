@@ -3,8 +3,18 @@ import { faCog } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import Select from 'react-select';
-/* eslint-disable-next-line object-curly-newline */
-import { Button, Card, CardBody, Col, Container, Popover, PopoverBody, PopoverHeader, Row } from 'reactstrap';
+import {
+    Button,
+    Card,
+    CardBody,
+    Col,
+    Container,
+    Popover,
+    PopoverBody,
+    PopoverHeader,
+    Row,
+    UncontrolledTooltip,
+} from 'reactstrap';
 import EditableMultiValueLabel from '../../components/base/page/layout/EditableMultiValueLabel';
 import style from '../../components/design/input/Input.module.scss';
 import LoadingContainer from '../../components/design/loading-container';
@@ -193,6 +203,7 @@ class CalendarPage extends React.Component {
                     isOpen={settingsPopoverOpen}
                     target="settingsPopover"
                     toggle={this.toggleSettingsPopover}
+                    trigger="legacy"
                 >
                     <PopoverHeader toggle={this.settingsPopoverOpen}>
                         {translations['calendar.filter.dialog.title']}
@@ -202,8 +213,9 @@ class CalendarPage extends React.Component {
                             <Row>
                                 <Col>
                                     <UncontrolledReactSelect
-                                        label={translations['calendar.filter.dialog.title']}
-                                        //data={data}
+                                        label={translations['calendar.defaultCalendar']}
+                                        tooltip={translations['calendar.defaultCalendar.tooltip']}
+                                        // data={data}
                                         id="id"
                                         values={listOfDefaultCalendars}
                                         changeDataField={this.changeDefaultCalendar}
