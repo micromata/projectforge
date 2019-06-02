@@ -8,11 +8,11 @@ import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { connect } from 'react-redux';
-import { getServiceURL } from '../../utilities/rest';
+import { getServiceURL } from '../../../utilities/rest';
 import CalendarToolBar from './CalendarToolBar';
 
 import 'moment/min/locales';
-import LoadingContainer from '../../components/design/loading-container';
+import LoadingContainer from '../../../components/design/loading-container';
 import CalendarEntryEditPanel from './CalendarEntryEditPanel';
 import {
     dayStyle,

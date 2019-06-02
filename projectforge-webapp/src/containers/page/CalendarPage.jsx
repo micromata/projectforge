@@ -9,7 +9,7 @@ import EditableMultiValueLabel from '../../components/base/page/layout/EditableM
 import style from '../../components/design/input/Input.module.scss';
 import LoadingContainer from '../../components/design/loading-container';
 import { getServiceURL } from '../../utilities/rest';
-import CalendarPanel from '../panel/CalendarPanel';
+import CalendarPanel from '../panel/calendar/CalendarPanel';
 import { customStyles } from './Calendar.module';
 
 class CalendarPage extends React.Component {
