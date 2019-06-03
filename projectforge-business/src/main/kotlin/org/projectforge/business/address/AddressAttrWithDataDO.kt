@@ -21,49 +21,33 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.address;
+package org.projectforge.business.address
 
-import java.util.List;
+import javax.persistence.CascadeType
+import javax.persistence.DiscriminatorValue
+import javax.persistence.Entity
+import javax.persistence.FetchType
+import javax.persistence.OneToMany
+import javax.persistence.OrderColumn
 
-import javax.persistence.CascadeType;
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.OneToMany;
-import javax.persistence.OrderColumn;
-
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO;
+import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
 
 /**
  * @author Roger Kommer (r.kommer.extern@micromata.de)
- *
  */
 @Entity
 @DiscriminatorValue("1")
-public class AddressAttrWithDataDO extends AddressAttrDO
-{
+class AddressAttrWithDataDO : AddressAttrDO {
 
-  public AddressAttrWithDataDO()
-  {
-    super();
-  }
+    constructor() : super() {}
 
-  public AddressAttrWithDataDO(final AddressDO parent, final String propertyName, final char type, final String value)
-  {
-    super(parent, propertyName, type, value);
-  }
+    constructor(parent: AddressDO, propertyName: String, type: Char, value: String) : super(parent, propertyName, type, value) {}
 
-  public AddressAttrWithDataDO(final AddressDO parent)
-  {
-    super(parent);
-  }
+    constructor(parent: AddressDO) : super(parent) {}
 
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "parent", targetEntity = AddressAttrDataDO.class,
-      orphanRemoval = true, fetch = FetchType.EAGER)
-  @OrderColumn(name = "datarow")
-  @Override
-  public List<JpaTabAttrDataBaseDO<?, Integer>> getData()
-  {
-    return super.getData();
-  }
+    @OneToMany(cascade = [CascadeType.ALL], mappedBy = "parent", targetEntity = AddressAttrDataDO::class, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OrderColumn(name = "datarow")
+    override fun getData(): List<JpaTabAttrDataBaseDO<*, Int>> {
+        return super.getData()
+    }
 }

@@ -145,7 +145,7 @@ public class LiquidityForecast implements Serializable
       final LiquidityEntry entry = new LiquidityEntry();
       entry.setDateOfPayment(liquiEntry.getDateOfPayment());
       entry.setAmount(liquiEntry.getAmount());
-      entry.setPaid(liquiEntry.isPaid());
+      entry.setPaid(liquiEntry.getPaid());
       entry.setSubject(liquiEntry.getSubject());
       entry.setType(LiquidityEntryType.LIQUIDITY);
       this.liquiEntries.add(entry);
