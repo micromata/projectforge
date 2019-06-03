@@ -258,7 +258,7 @@ class CalendarPanel extends React.Component {
             editPanel,
             specialDays,
         } = this.state;
-        const { topHeight } = this.props;
+        const { topHeight, translations } = this.props;
         const initTime = new Date(date.getDate());
         initTime.setHours(8);
         initTime.setMinutes(0);
@@ -316,6 +316,7 @@ class CalendarPanel extends React.Component {
                         },
                         toolbar: CalendarToolBar,
                     }}
+                    messages={translations}
                 />
                 <Modal
                     isOpen={editPanel.visible}
@@ -341,6 +342,7 @@ CalendarPanel.propTypes = {
     topHeight: PropTypes.string,
     defaultDate: PropTypes.instanceOf(Date),
     defaultView: PropTypes.string,
+    translations: PropTypes.shape({}).isRequired,
 };
 
 CalendarPanel.defaultProps = {

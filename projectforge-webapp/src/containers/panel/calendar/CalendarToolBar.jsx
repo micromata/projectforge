@@ -1,6 +1,10 @@
 import React from 'react';
 // eslint-disable-next-line camelcase
 import moment_timezone from 'moment-timezone';
+import { faCaretLeft, faCaretRight } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import style from '../../../components/design/input/Input.module.scss';
+
 
 const CalendarToolBar = (toolbar) => {
     const goToBack = () => {
@@ -62,13 +66,21 @@ const CalendarToolBar = (toolbar) => {
     return (
         <div className="rbc-toolbar">
             <span className="rbc-btn-group">
-                <button type="button" onClick={goToBack}>{messages.previous}</button>
+                <button type="button" onClick={goToBack}>
+                    <FontAwesomeIcon
+                        icon={faCaretLeft}
+                        className={style.icon}
+                    />
+                </button>
                 <button type="button" onClick={goToToday}>{messages.today}</button>
                 <button
                     type="button"
                     onClick={goToNext}
                 >
-                    {messages.next}
+                    <FontAwesomeIcon
+                        icon={faCaretRight}
+                        className={style.icon}
+                    />
                 </button>
             </span>
             <span className="rbc-toolbar-label">{label()}</span>
@@ -80,9 +92,9 @@ const CalendarToolBar = (toolbar) => {
                 >
                     Month
                 </button>
-                <button type="button" className={classNameWeek} onClick={goToWeekView}>Week</button>
-                <button type="button" className={classNameWorkWeek} onClick={goToWorkWeekView}>Work Week</button>
-                <button type="button" className={classNameDay} onClick={goToDayView}>Day</button>
+                <button type="button" className={classNameWeek} onClick={goToWeekView}>{messages.week}</button>
+                <button type="button" className={classNameWorkWeek} onClick={goToWorkWeekView}>{messages.workWeek}</button>
+                <button type="button" className={classNameDay} onClick={goToDayView}>{messages.day}</button>
                 <button
                     type="button"
                     className={classNameAgenda}
