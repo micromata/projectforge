@@ -106,7 +106,7 @@ public class EingangsrechnungDO extends AbstractRechnungDO<EingangsrechnungsPosi
   @Override
   public List<EingangsrechnungsPositionDO> getPositionen()
   {
-    return this.positionen;
+    return super.getPositionen();
   }
 
   /**
@@ -150,13 +150,13 @@ public class EingangsrechnungDO extends AbstractRechnungDO<EingangsrechnungsPosi
     if (this.getNetSum() == null || this.getNetSum().compareTo(BigDecimal.ZERO) == 0) {
       return true;
     }
-    return (this.bezahlDatum != null && this.zahlBetrag != null);
+    return (this.getBezahlDatum() != null && this.getZahlBetrag() != null);
   }
 
   @Override
   public int compareTo(final EingangsrechnungDO o)
   {
-    int r = this.datum.compareTo(o.datum);
+    int r = this.getDatum().compareTo(o.getDatum());
     if (r != 0) {
       return -r;
     }
