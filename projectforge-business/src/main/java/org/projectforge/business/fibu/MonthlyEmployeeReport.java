@@ -190,7 +190,7 @@ public class MonthlyEmployeeReport implements Serializable
       return "";
     }
     final BigDecimal hours = new BigDecimal(duration).divide(new BigDecimal(1000 * 60 * 60), 2,
-        BigDecimal.ROUND_HALF_UP);
+      BigDecimal.ROUND_HALF_UP);
     return NumberHelper.formatFraction2(hours);
   }
 
@@ -201,7 +201,7 @@ public class MonthlyEmployeeReport implements Serializable
    * @param month
    */
   public MonthlyEmployeeReport(final EmployeeService employeeService, final VacationService vacationService, final PFUserDO user, final int year,
-      final int month)
+    final int month)
   {
     this.year = year;
     this.month = month;
@@ -260,22 +260,22 @@ public class MonthlyEmployeeReport implements Serializable
     } while (dh.getDate().before(toDate));
   }
 
-  public void addTimesheet(final TimesheetDO sheet)
+  public void addTimesheet(final TimesheetDO sheet, final boolean hasSelectAccess)
   {
     final DayHolder day = new DayHolder(sheet.getStartTime());
     bookedDays.add(day.getDayOfMonth());
     for (final MonthlyEmployeeReportWeek week : weeks) {
       if (week.matchWeek(sheet) == true) {
-        week.addEntry(sheet);
+        week.addEntry(sheet, hasSelectAccess);
         return;
       }
     }
     log.info("Ignoring time sheet which isn't inside current month: "
-        + year
-        + "-"
-        + StringHelper.format2DigitNumber(month + 1)
-        + ": "
-        + sheet);
+      + year
+      + "-"
+      + StringHelper.format2DigitNumber(month + 1)
+      + ": "
+      + sheet);
 
   }
 
@@ -307,8 +307,15 @@ public class MonthlyEmployeeReport implements Serializable
       if (MapUtils.isNotEmpty(week.getTaskEntries()) == true) {
         for (final MonthlyEmployeeReportEntry entry : week.getTaskEntries().values()) {
           Validate.notNull(entry.getTask());
-          taskEntries.put(TaskFormatter.getTaskPath(entry.getTask().getId(), true, OutputType.XML),
+          int taskId = entry.getTask().getId();
+          if (taskId > 0) {
+            taskEntries.put(TaskFormatter.getTaskPath(taskId, true,
+              OutputType.XML),
               entry.getTask());
+          } else {
+            // Pseudo task (see MonthlyEmployeeReportWeek for timesheet the current user has no select access.
+            taskEntries.put("[Without access]", MonthlyEmployeeReportWeek.getPseudoTask());
+          }
           MonthlyEmployeeReportEntry taskTotal = taskDurations.get(entry.getTask().getId());
           if (taskTotal == null) {
             taskTotal = new MonthlyEmployeeReportEntry(entry.getTask());
@@ -327,7 +334,7 @@ public class MonthlyEmployeeReport implements Serializable
     for (final WeekHolder week : monthHolder.getWeeks()) {
       for (final DayHolder day : week.getDays()) {
         if (day.getMonth() == this.month && day.isWorkingDay() == true
-            && bookedDays.contains(day.getDayOfMonth()) == false) {
+          && bookedDays.contains(day.getDayOfMonth()) == false) {
           unbookedDays.add(day.getDayOfMonth());
         }
       }
@@ -362,7 +369,7 @@ public class MonthlyEmployeeReport implements Serializable
         buf.append(", ");
       }
       buf.append(StringHelper.format2DigitNumber(dayOfMonth)).append(".")
-          .append(StringHelper.format2DigitNumber(month + 1)).append(".");
+        .append(StringHelper.format2DigitNumber(month + 1)).append(".");
     }
     if (first == true) {
       return null;
