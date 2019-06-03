@@ -215,6 +215,10 @@ fieldset {
   }
 }
 
+.selectPanelIconLinks {
+  margin-top: -28px;
+}
+
 .btn-group {
   margin-top: 20px;
 }
@@ -423,6 +427,17 @@ div[class^="LoadingContainer_loadingContainer__"] {
   }
 
   .btn.btn-danger {
-    margin-bottom: 20px !important;
+    //margin-bottom: 20px !important;
   }
+}
+
+.col > span[class^="Input_text__"] {
+  margin-left: 15px;
+  color: #a5a2a5;
+  font-size: 11px;
+}
+
+div[class*="-singleValue"] {
+  margin-left: 8px;
+  font-size: 15px;
 }
