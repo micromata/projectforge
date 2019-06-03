@@ -310,7 +310,7 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
         if (u2 == null) return 1
         var result = StringUtils.compare(u1.lastname, u2.lastname)
         if (result == 0) {
-            result = return StringUtils.compare(u1.firstname, u2.firstname)
+            result = StringUtils.compare(u1.firstname, u2.firstname)
         }
         return result
     }
