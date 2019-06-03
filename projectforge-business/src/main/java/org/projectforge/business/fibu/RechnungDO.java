@@ -277,7 +277,7 @@ public class RechnungDO extends AbstractRechnungDO<RechnungsPositionDO> implemen
     if (this.getNetSum() == null || this.getNetSum().compareTo(BigDecimal.ZERO) == 0) {
       return true;
     }
-    return (this.status == RechnungStatus.BEZAHLT && this.bezahlDatum != null && this.zahlBetrag != null);
+    return (this.status == RechnungStatus.BEZAHLT && this.getBezahlDatum() != null && this.getZahlBetrag() != null);
   }
 
   @JsonBackReference
@@ -286,17 +286,17 @@ public class RechnungDO extends AbstractRechnungDO<RechnungsPositionDO> implemen
   @Override
   public List<RechnungsPositionDO> getPositionen()
   {
-    return this.positionen;
+    return super.getPositionen();
   }
 
   @Transient
   public Set<AuftragsPositionVO> getAuftragsPositionVOs()
   {
-    if (this.positionen == null) {
+    if (this.getPositionen() == null) {
       return null;
     }
     Set<AuftragsPositionVO> set = null;
-    for (final RechnungsPositionDO pos : this.positionen) {
+    for (final RechnungsPositionDO pos : this.getPositionen()) {
       if (pos.getAuftragsPosition() == null) {
         continue;
       } else if (set == null) {
@@ -319,8 +319,8 @@ public class RechnungDO extends AbstractRechnungDO<RechnungsPositionDO> implemen
   @Override
   public int compareTo(final RechnungDO o)
   {
-    if (this.datum != null && o.datum != null) {
-      final int r = o.datum.compareTo(this.datum);
+    if (this.getDatum() != null && o.getDatum() != null) {
+      final int r = o.getDatum().compareTo(this.getDatum());
       if (r != 0) {
         return r;
       }
