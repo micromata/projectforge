@@ -1,26 +1,9 @@
 package org.projectforge.business.fibu.impl;
 
-import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
+import de.micromata.genome.db.jpa.tabattr.api.AttrSchemaService;
+import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 import org.apache.commons.collections.CollectionUtils;
-import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.EmployeeDao;
-import org.projectforge.business.fibu.EmployeeFilter;
-import org.projectforge.business.fibu.EmployeeStatus;
-import org.projectforge.business.fibu.EmployeeTimedDO;
-import org.projectforge.business.fibu.MonthlyEmployeeReport;
+import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost1Dao;
@@ -42,8 +25,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import de.micromata.genome.db.jpa.tabattr.api.AttrSchemaService;
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
+import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Standard implementation of the Employee service interface.
@@ -329,9 +317,10 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
     filter.setStopTime(monthlyEmployeeReport.getToDate());
     filter.setUserId(user.getId());
     List<TimesheetDO> list = timesheetDao.getList(filter);
+    PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
     if (CollectionUtils.isNotEmpty(list) == true) {
       for (TimesheetDO sheet : list) {
-        monthlyEmployeeReport.addTimesheet(sheet, timesheetDao.hasSelectAccess(user, sheet, false));
+        monthlyEmployeeReport.addTimesheet(sheet, timesheetDao.hasSelectAccess(loggedInUser, sheet, false));
       }
     }
     monthlyEmployeeReport.calculate();
