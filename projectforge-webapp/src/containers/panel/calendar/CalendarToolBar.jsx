@@ -72,7 +72,7 @@ const CalendarToolBar = (toolbar) => {
                         className={style.icon}
                     />
                 </button>
-                <button type="button" onClick={goToToday}>{messages.today}</button>
+                <button type="button" onClick={goToToday}>{messages['calendar.navigation.today']}</button>
                 <button
                     type="button"
                     onClick={goToNext}
@@ -85,10 +85,10 @@ const CalendarToolBar = (toolbar) => {
             </span>
             <span className="rbc-toolbar-label">{label()}</span>
             <span className="rbc-btn-group">
-                <button type="button" className={classNameMonth} onClick={goToMonthView}>{messages.month}</button>
-                <button type="button" className={classNameWeek} onClick={goToWeekView}>{messages.week}</button>
-                <button type="button" className={classNameWorkWeek} onClick={goToWorkWeekView}>{messages.workWeek}</button>
-                <button type="button" className={classNameDay} onClick={goToDayView}>{messages.day}</button>
+                <button type="button" className={classNameMonth} onClick={goToMonthView}>{messages['calendar.view.month']}</button>
+                <button type="button" className={classNameWeek} onClick={goToWeekView}>{messages['calendar.view.week']}</button>
+                <button type="button" className={classNameWorkWeek} onClick={goToWorkWeekView}>{messages['calendar.view.workWeek']}</button>
+                <button type="button" className={classNameDay} onClick={goToDayView}>{messages['calendar.view.day']}</button>
                 <button
                     type="button"
                     className={classNameAgenda}
