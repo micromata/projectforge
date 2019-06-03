@@ -39,7 +39,7 @@
     </dependency>
     <dependency>
       <groupId>org.projectforge</groupId>
-      <artifactId>projectforge-jax-rs</artifactId>
+      <artifactId>projectforge-rest</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
