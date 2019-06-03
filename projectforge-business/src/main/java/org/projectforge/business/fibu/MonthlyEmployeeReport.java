@@ -56,12 +56,27 @@ public class MonthlyEmployeeReport implements Serializable {
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MonthlyEmployeeReport.class);
 
+  /**
+   * Pseudo task are used for team leaders for showing time sheet hours of foreign users without detailed information,
+   * if the team leader has no select access.
+   */
   static final int MAGIC_PSEUDO_TASK_ID = -42;
 
+  /**
+   * Pseudo task are used for team leaders for showing time sheet hours of foreign users without detailed information,
+   * if the team leader has no select access.
+   * @param taskId
+   * @return true, if the given task id matches the magic pseudo task id.
+   */
   public static boolean isPseudoTask(Integer taskId) {
     return taskId == MAGIC_PSEUDO_TASK_ID;
   }
 
+  /**
+   * Pseudo task are used for team leaders for showing time sheet hours of foreign users without detailed information,
+   * if the team leader has no select access.
+   * @return Pseudo task with magic task id (-42) and title '******'.
+   */
   public static TaskDO createPseudoTask() {
     TaskDO pseudoTask = new TaskDO();
     pseudoTask.setId(MAGIC_PSEUDO_TASK_ID);
