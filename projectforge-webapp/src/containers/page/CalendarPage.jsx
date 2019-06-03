@@ -1,5 +1,4 @@
 import { faStar } from '@fortawesome/free-regular-svg-icons';
-import { faCog } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import Select from 'react-select';
@@ -21,6 +20,7 @@ import { getServiceURL } from '../../utilities/rest';
 import CalendarPanel from '../panel/calendar/CalendarPanel';
 import { customStyles } from './Calendar.module';
 import UncontrolledReactSelect from '../../components/base/page/layout/UncontrolledReactSelect';
+import { faCog } from '@fortawesome/free-solid-svg-icons';
 
 class CalendarPage extends React.Component {
     constructor(props) {
@@ -134,60 +134,53 @@ class CalendarPage extends React.Component {
                     <CardBody>
                         <form>
                             <Row>
-                                <Col sm={11}>
-                                    <Select
-                                        closeMenuOnSelect={false}
-                                        components={{
-                                            MultiValueLabel: EditableMultiValueLabel,
-                                        }}
-                                        defaultValue={activeCalendars.map(option => ({
-                                            ...option,
-                                            filterType: 'COLOR_PICKER',
-                                            label: option.title,
-                                        }))}
-                                        getOptionLabel={option => (option.title)}
-                                        getOptionValue={option => (option.id)}
-                                        isClearable
-                                        isMulti
-                                        onChange={this.onChange}
-                                        options={options}
-                                        placeholder={translations['select.placeholder']}
-                                        setMultiValue={this.handleMultiValueChange}
-                                        styles={customStyles}
-                                        values={colors}
-                                        // loadOptions={loadOptions}
-                                        // defaultOptions={defaultOptions}
+                                <Button
+                                    id="settingsPopover"
+                                    color="link"
+                                    className="selectPanelIconLinks"
+                                    onClick={this.toggleSettingsPopover}
+                                >
+                                    <FontAwesomeIcon
+                                        icon={faCog}
+                                        className={style.icon}
+                                        size="lg"
                                     />
-                                </Col>
-                                <Col sm={1}>
-                                    <Row>
-                                        <Button
-                                            id="settingsPopover"
-                                            color="link"
-                                            className="selectPanelIconLinks"
-                                            onClick={this.toggleSettingsPopover}
-                                        >
-                                            <FontAwesomeIcon
-                                                icon={faCog}
-                                                className={style.icon}
-                                                size="lg"
-                                            />
-                                        </Button>
-                                        <Button
-                                            color="link"
-                                            className="selectPanelIconLinks"
-                                            disabled
-                                        >
-                                            <FontAwesomeIcon
-                                                icon={faStar}
-                                                className={style.icon}
-                                                size="lg"
-                                            />
-                                        </Button>
-                                    </Row>
-                                </Col>
+                                </Button>
+                                <Select
+                                    closeMenuOnSelect={false}
+                                    components={{
+                                        MultiValueLabel: EditableMultiValueLabel,
+                                    }}
+                                    defaultValue={activeCalendars.map(option => ({
+                                        ...option,
+                                        filterType: 'COLOR_PICKER',
+                                        label: option.title,
+                                    }))}
+                                    getOptionLabel={option => (option.title)}
+                                    getOptionValue={option => (option.id)}
+                                    isClearable
+                                    isMulti
+                                    onChange={this.onChange}
+                                    options={options}
+                                    placeholder={translations['select.placeholder']}
+                                    setMultiValue={this.handleMultiValueChange}
+                                    styles={customStyles}
+                                    values={colors}
+                                    // loadOptions={loadOptions}
+                                    // defaultOptions={defaultOptions}
+                                />
+                                <Button
+                                    color="link"
+                                    className="selectPanelIconLinks"
+                                    disabled
+                                >
+                                    <FontAwesomeIcon
+                                        icon={faStar}
+                                        className={style.icon}
+                                        size="lg"
+                                    />
+                                </Button>
                             </Row>
-
                         </form>
                     </CardBody>
                 </Card>
