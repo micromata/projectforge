@@ -31,6 +31,7 @@ import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetFilter;
 import org.projectforge.business.vacation.service.VacationService;
+import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -66,10 +67,10 @@ public class MonthlyEmployeeReportDao
     filter.setStartTime(report.getFromDate());
     filter.setStopTime(report.getToDate());
     filter.setUserId(user.getId());
-    List<TimesheetDO> list = timesheetDao.getList(filter);
+    List<TimesheetDO> list = timesheetDao.internalGetList(filter, false); // Attention: No access checking!!!!
     if (CollectionUtils.isNotEmpty(list) == true) {
       for (TimesheetDO sheet : list) {
-        report.addTimesheet(sheet);
+        report.addTimesheet(sheet, timesheetDao.hasSelectAccess(user, sheet, false));
       }
     }
     report.calculate();

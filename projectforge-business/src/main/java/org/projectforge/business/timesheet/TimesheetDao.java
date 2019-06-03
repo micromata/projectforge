@@ -89,12 +89,12 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
    * Internal error message if maximum duration is exceeded.
    */
   private static final String MAXIMUM_DURATION_EXCEEDED = "Maximum duration of time sheet exceeded. Maximum is "
-      + (MAXIMUM_DURATION / 3600 / 1000)
-      + "h!";
+    + (MAXIMUM_DURATION / 3600 / 1000)
+    + "h!";
 
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "user.username", "user.firstname",
-      "user.lastname", "task.title",
-      "task.taskpath", "kost2.nummer", "kost2.description", "kost2.projekt.name" };
+    "user.lastname", "task.title",
+    "task.taskpath", "kost2.nummer", "kost2.description", "kost2.projekt.name" };
 
   public static final String HIDDEN_FIELD_MARKER = "[...]";
 
@@ -124,7 +124,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
   public int[] getYears(final Integer userId)
   {
     final List<Object[]> list = (List<Object[]>) getHibernateTemplate().find(
-        "select min(startTime), max(startTime) from TimesheetDO t where user.id=? and deleted=false", userId);
+      "select min(startTime), max(startTime) from TimesheetDO t where user.id=? and deleted=false", userId);
     return SQLHelper.getYears(list);
   }
 
@@ -185,7 +185,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
     }
     if (filter.getStartTime() != null && filter.getStopTime() != null) {
       queryFilter.add(Restrictions.and(Restrictions.ge("stopTime", filter.getStartTime()),
-          Restrictions.le("startTime", filter.getStopTime())));
+        Restrictions.le("startTime", filter.getStopTime())));
     } else if (filter.getStartTime() != null) {
       queryFilter.add(Restrictions.ge("startTime", filter.getStartTime()));
     } else if (filter.getStopTime() != null) {
@@ -243,6 +243,11 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<TimesheetDO> getList(final BaseSearchFilter filter) throws AccessException
   {
+    return internalGetList(filter, true);
+  }
+
+  public List<TimesheetDO> internalGetList(final BaseSearchFilter filter, boolean checkAccess)
+  {
     final TimesheetFilter myFilter;
     if (filter instanceof TimesheetFilter) {
       myFilter = (TimesheetFilter) filter;
@@ -255,7 +260,12 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
       myFilter.setStopTime(date.getDate());
     }
     final QueryFilter queryFilter = buildQueryFilter(myFilter);
-    List<TimesheetDO> result = getList(queryFilter);
+    List<TimesheetDO> result;
+    if (checkAccess) {
+      result = getList(queryFilter);
+    } else {
+      result = internalGetList(queryFilter);
+    }
     if (result == null) {
       return null;
     }
@@ -483,8 +493,8 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
         final String startTime = DateHelper.formatIsoTimestamp(ts.getStartTime());
         final String stopTime = DateHelper.formatIsoTimestamp(ts.getStopTime());
         throw new UserException("timesheet.error.timeperiodOverlapDetection", new MessageParam(ts.getId()),
-            new MessageParam(startTime),
-            new MessageParam(stopTime));
+          new MessageParam(startTime),
+          new MessageParam(stopTime));
       }
       long end = System.currentTimeMillis();
       log.info("TimesheetDao.hasTimeOverlap took: " + (end - begin) + " ms.");
@@ -508,13 +518,13 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
 
   @Override
   public boolean hasAccess(final PFUserDO user, final TimesheetDO obj, final TimesheetDO oldObj,
-      final OperationType operationType,
-      final boolean throwException)
+    final OperationType operationType,
+    final boolean throwException)
   {
     if (accessChecker.userEquals(user, obj.getUser()) == true) {
       // Own time sheet
       if (accessChecker.hasPermission(user, obj.getTaskId(), AccessType.OWN_TIMESHEETS, operationType,
-          throwException) == false) {
+        throwException) == false) {
         return false;
       }
     } else {
@@ -523,7 +533,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
         return true;
       }
       if (accessChecker.hasPermission(user, obj.getTaskId(), AccessType.TIMESHEETS, operationType,
-          throwException) == false) {
+        throwException) == false) {
         return false;
       }
     }
@@ -548,7 +558,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
     if (hasAccess(user, obj, null, OperationType.SELECT, false) == false) {
       // User has no access by definition.
       if (accessChecker.userEquals(user, obj.getUser()) == true
-          || accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.PROJECT_MANAGER) == true) {
+        || accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.PROJECT_MANAGER) == true) {
         if (accessChecker.userEquals(user, obj.getUser()) == false) {
           // Check protection of privacy for foreign time sheets:
           final List<TaskNode> pathToRoot = TaskTreeHelper.getTaskTree(obj).getPathToRoot(obj.getTaskId());
@@ -581,7 +591,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
    */
   @Override
   public boolean hasUpdateAccess(final PFUserDO user, final TimesheetDO obj, final TimesheetDO dbObj,
-      final boolean throwException)
+    final boolean throwException)
   {
     Validate.notNull(dbObj);
     Validate.notNull(obj);
@@ -652,15 +662,15 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
    * @return True if none of the rules above matches.
    */
   public boolean checkTaskBookable(final TimesheetDO timesheet, final TimesheetDO oldTimesheet,
-      final OperationType operationType,
-      final boolean throwException)
+    final OperationType operationType,
+    final boolean throwException)
   {
     if (operationType == OperationType.UPDATE) {
       if (timesheet.getStartTime().getTime() == oldTimesheet.getStartTime().getTime()
-          && timesheet.getStopTime().getTime() == oldTimesheet.getStopTime().getTime()
-          && ObjectUtils.equals(timesheet.getKost2Id(), oldTimesheet.getKost2Id()) == true
-          && ObjectUtils.equals(timesheet.getTaskId(), oldTimesheet.getTaskId()) == true
-          && ObjectUtils.equals(timesheet.getUserId(), oldTimesheet.getUserId()) == true) {
+        && timesheet.getStopTime().getTime() == oldTimesheet.getStopTime().getTime()
+        && ObjectUtils.equals(timesheet.getKost2Id(), oldTimesheet.getKost2Id()) == true
+        && ObjectUtils.equals(timesheet.getTaskId(), oldTimesheet.getTaskId()) == true
+        && ObjectUtils.equals(timesheet.getUserId(), oldTimesheet.getUserId()) == true) {
         // Only minor fields are modified (description, location etc.).
         return true;
       }
@@ -696,10 +706,10 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
     if (bookingStatus == TimesheetBookingStatus.NO_BOOKING) {
       if (throwException == true) {
         throw new AccessException("timesheet.error.taskNotBookable.taskClosedForBooking",
-            taskNode.getTask().getTitle()
-                + " (#"
-                + taskNode.getId()
-                + ")");
+          taskNode.getTask().getTitle()
+            + " (#"
+            + taskNode.getId()
+            + ")");
       }
       return false;
     }
@@ -711,10 +721,10 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
         if (task.getTimesheetBookingStatus() == TimesheetBookingStatus.ONLY_LEAFS) {
           if (throwException == true) {
             throw new AccessException("timesheet.error.taskNotBookable.onlyLeafsAllowedForBooking",
-                taskNode.getTask().getTitle()
-                    + " (#"
-                    + taskNode.getId()
-                    + ")");
+              taskNode.getTask().getTitle()
+                + " (#"
+                + taskNode.getId()
+                + ")");
           }
           return false;
         }
@@ -725,10 +735,10 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
         if (TaskTreeHelper.getTaskTree(timesheet).hasOrderPositions(child.getId(), true) == true) {
           if (throwException == true) {
             throw new AccessException("timesheet.error.taskNotBookable.orderPositionsFoundInSubTasks",
-                taskNode.getTask().getTitle()
-                    + " (#"
-                    + taskNode.getId()
-                    + ")");
+              taskNode.getTask().getTitle()
+                + " (#"
+                + taskNode.getId()
+                + ")");
           }
           return false;
         }
@@ -751,18 +761,18 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
    * @see ProjectForgeGroup#FINANCE_GROUP
    */
   public boolean checkTimesheetProtection(final PFUserDO user, final TimesheetDO timesheet,
-      final TimesheetDO oldTimesheet,
-      final OperationType operationType, final boolean throwException)
+    final TimesheetDO oldTimesheet,
+    final OperationType operationType, final boolean throwException)
   {
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP) == true
-        && accessChecker.userEquals(user, timesheet.getUser()) == false) {
+      && accessChecker.userEquals(user, timesheet.getUser()) == false) {
       // Member of financial group are able to book foreign time sheets.
       return true;
     }
     if (operationType == OperationType.UPDATE) {
       if (timesheet.getStartTime().getTime() == oldTimesheet.getStartTime().getTime()
-          && timesheet.getStopTime().getTime() == oldTimesheet.getStopTime().getTime()
-          && ObjectUtils.equals(timesheet.getKost2Id(), oldTimesheet.getKost2Id()) == true) {
+        && timesheet.getStopTime().getTime() == oldTimesheet.getStopTime().getTime()
+        && ObjectUtils.equals(timesheet.getKost2Id(), oldTimesheet.getKost2Id()) == true) {
         return true;
       }
     }
@@ -782,9 +792,9 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
       if ((oldTimesheet != null && oldTimesheet.getStartTime().before(dh.getDate()) == true) || timesheet.getStartTime().before(dh.getDate()) == true) {
         if (throwException == true) {
           throw new AccessException("timesheet.error.timesheetProtectionVioloation", node.getTask().getTitle()
-              + " (#"
-              + node.getTaskId()
-              + ")", DateHelper.formatIsoDate(dh.getDate()));
+            + " (#"
+            + node.getTaskId()
+            + ")", DateHelper.formatIsoDate(dh.getDate()));
         }
         return false;
       }
@@ -805,8 +815,8 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
       return null;
     }
     final String s = "select distinct location from "
-        + clazz.getSimpleName()
-        + " t where deleted=false and t.user.id = ? and lastUpdate > ? and lower(t.location) like ?) order by t.location";
+      + clazz.getSimpleName()
+      + " t where deleted=false and t.user.id = ? and lastUpdate > ? and lower(t.location) like ?) order by t.location";
     final Query query = getSession().createQuery(s);
     query.setInteger(0, ThreadLocalUserContext.getUser().getId());
     final DateHolder dh = new DateHolder();
@@ -829,8 +839,8 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
     checkLoggedInUserSelectAccess();
     log.info("Get recent locations from the database.");
     final String s = "select location from "
-        + (clazz.getSimpleName()
-        + " t where deleted=false and t.user.id = ? and lastUpdate > ? and t.location != null and t.location != '' order by t.lastUpdate desc");
+      + (clazz.getSimpleName()
+      + " t where deleted=false and t.user.id = ? and lastUpdate > ? and t.location != null and t.location != '' order by t.lastUpdate desc");
     final Query query = getSession().createQuery(s);
     query.setInteger(0, ThreadLocalUserContext.getUser().getId());
     final DateHolder dh = new DateHolder();
@@ -874,8 +884,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
   protected boolean massUpdateEntry(final TimesheetDO entry, final TimesheetDO master, final Object store)
   {
     if (store != null) {
-      @SuppressWarnings("unchecked")
-      final List<Kost2DO> kost2List = (List<Kost2DO>) store;
+      @SuppressWarnings("unchecked") final List<Kost2DO> kost2List = (List<Kost2DO>) store;
       if (master.getKost2Id() != null) {
         if (contains(kost2List, master.getKost2Id()) == false) {
           throw new UserException("timesheet.error.massupdate.kost2notsupported");

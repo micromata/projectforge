@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.Validate;
+import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.time.DateHolder;
@@ -36,8 +37,8 @@ import org.projectforge.framework.time.DateHolder;
 
 /**
  * Repräsentiert einen Wochenbericht eines Mitarbeiters. Diese Wochenberichte sind dem MonthlyEmployeeReport zugeordnet.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class MonthlyEmployeeReportWeek implements Serializable
 {
@@ -65,8 +66,20 @@ public class MonthlyEmployeeReportWeek implements Serializable
    */
   private Map<Integer, MonthlyEmployeeReportEntry> taskEntries = new HashMap<Integer, MonthlyEmployeeReportEntry>();
 
+  private static final TaskDO PSEUDO_TASK = new TaskDO();
+
+  public static TaskDO getPseudoTask() {
+    if (PSEUDO_TASK.getId() != -1) {
+      // Init pseudo task
+      PSEUDO_TASK.setId(-1);
+      PSEUDO_TASK.setTitle("[Without access]");
+    }
+    return PSEUDO_TASK;
+  }
+
   /**
    * ToDate will be set to end of week but not after the last day of month.
+   *
    * @param fromDate
    */
   public MonthlyEmployeeReportWeek(Date fromDate)
@@ -90,6 +103,7 @@ public class MonthlyEmployeeReportWeek implements Serializable
 
   /**
    * Start time of sheet must be fromDate or later and before toDate.
+   *
    * @param sheet
    */
   public boolean matchWeek(TimesheetDO sheet)
@@ -97,13 +111,21 @@ public class MonthlyEmployeeReportWeek implements Serializable
     return sheet.getStartTime().before(fromDate) == false && sheet.getStartTime().before(toDate) == true;
   }
 
-  void addEntry(TimesheetDO sheet)
+  void addEntry(TimesheetDO sheet, final boolean hasSelectAccess)
   {
     if (matchWeek(sheet) == false) {
       throw new RuntimeException("Oups, given time sheet is not inside the week represented by this week object.");
     }
     MonthlyEmployeeReportEntry entry;
-    if (sheet.getKost2Id() != null) {
+    if (!hasSelectAccess) {
+      entry = taskEntries.get(-1); // -1 represents timesheets without access.
+      if (entry == null) {
+        TaskDO pseudoTask = new TaskDO();
+        pseudoTask.setId(-1);
+        entry = new MonthlyEmployeeReportEntry(pseudoTask);
+        taskEntries.put(sheet.getTaskId(), entry);
+      }
+    } else if (sheet.getKost2Id() != null) {
       entry = kost2Entries.get(sheet.getKost2Id());
       if (entry == null) {
         entry = new MonthlyEmployeeReportEntry(sheet.getKost2());
@@ -162,7 +184,9 @@ public class MonthlyEmployeeReportWeek implements Serializable
     return StringHelper.format2DigitNumber(toDayOfMonth);
   }
 
-  /** Summe aller Stunden der Woche in Millis. */
+  /**
+   * Summe aller Stunden der Woche in Millis.
+   */
   public long getTotalDuration()
   {
     return totalDuration;
@@ -175,6 +199,7 @@ public class MonthlyEmployeeReportWeek implements Serializable
 
   /**
    * Return the hours assigned to the different Kost2's. The key of the map is the kost2 id.
+   *
    * @return
    */
   public Map<Integer, MonthlyEmployeeReportEntry> getKost2Entries()
@@ -184,6 +209,7 @@ public class MonthlyEmployeeReportWeek implements Serializable
 
   /**
    * Return the hours assigned to the different tasks which do not have a kost2-id. The key of the map is the task id.
+   *
    * @return
    */
   public Map<Integer, MonthlyEmployeeReportEntry> getTaskEntries()
