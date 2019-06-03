@@ -13,7 +13,6 @@ import {
     PopoverBody,
     PopoverHeader,
     Row,
-    UncontrolledTooltip,
 } from 'reactstrap';
 import EditableMultiValueLabel from '../../components/base/page/layout/EditableMultiValueLabel';
 import style from '../../components/design/input/Input.module.scss';
@@ -197,6 +196,7 @@ class CalendarPage extends React.Component {
                     defaultView={view}
                     activeCalendars={activeCalendars}
                     topHeight="225px"
+                    translations={translations}
                 />
                 <Popover
                     placement="bottom-end"

@@ -102,12 +102,19 @@ class CalendarFilterServicesRest {
         listOfDefaultCalendars.add(0, TeamCalendar(id = -1, title = translate("calendar.option.timesheeets"))) // prepend time sheet pseudo calendar
         initial.listOfDefaultCalendars = listOfDefaultCalendars
 
-        initial.translations = addTranslations(
+        val translations = addTranslations(
                 "select.placeholder",
                 "calendar.filter.dialog.title",
                 "calendar.filter.visible",
                 "calendar.defaultCalendar",
                 "calendar.defaultCalendar.tooltip")
+        translations.put("agenda", translate("calendar.view.agenda"))
+        translations.put("day", translate("calendar.view.day"))
+        translations.put("month", translate("calendar.view.month"))
+        translations.put("week", translate("calendar.view.week"))
+        translations.put("workWeek", translate("calendar.view.workWeek"))
+        translations.put("today", translate("calendar.navigation.today"))
+        initial.translations = translations
         return initial
     }
 
