@@ -113,7 +113,11 @@ class CalendarFilterServicesRest {
                 "calendar.view.day",
                 "calendar.view.month",
                 "calendar.view.week",
-                "calendar.view.workWeek")
+                "calendar.view.workWeek",
+                "favorites",
+                "delete",
+                "rename",
+                "save")
         return initial
     }
 

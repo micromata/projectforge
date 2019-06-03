@@ -1,5 +1,3 @@
-import { faStar } from '@fortawesome/free-regular-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import Select from 'react-select';
 import {
@@ -13,6 +11,8 @@ import {
     PopoverHeader,
     Row,
 } from 'reactstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCog } from '@fortawesome/free-solid-svg-icons';
 import EditableMultiValueLabel from '../../components/base/page/layout/EditableMultiValueLabel';
 import style from '../../components/design/input/Input.module.scss';
 import LoadingContainer from '../../components/design/loading-container';
@@ -20,7 +20,7 @@ import { getServiceURL } from '../../utilities/rest';
 import CalendarPanel from '../panel/calendar/CalendarPanel';
 import { customStyles } from './Calendar.module';
 import UncontrolledReactSelect from '../../components/base/page/layout/UncontrolledReactSelect';
-import { faCog } from '@fortawesome/free-solid-svg-icons';
+import FavoritesPanel from '../panel/FavoritesPanel';
 
 class CalendarPage extends React.Component {
     constructor(props) {
@@ -43,6 +43,9 @@ class CalendarPage extends React.Component {
         this.toggleSettingsPopover = this.toggleSettingsPopover.bind(this);
         this.handleMultiValueChange = this.handleMultiValueChange.bind(this);
         this.changeDefaultCalendar = this.changeDefaultCalendar.bind(this);
+        this.onFavoriteDelete = this.onFavoriteDelete.bind(this);
+        this.onFavoriteRename = this.onFavoriteRename.bind(this);
+        this.onFavoriteSelect = this.onFavoriteSelect.bind(this);
     }
 
     componentDidMount() {
@@ -52,6 +55,18 @@ class CalendarPage extends React.Component {
     onChange(activeCalendars) {
         activeCalendars.sort((a, b) => a.title.localeCompare(b.title));
         this.setState({ activeCalendars });
+    }
+
+    onFavoriteDelete(id) {
+        console.log(id);
+    }
+
+    onFavoriteSelect(id) {
+        console.log(id);
+    }
+
+    onFavoriteRename(id, newName) {
+        console.log(id, newName);
     }
 
     toggleSettingsPopover() {
@@ -169,17 +184,11 @@ class CalendarPage extends React.Component {
                                     // loadOptions={loadOptions}
                                     // defaultOptions={defaultOptions}
                                 />
-                                <Button
-                                    color="link"
-                                    className="selectPanelIconLinks"
-                                    disabled
-                                >
-                                    <FontAwesomeIcon
-                                        icon={faStar}
-                                        className={style.icon}
-                                        size="lg"
-                                    />
-                                </Button>
+                                <FavoritesPanel
+                                    onFavoriteSelect={undefined}
+                                    onFavoriteDelete={this.onFavoriteDelete}
+                                    translations={translations}
+                                />
                             </Row>
                         </form>
                     </CardBody>
