@@ -23,16 +23,15 @@
 
 package org.projectforge.business.fibu;
 
+import org.apache.commons.lang3.Validate;
+import org.projectforge.business.timesheet.TimesheetDO;
+import org.projectforge.common.StringHelper;
+import org.projectforge.framework.time.DateHolder;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.commons.lang3.Validate;
-import org.projectforge.business.task.TaskDO;
-import org.projectforge.business.timesheet.TimesheetDO;
-import org.projectforge.common.StringHelper;
-import org.projectforge.framework.time.DateHolder;
 
 
 /**
@@ -65,17 +64,6 @@ public class MonthlyEmployeeReportWeek implements Serializable
    * Key is task id.
    */
   private Map<Integer, MonthlyEmployeeReportEntry> taskEntries = new HashMap<Integer, MonthlyEmployeeReportEntry>();
-
-  private static final TaskDO PSEUDO_TASK = new TaskDO();
-
-  public static TaskDO getPseudoTask() {
-    if (PSEUDO_TASK.getId() != -1) {
-      // Init pseudo task
-      PSEUDO_TASK.setId(-1);
-      PSEUDO_TASK.setTitle("[Without access]");
-    }
-    return PSEUDO_TASK;
-  }
 
   /**
    * ToDate will be set to end of week but not after the last day of month.
@@ -118,12 +106,10 @@ public class MonthlyEmployeeReportWeek implements Serializable
     }
     MonthlyEmployeeReportEntry entry;
     if (!hasSelectAccess) {
-      entry = taskEntries.get(-1); // -1 represents timesheets without access.
+      entry = taskEntries.get(MonthlyEmployeeReport.MAGIC_PSEUDO_TASK_ID); // -42 represents timesheets without access.
       if (entry == null) {
-        TaskDO pseudoTask = new TaskDO();
-        pseudoTask.setId(-1);
-        entry = new MonthlyEmployeeReportEntry(pseudoTask);
-        taskEntries.put(sheet.getTaskId(), entry);
+        entry = new MonthlyEmployeeReportEntry(MonthlyEmployeeReport.createPseudoTask());
+        taskEntries.put(MonthlyEmployeeReport.MAGIC_PSEUDO_TASK_ID, entry);
       }
     } else if (sheet.getKost2Id() != null) {
       entry = kost2Entries.get(sheet.getKost2Id());
