@@ -394,12 +394,19 @@ nav[class^="Navigation_globalNavigation__"] .ml-auto.nav .nav-item {
   background: transparent !important;
 }
 
+div[class^="LoadingContainer_loadingContainer__"] {
+  margin-top: 20px;
+}
+
 div.Customized_addressImageContainer__9T_GE * {
   margin: 0 !important;
 }
 
-span[class^="DropArea_info__"] svg {
-  margin-right: 10px !important;
+span[class^="DropArea_info__"] {
+  margin-top: 20px !important;
+  svg {
+    margin-right: 10px !important;
+  }
 }
 
 .popover-header {
@@ -408,4 +415,14 @@ span[class^="DropArea_info__"] svg {
 
 .popover-body {
   font-size: 12px;
+}
+
+div[class^="LoadingContainer_loadingContainer__"] {
+  img {
+    margin-bottom: 20px !important;
+  }
+
+  .btn.btn-danger {
+    margin-bottom: 20px !important;
+  }
 }
