@@ -120,7 +120,7 @@ public class LiquidityEntryListPage
         if (liquidityEntry.isDeleted() == true) {
           // Do nothing further
         } else {
-          if (liquidityEntry.isPaid() == false) {
+          if (liquidityEntry.getPaid() == false) {
             if (liquidityEntry.getDateOfPayment() == null || liquidityEntry.getDateOfPayment().before(today) == true) {
               appendCssClasses(item, RowCssClass.IMPORTANT_ROW);
             } else {
@@ -163,7 +163,7 @@ public class LiquidityEntryListPage
           final IModel<LiquidityEntryDO> rowModel)
       {
         final LiquidityEntryDO entry = rowModel.getObject();
-        if (entry.isPaid() == true) {
+        if (entry.getPaid() == true) {
           item.add(new IconPanel(componentId, IconType.ACCEPT));
         } else {
           item.add(createInvisibleDummyComponent(componentId));
