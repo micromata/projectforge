@@ -1,26 +1,17 @@
 import React from 'react';
 import Select from 'react-select';
 import {
-    Button,
     Card,
     CardBody,
-    Col,
-    Container,
-    Popover,
-    PopoverBody,
-    PopoverHeader,
     Row,
 } from 'reactstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCog } from '@fortawesome/free-solid-svg-icons';
 import EditableMultiValueLabel from '../../components/base/page/layout/EditableMultiValueLabel';
-import style from '../../components/design/input/Input.module.scss';
 import LoadingContainer from '../../components/design/loading-container';
 import { getServiceURL } from '../../utilities/rest';
 import CalendarPanel from '../panel/calendar/CalendarPanel';
 import { customStyles } from './Calendar.module';
-import UncontrolledReactSelect from '../../components/base/page/layout/UncontrolledReactSelect';
 import FavoritesPanel from '../panel/FavoritesPanel';
+import CalendarFilterSettings from '../panel/calendar/CalendarFilterSettings';
 
 class CalendarPage extends React.Component {
     constructor(props) {
@@ -35,17 +26,16 @@ class CalendarPage extends React.Component {
             listOfDefaultCalendars: [],
             defaultCalendar: undefined,
             translations: undefined,
-            settingsPopoverOpen: false,
         };
 
         this.fetchInitial = this.fetchInitial.bind(this);
         this.onChange = this.onChange.bind(this);
-        this.toggleSettingsPopover = this.toggleSettingsPopover.bind(this);
         this.handleMultiValueChange = this.handleMultiValueChange.bind(this);
         this.changeDefaultCalendar = this.changeDefaultCalendar.bind(this);
         this.onFavoriteDelete = this.onFavoriteDelete.bind(this);
         this.onFavoriteRename = this.onFavoriteRename.bind(this);
         this.onFavoriteSelect = this.onFavoriteSelect.bind(this);
+        this.onFavoriteUpdate = this.onFavoriteUpdate.bind(this);
     }
 
     componentDidMount() {
@@ -69,10 +59,8 @@ class CalendarPage extends React.Component {
         console.log(id, newName);
     }
 
-    toggleSettingsPopover() {
-        this.setState(prevState => ({
-            settingsPopoverOpen: !prevState.settingsPopoverOpen,
-        }));
+    onFavoriteUpdate(id, newName) {
+        console.log(id, newName);
     }
 
     changeDefaultCalendar(defaultCalendar) {
@@ -127,7 +115,6 @@ class CalendarPage extends React.Component {
             colors,
             date,
             loading,
-            settingsPopoverOpen,
             teamCalendars,
             translations,
             view,
@@ -149,18 +136,10 @@ class CalendarPage extends React.Component {
                     <CardBody>
                         <form>
                             <Row>
-                                <Button
-                                    id="settingsPopover"
-                                    color="link"
-                                    className="selectPanelIconLinks"
-                                    onClick={this.toggleSettingsPopover}
-                                >
-                                    <FontAwesomeIcon
-                                        icon={faCog}
-                                        className={style.icon}
-                                        size="lg"
-                                    />
-                                </Button>
+                                <CalendarFilterSettings
+                                    listOfDefaultCalendars={listOfDefaultCalendars}
+                                    translations={translations}
+                                />
                                 <Select
                                     closeMenuOnSelect={false}
                                     components={{
@@ -185,8 +164,10 @@ class CalendarPage extends React.Component {
                                     // defaultOptions={defaultOptions}
                                 />
                                 <FavoritesPanel
-                                    onFavoriteSelect={undefined}
+                                    onFavoriteSelect={this.onFavoriteSelect}
                                     onFavoriteDelete={this.onFavoriteDelete}
+                                    onFavoriteRename={this.onFavoriteRename}
+                                    onFavoriteUpdate={this.onFavoriteUpdate}
                                     translations={translations}
                                 />
                             </Row>
@@ -200,46 +181,6 @@ class CalendarPage extends React.Component {
                     topHeight="225px"
                     translations={translations}
                 />
-                <Popover
-                    placement="bottom-end"
-                    isOpen={settingsPopoverOpen}
-                    target="settingsPopover"
-                    toggle={this.toggleSettingsPopover}
-                    trigger="legacy"
-                >
-                    <PopoverHeader toggle={this.settingsPopoverOpen}>
-                        {translations['calendar.filter.dialog.title']}
-                    </PopoverHeader>
-                    <PopoverBody>
-                        <Container>
-                            <Row>
-                                <Col>
-                                    <UncontrolledReactSelect
-                                        label={translations['calendar.defaultCalendar']}
-                                        tooltip={translations['calendar.defaultCalendar.tooltip']}
-                                        // data={data}
-                                        id="id"
-                                        values={listOfDefaultCalendars}
-                                        changeDataField={this.changeDefaultCalendar}
-                                        translations={translations}
-                                        valueProperty="id"
-                                        labelProperty="title"
-                                    />
-                                </Col>
-                            </Row>
-                            <Row>
-                                <Col>Zeitberichtsuser</Col>
-                            </Row>
-                            <Row>
-                                <Col>
-                                    Optionen: Pausen, Statistik,
-                                    Geburtstage, Planungen
-                                </Col>
-                            </Row>
-                        </Container>
-                        [ToDo: Buttons Übernehmen, Reset]
-                    </PopoverBody>
-                </Popover>
             </LoadingContainer>
         );
     }
