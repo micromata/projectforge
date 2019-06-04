@@ -174,13 +174,13 @@ class AddressRest()
                 .add(UIRow()
                         .add(UIFieldset(6)
                                 .add(UIRow()
-                                        .add(UICol(length = 8)
+                                        .add(UICol(length = 9)
                                                 .add(UISelect("addressbookList", lc,
                                                         multi = true,
                                                         values = addressbooks,
                                                         labelProperty = "title",
                                                         valueProperty = "id")))
-                                        .add(UICol(length = 4)
+                                        .add(UICol(length = 3)
                                                 .add(UICheckbox("favorite", label = "favorite")))))
                         .add(UIFieldset(6)
                                 .add(UIRow()
