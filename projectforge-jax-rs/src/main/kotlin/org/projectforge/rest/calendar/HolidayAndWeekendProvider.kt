@@ -4,6 +4,7 @@ import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDateTime
 import java.time.DayOfWeek
+import java.time.format.DateTimeFormatter
 
 object HolidayAndWeekendProvider {
     private val log = org.slf4j.LoggerFactory.getLogger(HolidayAndWeekendProvider::class.java)
@@ -33,10 +34,13 @@ object HolidayAndWeekendProvider {
                         holidayInfo = translate(holidayInfo)
                     }
                 val dayInfo = SpecialDayInfo(weekend, holiday, holidayInfo, workingDay)
-                result.put(day.dateAsIsoString(), dayInfo)
+                val localDate = day.asLocalDate()
+                result.put(isoDateFormatter.format(localDate), dayInfo)
             }
             day = day.plusDays(1)
         } while (!day.isAfter(end))
         return result
     }
+
+    private val isoDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 }

@@ -76,7 +76,7 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
     }
     if (ObjectUtils.equals(ThreadLocalUserContext.getUserId(), getData().getAssigneeId()) == true) {
       // OK, user has now seen this to-do: delete recent flag:
-      if (isNew() == false && getData().isRecent() == true) {
+      if (isNew() == false && getData().getRecent() == true) {
         getData().setRecent(false);
         toDoDao.update(getData());
       }
@@ -131,7 +131,8 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
 
   private void copyPrefValues(final ToDoDO src, final ToDoDO dest)
   {
-    dest.setPriority(src.getPriority()).setType(src.getType());
+    dest.setPriority(src.getPriority());
+    dest.setType(src.getType());
   }
 
   /**

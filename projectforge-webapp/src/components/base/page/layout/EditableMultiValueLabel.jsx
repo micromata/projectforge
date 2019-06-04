@@ -3,16 +3,16 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { components } from 'react-select';
+import CalendarStyler from '../../../../containers/panel/calendar/CalendarStyler';
+import { getServiceURL } from '../../../../utilities/rest';
 import { Button } from '../../../design';
 import Input from '../../../design/input';
 import Popper from '../../../design/popper';
 
-const stopEventPropagation = event => event.stopPropagation();
-
 function EditableMultiValueLabel({ data, selectProps, ...props }) {
     const initialValue = selectProps.values[data.id] || '';
 
-    const [isOpen, setIsOpen] = React.useState(true);
+    const [isOpen, setIsOpen] = React.useState(false);
     const [value, setValue] = React.useState(initialValue);
 
     const popperRef = React.useRef(null);
@@ -53,7 +53,9 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
             );
             break;
         case 'COLOR_PICKER':
-            // TODO: IMPLEMENT COLOR PICKER
+            input = (
+                <CalendarStyler calendar={data} />
+            );
             break;
         // Case for plain searchString without filterType
         case undefined:
@@ -67,17 +69,29 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
 
     // Function to set value in react-select
     const submitValue = () => {
+        switch (data.filterType) {
+            case 'COLOR_PICKER':
+                fetch(getServiceURL('calendar/changeStyle', {
+                    calendarId: data.id,
+                    bgColor: data.bgColor,
+                }), {
+                    method: 'GET',
+                    credentials: 'include',
+                })
+                    .catch(error => alert(`Internal error: ${error}`));
+                break;
+            default:
+        }
+
         setIsOpen(false);
         selectProps.setMultiValue(data.id, value);
     };
 
     const selectHandler = {
-        // Cancel all the react-select events
-        onMouseDownCapture: stopEventPropagation,
-        onMouseDown: stopEventPropagation,
-        onClick: stopEventPropagation,
+        onClick: event => event.stopPropagation(),
+        onMouseDown: event => event.stopPropagation(),
         onKeyDown: (event) => {
-            stopEventPropagation(event);
+            event.stopPropagation();
 
             switch (event.key) {
                 case 'Escape':
@@ -116,7 +130,7 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
             <div ref={popperRef}>
                 {input}
                 <Button color="success" block onClick={submitValue}>
-                    <FontAwesomeIcon icon={faCheck} />
+                    <FontAwesomeIcon icon={faCheck}/>
                 </Button>
             </div>
         </Popper>

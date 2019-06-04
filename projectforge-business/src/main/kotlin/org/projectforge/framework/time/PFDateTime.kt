@@ -1,24 +1,18 @@
 package org.projectforge.framework.time
 
+import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.time.*
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
-import java.util.*
-
-
 
 /**
- * Immutable holder of [ZoneDateTime] for transforming to [java.util.Date] (once) if used several times.
+ * Immutable holder of [ZonedDateTime] for transforming to [java.util.Date] (once) if used several times.
  * Zone date times will be generated automatically with the context user's time zone.
  */
-class PFDateTime {
-    private constructor(dateTime: ZonedDateTime) {
-        this.dateTime = dateTime
-    }
+class PFDateTime private constructor(val dateTime: ZonedDateTime) {
 
-    val dateTime: ZonedDateTime
     private var date: java.util.Date? = null
     private var sqlDate: java.sql.Date? = null
     private var sqlTimestamp: java.sql.Timestamp? = null
@@ -26,13 +20,13 @@ class PFDateTime {
 
     fun asUtilDate(): java.util.Date {
         if (date == null)
-            date = java.util.Date.from(dateTime.toInstant());
+            date = java.util.Date.from(dateTime.toInstant())
         return date!!
     }
 
     fun asSqlTimestamp(): java.sql.Timestamp {
         if (sqlTimestamp == null)
-            sqlTimestamp = java.sql.Timestamp.from(dateTime.toInstant());
+            sqlTimestamp = java.sql.Timestamp.from(dateTime.toInstant())
         return sqlTimestamp!!
     }
 
@@ -47,32 +41,25 @@ class PFDateTime {
     }
 
     /**
-     * Date part as ISO string: "yyyy-MM-dd".
+     * Date part as ISO string: "yyyy-MM-dd HH:mm" in UTC.
      */
-    fun dateAsIsoString() :String {
-        return isoDateFormatter.format(dateTime)
-    }
-
-    /**
-     * Date part as ISO string: "yyyy-MM-dd HH:mm".
-     */
-    fun dateTimeAsIsoString() :String {
+    fun asIsoString(): String {
         return isoDateTimeFormatterMinutes.format(dateTime)
     }
 
     /**
-     * Date part as JavaScript string: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'".
+     * Date as JavaScript string: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'" (UTC).
      */
-    fun dateTimeAsJavaScriptString() :String {
-        return isoDateTimeFormatterMinutes.format(dateTime)
+    fun asJavaScriptString(): String {
+        return jsDateTimeFormatter.format(dateTime)
     }
 
     fun getZone(): ZoneId {
         return dateTime.zone
     }
 
-    fun getTimeZone(): TimeZone {
-        return TimeZone.getTimeZone(dateTime.zone)
+    fun getTimeZone(): java.util.TimeZone {
+        return java.util.TimeZone.getTimeZone(dateTime.zone)
     }
 
     fun isBefore(other: PFDateTime): Boolean {
@@ -129,10 +116,10 @@ class PFDateTime {
          * Sets the user's time zone.
          */
         @JvmStatic
-        fun from(epochMillis : Long?): PFDateTime {
-            if (epochMillis == null)
+        fun from(epochSeconds: Long?): PFDateTime {
+            if (epochSeconds == null)
                 return now()
-            val instant = Instant.ofEpochMilli(epochMillis)
+            val instant = Instant.ofEpochSecond(epochSeconds)
             return PFDateTime(ZonedDateTime.ofInstant(instant, getUsersZoneId()))
         }
 
@@ -161,15 +148,13 @@ class PFDateTime {
          * Creates mindnight [ZonedDateTime] from given [LocalDate].
          */
         @JvmStatic
-        fun from(date: java.util.Date?, nowIfNull : Boolean = false): PFDateTime? {
+        fun from(date: java.util.Date?, nowIfNull: Boolean = false): PFDateTime? {
             if (date == null)
                 return if (nowIfNull) now() else null
-            if (date is java.sql.Date) { // Yes, this occurs!
-                val localDate = date.toLocalDate()
-                return PFDateTime.from(localDate)
+            return if (date is java.sql.Date) { // Yes, this occurs!
+                from(date.toLocalDate())
             } else {
-                val dateTime = date.toInstant().atZone(getUsersZoneId());
-                return PFDateTime(dateTime)
+                PFDateTime(date.toInstant().atZone(getUsersZoneId()))
             }
         }
 
@@ -180,7 +165,7 @@ class PFDateTime {
         fun from(date: java.sql.Date?): PFDateTime {
             if (date == null)
                 return now()
-            val dateTime = date.toInstant().atZone(getUsersZoneId());
+            val dateTime = date.toInstant().atZone(getUsersZoneId())
             return PFDateTime(dateTime)
         }
 
@@ -196,28 +181,51 @@ class PFDateTime {
 
         /**
          * Parses the given date as UTC and converts it to the user's zoned date time.
+         * @throws DateTimeParseException if the text cannot be parsed
          */
         @JvmStatic
-        fun parseUTCDate(str: String?, dateTimeFormatter : DateTimeFormatter): PFDateTime? {
+        fun parseUTCDate(str: String?, dateTimeFormatter: DateTimeFormatter): PFDateTime? {
             if (str.isNullOrBlank())
                 return null
-            try {
-                val local =  LocalDateTime.parse(str, dateTimeFormatter) // Parses UTC as local date.
-                val utcZoned = ZonedDateTime.of(local, ZoneId.of("UTC"))
-                val userZoned = utcZoned.withZoneSameInstant(getUsersZoneId())
-                return PFDateTime(userZoned)
-            } catch (ex: DateTimeParseException) {
-                log.error("Error while parsing date '$str': ${ex.message}.")
-                return null
-            }
+            val local = LocalDateTime.parse(str, dateTimeFormatter) // Parses UTC as local date.
+            val utcZoned = ZonedDateTime.of(local, ZoneId.of("UTC"))
+            val userZoned = utcZoned.withZoneSameInstant(getUsersZoneId())
+            return PFDateTime(userZoned)
+        }
 
+        /**
+         * Parses the given date as UTC and converts it to the user's zoned date time.
+         * Tries the following formatters:
+         *
+         * number (epoch in seconds), "yyyy-MM-dd HH:mm", "yyyy-MM-dd'T'HH:mm:ss.SSS.'Z'"
+         * @throws DateTimeException if the text cannot be parsed
+         */
+        @JvmStatic
+        fun parseUTCDate(str: String?): PFDateTime? {
+            if (str.isNullOrBlank())
+                return null
+            if (StringUtils.isNumeric(str)) {
+                return from(str.toLong())
+            }
+            if (str.contains("T")) { // yyyy-MM-dd'T'HH:mm:ss.SSS'Z'
+                return parseUTCDate(str, jsDateTimeFormatter)
+            }
+            val colonPos = str.indexOf(':')
+            return if (colonPos < 0) {
+                throw DateTimeException("Can't parse date string '$str'. Supported formats are 'yyyy-MM-dd HH:mm', 'yyyy-MM-dd HH:mm:ss', 'yyyy-MM-dd'T'HH:mm:ss.SSS'Z'' and numbers as epoch seconds.")
+            } else if (str.indexOf(':', colonPos + 1) < 0) { // yyyy-MM-dd HH:mm
+                parseUTCDate(str, isoDateTimeFormatterMinutes)
+            } else { // yyyy-MM-dd HH:mm:ss
+                parseUTCDate(str, isoDateTimeFormatterSeconds)
+            }
         }
 
         private val log = org.slf4j.LoggerFactory.getLogger(PFDateTime::class.java)
 
-        private val isoDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        private val isoDateTimeFormatterMinutes = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
-        private val jsDateTimeFormatterMinutes = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-       // private val jsonDateTimeFormatter = DateTimeFormatter.ofPattern(DateTimeFormat.JS_DATE_TIME_MILLIS.pattern)
+        private val isoDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneOffset.UTC)
+        private val isoDateTimeFormatterMinutes = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneOffset.UTC)
+        private val isoDateTimeFormatterSeconds = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneOffset.UTC)
+        private val jsDateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneOffset.UTC)
+        // private val jsonDateTimeFormatter = DateTimeFormatter.ofPattern(DateTimeFormat.JS_DATE_TIME_MILLIS.pattern)
     }
 }

@@ -1,10 +1,14 @@
 import React from 'react';
 import Select from 'react-select';
+import { UncontrolledTooltip } from 'reactstrap';
 import AsyncSelect from 'react-select/lib/Async';
 import makeAnimated from 'react-select/lib/animated';
 import PropTypes from 'prop-types';
+import { faQuestion } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import style from '../../../design/input/Input.module.scss';
 import AdditionalLabel from '../../../design/input/AdditionalLabel';
+import revisedRandomId from '../../../../utilities/revisedRandomId';
 
 function ReactSelect(
     {
@@ -21,6 +25,7 @@ function ReactSelect(
         getOptionLabel,
         onChange,
         className,
+        tooltip,
     },
 ) {
     let Tag = Select;
@@ -29,9 +34,29 @@ function ReactSelect(
         Tag = AsyncSelect;
         defaultOptions = true;
     }
+    let tooltipElement;
+    if (tooltip) {
+        const tooltipId = `rs-${revisedRandomId()}`;
+        tooltipElement = (
+            <React.Fragment>
+                <span>{' '}</span>
+                <FontAwesomeIcon
+                    icon={faQuestion}
+                    className={style.icon}
+                    size="sm"
+                    id={tooltipId}
+                    style={{ color: 'gold' }}
+                />
+                <UncontrolledTooltip placement="right" target={tooltipId}>
+                    {tooltip}
+                </UncontrolledTooltip>
+            </React.Fragment>
+        );
+    }
     return (
         <React.Fragment>
             <span className={style.text}>{label}</span>
+            {tooltipElement}
             <Tag
                 // closeMenuOnSelect={false}
                 components={makeAnimated()}
@@ -67,6 +92,7 @@ ReactSelect.propTypes = {
     getOptionLabel: PropTypes.func,
     onChange: PropTypes.func,
     className: PropTypes.string,
+    tooltip: PropTypes.string,
 };
 
 ReactSelect.defaultProps = {
@@ -80,5 +106,6 @@ ReactSelect.defaultProps = {
     getOptionLabel: undefined,
     onChange: undefined,
     className: undefined,
+    tooltip: undefined,
 };
 export default ReactSelect;

@@ -21,57 +21,41 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.address;
+package org.projectforge.business.address
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.Column
+import javax.persistence.Entity
+import javax.persistence.GeneratedValue
+import javax.persistence.Id
+import javax.persistence.JoinColumn
+import javax.persistence.ManyToOne
+import javax.persistence.Table
 
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO;
+import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
 
 /**
  * @author Roger Kommer (r.kommer.extern@micromata.de)
- *
  */
 @Entity
 @Table(name = "t_address_attrdata")
-public class AddressAttrDataDO extends JpaTabAttrDataBaseDO<AddressAttrDO, Integer>
-{
+class AddressAttrDataDO : JpaTabAttrDataBaseDO<AddressAttrDO, Int> {
+    constructor() : super() {}
 
-  public AddressAttrDataDO()
-  {
-    super();
-  }
+    constructor(parent: AddressAttrDO, value: String) : super(parent, value) {}
 
-  public AddressAttrDataDO(final AddressAttrDO parent, final String value)
-  {
-    super(parent, value);
-  }
+    constructor(parent: AddressAttrDO) : super(parent) {}
 
-  public AddressAttrDataDO(final AddressAttrDO parent)
-  {
-    super(parent);
-  }
+    @Id
+    @GeneratedValue
+    @Column(name = "pk")
+    override fun getPk(): Int? {
+        return pk
+    }
 
-  @Override
-  @Id
-  @GeneratedValue
-  @Column(name = "pk")
-  public Integer getPk()
-  {
-    return pk;
-  }
-
-  @Override
-  @ManyToOne(optional = false)
-  @JoinColumn(name = "parent_id", referencedColumnName = "pk")
-  public AddressAttrDO getParent()
-  {
-    return super.getParent();
-  }
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "parent_id", referencedColumnName = "pk")
+    override fun getParent(): AddressAttrDO {
+        return super.getParent()
+    }
 
 }

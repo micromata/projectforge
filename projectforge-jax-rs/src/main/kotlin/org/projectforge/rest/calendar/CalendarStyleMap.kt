@@ -23,8 +23,6 @@
 
 package org.projectforge.rest.calendar
 
-import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter
-
 /**
  * Persist the styles of the calendarIds for the user.
  *
@@ -35,7 +33,7 @@ class CalendarStyleMap {
     /**
      * Colors for the calendarIds by calendar id.
      */
-    private val styles = mutableMapOf<Int, CalendarStyle>()
+    internal val styles = mutableMapOf<Int, CalendarStyle>()
 
     fun add(calendarId : Int, style : CalendarStyle) {
         styles.put(calendarId, style)
@@ -43,25 +41,5 @@ class CalendarStyleMap {
 
     fun get(calendarId: Int?) : CalendarStyle? {
         return styles[calendarId]
-    }
-
-    // LEGACY STUFF:
-    companion object {
-        /**
-         * For re-using legacy filters (from ProjetForge version up to 6, Wicket-Calendar).
-         */
-        internal fun copyFrom(oldFilter: TeamCalCalendarFilter?): CalendarStyleMap {
-            val styleMap = CalendarStyleMap()
-            if (oldFilter != null) {
-                oldFilter.templateEntries?.forEach { templateEntry ->
-                    templateEntry.calendarProperties?.forEach {
-                        if (!styleMap.styles.containsKey(it.calId)) {
-                            styleMap.styles.put(it.calId, CalendarStyle(bgColor = it.colorCode)) // Only bgColor was stored for ProjectForge earlier than 7.0.
-                        }
-                    }
-                }
-            }
-            return styleMap
-        }
     }
 }

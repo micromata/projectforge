@@ -1,16 +1,26 @@
 import { faStar } from '@fortawesome/free-regular-svg-icons';
-import { faCog } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import Select from 'react-select';
-/* eslint-disable-next-line object-curly-newline */
-import { Button, Card, CardBody, Col, Modal, ModalBody, ModalHeader, Row } from 'reactstrap';
+import {
+    Button,
+    Card,
+    CardBody,
+    Col,
+    Container,
+    Popover,
+    PopoverBody,
+    PopoverHeader,
+    Row,
+} from 'reactstrap';
 import EditableMultiValueLabel from '../../components/base/page/layout/EditableMultiValueLabel';
 import style from '../../components/design/input/Input.module.scss';
 import LoadingContainer from '../../components/design/loading-container';
 import { getServiceURL } from '../../utilities/rest';
-import CalendarPanel from '../panel/CalendarPanel';
+import CalendarPanel from '../panel/calendar/CalendarPanel';
 import { customStyles } from './Calendar.module';
+import UncontrolledReactSelect from '../../components/base/page/layout/UncontrolledReactSelect';
+import { faCog } from '@fortawesome/free-solid-svg-icons';
 
 class CalendarPage extends React.Component {
     constructor(props) {
@@ -22,14 +32,17 @@ class CalendarPage extends React.Component {
             view: 'week',
             teamCalendars: undefined,
             activeCalendars: [],
+            listOfDefaultCalendars: [],
+            defaultCalendar: undefined,
             translations: undefined,
-            settingsModal: false,
+            settingsPopoverOpen: false,
         };
 
         this.fetchInitial = this.fetchInitial.bind(this);
         this.onChange = this.onChange.bind(this);
-        this.toggleSettingsModal = this.toggleSettingsModal.bind(this);
+        this.toggleSettingsPopover = this.toggleSettingsPopover.bind(this);
         this.handleMultiValueChange = this.handleMultiValueChange.bind(this);
+        this.changeDefaultCalendar = this.changeDefaultCalendar.bind(this);
     }
 
     componentDidMount() {
@@ -41,10 +54,14 @@ class CalendarPage extends React.Component {
         this.setState({ activeCalendars });
     }
 
-    toggleSettingsModal() {
+    toggleSettingsPopover() {
         this.setState(prevState => ({
-            settingsModal: !prevState.settingsModal,
+            settingsPopoverOpen: !prevState.settingsPopoverOpen,
         }));
+    }
+
+    changeDefaultCalendar(defaultCalendar) {
+        this.setState({ defaultCalendar });
     }
 
     fetchInitial() {
@@ -63,6 +80,7 @@ class CalendarPage extends React.Component {
                     view,
                     teamCalendars,
                     activeCalendars,
+                    listOfDefaultCalendars,
                     translations,
                 } = json;
                 this.setState({
@@ -70,6 +88,7 @@ class CalendarPage extends React.Component {
                     date: new Date(date),
                     teamCalendars,
                     activeCalendars,
+                    listOfDefaultCalendars,
                     view,
                     translations,
                 });
@@ -89,10 +108,11 @@ class CalendarPage extends React.Component {
     render() {
         const {
             activeCalendars,
+            listOfDefaultCalendars,
             colors,
             date,
             loading,
-            settingsModal,
+            settingsPopoverOpen,
             teamCalendars,
             translations,
             view,
@@ -114,81 +134,103 @@ class CalendarPage extends React.Component {
                     <CardBody>
                         <form>
                             <Row>
-                                <Col sm={11}>
-                                    <Select
-                                        closeMenuOnSelect={false}
-                                        components={{
-                                            MultiValueLabel: EditableMultiValueLabel,
-                                        }}
-                                        defaultValue={activeCalendars}
-                                        getOptionLabel={option => (option.title)}
-                                        getOptionValue={option => (option.id)}
-                                        isClearable
-                                        isMulti
-                                        onChange={this.onChange}
-                                        options={options}
-                                        placeholder={translations['select.placeholder']}
-                                        setMultiValue={this.handleMultiValueChange}
-                                        styles={customStyles}
-                                        values={colors}
-                                        // loadOptions={loadOptions}
-                                        // defaultOptions={defaultOptions}
+                                <Button
+                                    id="settingsPopover"
+                                    color="link"
+                                    className="selectPanelIconLinks"
+                                    onClick={this.toggleSettingsPopover}
+                                >
+                                    <FontAwesomeIcon
+                                        icon={faCog}
+                                        className={style.icon}
+                                        size="lg"
                                     />
-                                </Col>
-                                <Col sm={1}>
-                                    <Row>
-                                        <Button
-                                            color="link"
-                                            className="selectPanelIconLinks"
-                                            onClick={this.toggleTaskTreeModal}
-                                            disabled
-                                        >
-                                            <FontAwesomeIcon
-                                                icon={faStar}
-                                                className={style.icon}
-                                                size="lg"
-                                            />
-                                        </Button>
-                                        <Button
-                                            color="link"
-                                            className="selectPanelIconLinks"
-                                            onClick={this.toggleSettingsModal}
-                                        >
-                                            <FontAwesomeIcon
-                                                icon={faCog}
-                                                className={style.icon}
-                                                size="lg"
-                                            />
-                                        </Button>
-                                    </Row>
-                                </Col>
+                                </Button>
+                                <Select
+                                    closeMenuOnSelect={false}
+                                    components={{
+                                        MultiValueLabel: EditableMultiValueLabel,
+                                    }}
+                                    defaultValue={activeCalendars.map(option => ({
+                                        ...option,
+                                        filterType: 'COLOR_PICKER',
+                                        label: option.title,
+                                    }))}
+                                    getOptionLabel={option => (option.title)}
+                                    getOptionValue={option => (option.id)}
+                                    isClearable
+                                    isMulti
+                                    onChange={this.onChange}
+                                    options={options}
+                                    placeholder={translations['select.placeholder']}
+                                    setMultiValue={this.handleMultiValueChange}
+                                    styles={customStyles}
+                                    values={colors}
+                                    // loadOptions={loadOptions}
+                                    // defaultOptions={defaultOptions}
+                                />
+                                <Button
+                                    color="link"
+                                    className="selectPanelIconLinks"
+                                    disabled
+                                >
+                                    <FontAwesomeIcon
+                                        icon={faStar}
+                                        className={style.icon}
+                                        size="lg"
+                                    />
+                                </Button>
                             </Row>
-
                         </form>
                     </CardBody>
                 </Card>
                 <CalendarPanel
-                    defautlDate={date}
+                    defaultDate={date}
                     defaultView={view}
                     activeCalendars={activeCalendars}
                     topHeight="225px"
+                    translations={translations}
                 />
-                <Modal
-                    isOpen={settingsModal}
-                    toggle={this.toggleSettingsModal}
-                    modalTransition={{ timeout: 100 }}
-                    backdropTransition={{ timeout: 150 }}
+                <Popover
+                    placement="bottom-end"
+                    isOpen={settingsPopoverOpen}
+                    target="settingsPopover"
+                    toggle={this.toggleSettingsPopover}
+                    trigger="legacy"
                 >
-                    <ModalHeader toggle={this.settingsModal}>
-                        {translations['plugins.teamcal.calendar.filterDialog.title']}
-                    </ModalHeader>
-                    <ModalBody>
-                        [ToDo: Standardkalendar, Zeitberichtsuser, Optionen: Pausen, Statistik,
-                        Geburtstage, Planungen, Farben?]
-                        <br />
+                    <PopoverHeader toggle={this.settingsPopoverOpen}>
+                        {translations['calendar.filter.dialog.title']}
+                    </PopoverHeader>
+                    <PopoverBody>
+                        <Container>
+                            <Row>
+                                <Col>
+                                    <UncontrolledReactSelect
+                                        label={translations['calendar.defaultCalendar']}
+                                        tooltip={translations['calendar.defaultCalendar.tooltip']}
+                                        // data={data}
+                                        id="id"
+                                        values={listOfDefaultCalendars}
+                                        changeDataField={this.changeDefaultCalendar}
+                                        translations={translations}
+                                        valueProperty="id"
+                                        labelProperty="title"
+                                    />
+                                </Col>
+                            </Row>
+                            <Row>
+                                <Col>Zeitberichtsuser</Col>
+                            </Row>
+                            <Row>
+                                <Col>
+                                    Optionen: Pausen, Statistik,
+                                    Geburtstage, Planungen
+                                </Col>
+                            </Row>
+                        </Container>
                         [ToDo: Buttons Übernehmen, Reset]
-                    </ModalBody>
-                </Modal>
+                    </PopoverBody>
+                </Popover>
             </LoadingContainer>
         );
     }

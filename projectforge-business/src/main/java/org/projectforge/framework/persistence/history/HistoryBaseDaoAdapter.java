@@ -1,19 +1,15 @@
 package org.projectforge.framework.persistence.history;
 
-import java.io.Serializable;
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
+import de.micromata.genome.db.jpa.history.api.*;
+import de.micromata.genome.db.jpa.history.entities.EntityOpType;
+import de.micromata.genome.db.jpa.history.impl.HistoryEmgrAfterInsertedEventHandler;
+import de.micromata.genome.db.jpa.history.impl.HistoryUpdateCopyFilterEventListener;
+import de.micromata.genome.jpa.DbRecord;
+import de.micromata.genome.jpa.events.EmgrAfterInsertedEvent;
+import de.micromata.genome.jpa.events.EmgrUpdateCopyFilterEvent;
+import de.micromata.genome.util.runtime.ClassUtils;
+import de.micromata.hibernate.history.delta.PropertyDelta;
+import de.micromata.hibernate.history.delta.SimplePropertyDelta;
 import org.apache.commons.lang3.ObjectUtils;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
@@ -25,21 +21,12 @@ import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.micromata.genome.db.jpa.history.api.DiffEntry;
-import de.micromata.genome.db.jpa.history.api.HistProp;
-import de.micromata.genome.db.jpa.history.api.HistoryEntry;
-import de.micromata.genome.db.jpa.history.api.HistoryService;
-import de.micromata.genome.db.jpa.history.api.HistoryServiceManager;
-import de.micromata.genome.db.jpa.history.api.WithHistory;
-import de.micromata.genome.db.jpa.history.entities.EntityOpType;
-import de.micromata.genome.db.jpa.history.impl.HistoryEmgrAfterInsertedEventHandler;
-import de.micromata.genome.db.jpa.history.impl.HistoryUpdateCopyFilterEventListener;
-import de.micromata.genome.jpa.DbRecord;
-import de.micromata.genome.jpa.events.EmgrAfterInsertedEvent;
-import de.micromata.genome.jpa.events.EmgrUpdateCopyFilterEvent;
-import de.micromata.genome.util.runtime.ClassUtils;
-import de.micromata.hibernate.history.delta.PropertyDelta;
-import de.micromata.hibernate.history.delta.SimplePropertyDelta;
+import java.io.Serializable;
+import java.lang.reflect.AccessibleObject;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Utility to provide compat with BaseDao.
@@ -120,11 +107,7 @@ public class HistoryBaseDaoAdapter
 
   public static boolean isHistorizable(Class<?> clazz)
   {
-    long begin = System.currentTimeMillis();
-    boolean result = HistoryServiceManager.get().getHistoryService().hasHistory(clazz);
-    long end = System.currentTimeMillis();
-    log.info("HistoryBaseDaoAdapter.isHistorizable took: " + (end - begin) + " ms.");
-    return result;
+    return HistoryServiceManager.get().getHistoryService().hasHistory(clazz);
   }
 
   private static String histCollectionValueToString(Class<?> valueClass, Collection<?> value)

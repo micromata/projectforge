@@ -1,5 +1,6 @@
 package org.projectforge.rest.calendar
 
+import org.projectforge.business.user.service.UserPreferencesService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.config.Rest
@@ -29,14 +30,27 @@ class CalendarServicesRest {
      * CalendarFilter to request calendar events as POST param. Dates are required as JavaScript ISO date time strings
      * (start and end).
      */
-    class CalendarFilter(var start: Date? = null,
-                         /** Optional, if view is given. */
-                         var end: Date? = null,
-                         /** Will be ignored if end is given. */
-                         var view: String? = null,
-                         var timesheetUserId: Int? = null,
-                         /** The team calendarIds to display. */
-                         var activeCalendarIds: List<Int>? = null)
+    class CalendarRestFilter(var start: Date? = null,
+                             /** Optional, if view is given. */
+                             var end: Date? = null,
+                             /** Will be ignored if end is given. */
+                             var view: String? = null,
+                             var timesheetUserId: Int? = null,
+                             /** The team calendarIds to display. */
+                             var activeCalendarIds: Set<Int>? = null,
+                             /**
+                              * If true, then this filter updates the fields of the user's calendar state (start date and view).
+                              * If the user calls the calendar page next time, this properties are restored.
+                              * Default is false (the calendar state will not be updated.
+                              * This flag is only used by the React client for restoring the states on later views.
+                              */
+                             var updateState: Boolean? = false,
+                             /**
+                              * If true, then calendars in the invisibleCalendarIds set of the current filter will be hidden.
+                              * Default is false (all active calendars are displayed).
+                              * This flag is only used by the React client for hiding active calendars.
+                              */
+                             var useVisibilityState: Boolean? = false)
 
     private class DateTimeRange(var start: PFDateTime,
                                 var end: PFDateTime? = null)
@@ -48,10 +62,13 @@ class CalendarServicesRest {
     private lateinit var timesheetsProvider: TimesheetEventsProvider
 
     @Autowired
-    private lateinit var calendarConfigServicesRest: CalendarConfigServicesRest
+    private lateinit var calendarConfigServicesRest: CalendarFilterServicesRest
+
+    @Autowired
+    private lateinit var userPreferenceService: UserPreferencesService
 
     @PostMapping("events")
-    fun getEvents(@RequestBody filter: CalendarFilter): ResponseEntity<Any> {
+    fun getEvents(@RequestBody filter: CalendarRestFilter): ResponseEntity<Any> {
         if (filter.start == null) {
             return ResponseEntity("At least start date required for getting events.", HttpStatus.BAD_REQUEST)
         }
@@ -90,16 +107,32 @@ class CalendarServicesRest {
         return ResponseEntity(responseAction, HttpStatus.OK)
     }
 
-    private fun buildEvents(filter: CalendarFilter): CalendarData { //startParam: PFDateTime? = null, endParam: PFDateTime? = null, viewParam: CalendarViewType? = null): Response {
+    private fun buildEvents(filter: CalendarRestFilter): CalendarData { //startParam: PFDateTime? = null, endParam: PFDateTime? = null, viewParam: CalendarViewType? = null): Response {
         val events = mutableListOf<BigCalendarEvent>()
-        // val settings = getUsersSettings()
+        val view = CalendarView.from(filter.view)
+        if (filter.updateState == true) {
+            calendarConfigServicesRest.updateCalendarFilter(filter.start, view, filter.activeCalendarIds)
+        }
         val range = DateTimeRange(PFDateTime.from(filter.start)!!, PFDateTime.from(filter.end))
-        adjustRange(range, CalendarView.from(filter.view))
+        adjustRange(range, view)
         val timesheetUserId = filter.timesheetUserId
         if (timesheetUserId != null) {
             timesheetsProvider.addTimesheetEvents(range.start, range.end!!, timesheetUserId, events)
         }
-        teamCalEventsProvider.addEvents(range.start, range.end!!, events, filter.activeCalendarIds, calendarConfigServicesRest.getStyleMap())
+        var visibleCalendarIds = filter.activeCalendarIds
+        if (filter.useVisibilityState == true && !visibleCalendarIds.isNullOrEmpty()) {
+            val currentFilter = userPreferenceService.getEntry(org.projectforge.rest.calendar.CalendarFilter::class.java, CalendarFilterServicesRest.PREF_KEY_CURRENT_FILTER)
+            if (currentFilter != null) {
+                val set = mutableSetOf<Int>()
+                visibleCalendarIds.forEach {
+                    if (currentFilter.isVisible(it))
+                        set.add(it) // Add only visible calendars.
+                }
+                visibleCalendarIds = set
+            }
+
+        }
+        teamCalEventsProvider.addEvents(range.start, range.end!!, events, visibleCalendarIds, calendarConfigServicesRest.getStyleMap())
         val specialDays = HolidayAndWeekendProvider.getSpecialDayInfos(range.start, range.end!!)
         var counter = 0
         events.forEach {

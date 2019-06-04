@@ -27,6 +27,12 @@
       <version>${postgresql.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>projectforge-jax-rs</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
   <build>
     <sourceDirectory>src/main/java</sourceDirectory>

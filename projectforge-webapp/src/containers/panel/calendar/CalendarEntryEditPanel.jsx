@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import EditPage from '../page/edit/index';
+import EditPage from '../../page/edit';
 
 function CalendarEntryEditPanel(
     {
