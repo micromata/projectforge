@@ -10,11 +10,12 @@ export const userLoginBegin = () => ({
     type: USER_LOGIN_BEGIN,
 });
 
-export const userLoginSuccess = (user, version) => ({
+export const userLoginSuccess = (user, version, releaseTimestamp) => ({
     type: USER_LOGIN_SUCCESS,
     payload: {
         user,
         version,
+        releaseTimestamp,
     },
 });
 
@@ -44,7 +45,7 @@ export const loadUserStatus = () => (dispatch) => {
         .then(handleHTTPErrors)
         .then(response => response.json())
         .then(({ userData, systemData }) => {
-            dispatch(userLoginSuccess(userData, systemData.version));
+            dispatch(userLoginSuccess(userData, systemData.version, systemData.releaseTimestamp));
         })
         .catch(catchError(dispatch));
 };
