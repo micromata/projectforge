@@ -8,11 +8,11 @@ import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { connect } from 'react-redux';
-import { getServiceURL } from '../../utilities/rest';
+import { getServiceURL } from '../../../utilities/rest';
 import CalendarToolBar from './CalendarToolBar';
 
 import 'moment/min/locales';
-import LoadingContainer from '../../components/design/loading-container';
+import LoadingContainer from '../../../components/design/loading-container';
 import CalendarEntryEditPanel from './CalendarEntryEditPanel';
 import {
     dayStyle,
@@ -223,10 +223,12 @@ class CalendarPanel extends React.Component {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                start: start ? start.toJSON() : null,
-                end: end ? end.toJSON() : null,
+                start,
+                end,
                 view,
                 activeCalendarIds,
+                updateState: true,
+                useVisibilityState: true,
             }),
         })
             .then(response => response.json())
@@ -256,7 +258,7 @@ class CalendarPanel extends React.Component {
             editPanel,
             specialDays,
         } = this.state;
-        const { topHeight } = this.props;
+        const { topHeight, translations } = this.props;
         const initTime = new Date(date.getDate());
         initTime.setHours(8);
         initTime.setMinutes(0);
@@ -314,6 +316,7 @@ class CalendarPanel extends React.Component {
                         },
                         toolbar: CalendarToolBar,
                     }}
+                    messages={translations}
                 />
                 <Modal
                     isOpen={editPanel.visible}
@@ -339,6 +342,7 @@ CalendarPanel.propTypes = {
     topHeight: PropTypes.string,
     defaultDate: PropTypes.instanceOf(Date),
     defaultView: PropTypes.string,
+    translations: PropTypes.shape({}).isRequired,
 };
 
 CalendarPanel.defaultProps = {

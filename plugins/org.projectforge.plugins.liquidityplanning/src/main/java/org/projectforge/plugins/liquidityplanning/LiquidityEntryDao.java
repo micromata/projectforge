@@ -82,10 +82,10 @@ public class LiquidityEntryDao extends BaseDao<LiquidityEntryDO>
     final List<LiquidityEntryDO> result = new ArrayList<LiquidityEntryDO>();
     final DayHolder today = new DayHolder();
     for (final LiquidityEntryDO entry : list) {
-      if (myFilter.getPaymentStatus() == PaymentStatus.PAID && entry.isPaid() == false) {
+      if (myFilter.getPaymentStatus() == PaymentStatus.PAID && entry.getPaid() == false) {
         continue;
       }
-      if (myFilter.getPaymentStatus() == PaymentStatus.UNPAID && entry.isPaid() == true) {
+      if (myFilter.getPaymentStatus() == PaymentStatus.UNPAID && entry.getPaid() == true) {
         continue;
       }
       if (entry.getAmount() != null) {
@@ -103,7 +103,7 @@ public class LiquidityEntryDao extends BaseDao<LiquidityEntryDO>
         }
         if (dateOfPayment.before(today.getDate()) == true) {
           // Entry is before today:
-          if (myFilter.getPaymentStatus() == PaymentStatus.PAID || entry.isPaid() == true) {
+          if (myFilter.getPaymentStatus() == PaymentStatus.PAID || entry.getPaid() == true) {
             // Ignore entries of the past if they were paid. Also ignore unpaid entries of the past if the user wants to filter only paid
             // entries.
             continue;

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController
 class DevelopmentRest() {
 
     /**
-     * Lends the given book out by the logged-in user.
+     * Magic demo filter.
      */
     @GetMapping("magicDemoFilters")
     fun magicFilter(): List<MagicFilter<BookFilter>> {
@@ -34,7 +34,7 @@ class DevelopmentRest() {
         filter.searchFilter!!.isPresent = true
         filter.searchFilter!!.searchString = "java"
         list.add(filter)
-        
+
         filter = MagicFilter<BookFilter>(entries = mutableListOf())
         filter.entries!!.add(MagicFilterEntry(field = "modifiedInterval",
                 fromValue = "2019-04-28'T'10:00:05.000Z",

@@ -57,11 +57,11 @@ class TimesheetRest() : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilte
         val startTimeEpochSeconds = RestHelper.parseLong(request, "start")
         val endTimeEpochSeconds = RestHelper.parseLong(request, "end")
         if (startTimeEpochSeconds != null) {
-            val start = PFDateTime.from(startTimeEpochSeconds * 1000)
+            val start = PFDateTime.from(startTimeEpochSeconds)
             sheet.startTime = start.asSqlTimestamp()
         }
         if (endTimeEpochSeconds != null) {
-            val stop = PFDateTime.from(endTimeEpochSeconds * 1000)
+            val stop = PFDateTime.from(endTimeEpochSeconds)
             sheet.stopTime = stop.asSqlTimestamp()
         }
         val userId: Int? = null // Optional parameter given to edit page

@@ -3,11 +3,13 @@ package org.projectforge.framework.time
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
 import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.text.SimpleDateFormat
+import java.time.DateTimeException
 import java.time.Month
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -59,6 +61,20 @@ class PFDateTimeTest {
         assertEquals(2019, localDate.year)
         assertEquals(Month.APRIL, localDate.month)
         assertEquals(1, localDate.dayOfMonth)
+    }
+
+    @Test
+    fun parseTest() {
+        assertEquals("2019-03-31 22:00", PFDateTime.parseUTCDate("1554069600")!!.asIsoString())
+        assertEquals("2019-03-31 22:00", PFDateTime.parseUTCDate("2019-03-31 22:00:00")!!.asIsoString())
+        assertEquals("2019-03-31 22:00", PFDateTime.parseUTCDate("2019-03-31 22:00")!!.asIsoString())
+        assertEquals("2019-03-31 22:00", PFDateTime.parseUTCDate("2019-03-31T22:00:00.000Z")!!.asIsoString())
+        try {
+            PFDateTime.parseUTCDate("2019-03-31")
+            fail("Exception expected, because 2019-03-31 isn't parseable due to missing time of day.")
+        } catch(ex: DateTimeException) {
+            // OK
+        }
     }
 
     private fun checkDate(date: ZonedDateTime, year: Int, month: Month, dayOfMonth: Int, checkMidnight: Boolean = true) {

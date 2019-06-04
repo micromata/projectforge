@@ -94,6 +94,7 @@ UncontrolledReactSelect.propTypes = {
     }),
     getOptionLabel: PropTypes.func,
     className: PropTypes.string,
+    tooltip: PropTypes.string,
 };
 
 UncontrolledReactSelect.defaultProps = {
@@ -106,5 +107,6 @@ UncontrolledReactSelect.defaultProps = {
     autoCompletion: undefined,
     getOptionLabel: undefined,
     className: undefined,
+    tooltip: undefined,
 };
 export default UncontrolledReactSelect;

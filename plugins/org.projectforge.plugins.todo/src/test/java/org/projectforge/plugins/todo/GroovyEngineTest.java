@@ -78,7 +78,10 @@ public class GroovyEngineTest extends AbstractTestBase {
     user.setFirstname("Kai");
     user.setLastname("Reinhard");
     engine.putVariable("recipient", user);
-    engine.putVariable("todo", new ToDoDO().setType(ToDoType.IMPROVEMENT).setPriority(Priority.HIGH));
+    ToDoDO todo = new ToDoDO();
+    todo.setType(ToDoType.IMPROVEMENT);
+    todo.setPriority(Priority.HIGH);
+    engine.putVariable("todo", todo);
     engine.putVariable("history", new ArrayList<DisplayHistoryEntry>());
     engine.putVariable("requestUrl", "https://localhost:8443/wa/toDoEditPage/id/42");
     final String result = engine.executeTemplateFile("mail/todoChangeNotification.html");

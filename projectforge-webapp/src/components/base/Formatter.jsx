@@ -13,6 +13,7 @@ const USER_FORMATTER = 'USER';
 const TASK_FORMATTER = 'TASK_PATH';
 const TIMESTAMP_MINUTES_FORMATTER = 'TIMESTAMP_MINUTES';
 const AUFTRAGPOSITION_FORMATTER = "AUFTRAG_POSITION";
+const GROUP_FORMATTER = 'GROUP';
 
 function Formatter(
     {
@@ -62,6 +63,9 @@ function Formatter(
                 break;
             case AUFTRAGPOSITION_FORMATTER:
                 result = value.number;
+                break;
+            case GROUP_FORMATTER:
+                result = value.name;
                 break;
             default:
                 result = value;

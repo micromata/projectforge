@@ -128,6 +128,8 @@ export const updatePageData = () => callEndpointWithData('saveorupdate', 'PUT');
 
 export const abort = () => callEndpointWithData('cancel');
 
+export const deleteIt = () => callEndpointWithData('delete', 'DELETE');
+
 export const markAsDeleted = () => callEndpointWithData('markAsDeleted', 'DELETE');
 
 export const undelete = () => callEndpointWithData('undelete', 'PUT');

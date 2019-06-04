@@ -4,7 +4,7 @@ const testServer = 'http://localhost:8080/rs';
 export const baseURL = (process.env.NODE_ENV === 'development' ? testServer : '/rs');
 
 export const createQueryParams = params => Object.keys(params)
-    .map(key => `${key}=${encodeURI(params[key])}`)
+    .map(key => `${key}=${encodeURIComponent(params[key])}`)
     .join('&');
 
 export const getServiceURL = (serviceURL, params) => {
