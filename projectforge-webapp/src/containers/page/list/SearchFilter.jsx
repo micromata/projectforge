@@ -6,7 +6,7 @@ import { setListFilter } from '../../../actions';
 import ActionGroup from '../../../components/base/page/action/Group';
 import EditableMultiValueLabel from '../../../components/base/page/layout/EditableMultiValueLabel';
 import LayoutGroup from '../../../components/base/page/layout/LayoutGroup';
-import { Card, CardBody, Col, FormGroup, Label, Row, Select, } from '../../../components/design';
+import { Card, CardBody, Col, FormGroup, Label, Row, Select } from '../../../components/design';
 import { getNamedContainer } from '../../../utilities/layout';
 import { buttonPropType } from '../../../utilities/propTypes';
 import FavoritesPanel from '../../panel/FavoritesPanel';
@@ -22,6 +22,26 @@ class SearchFilter extends Component {
         this.handleInputChange = this.handleInputChange.bind(this);
         this.handleSelectChange = this.handleSelectChange.bind(this);
         this.handleFilterChange = this.handleFilterChange.bind(this);
+        this.onFavoriteDelete = this.onFavoriteDelete.bind(this);
+        this.onFavoriteRename = this.onFavoriteRename.bind(this);
+        this.onFavoriteSelect = this.onFavoriteSelect.bind(this);
+        this.onFavoriteUpdate = this.onFavoriteUpdate.bind(this);
+    }
+
+    onFavoriteDelete(id) {
+        console.log(id);
+    }
+
+    onFavoriteSelect(id) {
+        console.log(id);
+    }
+
+    onFavoriteRename(id, newName) {
+        console.log(id, newName);
+    }
+
+    onFavoriteUpdate(id, newName) {
+        console.log(id, newName);
     }
 
     handleInputChange(event) {
@@ -90,6 +110,10 @@ class SearchFilter extends Component {
                             </Col>
                             <Col sm={1}>
                                 <FavoritesPanel
+                                    onFavoriteSelect={this.onFavoriteSelect}
+                                    onFavoriteDelete={this.onFavoriteDelete}
+                                    onFavoriteRename={this.onFavoriteRename}
+                                    onFavoriteUpdate={this.onFavoriteUpdate}
                                     translations={translations}
                                 />
                             </Col>
