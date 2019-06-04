@@ -4,15 +4,15 @@ import 'rc-time-picker/assets/index.css';
 import React from 'react';
 import 'react-day-picker/lib/style.css';
 import { Col, FormGroup, Row } from '../../../../../design';
-import TaskSelect from '../../../../page/layout/TaskSelect';
 import { DynamicLayoutContext } from '../../../context';
 import DynamicReactSelect from '../../select/DynamicReactSelect';
+import DynamicTaskSelect from '../../select/task';
 
 /**
  * Kost2 selection for editing time sheets.
  */
 function TimesheetEditTaskAndKost2({ values, variables }) {
-    const { data, ui } = React.useContext(DynamicLayoutContext);
+    const { ui } = React.useContext(DynamicLayoutContext);
 
     const [kost2List, setKost2List] = React.useState(undefined);
 
@@ -45,20 +45,23 @@ function TimesheetEditTaskAndKost2({ values, variables }) {
             <Row>
                 <Col>
                     <FormGroup>
-                        <TaskSelect label={} variables={} data={} translations={} id={} changeDataField={}
+                        <DynamicTaskSelect
+                            label={ui.translations.task}
+                            onKost2Changed={setKost2List}
+                            id="task"
+                            variables={variables}
+                        />
                     </FormGroup>
                 </Col>
             </Row>
+            {kost2Row}
         </React.Fragment>
-    )
+    );
 }
 
 TimesheetEditTaskAndKost2.propTypes = {
-    changeDataField: PropTypes.func.isRequired,
     values: PropTypes.shape({}).isRequired,
-    data: PropTypes.shape({}).isRequired,
     variables: PropTypes.shape({}).isRequired,
-    translations: PropTypes.shape({}).isRequired,
 };
 
 TimesheetEditTaskAndKost2.defaultProps = {};

@@ -54,7 +54,12 @@ export const defaultValues = {
     /**
      * @type {Object} The ui object sent by the server. @see UILayout.kt
      */
-    ui: {},
+    ui: {
+        /**
+         * @type {Object} The sent translations in key -> value format.
+         */
+        translations: {},
+    },
 };
 
 // The context to access dynamic layout related variables in the dynamic layout system.
