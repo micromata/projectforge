@@ -68,6 +68,9 @@ class FavoritesPanel extends Component {
                     <PopoverBody>
                         <Container>
                             <ul>
+                                <li>
+                                    [Add new filter]
+                                </li>
                                 {favorites.map(favorite => (
                                     <li key={favorite.id}>
                                         {favorite.name}
@@ -139,32 +142,32 @@ class FavoritesPanel extends Component {
 }
 
 FavoritesPanel.propTypes = {
-    favorites: PropTypes.shape({
+    favorites: PropTypes.arrayOf(PropTypes.shape({
         id: PropTypes.number,
         name: PropTypes.string,
-    }),
+    })),
     currentFavoriteId: PropTypes.number, // The current used favorite (can be saved with modified settings).
     onFavoriteDelete: PropTypes.func.isRequired,
     onFavoriteRename: PropTypes.func.isRequired,
     onFavoriteSelect: PropTypes.func.isRequired,
     onFavoriteUpdate: PropTypes.func.isRequired,
-    translations: PropTypes.shape({}).isRequired,
+    translations: PropTypes.shape({}), // .isRequired, TODO: SearchFilter has no translations!?
 };
 
 FavoritesPanel.defaultProps = {
     currentFavoriteId: 2,
     favorites: [{
         id: 1,
-        name: 'Filter 1',
+        name: 'My filter 1',
     }, {
         id: 2,
-        name: 'Filter 2',
+        name: 'Untitled 2',
     }, {
         id: 3,
-        name: 'Filter 3',
+        name: 'My lovely filter 3',
     }, {
         id: 4,
-        name: 'Filter 4',
+        name: 'My lovely, lovely, loverly Superfilter 4',
     }, {
         id: 5,
         name: 'Filter 5',
@@ -175,6 +178,7 @@ FavoritesPanel.defaultProps = {
         id: 7,
         name: 'Filter 7',
     }],
+    translations: [],
 };
 
 export default (FavoritesPanel);

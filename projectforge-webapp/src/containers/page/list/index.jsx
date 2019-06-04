@@ -54,7 +54,6 @@ class ListPage extends React.Component {
                 </Alert>
             );
         }
-
         return (
             <LoadingContainer loading={loading}>
                 <PageNavigation current={ui.title}>
@@ -65,7 +64,7 @@ class ListPage extends React.Component {
                     </NavItem>
                     <Navigation entries={ui.pageMenu || []} />
                 </PageNavigation>
-                <SearchFilter />
+                <SearchFilter translations={ui.translations} />
                 <LayoutGroup
                     content={ui.layout}
                     data={data}
@@ -86,10 +85,9 @@ ListPage.propTypes = {
     }).isRequired,
     match: PropTypes.shape({}).isRequired,
     ui: PropTypes.shape({
-        layout: PropTypes.arrayOf(PropTypes.shape({
-
-        })),
+        layout: PropTypes.arrayOf(PropTypes.shape({})),
         title: PropTypes.string,
+        // translations: PropTypes.arrayOf(PropTypes.shape({})).isRequired, // TODO
     }).isRequired,
     error: PropTypes.string,
     sorting: PropTypes.shape({

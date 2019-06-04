@@ -9,6 +9,7 @@ import LayoutGroup from '../../../components/base/page/layout/LayoutGroup';
 import { Card, CardBody, Col, FormGroup, Label, Row, Select, } from '../../../components/design';
 import { getNamedContainer } from '../../../utilities/layout';
 import { buttonPropType } from '../../../utilities/propTypes';
+import FavoritesPanel from '../../panel/FavoritesPanel';
 
 class SearchFilter extends Component {
     constructor(props) {
@@ -53,6 +54,7 @@ class SearchFilter extends Component {
             filter,
             namedContainers,
             setFilter,
+            translations,
         } = this.props;
         const {
             filter: newFilter,
@@ -68,7 +70,6 @@ class SearchFilter extends Component {
                 label: option.id,
             }));
         }
-
         return (
             <Card>
                 <CardBody>
@@ -83,6 +84,9 @@ class SearchFilter extends Component {
                             }}
                             setMultiValue={this.handleFilterChange}
                             values={newFilter}
+                        />
+                        <FavoritesPanel
+                            translations={translations}
                         />
                         <Row>
                             <Col sm={8}>
@@ -129,6 +133,7 @@ SearchFilter.propTypes = {
         maxRows: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
     }),
     namedContainers: PropTypes.arrayOf(PropTypes.shape({})),
+    translations: PropTypes.shape({}).isRequired,
 };
 
 SearchFilter.defaultProps = {
