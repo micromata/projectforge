@@ -1,16 +1,10 @@
+import { faStar } from '@fortawesome/free-regular-svg-icons';
+import { faCheckSquare, faEdit, faSync, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import {
-    Button,
-    Container,
-    Popover,
-    PopoverBody,
-    PopoverHeader,
-    UncontrolledTooltip
-} from 'reactstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faStar } from '@fortawesome/free-regular-svg-icons';
-import { faEdit, faSync, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { Button, Popover, PopoverBody, UncontrolledTooltip } from 'reactstrap';
 import style from '../../components/design/input/Input.module.scss';
 
 /**
@@ -62,46 +56,51 @@ class FavoritesPanel extends Component {
                     toggle={this.togglePopover}
                     trigger="legacy"
                 >
-                    <PopoverHeader toggle={this.settingsPopoverOpen}>
-                        {translations.favorites}
-                    </PopoverHeader>
                     <PopoverBody>
-                        <Container>
-                            <ul>
-                                <li>
-                                    [Add new filter]
-                                </li>
-                                {favorites.map(favorite => (
-                                    <li key={favorite.id}>
+                        <ul className={style.favoritesList}>
+                            <li className={style.addFavorite}>
+                                [Add new filter]
+                                <FontAwesomeIcon
+                                    className={classNames(
+                                        style.icon,
+                                        style.saveIcon,
+                                    )}
+                                    icon={faCheckSquare}
+                                    size="lg"
+                                />
+                            </li>
+                            {favorites.map(favorite => (
+                                <li
+                                    key={favorite.id}
+                                    className={classNames(
+                                        style.favorite,
+                                        { [style.selected]: favorite.id === currentFavoriteId },
+                                    )}
+                                >
+                                    <span className={style.favoriteName}>
                                         {favorite.name}
-                                        <Button
+                                    </span>
+                                    <div className={style.actions}>
+                                        <FontAwesomeIcon
                                             id={`ren-${favorite.id}`}
-                                            color="link"
-                                            disabled
-                                        >
-                                            <FontAwesomeIcon
-                                                icon={faEdit}
-                                                className={style.icon}
-                                                color="grey"
-                                            />
-                                        </Button>
+                                            icon={faEdit}
+                                            className={style.icon}
+                                        />
                                         <UncontrolledTooltip
                                             placement="right"
                                             target={`ren-${favorite.id}`}
                                         >
                                             {translations.rename}
                                         </UncontrolledTooltip>
-                                        <Button
+                                        <FontAwesomeIcon
                                             id={`del-${favorite.id}`}
-                                            color="link"
+                                            icon={faTrashAlt}
+                                            className={classNames(
+                                                style.icon,
+                                                style.deleteIcon,
+                                            )}
                                             onClick={() => onFavoriteDelete(favorite.id)}
-                                        >
-                                            <FontAwesomeIcon
-                                                icon={faTrashAlt}
-                                                className={style.icon}
-                                                color="tomato"
-                                            />
-                                        </Button>
+                                        />
                                         <UncontrolledTooltip
                                             placement="right"
                                             target={`del-${favorite.id}`}
@@ -111,17 +110,18 @@ class FavoritesPanel extends Component {
                                         {' '}
                                         {favorite.id === currentFavoriteId ? (
                                             <React.Fragment>
-                                                <Button
+                                                <FontAwesomeIcon
                                                     id="syncFavorite"
-                                                    color="link"
-                                                    onClick={() => onFavoriteUpdate(favorite.id)}
-                                                >
-                                                    <FontAwesomeIcon
-                                                        icon={faSync}
-                                                        className={style.icon}
-                                                        color="grey"
-                                                    />
-                                                </Button>
+                                                    onClick={
+                                                        () => onFavoriteUpdate(favorite.id)
+                                                    }
+                                                    icon={faSync}
+                                                    className={classNames(
+                                                        style.icon,
+                                                        style.syncIcon,
+                                                    )}
+                                                    color="grey"
+                                                />
                                                 <UncontrolledTooltip
                                                     placement="right"
                                                     target="syncFavorite"
@@ -130,10 +130,10 @@ class FavoritesPanel extends Component {
                                                 </UncontrolledTooltip>
                                             </React.Fragment>
                                         ) : ''}
-                                    </li>
-                                ))}
-                            </ul>
-                        </Container>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
                     </PopoverBody>
                 </Popover>
             </React.Fragment>
