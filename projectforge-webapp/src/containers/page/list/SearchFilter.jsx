@@ -74,20 +74,26 @@ class SearchFilter extends Component {
             <Card>
                 <CardBody>
                     <form>
-                        <CreatableSelect
-                            name="searchFilter"
-                            options={options}
-                            isClearable
-                            isMulti
-                            components={{
-                                MultiValueLabel: EditableMultiValueLabel,
-                            }}
-                            setMultiValue={this.handleFilterChange}
-                            values={newFilter}
-                        />
-                        <FavoritesPanel
-                            translations={translations}
-                        />
+                        <Row>
+                            <Col sm={11}>
+                                <CreatableSelect
+                                    name="searchFilter"
+                                    options={options}
+                                    isClearable
+                                    isMulti
+                                    components={{
+                                        MultiValueLabel: EditableMultiValueLabel,
+                                    }}
+                                    setMultiValue={this.handleFilterChange}
+                                    values={newFilter}
+                                />
+                            </Col>
+                            <Col sm={1}>
+                                <FavoritesPanel
+                                    translations={translations}
+                                />
+                            </Col>
+                        </Row>
                         <Row>
                             <Col sm={8}>
                                 <FormGroup row>
