@@ -30,6 +30,7 @@ class ProjectForge extends React.Component {
             loginInProgress,
             loginError,
             version,
+            releaseTimestamp,
         } = this.props;
         let content;
 
@@ -90,7 +91,7 @@ class ProjectForge extends React.Component {
             <React.Fragment>
                 <TopBar />
                 {content}
-                <Footer version={version} />
+                <Footer version={version} releaseTimestamp={releaseTimestamp} />
             </React.Fragment>
         );
     }
@@ -103,12 +104,14 @@ ProjectForge.propTypes = {
     loginError: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
     user: PropTypes.shape({}),
     version: PropTypes.string,
+    releaseTimestamp: PropTypes.string,
 };
 
 ProjectForge.defaultProps = {
     loginError: undefined,
     user: undefined,
     version: 'Version unknown',
+    releaseTimestamp: '01.01.1970 08:00',
 };
 
 const mapStateToProps = state => ({
@@ -116,6 +119,7 @@ const mapStateToProps = state => ({
     loginError: state.authentication.error,
     user: state.authentication.user,
     version: state.authentication.version,
+    releaseTimestamp: state.authentication.releaseTimestamp,
 });
 
 const actions = {

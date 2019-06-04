@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import style from './Footer.module.scss';
 
-function Footer({ version, updateAvailable }) {
+function Footer({ version, releaseTimestamp, updateAvailable }) {
     return (
         <div className={classNames(style.footer, 'footer',)}>
             <ul className={classNames(style.list, style.copyHint)}>
@@ -56,7 +56,7 @@ function Footer({ version, updateAvailable }) {
                         title="News"
                         className={style.news_link}
                     >
-                        {version}
+                        {`${version}, ${releaseTimestamp}`}
                     </a>
                 </li>
             </ul>
@@ -67,6 +67,7 @@ function Footer({ version, updateAvailable }) {
 
 Footer.propTypes = {
     version: PropTypes.string.isRequired,
+    releaseTimestamp: PropTypes.string.isRequired,
     updateAvailable: PropTypes.bool,
 };
 
