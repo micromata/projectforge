@@ -4,6 +4,7 @@ import BookLendOut from './components/BookLendOut';
 import CustomizedAddressImage from './components/CustomizedAddressImage';
 import DayRange from './components/DayRange';
 import CustomizedImageDataPreview from './components/ImageDataPreview';
+import TimesheetEditTaskAndKost2 from './components/TimesheetEditTaskAndKost2';
 
 function DynamicCustomized({ id, ...props }) {
     let Tag;
@@ -21,8 +22,9 @@ function DynamicCustomized({ id, ...props }) {
         case 'dayRange':
             Tag = DayRange;
             break;
-            // TODO: FIX taskAndKost2
         case 'timesheet.edit.taskAndKost2':
+            Tag = TimesheetEditTaskAndKost2;
+            break;
         default:
             return <span>{`Customized field '${id}' not found!`}</span>;
     }
