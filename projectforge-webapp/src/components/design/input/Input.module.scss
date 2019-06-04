@@ -1,7 +1,7 @@
 @import '../../../assets/style/mixins';
 
 .checkboxGroup {
-  
+
 }
 
 .formGroup {
@@ -377,3 +377,69 @@ svg[class^="css-"] {
   font-size: 120%;
 }
 
+.favoritesList {
+  list-style: none;
+  margin: 10px 0;
+  padding: 0;
+  font-size: 1.3rem;
+
+  > li {
+    padding: 10px;
+  }
+
+  svg {
+    margin: 0 5px;
+    color: #009BA3;
+
+    &.saveIcon {
+      float: right;
+    }
+
+    &:hover {
+      color: #00737b;
+    }
+  }
+
+  .addFavorite {
+    border-bottom: 1px solid #bbb;
+    padding-bottom: 5px;
+  }
+
+  .favorite {
+    position: relative;
+    cursor: pointer;
+
+    .favoriteName {
+      margin-right: 75px;
+    }
+
+    &.selected {
+      color: #009BA3;
+    }
+
+    &:hover {
+      background-color: #eee;
+
+      .actions svg {
+        visibility: visible;
+      }
+    }
+
+    .actions {
+      display: inline-block;
+      float: right;
+
+      svg {
+        visibility: hidden;
+
+        &.deleteIcon {
+          color: #666;
+        }
+
+        &.syncIcon {
+          visibility: visible;
+        }
+      }
+    }
+  }
+}
