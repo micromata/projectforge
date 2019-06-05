@@ -131,28 +131,28 @@ abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBase
 
     @PropertyInfo(i18nKey = "fibu.rechnung.discountPercent")
     @get:Column
-    var discountPercent: BigDecimal? = null
+    open var discountPercent: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.discountMaturity")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column
-    var discountMaturity: Date? = null
+    open var discountMaturity: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.receiver")
     @Field
     @get:Column
-    var receiver: String? = null
+    open var receiver: String? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.iban")
     @Field
     @get:Column(length = 50)
-    var iban: String? = null
+    open var iban: String? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.bic")
     @Field
     @get:Column(length = 11)
-    var bic: String? = null
+    open var bic: String? = null
 
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
     @Transient
