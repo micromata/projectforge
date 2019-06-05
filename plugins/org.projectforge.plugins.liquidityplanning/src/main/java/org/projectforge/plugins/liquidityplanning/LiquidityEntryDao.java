@@ -28,6 +28,7 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.projectforge.plugins.liquidityplanning.LiquidityEntryDO;
 import org.projectforge.business.fibu.AmountType;
 import org.projectforge.business.fibu.PaymentStatus;
 import org.projectforge.framework.persistence.api.BaseDao;
