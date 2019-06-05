@@ -57,7 +57,6 @@ import org.projectforge.framework.xstream.XmlObjectReader
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist
 
-// TODO: Removed a lot of "protected" attributes. Is it necessary?
 @MappedSuperclass
 @JpaXmlPersist(beforePersistListener = [AbstractRechnungXmlBeforePersistListener::class], persistAfter = [Kost2ArtDO::class])
 abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBaseDO() {
@@ -66,28 +65,28 @@ abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBase
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(nullable = false)
-    var datum: Date? = null
+    open var datum: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.betreff")
     @Field
     @get:Column(length = 4000)
-    var betreff: String? = null
+    open var betreff: String? = null
 
     @PropertyInfo(i18nKey = "comment")
     @Field
     @get:Column(length = 4000)
-    var bemerkung: String? = null
+    open var bemerkung: String? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.besonderheiten")
     @Field
     @get:Column(length = 4000)
-    var besonderheiten: String? = null
+    open var besonderheiten: String? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.faelligkeit")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column
-    var faelligkeit: Date? = null
+    open var faelligkeit: Date? = null
 
     /**
      * Wird nur zur Berechnung benutzt und kann für die Anzeige aufgerufen werden. Vorher sollte recalculate aufgerufen
@@ -96,7 +95,7 @@ abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBase
     @Field(analyze = Analyze.NO)
     @Transient
     @get:Transient
-    var zahlungsZielInTagen: Int? = null
+    open var zahlungsZielInTagen: Int? = null
 
     /**
      * Wird nur zur Berechnung benutzt und kann für die Anzeige aufgerufen werden. Vorher sollte recalculate aufgerufen
@@ -105,20 +104,20 @@ abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBase
     @Field(analyze = Analyze.NO)
     @Transient
     @get:Transient
-    var discountZahlungsZielInTagen: Int? = null
+    open var discountZahlungsZielInTagen: Int? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.bezahlDatum")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "bezahl_datum")
-    var bezahlDatum: Date? = null
+    open var bezahlDatum: Date? = null
 
     /**
      * Bruttobetrag, den der Kunde bezahlt hat.
      */
     @PropertyInfo(i18nKey = "fibu.rechnung.zahlBetrag", type = PropertyType.CURRENCY)
     @get:Column(name = "zahl_betrag", scale = 2, precision = 12)
-    var zahlBetrag: BigDecimal? = null
+    open var zahlBetrag: BigDecimal? = null
 
     /**
      * This Datev account number is used for the exports of invoices. For debitor invoices (RechnungDO): If not given then
@@ -165,10 +164,10 @@ abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBase
      */
     @NoHistory
     @get:Column(name = "ui_status_as_xml", length = 10000)
-    protected var uiStatusAsXml: String? = null
+    open var uiStatusAsXml: String? = null
 
     @NoHistory
-    val uiStatus: RechnungUIStatus? = null
+    open val uiStatus: RechnungUIStatus? = null
         @Transient
         get() {
             if (field == null && StringUtils.isEmpty(uiStatusAsXml)) {
