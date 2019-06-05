@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome/index';
 import { faCog } from '@fortawesome/free-solid-svg-icons';
 import style from '../../../components/design/input/Input.module.scss';
 import ReactSelect from '../../../components/base/page/layout/ReactSelect';
+import UserSelect from '../../../components/base/page/layout/UserSelect';
 
 /**
  * Settings of a calendar view: time sheet user, default calendar for new events, show holidays etc.
@@ -21,14 +22,21 @@ class CalendarFilterSettings extends Component {
         this.state = {
             defaultCalendar,
             popoverOpen: false,
+            timesheetUser: undefined,
         };
 
         this.onDefaultCalendarChange = this.onDefaultCalendarChange.bind(this);
+        this.onTimesheetUserChange = this.onTimesheetUserChange.bind(this);
         this.togglePopover = this.togglePopover.bind(this);
     }
 
     onDefaultCalendarChange(value) {
         this.setState({ defaultCalendar: value });
+    }
+
+    onTimesheetUserChange(id, value) {
+        console.log(id, value);
+        this.setState({ timesheetUser: value });
     }
 
     togglePopover() {
@@ -84,7 +92,14 @@ class CalendarFilterSettings extends Component {
                                 </Col>
                             </Row>
                             <Row>
-                                <Col>Zeitberichtsuser</Col>
+                                <Col>
+                                    <UserSelect
+                                        changeDataField={this.onTimesheetUserChange}
+                                        id="timesheetUser"
+                                        label="[timesheetUser]"
+                                        translations={translations}
+                                    />
+                                </Col>
                             </Row>
                             <Row>
                                 <Col>
