@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { Button, Popover, PopoverBody, UncontrolledTooltip } from 'reactstrap';
+import Input from '../../components/design/input';
 import style from '../../components/design/input/Input.module.scss';
 
 /**
@@ -59,7 +60,7 @@ class FavoritesPanel extends Component {
                     <PopoverBody>
                         <ul className={style.favoritesList}>
                             <li className={style.addFavorite}>
-                                [Add new filter]
+                                <Input label="Add new Filter" id="add-new-filter" />
                                 <FontAwesomeIcon
                                     className={classNames(
                                         style.icon,

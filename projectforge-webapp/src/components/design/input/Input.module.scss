@@ -392,7 +392,9 @@ svg[class^="css-"] {
     color: #009BA3;
 
     &.saveIcon {
-      float: right;
+      position: absolute;
+      right: 10px;
+      top: 16px;
     }
 
     &:hover {
@@ -401,8 +403,8 @@ svg[class^="css-"] {
   }
 
   .addFavorite {
-    border-bottom: 1px solid #bbb;
-    padding-bottom: 5px;
+    padding: 0;
+    position: relative;
   }
 
   .favorite {
