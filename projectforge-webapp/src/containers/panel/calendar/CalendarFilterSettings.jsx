@@ -4,19 +4,31 @@ import { Button, Col, Container, Popover, PopoverBody, PopoverHeader, Row, } fro
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome/index';
 import { faCog } from '@fortawesome/free-solid-svg-icons';
 import style from '../../../components/design/input/Input.module.scss';
-import UncontrolledReactSelect from '../../../components/base/page/layout/UncontrolledReactSelect';
+import ReactSelect from '../../../components/base/page/layout/ReactSelect';
 
 /**
  * Settings of a calendar view: time sheet user, default calendar for new events, show holidays etc.
  */
 class CalendarFilterSettings extends Component {
+    static extractDefaultCalendarValue(props) {
+        const { listOfDefaultCalendars, defaultCalendarId } = props;
+        return listOfDefaultCalendars.find(it => it.id === defaultCalendarId);
+    }
+
     constructor(props) {
         super(props);
+        const defaultCalendar = CalendarFilterSettings.extractDefaultCalendarValue(props);
         this.state = {
+            defaultCalendar,
             popoverOpen: false,
         };
 
+        this.onDefaultCalendarChange = this.onDefaultCalendarChange.bind(this);
         this.togglePopover = this.togglePopover.bind(this);
+    }
+
+    onDefaultCalendarChange(value) {
+        this.setState({ defaultCalendar: value });
     }
 
     togglePopover() {
@@ -26,7 +38,7 @@ class CalendarFilterSettings extends Component {
     }
 
     render() {
-        const { popoverOpen } = this.state;
+        const { defaultCalendar, popoverOpen } = this.state;
         const {
             listOfDefaultCalendars,
             translations,
@@ -52,23 +64,22 @@ class CalendarFilterSettings extends Component {
                     toggle={this.togglePopover}
                     trigger="legacy"
                 >
-                    <PopoverHeader toggle={this.togglePopover}>
+                    <PopoverHeader>
                         {translations.favorites}
                     </PopoverHeader>
                     <PopoverBody>
                         <Container>
                             <Row>
                                 <Col>
-                                    <UncontrolledReactSelect
+                                    <ReactSelect
+                                        values={listOfDefaultCalendars}
+                                        value={defaultCalendar}
                                         label={translations['calendar.defaultCalendar']}
                                         tooltip={translations['calendar.defaultCalendar.tooltip']}
-                                        // data={data}
-                                        id="id"
-                                        values={listOfDefaultCalendars}
-                                        changeDataField={this.changeDefaultCalendar}
                                         translations={translations}
                                         valueProperty="id"
                                         labelProperty="title"
+                                        onChange={this.onDefaultCalendarChange}
                                     />
                                 </Col>
                             </Row>
@@ -90,12 +101,14 @@ class CalendarFilterSettings extends Component {
 }
 
 CalendarFilterSettings.propTypes = {
-    listOfDefaultCalendars: PropTypes.arrayOf({}).isRequired,
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    defaultCalendarId: PropTypes.number,
+    listOfDefaultCalendars: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
     translations: PropTypes.shape({}).isRequired,
 };
 
 CalendarFilterSettings.defaultProps = {
-    translations: [],
+    defaultCalendarId: -1,
 };
 
 export default (CalendarFilterSettings);
