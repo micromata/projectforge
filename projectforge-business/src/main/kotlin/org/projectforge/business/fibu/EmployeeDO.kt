@@ -88,7 +88,6 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
     /**
      * Dem Benutzer zugeordneter Kostenträger Kost1 für den Monatsreport.
      */
-    //TODO: Kost1Do not yet supported on edit page.
     @PropertyInfo(i18nKey = "fibu.kost1")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.EAGER)
