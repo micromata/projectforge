@@ -444,3 +444,7 @@ div[class*="-singleValue"] {
   margin-left: 8px;
   font-size: 15px;
 }
+
+label[for*="favorite"] {
+  margin-top: 27px;
+}
