@@ -1,4 +1,4 @@
-package org.projectforge.rest.calendar
+package org.projectforge.business.calendar
 
 class CalendarStyle(var bgColor: String? = null, var fgColor: String? = null) {
     init {

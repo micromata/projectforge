@@ -21,25 +21,19 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.calendar
+package org.projectforge.favorites
+
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute
 
 /**
- * Persist the styles of the calendarIds for the user.
+ * Base class of a favorite (used for user's preferences, such as filters, common used tasks,
+ * time sheet templates etc.).
  *
- * @author M. Lauterbach (m.lauterbach@micromata.de)
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
-class CalendarStyleMap {
-    /**
-     * Colors for the calendarIds by calendar id.
-     */
-    internal val styles = mutableMapOf<Int, CalendarStyle>()
+abstract class AbstractFavorite(@XStreamAsAttribute
+                     var name: String = "",
 
-    fun add(calendarId : Int, style : CalendarStyle) {
-        styles.put(calendarId, style)
-    }
-
-    fun get(calendarId: Int?) : CalendarStyle? {
-        return styles[calendarId]
-    }
+                                @XStreamAsAttribute
+                     var id: Int) {
 }

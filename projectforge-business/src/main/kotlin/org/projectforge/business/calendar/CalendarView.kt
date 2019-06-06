@@ -1,4 +1,4 @@
-package org.projectforge.rest.calendar
+package org.projectforge.business.calendar
 
 import com.fasterxml.jackson.annotation.JsonProperty
 

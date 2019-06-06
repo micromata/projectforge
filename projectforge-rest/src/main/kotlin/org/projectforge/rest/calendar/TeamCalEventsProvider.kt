@@ -1,5 +1,6 @@
 package org.projectforge.rest.calendar
 
+import org.projectforge.business.calendar.CalendarStyleMap
 import org.projectforge.business.teamcal.event.TeamEventDao
 import org.projectforge.business.teamcal.event.TeamEventFilter
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent
