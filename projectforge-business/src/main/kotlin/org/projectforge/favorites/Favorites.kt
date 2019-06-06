@@ -1,11 +1,10 @@
 package org.projectforge.favorites
 
 import org.projectforge.framework.i18n.translate
-import java.util.*
 
 /**
- * Persist the user's sortedSet of favorites sorted by unique names. The user may configure a sortedSet of favorites and my apply one
- * by choosing from a drop down sortedSet.
+ * Persist the user's set of favorites sorted by unique names. The user may configure a set of favorites and my apply one
+ * by choosing from a drop down set.
  *
  * Ensures the uniqueness of favorite's names.
  */
@@ -18,16 +17,16 @@ class Favorites<T : AbstractFavorite>() {
 
     private val log = org.slf4j.LoggerFactory.getLogger(Favorites::class.java)
 
-    private val sortedSet: SortedSet<T> = sortedSetOf()
+    private val set: MutableSet<T> = mutableSetOf()
 
     fun add(filter: T) {
-        sortedSet.add(filter)
+        set.add(filter)
         fixNamesAndIds()
     }
 
     fun remove(name: String) {
         fixNamesAndIds()
-        sortedSet.removeIf { it.name == name }
+        set.removeIf { it.name == name }
     }
 
     /**
@@ -36,8 +35,8 @@ class Favorites<T : AbstractFavorite>() {
     private fun fixNamesAndIds() {
         val namesSet = mutableSetOf<String>()
         val idSet = mutableSetOf<Int>()
-        var maxId :Int = sortedSet.maxBy { it.id }?.id ?: 0
-        sortedSet.forEach {
+        var maxId: Int = set.maxBy { it.id }?.id ?: 0
+        set.forEach {
             if (idSet.contains(it.id)) {
                 // Id already used, must fix it:
                 it.id = ++maxId
@@ -55,10 +54,10 @@ class Favorites<T : AbstractFavorite>() {
 
     fun getAutoName(prefix: String? = null): String {
         var _prefix = prefix ?: translate("calendar.filter.untitled")
-        if (sortedSet.isEmpty()) {
+        if (set.isEmpty()) {
             return _prefix
         }
-        val existingNames = sortedSet.map { it.name }
+        val existingNames = set.map { it.name }
         if (!existingNames.contains(_prefix))
             return _prefix
         for (i in 1..30) {
@@ -69,6 +68,10 @@ class Favorites<T : AbstractFavorite>() {
         return _prefix // Giving up, 1..30 are already used.
     }
 
+    val sortedList: List<T>
+        get() {
+            return set.sorted()
+        }
 
     /**
      * Maps the set of filters to list of names.
@@ -76,7 +79,7 @@ class Favorites<T : AbstractFavorite>() {
     val favoriteNames: List<String>
         get() {
             fixNamesAndIds()
-            return sortedSet.map { it.name }
+            return set.map { it.name }
         }
 
     /**
@@ -85,21 +88,21 @@ class Favorites<T : AbstractFavorite>() {
     val idTitleList: List<FavoriteIdTitle>
         get() {
             fixNamesAndIds()
-            return sortedSet.map { FavoriteIdTitle(it.id, it.name) }
+            return sortedList.map { FavoriteIdTitle(it.id, it.name) }
         }
 
-    fun getFilter(index: Int): T? {
-        if (index < 0) return null // No filter is marked as active.
-        if (index < sortedSet.size) {
+    fun getElementAt(pos: Int): T? {
+        if (pos < 0) return null // No filter is marked as active.
+        if (pos < set.size) {
             // Get the user's active filter:
-            return sortedSet.elementAt(index)
+            return set.elementAt(pos)
         }
-        log.error("Favorite index #$index is out of array bounds [0..${sortedSet.size - 1}].")
+        log.error("Favorite index #$pos is out of array bounds [0..${set.size - 1}].")
         return null
     }
 
     internal fun getFilter(name: String): T? {
-        sortedSet.forEach {
+        set.forEach {
             if (name == it.name)
                 return it
         }
