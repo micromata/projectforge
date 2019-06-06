@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
 //
 // ProjectForge is dual-licensed.
 //
@@ -21,25 +21,25 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.calendar
-
-import com.thoughtworks.xstream.annotations.XStreamAsAttribute
-import java.time.LocalDate
+package org.projectforge.business.calendar
 
 /**
- * The user's current calendar state to display. This state will be persisted per user. It contain the recent
- * displayed date range viewed by the user.
+ * Persist the styles of the calendarIds for the user.
+ *
+ * @author M. Lauterbach (m.lauterbach@micromata.de)
+ * @author K. Reinhard (k.reinhard@micromata.de)
  */
-class CalendarFilterState {
-    @XStreamAsAttribute
-    var startDate: LocalDate? = null
+class CalendarStyleMap {
+    /**
+     * Colors for the calendarIds by calendar id.
+     */
+    internal val styles = mutableMapOf<Int, CalendarStyle>()
 
-    //@XStreamAsAttribute
-    //var firstHour: Int? = 8
+    fun add(calendarId : Int, style : CalendarStyle) {
+        styles.put(calendarId, style)
+    }
 
-    //@XStreamAsAttribute
-    //var slot30: Boolean? = null
-
-    @XStreamAsAttribute
-    var view: CalendarView? = null
+    fun get(calendarId: Int?) : CalendarStyle? {
+        return styles[calendarId]
+    }
 }

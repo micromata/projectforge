@@ -1,5 +1,6 @@
 package org.projectforge.rest.calendar
 
+import org.projectforge.business.calendar.*
 import org.projectforge.business.teamcal.admin.TeamCalCache
 import org.projectforge.business.user.service.UserPreferencesService
 import org.projectforge.framework.i18n.addTranslations
@@ -36,11 +37,6 @@ class CalendarFilterServicesRest {
                        var styleMap: CalendarStyleMap? = null,
                        var translations: Map<String, String>? = null)
 
-    class StyledTeamCalendar(teamCalendar: TeamCalendar?,
-                             var style: CalendarStyle? = null,
-                             val visible: Boolean = true)
-        : TeamCalendar(teamCalendar?.id, teamCalendar?.title)
-
     companion object {
         private const val PREF_KEY_FILTERLIST = "calendar.filter.list"
         internal const val PREF_KEY_CURRENT_FILTER = "calendar.filter.current"
@@ -72,10 +68,8 @@ class CalendarFilterServicesRest {
         val styleMap = getStyleMap()
         initial.styleMap = styleMap
 
-        initial.teamCalendars = calendars.map { cal ->
-            StyledTeamCalendar(calendars.find { it.id == cal.id },
-                    style = styleMap.get(cal.id)) // Add the styles of the styleMap to the exported calendar.
-        }
+        initial.teamCalendars = StyledTeamCalendar.map(calendars, styleMap) // Add the styles of the styleMap to the exported calendars.
+
         val state = getFilterState()
         initial.date = PFDateTime.from(state.startDate)
         initial.view = state.view
@@ -88,7 +82,7 @@ class CalendarFilterServicesRest {
         }
 
         val favorites = getFilterFavorites()
-        initial.filterFavorites = favorites.getFavoriteNames()
+        initial.filterFavorites = favorites.favoriteNames
 
         val listOfDefaultCalendars = mutableListOf<TeamCalendar>()
         initial.activeCalendars?.forEach { activeCal ->
@@ -208,22 +202,9 @@ class CalendarFilterServicesRest {
     internal fun updateCalendarFilter(startDate: Date?,
                                       view: CalendarView?,
                                       activeCalendarIds: Set<Int>?) {
-        val state = getFilterState()
-        if (startDate != null) {
-            var startDay = PFDateTime.from(startDate)!!.asLocalDate()
-            if (view == CalendarView.MONTH && startDay.dayOfMonth != 1) {
-                // Adjusting the begin of month (startDate might be a day of the end of the previous month, if shown.
-                startDay = startDay.withDayOfMonth(1).plusMonths(1)
-            }
-            state.startDate = startDay
-        }
-        if (view != null) {
-            state.view = view
-        }
+        getFilterState().updateCalendarFilter(startDate, view)
         if (!activeCalendarIds.isNullOrEmpty()) {
-            val currentFilter = getCurrentFilter()
-            currentFilter.calendarIds = activeCalendarIds.toMutableSet()
-            currentFilter.ensureSets()
+            getCurrentFilter().calendarIds = activeCalendarIds.toMutableSet()
         }
     }
 }

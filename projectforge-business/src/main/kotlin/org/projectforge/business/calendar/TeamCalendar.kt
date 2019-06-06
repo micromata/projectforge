@@ -1,4 +1,4 @@
-package org.projectforge.rest.calendar
+package org.projectforge.business.calendar
 
 import org.projectforge.business.teamcal.admin.TeamCalCache
 import org.projectforge.business.teamcal.admin.model.TeamCalDO

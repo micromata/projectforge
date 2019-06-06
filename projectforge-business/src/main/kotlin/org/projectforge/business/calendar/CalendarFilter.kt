@@ -21,10 +21,11 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.calendar
+package org.projectforge.business.calendar
 
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute
 import org.projectforge.business.teamcal.filter.TemplateEntry
+import org.projectforge.favorites.AbstractFavorite
 
 /**
  * Persist the settings of one named filter entry. The user may configure a list of filters and my switch the active
@@ -33,9 +34,8 @@ import org.projectforge.business.teamcal.filter.TemplateEntry
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
-class CalendarFilter(@XStreamAsAttribute
-                     var name: String = "",
-
+class CalendarFilter(name: String = "",
+                     id: Int = 0,
                      /**
                       * New items created in the calendar will be assumed as entries of this calendar. If null, then the creation
                       * page for new time sheets is instantiated.
@@ -65,11 +65,16 @@ class CalendarFilter(@XStreamAsAttribute
                      var showBreaks: Boolean? = true,
 
                      @XStreamAsAttribute
-                     var showPlanning: Boolean? = null) {
+                     var showPlanning: Boolean? = null)
+    : AbstractFavorite(name, id) {
 
-    internal var calendarIds = mutableSetOf<Int>()
+    var calendarIds = mutableSetOf<Int>()
+        set(value) {
+            field = value
+            ensureSets()
+        }
 
-    internal var invisibleCalendars = mutableSetOf<Int>()
+    var invisibleCalendars = mutableSetOf<Int>()
 
     fun addCalendarId(calendarId: Int) {
         ensureSets()

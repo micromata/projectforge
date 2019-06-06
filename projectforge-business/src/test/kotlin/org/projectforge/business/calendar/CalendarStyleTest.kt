@@ -1,4 +1,4 @@
-package org.projectforge.rest.calendar
+package org.projectforge.business.calendar
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test

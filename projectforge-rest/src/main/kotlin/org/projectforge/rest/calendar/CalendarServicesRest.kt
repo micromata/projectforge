@@ -1,5 +1,6 @@
 package org.projectforge.rest.calendar
 
+import org.projectforge.business.calendar.*
 import org.projectforge.business.user.service.UserPreferencesService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
@@ -121,7 +122,7 @@ class CalendarServicesRest {
         }
         var visibleCalendarIds = filter.activeCalendarIds
         if (filter.useVisibilityState == true && !visibleCalendarIds.isNullOrEmpty()) {
-            val currentFilter = userPreferenceService.getEntry(org.projectforge.rest.calendar.CalendarFilter::class.java, CalendarFilterServicesRest.PREF_KEY_CURRENT_FILTER)
+            val currentFilter = userPreferenceService.getEntry(CalendarFilter::class.java, CalendarFilterServicesRest.PREF_KEY_CURRENT_FILTER)
             if (currentFilter != null) {
                 val set = mutableSetOf<Int>()
                 visibleCalendarIds.forEach {

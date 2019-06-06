@@ -1,4 +1,4 @@
-package org.projectforge.rest.calendar
+package org.projectforge.business.calendar
 
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter
 import org.projectforge.business.teamcal.filter.ViewType
@@ -16,7 +16,7 @@ import org.projectforge.framework.time.PFDateTimeUtils
  *
  * You may extract settings by using AdminRest.main
  */
-internal class CalendarLegacyFilter(val state: CalendarFilterState,
+class CalendarLegacyFilter(val state: CalendarFilterState,
                                     val list: CalendarFilterFavorites,
                                     val current: CalendarFilter,
                                     val styleMap: CalendarStyleMap) {
@@ -27,7 +27,7 @@ internal class CalendarLegacyFilter(val state: CalendarFilterState,
         /**
          * For re-using legacy filters (from ProjectForge version up to 6, Wicket-Calendar).
          */
-        internal fun migrate(userPreferenceService: UserPreferencesService): CalendarLegacyFilter? {
+        fun migrate(userPreferenceService: UserPreferencesService): CalendarLegacyFilter? {
             // No current user filters available. Try the old one (from release 6.* / Wicket Calendarpage):
             val oldFilter = userPreferenceService.getEntry(TeamCalCalendarFilter::class.java, OLD_USERPREF_KEY)
                     ?: return null

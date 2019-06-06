@@ -1,4 +1,4 @@
-package org.projectforge.rest.calendar
+package org.projectforge.business.calendar
 
 import org.projectforge.framework.i18n.translate
 
@@ -54,12 +54,13 @@ class CalendarFilterFavorites() {
     }
 
 
-    internal fun getFavoriteNames(): List<String> {
-        fixNames()
-        return list.map { it.name }
-    }
+    val favoriteNames: List<String>
+        get() {
+            fixNames()
+            return list.map { it.name }
+        }
 
-    internal fun getFilter(index: Int): CalendarFilter? {
+    fun getFilter(index: Int): CalendarFilter? {
         if (index < 0) return null // No filter is marked as active.
         if (index < list.size) {
             // Get the user's active filter:
