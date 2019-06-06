@@ -16,16 +16,16 @@ class CalendarFilterFavoritesTest {
     fun autoNameTest() {
         val favs = Favorites<CalendarFilter>()
         favs.add(CalendarFilter())
-        val prefix = favs.getFilter(0)!!.name
+        val prefix = favs.getElementAt(0)!!.name
         assertTrue(prefix.startsWith("???")) // Translations not available
         assertTrue(prefix.endsWith("???")) // Translations not available
         favs.add(CalendarFilter())
-        assertEquals("$prefix 1", favs.getFilter(1)!!.name)
+        assertEquals("$prefix 1", favs.getElementAt(1)!!.name)
         favs.add(CalendarFilter(name = "My favorite"))
         favs.add(CalendarFilter(name = "My favorite"))
         favs.add(CalendarFilter(name = "My favorite"))
-        assertEquals("My favorite 1", favs.getFilter(3)!!.name)
-        assertEquals("My favorite 2", favs.getFilter(4)!!.name)
+        assertEquals("My favorite 1", favs.getElementAt(3)!!.name)
+        assertEquals("My favorite 2", favs.getElementAt(4)!!.name)
     }
 
     companion object {
