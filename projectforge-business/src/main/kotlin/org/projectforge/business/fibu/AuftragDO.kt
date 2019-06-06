@@ -26,7 +26,7 @@ package org.projectforge.business.fibu
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.apache.commons.lang3.StringUtils
-import org.hibernate.annotations.IndexColumn
+import org.hibernate.annotations.ListIndexBase
 import org.hibernate.search.annotations.*
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.i18n.I18nHelper
@@ -63,6 +63,8 @@ import javax.persistence.*
         nestedEntities = [AuftragsPositionDO::class, PaymentScheduleDO::class])
 class AuftragDO : DefaultBaseDO() {
 
+    private val log = org.slf4j.LoggerFactory.getLogger(AuftragDO::class.java)
+
     /**
      * Auftragsnummer ist eindeutig und wird fortlaufend erzeugt.
      */
@@ -80,7 +82,10 @@ class AuftragDO : DefaultBaseDO() {
 
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
     @IndexedEmbedded(depth = 1)
-    private var positionen: MutableList<AuftragsPositionDO>? = null
+    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "auftrag")
+    @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
+    @get:ListIndexBase(1)
+    var positionen: MutableList<AuftragsPositionDO>? = null
 
     @Field
     @get:Enumerated(EnumType.STRING)
@@ -184,7 +189,8 @@ class AuftragDO : DefaultBaseDO() {
      */
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
     @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "auftrag")
-    @get:IndexColumn(name = "number", base = 1)
+    @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
+    @get:ListIndexBase(1)
     var paymentSchedules: MutableList<PaymentScheduleDO>? = null
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.from")
@@ -274,7 +280,7 @@ class AuftragDO : DefaultBaseDO() {
     val auftragsStatusAsString: String?
         @Transient
         get() {
-            if (isVollstaendigFakturiert == true) {
+            if (isVollstaendigFakturiert) {
                 return I18nHelper.getLocalizedMessage("fibu.auftrag.status.fakturiert")
             }
             return if (auftragsStatus != null) I18nHelper.getLocalizedMessage(auftragsStatus!!.i18nKey) else null
@@ -314,7 +320,7 @@ class AuftragDO : DefaultBaseDO() {
                     }
                     buf.append(projekt!!.kunde.name)
                 }
-                if (StringUtils.isNotBlank(projekt!!.name) == true) {
+                if (StringUtils.isNotBlank(projekt!!.name)) {
                     if (!first) {
                         buf.append(" - ")
                     }
@@ -338,7 +344,7 @@ class AuftragDO : DefaultBaseDO() {
 
     /**
      * @return true wenn alle Auftragspositionen vollständig fakturiert sind.
-     * @see AuftragsPositionDO.isCompleteInvoiced
+     * @see AuftragsPositionDO.isVollstaendigFakturiert
      */
     val isVollstaendigFakturiert: Boolean
         @Transient
@@ -384,7 +390,7 @@ class AuftragDO : DefaultBaseDO() {
      */
     val positionenIncludingDeleted: List<AuftragsPositionDO>?
         @Transient
-        get() = this.getPositionen()
+        get() = this.positionen
 
     /**
      * Get list of AuftragsPosition excluding elements that are marked as deleted.
@@ -394,7 +400,7 @@ class AuftragDO : DefaultBaseDO() {
      */
     val positionenExcludingDeleted: List<AuftragsPositionDO>
         @Transient
-        get() = getPositionen().filter { !it.isDeleted }
+        get() = positionen?.filter { !it.isDeleted } ?: emptyList()
 
     /**
      * @return The sum of person days of all positions.
@@ -449,7 +455,7 @@ class AuftragDO : DefaultBaseDO() {
         get() {
             if (this.paymentSchedules != null) {
                 for (pos in this.paymentSchedules!!) {
-                    if (pos.isReached == true && pos.isVollstaendigFakturiert == false) {
+                    if (pos.isReached == true && pos.isVollstaendigFakturiert) {
                         return true
                     }
                 }
@@ -473,35 +479,16 @@ class AuftragDO : DefaultBaseDO() {
         @Transient
         get() {
             val result = ArrayList<String>()
-            addUser(result,projectManager)
-            addUser(result,headOfBusinessManager)
-            addUser(result,salesManager)
-            addUser(result,contactPerson)
+            addUser(result, projectManager)
+            addUser(result, headOfBusinessManager)
+            addUser(result, salesManager)
+            addUser(result, contactPerson)
             return result.joinToString("; ")
         }
 
-    private fun addUser(result : ArrayList<String>, user : PFUserDO?) {
+    private fun addUser(result: ArrayList<String>, user: PFUserDO?) {
         if (user != null)
             result.add(user.getFullname())
-    }
-
-    /**
-     * Get the position entries for this object.
-     */
-    @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "auftrag")
-    //TODO: Kann so nicht verwendet werden, da Zähler bei 1 starten muss. Größerer Umbau von nöten, um es zu ändern.
-    @IndexColumn(name = "number", base = 1)
-    private fun getPositionen(): List<AuftragsPositionDO> {
-        if (this.positionen == null) {
-            log.debug("The list of AuftragsPositionDO is null. AuftragDO id: " + this.id)
-            return emptyList()
-        }
-        return this.positionen!!
-    }
-
-    fun setPositionen(positionen: MutableList<AuftragsPositionDO>): AuftragDO {
-        this.positionen = positionen
-        return this
     }
 
     /**
@@ -540,7 +527,7 @@ class AuftragDO : DefaultBaseDO() {
         if (this.positionen == null) {
             this.positionen = ArrayList()
         }
-        return getPositionen()
+        return positionen!!
     }
 
     /**
@@ -557,7 +544,7 @@ class AuftragDO : DefaultBaseDO() {
                     if (pos.isDeleted) {
                         continue
                     }
-                    if (NumberHelper.isNotZero(pos.fakturiertSum) == true) {
+                    if (NumberHelper.isNotZero(pos.fakturiertSum)) {
                         this.fakturiertSum = this.fakturiertSum!!.add(pos.fakturiertSum)
                     }
                 }
@@ -619,11 +606,5 @@ class AuftragDO : DefaultBaseDO() {
             this.paymentSchedules = ArrayList()
         }
         return this.paymentSchedules
-    }
-
-    companion object {
-        private val serialVersionUID = -3114903689890703366L
-
-        private val log = org.slf4j.LoggerFactory.getLogger(AuftragDO::class.java)
     }
 }
