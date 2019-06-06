@@ -24,6 +24,7 @@
 package org.projectforge.favorites
 
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 
 /**
  * Base class of a favorite (used for user's preferences, such as filters, common used tasks,
@@ -32,8 +33,16 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
 abstract class AbstractFavorite(@XStreamAsAttribute
-                     var name: String = "",
+                                var name: String = "",
 
                                 @XStreamAsAttribute
-                     var id: Int) {
+                                var id: Int)
+    : Comparable<AbstractFavorite> {
+    /**
+     * Uses the locale of the thread local user for comparing.
+     * @see ThreadLocalUserContext.localeCompare
+     */
+    override fun compareTo(other: AbstractFavorite): Int {
+        return ThreadLocalUserContext.localeCompare(name, other.name)
+    }
 }
