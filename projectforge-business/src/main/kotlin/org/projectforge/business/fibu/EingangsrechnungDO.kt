@@ -44,8 +44,8 @@ import javax.persistence.*
 @Indexed
 @Table(name = "t_fibu_eingangsrechnung",
         indexes = [
-            javax.persistence.Index(name = "idx_fk_t_fibu_eingangsrechnung_konto_id", columnList = "konto_id"),
-            javax.persistence.Index(name = "idx_fk_t_fibu_eingangsrechnung_tenant_id", columnList = "tenant_id")
+            Index(name = "idx_fk_t_fibu_eingangsrechnung_konto_id", columnList = "konto_id"),
+            Index(name = "idx_fk_t_fibu_eingangsrechnung_tenant_id", columnList = "tenant_id")
         ])
 // @AssociationOverride(name="positionen", joinColumns=@JoinColumn(name="eingangsrechnung_fk"))
 @WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [EingangsrechnungsPositionDO::class])
@@ -89,7 +89,7 @@ class EingangsrechnungDO : AbstractRechnungDO<EingangsrechnungsPositionDO>(), Co
      */
     override val isBezahlt: Boolean
         @Transient
-        get() = if (this.netSum == null || this.netSum.compareTo(BigDecimal.ZERO) == 0) {
+        get() = if (this.netSum.compareTo(BigDecimal.ZERO) == 0) {
             true
         } else this.bezahlDatum != null && this.zahlBetrag != null
 
