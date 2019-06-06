@@ -445,6 +445,18 @@ div[class*="-singleValue"] {
   font-size: 15px;
 }
 
-label[for*="favorite"] {
+fieldset label[for*="favorite"] {
   margin-top: 27px;
+}
+
+#favoritesPopover {
+  margin-top: 5px;
+}
+
+img + .btn.btn-danger {
+  margin-bottom: 20px !important;
+}
+
+div[class^="DayPicker"] {
+  font-size: 13px;
 }
