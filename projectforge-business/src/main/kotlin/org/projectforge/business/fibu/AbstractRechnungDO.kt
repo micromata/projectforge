@@ -23,39 +23,21 @@
 
 package org.projectforge.business.fibu
 
-import java.math.BigDecimal
-import java.sql.Date
-import java.util.ArrayList
-
-import javax.persistence.Column
-import javax.persistence.FetchType
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.MappedSuperclass
-import javax.persistence.Transient
-
+import de.micromata.genome.db.jpa.history.api.NoHistory
+import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist
 import org.apache.commons.collections.CollectionUtils
 import org.apache.commons.lang3.StringUtils
-import org.hibernate.search.annotations.Analyze
-import org.hibernate.search.annotations.DateBridge
-import org.hibernate.search.annotations.EncodingType
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Index
-import org.hibernate.search.annotations.IndexedEmbedded
-import org.hibernate.search.annotations.Resolution
-import org.hibernate.search.annotations.Store
+import org.hibernate.search.annotations.*
 import org.projectforge.business.fibu.kost.Kost2ArtDO
-import org.projectforge.business.fibu.kost.KostZuweisungDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
-import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.time.DateHolder
 import org.projectforge.framework.time.DayHolder
 import org.projectforge.framework.xstream.XmlObjectReader
-
-import de.micromata.genome.db.jpa.history.api.NoHistory
-import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist
+import java.math.BigDecimal
+import java.sql.Date
+import javax.persistence.*
 
 @MappedSuperclass
 @JpaXmlPersist(beforePersistListener = [AbstractRechnungXmlBeforePersistListener::class], persistAfter = [Kost2ArtDO::class])
@@ -93,7 +75,6 @@ abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBase
      * werden.
      */
     @Field(analyze = Analyze.NO)
-    @Transient
     @get:Transient
     open var zahlungsZielInTagen: Int? = null
 
@@ -102,7 +83,6 @@ abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBase
      * werden.
      */
     @Field(analyze = Analyze.NO)
-    @Transient
     @get:Transient
     open var discountZahlungsZielInTagen: Int? = null
 
@@ -127,7 +107,7 @@ abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBase
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "konto_id")
-    var konto: KontoDO? = null
+    open var konto: KontoDO? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.discountPercent")
     @get:Column
@@ -154,10 +134,8 @@ abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBase
     @get:Column(length = 11)
     open var bic: String? = null
 
-    @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
-    @Transient
     @get:Transient
-    open var positionen: MutableList<T>? = null
+    abstract var positionen: MutableList<T>?
 
     /**
      * The user interface status of an invoice. The [RechnungUIStatus] is stored as XML.
@@ -222,11 +200,11 @@ abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBase
     val isUeberfaellig: Boolean
         @Transient
         get() {
-            if (isBezahlt == true) {
+            if (isBezahlt) {
                 return false
             }
             val today = DayHolder()
-            return this.faelligkeit == null || this.faelligkeit!!.before(today.date) == true
+            return this.faelligkeit?.before(today.date) ?: false
         }
 
     val kontoId: Int?
@@ -303,7 +281,7 @@ abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBase
     fun ensureAndGetPositionen(): List<T> {
         run {
             if (this.positionen == null) {
-                positionen = ArrayList()
+                positionen = mutableListOf<T>()
             }
             return positionen as MutableList<T>
         }

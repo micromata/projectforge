@@ -25,16 +25,15 @@ package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonBackReference
 import de.micromata.genome.db.jpa.history.api.WithHistory
-import org.hibernate.annotations.IndexColumn
-import org.hibernate.search.annotations.Index
+import org.hibernate.annotations.ListIndexBase
 import org.hibernate.search.annotations.*
 import org.hibernate.search.bridge.builtin.IntegerBridge
 import org.projectforge.common.anots.PropertyInfo
-
-import javax.persistence.*
+import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import java.math.BigDecimal
 import java.sql.Date
-import java.util.TreeSet
+import java.util.*
+import javax.persistence.*
 
 /**
  * Geplante und gestellte Rechnungen.
@@ -43,8 +42,16 @@ import java.util.TreeSet
  */
 @Entity
 @Indexed
-@Table(name = "t_fibu_rechnung", uniqueConstraints = [UniqueConstraint(columnNames = ["nummer", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_konto_id", columnList = "konto_id"), javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_kunde_id", columnList = "kunde_id"), javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_projekt_id", columnList = "projekt_id"), javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_tenant_id", columnList = "tenant_id")])
-@WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [RechnungsPositionDO::class])
+@Table(name = "t_fibu_rechnung",
+        uniqueConstraints = [UniqueConstraint(columnNames = ["nummer", "tenant_id"])],
+        indexes = [
+            javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_konto_id", columnList = "konto_id"),
+            javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_kunde_id", columnList = "kunde_id"),
+            javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_projekt_id", columnList = "projekt_id"),
+            javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_tenant_id", columnList = "tenant_id")
+        ])
+@WithHistory(noHistoryProperties = ["lastUpdate", "created"],
+        nestedEntities = [RechnungsPositionDO::class])
 class RechnungDO : AbstractRechnungDO<RechnungsPositionDO>(), Comparable<RechnungDO> {
 
     @PropertyInfo(i18nKey = "fibu.rechnung.nummer")
@@ -131,13 +138,15 @@ class RechnungDO : AbstractRechnungDO<RechnungsPositionDO>(), Comparable<Rechnun
      */
     override val isBezahlt: Boolean
         @Transient
-        get() = if (this.netSum == null || this.netSum.compareTo(BigDecimal.ZERO) == 0) {
+        get() = if (this.netSum.compareTo(BigDecimal.ZERO) == 0) {
             true
         } else this.status == RechnungStatus.BEZAHLT && this.bezahlDatum != null && this.zahlBetrag != null
 
-    @get:JsonBackReference
-    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, mappedBy = "rechnung")
-    @get:IndexColumn(name = "number", base = 1)
+    @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
+    @JsonBackReference
+    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, mappedBy = "rechnung", targetEntity = RechnungsPositionDO::class)
+    @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
+    @get:ListIndexBase(1)
     override var positionen: MutableList<RechnungsPositionDO>? = null
 
     val auftragsPositionVOs: Set<AuftragsPositionVO>?
@@ -165,19 +174,19 @@ class RechnungDO : AbstractRechnungDO<RechnungsPositionDO>(), Comparable<Rechnun
         @Transient
         get() = KundeFormatter.formatKundeAsString(this.kunde, this.kundeText)
 
-    override fun compareTo(o: RechnungDO): Int {
-        if (this.datum != null && o.datum != null) {
-            val r = o.datum!!.compareTo(this.datum!!)
+    override fun compareTo(other: RechnungDO): Int {
+        if (this.datum != null && other.datum != null) {
+            val r = other.datum!!.compareTo(this.datum!!)
             if (r != 0) {
                 return r
             }
 
         }
         if (this.nummer == null) {
-            return if (o.nummer == null) 0 else 1
+            return if (other.nummer == null) 0 else 1
         }
-        return if (o.nummer == null) {
+        return if (other.nummer == null) {
             -1
-        } else this.nummer!!.compareTo(o.nummer!!)
+        } else this.nummer!!.compareTo(other.nummer!!)
     }
 }
