@@ -1,10 +1,6 @@
 import React from 'react';
 import Select from 'react-select';
-import {
-    Card,
-    CardBody,
-    Row,
-} from 'reactstrap';
+import { Card, CardBody, Row, } from 'reactstrap';
 import EditableMultiValueLabel from '../../components/base/page/layout/EditableMultiValueLabel';
 import LoadingContainer from '../../components/design/loading-container';
 import { getServiceURL } from '../../utilities/rest';
@@ -25,6 +21,7 @@ class CalendarPage extends React.Component {
             activeCalendars: [],
             listOfDefaultCalendars: [],
             defaultCalendar: undefined,
+            filterFavorites: undefined,
             translations: undefined,
         };
 
@@ -84,6 +81,7 @@ class CalendarPage extends React.Component {
                     teamCalendars,
                     activeCalendars,
                     listOfDefaultCalendars,
+                    filterFavorites,
                     translations,
                 } = json;
                 this.setState({
@@ -92,6 +90,7 @@ class CalendarPage extends React.Component {
                     teamCalendars,
                     activeCalendars,
                     listOfDefaultCalendars,
+                    filterFavorites,
                     view,
                     translations,
                 });
@@ -114,6 +113,7 @@ class CalendarPage extends React.Component {
             listOfDefaultCalendars,
             colors,
             date,
+            filterFavorites,
             loading,
             teamCalendars,
             translations,
@@ -168,6 +168,7 @@ class CalendarPage extends React.Component {
                                     onFavoriteDelete={this.onFavoriteDelete}
                                     onFavoriteRename={this.onFavoriteRename}
                                     onFavoriteUpdate={this.onFavoriteUpdate}
+                                    favorites={filterFavorites}
                                     translations={translations}
                                 />
                             </Row>

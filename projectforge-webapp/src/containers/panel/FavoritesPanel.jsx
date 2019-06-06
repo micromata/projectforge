@@ -147,7 +147,8 @@ FavoritesPanel.propTypes = {
         id: PropTypes.number,
         name: PropTypes.string,
     })),
-    currentFavoriteId: PropTypes.number, // The current used favorite (can be saved with modified settings).
+    // The current used favorite (can be saved with modified settings).
+    currentFavoriteId: PropTypes.number,
     onFavoriteDelete: PropTypes.func.isRequired,
     onFavoriteRename: PropTypes.func.isRequired,
     onFavoriteSelect: PropTypes.func.isRequired,

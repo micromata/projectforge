@@ -10,26 +10,39 @@ import java.util.*
  * Ensures the uniqueness of favorite's names.
  */
 class Favorites<T : AbstractFavorite>() {
+
+    /**
+     * For exports etc.
+     */
+    class FavoriteIdTitle(val id: Int, val name: String)
+
     private val log = org.slf4j.LoggerFactory.getLogger(Favorites::class.java)
 
     private val sortedSet: SortedSet<T> = sortedSetOf()
 
     fun add(filter: T) {
         sortedSet.add(filter)
-        fixNames()
+        fixNamesAndIds()
     }
 
     fun remove(name: String) {
-        fixNames()
+        fixNamesAndIds()
         sortedSet.removeIf { it.name == name }
     }
 
     /**
      * Fixes empty names and doublets of names.
      */
-    private fun fixNames() {
+    private fun fixNamesAndIds() {
         val namesSet = mutableSetOf<String>()
+        val idSet = mutableSetOf<Int>()
+        var maxId :Int = sortedSet.maxBy { it.id }?.id ?: 0
         sortedSet.forEach {
+            if (idSet.contains(it.id)) {
+                // Id already used, must fix it:
+                it.id = ++maxId
+            }
+            idSet.add(it.id)
             if (it.name.isNullOrBlank())
                 it.name = getAutoName() // Fix empty names
             if (namesSet.contains(it.name)) {
@@ -57,10 +70,22 @@ class Favorites<T : AbstractFavorite>() {
     }
 
 
+    /**
+     * Maps the set of filters to list of names.
+     */
     val favoriteNames: List<String>
         get() {
-            fixNames()
+            fixNamesAndIds()
             return sortedSet.map { it.name }
+        }
+
+    /**
+     * Maps the set of filters to list of [FavoriteIdTitle].
+     */
+    val idTitleList: List<FavoriteIdTitle>
+        get() {
+            fixNamesAndIds()
+            return sortedSet.map { FavoriteIdTitle(it.id, it.name) }
         }
 
     fun getFilter(index: Int): T? {
