@@ -26,7 +26,7 @@ class CalendarFilterServicesRest {
     class CalendarInit(var date: PFDateTime? = null,
                        @Suppress("unused") var view: CalendarView? = CalendarView.WEEK,
                        var teamCalendars: List<StyledTeamCalendar>? = null,
-                       var filterFavorites: List<String>? = null,
+                       var filterFavorites: List<Favorites.FavoriteIdTitle>? = null,
                        var currentFilter: CalendarFilter? = null,
                        var activeCalendars: List<StyledTeamCalendar>? = null,
                        /**
@@ -83,7 +83,7 @@ class CalendarFilterServicesRest {
         }
 
         val favorites = getFilterFavorites()
-        initial.filterFavorites = favorites.favoriteNames
+        initial.filterFavorites = favorites.idTitleList
 
         val listOfDefaultCalendars = mutableListOf<TeamCalendar>()
         initial.activeCalendars?.forEach { activeCal ->
@@ -144,7 +144,7 @@ class CalendarFilterServicesRest {
     private fun getFilterFavorites(): Favorites<CalendarFilter> {
         var filterList: Favorites<CalendarFilter>? = null
         try {
-            @Suppress("UNCHECKED_CAST")
+            @Suppress("UNCHECKED_CAST", "USELESS_ELVIS")
             filterList = userPreferenceService.getEntry(Favorites::class.java, PREF_KEY_FAV_LIST) as Favorites<CalendarFilter>
                     ?: migrateFromLegacyFilter()?.list
         } catch (ex: Exception) {
