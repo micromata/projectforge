@@ -3,6 +3,7 @@ package org.projectforge.business.calendar
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter
 import org.projectforge.business.teamcal.filter.ViewType
 import org.projectforge.business.user.service.UserPreferencesService
+import org.projectforge.favorites.Favorites
 import org.projectforge.framework.time.PFDateTimeUtils
 
 /**
@@ -17,9 +18,9 @@ import org.projectforge.framework.time.PFDateTimeUtils
  * You may extract settings by using AdminRest.main
  */
 class CalendarLegacyFilter(val state: CalendarFilterState,
-                                    val list: CalendarFilterFavorites,
-                                    val current: CalendarFilter,
-                                    val styleMap: CalendarStyleMap) {
+                           val list: Favorites<CalendarFilter>,
+                           val current: CalendarFilter,
+                           val styleMap: CalendarStyleMap) {
     companion object {
         // LEGACY STUFF:
         private const val OLD_USERPREF_KEY = "TeamCalendarPage.userPrefs"
@@ -33,7 +34,7 @@ class CalendarLegacyFilter(val state: CalendarFilterState,
                     ?: return null
 
             val state = CalendarFilterState()
-            val filterList = CalendarFilterFavorites()
+            val filterList = Favorites<CalendarFilter>()
             val styleMap = CalendarStyleMap()
             val currentFilter = CalendarFilter.copyFrom(oldFilter.activeTemplateEntry)
             //firstHour = oldFilter.firstHour

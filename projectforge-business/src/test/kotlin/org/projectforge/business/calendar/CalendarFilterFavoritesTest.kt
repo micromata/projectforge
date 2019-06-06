@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.projectforge.favorites.Favorites
 import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
@@ -13,7 +14,7 @@ import java.util.*
 class CalendarFilterFavoritesTest {
     @Test
     fun autoNameTest() {
-        val favs = CalendarFilterFavorites()
+        val favs = Favorites<CalendarFilter>()
         favs.add(CalendarFilter())
         val prefix = favs.getFilter(0)!!.name
         assertTrue(prefix.startsWith("???")) // Translations not available
