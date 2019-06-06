@@ -23,9 +23,6 @@
 
 package org.projectforge.framework.persistence.user.api;
 
-import java.util.Locale;
-import java.util.TimeZone;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.joda.time.DateTimeZone;
 import org.projectforge.business.user.UserGroupCache;
@@ -34,6 +31,10 @@ import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
+
+import java.text.Collator;
+import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * ThreadLocal context.
@@ -208,5 +209,15 @@ public class ThreadLocalUserContext
   public static String getLocalizedString(final String key)
   {
     return I18nHelper.getLocalizedMessage(getLocale(), key);
+  }
+
+  /**
+   * Use this instead of String{@link String#compareTo(String)}, because it uses
+   * @param a
+   * @param b
+   * @return
+   */
+  public static int localeCompare(String a, String b) {
+    return Collator.getInstance(getLocale()).compare(a, b);
   }
 }
