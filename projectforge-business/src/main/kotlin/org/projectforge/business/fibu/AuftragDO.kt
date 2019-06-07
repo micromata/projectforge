@@ -311,20 +311,22 @@ class AuftragDO : DefaultBaseDO() {
         get() {
             val buf = StringBuffer()
             var first = true
-            if (this.projekt != null) {
-                if (projekt!!.kunde != null) {
+            val prj = this.projekt
+            val kunde = prj?.kunde ?: null
+            if (prj != null) {
+                if (kunde != null) {
                     if (first) {
                         first = false
                     } else {
                         buf.append("; ")
                     }
-                    buf.append(projekt!!.kunde.name)
+                    buf.append(kunde.name)
                 }
-                if (StringUtils.isNotBlank(projekt!!.name)) {
+                if (StringUtils.isNotBlank(prj.name)) {
                     if (!first) {
                         buf.append(" - ")
                     }
-                    buf.append(projekt!!.name)
+                    buf.append(prj.name)
                 }
             }
             return buf.toString()
