@@ -29,6 +29,7 @@ class CalendarPage extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.handleMultiValueChange = this.handleMultiValueChange.bind(this);
         this.changeDefaultCalendar = this.changeDefaultCalendar.bind(this);
+        this.onFavoriteCreate = this.onFavoriteCreate.bind(this);
         this.onFavoriteDelete = this.onFavoriteDelete.bind(this);
         this.onFavoriteRename = this.onFavoriteRename.bind(this);
         this.onFavoriteSelect = this.onFavoriteSelect.bind(this);
@@ -44,6 +45,10 @@ class CalendarPage extends React.Component {
         this.setState({ activeCalendars });
     }
 
+    onFavoriteCreate(id) {
+        console.log(id);
+    }
+
     onFavoriteDelete(id) {
         console.log(id);
     }
@@ -56,8 +61,8 @@ class CalendarPage extends React.Component {
         console.log(id, newName);
     }
 
-    onFavoriteUpdate(id, newName) {
-        console.log(id, newName);
+    onFavoriteUpdate(id) {
+        console.log(id);
     }
 
     changeDefaultCalendar(defaultCalendar) {
@@ -164,9 +169,10 @@ class CalendarPage extends React.Component {
                                     // defaultOptions={defaultOptions}
                                 />
                                 <FavoritesPanel
-                                    onFavoriteSelect={this.onFavoriteSelect}
+                                    onFavoriteCreate={this.onFavoriteCreate}
                                     onFavoriteDelete={this.onFavoriteDelete}
                                     onFavoriteRename={this.onFavoriteRename}
+                                    onFavoriteSelect={this.onFavoriteSelect}
                                     onFavoriteUpdate={this.onFavoriteUpdate}
                                     favorites={filterFavorites}
                                     translations={translations}
