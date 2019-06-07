@@ -32,7 +32,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.configuration.ConfigurationService;
@@ -238,7 +238,7 @@ public class ToDoDao extends BaseDao<ToDoDO>
   @Override
   protected void onSave(final ToDoDO obj)
   {
-    if (ObjectUtils.equals(ThreadLocalUserContext.getUserId(), obj.getAssigneeId()) == false) {
+    if (Objects.equals(ThreadLocalUserContext.getUserId(), obj.getAssigneeId()) == false) {
       // To-do is changed by other user than assignee, so set recent flag for this to-do for the assignee.
       obj.setRecent(true);
     }
@@ -247,7 +247,7 @@ public class ToDoDao extends BaseDao<ToDoDO>
   @Override
   protected void onChange(final ToDoDO obj, final ToDoDO dbObj)
   {
-    if (ObjectUtils.equals(ThreadLocalUserContext.getUserId(), obj.getAssigneeId()) == false) {
+    if (Objects.equals(ThreadLocalUserContext.getUserId(), obj.getAssigneeId()) == false) {
       // To-do is changed by other user than assignee, so set recent flag for this to-do for the assignee.
       final ToDoDO copyOfDBObj = new ToDoDO();
       copyOfDBObj.copyValuesFrom(dbObj, "deleted");

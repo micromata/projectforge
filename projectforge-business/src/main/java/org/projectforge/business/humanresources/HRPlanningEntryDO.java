@@ -24,7 +24,7 @@
 package org.projectforge.business.humanresources;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.search.annotations.Index;
@@ -344,7 +344,7 @@ public class HRPlanningEntryDO extends DefaultBaseDO implements ShortDisplayName
     if (o instanceof HRPlanningEntryDO) {
       HRPlanningEntryDO other = (HRPlanningEntryDO) o;
       if (this.getId() != null || other.getId() != null) {
-        return ObjectUtils.equals(this.getId(), other.getId());
+        return Objects.equals(this.getId(), other.getId());
       } else {
         return hasNoFieldChanges(other);
       }

@@ -30,7 +30,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -106,7 +106,7 @@ public class MyListPageSortableDataProvider<T extends IdObject<?>> extends Sorta
       this.completeList = null; // Force to load all elements from data-base (avoid lazy initialization exceptions).
     }
     final SortParam<String> sp = getSort();
-    if (ObjectUtils.equals(sortParam, sp) == false) {
+    if (Objects.equals(sortParam, sp) == false) {
       // The sort parameters were changed, force reload from data-base:
       reloadList();
     }

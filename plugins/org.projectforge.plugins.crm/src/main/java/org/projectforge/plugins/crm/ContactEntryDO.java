@@ -34,7 +34,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Index;
@@ -241,10 +241,10 @@ public class ContactEntryDO extends DefaultBaseDO
   {
     if (o instanceof ContactEntryDO) {
       final ContactEntryDO other = (ContactEntryDO) o;
-      if (ObjectUtils.equals(this.getNumber(), other.getNumber()) == false) {
+      if (Objects.equals(this.getNumber(), other.getNumber()) == false) {
         return false;
       }
-      if (ObjectUtils.equals(this.getContactId(), other.getContactId()) == false) {
+      if (Objects.equals(this.getContactId(), other.getContactId()) == false) {
         return false;
       }
       return true;

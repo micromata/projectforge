@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.poll;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.user.UserRightAccessCheck;
 import org.projectforge.business.user.UserRightCategory;
@@ -171,7 +171,7 @@ public class PollRight extends UserRightAccessCheck<PollDO>
 
   public boolean isOwner(final PFUserDO user, final PollDO poll)
   {
-    return ObjectUtils.equals(user.getId(), poll.getOwner().getId()) == true;
+    return Objects.equals(user.getId(), poll.getOwner().getId()) == true;
   }
 
   public boolean isVerifiedUser(final PFUserDO user, final String secureKey, final PollDO poll)

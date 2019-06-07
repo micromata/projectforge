@@ -26,7 +26,7 @@ package org.projectforge.web.teamcal.admin;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -174,7 +174,7 @@ public class TeamCalEditForm extends AbstractEditForm<TeamCalDO, TeamCalEditPage
       }
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.teamcal.owner")).suppressLabelForWarning();
       if (accessChecker.isLoggedInUserMemberOfAdminGroup() == true
-          || ObjectUtils.equals(data.getOwnerId(), getUserId()) == true) {
+          || Objects.equals(data.getOwnerId(), getUserId()) == true) {
         final UserSelectPanel userSelectPanel = new UserSelectPanel(fs.newChildId(),
             new PropertyModel<PFUserDO>(data, "owner"), parentPage,
             "ownerId");

@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.persistence.user.api;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.joda.time.DateTimeZone;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.configuration.ConfigXml;
@@ -139,7 +139,7 @@ public class ThreadLocalUserContext
       return userLocale;
     }
     Locale clientLocale = user != null ? user.getClientLocale() : null;
-    if (defaultLocale != null && user != null && ObjectUtils.equals(clientLocale, defaultLocale) == false) {
+    if (defaultLocale != null && user != null && Objects.equals(clientLocale, defaultLocale) == false) {
       user.setClientLocale(defaultLocale);
       clientLocale = defaultLocale;
     }

@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
@@ -215,7 +215,7 @@ public class BaseDaoJpaAdapter
     for (Field field : foundFields) {
       Object svalue = PrivateBeanUtils.readField(src, field);
       Object tvalue = PrivateBeanUtils.readField(dest, field);
-      if (ObjectUtils.equals(svalue, tvalue) == false) {
+      if (Objects.equals(svalue, tvalue) == false) {
         mod = mod.combine(ModificationStatus.MAJOR);
       }
       PrivateBeanUtils.writeField(dest, field, svalue);
@@ -262,7 +262,7 @@ public class BaseDaoJpaAdapter
     for (String update : updateOrgs) {
       Object sval = source.getAttribute(update);
       Object tval = target.getAttribute(update);
-      if (ObjectUtils.equals(sval, tval) == true) {
+      if (Objects.equals(sval, tval) == true) {
         mod = mod.combine(ModificationStatus.MAJOR);
       }
       target.putAttribute(update, source.getAttribute(update));
@@ -291,7 +291,7 @@ public class BaseDaoJpaAdapter
         final Object srcFieldValue = field.get(src);
         final Object destFieldValue = field.get(dest);
         if (field.getType().isPrimitive() == true) {
-          if (ObjectUtils.equals(destFieldValue, srcFieldValue) == false) {
+          if (Objects.equals(destFieldValue, srcFieldValue) == false) {
             field.set(dest, srcFieldValue);
             modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
           }
@@ -365,7 +365,7 @@ public class BaseDaoJpaAdapter
           final Serializable srcFieldValueId = HibernateUtils.getIdentifier((BaseDO<?>) srcFieldValue);
           if (srcFieldValueId != null) {
             if (destFieldValue == null
-                || ObjectUtils.equals(srcFieldValueId, ((BaseDO<?>) destFieldValue).getId()) == false) {
+                || Objects.equals(srcFieldValueId, ((BaseDO<?>) destFieldValue).getId()) == false) {
               field.set(dest, srcFieldValue);
               modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
             }
@@ -394,7 +394,7 @@ public class BaseDaoJpaAdapter
             field.set(dest, srcFieldValue);
             modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
           }
-        } else if (ObjectUtils.equals(destFieldValue, srcFieldValue) == false) {
+        } else if (Objects.equals(destFieldValue, srcFieldValue) == false) {
           field.set(dest, srcFieldValue);
           modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
         }

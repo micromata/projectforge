@@ -26,7 +26,7 @@ package org.projectforge.business.fibu;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
@@ -165,9 +165,9 @@ public class AuftragsPositionVO implements Comparable<AuftragsPositionVO>, Seria
   {
     if (o instanceof AuftragsPositionVO) {
       AuftragsPositionVO other = (AuftragsPositionVO) o;
-      if (ObjectUtils.equals(this.getNumber(), other.getNumber()) == false)
+      if (Objects.equals(this.getNumber(), other.getNumber()) == false)
         return false;
-      if (ObjectUtils.equals(this.getAuftragId(), other.getAuftragId()) == false)
+      if (Objects.equals(this.getAuftragId(), other.getAuftragId()) == false)
         return false;
       return true;
     }

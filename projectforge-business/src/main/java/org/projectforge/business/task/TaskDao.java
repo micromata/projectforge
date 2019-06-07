@@ -29,7 +29,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.hibernate.criterion.Order;
@@ -445,16 +445,16 @@ public class TaskDao extends BaseDao<TaskDO>
       if (dbObj.getProtectTimesheetsUntil() != null) {
         ts2 = dbObj.getProtectTimesheetsUntil().getTime();
       }
-      if (ObjectUtils.equals(ts1, ts2) == false) {
+      if (Objects.equals(ts1, ts2) == false) {
         throw new AccessException("task.error.protectTimesheetsUntilReadonly");
       }
-      if (ObjectUtils.equals(obj.isProtectionOfPrivacy(), dbObj.isProtectionOfPrivacy()) == false) {
+      if (Objects.equals(obj.isProtectionOfPrivacy(), dbObj.isProtectionOfPrivacy()) == false) {
         throw new AccessException("task.error.protectionOfPrivacyReadonly");
       }
     }
     if (hasAccessForKost2AndTimesheetBookingStatus(user, obj) == false) {
       // Non project managers are not able to manipulate the following fields:
-      if (ObjectUtils.equals(obj.getKost2BlackWhiteList(), dbObj.getKost2BlackWhiteList()) == false
+      if (Objects.equals(obj.getKost2BlackWhiteList(), dbObj.getKost2BlackWhiteList()) == false
           || obj.isKost2IsBlackList() != dbObj.isKost2IsBlackList()) {
         throw new AccessException("task.error.kost2Readonly");
       }
@@ -507,7 +507,7 @@ public class TaskDao extends BaseDao<TaskDO>
   {
     ModificationStatus modified = super.copyValues(src, dest, ignoreFields);
     // Priority value is null-able (may be was not copied from super.copyValues):
-    if (ObjectUtils.equals(dest.getPriority(), src.getPriority()) == false) {
+    if (Objects.equals(dest.getPriority(), src.getPriority()) == false) {
       dest.setPriority(src.getPriority());
       modified = ModificationStatus.MAJOR;
     }

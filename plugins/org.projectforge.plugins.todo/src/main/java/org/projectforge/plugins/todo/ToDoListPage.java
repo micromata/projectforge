@@ -26,7 +26,7 @@ package org.projectforge.plugins.todo;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -95,7 +95,7 @@ public class ToDoListPage extends AbstractListPage<ToDoListForm, ToDoDao, ToDoDO
         final ToDoDO toDo = rowModel.getObject();
         appendCssClasses(item, toDo.getId(), toDo.isDeleted());
         if (toDo.isDeleted() == false) {
-          if (toDo.getRecent() == true && ObjectUtils.equals(getUserId(), toDo.getAssigneeId()) == true) {
+          if (toDo.getRecent() == true && Objects.equals(getUserId(), toDo.getAssigneeId()) == true) {
             appendCssClasses(item, RowCssClass.IMPORTANT_ROW);
           }
         }
