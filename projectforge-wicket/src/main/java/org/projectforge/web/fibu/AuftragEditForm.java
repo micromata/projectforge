@@ -764,7 +764,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
     if (position.getStatus() != null) {
       heading.append(", ").append(getString(position.getStatus().getI18nKey()));
     }
-    if (position.isVollstaendigFakturiert() == false) {
+    if (position.getVollstaendigFakturiert() == false) {
       heading.append(" (").append(getString("fibu.fakturiert.not")).append(")");
     }
     if (StringHelper.isNotBlank(position.getTitel()) == true) {

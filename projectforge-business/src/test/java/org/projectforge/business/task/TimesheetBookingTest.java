@@ -128,9 +128,15 @@ public class TimesheetBookingTest extends AbstractTestBase {
   @Test
   public void testOrderPositions() {
     logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
+    AuftragsPositionDO pos1 = new AuftragsPositionDO();
+    pos1.setTask(getTask("TBT-5.1"));
+    pos1.setTitel("Pos 1");
+    AuftragsPositionDO pos2 = new AuftragsPositionDO();
+    pos1.setTask(getTask("TBT-5.2.1.1"));
+    pos1.setTitel("Pos 2");
     final AuftragDO auftrag = new AuftragDO()
-            .addPosition(new AuftragsPositionDO().setTask(getTask("TBT-5.1")).setTitel("Pos 1"))
-            .addPosition(new AuftragsPositionDO().setTask(getTask("TBT-5.2.1.1")).setTitel("Pos 2"));
+            .addPosition(pos1)
+            .addPosition(pos2);
     auftrag.setNummer(auftragDao.getNextNumber(auftrag));
     auftragDao.save(auftrag);
     logon(getUser(AbstractTestBase.TEST_USER));
