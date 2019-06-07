@@ -115,7 +115,7 @@ public class AuftragRight extends UserRightAccessCheck<AuftragDO>
       // Special field check for non finance administrative staff members:
       if (operationType == OperationType.INSERT) {
         for (final AuftragsPositionDO position : obj.getPositionenExcludingDeleted()) {
-          if (position.isVollstaendigFakturiert() == true) {
+          if (position.getVollstaendigFakturiert() == true) {
             throw new AccessException("fibu.auftrag.error.vollstaendigFakturiertProtection");
           }
         }
@@ -129,10 +129,10 @@ public class AuftragRight extends UserRightAccessCheck<AuftragDO>
             continue;
 
           if (dbPosition == null) {
-            if (position.isVollstaendigFakturiert() == true) {
+            if (position.getVollstaendigFakturiert() == true) {
               throw new AccessException("fibu.auftrag.error.vollstaendigFakturiertProtection");
             }
-          } else if (position.isVollstaendigFakturiert() != dbPosition.isVollstaendigFakturiert()) {
+          } else if (position.getVollstaendigFakturiert() != dbPosition.getVollstaendigFakturiert()) {
             throw new AccessException("fibu.auftrag.error.vollstaendigFakturiertProtection");
           }
         }

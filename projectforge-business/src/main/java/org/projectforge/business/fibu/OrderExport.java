@@ -202,7 +202,7 @@ public class OrderExport
     mapping.add(PosCol.NETSUM, netSum);
     addCurrency(mapping, PosCol.INVOICED, invoicedSum);
     addCurrency(mapping, PosCol.TO_BE_INVOICED, toBeInvoicedSum);
-    mapping.add(PosCol.COMPLETELY_INVOICED, pos.isVollstaendigFakturiert() == true ? "x" : "");
+    mapping.add(PosCol.COMPLETELY_INVOICED, pos.getVollstaendigFakturiert() == true ? "x" : "");
     final Set<RechnungsPositionVO> invoicePositions = rechnungCache
         .getRechnungsPositionVOSetByAuftragsPositionId(pos.getId());
     mapping.add(PosCol.INVOICES, getInvoices(invoicePositions));

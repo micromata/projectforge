@@ -415,10 +415,17 @@ public class AuftragDaoTest extends AbstractTestBase
     auftrag.setPeriodOfPerformanceBegin(java.sql.Date.valueOf(LocalDate.of(2017, 5, 1)));
     auftrag.setPeriodOfPerformanceEnd(java.sql.Date.valueOf(LocalDate.of(2017, 6, 30)));
 
-    auftragsPositions.add(new AuftragsPositionDO().setNumber((short) 1));
-    auftragsPositions.add(new AuftragsPositionDO().setNumber((short) 2).setPeriodOfPerformanceType(PeriodOfPerformanceType.OWN)
-        .setPeriodOfPerformanceBegin(java.sql.Date.valueOf(LocalDate.of(2017, 5, 24)))
-        .setPeriodOfPerformanceEnd(java.sql.Date.valueOf(LocalDate.of(2017, 5, 25))));
+    AuftragsPositionDO pos1 = new AuftragsPositionDO();
+    pos1.setNumber((short) 1);
+
+    AuftragsPositionDO pos2 = new AuftragsPositionDO();
+    pos2.setNumber((short) 2);
+    pos2.setPeriodOfPerformanceType(PeriodOfPerformanceType.OWN);
+    pos2.setPeriodOfPerformanceBegin(java.sql.Date.valueOf(LocalDate.of(2017, 5, 24)));
+    pos2.setPeriodOfPerformanceEnd(java.sql.Date.valueOf(LocalDate.of(2017, 5, 25)));
+
+    auftragsPositions.add(pos1);
+    auftragsPositions.add(pos2);
 
     paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 1).setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 1))));
     paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 1).setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 20))));
@@ -454,8 +461,16 @@ public class AuftragDaoTest extends AbstractTestBase
     final List<AuftragsPositionDO> auftragsPositions = auftrag.ensureAndGetPositionen();
     final List<PaymentScheduleDO> paymentSchedules = auftrag.ensureAndGetPaymentSchedules();
 
-    auftragsPositions.add(new AuftragsPositionDO().setNumber((short) 1).setNettoSumme(new BigDecimal(2000)));
-    auftragsPositions.add(new AuftragsPositionDO().setNumber((short) 2).setNettoSumme(new BigDecimal(5000)));
+    AuftragsPositionDO pos1 = new AuftragsPositionDO();
+    pos1.setNumber((short) 1);
+    pos1.setNettoSumme(new BigDecimal(2000));
+
+    AuftragsPositionDO pos2 = new AuftragsPositionDO();
+    pos2.setNumber((short) 2);
+    pos2.setNettoSumme(new BigDecimal(5000));
+
+    auftragsPositions.add(pos1);
+    auftragsPositions.add(pos2);
 
     paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 1).setAmount(new BigDecimal(1000)));
     paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 1).setAmount(null)); // should not cause a NPE

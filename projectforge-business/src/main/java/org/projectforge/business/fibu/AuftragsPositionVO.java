@@ -83,7 +83,7 @@ public class AuftragsPositionVO implements Comparable<AuftragsPositionVO>, Seria
     if (this.personDays == null) {
       this.personDays = BigDecimal.ZERO;
     }
-    this.vollstaendigFakturiert = auftragsPosition.isVollstaendigFakturiert();
+    this.vollstaendigFakturiert = auftragsPosition.getVollstaendigFakturiert();
   }
 
   public short getNumber()

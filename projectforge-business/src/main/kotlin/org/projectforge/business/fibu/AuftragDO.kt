@@ -266,7 +266,7 @@ class AuftragDO : DefaultBaseDO() {
                 val nettoSumme = position.nettoSumme
                 if (nettoSumme != null
                         && position.status != null
-                        && position.status.isIn(AuftragsPositionsStatus.ABGESCHLOSSEN, AuftragsPositionsStatus.BEAUFTRAGT)) {
+                        && position.status!!.isIn(AuftragsPositionsStatus.ABGESCHLOSSEN, AuftragsPositionsStatus.BEAUFTRAGT)) {
                     sum = sum.add(nettoSumme)
                 }
             }
@@ -356,7 +356,7 @@ class AuftragDO : DefaultBaseDO() {
                 if (position.isDeleted) {
                     continue
                 }
-                if (!position.isVollstaendigFakturiert && (position.status == null || !position.status.isIn(AuftragsPositionsStatus.ABGELEHNT, AuftragsPositionsStatus.ERSETZT))) {
+                if (!position.vollstaendigFakturiert && (position.status == null || !position.status!!.isIn(AuftragsPositionsStatus.ABGELEHNT, AuftragsPositionsStatus.ERSETZT))) {
                     return false
                 }
             }
@@ -374,7 +374,7 @@ class AuftragDO : DefaultBaseDO() {
                     if (pos.isDeleted) {
                         continue
                     }
-                    if (pos.status == AuftragsPositionsStatus.ABGESCHLOSSEN && !pos.isVollstaendigFakturiert) {
+                    if (pos.status == AuftragsPositionsStatus.ABGESCHLOSSEN && !pos.vollstaendigFakturiert) {
                         return true
                     }
                 }
