@@ -80,7 +80,7 @@ public class ModifyJavaFileHeaders {
     } else {
       log.info("Closed: Modify all Java file headers: " + path);
     }
-    final Collection<File> files = FileUtils.listFiles(new File(path), new String[]{"java"}, true);
+    final Collection<File> files = FileUtils.listFiles(new File(path), new String[]{"java", "kt"}, true);
     int counter = 0;
     for (final File file : files) {
       if (file.getAbsolutePath().contains("org/projectforge/lucene/PF") == true
