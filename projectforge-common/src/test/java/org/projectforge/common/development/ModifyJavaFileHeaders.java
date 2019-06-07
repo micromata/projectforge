@@ -21,12 +21,14 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.development;
+package org.projectforge.common.development;
 
 import org.apache.commons.io.FileUtils;
+import org.junit.jupiter.api.Test;
 import org.projectforge.common.BeanHelper;
 
 import java.io.*;
+import java.time.Year;
 import java.util.Collection;
 
 /**
@@ -35,7 +37,13 @@ import java.util.Collection;
 public class ModifyJavaFileHeaders {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BeanHelper.class);
 
-  public static void main(final String[] args) throws IOException {
+  private static final int YEAR = Year.now().getValue();
+
+  private static String OSS_HEADER;
+
+  private static String CLOSED_HEADER;
+
+  public static void _main(final String[] args) throws IOException {
     if (args != null && args.length == 1 && "PF-AUTO".equals(args[0])) {
       new ModifyJavaFileHeaders().createAllProjectForgeHeaders();
       return;
@@ -57,8 +65,13 @@ public class ModifyJavaFileHeaders {
     new ModifyJavaFileHeaders().doitReally(dir, "OSS".equals(type));
   }
 
+  @Test
+  void checkAndFixAllJavaKotlinCopyRightFileHeaders() throws IOException {
+    new ModifyJavaFileHeaders().createAllProjectForgeHeaders();
+  }
+
   private void createAllProjectForgeHeaders() throws IOException {
-    File baseDir = new File(System.getProperty("user.dir"));
+    File baseDir = new File(System.getProperty("user.dir")).getParentFile();
     log.info("Using working directory: " + baseDir.getAbsolutePath());
     doitReally(new File(baseDir, "projectforge-application").getAbsolutePath(), true);
     doitReally(new File(baseDir, "projectforge-business").getAbsolutePath(), true);
@@ -97,9 +110,19 @@ public class ModifyJavaFileHeaders {
               || file.getAbsolutePath().contains("org/zaproxy") == true) {
         continue;
       }
+      String content = FileUtils.readFileToString(file, "UTF-8");
+      if (openSource && content.startsWith(OSS_HEADER)) {
+        // Header up-to-date
+        continue;
+      }
+      if (!openSource && content.startsWith(CLOSED_HEADER)) {
+        // Header up-to-date
+        continue;
+      }
+      log.warn("Source code file without valid copy right header (will be fixed now):  " + file.getAbsolutePath());
       FileReader reader = null;
       LineNumberReader in = null;
-      final StringBuffer buf = new StringBuffer();
+      final StringBuilder sb = new StringBuilder();
       try {
         reader = new FileReader(file);
         log.debug("Processing '" + file.getAbsolutePath() + "'.");
@@ -107,9 +130,9 @@ public class ModifyJavaFileHeaders {
         String line = "";
         boolean header = true;
         if (openSource == true) {
-          appendOSSHeader(buf);
+          sb.append(OSS_HEADER);
         } else {
-          appendClosedSourceHeader(buf);
+          sb.append(CLOSED_HEADER);
         }
         while ((line = in.readLine()) != null) {
           if (header == true) {
@@ -119,7 +142,7 @@ public class ModifyJavaFileHeaders {
               header = false;
             }
           }
-          buf.append(line).append("\n");
+          sb.append(line).append("\n");
         }
       } finally {
         if (reader != null) {
@@ -132,7 +155,7 @@ public class ModifyJavaFileHeaders {
       FileWriter out = null;
       try {
         out = new FileWriter(file);
-        out.write(buf.toString());
+        out.write(sb.toString());
       } finally {
         if (out != null) {
           out.close();
@@ -144,43 +167,43 @@ public class ModifyJavaFileHeaders {
     return this;
   }
 
-  private void appendOSSHeader(final StringBuffer buf) {
-    buf.append("/////////////////////////////////////////////////////////////////////////////\n").append("//\n") //
-            .append("// Project ProjectForge Community Edition\n") //
-            .append("//         www.projectforge.org\n") //
-            .append("//\n") //
-            .append("// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)\n") //
-            .append("//\n") //
-            .append("// ProjectForge is dual-licensed.\n") //
-            .append("//\n") //
-            .append("// This community edition is free software; you can redistribute it and/or\n") //
-            .append("// modify it under the terms of the GNU General Public License as published\n") //
-            .append("// by the Free Software Foundation; version 3 of the License.\n") //
-            .append("//\n") //
-            .append("// This community edition is distributed in the hope that it will be useful,\n") //
-            .append("// but WITHOUT ANY WARRANTY; without even the implied warranty of\n") //
-            .append("// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General\n") //
-            .append("// Public License for more details.\n") //
-            .append("//\n") //
-            .append("// You should have received a copy of the GNU General Public License along\n") //
-            .append("// with this program; if not, see http://www.gnu.org/licenses/.\n") //
-            .append("//\n") //
-            .append("/////////////////////////////////////////////////////////////////////////////\n\n"); //
+  static {
+    StringBuilder sb = new StringBuilder();
+    sb.append("/////////////////////////////////////////////////////////////////////////////\n").append("//\n")
+            .append("// Project ProjectForge Community Edition\n")
+            .append("//         www.projectforge.org\n")
+            .append("//\n")
+            .append("// Copyright (C) 2001-").append(YEAR).append(" Micromata GmbH, Germany (www.micromata.com)\n")
+            .append("//\n")
+            .append("// ProjectForge is dual-licensed.\n")
+            .append("//\n")
+            .append("// This community edition is free software; you can redistribute it and/or\n")
+            .append("// modify it under the terms of the GNU General Public License as published\n")
+            .append("// by the Free Software Foundation; version 3 of the License.\n")
+            .append("//\n")
+            .append("// This community edition is distributed in the hope that it will be useful,\n")
+            .append("// but WITHOUT ANY WARRANTY; without even the implied warranty of\n")
+            .append("// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General\n")
+            .append("// Public License for more details.\n")
+            .append("//\n")
+            .append("// You should have received a copy of the GNU General Public License along\n")
+            .append("// with this program; if not, see http://www.gnu.org/licenses/.\n")
+            .append("//\n")
+            .append("/////////////////////////////////////////////////////////////////////////////\n\n");
+    OSS_HEADER = sb.toString();
+    sb = new StringBuilder();
+    sb.append("/////////////////////////////////////////////////////////////////////////////\n").append("//\n")
+            .append("// Project ProjectForge Enterprise Edition\n")
+            .append("//         www.projectforge.org\n")
+            .append("//\n")
+            .append("// Copyright (C) 2001-\").append(YEAR).append(\" Micromata GmbH, Germany (www.micromata.com)\n")
+            .append("//\n")
+            .append("// All rights reserved.\n")
+            .append("//\n")
+            .append("// You're not allowed to distribute or use this code without the permit\n")
+            .append("// of Micromata GmbH (www.micromata.com).\n")
+            .append("//\n")
+            .append("/////////////////////////////////////////////////////////////////////////////\n\n");
+    CLOSED_HEADER = sb.toString();
   }
-
-  private void appendClosedSourceHeader(final StringBuffer buf) {
-    buf.append("/////////////////////////////////////////////////////////////////////////////\n").append("//\n") //
-            .append("// Project ProjectForge Enterprise Edition\n") //
-            .append("//         www.projectforge.org\n") //
-            .append("//\n") //
-            .append("// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)\n") //
-            .append("//\n") //
-            .append("// All rights reserved.\n") //
-            .append("//\n") //
-            .append("// You're not allowed to distribute or use this code without the permit\n") //
-            .append("// of Micromata GmbH (www.micromata.com).\n") //
-            .append("//\n") //
-            .append("/////////////////////////////////////////////////////////////////////////////\n\n"); //
-  }
-
 }
