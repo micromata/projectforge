@@ -31,7 +31,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.projectforge.framework.cache.AbstractCache;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.reporting.Kost2Art;
@@ -140,7 +140,7 @@ public class KostCache extends AbstractCache
       if (kost.isDeleted() == true) {
         continue;
       }
-      if (ObjectUtils.equals(projektId, kost.getProjektId()) == true) {
+      if (Objects.equals(projektId, kost.getProjektId()) == true) {
         final Kost2ArtDO kost2Art = kost.getKost2Art();
         if (kost2Art != null) {
           set.add(kost2Art);

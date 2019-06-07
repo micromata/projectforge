@@ -1,6 +1,6 @@
 package org.projectforge.plugins.ihkexport;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.user.UserRightAccessCheck;
 import org.projectforge.business.user.UserRightCategory;
@@ -27,6 +27,6 @@ public class IhkExportRight extends UserRightAccessCheck<TimesheetDO>
     if (timesheet == null) {
       return true; // General insert and select access given by default.
     }
-    return (ObjectUtils.equals(user.getId(), timesheet.getUserId()) == true);
+    return (Objects.equals(user.getId(), timesheet.getUserId()) == true);
   }
 }

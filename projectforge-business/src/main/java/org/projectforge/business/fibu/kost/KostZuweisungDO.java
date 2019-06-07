@@ -34,7 +34,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Index;
@@ -354,16 +354,16 @@ public class KostZuweisungDO extends DefaultBaseDO implements ShortDisplayNameCa
   {
     if (o instanceof KostZuweisungDO) {
       final KostZuweisungDO other = (KostZuweisungDO) o;
-      if (ObjectUtils.equals(this.getIndex(), other.getIndex()) == false) {
+      if (Objects.equals(this.getIndex(), other.getIndex()) == false) {
         return false;
       }
-      if (ObjectUtils.equals(this.getRechnungsPositionId(), other.getRechnungsPositionId()) == false) {
+      if (Objects.equals(this.getRechnungsPositionId(), other.getRechnungsPositionId()) == false) {
         return false;
       }
-      if (ObjectUtils.equals(this.getEingangsrechnungsPositionId(), other.getEingangsrechnungsPositionId()) == false) {
+      if (Objects.equals(this.getEingangsrechnungsPositionId(), other.getEingangsrechnungsPositionId()) == false) {
         return false;
       }
-      if (ObjectUtils.equals(this.getEmployeeSalaryId(), other.getEmployeeSalaryId()) == false) {
+      if (Objects.equals(this.getEmployeeSalaryId(), other.getEmployeeSalaryId()) == false) {
         return false;
       }
       return true;

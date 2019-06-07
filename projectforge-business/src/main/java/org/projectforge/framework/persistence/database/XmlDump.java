@@ -56,7 +56,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.Validate;
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.FlushMode;
@@ -519,7 +519,7 @@ public class XmlDump
         final Object fieldValue1 = getValue(o1, o2, field);
         final Object fieldValue2 = getValue(o2, o1, field);
         if (field.getType().isPrimitive() == true) {
-          if (ObjectUtils.equals(fieldValue2, fieldValue1) == false) {
+          if (Objects.equals(fieldValue2, fieldValue1) == false) {
             if (logDifference == true) {
               log.error("Field is different: " + field.getName() + "; value 1 '" + fieldValue1 + "' 2 '"
                   + fieldValue2 + "'.");
@@ -569,7 +569,7 @@ public class XmlDump
           }
         } else if (HibernateUtils.isEntity(fieldValue1.getClass()) == true) {
           if (fieldValue2 == null
-              || ObjectUtils.equals(HibernateUtils.getIdentifier(fieldValue1),
+              || Objects.equals(HibernateUtils.getIdentifier(fieldValue1),
               HibernateUtils.getIdentifier(fieldValue2)) == false) {
             if (logDifference == true) {
               log.error("Field '"
@@ -598,7 +598,7 @@ public class XmlDump
             }
             return false;
           }
-        } else if (ObjectUtils.equals(fieldValue2, fieldValue1) == false) {
+        } else if (Objects.equals(fieldValue2, fieldValue1) == false) {
           if (logDifference == true) {
             log.error("Field '" + field.getName() + "': value 1 '" + fieldValue1 + "' is different from value 2 '"
                 + fieldValue2 + "'.");

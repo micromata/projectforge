@@ -36,7 +36,7 @@ import java.util.Optional;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable;
 import org.projectforge.framework.utils.NumberHelper;
@@ -159,7 +159,7 @@ public class ImportedElement<T> implements Serializable
       if (NumberHelper.isEqual((BigDecimal) newValue, (BigDecimal) origValue) == false) {
         modified = true;
       }
-    } else if (ObjectUtils.equals(newValue, origValue) == false) {
+    } else if (Objects.equals(newValue, origValue) == false) {
       modified = true;
     }
     if (modified) {

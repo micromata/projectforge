@@ -27,7 +27,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.annotations.Type;
@@ -88,7 +88,7 @@ public class TeamEventAttachmentDO extends DefaultBaseDO implements Comparable<T
   @Override
   public int compareTo(final TeamEventAttachmentDO arg0)
   {
-    if (getId() != null && ObjectUtils.equals(this.getId(), arg0.getId()) == true) {
+    if (getId() != null && Objects.equals(this.getId(), arg0.getId()) == true) {
       return 0;
     }
     return this.toString().toLowerCase().compareTo(arg0.toString().toLowerCase());
@@ -120,13 +120,13 @@ public class TeamEventAttachmentDO extends DefaultBaseDO implements Comparable<T
       return false;
     }
     final TeamEventAttachmentDO other = (TeamEventAttachmentDO) o;
-    if (getId() != null && ObjectUtils.equals(this.getId(), other.getId()) == true) {
+    if (getId() != null && Objects.equals(this.getId(), other.getId()) == true) {
       return true;
     }
     if (StringUtils.equals(this.getFilename(), other.getFilename()) == false) {
       return false;
     }
-    if (ObjectUtils.equals(this.getContent(), other.getContent()) == false) {
+    if (Objects.equals(this.getContent(), other.getContent()) == false) {
       return false;
     }
     return true;

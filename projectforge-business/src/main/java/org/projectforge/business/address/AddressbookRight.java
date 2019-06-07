@@ -23,7 +23,7 @@
 
 package org.projectforge.business.address;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.projectforge.business.common.DataobjectAccessType;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.ProjectForgeGroup;
@@ -156,7 +156,7 @@ public class AddressbookRight extends UserRightAccessCheck<AddressbookDO>
     if (ab == null || ab.getOwner() == null) {
       return false;
     }
-    return ObjectUtils.equals(user.getId(), Objects.requireNonNull(ab.getOwner()).getId());
+    return Objects.equals(user.getId(), Objects.requireNonNull(ab.getOwner()).getId());
   }
 
   public boolean isOwner(final Integer userId, final AddressbookDO ab)
@@ -164,7 +164,7 @@ public class AddressbookRight extends UserRightAccessCheck<AddressbookDO>
     if (ab == null || userId == null || ab.getOwner() == null) {
       return false;
     }
-    return ObjectUtils.equals(userId, Objects.requireNonNull(ab.getOwner()).getId());
+    return Objects.equals(userId, Objects.requireNonNull(ab.getOwner()).getId());
   }
 
   public boolean isMemberOfAtLeastOneGroup(final PFUserDO user, final Integer... groupIds)

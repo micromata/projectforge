@@ -23,7 +23,7 @@
 
 package org.projectforge.web.teamcal.rest;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.projectforge.business.converter.DOConverter;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
@@ -54,7 +54,7 @@ public class TeamCalDOConverter
     cal.setMinimalAccess(right.hasMinimalAccess(src, userId));
     cal.setReadonlyAccess(right.hasReadonlyAccess(src, userId));
     cal.setFullAccess(right.hasFullAccess(src, userId));
-    cal.setOwner(ObjectUtils.equals(userId, src.getOwnerId()));
+    cal.setOwner(Objects.equals(userId, src.getOwnerId()));
     return cal;
   }
 }

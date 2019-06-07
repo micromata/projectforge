@@ -23,9 +23,6 @@
 
 package org.projectforge.web.wicket.autocompletion;
 
-import java.util.List;
-
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteBehavior;
@@ -39,6 +36,9 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.util.string.StringValue;
 import org.projectforge.web.wicket.WicketUtils;
+
+import java.util.List;
+import java.util.Objects;
 
 public abstract class PFAutoCompleteTextField<T> extends TextField<T>
 {
@@ -189,9 +189,9 @@ public abstract class PFAutoCompleteTextField<T> extends TextField<T>
   /**
    * Override this callback method that for returning favorite entries to show, if the user double clicks the empty input field. These
    * objects will be passed to the renderer to generate output.
-   * 
+   *
    * @see AutoCompleteBehavior#getChoices(String)
-   * 
+   *
    * @return null, if no favorites to show.
    */
   protected List<T> getFavorites()
@@ -201,7 +201,7 @@ public abstract class PFAutoCompleteTextField<T> extends TextField<T>
 
   /**
    * Override this callback method that for returning recent user inputs to show, if the user double clicks the empty input field.
-   * 
+   *
    * @return null means: don't show recent user inputs.
    */
   protected List<String> getRecentUserInputs()
@@ -216,7 +216,7 @@ public abstract class PFAutoCompleteTextField<T> extends TextField<T>
    */
   protected String formatValue(final T value)
   {
-    return ObjectUtils.toString(value);
+    return Objects.toString(value);
   }
 
   /**
@@ -241,9 +241,9 @@ public abstract class PFAutoCompleteTextField<T> extends TextField<T>
   /**
    * Callback method that should return a list of all possible assist choice objects. These objects will be passed to the renderer to
    * generate output.
-   * 
+   *
    * @see AutoCompleteBehavior#getChoices(String)
-   * 
+   *
    * @param input current input
    * @return list of all possible choice objects
    */

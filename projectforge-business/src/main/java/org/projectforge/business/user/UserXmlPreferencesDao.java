@@ -29,7 +29,7 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.multitenancy.TenantDao;
@@ -184,7 +184,7 @@ public class UserXmlPreferencesDao
   {
     Validate.notNull(userId);
     final PFUserDO user = ThreadLocalUserContext.getUser();
-    if (ObjectUtils.equals(userId, user.getId()) == false) {
+    if (Objects.equals(userId, user.getId()) == false) {
       accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
     }
   }

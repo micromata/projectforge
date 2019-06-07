@@ -23,12 +23,12 @@
 
 package org.projectforge.business.fibu;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.Date;
-
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
+import java.util.Objects;
 
 /**
  * Repräsentiert einee Position innerhalb einer Rechnung als Übersichtsobject (value object) zur Verwendung z. B. in Listen.
@@ -132,9 +132,9 @@ public class RechnungsPositionVO implements Comparable<RechnungsPositionVO>, Ser
   {
     if (o instanceof RechnungsPositionVO) {
       final RechnungsPositionVO other = (RechnungsPositionVO) o;
-      if (ObjectUtils.equals(this.getNumber(), other.getNumber()) == false)
+      if (Objects.equals(this.getNumber(), other.getNumber()) == false)
         return false;
-      if (ObjectUtils.equals(this.getRechnungId(), other.getRechnungId()) == false)
+      if (Objects.equals(this.getRechnungId(), other.getRechnungId()) == false)
         return false;
       return true;
     }
