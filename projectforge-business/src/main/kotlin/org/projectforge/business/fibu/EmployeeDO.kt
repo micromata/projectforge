@@ -71,6 +71,8 @@ import javax.persistence.*
 open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableAttr<Int, EmployeeTimedDO>, ComplexEntity, EntityWithConfigurableAttr, Comparable<Any> {
     // The class must be declared as open for mocking in VacationServiceTest.
 
+    private val LOG = LoggerFactory.getLogger(EmployeeDO::class.java)
+
     /**
      * The ProjectForge user assigned to this employee.
      *
@@ -141,7 +143,6 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
     @IndexedEmbedded(depth = 2)
     private var timeableAttributes: MutableList<EmployeeTimedDO> = ArrayList()
 
-    // TODO: BigDecimal not yet supported on edit page.
     @PropertyInfo(i18nKey = "fibu.employee.wochenstunden")
     @Field(analyze = Analyze.NO)
     @FieldBridge(impl = ToStringFieldBridge::class)
@@ -312,11 +313,5 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
             result = StringUtils.compare(u1.firstname, u2.firstname)
         }
         return result
-    }
-
-    companion object {
-
-        private val serialVersionUID = -1208597049289694757L
-        private val LOG = LoggerFactory.getLogger(EmployeeDO::class.java)
     }
 }
