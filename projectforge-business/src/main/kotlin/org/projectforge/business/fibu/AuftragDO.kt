@@ -312,7 +312,7 @@ class AuftragDO : DefaultBaseDO() {
             val buf = StringBuffer()
             var first = true
             val prj = this.projekt
-            val kunde = prj?.kunde ?: null
+            val kunde = prj?.kunde
             if (prj != null) {
                 if (kunde != null) {
                     if (first) {
