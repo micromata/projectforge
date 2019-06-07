@@ -36,7 +36,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.projectforge.framework.persistence.api.BaseDO;
@@ -277,10 +277,10 @@ public class UserPrefEntryDO implements BaseDO<Integer>, Serializable
   {
     if (o instanceof UserPrefEntryDO) {
       final UserPrefEntryDO other = (UserPrefEntryDO) o;
-      if (ObjectUtils.equals(this.parameter, other.parameter) == false) {
+      if (Objects.equals(this.parameter, other.parameter) == false) {
         return false;
       }
-      if (ObjectUtils.equals(this.getId(), other.getId()) == false) {
+      if (Objects.equals(this.getId(), other.getId()) == false) {
         return false;
       }
       return true;

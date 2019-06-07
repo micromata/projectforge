@@ -23,7 +23,7 @@
 
 package org.projectforge.business.teamcal.admin.right;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.projectforge.business.common.DataobjectAccessType;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
@@ -149,7 +149,7 @@ public class TeamCalRight extends UserRightAccessCheck<TeamCalDO>
     if (cal == null) {
       return false;
     }
-    return ObjectUtils.equals(user.getId(), cal.getOwnerId()) == true;
+    return Objects.equals(user.getId(), cal.getOwnerId()) == true;
   }
 
   public boolean isOwner(final Integer userId, final TeamCalDO cal)
@@ -157,7 +157,7 @@ public class TeamCalRight extends UserRightAccessCheck<TeamCalDO>
     if (cal == null || userId == null) {
       return false;
     }
-    return ObjectUtils.equals(userId, cal.getOwnerId()) == true;
+    return Objects.equals(userId, cal.getOwnerId()) == true;
   }
 
   public boolean isMemberOfAtLeastOneGroup(final PFUserDO user, final Integer... groupIds)

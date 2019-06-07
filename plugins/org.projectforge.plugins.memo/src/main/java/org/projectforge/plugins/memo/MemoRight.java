@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.memo;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.projectforge.business.user.UserRightAccessCheck;
 import org.projectforge.business.user.UserRightCategory;
 import org.projectforge.business.user.UserRightValue;
@@ -57,6 +57,6 @@ public class MemoRight extends UserRightAccessCheck<MemoDO>
     if (memo == null) {
       return true; // General insert and select access given by default.
     }
-    return (ObjectUtils.equals(user.getId(), memo.getOwnerId()) == true);
+    return (Objects.equals(user.getId(), memo.getOwnerId()) == true);
   }
 }

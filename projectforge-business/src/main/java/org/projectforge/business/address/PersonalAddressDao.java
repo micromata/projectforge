@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.Validate;
 import org.hibernate.LockMode;
 import org.projectforge.business.user.UserDao;
@@ -188,7 +188,7 @@ public class PersonalAddressDao
       return false;
     }
     checkAccess(dbObj);
-    Validate.isTrue(ObjectUtils.equals(dbObj.getAddressId(), obj.getAddressId()));
+    Validate.isTrue(Objects.equals(dbObj.getAddressId(), obj.getAddressId()));
     obj.setId(dbObj.getId());
     // Copy all values of modified user to database object.
     final ModificationStatus modified = dbObj.copyValuesFrom(obj, "owner", "address", "id");

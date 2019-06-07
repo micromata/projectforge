@@ -24,7 +24,7 @@
 package org.projectforge.web.gantt;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.wicket.Component;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -202,7 +202,7 @@ public class GanttChartEditPage extends AbstractEditPage<GanttChartDO, GanttChar
       } else {
         id = (Integer) selectedValue;
       }
-      if (ganttChartData == null || ObjectUtils.equals(id, ganttChartData.getRootObject().getId()) == false) {
+      if (ganttChartData == null || Objects.equals(id, ganttChartData.getRootObject().getId()) == false) {
         ganttChartData = null; // Force refresh.
         form.ganttChartEditTreeTablePanel.refreshTreeTable();
       }

@@ -32,7 +32,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Attribute;
 import org.dom4j.Document;
@@ -383,7 +383,7 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
                   // Needed, because 10.0 is not equal to 10.000 (if scale is different).
                   return NumberHelper.isEqual((BigDecimal) value, (BigDecimal) taskValue);
                 }
-                return ObjectUtils.equals(value, taskValue) == true;
+                return Objects.equals(value, taskValue) == true;
               }
             }
           }

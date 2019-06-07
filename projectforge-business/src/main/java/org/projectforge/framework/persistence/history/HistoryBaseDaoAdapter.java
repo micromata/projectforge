@@ -10,7 +10,6 @@ import de.micromata.genome.jpa.events.EmgrUpdateCopyFilterEvent;
 import de.micromata.genome.util.runtime.ClassUtils;
 import de.micromata.hibernate.history.delta.PropertyDelta;
 import de.micromata.hibernate.history.delta.SimplePropertyDelta;
-import org.apache.commons.lang3.ObjectUtils;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.api.BaseDO;
@@ -121,7 +120,7 @@ public class HistoryBaseDaoAdapter
         DbRecord rec = (DbRecord) ob;
         sb.append(rec.getPk());
       } else {
-        sb.append(ObjectUtils.toString(ob));
+        sb.append(Objects.toString(ob));
       }
     }
     return sb.toString();
@@ -135,7 +134,7 @@ public class HistoryBaseDaoAdapter
     if (value instanceof Collection) {
       return histCollectionValueToString(valueClass, (Collection) value);
     }
-    return ObjectUtils.toString(value);
+    return Objects.toString(value);
   }
 
   public static void createHistoryEntry(Object entity, Number id, String user, String property,

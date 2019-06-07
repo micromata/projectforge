@@ -28,7 +28,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.PropertyModel;
@@ -303,7 +303,7 @@ public class NewPollOverviewPage extends PollBasePage
       final boolean compareEvents = compareLists(events, model.getAllEvents());
 
       // compare poll
-      final boolean comparePoll = ObjectUtils.equals(pollOld, poll);
+      final boolean comparePoll = Objects.equals(pollOld, poll);
 
       if (compareAttendees == false || compareEvents == false || comparePoll == false) {
         return true;

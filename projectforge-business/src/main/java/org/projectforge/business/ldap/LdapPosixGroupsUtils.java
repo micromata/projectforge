@@ -25,7 +25,7 @@ package org.projectforge.business.ldap;
 
 import java.util.Collection;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
@@ -78,7 +78,7 @@ public class LdapPosixGroupsUtils
     final Collection<GroupDO> allGroups = userGroupCache.getAllGroups();
     for (final GroupDO group : allGroups) {
       final LdapGroupValues ldapGroupValues = groupDOConverter.readLdapGroupValues(group.getLdapValues());
-      if (ObjectUtils.equals(group.getId(), currentGroup.getId()) == true) {
+      if (Objects.equals(group.getId(), currentGroup.getId()) == true) {
         // The current group may have the given gidNumber already, so ignore this entry.
         continue;
       }

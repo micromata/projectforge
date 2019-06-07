@@ -33,7 +33,7 @@ import javax.persistence.MappedSuperclass;
 import javax.persistence.Transient;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
@@ -364,10 +364,10 @@ public abstract class AbstractRechnungsPositionDO extends DefaultBaseDO implemen
   {
     if (o instanceof AbstractRechnungsPositionDO) {
       final AbstractRechnungsPositionDO other = (AbstractRechnungsPositionDO) o;
-      if (ObjectUtils.equals(this.getNumber(), other.getNumber()) == false) {
+      if (Objects.equals(this.getNumber(), other.getNumber()) == false) {
         return false;
       }
-      if (ObjectUtils.equals(this.getRechnungId(), other.getRechnungId()) == false) {
+      if (Objects.equals(this.getRechnungId(), other.getRechnungId()) == false) {
         return false;
       }
       return true;

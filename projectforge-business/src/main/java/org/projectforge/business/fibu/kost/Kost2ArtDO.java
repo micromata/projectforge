@@ -30,7 +30,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.lucene.analysis.standard.ClassicAnalyzer;
 import org.hibernate.search.annotations.Analyzer;
@@ -181,7 +181,7 @@ public class Kost2ArtDO extends AbstractHistorizableBaseDO<Integer> implements C
   {
     if (o instanceof Kost2ArtDO) {
       final Kost2ArtDO other = (Kost2ArtDO) o;
-      return (ObjectUtils.equals(this.id, other.id));
+      return (Objects.equals(this.id, other.id));
     }
     return false;
   }

@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -354,7 +354,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
 
   private boolean isPredecessorModified(final GanttTask ganttObject, final TaskDO task)
   {
-    return task != null && ObjectUtils.equals(ganttObject.getPredecessorId(), task.getGanttPredecessorId()) == false;
+    return task != null && Objects.equals(ganttObject.getPredecessorId(), task.getGanttPredecessorId()) == false;
   }
 
   private boolean isPredecessorOffsetModified(final GanttTask ganttObject, final TaskDO task)

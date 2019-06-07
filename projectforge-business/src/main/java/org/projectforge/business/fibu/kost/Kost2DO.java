@@ -36,7 +36,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.search.annotations.ClassBridge;
 import org.hibernate.search.annotations.Field;
@@ -307,7 +307,7 @@ public class Kost2DO extends DefaultBaseDO implements ShortDisplayNameCapable, C
       final Kost2DO other = (Kost2DO) o;
       if (this.nummernkreis == other.nummernkreis && this.bereich == other.bereich
           && this.teilbereich == other.teilbereich) {
-        return ObjectUtils.equals(this.kost2Art, other.kost2Art);
+        return Objects.equals(this.kost2Art, other.kost2Art);
       }
     }
     return false;
