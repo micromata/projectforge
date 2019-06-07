@@ -24,7 +24,7 @@
 package org.projectforge.framework.persistence.user.entities;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.hibernate.search.annotations.Index;
@@ -152,10 +152,10 @@ public class UserRightDO extends DefaultBaseDO implements Comparable<UserRightDO
   {
     if (o instanceof UserRightDO) {
       final UserRightDO other = (UserRightDO) o;
-      if (ObjectUtils.equals(this.getRightIdString(), other.getRightIdString()) == false) {
+      if (Objects.equals(this.getRightIdString(), other.getRightIdString()) == false) {
         return false;
       }
-      if (ObjectUtils.equals(this.getId(), other.getId()) == false) {
+      if (Objects.equals(this.getId(), other.getId()) == false) {
         return false;
       }
       return true;
