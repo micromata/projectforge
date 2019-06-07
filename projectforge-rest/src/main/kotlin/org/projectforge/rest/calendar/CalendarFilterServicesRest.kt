@@ -140,6 +140,30 @@ class CalendarFilterServicesRest {
         currentFilter.setVisibility(calendarId, visible)
     }
 
+    @GetMapping("createNewFilter")
+    fun createNewFilter(@RequestParam("newFilterName", required = true) newFilterName: String) {
+        val currentFilter = getCurrentFilter()
+        currentFilter.name = newFilterName
+        val favorites = getFilterFavorites()
+        favorites.add(currentFilter)
+    }
+
+    @GetMapping("deleteFilter")
+    fun removeFilter(@RequestParam("id", required = true) id: Int) {
+        val favorites = getFilterFavorites()
+        favorites.remove(id)
+    }
+
+    @GetMapping("selectFilter")
+    fun selectFilter(@RequestParam("id", required = true) id: Int) {
+        val favorites = getFilterFavorites()
+        val currentFilter = favorites.get(id)
+        if (currentFilter != null)
+            userPreferenceService.putEntry(PREF_KEY_CURRENT_FAV, currentFilter, true)
+        else
+            log.warn("Can't select filter $id, because it's not found in favorites list.")
+    }
+
     // Ensures filter list (stored one, restored from legacy filter or a empty new one).
     private fun getFilterFavorites(): Favorites<CalendarFilter> {
         var filterList: Favorites<CalendarFilter>? = null

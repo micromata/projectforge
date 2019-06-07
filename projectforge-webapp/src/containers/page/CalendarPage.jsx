@@ -45,16 +45,40 @@ class CalendarPage extends React.Component {
         this.setState({ activeCalendars });
     }
 
-    onFavoriteCreate(id) {
-        console.log(id);
+    onFavoriteCreate(newFilterName) {
+        fetch(getServiceURL('calendar/createNewFilter',
+            { newFilterName }), {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                Accept: 'application/json',
+            },
+        })
+            .catch(error => alert(`Internal error: ${error}`));
     }
 
     onFavoriteDelete(id) {
-        console.log(id);
+        fetch(getServiceURL('calendar/deleteFilter',
+            { id }), {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                Accept: 'application/json',
+            },
+        })
+            .catch(error => alert(`Internal error: ${error}`));
     }
 
     onFavoriteSelect(id) {
-        console.log(id);
+        fetch(getServiceURL('calendar/selectFilter',
+            { id }), {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                Accept: 'application/json',
+            },
+        })
+            .catch(error => alert(`Internal error: ${error}`));
     }
 
     onFavoriteRename(id, newName) {

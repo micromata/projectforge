@@ -19,6 +19,11 @@ class Favorites<T : AbstractFavorite>() {
 
     private val set: MutableSet<T> = mutableSetOf()
 
+    fun get(id: Int) : T? {
+        fixNamesAndIds()
+        return set.find { it.id == id }
+    }
+
     fun add(filter: T) {
         set.add(filter)
         fixNamesAndIds()
@@ -27,6 +32,11 @@ class Favorites<T : AbstractFavorite>() {
     fun remove(name: String) {
         fixNamesAndIds()
         set.removeIf { it.name == name }
+    }
+
+    fun remove(id: Int) {
+        fixNamesAndIds()
+        set.removeIf { it.id == id }
     }
 
     /**

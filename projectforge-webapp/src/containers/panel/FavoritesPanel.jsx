@@ -29,13 +29,6 @@ class FavoritesPanel extends Component {
     }
 
 
-    handleInputChange(event) {
-        const { id, value } = event.target;
-        this.setState({
-            [id]: value,
-        });
-    }
-
     onCreateClick(event) {
         event.preventDefault();
         event.stopPropagation();
@@ -70,6 +63,13 @@ class FavoritesPanel extends Component {
         event.stopPropagation();
         const { onFavoriteUpdate } = this.props;
         onFavoriteUpdate(id);
+    }
+
+    handleInputChange(event) {
+        const { id, value } = event.target;
+        this.setState({
+            [id]: value,
+        });
     }
 
     togglePopover() {
