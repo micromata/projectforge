@@ -295,9 +295,12 @@ public class TaskTest extends AbstractTestBase {
             new String[]{AbstractTestBase.TEST_PROJECT_MANAGER_USER, AbstractTestBase.TEST_PROJECT_ASSISTANT_USER,
                     AbstractTestBase.TEST_USER});
     initTestDB.createGroupTaskAccess(projectManagers, task, AccessType.TASKS, true, true, true, true); // All rights.
-    final ProjektDO projekt = new ProjektDO().setName("checkKost2AndTimesheetBookingStatusAccess").setInternKost2_4(764)
-            .setNummer(1)
-            .setProjektManagerGroup(projectManagers).setTask(task);
+    final ProjektDO projekt = new ProjektDO();
+    projekt.setName("checkKost2AndTimesheetBookingStatusAccess");
+    projekt.setInternKost2_4(764);
+    projekt.setNummer(1);
+    projekt.setProjektManagerGroup(projectManagers);
+    projekt.setTask(task);
     projektDao.save(projekt);
     logon(AbstractTestBase.TEST_USER);
     TaskDO task1 = new TaskDO().setParentTask(task).setTitle("Task 1").setKost2BlackWhiteList("Hurzel");

@@ -278,7 +278,8 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
 
     final TaskDO t1 = initTestDB.addTask(prefix + "1", "root");
     final ProjektDO projekt1 = createProjekt(kunde, 1, "Webportal", 0, 1, 2);
-    projektDao.update(projekt1.setTask(t1));
+    projekt1.setTask(t1);
+    projektDao.update(projekt1);
     final ProjektDO projekt2 = createProjekt(kunde, 2, "iPhone App", 0, 1);
 
     initTestDB.addTask(prefix + "1.1", prefix + "1");
