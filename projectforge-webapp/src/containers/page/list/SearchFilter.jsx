@@ -22,10 +22,15 @@ class SearchFilter extends Component {
         this.handleInputChange = this.handleInputChange.bind(this);
         this.handleSelectChange = this.handleSelectChange.bind(this);
         this.handleFilterChange = this.handleFilterChange.bind(this);
+        this.onFavoriteCreate = this.onFavoriteCreate.bind(this);
         this.onFavoriteDelete = this.onFavoriteDelete.bind(this);
         this.onFavoriteRename = this.onFavoriteRename.bind(this);
         this.onFavoriteSelect = this.onFavoriteSelect.bind(this);
         this.onFavoriteUpdate = this.onFavoriteUpdate.bind(this);
+    }
+
+    onFavoriteCreate(id) {
+        console.log(id);
     }
 
     onFavoriteDelete(id) {
@@ -40,8 +45,8 @@ class SearchFilter extends Component {
         console.log(id, newName);
     }
 
-    onFavoriteUpdate(id, newName) {
-        console.log(id, newName);
+    onFavoriteUpdate(id) {
+        console.log(id);
     }
 
     handleInputChange(event) {
@@ -110,9 +115,10 @@ class SearchFilter extends Component {
                             </Col>
                             <Col sm={1}>
                                 <FavoritesPanel
-                                    onFavoriteSelect={this.onFavoriteSelect}
+                                    onFavoriteCreate={this.onFavoriteCreate}
                                     onFavoriteDelete={this.onFavoriteDelete}
                                     onFavoriteRename={this.onFavoriteRename}
+                                    onFavoriteSelect={this.onFavoriteSelect}
                                     onFavoriteUpdate={this.onFavoriteUpdate}
                                     translations={translations}
                                 />
