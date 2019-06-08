@@ -107,11 +107,14 @@ class CalendarFilter(name: String = "",
      * removing invisible calendars not contained in the main calendar set.
      */
     @Suppress("SENSELESS_COMPARISON")
-    internal fun ensureSets() {
+    fun ensureSets() {
         if (calendarIds == null) calendarIds = mutableSetOf() // Might be null after deserialization.
         if (invisibleCalendars == null) invisibleCalendars = mutableSetOf() // Might be null after deserialization.
         else
             invisibleCalendars.removeIf { !calendarIds.contains(it) } // Tidy up: remove invisible ids if not in main list.
+        val nullValue: Int? = null
+        calendarIds.remove(nullValue) // Might occur after deserialization.
+        invisibleCalendars.remove(nullValue) // Might occur after deserialization.
     }
 
     companion object {
