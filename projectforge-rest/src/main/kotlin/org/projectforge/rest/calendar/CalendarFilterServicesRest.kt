@@ -213,6 +213,7 @@ class CalendarFilterServicesRest {
             currentFilter = CalendarFilter()
             userPreferenceService.putEntry(PREF_KEY_CURRENT_FAV, currentFilter, true)
         }
+        currentFilter.ensureSets()
         return currentFilter
     }
 
