@@ -346,7 +346,7 @@ class AuftragDO : DefaultBaseDO() {
 
     /**
      * @return true wenn alle Auftragspositionen vollständig fakturiert sind.
-     * @see AuftragsPositionDO.isVollstaendigFakturiert
+     * @see AuftragsPositionDO.vollstaendigFakturiert
      */
     val isVollstaendigFakturiert: Boolean
         @Transient
@@ -358,7 +358,7 @@ class AuftragDO : DefaultBaseDO() {
                 if (position.isDeleted) {
                     continue
                 }
-                if (!position.vollstaendigFakturiert && (position.status == null || !position.status!!.isIn(AuftragsPositionsStatus.ABGELEHNT, AuftragsPositionsStatus.ERSETZT))) {
+                if (position.vollstaendigFakturiert != true && (position.status == null || !position.status!!.isIn(AuftragsPositionsStatus.ABGELEHNT, AuftragsPositionsStatus.ERSETZT))) {
                     return false
                 }
             }
@@ -376,7 +376,7 @@ class AuftragDO : DefaultBaseDO() {
                     if (pos.isDeleted) {
                         continue
                     }
-                    if (pos.status == AuftragsPositionsStatus.ABGESCHLOSSEN && !pos.vollstaendigFakturiert) {
+                    if (pos.status == AuftragsPositionsStatus.ABGESCHLOSSEN && pos.vollstaendigFakturiert != true) {
                         return true
                     }
                 }
@@ -457,7 +457,7 @@ class AuftragDO : DefaultBaseDO() {
         get() {
             if (this.paymentSchedules != null) {
                 for (pos in this.paymentSchedules!!) {
-                    if (pos.isReached == true && pos.isVollstaendigFakturiert) {
+                    if (pos.isReached && pos.isVollstaendigFakturiert) {
                         return true
                     }
                 }
