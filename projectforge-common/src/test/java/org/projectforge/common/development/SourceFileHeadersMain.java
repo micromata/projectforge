@@ -24,18 +24,18 @@
 package org.projectforge.common.development;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.jupiter.api.Test;
-import org.projectforge.common.BeanHelper;
+import org.junit.jupiter.api.Assertions;
 
 import java.io.*;
 import java.time.Year;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Modifies the file header of each source file containing the license.
  */
-public class ModifyJavaFileHeaders {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BeanHelper.class);
+public class SourceFileHeadersMain {
 
   private static final int YEAR = Year.now().getValue();
 
@@ -43,71 +43,78 @@ public class ModifyJavaFileHeaders {
 
   private static String CLOSED_HEADER;
 
-  public static void _main(final String[] args) throws IOException {
-    if (args != null && args.length == 1 && "PF-AUTO".equals(args[0])) {
-      new ModifyJavaFileHeaders().createAllProjectForgeHeaders();
-      return;
-    }
-    if (args == null || args.length != 2) {
-      System.err.println("Type (OSS, NONE or CLOSED) and directory or PF-AUTO expected as arguments.");
-      System.exit(1);
-    }
-    final String type = args[0];
-    if ("NONE".equals(type) == true) {
-      // Nothing to do.
-      System.exit(0);
-    }
-    if ("OSS".equals(type) == false && "CLOSED".equals(type) == false) {
-      System.err.println("Argument 0 (type) must be OSS, NONE or CLOSED.");
-      System.exit(1);
-    }
-    final String dir = args[1] + File.separatorChar + "src";
-    new ModifyJavaFileHeaders().doitReally(dir, "OSS".equals(type));
+  private int modifiedFilesCounter = 0;
+
+  private File mainJavaFile;
+
+  private File baseDir;
+
+  private List<File> fixedFiles = new ArrayList<>();
+
+  public static void main(final String[] args) throws IOException {
+    File baseDir = new File(System.getProperty("user.dir"));
+    new SourceFileHeadersMain(baseDir).validateAndFixAllProjectForgeHeaders(true);
   }
 
-  @Test
-  void checkAndFixAllJavaKotlinCopyRightFileHeaders() throws IOException {
-    new ModifyJavaFileHeaders().createAllProjectForgeHeaders();
+  SourceFileHeadersMain(File baseDir) {
+    this.baseDir = baseDir;
+    final Collection<File> files = FileUtils.listFiles(baseDir, new String[]{"java"}, true);
+    String filename = this.getClass().getName().replace('.', File.separatorChar) + ".java";
+    for (final File file : files) {
+      if (file.getAbsolutePath().contains("src/test/java")
+              && file.getAbsolutePath().endsWith(filename)) {
+        mainJavaFile = file;
+      }
+    }
   }
 
-  private void createAllProjectForgeHeaders() throws IOException {
-    File baseDir = new File(System.getProperty("user.dir")).getParentFile();
-    log.info("Using working directory: " + baseDir.getAbsolutePath());
-    doitReally(new File(baseDir, "projectforge-application").getAbsolutePath(), true);
-    doitReally(new File(baseDir, "projectforge-business").getAbsolutePath(), true);
-    doitReally(new File(baseDir, "projectforge-common").getAbsolutePath(), true);
-    doitReally(new File(baseDir, "projectforge-model").getAbsolutePath(), true);
-    doitReally(new File(baseDir, "projectforge-rest").getAbsolutePath(), true);
-    doitReally(new File(baseDir, "projectforge-webapp").getAbsolutePath(), true);
+  File getMainJavaFile() {
+    return mainJavaFile;
+  }
+
+  void validateAndFixAllProjectForgeHeaders(final boolean autoFixFiles) throws IOException {
+    validateAndFixHeaders(new File(baseDir, "projectforge-application").getAbsolutePath(), true, autoFixFiles);
+    validateAndFixHeaders(new File(baseDir, "projectforge-business").getAbsolutePath(), true, autoFixFiles);
+    validateAndFixHeaders(new File(baseDir, "projectforge-common").getAbsolutePath(), true, autoFixFiles);
+    validateAndFixHeaders(new File(baseDir, "projectforge-model").getAbsolutePath(), true, autoFixFiles);
+    validateAndFixHeaders(new File(baseDir, "projectforge-rest").getAbsolutePath(), true, autoFixFiles);
+    validateAndFixHeaders(new File(baseDir, "projectforge-webapp").getAbsolutePath(), true, autoFixFiles);
     final File[] files = new File(baseDir, "plugins").listFiles();
     for (File file : files) {
       if (!file.isDirectory() || !file.getName().startsWith("org.projectforge.plugins")) continue;
-      doitReally(file.getAbsolutePath(), true);
+      validateAndFixHeaders(file.getAbsolutePath(), true, autoFixFiles);
     }
-
+    if (modifiedFilesCounter > 0) {
+      System.out.println("Following source code file headers were fixed (" + modifiedFilesCounter + " files).");
+      for (File file : fixedFiles) {
+        System.out.println(file.getAbsolutePath());
+      }
+      System.out.println("Total: " + modifiedFilesCounter + " files.");
+    }
   }
 
-  private ModifyJavaFileHeaders doitReally(final String path, final boolean openSource) throws IOException {
-    if (openSource == true) {
-      log.info("OSS: Modify all Java file headers: " + path + " *******");
-    } else {
-      log.info("Closed: Modify all Java file headers: " + path);
+  private void validateAndFixHeaders(final String path, final boolean openSource, final boolean autoFixFiles) throws IOException {
+    if (autoFixFiles) {
+      if (openSource) {
+        System.out.println("OSS: Validating and fixing all source code file headers in: " + path);
+      } else {
+        System.out.println("Closed: Validating and fixing all source code file headers in: " + path);
+      }
     }
-    final Collection<File> files = FileUtils.listFiles(new File(path), new String[]{"java", "kt"}, true);
-    int counter = 0;
+    final Collection<File> files = FileUtils.listFiles(new File(path, "src"), new String[]{"java", "kt"}, true);
     for (final File file : files) {
-      if (file.getAbsolutePath().contains("org/projectforge/lucene/PF") == true
-              || file.getAbsolutePath().contains("arlut/csd/crypto") == true
-              || file.getAbsolutePath().contains("at/jta") == true
-              || file.getAbsolutePath().contains("edu/stanford") == true
-              || file.getAbsolutePath().contains("java/net") == true
-              || file.getAbsolutePath().contains("name/fraser/neil/plaintext") == true
-              || file.getAbsolutePath().contains("org/lesscss") == true
-              || file.getAbsolutePath().contains("org/parosproxy") == true
-              || file.getAbsolutePath().contains("org/projectforge/lucene/Classic") == true // ClassicAnalyzer, ClassicFilter, ...
-              || file.getAbsolutePath().contains("org/projectforge/lucene/Standard") == true // StandardAnalyzer, ...
-              || file.getAbsolutePath().contains("org/projectforge/lucene/UAX29") == true
-              || file.getAbsolutePath().contains("org/zaproxy") == true) {
+      if (file.getAbsolutePath().contains("org/projectforge/lucene/PF")
+              || file.getAbsolutePath().contains("arlut/csd/crypto")
+              || file.getAbsolutePath().contains("at/jta")
+              || file.getAbsolutePath().contains("edu/stanford")
+              || file.getAbsolutePath().contains("java/net")
+              || file.getAbsolutePath().contains("name/fraser/neil/plaintext")
+              || file.getAbsolutePath().contains("org/lesscss")
+              || file.getAbsolutePath().contains("org/parosproxy")
+              || file.getAbsolutePath().contains("org/projectforge/lucene/Classic") // ClassicAnalyzer, ClassicFilter, ...
+              || file.getAbsolutePath().contains("org/projectforge/lucene/Standard")  // StandardAnalyzer, ...
+              || file.getAbsolutePath().contains("org/projectforge/lucene/UAX29")
+              || file.getAbsolutePath().contains("org/zaproxy")) {
         continue;
       }
       String content = FileUtils.readFileToString(file, "UTF-8");
@@ -119,24 +126,28 @@ public class ModifyJavaFileHeaders {
         // Header up-to-date
         continue;
       }
-      log.warn("Source code file without valid copy right header (will be fixed now):  " + file.getAbsolutePath());
+      if (!autoFixFiles) {
+        Assertions.fail("Source code file '" + file.getName() + "' without valid copy right header. As a maintainer you should fix it by simply calling Java main: "
+                + mainJavaFile.getAbsolutePath());
+      }
+      System.out.println("****** Source code file without valid copy right header (will be fixed right now automatically): " + file.getAbsolutePath());
+      fixedFiles.add(file);
       FileReader reader = null;
       LineNumberReader in = null;
       final StringBuilder sb = new StringBuilder();
       try {
         reader = new FileReader(file);
-        log.debug("Processing '" + file.getAbsolutePath() + "'.");
         in = new LineNumberReader(reader);
         String line = "";
         boolean header = true;
-        if (openSource == true) {
+        if (openSource) {
           sb.append(OSS_HEADER);
         } else {
           sb.append(CLOSED_HEADER);
         }
         while ((line = in.readLine()) != null) {
-          if (header == true) {
-            if (line.trim().startsWith("//") == true || line.trim().length() == 0) {
+          if (header) {
+            if (line.trim().startsWith("//") || line.trim().length() == 0) {
               continue;
             } else {
               header = false;
@@ -161,10 +172,8 @@ public class ModifyJavaFileHeaders {
           out.close();
         }
       }
-      counter++;
+      modifiedFilesCounter++;
     }
-    log.info("All Java files were modified (" + counter + " files).");
-    return this;
   }
 
   static {
