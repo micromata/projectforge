@@ -26,17 +26,15 @@ package org.projectforge.business.fibu
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.hibernate.search.annotations.Index
 import org.hibernate.search.annotations.*
+import org.hibernate.search.annotations.Index
 import org.projectforge.business.task.TaskDO
 import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-
-import javax.persistence.*
 import java.math.BigDecimal
 import java.sql.Date
-import java.util.Objects
+import javax.persistence.*
 
 /**
  * Repräsentiert eine Position innerhalb eines Auftrags oder eines Angebots.
@@ -103,11 +101,11 @@ class AuftragsPositionDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * Dieses Flag wird manuell von der FiBu gesetzt und kann nur für abgeschlossene Aufträge gesetzt werden.
      */
     @get:Column(name = "vollstaendig_fakturiert", nullable = false)
-    var vollstaendigFakturiert: Boolean = false
+    var vollstaendigFakturiert: Boolean? = false
 
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "period_of_performance_type", length = 10)
-    var periodOfPerformanceType = PeriodOfPerformanceType.SEEABOVE
+    var periodOfPerformanceType : PeriodOfPerformanceType? = PeriodOfPerformanceType.SEEABOVE
 
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_begin")
@@ -129,7 +127,7 @@ class AuftragsPositionDO : DefaultBaseDO(), ShortDisplayNameCapable {
             }
             return if (auftrag!!.auftragsStatus != AuftragsStatus.ABGESCHLOSSEN && status != AuftragsPositionsStatus.ABGESCHLOSSEN) {
                 false
-            } else !vollstaendigFakturiert
+            } else vollstaendigFakturiert != true
         }
 
     val auftragId: Int?
