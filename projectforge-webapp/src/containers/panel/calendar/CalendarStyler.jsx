@@ -10,7 +10,8 @@ import { getServiceURL } from '../../../utilities/rest';
 class CalendarStyler extends Component {
     constructor(props) {
         super(props);
-        const { background, calendar } = this.props;
+        const { calendar } = this.props;
+        const background = (calendar && calendar.style && calendar.style.bgColor) ? calendar.style.bgColor : '#777';
         this.state = {
             background,
             visible: calendar.visible,
@@ -64,13 +65,11 @@ CalendarStyler.propTypes = {
     calendar: PropTypes.shape({
         id: PropTypes.number.isRequired,
         visible: PropTypes.bool,
+        style: PropTypes.shape({
+            bgColor: PropTypes.string,
+        }),
     }).isRequired,
-    background: PropTypes.string,
     // translations: PropTypes.shape({}).isRequired,
-};
-
-CalendarStyler.defaultProps = {
-    background: '#777',
 };
 
 export default (CalendarStyler);
