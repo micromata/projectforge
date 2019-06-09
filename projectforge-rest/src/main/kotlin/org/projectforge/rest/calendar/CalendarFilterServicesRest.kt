@@ -51,7 +51,7 @@ class CalendarFilterServicesRest {
                        var teamCalendars: List<StyledTeamCalendar>? = null,
                        var filterFavorites: List<Favorites.FavoriteIdTitle>? = null,
                        var currentFilter: CalendarFilter? = null,
-                       var activeCalendars: List<StyledTeamCalendar>? = null,
+                       var activeCalendars: MutableList<StyledTeamCalendar>? = null,
                        /**
                         * This is the list of possible default calendars (with full access). The user may choose one which is
                         * used as default if creating a new event. The pseudo calendar -1 for own time sheets is
@@ -103,7 +103,9 @@ class CalendarFilterServicesRest {
                     style = styleMap.get(id), // Add the styles of the styleMap to the exported calendar.
                     visible = currentFilter.isVisible(id)
             )
-        }
+        }.toMutableList()
+
+        initial.activeCalendars?.removeIf { it.id == null } // Access to this calendars is not given (anymore).
 
         val favorites = getFilterFavorites()
         initial.filterFavorites = favorites.idTitleList
@@ -213,7 +215,7 @@ class CalendarFilterServicesRest {
             currentFilter = CalendarFilter()
             userPreferenceService.putEntry(PREF_KEY_CURRENT_FAV, currentFilter, true)
         }
-        currentFilter.ensureSets()
+        currentFilter.afterDeserialization()
         return currentFilter
     }
 

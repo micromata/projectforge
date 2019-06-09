@@ -65,8 +65,8 @@ class CalendarLegacyFilter(val state: CalendarFilterState,
             state.startDate = PFDateTimeUtils.convertToLocalDate(oldFilter.startDate)
             state.view = convert(oldFilter.viewType)
             oldFilter.templateEntries?.forEach { templateEntry ->
-                val displayFilter = CalendarFilter.copyFrom(templateEntry)
-                filterList.add(displayFilter)
+                val filter = CalendarFilter.copyFrom(templateEntry)
+                filterList.add(filter)
             }
             oldFilter.templateEntries?.forEach { templateEntry ->
                 templateEntry.calendarProperties?.forEach {
