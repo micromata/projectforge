@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.user.api;
 
-import java.util.Objects;
 import org.joda.time.DateTimeZone;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.configuration.ConfigXml;
@@ -33,7 +32,9 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 
 import java.text.Collator;
+import java.util.Comparator;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.TimeZone;
 
 /**
@@ -212,12 +213,20 @@ public class ThreadLocalUserContext
   }
 
   /**
-   * Use this instead of String{@link String#compareTo(String)}, because it uses
+   * Use this instead of String{@link String#compareTo(String)}, because it uses the user's locale for comparison.
    * @param a
    * @param b
    * @return
    */
   public static int localeCompare(String a, String b) {
-    return Collator.getInstance(getLocale()).compare(a, b);
+    return getLocaleComparator().compare(a, b);
+  }
+
+  /**
+   * Use this instead of String{@link String#compareTo(String)}, because it uses the user's locale for comparison.
+   * @return
+   */
+  public static Comparator getLocaleComparator() {
+    return Collator.getInstance(getLocale());
   }
 }
