@@ -23,7 +23,8 @@
 
 package org.projectforge.rest.calendar
 
-import org.projectforge.business.calendar.*
+import org.projectforge.business.calendar.CalendarFilter
+import org.projectforge.business.calendar.CalendarView
 import org.projectforge.business.user.service.UserPreferencesService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
@@ -35,7 +36,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
-import java.util.*
 import javax.ws.rs.BadRequestException
 
 /**
@@ -49,32 +49,6 @@ class CalendarServicesRest {
     internal class CalendarData(val date: LocalDate,
                                 @Suppress("unused") val events: List<BigCalendarEvent>,
                                 @Suppress("unused") val specialDays: Map<String, HolidayAndWeekendProvider.SpecialDayInfo>)
-
-    /**
-     * CalendarFilter to request calendar events as POST param. Dates are required as JavaScript ISO date time strings
-     * (start and end).
-     */
-    class CalendarRestFilter(var start: Date? = null,
-                             /** Optional, if view is given. */
-                             var end: Date? = null,
-                             /** Will be ignored if end is given. */
-                             var view: String? = null,
-                             var timesheetUserId: Int? = null,
-                             /** The team calendarIds to display. */
-                             var activeCalendarIds: Set<Int>? = null,
-                             /**
-                              * If true, then this filter updates the fields of the user's calendar state (start date and view).
-                              * If the user calls the calendar page next time, this properties are restored.
-                              * Default is false (the calendar state will not be updated.
-                              * This flag is only used by the React client for restoring the states on later views.
-                              */
-                             var updateState: Boolean? = false,
-                             /**
-                              * If true, then calendars in the invisibleCalendarIds set of the current filter will be hidden.
-                              * Default is false (all active calendars are displayed).
-                              * This flag is only used by the React client for hiding active calendars.
-                              */
-                             var useVisibilityState: Boolean? = false)
 
     private class DateTimeRange(var start: PFDateTime,
                                 var end: PFDateTime? = null)
@@ -93,6 +67,7 @@ class CalendarServicesRest {
 
     @PostMapping("events")
     fun getEvents(@RequestBody filter: CalendarRestFilter): ResponseEntity<Any> {
+        filter.afterDeserialization()
         if (filter.start == null) {
             return ResponseEntity("At least start date required for getting events.", HttpStatus.BAD_REQUEST)
         }

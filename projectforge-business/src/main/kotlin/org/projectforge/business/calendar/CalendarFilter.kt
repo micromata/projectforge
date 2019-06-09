@@ -69,52 +69,59 @@ class CalendarFilter(name: String = "",
     : AbstractFavorite(name, id) {
 
     var calendarIds = mutableSetOf<Int>()
-        set(value) {
-            field = value
-            ensureSets()
-        }
 
     var invisibleCalendars = mutableSetOf<Int>()
 
     fun addCalendarId(calendarId: Int) {
-        ensureSets()
         calendarIds.add(calendarId)
         invisibleCalendars.remove(calendarId) // New added calendars should be visible.
     }
 
     fun removeCalendarId(calendarId: Int) {
-        ensureSets()
         calendarIds.remove(calendarId)
         invisibleCalendars.remove(calendarId)
     }
 
     fun setVisibility(calendarId: Int, visible: Boolean) {
-        ensureSets()
         if (visible) {
             invisibleCalendars.remove(calendarId)
         } else {
             invisibleCalendars.add(calendarId)
         }
+        tidyUp()
     }
 
     fun isVisible(calendarId: Int): Boolean {
-        ensureSets()
         return calendarIds.contains(calendarId) && !invisibleCalendars.contains(calendarId)
     }
 
     /**
-     * Sets may be null directly after deserialization. This method also tidies up the list of invisible calendars by
+     * This method tidies up the list of invisible calendars by
      * removing invisible calendars not contained in the main calendar set.
      */
     @Suppress("SENSELESS_COMPARISON")
-    fun ensureSets() {
-        if (calendarIds == null) calendarIds = mutableSetOf() // Might be null after deserialization.
-        if (invisibleCalendars == null) invisibleCalendars = mutableSetOf() // Might be null after deserialization.
-        else
-            invisibleCalendars.removeIf { !calendarIds.contains(it) } // Tidy up: remove invisible ids if not in main list.
+    fun tidyUp() {
+        invisibleCalendars.removeIf { !calendarIds.contains(it) } // Tidy up: remove invisible ids if not in main list.
+    }
+
+    /**
+     * The sets [calendarIds] and [invisibleCalendars] may contain a null value after deserialization. This will be removed by calling this
+     * function. [tidyUp] will also be called.
+     */
+    @Suppress("SENSELESS_COMPARISON")
+    fun afterDeserialization() {
         val nullValue: Int? = null
-        calendarIds.remove(nullValue) // Might occur after deserialization.
-        invisibleCalendars.remove(nullValue) // Might occur after deserialization.
+        if (calendarIds == null) {
+            calendarIds = mutableSetOf() // Might be null after deserialization.
+        } else {
+            calendarIds.remove(nullValue) // Might occur after deserialization.
+        }
+        if (invisibleCalendars == null) {
+            invisibleCalendars = mutableSetOf() // Might be null after deserialization.
+        } else {
+            invisibleCalendars.remove(nullValue) // Might occur after deserialization.
+        }
+        tidyUp()
     }
 
     companion object {
@@ -124,21 +131,24 @@ class CalendarFilter(name: String = "",
          * For re-using legacy filters (from ProjetForge version up to 6, Wicket-Calendar).
          */
         internal fun copyFrom(templateEntry: TemplateEntry?): CalendarFilter {
-            val displayFilter = CalendarFilter()
+            val filter = CalendarFilter()
             if (templateEntry != null) {
-                displayFilter.defaultCalendarId = templateEntry.defaultCalendarId
-                displayFilter.name = templateEntry.name
-                displayFilter.showBirthdays = templateEntry.isShowBirthdays
-                displayFilter.showBreaks = templateEntry.isShowBreaks
-                displayFilter.showPlanning = templateEntry.isShowPlanning
-                displayFilter.showStatistics = templateEntry.isShowStatistics
-                displayFilter.timesheetUserId = templateEntry.timesheetUserId
-                displayFilter.showTimesheets = templateEntry.isShowTimesheets
+                filter.defaultCalendarId = templateEntry.defaultCalendarId
+                filter.name = templateEntry.name
+                filter.showBirthdays = templateEntry.isShowBirthdays
+                filter.showBreaks = templateEntry.isShowBreaks
+                filter.showPlanning = templateEntry.isShowPlanning
+                filter.showStatistics = templateEntry.isShowStatistics
+                filter.timesheetUserId = templateEntry.timesheetUserId
+                filter.showTimesheets = templateEntry.isShowTimesheets
                 templateEntry.calendarProperties?.forEach {
-                    displayFilter.addCalendarId(it.calId)
+                    filter.addCalendarId(it.calId)
+                }
+                filter.calendarIds.forEach {
+                    filter.setVisibility(it, templateEntry.isVisible(it))
                 }
             }
-            return displayFilter
+            return filter
         }
     }
 
