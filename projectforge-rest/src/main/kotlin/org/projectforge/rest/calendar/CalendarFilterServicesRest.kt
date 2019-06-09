@@ -99,13 +99,15 @@ class CalendarFilterServicesRest {
         initial.view = state.view
 
         initial.activeCalendars = currentFilter.calendarIds.map { id ->
-            StyledTeamCalendar(calendars.find { it.id == id },
+            StyledTeamCalendar(calendars.find { it.id == id }, // Might be not accessible / null, see below.
                     style = styleMap.get(id), // Add the styles of the styleMap to the exported calendar.
                     visible = currentFilter.isVisible(id)
             )
         }.toMutableList()
 
         initial.activeCalendars?.removeIf { it.id == null } // Access to this calendars is not given (anymore).
+
+        initial.activeCalendars?.sortWith(compareBy(ThreadLocalUserContext.getLocaleComparator()) { it.title })
 
         val favorites = getFilterFavorites()
         initial.filterFavorites = favorites.idTitleList
