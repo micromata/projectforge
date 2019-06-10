@@ -28,14 +28,14 @@ class CalendarStyler extends Component {
 
     handleVisibilityChange(event) {
         this.setState({ visible: event.target.checked });
-        const { calendar } = this.props;
+        const { calendar, submit } = this.props;
         fetch(getServiceURL('calendar/setVisibility', {
             calendarId: calendar.id,
             visible: event.target.checked,
         }), {
             method: 'GET',
             credentials: 'include',
-        })
+        }).then(() => { if (submit) submit(); })
             .catch(error => alert(`Internal error: ${error}`));
     }
 
@@ -69,7 +69,12 @@ CalendarStyler.propTypes = {
             bgColor: PropTypes.string,
         }),
     }).isRequired,
+    submit: PropTypes.func,
     // translations: PropTypes.shape({}).isRequired,
+};
+
+CalendarStyler.defaultProps = {
+    submit: undefined,
 };
 
 export default (CalendarStyler);
