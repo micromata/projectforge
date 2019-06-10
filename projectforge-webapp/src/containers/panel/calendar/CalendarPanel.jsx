@@ -56,6 +56,7 @@ class CalendarPanel extends React.Component {
                 visible: false,
                 category: undefined,
                 dbId: undefined,
+                uid: undefined,
                 startDate: undefined,
                 endDate: undefined,
             },
@@ -131,6 +132,7 @@ class CalendarPanel extends React.Component {
                 visible: true,
                 category: event.category,
                 dbId: event.dbId,
+                uid: event.uid,
                 startDate: undefined,
                 endDate: undefined,
             },
@@ -268,6 +270,7 @@ class CalendarPanel extends React.Component {
                 <CalendarEntryEditPanel
                     category={editPanel.category}
                     dbId={editPanel.dbId ? editPanel.dbId.toString() : ''}
+                    uid={editPanel.uid || ''}
                     startDate={editPanel.startDate}
                     endDate={editPanel.endDate}
                     afterEdit={this.toggleEditModal}

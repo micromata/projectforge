@@ -7,6 +7,7 @@ function CalendarEntryEditPanel(
     {
         category,
         dbId,
+        uid,
         startDate,
         endDate,
         afterEdit,
@@ -15,7 +16,7 @@ function CalendarEntryEditPanel(
     const match = {
         params: {
             category,
-            id: dbId,
+            id: uid || dbId,
         },
     };
     const search = startDate ? `start=${startDate}&end=${endDate}` : '';
@@ -35,6 +36,7 @@ function CalendarEntryEditPanel(
 
 CalendarEntryEditPanel.propTypes = {
     dbId: PropTypes.string,
+    uid: PropTypes.string,
     category: PropTypes.string,
     startDate: PropTypes.number, // Epoch seconds
     endDate: PropTypes.number, // Epoch seconds
@@ -43,6 +45,7 @@ CalendarEntryEditPanel.propTypes = {
 
 CalendarEntryEditPanel.defaultProps = {
     dbId: undefined,
+    uid: undefined,
     category: 'timesheet',
     startDate: undefined,
     endDate: undefined,

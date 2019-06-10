@@ -285,6 +285,11 @@ abstract class AbstractBaseRest<
 
     abstract fun returnItem(item: O): ResponseEntity<Any>
 
+    open protected fun getById(id: String?): O? {
+        if (id == null) return null
+        return getById(id.toInt())
+    }
+
     protected fun getById(id: Int?): O? {
         val item = baseDao.getById(id) ?: return null
         processItemBeforeExport(item)
@@ -298,7 +303,7 @@ abstract class AbstractBaseRest<
      * layout will be also included if the id is not given.
      */
     @GetMapping("edit")
-    fun getItemAndLayout(request: HttpServletRequest, @RequestParam("id") id: Int?)
+    fun getItemAndLayout(request: HttpServletRequest, @RequestParam("id") id: String?)
             : ResponseEntity<EditLayoutData> {
         val item = (if (null != id) getById(id) else newBaseDO(request))
                 ?: return ResponseEntity(HttpStatus.NOT_FOUND)
