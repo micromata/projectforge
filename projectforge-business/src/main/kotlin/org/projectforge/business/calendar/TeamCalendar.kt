@@ -35,15 +35,12 @@ open class TeamCalendar(val id: Int?,
     constructor(teamCalDO: TeamCalDO, userId: Int, teamCalCache: TeamCalCache) : this(teamCalDO.id, teamCalDO.title) {
         val right = teamCalCache.teamCalRight
         access =
-                if (right.isOwner(userId, teamCalDO)) {
-                    ACCESS.OWNER
-                } else {
-                    when (right.getAccessType(teamCalDO, userId)) {
-                        DataobjectAccessType.FULL -> ACCESS.FULL
-                        DataobjectAccessType.READONLY -> ACCESS.READ
-                        DataobjectAccessType.MINIMAL -> ACCESS.MINIMAL
-                        else -> ACCESS.NONE // Only admins get calendarIds with none access.
-                    }
+                when (right.getAccessType(teamCalDO, userId)) {
+                    DataobjectAccessType.OWNER -> ACCESS.OWNER
+                    DataobjectAccessType.FULL -> ACCESS.FULL
+                    DataobjectAccessType.READONLY -> ACCESS.READ
+                    DataobjectAccessType.MINIMAL -> ACCESS.MINIMAL
+                    else -> ACCESS.NONE // Only admins get calendarIds with none access.
                 }
     }
 }
