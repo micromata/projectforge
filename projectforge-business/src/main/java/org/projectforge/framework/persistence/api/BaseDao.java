@@ -335,7 +335,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     if (end - begin > 2000) {
       // Show only slow requests.
       log.info(
-              "BaseDao.getList for entity class: " + getEntityClass().getSimpleName() + " took: " + (end - begin) + " ms.");
+              "BaseDao.getList for entity class: " + getEntityClass().getSimpleName() + " took: " + (end - begin) + " ms (>2s).");
     }
     return result;
   }
