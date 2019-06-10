@@ -338,11 +338,8 @@ public class AddressDao extends BaseDao<AddressDO> {
    * @return The entries are ordered by date of year and name.
    */
   public Set<BirthdayAddress> getBirthdays(final Date fromDate, final Date toDate, final boolean all) {
-    long start = System.currentTimeMillis();
     BirthdayCache cache = TenantRegistryMap.getCache(BirthdayCache.class);
-    Set<BirthdayAddress> set = cache.getBirthdays(fromDate, toDate, all, personalAddressDao.getIdList());
-    log.info("getBirthdays took " + (System.currentTimeMillis() - start) + "ms.");
-    return set;
+    return cache.getBirthdays(fromDate, toDate, all, personalAddressDao.getIdList());
   }
 
   public List<PersonalAddressDO> getFavoriteVCards() {

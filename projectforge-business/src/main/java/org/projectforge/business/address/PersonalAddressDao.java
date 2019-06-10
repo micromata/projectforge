@@ -250,7 +250,6 @@ public class PersonalAddressDao
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<Integer> getIdList()
   {
-    final long start = System.currentTimeMillis();
     final PFUserDO owner = ThreadLocalUserContext.getUser();
     Validate.notNull(owner);
     Validate.notNull(owner.getId());
@@ -260,7 +259,6 @@ public class PersonalAddressDao
                     + PersonalAddressDO.class.getSimpleName()
                     + " where owner.id=?",
             owner.getId());
-    log.info("PersonalDao.getIdList took " + (System.currentTimeMillis() - start) + "ms.");
     return list;
   }
 
