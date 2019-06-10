@@ -140,11 +140,11 @@ abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBase
     /**
      * The user interface status of an invoice. The [RechnungUIStatus] is stored as XML.
      */
-    @NoHistory
+    @field:NoHistory
     @get:Column(name = "ui_status_as_xml", length = 10000)
     open var uiStatusAsXml: String? = null
 
-    @NoHistory
+    @field:NoHistory
     open val uiStatus: RechnungUIStatus? = null
         @Transient
         get() {

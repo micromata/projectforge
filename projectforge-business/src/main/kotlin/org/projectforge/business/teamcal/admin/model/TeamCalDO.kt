@@ -69,8 +69,8 @@ class TeamCalDO : BaseUserGroupRightsDO() {
     /**
      * This hash value is used for detecting changes of an subscribed calendar.
      */
-    @NoHistory
     @JsonIgnore
+    @field:NoHistory
     @get:Column(length = 255, name = "ext_subscription_hash")
     var externalSubscriptionHash: String? = null
 
@@ -98,8 +98,8 @@ class TeamCalDO : BaseUserGroupRightsDO() {
      * This binary contains all the events of a subscribed calendar and might be large. Don't export this field to
      * any client because it may contain private data.
      */
-    @NoHistory
     @JsonIgnore
+    @field:NoHistory
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column(name = "ext_subscription_calendar_binary")
     @get:Type(type = "binary")

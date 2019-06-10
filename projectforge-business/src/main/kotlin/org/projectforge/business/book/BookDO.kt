@@ -129,9 +129,9 @@ class BookDO : DefaultBaseDO() {
     var type: BookType? = null
 
     @Deprecated("This field will be removed from the data-base. Is not in use anymore and will be automatically set to ProjectForge's root task.")
+    @field:NoHistory
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "task_id", nullable = false)
-    @NoHistory
     @Transient
     var task : TaskDO? = null
 
