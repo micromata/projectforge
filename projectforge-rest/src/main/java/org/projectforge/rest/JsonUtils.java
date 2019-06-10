@@ -25,6 +25,7 @@ package org.projectforge.rest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.module.kotlin.KotlinModule;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -61,6 +62,7 @@ public class JsonUtils {
 
   private static ObjectMapper createMapper() {
     ObjectMapper mapper = new ObjectMapper();
+    mapper.registerModule(new KotlinModule());
     return mapper;
 /*    mapper.re
     final GsonBuilder builder = new GsonBuilder()//
