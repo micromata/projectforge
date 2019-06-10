@@ -51,6 +51,8 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                         method: 'GET',
                         credentials: 'include',
                     })
+                    // TODO ONLY RELOAD THE DATA
+                        .then(() => window.location.reload())
                         .catch(error => alert(`Internal error: ${error}`));
                 }
                 break;

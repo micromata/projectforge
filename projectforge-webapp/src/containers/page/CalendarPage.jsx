@@ -4,10 +4,10 @@ import { Card, CardBody, Row, } from 'reactstrap';
 import EditableMultiValueLabel from '../../components/base/page/layout/EditableMultiValueLabel';
 import LoadingContainer from '../../components/design/loading-container';
 import { getServiceURL } from '../../utilities/rest';
-import CalendarPanel from '../panel/calendar/CalendarPanel';
-import { customStyles } from './Calendar.module';
-import FavoritesPanel from '../panel/FavoritesPanel';
 import CalendarFilterSettings from '../panel/calendar/CalendarFilterSettings';
+import CalendarPanel from '../panel/calendar/CalendarPanel';
+import FavoritesPanel from '../panel/FavoritesPanel';
+import { customStyles } from './Calendar.module';
 
 class CalendarPage extends React.Component {
     constructor(props) {
@@ -78,6 +78,8 @@ class CalendarPage extends React.Component {
                 Accept: 'application/json',
             },
         })
+        // TODO ONLY RELOAD THE DATA
+            .then(() => window.location.reload())
             .catch(error => alert(`Internal error: ${error}`));
     }
 

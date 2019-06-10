@@ -35,7 +35,13 @@ class CalendarStyler extends Component {
         }), {
             method: 'GET',
             credentials: 'include',
-        }).then(() => { if (submit) submit(); })
+        })
+            .then(() => {
+                if (submit) submit();
+
+                // TODO ONLY RELOAD THE DATA
+                window.location.reload();
+            })
             .catch(error => alert(`Internal error: ${error}`));
     }
 
