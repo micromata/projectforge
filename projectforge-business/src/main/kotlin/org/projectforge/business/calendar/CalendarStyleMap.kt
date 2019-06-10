@@ -23,6 +23,9 @@
 
 package org.projectforge.business.calendar
 
+import org.projectforge.business.calendar.TeamCalendar.Companion.BIRTHDAYS_ALL_CAL_ID
+import org.projectforge.business.calendar.TeamCalendar.Companion.BIRTHDAYS_FAVS_CAL_ID
+
 /**
  * Persist the styles of the calendarIds for the user.
  *
@@ -30,36 +33,37 @@ package org.projectforge.business.calendar
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
 class CalendarStyleMap {
-    companion object {
-        const val BIRTHDAY_CALENDAR = "birthdays"
-    }
-
     /**
      * Colors for the calendarIds by calendar id.
      */
-    private val styles = mutableMapOf<String, CalendarStyle>()
+    private val styles = mutableMapOf<Int, CalendarStyle>()
 
-    val birthdaysStyle: CalendarStyle
-        get() {
-            val style = get(BIRTHDAY_CALENDAR)
-            if (style != null)
-                return style
-            return CalendarStyle(bgColor = "#06790e", fgColor = "#ffffff")
-        }
+    val birthdaysFavoritesStyle: CalendarStyle
+        get() = get(BIRTHDAYS_FAVS_CAL_ID)!!
+
+    val birthdaysAllStyle: CalendarStyle
+        get() = get(BIRTHDAYS_ALL_CAL_ID)!!
 
     fun contains(calendarId: Int): Boolean {
-        return styles.containsKey("$calendarId")
+        return styles.containsKey(calendarId)
     }
 
     fun add(calendarId: Int, style: CalendarStyle) {
-        styles.put("$calendarId", style)
+        styles.put(calendarId, style)
     }
 
     fun get(calendarId: Int?): CalendarStyle? {
-        return if (calendarId != null) styles["$calendarId"] else null
-    }
-
-    fun get(id: String?): CalendarStyle? {
-        return if (id != null) styles[id] else null
+        if (calendarId == null) return null
+        var style = styles[calendarId]
+        if (style == null) {
+            if (calendarId == BIRTHDAYS_FAVS_CAL_ID) {
+                style = CalendarStyle(bgColor = "#06790e")
+                add(BIRTHDAYS_FAVS_CAL_ID, style)
+            } else if (calendarId == BIRTHDAYS_ALL_CAL_ID) {
+                style = CalendarStyle(bgColor = "#ffffff")
+                add(BIRTHDAYS_ALL_CAL_ID, style)
+            }
+        }
+        return style
     }
 }

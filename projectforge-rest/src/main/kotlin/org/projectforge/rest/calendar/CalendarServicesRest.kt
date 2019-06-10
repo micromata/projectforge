@@ -26,7 +26,10 @@ package org.projectforge.rest.calendar
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.calendar.CalendarFilter
 import org.projectforge.business.calendar.CalendarView
+import org.projectforge.business.calendar.TeamCalendar
+import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.service.UserPreferencesService
+import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.config.Rest
@@ -53,6 +56,9 @@ class CalendarServicesRest {
 
     private class DateTimeRange(var start: PFDateTime,
                                 var end: PFDateTime? = null)
+
+    @Autowired
+    private lateinit var accessChecker: AccessChecker
 
     @Autowired
     private lateinit var addressDao: AddressDao
@@ -135,8 +141,21 @@ class CalendarServicesRest {
             }
 
         }
-        teamCalEventsProvider.addEvents(range.start, range.end!!, events, visibleCalendarIds, calendarConfigServicesRest.getStyleMap())
-        BirthdaysProvider.addEvents(addressDao, range.start, range.end!!, events, calendarConfigServicesRest.getStyleMap())
+        val visibleTeamCalendarIds = visibleCalendarIds?.filter { it >= 0 } // calendars with id < 0 are pseudo calendars (such as birthdays etc.)
+        teamCalEventsProvider.addEvents(range.start, range.end!!, events, visibleTeamCalendarIds, calendarConfigServicesRest.getStyleMap())
+
+        val showFavoritesBirthdays = visibleCalendarIds?.contains(TeamCalendar.BIRTHDAYS_FAVS_CAL_ID) ?: false
+        val showAllBirthdays = visibleCalendarIds?.contains(TeamCalendar.BIRTHDAYS_ALL_CAL_ID) ?: false
+        if (showAllBirthdays || showFavoritesBirthdays) {
+            BirthdaysProvider.addEvents(addressDao, range.start, range.end!!, events, calendarConfigServicesRest.getStyleMap(),
+                    showFavoritesBirthdays,
+                    showAllBirthdays,
+                    !accessChecker.isLoggedInUserMemberOfGroup(
+                            ProjectForgeGroup.FINANCE_GROUP,
+                            ProjectForgeGroup.HR_GROUP,
+                            ProjectForgeGroup.ORGA_TEAM))
+        }
+
         val specialDays = HolidayAndWeekendProvider.getSpecialDayInfos(range.start, range.end!!)
         var counter = 0
         events.forEach {

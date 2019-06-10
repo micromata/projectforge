@@ -26,6 +26,7 @@ package org.projectforge.business.calendar
 import org.projectforge.business.common.DataobjectAccessType
 import org.projectforge.business.teamcal.admin.TeamCalCache
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
+import org.projectforge.framework.i18n.translate
 
 open class TeamCalendar(val id: Int?,
                         val title: String?,
@@ -42,5 +43,29 @@ open class TeamCalendar(val id: Int?,
                     DataobjectAccessType.MINIMAL -> ACCESS.MINIMAL
                     else -> ACCESS.NONE // Only admins get calendarIds with none access.
                 }
+    }
+
+    companion object {
+        /**
+         * Calendar id of pseudo calendar (birthdays of favorite peoples).
+         */
+        const val BIRTHDAYS_FAVS_CAL_ID = -2
+
+        /**
+         * Calendar id of pseudo calendar (birthdays of non-favorite peoples).
+         */
+        const val BIRTHDAYS_ALL_CAL_ID = -3
+
+        fun createFavoritesBirthdaysPseudoCalendar() : TeamCalendar {
+            return TeamCalendar(TeamCalendar.BIRTHDAYS_FAVS_CAL_ID,
+                    translate("calendar.birthdays.favorites"),
+                    ACCESS.READ)
+        }
+
+        fun createAllBirthdaysPseudoCalendar() : TeamCalendar {
+            return TeamCalendar(TeamCalendar.BIRTHDAYS_ALL_CAL_ID,
+                    translate("calendar.birthdays.all"),
+                    ACCESS.READ)
+        }
     }
 }
