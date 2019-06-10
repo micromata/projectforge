@@ -46,19 +46,19 @@ class PFDateTimeTest {
         val date = PFDateTime.parseUTCDate("2019-03-31 22:00:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))!!
         checkDate(date.dateTime, 2019, Month.APRIL, 1, false)
 
-        val beginOfDay = date.getBeginOfDay().dateTime
+        val beginOfDay = date.beginOfDay.dateTime
         checkDate(beginOfDay, 2019, Month.APRIL, 1, true)
-        val endOfDay = date.getEndOfDay().dateTime
+        val endOfDay = date.endOfDay.dateTime
         checkDate(endOfDay, 2019, Month.APRIL, 2, true)
 
-        val beginOfWeek = date.getBeginOfWeek().dateTime
+        val beginOfWeek = date.beginOfWeek.dateTime
         checkDate(beginOfWeek, 2019, Month.APRIL, 1, true)
-        val endOfWeek = date.getEndOfWeek().dateTime
+        val endOfWeek = date.endOfWeek.dateTime
         checkDate(endOfWeek, 2019, Month.APRIL, 8, true) // Midnight of first day of next week
 
-        val beginOfMonth = date.getBeginOfMonth().dateTime
+        val beginOfMonth = date.beginOfMonth.dateTime
         checkDate(beginOfMonth, 2019, Month.APRIL, 1, true)
-        val endOfMonth = date.getEndOfMonth().dateTime
+        val endOfMonth = date.endOfMonth.dateTime
         checkDate(endOfMonth, 2019, Month.MAY, 1, true) // Midnight of first day of next month
     }
 
@@ -67,12 +67,12 @@ class PFDateTimeTest {
         // User's time zone is "Europe/Berlin": "UTC+2". Therefore local date should be 2019-04-01 00:00:00
         var date = PFDateTime.parseUTCDate("2019-03-31 22:00:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))!!
 
-        var localDate = date.asLocalDate()
+        var localDate = date.localDate
         assertEquals(2019, localDate.year)
         assertEquals(Month.APRIL, localDate.month)
         assertEquals(1, localDate.dayOfMonth)
 
-        val utilDate = date.asUtilDate()
+        val utilDate = date.utilDate
         val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z")
         formatter.timeZone = TimeZone.getTimeZone("UTC")
         assertEquals("2019-03-31 22:00:00 +0000", formatter.format(utilDate))
@@ -80,7 +80,7 @@ class PFDateTimeTest {
 
         date = PFDateTime.parseUTCDate("2019-04-01 15:00:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))!!
 
-        localDate = date.asLocalDate()
+        localDate = date.localDate
         assertEquals(2019, localDate.year)
         assertEquals(Month.APRIL, localDate.month)
         assertEquals(1, localDate.dayOfMonth)
@@ -88,10 +88,10 @@ class PFDateTimeTest {
 
     @Test
     fun parseTest() {
-        assertEquals("2019-03-31 22:00", PFDateTime.parseUTCDate("1554069600")!!.asIsoString())
-        assertEquals("2019-03-31 22:00", PFDateTime.parseUTCDate("2019-03-31 22:00:00")!!.asIsoString())
-        assertEquals("2019-03-31 22:00", PFDateTime.parseUTCDate("2019-03-31 22:00")!!.asIsoString())
-        assertEquals("2019-03-31 22:00", PFDateTime.parseUTCDate("2019-03-31T22:00:00.000Z")!!.asIsoString())
+        assertEquals("2019-03-31 22:00", PFDateTime.parseUTCDate("1554069600")!!.isoString)
+        assertEquals("2019-03-31 22:00", PFDateTime.parseUTCDate("2019-03-31 22:00:00")!!.isoString)
+        assertEquals("2019-03-31 22:00", PFDateTime.parseUTCDate("2019-03-31 22:00")!!.isoString)
+        assertEquals("2019-03-31 22:00", PFDateTime.parseUTCDate("2019-03-31T22:00:00.000Z")!!.isoString)
         try {
             PFDateTime.parseUTCDate("2019-03-31")
             fail("Exception expected, because 2019-03-31 isn't parseable due to missing time of day.")

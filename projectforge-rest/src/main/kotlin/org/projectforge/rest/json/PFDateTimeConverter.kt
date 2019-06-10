@@ -49,7 +49,7 @@ class PFDateTimeSerializer : StdSerializer<PFDateTime>(PFDateTime::class.java) {
             jgen.writeNull()
             return
         }
-        jgen.writeString(value.asJavaScriptString())
+        jgen.writeString(value.javaScriptString)
     }
 }
 

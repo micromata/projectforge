@@ -43,7 +43,7 @@ class ContractRest() : AbstractDORest<ContractDO, ContractDao, ContractFilter>(C
      */
     override fun newBaseDO(request: HttpServletRequest): ContractDO {
         val contract = super.newBaseDO(request)
-        contract.date = PFDate.now().asSqlDate()
+        contract.date = PFDate.now().sqlDate
         return contract
     }
 

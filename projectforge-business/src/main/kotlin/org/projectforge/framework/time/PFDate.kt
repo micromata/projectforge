@@ -34,14 +34,21 @@ class PFDate(val date: LocalDate) {
 
     constructor(instant: Instant) : this(LocalDate.from(instant))
 
-    private var sqlDate: java.sql.Date? = null
-
-    fun asSqlDate(): java.sql.Date {
-        if (sqlDate == null) {
-            sqlDate = java.sql.Date.valueOf(date)
+    private var _sqlDate: java.sql.Date? = null
+    /**
+     * @return The date as java.sql.Date. java.sql.Date is only calculated, if this getter is called and it
+     * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
+     */
+    val sqlDate: java.sql.Date
+        get() {
+            if (_sqlDate == null) {
+                _sqlDate = java.sql.Date.valueOf(date)
+            }
+            return _sqlDate!!
         }
-        return sqlDate!!
-    }
+
+    val month: Month
+        get() = date.month
 
     fun isBefore(other: PFDate): Boolean {
         return date.isBefore(other.date)
@@ -49,10 +56,6 @@ class PFDate(val date: LocalDate) {
 
     fun isAfter(other: PFDate): Boolean {
         return date.isAfter(other.date)
-    }
-
-    fun month(): Month {
-        return date.month
     }
 
     fun daysBetween(other: PFDate): Long {

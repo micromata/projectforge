@@ -90,8 +90,8 @@ class CalendarServicesRest {
             : ResponseEntity<Any> {
         if (action != null && action != "select")
             return ResponseEntity("Action '$action' not supported. Supported action is only 'select'.", HttpStatus.BAD_REQUEST)
-        val startDate = if (start != null) RestHelper.parseJSDateTime(start)?.toEpochSeconds() else null
-        val endDate = if (end != null) RestHelper.parseJSDateTime(end)?.toEpochSeconds() else null
+        val startDate = if (start != null) RestHelper.parseJSDateTime(start)?.epochSeconds else null
+        val endDate = if (end != null) RestHelper.parseJSDateTime(end)?.epochSeconds else null
 
         val category: String;
         if (calendar.isNullOrBlank()) {
@@ -152,17 +152,17 @@ class CalendarServicesRest {
         val start = range.start
         when (view) {
             CalendarView.WEEK -> {
-                range.start = start.getBeginOfWeek()
+                range.start = start.beginOfWeek
                 range.end = range.start.plusDays(7)
             }
             CalendarView.DAY -> {
-                range.start = start.getBeginOfDay()
+                range.start = start.beginOfDay
                 range.end = range.start.plusDays(1)
             }
             else -> {
                 // Assuming month at default
-                range.start = start.getBeginOfMonth()
-                range.end = start.getEndOfMonth()
+                range.start = start.beginOfMonth
+                range.end = start.endOfMonth
             }
         }
     }
