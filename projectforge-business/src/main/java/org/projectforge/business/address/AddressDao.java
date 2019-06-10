@@ -334,14 +334,13 @@ public class AddressDao extends BaseDao<AddressDO> {
    *
    * @param fromDate Search for birthdays from given date (ignoring the year).
    * @param toDate   Search for birthdays until given date (ignoring the year).
-   * @param max      Maximum number of result entries.
    * @param all      If false, only the birthdays of favorites will be returned.
    * @return The entries are ordered by date of year and name.
    */
-  public Set<BirthdayAddress> getBirthdays(final Date fromDate, final Date toDate, final int max, final boolean all) {
+  public Set<BirthdayAddress> getBirthdays(final Date fromDate, final Date toDate, final boolean all) {
     long start = System.currentTimeMillis();
     BirthdayCache cache = TenantRegistryMap.getCache(BirthdayCache.class);
-    Set<BirthdayAddress> set = cache.getBirthdays(fromDate, toDate, max, all, personalAddressDao.getIdList());
+    Set<BirthdayAddress> set = cache.getBirthdays(fromDate, toDate, all, personalAddressDao.getIdList());
     log.info("getBirthdays took " + (System.currentTimeMillis() - start) + "ms.");
     return set;
   }

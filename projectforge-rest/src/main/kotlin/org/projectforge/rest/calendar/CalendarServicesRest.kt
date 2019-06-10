@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.calendar
 
+import org.projectforge.business.address.AddressDao
 import org.projectforge.business.calendar.CalendarFilter
 import org.projectforge.business.calendar.CalendarView
 import org.projectforge.business.user.service.UserPreferencesService
@@ -52,6 +53,9 @@ class CalendarServicesRest {
 
     private class DateTimeRange(var start: PFDateTime,
                                 var end: PFDateTime? = null)
+
+    @Autowired
+    private lateinit var addressDao: AddressDao
 
     @Autowired
     private lateinit var teamCalEventsProvider: TeamCalEventsProvider
@@ -132,6 +136,7 @@ class CalendarServicesRest {
 
         }
         teamCalEventsProvider.addEvents(range.start, range.end!!, events, visibleCalendarIds, calendarConfigServicesRest.getStyleMap())
+        BirthdaysProvider.addEvents(addressDao, range.start, range.end!!, events, calendarConfigServicesRest.getStyleMap())
         val specialDays = HolidayAndWeekendProvider.getSpecialDayInfos(range.start, range.end!!)
         var counter = 0
         events.forEach {

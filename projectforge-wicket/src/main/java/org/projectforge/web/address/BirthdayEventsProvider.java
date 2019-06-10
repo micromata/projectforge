@@ -23,9 +23,7 @@
 
 package org.projectforge.web.address;
 
-import java.util.Calendar;
-import java.util.Set;
-
+import net.ftlines.wicket.fullcalendar.Event;
 import org.apache.wicket.Component;
 import org.joda.time.DateTime;
 import org.projectforge.business.address.AddressDO;
@@ -39,7 +37,8 @@ import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.calendar.MyFullCalendarEventsProvider;
 
-import net.ftlines.wicket.fullcalendar.Event;
+import java.util.Calendar;
+import java.util.Set;
 
 /**
  * Creates events for FullCalendar.
@@ -90,7 +89,7 @@ public class BirthdayEventsProvider extends MyFullCalendarEventsProvider
     if (start.getMonthOfYear() == Calendar.MARCH && start.getDayOfMonth() == 1) {
       from = start.minusDays(1);
     }
-    final Set<BirthdayAddress> set = addressDao.getBirthdays(from.toDate(), end.toDate(), 1000, true);
+    final Set<BirthdayAddress> set = addressDao.getBirthdays(from.toDate(), end.toDate(), true);
     for (final BirthdayAddress birthdayAddress : set) {
       final AddressDO address = birthdayAddress.getAddress();
       final int month = birthdayAddress.getMonth() + 1;
