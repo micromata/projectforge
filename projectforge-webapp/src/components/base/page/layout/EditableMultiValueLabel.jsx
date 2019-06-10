@@ -39,6 +39,28 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
         label = `${label}${initialValue ? `: ${initialValue}` : ''}`;
     }
 
+    // Function to set value in react-select
+    const submitValue = () => {
+        switch (data.filterType) {
+            case 'COLOR_PICKER':
+                if (data.id && data.bgColor) {
+                    fetch(getServiceURL('calendar/changeStyle', {
+                        calendarId: data.id,
+                        bgColor: data.bgColor,
+                    }), {
+                        method: 'GET',
+                        credentials: 'include',
+                    })
+                        .catch(error => alert(`Internal error: ${error}`));
+                }
+                break;
+            default:
+        }
+
+        setIsOpen(false);
+        selectProps.setMultiValue(data.id, value);
+    };
+
     // Handle Different Types of Filters
     switch (data.filterType) {
         case 'STRING':
@@ -54,7 +76,7 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
             break;
         case 'COLOR_PICKER':
             input = (
-                <CalendarStyler calendar={data} />
+                <CalendarStyler calendar={data} submit={submitValue}/>
             );
             break;
         // Case for plain searchString without filterType
@@ -66,26 +88,6 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
         default:
             input = `${data.filterType} is not implemented yet.`;
     }
-
-    // Function to set value in react-select
-    const submitValue = () => {
-        switch (data.filterType) {
-            case 'COLOR_PICKER':
-                fetch(getServiceURL('calendar/changeStyle', {
-                    calendarId: data.id,
-                    bgColor: data.bgColor,
-                }), {
-                    method: 'GET',
-                    credentials: 'include',
-                })
-                    .catch(error => alert(`Internal error: ${error}`));
-                break;
-            default:
-        }
-
-        setIsOpen(false);
-        selectProps.setMultiValue(data.id, value);
-    };
 
     const selectHandler = {
         onClick: event => event.stopPropagation(),
