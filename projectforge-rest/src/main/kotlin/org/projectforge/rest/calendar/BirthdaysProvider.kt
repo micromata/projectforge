@@ -43,15 +43,20 @@ object BirthdaysProvider {
                   end: PFDateTime,
                   events: MutableList<BigCalendarEvent>,
                   styleMap: CalendarStyleMap,
+                  showFavoritesBirthdays: Boolean = false,
+                  showAllBirthdays: Boolean = false,
                   dataProtection: Boolean = true) {
         var from = start
         if (start.month == Month.MARCH && start.dayOfMonth == 1) {
             from = start.minusDays(1)
         }
         val set = addressDao.getBirthdays(from.utilDate, end.utilDate, true)
-        val style = styleMap.birthdaysStyle
+        val favoritesStyle = styleMap.birthdaysFavoritesStyle
+        val allStyle = styleMap.birthdaysAllStyle
 
         for (birthdayAddress in set) {
+            if (!showAllBirthdays && !birthdayAddress.isFavorite)
+                continue // Ignore non-favorites
             val address = birthdayAddress.getAddress()
             val month = birthdayAddress.getMonth() + 1
             val dayOfMonth = birthdayAddress.getDayOfMonth()
@@ -76,13 +81,24 @@ object BirthdaysProvider {
                 name
             }
 
+            val bgColor: String
+            val fgColor: String
+            if (showFavoritesBirthdays && birthdayAddress.isFavorite) {
+                bgColor = favoritesStyle.bgColor
+                fgColor = favoritesStyle.fgColor
+            } else {
+                bgColor = allStyle.bgColor // favorites are not selected or entry is not a favorite
+                fgColor = allStyle.fgColor // favorites are not selected or entry is not a favorite
+            }
+
             events.add(BigCalendarEvent(
                     title = title,
                     start = date.beginOfDay.utilDate,
                     end = date.endOfDay.utilDate,
                     allDay = true,
                     category = "birthday",
-                    bgColor = if (birthdayAddress.isFavorite) style.bgColor else null,
+                    bgColor = bgColor,
+                    fgColor = fgColor,
                     dbId = birthdayAddress.address?.id))
         }
     }

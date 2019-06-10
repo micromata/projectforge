@@ -86,6 +86,9 @@ class CalendarFilterServicesRest {
         }.toMutableList()
         calendars.removeIf { it.access == TeamCalendar.ACCESS.NONE } // Don't annoy admins.
 
+        calendars.add(0, TeamCalendar.createFavoritesBirthdaysPseudoCalendar())
+        calendars.add(0, TeamCalendar.createAllBirthdaysPseudoCalendar())
+
         val currentFilter = getCurrentFilter()
         initial.currentFilter = currentFilter
 

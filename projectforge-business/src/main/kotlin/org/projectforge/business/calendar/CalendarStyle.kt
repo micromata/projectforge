@@ -23,15 +23,13 @@
 
 package org.projectforge.business.calendar
 
-class CalendarStyle(var bgColor: String? = null, var fgColor: String? = null) {
-    init {
-        if (bgColor == null) {
-            bgColor = "#777"
-        }
-        if (fgColor == null) {
-            fgColor = if (black(bgColor)) "#666" else "#fff"
-        }
-    }
+import com.fasterxml.jackson.annotation.JsonProperty
+
+class CalendarStyle(var bgColor: String = "#777") {
+
+    val fgColor: String
+        @JsonProperty("fgColor")
+        get() = if (dark(bgColor)) "#fff" else "#444"
 
     internal class RGB(val r: Int, val g: Int, val b: Int)
 
@@ -70,8 +68,8 @@ class CalendarStyle(var bgColor: String? = null, var fgColor: String? = null) {
             return brightness(hexToRGB(color))
         }
 
-        fun black(color: String?): Boolean {
-            return brightness(color) > 180
+        fun dark(color: String?): Boolean {
+            return brightness(color) < 180
         }
     }
 }
