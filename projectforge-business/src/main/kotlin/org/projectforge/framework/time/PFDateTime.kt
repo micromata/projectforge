@@ -36,54 +36,101 @@ import java.time.temporal.ChronoUnit
  */
 class PFDateTime private constructor(val dateTime: ZonedDateTime) {
 
-    private var date: java.util.Date? = null
-    private var sqlDate: java.sql.Date? = null
-    private var sqlTimestamp: java.sql.Timestamp? = null
-    private var localDate: LocalDate? = null
+    private var _utilDate: java.util.Date? = null
+    /**
+     * @return The date as java.util.Date. java.util.Date is only calculated, if this getter is called and it
+     * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
+     */
+    val utilDate: java.util.Date
+        get() {
+            if (_utilDate == null)
+                _utilDate = java.util.Date.from(dateTime.toInstant())
+            return _utilDate!!
+        }
 
-    fun asUtilDate(): java.util.Date {
-        if (date == null)
-            date = java.util.Date.from(dateTime.toInstant())
-        return date!!
-    }
+    private var _sqlTimestamp: java.sql.Timestamp? = null
+    /**
+     * @return The date as java.sql.Timestamp. java.sql.Timestamp is only calculated, if this getter is called and it
+     * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
+     */
+    val sqlTimestamp: java.sql.Timestamp
+        get() {
+            if (_sqlTimestamp == null)
+                _sqlTimestamp = java.sql.Timestamp.from(dateTime.toInstant())
+            return _sqlTimestamp!!
+        }
 
-    fun asSqlTimestamp(): java.sql.Timestamp {
-        if (sqlTimestamp == null)
-            sqlTimestamp = java.sql.Timestamp.from(dateTime.toInstant())
-        return sqlTimestamp!!
-    }
+    private var _localDate: LocalDate? = null
+    /**
+     * @return The date as LocalDate. LocalDate is only calculated, if this getter is called and it
+     * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
+     */
+    val localDate: LocalDate
+        get() {
+            if (_localDate == null)
+                _localDate = dateTime.toLocalDate()
+            return _localDate!!
+        }
 
-    fun asLocalDate(): LocalDate {
-        if (localDate == null)
-            localDate = dateTime.toLocalDate()
-        return localDate!!
-    }
+    val month: Month
+        get() = dateTime.month
 
-    fun toEpochSeconds(): Long {
-        return dateTime.toEpochSecond()
-    }
+    val dayOfMonth: Int
+        get() = dateTime.dayOfMonth
+
+    val beginOfMonth: PFDateTime
+        get() = PFDateTime(PFDateTimeUtils.getBeginOfDay(dateTime.withDayOfMonth(1)))
+
+    val endOfMonth: PFDateTime
+        get() {
+            val nextMonth = dateTime.plusMonths(1).withDayOfMonth(1)
+            return PFDateTime(PFDateTimeUtils.getBeginOfDay(nextMonth.withDayOfMonth(1)))
+        }
+
+    val beginOfWeek: PFDateTime
+        get() {
+            val startOfWeek = PFDateTimeUtils.getBeginOfWeek(this.dateTime)
+            return PFDateTime(startOfWeek)
+        }
+
+    val endOfWeek: PFDateTime
+        get() {
+            val startOfWeek = PFDateTimeUtils.getBeginOfWeek(this.dateTime).plusDays(7)
+            return PFDateTime(startOfWeek)
+        }
+
+    val beginOfDay: PFDateTime
+        get() {
+            val startOfDay = PFDateTimeUtils.getBeginOfDay(dateTime)
+            return PFDateTime(startOfDay)
+        }
+
+    val endOfDay: PFDateTime
+        get() {
+            val endOfDay = PFDateTimeUtils.getEndOfDay(dateTime)
+            return PFDateTime(endOfDay)
+        }
+
+    val epochSeconds: Long
+        get() = dateTime.toEpochSecond()
 
     /**
      * Date part as ISO string: "yyyy-MM-dd HH:mm" in UTC.
      */
-    fun asIsoString(): String {
-        return isoDateTimeFormatterMinutes.format(dateTime)
-    }
+    val isoString: String
+        get() = isoDateTimeFormatterMinutes.format(dateTime)
 
     /**
      * Date as JavaScript string: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'" (UTC).
      */
-    fun asJavaScriptString(): String {
-        return jsDateTimeFormatter.format(dateTime)
-    }
+    val javaScriptString: String
+        get() = jsDateTimeFormatter.format(dateTime)
 
-    fun getZone(): ZoneId {
-        return dateTime.zone
-    }
+    val zone: ZoneId
+        get() = dateTime.zone
 
-    fun getTimeZone(): java.util.TimeZone {
-        return java.util.TimeZone.getTimeZone(dateTime.zone)
-    }
+    val timeZone: java.util.TimeZone
+        get() = java.util.TimeZone.getTimeZone(dateTime.zone)
 
     fun isBefore(other: PFDateTime): Boolean {
         return dateTime.isBefore(other.dateTime)
@@ -91,10 +138,6 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
 
     fun isAfter(other: PFDateTime): Boolean {
         return dateTime.isAfter(other.dateTime)
-    }
-
-    fun month(): Month {
-        return dateTime.month
     }
 
     fun daysBetween(other: PFDateTime): Long {
@@ -105,33 +148,8 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
         return PFDateTime(dateTime.plusDays(days))
     }
 
-    fun getBeginOfMonth(): PFDateTime {
-        return PFDateTime(PFDateTimeUtils.getBeginOfDay(dateTime.withDayOfMonth(1)))
-    }
-
-    fun getEndOfMonth(): PFDateTime {
-        val nextMonth = dateTime.plusMonths(1).withDayOfMonth(1)
-        return PFDateTime(PFDateTimeUtils.getBeginOfDay(nextMonth.withDayOfMonth(1)))
-    }
-
-    fun getBeginOfWeek(): PFDateTime {
-        val startOfWeek = PFDateTimeUtils.getBeginOfWeek(this.dateTime)
-        return PFDateTime(startOfWeek)
-    }
-
-    fun getEndOfWeek(): PFDateTime {
-        val startOfWeek = PFDateTimeUtils.getBeginOfWeek(this.dateTime).plusDays(7)
-        return PFDateTime(startOfWeek)
-    }
-
-    fun getBeginOfDay(): PFDateTime {
-        val startOfDay = PFDateTimeUtils.getBeginOfDay(dateTime)
-        return PFDateTime(startOfDay)
-    }
-
-    fun getEndOfDay(): PFDateTime {
-        val endOfDay = PFDateTimeUtils.getEndOfDay(dateTime)
-        return PFDateTime(endOfDay)
+    fun minusDays(days: Long): PFDateTime {
+        return PFDateTime(dateTime.minusDays(days))
     }
 
     companion object {

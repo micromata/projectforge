@@ -37,7 +37,7 @@ object HolidayAndWeekendProvider {
 
     fun getSpecialDayInfos(start: PFDateTime, end: PFDateTime): Map<String, SpecialDayInfo> {
         val result = mutableMapOf<String, SpecialDayInfo>()
-        var day = start.getBeginOfDay()
+        var day = start.beginOfDay
         do {
             var paranoiaCounter = 0
             val dateTime = day.dateTime
@@ -57,7 +57,7 @@ object HolidayAndWeekendProvider {
                         holidayInfo = translate(holidayInfo)
                     }
                 val dayInfo = SpecialDayInfo(weekend, holiday, holidayInfo, workingDay)
-                val localDate = day.asLocalDate()
+                val localDate = day.localDate
                 result.put(isoDateFormatter.format(localDate), dayInfo)
             }
             day = day.plusDays(1)

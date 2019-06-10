@@ -40,7 +40,7 @@ class PFDateTest {
         val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z")
         formatter.timeZone = TimeZone.getTimeZone("UTC")
 
-        var sqlDate = date.asSqlDate()
+        var sqlDate = date.sqlDate
         assertEquals("2019-04-10", sqlDate.toString())
 
         date = PFDate.from(sqlDate)

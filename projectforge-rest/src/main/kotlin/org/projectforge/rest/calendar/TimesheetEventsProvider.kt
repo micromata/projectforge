@@ -54,8 +54,8 @@ class TimesheetEventsProvider() {
         val ctx = Context()
         val tsFilter = TimesheetFilter()
         tsFilter.userId = userId
-        tsFilter.startTime = start.asUtilDate()
-        tsFilter.stopTime = end.asUtilDate()
+        tsFilter.startTime = start.utilDate
+        tsFilter.stopTime = end.utilDate
         tsFilter.orderType = OrderDirection.ASC
         val timesheets = timesheetDao.getList(tsFilter)
 
@@ -104,7 +104,7 @@ class TimesheetEventsProvider() {
             var outOfRange: Boolean? = null
             //if (ctx.longFormat) {
             // }
-            if (ctx.month != null && startTime.month() != ctx.month && stopTime.month() != ctx.month) {
+            if (ctx.month != null && startTime.month != ctx.month && stopTime.month != ctx.month) {
                 outOfRange = true
             }
             val link = "timesheet/edit/${timesheet.id}"

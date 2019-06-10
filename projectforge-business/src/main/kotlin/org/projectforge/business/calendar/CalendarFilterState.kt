@@ -52,7 +52,7 @@ class CalendarFilterState {
     fun updateCalendarFilter(startDate: Date?,
                              view: CalendarView?) {
         if (startDate != null) {
-            var startDay = PFDateTime.from(startDate)!!.asLocalDate()
+            var startDay = PFDateTime.from(startDate)!!.localDate
             if (view == CalendarView.MONTH && startDay.dayOfMonth != 1) {
                 // Adjusting the begin of month (startDate might be a day of the end of the previous month, if shown.
                 startDay = startDay.withDayOfMonth(1).plusMonths(1)

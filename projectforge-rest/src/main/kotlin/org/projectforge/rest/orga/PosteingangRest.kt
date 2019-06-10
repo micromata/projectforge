@@ -42,7 +42,7 @@ class PosteingangRest(): AbstractDORest<PosteingangDO, PosteingangDao, PostFilte
 
     override fun newBaseDO(request: HttpServletRequest): PosteingangDO {
         val inbox = super.newBaseDO(request)
-        inbox.datum = PFDate.now().asSqlDate()
+        inbox.datum = PFDate.now().sqlDate
         inbox.type = PostType.BRIEF
         return inbox
     }
