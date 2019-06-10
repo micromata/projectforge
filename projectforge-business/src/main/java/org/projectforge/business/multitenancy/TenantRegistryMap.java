@@ -23,10 +23,6 @@
 
 package org.projectforge.business.multitenancy;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
 import org.apache.commons.lang3.Validate;
 import org.projectforge.framework.cache.AbstractCache;
 import org.projectforge.framework.persistence.api.BaseDO;
@@ -35,13 +31,16 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.springframework.context.ApplicationContext;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 /**
  * Holds TenantCachesHolder element and detaches them if not used for some time to save memory.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class TenantRegistryMap extends AbstractCache
-{
+public class TenantRegistryMap extends AbstractCache {
   private static final long serialVersionUID = -7062742437818230657L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TenantRegistryMap.class);
@@ -62,31 +61,43 @@ public class TenantRegistryMap extends AbstractCache
 
   private TenantService tenantService;
 
-  public static TenantRegistryMap getInstance()
-  {
+  /**
+   * Short-cut for TenantRegistryMap.getInstance().getTenantRegistry()
+   * @return
+   */
+  public static TenantRegistry getRegistry() {
+    return instance.getTenantRegistry();
+  }
+
+  /**
+   * Short-cut for TenantRegistryMap.getInstance().getTenantRegistry().getCache(cacheClass)
+   * @return
+   */
+  public static <T extends AbstractCache> T getCache(Class<T> cacheClass) {
+    return instance.getTenantRegistry().getCache(cacheClass);
+  }
+
+  public static TenantRegistryMap getInstance() {
     return instance;
   }
 
-  private TenantRegistryMap()
-  {
+  private TenantRegistryMap() {
     super(EXPIRE_TIME);
   }
 
-  public TenantRegistry getTenantRegistry(final BaseDO<?> obj)
-  {
+  public TenantRegistry getTenantRegistry(final BaseDO<?> obj) {
     if (obj == null) {
       return getTenantRegistry();
     }
     return getTenantRegistry(obj.getTenant());
   }
 
-  public TenantRegistry getTenantRegistry(TenantDO tenant)
-  {
+  public TenantRegistry getTenantRegistry(TenantDO tenant) {
     checkRefresh();
     if (tenantService.isMultiTenancyAvailable() == false) {
       if (tenant != null && !tenant.isDefault()) {
         log.warn("Oups, why call getTenantRegistry with tenant " + tenant.getId()
-            + " if ProjectForge is running in single tenant mode?");
+                + " if ProjectForge is running in single tenant mode?");
       }
       return getSingleTenantRegistry();
     }
@@ -121,8 +132,7 @@ public class TenantRegistryMap extends AbstractCache
     }
   }
 
-  public TenantRegistry getTenantRegistry()
-  {
+  public TenantRegistry getTenantRegistry() {
     if (tenantService.isMultiTenancyAvailable() == false) {
       return getSingleTenantRegistry();
     }
@@ -130,16 +140,14 @@ public class TenantRegistryMap extends AbstractCache
     return getTenantRegistry(tenant);
   }
 
-  private TenantRegistry getSingleTenantRegistry()
-  {
+  private TenantRegistry getSingleTenantRegistry() {
     if (singleTenantRegistry == null) {
       singleTenantRegistry = createSingleTenantRegistry();
     }
     return singleTenantRegistry;
   }
 
-  private TenantRegistry createSingleTenantRegistry()
-  {
+  private TenantRegistry createSingleTenantRegistry() {
     synchronized (this) {
       return new TenantRegistry(tenantService.getDefaultTenant(), applicationContext);
     }
@@ -153,26 +161,23 @@ public class TenantRegistryMap extends AbstractCache
    *
    * @return
    */
-  private TenantRegistry getDummyTenantRegistry()
-  {
+  private TenantRegistry getDummyTenantRegistry() {
     if (dummyTenantRegistry == null) {
       createDummyTenantRegistry();
     }
     return dummyTenantRegistry;
   }
 
-  private void createDummyTenantRegistry()
-  {
+  private void createDummyTenantRegistry() {
     synchronized (this) {
       final TenantDO dummyTenant = new TenantDO().setName("Dummy tenant").setShortName("Dummy tenant")
-          .setDescription("This tenant is only a technical tenant, if no default tenant is given.");
+              .setDescription("This tenant is only a technical tenant, if no default tenant is given.");
       dummyTenant.setId(-1);
       dummyTenantRegistry = new TenantRegistry(dummyTenant, applicationContext);
     }
   }
 
-  public void clear()
-  {
+  public void clear() {
     synchronized (this) {
       singleTenantRegistry = null;
       dummyTenantRegistry = null;
@@ -184,8 +189,7 @@ public class TenantRegistryMap extends AbstractCache
    * @see org.projectforge.framework.cache.AbstractCache#refresh()
    */
   @Override
-  protected void refresh()
-  {
+  protected void refresh() {
     log.info("Refreshing " + TenantRegistry.class.getName() + "...");
     final Iterator<Map.Entry<Integer, TenantRegistry>> it = tenantRegistryMap.entrySet().iterator();
     while (it.hasNext() == true) {
@@ -194,24 +198,22 @@ public class TenantRegistryMap extends AbstractCache
       if (registry.isOutdated() == true) {
         final TenantDO tenant = registry.getTenant();
         log.info("Detaching caches of tenant '"
-            + (tenant != null ? tenant.getShortName() : "null")
-            + "' with id "
-            + (tenant != null ? tenant.getId() : "null"));
+                + (tenant != null ? tenant.getShortName() : "null")
+                + "' with id "
+                + (tenant != null ? tenant.getId() : "null"));
         it.remove();
       }
     }
     log.info("Refreshing of " + TenantRegistry.class.getName() + " done.");
   }
 
-  public void setAllUserGroupCachesAsExpired()
-  {
+  public void setAllUserGroupCachesAsExpired() {
     for (final TenantRegistry registry : tenantRegistryMap.values()) {
       registry.getUserGroupCache().setExpired();
     }
   }
 
-  public void setApplicationContext(ApplicationContext applicationContext)
-  {
+  public void setApplicationContext(ApplicationContext applicationContext) {
     this.applicationContext = applicationContext;
     this.tenantChecker = applicationContext.getBean(TenantChecker.class);
     this.tenantService = applicationContext.getBean(TenantService.class);
