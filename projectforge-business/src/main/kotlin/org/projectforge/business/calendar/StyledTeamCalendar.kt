@@ -29,7 +29,7 @@ package org.projectforge.business.calendar
 class StyledTeamCalendar(teamCalendar: TeamCalendar?,
                          var style: CalendarStyle? = null,
                          val visible: Boolean = true)
-    : TeamCalendar(teamCalendar?.id, teamCalendar?.title) {
+    : TeamCalendar(teamCalendar?.id, teamCalendar?.title, teamCalendar?.access) {
 
     companion object {
         /**
