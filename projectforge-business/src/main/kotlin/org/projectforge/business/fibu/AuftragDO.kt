@@ -178,7 +178,7 @@ class AuftragDO : DefaultBaseDO() {
      * @return the XML representation of the uiStatus.
      * @see AuftragUIStatus
      */
-    @get:NoHistory
+    @field:NoHistory
     @get:Column(name = "ui_status_as_xml", length = 10000)
     var uiStatusAsXml: String? = null
 
