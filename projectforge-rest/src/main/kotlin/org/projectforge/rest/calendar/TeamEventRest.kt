@@ -46,13 +46,17 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao, TeamEventFilte
     @Autowired
     private lateinit var teamCalDao: TeamCalDao
 
-    override protected fun onGetItemAndLayout(request: HttpServletRequest, item: TeamEventDO, editLayoutData: AbstractBaseRest.EditLayoutData) {
+    override fun onGetItemAndLayout(request: HttpServletRequest, item: TeamEventDO, editLayoutData: AbstractBaseRest.EditLayoutData) {
         val recurrentDateString = request.getParameter("recurrentDate")
         println("TeamEventRest: recurrentDate=$recurrentDateString")
     }
 
     override fun afterEdit(obj: TeamEventDO): ResponseAction {
         return ResponseAction("calendar").addVariable("id", obj.id ?: -1)
+    }
+
+    override fun getById(id: String?): TeamEventDO? {
+        return super.getById(id)
     }
 
     /**
