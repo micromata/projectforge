@@ -30,16 +30,36 @@ package org.projectforge.business.calendar
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
 class CalendarStyleMap {
+    companion object {
+        const val BIRTHDAY_CALENDAR = "birthdays"
+    }
+
     /**
      * Colors for the calendarIds by calendar id.
      */
-    internal val styles = mutableMapOf<Int, CalendarStyle>()
+    private val styles = mutableMapOf<String, CalendarStyle>()
 
-    fun add(calendarId : Int, style : CalendarStyle) {
-        styles.put(calendarId, style)
+    val birthdaysStyle: CalendarStyle
+        get() {
+            val style = get(BIRTHDAY_CALENDAR)
+            if (style != null)
+                return style
+            return CalendarStyle(bgColor = "#06790e", fgColor = "#ffffff")
+        }
+
+    fun contains(calendarId: Int): Boolean {
+        return styles.containsKey("$calendarId")
     }
 
-    fun get(calendarId: Int?) : CalendarStyle? {
-        return styles[calendarId]
+    fun add(calendarId: Int, style: CalendarStyle) {
+        styles.put("$calendarId", style)
+    }
+
+    fun get(calendarId: Int?): CalendarStyle? {
+        return if (calendarId != null) styles["$calendarId"] else null
+    }
+
+    fun get(id: String?): CalendarStyle? {
+        return if (id != null) styles[id] else null
     }
 }
