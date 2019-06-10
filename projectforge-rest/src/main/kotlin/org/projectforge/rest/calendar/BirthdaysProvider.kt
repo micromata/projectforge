@@ -96,7 +96,7 @@ object BirthdaysProvider {
                     start = date.beginOfDay.utilDate,
                     end = date.endOfDay.utilDate,
                     allDay = true,
-                    category = "birthday",
+                    category = "address",
                     bgColor = bgColor,
                     fgColor = fgColor,
                     dbId = birthdayAddress.address?.id))
