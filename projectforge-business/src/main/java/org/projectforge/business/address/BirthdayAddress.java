@@ -138,7 +138,7 @@ public class BirthdayAddress implements Comparable<BirthdayAddress>, Serializabl
   }
 
   /**
-   * 0 - January, 1 - February...
+   * 0 - January, 1 - February... (Calendar.MONTH)
    */
   public int getMonth()
   {

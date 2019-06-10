@@ -23,16 +23,16 @@
 
 package org.projectforge.framework.time;
 
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
-
-import org.apache.commons.lang3.Validate;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
 /**
  * Parse and formats dates.
@@ -561,6 +561,9 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
     return calendar.get(Calendar.DAY_OF_YEAR);
   }
 
+  /**
+   * Gets the month-of-year field from 1 to 12.
+   */
   public int getDayOfMonth()
   {
     return calendar.get(Calendar.DAY_OF_MONTH);
