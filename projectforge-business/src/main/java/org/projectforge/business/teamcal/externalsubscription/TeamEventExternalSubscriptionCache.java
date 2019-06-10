@@ -23,14 +23,6 @@
 
 package org.projectforge.business.teamcal.externalsubscription;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.common.DataobjectAccessType;
@@ -48,14 +40,15 @@ import org.projectforge.framework.time.DateHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.*;
+
 /**
  * @author Johannes Unterstein (j.unterstein@micromata.de)
  */
 @Component
-public class TeamEventExternalSubscriptionCache
-{
+public class TeamEventExternalSubscriptionCache {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
-      .getLogger(TeamEventExternalSubscriptionCache.class);
+          .getLogger(TeamEventExternalSubscriptionCache.class);
 
   private static final long MAX_WAIT_MS_AFTER_FAILED_UPDATE = 1000 * 60 * 60 * 24; // 24 h
 
@@ -74,8 +67,7 @@ public class TeamEventExternalSubscriptionCache
   @Autowired
   private UserRightService userRights;
 
-  public void updateCache()
-  {
+  public void updateCache() {
     log.info("Start updating TeamEventExternalSubscriptionCache.");
     final QueryFilter filter = new QueryFilter();
     filter.add(Restrictions.eq("externalSubscription", true));
@@ -96,15 +88,13 @@ public class TeamEventExternalSubscriptionCache
     removeCalendarsFromCache(idsToRemove);
   }
 
-  private void removeCalendarsFromCache(final List<Integer> idsToRemove)
-  {
+  private void removeCalendarsFromCache(final List<Integer> idsToRemove) {
     for (final Integer calendarId : idsToRemove) {
       subscriptions.remove(calendarId);
     }
   }
 
-  private boolean calendarListContainsId(final List<TeamCalDO> subscribedCalendars, final Integer calendarId)
-  {
+  private boolean calendarListContainsId(final List<TeamCalDO> subscribedCalendars, final Integer calendarId) {
     for (final TeamCalDO teamCal : subscribedCalendars) {
       if (teamCal.getId().equals(calendarId)) {
         return true;
@@ -113,8 +103,7 @@ public class TeamEventExternalSubscriptionCache
     return false;
   }
 
-  public void updateCache(final TeamCalDO calendar)
-  {
+  public void updateCache(final TeamCalDO calendar) {
     updateCache(calendar, false);
   }
 
@@ -122,8 +111,7 @@ public class TeamEventExternalSubscriptionCache
    * @param calendar
    * @param force    If true then update is forced (independent of last update time and refresh interval).
    */
-  public void updateCache(final TeamCalDO calendar, final boolean force)
-  {
+  public void updateCache(final TeamCalDO calendar, final boolean force) {
     final Integer calId = calendar.getId();
     if (calId == null) {
       log.error("Oups, calId is null (can't update subscription): " + calendar);
@@ -132,15 +120,15 @@ public class TeamEventExternalSubscriptionCache
     TeamEventSubscription teamEventSubscription = subscriptions.get(calId);
     final Long now = System.currentTimeMillis();
     final Long addedTime = calendar.getExternalSubscriptionUpdateInterval() == null ? SUBSCRIPTION_UPDATE_TIME
-        : 1000L * calendar
-        .getExternalSubscriptionUpdateInterval();
+            : 1000L * calendar
+            .getExternalSubscriptionUpdateInterval();
     if (teamEventSubscription == null) {
       // First update of subscribed calendar:
       teamEventSubscription = new TeamEventSubscription();
       subscriptions.put(calendar.getId(), teamEventSubscription);
       teamEventSubscription.update(teamCalDao, calendar);
     } else if (force == true || teamEventSubscription.getLastUpdated() == null
-        || teamEventSubscription.getLastUpdated() + addedTime <= now) {
+            || teamEventSubscription.getLastUpdated() + addedTime <= now) {
       if (force == false && teamEventSubscription.getNumberOfFailedUpdates() > 0) {
         // Errors occurred and update not forced. Don't update e. g. every 5 minutes if a permanently error occurs.
         Long lastRun = teamEventSubscription.getLastUpdated();
@@ -151,13 +139,13 @@ public class TeamEventExternalSubscriptionCache
           teamEventSubscription.update(teamCalDao, calendar);
         } else if (lastRun + MAX_WAIT_MS_AFTER_FAILED_UPDATE > now) {
           log.info("Try to update subscribed calendar after "
-              + (MAX_WAIT_MS_AFTER_FAILED_UPDATE / 1000 / 60 / 60)
-              + " hours. Number of failed updates: "
-              + teamEventSubscription.getNumberOfFailedUpdates()
-              + ", time of last successful update (UTC): "
-              + (teamEventSubscription.getLastUpdated() != null
-              ? DateHelper.formatAsUTC(new Date(teamEventSubscription.getLastUpdated()))
-              : "-"));
+                  + (MAX_WAIT_MS_AFTER_FAILED_UPDATE / 1000 / 60 / 60)
+                  + " hours. Number of failed updates: "
+                  + teamEventSubscription.getNumberOfFailedUpdates()
+                  + ", time of last successful update (UTC): "
+                  + (teamEventSubscription.getLastUpdated() != null
+                  ? DateHelper.formatAsUTC(new Date(teamEventSubscription.getLastUpdated()))
+                  : "-"));
           teamEventSubscription.update(teamCalDao, calendar);
         }
       } else {
@@ -167,27 +155,24 @@ public class TeamEventExternalSubscriptionCache
     }
   }
 
-  public boolean isExternalSubscribedCalendar(final Integer calendarId)
-  {
+  public boolean isExternalSubscribedCalendar(final Integer calendarId) {
     return subscriptions.keySet().contains(calendarId) == true;
   }
 
-  public List<TeamEventDO> getEvents(final Integer calendarId, final Long startTime, final Long endTime)
-  {
+  public List<TeamEventDO> getEvents(final Integer calendarId, final Long startTime, final Long endTime) {
     final TeamEventSubscription eventSubscription = subscriptions.get(calendarId);
     if (eventSubscription == null) {
       return null;
     }
     final Integer userId = ThreadLocalUserContext.getUserId();
     final DataobjectAccessType accessType = getAccessType(eventSubscription.getTeamCalId(), userId);
-    if (accessType == DataobjectAccessType.NONE) {
+    if (!accessType.hasAnyAccess()) {
       return null;
     }
     return eventSubscription.getEvents(startTime, endTime, accessType == DataobjectAccessType.MINIMAL);
   }
 
-  public List<TeamEventDO> getRecurrenceEvents(final TeamEventFilter filter)
-  {
+  public List<TeamEventDO> getRecurrenceEvents(final TeamEventFilter filter) {
     final List<TeamEventDO> result = new ArrayList<TeamEventDO>();
     // precondition: existing teamcals ins filter
     final Collection<Integer> teamCals = new LinkedList<Integer>();
@@ -199,8 +184,7 @@ public class TeamEventExternalSubscriptionCache
           continue;
         }
         final TeamCalDO calendar = teamCalCache.getCalendar(calendarId);
-        if (getTeamCalRight().getAccessType(calendar, userId).isIn(DataobjectAccessType.FULL, DataobjectAccessType.READONLY,
-            DataobjectAccessType.MINIMAL) == false) {
+        if (!getTeamCalRight().getAccessType(calendar, userId).hasAnyAccess()) {
           continue;
         }
         teamCals.add(calendarId);
@@ -210,8 +194,7 @@ public class TeamEventExternalSubscriptionCache
       final TeamEventSubscription eventSubscription = subscriptions.get(filter.getTeamCalId());
       if (eventSubscription != null) {
         final TeamCalDO cal = teamCalCache.getCalendar(filter.getTeamCalId());
-        if (getTeamCalRight().getAccessType(cal, userId)
-            .isIn(DataobjectAccessType.FULL, DataobjectAccessType.READONLY, DataobjectAccessType.MINIMAL) == true) {
+        if (getTeamCalRight().getAccessType(cal, userId).hasAnyAccess()) {
           teamCals.add(filter.getTeamCalId());
         }
       }
@@ -237,8 +220,7 @@ public class TeamEventExternalSubscriptionCache
     return result;
   }
 
-  private DataobjectAccessType getAccessType(final Integer calendarId, final Integer userId)
-  {
+  private DataobjectAccessType getAccessType(final Integer calendarId, final Integer userId) {
     final TeamCalDO cal = teamCalCache.getCalendar(calendarId);
     return getTeamCalRight().getAccessType(cal, userId);
   }
@@ -246,8 +228,7 @@ public class TeamEventExternalSubscriptionCache
   /**
    * @return the teamCalRight
    */
-  public TeamCalRight getTeamCalRight()
-  {
+  public TeamCalRight getTeamCalRight() {
     if (teamCalRight == null) {
       teamCalRight = (TeamCalRight) userRights.getRight(UserRightId.PLUGIN_CALENDAR);
     }

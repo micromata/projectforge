@@ -54,7 +54,8 @@ class AddressbookDO : BaseUserGroupRightsDO() {
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "owner_fk")
-    var owner: PFUserDO? = null
+    override var owner: PFUserDO? = null
+
 
     @PropertyInfo(i18nKey = "addressbook.description")
     @Field

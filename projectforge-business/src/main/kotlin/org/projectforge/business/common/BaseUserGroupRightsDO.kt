@@ -23,16 +23,32 @@
 
 package org.projectforge.business.common
 
+import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import javax.persistence.Column
 import javax.persistence.MappedSuperclass
-
-import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import javax.persistence.Transient
 
 /**
- * Created by blumenstein on 18.07.17.
+ * Base class for objects supporting user and group specific rights. You may define single group and user ids for the
+ * different access types, such as owner, full access, readonly access and minimal access.
  */
 @MappedSuperclass
-open class BaseUserGroupRightsDO : DefaultBaseDO() {
+abstract class BaseUserGroupRightsDO : DefaultBaseDO() {
+
+    /**
+     * The owner of this object.
+     */
+    @get:Transient
+    abstract val owner: PFUserDO?
+
+
+    /**
+     * The id of the owner if exist, otherwise null.
+     */
+    val ownerId
+        @Transient
+        get() = owner?.id
 
     /**
      * Members of these groups have full read/write access to all entries of this object.
@@ -56,8 +72,9 @@ open class BaseUserGroupRightsDO : DefaultBaseDO() {
     var readonlyAccessUserIds: String? = null
 
     /**
-     * Members of these group have read-only access to all entries of this object, but they can only see the event start
-     * and stop time
+     * Members of these group have read-only access to all entries of this object, but they can only see a minimal
+     * set of the data of this object. This is used e. g. for calendar entries, where the users may only see the
+     * start and end time of an event, but no information of details such as location, notes etc.
      */
     @get:Column(name = "minimal_access_group_ids", nullable = true)
     var minimalAccessGroupIds: String? = null

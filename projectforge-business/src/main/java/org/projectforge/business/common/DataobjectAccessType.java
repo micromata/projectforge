@@ -26,12 +26,24 @@ package org.projectforge.business.common;
 /**
  * @author Kai Reinhard (k.reinhard@me.de)
  */
-public enum DataobjectAccessType
-{
-  FULL, READONLY, MINIMAL, NONE;
+public enum DataobjectAccessType {
+  OWNER, FULL, READONLY, MINIMAL, NONE;
 
-  public boolean isIn(final DataobjectAccessType... types)
-  {
+  /**
+   * @return true, if equals to OWNER, FULL, READONLY or MINIMAL, false otherwise (NONE).
+   */
+  public boolean hasAnyAccess() {
+    return this != NONE;
+  }
+
+  /**
+   * @return true, if equals to OWNER or FULL, false otherwies.
+   */
+  public boolean hasFullAccess() {
+    return this == OWNER || this == FULL;
+  }
+
+  public boolean isIn(final DataobjectAccessType... types) {
     for (final DataobjectAccessType type : types) {
       if (this == type) {
         return true;

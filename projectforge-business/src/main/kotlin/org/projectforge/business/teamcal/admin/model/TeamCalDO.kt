@@ -55,7 +55,7 @@ class TeamCalDO : BaseUserGroupRightsDO() {
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "owner_fk")
-    var owner: PFUserDO? = null
+    override var owner: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "plugins.teamcal.description")
     @Field
@@ -104,10 +104,6 @@ class TeamCalDO : BaseUserGroupRightsDO() {
     @get:Column(name = "ext_subscription_calendar_binary")
     @get:Type(type = "binary")
     var externalSubscriptionCalendarBinary: ByteArray? = null
-
-    val ownerId: Int?
-        @Transient
-        get() = if (owner != null) owner!!.id else null
 
     /**
      * Shorten the url or avoiding logging of user credentials as part of the url.<br></br>
