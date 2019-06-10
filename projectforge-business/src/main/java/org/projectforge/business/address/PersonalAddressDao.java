@@ -23,17 +23,6 @@
 
 package org.projectforge.business.address;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import java.util.Objects;
 import org.apache.commons.lang3.Validate;
 import org.hibernate.LockMode;
 import org.projectforge.business.user.UserDao;
@@ -51,6 +40,10 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.Serializable;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -239,13 +232,35 @@ public class PersonalAddressDao
     final PFUserDO owner = ThreadLocalUserContext.getUser();
     Validate.notNull(owner);
     Validate.notNull(owner.getId());
+    final long start = System.currentTimeMillis();
     @SuppressWarnings("unchecked")
     List<PersonalAddressDO> list = (List<PersonalAddressDO>) hibernateTemplate.find(
         "from "
             + PersonalAddressDO.class.getSimpleName()
             + " t join fetch t.address where t.owner.id=? and t.address.deleted=false order by t.address.name, t.address.firstName",
         owner.getId());
+    log.info("PersonalDao.getList took " + (System.currentTimeMillis() - start) + "ms.");
     list = list.stream().filter(pa -> checkAccess(pa, false) == true).collect(Collectors.toList());
+    return list;
+  }
+
+  /**
+   * @return the list of all PersonalAddressDO entries for the context user without any check access (addresses might be also deleted).
+   */
+  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+  public List<Integer> getIdList()
+  {
+    final long start = System.currentTimeMillis();
+    final PFUserDO owner = ThreadLocalUserContext.getUser();
+    Validate.notNull(owner);
+    Validate.notNull(owner.getId());
+    @SuppressWarnings("unchecked")
+    List<Integer> list = (List<Integer>) hibernateTemplate.find(
+            "select address.id from "
+                    + PersonalAddressDO.class.getSimpleName()
+                    + " where owner.id=?",
+            owner.getId());
+    log.info("PersonalDao.getIdList took " + (System.currentTimeMillis() - start) + "ms.");
     return list;
   }
 
