@@ -58,6 +58,8 @@ public class TeamEventExternalSubscriptionCache {
 
   private transient TeamCalRight teamCalRight;
 
+  private boolean initialized;
+
   @Autowired
   private TeamCalDao teamCalDao;
 
@@ -66,6 +68,14 @@ public class TeamEventExternalSubscriptionCache {
 
   @Autowired
   private UserRightService userRights;
+
+  // @PostConstruct doesn't work (it will be called to early before TenantRegistryMap is ready).
+  private synchronized void init(){
+    if (initialized == false) {
+      updateCache();
+      initialized = true;
+    }
+  }
 
   public void updateCache() {
     log.info("Start updating TeamEventExternalSubscriptionCache.");
@@ -156,10 +166,12 @@ public class TeamEventExternalSubscriptionCache {
   }
 
   public boolean isExternalSubscribedCalendar(final Integer calendarId) {
+    init();
     return subscriptions.keySet().contains(calendarId) == true;
   }
 
   public List<TeamEventDO> getEvents(final Integer calendarId, final Long startTime, final Long endTime) {
+    init();
     final TeamEventSubscription eventSubscription = subscriptions.get(calendarId);
     if (eventSubscription == null) {
       return null;
@@ -173,6 +185,7 @@ public class TeamEventExternalSubscriptionCache {
   }
 
   public TeamEventDO getEvent(final Integer calendarId, final String uid) {
+    init();
     final TeamEventSubscription eventSubscription = subscriptions.get(calendarId);
     if (eventSubscription == null) {
       return null;
@@ -186,6 +199,7 @@ public class TeamEventExternalSubscriptionCache {
   }
 
   public List<TeamEventDO> getRecurrenceEvents(final TeamEventFilter filter) {
+    init();
     final List<TeamEventDO> result = new ArrayList<TeamEventDO>();
     // precondition: existing teamcals ins filter
     final Collection<Integer> teamCals = new LinkedList<Integer>();
