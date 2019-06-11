@@ -285,9 +285,9 @@ abstract class AbstractBaseRest<
 
     abstract fun returnItem(item: O): ResponseEntity<Any>
 
-    open protected fun getById(id: String?): O? {
-        if (id == null) return null
-        return getById(id.toInt())
+    open protected fun getById(idString: String?): O? {
+        if (idString == null) return null
+        return getById(idString.toInt())
     }
 
     protected fun getById(id: Int?): O? {

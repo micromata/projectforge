@@ -255,6 +255,15 @@ public class TeamEventSubscription implements Serializable
     return result;
   }
 
+
+  public TeamEventDO getEvent(final String uid)
+  {
+    if (subscription == null) {
+      return null;
+    }
+    return subscription.getEvent(uid);
+  }
+
   public List<TeamEventDO> getEvents(final Long startTime, final Long endTime, final boolean minimalAccess)
   {
     if (subscription == null) {

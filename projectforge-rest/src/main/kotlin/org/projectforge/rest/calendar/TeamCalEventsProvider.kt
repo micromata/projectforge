@@ -69,9 +69,28 @@ class TeamCalEventsProvider() {
             //val link = "teamEvent/edit/${eventDO.id}$recurrentDate"
             val allDay = eventDO.isAllDay()
             val style = styleMap.get(eventDO.calendarId)
-            events.add(BigCalendarEvent(it.subject, it.startDate, it.endDate, allDay,
-                    location = it.location, desc = it.note, category = "teamEvent", dbId = eventDO.id,
-                    bgColor = style?.bgColor, fgColor = style?.fgColor))
+            val dbId: Int?
+            val uid:String?
+            if (eventDO.id > 0){
+                dbId = eventDO.id
+                uid = null
+            } else {
+                dbId = null
+                uid = "${eventDO.calendarId}-${eventDO.uid}"
+            }
+            val event = BigCalendarEvent(
+                    it.subject,
+                    it.startDate,
+                    it.endDate,
+                    allDay,
+                    location = it.location,
+                    desc = it.note,
+                    category = "teamEvent",
+                    dbId = dbId,
+                    uid = uid,
+                    bgColor = style?.bgColor,
+                    fgColor = style?.fgColor)
+            events.add(event)
         }
     }
 }
