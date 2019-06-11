@@ -173,20 +173,26 @@ public class TeamEventExternalSubscriptionCache {
   public List<TeamEventDO> getEvents(final Integer calendarId, final Long startTime, final Long endTime) {
     init();
     final TeamEventSubscription eventSubscription = subscriptions.get(calendarId);
-    if (eventSubscription == null) {
+    final DataobjectAccessType accessType = getAccessType(eventSubscription);
+    if (accessType == null)
       return null;
-    }
-    final Integer userId = ThreadLocalUserContext.getUserId();
-    final DataobjectAccessType accessType = getAccessType(eventSubscription.getTeamCalId(), userId);
-    if (!accessType.hasAnyAccess()) {
-      return null;
-    }
     return eventSubscription.getEvents(startTime, endTime, accessType == DataobjectAccessType.MINIMAL);
   }
 
   public TeamEventDO getEvent(final Integer calendarId, final String uid) {
     init();
     final TeamEventSubscription eventSubscription = subscriptions.get(calendarId);
+    final DataobjectAccessType accessType = getAccessType(eventSubscription);
+    if (accessType == null)
+      return null;
+    return eventSubscription.getEvent(uid);
+  }
+
+  /**
+   * Checks also the access.
+   * @return The accessType if available and the logged in user has access to, otherwise null.
+   */
+  private DataobjectAccessType getAccessType(TeamEventSubscription eventSubscription) {
     if (eventSubscription == null) {
       return null;
     }
@@ -195,7 +201,7 @@ public class TeamEventExternalSubscriptionCache {
     if (!accessType.hasAnyAccess()) {
       return null;
     }
-    return eventSubscription.getEvent(uid);
+    return accessType;
   }
 
   public List<TeamEventDO> getRecurrenceEvents(final TeamEventFilter filter) {
