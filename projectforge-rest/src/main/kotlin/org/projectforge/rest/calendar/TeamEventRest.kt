@@ -27,6 +27,7 @@ import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.event.TeamEventDao
 import org.projectforge.business.teamcal.event.TeamEventFilter
 import org.projectforge.business.teamcal.event.model.TeamEventDO
+import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractBaseRest
 import org.projectforge.rest.core.AbstractDORest
@@ -43,8 +44,13 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao, TeamEventFilte
         TeamEventFilter::class.java,
         "plugins.teamcal.event.title") {
 
+    private val log = org.slf4j.LoggerFactory.getLogger(TeamEventRest::class.java)
+
     @Autowired
     private lateinit var teamCalDao: TeamCalDao
+
+    @Autowired
+    private lateinit var teamEventExternalSubscriptionCache: TeamEventExternalSubscriptionCache
 
     override fun onGetItemAndLayout(request: HttpServletRequest, item: TeamEventDO, editLayoutData: AbstractBaseRest.EditLayoutData) {
         val recurrentDateString = request.getParameter("recurrentDate")
@@ -55,8 +61,34 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao, TeamEventFilte
         return ResponseAction("calendar").addVariable("id", obj.id ?: -1)
     }
 
-    override fun getById(id: String?): TeamEventDO? {
-        return super.getById(id)
+    override fun getById(idString: String?): TeamEventDO? {
+        if (idString.isNullOrBlank())
+            return TeamEventDO()
+        if (idString.contains('-')) { // {calendarId}-{uid}
+            val vals = idString.split('-', limit = 2)
+            if (vals.size != 2) {
+                log.error("Can't get event of subscribed calendar. id must be of form {calId}-{uid} but is '$idString'.")
+                return TeamEventDO()
+            }
+            try {
+                val calId = vals[0].toInt()
+                val uid = vals[1]
+                val cal = teamCalDao.getById(calId)
+                if (cal == null) {
+                    log.error("Can't get calendar with id #$calId.")
+                    return TeamEventDO()
+                }
+                if (!cal.externalSubscription) {
+                    log.error("Calendar with id #$calId is not an external subscription, can't get event by uid.")
+                    return TeamEventDO()
+                }
+                return teamEventExternalSubscriptionCache.getEvent(calId, uid)
+            } catch (ex: NumberFormatException) {
+                log.error("Can't get event of subscribed calendar. id must be of form {calId}-{uid} but is '$idString', a NumberFormatException occured.")
+                return TeamEventDO()
+            }
+        }
+        return super.getById(idString)
     }
 
     /**

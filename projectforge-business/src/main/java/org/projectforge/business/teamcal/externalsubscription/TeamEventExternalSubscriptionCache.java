@@ -172,6 +172,19 @@ public class TeamEventExternalSubscriptionCache {
     return eventSubscription.getEvents(startTime, endTime, accessType == DataobjectAccessType.MINIMAL);
   }
 
+  public TeamEventDO getEvent(final Integer calendarId, final String uid) {
+    final TeamEventSubscription eventSubscription = subscriptions.get(calendarId);
+    if (eventSubscription == null) {
+      return null;
+    }
+    final Integer userId = ThreadLocalUserContext.getUserId();
+    final DataobjectAccessType accessType = getAccessType(eventSubscription.getTeamCalId(), userId);
+    if (!accessType.hasAnyAccess()) {
+      return null;
+    }
+    return eventSubscription.getEvent(uid);
+  }
+
   public List<TeamEventDO> getRecurrenceEvents(final TeamEventFilter filter) {
     final List<TeamEventDO> result = new ArrayList<TeamEventDO>();
     // precondition: existing teamcals ins filter
