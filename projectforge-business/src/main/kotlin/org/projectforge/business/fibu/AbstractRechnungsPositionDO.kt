@@ -116,7 +116,7 @@ abstract class AbstractRechnungsPositionDO: DefaultBaseDO(), ShortDisplayNameCap
         @Transient
         get() {
             var sum = BigDecimal.ZERO
-            if (CollectionUtils.isNotEmpty(this.kostZuweisungen) == true) {
+            if (CollectionUtils.isNotEmpty(this.kostZuweisungen)) {
                 for (zuweisung in this.kostZuweisungen!!) {
                     sum = NumberHelper.add(sum, zuweisung.netto)
                 }
@@ -130,12 +130,12 @@ abstract class AbstractRechnungsPositionDO: DefaultBaseDO(), ShortDisplayNameCap
 
     val isEmpty: Boolean
         @Transient
-        get() = if (StringUtils.isBlank(text) == false) {
+        get() = if (!StringUtils.isBlank(text)) {
             false
-        } else NumberHelper.isNotZero(einzelNetto) == false
+        } else !NumberHelper.isNotZero(einzelNetto)
 
     /**
-     * @param idx Index of the cost assignment not index of collection.
+     * @param index Index of the cost assignment not index of collection.
      * @return KostZuweisungDO with given index or null, if not exist.
      */
     fun getKostZuweisung(index: Int): KostZuweisungDO? {
@@ -185,7 +185,7 @@ abstract class AbstractRechnungsPositionDO: DefaultBaseDO(), ShortDisplayNameCap
      */
     fun deleteKostZuweisung(idx: Int): AbstractRechnungsPositionDO {
         val zuweisung = getKostZuweisung(idx) ?: return this
-        if (isKostZuweisungDeletable(zuweisung) == false) {
+        if (!isKostZuweisungDeletable(zuweisung)) {
             log
                     .error(
                             "Deleting of cost assignements which are already persisted (a id / pk already exists) or not are not the last entry is not supported. Do nothing.")
@@ -205,7 +205,7 @@ abstract class AbstractRechnungsPositionDO: DefaultBaseDO(), ShortDisplayNameCap
         if (zuweisung == null) {
             return false
         }
-        if (this is EingangsrechnungsPositionDO && !(zuweisung.eingangsrechnungsPositionId == this.id) || this is RechnungsPositionDO && !(zuweisung.rechnungsPositionId == this.id)) {
+        if (this is EingangsrechnungsPositionDO && zuweisung.eingangsrechnungsPositionId != this.id || this is RechnungsPositionDO && zuweisung.rechnungsPositionId != this.id) {
             log.error("Oups, given cost assignment is not assigned to this invoice position.")
             return false
         }
@@ -239,13 +239,13 @@ abstract class AbstractRechnungsPositionDO: DefaultBaseDO(), ShortDisplayNameCap
         return rechnungsPosition
     }
 
-    override fun equals(o: Any?): Boolean {
-        if (o is AbstractRechnungsPositionDO) {
-            val other = o as AbstractRechnungsPositionDO?
-            if (!(this.number == other!!.number)) {
+    override fun equals(other: Any?): Boolean {
+        if (other is AbstractRechnungsPositionDO) {
+            val o = other as AbstractRechnungsPositionDO?
+            if (this.number != o!!.number) {
                 return false
             }
-            return this.rechnungId == other.rechnungId
+            return this.rechnungId == o.rechnungId
         }
         return false
     }
@@ -262,9 +262,5 @@ abstract class AbstractRechnungsPositionDO: DefaultBaseDO(), ShortDisplayNameCap
     @Transient
     override fun getShortDisplayName(): String {
         return number.toString()
-    }
-
-    companion object {
-        private val serialVersionUID = 4132530394057069876L
     }
 }
