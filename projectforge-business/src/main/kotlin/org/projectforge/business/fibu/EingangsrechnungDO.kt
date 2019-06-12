@@ -84,6 +84,10 @@ class EingangsrechnungDO : AbstractRechnungDO<EingangsrechnungsPositionDO>(), Co
     @get:ListIndexBase(1)
     override var positionen: MutableList<EingangsrechnungsPositionDO>? = null
 
+    override fun setRechnung(position: EingangsrechnungsPositionDO) {
+        position.eingangsrechnung = this
+    }
+
     /**
      * (this.status == EingangsrechnungStatus.BEZAHLT && this.bezahlDatum != null && this.zahlBetrag != null)
      */

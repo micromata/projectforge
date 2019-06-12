@@ -60,10 +60,14 @@ public class RechnungCacheTest extends AbstractTestBase {
 
     final RechnungDO rechnung1 = new RechnungDO();
     RechnungsPositionDO position = new RechnungsPositionDO();
-    position.setAuftragsPosition(auftrag.getPosition((short) 1)).setEinzelNetto(new BigDecimal("100")).setText("1.1");
+    position.setAuftragsPosition(auftrag.getPosition((short) 1));
+    position.setEinzelNetto(new BigDecimal("100"));
+    position.setText("1.1");
     rechnung1.addPosition(position);
     position = new RechnungsPositionDO();
-    position.setAuftragsPosition(auftrag.getPosition((short) 2)).setEinzelNetto(new BigDecimal("200")).setText("1.2");
+    position.setAuftragsPosition(auftrag.getPosition((short) 2));
+    position.setEinzelNetto(new BigDecimal("200"));
+    position.setText("1.2");
     rechnung1.addPosition(position);
     rechnung1.setNummer(rechnungDao.getNextNumber(rechnung1));
     rechnung1.setDatum(today.getSQLDate());
@@ -73,7 +77,9 @@ public class RechnungCacheTest extends AbstractTestBase {
 
     final RechnungDO rechnung2 = new RechnungDO();
     position = new RechnungsPositionDO();
-    position.setAuftragsPosition(auftrag.getPosition((short) 1)).setEinzelNetto(new BigDecimal("400")).setText("2.1");
+    position.setAuftragsPosition(auftrag.getPosition((short) 1));
+    position.setEinzelNetto(new BigDecimal("400"));
+    position.setText("2.1");
     rechnung2.addPosition(position);
     rechnung2.setNummer(rechnungDao.getNextNumber(rechnung2));
     rechnung2.setDatum(today.getSQLDate());

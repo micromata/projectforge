@@ -174,6 +174,10 @@ class RechnungDO : AbstractRechnungDO<RechnungsPositionDO>(), Comparable<Rechnun
         @Transient
         get() = KundeFormatter.formatKundeAsString(this.kunde, this.kundeText)
 
+    override fun setRechnung(position: RechnungsPositionDO) {
+        position.rechnung = this
+    }
+
     override fun compareTo(other: RechnungDO): Int {
         if (this.datum != null && other.datum != null) {
             val r = other.datum!!.compareTo(this.datum!!)
