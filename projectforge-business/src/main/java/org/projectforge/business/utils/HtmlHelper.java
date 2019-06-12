@@ -23,11 +23,11 @@
 
 package org.projectforge.business.utils;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
 
 public class HtmlHelper
 {
@@ -39,18 +39,18 @@ public class HtmlHelper
    * Only xml characters will be escaped (for compatibility with fop rendering engine).
    *
    * @return
-   * @see StringEscapeUtils#escapeXml(String)
+   * @see StringEscapeUtils#escapeXml11(String)
    */
   public static String escapeXml(final String str)
   {
-    return StringEscapeUtils.escapeXml(str);
+    return StringEscapeUtils.escapeXml11(str);
   }
 
   /**
    * @param str              The string to convert.
    * @param createLineBreaks If true then new lines will be replaced by newlines and &lt;br/&gt;
    * @return
-   * @see StringEscapeUtils#escapeHtml(String)
+   * @see StringEscapeUtils#escapeHtml4(String)
    */
   public static String escapeHtml(final String str, final boolean createLineBreaks)
   {

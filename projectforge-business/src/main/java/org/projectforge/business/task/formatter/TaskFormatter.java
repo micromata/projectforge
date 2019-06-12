@@ -23,10 +23,8 @@
 
 package org.projectforge.business.task.formatter;
 
-import java.util.List;
-
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.projectforge.business.common.OutputType;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskNode;
@@ -35,6 +33,8 @@ import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.common.task.TaskStatus;
 import org.projectforge.framework.i18n.AbstractFormatter;
+
+import java.util.List;
 
 public class TaskFormatter extends AbstractFormatter
 {
@@ -45,7 +45,6 @@ public class TaskFormatter extends AbstractFormatter
    * @param taskId
    * @param showCurrentTask if true also the given task by id will be added to the path, otherwise the path of the
    *                        parent task will be shown.
-   * @param escapeHtml
    */
   public static String getTaskPath(final Integer taskId, final boolean showCurrentTask, final OutputType outputType)
   {
@@ -59,7 +58,6 @@ public class TaskFormatter extends AbstractFormatter
    * @param ancestorTaskId
    * @param showCurrentTask if true also the given task by id will be added to the path, otherwise the path of the
    *                        parent task will be shown.
-   * @param escapeHtml
    */
   public static String getTaskPath(Integer taskId, final Integer ancestorTaskId, final boolean showCurrentTask,
       final OutputType outputType)
@@ -90,12 +88,12 @@ public class TaskFormatter extends AbstractFormatter
       if (i++ > 0) {
         buf.append(" -> ");
       }
-      buf.append(StringEscapeUtils.escapeXml(task.getTitle()));
+      buf.append(StringEscapeUtils.escapeXml11(task.getTitle()));
     }
     if (outputType == OutputType.HTML) {
       return StringEscapeUtils.escapeHtml4(buf.toString());
     } else if (outputType == OutputType.XML) {
-      return StringEscapeUtils.escapeXml(buf.toString());
+      return StringEscapeUtils.escapeXml11(buf.toString());
     } else {
       return buf.toString();
     }
