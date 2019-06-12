@@ -27,7 +27,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.search.annotations.*
-import org.hibernate.search.annotations.Index
 import org.projectforge.business.task.TaskDO
 import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
@@ -43,8 +42,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@ClassBridge(name = "position", index = Index.YES, analyze = Analyze.NO, store = Store.NO, impl = HibernateSearchAuftragsPositionBridge::class)
-/* UN_TOKENIZED */
+@ClassBridge(name = "position", analyze = Analyze.NO, impl = HibernateSearchAuftragsPositionBridge::class)
 @Table(name = "t_fibu_auftrag_position", uniqueConstraints = [UniqueConstraint(columnNames = ["auftrag_fk", "number"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_position_auftrag_fk", columnList = "auftrag_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_position_task_fk", columnList = "task_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_position_tenant_id", columnList = "tenant_id")])
 class AuftragsPositionDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
@@ -171,16 +169,16 @@ class AuftragsPositionDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * Throws UserException if vollstaendigFakturiert is true and status is not ABGESCHLOSSEN.
      */
     fun checkVollstaendigFakturiert() {
-        if (vollstaendigFakturiert == true && (status == null || status!!.isIn(AuftragsPositionsStatus.ABGESCHLOSSEN) == false)) {
+        if (vollstaendigFakturiert == true && (status == null || !status!!.isIn(AuftragsPositionsStatus.ABGESCHLOSSEN))) {
             throw UserException(
                     "fibu.auftrag.error.nurAbgeschlosseneAuftragsPositionenKoennenVollstaendigFakturiertSein")
         }
     }
 
-    override fun equals(o: Any?): Boolean {
-        if (o is AuftragsPositionDO) {
-            val other = o as AuftragsPositionDO?
-            return this.number == other!!.number && this.auftragId == other.auftragId
+    override fun equals(other: Any?): Boolean {
+        if (other is AuftragsPositionDO) {
+            val o = other as AuftragsPositionDO?
+            return this.number == o!!.number && this.auftragId == o.auftragId
         }
         return false
     }
