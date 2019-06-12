@@ -223,7 +223,7 @@ abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBase
             var netSum = BigDecimal.ZERO
             for (pos in this.positionen!!) {
                 if (CollectionUtils.isNotEmpty(pos.kostZuweisungen)) {
-                    for (zuweisung in pos.kostZuweisungen) {
+                    for (zuweisung in pos.kostZuweisungen!!) {
                         if (zuweisung.netto != null) {
                             netSum = netSum.add(zuweisung.netto)
                         }
@@ -267,21 +267,23 @@ abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBase
         ensureAndGetPositionen()
         var number: Short = 1
         for (pos in positionen!!) {
-            if (pos.getNumber() >= number) {
-                number = pos.getNumber()
+            if (pos.number >= number) {
+                number = pos.number
                 number++
             }
         }
-        position.setNumber(number)
-        position.rechnung = this
+        position.number = number
+        setRechnung(position)
         this.positionen!!.add(position)
         return this
     }
 
+    abstract fun setRechnung(position : T)
+
     fun ensureAndGetPositionen(): List<T> {
         run {
             if (this.positionen == null) {
-                positionen = mutableListOf<T>()
+                positionen = mutableListOf()
             }
             return positionen as MutableList<T>
         }
