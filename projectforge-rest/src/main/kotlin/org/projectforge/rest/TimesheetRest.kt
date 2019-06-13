@@ -137,7 +137,9 @@ class TimesheetRest() : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilte
     }
 
     override fun afterEdit(obj: TimesheetDO): ResponseAction {
-        return ResponseAction("calendar").addVariable("id", obj.id ?: -1)
+        return ResponseAction("calendar")
+                .addVariable("date", obj.startTime)
+                .addVariable("id", obj.id ?: -1)
     }
 
     override fun processResultSetBeforeExport(resultSet: ResultSet<Any>) {
