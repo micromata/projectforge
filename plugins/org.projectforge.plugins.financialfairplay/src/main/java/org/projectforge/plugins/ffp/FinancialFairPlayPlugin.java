@@ -40,6 +40,7 @@ import java.util.List;
 
 /**
  * @author Florian Blumenstein
+ * Buggy: Deselect plugin on startup: update t_configuration set stringValue='extendemployeedata,ihkexport,licenseManagementPlugin,liquidplanning,marketing,memo,skillmatrix,todo' where parameter='pluginsActivated';
  */
 public class FinancialFairPlayPlugin extends AbstractPlugin {
   public static final String ID = "financialfairplay";

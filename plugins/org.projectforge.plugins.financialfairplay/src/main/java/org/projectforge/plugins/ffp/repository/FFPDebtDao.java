@@ -23,8 +23,6 @@
 
 package org.projectforge.plugins.ffp.repository;
 
-import java.util.List;
-
 import org.hibernate.criterion.LogicalExpression;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.SimpleExpression;
@@ -40,8 +38,12 @@ import org.projectforge.plugins.ffp.wicket.FFPDebtFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * Access to ffp events.
+ *
+ * Buggy: Deselect plugin on startup: update t_configuration set stringValue='extendemployeedata,ihkexport,licenseManagementPlugin,liquidplanning,marketing,memo,skillmatrix,todo' where parameter='pluginsActivated';
  *
  * @author Florian Blumenstein
  */
