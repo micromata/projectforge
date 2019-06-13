@@ -51,11 +51,9 @@ class EingangsrechnungsPositionDO : AbstractRechnungsPositionDO() {
     @get:OrderColumn(name = "index")
     override var kostZuweisungen: MutableList<KostZuweisungDO>? = null
 
-    override var rechnungId:  Int?
+    override val rechnungId:  Int?
+        @Transient
         get() = eingangsrechnung?.id
-        set(id) {
-            this.eingangsrechnung?.id = id
-        }
 
     @Transient
     override fun setThis(kostZuweisung: KostZuweisungDO) {

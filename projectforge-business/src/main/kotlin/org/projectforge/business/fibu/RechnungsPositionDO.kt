@@ -26,9 +26,8 @@ package org.projectforge.business.fibu
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import org.hibernate.search.annotations.*
 import org.projectforge.business.fibu.kost.KostZuweisungDO
-
-import javax.persistence.*
 import java.sql.Date
+import javax.persistence.*
 
 /**
  * Repräsentiert eine Position innerhalb eine Rechnung.
@@ -67,11 +66,9 @@ class RechnungsPositionDO : AbstractRechnungsPositionDO() {
     @get:OrderColumn(name = "index")
     override var kostZuweisungen: MutableList<KostZuweisungDO>? = null
 
-    override var rechnungId: Int?
+    override val rechnungId: Int?
+        @Transient
         get() = rechnung?.id
-        set(id) {
-            this.rechnung?.id = id
-        }
 
     @Transient
     override fun setThis(kostZuweisung: KostZuweisungDO) {
