@@ -75,7 +75,14 @@ class AddressRest()
         val address = Address()
         address.copyFrom(obj)
         val personalAddress = personalAddressDao.getByAddressId(obj.id)
-        address.isFavoriteCard = personalAddress?.isFavorite == true
+        if (personalAddress != null) {
+            address.isFavoriteCard = personalAddress.isFavorite == true
+            address.isFavoriteBusinessPhone = personalAddress.isFavoriteBusinessPhone == true
+            address.isFavoriteMobilePhone = personalAddress.isFavoriteMobilePhone == true
+            address.isFavoriteFax = personalAddress.isFavoriteFax == true
+            address.isFavoritePrivatePhone = personalAddress.isFavoritePrivatePhone == true
+            address.isFavoritePrivateMobilePhone = personalAddress.isFavoritePrivateMobilePhone == true
+        }
         return address
     }
 
@@ -145,6 +152,11 @@ class AddressRest()
         val personalAddress = PersonalAddressDO()
         personalAddress.address = address
         personalAddress.isFavoriteCard = dto.isFavoriteCard
+        personalAddress.isFavoriteBusinessPhone = dto.isFavoriteBusinessPhone
+        personalAddress.isFavoritePrivatePhone = dto.isFavoritePrivatePhone
+        personalAddress.isFavoriteMobilePhone = dto.isFavoriteMobilePhone
+        personalAddress.isFavoritePrivateMobilePhone = dto.isFavoritePrivateMobilePhone
+        personalAddress.isFavoriteFax = dto.isFavoriteFax
         personalAddressDao.setOwner(personalAddress, getUserId()) // Set current logged in user as owner.
         personalAddressDao.saveOrUpdate(personalAddress)
         //return null
@@ -215,15 +227,12 @@ class AddressRest()
                 //autoCompletion = AutoCompletion(url = "addressBook/ac?search="))))
                 .add(UIRow()
                         .add(UIFieldset(6)
-                                .add(UIRow()
-                                        .add(UICol(length = 9)
-                                                .add(UISelect("addressbookList", lc,
-                                                        multi = true,
-                                                        values = addressbooks,
-                                                        labelProperty = "title",
-                                                        valueProperty = "id")))
-                                        .add(UICol(length = 3)
-                                                .add(UICheckbox("favorite", label = "favorite")))))
+                                .add(createFavoriteRow(UISelect("addressbookList", lc,
+                                        multi = true,
+                                        values = addressbooks,
+                                        labelProperty = "title",
+                                        valueProperty = "id"),
+                                        "isFavoriteCard")))
                         .add(UIFieldset(6)
                                 .add(UIRow()
                                         .add(UICol(length = 6)
@@ -239,9 +248,17 @@ class AddressRest()
                         .add(UIFieldset(12)
                                 .add(UIRow()
                                         .add(UICol(6)
-                                                .add(lc, "businessPhone", "mobilePhone", "fax"))
+                                                .add(createFavoriteRow(UIInput("businessPhone", lc),
+                                                        "isFavoriteBusinessPhone"))
+                                                .add(createFavoriteRow(UIInput("mobilePhone", lc),
+                                                        "isFavoriteMobilePhone"))
+                                                .add(createFavoriteRow(UIInput("fax", lc),
+                                                        "isFavoriteFax")))
                                         .add(UICol(6)
-                                                .add(lc, "privatePhone", "privateMobilePhone")))))
+                                                .add(createFavoriteRow(UIInput("privatePhone", lc),
+                                                        "isFavoritePrivatePhone"))
+                                                .add(createFavoriteRow(UIInput("privateMobilePhone", lc),
+                                                        "isFavoritePrivateMobilePhone"))))))
                 .add(UIRow()
                         .add(UIFieldset(6, title = "address.heading.businessAddress")
                                 .add(lc, "addressText")
@@ -327,5 +344,13 @@ class AddressRest()
             item.imageData = byteArrayOf(1)
             item.imageDataPreview = byteArrayOf(1)
         }
+    }
+
+    private fun createFavoriteRow(inputElement: UIElement, id: String): UIRow {
+        return UIRow()
+                .add(UICol(length = 9)
+                        .add(inputElement))
+                .add(UICol(length = 3)
+                        .add(UICheckbox(id, label = "favorite")))
     }
 }
