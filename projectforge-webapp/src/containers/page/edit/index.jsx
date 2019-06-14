@@ -2,11 +2,9 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import { changeEditFormField, loadEditPage } from '../../../actions';
-import Navigation from '../../../components/base/navigation';
-import ActionGroup from '../../../components/base/page/action/Group';
+import DynamicLayout from '../../../components/base/dynamicLayout';
 import TabNavigation from '../../../components/base/page/edit/TabNavigation';
 import LayoutGroup from '../../../components/base/page/layout/LayoutGroup';
-import PageNavigation from '../../../components/base/page/Navigation';
 import { Alert, Container, TabContent, TabPane, } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
 import { getTranslation } from '../../../utilities/layout';
@@ -15,6 +13,16 @@ import style from '../../ProjectForge.module.scss';
 import EditHistory from './history';
 
 class EditPage extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            useDynamicLayout: true,
+        };
+
+        this.setData = this.setData.bind(this);
+        this.toggleDynamicLayout = this.toggleDynamicLayout.bind(this);
+    }
+
     componentDidMount() {
         const {
             load,
@@ -31,6 +39,34 @@ class EditPage extends React.Component {
         );
     }
 
+    async setData(newData, callback) {
+        // Load some props from redux
+        const { data, changeDataField } = this.props;
+
+        // compute new data if it's a function.
+        const computedNewData = typeof newData === 'function' ? newData(data) : newData;
+
+        Object.keys(computedNewData)
+            .forEach(key => changeDataField(key, computedNewData[key]));
+
+        const absoluteNewData = {
+            ...data,
+            ...computedNewData,
+        };
+
+        if (callback) {
+            callback(absoluteNewData);
+        }
+
+        return absoluteNewData;
+    }
+
+    toggleDynamicLayout() {
+        this.setState(({ useDynamicLayout }) => ({
+            useDynamicLayout: !useDynamicLayout,
+        }));
+    }
+
     render() {
         const {
             changeDataField,
@@ -44,6 +80,10 @@ class EditPage extends React.Component {
         } = this.props;
 
         const { category, id } = match.params;
+
+        const {
+            useDynamicLayout,
+        } = this.state;
 
         if (error) {
             return (
@@ -74,9 +114,6 @@ class EditPage extends React.Component {
 
         return (
             <LoadingContainer loading={loading}>
-                <PageNavigation current={ui.title}>
-                    <Navigation entries={ui.pageMenu || []} />
-                </PageNavigation>
                 <TabNavigation
                     tabs={tabs}
                     activeTab={activeTab}
@@ -87,16 +124,44 @@ class EditPage extends React.Component {
                 >
                     <TabPane tabId="edit">
                         <Container fluid>
+                            <Alert color="secondary">
+                                <p>
+                                    Da die LayoutGroup noch nicht vollständig zu DynamicLayout
+                                    umgezogen
+                                    wurde, kann hier noch die alte LayoutGroup angezeigt werden.
+                                    Bearbeitet sollte jedoch nur das DynamicLayout, da dieses bald
+                                    die
+                                    LayoutGroup vollständig ablöst.
+                                </p>
+                                <button onClick={this.toggleDynamicLayout} type="button">
+                                    {`Wechsel zu ${useDynamicLayout ? 'LayoutGroup' : 'DynamicLayout'}`}
+                                </button>
+                            </Alert>
                             <form>
-                                <LayoutGroup
-                                    content={ui.layout}
-                                    data={data}
-                                    variables={variables}
-                                    translations={ui.translations}
-                                    changeDataField={changeDataField}
-                                    validation={validation}
-                                />
-                                <ActionGroup actions={ui.actions} />
+                                {useDynamicLayout
+                                    ? (
+                                        <DynamicLayout
+                                            ui={ui}
+                                            data={data}
+                                            options={{
+                                                displayPageMenu: id !== undefined,
+                                                setBrowserTitle: true,
+                                                showPageMenuTitle: false,
+                                            }}
+                                            setData={this.setData}
+                                        />
+                                    )
+                                    : (
+                                        <LayoutGroup
+                                            content={ui.layout}
+                                            data={data}
+                                            variables={variables}
+                                            translations={ui.translations}
+                                            changeDataField={changeDataField}
+                                            validation={validation}
+                                        />
+                                    )
+                                }
                             </form>
                         </Container>
                     </TabPane>
