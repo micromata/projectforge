@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -55,7 +55,7 @@ class TeamCalDO : BaseUserGroupRightsDO() {
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "owner_fk")
-    var owner: PFUserDO? = null
+    override var owner: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "plugins.teamcal.description")
     @Field
@@ -69,8 +69,8 @@ class TeamCalDO : BaseUserGroupRightsDO() {
     /**
      * This hash value is used for detecting changes of an subscribed calendar.
      */
-    @NoHistory
     @JsonIgnore
+    @field:NoHistory
     @get:Column(length = 255, name = "ext_subscription_hash")
     var externalSubscriptionHash: String? = null
 
@@ -98,16 +98,12 @@ class TeamCalDO : BaseUserGroupRightsDO() {
      * This binary contains all the events of a subscribed calendar and might be large. Don't export this field to
      * any client because it may contain private data.
      */
-    @NoHistory
     @JsonIgnore
+    @field:NoHistory
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column(name = "ext_subscription_calendar_binary")
     @get:Type(type = "binary")
     var externalSubscriptionCalendarBinary: ByteArray? = null
-
-    val ownerId: Int?
-        @Transient
-        get() = if (owner != null) owner!!.id else null
 
     /**
      * Shorten the url or avoiding logging of user credentials as part of the url.<br></br>

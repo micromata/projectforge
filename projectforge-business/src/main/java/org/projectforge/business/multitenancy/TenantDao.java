@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,7 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.continuousdb.Table;
 import org.projectforge.framework.access.AccessException;
@@ -113,7 +113,7 @@ public class TenantDao extends BaseDao<TenantDO>
     if (defaultTenant == null) {
       return;
     }
-    if (obj.getId() == null || ObjectUtils.equals(defaultTenant.getId(), obj.getId()) == false) {
+    if (obj.getId() == null || Objects.equals(defaultTenant.getId(), obj.getId()) == false) {
       throw new UserException("multitenancy.error.maxOnlyOneTenantShouldBeDefault");
     }
   }

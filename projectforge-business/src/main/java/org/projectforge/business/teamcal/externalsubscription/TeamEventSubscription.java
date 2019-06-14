@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,6 @@
 
 package org.projectforge.business.teamcal.externalsubscription;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.Serializable;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -42,6 +33,15 @@ import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.ical.ICalParser;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.time.DateHelper;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Holds and updates events of a subscribed calendar.
@@ -144,6 +144,7 @@ public class TeamEventSubscription implements Serializable
       if (StringUtils.equals(md5, teamCalDO.getExternalSubscriptionHash()) == false) {
         teamCalDO.setExternalSubscriptionHash(md5);
         teamCalDO.setExternalSubscriptionCalendarBinary(bytes);
+        teamCalDO.setMinorChange(true); // Don't need to re-index (failed).
         // internalUpdate is valid at this point, because we are calling this method in an async thread
         teamCalDao.internalUpdate(teamCalDO);
       }
@@ -252,6 +253,15 @@ public class TeamEventSubscription implements Serializable
       result = new BigInteger(1, md5).toString(16);
     }
     return result;
+  }
+
+
+  public TeamEventDO getEvent(final String uid)
+  {
+    if (subscription == null) {
+      return null;
+    }
+    return subscription.getEvent(uid);
   }
 
   public List<TeamEventDO> getEvents(final Long startTime, final Long endTime, final boolean minimalAccess)

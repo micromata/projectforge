@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -60,21 +60,29 @@ public class RechnungCacheTest extends AbstractTestBase {
 
     final RechnungDO rechnung1 = new RechnungDO();
     RechnungsPositionDO position = new RechnungsPositionDO();
-    position.setAuftragsPosition(auftrag.getPosition((short) 1)).setEinzelNetto(new BigDecimal("100")).setText("1.1");
+    position.setAuftragsPosition(auftrag.getPosition((short) 1));
+    position.setEinzelNetto(new BigDecimal("100"));
+    position.setText("1.1");
     rechnung1.addPosition(position);
     position = new RechnungsPositionDO();
-    position.setAuftragsPosition(auftrag.getPosition((short) 2)).setEinzelNetto(new BigDecimal("200")).setText("1.2");
+    position.setAuftragsPosition(auftrag.getPosition((short) 2));
+    position.setEinzelNetto(new BigDecimal("200"));
+    position.setText("1.2");
     rechnung1.addPosition(position);
-    rechnung1.setNummer(rechnungDao.getNextNumber(rechnung1)).setDatum(today.getSQLDate());
+    rechnung1.setNummer(rechnungDao.getNextNumber(rechnung1));
+    rechnung1.setDatum(today.getSQLDate());
     rechnung1.setFaelligkeit(new Date(System.currentTimeMillis()));
     rechnung1.setProjekt(initTestDB.addProjekt(null, 1, "foo"));
     rechnungDao.save(rechnung1);
 
     final RechnungDO rechnung2 = new RechnungDO();
     position = new RechnungsPositionDO();
-    position.setAuftragsPosition(auftrag.getPosition((short) 1)).setEinzelNetto(new BigDecimal("400")).setText("2.1");
+    position.setAuftragsPosition(auftrag.getPosition((short) 1));
+    position.setEinzelNetto(new BigDecimal("400"));
+    position.setText("2.1");
     rechnung2.addPosition(position);
-    rechnung2.setNummer(rechnungDao.getNextNumber(rechnung2)).setDatum(today.getSQLDate());
+    rechnung2.setNummer(rechnungDao.getNextNumber(rechnung2));
+    rechnung2.setDatum(today.getSQLDate());
     rechnung2.setFaelligkeit(new Date(System.currentTimeMillis()));
     rechnung2.setProjekt(initTestDB.addProjekt(null, 1, "foo"));
     rechnungDao.save(rechnung2);

@@ -1,26 +1,13 @@
-import { faStar } from '@fortawesome/free-regular-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import Select from 'react-select';
-import {
-    Button,
-    Card,
-    CardBody,
-    Col,
-    Container,
-    Popover,
-    PopoverBody,
-    PopoverHeader,
-    Row,
-} from 'reactstrap';
+import { Card, CardBody, Row, } from 'reactstrap';
 import EditableMultiValueLabel from '../../components/base/page/layout/EditableMultiValueLabel';
-import style from '../../components/design/input/Input.module.scss';
 import LoadingContainer from '../../components/design/loading-container';
 import { getServiceURL } from '../../utilities/rest';
+import CalendarFilterSettings from '../panel/calendar/CalendarFilterSettings';
 import CalendarPanel from '../panel/calendar/CalendarPanel';
+import FavoritesPanel from '../panel/FavoritesPanel';
 import { customStyles } from './Calendar.module';
-import UncontrolledReactSelect from '../../components/base/page/layout/UncontrolledReactSelect';
-import { faCog } from '@fortawesome/free-solid-svg-icons';
 
 class CalendarPage extends React.Component {
     constructor(props) {
@@ -34,15 +21,19 @@ class CalendarPage extends React.Component {
             activeCalendars: [],
             listOfDefaultCalendars: [],
             defaultCalendar: undefined,
+            filterFavorites: undefined,
             translations: undefined,
-            settingsPopoverOpen: false,
         };
 
         this.fetchInitial = this.fetchInitial.bind(this);
         this.onChange = this.onChange.bind(this);
-        this.toggleSettingsPopover = this.toggleSettingsPopover.bind(this);
         this.handleMultiValueChange = this.handleMultiValueChange.bind(this);
         this.changeDefaultCalendar = this.changeDefaultCalendar.bind(this);
+        this.onFavoriteCreate = this.onFavoriteCreate.bind(this);
+        this.onFavoriteDelete = this.onFavoriteDelete.bind(this);
+        this.onFavoriteRename = this.onFavoriteRename.bind(this);
+        this.onFavoriteSelect = this.onFavoriteSelect.bind(this);
+        this.onFavoriteUpdate = this.onFavoriteUpdate.bind(this);
     }
 
     componentDidMount() {
@@ -54,10 +45,50 @@ class CalendarPage extends React.Component {
         this.setState({ activeCalendars });
     }
 
-    toggleSettingsPopover() {
-        this.setState(prevState => ({
-            settingsPopoverOpen: !prevState.settingsPopoverOpen,
-        }));
+    onFavoriteCreate(newFilterName) {
+        fetch(getServiceURL('calendar/createNewFilter',
+            { newFilterName }), {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                Accept: 'application/json',
+            },
+        })
+            .catch(error => alert(`Internal error: ${error}`));
+    }
+
+    onFavoriteDelete(id) {
+        fetch(getServiceURL('calendar/deleteFilter',
+            { id }), {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                Accept: 'application/json',
+            },
+        })
+            .catch(error => alert(`Internal error: ${error}`));
+    }
+
+    onFavoriteSelect(id) {
+        fetch(getServiceURL('calendar/selectFilter',
+            { id }), {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                Accept: 'application/json',
+            },
+        })
+        // TODO ONLY RELOAD THE DATA
+            .then(() => window.location.reload())
+            .catch(error => alert(`Internal error: ${error}`));
+    }
+
+    onFavoriteRename(id, newName) {
+        console.log(id, newName);
+    }
+
+    onFavoriteUpdate(id) {
+        console.log(id);
     }
 
     changeDefaultCalendar(defaultCalendar) {
@@ -81,6 +112,7 @@ class CalendarPage extends React.Component {
                     teamCalendars,
                     activeCalendars,
                     listOfDefaultCalendars,
+                    filterFavorites,
                     translations,
                 } = json;
                 this.setState({
@@ -89,6 +121,7 @@ class CalendarPage extends React.Component {
                     teamCalendars,
                     activeCalendars,
                     listOfDefaultCalendars,
+                    filterFavorites,
                     view,
                     translations,
                 });
@@ -111,8 +144,8 @@ class CalendarPage extends React.Component {
             listOfDefaultCalendars,
             colors,
             date,
+            filterFavorites,
             loading,
-            settingsPopoverOpen,
             teamCalendars,
             translations,
             view,
@@ -134,18 +167,10 @@ class CalendarPage extends React.Component {
                     <CardBody>
                         <form>
                             <Row>
-                                <Button
-                                    id="settingsPopover"
-                                    color="link"
-                                    className="selectPanelIconLinks"
-                                    onClick={this.toggleSettingsPopover}
-                                >
-                                    <FontAwesomeIcon
-                                        icon={faCog}
-                                        className={style.icon}
-                                        size="lg"
-                                    />
-                                </Button>
+                                <CalendarFilterSettings
+                                    listOfDefaultCalendars={listOfDefaultCalendars}
+                                    translations={translations}
+                                />
                                 <Select
                                     closeMenuOnSelect={false}
                                     components={{
@@ -169,17 +194,15 @@ class CalendarPage extends React.Component {
                                     // loadOptions={loadOptions}
                                     // defaultOptions={defaultOptions}
                                 />
-                                <Button
-                                    color="link"
-                                    className="selectPanelIconLinks"
-                                    disabled
-                                >
-                                    <FontAwesomeIcon
-                                        icon={faStar}
-                                        className={style.icon}
-                                        size="lg"
-                                    />
-                                </Button>
+                                <FavoritesPanel
+                                    onFavoriteCreate={this.onFavoriteCreate}
+                                    onFavoriteDelete={this.onFavoriteDelete}
+                                    onFavoriteRename={this.onFavoriteRename}
+                                    onFavoriteSelect={this.onFavoriteSelect}
+                                    onFavoriteUpdate={this.onFavoriteUpdate}
+                                    favorites={filterFavorites}
+                                    translations={translations}
+                                />
                             </Row>
                         </form>
                     </CardBody>
@@ -191,46 +214,6 @@ class CalendarPage extends React.Component {
                     topHeight="225px"
                     translations={translations}
                 />
-                <Popover
-                    placement="bottom-end"
-                    isOpen={settingsPopoverOpen}
-                    target="settingsPopover"
-                    toggle={this.toggleSettingsPopover}
-                    trigger="legacy"
-                >
-                    <PopoverHeader toggle={this.settingsPopoverOpen}>
-                        {translations['calendar.filter.dialog.title']}
-                    </PopoverHeader>
-                    <PopoverBody>
-                        <Container>
-                            <Row>
-                                <Col>
-                                    <UncontrolledReactSelect
-                                        label={translations['calendar.defaultCalendar']}
-                                        tooltip={translations['calendar.defaultCalendar.tooltip']}
-                                        // data={data}
-                                        id="id"
-                                        values={listOfDefaultCalendars}
-                                        changeDataField={this.changeDefaultCalendar}
-                                        translations={translations}
-                                        valueProperty="id"
-                                        labelProperty="title"
-                                    />
-                                </Col>
-                            </Row>
-                            <Row>
-                                <Col>Zeitberichtsuser</Col>
-                            </Row>
-                            <Row>
-                                <Col>
-                                    Optionen: Pausen, Statistik,
-                                    Geburtstage, Planungen
-                                </Col>
-                            </Row>
-                        </Container>
-                        [ToDo: Buttons Übernehmen, Reset]
-                    </PopoverBody>
-                </Popover>
             </LoadingContainer>
         );
     }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,21 +23,9 @@
 
 package org.projectforge.business.fibu;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.commons.text.StringEscapeUtils;
 import org.projectforge.business.common.OutputType;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.fibu.kost.Kost2DO;
@@ -53,6 +41,10 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.utils.NumberHelper;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.*;
 
 /**
  * Repräsentiert einen Monatsbericht eines Mitarbeiters.
@@ -82,7 +74,7 @@ public class MonthlyEmployeeReport implements Serializable
       if (kost2 == null || kost2.getProjekt() == null) {
         return null;
       }
-      return StringEscapeUtils.escapeXml(kost2.getProjekt().getName());
+      return StringEscapeUtils.escapeXml11(kost2.getProjekt().getName());
     }
 
     /**
@@ -93,7 +85,7 @@ public class MonthlyEmployeeReport implements Serializable
       if (kost2 == null || kost2.getProjekt() == null || kost2.getProjekt().getKunde() == null) {
         return null;
       }
-      return StringEscapeUtils.escapeXml(kost2.getProjekt().getKunde().getName());
+      return StringEscapeUtils.escapeXml11(kost2.getProjekt().getKunde().getName());
     }
 
     /**
@@ -104,7 +96,7 @@ public class MonthlyEmployeeReport implements Serializable
       if (kost2 == null || kost2.getKost2Art() == null) {
         return null;
       }
-      return StringEscapeUtils.escapeXml(kost2.getKost2Art().getName());
+      return StringEscapeUtils.escapeXml11(kost2.getKost2Art().getName());
     }
 
     /**
@@ -115,7 +107,7 @@ public class MonthlyEmployeeReport implements Serializable
       if (kost2 == null) {
         return null;
       }
-      return StringEscapeUtils.escapeXml(kost2.getDescription());
+      return StringEscapeUtils.escapeXml11(kost2.getDescription());
     }
 
     public Kost2DO getKost2()

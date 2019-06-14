@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,7 +24,7 @@
 package org.projectforge.plugins.todo;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -74,7 +74,7 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
       // Do nothing.
       return;
     }
-    if (ObjectUtils.equals(ThreadLocalUserContext.getUserId(), getData().getAssigneeId()) == true) {
+    if (Objects.equals(ThreadLocalUserContext.getUserId(), getData().getAssigneeId()) == true) {
       // OK, user has now seen this to-do: delete recent flag:
       if (isNew() == false && getData().getRecent() == true) {
         getData().setRecent(false);
@@ -103,7 +103,7 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
       // Send notification on new to-do's.
       sendNotification = true;
     } else {
-      if (ObjectUtils.equals(oldToDo.getAssigneeId(), getData().getAssigneeId()) == false) {
+      if (Objects.equals(oldToDo.getAssigneeId(), getData().getAssigneeId()) == false) {
         // Assignee was changed.
         sendNotification = true;
       } else if (oldToDo.getStatus() != getData().getStatus()) {

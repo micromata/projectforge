@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -32,22 +32,32 @@ import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.access.AccessDao;
+import org.projectforge.framework.cache.AbstractCache;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Holds caches of a single tenant. After the configured time to live (TTL) this registry is detached from
  * {@link TenantRegistryMap}.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class TenantRegistry
 {
+  private static Logger log = LoggerFactory.getLogger(TenantRegistry.class);
+
   /**
    * Default time to live for an holder.
    */
   private static final long TIME_TO_LIVE_MS = 60 * 60 * 1000;
+
+  private Map<Class<?>, AbstractCache> caches = new HashMap<>();
 
   private long lastUsage;
 
@@ -142,6 +152,20 @@ public class TenantRegistry
       userGroupCache = new UserGroupCache(tenant, applicationContext);
     }
     return userGroupCache;
+  }
+
+  public <T extends AbstractCache> T getCache(Class<T> cacheClass) {
+    T cache = (T)caches.get(cacheClass);
+    if (cache == null) {
+      try {
+        cache = cacheClass.newInstance();
+        caches.put(cacheClass, cache);
+      } catch (IllegalAccessException | InstantiationException ex) {
+        log.error("Can't instantiate new cache: " + ex.getMessage(), ex);
+        throw new RuntimeException(ex);
+      }
+    }
+    return cache;
   }
 
   /**

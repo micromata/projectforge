@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -71,6 +71,8 @@ import javax.persistence.*
 open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableAttr<Int, EmployeeTimedDO>, ComplexEntity, EntityWithConfigurableAttr, Comparable<Any> {
     // The class must be declared as open for mocking in VacationServiceTest.
 
+    private val LOG = LoggerFactory.getLogger(EmployeeDO::class.java)
+
     /**
      * The ProjectForge user assigned to this employee.
      *
@@ -88,7 +90,6 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
     /**
      * Dem Benutzer zugeordneter Kostenträger Kost1 für den Monatsreport.
      */
-    //TODO: Kost1Do not yet supported on edit page.
     @PropertyInfo(i18nKey = "fibu.kost1")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.EAGER)
@@ -142,7 +143,6 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
     @IndexedEmbedded(depth = 2)
     private var timeableAttributes: MutableList<EmployeeTimedDO> = ArrayList()
 
-    // TODO: BigDecimal not yet supported on edit page.
     @PropertyInfo(i18nKey = "fibu.employee.wochenstunden")
     @Field(analyze = Analyze.NO)
     @FieldBridge(impl = ToStringFieldBridge::class)
@@ -310,14 +310,8 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
         if (u2 == null) return 1
         var result = StringUtils.compare(u1.lastname, u2.lastname)
         if (result == 0) {
-            result = return StringUtils.compare(u1.firstname, u2.firstname)
+            result = StringUtils.compare(u1.firstname, u2.firstname)
         }
         return result
-    }
-
-    companion object {
-
-        private val serialVersionUID = -1208597049289694757L
-        private val LOG = LoggerFactory.getLogger(EmployeeDO::class.java)
     }
 }

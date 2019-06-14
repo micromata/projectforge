@@ -16,7 +16,7 @@ function CheckBox(
     },
 ) {
     return (
-        <div className={classNames(style.formGroup, className)}>
+        <div className={classNames(style.formGroup, className, style.checkboxGroup)}>
             <label
                 className={style.checkboxLabel}
                 htmlFor={id}

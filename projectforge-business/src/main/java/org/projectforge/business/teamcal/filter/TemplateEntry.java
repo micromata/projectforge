@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.Const;
@@ -300,12 +300,12 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
     if (calendarProperties.size() != other.calendarProperties.size()) {
       return true;
     }
-    if (ObjectUtils.equals(defaultCalendarId, other.defaultCalendarId) == false //
-        || ObjectUtils.equals(showBirthdays, other.showBirthdays) == false //
-        || ObjectUtils.equals(showBreaks, other.showBreaks) == false
-        || ObjectUtils.equals(showPlanning, other.showPlanning) == false
-        || ObjectUtils.equals(showStatistics, other.showStatistics) == false
-        || ObjectUtils.equals(timesheetUserId, other.timesheetUserId) == false) {
+    if (Objects.equals(defaultCalendarId, other.defaultCalendarId) == false //
+        || Objects.equals(showBirthdays, other.showBirthdays) == false //
+        || Objects.equals(showBreaks, other.showBreaks) == false
+        || Objects.equals(showPlanning, other.showPlanning) == false
+        || Objects.equals(showStatistics, other.showStatistics) == false
+        || Objects.equals(timesheetUserId, other.timesheetUserId) == false) {
       return true;
     }
     final Iterator<TemplateCalendarProperties> it1 = this.calendarProperties.iterator();

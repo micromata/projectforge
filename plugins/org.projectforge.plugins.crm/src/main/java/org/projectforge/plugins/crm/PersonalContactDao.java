@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,7 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.Validate;
 import org.hibernate.LockMode;
 import org.projectforge.business.user.UserDao;
@@ -142,7 +142,7 @@ public class PersonalContactDao
       return false;
     }
     checkAccess(dbObj);
-    Validate.isTrue(ObjectUtils.equals(dbObj.getContactId(), obj.getContactId()));
+    Validate.isTrue(Objects.equals(dbObj.getContactId(), obj.getContactId()));
     obj.setId(dbObj.getId());
     // Copy all values of modified user to database object.
     final ModificationStatus modified = dbObj.copyValuesFrom(obj, "owner", "address", "id");

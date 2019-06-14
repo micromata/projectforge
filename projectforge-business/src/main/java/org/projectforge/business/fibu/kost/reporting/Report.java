@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.business.fibu.kost.BuchungssatzDO;
@@ -240,14 +240,14 @@ public class Report implements Serializable
 
   public Report findById(final String id)
   {
-    if (ObjectUtils.equals(this.reportObjective.getId(), id) == true) {
+    if (Objects.equals(this.reportObjective.getId(), id) == true) {
       return this;
     }
     if (hasChilds() == false) {
       return null;
     }
     for (final Report report : getChilds()) {
-      if (ObjectUtils.equals(report.reportObjective.getId(), id) == true) {
+      if (Objects.equals(report.reportObjective.getId(), id) == true) {
         return report;
       }
     }

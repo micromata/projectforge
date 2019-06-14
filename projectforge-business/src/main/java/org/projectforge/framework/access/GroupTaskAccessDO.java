@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -41,7 +41,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.hibernate.Hibernate;
@@ -219,10 +219,10 @@ public class GroupTaskAccessDO extends DefaultBaseDO
   {
     if (o instanceof GroupTaskAccessDO) {
       final GroupTaskAccessDO other = (GroupTaskAccessDO) o;
-      if (ObjectUtils.equals(this.getGroupId(), other.getGroupId()) == false) {
+      if (Objects.equals(this.getGroupId(), other.getGroupId()) == false) {
         return false;
       }
-      if (ObjectUtils.equals(this.getTaskId(), other.getTaskId()) == false) {
+      if (Objects.equals(this.getTaskId(), other.getTaskId()) == false) {
         return false;
       }
       return true;

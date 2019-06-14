@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,17 +23,6 @@
 
 package org.projectforge.business.address;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.Validate;
 import org.hibernate.LockMode;
 import org.projectforge.business.user.UserDao;
@@ -51,6 +40,10 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.Serializable;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -188,7 +181,7 @@ public class PersonalAddressDao
       return false;
     }
     checkAccess(dbObj);
-    Validate.isTrue(ObjectUtils.equals(dbObj.getAddressId(), obj.getAddressId()));
+    Validate.isTrue(Objects.equals(dbObj.getAddressId(), obj.getAddressId()));
     obj.setId(dbObj.getId());
     // Copy all values of modified user to database object.
     final ModificationStatus modified = dbObj.copyValuesFrom(obj, "owner", "address", "id");
@@ -239,13 +232,33 @@ public class PersonalAddressDao
     final PFUserDO owner = ThreadLocalUserContext.getUser();
     Validate.notNull(owner);
     Validate.notNull(owner.getId());
+    final long start = System.currentTimeMillis();
     @SuppressWarnings("unchecked")
     List<PersonalAddressDO> list = (List<PersonalAddressDO>) hibernateTemplate.find(
         "from "
             + PersonalAddressDO.class.getSimpleName()
             + " t join fetch t.address where t.owner.id=? and t.address.deleted=false order by t.address.name, t.address.firstName",
         owner.getId());
+    log.info("PersonalDao.getList took " + (System.currentTimeMillis() - start) + "ms.");
     list = list.stream().filter(pa -> checkAccess(pa, false) == true).collect(Collectors.toList());
+    return list;
+  }
+
+  /**
+   * @return the list of all PersonalAddressDO entries for the context user without any check access (addresses might be also deleted).
+   */
+  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+  public List<Integer> getIdList()
+  {
+    final PFUserDO owner = ThreadLocalUserContext.getUser();
+    Validate.notNull(owner);
+    Validate.notNull(owner.getId());
+    @SuppressWarnings("unchecked")
+    List<Integer> list = (List<Integer>) hibernateTemplate.find(
+            "select address.id from "
+                    + PersonalAddressDO.class.getSimpleName()
+                    + " where owner.id=?",
+            owner.getId());
     return list;
   }
 

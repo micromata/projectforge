@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,7 @@
 
 package org.projectforge.business.excel;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
@@ -178,11 +178,11 @@ public class CellFormat
   {
     if (obj instanceof CellFormat) {
       final CellFormat other = (CellFormat) obj;
-      if (ObjectUtils.equals(this.dataFormat, other.dataFormat) == false)
+      if (Objects.equals(this.dataFormat, other.dataFormat) == false)
         return false;
       if (this.alignment != other.alignment)
         return false;
-      if (ObjectUtils.equals(this.font, other.font) == false)
+      if (Objects.equals(this.font, other.font) == false)
         return false;
       if (this.fillForegroundColor != other.fillForegroundColor)
         return false;

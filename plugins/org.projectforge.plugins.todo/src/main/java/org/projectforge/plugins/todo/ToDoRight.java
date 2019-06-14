@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.todo;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRightAccessCheck;
@@ -123,8 +123,8 @@ public class ToDoRight extends UserRightAccessCheck<ToDoDO>
     if (toDo == null) {
       return true;
     }
-    if (ObjectUtils.equals(user.getId(), toDo.getAssigneeId()) == true
-        || ObjectUtils.equals(user.getId(), toDo.getReporterId()) == true) {
+    if (Objects.equals(user.getId(), toDo.getAssigneeId()) == true
+        || Objects.equals(user.getId(), toDo.getReporterId()) == true) {
       return true;
     }
     if (toDo.getGroup() != null) {

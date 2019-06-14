@@ -29,7 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -255,7 +255,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     if (rowDataId instanceof Integer == false) {
       log.warn("Error in calling getCssStyle: Integer expected instead of " + rowDataId.getClass());
     }
-    if (highlightedRowId != null && rowDataId != null && ObjectUtils.equals(highlightedRowId, rowDataId) == true) {
+    if (highlightedRowId != null && rowDataId != null && Objects.equals(highlightedRowId, rowDataId) == true) {
       appendCssClasses(item, RowCssClass.HIGHLIGHTED);
     }
     if (isDeleted == true) {
