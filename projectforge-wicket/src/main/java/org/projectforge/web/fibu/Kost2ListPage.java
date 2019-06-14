@@ -144,7 +144,7 @@ public class Kost2ListPage extends AbstractListPage<Kost2ListForm, Kost2Dao, Kos
             final Kost2DO kost2 = rowModel.getObject();
             final Component label = WicketUtils.createBooleanLabel(getRequestCycle(), componentId,
                 kost2.getKost2Art() != null
-                    && kost2.getKost2Art().isFakturiert() == true);
+                    && kost2.getKost2Art().getFakturiert() == true);
             item.add(label);
             cellItemListener.populateItem(item, componentId, rowModel);
           }
@@ -231,7 +231,7 @@ public class Kost2ListPage extends AbstractListPage<Kost2ListForm, Kost2Dao, Kos
     for (final Kost2DO kost : kost2List) {
       mapping.add(Col.KOST, kost.getFormattedNumber());
       mapping.add(Col.ART, kost.getKost2Art().getName());
-      mapping.add(Col.FAKTURIERT, kost.getKost2Art().isFakturiert() ? "X" : "");
+      mapping.add(Col.FAKTURIERT, kost.getKost2Art().getFakturiert() ? "X" : "");
       mapping.add(Col.PROJEKT, KostFormatter.formatProjekt(kost.getProjekt()));
       mapping.add(Col.STATUS, kost.getKostentraegerStatus());
       mapping.add(Col.DESCRIPTION, kost.getDescription());

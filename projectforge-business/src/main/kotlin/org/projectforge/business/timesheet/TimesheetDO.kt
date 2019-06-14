@@ -128,7 +128,7 @@ class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
                 }
                 val kost2Art = kost2!!.kost2Art
                 if (kost2Art?.workFraction != null) {
-                    return (kost2Art.workFraction.toDouble() * timePeriod.duration).toLong()
+                    return (kost2Art.workFraction!!.toDouble() * timePeriod.duration).toLong()
                 }
             }
             return getDuration()

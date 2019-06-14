@@ -249,7 +249,7 @@ public class KostFormatter {
     buf.append(format(kost2));
     if (kost2.getProjekt() != null) {
       buf.append(" - ").append(kost2.getKost2Art().getName());
-      if (kost2.getKost2Art().isFakturiert() == false) {
+      if (kost2.getKost2Art().getFakturiert() == false) {
         buf.append(" (nf)");
       }
     } else {
