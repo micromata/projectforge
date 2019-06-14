@@ -73,7 +73,12 @@ class Address(var contactStatus: ContactStatus? = null,
               /**
                * Is this address a personal favorite of the current logged-in user?
                */
-              var isFavoriteCard: Boolean = false
+              var isFavoriteCard: Boolean = false,
+              var isFavoriteBusinessPhone: Boolean = false,
+              var isFavoritePrivatePhone: Boolean = false,
+              var isFavoriteMobilePhone: Boolean = false,
+              var isFavoritePrivateMobilePhone: Boolean = false,
+              var isFavoriteFax: Boolean = false
 ) : BaseHistorizableDTO<AddressDO>() {
 
     override fun copyFrom(src: AddressDO) {
