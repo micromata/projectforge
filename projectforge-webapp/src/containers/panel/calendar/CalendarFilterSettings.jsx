@@ -66,7 +66,7 @@ class CalendarFilterSettings extends Component {
                     />
                 </Button>
                 <Popover
-                    placement="bottom-start"
+                    placement="bottom-end"
                     isOpen={popoverOpen}
                     target="calendarSettingsPopover"
                     toggle={this.togglePopover}
