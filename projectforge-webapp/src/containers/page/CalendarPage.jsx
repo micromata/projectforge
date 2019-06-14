@@ -192,7 +192,7 @@ class CalendarPage extends React.Component {
                                         // defaultOptions={defaultOptions}
                                     />
                                 </Col>
-                                <Col sm="1">
+                                <Col sm="1" className="align-items-center">
                                     <FavoritesPanel
                                         onFavoriteCreate={this.onFavoriteCreate}
                                         onFavoriteDelete={this.onFavoriteDelete}
