@@ -122,7 +122,7 @@ ul {
     padding: 5px 9px;
     border-radius: 3px;
     position: relative;
-    top: -2px;
+    top: 0;
     border: none;
   }
 }
@@ -450,7 +450,7 @@ fieldset label[for*="favorite"] {
 }
 
 #favoritesPopover {
-  margin-top: 5px;
+  //margin-top: 5px;
 }
 
 img + .btn.btn-danger {
