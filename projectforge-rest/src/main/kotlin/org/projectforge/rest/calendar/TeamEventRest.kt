@@ -57,7 +57,7 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao, TeamEventFilte
         println("TeamEventRest: recurrentDate=$recurrentDateString")
     }
 
-    override fun afterEdit(obj: TeamEventDO): ResponseAction {
+    override fun afterEdit(obj: TeamEventDO, dto: TeamEventDO): ResponseAction {
         return ResponseAction("calendar")
                 .addVariable("date", obj.startDate)
                 .addVariable("id", obj.id ?: -1)

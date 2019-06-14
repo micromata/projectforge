@@ -48,7 +48,9 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
 
 fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
         saveOrUpdate(request: HttpServletRequest,
-                     baseDao: BaseDao<O>, obj: O,
+                     baseDao: BaseDao<O>,
+                     obj: O,
+                     dto: DTO,
                      dataObjectRest: AbstractBaseRest<O, DTO, B, F>,
                      validationErrorsList: List<ValidationError>?)
         : ResponseEntity<ResponseAction> {
@@ -58,7 +60,7 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
         return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)
     }
     val isNew = obj.id == null || obj.created == null // obj.created is needed for KundeDO (id isn't null for inserting new customers).
-    dataObjectRest.beforeSaveOrUpdate(request, obj)
+    dataObjectRest.beforeSaveOrUpdate(request, obj, dto)
     try {
        baseDao.saveOrUpdate(obj) ?: obj.id
     } catch (ex: UserException) {
@@ -68,48 +70,54 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
         val errors = listOf(error)
         return ResponseEntity(ResponseAction(validationErrors = errors), HttpStatus.NOT_ACCEPTABLE)
     }
-    dataObjectRest.afterSaveOrUpdate(obj)
+    dataObjectRest.afterSaveOrUpdate(obj, dto)
     if (isNew) {
-        return ResponseEntity(dataObjectRest.afterSave(obj), HttpStatus.OK)
+        return ResponseEntity(dataObjectRest.afterSave(obj, dto), HttpStatus.OK)
     } else {
-        return ResponseEntity(dataObjectRest.afterUpdate(obj), HttpStatus.OK)
+        return ResponseEntity(dataObjectRest.afterUpdate(obj, dto), HttpStatus.OK)
     }
 }
 
 fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
-        undelete(baseDao: BaseDao<O>, obj: O,
+        undelete(baseDao: BaseDao<O>,
+                 obj: O,
+                 dto: DTO,
                  dataObjectRest: AbstractBaseRest<O, DTO, B, F>,
                  validationErrorsList: List<ValidationError>?)
         : ResponseEntity<ResponseAction> {
     if (validationErrorsList.isNullOrEmpty()) {
         baseDao.undelete(obj)
-        return ResponseEntity(dataObjectRest.afterUndelete(obj), HttpStatus.OK)
+        return ResponseEntity(dataObjectRest.afterUndelete(obj, dto), HttpStatus.OK)
     }
     // Validation error occurred:
     return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)
 }
 
 fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
-        markAsDeleted(baseDao: BaseDao<O>, obj: O,
+        markAsDeleted(baseDao: BaseDao<O>,
+                      obj: O,
+                      dto: DTO,
                       dataObjectRest: AbstractBaseRest<O, DTO, B, F>,
                       validationErrorsList: List<ValidationError>?)
         : ResponseEntity<ResponseAction> {
     if (validationErrorsList.isNullOrEmpty()) {
         baseDao.markAsDeleted(obj)
-        return ResponseEntity(dataObjectRest.afterMarkAsDeleted(obj), HttpStatus.OK)
+        return ResponseEntity(dataObjectRest.afterMarkAsDeleted(obj, dto), HttpStatus.OK)
     }
     // Validation error occurred:
     return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)
 }
 
 fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
-        delete(baseDao: BaseDao<O>, obj: O,
+        delete(baseDao: BaseDao<O>,
+               obj: O,
+               dto: DTO,
                dataObjectRest: AbstractBaseRest<O, DTO, B, F>,
                validationErrorsList: List<ValidationError>?)
         : ResponseEntity<ResponseAction> {
     if (validationErrorsList.isNullOrEmpty()) {
         baseDao.delete(obj)
-        return ResponseEntity(dataObjectRest.afterDelete(obj), HttpStatus.OK)
+        return ResponseEntity(dataObjectRest.afterDelete(obj, dto), HttpStatus.OK)
     }
     // Validation error occurred:
     return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)

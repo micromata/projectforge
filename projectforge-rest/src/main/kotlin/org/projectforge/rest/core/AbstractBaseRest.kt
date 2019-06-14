@@ -406,18 +406,18 @@ abstract class AbstractBaseRest<
      * Use this service for adding new items as well as updating existing items (id isn't null).
      */
     @PutMapping(RestPaths.SAVE_OR_UDATE)
-    fun saveOrUpdate(request: HttpServletRequest, @Valid @RequestBody T: DTO): ResponseEntity<ResponseAction> {
-        val dbObj = asDO(T)
-        return saveOrUpdate(request, baseDao, dbObj, this, validate(dbObj))
+    fun saveOrUpdate(request: HttpServletRequest, @Valid @RequestBody dto: DTO): ResponseEntity<ResponseAction> {
+        val dbObj = asDO(dto)
+        return saveOrUpdate(request, baseDao, dbObj, dto, this, validate(dbObj))
     }
 
     /**
      * The given object (marked as deleted before) will be undeleted.
      */
     @PutMapping(RestPaths.UNDELETE)
-    fun undelete(@RequestBody T: DTO): ResponseEntity<ResponseAction> {
-        val dbObj = asDO(T)
-        return undelete(baseDao, dbObj, this, validate(dbObj))
+    fun undelete(@RequestBody dto: DTO): ResponseEntity<ResponseAction> {
+        val dbObj = asDO(dto)
+        return undelete(baseDao, dbObj, dto, this, validate(dbObj))
     }
 
     /**
@@ -425,9 +425,9 @@ abstract class AbstractBaseRest<
      * Please note, if you try to delete a historizable data base object, an exception will be thrown.
      */
     @DeleteMapping(RestPaths.MARK_AS_DELETED)
-    fun markAsDeleted(@RequestBody T: DTO): ResponseEntity<ResponseAction> {
-        val dbObj = asDO(T)
-        return markAsDeleted(baseDao, dbObj, this, validate(dbObj))
+    fun markAsDeleted(@RequestBody dto: DTO): ResponseEntity<ResponseAction> {
+        val dbObj = asDO(dto)
+        return markAsDeleted(baseDao, dbObj, dto, this, validate(dbObj))
     }
 
     /**
@@ -435,9 +435,9 @@ abstract class AbstractBaseRest<
      * Please note, if you try to mark a non-historizable data base object, an exception will be thrown.
      */
     @DeleteMapping(RestPaths.DELETE)
-    fun delete(@RequestBody T: DTO): ResponseEntity<ResponseAction> {
-        val dbObj = asDO(T)
-        return delete(baseDao, dbObj, this, validate(dbObj))
+    fun delete(@RequestBody dto: DTO): ResponseEntity<ResponseAction> {
+        val dbObj = asDO(dto)
+        return delete(baseDao, dbObj, dto, this, validate(dbObj))
     }
 
     /**
@@ -446,9 +446,9 @@ abstract class AbstractBaseRest<
      * @return ResponseAction
      */
     @PostMapping(RestPaths.CANCEL)
-    fun cancelEdit(request: HttpServletRequest, @RequestBody T: DTO): ResponseAction {
-        val dbObj = asDO(T)
-        return cancelEdit(request, dbObj, getRestPath())
+    fun cancelEdit(request: HttpServletRequest, @RequestBody dto: DTO): ResponseAction {
+        val dbObj = asDO(dto)
+        return cancelEdit(request, dbObj, dto, getRestPath())
     }
 
     /**
@@ -459,59 +459,59 @@ abstract class AbstractBaseRest<
         return listFilterService.getSearchFilter(request.session, filterClazz).reset()
     }
 
-    internal open fun beforeSaveOrUpdate(request: HttpServletRequest, obj: O) {
+    internal open fun beforeSaveOrUpdate(request: HttpServletRequest, obj: O, dto: DTO) {
     }
 
-    internal open fun afterSaveOrUpdate(obj: O) {
-    }
-
-    /**
-     * Will only be called on success. Simply call [afterEdit].
-     */
-    internal open fun afterSave(obj: O): ResponseAction {
-        return afterEdit(obj)
+    internal open fun afterSaveOrUpdate(obj: O, dto: DTO) {
     }
 
     /**
      * Will only be called on success. Simply call [afterEdit].
      */
-    internal open fun afterUpdate(obj: O): ResponseAction {
-        return afterEdit(obj)
+    internal open fun afterSave(obj: O, dto: DTO): ResponseAction {
+        return afterEdit(obj, dto)
     }
 
     /**
      * Will only be called on success. Simply call [afterEdit].
      */
-    internal open fun afterDelete(obj: O): ResponseAction {
-        return afterEdit(obj)
+    internal open fun afterUpdate(obj: O, dto: DTO): ResponseAction {
+        return afterEdit(obj, dto)
     }
 
     /**
      * Will only be called on success. Simply call [afterEdit].
      */
-    internal open fun afterMarkAsDeleted(obj: O): ResponseAction {
-        return afterEdit(obj)
+    internal open fun afterDelete(obj: O, dto: DTO): ResponseAction {
+        return afterEdit(obj, dto)
     }
 
     /**
      * Will only be called on success. Simply call [afterEdit].
      */
-    internal open fun afterUndelete(obj: O): ResponseAction {
-        return afterEdit(obj)
+    internal open fun afterMarkAsDeleted(obj: O, dto: DTO): ResponseAction {
+        return afterEdit(obj, dto)
     }
 
     /**
      * Will only be called on success. Simply call [afterEdit].
      */
-    internal open fun cancelEdit(request: HttpServletRequest, obj: O, restPath: String): ResponseAction {
-        return afterEdit(obj)
+    internal open fun afterUndelete(obj: O, dto: DTO): ResponseAction {
+        return afterEdit(obj, dto)
+    }
+
+    /**
+     * Will only be called on success. Simply call [afterEdit].
+     */
+    internal open fun cancelEdit(request: HttpServletRequest, obj: O, dto: DTO, restPath: String): ResponseAction {
+        return afterEdit(obj, dto)
     }
 
     /**
      * Will be called after create, update, delete, markAsDeleted, undelete and cancel.
      * @return ResponseAction with the url of the standard list page.
      */
-    internal open fun afterEdit(obj: O): ResponseAction {
+    internal open fun afterEdit(obj: O, dto: DTO): ResponseAction {
         return ResponseAction("/${getCategory()}").addVariable("id", obj.id ?: -1)
     }
 

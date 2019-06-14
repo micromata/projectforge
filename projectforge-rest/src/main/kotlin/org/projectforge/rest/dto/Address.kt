@@ -69,8 +69,12 @@ class Address(var contactStatus: ContactStatus? = null,
               var imageUrl: String? = null,
               var previewImageUrl: String? = null,
               var instantMessaging: MutableList<LabelValueBean<InstantMessagingType, String>>? = null,
-              var addressbookList: MutableSet<Addressbook>? = null
-) : BaseObject<AddressDO>() {
+              var addressbookList: MutableSet<Addressbook>? = null,
+              /**
+               * Is this address a personal favorite of the current logged-in user?
+               */
+              var isFavoriteCard: Boolean = false
+) : BaseHistorizableDTO<AddressDO>() {
 
     override fun copyFrom(src: AddressDO) {
         super.copyFrom(src)

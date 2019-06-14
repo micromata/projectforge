@@ -36,4 +36,4 @@ class EmployeeSalary(
         var bruttoMitAgAnteil: BigDecimal? = null,
         var comment: String? = null,
         var type: EmployeeSalaryType? = null
-) : BaseObject<EmployeeSalaryDO>() {}
+) : BaseHistorizableDTO<EmployeeSalaryDO>() {}

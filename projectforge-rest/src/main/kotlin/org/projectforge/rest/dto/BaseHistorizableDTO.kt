@@ -30,14 +30,14 @@ import java.lang.reflect.Field
 import java.util.*
 
 /**
- * BaseObject is a DTO representation of a DefaultBaseDO. It copies most fields automatically by name and type from
- * DTO to DefaultBaseDO and vice versa.
+ * BaseHistorizableDTO is a DTO representation of a AbstractHistorizableBaseDO<Int>. It copies most fields automatically by name and type from
+ * DTO to  AbstractHistorizableBaseDO<Int> and vice versa.
  */
-open class BaseObject<T : AbstractHistorizableBaseDO<Int>>(var id: Int? = null,
-                                                           var created: Date? = null,
-                                                           var isDeleted: Boolean? = null,
-                                                           var lastUpdate: Date? = null,
-                                                           var tenantId: Int? = null) {
+open class BaseHistorizableDTO<T : AbstractHistorizableBaseDO<Int>>(var id: Int? = null,
+                                                                    var created: Date? = null,
+                                                                    var isDeleted: Boolean? = null,
+                                                                    var lastUpdate: Date? = null,
+                                                                    var tenantId: Int? = null) {
     /**
      * Full and deep copy of the object. Should be extended by inherited classes.
      */
@@ -66,7 +66,7 @@ open class BaseObject<T : AbstractHistorizableBaseDO<Int>>(var id: Int? = null,
     }
 
     companion object {
-        private val log = org.slf4j.LoggerFactory.getLogger(BaseObject::class.java)
+        private val log = org.slf4j.LoggerFactory.getLogger(BaseHistorizableDTO::class.java)
 
         private fun copy(src: Any, dest: Any) {
             val destClazz = dest.javaClass
@@ -97,23 +97,23 @@ open class BaseObject<T : AbstractHistorizableBaseDO<Int>>(var id: Int? = null,
                                     destField.set(dest, srcField.get(src))
                                 }
                             } else {
-                                if (BaseObject::class.java.isAssignableFrom(destType) && AbstractHistorizableBaseDO::class.java.isAssignableFrom(srcField.type)) {
+                                if (BaseHistorizableDTO::class.java.isAssignableFrom(destType) && AbstractHistorizableBaseDO::class.java.isAssignableFrom(srcField.type)) {
                                     // Copy AbstractHistorizableBaseDO -> BaseObject
                                     srcField.setAccessible(true);
                                     val srcValue = srcField.get(src)
                                     if (srcValue != null) {
                                         val instance = destType.newInstance()
-                                        (instance as BaseObject<*>)._copyFromMinimal(srcValue)
+                                        (instance as BaseHistorizableDTO<*>)._copyFromMinimal(srcValue)
                                         destField.setAccessible(true)
                                         destField.set(dest, instance)
                                     }
-                                } else if (AbstractHistorizableBaseDO::class.java.isAssignableFrom(destType) && BaseObject::class.java.isAssignableFrom(srcField.type)) {
+                                } else if (AbstractHistorizableBaseDO::class.java.isAssignableFrom(destType) && BaseHistorizableDTO::class.java.isAssignableFrom(srcField.type)) {
                                     // Copy BaseObject -> AbstractHistorizableBaseDO
                                     srcField.setAccessible(true);
                                     val srcValue = srcField.get(src)
                                     if (srcValue != null) {
                                         val instance = destType.newInstance()
-                                        (instance as AbstractHistorizableBaseDO<*>).id = (srcValue as BaseObject<*>).id
+                                        (instance as AbstractHistorizableBaseDO<*>).id = (srcValue as BaseHistorizableDTO<*>).id
                                         destField.setAccessible(true)
                                         destField.set(dest, instance)
                                     }

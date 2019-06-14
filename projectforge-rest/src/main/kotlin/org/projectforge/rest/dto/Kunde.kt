@@ -33,4 +33,4 @@ class Kunde(var nummer: Int? = null,
             var status: KundeStatus? = null,
             var description: String? = null,
             var konto: Konto? = null
-) : BaseObject<KundeDO>()
+) : BaseHistorizableDTO<KundeDO>()

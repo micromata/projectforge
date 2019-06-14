@@ -28,14 +28,16 @@ import org.projectforge.business.address.*
 import org.projectforge.business.image.ImageService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUserId
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.AddressImageServicesRest.Companion.SESSION_IMAGE_ATTR
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractBaseRest
-import org.projectforge.rest.core.AbstractDORest
+import org.projectforge.rest.core.AbstractDTORest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.core.ResultSet
+import org.projectforge.rest.dto.Address
 import org.projectforge.sms.SmsSenderConfig
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -47,15 +49,15 @@ import javax.servlet.http.HttpServletRequest
 @RestController
 @RequestMapping("${Rest.URL}/address")
 class AddressRest()
-    : AbstractDORest<AddressDO, AddressDao, AddressFilter>(AddressDao::class.java, AddressFilter::class.java, "address.title") {
+    : AbstractDTORest<AddressDO, Address, AddressDao, AddressFilter>(AddressDao::class.java, AddressFilter::class.java, "address.title") {
 
     /**
      * For exporting list of addresses.
      */
-    private class Address(val address: AddressDO,
-                          val id: Int, // Needed for history Service
-                          var imageUrl: String? = null,
-                          var previewImageUrl: String? = null)
+    private class ListAddress(val address: AddressDO,
+                              val id: Int, // Needed for history Service
+                              var imageUrl: String? = null,
+                              var previewImageUrl: String? = null)
 
     @Autowired
     private lateinit var addressbookDao: AddressbookDao
@@ -64,7 +66,24 @@ class AddressRest()
     private lateinit var imageService: ImageService
 
     @Autowired
+    private lateinit var personalAddressDao: PersonalAddressDao
+
+    @Autowired
     private lateinit var smsSenderConfig: SmsSenderConfig
+
+    override fun transformDO(obj: AddressDO, editMode: Boolean): Address {
+        val address = Address()
+        address.copyFrom(obj)
+        val personalAddress = personalAddressDao.getByAddressId(obj.id)
+        address.isFavoriteCard = personalAddress?.isFavorite == true
+        return address
+    }
+
+    override fun transformDTO(dto: Address): AddressDO {
+        val addressDO = AddressDO()
+        dto.copyTo(addressDO)
+        return addressDO
+    }
 
     /**
      * Initializes new books for adding.
@@ -103,7 +122,7 @@ class AddressRest()
         }
     }
 
-    override fun beforeSaveOrUpdate(request: HttpServletRequest, obj: AddressDO) {
+    override fun beforeSaveOrUpdate(request: HttpServletRequest, obj: AddressDO, dto: Address) {
         val session = request.session
         val bytes = ExpiringSessionAttributes.getAttribute(session, SESSION_IMAGE_ATTR)
         if (bytes != null && bytes is ByteArray) {
@@ -121,13 +140,13 @@ class AddressRest()
         }
     }
 
-    override fun afterSaveOrUpdate(obj: AddressDO) {
-        // TODO: see AddressEditPage
-        //val address = baseDao.getOrLoad(obj.getId())
-        //val personalAddress = form.addressEditSupport.personalAddress
-        //personalAddress.setAddress(address)
-        //personalAddressDao.setOwner(personalAddress, getUserId()) // Set current logged in user as owner.
-        //personalAddressDao.saveOrUpdate(personalAddress)
+    override fun afterSaveOrUpdate(obj: AddressDO, dto: Address) {
+        val address = baseDao.getOrLoad(obj.id)
+        val personalAddress = PersonalAddressDO()
+        personalAddress.address = address
+        personalAddress.isFavoriteCard = dto.isFavoriteCard
+        personalAddressDao.setOwner(personalAddress, getUserId()) // Set current logged in user as owner.
+        personalAddressDao.saveOrUpdate(personalAddress)
         //return null
     }
 
@@ -290,15 +309,15 @@ class AddressRest()
     }
 
     override fun processResultSetBeforeExport(resultSet: ResultSet<Any>) {
-        val list: List<Address> = resultSet.resultSet.map { it ->
-            Address(it as AddressDO,
+        val list: List<ListAddress> = resultSet.resultSet.map { it ->
+            ListAddress(it as AddressDO,
                     id = it.id,
                     imageUrl = if (it.imageData != null) "address/image/${it.id}" else null,
                     previewImageUrl = if (it.imageDataPreview != null) "address/imagePreview/${it.id}" else null)
         }
         resultSet.resultSet = list
         resultSet.resultSet.forEach { it ->
-            (it as Address).address.imageData = null
+            (it as ListAddress).address.imageData = null
             it.address.imageDataPreview = null
         }
     }
