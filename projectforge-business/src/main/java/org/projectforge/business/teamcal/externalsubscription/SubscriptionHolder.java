@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,22 +23,18 @@
 
 package org.projectforge.business.teamcal.externalsubscription;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 
+import java.io.Serializable;
+import java.util.*;
+
 /**
  * Own abstraction of a RangeMap. You can add TeamEvents and access them through their start and end date.
- * 
+ *
  * @author Johannes Unterstein (j.unterstein@micromata.de)
  */
-public class SubscriptionHolder implements Serializable
-{
+public class SubscriptionHolder implements Serializable {
   private static final long serialVersionUID = 1188093201413097949L;
 
   // one day in milliseconds
@@ -50,32 +46,26 @@ public class SubscriptionHolder implements Serializable
 
   private boolean sorted;
 
-  public SubscriptionHolder()
-  {
+  public SubscriptionHolder() {
     eventList = new ArrayList<TeamEventDO>();
     sorted = false;
   }
 
-  public void clear()
-  {
+  public void clear() {
     eventList.clear();
     sorted = false;
   }
 
-  public void add(final TeamEventDO value)
-  {
+  public void add(final TeamEventDO value) {
     eventList.add(value);
     sorted = false;
   }
 
-  public void sort()
-  {
+  public void sort() {
     // the following comparator compares by startDate
-    final Comparator<TeamEventDO> comparator = new Comparator<TeamEventDO>()
-    {
+    final Comparator<TeamEventDO> comparator = new Comparator<TeamEventDO>() {
       @Override
-      public int compare(final TeamEventDO o1, final TeamEventDO o2)
-      {
+      public int compare(final TeamEventDO o1, final TeamEventDO o2) {
         if ((o1 == null || o1.getStartDate() == null) && (o2 == null || o2.getStartDate() == null)) {
           return 0;
         }
@@ -93,8 +83,15 @@ public class SubscriptionHolder implements Serializable
     sorted = true;
   }
 
-  public List<TeamEventDO> getResultList(final Long startTime, final Long endTime, final boolean minimalAccess)
-  {
+  public TeamEventDO getEvent(final String uid) {
+    for (final TeamEventDO teamEventDO : eventList) {
+      if (teamEventDO.getUid() != null && Objects.equals(uid, teamEventDO.getUid()))
+        return teamEventDO;
+    }
+    return null;
+  }
+
+  public List<TeamEventDO> getResultList(final Long startTime, final Long endTime, final boolean minimalAccess) {
     // sorting should by synchronized
     synchronized (this) {
       if (sorted == false) {
@@ -120,13 +117,11 @@ public class SubscriptionHolder implements Serializable
     return result;
   }
 
-  public int size()
-  {
+  public int size() {
     return eventList.size();
   }
 
-  private boolean matches(final TeamEventDO teamEventDo, Long startTime, Long endTime)
-  {
+  private boolean matches(final TeamEventDO teamEventDo, Long startTime, Long endTime) {
     // Following period extension is needed due to all day events which are stored in UTC. The additional events in the result list not
     // matching the time period have to be removed by caller!
     startTime = startTime - ONE_DAY;
@@ -140,9 +135,9 @@ public class SubscriptionHolder implements Serializable
     // (Restrictions.and(Restrictions.le("startDate", startDate), Restrictions.ge("endDate", endDate)))));
 
     final Long eventStartTime = teamEventDo.getStartDate() != null ? teamEventDo.getStartDate().getTime()
-        : TeamEventDao.MIN_DATE_1800;
+            : TeamEventDao.MIN_DATE_1800;
     final Long eventEndTime = teamEventDo.getEndDate() != null ? teamEventDo.getEndDate().getTime()
-        : TeamEventDao.MAX_DATE_3000;
+            : TeamEventDao.MAX_DATE_3000;
     if (between(eventStartTime, startTime, endTime) || between(eventEndTime, startTime, endTime)) {
       return true;
     }
@@ -152,8 +147,7 @@ public class SubscriptionHolder implements Serializable
     return false;
   }
 
-  private boolean between(final Long searchTime, final Long startTime, final Long endTime)
-  {
+  private boolean between(final Long searchTime, final Long startTime, final Long endTime) {
     return searchTime >= startTime && searchTime <= endTime;
   }
 }

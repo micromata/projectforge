@@ -14,6 +14,7 @@ export const customStyles = {
         ...base,
         zIndex: '999',
     }),
+    // Option in drop-down menu:
     option: (styles, {
         data,
         isFocused,
@@ -22,25 +23,27 @@ export const customStyles = {
         if (isFocused) {
             opacity = '0.5';
         }
-        const backgroundColor = getBackgroundColor(data);
         return {
             ...styles,
-            backgroundColor,
-            opacity,
-            textDecoration: (!data.visible) ? 'line-through' : undefined,
+            backgroundColor: getBackgroundColor(data),
             color: getForegroundColor(data),
+            opacity,
         };
     },
+    // Selected value in input field:
     multiValue: (styles, { data }) => {
         return {
             ...styles,
             backgroundColor: getBackgroundColor(data),
+            opacity: (!data.visible) ? '0.5' : undefined,
         };
     },
+    // Selected value in input field (label):
     multiValueLabel: (styles, { data }) => ({
         ...styles,
-        textDecoration: (!data.visible) ? 'line-through' : undefined,
         color: getForegroundColor(data),
+        textDecoration: (!data.visible) ? 'line-through' : undefined,
+        fontStyle: (!data.visible) ? 'italic' : undefined,
     }),
     /* multiValueRemove: (styles, { data }) => ({
         ...styles,

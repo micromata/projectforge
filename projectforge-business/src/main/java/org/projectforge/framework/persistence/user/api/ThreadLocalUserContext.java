@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,6 @@
 
 package org.projectforge.framework.persistence.user.api;
 
-import java.util.Locale;
-import java.util.TimeZone;
-
-import org.apache.commons.lang3.ObjectUtils;
 import org.joda.time.DateTimeZone;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.configuration.ConfigXml;
@@ -34,6 +30,12 @@ import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
+
+import java.text.Collator;
+import java.util.Comparator;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.TimeZone;
 
 /**
  * ThreadLocal context.
@@ -138,7 +140,7 @@ public class ThreadLocalUserContext
       return userLocale;
     }
     Locale clientLocale = user != null ? user.getClientLocale() : null;
-    if (defaultLocale != null && user != null && ObjectUtils.equals(clientLocale, defaultLocale) == false) {
+    if (defaultLocale != null && user != null && Objects.equals(clientLocale, defaultLocale) == false) {
       user.setClientLocale(defaultLocale);
       clientLocale = defaultLocale;
     }
@@ -208,5 +210,23 @@ public class ThreadLocalUserContext
   public static String getLocalizedString(final String key)
   {
     return I18nHelper.getLocalizedMessage(getLocale(), key);
+  }
+
+  /**
+   * Use this instead of String{@link String#compareTo(String)}, because it uses the user's locale for comparison.
+   * @param a
+   * @param b
+   * @return
+   */
+  public static int localeCompare(String a, String b) {
+    return getLocaleComparator().compare(a, b);
+  }
+
+  /**
+   * Use this instead of String{@link String#compareTo(String)}, because it uses the user's locale for comparison.
+   * @return
+   */
+  public static Comparator getLocaleComparator() {
+    return Collator.getInstance(getLocale());
   }
 }

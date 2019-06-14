@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -63,7 +63,11 @@ public class TaskHelperTest extends AbstractTestBase
     logon(AbstractTestBase.TEST_FINANCE_USER);
     final TaskTree taskTree = TaskTreeHelper.getTaskTree();
     final TaskDO task1 = initTestDB.addTask("addKost2", "root");
-    final ProjektDO projekt = new ProjektDO().setName("addKost2").setInternKost2_4(128).setNummer(5).setTask(task1);
+    final ProjektDO projekt = new ProjektDO();
+    projekt.setName("addKost2");
+    projekt.setInternKost2_4(128);
+    projekt.setNummer(5);
+    projekt.setTask(task1);
     projektDao.save(projekt);
     final Kost2ArtDO kost2Art = new Kost2ArtDO().withId(42);
     final Kost2DO kost = new Kost2DO().setNummernkreis(4).setBereich(128).setTeilbereich(5).setKost2Art(kost2Art);

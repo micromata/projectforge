@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,7 @@
 
 package org.projectforge.business.teamcal.event.right;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
@@ -78,7 +78,7 @@ public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
     if (calendar == null) {
       return false;
     }
-    if (ObjectUtils.equals(user.getId(), calendar.getOwnerId()) == true) {
+    if (Objects.equals(user.getId(), calendar.getOwnerId()) == true) {
       // User has full access to it's own calendars.
       return true;
     }
@@ -154,7 +154,7 @@ public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
     if (calendar != null && calendar.getExternalSubscription() == true) {
       return false;
     }
-    if (ObjectUtils.equals(user.getId(), calendar.getOwnerId()) == true) {
+    if (Objects.equals(user.getId(), calendar.getOwnerId()) == true) {
       // User has full access to it's own calendars.
       return true;
     }
@@ -182,7 +182,7 @@ public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
     if (calendar == null) {
       return false;
     }
-    if (ObjectUtils.equals(user.getId(), calendar.getOwnerId()) == true) {
+    if (Objects.equals(user.getId(), calendar.getOwnerId()) == true) {
       // User has full access to it's own calendars.
       return true;
     }

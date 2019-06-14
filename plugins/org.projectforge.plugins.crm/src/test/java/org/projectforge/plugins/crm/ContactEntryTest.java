@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -191,7 +191,7 @@ public class ContactEntryTest extends AbstractTestBase {
   //    a1 = contactDao.getById(a1.getId());
   //    list = contactDao.getSimpleHistoryEntries(a1);
   //    assertEquals(5, list.size());
-  //    assertEquals(date, a1.getLastUpdate()); // Fails: Fix AbstractBaseDO.copyDeclaredFields: ObjectUtils.equals(Boolean, boolean) etc.
+  //    assertEquals(date, a1.getLastUpdate()); // Fails: Fix AbstractBaseDO.copyDeclaredFields: Objects.equals(Boolean, boolean) etc.
   //  }
   //
   //  @Test

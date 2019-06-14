@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -36,7 +36,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.search.annotations.Indexed;
 import org.projectforge.business.address.AddressDO;
@@ -354,7 +354,7 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
   @Override
   public int compareTo(final TeamEventAttendeeDO arg0)
   {
-    if (this.getId() != null && ObjectUtils.equals(this.getId(), arg0.getId()) == true) {
+    if (this.getId() != null && Objects.equals(this.getId(), arg0.getId()) == true) {
       return 0;
     }
     return this.toString().toLowerCase().compareTo(arg0.toString().toLowerCase());
@@ -399,13 +399,13 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
     if (this.getUrl() != null && other.getUrl() != null && StringUtils.equals(this.getUrl(), other.getUrl())) {
       return true;
     }
-    if (this.getAddressId() != null && other.getAddressId() != null && ObjectUtils.equals(this.getAddressId(), other.getAddressId())) {
+    if (this.getAddressId() != null && other.getAddressId() != null && Objects.equals(this.getAddressId(), other.getAddressId())) {
       return true;
     }
-    if (this.getUserId() != null && other.getUserId() != null && ObjectUtils.equals(this.getUserId(), other.getUserId())) {
+    if (this.getUserId() != null && other.getUserId() != null && Objects.equals(this.getUserId(), other.getUserId())) {
       return true;
     }
-    if (this.getPk() != null && other.getPk() != null && ObjectUtils.equals(this.getPk(), other.getPk())) {
+    if (this.getPk() != null && other.getPk() != null && Objects.equals(this.getPk(), other.getPk())) {
       return true;
     }
     if (this.getUrl() == null && other.getUrl() == null && this.getAddressId() == null && other.getAddressId() == null && this.getUserId() == null

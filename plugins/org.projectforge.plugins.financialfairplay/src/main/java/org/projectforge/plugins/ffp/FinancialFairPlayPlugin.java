@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -40,6 +40,7 @@ import java.util.List;
 
 /**
  * @author Florian Blumenstein
+ * Buggy: Deselect plugin on startup: update t_configuration set stringValue='extendemployeedata,ihkexport,licenseManagementPlugin,liquidplanning,marketing,memo,skillmatrix,todo' where parameter='pluginsActivated';
  */
 public class FinancialFairPlayPlugin extends AbstractPlugin {
   public static final String ID = "financialfairplay";

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -81,11 +81,12 @@ public class RechnungCache extends AbstractCache
     final List<RechnungsPositionDO> list = (List<RechnungsPositionDO>) hibernateTemplate.find(
         "from RechnungsPositionDO t left join fetch t.auftragsPosition left join fetch t.auftragsPosition.auftrag where t.auftragsPosition is not null");
     for (final RechnungsPositionDO pos : list) {
+      RechnungDO rechnung = (RechnungDO) pos.getRechnung();
       if (pos.getAuftragsPosition() == null || pos.getAuftragsPosition().getAuftrag() == null) {
         log.error("Assigned order position expected: " + pos);
         continue;
-      } else if (pos.isDeleted() == true || pos.getRechnung() == null || pos.getRechnung().isDeleted() == true
-          || pos.getRechnung().getNummer() == null) {
+      } else if (pos.isDeleted() == true || rechnung == null || rechnung.isDeleted() == true
+          || rechnung.getNummer() == null) {
         // Invoice position or invoice is deleted.
         continue;
       }

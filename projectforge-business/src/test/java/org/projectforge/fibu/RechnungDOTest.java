@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -38,46 +38,74 @@ public class RechnungDOTest
   {
     final RechnungDO rechnung = new RechnungDO();
     RechnungsPositionDO pos = new RechnungsPositionDO();
-    pos.setMenge(new BigDecimal(61)).setEinzelNetto(new BigDecimal(101.25)).setVat(new BigDecimal("0.19"));
+    pos.setMenge(new BigDecimal(61));
+    pos.setEinzelNetto(new BigDecimal(101.25));
+    pos.setVat(new BigDecimal("0.19").stripTrailingZeros());
     rechnung.addPosition(pos);
     pos = new RechnungsPositionDO();
-    pos.setMenge(new BigDecimal(13)).setEinzelNetto(new BigDecimal(112.5)).setVat(new BigDecimal("0.19"));
+    pos.setMenge(new BigDecimal(13));
+    pos.setEinzelNetto(new BigDecimal(112.5));
+    pos.setVat(new BigDecimal("0.19").stripTrailingZeros());
     rechnung.addPosition(pos);
     pos = new RechnungsPositionDO();
-    pos.setMenge(new BigDecimal(79)).setEinzelNetto(new BigDecimal(112.5)).setVat(new BigDecimal("0.19"));
+    pos.setMenge(new BigDecimal(79));
+    pos.setEinzelNetto(new BigDecimal(112.5));
+    pos.setVat(new BigDecimal("0.19").stripTrailingZeros());
     rechnung.addPosition(pos);
     pos = new RechnungsPositionDO();
-    pos.setMenge(new BigDecimal(61)).setEinzelNetto(new BigDecimal(112.5)).setVat(new BigDecimal("0.19"));
+    pos.setMenge(new BigDecimal(61));
+    pos.setEinzelNetto(new BigDecimal(112.5));
+    pos.setVat(new BigDecimal("0.19").stripTrailingZeros());
     rechnung.addPosition(pos);
     pos = new RechnungsPositionDO();
-    pos.setMenge(new BigDecimal(44)).setEinzelNetto(new BigDecimal(90)).setVat(new BigDecimal("0.19"));
+    pos.setMenge(new BigDecimal(44));
+    pos.setEinzelNetto(new BigDecimal(90));
+    pos.setVat(new BigDecimal("0.19").stripTrailingZeros());
     rechnung.addPosition(pos);
     pos = new RechnungsPositionDO();
-    pos.setMenge(new BigDecimal(76)).setEinzelNetto(new BigDecimal(112.5)).setVat(new BigDecimal("0.19"));
+    pos.setMenge(new BigDecimal(76));
+    pos.setEinzelNetto(new BigDecimal(112.5));
+    pos.setVat(new BigDecimal("0.19").stripTrailingZeros());
     rechnung.addPosition(pos);
     pos = new RechnungsPositionDO();
-    pos.setMenge(new BigDecimal(86)).setEinzelNetto(new BigDecimal(101.25)).setVat(new BigDecimal("0.19"));
+    pos.setMenge(new BigDecimal(86));
+    pos.setEinzelNetto(new BigDecimal(101.25));
+    pos.setVat(new BigDecimal("0.19").stripTrailingZeros());
     rechnung.addPosition(pos);
     pos = new RechnungsPositionDO();
-    pos.setMenge(new BigDecimal(88)).setEinzelNetto(new BigDecimal(112.5)).setVat(new BigDecimal("0.19"));
+    pos.setMenge(new BigDecimal(88));
+    pos.setEinzelNetto(new BigDecimal(112.5));
+    pos.setVat(new BigDecimal("0.19").stripTrailingZeros());
     rechnung.addPosition(pos);
     pos = new RechnungsPositionDO();
-    pos.setMenge(new BigDecimal(68)).setEinzelNetto(new BigDecimal(123.75)).setVat(new BigDecimal("0.19"));
+    pos.setMenge(new BigDecimal(68));
+    pos.setEinzelNetto(new BigDecimal(123.75));
+    pos.setVat(new BigDecimal("0.19").stripTrailingZeros());
     rechnung.addPosition(pos);
     pos = new RechnungsPositionDO();
-    pos.setMenge(new BigDecimal(59)).setEinzelNetto(new BigDecimal(112.5)).setVat(new BigDecimal("0.19"));
+    pos.setMenge(new BigDecimal(59));
+    pos.setEinzelNetto(new BigDecimal(112.5));
+    pos.setVat(new BigDecimal("0.19").stripTrailingZeros());
     rechnung.addPosition(pos);
     pos = new RechnungsPositionDO();
-    pos.setMenge(new BigDecimal(8)).setEinzelNetto(new BigDecimal(101.25)).setVat(new BigDecimal("0.19"));
+    pos.setMenge(new BigDecimal(8));
+    pos.setEinzelNetto(new BigDecimal(101.25));
+    pos.setVat(new BigDecimal("0.19").stripTrailingZeros());
     rechnung.addPosition(pos);
     pos = new RechnungsPositionDO();
-    pos.setMenge(new BigDecimal(66)).setEinzelNetto(new BigDecimal(101.25)).setVat(new BigDecimal("0.19"));
+    pos.setMenge(new BigDecimal(66));
+    pos.setEinzelNetto(new BigDecimal(101.25));
+    pos.setVat(new BigDecimal("0.19").stripTrailingZeros());
     rechnung.addPosition(pos);
     pos = new RechnungsPositionDO();
-    pos.setMenge(new BigDecimal(70)).setEinzelNetto(new BigDecimal(90)).setVat(new BigDecimal("0.19"));
+    pos.setMenge(new BigDecimal(70));
+    pos.setEinzelNetto(new BigDecimal(90));
+    pos.setVat(new BigDecimal("0.19").stripTrailingZeros());
     rechnung.addPosition(pos);
     pos = new RechnungsPositionDO();
-    pos.setMenge(new BigDecimal(60)).setEinzelNetto(new BigDecimal(101.25)).setVat(new BigDecimal("0.19"));
+    pos.setMenge(new BigDecimal(60));
+    pos.setEinzelNetto(new BigDecimal(101.25));
+    pos.setVat(new BigDecimal("0.19").stripTrailingZeros());
     rechnung.addPosition(pos);
 
     assertEquals(new BigDecimal("89426.25"), rechnung.getNetSum().setScale(2, BigDecimal.ROUND_HALF_DOWN));

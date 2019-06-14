@@ -42,7 +42,7 @@ nav.bg-light {
     //margin-left: 15px; // Zu viel Platzverbrauch bei vielen Menüeinträgen.
   }
 
-  ul li a.btn {
+  ul li a.btn.btn-secondary {
     color: #fff !important;
     background: #009BA3;
   }
@@ -190,7 +190,6 @@ fieldset {
 .btn {
   font-size: 15px;
   padding: 0 15px;
-  min-height: 36px;
   border-radius: 3px;
 
   &.btn-primary {
@@ -213,6 +212,10 @@ fieldset {
   &.btn-warning {
     color: #DC3545 !important;
   }
+}
+
+.selectPanelIconLinks {
+  margin-top: -28px;
 }
 
 .btn-group {
@@ -394,12 +397,23 @@ nav[class^="Navigation_globalNavigation__"] .ml-auto.nav .nav-item {
   background: transparent !important;
 }
 
+div[class^="LoadingContainer_loadingContainer__"] {
+  margin-top: 20px;
+}
+
 div.Customized_addressImageContainer__9T_GE * {
   margin: 0 !important;
 }
 
-span[class^="DropArea_info__"] svg {
-  margin-right: 10px !important;
+span[class^="DropArea_info__"] {
+  margin-top: 20px !important;
+  svg {
+    margin-right: 10px !important;
+  }
+}
+
+.popover {
+  max-width: 400px;
 }
 
 .popover-header {
@@ -408,4 +422,41 @@ span[class^="DropArea_info__"] svg {
 
 .popover-body {
   font-size: 12px;
+}
+
+div[class^="LoadingContainer_loadingContainer__"] {
+  img {
+    margin-bottom: 20px !important;
+  }
+
+  .btn.btn-danger {
+    //margin-bottom: 20px !important;
+  }
+}
+
+.col > span[class^="Input_text__"] {
+  margin-left: 15px;
+  color: #a5a2a5;
+  font-size: 11px;
+}
+
+div[class*="-singleValue"] {
+  margin-left: 8px;
+  font-size: 15px;
+}
+
+fieldset label[for*="favorite"] {
+  margin-top: 27px;
+}
+
+#favoritesPopover {
+  margin-top: 5px;
+}
+
+img + .btn.btn-danger {
+  margin-bottom: 20px !important;
+}
+
+div[class^="DayPicker"] {
+  font-size: 13px;
 }

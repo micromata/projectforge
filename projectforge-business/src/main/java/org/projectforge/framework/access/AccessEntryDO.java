@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -38,7 +38,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.hibernate.search.annotations.Indexed;
@@ -264,9 +264,9 @@ public class AccessEntryDO implements Comparable<AccessEntryDO>, Serializable, B
   {
     if (o instanceof AccessEntryDO) {
       final AccessEntryDO other = (AccessEntryDO) o;
-      if (ObjectUtils.equals(this.getAccessType(), other.getAccessType()) == false)
+      if (Objects.equals(this.getAccessType(), other.getAccessType()) == false)
         return false;
-      if (ObjectUtils.equals(this.getId(), other.getId()) == false)
+      if (Objects.equals(this.getId(), other.getId()) == false)
         return false;
       return true;
     }

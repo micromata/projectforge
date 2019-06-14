@@ -10,7 +10,8 @@ import { getServiceURL } from '../../../utilities/rest';
 class CalendarStyler extends Component {
     constructor(props) {
         super(props);
-        const { background, calendar } = this.props;
+        const { calendar } = this.props;
+        const background = (calendar && calendar.style && calendar.style.bgColor) ? calendar.style.bgColor : '#777';
         this.state = {
             background,
             visible: calendar.visible,
@@ -27,7 +28,7 @@ class CalendarStyler extends Component {
 
     handleVisibilityChange(event) {
         this.setState({ visible: event.target.checked });
-        const { calendar } = this.props;
+        const { calendar, submit } = this.props;
         fetch(getServiceURL('calendar/setVisibility', {
             calendarId: calendar.id,
             visible: event.target.checked,
@@ -35,6 +36,12 @@ class CalendarStyler extends Component {
             method: 'GET',
             credentials: 'include',
         })
+            .then(() => {
+                if (submit) submit();
+
+                // TODO ONLY RELOAD THE DATA
+                window.location.reload();
+            })
             .catch(error => alert(`Internal error: ${error}`));
     }
 
@@ -64,13 +71,16 @@ CalendarStyler.propTypes = {
     calendar: PropTypes.shape({
         id: PropTypes.number.isRequired,
         visible: PropTypes.bool,
+        style: PropTypes.shape({
+            bgColor: PropTypes.string,
+        }),
     }).isRequired,
-    background: PropTypes.string,
+    submit: PropTypes.func,
     // translations: PropTypes.shape({}).isRequired,
 };
 
 CalendarStyler.defaultProps = {
-    background: '#777',
+    submit: undefined,
 };
 
 export default (CalendarStyler);

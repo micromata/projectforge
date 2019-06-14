@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,7 +24,7 @@
 package org.projectforge.business.task;
 
 import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist;
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -675,8 +675,8 @@ public class TaskDO extends DefaultBaseDO implements ShortDisplayNameCapable, Cl
   {
     if (o instanceof TaskDO) {
       final TaskDO other = (TaskDO) o;
-      return ObjectUtils.equals(this.getParentTaskId(), other.getParentTaskId()) == true
-          && ObjectUtils.equals(this.getTitle(), other.getTitle()) == true;
+      return Objects.equals(this.getParentTaskId(), other.getParentTaskId()) == true
+          && Objects.equals(this.getTitle(), other.getTitle()) == true;
     }
     return false;
   }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -98,9 +98,13 @@ public class TaskKostTest extends AbstractTestBase
     logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     final TaskTree taskTree = taskDao.getTaskTree();
     final TaskDO task = initTestDB.addTask("kost2test1", "root");
+    final ProjektDO find = new ProjektDO();
+    find.setName("Kost2 test project");
+    find.setInternKost2_4(137);
+    find.setNummer(05);
+    find.setTask(task);
     final ProjektDO projekt = projektDao
-        .getById(projektDao.save(new ProjektDO().setName("Kost2 test project").setInternKost2_4(137)
-            .setNummer(05).setTask(task))); // Kost2: 4.137.05
+        .getById(projektDao.save(find)); // Kost2: 4.137.05
     List<Kost2DO> list = taskTree.getKost2List(task.getId());
     assertNull(list);
     final Kost2DO kost2a = kost2Dao

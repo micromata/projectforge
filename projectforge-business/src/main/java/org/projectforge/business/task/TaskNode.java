@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,7 @@
 
 package org.projectforge.business.task;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -413,7 +413,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
    * @param GroupTaskAccessDO
    */
   void setGroupTaskAccess(final GroupTaskAccessDO groupTaskAccess) {
-    Validate.isTrue(ObjectUtils.equals(this.getTaskId(), groupTaskAccess.getTaskId()) == true);
+    Validate.isTrue(Objects.equals(this.getTaskId(), groupTaskAccess.getTaskId()) == true);
     // TODO: Should be called after update and insert into database.
     if (log.isInfoEnabled() == true) {
       log.debug("Set explicit access, taskId = " + getTaskId() + ", groupId = " + groupTaskAccess.getGroupId());
@@ -471,8 +471,8 @@ public class TaskNode implements IdObject<Integer>, Serializable {
   public boolean equals(final Object o) {
     if (o instanceof TaskNode) {
       final TaskNode other = (TaskNode) o;
-      return ObjectUtils.equals(this.getParentId(), other.getParentId()) == true
-              && ObjectUtils.equals(this.getTask().getTitle(), other.getTask().getTitle()) == true;
+      return Objects.equals(this.getParentId(), other.getParentId()) == true
+              && Objects.equals(this.getTask().getTitle(), other.getTask().getTitle()) == true;
     }
     return false;
   }

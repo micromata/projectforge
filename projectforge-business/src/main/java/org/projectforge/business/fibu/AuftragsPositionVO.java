@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,7 +26,7 @@ package org.projectforge.business.fibu;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
@@ -83,7 +83,7 @@ public class AuftragsPositionVO implements Comparable<AuftragsPositionVO>, Seria
     if (this.personDays == null) {
       this.personDays = BigDecimal.ZERO;
     }
-    this.vollstaendigFakturiert = auftragsPosition.isVollstaendigFakturiert();
+    this.vollstaendigFakturiert = auftragsPosition.getVollstaendigFakturiert();
   }
 
   public short getNumber()
@@ -165,9 +165,9 @@ public class AuftragsPositionVO implements Comparable<AuftragsPositionVO>, Seria
   {
     if (o instanceof AuftragsPositionVO) {
       AuftragsPositionVO other = (AuftragsPositionVO) o;
-      if (ObjectUtils.equals(this.getNumber(), other.getNumber()) == false)
+      if (Objects.equals(this.getNumber(), other.getNumber()) == false)
         return false;
-      if (ObjectUtils.equals(this.getAuftragId(), other.getAuftragId()) == false)
+      if (Objects.equals(this.getAuftragId(), other.getAuftragId()) == false)
         return false;
       return true;
     }

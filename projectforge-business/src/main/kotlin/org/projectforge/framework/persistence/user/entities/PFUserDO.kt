@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -77,8 +77,8 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * Encoded password of the user (SHA-1).
      */
     @PropertyInfo(i18nKey = "password")
-    @NoHistory
     @JsonIgnore
+    @field:NoHistory
     @get:Column(length = 50)
     var password: String? = null
 
@@ -150,8 +150,8 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     /**
      * Key stored in the cookies for the functionality of stay logged in.
      */
-    @NoHistory
     @JsonIgnore
+    @field:NoHistory
     @get:Column(name = "stay_logged_in_key", length = 255)
     var stayLoggedInKey: String? = null
 
@@ -160,16 +160,16 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * ics download links of the team calendars.
      */
     @PropertyInfo(i18nKey = "user.authenticationToken")
-    @NoHistory
     @JsonIgnore
+    @field:NoHistory
     @get:Column(name = "authentication_token", length = 100)
     var authenticationToken: String? = null
 
     /**
      * The saltString for giving salt to hashed password.
      */
-    @NoHistory
     @JsonIgnore
+    @field:NoHistory
     @get:Column(name = "password_salt", length = 40)
     var passwordSalt: String? = null
 
@@ -177,14 +177,14 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * Zeitstempel des letzten erfolgreichen Logins.
      */
     @PropertyInfo(i18nKey = "login.lastLogin")
-    @NoHistory
+    @field:NoHistory
     @get:Column
     var lastLogin: Timestamp? = null
 
     /**
      * Die Anzahl der erfolglosen Logins. Dieser Wert wird bei dem nächsten erfolgreichen Login auf 0 zurück gesetzt.
      */
-    @NoHistory
+    @field:NoHistory
     @get:Column
     var loginFailures: Int = 0
 

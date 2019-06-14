@@ -1,6 +1,27 @@
-package org.projectforge.plugins.ffp.repository;
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
 
-import java.util.List;
+package org.projectforge.plugins.ffp.repository;
 
 import org.hibernate.criterion.LogicalExpression;
 import org.hibernate.criterion.Restrictions;
@@ -17,8 +38,12 @@ import org.projectforge.plugins.ffp.wicket.FFPDebtFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * Access to ffp events.
+ *
+ * Buggy: Deselect plugin on startup: update t_configuration set stringValue='extendemployeedata,ihkexport,licenseManagementPlugin,liquidplanning,marketing,memo,skillmatrix,todo' where parameter='pluginsActivated';
  *
  * @author Florian Blumenstein
  */

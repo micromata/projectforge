@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,7 +30,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.time.DateHolder;
@@ -44,7 +44,7 @@ public class GanttUtils
     @Override
     public int compare(final GanttTask o1, final GanttTask o2)
     {
-      if (ObjectUtils.equals(o1.getId(), o2.getId()) == true) {
+      if (Objects.equals(o1.getId(), o2.getId()) == true) {
         return 0;
       }
       final Date start1 = o1.getCalculatedStartDate();

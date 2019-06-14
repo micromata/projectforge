@@ -1,3 +1,26 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.menu.builder
 
 import org.projectforge.business.configuration.ConfigurationService
@@ -156,7 +179,7 @@ open class MenuCreator {
         //
         val commonMenu = menuItemDefHolder.add(MenuItemDef(MenuItemDefId.COMMON))
                 .add(MenuItemDef(MenuItemDefId.CALENDAR, "calendar"))
-                .add(MenuItemDef(MenuItemDefId.TEAMCALENDAR, "teamCal"))
+                .add(MenuItemDef(MenuItemDefId.TEAMCALENDAR, "wa/teamCalendar")) // teamCal
                 .add(MenuItemDef(MenuItemDefId.VACATION, "wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationListPage",
                         badgeCounter = { vacationService.getOpenLeaveApplicationsForUser(ThreadLocalUserContext.getUser()).toInt() }))
                 .add(MenuItemDef(MenuItemDefId.BOOK_LIST, "book"))
@@ -199,9 +222,9 @@ open class MenuCreator {
         menuItemDefHolder.add(MenuItemDef(MenuItemDefId.HR,
                 checkAccess =
                 { isInGroup(ProjectForgeGroup.HR_GROUP) }))
-                .add(MenuItemDef(MenuItemDefId.EMPLOYEE_LIST, "employee",
+                .add(MenuItemDef(MenuItemDefId.EMPLOYEE_LIST, "wa/employeeList", // new: employee
                         requiredUserRightId = EmployeeDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
-                .add(MenuItemDef(MenuItemDefId.EMPLOYEE_SALARY_LIST, "employeeSalary",
+                .add(MenuItemDef(MenuItemDefId.EMPLOYEE_SALARY_LIST, "wa/employeeSalaryList", // new: employeeSalary
                         requiredUserRightId = EmployeeSalaryDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
 
         //////////////////////////////////////
@@ -221,7 +244,7 @@ open class MenuCreator {
                                     isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
                         }))
         if (Configuration.getInstance().isCostConfigured) {
-            fibuMenu.add(MenuItemDef(MenuItemDefId.CUSTOMER_LIST, "customer",
+            fibuMenu.add(MenuItemDef(MenuItemDefId.CUSTOMER_LIST, "wa/customerList", // new: customer
                     checkAccess = { isInGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP) }))
                     .add(MenuItemDef(MenuItemDefId.PROJECT_LIST, "wa/projectList",
                             checkAccess = {
@@ -290,7 +313,7 @@ open class MenuCreator {
                         requiredUserRightId = PosteingangDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
                 .add(MenuItemDef(MenuItemDefId.CONTRACTS, "contract",
                         requiredUserRightId = ContractDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
-                .add(MenuItemDef(MenuItemDefId.VISITORBOOK, "wa/wa/wicket/bookmarkable/org.projectforge.web.orga.VisitorbookListPage",
+                .add(MenuItemDef(MenuItemDefId.VISITORBOOK, "wa/wicket/bookmarkable/org.projectforge.web.orga.VisitorbookListPage",
                         requiredUserRightId = VisitorbookDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
 
         //////////////////////////////////////
@@ -317,8 +340,8 @@ open class MenuCreator {
                             // The visibility of this menu entry is evaluated by the login handler implementation.
                             Login.getInstance().isWlanPasswordChangeSupported(ThreadLocalUserContext.getUser())
                         }))
-                .add(MenuItemDef(MenuItemDefId.USER_LIST, "user")) // Visible for all.
-                .add(MenuItemDef(MenuItemDefId.GROUP_LIST, "group")) // Visible for all.
+                .add(MenuItemDef(MenuItemDefId.USER_LIST, "wa/userList")) // Visible for all.
+                .add(MenuItemDef(MenuItemDefId.GROUP_LIST, "wa/groupList")) // Visible for all.
                 .add(MenuItemDef(MenuItemDefId.ACCESS_LIST, "wa/accessList")) // Visible for all.
                 .add(MenuItemDef(MenuItemDefId.SYSTEM, "wa/admin", requiredGroups = *arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
 

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -658,9 +658,9 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
     if (operationType == OperationType.UPDATE) {
       if (timesheet.getStartTime().getTime() == oldTimesheet.getStartTime().getTime()
           && timesheet.getStopTime().getTime() == oldTimesheet.getStopTime().getTime()
-          && ObjectUtils.equals(timesheet.getKost2Id(), oldTimesheet.getKost2Id()) == true
-          && ObjectUtils.equals(timesheet.getTaskId(), oldTimesheet.getTaskId()) == true
-          && ObjectUtils.equals(timesheet.getUserId(), oldTimesheet.getUserId()) == true) {
+          && Objects.equals(timesheet.getKost2Id(), oldTimesheet.getKost2Id()) == true
+          && Objects.equals(timesheet.getTaskId(), oldTimesheet.getTaskId()) == true
+          && Objects.equals(timesheet.getUserId(), oldTimesheet.getUserId()) == true) {
         // Only minor fields are modified (description, location etc.).
         return true;
       }
@@ -762,7 +762,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
     if (operationType == OperationType.UPDATE) {
       if (timesheet.getStartTime().getTime() == oldTimesheet.getStartTime().getTime()
           && timesheet.getStopTime().getTime() == oldTimesheet.getStopTime().getTime()
-          && ObjectUtils.equals(timesheet.getKost2Id(), oldTimesheet.getKost2Id()) == true) {
+          && Objects.equals(timesheet.getKost2Id(), oldTimesheet.getKost2Id()) == true) {
         return true;
       }
     }

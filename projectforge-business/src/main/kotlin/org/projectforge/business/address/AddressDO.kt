@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -52,7 +52,6 @@ import javax.persistence.*
         indexes = [javax.persistence.Index(name = "idx_fk_t_address_tenant_id",
                 columnList = "tenant_id"), javax.persistence.Index(name = "idx_fk_t_address_uid_tenant_id",
                 columnList = "uid, tenant_id")])
-@NoHistory
 class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
 
     @PropertyInfo(i18nKey = "address.contactStatus")
@@ -255,12 +254,12 @@ class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
     var birthday: Date? = null
 
     @PropertyInfo(i18nKey = "address.image")
-    @get:NoHistory
+    @field:NoHistory
     @get:Column
     var imageData: ByteArray? = null
 
     @PropertyInfo(i18nKey = "address.image")
-    @get:NoHistory
+    @field:NoHistory
     @get:Column(name = "image_data_preview")
     var imageDataPreview: ByteArray? = null
 

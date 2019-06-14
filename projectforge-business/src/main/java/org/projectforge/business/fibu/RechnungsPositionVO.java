@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,12 @@
 
 package org.projectforge.business.fibu;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.Date;
-
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
+import java.util.Objects;
 
 /**
  * Repräsentiert einee Position innerhalb einer Rechnung als Übersichtsobject (value object) zur Verwendung z. B. in Listen.
@@ -58,7 +58,7 @@ public class RechnungsPositionVO implements Comparable<RechnungsPositionVO>, Ser
 
   public RechnungsPositionVO(final RechnungsPositionDO rechnungsPosition)
   {
-    final RechnungDO rechnung = rechnungsPosition.getRechnung();
+    final RechnungDO rechnung = (RechnungDO) rechnungsPosition.getRechnung();
     this.date = rechnung.getDatum();
     this.number = rechnungsPosition.getNumber();
     this.rechnungId = rechnung.getId();
@@ -132,9 +132,9 @@ public class RechnungsPositionVO implements Comparable<RechnungsPositionVO>, Ser
   {
     if (o instanceof RechnungsPositionVO) {
       final RechnungsPositionVO other = (RechnungsPositionVO) o;
-      if (ObjectUtils.equals(this.getNumber(), other.getNumber()) == false)
+      if (Objects.equals(this.getNumber(), other.getNumber()) == false)
         return false;
-      if (ObjectUtils.equals(this.getRechnungId(), other.getRechnungId()) == false)
+      if (Objects.equals(this.getRechnungId(), other.getRechnungId()) == false)
         return false;
       return true;
     }

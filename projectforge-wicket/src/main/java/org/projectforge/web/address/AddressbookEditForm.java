@@ -25,7 +25,7 @@ package org.projectforge.web.address;
 
 import java.util.Collection;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -154,7 +154,7 @@ public class AddressbookEditForm extends AbstractEditForm<AddressbookDO, Address
       }
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("addressbook.owner")).suppressLabelForWarning();
       if (accessChecker.isLoggedInUserMemberOfAdminGroup() == true
-          || ObjectUtils.equals(data.getOwner().getId(), getUserId()) == true) {
+          || Objects.equals(data.getOwner().getId(), getUserId()) == true) {
         final UserSelectPanel userSelectPanel = new UserSelectPanel(fs.newChildId(),
             new PropertyModel<PFUserDO>(data, "owner"), parentPage,
             "ownerId");
