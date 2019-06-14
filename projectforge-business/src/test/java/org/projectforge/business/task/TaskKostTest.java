@@ -62,15 +62,27 @@ public class TaskKostTest extends AbstractTestBase
   {
     logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     final TaskTree taskTree = taskDao.getTaskTree();
+    Kost2DO kost = new Kost2DO();
+    kost.setNummernkreis(1);
+    kost.setBereich(137);
+    kost.setTeilbereich(05);
+    kost.setKost2Art(new Kost2ArtDO().withId(1));
     final Kost2DO kost2a = kost2Dao
-        .getById(kost2Dao.save(new Kost2DO().setNummernkreis(1).setBereich(137).setTeilbereich(05).setKost2Art(
-            new Kost2ArtDO().withId(1)))); // Kost2: 1.137.05.01
+        .getById(kost2Dao.save(kost)); // Kost2: 1.137.05.01
+    kost = new Kost2DO();
+    kost.setNummernkreis(1);
+    kost.setBereich(137);
+    kost.setTeilbereich(05);
+    kost.setKost2Art(new Kost2ArtDO().withId(2));
     final Kost2DO kost2b = kost2Dao
-        .getById(kost2Dao.save(new Kost2DO().setNummernkreis(1).setBereich(137).setTeilbereich(05).setKost2Art(
-            new Kost2ArtDO().withId(2)))); // Kost2: 1.137.05.02
+        .getById(kost2Dao.save(kost)); // Kost2: 1.137.05.02
+    kost = new Kost2DO();
+    kost.setNummernkreis(2);
+    kost.setBereich(423);
+    kost.setTeilbereich(12);
+    kost.setKost2Art(new Kost2ArtDO().withId(1));
     final Kost2DO kost2c = kost2Dao
-        .getById(kost2Dao.save(new Kost2DO().setNummernkreis(2).setBereich(423).setTeilbereich(12).setKost2Art(
-            new Kost2ArtDO().withId(1)))); // Kost2: 2.423.12.01
+        .getById(kost2Dao.save(kost)); // Kost2: 2.423.12.01
     final TaskDO task = initTestDB.addTask("kost2test2", "root");
     task.setKost2BlackWhiteList("1.137.05.01, 1.137.05.02, 2.423.12.01");
     taskDao.update(task);
@@ -107,22 +119,42 @@ public class TaskKostTest extends AbstractTestBase
         .getById(projektDao.save(find)); // Kost2: 4.137.05
     List<Kost2DO> list = taskTree.getKost2List(task.getId());
     assertNull(list);
+    Kost2DO kost = new Kost2DO();
+    kost.setNummernkreis(4);
+    kost.setBereich(137);
+    kost.setProjekt(projekt);
+    kost.setTeilbereich(05);
+    kost.setKost2Art(new Kost2ArtDO().withId(1));
     final Kost2DO kost2a = kost2Dao
-        .getById(kost2Dao.save(new Kost2DO().setNummernkreis(4).setBereich(137).setTeilbereich(05).setProjekt(
-            projekt).setKost2Art(new Kost2ArtDO().withId(1)))); // Kost2: 4.137.05.01
+        .getById(kost2Dao.save(kost)); // Kost2: 4.137.05.01
+    kost = new Kost2DO();
+    kost.setNummernkreis(4);
+    kost.setBereich(137);
+    kost.setProjekt(projekt);
+    kost.setTeilbereich(05);
+    kost.setKost2Art(new Kost2ArtDO().withId(2));
     final Kost2DO kost2b = kost2Dao
-        .getById(kost2Dao.save(new Kost2DO().setNummernkreis(4).setBereich(137).setTeilbereich(05).setProjekt(
-            projekt).setKost2Art(new Kost2ArtDO().withId(2)))); // Kost2: 4.137.05.02
+        .getById(kost2Dao.save(kost)); // Kost2: 4.137.05.02
     list = taskTree.getKost2List(task.getId());
     assertEquals(2, list.size());
     assertKost2(kost2a, list.get(0));
     assertKost2(kost2b, list.get(1));
+    kost = new Kost2DO();
+    kost.setNummernkreis(4);
+    kost.setBereich(137);
+    kost.setProjekt(projekt);
+    kost.setTeilbereich(05);
+    kost.setKost2Art(new Kost2ArtDO().withId(3));
     final Kost2DO kost2c = kost2Dao
-        .getById(kost2Dao.save(new Kost2DO().setNummernkreis(4).setBereich(137).setTeilbereich(05).setProjekt(
-            projekt).setKost2Art(new Kost2ArtDO().withId(3)))); // Kost2: 4.137.05.03
+        .getById(kost2Dao.save(kost)); // Kost2: 4.137.05.03
+    kost = new Kost2DO();
+    kost.setNummernkreis(4);
+    kost.setBereich(137);
+    kost.setProjekt(projekt);
+    kost.setTeilbereich(05);
+    kost.setKost2Art(new Kost2ArtDO().withId(4));
     final Kost2DO kost2d = kost2Dao
-        .getById(kost2Dao.save(new Kost2DO().setNummernkreis(4).setBereich(137).setTeilbereich(05).setProjekt(
-            projekt).setKost2Art(new Kost2ArtDO().withId(4)))); // Kost2: 4.137.05.04
+        .getById(kost2Dao.save(kost)); // Kost2: 4.137.05.04
     list = taskTree.getKost2List(task.getId());
     assertEquals(4, list.size());
     assertKost2(kost2a, list.get(0));
