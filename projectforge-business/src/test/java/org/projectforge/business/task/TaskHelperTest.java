@@ -70,7 +70,11 @@ public class TaskHelperTest extends AbstractTestBase
     projekt.setTask(task1);
     projektDao.save(projekt);
     final Kost2ArtDO kost2Art = new Kost2ArtDO().withId(42);
-    final Kost2DO kost = new Kost2DO().setNummernkreis(4).setBereich(128).setTeilbereich(5).setKost2Art(kost2Art);
+    final Kost2DO kost = new Kost2DO();
+    kost.setNummernkreis(4);
+    kost.setBereich(128);
+    kost.setTeilbereich(5);
+    kost.setKost2Art(kost2Art);
     assertEquals("42", TaskHelper.addKost2(taskTree, task1, kost));
     assertEquals("12,42,6.001.02.89",
         TaskHelper.addKost2(taskTree, task1.setKost2BlackWhiteList("12,6.001.02.89,12"), kost));
