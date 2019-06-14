@@ -3,6 +3,7 @@ import DynamicCustomized from './customized';
 import DynamicFieldset from './DynamicFieldset';
 import DynamicGroup from './DynamicGroup';
 import DynamicLabel from './DynamicLabel';
+import DynamicToLayoutGroup from './DynamicToLayoutGroup';
 import DynamicInputResolver from './input/DynamicInputResolver';
 
 // Renders the components out of a content array.
@@ -36,7 +37,7 @@ export default (content) => {
                         Tag = DynamicLabel;
                         break;
                     default:
-                        return <React.Fragment key={componentKey} />;
+                        Tag = DynamicToLayoutGroup;
                 }
 
                 return (
