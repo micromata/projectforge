@@ -27,7 +27,7 @@ function DynamicToLayoutGroup(props) {
             newData = newValue.value;
         }
 
-        setData({ id: newData });
+        setData({ [id]: newData });
     };
 
     // Return a LayoutGroup where the old system will be rendered.
