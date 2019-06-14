@@ -30,7 +30,7 @@ class Konto(var nummer: Int? = null,
             var bezeichnung: String? = null,
             var description: String? = null,
             var kontoStatus: KontoStatus? = null
-) : BaseObject<KontoDO>() {
+) : BaseHistorizableDTO<KontoDO>() {
     override fun copyFromMinimal(src: KontoDO) {
         super.copyFromMinimal(src)
         nummer = src.nummer

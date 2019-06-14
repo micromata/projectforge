@@ -55,7 +55,7 @@ class BookServicesRest() {
     fun lendOut(request: HttpServletRequest, @RequestBody book: BookDO): ResponseEntity<ResponseAction> {
         book.lendOutDate = Date()
         bookDao.setLendOutBy(book, getUserId())
-        return saveOrUpdate(request, bookDao, book, bookRest, bookRest.validate(book))
+        return saveOrUpdate(request, bookDao, book, book, bookRest, bookRest.validate(book))
     }
 
     /**
@@ -66,6 +66,6 @@ class BookServicesRest() {
         book.lendOutBy = null
         book.lendOutDate = null
         book.lendOutComment = null
-        return saveOrUpdate(request, bookDao, book, bookRest, bookRest.validate(book))
+        return saveOrUpdate(request, bookDao, book, book, bookRest, bookRest.validate(book))
     }
 }

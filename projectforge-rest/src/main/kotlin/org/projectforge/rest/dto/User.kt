@@ -35,7 +35,7 @@ class User(id: Int? = null,
            var fullname: String? = null,
            var description: String? = null,
            var email: String? = null
-) : BaseObject<PFUserDO>(id = id) {
+) : BaseHistorizableDTO<PFUserDO>(id = id) {
 
     override fun copyFromMinimal(src: PFUserDO) {
         super.copyFromMinimal(src)

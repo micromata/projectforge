@@ -33,7 +33,7 @@ class Addressbook(var title: String? = null,
                   var fullAccessUsers: MutableList<User>? = null,
                   var readonlyAccessGroups: MutableList<Group>? = null,
                   var readonlyAccessUsers: MutableList<User>? = null
-) : BaseObject<AddressbookDO>() {
+) : BaseHistorizableDTO<AddressbookDO>() {
 
     // The user and group ids are stored as csv list of integers in the data base.
     override fun copyFrom(src: AddressbookDO) {

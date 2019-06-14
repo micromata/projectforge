@@ -24,8 +24,8 @@
 package org.projectforge.plugins.poll.dto
 
 import org.projectforge.plugins.poll.PollDO
-import org.projectforge.rest.dto.BaseObject
+import org.projectforge.rest.dto.BaseHistorizableDTO
 
-class Poll: BaseObject<PollDO>() {
+class Poll: BaseHistorizableDTO<PollDO>() {
 
 }

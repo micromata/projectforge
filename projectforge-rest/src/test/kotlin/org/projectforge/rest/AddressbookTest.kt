@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.rest.dto.Addressbook
-import org.projectforge.rest.dto.BaseObject
+import org.projectforge.rest.dto.BaseHistorizableDTO
 
 class AddressbookTest {
 
@@ -55,7 +55,7 @@ class AddressbookTest {
         assertEquals("1, 3", bookDO.readonlyAccessUserIds)
     }
 
-    private fun checkIntList(intList: List<BaseObject<*>>?, vararg expected: Int) {
+    private fun checkIntList(intList: List<BaseHistorizableDTO<*>>?, vararg expected: Int) {
         assertNotNull(intList)
         if (intList == null) {
             return

@@ -35,4 +35,4 @@ class Kost1(
         var kostentraegerStatus: KostentraegerStatus? = null,
         var description: String? = null,
         var formattedNumber: String? = null
-) : BaseObject<Kost1DO>(id)
+) : BaseHistorizableDTO<Kost1DO>(id)
