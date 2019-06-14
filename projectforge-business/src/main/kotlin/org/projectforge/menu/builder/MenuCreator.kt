@@ -233,7 +233,7 @@ open class MenuCreator {
         //
         val fibuMenu = menuItemDefHolder.add(MenuItemDef(MenuItemDefId.FIBU,
                 checkAccess = { isInGroup(*FIBU_ORGA_GROUPS) }))
-                .add(MenuItemDef(MenuItemDefId.OUTGOING_INVOICE_LIST, "invoice",
+                .add(MenuItemDef(MenuItemDefId.OUTGOING_INVOICE_LIST, "wa/outgoingInvoiceList",
                         checkAccess = {
                             hasRight(RechnungDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
                                     isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
