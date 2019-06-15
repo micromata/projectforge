@@ -93,7 +93,7 @@ class HistoryService {
                         property = de.propertyName,
                         oldValue = de.oldValue,
                         newValue = de.newValue)
-                if (clazz != null) {
+                if (clazz != null && !de.propertyName.isNullOrBlank()) {
                     try {
                         var field = clazz.getDeclaredField(de.propertyName)
                         field.isAccessible = true
