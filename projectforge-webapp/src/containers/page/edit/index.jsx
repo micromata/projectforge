@@ -3,6 +3,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { changeEditFormField, loadEditPage } from '../../../actions';
 import DynamicLayout from '../../../components/base/dynamicLayout';
+import ActionGroup from '../../../components/base/page/action/Group';
 import TabNavigation from '../../../components/base/page/edit/TabNavigation';
 import LayoutGroup from '../../../components/base/page/layout/LayoutGroup';
 import { Alert, Container, TabContent, TabPane, } from '../../../components/design';
@@ -152,14 +153,17 @@ class EditPage extends React.Component {
                                         />
                                     )
                                     : (
-                                        <LayoutGroup
-                                            content={ui.layout}
-                                            data={data}
-                                            variables={variables}
-                                            translations={ui.translations}
-                                            changeDataField={changeDataField}
-                                            validation={validation}
-                                        />
+                                        <React.Fragment>
+                                            <LayoutGroup
+                                                content={ui.layout}
+                                                data={data}
+                                                variables={variables}
+                                                translations={ui.translations}
+                                                changeDataField={changeDataField}
+                                                validation={validation}
+                                            />
+                                            <ActionGroup actions={ui.actions} />
+                                        </React.Fragment>
                                     )
                                 }
                             </form>
