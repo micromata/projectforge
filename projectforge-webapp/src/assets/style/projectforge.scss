@@ -467,3 +467,12 @@ ul[class^="Input_options_"] {
     border-top: 1px solid #ddd !important;
   }
 }
+
+button.dropdown-item a.nav-link {
+  padding: 0 10px !important;
+}
+
+.dropdown-menu.show {
+  margin-top: 1px;
+  margin-left: -5px;
+}
