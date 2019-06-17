@@ -113,7 +113,7 @@ class SearchFilter extends Component {
                                     values={newFilter}
                                 />
                             </Col>
-                            <Col sm={1}>
+                            <Col sm={1} className="d-flex align-items-center">
                                 <FavoritesPanel
                                     onFavoriteCreate={this.onFavoriteCreate}
                                     onFavoriteDelete={this.onFavoriteDelete}
