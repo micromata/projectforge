@@ -40,7 +40,7 @@ import javax.servlet.http.HttpServletRequest
 @RequestMapping("${Rest.URL}/incomingMail")
 class PosteingangRest(): AbstractDORest<PosteingangDO, PosteingangDao, PostFilter>(PosteingangDao::class.java, PostFilter::class.java, "orga.posteingang.title") {
 
-    override fun newBaseDO(request: HttpServletRequest): PosteingangDO {
+    override fun newBaseDO(request: HttpServletRequest?): PosteingangDO {
         val inbox = super.newBaseDO(request)
         inbox.datum = PFDate.now().sqlDate
         inbox.type = PostType.BRIEF
@@ -87,6 +87,6 @@ class PosteingangRest(): AbstractDORest<PosteingangDO, PosteingangDao, PostFilte
                 .add(person)
                 .add(inhalt)
                 .add(lc, "bemerkung")
-        return LayoutUtils.processEditPage(layout, dataObject)
+        return LayoutUtils.processEditPage(layout, dataObject, this)
     }
 }

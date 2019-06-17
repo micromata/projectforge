@@ -40,7 +40,7 @@ class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::class.ja
     /**
      * Initializes new books for adding.
      */
-    override fun newBaseDO(request: HttpServletRequest): BookDO {
+    override fun newBaseDO(request: HttpServletRequest?): BookDO {
         val book = super.newBaseDO(request)
         book.status = BookStatus.PRESENT
         book.type = BookType.BOOK
@@ -98,6 +98,6 @@ class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::class.ja
         layout.getTextAreaById("authors").rows = 1
         layout.addTranslations("book.lendOut")
                 .addTranslations("book.returnBook")
-        return LayoutUtils.processEditPage(layout, dataObject)
+        return LayoutUtils.processEditPage(layout, dataObject, this)
     }
 }

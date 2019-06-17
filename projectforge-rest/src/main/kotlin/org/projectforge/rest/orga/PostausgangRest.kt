@@ -42,7 +42,7 @@ class PostausgangRest() : AbstractDORest<PostausgangDO, PostausgangDao, PostFilt
     /**
      * Initializes new outbox mails for adding.
      */
-    override fun newBaseDO(request: HttpServletRequest): PostausgangDO {
+    override fun newBaseDO(request: HttpServletRequest?): PostausgangDO {
         val outbox = super.newBaseDO(request)
         outbox.datum = PFDate.now().sqlDate
         outbox.type = PostType.BRIEF
@@ -89,6 +89,6 @@ class PostausgangRest() : AbstractDORest<PostausgangDO, PostausgangDao, PostFilt
                 .add(person)
                 .add(inhalt)
                 .add(lc, "bemerkung")
-        return LayoutUtils.processEditPage(layout, dataObject)
+        return LayoutUtils.processEditPage(layout, dataObject, this)
     }
 }

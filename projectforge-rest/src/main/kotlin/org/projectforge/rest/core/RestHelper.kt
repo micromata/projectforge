@@ -69,14 +69,11 @@ class RestHelper {
             }
         }
 
-        fun parseLong(request: HttpServletRequest, parameter: String): Long? {
-            val value = request.getParameter(parameter)
-            if (value == null)
-                return null
+        fun parseLong(request: HttpServletRequest?, parameter: String): Long? {
             try {
-                return value.toLong()
+                return request?.getParameter(parameter)?.toLong()
             } catch (ex: DateTimeParseException) {
-                log.error("Error while parsing date millis '$value': ${ex.message}.")
+                log.error("Error while parsing date millis '${request?.getParameter(parameter)}': ${ex.message}.")
                 return null
             }
         }

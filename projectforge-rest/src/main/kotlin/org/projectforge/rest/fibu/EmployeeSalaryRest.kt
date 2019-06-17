@@ -70,6 +70,6 @@ class EmployeeSalaryRest() : AbstractDTORest<EmployeeSalaryDO, EmployeeSalary, E
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "employee", "month", "type", "bruttoMitAgAnteil", "comment")))
-        return LayoutUtils.processEditPage(layout, dataObject)
+        return LayoutUtils.processEditPage(layout, dataObject, this)
     }
 }

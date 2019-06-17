@@ -50,7 +50,7 @@ class PollRest() : AbstractDTORest<PollDO, Poll, PollDao, BaseSearchFilter>(Poll
     /**
      * Initializes new polls for adding.
      */
-    override fun newBaseDO(request: HttpServletRequest): PollDO {
+    override fun newBaseDO(request: HttpServletRequest?): PollDO {
         val poll = super.newBaseDO(request)
         poll.owner = ThreadLocalUserContext.getUser()
         return poll
@@ -84,6 +84,6 @@ class PollRest() : AbstractDTORest<PollDO, Poll, PollDao, BaseSearchFilter>(Poll
                         autoCompletion = AutoCompletion<Int>(url = "user/aco"),
                         labelProperty = "fullname",
                         valueProperty = "id"))
-        return LayoutUtils.processEditPage(layout, dataObject)
+        return LayoutUtils.processEditPage(layout, dataObject, this)
     }
 }

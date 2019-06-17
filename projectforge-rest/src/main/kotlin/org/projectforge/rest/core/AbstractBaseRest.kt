@@ -65,7 +65,8 @@ abstract class AbstractBaseRest<
         F : BaseSearchFilter>(
         private val baseDaoClazz: Class<B>,
         private val filterClazz: Class<F>,
-        private val i18nKeyPrefix: String) {
+        private val i18nKeyPrefix: String,
+        val cloneSupported: Boolean = false) {
     /**
      * If [getAutoCompletionObjects] is called without a special property to search for, all properties will be searched for,
      * given by this attribute. If null, an exception is thrown, if [getAutoCompletionObjects] is called without a property.
@@ -128,7 +129,7 @@ abstract class AbstractBaseRest<
     @Autowired
     private lateinit var listFilterService: ListFilterService
 
-    open fun newBaseDO(request: HttpServletRequest): O {
+    open fun newBaseDO(request: HttpServletRequest? = null): O {
         return baseDao.doClass.newInstance()
     }
 
@@ -207,15 +208,6 @@ abstract class AbstractBaseRest<
         validate(validationErrors, obj)
         if (validationErrors.isEmpty()) return null
         return validationErrors
-    }
-
-    /**
-     * Will be called by clone service. Override this method, if your edit page
-     * should support the clone functionality.
-     * @return false at default, if clone is not supported, otherwise true.
-     */
-    open fun prepareClone(obj: O): Boolean {
-        return false
     }
 
     /**
@@ -398,7 +390,6 @@ abstract class AbstractBaseRest<
     fun clone(@RequestBody obj: O): O {
         obj.id = null
         obj.isDeleted = false
-        obj.id = null
         return obj
     }
 

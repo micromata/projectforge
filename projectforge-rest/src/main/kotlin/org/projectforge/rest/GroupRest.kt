@@ -88,7 +88,7 @@ class GroupRest() : AbstractDTORest<GroupDO, Group, GroupDao, GroupFilter>(Group
                                         autoCompletion = AutoCompletion<Int>(url = "user/aco"),
                                         labelProperty = "fullname",
                                         valueProperty = "id"))))
-        return LayoutUtils.processEditPage(layout, dataObject)
+        return LayoutUtils.processEditPage(layout, dataObject, this)
     }
 
     override val autoCompleteSearchFields = arrayOf("name", "organization")
