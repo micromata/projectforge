@@ -54,7 +54,7 @@ class EmployeeTimedAttrDataDO : JpaTabAttrDataBaseDO<EmployeeTimedAttrDO, Int> {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "parent_id", referencedColumnName = "pk")
-    override fun getParent(): EmployeeTimedAttrDO {
+    override fun getParent(): EmployeeTimedAttrDO? {
         return super.getParent()
     }
 
