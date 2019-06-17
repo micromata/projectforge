@@ -23,20 +23,19 @@
 
 package org.projectforge.framework.persistence.api;
 
-import java.io.Serializable;
-
-import org.projectforge.framework.persistence.user.entities.TenantDO;
-
 import de.micromata.genome.jpa.CustomEntityCopier;
 import de.micromata.genome.jpa.DbRecord;
 import de.micromata.genome.jpa.EntityCopyStatus;
 import de.micromata.genome.jpa.IEmgr;
+import org.projectforge.framework.persistence.user.entities.TenantDO;
+
+import java.io.Serializable;
 
 /**
  * TODO RK is no DO!
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public interface BaseDO<I extends Serializable>
     extends IdObject<I>, DbRecord<I>, CustomEntityCopier<BaseDO<I>>
@@ -50,7 +49,7 @@ public interface BaseDO<I extends Serializable>
 
   /**
    * Sets the tenant for multi-tenancy.
-   * 
+   *
    * @return this for chaining.
    */
   public BaseDO<I> setTenant(TenantDO client);
@@ -75,19 +74,19 @@ public interface BaseDO<I extends Serializable>
   /**
    * Can be used for marking changes in a data object as minor changes. This means for example, that after minor changes
    * all dependent objects will not be re-indexed.
-   * 
+   *
    * @return
    */
   public boolean isMinorChange();
 
   /**
-   * @see #isMinorChanges()
+   * @see #isMinorChange()
    */
   public void setMinorChange(boolean value);
 
   /**
    * Free use-able multi purpose attributes.
-   * 
+   *
    * @param key
    * @return
    */
@@ -101,7 +100,7 @@ public interface BaseDO<I extends Serializable>
    * the original properties will be preserved. If you want to delete such properties, please overwrite them manually.
    * <br/>
    * This method is required by BaseDao for example for updating DOs.
-   * 
+   *
    * @param src
    * @return true, if any modifications are detected, otherwise false;
    */
