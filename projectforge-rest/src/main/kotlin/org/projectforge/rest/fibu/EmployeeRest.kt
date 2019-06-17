@@ -81,6 +81,6 @@ class EmployeeRest() : AbstractDTORest<EmployeeDO, Employee, EmployeeDao, Employ
                         .add(UICol().add(lc, "status")))
                 .add(UIRow()
                         .add(UICol().add(lc, "comment")))
-        return LayoutUtils.processEditPage(layout, dataObject)
+        return LayoutUtils.processEditPage(layout, dataObject, this)
     }
 }

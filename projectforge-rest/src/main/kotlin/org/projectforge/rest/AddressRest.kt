@@ -49,7 +49,11 @@ import javax.servlet.http.HttpServletRequest
 @RestController
 @RequestMapping("${Rest.URL}/address")
 class AddressRest()
-    : AbstractDTORest<AddressDO, Address, AddressDao, AddressFilter>(AddressDao::class.java, AddressFilter::class.java, "address.title") {
+    : AbstractDTORest<AddressDO, Address, AddressDao, AddressFilter>(
+        AddressDao::class.java,
+        AddressFilter::class.java,
+        i18nKeyPrefix = "address.title",
+        cloneSupported = true) {
 
     /**
      * For exporting list of addresses.
@@ -95,7 +99,7 @@ class AddressRest()
     /**
      * Initializes new books for adding.
      */
-    override fun newBaseDO(request: HttpServletRequest): AddressDO {
+    override fun newBaseDO(request: HttpServletRequest?): AddressDO {
         val address = super.newBaseDO(request)
         address.addressStatus = AddressStatus.UPTODATE
         address.contactStatus = ContactStatus.ACTIVE
@@ -110,14 +114,6 @@ class AddressRest()
 
     // TODO Menus: print view, ical export, direct call: see AddressEditPage
     // TODO: onSaveOrUpdate: see AddressEditPage
-
-    /**
-     * Clone is supported by addresses.
-     */
-    override fun prepareClone(obj: AddressDO): Boolean {
-        // TODO: Enter here the PersonalAddressDO stuff etc.
-        return true
-    }
 
     override fun validate(validationErrors: MutableList<ValidationError>, obj: AddressDO) {
         if (StringUtils.isAllBlank(obj.name, obj.firstName, obj.organization)) {
@@ -322,7 +318,7 @@ class AddressRest()
                     url = "wa/phoneCall?addressId=${dataObject.id}",
                     type = MenuItemTargetType.REDIRECT))
         }
-        return LayoutUtils.processEditPage(layout, dataObject)
+        return LayoutUtils.processEditPage(layout, dataObject, this)
     }
 
     override fun processResultSetBeforeExport(resultSet: ResultSet<Any>) {

@@ -109,7 +109,7 @@ public class Kost2ArtListPage extends AbstractListPage<Kost2ArtListForm, Kost2Ar
           final IModel<Kost2ArtDO> rowModel)
       {
         final Kost2ArtDO kost2Art = rowModel.getObject();
-        if (kost2Art.isFakturiert() == true) {
+        if (kost2Art.getFakturiert() == true) {
           item.add(new IconPanel(componentId, IconType.ACCEPT));
         } else {
           item.add(createInvisibleDummyComponent(componentId));
@@ -131,7 +131,7 @@ public class Kost2ArtListPage extends AbstractListPage<Kost2ArtListForm, Kost2Ar
           final IModel<Kost2ArtDO> rowModel)
       {
         final Kost2ArtDO kost2Art = rowModel.getObject();
-        if (kost2Art.isProjektStandard() == true) {
+        if (kost2Art.getProjektStandard() == true) {
           item.add(new IconPanel(componentId, IconType.ACCEPT));
         } else {
           item.add(createInvisibleDummyComponent(componentId));

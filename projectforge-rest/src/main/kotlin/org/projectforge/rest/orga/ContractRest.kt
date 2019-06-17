@@ -41,7 +41,7 @@ class ContractRest() : AbstractDORest<ContractDO, ContractDao, ContractFilter>(C
     /**
      * Initializes new outbox mails for adding.
      */
-    override fun newBaseDO(request: HttpServletRequest): ContractDO {
+    override fun newBaseDO(request: HttpServletRequest?): ContractDO {
         val contract = super.newBaseDO(request)
         contract.date = PFDate.now().sqlDate
         return contract
@@ -99,6 +99,6 @@ class ContractRest() : AbstractDORest<ContractDO, ContractDao, ContractFilter>(C
                                 .add(contractPersonB)
                                 .add(signerB)))
                 .add(lc, "text", "filing")
-        return LayoutUtils.processEditPage(layout, dataObject)
+        return LayoutUtils.processEditPage(layout, dataObject, this)
     }
 }

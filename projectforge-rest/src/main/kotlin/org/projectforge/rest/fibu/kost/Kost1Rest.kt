@@ -69,6 +69,6 @@ class Kost1Rest() : AbstractDTORest<Kost1DO, Kost1, Kost1Dao, BaseSearchFilter>(
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "nummer", "description", "kostentraegerStatus")))
-        return LayoutUtils.processEditPage(layout, dataObject)
+        return LayoutUtils.processEditPage(layout, dataObject, this)
     }
 }
