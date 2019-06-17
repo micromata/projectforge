@@ -94,6 +94,7 @@ class Address(var contactStatus: ContactStatus? = null,
             src.addressbookList?.forEach { srcAddressbook ->
                 val addressbook = Addressbook()
                 addressbook.copyFromMinimal(srcAddressbook)
+                addressbook.title = srcAddressbook.title
                 addressbookList!!.add(addressbook)
             }
         }

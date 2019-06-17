@@ -39,7 +39,7 @@ class ToDoRest() : AbstractDORest<ToDoDO, ToDoDao, BaseSearchFilter>(ToDoDao::cl
     /**
      * Initializes new toDos for adding.
      */
-    override fun newBaseDO(request: HttpServletRequest): ToDoDO {
+    override fun newBaseDO(request: HttpServletRequest?): ToDoDO {
         val toDo = super.newBaseDO(request)
         return toDo
     }
@@ -70,6 +70,6 @@ class ToDoRest() : AbstractDORest<ToDoDO, ToDoDao, BaseSearchFilter>(ToDoDao::cl
                 .add(lc, "structureElement")
 
                 .add(lc, "description", "comment", "options")
-        return LayoutUtils.processEditPage(layout, dataObject)
+        return LayoutUtils.processEditPage(layout, dataObject, this)
     }
 }

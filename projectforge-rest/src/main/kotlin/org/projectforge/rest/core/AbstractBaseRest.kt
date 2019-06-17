@@ -65,10 +65,11 @@ abstract class AbstractBaseRest<
         F : BaseSearchFilter>(
         private val baseDaoClazz: Class<B>,
         private val filterClazz: Class<F>,
-        private val i18nKeyPrefix: String) {
+        private val i18nKeyPrefix: String,
+        val cloneSupported: Boolean = false) {
     /**
-     * If [getAutoCompletion] is called without a special property to search for, all properties will be searched for,
-     * given by this attribute. If null, an exception is thrown, if [getAutoCompletion] is called without a property.
+     * If [getAutoCompletionObjects] is called without a special property to search for, all properties will be searched for,
+     * given by this attribute. If null, an exception is thrown, if [getAutoCompletionObjects] is called without a property.
      */
     protected open val autoCompleteSearchFields: Array<String>? = null
 
@@ -128,7 +129,7 @@ abstract class AbstractBaseRest<
     @Autowired
     private lateinit var listFilterService: ListFilterService
 
-    open fun newBaseDO(request: HttpServletRequest): O {
+    open fun newBaseDO(request: HttpServletRequest? = null): O {
         return baseDao.doClass.newInstance()
     }
 
@@ -210,15 +211,6 @@ abstract class AbstractBaseRest<
     }
 
     /**
-     * Will be called by clone service. Override this method, if your edit page
-     * should support the clone functionality.
-     * @return false at default, if clone is not supported, otherwise true.
-     */
-    open fun prepareClone(obj: O): Boolean {
-        return false
-    }
-
-    /**
      * Get the current filter from the server, all matching items and the layout of the list page.
      */
     @GetMapping("initialList")
@@ -285,7 +277,7 @@ abstract class AbstractBaseRest<
 
     abstract fun returnItem(item: O): ResponseEntity<Any>
 
-    open protected fun getById(idString: String?): O? {
+    protected open fun getById(idString: String?): O? {
         if (idString == null) return null
         return getById(idString.toInt())
     }
@@ -315,10 +307,10 @@ abstract class AbstractBaseRest<
         val additionalVariables = addVariablesForEditPage(item)
         if (additionalVariables != null)
             result.variables = additionalVariables
-        return ResponseEntity<EditLayoutData>(result, HttpStatus.OK)
+        return ResponseEntity(result, HttpStatus.OK)
     }
 
-    abstract internal fun createEditLayoutData(item: O, layout: UILayout): EditLayoutData
+    internal abstract fun createEditLayoutData(item: O, layout: UILayout): EditLayoutData
 
     protected open fun onGetItemAndLayout(request: HttpServletRequest, item: O, editLayoutData: EditLayoutData) {
     }
@@ -381,7 +373,7 @@ abstract class AbstractBaseRest<
         }
         val item = getById(id) ?: return ResponseEntity(HttpStatus.BAD_REQUEST)
         val historyEntries = baseDao.getHistoryEntries(item)
-        return ResponseEntity<List<HistoryService.DisplayHistoryEntry>>(historyService.format(historyEntries), HttpStatus.OK)
+        return ResponseEntity(historyService.format(historyEntries), HttpStatus.OK)
     }
 
     /**
@@ -392,13 +384,12 @@ abstract class AbstractBaseRest<
 
     /**
      * Will be called by clone button. Sets the id of the form data object to null and deleted to false.
-     * @return The clone object ([BaseDO.getId] is null and [ExtendedBaseDO.isDeleted] = false)
+     * @return The clone object ([org.projectforge.framework.persistence.api.BaseDO.getId] is null and [ExtendedBaseDO.isDeleted] = false)
      */
     @RequestMapping("clone")
     fun clone(@RequestBody obj: O): O {
         obj.id = null
         obj.isDeleted = false
-        obj.id = null
         return obj
     }
 
@@ -522,5 +513,5 @@ abstract class AbstractBaseRest<
         return resultSet
     }
 
-    abstract internal fun asDO(dto: DTO): O
+    internal abstract fun asDO(dto: DTO): O
 }

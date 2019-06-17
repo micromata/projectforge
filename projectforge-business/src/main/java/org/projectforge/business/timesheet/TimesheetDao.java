@@ -285,7 +285,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
       final List<TimesheetDO> list = result;
       result = new ArrayList<TimesheetDO>();
       for (final TimesheetDO entry : list) {
-        if (entry.getKost2() != null && entry.getKost2().getKost2Art() != null && entry.getKost2().getKost2Art().isFakturiert()) {
+        if (entry.getKost2() != null && entry.getKost2().getKost2Art() != null && entry.getKost2().getKost2Art().getFakturiert()) {
           result.add(entry);
         }
       }

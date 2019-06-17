@@ -136,6 +136,6 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao, TeamEventFilte
                                 .add(UIFieldset(12)
                                         .add(UICustomized("recurrence"))))))
 
-        return LayoutUtils.processEditPage(layout, dataObject)
+        return LayoutUtils.processEditPage(layout, dataObject, this)
     }
 }

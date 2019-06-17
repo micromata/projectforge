@@ -71,6 +71,6 @@ class KundeRest() : AbstractDTORest<KundeDO, Kunde, KundeDao, BaseSearchFilter>(
                                 .add(lc, "nummer", "name")
                                 .add(konto)
                                 .add(lc, "identifier", "division", "description", "status")))
-        return LayoutUtils.processEditPage(layout, dataObject)
+        return LayoutUtils.processEditPage(layout, dataObject, this)
     }
 }

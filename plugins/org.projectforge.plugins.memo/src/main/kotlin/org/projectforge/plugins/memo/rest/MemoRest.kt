@@ -42,7 +42,7 @@ class MemoRest() : AbstractDORest<MemoDO, MemoDao, BaseSearchFilter>(MemoDao::cl
     /**
      * Initializes new memos for adding.
      */
-    override fun newBaseDO(request: HttpServletRequest): MemoDO {
+    override fun newBaseDO(request: HttpServletRequest?): MemoDO {
         val memo = super.newBaseDO(request)
         memo.owner = ThreadLocalUserContext.getUser()
         return memo
@@ -64,6 +64,6 @@ class MemoRest() : AbstractDORest<MemoDO, MemoDao, BaseSearchFilter>(MemoDao::cl
     override fun createEditLayout(dataObject: MemoDO): UILayout {
         val layout = super.createEditLayout(dataObject)
                 .add(lc, "subject", "memo")
-        return LayoutUtils.processEditPage(layout, dataObject)
+        return LayoutUtils.processEditPage(layout, dataObject, this)
     }
 }

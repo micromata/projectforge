@@ -100,7 +100,7 @@ class UserRest()
                         valueProperty = "id"))*/
                 .add(lc, "description")
 
-        return LayoutUtils.processEditPage(layout, dataObject)
+        return LayoutUtils.processEditPage(layout, dataObject, this)
     }
 
     override val autoCompleteSearchFields = arrayOf("username", "firstname", "lastname", "email")

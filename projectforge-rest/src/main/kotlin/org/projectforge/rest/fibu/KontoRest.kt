@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("${Rest.URL}/konto")
 class KontoRest() : AbstractDTORest<KontoDO, Konto, KontoDao, BaseSearchFilter>(KontoDao::class.java, BaseSearchFilter::class.java, "fibu.konto.title") {
-    override fun transformDO(obj: KontoDO, editMode : Boolean): Konto {
+    override fun transformDO(obj: KontoDO, editMode: Boolean): Konto {
         val konto = Konto()
         konto.copyFrom(obj)
         return konto
@@ -66,6 +66,6 @@ class KontoRest() : AbstractDTORest<KontoDO, Konto, KontoDao, BaseSearchFilter>(
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "nummer", "status", "bezeichnung", "description")))
-        return LayoutUtils.processEditPage(layout, dataObject)
+        return LayoutUtils.processEditPage(layout, dataObject, this)
     }
 }

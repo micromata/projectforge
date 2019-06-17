@@ -1,11 +1,12 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { menuItemPropType } from '../../../utilities/propTypes';
+import ActionGroup from '../page/action/Group';
+import renderLayout from './components/DynamicRenderer';
 import {
     defaultValues as dynamicLayoutContextDefaultValues,
     DynamicLayoutContext,
 } from './context';
-import renderLayout from './components/DynamicRenderer';
 import DynamicPageMenu from './DynamicPageMenu';
 
 function DynamicLayout({ ui, options, ...props }) {
@@ -41,6 +42,10 @@ function DynamicLayout({ ui, options, ...props }) {
                     ? <DynamicPageMenu menu={pageMenu} title={title} />
                     : undefined}
             {renderLayout(ui.layout)}
+            {ui.actions
+                // TODO MOVE ACTIONGROUP TO LAYOUT
+                ? <ActionGroup actions={ui.actions} />
+                : undefined}
         </DynamicLayoutContext.Provider>
     );
 }

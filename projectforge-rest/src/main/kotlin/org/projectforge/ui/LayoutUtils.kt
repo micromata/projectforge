@@ -25,9 +25,13 @@ package org.projectforge.ui
 
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
+import org.projectforge.rest.core.AbstractBaseRest
 
 /**
  * Utils for the Layout classes for handling auto max-length (get from JPA entities) and translations as well as
@@ -124,7 +128,9 @@ class LayoutUtils {
          * Calls also fun [process].
          * @see LayoutUtils.process
          */
-        fun processEditPage(layout: UILayout, data: AbstractBaseDO<Int>?): UILayout {
+        fun processEditPage(layout: UILayout, data: AbstractBaseDO<Int>?,
+                            restService: AbstractBaseRest<out ExtendedBaseDO<Int>, out Any, out BaseDao<*>, out BaseSearchFilter>)
+                : UILayout {
             layout.addAction(UIButton("cancel", style = UIStyle.DANGER))
             if (HistoryBaseDaoAdapter.isHistorizable(data)) {
                 // 99% of the objects are historizable (undeletable):
@@ -138,9 +144,9 @@ class LayoutUtils {
                 // MemoDO for example isn't historizable:
                 layout.addAction(UIButton("deleteIt", style = UIStyle.WARNING))
             }
-            //if (restService.prepareClone(restService.newBaseDO())) {
-            //    layout.addAction(UIButton("clone", style = UIButtonStyle.PRIMARY))
-            //}
+            if (restService.cloneSupported) {
+                layout.addAction(UIButton("clone", style = UIStyle.PRIMARY))
+            }
             if (data != null && data.id != null) {
                 if (!data.isDeleted)
                     layout.addAction(UIButton("update", style = UIStyle.PRIMARY, default = true))

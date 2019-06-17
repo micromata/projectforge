@@ -87,7 +87,7 @@ public class Kost2ArtImpl implements Kost2Art, Comparable<Kost2ArtImpl>, Seriali
 
   public boolean isProjektStandard()
   {
-    return kost2ArtDO.isProjektStandard();
+    return kost2ArtDO.getProjektStandard();
   }
 
   public String getDescription()
@@ -97,7 +97,7 @@ public class Kost2ArtImpl implements Kost2Art, Comparable<Kost2ArtImpl>, Seriali
 
   public boolean isFakturiert()
   {
-    return kost2ArtDO.isFakturiert();
+    return kost2ArtDO.getFakturiert();
   }
 
   public Integer getId()

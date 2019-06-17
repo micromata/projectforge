@@ -83,6 +83,6 @@ class RechnungRest() : AbstractDORest<RechnungDO, RechnungDao, BaseSearchFilter>
                         .add(UICol()
                                 .add(lc, "besonderheiten")))
                 .add(UILabel("TODO: Customized element for Pos"))
-        return LayoutUtils.processEditPage(layout, dataObject)
+        return LayoutUtils.processEditPage(layout, dataObject, this)
     }
 }

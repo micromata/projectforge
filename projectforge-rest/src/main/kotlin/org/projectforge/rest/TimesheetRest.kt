@@ -75,7 +75,7 @@ class TimesheetRest() : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilte
     /**
      * Initializes new timesheets for adding.
      */
-    override fun newBaseDO(request: HttpServletRequest): TimesheetDO {
+    override fun newBaseDO(request: HttpServletRequest?): TimesheetDO {
         val sheet = super.newBaseDO(request)
         val startTimeEpochSeconds = RestHelper.parseLong(request, "start")
         val endTimeEpochSeconds = RestHelper.parseLong(request, "end")
@@ -208,7 +208,7 @@ class TimesheetRest() : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilte
                 .add(lc, "description")
                 .add(UIRow().add(UICol().add(UILabel("'ToDo: Validation, resetting Kost2-Combobox after task selection, favorites, templates, Testing..."))))
                 .addTranslations("until", "fibu.kost2", "task")
-        return LayoutUtils.processEditPage(layout, dataObject)
+        return LayoutUtils.processEditPage(layout, dataObject, this)
     }
 
     override fun addVariablesForEditPage(item: TimesheetDO): Map<String, Any>? {
