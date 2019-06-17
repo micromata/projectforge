@@ -42,14 +42,20 @@ public class KostZuweisungenCopyHelperTest extends AbstractTestBase
     KostZuweisungenCopyHelper.copy(srcPos.getKostZuweisungen(), destPos);
     assertEquals(0, destPos.getKostZuweisungen().size());
 
-    final KostZuweisungDO kostZuweisung = new KostZuweisungDO().setNetto(BigDecimal.ONE).setComment("1");
+    KostZuweisungDO kostZuweisung = new KostZuweisungDO();
+    kostZuweisung.setNetto(BigDecimal.ONE);
+    kostZuweisung.setComment("1");
     kostZuweisung.setId(4711); // simulate non deletable
     srcPos.addKostZuweisung(kostZuweisung);
     KostZuweisungenCopyHelper.copy(srcPos.getKostZuweisungen(), destPos);
     assertEquals(1, destPos.getKostZuweisungen().size());
     assertEquals(srcPos.getKostZuweisungen().get(0), destPos.getKostZuweisungen().get(0));
 
-    destPos.addKostZuweisung(new KostZuweisungDO().setNetto(BigDecimal.ONE).setComment("1"));
+    kostZuweisung = new KostZuweisungDO();
+    kostZuweisung.setNetto(BigDecimal.ONE);
+    kostZuweisung.setComment("1");
+
+    destPos.addKostZuweisung(kostZuweisung);
     assertEquals(2, destPos.getKostZuweisungen().size());
 
     // srcPos "overwrites" dstPos
@@ -57,16 +63,36 @@ public class KostZuweisungenCopyHelperTest extends AbstractTestBase
     assertEquals(1, destPos.getKostZuweisungen().size());
     assertEquals(srcPos.getKostZuweisungen().get(0), destPos.getKostZuweisungen().get(0));
 
-    srcPos.getKostZuweisung(0).setNetto(BigDecimal.TEN).setComment("10");
+    srcPos.getKostZuweisung(0).setNetto(BigDecimal.TEN);
+    srcPos.getKostZuweisung(0).setComment("10");
     KostZuweisungenCopyHelper.copy(srcPos.getKostZuweisungen(), destPos);
     assertEquals(1, destPos.getKostZuweisungen().size());
     assertEquals(BigDecimal.TEN, destPos.getKostZuweisung(0).getNetto());
     assertEquals("10", destPos.getKostZuweisung(0).getComment());
 
-    srcPos.addKostZuweisung(new KostZuweisungDO().setNetto(BigDecimal.ONE).setComment("2"));
-    srcPos.addKostZuweisung(new KostZuweisungDO().setNetto(BigDecimal.ONE).setComment("3"));
-    srcPos.addKostZuweisung(new KostZuweisungDO().setNetto(BigDecimal.ONE).setComment("4"));
-    srcPos.addKostZuweisung(new KostZuweisungDO().setNetto(BigDecimal.ONE).setComment("5"));
+    kostZuweisung = new KostZuweisungDO();
+    kostZuweisung.setNetto(BigDecimal.ONE);
+    kostZuweisung.setComment("2");
+
+    srcPos.addKostZuweisung(kostZuweisung);
+
+    kostZuweisung = new KostZuweisungDO();
+    kostZuweisung.setNetto(BigDecimal.ONE);
+    kostZuweisung.setComment("3");
+
+    srcPos.addKostZuweisung(kostZuweisung);
+
+    kostZuweisung = new KostZuweisungDO();
+    kostZuweisung.setNetto(BigDecimal.ONE);
+    kostZuweisung.setComment("4");
+
+    srcPos.addKostZuweisung(kostZuweisung);
+
+    kostZuweisung = new KostZuweisungDO();
+    kostZuweisung.setNetto(BigDecimal.ONE);
+    kostZuweisung.setComment("5");
+
+    srcPos.addKostZuweisung(kostZuweisung);
     KostZuweisungenCopyHelper.copy(srcPos.getKostZuweisungen(), destPos);
     assertEquals(5, destPos.getKostZuweisungen().size());
     assertEquals(srcPos.getKostZuweisungen().get(0), destPos.getKostZuweisungen().get(0));
