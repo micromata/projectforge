@@ -164,6 +164,6 @@ class TeamCalRest() : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao, TeamCalFil
                                         values = allUsers,
                                         labelProperty = "name",
                                         valueProperty = "id"))))
-        return LayoutUtils.processEditPage(layout, dataObject)
+        return LayoutUtils.processEditPage(layout, dataObject, this)
     }
 }

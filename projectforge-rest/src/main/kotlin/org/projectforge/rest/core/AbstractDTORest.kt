@@ -43,10 +43,11 @@ abstract class AbstractDTORest<
         DTO : Any,
         B : BaseDao<O>,
         F : BaseSearchFilter>(
-        private val baseDaoClazz: Class<B>,
-        private val filterClazz: Class<F>,
-        private val i18nKeyPrefix: String)
-    : AbstractBaseRest<O, DTO, B, F>(baseDaoClazz, filterClazz, i18nKeyPrefix) {
+        baseDaoClazz: Class<B>,
+        filterClazz: Class<F>,
+        i18nKeyPrefix: String,
+        cloneSupported: Boolean = false)
+    : AbstractBaseRest<O, DTO, B, F>(baseDaoClazz, filterClazz, i18nKeyPrefix, cloneSupported) {
 
     override fun processResultSetBeforeExport(resultSet: ResultSet<Any>) {
         val orig = resultSet.resultSet
@@ -59,7 +60,7 @@ abstract class AbstractDTORest<
     /**
      * Must be overridden if flag [useDTO] is true. Throws [UnsupportedOperationException] at default.
      */
-    abstract fun transformDO(obj: O, editMode : Boolean): DTO
+    abstract fun transformDO(obj: O, editMode: Boolean): DTO
 
     /**
      * Must be overridden if flag [useDTO] is true. Throws [UnsupportedOperationException] at default.

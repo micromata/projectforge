@@ -123,6 +123,6 @@ class AddressBookRest() : AbstractDTORest<AddressbookDO, Addressbook, Addressboo
                                         autoCompletion = AutoCompletion<Int>(url = "group/aco"),
                                         labelProperty = "name",
                                         valueProperty = "id"))))
-        return LayoutUtils.processEditPage(layout, dataObject)
+        return LayoutUtils.processEditPage(layout, dataObject, this)
     }
 }
