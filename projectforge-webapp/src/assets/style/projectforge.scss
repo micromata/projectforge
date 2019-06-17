@@ -461,3 +461,9 @@ img + .btn.btn-danger {
 div[class^="DayPicker"] {
   font-size: 13px;
 }
+
+ul[class^="Input_options_"] {
+  li:first-child {
+    border-top: 1px solid #ddd !important;
+  }
+}
