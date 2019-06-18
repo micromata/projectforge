@@ -115,6 +115,16 @@ class AddressRest()
     // TODO Menus: print view, ical export, direct call: see AddressEditPage
     // TODO: onSaveOrUpdate: see AddressEditPage
 
+
+    /**
+     * Sets also uid to null.
+     */
+    override fun prepareClone(dto: Address): Address {
+        val clone = super.prepareClone(dto)
+        clone.uid = null
+        return clone
+    }
+
     override fun validate(validationErrors: MutableList<ValidationError>, obj: AddressDO) {
         if (StringUtils.isAllBlank(obj.name, obj.firstName, obj.organization)) {
             validationErrors.add(ValidationError(translate("address.form.error.toFewFields"), fieldId = "name"))
