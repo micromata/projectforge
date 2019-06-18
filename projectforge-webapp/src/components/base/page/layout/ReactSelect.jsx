@@ -55,7 +55,7 @@ function ReactSelect(
     }
     return (
         <React.Fragment>
-            <span className={style.text}>{label}</span>
+            <span className={`mm-select ${style.text}` }>{label}</span>
             {tooltipElement}
             <Tag
                 // closeMenuOnSelect={false}
