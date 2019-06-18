@@ -21,57 +21,41 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu;
+package org.projectforge.business.fibu
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.Column
+import javax.persistence.Entity
+import javax.persistence.GeneratedValue
+import javax.persistence.Id
+import javax.persistence.JoinColumn
+import javax.persistence.ManyToOne
+import javax.persistence.Table
 
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO;
+import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
 
 /**
  * @author Roger Kommer (r.kommer.extern@micromata.de)
- *
  */
 @Entity
 @Table(name = "t_fibu_employee_timedattrdata")
-public class EmployeeTimedAttrDataDO extends JpaTabAttrDataBaseDO<EmployeeTimedAttrDO, Integer>
-{
+class EmployeeTimedAttrDataDO : JpaTabAttrDataBaseDO<EmployeeTimedAttrDO, Int> {
+    constructor() : super()
 
-  public EmployeeTimedAttrDataDO()
-  {
-    super();
-  }
+    constructor(parent: EmployeeTimedAttrDO, value: String) : super(parent, value)
 
-  public EmployeeTimedAttrDataDO(final EmployeeTimedAttrDO parent, final String value)
-  {
-    super(parent, value);
-  }
+    constructor(parent: EmployeeTimedAttrDO) : super(parent)
 
-  public EmployeeTimedAttrDataDO(final EmployeeTimedAttrDO parent)
-  {
-    super(parent);
-  }
+    @Id
+    @GeneratedValue
+    @Column(name = "pk")
+    override fun getPk(): Int? {
+        return pk
+    }
 
-  @Override
-  @Id
-  @GeneratedValue
-  @Column(name = "pk")
-  public Integer getPk()
-  {
-    return pk;
-  }
-
-  @Override
-  @ManyToOne(optional = false)
-  @JoinColumn(name = "parent_id", referencedColumnName = "pk")
-  public EmployeeTimedAttrDO getParent()
-  {
-    return super.getParent();
-  }
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "parent_id", referencedColumnName = "pk")
+    override fun getParent(): EmployeeTimedAttrDO? {
+        return super.getParent()
+    }
 
 }

@@ -21,46 +21,27 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu;
+package org.projectforge.business.fibu
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.CascadeType
+import javax.persistence.DiscriminatorValue
+import javax.persistence.Entity
+import javax.persistence.FetchType
+import javax.persistence.OneToMany
+import javax.persistence.OrderColumn
 
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO;
+import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
 
 @Entity
-@Table(name = "t_fibu_employee_attrdata")
-public class EmployeeAttrDataDO extends JpaTabAttrDataBaseDO<EmployeeAttrDO, Integer>
-{
-  public EmployeeAttrDataDO()
-  {
-    super();
-  }
+@DiscriminatorValue("1")
+class EmployeeAttrWithDataDO : EmployeeAttrDO {
+    constructor() : super()
 
-  public EmployeeAttrDataDO(final EmployeeAttrDO parent, final String value)
-  {
-    super(parent, value);
-  }
+    constructor(parent: EmployeeDO, propertyName: String, type: Char, value: String) : super(parent, propertyName, type, value)
 
-  @Override
-  @Id
-  @GeneratedValue
-  @Column(name = "pk")
-  public Integer getPk()
-  {
-    return pk;
-  }
-
-  @Override
-  @ManyToOne(optional = false)
-  @JoinColumn(name = "parent_id", referencedColumnName = "pk")
-  public EmployeeAttrDO getParent()
-  {
-    return super.getParent();
-  }
+    @OneToMany(cascade = [CascadeType.ALL], mappedBy = "parent", targetEntity = EmployeeAttrDataDO::class, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OrderColumn(name = "datarow")
+    override fun getData(): List<JpaTabAttrDataBaseDO<*, Int>> {
+        return super.getData()
+    }
 }

@@ -145,7 +145,7 @@ class LayoutUtils {
                 layout.addAction(UIButton("deleteIt", style = UIStyle.WARNING))
             }
             if (restService.cloneSupported) {
-                layout.addAction(UIButton("clone", style = UIStyle.PRIMARY))
+                layout.addAction(UIButton("clone", style = UIStyle.SECONDARY))
             }
             if (data != null && data.id != null) {
                 if (!data.isDeleted)

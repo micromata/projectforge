@@ -28,6 +28,7 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
@@ -37,6 +38,7 @@ import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.MessageType
 import org.projectforge.rest.ResponseData
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.dto.BaseHistorizableDTO
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
 import org.springframework.beans.BeanUtils
@@ -387,10 +389,30 @@ abstract class AbstractBaseRest<
      * @return The clone object ([org.projectforge.framework.persistence.api.BaseDO.getId] is null and [ExtendedBaseDO.isDeleted] = false)
      */
     @RequestMapping("clone")
-    fun clone(@RequestBody obj: O): O {
-        obj.id = null
-        obj.isDeleted = false
-        return obj
+    fun clone(@RequestBody dto: DTO): DTO {
+        return prepareClone(dto)
+    }
+
+    /**
+     * Will be called by clone service. Override this method for more complex clone functionality.
+     * @return The object itself with id set to null if of type BaseDO and deleted to false and lastUpdate and created
+     * to null if ExtendecBaseDO.
+     */
+    open fun prepareClone(dto: DTO): DTO {
+        if (dto is BaseDO<*>) {
+            dto.id = null
+            if (dto is ExtendedBaseDO<*>) {
+                dto.isDeleted = false
+                dto.lastUpdate = null
+                dto.created = null
+            }
+        } else if (dto is BaseHistorizableDTO<*>) {
+            dto.id = null
+            dto.isDeleted = false
+            dto.lastUpdate = null
+            dto.created = null
+        }
+        return dto
     }
 
     /**
