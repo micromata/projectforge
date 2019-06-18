@@ -482,3 +482,17 @@ span.mm-select {
   font-size: 11px;
   color: #a5a2a5;
 }
+
+div[class^="History_entry_"] {
+  span[class^="History_username_"] {
+    font-size: 15px !important;
+  }
+
+  h5 {
+    font-size: 15px;
+  }
+
+  span {
+    font-size: 14px;
+  }
+}
