@@ -45,9 +45,7 @@ class FavoritesMenuTest : AbstractTestBase() {
     @Test
     fun setFavoritesMenuTest() {
         logon(AbstractTestBase.ADMIN)
-        var menu = favoritesMenuCreator.getDefaultFavoriteMenu(null)
-
-        menu = favoritesMenuCreator.getDefaultFavoriteMenu(XML)
+        var menu = favoritesMenuCreator.getDefaultFavoriteMenu(XML)
         assertEquals("Administration", menu.menuItems[0]?.title)
         assertEquals("ACCESS_LIST", menu.menuItems[0].subMenu!![0].id)
     }
