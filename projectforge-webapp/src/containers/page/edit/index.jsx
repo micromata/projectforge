@@ -128,11 +128,12 @@ class EditPage extends React.Component {
                             <Alert color="secondary">
                                 <p>
                                     Da die LayoutGroup noch nicht vollständig zu DynamicLayout
-                                    umgezogen
-                                    wurde, kann hier noch die alte LayoutGroup angezeigt werden.
-                                    Bearbeitet sollte jedoch nur das DynamicLayout, da dieses bald
-                                    die
-                                    LayoutGroup vollständig ablöst.
+                                    umgezogen wurde, kann hier noch die alte LayoutGroup angezeigt
+                                    werden. Bearbeitet sollte jedoch nur das DynamicLayout, da
+                                    dieses bald die LayoutGroup vollständig ablöst.
+                                    <br />
+                                    Komponente, welche noch nicht umgezogen sind, werden mit einem
+                                    roten Rand markiert.
                                 </p>
                                 <button onClick={this.toggleDynamicLayout} type="button">
                                     {`Wechsel zu ${useDynamicLayout ? 'LayoutGroup' : 'DynamicLayout'}`}
