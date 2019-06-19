@@ -54,7 +54,7 @@ class Task(var parentTask: Task? = null,
            var ganttRelationType: GanttRelationType? = null,
            var ganttObjectType: GanttObjectType? = null,
            var ganttPredecessor: Task? = null
-) : BaseHistorizableDTO<TaskDO>() {
+) : BaseDTO<TaskDO>() {
 
     override fun copyFromMinimal(src: TaskDO) {
         super.copyFromMinimal(src)

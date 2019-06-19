@@ -33,7 +33,6 @@ import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.AddressImageServicesRest.Companion.SESSION_IMAGE_ATTR
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractBaseRest
 import org.projectforge.rest.core.AbstractDTORest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.core.ResultSet
@@ -75,7 +74,13 @@ class AddressRest()
     @Autowired
     private lateinit var smsSenderConfig: SmsSenderConfig
 
-    override fun transformDO(obj: AddressDO, editMode: Boolean): Address {
+    override fun transformForDB(dto: Address): AddressDO {
+        val addressDO = AddressDO()
+        dto.copyTo(addressDO)
+        return addressDO
+    }
+
+    override fun transformFromDB(obj: AddressDO, editMode: Boolean): Address {
         val address = Address()
         address.copyFrom(obj)
         val personalAddress = personalAddressDao.getByAddressId(obj.id)
@@ -90,12 +95,6 @@ class AddressRest()
         return address
     }
 
-    override fun transformDTO(dto: Address): AddressDO {
-        val addressDO = AddressDO()
-        dto.copyTo(addressDO)
-        return addressDO
-    }
-
     /**
      * Initializes new books for adding.
      */
@@ -108,7 +107,7 @@ class AddressRest()
         return address
     }
 
-    override fun onGetItemAndLayout(request: HttpServletRequest, item: AddressDO, editLayoutData: AbstractBaseRest.EditLayoutData) {
+    override fun onGetItemAndLayout(request: HttpServletRequest, dto: Address, editLayoutData: EditLayoutData) {
         ExpiringSessionAttributes.removeAttribute(request.session, SESSION_IMAGE_ATTR)
     }
 
@@ -125,11 +124,11 @@ class AddressRest()
         return clone
     }
 
-    override fun validate(validationErrors: MutableList<ValidationError>, obj: AddressDO) {
-        if (StringUtils.isAllBlank(obj.name, obj.firstName, obj.organization)) {
+    override fun validate(validationErrors: MutableList<ValidationError>, dto: Address) {
+        if (StringUtils.isAllBlank(dto.name, dto.firstName, dto.organization)) {
             validationErrors.add(ValidationError(translate("address.form.error.toFewFields"), fieldId = "name"))
         }
-        if (obj.addressbookList.isNullOrEmpty()) {
+        if (dto.addressbookList.isNullOrEmpty()) {
             validationErrors.add(ValidationError(translateMsg("validation.error.fieldRequired",
                     translate("address.addressbooks")), fieldId = "addressbooks"))
         }
@@ -223,13 +222,13 @@ class AddressRest()
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: AddressDO): UILayout {
+    override fun createEditLayout(dto: Address): UILayout {
         val addressbookDOs = addressbookDao.allAddressbooksWithFullAccess
         val addressbooks = mutableListOf<UISelectValue<Int>>()
         addressbookDOs.forEach {
             addressbooks.add(UISelectValue(it.id, it.title!!))
         }
-        val layout = super.createEditLayout(dataObject)
+        val layout = super.createEditLayout(dto)
                 //autoCompletion = AutoCompletion(url = "addressBook/ac?search="))))
                 .add(UIRow()
                         .add(UIFieldset(6)
@@ -314,42 +313,38 @@ class AddressRest()
         layout.getInputById("name").focus = true
         layout.getTextAreaById("comment").cssClass = CssClassnames.MT_5
         layout.addTranslations("delete", "file.upload.dropArea", "address.image.upload.error")
-        if (dataObject.id != null) {
+        if (dto.id != null) {
             layout.add(MenuItem("address.printView",
                     i18nKey = "printView",
-                    url = "wa/addressView?id=${dataObject.id}",
+                    url = "wa/addressView?id=${dto.id}",
                     type = MenuItemTargetType.REDIRECT))
             layout.add(MenuItem("address.vCardSingleExport",
                     i18nKey = "address.book.vCardSingleExport",
-                    url = "${getRestPath()}/exportVCard/${dataObject.id}",
+                    url = "${getRestPath()}/exportVCard/${dto.id}",
                     type = MenuItemTargetType.DOWNLOAD))
             layout.add(MenuItem("address.directCall",
                     i18nKey = "address.directCall.call",
-                    url = "wa/phoneCall?addressId=${dataObject.id}",
+                    url = "wa/phoneCall?addressId=${dto.id}",
                     type = MenuItemTargetType.REDIRECT))
         }
-        return LayoutUtils.processEditPage(layout, dataObject, this)
+        return LayoutUtils.processEditPage(layout, dto, this)
     }
 
-    override fun processResultSetBeforeExport(resultSet: ResultSet<Any>) {
-        val list: List<ListAddress> = resultSet.resultSet.map { it ->
-            ListAddress(it as AddressDO,
+    /**
+     * @return New result set of dto's, transformed from data base objects.
+     */
+    override fun processResultSetBeforeExport(resultSet: ResultSet<AddressDO>) : ResultSet<*> {
+        val newList = resultSet.resultSet.map {
+            ListAddress(it,
                     id = it.id,
                     imageUrl = if (it.imageData != null) "address/image/${it.id}" else null,
                     previewImageUrl = if (it.imageDataPreview != null) "address/imagePreview/${it.id}" else null)
         }
-        resultSet.resultSet = list
-        resultSet.resultSet.forEach { it ->
-            (it as ListAddress).address.imageData = null
+        newList.forEach {
+            it.address.imageData = null
             it.address.imageDataPreview = null
         }
-    }
-
-    override fun processItemBeforeExport(item: Any) {
-        if ((item as AddressDO).imageData != null || item.imageDataPreview != null) {
-            item.imageData = byteArrayOf(1)
-            item.imageDataPreview = byteArrayOf(1)
-        }
+        return ResultSet(newList, newList.size)
     }
 
     private fun createFavoriteRow(inputElement: UIElement, id: String): UIRow {

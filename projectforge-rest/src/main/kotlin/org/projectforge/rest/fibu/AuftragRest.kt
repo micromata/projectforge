@@ -56,14 +56,14 @@ class AuftragRest() : AbstractDORest<AuftragDO, AuftragDao, BaseSearchFilter>(Au
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: AuftragDO): UILayout {
-        val layout = super.createEditLayout(dataObject)
+    override fun createEditLayout(dto: AuftragDO): UILayout {
+        val layout = super.createEditLayout(dto)
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "nummer", "nettoSumme")))
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "title")))
-        return LayoutUtils.processEditPage(layout, dataObject, this)
+        return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

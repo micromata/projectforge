@@ -38,7 +38,7 @@ import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.MessageType
 import org.projectforge.rest.ResponseData
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.dto.BaseHistorizableDTO
+import org.projectforge.rest.dto.BaseDTO
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
 import org.springframework.beans.BeanUtils
@@ -131,8 +131,20 @@ abstract class AbstractBaseRest<
     @Autowired
     private lateinit var listFilterService: ListFilterService
 
+    /**
+     * Override this method for initializing fields for new objects.
+     * @return new instance of class ExtendedDO.
+     */
     open fun newBaseDO(request: HttpServletRequest? = null): O {
         return baseDao.doClass.newInstance()
+    }
+
+    /**
+     * Override this method for initializing fields for new objects.
+     * Creates a new dto by calling [newBaseDO] and [transformFromDB].
+     */
+    open fun newBaseDTO(request: HttpServletRequest? = null): DTO {
+        return transformFromDB(newBaseDO())
     }
 
     open fun createListLayout(): UILayout {
@@ -174,21 +186,21 @@ abstract class AbstractBaseRest<
         return category!!
     }
 
-    open fun createEditLayout(dataObject: O): UILayout {
-        val titleKey = if (dataObject.id != null) "$i18nKeyPrefix.edit" else "$i18nKeyPrefix.add"
+    open fun createEditLayout(dto: DTO): UILayout {
+        val titleKey = if (getId(dto) != null) "$i18nKeyPrefix.edit" else "$i18nKeyPrefix.add"
         return UILayout(titleKey)
     }
 
-    open fun validate(validationErrors: MutableList<ValidationError>, obj: O) {
+    open fun validate(validationErrors: MutableList<ValidationError>, dto: DTO) {
     }
 
-    fun validate(obj: O): List<ValidationError>? {
+    fun validate(dto: DTO): List<ValidationError>? {
         val validationErrors = mutableListOf<ValidationError>()
-        val propertiesMap = ElementsRegistry.getProperties(obj::class.java)!!
+        val propertiesMap = ElementsRegistry.getProperties(dto::class.java)!!
         propertiesMap.forEach {
             val property = it.key
             val elementInfo = it.value
-            val value = PropertyUtils.getProperty(obj, property)
+            val value = PropertyUtils.getProperty(dto, property)
             if (elementInfo.required == true) {
                 var error = false
                 if (value == null) {
@@ -207,7 +219,7 @@ abstract class AbstractBaseRest<
                             fieldId = property))
             }
         }
-        validate(validationErrors, obj)
+        validate(validationErrors, dto)
         if (validationErrors.isEmpty()) return null
         return validationErrors
     }
@@ -256,15 +268,15 @@ abstract class AbstractBaseRest<
      * Get the list of all items matching the given filter.
      */
     @RequestMapping(RestPaths.LIST)
-    fun getList(request: HttpServletRequest, @RequestBody filter: MagicFilter<F>): ResultSet<Any> {
-        val resultSet = getList(this, baseDao, filter.prepareQueryFilter(filterClazz))
-        processResultSetBeforeExport(resultSet)
+    fun getList(request: HttpServletRequest, @RequestBody filter: MagicFilter<F>): ResultSet<*> {
+        val list = getList(this, baseDao, filter.prepareQueryFilter(filterClazz))
+        val resultSet = processResultSetBeforeExport(list)
         val storedFilter = listFilterService.getSearchFilter(request.session, filterClazz)
         BeanUtils.copyProperties(filter, storedFilter)
         return resultSet
     }
 
-    abstract fun processResultSetBeforeExport(resultSet: ResultSet<Any>)
+    abstract fun processResultSetBeforeExport(resultSet: ResultSet<O>) : ResultSet<*>
 
     /**
      * Gets the item from the database.
@@ -273,21 +285,18 @@ abstract class AbstractBaseRest<
      */
     @GetMapping("{id}")
     fun getItem(@PathVariable("id") id: Int?): ResponseEntity<Any> {
-        val item = getById(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
-        return returnItem(item)
+        val item = getById(id, true) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+        return ResponseEntity(item, HttpStatus.OK)
     }
 
-    abstract fun returnItem(item: O): ResponseEntity<Any>
-
-    protected open fun getById(idString: String?): O? {
+    protected open fun getById(idString: String?, editMode : Boolean = false): DTO? {
         if (idString == null) return null
-        return getById(idString.toInt())
+        return getById(idString.toInt(), editMode)
     }
 
-    protected fun getById(id: Int?): O? {
+    protected fun getById(id: Int?, editMode : Boolean = false): DTO? {
         val item = baseDao.getById(id) ?: return null
-        processItemBeforeExport(item)
-        return item
+        return transformFromDB(item, editMode)
     }
 
     /**
@@ -299,28 +308,31 @@ abstract class AbstractBaseRest<
     @GetMapping("edit")
     fun getItemAndLayout(request: HttpServletRequest, @RequestParam("id") id: String?)
             : ResponseEntity<EditLayoutData> {
-        val item = (if (null != id) getById(id) else newBaseDO(request))
+        val item = (if (null != id) getById(id, true) else newBaseDTO(request))
                 ?: return ResponseEntity(HttpStatus.NOT_FOUND)
-        val layout = createEditLayout(item)
+        return getItemAndLayout(request, item)
+    }
+
+    private fun getItemAndLayout(request: HttpServletRequest, dto: DTO)
+            : ResponseEntity<EditLayoutData> {
+        val layout = createEditLayout(dto)
         layout.addTranslations("changes", "tooltip.selectMe")
         layout.postProcessPageMenu()
-        val result = createEditLayoutData(item, layout)
-        onGetItemAndLayout(request, item, result)
-        val additionalVariables = addVariablesForEditPage(item)
+        val result = EditLayoutData(dto, layout)
+        onGetItemAndLayout(request, dto, result)
+        val additionalVariables = addVariablesForEditPage(dto)
         if (additionalVariables != null)
             result.variables = additionalVariables
         return ResponseEntity(result, HttpStatus.OK)
     }
 
-    internal abstract fun createEditLayoutData(item: O, layout: UILayout): EditLayoutData
-
-    protected open fun onGetItemAndLayout(request: HttpServletRequest, item: O, editLayoutData: EditLayoutData) {
+    protected open fun onGetItemAndLayout(request: HttpServletRequest, dto: DTO, editLayoutData: EditLayoutData) {
     }
 
     /**
      * Use this method to add customized variables for your edit page for the initial call.
      */
-    protected open fun addVariablesForEditPage(item: O): Map<String, Any>? {
+    protected open fun addVariablesForEditPage(dto: DTO): Map<String, Any>? {
         return null
     }
 
@@ -373,15 +385,9 @@ abstract class AbstractBaseRest<
         if (id == null) {
             return ResponseEntity(HttpStatus.BAD_REQUEST)
         }
-        val item = getById(id) ?: return ResponseEntity(HttpStatus.BAD_REQUEST)
+        val item = baseDao.getById(id) ?: return ResponseEntity(HttpStatus.BAD_REQUEST)
         val historyEntries = baseDao.getHistoryEntries(item)
         return ResponseEntity(historyService.format(historyEntries), HttpStatus.OK)
-    }
-
-    /**
-     * Override this method for manipulating entries before exporting them (list and edit view).
-     */
-    open fun processItemBeforeExport(item: Any) {
     }
 
     /**
@@ -389,8 +395,10 @@ abstract class AbstractBaseRest<
      * @return The clone object ([org.projectforge.framework.persistence.api.BaseDO.getId] is null and [ExtendedBaseDO.isDeleted] = false)
      */
     @RequestMapping("clone")
-    fun clone(@RequestBody dto: DTO): DTO {
-        return prepareClone(dto)
+    fun clone(request: HttpServletRequest, @RequestBody dto: DTO)
+            : ResponseEntity<EditLayoutData> {
+        val item = prepareClone(dto)
+        return getItemAndLayout(request, item)
     }
 
     /**
@@ -406,7 +414,7 @@ abstract class AbstractBaseRest<
                 dto.lastUpdate = null
                 dto.created = null
             }
-        } else if (dto is BaseHistorizableDTO<*>) {
+        } else if (dto is BaseDTO<*>) {
             dto.id = null
             dto.isDeleted = false
             dto.lastUpdate = null
@@ -420,8 +428,8 @@ abstract class AbstractBaseRest<
      */
     @PutMapping(RestPaths.SAVE_OR_UDATE)
     fun saveOrUpdate(request: HttpServletRequest, @Valid @RequestBody dto: DTO): ResponseEntity<ResponseAction> {
-        val dbObj = asDO(dto)
-        return saveOrUpdate(request, baseDao, dbObj, dto, this, validate(dbObj))
+        val dbObj = transformForDB(dto)
+        return saveOrUpdate(request, baseDao, dbObj, dto, this, validate(dto))
     }
 
     /**
@@ -429,8 +437,8 @@ abstract class AbstractBaseRest<
      */
     @PutMapping(RestPaths.UNDELETE)
     fun undelete(@RequestBody dto: DTO): ResponseEntity<ResponseAction> {
-        val dbObj = asDO(dto)
-        return undelete(baseDao, dbObj, dto, this, validate(dbObj))
+        val dbObj = transformForDB(dto)
+        return undelete(baseDao, dbObj, dto, this, validate(dto))
     }
 
     /**
@@ -439,8 +447,8 @@ abstract class AbstractBaseRest<
      */
     @DeleteMapping(RestPaths.MARK_AS_DELETED)
     fun markAsDeleted(@RequestBody dto: DTO): ResponseEntity<ResponseAction> {
-        val dbObj = asDO(dto)
-        return markAsDeleted(baseDao, dbObj, dto, this, validate(dbObj))
+        val dbObj = transformForDB(dto)
+        return markAsDeleted(baseDao, dbObj, dto, this, validate(dto))
     }
 
     /**
@@ -449,8 +457,8 @@ abstract class AbstractBaseRest<
      */
     @DeleteMapping(RestPaths.DELETE)
     fun delete(@RequestBody dto: DTO): ResponseEntity<ResponseAction> {
-        val dbObj = asDO(dto)
-        return delete(baseDao, dbObj, dto, this, validate(dbObj))
+        val dbObj = transformForDB(dto)
+        return delete(baseDao, dbObj, dto, this, validate(dto))
     }
 
     /**
@@ -460,7 +468,7 @@ abstract class AbstractBaseRest<
      */
     @PostMapping(RestPaths.CANCEL)
     fun cancelEdit(request: HttpServletRequest, @RequestBody dto: DTO): ResponseAction {
-        val dbObj = asDO(dto)
+        val dbObj = transformForDB(dto)
         return cancelEdit(request, dbObj, dto, getRestPath())
     }
 
@@ -535,5 +543,19 @@ abstract class AbstractBaseRest<
         return resultSet
     }
 
-    internal abstract fun asDO(dto: DTO): O
+    /**
+     * Implement on how to transform dto objects to data base objects (ExtendedBaseDO).
+     */
+    abstract fun transformForDB(dto: DTO): O
+
+    /**
+     * Implement on how to transform objects from the data base (of type O, ExtendedBaseDO) to dto objects.
+     */
+    abstract fun transformFromDB(obj: O, editMode: Boolean = false): DTO
+
+    abstract fun getId(dto: Any): Int?
+
+    abstract fun isDeleted(dto: Any): Boolean
+
+    abstract fun isHistorizable(): Boolean
 }

@@ -62,8 +62,8 @@ class RechnungRest() : AbstractDORest<RechnungDO, RechnungDao, BaseSearchFilter>
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: RechnungDO): UILayout {
-        val layout = super.createEditLayout(dataObject)
+    override fun createEditLayout(dto: RechnungDO): UILayout {
+        val layout = super.createEditLayout(dto)
                 .add(lc, "betreff")
                 .add(UIRow()
                         .add(UICol()
@@ -83,6 +83,6 @@ class RechnungRest() : AbstractDORest<RechnungDO, RechnungDao, BaseSearchFilter>
                         .add(UICol()
                                 .add(lc, "besonderheiten")))
                 .add(UILabel("TODO: Customized element for Pos"))
-        return LayoutUtils.processEditPage(layout, dataObject, this)
+        return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

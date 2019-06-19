@@ -33,4 +33,4 @@ class TeamCal(var title: String? = null,
               var externalSubscriptionUrl: String? = null,
               var externalSubscriptionUpdateInterval: Int? = null,
               var externalSubscriptionUrlAnonymized: String? = null
-) : BaseHistorizableDTO<TeamCalDO>()
+) : BaseDTO<TeamCalDO>()

@@ -42,7 +42,7 @@ class GroupRest() : AbstractDTORest<GroupDO, Group, GroupDao, GroupFilter>(Group
     @Autowired
     private lateinit var userService: UserService
 
-    override fun transformDO(obj: GroupDO, editMode : Boolean): Group {
+    override fun transformFromDB(obj: GroupDO, editMode : Boolean): Group {
         val group = Group()
         group.copyFrom(obj)
         group.assignedUsers?.forEach {
@@ -56,7 +56,7 @@ class GroupRest() : AbstractDTORest<GroupDO, Group, GroupDao, GroupFilter>(Group
         return group
     }
 
-    override fun transformDTO(dto: Group): GroupDO {
+    override fun transformForDB(dto: Group): GroupDO {
         val groupDO = GroupDO()
         dto.copyTo(groupDO)
         return groupDO
@@ -75,8 +75,8 @@ class GroupRest() : AbstractDTORest<GroupDO, Group, GroupDao, GroupFilter>(Group
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: GroupDO): UILayout {
-        val layout = super.createEditLayout(dataObject)
+    override fun createEditLayout(dto: Group): UILayout {
+        val layout = super.createEditLayout(dto)
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "name", "organization", "description"))
@@ -88,7 +88,7 @@ class GroupRest() : AbstractDTORest<GroupDO, Group, GroupDao, GroupFilter>(Group
                                         autoCompletion = AutoCompletion<Int>(url = "user/aco"),
                                         labelProperty = "fullname",
                                         valueProperty = "id"))))
-        return LayoutUtils.processEditPage(layout, dataObject, this)
+        return LayoutUtils.processEditPage(layout, dto, this)
     }
 
     override val autoCompleteSearchFields = arrayOf("name", "organization")

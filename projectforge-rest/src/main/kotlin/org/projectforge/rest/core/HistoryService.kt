@@ -28,6 +28,7 @@ import de.micromata.genome.db.jpa.history.api.HistoryEntry
 import de.micromata.genome.db.jpa.history.entities.EntityOpType
 import de.micromata.genome.db.jpa.history.entities.PropertyOpType
 import org.projectforge.business.multitenancy.TenantRegistryMap
+import org.projectforge.common.BeanHelper
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.i18n.TimeAgo
@@ -64,10 +65,10 @@ class HistoryService {
      * Creates a list of formatted history entries (get the user names etc.)
      */
     fun format(orig: Array<HistoryEntry<*>>): List<DisplayHistoryEntry> {
-        val userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache()
-        var entries = mutableListOf<DisplayHistoryEntry>()
+        val userGroupCache = TenantRegistryMap.getInstance().tenantRegistry.userGroupCache
+        val entries = mutableListOf<DisplayHistoryEntry>()
         orig.forEach {
-            var user: PFUserDO? = null;
+            var user: PFUserDO? = null
             try {
                 user = userGroupCache?.getUser(it.modifiedBy.toInt())
             } catch (e: NumberFormatException) {
@@ -94,15 +95,15 @@ class HistoryService {
                         oldValue = de.oldValue,
                         newValue = de.newValue)
                 if (clazz != null && !de.propertyName.isNullOrBlank()) {
-                    try {
-                        var field = clazz.getDeclaredField(de.propertyName)
+                    val field = BeanHelper.getDeclaredField(clazz, de.propertyName)
+                    if (field == null) {
+                        log.warn("No such field '${it.entityName}.${de.propertyName}'.")
+                    } else {
                         field.isAccessible = true
-                        if (field != null && field.type.isEnum()) {
+                        if (field.type.isEnum) {
                             diffEntry.oldValue = getI18nEnumTranslation(field, diffEntry.oldValue)
                             diffEntry.newValue = getI18nEnumTranslation(field, diffEntry.newValue)
                         }
-                    } catch (ex: NoSuchFieldException) {
-                        log.warn("No such field '${it.entityName}.${de.propertyName}': ${ex.message}.")
                     }
                     diffEntry.property = translateProperty(de, clazz)
                 }
@@ -113,12 +114,9 @@ class HistoryService {
         return entries
     }
 
-    /**
-     * Tries to get the translation via the i18n key defined in the PropertyInfo annotation fo the given field and value.
-     */
-    private fun getI18nEnumTranslation(field: Field, value: String?): String? {
+    fun getI18nEnumTranslation(field: Field, value: String?): String? {
         if (value == null) {
-            return "";
+            return ""
         }
         val i18nEnum = I18nEnum.create(field.type, value) as I18nEnum
         return translate(i18nEnum.i18nKey)
@@ -152,12 +150,12 @@ class HistoryService {
     }
 
     private fun translate(opType: PropertyOpType?): String {
-        when (opType) {
-            PropertyOpType.Insert -> return translate("operation.inserted")
-            PropertyOpType.Update -> return translate("operation.updated")
-            PropertyOpType.Delete -> return translate("operation.deleted")
-            PropertyOpType.Undefined -> return translate("operation.undefined")
-            else -> return ""
+        return when (opType) {
+            PropertyOpType.Insert -> translate("operation.inserted")
+            PropertyOpType.Update -> translate("operation.updated")
+            PropertyOpType.Delete -> translate("operation.deleted")
+            PropertyOpType.Undefined -> translate("operation.undefined")
+            else -> ""
         }
     }
 }

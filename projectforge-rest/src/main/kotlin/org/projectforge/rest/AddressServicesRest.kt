@@ -25,10 +25,7 @@ package org.projectforge.rest
 
 import org.apache.commons.collections.CollectionUtils
 import org.apache.commons.io.IOUtils
-import org.projectforge.business.address.AddressDao
-import org.projectforge.business.address.AddressExport
-import org.projectforge.business.address.AddressFilter
-import org.projectforge.business.address.PersonalAddressDao
+import org.projectforge.business.address.*
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDORest
@@ -108,7 +105,7 @@ class AddressServicesRest() {
         log.info("Exporting personal address book as Excel file.")
         var storedFilter = listFilterService.getSearchFilter(request.session, AddressFilter::class.java)
         val list = addressDao.getList(storedFilter)
-        val resultSet = ResultSet<Any>(list, list.size)
+        val resultSet = ResultSet<AddressDO>(list, list.size)
         addressRest.processResultSetBeforeExport(resultSet)
 
         val personalAddressMap = personalAddressDao.getPersonalAddressByAddressId()

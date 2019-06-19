@@ -61,9 +61,9 @@ class MemoRest() : AbstractDORest<MemoDO, MemoDao, BaseSearchFilter>(MemoDao::cl
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: MemoDO): UILayout {
-        val layout = super.createEditLayout(dataObject)
+    override fun createEditLayout(dto: MemoDO): UILayout {
+        val layout = super.createEditLayout(dto)
                 .add(lc, "subject", "memo")
-        return LayoutUtils.processEditPage(layout, dataObject, this)
+        return LayoutUtils.processEditPage(layout, dto, this)
     }
 }
