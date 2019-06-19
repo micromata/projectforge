@@ -439,7 +439,7 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
   }
 
   /**
-   * @param sheet
+   * @param ganttChart
    * @param userId If null, then task will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
@@ -452,7 +452,10 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
   @Override
   public GanttChartDO newInstance()
   {
-    return new GanttChartDO().setSettings(new GanttChartSettings()).setStyle(new GanttChartStyle());
+    GanttChartDO instance = new GanttChartDO();
+    instance.setSettings(new GanttChartSettings());
+    instance.setStyle(new GanttChartStyle());
+    return instance;
   }
 
 }
