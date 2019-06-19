@@ -469,7 +469,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
 
         if (auftrag.getPaymentSchedules() != null) {
           for (final PaymentScheduleDO schedule : auftrag.getPaymentSchedules()) {
-            if (schedule.isReached() && schedule.isVollstaendigFakturiert() == false) {
+            if (schedule.getReached() && schedule.getVollstaendigFakturiert() == false) {
               return true;
             }
           }

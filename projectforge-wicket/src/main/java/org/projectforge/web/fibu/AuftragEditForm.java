@@ -782,11 +782,11 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       for (final PaymentScheduleDO schedule : paymentSchedules) {
         if (schedule.getAmount() != null) {
           ges = ges.add(schedule.getAmount());
-          if (schedule.isVollstaendigFakturiert() == true) {
+          if (schedule.getVollstaendigFakturiert() == true) {
             invoiced = invoiced.add(schedule.getAmount());
           }
         }
-        if (schedule.isReached() == true && schedule.isVollstaendigFakturiert() == false) {
+        if (schedule.getReached() == true && schedule.getVollstaendigFakturiert() == false) {
           schedulesPanel.setHighlightedHeader();
         }
       }

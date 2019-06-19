@@ -457,7 +457,7 @@ class AuftragDO : DefaultBaseDO() {
         get() {
             if (this.paymentSchedules != null) {
                 for (pos in this.paymentSchedules!!) {
-                    if (pos.isReached && pos.isVollstaendigFakturiert) {
+                    if (pos.reached && pos.vollstaendigFakturiert) {
                         return true
                     }
                 }
