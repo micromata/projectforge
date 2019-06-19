@@ -247,8 +247,8 @@ public class OrderExport
     mapping.add(PaymentsCol.PAY_NUMBER, "#" + scheduleDO.getNumber());
     mapping.add(PaymentsCol.AMOUNT, scheduleDO.getAmount());
     mapping.add(PaymentsCol.COMMENT, scheduleDO.getComment());
-    mapping.add(PaymentsCol.REACHED, scheduleDO.isReached() == true ? "x" : "");
-    mapping.add(PaymentsCol.VOLLSTAENDIG_FAKTURIERT, scheduleDO.isVollstaendigFakturiert() == true ? "x" : "");
+    mapping.add(PaymentsCol.REACHED, scheduleDO.getReached() == true ? "x" : "");
+    mapping.add(PaymentsCol.VOLLSTAENDIG_FAKTURIERT, scheduleDO.getVollstaendigFakturiert() == true ? "x" : "");
     mapping.add(PaymentsCol.SCHEDULE_DATE, scheduleDO.getScheduleDate());
   }
 
