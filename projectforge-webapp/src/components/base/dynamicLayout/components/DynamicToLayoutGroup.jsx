@@ -32,13 +32,15 @@ function DynamicToLayoutGroup(props) {
 
     // Return a LayoutGroup where the old system will be rendered.
     return (
-        <LayoutGroup
-            content={[props]}
-            changeDataField={changeDataField}
-            data={data}
-            translations={ui.translations}
-            validation={validation}
-        />
+        <div style={{ border: '1px solid red' }}>
+            <LayoutGroup
+                content={[props]}
+                changeDataField={changeDataField}
+                data={data}
+                translations={ui.translations}
+                validation={validation}
+            />
+        </div>
     );
 }
 
