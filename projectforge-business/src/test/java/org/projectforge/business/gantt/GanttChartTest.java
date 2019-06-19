@@ -64,7 +64,8 @@ public class GanttChartTest extends AbstractTestBase {
             .setDuration(BigDecimal.TEN));
     final GanttChartData data = Task2GanttTaskConverter.convertToGanttObjectTree(taskTree, rootTask);
     final GanttTask rootObject = data.getRootObject();
-    final GanttChartDO ganttChartDO = new GanttChartDO().setTask(rootTask);
+    final GanttChartDO ganttChartDO = new GanttChartDO();
+    ganttChartDO.setTask(rootTask);
     ganttChartDao.writeGanttObjects(ganttChartDO, rootObject);
     assertEquals("", ganttChartDO.getGanttObjectsAsXml(), "No output because there is no further information in the GanttObject tree.");
     findById(rootObject, getTask(prefix + "2").getId()).setPredecessorOffset(5).setDuration(new BigDecimal("12"));
@@ -147,7 +148,8 @@ public class GanttChartTest extends AbstractTestBase {
     // final Integer id3 = task.getId();
     final GanttChartData data = Task2GanttTaskConverter.convertToGanttObjectTree(taskTree, rootTask);
     final GanttTask rootObject = data.getRootObject();
-    final GanttChartDO ganttChartDO = new GanttChartDO().setTask(rootTask);
+    final GanttChartDO ganttChartDO = new GanttChartDO();
+    ganttChartDO.setTask(rootTask);
     findById(rootObject, id1).setDuration(new BigDecimal("10.000")).setProgress(10); // Modified.
     findById(rootObject, id3).setDuration(new BigDecimal("2")).setProgress(2); // Modified.
     findById(rootObject, id4).setDuration(new BigDecimal("10.000")).setProgress(10); // Unmodified

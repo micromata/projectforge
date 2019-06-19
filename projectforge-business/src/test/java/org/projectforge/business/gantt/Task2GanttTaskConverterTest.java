@@ -80,7 +80,8 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
     assertEquals(2, ganttChartData.getExternalObjects().size(),
             "Two external objects (2.1 and 2.2) exptected.");
     assertExternalTasks(ganttChartData, prefix);
-    final GanttChartDO ganttChartDO = new GanttChartDO().setTask(getTask(prefix + "1"));
+    final GanttChartDO ganttChartDO = new GanttChartDO();
+    ganttChartDO.setTask(getTask(prefix + "1"));
     ganttChartDao.writeGanttObjects(ganttChartDO, ganttChartData.getRootObject());
     assertEquals("", ganttChartDO.getGanttObjectsAsXml(), "No output because there is no further information in the GanttObject tree.");
     GanttChartData data = ganttChartDao.readGanttObjects(ganttChartDO);
