@@ -235,8 +235,7 @@ abstract class AbstractBaseRest<
         if (filter.maxRows <= 0)
             filter.maxRows = 50
         filter.isSortAndLimitMaxRowsWhileSelect = true
-        val resultSet = getList(this, baseDao, filter)
-        processResultSetBeforeExport(resultSet)
+        val resultSet = processResultSetBeforeExport(getList(this, baseDao, filter))
         val layout = createListLayout()
                 .addTranslations("table.showing")
         layout.add(LayoutListFilterUtils.createNamedContainer(baseDao, lc))
