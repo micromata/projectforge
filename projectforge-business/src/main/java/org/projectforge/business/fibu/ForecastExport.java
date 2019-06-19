@@ -314,7 +314,7 @@ public class ForecastExport
       BigDecimal sum = new BigDecimal(0.0);
 
       for (PaymentScheduleDO schedule : paymentSchedules) {
-        if (schedule.isVollstaendigFakturiert()) {
+        if (schedule.getVollstaendigFakturiert()) {
           continue;
         }
 

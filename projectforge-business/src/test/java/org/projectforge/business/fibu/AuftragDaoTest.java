@@ -427,11 +427,35 @@ public class AuftragDaoTest extends AbstractTestBase
     auftragsPositions.add(pos1);
     auftragsPositions.add(pos2);
 
-    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 1).setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 1))));
-    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 1).setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 20))));
-    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 1).setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 6, 30))));
-    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 2).setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 24))));
-    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 2).setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 25))));
+    PaymentScheduleDO paymentSchedule = new PaymentScheduleDO();
+    paymentSchedule.setPositionNumber((short) 1);
+    paymentSchedule.setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 1)));
+
+    paymentSchedules.add(paymentSchedule);
+
+    paymentSchedule = new PaymentScheduleDO();
+    paymentSchedule.setPositionNumber((short) 1);
+    paymentSchedule.setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 20)));
+
+    paymentSchedules.add(paymentSchedule);
+
+    paymentSchedule = new PaymentScheduleDO();
+    paymentSchedule.setPositionNumber((short) 1);
+    paymentSchedule.setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 6, 30)));
+
+    paymentSchedules.add(paymentSchedule);
+
+    paymentSchedule = new PaymentScheduleDO();
+    paymentSchedule.setPositionNumber((short) 2);
+    paymentSchedule.setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 24)));
+
+    paymentSchedules.add(paymentSchedule);
+
+    paymentSchedule = new PaymentScheduleDO();
+    paymentSchedule.setPositionNumber((short) 2);
+    paymentSchedule.setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 25)));
+
+    paymentSchedules.add(paymentSchedule);
 
     boolean exceptionThrown = false;
     try {
@@ -441,8 +465,17 @@ public class AuftragDaoTest extends AbstractTestBase
     }
     assertFalse(exceptionThrown);
 
-    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 1).setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 4, 30))));
-    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 2).setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 26))));
+    paymentSchedule = new PaymentScheduleDO();
+    paymentSchedule.setPositionNumber((short) 1);
+    paymentSchedule.setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 4, 30)));
+
+    paymentSchedules.add(paymentSchedule);
+
+    paymentSchedule = new PaymentScheduleDO();
+    paymentSchedule.setPositionNumber((short) 2);
+    paymentSchedule.setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 26)));
+
+    paymentSchedules.add(paymentSchedule);
 
     try {
       auftragDao.validateDatesInPaymentScheduleWithinPeriodOfPerformanceOfPosition(auftrag);
@@ -472,11 +505,35 @@ public class AuftragDaoTest extends AbstractTestBase
     auftragsPositions.add(pos1);
     auftragsPositions.add(pos2);
 
-    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 1).setAmount(new BigDecimal(1000)));
-    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 1).setAmount(null)); // should not cause a NPE
-    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 1).setAmount(new BigDecimal(1000)));
-    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 2).setAmount(new BigDecimal(2000)));
-    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 2).setAmount(new BigDecimal(2999)));
+    PaymentScheduleDO paymentSchedule = new PaymentScheduleDO();
+    paymentSchedule.setPositionNumber((short) 1);
+    paymentSchedule.setAmount(new BigDecimal(1000));
+
+    paymentSchedules.add(paymentSchedule);
+
+    paymentSchedule = new PaymentScheduleDO();
+    paymentSchedule.setPositionNumber((short) 1);
+    paymentSchedule.setAmount(null); // should not cause a NPE
+
+    paymentSchedules.add(paymentSchedule);
+
+    paymentSchedule = new PaymentScheduleDO();
+    paymentSchedule.setPositionNumber((short) 1);
+    paymentSchedule.setAmount(new BigDecimal(1000));
+
+    paymentSchedules.add(paymentSchedule);
+
+    paymentSchedule = new PaymentScheduleDO();
+    paymentSchedule.setPositionNumber((short) 2);
+    paymentSchedule.setAmount(new BigDecimal(2000));
+
+    paymentSchedules.add(paymentSchedule);
+
+    paymentSchedule = new PaymentScheduleDO();
+    paymentSchedule.setPositionNumber((short) 2);
+    paymentSchedule.setAmount(new BigDecimal(2999));
+
+    paymentSchedules.add(paymentSchedule);
 
     boolean exceptionThrown = false;
     try {
@@ -487,7 +544,12 @@ public class AuftragDaoTest extends AbstractTestBase
     assertFalse(exceptionThrown);
 
     // amounts of position 1 (2001) will now be greater than netto summe (2000) -> should throw exception
-    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 1).setAmount(new BigDecimal(1)));
+    paymentSchedule = new PaymentScheduleDO();
+    paymentSchedule.setPositionNumber((short) 1);
+    paymentSchedule.setAmount(new BigDecimal(1));
+
+    paymentSchedules.add(paymentSchedule);
+
 
     try {
       auftragDao.validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition(auftrag);
