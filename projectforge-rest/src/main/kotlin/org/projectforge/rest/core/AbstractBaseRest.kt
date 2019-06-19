@@ -194,13 +194,13 @@ abstract class AbstractBaseRest<
     open fun validate(validationErrors: MutableList<ValidationError>, dto: DTO) {
     }
 
-    fun validate(dto: DTO): List<ValidationError>? {
+    fun validate(dbObj: O): MutableList<ValidationError> {
         val validationErrors = mutableListOf<ValidationError>()
-        val propertiesMap = ElementsRegistry.getProperties(dto::class.java)!!
+        val propertiesMap = ElementsRegistry.getProperties(dbObj::class.java)!!
         propertiesMap.forEach {
             val property = it.key
             val elementInfo = it.value
-            val value = PropertyUtils.getProperty(dto, property)
+            val value = PropertyUtils.getProperty(dbObj, property)
             if (elementInfo.required == true) {
                 var error = false
                 if (value == null) {
@@ -219,6 +219,11 @@ abstract class AbstractBaseRest<
                             fieldId = property))
             }
         }
+        return validationErrors
+    }
+
+    fun validate(dbObj: O, dto: DTO): List<ValidationError>? {
+        val validationErrors = validate(dbObj)
         validate(validationErrors, dto)
         if (validationErrors.isEmpty()) return null
         return validationErrors
@@ -275,7 +280,7 @@ abstract class AbstractBaseRest<
         return resultSet
     }
 
-    abstract fun processResultSetBeforeExport(resultSet: ResultSet<O>) : ResultSet<*>
+    abstract fun processResultSetBeforeExport(resultSet: ResultSet<O>): ResultSet<*>
 
     /**
      * Gets the item from the database.
@@ -288,12 +293,12 @@ abstract class AbstractBaseRest<
         return ResponseEntity(item, HttpStatus.OK)
     }
 
-    protected open fun getById(idString: String?, editMode : Boolean = false): DTO? {
+    protected open fun getById(idString: String?, editMode: Boolean = false): DTO? {
         if (idString == null) return null
         return getById(idString.toInt(), editMode)
     }
 
-    protected fun getById(id: Int?, editMode : Boolean = false): DTO? {
+    protected fun getById(id: Int?, editMode: Boolean = false): DTO? {
         val item = baseDao.getById(id) ?: return null
         return transformFromDB(item, editMode)
     }
@@ -428,7 +433,7 @@ abstract class AbstractBaseRest<
     @PutMapping(RestPaths.SAVE_OR_UDATE)
     fun saveOrUpdate(request: HttpServletRequest, @Valid @RequestBody dto: DTO): ResponseEntity<ResponseAction> {
         val dbObj = transformForDB(dto)
-        return saveOrUpdate(request, baseDao, dbObj, dto, this, validate(dto))
+        return saveOrUpdate(request, baseDao, dbObj, dto, this, validate(dbObj, dto))
     }
 
     /**
@@ -437,7 +442,7 @@ abstract class AbstractBaseRest<
     @PutMapping(RestPaths.UNDELETE)
     fun undelete(@RequestBody dto: DTO): ResponseEntity<ResponseAction> {
         val dbObj = transformForDB(dto)
-        return undelete(baseDao, dbObj, dto, this, validate(dto))
+        return undelete(baseDao, dbObj, dto, this, validate(dbObj, dto))
     }
 
     /**
@@ -447,7 +452,7 @@ abstract class AbstractBaseRest<
     @DeleteMapping(RestPaths.MARK_AS_DELETED)
     fun markAsDeleted(@RequestBody dto: DTO): ResponseEntity<ResponseAction> {
         val dbObj = transformForDB(dto)
-        return markAsDeleted(baseDao, dbObj, dto, this, validate(dto))
+        return markAsDeleted(baseDao, dbObj, dto, this, validate(dbObj, dto))
     }
 
     /**
@@ -457,7 +462,7 @@ abstract class AbstractBaseRest<
     @DeleteMapping(RestPaths.DELETE)
     fun delete(@RequestBody dto: DTO): ResponseEntity<ResponseAction> {
         val dbObj = transformForDB(dto)
-        return delete(baseDao, dbObj, dto, this, validate(dto))
+        return delete(baseDao, dbObj, dto, this, validate(dbObj, dto))
     }
 
     /**
