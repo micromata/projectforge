@@ -19,7 +19,7 @@ function CustomizedBookLendOutComponent(
     if (data.lendOutBy && data.lendOutDate) {
         information = (
             <React.Fragment>
-                <span>{`${data.lendOutBy.fullname}, ${data.lendOutDate}`}</span>
+                <span className="mr-4">{`${data.lendOutBy.fullname}, ${data.lendOutDate}`}</span>
                 {user.username === data.lendOutBy.username
                     ? (
                         <Button color="danger" onClick={handBack}>
