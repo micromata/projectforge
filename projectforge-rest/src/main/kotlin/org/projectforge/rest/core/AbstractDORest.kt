@@ -61,7 +61,7 @@ abstract class AbstractDORest<
     }
 
     override fun processResultSetBeforeExport(resultSet: ResultSet<O>) : ResultSet<*> {
-        resultSet.resultSet.forEach { transformFromDB(it as O) }
+        resultSet.resultSet.forEach { transformFromDB(it) }
         return resultSet
     }
 
