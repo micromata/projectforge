@@ -86,7 +86,8 @@ public class HRPlanningTest extends AbstractTestBase {
     PFUserDO user1 = initTestDB.addUser("HRPlanningTestUser1");
     final HRPlanningRight right = (HRPlanningRight) userRights.getRight(UserRightId.PM_HR_PLANNING);
     assertFalse(right.isAvailable(userGroupCache, user1));
-    final HRPlanningDO planning = new HRPlanningDO().setUser(getUser(AbstractTestBase.TEST_USER));
+    final HRPlanningDO planning = new HRPlanningDO();
+    planning.setUser(getUser(AbstractTestBase.TEST_USER));
     logon(user1);
     assertFalse(hrPlanningDao.hasLoggedInUserAccess(planning, null, OperationType.SELECT, false));
     try {
@@ -130,7 +131,7 @@ public class HRPlanningTest extends AbstractTestBase {
   @Test
   public void getFirstDayOfWeek() {
     final java.sql.Date date = createDate(2010, Calendar.JANUARY, 9, 1, 10, 57, 456);
-    assertEquals("2010-01-04 00:00:00.000 +0000", DateHelper.formatAsUTC(HRPlanningDO.getFirstDayOfWeek(date)));
+    assertEquals("2010-01-04 00:00:00.000 +0000", DateHelper.formatAsUTC(HRPlanningDO.Companion.getFirstDayOfWeek(date)));
   }
 
   @Test
