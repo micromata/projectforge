@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/addressBook")
-class AddressBookRest() : AbstractDTORest<AddressbookDO, Addressbook, AddressbookDao, AddressbookFilter>(
+class AddressBookRest : AbstractDTORest<AddressbookDO, Addressbook, AddressbookDao, AddressbookFilter>(
         AddressbookDao::class.java,
         AddressbookFilter::class.java,
         "addressbook.title"
@@ -50,7 +50,7 @@ class AddressBookRest() : AbstractDTORest<AddressbookDO, Addressbook, Addressboo
     private lateinit var userService: UserService
 
     // Needed to use as dto.
-    override fun transformDO(obj: AddressbookDO, editMode : Boolean): Addressbook {
+    override fun transformFromDB(obj: AddressbookDO, editMode : Boolean): Addressbook {
         val addressbook = Addressbook()
         addressbook.copyFrom(obj)
         // Group names needed by React client (for ReactSelect):
@@ -63,7 +63,7 @@ class AddressBookRest() : AbstractDTORest<AddressbookDO, Addressbook, Addressboo
     }
 
     // Needed to use as dto.
-    override fun transformDTO(dto: Addressbook): AddressbookDO {
+    override fun transformForDB(dto: Addressbook): AddressbookDO {
         val addressbookDO = AddressbookDO()
         dto.copyTo(addressbookDO)
         return addressbookDO
@@ -84,8 +84,8 @@ class AddressBookRest() : AbstractDTORest<AddressbookDO, Addressbook, Addressboo
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: AddressbookDO): UILayout {
-        val layout = super.createEditLayout(dataObject)
+    override fun createEditLayout(dto: Addressbook): UILayout {
+        val layout = super.createEditLayout(dto)
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "title")
@@ -123,6 +123,6 @@ class AddressBookRest() : AbstractDTORest<AddressbookDO, Addressbook, Addressboo
                                         autoCompletion = AutoCompletion<Int>(url = "group/aco"),
                                         labelProperty = "name",
                                         valueProperty = "id"))))
-        return LayoutUtils.processEditPage(layout, dataObject, this)
+        return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

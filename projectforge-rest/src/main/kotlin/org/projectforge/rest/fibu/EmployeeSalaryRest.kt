@@ -35,14 +35,19 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/employeeSalary")
-class EmployeeSalaryRest() : AbstractDTORest<EmployeeSalaryDO, EmployeeSalary, EmployeeSalaryDao, EmployeeSalaryFilter>(EmployeeSalaryDao::class.java, EmployeeSalaryFilter::class.java, "fibu.employee.salary.title") {
-    override fun transformDO(obj: EmployeeSalaryDO, editMode : Boolean): EmployeeSalary {
+class EmployeeSalaryRest
+    : AbstractDTORest<EmployeeSalaryDO, EmployeeSalary, EmployeeSalaryDao, EmployeeSalaryFilter>(
+        EmployeeSalaryDao::class.java,
+        EmployeeSalaryFilter::class.java,
+        "fibu.employee.salary.title") {
+
+    override fun transformFromDB(obj: EmployeeSalaryDO, editMode: Boolean): EmployeeSalary {
         val employeeSalary = EmployeeSalary()
         employeeSalary.copyFrom(obj)
         return employeeSalary
     }
 
-    override fun transformDTO(dto: EmployeeSalary): EmployeeSalaryDO {
+    override fun transformForDB(dto: EmployeeSalary): EmployeeSalaryDO {
         val employeeSalaryDO = EmployeeSalaryDO()
         dto.copyTo(employeeSalaryDO)
         return employeeSalaryDO
@@ -65,11 +70,11 @@ class EmployeeSalaryRest() : AbstractDTORest<EmployeeSalaryDO, EmployeeSalary, E
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: EmployeeSalaryDO): UILayout {
-        val layout = super.createEditLayout(dataObject)
+    override fun createEditLayout(dto: EmployeeSalary): UILayout {
+        val layout = super.createEditLayout(dto)
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "employee", "month", "type", "bruttoMitAgAnteil", "comment")))
-        return LayoutUtils.processEditPage(layout, dataObject, this)
+        return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

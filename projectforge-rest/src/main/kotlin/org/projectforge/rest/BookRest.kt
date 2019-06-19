@@ -37,6 +37,7 @@ import javax.servlet.http.HttpServletRequest
 @RestController
 @RequestMapping("${Rest.URL}/book")
 class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::class.java, BookFilter::class.java, "book.title") {
+
     /**
      * Initializes new books for adding.
      */
@@ -47,17 +48,15 @@ class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::class.ja
         return book
     }
 
-    override fun validate(validationErrors: MutableList<ValidationError>, obj: BookDO) {
-        Validation.validateInteger(validationErrors, "yearOfPublishing", obj.yearOfPublishing, Const.MINYEAR, Const.MAXYEAR, formatNumber = false)
-        if (baseDao.doesSignatureAlreadyExist(obj))
+    override fun validate(validationErrors: MutableList<ValidationError>, dto: BookDO) {
+        Validation.validateInteger(validationErrors, "yearOfPublishing", dto.yearOfPublishing, Const.MINYEAR, Const.MAXYEAR, formatNumber = false)
+        if (baseDao.doesSignatureAlreadyExist(dto))
             validationErrors.add(ValidationError(translate("book.error.signatureAlreadyExists"), fieldId = "signature"))
     }
 
-    /** Needed only for deprecated task object. */
-    override fun processItemBeforeExport(item: Any) {
-        super.processItemBeforeExport(item)
-        @Suppress("DEPRECATION")
-        (item as BookDO).task = null
+    override fun transformFromDB(obj: BookDO, editMode: Boolean): BookDO {
+        obj.task = null
+        return obj
     }
 
     /**
@@ -76,8 +75,8 @@ class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::class.ja
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: BookDO): UILayout {
-        val layout = super.createEditLayout(dataObject)
+    override fun createEditLayout(dto: BookDO): UILayout {
+        val layout = super.createEditLayout(dto)
                 .add(lc, "title", "authors")
                 .add(UIRow()
                         .add(UICol(6)
@@ -89,7 +88,7 @@ class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::class.ja
                                 .add(lc, "isbn", "publisher", "editor")))
                 .add(lc, "keywords")
 
-        if (dataObject.id != null) // Show lend out functionality only for existing books:
+        if (dto.id != null) // Show lend out functionality only for existing books:
             layout.add(UIFieldset(title = "book.lending")
                     .add(UICustomized("book.lendOutComponent"))
                     .add(lc, "lendOutComment"))
@@ -98,6 +97,6 @@ class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::class.ja
         layout.getTextAreaById("authors").rows = 1
         layout.addTranslations("book.lendOut")
                 .addTranslations("book.returnBook")
-        return LayoutUtils.processEditPage(layout, dataObject, this)
+        return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

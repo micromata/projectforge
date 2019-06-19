@@ -29,8 +29,6 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.HibernateUtils
-import org.projectforge.framework.persistence.entities.AbstractBaseDO
-import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import org.projectforge.rest.core.AbstractBaseRest
 
 /**
@@ -48,7 +46,7 @@ class LayoutUtils {
 
         /**
          * Auto-detects max-length of input fields (by referring the @Column annotations of clazz) and
-         * i18n-keys (by referring the [org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn] annotations of clazz).
+         * i18n-keys (by referring the [org.projectforge.common.anots.PropertyInfo] annotations of clazz).
          * @return List of all elements used in the layout.
          */
         fun process(layout: UILayout): List<Any?> {
@@ -62,7 +60,7 @@ class LayoutUtils {
 
         /**
          * Auto-detects max-length of input fields (by referring the @Column annotations of clazz) and
-         * i18n-keys (by referring the [org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn] annotations of clazz).
+         * i18n-keys (by referring the [org.projectforge.common.anots.PropertyInfo] annotations of clazz).
          * <br>
          * If no named container called "filter-options" is found, it will be attached automatically by calling [addListFilterContainer]
          */
@@ -99,7 +97,7 @@ class LayoutUtils {
                         }
                     }
                     is String -> {
-                        val element = LayoutUtils.buildLabelInputElement(LayoutContext(filterClass), it)
+                        val element = buildLabelInputElement(LayoutContext(filterClass), it)
                         if (element != null)
                             filterGroup.add(element)
                     }
@@ -128,14 +126,14 @@ class LayoutUtils {
          * Calls also fun [process].
          * @see LayoutUtils.process
          */
-        fun processEditPage(layout: UILayout, data: AbstractBaseDO<Int>?,
-                            restService: AbstractBaseRest<out ExtendedBaseDO<Int>, out Any, out BaseDao<*>, out BaseSearchFilter>)
+        fun processEditPage(layout: UILayout, dto: Any,
+                            restService: AbstractBaseRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>, out BaseSearchFilter>)
                 : UILayout {
             layout.addAction(UIButton("cancel", style = UIStyle.DANGER))
-            if (HistoryBaseDaoAdapter.isHistorizable(data)) {
+            if (restService.isHistorizable()) {
                 // 99% of the objects are historizable (undeletable):
-                if (data != null && data.id != null) {
-                    if (data.isDeleted)
+                if (restService.getId(dto) != null) {
+                    if (restService.isDeleted(dto))
                         layout.addAction(UIButton("undelete", style = UIStyle.WARNING))
                     else
                         layout.addAction(UIButton("markAsDeleted", style = UIStyle.WARNING))
@@ -147,8 +145,8 @@ class LayoutUtils {
             if (restService.cloneSupported) {
                 layout.addAction(UIButton("clone", style = UIStyle.SECONDARY))
             }
-            if (data != null && data.id != null) {
-                if (!data.isDeleted)
+            if (restService.getId(dto) != null) {
+                if (!restService.isDeleted(dto))
                     layout.addAction(UIButton("update", style = UIStyle.PRIMARY, default = true))
             } else {
                 layout.addAction(UIButton("create", style = UIStyle.PRIMARY, default = true))
@@ -164,8 +162,7 @@ class LayoutUtils {
         }
 
         /**
-         * @param layoutSettings If [layoutSettings.useInLineLabels] is true, one element is returned including
-         * the label (e. g. UIInput). If don't use inline labels, a group containing a label and an input field is returned.
+         * @param layoutSettings One element is returned including the label (e. g. UIInput).
          */
         internal fun buildLabelInputElement(layoutSettings: LayoutContext, id: String): UIElement? {
             return ElementsRegistry.buildElement(layoutSettings, id)
@@ -177,14 +174,14 @@ class LayoutUtils {
          * @return The element itself or the surrounding [UIRow].
          */
         internal fun prepareElementToAdd(element: UIElement, createRowCol: Boolean): UIElement {
-            if (createRowCol == true) {
+            return if (createRowCol) {
                 val row = UIRow()
                 val col = UICol()
                 row.add(col)
                 col.add(element)
-                return row
+                row
             } else {
-                return element
+                element
             }
         }
 
@@ -200,7 +197,6 @@ class LayoutUtils {
         /**
          * Does translation of buttons and UILabels
          * @param elements List of all elements used in the layout.
-         * @param clazz The class of the property to search for annotations [@PropertyInfo]
          * @return The unmodified parameter elements.
          * @see HibernateUtils.getPropertyLength
          */
@@ -252,7 +248,7 @@ class LayoutUtils {
          */
         internal fun getId(element: UIElement?, followLabelReference: Boolean = true): String? {
             if (element == null) return null
-            if (followLabelReference == true && element is UILabel) {
+            if (followLabelReference && element is UILabel) {
                 return getId(element.reference)
             }
             return when (element) {
@@ -290,7 +286,7 @@ class LayoutUtils {
                 }
                 return null
             }
-            if (label.startsWith("'") == true)
+            if (label.startsWith("'"))
                 return label.substring(1)
             return translate(label)
         }

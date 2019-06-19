@@ -47,8 +47,8 @@ class ContractRest() : AbstractDORest<ContractDO, ContractDao, ContractFilter>(C
         return contract
     }
 
-    override fun validate(validationErrors: MutableList<ValidationError>, obj: ContractDO) {
-        val date = PFDate.from(obj.date)
+    override fun validate(validationErrors: MutableList<ValidationError>, dto: ContractDO) {
+        val date = PFDate.from(dto.date)
         val today = PFDate.now()
         if (today.isBefore(date)) { // No dates in the future accepted.
             validationErrors.add(ValidationError(translate("error.dateInFuture"), fieldId = "date"))
@@ -71,7 +71,7 @@ class ContractRest() : AbstractDORest<ContractDO, ContractDao, ContractFilter>(C
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: ContractDO): UILayout {
+    override fun createEditLayout(dto: ContractDO): UILayout {
         val title = UIInput("title", lc).enableAutoCompletion(this)
         val coContractorA = UIInput("coContractorA", lc).enableAutoCompletion(this)
         val coContractorB = UIInput("coContractorB", lc).enableAutoCompletion(this)
@@ -81,7 +81,7 @@ class ContractRest() : AbstractDORest<ContractDO, ContractDao, ContractFilter>(C
         val signerB = UIInput("signerB", lc).enableAutoCompletion(this)
 
 
-        val layout = super.createEditLayout(dataObject)
+        val layout = super.createEditLayout(dto)
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "number", "date")
@@ -99,6 +99,6 @@ class ContractRest() : AbstractDORest<ContractDO, ContractDao, ContractFilter>(C
                                 .add(contractPersonB)
                                 .add(signerB)))
                 .add(lc, "text", "filing")
-        return LayoutUtils.processEditPage(layout, dataObject, this)
+        return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

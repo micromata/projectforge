@@ -26,9 +26,7 @@ package org.projectforge.rest.core
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import org.projectforge.ui.UILayout
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
+import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 
 /**
  * This is the base class for all fronted functionality regarding query, editing etc. It also serves layout
@@ -48,19 +46,59 @@ abstract class AbstractDORest<
         cloneSupported: Boolean = false)
     : AbstractBaseRest<O, O, B, F>(baseDaoClazz, filterClazz, i18nKeyPrefix, cloneSupported) {
 
-    override fun processResultSetBeforeExport(resultSet: ResultSet<Any>) {
-        resultSet.resultSet.forEach { processItemBeforeExport(it) }
+    companion object {
+        // For caching historizable flag:
+        private val historizableMap = mutableMapOf<Class<*>, Boolean>()
+
+        internal fun isHistorizable(clazz: Class<out ExtendedBaseDO<*>>): Boolean {
+            var result = historizableMap.get(clazz)
+            if (result != null)
+                return result
+            result = HistoryBaseDaoAdapter.isHistorizable(clazz)
+            historizableMap.put(clazz.javaClass, result)
+            return result
+        }
     }
 
-    override fun asDO(dto: O): O {
+    override fun processResultSetBeforeExport(resultSet: ResultSet<O>) : ResultSet<*> {
+        resultSet.resultSet.forEach { transformFromDB(it as O) }
+        return resultSet
+    }
+
+    /**
+     * @return dto object itself (it's already of type O)
+     */
+    override fun transformForDB(dto: O): O {
         return dto
     }
 
-    override fun createEditLayoutData(item: O, layout: UILayout): EditLayoutData {
-        return EditLayoutData(item, layout)
+    /**
+     * @return obj object itself (it's already of same type)
+     */
+    override fun transformFromDB(obj: O, editMode: Boolean): O {
+        return obj
     }
 
-    override fun returnItem(item: O): ResponseEntity<Any> {
-        return ResponseEntity<Any>(item, HttpStatus.OK)
+    /**
+     * @param dto Expected as O
+     */
+    override fun getId(dto: Any): Int? {
+        @Suppress("UNCHECKED_CAST")
+        return (dto as O).id
+    }
+
+    /**
+     * @param dto Expected as O
+     */
+    override fun isDeleted(dto: Any): Boolean {
+        @Suppress("UNCHECKED_CAST")
+        return (dto as O).isDeleted
+    }
+
+    /**
+     * Override this method if your data object isn't historizable.
+     */
+    override fun isHistorizable(): Boolean {
+        return isHistorizable(baseDao.doClass)
     }
 }

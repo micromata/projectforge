@@ -35,14 +35,14 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/employee")
-class EmployeeRest() : AbstractDTORest<EmployeeDO, Employee, EmployeeDao, EmployeeFilter>(EmployeeDao::class.java, EmployeeFilter::class.java, "fibu.employee.title") {
-    override fun transformDO(obj: EmployeeDO, editMode: Boolean): Employee {
+class EmployeeRest : AbstractDTORest<EmployeeDO, Employee, EmployeeDao, EmployeeFilter>(EmployeeDao::class.java, EmployeeFilter::class.java, "fibu.employee.title") {
+    override fun transformFromDB(obj: EmployeeDO, editMode: Boolean): Employee {
         val employee = Employee()
         employee.copyFrom(obj)
         return employee
     }
 
-    override fun transformDTO(dto: Employee): EmployeeDO {
+    override fun transformForDB(dto: Employee): EmployeeDO {
         val employeeDO = EmployeeDO()
         dto.copyTo(employeeDO)
         return employeeDO
@@ -64,8 +64,8 @@ class EmployeeRest() : AbstractDTORest<EmployeeDO, Employee, EmployeeDao, Employ
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: EmployeeDO): UILayout {
-        val layout = super.createEditLayout(dataObject)
+    override fun createEditLayout(dto: Employee): UILayout {
+        val layout = super.createEditLayout(dto)
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "user", "kost1", "abteilung", "position"))
@@ -81,6 +81,6 @@ class EmployeeRest() : AbstractDTORest<EmployeeDO, Employee, EmployeeDao, Employ
                         .add(UICol().add(lc, "status")))
                 .add(UIRow()
                         .add(UICol().add(lc, "comment")))
-        return LayoutUtils.processEditPage(layout, dataObject, this)
+        return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

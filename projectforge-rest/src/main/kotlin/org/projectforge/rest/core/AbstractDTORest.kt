@@ -26,9 +26,7 @@ package org.projectforge.rest.core
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import org.projectforge.ui.UILayout
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
+import org.projectforge.rest.dto.BaseDTO
 
 /**
  * This is the base class for all fronted functionality regarding query, editing etc. It also serves layout
@@ -40,7 +38,7 @@ import org.springframework.http.ResponseEntity
  */
 abstract class AbstractDTORest<
         O : ExtendedBaseDO<Int>,
-        DTO : Any,
+        DTO : BaseDTO<O>,
         B : BaseDao<O>,
         F : BaseSearchFilter>(
         baseDaoClazz: Class<B>,
@@ -49,33 +47,33 @@ abstract class AbstractDTORest<
         cloneSupported: Boolean = false)
     : AbstractBaseRest<O, DTO, B, F>(baseDaoClazz, filterClazz, i18nKeyPrefix, cloneSupported) {
 
-    override fun processResultSetBeforeExport(resultSet: ResultSet<Any>) {
-        val orig = resultSet.resultSet
-        resultSet.resultSet = orig.map {
-            @Suppress("UNCHECKED_CAST")
-            transformDO(it as O, false)
+    /**
+     * @return New result set of dto's, transformed from data base objects.
+     */
+    override fun processResultSetBeforeExport(resultSet: ResultSet<O>) : ResultSet<*> {
+        val newList = resultSet.resultSet.map {
+            transformFromDB(it, false)
         }
+        return ResultSet(newList, newList.size)
     }
 
     /**
-     * Must be overridden if flag [useDTO] is true. Throws [UnsupportedOperationException] at default.
+     * @param dto Expected as DTO
      */
-    abstract fun transformDO(obj: O, editMode: Boolean): DTO
+    override fun getId(dto: Any): Int? {
+        @Suppress("UNCHECKED_CAST")
+        return (dto as DTO).id
+    }
 
     /**
-     * Must be overridden if flag [useDTO] is true. Throws [UnsupportedOperationException] at default.
+     * @param dto Expected as DTO
      */
-    abstract fun transformDTO(dto: DTO): O
-
-    override fun asDO(dto: DTO): O {
-        return transformDTO(dto)
+    override fun isDeleted(dto: Any): Boolean {
+        @Suppress("UNCHECKED_CAST")
+        return (dto as DTO).isDeleted
     }
 
-    override fun createEditLayoutData(item: O, layout: UILayout): EditLayoutData {
-        return EditLayoutData(transformDO(item, true), layout)
-    }
-
-    override fun returnItem(item: O): ResponseEntity<Any> {
-        return ResponseEntity<Any>(transformDO(item, true), HttpStatus.OK)
+    override fun isHistorizable(): Boolean {
+        return AbstractDORest.isHistorizable(baseDao.doClass)
     }
 }

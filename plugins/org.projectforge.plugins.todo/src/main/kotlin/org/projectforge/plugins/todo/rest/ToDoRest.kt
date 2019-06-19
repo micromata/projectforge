@@ -59,8 +59,8 @@ class ToDoRest() : AbstractDORest<ToDoDO, ToDoDao, BaseSearchFilter>(ToDoDao::cl
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: ToDoDO): UILayout {
-        val layout = super.createEditLayout(dataObject)
+    override fun createEditLayout(dto: ToDoDO): UILayout {
+        val layout = super.createEditLayout(dto)
                 .add(lc, "subject")
                 .add(UIRow()
                         .add(UICol()
@@ -70,6 +70,6 @@ class ToDoRest() : AbstractDORest<ToDoDO, ToDoDao, BaseSearchFilter>(ToDoDao::cl
                 .add(lc, "structureElement")
 
                 .add(lc, "description", "comment", "options")
-        return LayoutUtils.processEditPage(layout, dataObject, this)
+        return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

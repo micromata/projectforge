@@ -39,10 +39,10 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/user")
-class UserRest()
+class UserRest
     : AbstractDTORest<PFUserDO, User, UserDao, BaseSearchFilter>(UserDao::class.java, BaseSearchFilter::class.java, "user.title") {
 
-    override fun transformDO(obj: PFUserDO, editMode : Boolean): User {
+    override fun transformFromDB(obj: PFUserDO, editMode: Boolean): User {
         val user = User()
         val copy = PFUserDO.createCopyWithoutSecretFields(obj)
         if(copy != null) {
@@ -51,7 +51,7 @@ class UserRest()
         return user
     }
 
-    override fun transformDTO(dto: User): PFUserDO {
+    override fun transformForDB(dto: User): PFUserDO {
         val userDO = PFUserDO()
         dto.copyTo(userDO)
         return userDO
@@ -74,8 +74,8 @@ class UserRest()
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: PFUserDO): UILayout {
-        val layout = super.createEditLayout(dataObject)
+    override fun createEditLayout(dto: User): UILayout {
+        val layout = super.createEditLayout(dto)
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "username", "firstname", "lastname", "organization", "email",
@@ -100,7 +100,7 @@ class UserRest()
                         valueProperty = "id"))*/
                 .add(lc, "description")
 
-        return LayoutUtils.processEditPage(layout, dataObject, this)
+        return LayoutUtils.processEditPage(layout, dto, this)
     }
 
     override val autoCompleteSearchFields = arrayOf("username", "firstname", "lastname", "email")

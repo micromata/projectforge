@@ -42,7 +42,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/teamCal")
-class TeamCalRest() : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao, TeamCalFilter>(TeamCalDao::class.java, TeamCalFilter::class.java, "plugins.teamcal.title") {
+class TeamCalRest : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao, TeamCalFilter>(TeamCalDao::class.java, TeamCalFilter::class.java, "plugins.teamcal.title") {
 
     @Autowired
     private lateinit var groupService: GroupService
@@ -53,7 +53,7 @@ class TeamCalRest() : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao, TeamCalFil
     @Autowired
     private lateinit var accessChecker: AccessChecker
 
-    override fun transformDO(obj: TeamCalDO, editMode: Boolean): TeamCal {
+    override fun transformFromDB(obj: TeamCalDO, editMode: Boolean): TeamCal {
         val teamCal = TeamCal()
         teamCal.copyFrom(obj)
         var anonymize = true
@@ -74,13 +74,13 @@ class TeamCalRest() : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao, TeamCalFil
         return teamCal
     }
 
-    override fun transformDTO(dto: TeamCal): TeamCalDO {
+    override fun transformForDB(dto: TeamCal): TeamCalDO {
         val teamCalDO = TeamCalDO()
         dto.copyTo(teamCalDO)
         return teamCalDO
     }
 
-    override fun validate(validationErrors: MutableList<ValidationError>, obj: TeamCalDO) {
+    override fun validate(validationErrors: MutableList<ValidationError>, dto: TeamCal) {
     }
 
     /**
@@ -101,7 +101,7 @@ class TeamCalRest() : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao, TeamCalFil
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: TeamCalDO): UILayout {
+    override fun createEditLayout(dto: TeamCal): UILayout {
         val allGroups = mutableListOf<UISelectValue<Int>>()
         groupService.sortedGroups?.forEach {
             allGroups.add(UISelectValue(it.id, it.name!!))
@@ -112,7 +112,7 @@ class TeamCalRest() : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao, TeamCalFil
             allUsers.add(UISelectValue(it.id, it.getFullname()))
         }
 
-        val layout = super.createEditLayout(dataObject)
+        val layout = super.createEditLayout(dto)
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "title")
@@ -164,6 +164,6 @@ class TeamCalRest() : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao, TeamCalFil
                                         values = allUsers,
                                         labelProperty = "name",
                                         valueProperty = "id"))))
-        return LayoutUtils.processEditPage(layout, dataObject, this)
+        return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

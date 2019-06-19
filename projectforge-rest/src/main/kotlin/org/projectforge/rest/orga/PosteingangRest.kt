@@ -47,8 +47,8 @@ class PosteingangRest(): AbstractDORest<PosteingangDO, PosteingangDao, PostFilte
         return inbox
     }
 
-    override fun validate(validationErrors: MutableList<ValidationError>, obj: PosteingangDO) {
-        val date = PFDate.from(obj.datum)
+    override fun validate(validationErrors: MutableList<ValidationError>, dto: PosteingangDO) {
+        val date = PFDate.from(dto.datum)
         val today = PFDate.now()
         if (today.isBefore(date)) { // No dates in the future accepted.
             validationErrors.add(ValidationError(translate("error.dateInFuture"), fieldId = "datum"))
@@ -71,13 +71,13 @@ class PosteingangRest(): AbstractDORest<PosteingangDO, PosteingangDao, PostFilte
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: PosteingangDO): UILayout {
+    override fun createEditLayout(dto: PosteingangDO): UILayout {
         val sender = UIInput("absender", lc) // Input-field instead of text-area (length > 255)
         sender.focus = true
         sender.enableAutoCompletion(this)
         val person = UIInput("person", lc).enableAutoCompletion(this)
         val inhalt = UIInput("inhalt", lc).enableAutoCompletion(this)
-        val layout = super.createEditLayout(dataObject)
+        val layout = super.createEditLayout(dto)
                 .add(UIRow()
                         .add(UICol(length = 2)
                                 .add(lc, "datum"))
@@ -87,6 +87,6 @@ class PosteingangRest(): AbstractDORest<PosteingangDO, PosteingangDao, PostFilte
                 .add(person)
                 .add(inhalt)
                 .add(lc, "bemerkung")
-        return LayoutUtils.processEditPage(layout, dataObject, this)
+        return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

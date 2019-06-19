@@ -35,14 +35,19 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/konto")
-class KontoRest() : AbstractDTORest<KontoDO, Konto, KontoDao, BaseSearchFilter>(KontoDao::class.java, BaseSearchFilter::class.java, "fibu.konto.title") {
-    override fun transformDO(obj: KontoDO, editMode: Boolean): Konto {
+class KontoRest
+    : AbstractDTORest<KontoDO, Konto, KontoDao, BaseSearchFilter>(
+        KontoDao::class.java,
+        BaseSearchFilter::class.java,
+        "fibu.konto.title") {
+
+    override fun transformFromDB(obj: KontoDO, editMode: Boolean): Konto {
         val konto = Konto()
         konto.copyFrom(obj)
         return konto
     }
 
-    override fun transformDTO(dto: Konto): KontoDO {
+    override fun transformForDB(dto: Konto): KontoDO {
         val kontoDO = KontoDO()
         dto.copyTo(kontoDO)
         return kontoDO
@@ -61,11 +66,11 @@ class KontoRest() : AbstractDTORest<KontoDO, Konto, KontoDao, BaseSearchFilter>(
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: KontoDO): UILayout {
-        val layout = super.createEditLayout(dataObject)
+    override fun createEditLayout(dto: Konto): UILayout {
+        val layout = super.createEditLayout(dto)
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "nummer", "status", "bezeichnung", "description")))
-        return LayoutUtils.processEditPage(layout, dataObject, this)
+        return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

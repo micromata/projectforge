@@ -52,4 +52,4 @@ class Employee(var user: PFUserDO? = null,
                var state: String? = null,
                var comment: String? = null
                )
-    : BaseHistorizableDTO<EmployeeDO>()
+    : BaseDTO<EmployeeDO>()

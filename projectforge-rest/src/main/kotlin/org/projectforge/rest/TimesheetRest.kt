@@ -51,9 +51,9 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/timesheet")
-class TimesheetRest() : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilter>(TimesheetDao::class.java, TimesheetFilter::class.java, "timesheet.title") {
+class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilter>(TimesheetDao::class.java, TimesheetFilter::class.java, "timesheet.title") {
 
-    private val dateTimeFormatter = DateTimeFormatter.instance();
+    private val dateTimeFormatter = DateTimeFormatter.instance()
 
     @Autowired
     private lateinit var userPreferencesService: UserPreferencesService
@@ -92,7 +92,7 @@ class TimesheetRest() : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilte
             baseDao.setUser(sheet, userId)
         }
         val pref = getTimesheetPrefData()
-        val entry = pref.getRecentEntry()
+        val entry = pref.recentEntry
         if (entry != null) {
             if (entry.taskId != null) {
                 baseDao.setTask(sheet, entry.taskId)
@@ -111,17 +111,17 @@ class TimesheetRest() : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilte
         return sheet
     }
 
-    override fun validate(validationErrors: MutableList<ValidationError>, obj: TimesheetDO) {
-        if (obj.getDuration() < 60000) {// Duration is less than 60 seconds.
+    override fun validate(validationErrors: MutableList<ValidationError>, dto: TimesheetDO) {
+        if (dto.getDuration() < 60000) {// Duration is less than 60 seconds.
             validationErrors.add(ValidationError(translate("timesheet.error.zeroDuration"), fieldId = "stopTime"))
-        } else if (obj.getDuration() > TimesheetDao.MAXIMUM_DURATION) {
+        } else if (dto.getDuration() > TimesheetDao.MAXIMUM_DURATION) {
             validationErrors.add(ValidationError(translate("timesheet.error.maximumDurationExceeded"), fieldId = "stopTime"))
         }
         if (Configuration.getInstance().isCostConfigured) {
-            if (obj.kost2 == null) {
-                val taskNode = taskTree.getTaskNodeById(obj.taskId)
+            if (dto.kost2 == null) {
+                val taskNode = taskTree.getTaskNodeById(dto.taskId)
                 if (taskNode != null) {
-                    val descendents = taskNode.getDescendantIds()
+                    val descendents = taskNode.descendantIds
                     for (taskId in descendents) {
                         if (!taskTree.getKost2List(taskId).isNullOrEmpty()) {
                             // But Kost2 is available for sub task, so user should book his time sheet
@@ -142,9 +142,9 @@ class TimesheetRest() : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilte
                 .addVariable("id", obj.id ?: -1)
     }
 
-    override fun processResultSetBeforeExport(resultSet: ResultSet<Any>) {
-        val list: List<TimesheetRest.Timesheet> = resultSet.resultSet.map { it ->
-            TimesheetRest.Timesheet(it as TimesheetDO,
+    override fun processResultSetBeforeExport(resultSet: ResultSet<TimesheetDO>) : ResultSet<*> {
+        val list: List<Timesheet> = resultSet.resultSet.map {
+            Timesheet(it,
                     id = it.id,
                     weekOfYear = DateTimeFormatter.formatWeekOfYear(it.startTime),
                     dayName = dateTimeFormatter.getFormattedDate(it.startTime,
@@ -152,7 +152,7 @@ class TimesheetRest() : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilte
                     timePeriod = dateTimeFormatter.getFormattedTimePeriodOfDay(it.timePeriod),
                     duration = dateTimeFormatter.getFormattedDuration(it.timePeriod))
         }
-        resultSet.resultSet = list
+        return ResultSet(list, list.size)
     }
 
     override fun isAutocompletionPropertyEnabled(property: String): Boolean {
@@ -194,12 +194,12 @@ class TimesheetRest() : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilte
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: TimesheetDO): UILayout {
+    override fun createEditLayout(dto: TimesheetDO): UILayout {
         val dayRange = UICustomized("dayRange")
         dayRange.add("startDateId", "startTime")
         dayRange.add("endDateId", "stopTime")
         dayRange.add("label", translate("timePeriod"))
-        val layout = super.createEditLayout(dataObject)
+        val layout = super.createEditLayout(dto)
                 .add(UICustomized("timesheet.edit.taskAndKost2", values = mutableMapOf("id" to "kost2")))
                 .add(lc, "user")
                 .add(dayRange)
@@ -208,19 +208,16 @@ class TimesheetRest() : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilte
                 .add(lc, "description")
                 .add(UIRow().add(UICol().add(UILabel("'ToDo: Validation, resetting Kost2-Combobox after task selection, favorites, templates, Testing..."))))
                 .addTranslations("until", "fibu.kost2", "task")
-        return LayoutUtils.processEditPage(layout, dataObject, this)
+        return LayoutUtils.processEditPage(layout, dto, this)
     }
 
-    override fun addVariablesForEditPage(item: TimesheetDO): Map<String, Any>? {
-        val task = TaskServicesRest.createTask(item.taskId)
-        if (task == null)
-            return null
-        val variables = mutableMapOf<String, Any>("task" to task)
-        return variables
+    override fun addVariablesForEditPage(dto: TimesheetDO): Map<String, Any>? {
+        val task = TaskServicesRest.createTask(dto.taskId) ?: return null
+        return mutableMapOf<String, Any>("task" to task)
     }
 
     private fun getTimesheetPrefData(): TimesheetPrefData {
-        val prefKey = "timesheetEditPref";
+        val prefKey = "timesheetEditPref"
         var pref: TimesheetPrefData? = userPreferencesService.getEntry(TimesheetPrefData::class.java, prefKey)
         if (pref == null) {
             val oldPrefKey = "org.projectforge.web.timesheet.TimesheetEditPage" // From Wicket version.

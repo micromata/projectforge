@@ -37,13 +37,13 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/poll")
-class PollRest() : AbstractDTORest<PollDO, Poll, PollDao, BaseSearchFilter>(PollDao::class.java, BaseSearchFilter::class.java, "plugins.poll.title") {
+class PollRest : AbstractDTORest<PollDO, Poll, PollDao, BaseSearchFilter>(PollDao::class.java, BaseSearchFilter::class.java, "plugins.poll.title") {
 
-    override fun transformDO(obj: PollDO, editMode: Boolean): Poll {
+    override fun transformFromDB(obj: PollDO, editMode: Boolean): Poll {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun transformDTO(dto: Poll): PollDO {
+    override fun transformForDB(dto: Poll): PollDO {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
@@ -71,9 +71,9 @@ class PollRest() : AbstractDTORest<PollDO, Poll, PollDao, BaseSearchFilter>(Poll
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: PollDO): UILayout {
+    override fun createEditLayout(dto: Poll): UILayout {
         val location = UIInput("location", lc).enableAutoCompletion(this)
-        val layout = super.createEditLayout(dataObject)
+        val layout = super.createEditLayout(dto)
                 .add(lc, "title")
                 .add(location)
                 .add(lc, "description")
@@ -84,6 +84,6 @@ class PollRest() : AbstractDTORest<PollDO, Poll, PollDao, BaseSearchFilter>(Poll
                         autoCompletion = AutoCompletion<Int>(url = "user/aco"),
                         labelProperty = "fullname",
                         valueProperty = "id"))
-        return LayoutUtils.processEditPage(layout, dataObject, this)
+        return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

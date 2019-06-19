@@ -39,10 +39,10 @@ internal val log = org.slf4j.LoggerFactory.getLogger("org.projectforge.rest.core
 
 fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
         getList(dataObjectRest: AbstractBaseRest<O, DTO, B, F>, baseDao: BaseDao<O>, filter: F)
-        : ResultSet<Any> {
+        : ResultSet<O> {
     filter.isSortAndLimitMaxRowsWhileSelect = true
     val list = baseDao.getList(filter)
-    val resultSet = ResultSet<Any>(dataObjectRest.filterList(list, filter), list.size)
+    val resultSet = ResultSet<O>(dataObjectRest.filterList(list, filter), list.size)
     return resultSet
 }
 

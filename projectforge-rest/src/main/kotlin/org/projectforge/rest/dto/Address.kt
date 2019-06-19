@@ -66,8 +66,7 @@ class Address(var contactStatus: ContactStatus? = null,
               var fingerprint: String? = null,
               var comment: String? = null,
               var birthday: Date? = null,
-              var imageUrl: String? = null,
-              var previewImageUrl: String? = null,
+              var imageData: ByteArray? = null,
               var instantMessaging: MutableList<LabelValueBean<InstantMessagingType, String>>? = null,
               var addressbookList: MutableSet<Addressbook>? = null,
               /**
@@ -79,15 +78,12 @@ class Address(var contactStatus: ContactStatus? = null,
               var isFavoriteMobilePhone: Boolean = false,
               var isFavoritePrivateMobilePhone: Boolean = false,
               var isFavoriteFax: Boolean = false
-) : BaseHistorizableDTO<AddressDO>() {
+) : BaseDTO<AddressDO>() {
 
     override fun copyFrom(src: AddressDO) {
         super.copyFrom(src)
         if (src.imageData != null) {
-            imageUrl = "address/image/$id"
-        }
-        if (src.imageDataPreview != null) {
-            previewImageUrl = "address/imagePreview/$id}"
+            imageData = byteArrayOf(1) // Marker for frontend for an available image.
         }
         if (!src.addressbookList.isNullOrEmpty()) {
             addressbookList = mutableSetOf()

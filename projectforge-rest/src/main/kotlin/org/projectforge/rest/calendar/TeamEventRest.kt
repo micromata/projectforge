@@ -52,7 +52,7 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao, TeamEventFilte
     @Autowired
     private lateinit var teamEventExternalSubscriptionCache: TeamEventExternalSubscriptionCache
 
-    override fun onGetItemAndLayout(request: HttpServletRequest, item: TeamEventDO, editLayoutData: AbstractBaseRest.EditLayoutData) {
+    override fun onGetItemAndLayout(request: HttpServletRequest, dto: TeamEventDO, editLayoutData: AbstractBaseRest.EditLayoutData) {
         val recurrentDateString = request.getParameter("recurrentDate")
         println("TeamEventRest: recurrentDate=$recurrentDateString")
     }
@@ -63,7 +63,7 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao, TeamEventFilte
                 .addVariable("id", obj.id ?: -1)
     }
 
-    override fun getById(idString: String?): TeamEventDO? {
+    override fun getById(idString: String?, editMode: Boolean): TeamEventDO? {
         if (idString.isNullOrBlank())
             return TeamEventDO()
         if (idString.contains('-')) { // {calendarId}-{uid}
@@ -90,7 +90,7 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao, TeamEventFilte
                 return TeamEventDO()
             }
         }
-        return super.getById(idString)
+        return super.getById(idString, editMode)
     }
 
     /**
@@ -106,15 +106,15 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao, TeamEventFilte
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: TeamEventDO): UILayout {
+    override fun createEditLayout(dto: TeamEventDO): UILayout {
         val calendars = teamCalDao.getAllCalendarsWithFullAccess()
         val calendarSelectValues = calendars.map { it ->
             UISelectValue<Int>(it.id, it.title!!)
         }
         val subject = UIInput("subject", lc)
         subject.focus = true
-        val layout = super.createEditLayout(dataObject)
-        if (dataObject.hasRecurrence()) {
+        val layout = super.createEditLayout(dto)
+        if (dto.hasRecurrence()) {
             layout.add(UIFieldset(12, title = "plugins.teamcal.event.recurrence.change.text")
                     .add(UIGroup()
                             .add(UICheckbox("all", label = "plugins.teamcal.event.recurrence.change.text.all"))
@@ -136,6 +136,6 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao, TeamEventFilte
                                 .add(UIFieldset(12)
                                         .add(UICustomized("recurrence"))))))
 
-        return LayoutUtils.processEditPage(layout, dataObject, this)
+        return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

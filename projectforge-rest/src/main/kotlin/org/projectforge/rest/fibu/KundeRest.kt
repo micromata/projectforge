@@ -35,14 +35,19 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/customer")
-class KundeRest() : AbstractDTORest<KundeDO, Kunde, KundeDao, BaseSearchFilter>(KundeDao::class.java, BaseSearchFilter::class.java, "fibu.kunde.title") {
-    override fun transformDO(obj: KundeDO, editMode : Boolean): Kunde {
+class KundeRest
+    : AbstractDTORest<KundeDO, Kunde, KundeDao, BaseSearchFilter>(
+        KundeDao::class.java,
+        BaseSearchFilter::class.java,
+        "fibu.kunde.title") {
+
+    override fun transformFromDB(obj: KundeDO, editMode: Boolean): Kunde {
         val kunde = Kunde()
         kunde.copyFrom(obj)
         return kunde
     }
 
-    override fun transformDTO(dto: Kunde): KundeDO {
+    override fun transformForDB(dto: Kunde): KundeDO {
         val kundeDO = KundeDO()
         dto.copyTo(kundeDO)
         return kundeDO
@@ -62,15 +67,15 @@ class KundeRest() : AbstractDTORest<KundeDO, Kunde, KundeDao, BaseSearchFilter>(
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: KundeDO): UILayout {
+    override fun createEditLayout(dto: Kunde): UILayout {
         val konto = UIInput("konto", lc, tooltip = "fibu.kunde.konto.tooltip")
 
-        val layout = super.createEditLayout(dataObject)
+        val layout = super.createEditLayout(dto)
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "nummer", "name")
                                 .add(konto)
                                 .add(lc, "identifier", "division", "description", "status")))
-        return LayoutUtils.processEditPage(layout, dataObject, this)
+        return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

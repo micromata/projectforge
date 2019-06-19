@@ -26,11 +26,11 @@ package org.projectforge.ui
 import com.google.gson.GsonBuilder
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import org.projectforge.business.address.AddressDO
 import org.projectforge.business.book.BookDO
+import org.projectforge.framework.JsonValidator
 import org.projectforge.rest.AddressRest
 import org.projectforge.rest.BookRest
-import org.projectforge.framework.JsonValidator
+import org.projectforge.rest.dto.Address
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -45,7 +45,7 @@ class UILayoutTest : AbstractTestBase() {
     fun testAddressEditLayout() {
         logon(TEST_ADMIN_USER) // Needed for getting address books.
         val gson = GsonBuilder().create()
-        val address = AddressDO()
+        val address = Address()
         var jsonString = gson.toJson(addressRest.createEditLayout(address))
         var jsonValidator = JsonValidator(jsonString)
 
