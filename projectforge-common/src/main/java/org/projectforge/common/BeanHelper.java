@@ -32,9 +32,9 @@ import java.util.*;
 
 /**
  * Some useful methods for determing and converting property, getter and setter names.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class BeanHelper
 {
@@ -80,7 +80,7 @@ public class BeanHelper
 
   /**
    * Returns the declared annotations of a field.
-   * 
+   *
    * @param clazz
    * @param fieldname
    * @return
@@ -137,7 +137,7 @@ public class BeanHelper
   /**
    * Return all methods starting with 'get*' or 'is*' without parameters and non-bridged of given class and all
    * interfaces and super classes.
-   * 
+   *
    * @param clazz
    * @return
    */
@@ -149,7 +149,7 @@ public class BeanHelper
   /**
    * Return all methods starting with 'get*' or 'is*' without parameters and non-bridged of given class and all
    * interfaces and super classes.
-   * 
+   *
    * @param clazz
    * @param includingSuperClasses default is true.
    * @return
@@ -180,7 +180,7 @@ public class BeanHelper
 
   /**
    * getProperty -> property, isValid -> valid.
-   * 
+   *
    * @param method
    */
   public static String getProperty(final Method method)
@@ -213,7 +213,7 @@ public class BeanHelper
   /**
    * Does not work for multiple setter methods with one argument and different parameter type (e. g. setField(Date) and
    * setField(long)).
-   * 
+   *
    * @param clazz
    * @param fieldname
    * @return
@@ -266,7 +266,7 @@ public class BeanHelper
 
   /**
    * Invokes the method of the given object (without arguments).
-   * 
+   *
    * @param obj
    * @param method
    * @return
@@ -402,7 +402,7 @@ public class BeanHelper
 
   /**
    * Return all fields declared by the given class and all super classes.
-   * 
+   *
    * @param clazz
    * @return
    * @see Class#getDeclaredFields()
@@ -418,8 +418,8 @@ public class BeanHelper
   }
 
   /**
-   * Return the matching field declared by the given class.
-   * 
+   * Return the matching field declared by the given class or any super class.
+   *
    * @param clazz
    * @param fieldname
    * @return the field or null
@@ -437,7 +437,7 @@ public class BeanHelper
 
   /**
    * Return all methods declared by the given class and all super classes.
-   * 
+   *
    * @param clazz
    * @return
    * @see Class#getDeclaredMethods()
@@ -454,7 +454,7 @@ public class BeanHelper
 
   /**
    * Invokes getter method of the given bean.
-   * 
+   *
    * @param bean
    * @param property
    * @return
@@ -481,7 +481,7 @@ public class BeanHelper
 
   /**
    * Invokes setter method of the given bean.
-   * 
+   *
    * @param bean
    * @param property
    * @param value
@@ -509,7 +509,7 @@ public class BeanHelper
 
   /**
    * Invokes getter method of the given bean and returns the idx element of array or collection. Use-age: "user[3]".
-   * 
+   *
    * @param bean
    * @param property Must be from format "xxx[#]"
    * @return
@@ -549,7 +549,7 @@ public class BeanHelper
   /**
    * Later Genome SimpleProperty should be used. Property or nested property can be null. Indexed properties are also
    * supported.
-   * 
+   *
    * @param bean
    * @param property
    * @return
@@ -579,7 +579,7 @@ public class BeanHelper
 
   /**
    * Gets all declared fields which are neither transient, static nor final.
-   * 
+   *
    * @param clazz
    * @return
    */
@@ -648,7 +648,7 @@ public class BeanHelper
 
   /**
    * Copies all properties from src object to dest object.
-   * 
+   *
    * @param src
    * @param dest
    * @param properties
@@ -661,7 +661,7 @@ public class BeanHelper
 
   /**
    * Copies all properties from src object to dest object.
-   * 
+   *
    * @param src
    * @param dest
    * @param whitespaceEqualsNull If true than a String modification from null to "" and vice versa will be ignored.
