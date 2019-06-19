@@ -45,7 +45,9 @@ object ExpiringSessionAttributes {
     fun setAttribute(session: HttpSession, name: String, value: Any, ttlMinutes: Int) {
         val attribute = ExpiringAttribute(System.currentTimeMillis(), value, ttlMinutes)
         session.setAttribute(name, attribute)
-        attributesMap.put(attribute.index, attribute)
+        synchronized(attributesMap) {
+            attributesMap[attribute.index] = attribute
+        }
     }
 
     fun getAttribute(session: HttpSession, name: String): Any? {
@@ -63,7 +65,9 @@ object ExpiringSessionAttributes {
         if (value == null)
             return
         if (value is ExpiringAttribute) {
-            attributesMap.remove(value.index)
+            synchronized(attributesMap) {
+                attributesMap.remove(value.index)
+            }
         }
         session.removeAttribute(name)
     }
@@ -74,7 +78,9 @@ object ExpiringSessionAttributes {
             val value = session.getAttribute(it)
             if (value is ExpiringAttribute) {
                 if (current - value.timestamp > value.ttlMillis) {
-                    attributesMap.remove(value.index)
+                    synchronized(attributesMap) {
+                        attributesMap.remove(value.index)
+                    }
                     session.removeAttribute(it)
                 }
             }
@@ -83,11 +89,13 @@ object ExpiringSessionAttributes {
 
     private fun check() {
         val current = System.currentTimeMillis()
-        attributesMap.forEach {
-            val attribute = it.value
-            if (current - attribute.timestamp > attribute.ttlMillis) {
-                attribute.value = null // Save memory
-                attributesMap.remove(it.key)
+        synchronized(attributesMap) {
+            attributesMap.forEach {
+                val attribute = it.value
+                if (current - attribute.timestamp > attribute.ttlMillis) {
+                    attribute.value = null // Save memory
+                    attributesMap.remove(it.key)
+                }
             }
         }
     }
