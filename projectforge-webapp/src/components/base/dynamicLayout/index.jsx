@@ -43,7 +43,6 @@ function DynamicLayout({ ui, options, ...props }) {
                     : undefined}
             {renderLayout(ui.layout)}
             {ui.actions
-                // TODO MOVE ACTIONGROUP TO LAYOUT
                 ? <ActionGroup actions={ui.actions} />
                 : undefined}
         </DynamicLayoutContext.Provider>

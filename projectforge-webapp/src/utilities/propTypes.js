@@ -53,6 +53,7 @@ export const badgePropType = PropTypes.shape({
 // Supported types for the DynamicLayout
 export const dynamicTypePropType = PropTypes.oneOf([
     'COL',
+    'CUSTOMIZED',
     'FIELDSET',
     'INPUT',
     'LABEL',
