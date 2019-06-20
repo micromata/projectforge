@@ -175,7 +175,6 @@ function DynamicTaskSelect(
 DynamicTaskSelect.propTypes = {
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
-    variables: PropTypes.shape({}).isRequired,
     onKost2Changed: PropTypes.func,
     showInline: PropTypes.bool,
     showRootForAdmins: PropTypes.bool,

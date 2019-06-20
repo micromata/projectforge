@@ -61,7 +61,6 @@ function TimesheetEditTaskAndKost2({ values }) {
 
 TimesheetEditTaskAndKost2.propTypes = {
     values: PropTypes.shape({}).isRequired,
-    variables: PropTypes.shape({}).isRequired,
 };
 
 TimesheetEditTaskAndKost2.defaultProps = {};
