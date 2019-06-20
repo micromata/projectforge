@@ -17,7 +17,7 @@ function CustomizedBookLendOutComponent(
     return React.useMemo(
         () => (
             <React.Fragment>
-                {data.lendOutBy && data.lendoutData
+                {data.lendOutBy && data.lendOutDate
                     ? (
                         <React.Fragment>
                             <span className="mr-4">
