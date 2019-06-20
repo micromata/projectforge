@@ -7,18 +7,21 @@ import { DynamicLayoutContext } from '../../context';
 function DynamicInput({ id, ...props }) {
     const { data, setData } = React.useContext(DynamicLayoutContext);
 
-    const handleInputChange = ({ target }) => setData({ [id]: target.value });
+    // Only rerender input when data has changed
+    return React.useMemo(() => {
+        const handleInputChange = ({ target }) => setData({ [id]: target.value });
 
-    return (
-        <ValidationManager>
-            <Input
-                id={id}
-                onChange={handleInputChange}
-                {...props}
-                value={data[id] || ''}
-            />
-        </ValidationManager>
-    );
+        return (
+            <ValidationManager>
+                <Input
+                    id={id}
+                    onChange={handleInputChange}
+                    {...props}
+                    value={data[id] || ''}
+                />
+            </ValidationManager>
+        );
+    }, [data[id]]);
 }
 
 DynamicInput.propTypes = {
