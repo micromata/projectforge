@@ -17,93 +17,103 @@ function CustomizedAddressImage() {
         getServiceURL(`address/image/${data.id}?${new Date().getTime()}`),
     );
 
-    let image;
+    return React.useMemo(
+        () => {
+            let image;
 
-    const changeFile = (files) => {
-        setLoading(true);
-        setError(undefined);
+            const changeFile = (files) => {
+                setLoading(true);
+                setError(undefined);
 
-        const formData = new FormData();
-        formData.append('file', files[0]);
+                const formData = new FormData();
+                formData.append('file', files[0]);
 
-        fetch(
-            // Set the image with id -1, so the image will be set in the session.
-            getServiceURL('address/uploadImage/-1'),
-            {
-                credentials: 'include',
-                method: 'POST',
-                body: formData,
-            },
-        )
-            .then(handleHTTPErrors)
-            .then(() => {
-                setData({ imageData: [1] });
+                fetch(
+                    // Set the image with id -1, so the image will be set in the session.
+                    getServiceURL('address/uploadImage/-1'),
+                    {
+                        credentials: 'include',
+                        method: 'POST',
+                        body: formData,
+                    },
+                )
+                    .then(handleHTTPErrors)
+                    .then(() => {
+                        setData({ imageData: [1] });
 
-                const fileReader = new FileReader();
+                        const fileReader = new FileReader();
 
-                fileReader.onload = ({ currentTarget }) => {
-                    setSrc(currentTarget.result);
-                    setLoading(false);
-                };
+                        fileReader.onload = ({ currentTarget }) => {
+                            setSrc(currentTarget.result);
+                            setLoading(false);
+                        };
 
-                fileReader.readAsDataURL(files[0]);
-            })
-            .catch((catchError) => {
-                setError(catchError);
-                setLoading(false);
-            });
-    };
+                        fileReader.readAsDataURL(files[0]);
+                    })
+                    .catch((catchError) => {
+                        setError(catchError);
+                        setLoading(false);
+                    });
+            };
 
-    const deleteImage = () => {
-        setLoading(true);
-        setError(undefined);
+            const deleteImage = () => {
+                setLoading(true);
+                setError(undefined);
 
-        fetch(
-            // Delete the image with id -1, so the stored image in the session will be removed.
-            getServiceURL('address/deleteImage/-1'),
-            {
-                credentials: 'include',
-                method: 'DELETE',
-            },
-        )
-            .then(handleHTTPErrors)
-            .then(() => setData({ imageData: undefined }))
-            .catch(fetchError => setError(fetchError))
-            .finally(() => setLoading(false));
-    };
+                fetch(
+                    // Delete the image with id -1, so the stored image in the session will be
+                    // removed.
+                    getServiceURL('address/deleteImage/-1'),
+                    {
+                        credentials: 'include',
+                        method: 'DELETE',
+                    },
+                )
+                    .then(handleHTTPErrors)
+                    .then(() => setData({ imageData: undefined }))
+                    .catch(fetchError => setError(fetchError))
+                    .finally(() => setLoading(false));
+            };
 
-    if (data.imageData) {
-        image = (
-            <React.Fragment>
-                <img
-                    className={style.addressImage}
-                    src={src}
-                    alt={`${data.firstName} ${data.name} (${data.organization})`}
-                />
-                <Button
-                    onClick={deleteImage}
-                    color="danger"
+            if (data.imageData) {
+                image = (
+                    <React.Fragment>
+                        <img
+                            className={style.addressImage}
+                            src={src}
+                            alt={`${data.firstName} ${data.name} (${data.organization})`}
+                        />
+                        <Button
+                            onClick={deleteImage}
+                            color="danger"
+                        >
+                            <FontAwesomeIcon icon={faTrash} />
+                            {` ${ui.translations.delete}`}
+                        </Button>
+                    </React.Fragment>
+                );
+            }
+
+            return (
+                <LoadingContainer
+                    loading={loading}
+                    className={style.addressImageContainer}
                 >
-                    <FontAwesomeIcon icon={faTrash} />
-                    {` ${ui.translations.delete}`}
-                </Button>
-            </React.Fragment>
-        );
-    }
-
-    return (
-        <LoadingContainer
-            loading={loading}
-            className={style.addressImageContainer}
-        >
-            {error
-                ? <Alert color="danger">{ui.translations['address.image.upload.error']}</Alert>
-                : undefined}
-            {image}
-            <DropArea setFiles={changeFile}>
-                {ui.translations['file.upload.dropArea']}
-            </DropArea>
-        </LoadingContainer>
+                    {error
+                        ? (
+                            <Alert color="danger">
+                                {ui.translations['address.image.upload.error']}
+                            </Alert>
+                        )
+                        : undefined}
+                    {image}
+                    <DropArea setFiles={changeFile}>
+                        {ui.translations['file.upload.dropArea']}
+                    </DropArea>
+                </LoadingContainer>
+            );
+        },
+        [data.id, data.imageData, data.firstName, data.name, data.organization],
     );
 }
 
