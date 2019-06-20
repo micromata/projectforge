@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { menuItemPropType } from '../../../utilities/propTypes';
+import { buttonPropType, menuItemPropType } from '../../../utilities/propTypes';
 import ActionGroup from '../page/action/Group';
 import renderLayout from './components/DynamicRenderer';
 import {
@@ -12,6 +12,8 @@ import DynamicPageMenu from './DynamicPageMenu';
 function DynamicLayout({ ui, options, ...props }) {
     // Destructure the 'ui' prop.
     const {
+        actions,
+        layout,
         title,
         pageMenu,
     } = ui;
@@ -23,9 +25,29 @@ function DynamicLayout({ ui, options, ...props }) {
 
     // Set the document title when a title for the page is specified and the option
     // setBrowserTitle is true.
-    if (setBrowserTitle && title) {
-        document.title = `ProjectForge - ${title}`;
-    }
+    React.useEffect(() => {
+        if (setBrowserTitle && title) {
+            document.title = `ProjectForge - ${title}`;
+        }
+    }, [setBrowserTitle, title]);
+
+    // Render PageMenu if the option displayPageMenu is true.
+    const menu = React.useMemo(() => (
+        <React.Fragment>
+            {displayPageMenu
+                ? <DynamicPageMenu menu={pageMenu} title={title} />
+                : undefined}
+        </React.Fragment>
+    ), [displayPageMenu, pageMenu, title]);
+
+    // Render ActionGroup if actions were found in the ui object.
+    const actionGroup = React.useMemo(() => (
+        <React.Fragment>
+            {actions
+                ? <ActionGroup actions={actions} />
+                : undefined}
+        </React.Fragment>
+    ), [actions]);
 
     return (
         <DynamicLayoutContext.Provider
@@ -37,14 +59,9 @@ function DynamicLayout({ ui, options, ...props }) {
                 ...props,
             }}
         >
-            {/* Render Page Menu if the option displayPageMenu is true. */
-                displayPageMenu
-                    ? <DynamicPageMenu menu={pageMenu} title={title} />
-                    : undefined}
-            {renderLayout(ui.layout)}
-            {ui.actions
-                ? <ActionGroup actions={ui.actions} />
-                : undefined}
+            {menu}
+            {renderLayout(layout)}
+            {actionGroup}
         </DynamicLayoutContext.Provider>
     );
 }
@@ -52,6 +69,8 @@ function DynamicLayout({ ui, options, ...props }) {
 DynamicLayout.propTypes = {
     // UI Prop
     ui: PropTypes.shape({
+        actions: PropTypes.arrayOf(buttonPropType),
+        layout: PropTypes.array,
         title: PropTypes.string,
         pageMenu: PropTypes.arrayOf(menuItemPropType),
     }).isRequired,
