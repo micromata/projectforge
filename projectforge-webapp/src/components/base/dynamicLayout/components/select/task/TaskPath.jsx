@@ -29,7 +29,7 @@ function TaskPath(
                             id={ancestor.id}
                             isHighlighted={ancestor.id === modalHighlight}
                             title={ancestor.title}
-                            openTaskTree={openModal}
+                            openModal={openModal}
                         />
                         {' '}
                         <Button

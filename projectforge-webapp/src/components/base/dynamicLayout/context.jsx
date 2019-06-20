@@ -60,6 +60,11 @@ export const defaultValues = {
          */
         translations: {},
     },
+    /**
+     * @type {Object} The variables object sent by the server. @see AbstractBaseRest.kt >
+     *  EditLayoutData. Only sometimes present.
+     */
+    variables: {},
 };
 
 // The context to access dynamic layout related variables in the dynamic layout system.
