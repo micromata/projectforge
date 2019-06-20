@@ -19,7 +19,10 @@ function ValidationManager({ children, customValidation }) {
                 let { additionalLabel } = childProps;
 
                 // Validate required and maxLength
-                if ((required && !(value || checked)) || (maxLength && value.length > maxLength)) {
+                if (
+                    (required && !(value || checked))
+                    || (maxLength && value && value.length > maxLength)
+                ) {
                     valid = false;
                 }
 
