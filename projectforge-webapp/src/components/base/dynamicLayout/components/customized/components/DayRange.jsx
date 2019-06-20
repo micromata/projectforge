@@ -35,80 +35,83 @@ function DayRange(
     const [startDate, setStartDate] = React.useState(resolveDate(startDateId));
     const [endDate, setEndDate] = React.useState(resolveDate(endDateId));
 
-    const setFields = (newStartDate, newEndDate) => {
-        newEndDate.set({
-            year: newStartDate.year(),
-            dayOfYear: newStartDate.dayOfYear(),
-            second: 0,
-            millisecond: 0,
-        });
+    return React.useMemo(() => {
+        const setFields = (newStartDate, newEndDate) => {
+            newEndDate.set({
+                year: newStartDate.year(),
+                dayOfYear: newStartDate.dayOfYear(),
+                second: 0,
+                millisecond: 0,
+            });
 
-        const endDayTime = newEndDate.hours() * 60 + newEndDate.minutes();
-        const startDayTime = newStartDate.hours() * 60;
+            const endDayTime = newEndDate.hours() * 60 + newEndDate.minutes();
+            const startDayTime = newStartDate.hours() * 60;
 
-        if (endDayTime < startDayTime) {
-            // Assume next day for endDate.
-            newEndDate.add(1, 'days');
-        }
+            if (endDayTime < startDayTime) {
+                // Assume next day for endDate.
+                newEndDate.add(1, 'days');
+            }
 
-        setStartDate(newStartDate);
-        setEndDate(newEndDate);
-        setData({
-            [startDateId]: newStartDate.toDate(),
-            [endDateId]: newEndDate.toDate(),
-        });
-    };
+            setStartDate(newStartDate);
+            setEndDate(newEndDate);
+            setData({
+                [startDateId]: newStartDate.toDate(),
+                [endDateId]: newEndDate.toDate(),
+            });
+        };
 
-    // Sets the start date to the selected date by preserving time of day. Calls setFields as well.
-    const changeDay = (value) => {
-        const newStartDate = timezone(value);
-        newStartDate.set({
-            hour: startDate.hours(),
-            minute: startDate.minutes(),
-            second: 0,
-            millisecond: 0,
-        });
+        // Sets the start date to the selected date by preserving time of day. Calls setFields as
+        // well.
+        const changeDay = (value) => {
+            const newStartDate = timezone(value);
+            newStartDate.set({
+                hour: startDate.hours(),
+                minute: startDate.minutes(),
+                second: 0,
+                millisecond: 0,
+            });
 
-        setFields(newStartDate, endDate);
-    };
+            setFields(newStartDate, endDate);
+        };
 
-    const changeStartTime = value => setFields(value, endDate);
-    const changeEndTime = value => setFields(startDate, value);
+        const changeStartTime = value => setFields(value, endDate);
+        const changeEndTime = value => setFields(startDate, value);
 
-    return (
-        <React.Fragment>
-            <span className={style.text}>{label}</span>
-            <DayPickerInput
-                formatDate={formatDate}
-                parseDate={parseDate}
-                format={dateFormat}
-                value={startDate ? startDate.toDate() : undefined}
-                onDayChange={changeDay}
-                dayPickerProps={{
-                    locale,
-                    localeUtils: MomentLocaleUtils,
-                }}
-            />
-            <TimePicker
-                value={startDate}
-                showSecond={false}
-                minuteStep={15}
-                allowEmpty={false}
-                use12Hours={timeNotation === 'H12'}
-                onChange={changeStartTime}
-            />
-            {ui.translations.until}
-            <TimePicker
-                value={endDate}
-                showSecond={false}
-                minuteStep={15}
-                allowEmpty={false}
-                use12Hours={timeNotation === 'H12'}
-                onChange={changeEndTime}
-            />
-            <AdditionalLabel title={additionalLabel} />
-        </React.Fragment>
-    );
+        return (
+            <React.Fragment>
+                <span className={style.text}>{label}</span>
+                <DayPickerInput
+                    formatDate={formatDate}
+                    parseDate={parseDate}
+                    format={dateFormat}
+                    value={startDate ? startDate.toDate() : undefined}
+                    onDayChange={changeDay}
+                    dayPickerProps={{
+                        locale,
+                        localeUtils: MomentLocaleUtils,
+                    }}
+                />
+                <TimePicker
+                    value={startDate}
+                    showSecond={false}
+                    minuteStep={15}
+                    allowEmpty={false}
+                    use12Hours={timeNotation === 'H12'}
+                    onChange={changeStartTime}
+                />
+                {ui.translations.until}
+                <TimePicker
+                    value={endDate}
+                    showSecond={false}
+                    minuteStep={15}
+                    allowEmpty={false}
+                    use12Hours={timeNotation === 'H12'}
+                    onChange={changeEndTime}
+                />
+                <AdditionalLabel title={additionalLabel} />
+            </React.Fragment>
+        );
+    }, [startDate, endDate]);
 }
 
 DayRange.propTypes = {

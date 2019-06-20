@@ -22,41 +22,43 @@ function TimesheetEditTaskAndKost2({ values }) {
         setKost2List(task ? task.kost2List : undefined);
     }, [variables]);
 
-    let kost2Row;
+    return React.useMemo(() => {
+        let kost2Row;
 
-    if (Array.isArray(kost2List) && kost2List.length) {
-        kost2Row = (
-            <Row>
-                <Col sm={6}>
-                    <FormGroup>
-                        <DynamicReactSelect
-                            label={ui.translations['fibu.kost2']}
-                            id={values.id}
-                            values={kost2List}
-                        />
-                    </FormGroup>
-                </Col>
-            </Row>
+        if (Array.isArray(kost2List) && kost2List.length) {
+            kost2Row = (
+                <Row>
+                    <Col sm={6}>
+                        <FormGroup>
+                            <DynamicReactSelect
+                                label={ui.translations['fibu.kost2']}
+                                id={values.id}
+                                values={kost2List}
+                            />
+                        </FormGroup>
+                    </Col>
+                </Row>
+            );
+        }
+
+        return (
+            <React.Fragment>
+                <Row>
+                    <Col>
+                        <FormGroup>
+                            <DynamicTaskSelect
+                                label={ui.translations.task}
+                                onKost2Changed={setKost2List}
+                                id="task"
+                                variables={variables}
+                            />
+                        </FormGroup>
+                    </Col>
+                </Row>
+                {kost2Row}
+            </React.Fragment>
         );
-    }
-
-    return (
-        <React.Fragment>
-            <Row>
-                <Col>
-                    <FormGroup>
-                        <DynamicTaskSelect
-                            label={ui.translations.task}
-                            onKost2Changed={setKost2List}
-                            id="task"
-                            variables={variables}
-                        />
-                    </FormGroup>
-                </Col>
-            </Row>
-            {kost2Row}
-        </React.Fragment>
-    );
+    }, [kost2List]);
 }
 
 TimesheetEditTaskAndKost2.propTypes = {

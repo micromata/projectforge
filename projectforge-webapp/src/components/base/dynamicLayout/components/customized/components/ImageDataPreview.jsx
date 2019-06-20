@@ -7,16 +7,18 @@ function CustomizedImageDataPreview() {
         data: { previewImageUrl, address },
     } = React.useContext(DynamicLayoutContext);
 
-    if (!previewImageUrl) {
-        return <React.Fragment />;
-    }
+    return React.useMemo(() => {
+        if (!previewImageUrl) {
+            return <React.Fragment />;
+        }
 
-    return (
-        <img
-            src={getServiceURL(previewImageUrl)}
-            alt={`${address.firstName} ${address.name} (${address.organization})`}
-        />
-    );
+        return (
+            <img
+                src={getServiceURL(previewImageUrl)}
+                alt={`${address.firstName} ${address.name} (${address.organization})`}
+            />
+        );
+    }, [previewImageUrl, address]);
 }
 
 CustomizedImageDataPreview.propTypes = {};
