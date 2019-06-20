@@ -12,32 +12,33 @@ function CustomizedBookLendOutComponent(
         user,
     },
 ) {
-    let information;
-
     const { data, ui } = React.useContext(DynamicLayoutContext);
 
-    if (data.lendOutBy && data.lendOutDate) {
-        information = (
+    return React.useMemo(
+        () => (
             <React.Fragment>
-                <span className="mr-4">{`${data.lendOutBy.fullname}, ${data.lendOutDate}`}</span>
-                {user.username === data.lendOutBy.username
+                {data.lendOutBy && data.lendoutData
                     ? (
-                        <Button color="danger" onClick={handBack}>
-                            {ui.translations['book.returnBook']}
-                        </Button>
+                        <React.Fragment>
+                            <span className="mr-4">
+                                {`${data.lendOutBy.fullname}, ${data.lendOutDate}`}
+                            </span>
+                            {user.username === data.lendOutBy.username
+                                ? (
+                                    <Button color="danger" onClick={handBack}>
+                                        {ui.translations['book.returnBook']}
+                                    </Button>
+                                )
+                                : undefined}
+                        </React.Fragment>
                     )
                     : undefined}
+                <Button color="link" onClick={lendOut}>
+                    {ui.translations['book.lendOut']}
+                </Button>
             </React.Fragment>
-        );
-    }
-
-    return (
-        <React.Fragment>
-            {information}
-            <Button color="link" onClick={lendOut}>
-                {ui.translations['book.lendOut']}
-            </Button>
-        </React.Fragment>
+        ),
+        [data.lendOutBy, data.lendOutDate],
     );
 }
 
