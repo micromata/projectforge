@@ -119,23 +119,13 @@
         -moz-user-select: none;
         -ms-user-select: none;
         user-select: none;
-      }
-
-      &:checked + .text {
-        &::before {
-          @include transform(rotate(40deg));
-          top: -3px;
-          left: 5px;
-          border-top-color: transparent;
-          border-left-color: transparent;
-          width: .6em;
-        }
 
         @mixin color($color) {
           &::before {
-            border-right-color: $color;
-            border-bottom-color: $color;
+            border-color: $color;
           }
+
+          color: $color;
         }
 
         &.primary {
@@ -160,6 +150,17 @@
 
         &.info {
           @include color(#17a2b8);
+        }
+      }
+
+      &:checked + .text {
+        &::before {
+          @include transform(rotate(40deg));
+          top: -3px;
+          left: 5px;
+          border-top-color: transparent;
+          border-left-color: transparent;
+          width: .6em;
         }
       }
     }
