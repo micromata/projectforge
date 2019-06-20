@@ -4,6 +4,7 @@ import DynamicFieldset from './DynamicFieldset';
 import DynamicGroup from './DynamicGroup';
 import DynamicLabel from './DynamicLabel';
 import DynamicToLayoutGroup from './DynamicToLayoutGroup';
+import DynamicCheckbox from './input/DynamicCheckbox';
 import DynamicInputResolver from './input/DynamicInputResolver';
 
 // Renders the components out of a content array.
@@ -20,6 +21,9 @@ export default (content) => {
 
                 // See all allowed types in propTypes.js -> dynamicTypePropType
                 switch (type) {
+                    case 'CHECKBOX':
+                        Tag = DynamicCheckbox;
+                        break;
                     case 'COL':
                     case 'ROW':
                         Tag = DynamicGroup;
