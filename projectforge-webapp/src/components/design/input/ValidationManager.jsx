@@ -8,6 +8,7 @@ function ValidationManager({ children, customValidation }) {
             {React.Children.map(children, (child) => {
                 const { props: childProps } = child;
                 const {
+                    checked,
                     id,
                     required,
                     maxLength,
@@ -18,7 +19,7 @@ function ValidationManager({ children, customValidation }) {
                 let { additionalLabel } = childProps;
 
                 // Validate required and maxLength
-                if ((required && !value) || (maxLength && value.length > maxLength)) {
+                if ((required && !(value || checked)) || (maxLength && value.length > maxLength)) {
                     valid = false;
                 }
 
