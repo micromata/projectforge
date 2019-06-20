@@ -7,18 +7,20 @@ import { DynamicLayoutContext } from '../../context';
 function DynamicCheckbox({ id, label }) {
     const { data, setData } = React.useContext(DynamicLayoutContext);
 
-    const handleCheckboxChange = ({ target }) => setData({ [id]: target.checked });
+    return React.useMemo(() => {
+        const handleCheckboxChange = ({ target }) => setData({ [id]: target.checked });
 
-    return (
-        <ValidationManager>
-            <CheckBox
-                id={id}
-                label={label}
-                checked={data[id] || false}
-                onClick={handleCheckboxChange}
-            />
-        </ValidationManager>
-    );
+        return (
+            <ValidationManager>
+                <CheckBox
+                    id={id}
+                    label={label}
+                    checked={data[id] || false}
+                    onClick={handleCheckboxChange}
+                />
+            </ValidationManager>
+        );
+    }, [data[id]]);
 }
 
 DynamicCheckbox.propTypes = {
