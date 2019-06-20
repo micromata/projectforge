@@ -141,6 +141,7 @@ class EditPage extends React.Component {
                             </Alert>
                             <form>
                                 {useDynamicLayout
+                                    // TODO GET THE CALL OUT OF REDUX
                                     ? (
                                         <DynamicLayout
                                             data={data}
