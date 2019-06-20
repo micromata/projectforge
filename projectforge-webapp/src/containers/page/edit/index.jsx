@@ -143,7 +143,6 @@ class EditPage extends React.Component {
                                 {useDynamicLayout
                                     ? (
                                         <DynamicLayout
-                                            ui={ui}
                                             data={data}
                                             options={{
                                                 displayPageMenu: id !== undefined,
@@ -151,6 +150,8 @@ class EditPage extends React.Component {
                                                 showPageMenuTitle: false,
                                             }}
                                             setData={this.setData}
+                                            ui={ui}
+                                            variables={variables}
                                         />
                                     )
                                     : (

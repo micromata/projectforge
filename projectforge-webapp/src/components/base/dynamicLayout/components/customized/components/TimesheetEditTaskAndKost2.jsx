@@ -11,8 +11,8 @@ import DynamicTaskSelect from '../../select/task';
 /**
  * Kost2 selection for editing time sheets.
  */
-function TimesheetEditTaskAndKost2({ values, variables }) {
-    const { ui } = React.useContext(DynamicLayoutContext);
+function TimesheetEditTaskAndKost2({ values }) {
+    const { ui, variables } = React.useContext(DynamicLayoutContext);
 
     const [kost2List, setKost2List] = React.useState(undefined);
 

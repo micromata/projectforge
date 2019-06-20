@@ -17,10 +17,9 @@ function DynamicTaskSelect(
         onKost2Changed,
         showInline,
         showRootForAdmins,
-        variables,
     },
 ) {
-    const { setData, translations } = React.useContext(DynamicLayoutContext);
+    const { setData, ui, variables } = React.useContext(DynamicLayoutContext);
 
     const [panelVisible, setPanelVisible] = React.useState(false);
     const [modalHighlight, setModalHighlight] = React.useState(undefined);
@@ -30,7 +29,7 @@ function DynamicTaskSelect(
     // Handle mouse events
     React.useEffect(() => {
         const handleClickOutside = ({ target }) => {
-            if (panelRef && !panelRef.current.contains(target)) {
+            if (panelRef.current && !panelRef.current.contains(target)) {
                 setPanelVisible(false);
             }
         };
@@ -162,7 +161,7 @@ function DynamicTaskSelect(
                         fade={false}
                     >
                         <ModalHeader toggle={toggleModal}>
-                            {translations['task.title.list.select']}
+                            {ui.translations['task.title.list.select']}
                         </ModalHeader>
                         <ModalBody>
                             {treePanel}
