@@ -186,7 +186,11 @@ class CalendarFilterServicesRest {
                       @RequestParam("visible", required = true) visible: Boolean): Map<String, Any> {
         val currentFilter = getCurrentFilter()
         currentFilter.setVisibility(calendarId, visible)
-        return mapOf("currentFilter" to currentFilter)
+        val calendars = getCalendars()
+        val styleMap = getStyleMap()
+        return mapOf(
+                "currentFilter" to currentFilter,
+                "activeCalendars" to getActiveCalendars(currentFilter, calendars, styleMap))
     }
 
     /**
@@ -198,7 +202,8 @@ class CalendarFilterServicesRest {
         currentFilter.name = newFilterName
         val favorites = getFilterFavorites()
         favorites.add(currentFilter)
-        return mapOf("currentFilter" to currentFilter,
+        return mapOf(
+                "currentFilter" to currentFilter,
                 "filterFavorites" to getFilterFavorites().idTitleList)
     }
 
