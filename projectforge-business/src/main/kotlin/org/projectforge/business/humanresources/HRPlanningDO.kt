@@ -27,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference
 import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.hibernate.search.annotations.*
 import org.projectforge.business.fibu.ProjektDO
+import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -51,6 +52,7 @@ class HRPlanningDO : DefaultBaseDO() {
     /**
      * The employee assigned to this planned week.
      */
+    @PropertyInfo(i18nKey = "user")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "user_fk", nullable = false)

@@ -27,6 +27,7 @@ import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.business.task.TaskDO
+import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import javax.persistence.*
@@ -44,10 +45,12 @@ class GanttChartDO : AbstractBaseDO<Int>() {
     /**
      * Free usable name.
      */
+    @PropertyInfo(i18nKey = "gantt.name")
     @Field
     @get:Column(length = 1000)
     var name: String? = null
 
+    @PropertyInfo(i18nKey = "task")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "task_fk", nullable = false)
@@ -91,6 +94,7 @@ class GanttChartDO : AbstractBaseDO<Int>() {
     @get:Column(name = "write_access", length = 16)
     var writeAccess: GanttAccess? = null
 
+    @PropertyInfo(i18nKey = "gantt.owner")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "owner_fk")
