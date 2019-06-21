@@ -1,18 +1,17 @@
 import timezone from 'moment-timezone';
+
+import 'moment/min/locales';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Modal, ModalBody } from 'reactstrap';
 import BigCalendar from 'react-big-calendar';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { connect } from 'react-redux';
-import { getServiceURL } from '../../../utilities/rest';
-import CalendarToolBar from './CalendarToolBar';
-
-import 'moment/min/locales';
+import { Modal, ModalBody } from 'reactstrap';
 import LoadingContainer from '../../../components/design/loading-container';
+import { getServiceURL } from '../../../utilities/rest';
 import CalendarEntryEditPanel from './CalendarEntryEditPanel';
 import {
     dayStyle,
@@ -21,6 +20,7 @@ import {
     renderEvent,
     renderMonthEvent,
 } from './CalendarRendering';
+import CalendarToolBar from './CalendarToolBar';
 
 const localizer = BigCalendar.momentLocalizer(timezone); // or globalizeLocalizer
 
@@ -78,11 +78,26 @@ class CalendarPanel extends React.Component {
         this.fetchEvents();
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate({ activeCalendars: prevActiveCalendars }) {
         const { activeCalendars } = this.props;
-        if (prevProps.activeCalendars.length !== activeCalendars.length) {
-            this.fetchEvents();
+
+        if (prevActiveCalendars === activeCalendars || activeCalendars == null) {
+            return;
         }
+
+        if (
+            prevActiveCalendars.length === activeCalendars.length
+            && prevActiveCalendars.find((preActiveElement, i) => {
+                const activeElement = activeCalendars[i];
+
+                return !(preActiveElement.id === activeElement.id
+                    && preActiveElement.visible === activeElement.visible);
+            }) === undefined
+        ) {
+            return;
+        }
+
+        this.fetchEvents();
     }
 
     // ToDo

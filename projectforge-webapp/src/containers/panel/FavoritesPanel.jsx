@@ -215,29 +215,8 @@ FavoritesPanel.propTypes = {
 };
 
 FavoritesPanel.defaultProps = {
-    currentFavoriteId: 2,
-    favorites: [{
-        id: 1,
-        name: 'My filter 1',
-    }, {
-        id: 2,
-        name: 'Untitled 2',
-    }, {
-        id: 3,
-        name: 'My lovely filter 3',
-    }, {
-        id: 4,
-        name: 'My lovely, lovely, loverly Superfilter 4',
-    }, {
-        id: 5,
-        name: 'Filter 5',
-    }, {
-        id: 6,
-        name: 'Filter 6',
-    }, {
-        id: 7,
-        name: 'Filter 7',
-    }],
+    currentFavoriteId: 0,
+    favorites: [],
     translations: [],
 };
 

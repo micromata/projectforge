@@ -2,7 +2,8 @@ import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { SketchPicker } from 'react-color';
 import CheckBox from '../../../components/design/input/CheckBox';
-import { getServiceURL } from '../../../utilities/rest';
+import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
+import { CalendarContext } from '../../page/calendar/CalendarContext';
 
 /**
  * Picking colors for a calendar and switch visibility.
@@ -27,6 +28,8 @@ class CalendarStyler extends Component {
     }
 
     handleVisibilityChange(event) {
+        const { saveUpdateResponseInState } = this.context;
+
         this.setState({ visible: event.target.checked });
         const { calendar, submit } = this.props;
         fetch(getServiceURL('calendar/setVisibility', {
@@ -36,11 +39,13 @@ class CalendarStyler extends Component {
             method: 'GET',
             credentials: 'include',
         })
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            .then(saveUpdateResponseInState)
             .then(() => {
-                if (submit) submit();
-
-                // TODO ONLY RELOAD THE DATA
-                window.location.reload();
+                if (submit) {
+                    submit();
+                }
             })
             .catch(error => alert(`Internal error: ${error}`));
     }
@@ -66,6 +71,8 @@ class CalendarStyler extends Component {
         );
     }
 }
+
+CalendarStyler.contextType = CalendarContext;
 
 CalendarStyler.propTypes = {
     calendar: PropTypes.shape({
