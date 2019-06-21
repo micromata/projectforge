@@ -142,10 +142,10 @@ class LayoutUtils {
                 // MemoDO for example isn't historizable:
                 layout.addAction(UIButton("deleteIt", style = UIStyle.WARNING))
             }
-            if (restService.cloneSupported) {
-                layout.addAction(UIButton("clone", style = UIStyle.SECONDARY))
-            }
             if (restService.getId(dto) != null) {
+                if (restService.cloneSupported) {
+                    layout.addAction(UIButton("clone", style = UIStyle.SECONDARY))
+                }
                 if (!restService.isDeleted(dto))
                     layout.addAction(UIButton("update", style = UIStyle.PRIMARY, default = true))
             } else {
