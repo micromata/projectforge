@@ -72,6 +72,27 @@ class CalendarFilter(name: String = "",
 
     var invisibleCalendars = mutableSetOf<Int>()
 
+    /**
+     * Makes a deep copy of all values.
+     * @return this for chaining.
+     */
+    fun copyFrom(src: CalendarFilter) : CalendarFilter {
+        this.name = src.name
+        this.id = src.id
+        this.defaultCalendarId = src.defaultCalendarId
+        this.showBirthdays = src.showBirthdays
+        this.showStatistics = src.showStatistics
+        this.timesheetUserId = src.timesheetUserId
+        this.showTimesheets = src.showTimesheets
+        this.showBreaks = src.showBreaks
+        this.showPlanning = src.showPlanning
+        this.calendarIds = mutableSetOf()
+        this.calendarIds.addAll(src.calendarIds)
+        this.invisibleCalendars = mutableSetOf()
+        this.invisibleCalendars.addAll(src.invisibleCalendars)
+        return this
+    }
+
     fun addCalendarId(calendarId: Int) {
         calendarIds.add(calendarId)
         invisibleCalendars.remove(calendarId) // New added calendars should be visible.
@@ -128,7 +149,7 @@ class CalendarFilter(name: String = "",
         // LEGACY STUFF:
 
         /**
-         * For re-using legacy filters (from ProjetForge version up to 6, Wicket-Calendar).
+         * For re-using legacy filters (from ProjectForge version up to 6, Wicket-Calendar).
          */
         internal fun copyFrom(templateEntry: TemplateEntry?): CalendarFilter {
             val filter = CalendarFilter()
