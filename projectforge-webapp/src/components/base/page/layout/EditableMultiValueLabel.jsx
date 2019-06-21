@@ -3,14 +3,17 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { components } from 'react-select';
+import { CalendarContext } from '../../../../containers/page/calendar/CalendarContext';
 import CalendarStyler from '../../../../containers/panel/calendar/CalendarStyler';
-import { getServiceURL } from '../../../../utilities/rest';
+import { getServiceURL, handleHTTPErrors } from '../../../../utilities/rest';
 import { Button } from '../../../design';
 import Input from '../../../design/input';
 import Popper from '../../../design/popper';
 
 function EditableMultiValueLabel({ data, selectProps, ...props }) {
     const initialValue = selectProps.values[data.id] || '';
+
+    const { saveUpdateResponseInState } = React.useContext(CalendarContext);
 
     const [isOpen, setIsOpen] = React.useState(false);
     const [value, setValue] = React.useState(initialValue);
@@ -51,8 +54,9 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                         method: 'GET',
                         credentials: 'include',
                     })
-                    // TODO ONLY RELOAD THE DATA
-                        .then(() => window.location.reload())
+                        .then(handleHTTPErrors)
+                        .then(response => response.json())
+                        .then(saveUpdateResponseInState)
                         .catch(error => alert(`Internal error: ${error}`));
                 }
                 break;
@@ -78,7 +82,7 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
             break;
         case 'COLOR_PICKER':
             input = (
-                <CalendarStyler calendar={data} submit={submitValue}/>
+                <CalendarStyler calendar={data} submit={submitValue} />
             );
             break;
         // Case for plain searchString without filterType

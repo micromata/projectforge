@@ -9,7 +9,7 @@ import GlobalNavigation from '../components/base/navigation/GlobalNavigation';
 import TopBar from '../components/base/topbar';
 import { Container } from '../components/design';
 import history from '../utilities/history';
-import CalendarPage from './page/CalendarPage';
+import CalendarPage from './page/calendar/CalendarPage';
 import EditPage from './page/edit';
 import IndexPage from './page/IndexPage';
 import InputTestPage from './page/InputTest';
