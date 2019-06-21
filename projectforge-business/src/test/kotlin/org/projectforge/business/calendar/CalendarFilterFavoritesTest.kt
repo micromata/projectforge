@@ -49,6 +49,12 @@ class CalendarFilterFavoritesTest {
         favs.add(CalendarFilter(name = "My favorite"))
         assertEquals("My favorite 1", favs.getElementAt(3)!!.name)
         assertEquals("My favorite 2", favs.getElementAt(4)!!.name)
+
+        assertEquals(0, favs.getElementAt(0)!!.id)
+        assertEquals(1, favs.getElementAt(1)!!.id)
+        assertEquals(2, favs.getElementAt(2)!!.id)
+        assertEquals(3, favs.getElementAt(3)!!.id)
+        assertEquals(4, favs.getElementAt(4)!!.id)
     }
 
     companion object {
