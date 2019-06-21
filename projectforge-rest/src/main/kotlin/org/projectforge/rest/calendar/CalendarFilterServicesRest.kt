@@ -79,16 +79,7 @@ class CalendarFilterServicesRest {
     @GetMapping("initial")
     fun getInitialCalendar(): CalendarInit {
         val initial = CalendarInit()
-        val list = teamCalCache.allAccessibleCalendars
-        val userId = ThreadLocalUserContext.getUserId()
-        val calendars = list.map { teamCalDO ->
-            TeamCalendar(teamCalDO, userId, teamCalCache)
-        }.toMutableList()
-        calendars.removeIf { it.access == TeamCalendar.ACCESS.NONE } // Don't annoy admins.
-
-        calendars.add(0, TeamCalendar.createFavoritesBirthdaysPseudoCalendar())
-        calendars.add(0, TeamCalendar.createAllBirthdaysPseudoCalendar())
-
+        val calendars = getCalendars()
         val currentFilter = getCurrentFilter()
         initial.currentFilter = currentFilter
 
@@ -101,16 +92,7 @@ class CalendarFilterServicesRest {
         initial.date = PFDateTime.from(state.startDate)
         initial.view = state.view
 
-        initial.activeCalendars = currentFilter.calendarIds.map { id ->
-            StyledTeamCalendar(calendars.find { it.id == id }, // Might be not accessible / null, see below.
-                    style = styleMap.get(id), // Add the styles of the styleMap to the exported calendar.
-                    visible = currentFilter.isVisible(id)
-            )
-        }.toMutableList()
-
-        initial.activeCalendars?.removeIf { it.id == null } // Access to this calendars is not given (anymore).
-
-        initial.activeCalendars?.sortWith(compareBy(ThreadLocalUserContext.getLocaleComparator()) { it.title })
+        initial.activeCalendars = getActiveCalendars(currentFilter, calendars, styleMap)
 
         val favorites = getFilterFavorites()
         initial.filterFavorites = favorites.idTitleList
@@ -146,9 +128,35 @@ class CalendarFilterServicesRest {
         return initial
     }
 
+    private fun getCalendars(): MutableList<TeamCalendar> {
+        val list = teamCalCache.allAccessibleCalendars
+        val userId = ThreadLocalUserContext.getUserId()
+        val calendars = list.map { teamCalDO ->
+            TeamCalendar(teamCalDO, userId, teamCalCache)
+        }.toMutableList()
+        calendars.removeIf { it.access == TeamCalendar.ACCESS.NONE } // Don't annoy admins.
+
+        calendars.add(0, TeamCalendar.createFavoritesBirthdaysPseudoCalendar())
+        calendars.add(0, TeamCalendar.createAllBirthdaysPseudoCalendar())
+        return calendars
+    }
+
+    private fun getActiveCalendars(currentFilter: CalendarFilter, calendars: List<TeamCalendar>, styleMap: CalendarStyleMap): MutableList<StyledTeamCalendar> {
+        val activeCalendars = currentFilter.calendarIds.map { id ->
+            StyledTeamCalendar(calendars.find { it.id == id }, // Might be not accessible / null, see below.
+                    style = styleMap.get(id), // Add the styles of the styleMap to the exported calendar.
+                    visible = currentFilter.isVisible(id)
+            )
+        }.toMutableList()
+        activeCalendars.removeIf { it.id == null } // Access to this calendars is not given (anymore).
+
+        activeCalendars.sortWith(compareBy(ThreadLocalUserContext.getLocaleComparator()) { it.title })
+        return activeCalendars
+    }
+
     @GetMapping("changeStyle")
     fun changeCalendarStyle(@RequestParam("calendarId", required = true) calendarId: Int,
-                            @RequestParam("bgColor") bgColor: String?) {
+                            @RequestParam("bgColor") bgColor: String?): Map<String, Any> {
         var style = getStyleMap().get(calendarId)
         if (style == null) {
             style = CalendarStyle()
@@ -161,13 +169,15 @@ class CalendarFilterServicesRest {
                 throw IllegalArgumentException("Hex code of color doesn't fit '#a1b' or '#a1b2c3', can't change background color: '$bgColor'.")
             }
         }
+        return mapOf("styleMap" to getStyleMap())
     }
 
     @GetMapping("setVisibility")
     fun setVisibility(@RequestParam("calendarId", required = true) calendarId: Int,
-                      @RequestParam("visible", required = true) visible: Boolean) {
+                      @RequestParam("visible", required = true) visible: Boolean): Map<String, Any> {
         val currentFilter = getCurrentFilter()
         currentFilter.setVisibility(calendarId, visible)
+        return mapOf("currentFilter" to currentFilter)
     }
 
     @GetMapping("createNewFilter")
@@ -185,13 +195,14 @@ class CalendarFilterServicesRest {
     }
 
     @GetMapping("selectFilter")
-    fun selectFilter(@RequestParam("id", required = true) id: Int) {
+    fun selectFilter(@RequestParam("id", required = true) id: Int):CalendarInit {
         val favorites = getFilterFavorites()
         val currentFilter = favorites.get(id)
         if (currentFilter != null)
             userPreferenceService.putEntry(PREF_KEY_CURRENT_FAV, currentFilter, true)
         else
-            log.warn("Can't select filter $id, because it's not found in favorites list.")
+        log.warn("Can't select filter $id, because it's not found in favorites list.")
+        return getInitialCalendar()
     }
 
     // Ensures filter list (stored one, restored from legacy filter or a empty new one).

@@ -165,6 +165,7 @@ class IndexPage extends React.Component {
                         <ol>
                             <li>Finishing time sheet editing</li>
                             <li>Calendar events (espacially recurrences)</li>
+                            <li>List pages: addresses, tasks etc.</li>
                             <li>Search filter</li>
                             <li>Favorites</li>
                             <li>Setup page</li>
