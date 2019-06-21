@@ -169,7 +169,13 @@ class CalendarFilterServicesRest {
                 throw IllegalArgumentException("Hex code of color doesn't fit '#a1b' or '#a1b2c3', can't change background color: '$bgColor'.")
             }
         }
-        return mapOf("styleMap" to getStyleMap())
+        val calendars = getCalendars()
+        val currentFilter = getCurrentFilter()
+        val styleMap = getStyleMap()
+        return mapOf(
+                "activeCalendars" to getActiveCalendars(currentFilter, calendars, styleMap),
+                "teamCalendars" to StyledTeamCalendar.map(calendars, styleMap),
+                "styleMap" to styleMap)
     }
 
     /**
@@ -187,7 +193,7 @@ class CalendarFilterServicesRest {
      * @return The currentFilter with changed name and defaultCalendarId and the new list of filterFavorites (id's with titles).
      */
     @GetMapping("createNewFilter")
-    fun createNewFilter(@RequestParam("newFilterName", required = true) newFilterName: String): Map<String, Any>  {
+    fun createNewFilter(@RequestParam("newFilterName", required = true) newFilterName: String): Map<String, Any> {
         val currentFilter = getCurrentFilter()
         currentFilter.name = newFilterName
         val favorites = getFilterFavorites()
