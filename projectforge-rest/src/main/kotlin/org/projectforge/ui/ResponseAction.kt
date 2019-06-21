@@ -28,13 +28,13 @@ package org.projectforge.ui
  */
 class ResponseAction(val url: String? = null,
                      val targetType: TargetType? = null,
-                     val validationErrors : List<ValidationError>? = null) {
-    internal var variables: MutableMap<String, Any>? = null
+                     val validationErrors: List<ValidationError>? = null) {
+    private var variables: MutableMap<String, Any>? = null
 
     /**
      * @return this for chaining.
      */
-    fun addVariable(variable: String, value: Any?) :ResponseAction {
+    fun addVariable(variable: String, value: Any?): ResponseAction {
         if (value != null) {
             if (variables == null) {
                 variables = mutableMapOf()
@@ -57,5 +57,9 @@ enum class TargetType {
     /**
      * The client calls the rest service with the given url and will receive a response.
      */
-    RESTCALL
+    RESTCALL,
+    /**
+     * The client should update all values / states. The values to update are given as variable.
+     */
+    UPDATE
 }

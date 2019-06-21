@@ -314,11 +314,10 @@ abstract class AbstractBaseRest<
             : ResponseEntity<EditLayoutData> {
         val item = (if (null != id) getById(id, true) else newBaseDTO(request))
                 ?: return ResponseEntity(HttpStatus.NOT_FOUND)
-        return getItemAndLayout(request, item)
+        return ResponseEntity(getItemAndLayout(request, item), HttpStatus.OK)
     }
 
-    private fun getItemAndLayout(request: HttpServletRequest, dto: DTO)
-            : ResponseEntity<EditLayoutData> {
+    private fun getItemAndLayout(request: HttpServletRequest, dto: DTO): EditLayoutData {
         val layout = createEditLayout(dto)
         layout.addTranslations("changes", "tooltip.selectMe")
         layout.postProcessPageMenu()
@@ -327,7 +326,7 @@ abstract class AbstractBaseRest<
         val additionalVariables = addVariablesForEditPage(dto)
         if (additionalVariables != null)
             result.variables = additionalVariables
-        return ResponseEntity(result, HttpStatus.OK)
+        return result
     }
 
     protected open fun onGetItemAndLayout(request: HttpServletRequest, dto: DTO, editLayoutData: EditLayoutData) {
@@ -396,13 +395,17 @@ abstract class AbstractBaseRest<
 
     /**
      * Will be called by clone button. Sets the id of the form data object to null and deleted to false.
-     * @return The clone object ([org.projectforge.framework.persistence.api.BaseDO.getId] is null and [ExtendedBaseDO.isDeleted] = false)
+     * @return ResponseAction with [TargetType.UPDATE] and variable "initial" with all the initial data of [getItemAndLayout] as given for new objects.
      */
     @RequestMapping("clone")
     fun clone(request: HttpServletRequest, @RequestBody dto: DTO)
-            : ResponseEntity<EditLayoutData> {
+            : ResponseAction {
         val item = prepareClone(dto)
-        return getItemAndLayout(request, item)
+        val editLayoutData = getItemAndLayout(request, item)
+        return ResponseAction(targetType = TargetType.UPDATE)
+                .addVariable("data", editLayoutData.data)
+                .addVariable("ui", editLayoutData.ui)
+                .addVariable("variables", editLayoutData.variables)
     }
 
     /**
