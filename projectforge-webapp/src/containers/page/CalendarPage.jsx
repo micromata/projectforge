@@ -3,7 +3,7 @@ import Select from 'react-select';
 import { Card, CardBody, Col, Row } from 'reactstrap';
 import EditableMultiValueLabel from '../../components/base/page/layout/EditableMultiValueLabel';
 import LoadingContainer from '../../components/design/loading-container';
-import { getServiceURL } from '../../utilities/rest';
+import { getServiceURL, handleHTTPErrors } from '../../utilities/rest';
 import CalendarFilterSettings from '../panel/calendar/CalendarFilterSettings';
 import CalendarPanel from '../panel/calendar/CalendarPanel';
 import FavoritesPanel from '../panel/FavoritesPanel';
@@ -34,6 +34,7 @@ class CalendarPage extends React.Component {
         this.onFavoriteRename = this.onFavoriteRename.bind(this);
         this.onFavoriteSelect = this.onFavoriteSelect.bind(this);
         this.onFavoriteUpdate = this.onFavoriteUpdate.bind(this);
+        this.saveUpdateResponseInState = this.saveUpdateResponseInState.bind(this);
     }
 
     componentDidMount() {
@@ -54,6 +55,9 @@ class CalendarPage extends React.Component {
                 Accept: 'application/json',
             },
         })
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            .then(this.saveUpdateResponseInState)
             .catch(error => alert(`Internal error: ${error}`));
     }
 
@@ -66,6 +70,9 @@ class CalendarPage extends React.Component {
                 Accept: 'application/json',
             },
         })
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            .then(this.saveUpdateResponseInState)
             .catch(error => alert(`Internal error: ${error}`));
     }
 
@@ -78,8 +85,9 @@ class CalendarPage extends React.Component {
                 Accept: 'application/json',
             },
         })
-        // TODO ONLY RELOAD THE DATA
-            .then(() => window.location.reload())
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            .then(this.saveUpdateResponseInState)
             .catch(error => alert(`Internal error: ${error}`));
     }
 
@@ -104,29 +112,24 @@ class CalendarPage extends React.Component {
                 Accept: 'application/json',
             },
         })
+            .then(handleHTTPErrors)
             .then(response => response.json())
-            .then((json) => {
-                const {
-                    date,
-                    view,
-                    teamCalendars,
-                    activeCalendars,
-                    listOfDefaultCalendars,
-                    filterFavorites,
-                    translations,
-                } = json;
-                this.setState({
-                    loading: false,
-                    date: new Date(date),
-                    teamCalendars,
-                    activeCalendars,
-                    listOfDefaultCalendars,
-                    filterFavorites,
-                    view,
-                    translations,
-                });
-            })
+            .then(this.saveUpdateResponseInState)
+            // TODO: ERROR HANDLING
             .catch(error => alert(`Internal error: ${error}`));
+    }
+
+    saveUpdateResponseInState(json) {
+        const newState = {
+            loading: false,
+            ...json,
+        };
+
+        if (newState.date) {
+            newState.date = new Date(newState.date);
+        }
+
+        this.setState(newState);
     }
 
     handleMultiValueChange(id, newValue) {
