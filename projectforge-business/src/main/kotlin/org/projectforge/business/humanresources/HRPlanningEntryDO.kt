@@ -30,6 +30,7 @@ import org.hibernate.search.annotations.*
 import org.hibernate.search.bridge.builtin.IntegerBridge
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektFormatter
+import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.i18n.Priority
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
@@ -52,6 +53,7 @@ class HRPlanningEntryDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @get:JoinColumn(name = "planning_fk", nullable = false)
     var planning: HRPlanningDO? = null
 
+    @PropertyInfo(i18nKey = "fibu.projekt")
     @IndexedEmbedded(depth = 2)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "projekt_fk")
@@ -62,11 +64,13 @@ class HRPlanningEntryDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @get:Column(name = "status", length = 20)
     var status: HRPlanningEntryStatus? = null
 
+    @PropertyInfo(i18nKey = "hr.planning.priority")
     @Field(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
     var priority: Priority? = null
 
+    @PropertyInfo(i18nKey = "hr.planning.probability.short")
     @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
     @get:Column
     var probability: Int? = null
@@ -78,27 +82,35 @@ class HRPlanningEntryDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * @return Hours without assigned day of week (unspecified). This means, it doesn't matter on which day of week the
      * job will be done.
      */
+    @PropertyInfo(i18nKey = "hr.planning.unassignedHours")
     @get:Column(scale = 2, precision = 5)
     var unassignedHours: BigDecimal? = null
 
+    @PropertyInfo(i18nKey = "calendar.shortday.monday")
     @get:Column(scale = 2, precision = 5)
     var mondayHours: BigDecimal? = null
 
+    @PropertyInfo(i18nKey = "calendar.shortday.tuesday")
     @get:Column(scale = 2, precision = 5)
     var tuesdayHours: BigDecimal? = null
 
+    @PropertyInfo(i18nKey = "calendar.shortday.wednesday")
     @get:Column(scale = 2, precision = 5)
     var wednesdayHours: BigDecimal? = null
 
+    @PropertyInfo(i18nKey = "calendar.shortday.thursday")
     @get:Column(scale = 2, precision = 5)
     var thursdayHours: BigDecimal? = null
 
+    @PropertyInfo(i18nKey = "calendar.shortday.friday")
     @get:Column(scale = 2, precision = 5)
     var fridayHours: BigDecimal? = null
 
+    @PropertyInfo(i18nKey = "hr.planning.weekend")
     @get:Column(scale = 2, precision = 5)
     var weekendHours: BigDecimal? = null
 
+    @PropertyInfo(i18nKey = "hr.planning.description")
     @Field
     @get:Column(length = 4000)
     var description: String? = null
