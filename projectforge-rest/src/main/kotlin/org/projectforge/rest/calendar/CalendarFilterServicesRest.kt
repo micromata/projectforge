@@ -172,6 +172,9 @@ class CalendarFilterServicesRest {
         return mapOf("styleMap" to getStyleMap())
     }
 
+    /**
+     * @return The currentFilter with changed set of invisibleCalendars.
+     */
     @GetMapping("setVisibility")
     fun setVisibility(@RequestParam("calendarId", required = true) calendarId: Int,
                       @RequestParam("visible", required = true) visible: Boolean): Map<String, Any> {
@@ -180,28 +183,37 @@ class CalendarFilterServicesRest {
         return mapOf("currentFilter" to currentFilter)
     }
 
+    /**
+     * @return The currentFilter with changed name and defaultCalendarId and the new list of filterFavorites (id's with titles).
+     */
     @GetMapping("createNewFilter")
-    fun createNewFilter(@RequestParam("newFilterName", required = true) newFilterName: String) {
+    fun createNewFilter(@RequestParam("newFilterName", required = true) newFilterName: String): Map<String, Any>  {
         val currentFilter = getCurrentFilter()
         currentFilter.name = newFilterName
         val favorites = getFilterFavorites()
         favorites.add(currentFilter)
+        return mapOf("currentFilter" to currentFilter,
+                "filterFavorites" to getFilterFavorites().idTitleList)
     }
 
+    /**
+     * @return The new list of filterFavorites (id's with titles) without the deleted filter.
+     */
     @GetMapping("deleteFilter")
-    fun removeFilter(@RequestParam("id", required = true) id: Int) {
+    fun removeFilter(@RequestParam("id", required = true) id: Int): Map<String, Any> {
         val favorites = getFilterFavorites()
         favorites.remove(id)
+        return mapOf("filterFavorites" to getFilterFavorites().idTitleList)
     }
 
     @GetMapping("selectFilter")
-    fun selectFilter(@RequestParam("id", required = true) id: Int):CalendarInit {
+    fun selectFilter(@RequestParam("id", required = true) id: Int): CalendarInit {
         val favorites = getFilterFavorites()
         val currentFilter = favorites.get(id)
         if (currentFilter != null)
             userPreferenceService.putEntry(PREF_KEY_CURRENT_FAV, currentFilter, true)
         else
-        log.warn("Can't select filter $id, because it's not found in favorites list.")
+            log.warn("Can't select filter $id, because it's not found in favorites list.")
         return getInitialCalendar()
     }
 
