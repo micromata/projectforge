@@ -32,7 +32,6 @@ import org.projectforge.business.meb.MebEntryDO;
 import org.projectforge.business.meb.MebEntryStatus;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.junit.jupiter.api.Test;
 
@@ -51,7 +50,10 @@ public class MebDaoTest extends AbstractTestBase
   @Test
   public void testMebDaoAccess()
   {
-    MebEntryDO entry = new MebEntryDO().setDate(new Date()).setSender("1234567890").setStatus(MebEntryStatus.RECENT);
+    MebEntryDO entry = new MebEntryDO();
+    entry.setDate(new Date());
+    entry.setSender("1234567890");
+    entry.setStatus(MebEntryStatus.RECENT);
     logon(AbstractTestBase.TEST_USER);
     try {
       mebDao.save(entry);
@@ -62,7 +64,10 @@ public class MebDaoTest extends AbstractTestBase
     logon(AbstractTestBase.ADMIN);
     mebDao.save(entry); // Allowed for admins
     logon(AbstractTestBase.TEST_USER);
-    entry = new MebEntryDO().setDate(new Date()).setSender("1234567890").setStatus(MebEntryStatus.RECENT);
+    entry = new MebEntryDO();
+    entry.setDate(new Date());
+    entry.setSender("1234567890");
+    entry.setStatus(MebEntryStatus.RECENT);
     entry.setOwner(getUser(AbstractTestBase.TEST_USER));
     Serializable id = mebDao.save(entry);
     mebDao.getById(id);
@@ -73,8 +78,11 @@ public class MebDaoTest extends AbstractTestBase
     } catch (final AccessException ex) {
       // OK.
     }
-    entry = new MebEntryDO().setDate(new Date()).setOwner(getUser(AbstractTestBase.TEST_USER)).setSender("1234567890")
-        .setStatus(MebEntryStatus.RECENT);
+    entry = new MebEntryDO();
+    entry.setDate(new Date());
+    entry.setOwner(getUser(AbstractTestBase.TEST_USER));
+    entry.setSender("1234567890");
+    entry.setStatus(MebEntryStatus.RECENT);
     try {
       mebDao.save(entry);
       fail("Exception expected because only administrators can insert entries without an owner.");
@@ -84,7 +92,10 @@ public class MebDaoTest extends AbstractTestBase
     logon(AbstractTestBase.TEST_USER);
     mebDao.save(entry);
     logon(AbstractTestBase.ADMIN);
-    entry = new MebEntryDO().setDate(new Date()).setSender("1234567890").setStatus(MebEntryStatus.RECENT);
+    entry = new MebEntryDO();
+    entry.setDate(new Date());
+    entry.setSender("1234567890");
+    entry.setStatus(MebEntryStatus.RECENT);
     id = mebDao.save(entry);
     entry = mebDao.getById(id);
     entry.setOwner(getUser(AbstractTestBase.TEST_USER));
