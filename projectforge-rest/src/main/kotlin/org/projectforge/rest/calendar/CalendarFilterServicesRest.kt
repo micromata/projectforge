@@ -170,10 +170,9 @@ class CalendarFilterServicesRest {
             }
         }
         val calendars = getCalendars()
-        val currentFilter = getCurrentFilter()
         val styleMap = getStyleMap()
         return mapOf(
-                "activeCalendars" to getActiveCalendars(currentFilter, calendars, styleMap),
+                "activeCalendars" to getActiveCalendars(getCurrentFilter(), calendars, styleMap),
                 "teamCalendars" to StyledTeamCalendar.map(calendars, styleMap),
                 "styleMap" to styleMap)
     }
@@ -208,6 +207,18 @@ class CalendarFilterServicesRest {
     }
 
     /**
+     * Updates the named Filter with the values of the current filter.
+     */
+    @GetMapping("updateFilter")
+    fun updateFilter(@RequestParam("id", required = true) id: Int) {
+        val currentFilter = getCurrentFilter()
+        val favorite = getFilterFavorites().get(id)
+        if (favorite != null) {
+            favorite.copyFrom(currentFilter)
+        }
+    }
+
+    /**
      * @return The new list of filterFavorites (id's with titles) without the deleted filter.
      */
     @GetMapping("deleteFilter")
@@ -222,7 +233,9 @@ class CalendarFilterServicesRest {
         val favorites = getFilterFavorites()
         val currentFilter = favorites.get(id)
         if (currentFilter != null)
-            userPreferenceService.putEntry(PREF_KEY_CURRENT_FAV, currentFilter, true)
+        // Puts a deep copy of the current filter. Without copying, the favorite filter of the list will
+        // be synchronized with the current filter.
+            userPreferenceService.putEntry(PREF_KEY_CURRENT_FAV, CalendarFilter().copyFrom(currentFilter), true)
         else
             log.warn("Can't select filter $id, because it's not found in favorites list.")
         return getInitialCalendar()
