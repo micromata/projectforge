@@ -45,6 +45,7 @@ class NavigationAction extends React.Component {
                     </NavLink>
                 );
             case 'LINK':
+            case 'REDIRECT':
                 return (
                     <NavLink tag={Link} to={`/${url}`}>
                         {title}
