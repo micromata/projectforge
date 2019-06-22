@@ -39,6 +39,9 @@ class IndexPage extends React.Component {
 
     render() {
         const { translations } = this.state;
+
+        const todoDone = { color: 'green' };
+
         if (!translations) {
             return (<div>{' '}</div>);
         }
@@ -116,7 +119,9 @@ class IndexPage extends React.Component {
                     <Col>
                         <h1>ToDo&apos;s (Fin)</h1>
                         <ol>
-                            <li>Redirect menu entries on edit page (address - print view)</li>
+                            <li style={todoDone}>
+                                Redirect menu entries on edit page (address - print view)
+                            </li>
                             <li>Translations in SearchFilter.jsx</li>
                             <li>Enable localized customized pages (login page, setup page etc.)</li>
                             <li>Display global validation errors of forms</li>
