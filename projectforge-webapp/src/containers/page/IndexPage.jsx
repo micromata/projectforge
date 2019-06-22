@@ -118,10 +118,6 @@ class IndexPage extends React.Component {
                         <ol>
                             <li>Redirect menu entries on edit page (address - print view)</li>
                             <li>Translations in SearchFilter.jsx</li>
-                            <li>
-                                Reload calendar with different date after editing an event or time
-                                sheet (parameter &apos;date&apos; of server response).
-                            </li>
                             <li>Enable localized customized pages (login page, setup page etc.)</li>
                             <li>Display global validation errors of forms</li>
                             <li>
@@ -131,10 +127,6 @@ class IndexPage extends React.Component {
                             <li>
                                 Edit / rename entry of favorite filter, e. g. calendar page (star
                                 icon)
-                            </li>
-                            <li>
-                                Favorites: close popover after action and proceed (reload page
-                                etc.)
                             </li>
                             <li>
                                 Clone button (e. g. address): reload page with data sent by server
@@ -163,6 +155,7 @@ class IndexPage extends React.Component {
                     <Col>
                         <h1>ToDo&apos;s (Kai)</h1>
                         <ol>
+                            <li>updateFilter-Rest call for favorites</li>
                             <li>Finishing time sheet editing</li>
                             <li>Calendar events (espacially recurrences)</li>
                             <li>List pages: addresses, tasks etc.</li>
@@ -185,6 +178,7 @@ class IndexPage extends React.Component {
                     <Col>
                         <h1>ToDo&apos;s (both)</h1>
                         <ol>
+                            <li>Magic filter in list pages</li>
                             <li>List pagination and sorting</li>
                             <li>Highlight last edited entry in list page</li>
                             <li>
