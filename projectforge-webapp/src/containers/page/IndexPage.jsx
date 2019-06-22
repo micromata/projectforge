@@ -137,7 +137,7 @@ class IndexPage extends React.Component {
                                 Clone button (e. g. address): reload page with data sent by server
                                 as response after fetching clone
                             </li>
-                            <li>
+                            <li style={todoDone}>
                                 Display Logo
                                 <ol>
                                     <li>
