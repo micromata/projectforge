@@ -24,8 +24,6 @@ function ProjectForge(
         loginUser: login,
         loginInProgress,
         loginError,
-        version,
-        releaseTimestamp,
         loadUserStatus: checkAuthentication,
     },
 ) {
@@ -109,7 +107,7 @@ function ProjectForge(
         >
             <TopBar />
             {content}
-            <Footer version={version} releaseTimestamp={releaseTimestamp} />
+            <Footer />
         </SystemStatusContext.Provider>
     );
 }
@@ -120,23 +118,17 @@ ProjectForge.propTypes = {
     loginInProgress: PropTypes.bool.isRequired,
     loginError: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
     user: PropTypes.shape({}),
-    version: PropTypes.string,
-    releaseTimestamp: PropTypes.string,
 };
 
 ProjectForge.defaultProps = {
     loginError: undefined,
     user: undefined,
-    version: 'Version unknown',
-    releaseTimestamp: '01.01.1970 08:00',
 };
 
 const mapStateToProps = state => ({
     loginInProgress: state.authentication.loading,
     loginError: state.authentication.error,
     user: state.authentication.user,
-    version: state.authentication.version,
-    releaseTimestamp: state.authentication.releaseTimestamp,
 });
 
 const actions = {
