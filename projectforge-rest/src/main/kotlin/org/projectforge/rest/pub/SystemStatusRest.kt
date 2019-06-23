@@ -38,14 +38,14 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("${Rest.PUBLIC_URL}")
 class SystemStatusRest {
-    data class SystemData(var appname: String? = null,
-                          var version: String? = null,
-                          var releaseTimestamp: String? = null,
-                          var releaseDate: String? = null,
-                          var releaseYear: String? = null,
+    data class SystemData(var appname: String,
+                          var version: String,
+                          var releaseTimestamp: String,
+                          var releaseDate: String,
+                          var releaseYear: String,
                           var messageOfTheDay: String? = null,
                           var logoUrl: String? = null,
-                          var copyRightYears: String? = "")
+                          var copyRightYears: String)
 
     @GetMapping("systemStatus")
     fun loginTest(): SystemData {
