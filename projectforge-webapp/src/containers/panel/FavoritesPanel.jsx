@@ -68,7 +68,9 @@ class FavoritesPanel extends Component {
         event.preventDefault();
         event.stopPropagation();
         const { onFavoriteUpdate } = this.props;
-        onFavoriteUpdate(id);
+        if (onFavoriteUpdate) {
+            onFavoriteUpdate(id);
+        }
     }
 
     handleInputChange(event) {
@@ -239,7 +241,7 @@ FavoritesPanel.propTypes = {
     onFavoriteDelete: PropTypes.func.isRequired,
     onFavoriteRename: PropTypes.func.isRequired,
     onFavoriteSelect: PropTypes.func.isRequired,
-    onFavoriteUpdate: PropTypes.func.isRequired,
+    onFavoriteUpdate: PropTypes.func,
     // Is true, if the current favorite filter is modified and is ready for update, otherwise false.
     // Default is false (so favorite can't be updated)
     isModified: PropTypes.bool,
@@ -251,6 +253,7 @@ FavoritesPanel.defaultProps = {
     favorites: [],
     translations: [],
     isModified: false,
+    onFavoriteUpdate: undefined,
 };
 
 export default (FavoritesPanel);

@@ -29,7 +29,6 @@ class TaskSelect extends React.Component {
         this.onFavoriteDelete = this.onFavoriteDelete.bind(this);
         this.onFavoriteRename = this.onFavoriteRename.bind(this);
         this.onFavoriteSelect = this.onFavoriteSelect.bind(this);
-        this.onFavoriteUpdate = this.onFavoriteUpdate.bind(this);
     }
 
     componentDidMount() {
@@ -55,9 +54,13 @@ class TaskSelect extends React.Component {
         document.removeEventListener('mousedown', this.handleClickOutside);
     }
 
-    onFavoriteCreate(newFilterName) {
-        fetch(getServiceURL('calendar/createNewFilter',
-            { newFilterName }), {
+    onFavoriteCreate(name) {
+        const { task } = this.state;
+        if (!task) {
+            return; // Do nothing: can't set none existing task as favorite.
+        }
+        fetch(getServiceURL('task/favorites/new',
+            { name, taskId: task.id }), {
             method: 'GET',
             credentials: 'include',
             headers: {
@@ -66,12 +69,14 @@ class TaskSelect extends React.Component {
         })
             .then(handleHTTPErrors)
             .then(response => response.json())
-            .then(this.saveUpdateResponseInState)
+            .then((json) => {
+                this.setState({ favorites: json });
+            })
             .catch(error => alert(`Internal error: ${error}`));
     }
 
     onFavoriteDelete(id) {
-        fetch(getServiceURL('calendar/deleteFilter',
+        fetch(getServiceURL('task/favorites/delete',
             { id }), {
             method: 'GET',
             credentials: 'include',
@@ -81,12 +86,14 @@ class TaskSelect extends React.Component {
         })
             .then(handleHTTPErrors)
             .then(response => response.json())
-            .then(this.saveUpdateResponseInState)
+            .then((json) => {
+                this.setState({ favorites: json });
+            })
             .catch(error => alert(`Internal error: ${error}`));
     }
 
     onFavoriteSelect(id) {
-        fetch(getServiceURL('calendar/selectFilter',
+        fetch(getServiceURL('task/favorites/select',
             { id }), {
             method: 'GET',
             credentials: 'include',
@@ -96,17 +103,15 @@ class TaskSelect extends React.Component {
         })
             .then(handleHTTPErrors)
             .then(response => response.json())
-            .then(this.saveUpdateResponseInState)
+            .then((json) => {
+                this.setTask(json);
+            })
             .catch(error => alert(`Internal error: ${error}`));
     }
 
     onFavoriteRename(id, newName) {
-        console.log(id, newName);
-    }
-
-    onFavoriteUpdate(id) {
-        fetch(getServiceURL('calendar/updateFilter',
-            { id }), {
+        fetch(getServiceURL('task/favorites/rename',
+            { id, newName }), {
             method: 'GET',
             credentials: 'include',
             headers: {
@@ -115,7 +120,9 @@ class TaskSelect extends React.Component {
         })
             .then(handleHTTPErrors)
             .then(response => response.json())
-            .then(this.saveUpdateResponseInState)
+            .then((json) => {
+                this.setState({ favorites: json });
+            })
             .catch(error => alert(`Internal error: ${error}`));
     }
 
@@ -303,7 +310,6 @@ class TaskSelect extends React.Component {
                     onFavoriteDelete={this.onFavoriteDelete}
                     onFavoriteRename={this.onFavoriteRename}
                     onFavoriteSelect={this.onFavoriteSelect}
-                    onFavoriteUpdate={this.onFavoriteUpdate}
                     favorites={favorites}
                     translations={translations}
                 />

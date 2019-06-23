@@ -23,8 +23,12 @@
 
 package org.projectforge.favorites
 
+import org.projectforge.business.user.UserPrefDao
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.entities.UserPrefDO
+import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO
 
 /**
  * Persist the user's set of favorites sorted by unique names. The user may configure a set of favorites and my apply one
@@ -34,12 +38,17 @@ import org.projectforge.framework.i18n.translate
  */
 class Favorites<T : AbstractFavorite>() {
 
+    constructor(list: List<T>) : this() {
+        list.forEach {
+            set.add(it)
+        }
+        fixNamesAndIds()
+    }
+
     /**
      * For exports etc.
      */
     class FavoriteIdTitle(val id: Int, val name: String)
-
-    private val log = org.slf4j.LoggerFactory.getLogger(Favorites::class.java)
 
     private val set: MutableSet<T> = mutableSetOf()
 
@@ -48,8 +57,8 @@ class Favorites<T : AbstractFavorite>() {
         return set.find { it.id == id }
     }
 
-    fun add(filter: T) {
-        set.add(filter)
+    fun add(favorite: T) {
+        set.add(favorite)
         fixNamesAndIds()
     }
 
@@ -61,6 +70,19 @@ class Favorites<T : AbstractFavorite>() {
     fun remove(id: Int) {
         fixNamesAndIds()
         set.removeIf { it.id == id }
+    }
+
+    fun saveNewUserPref(userPrefDao: UserPrefDao, newFavorite: T, areaId: String, parameter: String, value: String) {
+        add(newFavorite) // If name is already given, a new name is set.
+        val userPref = UserPrefDO()
+        userPref.areaString = areaId
+        userPref.user = ThreadLocalUserContext.getUser()
+        userPref.name = newFavorite.name
+        val userPrefEntry = UserPrefEntryDO()
+        userPrefEntry.parameter = parameter
+        userPrefEntry.value = value
+        userPref.addUserPrefEntry(userPrefEntry)
+        userPrefDao.save(userPref)
     }
 
     /**
@@ -87,7 +109,7 @@ class Favorites<T : AbstractFavorite>() {
     }
 
     fun getAutoName(prefix: String? = null): String {
-        var _prefix = prefix ?: translate("calendar.filter.untitled")
+        var _prefix = prefix ?: translate("favorite.untitled")
         if (set.isEmpty()) {
             return _prefix
         }
@@ -108,7 +130,7 @@ class Favorites<T : AbstractFavorite>() {
         }
 
     /**
-     * Maps the set of filters to list of names.
+     * Maps the set of favorites to list of names.
      */
     val favoriteNames: List<String>
         get() {
@@ -117,7 +139,7 @@ class Favorites<T : AbstractFavorite>() {
         }
 
     /**
-     * Maps the set of filters to list of [FavoriteIdTitle].
+     * Maps the set of favorites to list of [FavoriteIdTitle].
      */
     val idTitleList: List<FavoriteIdTitle>
         get() {
@@ -126,25 +148,18 @@ class Favorites<T : AbstractFavorite>() {
         }
 
     fun getElementAt(pos: Int): T? {
-        if (pos < 0) return null // No filter is marked as active.
+        if (pos < 0) return null // No favorite is marked as active.
         if (pos < set.size) {
-            // Get the user's active filter:
+            // Get the user's active favorite:
             return set.elementAt(pos)
         }
         log.error("Favorite index #$pos is out of array bounds [0..${set.size - 1}].")
         return null
     }
 
-    internal fun getFilter(name: String): T? {
-        set.forEach {
-            if (name == it.name)
-                return it
-        }
-        log.error("Favorite named '$name' not found.")
-        return null
-    }
-
     companion object {
+        private val log = org.slf4j.LoggerFactory.getLogger(Favorites::class.java)
+
         fun addTranslations(translations: MutableMap<String, String>) {
             addTranslations(
                     "favorites",
@@ -154,6 +169,28 @@ class Favorites<T : AbstractFavorite>() {
                     "save",
                     "uptodate",
                     translations = translations)
+        }
+
+        fun deleteUserPref(userPrefDao: UserPrefDao, areaId: String, id: Int) {
+            val userPref = userPrefDao.getUserPref(areaId, id)
+            if (userPref != null) {
+                userPrefDao.delete(userPref)
+            } else {
+                log.warn("User tried to delete user pref with id #$id for area '$areaId', but it can't be deleted (is from other user, different area or an has unknown id).")
+            }
+        }
+
+        fun renameUserPref(userPrefDao: UserPrefDao, areaId: String, id: Int, newName: String) {
+            val userPref = userPrefDao.getUserPref(areaId, id)
+            if (userPref != null) {
+                if (userPrefDao.doesParameterNameAlreadyExist(id, ThreadLocalUserContext.getUserId(), areaId, newName)) {
+                    log.warn("User tried to rename user pref with id #$id from '${userPref.name}' into '$newName', but another entry with this name already exist.")
+                } else {
+                    userPrefDao.delete(userPref)
+                }
+            } else {
+                log.warn("User tried to reanme user pref with id #$id for area '$areaId', but it can't be renamed (is from other user, different area or has an unknown id).")
+            }
         }
     }
 }
