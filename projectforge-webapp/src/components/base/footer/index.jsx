@@ -4,12 +4,7 @@ import { SystemStatusContext } from '../../../containers/SystemStatusContext';
 import style from './Footer.module.scss';
 
 function Footer() {
-    const {
-        version,
-        releaseTimestamp,
-        copyRightYears,
-        updateAvailable,
-    } = React.useContext(SystemStatusContext);
+    const { version, releaseTimestamp, updateAvailable } = React.useContext(SystemStatusContext);
 
     return (
         <div className={classNames(style.footer, 'footer')}>
@@ -21,8 +16,7 @@ function Footer() {
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        &copy;
-                        {`${copyRightYears}`}
+                        &copy;2001-2019
                     </a>
                     <a
                         href="https://www.micromata.com"
