@@ -1,5 +1,4 @@
 import { faStream, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
-import { faStar } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 /* eslint-disable-next-line object-curly-newline */
@@ -7,7 +6,8 @@ import { Button, Collapse, Modal, ModalBody, ModalHeader } from 'reactstrap';
 import PropTypes from 'prop-types';
 import style from '../../../design/input/Input.module.scss';
 import TaskTreePanel from '../../../../containers/panel/task/TaskTreePanel';
-import { getServiceURL } from '../../../../utilities/rest';
+import FavoritesPanel from '../../../../containers/panel/FavoritesPanel';
+import { getServiceURL, handleHTTPErrors } from '../../../../utilities/rest';
 import taskStyle from './TaskSelect.module.scss';
 
 class TaskSelect extends React.Component {
@@ -17,24 +17,106 @@ class TaskSelect extends React.Component {
             taskTreePanelVisible: false,
             taskTreeModalHighlight: undefined,
             task: undefined,
+            favorites: undefined,
         };
         this.taskPanelRef = React.createRef();
 
         this.setTask = this.setTask.bind(this);
         this.toggleTaskTreeModal = this.toggleTaskTreeModal.bind(this);
         this.handleClickOutside = this.handleClickOutside.bind(this);
+
+        this.onFavoriteCreate = this.onFavoriteCreate.bind(this);
+        this.onFavoriteDelete = this.onFavoriteDelete.bind(this);
+        this.onFavoriteRename = this.onFavoriteRename.bind(this);
+        this.onFavoriteSelect = this.onFavoriteSelect.bind(this);
+        this.onFavoriteUpdate = this.onFavoriteUpdate.bind(this);
     }
 
     componentDidMount() {
         document.addEventListener('mousedown', this.handleClickOutside);
         const { variables } = this.props;
-        this.setState({
-            task: variables.task,
-        });
+        this.setState({ task: variables.task });
+        fetch(getServiceURL('task/favorites/list'), {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                Accept: 'application/json',
+            },
+        })
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            .then((json) => {
+                this.setState({ favorites: json });
+            })
+            .catch(error => alert(`Internal error: ${error}`));
     }
 
     componentWillUnmount() {
         document.removeEventListener('mousedown', this.handleClickOutside);
+    }
+
+    onFavoriteCreate(newFilterName) {
+        fetch(getServiceURL('calendar/createNewFilter',
+            { newFilterName }), {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                Accept: 'application/json',
+            },
+        })
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            .then(this.saveUpdateResponseInState)
+            .catch(error => alert(`Internal error: ${error}`));
+    }
+
+    onFavoriteDelete(id) {
+        fetch(getServiceURL('calendar/deleteFilter',
+            { id }), {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                Accept: 'application/json',
+            },
+        })
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            .then(this.saveUpdateResponseInState)
+            .catch(error => alert(`Internal error: ${error}`));
+    }
+
+    onFavoriteSelect(id) {
+        fetch(getServiceURL('calendar/selectFilter',
+            { id }), {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                Accept: 'application/json',
+            },
+        })
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            .then(this.saveUpdateResponseInState)
+            .catch(error => alert(`Internal error: ${error}`));
+    }
+
+    onFavoriteRename(id, newName) {
+        console.log(id, newName);
+    }
+
+    onFavoriteUpdate(id) {
+        fetch(getServiceURL('calendar/updateFilter',
+            { id }), {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                Accept: 'application/json',
+            },
+        })
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            .then(this.saveUpdateResponseInState)
+            .catch(error => alert(`Internal error: ${error}`));
     }
 
     setTask(taskId, selectedTask) {
@@ -100,7 +182,12 @@ class TaskSelect extends React.Component {
     }
 
     render() {
-        const { taskTreePanelVisible, taskTreeModalHighlight, task } = this.state;
+        const {
+            taskTreePanelVisible,
+            taskTreeModalHighlight,
+            task,
+            favorites,
+        } = this.state;
         const {
             translations,
             showInline,
@@ -211,17 +298,15 @@ class TaskSelect extends React.Component {
                         className={style.icon}
                     />
                 </Button>
-                <Button
-                    color="link"
-                    className="selectPanelIconLinks"
-                    onClick={this.toggleTaskTreeModal}
-                    disabled
-                >
-                    <FontAwesomeIcon
-                        icon={faStar}
-                        className={style.icon}
-                    />
-                </Button>
+                <FavoritesPanel
+                    onFavoriteCreate={this.onFavoriteCreate}
+                    onFavoriteDelete={this.onFavoriteDelete}
+                    onFavoriteRename={this.onFavoriteRename}
+                    onFavoriteSelect={this.onFavoriteSelect}
+                    onFavoriteUpdate={this.onFavoriteUpdate}
+                    favorites={favorites}
+                    translations={translations}
+                />
                 {taskPanel}
             </div>
         );
