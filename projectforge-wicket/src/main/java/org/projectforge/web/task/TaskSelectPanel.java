@@ -23,10 +23,6 @@
 
 package org.projectforge.web.task;
 
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Objects;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -40,11 +36,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.hibernate.Hibernate;
-import org.projectforge.business.task.TaskDO;
-import org.projectforge.business.task.TaskDao;
-import org.projectforge.business.task.TaskFavorite;
-import org.projectforge.business.task.TaskNode;
-import org.projectforge.business.task.TaskTree;
+import org.projectforge.business.task.*;
 import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.web.CSSColor;
@@ -58,6 +50,10 @@ import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.IconPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
+
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Objects;
 
 /**
  * Panel for showing and selecting one task.
@@ -244,12 +240,12 @@ public class TaskSelectPanel extends AbstractSelectPanel<TaskDO> implements Comp
     unselectButton.add(new IconPanel("unselectHelp", IconType.REMOVE_SIGN, getString("tooltip.unselectTask")).setColor(CSSColor.RED));
 
     // DropDownChoice favorites
-    final FavoritesChoicePanel<TaskDO, TaskFavorite> favoritesPanel = new FavoritesChoicePanel<TaskDO, TaskFavorite>(
+    final FavoritesChoicePanel<TaskDO, LegacyTaskFavorite> favoritesPanel = new FavoritesChoicePanel<TaskDO, LegacyTaskFavorite>(
         "favorites",
         UserPrefArea.TASK_FAVORITE, tabIndex, "full text")
     {
       @Override
-      protected void select(final TaskFavorite favorite)
+      protected void select(final LegacyTaskFavorite favorite)
       {
         if (favorite.getTask() != null) {
           TaskSelectPanel.this.selectTask(favorite.getTask());
@@ -263,9 +259,9 @@ public class TaskSelectPanel extends AbstractSelectPanel<TaskDO> implements Comp
       }
 
       @Override
-      protected TaskFavorite newFavoriteInstance(final TaskDO currentObject)
+      protected LegacyTaskFavorite newFavoriteInstance(final TaskDO currentObject)
       {
-        final TaskFavorite favorite = new TaskFavorite();
+        final LegacyTaskFavorite favorite = new LegacyTaskFavorite();
         favorite.setTask(currentObject);
         return favorite;
       }
