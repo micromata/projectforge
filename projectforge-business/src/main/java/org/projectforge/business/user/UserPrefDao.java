@@ -54,6 +54,7 @@ import org.springframework.stereotype.Repository;
 import java.io.Serializable;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -99,7 +100,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
   public String[] getPrefNames(final UserPrefArea area) {
     final PFUserDO user = ThreadLocalUserContext.getUser();
     @SuppressWarnings("unchecked") final List<Object> list = getSession()
-            .createQuery("select pk,name from UserPrefDO t where user_fk=? and areaString = ? order by name")
+            .createQuery("select name from UserPrefDO t where user_fk=? and areaString = ? order by name")
             .setInteger(0, user.getId()).setParameter(1, area.getId()).list();
     final String[] result = new String[list.size()];
     int i = 0;
@@ -108,6 +109,29 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     }
     return result;
   }
+
+  /**
+   * @param areaId
+   * @return
+   */
+  public List<UserPrefDO> getListWithoutEntries(String areaId) {
+    final PFUserDO user = ThreadLocalUserContext.getUser();
+    @SuppressWarnings("unchecked") final List<Object[]> list = getSession()
+            .createQuery("select id, name from UserPrefDO t where user_fk=? and areaString = ? order by name")
+            .setInteger(0, user.getId()).setParameter(1, areaId).list();
+    final List<UserPrefDO> result = new ArrayList<UserPrefDO>(list.size());
+    int i = 0;
+    for (final Object[] oa : list) {
+      UserPrefDO userPref = new UserPrefDO();
+      userPref.setUser(user);
+      userPref.setAreaString(areaId);
+      userPref.setId((Integer) oa[0]);
+      userPref.setName((String) oa[1]);
+      result.add(userPref);
+    }
+    return result;
+  }
+
 
   /**
    * Does (another) entry for the given user with the given area and name already exists?
@@ -123,16 +147,33 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
                                                final String name) {
     Validate.notNull(user);
     Validate.notNull(area);
+    return doesParameterNameAlreadyExist(id, user.getId(), area.getId(), name);
+  }
+
+  /**
+   * Does (another) entry for the given user with the given area and name already exists?
+   *
+   * @param id   of the current data object (null for new objects).
+   * @param userId
+   * @param areaId
+   * @param name
+   * @return
+   */
+  @SuppressWarnings("unchecked")
+  public boolean doesParameterNameAlreadyExist(final Integer id, final Integer userId, final String areaId,
+                                               final String name) {
+    Validate.notNull(userId);
+    Validate.notNull(areaId);
     Validate.notNull(name);
     final List<UserPrefDO> list;
     if (id != null) {
       list = (List<UserPrefDO>) getHibernateTemplate().find(
-              "from UserPrefDO u where pk <> ? and u.user.id = ? and areaString = ? and name = ?",
-              new Object[]{id, user.getId(), area.getId(), name});
+              "from UserPrefDO u where id <> ? and u.user.id = ? and areaString = ? and name = ?",
+              new Object[]{id, userId, areaId, name});
     } else {
       list = (List<UserPrefDO>) getHibernateTemplate().find(
               "from UserPrefDO u where u.user.id = ? and areaString = ? and name = ?",
-              new Object[]{user.getId(), area.getId(), name});
+              new Object[]{userId, areaId, name});
     }
     if (CollectionUtils.isNotEmpty(list) == true) {
       return true;
@@ -154,15 +195,13 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     return list;
   }
 
-  public List<UserPrefDO> getList(String areaId) {
-    final QueryFilter queryFilter = new QueryFilter();
-    queryFilter.add(Restrictions.eq("areaString", areaId));
-    queryFilter.add(Restrictions.eq("user.id", ThreadLocalUserContext.getUserId()));
-    queryFilter.addOrder(Order.asc("name"));
-    final List<UserPrefDO> list = getList(queryFilter);
-    return list;
-  }
-
+  /**
+   * @param area
+   * @param name
+   * @return
+   * @deprecated Use getUserPref(String, Integer) instead.
+   */
+  @Deprecated
   public UserPrefDO getUserPref(final UserPrefArea area, final String name) {
     final PFUserDO user = ThreadLocalUserContext.getUser();
     @SuppressWarnings("unchecked") final List<UserPrefDO> list = (List<UserPrefDO>) getHibernateTemplate().find(
@@ -173,6 +212,23 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     }
     return list.get(0);
   }
+
+  /**
+   * @param areaId
+   * @param id
+   * @return The user pref of the areaId with the given id of the logged in user (from ThreadLocal).
+   */
+  public UserPrefDO getUserPref(final String areaId, final Integer id) {
+    final PFUserDO user = ThreadLocalUserContext.getUser();
+    @SuppressWarnings("unchecked") final List<UserPrefDO> list = (List<UserPrefDO>) getHibernateTemplate().find(
+            "from UserPrefDO u where u.user.id = ? and u.areaString = ? and u.id = ?",
+            new Object[]{user.getId(), areaId, id});
+    if (list == null || list.size() != 1) {
+      return null;
+    }
+    return list.get(0);
+  }
+
 
   public List<UserPrefDO> getUserPrefs(final UserPrefArea area) {
     final PFUserDO user = ThreadLocalUserContext.getUser();

@@ -24,11 +24,12 @@
 package org.projectforge.rest.task
 
 import org.projectforge.business.task.TaskFavorite
-import org.projectforge.business.task.TaskFavorites
+import org.projectforge.business.task.TaskFavoritesService
 import org.projectforge.rest.config.Rest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 /**
@@ -38,11 +39,47 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("${Rest.URL}/task/favorites")
 class TaskFavoritesRest {
     @Autowired
-    private lateinit var taskFavorites: TaskFavorites
+    private lateinit var taskFavorites: TaskFavoritesService
 
 
     @GetMapping("list")
     fun getList(): List<TaskFavorite> {
         return taskFavorites.getList()
+    }
+
+    /**
+     * Adds new favorite task with given id under the given name.
+     * @return new list of favorites.
+     */
+    @GetMapping("new")
+    fun new(@RequestParam("taskId", required = true) taskId: Int, @RequestParam("name", required = true) name: String): List<TaskFavorite> {
+        return taskFavorites.addFavorite(name, taskId)
+    }
+
+    /**
+     * Selects the task id from the filter.
+     * @return taskId referenced by given favorite.
+     */
+    @GetMapping("select")
+    fun select(@RequestParam("id", required = true) id: Int): Int? {
+        return taskFavorites.selectTaskId(id)
+    }
+
+    /**
+     * Selects the task id from the filter.
+     * @return taskId referenced by given favorite.
+     */
+    @GetMapping("delete")
+    fun delete(@RequestParam("id", required = true) id: Int):  List<TaskFavorite> {
+        return taskFavorites.deleteFavorite(id)
+    }
+
+    /**
+     * Selects the task id from the filter.
+     * @return taskId referenced by given favorite.
+     */
+    @GetMapping("rename")
+    fun rename(@RequestParam("id", required = true) id: Int, @RequestParam("newName", required = true) newName: String):  List<TaskFavorite> {
+        return taskFavorites.renameFavorite(id, newName)
     }
 }
