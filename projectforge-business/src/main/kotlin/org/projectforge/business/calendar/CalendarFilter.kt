@@ -26,6 +26,7 @@ package org.projectforge.business.calendar
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute
 import org.projectforge.business.teamcal.filter.TemplateEntry
 import org.projectforge.favorites.AbstractFavorite
+import java.util.*
 
 /**
  * Persist the settings of one named filter entry. The user may configure a list of filters and my switch the active
@@ -76,7 +77,7 @@ class CalendarFilter(name: String = "",
      * Makes a deep copy of all values.
      * @return this for chaining.
      */
-    fun copyFrom(src: CalendarFilter) : CalendarFilter {
+    fun copyFrom(src: CalendarFilter): CalendarFilter {
         this.name = src.name
         this.id = src.id
         this.defaultCalendarId = src.defaultCalendarId
@@ -145,6 +146,33 @@ class CalendarFilter(name: String = "",
         tidyUp()
     }
 
+    fun isModified(other: CalendarFilter): Boolean {
+        if (!Objects.equals(this.name, other.name)) return true
+        if (this.id != other.id) return true
+        if (this.defaultCalendarId != other.defaultCalendarId) return true
+        if (this.showBirthdays != other.showBirthdays) return true
+        if (this.showStatistics != other.showStatistics) return true
+        if (this.timesheetUserId != other.timesheetUserId) return true
+        if (this.showTimesheets != other.showTimesheets) return true
+        if (this.showBreaks != other.showBreaks) return true
+        if (this.showPlanning != other.showPlanning) return true
+        if (isModified(this.calendarIds, other.calendarIds)) return true
+        if (isModified(this.invisibleCalendars, other.invisibleCalendars)) return true
+        return false
+    }
+
+    private fun isModified(set1: Set<Int>, set2: Set<Int>): Boolean {
+        set1.forEach {
+            if (!set2.contains(it))
+                return true
+        }
+        set2.forEach {
+            if (!set1.contains(it))
+                return true
+        }
+        return false
+    }
+
     companion object {
         // LEGACY STUFF:
 
@@ -172,5 +200,4 @@ class CalendarFilter(name: String = "",
             return filter
         }
     }
-
 }

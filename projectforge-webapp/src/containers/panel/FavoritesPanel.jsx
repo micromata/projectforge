@@ -1,5 +1,11 @@
 import { faStar } from '@fortawesome/free-regular-svg-icons';
-import { faCheckSquare, faEdit, faSync, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import {
+    faCheck,
+    faCheckSquare,
+    faEdit,
+    faSync,
+    faTrashAlt
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
@@ -82,9 +88,52 @@ class FavoritesPanel extends Component {
         const { popoverOpen } = this.state;
         const {
             currentFavoriteId,
+            isModified,
             favorites,
             translations,
         } = this.props;
+
+        const syncIcon = isModified
+            ? (
+                <React.Fragment>
+                    <FontAwesomeIcon
+                        id="syncFavorite"
+                        onClick={
+                            event => this.onUpdateClick(event, currentFavoriteId)
+                        }
+                        icon={faSync}
+                        className={classNames(
+                            style.icon,
+                            style.syncIcon,
+                        )}
+                    />
+                    <UncontrolledTooltip
+                        placement="right"
+                        target="syncFavorite"
+                    >
+                        {translations.save}
+                    </UncontrolledTooltip>
+                </React.Fragment>
+            )
+            : (
+                <React.Fragment>
+                    <FontAwesomeIcon
+                        id="syncFavorite"
+                        icon={faCheck}
+                        className={classNames(
+                            style.icon,
+                            style.syncIcon,
+                        )}
+                    />
+                    <UncontrolledTooltip
+                        placement="right"
+                        target="syncFavorite"
+                    >
+                        {translations.uptodate}
+                    </UncontrolledTooltip>
+                </React.Fragment>
+            );
+
         return (
             <React.Fragment>
                 <Button
@@ -167,26 +216,7 @@ class FavoritesPanel extends Component {
                                         </UncontrolledTooltip>
                                         {' '}
                                         {favorite.id === currentFavoriteId ? (
-                                            <React.Fragment>
-                                                <FontAwesomeIcon
-                                                    id="syncFavorite"
-                                                    onClick={
-                                                        event => this.onUpdateClick(event, favorite.id)
-                                                    }
-                                                    icon={faSync}
-                                                    className={classNames(
-                                                        style.icon,
-                                                        style.syncIcon,
-                                                    )}
-                                                    color="grey"
-                                                />
-                                                <UncontrolledTooltip
-                                                    placement="right"
-                                                    target="syncFavorite"
-                                                >
-                                                    {translations.save}
-                                                </UncontrolledTooltip>
-                                            </React.Fragment>
+                                            syncIcon
                                         ) : ''}
                                     </div>
                                 </li>
@@ -211,6 +241,9 @@ FavoritesPanel.propTypes = {
     onFavoriteRename: PropTypes.func.isRequired,
     onFavoriteSelect: PropTypes.func.isRequired,
     onFavoriteUpdate: PropTypes.func.isRequired,
+    // Is true, if the current favorite filter is modified and is ready for update, otherwise false.
+    // Default is false (so favorite can't be updated)
+    isModified: PropTypes.bool,
     translations: PropTypes.shape({}), // .isRequired, TODO: SearchFilter has no translations!?
 };
 
@@ -218,6 +251,7 @@ FavoritesPanel.defaultProps = {
     currentFavoriteId: 0,
     favorites: [],
     translations: [],
+    isModified: false,
 };
 
 export default (FavoritesPanel);
