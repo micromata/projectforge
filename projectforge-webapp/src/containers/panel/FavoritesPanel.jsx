@@ -133,7 +133,6 @@ class FavoritesPanel extends Component {
                     </UncontrolledTooltip>
                 </React.Fragment>
             );
-
         return (
             <React.Fragment>
                 <Button
@@ -160,7 +159,7 @@ class FavoritesPanel extends Component {
                             <li className={style.addFavorite}>
                                 <Input
                                     id="newFilterName"
-                                    label="Add new Filter"
+                                    label={translations['favorite.addNew']}
                                     onChange={this.handleInputChange}
                                 />
                                 <FontAwesomeIcon

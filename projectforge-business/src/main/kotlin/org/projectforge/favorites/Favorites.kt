@@ -23,6 +23,7 @@
 
 package org.projectforge.favorites
 
+import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
 
 /**
@@ -42,7 +43,7 @@ class Favorites<T : AbstractFavorite>() {
 
     private val set: MutableSet<T> = mutableSetOf()
 
-    fun get(id: Int) : T? {
+    fun get(id: Int): T? {
         fixNamesAndIds()
         return set.find { it.id == id }
     }
@@ -141,5 +142,18 @@ class Favorites<T : AbstractFavorite>() {
         }
         log.error("Favorite named '$name' not found.")
         return null
+    }
+
+    companion object {
+        fun addTranslations(translations: MutableMap<String, String>) {
+            addTranslations(
+                    "favorites",
+                    "delete",
+                    "rename",
+                    "favorite.addNew",
+                    "save",
+                    "uptodate",
+                    translations = translations)
+        }
     }
 }
