@@ -51,6 +51,15 @@ class UILayout {
      * @param i18nKey The translation i18n key. The translation for the logged-in-user will be added.
      * @return this for chaining.
      */
+    fun addTranslations(translations : Map<String, String>): UILayout {
+        this.translations.putAll(translations)
+        return this
+    }
+
+    /**
+     * @param i18nKey The translation i18n key. The translation for the logged-in-user will be added.
+     * @return this for chaining.
+     */
     fun addTranslations(vararg i18nKeys: String): UILayout {
         addTranslations(*i18nKeys, translations = translations)
         return this

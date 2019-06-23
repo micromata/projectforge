@@ -115,7 +115,7 @@ class CalendarFilterServicesRest {
         listOfDefaultCalendars.add(0, TeamCalendar(id = -1, title = translate("calendar.option.timesheeets"))) // prepend time sheet pseudo calendar
         initial.listOfDefaultCalendars = listOfDefaultCalendars
 
-        initial.translations = addTranslations(
+        val translations = addTranslations(
                 "select.placeholder",
                 "calendar.filter.dialog.title",
                 "calendar.filter.visible",
@@ -126,12 +126,9 @@ class CalendarFilterServicesRest {
                 "calendar.view.day",
                 "calendar.view.month",
                 "calendar.view.week",
-                "calendar.view.workWeek",
-                "favorites",
-                "delete",
-                "rename",
-                "save",
-                "uptodate")
+                "calendar.view.workWeek")
+        Favorites.addTranslations(translations)
+        initial.translations = translations
         return initial
     }
 
@@ -219,7 +216,9 @@ class CalendarFilterServicesRest {
         val currentFilter = getCurrentFilter()
         currentFilter.name = newFilterName
         val favorites = getFilterFavorites()
-        favorites.add(currentFilter)
+        val newFavorite = CalendarFilter().copyFrom(currentFilter)
+        favorites.add(newFavorite) // Favorite must be a copy of current filter (new instance).
+        currentFilter.id = newFavorite.id // Id is set by function favorites.add
         return mapOf(
                 "currentFilter" to currentFilter,
                 "filterFavorites" to getFilterFavorites().idTitleList,
