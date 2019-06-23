@@ -62,6 +62,11 @@ class FavoritesPanel extends Component {
         event.stopPropagation();
         const { onFavoriteSelect } = this.props;
         onFavoriteSelect(id);
+
+        const { closeOnSelect } = this.props;
+        if (closeOnSelect) {
+            this.setState({ popoverOpen: false });
+        }
     }
 
     onUpdateClick(event, id) {
@@ -81,9 +86,10 @@ class FavoritesPanel extends Component {
     }
 
     togglePopover() {
-        this.setState(prevState => ({
-            popoverOpen: !prevState.popoverOpen,
-        }));
+        const { popoverOpen } = this.state;
+        this.setState({
+            popoverOpen: !popoverOpen,
+        });
     }
 
     render() {
@@ -245,6 +251,8 @@ FavoritesPanel.propTypes = {
     // Is true, if the current favorite filter is modified and is ready for update, otherwise false.
     // Default is false (so favorite can't be updated)
     isModified: PropTypes.bool,
+    // Should the pop-over be closed after a favorite entry was selected?
+    closeOnSelect: PropTypes.bool,
     translations: PropTypes.shape({}), // .isRequired, TODO: SearchFilter has no translations!?
 };
 
@@ -253,6 +261,7 @@ FavoritesPanel.defaultProps = {
     favorites: [],
     translations: [],
     isModified: false,
+    closeOnSelect: true,
     onFavoriteUpdate: undefined,
 };
 
