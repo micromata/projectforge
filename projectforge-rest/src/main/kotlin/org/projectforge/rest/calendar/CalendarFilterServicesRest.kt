@@ -59,7 +59,11 @@ class CalendarFilterServicesRest {
                         */
                        var listOfDefaultCalendars: List<TeamCalendar>? = null,
                        var styleMap: CalendarStyleMap? = null,
-                       var translations: Map<String, String>? = null)
+                       var translations: Map<String, String>? = null,
+                       /**
+                        * If true, the client should provide an save button for syncing the current filter to the data base.
+                        */
+                       var isCurrentFilterModified: Boolean = false)
 
     companion object {
         private const val PREF_KEY_FAV_LIST = "calendar.favorite.list"
@@ -97,6 +101,8 @@ class CalendarFilterServicesRest {
         val favorites = getFilterFavorites()
         initial.filterFavorites = favorites.idTitleList
 
+        initial.isCurrentFilterModified = isCurrentFilterModified(currentFilter, favorites.get(currentFilter.id))
+
         val listOfDefaultCalendars = mutableListOf<TeamCalendar>()
         initial.activeCalendars?.forEach { activeCal ->
             val cal = calendars.find { it.id == activeCal.id }
@@ -124,7 +130,8 @@ class CalendarFilterServicesRest {
                 "favorites",
                 "delete",
                 "rename",
-                "save")
+                "save",
+                "uptodate")
         return initial
     }
 
@@ -152,6 +159,17 @@ class CalendarFilterServicesRest {
 
         activeCalendars.sortWith(compareBy(ThreadLocalUserContext.getLocaleComparator()) { it.title })
         return activeCalendars
+    }
+
+    private fun isCurrentFilterModified(currentFilter: CalendarFilter): Boolean {
+        val favorite = getFilterFavorites().get(currentFilter.id)
+        return isCurrentFilterModified(currentFilter, favorite)
+    }
+
+    private fun isCurrentFilterModified(currentFilter: CalendarFilter, favoriteFilter: CalendarFilter?): Boolean {
+        if (favoriteFilter == null)
+            return false
+        return currentFilter.isModified(favoriteFilter)
     }
 
     @GetMapping("changeStyle")
@@ -189,7 +207,8 @@ class CalendarFilterServicesRest {
         val styleMap = getStyleMap()
         return mapOf(
                 "currentFilter" to currentFilter,
-                "activeCalendars" to getActiveCalendars(currentFilter, calendars, styleMap))
+                "activeCalendars" to getActiveCalendars(currentFilter, calendars, styleMap),
+                "isCurrentFilterModified" to isCurrentFilterModified(currentFilter))
     }
 
     /**
@@ -203,19 +222,22 @@ class CalendarFilterServicesRest {
         favorites.add(currentFilter)
         return mapOf(
                 "currentFilter" to currentFilter,
-                "filterFavorites" to getFilterFavorites().idTitleList)
+                "filterFavorites" to getFilterFavorites().idTitleList,
+                "isCurrentFilterModified" to false)
     }
 
     /**
      * Updates the named Filter with the values of the current filter.
+     * @return The current filter with flag modified=false.
      */
     @GetMapping("updateFilter")
-    fun updateFilter(@RequestParam("id", required = true) id: Int) {
+    fun updateFilter(@RequestParam("id", required = true) id: Int): Map<String, Any> {
         val currentFilter = getCurrentFilter()
         val favorite = getFilterFavorites().get(id)
         if (favorite != null) {
             favorite.copyFrom(currentFilter)
         }
+        return mapOf("isCurrentFilterModified" to false)
     }
 
     /**
