@@ -42,6 +42,7 @@ class SystemStatusRest {
                           var version: String? = null,
                           var releaseTimestamp: String? = null,
                           var releaseDate: String? = null,
+                          var releaseYear: String? = null,
                           var messageOfTheDay: String? = null,
                           var logoUrl: String? = null,
                           var copyRightYears: String? = "")
@@ -57,6 +58,7 @@ class SystemStatusRest {
                     version = ProjectForgeVersion.VERSION_STRING,
                     releaseTimestamp = ProjectForgeVersion.RELEASE_TIMESTAMP,
                     releaseDate = ProjectForgeVersion.RELEASE_DATE,
+                    releaseYear = ProjectForgeVersion.YEAR,
                     logoUrl = LogoServiceRest.logoUrl,
                     copyRightYears = ProjectForgeVersion.COPYRIGHT_YEARS)
             systemStatus.messageOfTheDay = GlobalConfiguration.getInstance()
