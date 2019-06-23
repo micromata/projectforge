@@ -27,6 +27,7 @@ import org.projectforge.business.address.AddressbookDao
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskFilter
+import org.projectforge.favorites.Favorites
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTORest
 import org.projectforge.rest.dto.Task
@@ -81,7 +82,7 @@ class TaskRest
         val layout = super.createEditLayout(dto)
                 .add(lc, "parentTask", "title", "status", "priority", "responsibleUser", "shortDescription", "reference", "description")
         layout.add(UIRow().add(UICol().add(UIInput("protectTimesheetsUntil", lc, dataType = UIDataType.DATE))))
-
+        Favorites.addTranslations(layout.translations)
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

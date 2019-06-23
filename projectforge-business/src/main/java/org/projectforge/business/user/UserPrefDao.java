@@ -23,11 +23,6 @@
 
 package org.projectforge.business.user;
 
-import java.io.Serializable;
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Field;
-import java.util.List;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -44,11 +39,7 @@ import org.projectforge.business.task.TaskDao;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
-import org.projectforge.framework.persistence.api.BaseDO;
-import org.projectforge.framework.persistence.api.BaseDao;
-import org.projectforge.framework.persistence.api.BaseSearchFilter;
-import org.projectforge.framework.persistence.api.HibernateUtils;
-import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
@@ -60,18 +51,20 @@ import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.io.Serializable;
+import java.lang.reflect.AccessibleObject;
+import java.lang.reflect.Field;
+import java.util.List;
+
 /**
- *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
 @Repository
-public class UserPrefDao extends BaseDao<UserPrefDO>
-{
+public class UserPrefDao extends BaseDao<UserPrefDO> {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserPrefDao.class);
 
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "user.username", "user.firstname",
-      "user.lastname" };
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"user.username", "user.firstname",
+          "user.lastname"};
 
   @Autowired
   private Kost2Dao kost2Dao;
@@ -89,29 +82,25 @@ public class UserPrefDao extends BaseDao<UserPrefDO>
   private UserDao userDao;
 
   @Override
-  protected String[] getAdditionalSearchFields()
-  {
+  protected String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
-  public UserPrefDao()
-  {
+  public UserPrefDao() {
     super(UserPrefDO.class);
   }
 
   /**
    * Gets all names of entries of the given area for the current logged in user
-   * 
+   *
    * @param area
    * @return
    */
-  public String[] getPrefNames(final UserPrefArea area)
-  {
+  public String[] getPrefNames(final UserPrefArea area) {
     final PFUserDO user = ThreadLocalUserContext.getUser();
-    @SuppressWarnings("unchecked")
-    final List<Object> list = getSession()
-        .createQuery("select name from UserPrefDO t where user_fk=? and areaString = ? order by name")
-        .setInteger(0, user.getId()).setParameter(1, area.getId()).list();
+    @SuppressWarnings("unchecked") final List<Object> list = getSession()
+            .createQuery("select pk,name from UserPrefDO t where user_fk=? and areaString = ? order by name")
+            .setInteger(0, user.getId()).setParameter(1, area.getId()).list();
     final String[] result = new String[list.size()];
     int i = 0;
     for (final Object oa : list) {
@@ -122,8 +111,8 @@ public class UserPrefDao extends BaseDao<UserPrefDO>
 
   /**
    * Does (another) entry for the given user with the given area and name already exists?
-   * 
-   * @param id of the current data object (null for new objects).
+   *
+   * @param id   of the current data object (null for new objects).
    * @param user
    * @param area
    * @param name
@@ -131,20 +120,19 @@ public class UserPrefDao extends BaseDao<UserPrefDO>
    */
   @SuppressWarnings("unchecked")
   public boolean doesParameterNameAlreadyExist(final Integer id, final PFUserDO user, final UserPrefArea area,
-      final String name)
-  {
+                                               final String name) {
     Validate.notNull(user);
     Validate.notNull(area);
     Validate.notNull(name);
     final List<UserPrefDO> list;
     if (id != null) {
       list = (List<UserPrefDO>) getHibernateTemplate().find(
-          "from UserPrefDO u where pk <> ? and u.user.id = ? and areaString = ? and name = ?",
-          new Object[] { id, user.getId(), area.getId(), name });
+              "from UserPrefDO u where pk <> ? and u.user.id = ? and areaString = ? and name = ?",
+              new Object[]{id, user.getId(), area.getId(), name});
     } else {
       list = (List<UserPrefDO>) getHibernateTemplate().find(
-          "from UserPrefDO u where u.user.id = ? and areaString = ? and name = ?",
-          new Object[] { user.getId(), area.getId(), name });
+              "from UserPrefDO u where u.user.id = ? and areaString = ? and name = ?",
+              new Object[]{user.getId(), area.getId(), name});
     }
     if (CollectionUtils.isNotEmpty(list) == true) {
       return true;
@@ -153,70 +141,72 @@ public class UserPrefDao extends BaseDao<UserPrefDO>
   }
 
   @Override
-  public List<UserPrefDO> getList(final BaseSearchFilter filter)
-  {
+  public List<UserPrefDO> getList(final BaseSearchFilter filter) {
     final UserPrefFilter myFilter = (UserPrefFilter) filter;
     final QueryFilter queryFilter = new QueryFilter(filter);
     if (myFilter.getArea() != null) {
       queryFilter.add(Restrictions.eq("areaString", myFilter.getArea().getId()));
     }
+    queryFilter.add(Restrictions.eq("user.id", ThreadLocalUserContext.getUserId()));
     queryFilter.addOrder(Order.asc("areaString"));
     queryFilter.addOrder(Order.asc("name"));
     final List<UserPrefDO> list = getList(queryFilter);
     return list;
   }
 
-  public UserPrefDO getUserPref(final UserPrefArea area, final String name)
-  {
+  public List<UserPrefDO> getList(String areaId) {
+    final QueryFilter queryFilter = new QueryFilter();
+    queryFilter.add(Restrictions.eq("areaString", areaId));
+    queryFilter.add(Restrictions.eq("user.id", ThreadLocalUserContext.getUserId()));
+    queryFilter.addOrder(Order.asc("name"));
+    final List<UserPrefDO> list = getList(queryFilter);
+    return list;
+  }
+
+  public UserPrefDO getUserPref(final UserPrefArea area, final String name) {
     final PFUserDO user = ThreadLocalUserContext.getUser();
-    @SuppressWarnings("unchecked")
-    final List<UserPrefDO> list = (List<UserPrefDO>) getHibernateTemplate().find(
-        "from UserPrefDO u where u.user.id = ? and u.areaString = ? and u.name = ?",
-        new Object[] { user.getId(), area.getId(), name });
+    @SuppressWarnings("unchecked") final List<UserPrefDO> list = (List<UserPrefDO>) getHibernateTemplate().find(
+            "from UserPrefDO u where u.user.id = ? and u.areaString = ? and u.name = ?",
+            new Object[]{user.getId(), area.getId(), name});
     if (list == null || list.size() != 1) {
       return null;
     }
     return list.get(0);
   }
 
-  public List<UserPrefDO> getUserPrefs(final UserPrefArea area)
-  {
+  public List<UserPrefDO> getUserPrefs(final UserPrefArea area) {
     final PFUserDO user = ThreadLocalUserContext.getUser();
-    @SuppressWarnings("unchecked")
-    final List<UserPrefDO> list = (List<UserPrefDO>) getHibernateTemplate().find(
-        "from UserPrefDO u where u.user.id = ? and u.areaString = ?",
-        new Object[] { user.getId(), area.getId() });
+    @SuppressWarnings("unchecked") final List<UserPrefDO> list = (List<UserPrefDO>) getHibernateTemplate().find(
+            "from UserPrefDO u where u.user.id = ? and u.areaString = ?",
+            new Object[]{user.getId(), area.getId()});
     return selectUnique(list);
   }
 
   /**
    * Adds the object fields as parameters to the given userPref. Fields without the annotation UserPrefParameter will be
    * ignored.
-   * 
+   *
    * @param userPref
    * @param obj
    * @see #fillFromUserPrefParameters(UserPrefDO, Object)
    */
-  public void addUserPrefParameters(final UserPrefDO userPref, final Object obj)
-  {
+  public void addUserPrefParameters(final UserPrefDO userPref, final Object obj) {
     addUserPrefParameters(userPref, obj.getClass(), obj);
   }
 
   /**
    * Adds the fields of the bean type represented by the given area as parameters to the given userPref. Fields without
    * the annotation UserPrefParameter will be ignored.
-   * 
+   *
    * @param userPref
    * @param area
    * @see #fillFromUserPrefParameters(UserPrefDO, Object)
    */
-  public void addUserPrefParameters(final UserPrefDO userPref, final UserPrefArea area)
-  {
+  public void addUserPrefParameters(final UserPrefDO userPref, final UserPrefArea area) {
     addUserPrefParameters(userPref, area.getBeanType(), null);
   }
 
-  private void addUserPrefParameters(final UserPrefDO userPref, final Class<?> beanType, final Object obj)
-  {
+  private void addUserPrefParameters(final UserPrefDO userPref, final Class<?> beanType, final Object obj) {
     Validate.notNull(userPref);
     Validate.notNull(beanType);
     final Field[] fields = beanType.getDeclaredFields();
@@ -245,8 +235,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO>
     }
   }
 
-  private void evaluateAnnotations(final UserPrefDO userPref, final Class<?> beanType)
-  {
+  private void evaluateAnnotations(final UserPrefDO userPref, final Class<?> beanType) {
     if (userPref.getUserPrefEntries() == null) {
       return;
     }
@@ -276,8 +265,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO>
     }
   }
 
-  private void evaluateAnnotation(final UserPrefEntryDO userPrefEntry, final Class<?> beanType, final Field field)
-  {
+  private void evaluateAnnotation(final UserPrefEntryDO userPrefEntry, final Class<?> beanType, final Field field) {
     final UserPrefParameter ann = field.getAnnotation(UserPrefParameter.class);
     userPrefEntry.i18nKey = ann.i18nKey();
     userPrefEntry.tooltipI18nKey = ann.tooltipI18nKey();
@@ -293,28 +281,26 @@ public class UserPrefDao extends BaseDao<UserPrefDO>
 
   /**
    * Fill object fields from the parameters of the given userPref.
-   * 
+   *
    * @param userPref
    * @param obj
    * @see #addUserPrefParameters(UserPrefDO, Object)
    */
-  public void fillFromUserPrefParameters(final UserPrefDO userPref, final Object obj)
-  {
+  public void fillFromUserPrefParameters(final UserPrefDO userPref, final Object obj) {
     fillFromUserPrefParameters(userPref, obj, false);
   }
 
   /**
    * Fill object fields from the parameters of the given userPref.
-   * 
+   *
    * @param userPref
    * @param obj
    * @param preserveExistingValues If true then existing value will not be overwritten by the user pref object. Default
-   *          is false.
+   *                               is false.
    * @see #addUserPrefParameters(UserPrefDO, Object)
    */
   public void fillFromUserPrefParameters(final UserPrefDO userPref, final Object obj,
-      final boolean preserveExistingValues)
-  {
+                                         final boolean preserveExistingValues) {
     Validate.notNull(userPref);
     Validate.notNull(obj);
     final Field[] fields = obj.getClass().getDeclaredFields();
@@ -330,7 +316,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO>
         }
         if (field == null) {
           log.error("Declared field '" + entry.getParameter() + "' not found for " + obj.getClass()
-              + ". Ignoring parameter.");
+                  + ". Ignoring parameter.");
         } else {
           final Object value = getParameterValue(field.getType(), entry.getValue());
           try {
@@ -351,26 +337,25 @@ public class UserPrefDao extends BaseDao<UserPrefDO>
             field.set(obj, value);
           } catch (final IllegalArgumentException ex) {
             log.error(ex.getMessage()
-                + " While setting declared field '"
-                + entry.getParameter()
-                + "' of "
-                + obj.getClass()
-                + ". Ignoring parameter.", ex);
+                    + " While setting declared field '"
+                    + entry.getParameter()
+                    + "' of "
+                    + obj.getClass()
+                    + ". Ignoring parameter.", ex);
           } catch (final IllegalAccessException ex) {
             log.error(ex.getMessage()
-                + " While setting declared field '"
-                + entry.getParameter()
-                + "' of "
-                + obj.getClass()
-                + ". Ignoring parameter.", ex);
+                    + " While setting declared field '"
+                    + entry.getParameter()
+                    + "' of "
+                    + obj.getClass()
+                    + ". Ignoring parameter.", ex);
           }
         }
       }
     }
   }
 
-  public void setValueObject(final UserPrefEntryDO userPrefEntry, final Object value)
-  {
+  public void setValueObject(final UserPrefEntryDO userPrefEntry, final Object value) {
     userPrefEntry.setValue(convertParameterValueToString(value));
     updateParameterValueObject(userPrefEntry);
   }
@@ -380,8 +365,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO>
    * @return
    * @see #getParameterValue(String)
    */
-  public String convertParameterValueToString(final Object value)
-  {
+  public String convertParameterValueToString(final Object value) {
     if (value == null) {
       return null;
     }
@@ -393,11 +377,10 @@ public class UserPrefDao extends BaseDao<UserPrefDO>
 
   /**
    * Sets the value object by converting it from the value string. The type of the userPrefEntry must be given.
-   * 
+   *
    * @param userPrefEntry
    */
-  public void updateParameterValueObject(final UserPrefEntryDO userPrefEntry)
-  {
+  public void updateParameterValueObject(final UserPrefEntryDO userPrefEntry) {
     userPrefEntry.valueAsObject = getParameterValue(userPrefEntry.getType(), userPrefEntry.getValue());
   }
 
@@ -407,8 +390,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO>
    * @see #convertParameterValueToString(Object)
    */
   @SuppressWarnings("unchecked")
-  public Object getParameterValue(final Class<?> type, final String str)
-  {
+  public Object getParameterValue(final Class<?> type, final String str) {
     if (str == null) {
       return null;
     }
@@ -449,8 +431,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO>
   }
 
   @Override
-  public UserPrefDO internalGetById(final Serializable id)
-  {
+  public UserPrefDO internalGetById(final Serializable id) {
     final UserPrefDO userPref = super.internalGetById(id);
     if (userPref == null) {
       return null;
@@ -466,8 +447,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess()
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException)
-  {
+  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException) {
     return true;
   }
 
@@ -476,9 +456,8 @@ public class UserPrefDao extends BaseDao<UserPrefDO>
    */
   @Override
   public boolean hasAccess(final PFUserDO user, final UserPrefDO obj, final UserPrefDO oldObj,
-      final OperationType operationType,
-      final boolean throwException)
-  {
+                           final OperationType operationType,
+                           final boolean throwException) {
     if (accessChecker.userEquals(user, obj.getUser()) == true) {
       return true;
     }
@@ -490,8 +469,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO>
   }
 
   @Override
-  public UserPrefDO newInstance()
-  {
+  public UserPrefDO newInstance() {
     return new UserPrefDO();
   }
 
