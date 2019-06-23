@@ -43,7 +43,8 @@ class SystemStatusRest {
                           var releaseTimestamp: String? = null,
                           var releaseDate: String? = null,
                           var messageOfTheDay: String? = null,
-                          var logoUrl: String? = null)
+                          var logoUrl: String? = null,
+                          var copyRightYears: String? = "")
 
     @GetMapping("systemStatus")
     fun loginTest(): SystemData {
@@ -51,13 +52,18 @@ class SystemStatusRest {
     }
 
     companion object {
-        fun getSystemData(): SystemStatusRest.SystemData {
+        var copyRightYears: String? = null
 
+        fun getSystemData(): SystemStatusRest.SystemData {
+            if (copyRightYears == null) {
+                copyRightYears = "2001-${ProjectForgeVersion.RELEASE_TIMESTAMP.subSequence(0, 4)}"
+            }
             val systemStatus = SystemStatusRest.SystemData(appname = ProjectForgeVersion.APP_ID,
                     version = ProjectForgeVersion.VERSION_STRING,
                     releaseTimestamp = ProjectForgeVersion.RELEASE_TIMESTAMP,
                     releaseDate = ProjectForgeVersion.RELEASE_DATE,
-                    logoUrl = LogoServiceRest.logoUrl)
+                    logoUrl = LogoServiceRest.logoUrl,
+                    copyRightYears = copyRightYears)
             systemStatus.messageOfTheDay = GlobalConfiguration.getInstance()
                     .getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY)
             return systemStatus
