@@ -89,10 +89,12 @@ class CalendarPanel extends React.Component {
             prevActiveCalendars.length === activeCalendars.length
             && prevActiveCalendars.find((preActiveElement, i) => {
                 const activeElement = activeCalendars[i];
+                const preColor = preActiveElement.style ? preActiveElement.style.bgColor : undefined;
+                const activeColor = activeElement.style ? activeElement.style.bgColor : undefined;
 
                 return !(preActiveElement.id === activeElement.id
                     && preActiveElement.visible === activeElement.visible
-                    && preActiveElement.style.bgColor === activeElement.style.bgColor);
+                    && preColor === activeColor);
             }) === undefined
         ) {
             return;
