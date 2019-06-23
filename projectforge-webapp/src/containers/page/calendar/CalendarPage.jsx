@@ -45,7 +45,10 @@ class CalendarPage extends React.Component {
 
     onChange(activeCalendars) {
         activeCalendars.sort((a, b) => a.title.localeCompare(b.title));
-        this.setState({ activeCalendars });
+        this.setState({
+            activeCalendars,
+            isCurrentFilterModified: true,
+        });
     }
 
     onFavoriteCreate(newFilterName) {
