@@ -230,6 +230,7 @@ class CalendarPage extends React.Component {
                                             translations={translations}
                                             currentFavoriteId={currentFilter.id}
                                             isModified={isCurrentFilterModified}
+                                            closeOnSelect={false}
                                         />
                                         <CalendarFilterSettings
                                             listOfDefaultCalendars={listOfDefaultCalendars}
