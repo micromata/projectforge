@@ -38,7 +38,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserDao;
-import org.projectforge.business.user.service.UserPreferencesService;
+import org.projectforge.business.user.service.UserXmlPreferencesService;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -69,7 +69,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
   private UserDao userDao;
 
   @SpringBean
-  private UserPreferencesService userPreferencesService;
+  private UserXmlPreferencesService userPreferencesService;
 
   private RecentQueue<String> recentUsers;
 

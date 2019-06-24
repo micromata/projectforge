@@ -25,7 +25,7 @@ package org.projectforge.rest.calendar
 
 import org.projectforge.business.calendar.*
 import org.projectforge.business.teamcal.admin.TeamCalCache
-import org.projectforge.business.user.service.UserPreferencesService
+import org.projectforge.business.user.service.UserXmlPreferencesService
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
@@ -78,7 +78,7 @@ class CalendarFilterServicesRest {
     private lateinit var teamCalCache: TeamCalCache
 
     @Autowired
-    private lateinit var userPreferenceService: UserPreferencesService
+    private lateinit var userXmlPreferenceService: UserXmlPreferencesService
 
     @GetMapping("initial")
     fun getInitialCalendar(): CalendarInit {
@@ -256,7 +256,7 @@ class CalendarFilterServicesRest {
         if (currentFilter != null)
         // Puts a deep copy of the current filter. Without copying, the favorite filter of the list will
         // be synchronized with the current filter.
-            userPreferenceService.putEntry(PREF_KEY_CURRENT_FAV, CalendarFilter().copyFrom(currentFilter), true)
+            userXmlPreferenceService.putEntry(PREF_KEY_CURRENT_FAV, CalendarFilter().copyFrom(currentFilter), true)
         else
             log.warn("Can't select filter $id, because it's not found in favorites list.")
         return getInitialCalendar()
@@ -267,7 +267,7 @@ class CalendarFilterServicesRest {
         var filterList: Favorites<CalendarFilter>? = null
         try {
             @Suppress("UNCHECKED_CAST", "USELESS_ELVIS")
-            filterList = userPreferenceService.getEntry(Favorites::class.java, PREF_KEY_FAV_LIST) as Favorites<CalendarFilter>
+            filterList = userXmlPreferenceService.getEntry(Favorites::class.java, PREF_KEY_FAV_LIST) as Favorites<CalendarFilter>
                     ?: migrateFromLegacyFilter()?.list
         } catch (ex: Exception) {
             log.error("Exception while getting user preferenced favorites: ${ex.message}. This might be OK for new releases. Ignoring filter.")
@@ -275,29 +275,29 @@ class CalendarFilterServicesRest {
         if (filterList == null) {
             // Creating empty filter list (user has no filter list yet):
             filterList = Favorites<CalendarFilter>()
-            userPreferenceService.putEntry(PREF_KEY_FAV_LIST, filterList, true)
+            userXmlPreferenceService.putEntry(PREF_KEY_FAV_LIST, filterList, true)
         }
         return filterList
     }
 
     private fun getCurrentFilter(): CalendarFilter {
-        var currentFilter = userPreferenceService.getEntry(CalendarFilter::class.java, PREF_KEY_CURRENT_FAV)
+        var currentFilter = userXmlPreferenceService.getEntry(CalendarFilter::class.java, PREF_KEY_CURRENT_FAV)
                 ?: migrateFromLegacyFilter()?.current
         if (currentFilter == null) {
             // Creating empty filter (user has no filter list yet):
             currentFilter = CalendarFilter()
-            userPreferenceService.putEntry(PREF_KEY_CURRENT_FAV, currentFilter, true)
+            userXmlPreferenceService.putEntry(PREF_KEY_CURRENT_FAV, currentFilter, true)
         }
         currentFilter.afterDeserialization()
         return currentFilter
     }
 
     private fun getFilterState(): CalendarFilterState {
-        var state = userPreferenceService.getEntry(CalendarFilterState::class.java, PREF_KEY_STATE)
+        var state = userXmlPreferenceService.getEntry(CalendarFilterState::class.java, PREF_KEY_STATE)
                 ?: migrateFromLegacyFilter()?.state
         if (state == null) {
             state = CalendarFilterState()
-            userPreferenceService.putEntry(PREF_KEY_STATE, state, true)
+            userXmlPreferenceService.putEntry(PREF_KEY_STATE, state, true)
         }
         if (state.startDate == null)
             state.startDate = LocalDate.now()
@@ -308,24 +308,24 @@ class CalendarFilterServicesRest {
 
 
     internal fun getStyleMap(): CalendarStyleMap {
-        var styleMap = userPreferenceService.getEntry(CalendarStyleMap::class.java, PREF_KEY_STYLES)
+        var styleMap = userXmlPreferenceService.getEntry(CalendarStyleMap::class.java, PREF_KEY_STYLES)
                 ?: migrateFromLegacyFilter()?.styleMap
         if (styleMap == null) {
             styleMap = CalendarStyleMap()
-            userPreferenceService.putEntry(PREF_KEY_STYLES, styleMap, true)
+            userXmlPreferenceService.putEntry(PREF_KEY_STYLES, styleMap, true)
         }
         return styleMap
     }
 
     private fun migrateFromLegacyFilter(): CalendarLegacyFilter? {
-        val legacyFilter = CalendarLegacyFilter.migrate(userPreferenceService) ?: return null
+        val legacyFilter = CalendarLegacyFilter.migrate(userXmlPreferenceService) ?: return null
         log.info("User's legacy calendar filter migrated.")
-        userPreferenceService.putEntry(PREF_KEY_FAV_LIST, legacyFilter.list, true)
-        userPreferenceService.putEntry(PREF_KEY_CURRENT_FAV, legacyFilter.current, true)
+        userXmlPreferenceService.putEntry(PREF_KEY_FAV_LIST, legacyFilter.list, true)
+        userXmlPreferenceService.putEntry(PREF_KEY_CURRENT_FAV, legacyFilter.current, true)
         // Filter state is now separately stored:
-        userPreferenceService.putEntry(PREF_KEY_STATE, legacyFilter.state, true)
+        userXmlPreferenceService.putEntry(PREF_KEY_STATE, legacyFilter.state, true)
         // Filter styles are now separately stored:
-        userPreferenceService.putEntry(PREF_KEY_STYLES, legacyFilter.styleMap, true)
+        userXmlPreferenceService.putEntry(PREF_KEY_STYLES, legacyFilter.styleMap, true)
         return legacyFilter
     }
 

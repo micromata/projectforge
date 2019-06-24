@@ -25,7 +25,7 @@ package org.projectforge.business.calendar
 
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter
 import org.projectforge.business.teamcal.filter.ViewType
-import org.projectforge.business.user.service.UserPreferencesService
+import org.projectforge.business.user.service.UserXmlPreferencesService
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.time.PFDateTimeUtils
 
@@ -51,9 +51,9 @@ class CalendarLegacyFilter(val state: CalendarFilterState,
         /**
          * For re-using legacy filters (from ProjectForge version up to 6, Wicket-Calendar).
          */
-        fun migrate(userPreferenceService: UserPreferencesService): CalendarLegacyFilter? {
+        fun migrate(userXmlPreferenceService: UserXmlPreferencesService): CalendarLegacyFilter? {
             // No current user filters available. Try the old one (from release 6.* / Wicket Calendarpage):
-            val oldFilter = userPreferenceService.getEntry(TeamCalCalendarFilter::class.java, OLD_USERPREF_KEY)
+            val oldFilter = userXmlPreferenceService.getEntry(TeamCalCalendarFilter::class.java, OLD_USERPREF_KEY)
                     ?: return null
 
             val state = CalendarFilterState()

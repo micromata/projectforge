@@ -23,7 +23,7 @@
 
 package org.projectforge.menu.builder
 
-import org.projectforge.business.user.service.UserPreferencesService
+import org.projectforge.business.user.service.UserXmlPreferencesService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.Menu
@@ -38,7 +38,7 @@ import org.springframework.stereotype.Component
 @Component
 open class FavoritesMenuCreator {
     @Autowired
-    private lateinit var userPreferencesService: UserPreferencesService
+    private lateinit var userXmlPreferencesService: UserXmlPreferencesService
 
     @Autowired
     private lateinit var menuCreator: MenuCreator
@@ -50,7 +50,7 @@ open class FavoritesMenuCreator {
      * Builds the standard favorite menu, if the use hasn't one yet.
      */
     fun getDefaultFavoriteMenu(): Menu {
-        val favMenuAsUserPrefString = userPreferencesService.getEntry(USER_PREF_FAVORITES_MENU_ENTRIES_KEY) as String?
+        val favMenuAsUserPrefString = userXmlPreferencesService.getEntry(USER_PREF_FAVORITES_MENU_ENTRIES_KEY) as String?
         return getDefaultFavoriteMenu(favMenuAsUserPrefString)
     }
 

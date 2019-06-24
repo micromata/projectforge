@@ -40,7 +40,7 @@ import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.KundeDao;
 import org.projectforge.business.fibu.KundeFavorite;
 import org.projectforge.business.fibu.KundeFormatter;
-import org.projectforge.business.user.service.UserPreferencesService;
+import org.projectforge.business.user.service.UserXmlPreferencesService;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
@@ -76,7 +76,7 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
   private KundeDao kundeDao;
 
   @SpringBean
-  private UserPreferencesService userPreferencesService;
+  private UserXmlPreferencesService userPreferencesService;
 
   private RecentQueue<String> recentCustomers;
 

@@ -29,7 +29,7 @@ import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.timesheet.TimesheetFilter
 import org.projectforge.business.timesheet.TimesheetPrefData
-import org.projectforge.business.user.service.UserPreferencesService
+import org.projectforge.business.user.service.UserXmlPreferencesService
 import org.projectforge.common.DateFormatType
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
@@ -56,7 +56,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilter>
     private val dateTimeFormatter = DateTimeFormatter.instance()
 
     @Autowired
-    private lateinit var userPreferencesService: UserPreferencesService
+    private lateinit var userXmlPreferencesService: UserXmlPreferencesService
 
     private val taskTree: TaskTree
         /** Lazy init, because test cases failed due to NPE in TenantRegistryMap. */
@@ -218,14 +218,14 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilter>
 
     private fun getTimesheetPrefData(): TimesheetPrefData {
         val prefKey = "timesheetEditPref"
-        var pref: TimesheetPrefData? = userPreferencesService.getEntry(TimesheetPrefData::class.java, prefKey)
+        var pref: TimesheetPrefData? = userXmlPreferencesService.getEntry(TimesheetPrefData::class.java, prefKey)
         if (pref == null) {
             val oldPrefKey = "org.projectforge.web.timesheet.TimesheetEditPage" // From Wicket version.
-            pref = userPreferencesService.getEntry(TimesheetPrefData::class.java, oldPrefKey)
+            pref = userXmlPreferencesService.getEntry(TimesheetPrefData::class.java, oldPrefKey)
             if (pref == null) {
                 pref = TimesheetPrefData()
             }
-            userPreferencesService.putEntry(prefKey, pref, true)
+            userXmlPreferencesService.putEntry(prefKey, pref, true)
         }
         return pref
     }

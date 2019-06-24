@@ -29,7 +29,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserXmlPreferencesCache;
-import org.projectforge.business.user.service.UserPreferencesService;
+import org.projectforge.business.user.service.UserXmlPreferencesService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.i18n.MessageParam;
 import org.projectforge.framework.i18n.UserException;
@@ -40,7 +40,7 @@ import org.projectforge.web.user.ChangePasswordPage;
 
 /**
  * All pages with required login should be derived from this page.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage
@@ -54,7 +54,7 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage
   protected transient AccessChecker accessChecker;
 
   @SpringBean
-  private UserPreferencesService userPreferencesService;
+  private UserXmlPreferencesService userPreferencesService;
 
   private transient TenantRegistry tenantRegistry;
 
@@ -90,11 +90,11 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage
 
   /**
    * Stores the given value for the current user.
-   * 
+   *
    * @param key
    * @param value
    * @param persistent If true, the object will be persisted in the database.
-   * @see UserPreferencesService#putEntry(Integer, String, Object, boolean)
+   * @see UserXmlPreferencesService#putEntry(Integer, String, Object, boolean)
    */
   public void putUserPrefEntry(final String key, final Object value, final boolean persistent)
   {
@@ -103,11 +103,11 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage
 
   /**
    * Gets the stored user preference entry.
-   * 
+   *
    * @param key
    * @return Return a persistent object with this key, if existing, or if not a volatile object with this key, if
    *         existing, otherwise null;
-   * @see UserPreferencesService#getEntry(String)
+   * @see UserXmlPreferencesService#getEntry(String)
    */
   public Object getUserPrefEntry(final String key)
   {
@@ -116,13 +116,13 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage
 
   /**
    * Gets the stored user preference entry.
-   * 
+   *
    * @param key
    * @param expectedType Checks the type of the user pref entry (if found) and returns only this object if the object is
    *          from the expected type, otherwise null is returned.
    * @return Return a persistent object with this key, if existing, or if not a volatile object with this key, if
    *         existing, otherwise null;
-   * @see UserPreferencesService#getEntry(String)
+   * @see UserXmlPreferencesService#getEntry(String)
    */
   public Object getUserPrefEntry(final Class<?> expectedType, final String key)
   {
@@ -131,7 +131,7 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage
 
   /**
    * Removes the entry under the given key.
-   * 
+   *
    * @param key
    * @return The removed entry if found.
    */
@@ -166,7 +166,7 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage
 
   /**
    * No it isn't.
-   * 
+   *
    * @see org.projectforge.web.wicket.AbstractUnsecureBasePage#thisIsAnUnsecuredPage()
    */
   @Override
@@ -212,7 +212,7 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage
 
   /**
    * Default is false, therefore the access of this page is not allowed for restricted users by default.
-   * 
+   *
    * @return the access4restrictedUsersAllowed
    */
   public boolean isAccess4restrictedUsersAllowed()
@@ -222,7 +222,7 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage
 
   /**
    * For getting caches etc.
-   * 
+   *
    * @return The current tenantRegistry also for systems without tenants configured.
    */
   protected TenantRegistry getTenantRegistry()
