@@ -28,20 +28,14 @@ import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.plugins.poll.PollDO
-
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.FetchType
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.Table
+import javax.persistence.*
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  */
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_POLL_ATTENDEE", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_poll_attendee_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_PLUGIN_POLL_ATTENDEE", indexes = [Index(name = "idx_fk_t_plugin_poll_attendee_tenant_id", columnList = "tenant_id")])
 class PollAttendeeDO : DefaultBaseDO() {
 
     @IndexedEmbedded(depth = 1)
@@ -76,18 +70,17 @@ class PollAttendeeDO : DefaultBaseDO() {
     /**
      * @see java.lang.Object.equals
      */
-    override fun equals(obj: Any?): Boolean {
-        if (this === obj)
+    override fun equals(other: Any?): Boolean {
+        if (this === other)
             return true
-        if (obj == null)
+        if (other == null)
             return false
-        if (javaClass != obj.javaClass)
+        if (other !is PollAttendeeDO)
             return false
-        val other = obj as PollAttendeeDO?
         if (email == null) {
-            if (other!!.email != null)
+            if (other.email != null)
                 return false
-        } else if (email != other!!.email)
+        } else if (email != other.email)
             return false
         if (poll == null) {
             if (other.poll != null)

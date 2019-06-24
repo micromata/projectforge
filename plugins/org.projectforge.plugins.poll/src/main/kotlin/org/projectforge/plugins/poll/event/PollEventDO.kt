@@ -67,22 +67,21 @@ class PollEventDO : DefaultBaseDO() {
     /**
      * @see java.lang.Object.equals
      */
-    override fun equals(obj: Any?): Boolean {
-        if (this === obj) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) {
             return true
         }
-        if (obj == null) {
+        if (other == null) {
             return false
         }
-        if (javaClass != obj.javaClass) {
+        if (other !is PollEventDO) {
             return false
         }
-        val other = obj as PollEventDO?
         if (endDate == null) {
-            if (other!!.endDate != null) {
+            if (other.endDate != null) {
                 return false
             }
-        } else if (!endDate!!.equals(other!!.endDate)) {
+        } else if (!endDate!!.equals(other.endDate)) {
             return false
         }
         if (poll == null) {
