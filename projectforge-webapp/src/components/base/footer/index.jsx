@@ -8,7 +8,6 @@ function Footer() {
         version,
         releaseTimestamp,
         copyRightYears,
-        updateAvailable,
     } = React.useContext(SystemStatusContext);
 
     return (
@@ -45,19 +44,6 @@ function Footer() {
                 </li>
             </ul>
             <ul className={classNames(style.list, style.version)}>
-                {updateAvailable
-                    ? (
-                        <li>
-                            <a
-                                href="https://sourceforge.net/projects/pforge/files/ProjectForge/"
-                                title="Download new version"
-                                className={style.news_link}
-                            >
-                                New Version available
-                            </a>
-                        </li>
-                    )
-                    : undefined}
                 <li>
                     <a
                         href="https://www.projectforge.org/projectforge-news.html"
