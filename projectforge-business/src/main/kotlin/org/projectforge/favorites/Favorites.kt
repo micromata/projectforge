@@ -72,10 +72,10 @@ class Favorites<T : AbstractFavorite>() {
         set.removeIf { it.id == id }
     }
 
-    fun saveNewUserPref(userPrefDao: UserPrefDao, newFavorite: T, areaId: String, parameter: String, value: String) {
+    fun saveNewUserPref(userPrefDao: UserPrefDao, newFavorite: T, area: String, parameter: String, value: String) {
         add(newFavorite) // If name is already given, a new name is set.
         val userPref = UserPrefDO()
-        userPref.areaString = areaId
+        userPref.area = area
         userPref.user = ThreadLocalUserContext.getUser()
         userPref.name = newFavorite.name
         val userPrefEntry = UserPrefEntryDO()
@@ -171,25 +171,25 @@ class Favorites<T : AbstractFavorite>() {
                     translations = translations)
         }
 
-        fun deleteUserPref(userPrefDao: UserPrefDao, areaId: String, id: Int) {
-            val userPref = userPrefDao.getUserPref(areaId, id)
+        fun deleteUserPref(userPrefDao: UserPrefDao, area: String, id: Int) {
+            val userPref = userPrefDao.getUserPref(area, id)
             if (userPref != null) {
                 userPrefDao.delete(userPref)
             } else {
-                log.warn("User tried to delete user pref with id #$id for area '$areaId', but it can't be deleted (is from other user, different area or an has unknown id).")
+                log.warn("User tried to delete user pref with id #$id for area '$area', but it can't be deleted (is from other user, different area or an has unknown id).")
             }
         }
 
-        fun renameUserPref(userPrefDao: UserPrefDao, areaId: String, id: Int, newName: String) {
-            val userPref = userPrefDao.getUserPref(areaId, id)
+        fun renameUserPref(userPrefDao: UserPrefDao, area: String, id: Int, newName: String) {
+            val userPref = userPrefDao.getUserPref(area, id)
             if (userPref != null) {
-                if (userPrefDao.doesParameterNameAlreadyExist(id, ThreadLocalUserContext.getUserId(), areaId, newName)) {
+                if (userPrefDao.doesParameterNameAlreadyExist(id, ThreadLocalUserContext.getUserId(), area, newName)) {
                     log.warn("User tried to rename user pref with id #$id from '${userPref.name}' into '$newName', but another entry with this name already exist.")
                 } else {
                     userPrefDao.delete(userPref)
                 }
             } else {
-                log.warn("User tried to reanme user pref with id #$id for area '$areaId', but it can't be renamed (is from other user, different area or has an unknown id).")
+                log.warn("User tried to reanme user pref with id #$id for area '$area', but it can't be renamed (is from other user, different area or has an unknown id).")
             }
         }
     }

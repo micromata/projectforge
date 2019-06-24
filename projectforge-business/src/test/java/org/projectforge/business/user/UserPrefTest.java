@@ -124,7 +124,7 @@ public class UserPrefTest extends AbstractTestBase
   {
     UserPrefDO userPref = new UserPrefDO();
     userPref.setUser(user);
-    userPref.setArea(area);
+    userPref.setAreaObject(area);
     userPref.setName(name);
     return userPref;
   }
