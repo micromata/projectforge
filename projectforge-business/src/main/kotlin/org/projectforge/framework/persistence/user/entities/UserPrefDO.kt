@@ -62,6 +62,16 @@ class UserPrefDO : AbstractBaseDO<Int>() {
 
     @get:Transient
     var areaObject: UserPrefArea? = null // 20;
+        get() {
+            if (field == null) {
+                field = UserPrefAreaRegistry.instance().getEntry(this.area)
+            }
+            return field
+        }
+        set(area) {
+            field = area
+            this.area = area?.id
+        }
 
     @get:Deprecated("Use value with json serialization instead.")
     @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
@@ -69,20 +79,25 @@ class UserPrefDO : AbstractBaseDO<Int>() {
     @set:Deprecated("Use value with json serialization instead.")
     var userPrefEntries: MutableSet<UserPrefEntryDO>? = null
 
-    private var id: Int = 0
+    private var id: Int? = null
 
+    /**
+     * The value as string representation (e. g. json).
+     */
     @get:Column(length = 100000) // 100.000, should be space enough.
     var value: String? = null
+
+    /**
+     * The value as object (deserialized from json).
+     */
+    @get:Transient
+    var valueObject: Any? = null
 
     /**
      * User pref's ar
      */
     @get:Column(length = UserPrefArea.MAX_ID_LENGTH, nullable = false)
     var area: String? = null
-        set(areaId) {
-            field = areaId
-            this.areaObject = if (areaId != null) UserPrefAreaRegistry.instance().getEntry(areaId) else null
-        }
 
     val sortedUserPrefEntries: Set<UserPrefEntryDO>
         @Transient
@@ -95,7 +110,7 @@ class UserPrefDO : AbstractBaseDO<Int>() {
     @Id
     @GeneratedValue
     @Column(name = "pk")
-    override fun getId(): Int {
+    override fun getId(): Int? {
         return id
     }
 

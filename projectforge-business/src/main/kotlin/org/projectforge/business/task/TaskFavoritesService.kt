@@ -41,7 +41,7 @@ class TaskFavoritesService {
 
     fun getList(): List<TaskFavorite> {
         val userPrefs = userPrefDao.getListWithoutEntries(AREA_ID)
-        return userPrefs.map { TaskFavorite(it.name, it.id) }
+        return userPrefs.map { TaskFavorite(it.name, it.id!!) }
     }
 
     fun selectTaskId(id: Int): Int? {
