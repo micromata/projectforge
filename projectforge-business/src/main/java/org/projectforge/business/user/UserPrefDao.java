@@ -23,6 +23,15 @@
 
 package org.projectforge.business.user;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -51,6 +60,7 @@ import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
@@ -153,7 +163,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
   /**
    * Does (another) entry for the given user with the given area and name already exists?
    *
-   * @param id   of the current data object (null for new objects).
+   * @param id     of the current data object (null for new objects).
    * @param userId
    * @param areaId
    * @param name
@@ -416,11 +426,6 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     updateParameterValueObject(userPrefEntry);
   }
 
-  /**
-   * @param value
-   * @return
-   * @see #getParameterValue(String)
-   */
   public String convertParameterValueToString(final Object value) {
     if (value == null) {
       return null;
@@ -441,8 +446,6 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
   }
 
   /**
-   * @param value
-   * @return
    * @see #convertParameterValueToString(Object)
    */
   @SuppressWarnings("unchecked")
@@ -500,16 +503,12 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
 
   /**
    * @return Always true, no generic select access needed for user pref objects.
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess()
    */
   @Override
   public boolean hasSelectAccess(final PFUserDO user, final boolean throwException) {
     return true;
   }
 
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasAccess(Object, OperationType)
-   */
   @Override
   public boolean hasAccess(final PFUserDO user, final UserPrefDO obj, final UserPrefDO oldObj,
                            final OperationType operationType,
@@ -529,4 +528,59 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     return new UserPrefDO();
   }
 
+  public <T> T deserizalizeValueObject(UserPrefDO userPref, final Class<T> classOfT) {
+    userPref.setValueObject(fromJson(userPref.getValue(), classOfT));
+    return (T)userPref.getValueObject();
+  }
+
+  @Override
+  protected void onSaveOrModify(UserPrefDO obj) {
+    if (obj.getValueObject() == null) {
+      obj.setValue(null);
+    } else {
+      obj.setValue(toJson(obj.getValueObject()));
+    }
+  }
+
+  private static final String MAGIC_JSON_START = "^JSON:";
+
+  private String toJson(Object obj) {
+    try {
+      return MAGIC_JSON_START + createObjectMapper().writeValueAsString(obj);
+    } catch (JsonProcessingException ex) {
+      log.error("Error while trying to serialze object as json: " + ex.getMessage(), ex);
+      return "";
+    }
+  }
+
+  private boolean isJsonObject(String value) {
+    return StringUtils.startsWith(value, MAGIC_JSON_START);
+  }
+
+  private <T> T fromJson(String json, final Class<T> classOfT) {
+    if (!isJsonObject(json))
+      return null;
+    json = json.substring(MAGIC_JSON_START.length());
+    try {
+      return createObjectMapper().readValue(json, classOfT);
+    } catch (IOException ex) {
+      log.error("Can't deserialize json object: " + ex.getMessage() + " json=" + json, ex);
+      return null;
+    }
+  }
+
+  private ObjectMapper createObjectMapper() {
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE);
+    mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    mapper.setSerializationInclusion(JsonInclude.Include.NON_DEFAULT);
+    mapper.configure(SerializationFeature.FAIL_ON_SELF_REFERENCES, false);
+    mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    SimpleModule module = new SimpleModule();
+    mapper.registerModule(module);
+    mapper.registerModule(new KotlinModule());
+    return mapper;
+  }
 }
