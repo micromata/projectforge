@@ -24,12 +24,9 @@
 package org.projectforge.business.task
 
 import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist
-import java.util.Objects
-import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.apache.commons.lang3.builder.ToStringBuilder
-import org.hibernate.search.annotations.Index
 import org.hibernate.search.annotations.*
+import org.hibernate.search.annotations.Index
 import org.hibernate.search.bridge.builtin.IntegerBridge
 import org.projectforge.business.gantt.GanttObjectType
 import org.projectforge.business.gantt.GanttRelationType
@@ -41,10 +38,9 @@ import org.projectforge.common.task.TimesheetBookingStatus
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-
-import javax.persistence.*
 import java.math.BigDecimal
-import java.util.Date
+import java.util.*
+import javax.persistence.*
 
 /**
  *
@@ -90,10 +86,9 @@ class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObje
     var description: String? = null
 
     /** -&gt; Gantt  */
-    @Deprecated("")
+    @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
     @PropertyInfo(i18nKey = "task.progress")
-    @get:Deprecated("")
     @get:Column
     var progress: Int? = null
 
@@ -105,7 +100,7 @@ class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObje
     /**
      * @see org.projectforge.business.gantt.GanttTask.getStartDate
      */
-    @Deprecated("")
+    @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @PropertyInfo(i18nKey = "gantt.startDate")
@@ -115,7 +110,7 @@ class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObje
     /**
      * @see org.projectforge.business.gantt.GanttTask.getEndDate
      */
-    @Deprecated("")
+    @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @PropertyInfo(i18nKey = "gantt.endDate")
@@ -127,7 +122,7 @@ class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObje
      *
      * @see org.projectforge.business.gantt.GanttTask.getDuration
      */
-    @Deprecated("")
+    @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @PropertyInfo(i18nKey = "gantt.duration")
     @get:Column(name = "duration", scale = 2, precision = 10)
     var duration: BigDecimal? = null
@@ -166,12 +161,8 @@ class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObje
         get() {
             return field ?: TimesheetBookingStatus.DEFAULT
         }
-        set(timesheetBookingStatus){
-            if (timesheetBookingStatus != null) {
-                field = timesheetBookingStatus
-            } else {
-                field = TimesheetBookingStatus.DEFAULT
-            }
+        set(timesheetBookingStatus) {
+            field = timesheetBookingStatus ?: TimesheetBookingStatus.DEFAULT
         }
 
     /**
@@ -223,12 +214,8 @@ class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObje
     @get:Column(name = "protectionOfPrivacy", nullable = false, columnDefinition = "BOOLEAN DEFAULT 'false'")
     var protectionOfPrivacy: Boolean = false
 
-    @Deprecated("")
-    @get:Column(name = "old_kost2_id")
-    var oldKost2Id: Int? = null
-
     /** -&gt; Gantt  */
-    @Deprecated("")
+    @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @Field
     @PropertyInfo(i18nKey = "task.parentTask")
     @get:Column(name = "workpackage_code", length = 100)
@@ -237,20 +224,20 @@ class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObje
     /**
      * In days.
      */
-    @Deprecated("")
+    @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @PropertyInfo(i18nKey = "task.parentTask")
     @get:Column(name = "gantt_predecessor_offset")
     var ganttPredecessorOffset: Int? = null
 
     /** -&gt; Gantt  */
-    @Deprecated("")
+    @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @PropertyInfo(i18nKey = "task.parentTask")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "gantt_rel_type", length = 15)
     var ganttRelationType: GanttRelationType? = null
 
     /** -&gt; Gantt  */
-    @Deprecated("")
+    @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @PropertyInfo(i18nKey = "task.parentTask")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "gantt_type", length = 10)
@@ -260,7 +247,7 @@ class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObje
      * Please note: if you use TaskTree as cache then note, that the depend-on-task can be out-dated! Get the id of the
      * depend-on-task and get the every-time up-to-date task from the task tree by this id.
      */
-    @Deprecated("")
+    @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @PropertyInfo(i18nKey = "task.parentTask")
     @get:ManyToOne(cascade = [CascadeType.PERSIST, CascadeType.MERGE], targetEntity = TaskDO::class)
     @get:JoinColumn(name = "gantt_predecessor_fk")
@@ -289,8 +276,9 @@ class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObje
         get() = getKost2BlackWhiteItems(kost2BlackWhiteList)
 
     /** -&gt; Gantt  */
+    @Suppress("DEPRECATION")
+    @Deprecated("Properties of Gantt diagram will be refactored some day.")
     val ganttPredecessorId: Int?
-        @Deprecated("")
         @Transient
         get() = if (this.ganttPredecessor == null) {
             null
@@ -298,21 +286,15 @@ class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObje
             this.ganttPredecessor!!.id
         }
 
-    /**
-     * Please use getTitle() instead. getName() should only be used in Groovy scripts.
-     *
-     * @return The title.
-     */
-    @Deprecated("")
+    @Deprecated("Please use getTitle() instead. getName() should only be used in Groovy scripts.")
     @Transient
     fun getName(): String? {
         return title
     }
 
-    override fun equals(o: Any?): Boolean {
-        if (o is TaskDO) {
-            val other = o as TaskDO?
-            return this.parentTaskId == other!!.parentTaskId && this.title == other.title
+    override fun equals(other: Any?): Boolean {
+        if (other is TaskDO) {
+            return this.parentTaskId == other.parentTaskId && this.title == other.title
         }
         return false
     }
@@ -321,30 +303,6 @@ class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObje
         val hcb = HashCodeBuilder()
         hcb.append(this.parentTaskId).append(this.title)
         return hcb.toHashCode()
-    }
-
-    override fun toString(): String {
-        val builder = ToStringBuilder(this)
-        builder.append("id", id)
-        builder.append("parentTaskId", parentTaskId)
-        builder.append("title", title)
-        builder.append("status", status)
-        builder.append("priority", priority)
-        builder.append("progress", progress)
-        builder.append("shortDescription", shortDescription)
-        builder.append("description", description)
-        builder.append("maxHours", maxHours)
-        builder.append("startDate", startDate)
-        builder.append("endDate", endDate)
-        builder.append("responsibleUserId", responsibleUserId)
-        if (this.kost2IsBlackList) {
-            builder.append("kost2BlackWhiteList", kost2BlackWhiteList)
-        }
-        if (StringUtils.isNotBlank(kost2BlackWhiteList)) {
-            builder.append("kost2BlackWhiteList", kost2BlackWhiteList)
-        }
-        builder.append("timesheetBookingStatus", timesheetBookingStatus)
-        return builder.toString()
     }
 
     @Transient
@@ -357,6 +315,7 @@ class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObje
      *
      * @see java.lang.Object.clone
      */
+    @Suppress("DEPRECATION")
     @Throws(CloneNotSupportedException::class)
     public override fun clone(): Any {
         val clone = super.clone() as TaskDO
@@ -385,7 +344,7 @@ class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObje
     }
 
     companion object {
-        const val KOST2_SEPARATOR_CHARS = ",; "
+        private const val KOST2_SEPARATOR_CHARS = ",; "
 
         const val TITLE_LENGTH = 40
 
