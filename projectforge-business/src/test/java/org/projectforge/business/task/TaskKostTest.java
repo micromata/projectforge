@@ -91,11 +91,13 @@ public class TaskKostTest extends AbstractTestBase
     assertKost2(kost2a, list.get(0));
     assertKost2(kost2b, list.get(1));
     assertKost2(kost2c, list.get(2));
-    task.setKost2BlackWhiteList("1.137.05.01, 1.137.05.02, 2.423.12.01").setKost2IsBlackList(true);
+    task.setKost2BlackWhiteList("1.137.05.01, 1.137.05.02, 2.423.12.01");
+    task.setKost2IsBlackList(true);
     taskDao.update(task);
     list = taskTree.getKost2List(task.getId());
     assertNull(list);
-    task.setKost2BlackWhiteList("1.137.05.01, 1.137.05.02, 2.423.12.01, jwe9jdkjn").setKost2IsBlackList(false);
+    task.setKost2BlackWhiteList("1.137.05.01, 1.137.05.02, 2.423.12.01, jwe9jdkjn");
+    task.setKost2IsBlackList(false);
     taskDao.update(task);
     list = taskTree.getKost2List(task.getId());
     assertEquals(3, list.size());
@@ -168,22 +170,26 @@ public class TaskKostTest extends AbstractTestBase
     assertEquals(2, list.size());
     assertKost2(kost2b, list.get(0));
     assertKost2(kost2c, list.get(1));
-    task.setKost2BlackWhiteList("05.02; 4.137.05.03, 5.123.423.11").setKost2IsBlackList(true); // Black list
+    task.setKost2BlackWhiteList("05.02; 4.137.05.03, 5.123.423.11");
+    task.setKost2IsBlackList(true); // Black list
     // 5.123.423.11 will be ignored.
     taskDao.update(task);
     list = taskTree.getKost2List(task.getId());
     assertEquals(2, list.size());
     assertKost2(kost2a, list.get(0));
     assertKost2(kost2d, list.get(1));
-    task.setKost2BlackWhiteList("*").setKost2IsBlackList(true); // Black list (ignore all)
+    task.setKost2BlackWhiteList("*");
+    task.setKost2IsBlackList(true); // Black list (ignore all)
     taskDao.update(task);
     list = taskTree.getKost2List(task.getId());
     assertNull(list);
-    task.setKost2BlackWhiteList("-").setKost2IsBlackList(false); // White list
+    task.setKost2BlackWhiteList("-");
+    task.setKost2IsBlackList(false); // White list
     taskDao.update(task);
     list = taskTree.getKost2List(task.getId());
     assertNull(list);
-    task.setKost2BlackWhiteList("*").setKost2IsBlackList(false); // White list
+    task.setKost2BlackWhiteList("*");
+    task.setKost2IsBlackList(false); // White list
     taskDao.update(task);
     list = taskTree.getKost2List(task.getId());
     assertEquals(4, list.size());

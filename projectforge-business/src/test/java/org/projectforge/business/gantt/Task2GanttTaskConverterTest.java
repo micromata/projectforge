@@ -64,16 +64,36 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
     initTestDB.addTask(prefix + "2.3", prefix + "2");
     final DayHolder day = new DayHolder();
     day.setDate(2010, Calendar.AUGUST, 16);
-    taskDao.update(getTask(prefix + "2.1").setStartDate(day.getDate()).setDuration(BigDecimal.TEN));
-    taskDao.update(getTask(prefix + "2.2").setGanttPredecessor(getTask(prefix + "2.1")).setDuration(BigDecimal.TEN));
 
-    taskDao.update(getTask(prefix + "1.1.1").setGanttPredecessor(getTask(prefix + "2.1")).setDuration(BigDecimal.TEN));
-    taskDao
-            .update(getTask(prefix + "1.1.2").setGanttPredecessor(getTask(prefix + "1.1.1")).setDuration(BigDecimal.TEN));
+    TaskDO task = getTask(prefix + "2.1");
+    task.setStartDate(day.getDate());
+    task.setDuration(BigDecimal.TEN);
+    taskDao.update(task);
 
-    taskDao.update(getTask(prefix + "1.2.1").setGanttPredecessor(getTask(prefix + "2.2")).setDuration(BigDecimal.TEN));
-    taskDao
-            .update(getTask(prefix + "1.2.2").setGanttPredecessor(getTask(prefix + "1.2.1")).setDuration(BigDecimal.TEN));
+    task = getTask(prefix + "2.2");
+    task.setGanttPredecessor(getTask(prefix + "2.1"));
+    task.setDuration(BigDecimal.TEN);
+    taskDao.update(task);
+
+    task = getTask(prefix + "1.1.1");
+    task.setGanttPredecessor(getTask(prefix + "2.1"));
+    task.setDuration(BigDecimal.TEN);
+    taskDao.update(task);
+
+    task = getTask(prefix + "1.1.2");
+    task.setGanttPredecessor(getTask(prefix + "1.1.1"));
+    task.setDuration(BigDecimal.TEN);
+    taskDao.update(task);
+
+    task = getTask(prefix + "1.2.1");
+    task.setGanttPredecessor(getTask(prefix + "2.2"));
+    task.setDuration(BigDecimal.TEN);
+    taskDao.update(task);
+
+    task = getTask(prefix + "1.2.2");
+    task.setGanttPredecessor(getTask(prefix + "1.2.1"));
+    task.setDuration(BigDecimal.TEN);
+    taskDao.update(task);
 
     final GanttChartData ganttChartData = Task2GanttTaskConverter.convertToGanttObjectTree(taskDao.getTaskTree(),
             getTask(prefix + "1"));

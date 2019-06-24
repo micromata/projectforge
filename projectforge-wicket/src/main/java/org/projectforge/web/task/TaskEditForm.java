@@ -371,7 +371,7 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
           public String getObject()
           {
             final List<Kost2DO> kost2DOs = getTaskTree().getKost2List(projekt, data, data.getKost2BlackWhiteItems(),
-                data.isKost2IsBlackList());
+                data.getKost2IsBlackList());
             final String[] kost2s = TaskListPage.getKost2s(kost2DOs);
             if (kost2s == null || kost2s.length == 0) {
               return " - (-)";

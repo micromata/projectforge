@@ -55,13 +55,23 @@ public class GanttChartTest extends AbstractTestBase {
     final TaskDO rootTask = initTestDB.addTask(prefix, "root");
     final DateHolder dh = new DateHolder();
     dh.setDate(2010, Calendar.AUGUST, 3);
-    taskDao.update(initTestDB.addTask(prefix + "1", prefix).setStartDate(dh.getDate()).setDuration(BigDecimal.TEN));
+
+    TaskDO task = initTestDB.addTask(prefix + "1", prefix);
+    task.setStartDate(dh.getDate());
+    task.setDuration(BigDecimal.TEN);
+
+    taskDao.update(task);
     initTestDB.addTask(prefix + "1.1", prefix + "1");
-    taskDao.update(initTestDB.addTask(prefix + "2", prefix).setGanttPredecessor(getTask(prefix + "1"))
-            .setDuration(BigDecimal.ONE));
-    taskDao.update(initTestDB.addTask(prefix + "3", prefix).setGanttPredecessor(getTask(prefix + "2"))
-            .setGanttPredecessorOffset(10)
-            .setDuration(BigDecimal.TEN));
+    task = initTestDB.addTask(prefix + "2", prefix);
+    task.setGanttPredecessor(getTask(prefix + "1"));
+    task.setDuration(BigDecimal.ONE);
+    taskDao.update(task);
+
+    task = initTestDB.addTask(prefix + "3", prefix);
+    task.setGanttPredecessor(getTask(prefix + "2"));
+    task.setGanttPredecessorOffset(10);
+    task.setDuration(BigDecimal.TEN);
+    taskDao.update(task);
     final GanttChartData data = Task2GanttTaskConverter.convertToGanttObjectTree(taskTree, rootTask);
     final GanttTask rootObject = data.getRootObject();
     final GanttChartDO ganttChartDO = new GanttChartDO();
@@ -88,9 +98,21 @@ public class GanttChartTest extends AbstractTestBase {
     assertEquals(dh.getDate(), findById(ganttObject, getTask(prefix + "1").getId()).getStartDate(), "startDate");
 
     initTestDB.addTask(prefix + "II", "root");
-    taskDao.update(getTask(prefix + "1.1").setParentTask(getTask(prefix))); // One level higher
-    taskDao.update(getTask(prefix + "2").setParentTask(getTask(prefix + "II"))); // Moved anywhere.
-    taskDao.update(getTask(prefix + "3").setParentTask(getTask(prefix + "II"))); // Moved anywhere.
+
+    task = getTask(prefix + "1.1");
+    task.setParentTask(getTask(prefix));
+
+    taskDao.update(task); // One level higher
+
+    task = getTask(prefix + "2");
+    task.setParentTask(getTask(prefix + "II"));
+
+    taskDao.update(task); // Moved anywhere.
+
+    task = getTask(prefix + "3");
+    task.setParentTask(getTask(prefix + "II"));
+
+    taskDao.update(task); // Moved anywhere.
 
     ganttObject = ganttChartDao.readGanttObjects(ganttChartDO).getRootObject();
     ganttChartDao.writeGanttObjects(ganttChartDO, ganttObject);
@@ -184,7 +206,8 @@ public class GanttChartTest extends AbstractTestBase {
 
   private Integer addTask(final String name, final BigDecimal duration, final Integer progress) {
     final TaskDO task = initTestDB.addTask(name, "GanttTest3");
-    task.setDuration(duration).setProgress(progress);
+    task.setDuration(duration);
+    task.setProgress(progress);
     taskDao.update(task);
     return task.getId();
   }

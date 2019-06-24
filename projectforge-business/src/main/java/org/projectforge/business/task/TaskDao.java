@@ -418,13 +418,13 @@ public class TaskDao extends BaseDao<TaskDO>
       if (obj.getProtectTimesheetsUntil() != null) {
         throw new AccessException("task.error.protectTimesheetsUntilReadonly");
       }
-      if (obj.isProtectionOfPrivacy() == true) {
+      if (obj.getProtectionOfPrivacy() == true) {
         throw new AccessException("task.error.protectionOfPrivacyReadonly");
       }
     }
     if (hasAccessForKost2AndTimesheetBookingStatus(user, obj) == false) {
       // Non project managers are not able to manipulate the following fields:
-      if (StringUtils.isNotBlank(obj.getKost2BlackWhiteList()) == true || obj.isKost2IsBlackList() == true) {
+      if (StringUtils.isNotBlank(obj.getKost2BlackWhiteList()) == true || obj.getKost2IsBlackList() == true) {
         throw new AccessException("task.error.kost2Readonly");
       }
       if (obj.getTimesheetBookingStatus() != TimesheetBookingStatus.DEFAULT) {
@@ -448,14 +448,14 @@ public class TaskDao extends BaseDao<TaskDO>
       if (Objects.equals(ts1, ts2) == false) {
         throw new AccessException("task.error.protectTimesheetsUntilReadonly");
       }
-      if (Objects.equals(obj.isProtectionOfPrivacy(), dbObj.isProtectionOfPrivacy()) == false) {
+      if (Objects.equals(obj.getProtectionOfPrivacy(), dbObj.getProtectionOfPrivacy()) == false) {
         throw new AccessException("task.error.protectionOfPrivacyReadonly");
       }
     }
     if (hasAccessForKost2AndTimesheetBookingStatus(user, obj) == false) {
       // Non project managers are not able to manipulate the following fields:
       if (Objects.equals(obj.getKost2BlackWhiteList(), dbObj.getKost2BlackWhiteList()) == false
-          || obj.isKost2IsBlackList() != dbObj.isKost2IsBlackList()) {
+          || obj.getKost2IsBlackList() != dbObj.getKost2IsBlackList()) {
         throw new AccessException("task.error.kost2Readonly");
       }
       if (obj.getTimesheetBookingStatus() != dbObj.getTimesheetBookingStatus()) {

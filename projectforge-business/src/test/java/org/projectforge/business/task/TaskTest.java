@@ -303,7 +303,10 @@ public class TaskTest extends AbstractTestBase {
     projekt.setTask(task);
     projektDao.save(projekt);
     logon(AbstractTestBase.TEST_USER);
-    TaskDO task1 = new TaskDO().setParentTask(task).setTitle("Task 1").setKost2BlackWhiteList("Hurzel");
+    TaskDO task1 = new TaskDO();
+    task1.setParentTask(task);
+    task1.setTitle("Task 1");
+    task1.setKost2BlackWhiteList("Hurzel");
     try {
       taskDao.save(task1);
       fail("AccessException expected.");

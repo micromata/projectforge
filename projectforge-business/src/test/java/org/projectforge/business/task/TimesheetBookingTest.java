@@ -71,22 +71,44 @@ public class TimesheetBookingTest extends AbstractTestBase {
     accessDao.save(access);
     logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     taskDao.update(initTestDB.addTask("TBT-1", "TimesheetBookingTest"));
-    taskDao.update(initTestDB.addTask("TBT-1.1", "TBT-1").setStatus(TaskStatus.C));
+
+    task = initTestDB.addTask("TBT-1.1", "TBT-1");
+    task.setStatus(TaskStatus.C);
+
+    taskDao.update(task);
     taskDao.markAsDeleted(initTestDB.addTask("TBT-1.2", "TBT-1"));
     taskDao.update(initTestDB.addTask("TBT-1.2.1", "TBT-1.2"));
-    taskDao.update(initTestDB.addTask("TBT-2", "TimesheetBookingTest")
-            .setTimesheetBookingStatus(TimesheetBookingStatus.TREE_CLOSED));
-    taskDao.update(initTestDB.addTask("TBT-2.1", "TBT-2").setTimesheetBookingStatus(TimesheetBookingStatus.OPENED));
-    taskDao.update(initTestDB.addTask("TBT-3", "TimesheetBookingTest")
-            .setTimesheetBookingStatus(TimesheetBookingStatus.ONLY_LEAFS));
+
+    task = initTestDB.addTask("TBT-2", "TimesheetBookingTest");
+    task.setTimesheetBookingStatus(TimesheetBookingStatus.TREE_CLOSED);
+
+    taskDao.update(task);
+
+    task = initTestDB.addTask("TBT-2.1", "TBT-2");
+    task.setTimesheetBookingStatus(TimesheetBookingStatus.OPENED);
+
+    taskDao.update(task);
+
+    task = initTestDB.addTask("TBT-3", "TimesheetBookingTest");
+    task.setTimesheetBookingStatus(TimesheetBookingStatus.ONLY_LEAFS);
+    taskDao.update(task);
     initTestDB.addTask("TBT-3.1", "TBT-3");
     initTestDB.addTask("TBT-3.1.1", "TBT-3.1");
     initTestDB.addTask("TBT-3.1.2", "TBT-3.1");
     initTestDB.addTask("TBT-3.2", "TBT-3");
-    taskDao.update(initTestDB.addTask("TBT-4", "TimesheetBookingTest")
-            .setTimesheetBookingStatus(TimesheetBookingStatus.NO_BOOKING));
-    taskDao.update(initTestDB.addTask("TBT-4.1", "TBT-4").setTimesheetBookingStatus(TimesheetBookingStatus.INHERIT));
-    taskDao.update(initTestDB.addTask("TBT-4.1.1", "TBT-4.1").setTimesheetBookingStatus(TimesheetBookingStatus.OPENED));
+
+    task = initTestDB.addTask("TBT-4", "TimesheetBookingTest");
+    task.setTimesheetBookingStatus(TimesheetBookingStatus.NO_BOOKING);
+    taskDao.update(task);
+
+    task = initTestDB.addTask("TBT-4.1", "TBT-4");
+    task.setTimesheetBookingStatus(TimesheetBookingStatus.INHERIT);
+    taskDao.update(task);
+
+    task = initTestDB.addTask("TBT-4.1.1", "TBT-4.1");
+    task.setTimesheetBookingStatus(TimesheetBookingStatus.OPENED);
+    taskDao.update(task);
+
     initTestDB.addTask("TBT-5", "TimesheetBookingTest");
     initTestDB.addTask("TBT-5.1", "TBT-5");
     initTestDB.addTask("TBT-5.1.1", "TBT-5.1");

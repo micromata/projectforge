@@ -49,8 +49,8 @@ class TaskTest {
         task.id = 2
         task.title = "t1"
         task.description = "description"
-        task.isProtectionOfPrivacy = true
-        task.isKost2IsBlackList = false
+        task.protectionOfPrivacy = true
+        task.kost2IsBlackList = false
         val responsibleUser = PFUserDO()
         responsibleUser.id = 3
         responsibleUser.username = "kai"

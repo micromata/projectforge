@@ -61,7 +61,7 @@ class Task(var parentTask: Task? = null,
         title = src.title
         if (src.parentTask != null) {
             parentTask = Task()
-            parentTask?.copyFromMinimal(src.parentTask)
+            parentTask?.copyFromMinimal(src.parentTask!!)
         }
     }
 }

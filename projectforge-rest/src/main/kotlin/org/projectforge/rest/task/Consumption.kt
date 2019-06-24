@@ -58,8 +58,8 @@ class Consumption(
 
     companion object {
         fun create(node: TaskNode): Consumption? {
-            var maxHours = node.getTask().getMaxHours()
-            var finished = node.isFinished()
+            var maxHours = node.task.maxHours
+            var finished = node.isFinished
             val taskTree = TaskTreeHelper.getTaskTree()
             val maxDays: BigDecimal?
             if (maxHours != null && maxHours.toInt() == 0) {
