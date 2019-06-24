@@ -63,7 +63,7 @@ public class TaskHelper
    */
   public static String normalizeKost2BlackWhiteList(final String kost2BlackWhiteList)
   {
-    final String[] items = TaskDO.getKost2BlackWhiteItems(kost2BlackWhiteList);
+    final String[] items = TaskDO.Companion.getKost2BlackWhiteItems(kost2BlackWhiteList);
     final String[] sortedItems = StringHelper.sortAndUnique(items);
     return StringHelper.listToString(",", sortedItems);
   }

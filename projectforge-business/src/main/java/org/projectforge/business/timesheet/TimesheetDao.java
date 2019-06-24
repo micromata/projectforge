@@ -553,7 +553,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
           // Check protection of privacy for foreign time sheets:
           final List<TaskNode> pathToRoot = TaskTreeHelper.getTaskTree(obj).getPathToRoot(obj.getTaskId());
           for (final TaskNode node : pathToRoot) {
-            if (node.getTask().isProtectionOfPrivacy() == true) {
+            if (node.getTask().getProtectionOfPrivacy() == true) {
               return false;
             }
           }

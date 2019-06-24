@@ -354,7 +354,7 @@ public class TaskTree extends AbstractCache implements Serializable
     final String[] blackWhiteList = task.getKost2BlackWhiteItems();
     final ProjektDO projekt = node.getProjekt(blackWhiteList != null); // If black-white-list is null then do not search for projekt of
     // ancestor tasks.
-    final List<Kost2DO> list = getKost2List(projekt, task, blackWhiteList, task.isKost2IsBlackList());
+    final List<Kost2DO> list = getKost2List(projekt, task, blackWhiteList, task.getKost2IsBlackList());
     if (list != null) {
       return list;
     } else if (node.parent != null && recursive == true) {
