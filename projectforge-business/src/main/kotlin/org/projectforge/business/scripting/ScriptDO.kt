@@ -23,28 +23,18 @@
 
 package org.projectforge.business.scripting
 
-import java.io.UnsupportedEncodingException
-
-import javax.persistence.Basic
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.EnumType
-import javax.persistence.Enumerated
-import javax.persistence.FetchType
-import javax.persistence.Table
-import javax.persistence.Transient
-
+import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.Type
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Index
 import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.Store
+import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.utils.ReflectionToString
-
-import de.micromata.genome.db.jpa.history.api.NoHistory
-import org.projectforge.common.anots.PropertyInfo
+import java.io.UnsupportedEncodingException
+import javax.persistence.*
 
 /**
  * Scripts can be stored and executed by authorized users.
@@ -53,7 +43,7 @@ import org.projectforge.common.anots.PropertyInfo
  */
 @Entity
 @Indexed
-@Table(name = "T_SCRIPT", indexes = [javax.persistence.Index(name = "idx_fk_t_script_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_SCRIPT", indexes = [Index(name = "idx_fk_t_script_tenant_id", columnList = "tenant_id")])
 class ScriptDO : DefaultBaseDO() {
     private val log = org.slf4j.LoggerFactory.getLogger(ScriptDO::class.java)
 
@@ -196,7 +186,7 @@ class ScriptDO : DefaultBaseDO() {
         first = appendParameterName(buf, parameter3Name, capitalize, first)
         first = appendParameterName(buf, parameter4Name, capitalize, first)
         first = appendParameterName(buf, parameter5Name, capitalize, first)
-        first = appendParameterName(buf, parameter6Name, capitalize, first)
+        appendParameterName(buf, parameter6Name, capitalize, first)
         return buf.toString()
     }
 
@@ -220,9 +210,6 @@ class ScriptDO : DefaultBaseDO() {
 
     /**
      * Returns string containing all fields (except the file) of given object (via ReflectionToStringBuilder).
-     *
-     * @param user
-     * @return
      */
     override fun toString(): String {
         return object : ReflectionToString(this) {

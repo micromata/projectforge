@@ -21,13 +21,11 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web
+package org.projectforge.menu.builder
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.access.AccessChecker
-import org.projectforge.menu.builder.FavoritesMenuCreator
-import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -44,15 +42,15 @@ class FavoritesMenuTest : AbstractTestBase() {
 
     @Test
     fun setFavoritesMenuTest() {
-        logon(AbstractTestBase.ADMIN)
-        var menu = favoritesMenuCreator.getDefaultFavoriteMenu(XML)
-        assertEquals("Administration", menu.menuItems[0]?.title)
+        logon(ADMIN)
+        val menu = favoritesMenuCreator.getDefaultFavoriteMenu(XML)
+        assertEquals("Administration", menu.menuItems[0].title)
         assertEquals("ACCESS_LIST", menu.menuItems[0].subMenu!![0].id)
     }
 
     companion object {
 
-        private val XML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+        private const val XML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                 "<root>\n" +
                 "    <item>Administration\n" +
                 "        <item id=\"ACCESS_LIST\">Zugriffsverwaltung</item>\n" +
