@@ -32,7 +32,7 @@ import org.projectforge.business.task.TaskNode
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.business.user.ProjectForgeGroup
-import org.projectforge.business.user.service.UserPreferencesService
+import org.projectforge.business.user.service.UserXmlPreferencesService
 import org.projectforge.common.i18n.Priority
 import org.projectforge.common.task.TaskStatus
 import org.projectforge.framework.access.AccessChecker
@@ -143,7 +143,7 @@ class TaskServicesRest {
     private lateinit var taskDao: TaskDao
 
     @Autowired
-    private lateinit var userPreferencesService: UserPreferencesService
+    private lateinit var userXmlPreferencesService: UserXmlPreferencesService
 
     private val taskTree: TaskTree
         /** Lazy init, because test cases failed due to NPE in TenantRegistryMap. */
@@ -176,7 +176,7 @@ class TaskServicesRest {
                 @RequestParam("showRootForAdmins") showRootForAdmins: Boolean?)
             : Result {
         @Suppress("UNCHECKED_CAST")
-        val openNodes = userPreferencesService.getEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS) as MutableSet<Int>
+        val openNodes = userXmlPreferencesService.getEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS) as MutableSet<Int>
         val filter = listFilterService.getSearchFilter(request.session, TaskFilter::class.java) as TaskFilter
 
         if (opened != null) filter.isOpened = opened

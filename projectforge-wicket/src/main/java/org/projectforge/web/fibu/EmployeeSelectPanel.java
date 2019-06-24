@@ -40,7 +40,7 @@ import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.business.user.service.UserPreferencesService;
+import org.projectforge.business.user.service.UserXmlPreferencesService;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.RecentQueue;
@@ -63,7 +63,7 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
   private EmployeeDao employeeDao;
 
   @SpringBean
-  private UserPreferencesService userPreferencesService;
+  private UserXmlPreferencesService userPreferencesService;
 
   private RecentQueue<String> recentEmployees;
 

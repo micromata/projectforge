@@ -1,7 +1,7 @@
 package org.projectforge.business.task
 
 import org.projectforge.business.user.UserPrefDao
-import org.projectforge.business.user.service.UserPreferencesService
+import org.projectforge.business.user.service.UserXmlPreferencesService
 import org.projectforge.favorites.Favorites
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -11,7 +11,7 @@ class TaskFavoritesService {
     private val log = org.slf4j.LoggerFactory.getLogger(TaskFavoritesService::class.java)
 
     @Autowired
-    private lateinit var userPreferencesService: UserPreferencesService
+    private lateinit var userXmlPreferencesService: UserXmlPreferencesService
 
     @Autowired
     private lateinit var userPrefDao: UserPrefDao

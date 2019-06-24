@@ -33,8 +33,8 @@ import org.springframework.stereotype.Service;
 import java.io.Serializable;
 
 @Service
-public class UserPreferencesService {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserPreferencesService.class);
+public class UserXmlPreferencesService {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserXmlPreferencesService.class);
 
   @Autowired
   private AccessChecker accessChecker;
