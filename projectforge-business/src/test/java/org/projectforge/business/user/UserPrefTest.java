@@ -71,6 +71,7 @@ public class UserPrefTest extends AbstractTestBase {
     Integer id = userPrefDao.save(userPref);
     userPref = userPrefDao.internalGetById(id);
     User user2 = userPrefDao.deserizalizeValueObject(userPref, User.class);
+    assertEquals(User.class, userPref.getType());
     assertEquals(user.firstname, user2.firstname);
     assertEquals(user.locale, user2.locale);
     assertEquals(user.timeZone, user2.timeZone);
