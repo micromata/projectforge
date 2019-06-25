@@ -93,6 +93,10 @@ class UserPrefDO : AbstractBaseDO<Int>() {
     @get:Transient
     var valueObject: Any? = null
 
+    @get:Transient
+    val getIntValue: Int?
+        get() = value?.toInt()
+
     /**
      * User pref's ar
      */

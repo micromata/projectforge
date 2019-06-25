@@ -37,7 +37,6 @@ import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.http.WebRequest;
@@ -45,6 +44,7 @@ import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.multitenancy.TenantService;
+import org.projectforge.business.user.UserPrefCache;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
@@ -53,7 +53,10 @@ import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.menu.builder.FavoritesMenuCreator;
 import org.projectforge.menu.builder.MenuCreator;
-import org.projectforge.web.*;
+import org.projectforge.web.LoginPage;
+import org.projectforge.web.LoginService;
+import org.projectforge.web.WicketMenuBuilder;
+import org.projectforge.web.WicketMenuEntry;
 import org.projectforge.web.core.menuconfig.MenuConfig;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.doc.DocumentationPage;
@@ -82,6 +85,9 @@ public class NavTopPanel extends NavAbstractPanel {
 
   @SpringBean
   private FavoritesMenuCreator favoritesMenuCreator;
+
+  @SpringBean
+  private UserPrefCache userPrefCache;
 
   @SpringBean
   private UserXmlPreferencesCache userXmlPreferencesCache;
@@ -217,7 +223,8 @@ public class NavTopPanel extends NavAbstractPanel {
       final Link<Void> logoutLink = new Link<Void>("logoutLink") {
         @Override
         public void onClick() {
-          loginService.logout((MySession) getSession(), (WebRequest) getRequest(), (WebResponse) getResponse(), userXmlPreferencesCache);
+          loginService.logout((MySession) getSession(), (WebRequest) getRequest(), (WebResponse) getResponse(),
+                  userXmlPreferencesCache, userPrefCache);
           setResponsePage(LoginPage.class);
         }
 
