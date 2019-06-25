@@ -248,6 +248,13 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     return selectUnique(list);
   }
 
+  public List<UserPrefDO> getUserPrefs() {
+    final PFUserDO user = ThreadLocalUserContext.getUser();
+    @SuppressWarnings("unchecked") final List<UserPrefDO> list = (List<UserPrefDO>) getHibernateTemplate().find(
+            "from UserPrefDO u where u.user.id = ?", user.getId());
+    return selectUnique(list);
+  }
+
   /**
    * Adds the object fields as parameters to the given userPref. Fields without the annotation UserPrefParameter will be
    * ignored.
