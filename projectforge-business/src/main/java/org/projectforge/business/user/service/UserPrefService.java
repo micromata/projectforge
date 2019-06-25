@@ -76,6 +76,27 @@ public class UserPrefService {
     return userPrefCache.getEntry(area, name);
   }
 
+  public <T> T ensureEntry(String area, String name, T defaultValue) {
+    return ensureEntry(area, name, defaultValue, true);
+  }
+
+  /**
+   * Gets the entry if exist, if not, defaultValue will be returned an the default entry will be stored.
+   * @param area
+   * @param name
+   * @param defaultValue
+   * @param persistent
+   * @return
+   */
+  public <T> T ensureEntry(String area, String name, T defaultValue, boolean persistent) {
+    T value = (T)getEntry(area, name, defaultValue.getClass());
+    if (value == null) {
+      value = defaultValue;
+      putEntry(area, name, value, persistent);
+    }
+    return value;
+  }
+
   /**
    * Removes the entry under the given name.
    *

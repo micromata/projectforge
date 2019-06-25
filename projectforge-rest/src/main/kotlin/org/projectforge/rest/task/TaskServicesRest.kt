@@ -32,7 +32,7 @@ import org.projectforge.business.task.TaskNode
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.business.user.ProjectForgeGroup
-import org.projectforge.business.user.service.UserXmlPreferencesService
+import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.common.i18n.Priority
 import org.projectforge.common.task.TaskStatus
 import org.projectforge.framework.access.AccessChecker
@@ -96,6 +96,8 @@ class TaskServicesRest {
     }
 
     companion object {
+        private const val PREF_ARA = "task"
+
         fun createTask(id: Int?): Task? {
             if (id == null)
                 return null
@@ -143,7 +145,7 @@ class TaskServicesRest {
     private lateinit var taskDao: TaskDao
 
     @Autowired
-    private lateinit var userXmlPreferencesService: UserXmlPreferencesService
+    private lateinit var userPrefService: UserPrefService
 
     private val taskTree: TaskTree
         /** Lazy init, because test cases failed due to NPE in TenantRegistryMap. */
@@ -176,7 +178,7 @@ class TaskServicesRest {
                 @RequestParam("showRootForAdmins") showRootForAdmins: Boolean?)
             : Result {
         @Suppress("UNCHECKED_CAST")
-        val openNodes = userXmlPreferencesService.getEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS) as MutableSet<Int>
+        var openNodes = userPrefService.ensureEntry(PREF_ARA, TaskTree.USER_PREFS_KEY_OPEN_TASKS, mutableSetOf<Int>())
         val filter = listFilterService.getSearchFilter(request.session, TaskFilter::class.java) as TaskFilter
 
         if (opened != null) filter.isOpened = opened
@@ -276,7 +278,7 @@ class TaskServicesRest {
             task.treeStatus = TreeStatus.LEAF
             return
         }
-        if (ctx.openedNodes.contains(taskNode.taskId)) {
+        if (taskNode.isRootNode || ctx.openedNodes.contains(taskNode.taskId)) {
             task.treeStatus = TreeStatus.OPENED
             val childs = taskNode.childs.toMutableList()
             childs.sortBy({ it.task.title })
