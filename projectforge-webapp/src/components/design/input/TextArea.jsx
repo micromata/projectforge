@@ -10,8 +10,10 @@ function TextArea(
         additionalLabel,
         className,
         color,
+        cssClass,
         id,
         label,
+        maxRows,
         value,
         ...props
     },
@@ -19,7 +21,7 @@ function TextArea(
     const [active, setActive] = React.useState(value);
 
     return (
-        <div className={classNames(style.formGroup, 'form-group', className)}>
+        <div className={classNames(style.formGroup, 'form-group', className, cssClass)}>
             <label
                 className={classNames(
                     style.textAreaLabel,
@@ -49,6 +51,8 @@ TextArea.propTypes = {
     additionalLabel: PropTypes.string,
     className: PropTypes.string,
     color: colorPropType,
+    cssClass: PropTypes.string,
+    maxRows: PropTypes.number,
     value: PropTypes.string,
 };
 
@@ -56,6 +60,8 @@ TextArea.defaultProps = {
     additionalLabel: undefined,
     className: undefined,
     color: undefined,
+    cssClass: undefined,
+    maxRows: undefined,
     value: undefined,
 };
 

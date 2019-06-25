@@ -59,6 +59,7 @@ export const dynamicTypePropType = PropTypes.oneOf([
     'INPUT',
     'LABEL',
     'ROW',
+    'TEXTAREA',
 ]);
 
 // Content PropType for DynamicLayout

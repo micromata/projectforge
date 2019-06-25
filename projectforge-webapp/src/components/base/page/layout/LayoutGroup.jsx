@@ -34,10 +34,6 @@ function LayoutGroup(
                     case 'LABEL':
                         Tag = LayoutLabel;
                         break;
-                    case 'CHECKBOX':
-                    case 'TEXTAREA':
-                        Tag = LayoutInput;
-                        break;
                     case 'SELECT':
                         Tag = UncontrolledReactSelect;
                         break;
