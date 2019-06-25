@@ -41,6 +41,7 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SuppressWarnings("deprecation")
 public class UserPrefTest extends AbstractTestBase {
   @Autowired
   private UserPrefDao userPrefDao;
@@ -70,7 +71,8 @@ public class UserPrefTest extends AbstractTestBase {
     userPref.setArea("TEST_AREA");
     Integer id = userPrefDao.save(userPref);
     userPref = userPrefDao.internalGetById(id);
-    User user2 = userPrefDao.deserizalizeValueObject(userPref, User.class);
+    User user2 = (User) userPrefDao.deserizalizeValueObject(userPref);
+    assertEquals(User.class.getName(), userPref.getType());
     assertEquals(User.class, userPref.getType());
     assertEquals(user.firstname, user2.firstname);
     assertEquals(user.locale, user2.locale);
