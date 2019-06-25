@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Col, FormGroup, Row } from '../../../design';
-import LayoutInput from './LayoutInput';
 import LayoutLabel from './LayoutLabel';
 import LayoutTable from './table';
 import UncontrolledReactSelect from './UncontrolledReactSelect';

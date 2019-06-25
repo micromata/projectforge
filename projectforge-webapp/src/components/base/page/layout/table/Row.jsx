@@ -20,7 +20,7 @@ class TableRow extends React.Component {
     }
 
     render() {
-        const { columns, data, variables } = this.props;
+        const { columns, data } = this.props;
 
         return (
             <tr
