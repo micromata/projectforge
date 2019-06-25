@@ -23,12 +23,6 @@
 
 package org.projectforge.business.user;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.PreDestroy;
-
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.cache.AbstractCache;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
@@ -37,6 +31,11 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PreDestroy;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Stores all user persistent objects such as filter settings, personal settings and persists them to the database.
@@ -154,13 +153,13 @@ public class UserXmlPreferencesCache extends AbstractCache
         // No access.
         return;
       }
-    }
-    PFUserDO user = emgrFactory.runInTrans(emgr -> {
-      return emgr.selectByPk(PFUserDO.class, userId);
-    });
-    if (AccessChecker.isDemoUser(user) == true) {
-      // Do nothing for demo user.
-      return;
+      PFUserDO user = emgrFactory.runInTrans(emgr -> {
+        return emgr.selectByPk(PFUserDO.class, userId);
+      });
+      if (AccessChecker.isDemoUser(user) == true) {
+        // Do nothing for demo user.
+        return;
+      }
     }
     final UserXmlPreferencesMap data = allPreferences.get(userId);
     if (data == null || data.isModified() == false) {

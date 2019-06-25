@@ -76,6 +76,14 @@ class UserPrefCache : AbstractCache() {
     /**
      * Gets the user's entry.
      */
+    fun  getEntry(area: String, name: String): Any? {
+        val userId = ThreadLocalUserContext.getUserId()
+        return getEntry(userId, area, name)
+    }
+
+    /**
+     * Gets the user's entry.
+     */
     fun <T> getEntry(area: String, name: String, clazz: Class<T>): T? {
         val userId = ThreadLocalUserContext.getUserId()
         return getEntry(userId, area, name, clazz)
@@ -83,15 +91,29 @@ class UserPrefCache : AbstractCache() {
 
     fun removeEntry(area: String, name: String) {
         val userId = ThreadLocalUserContext.getUserId()
+        if (accessChecker.isDemoUser(userId)) {
+            // Store user pref for demo user only in user's session.
+            return
+        }
         return removeEntry(userId, area, name)
     }
 
     private fun <T> getEntry(userId: Int, area: String, name: String, clazz: Class<T>): T? {
+        val value = getEntry(userId, area, name)
+        try {
+            @Suppress("UNCHECKED_CAST")
+            return value as T
+        } catch(ex:Exception) {
+            log.error("Can't deserialize user pref (new version of ProjectForge and old prefs? ${ex.message}", ex)
+            return null
+        }
+    }
+
+    private fun getEntry(userId: Int, area: String, name: String): Any? {
         val data = ensureAndGetUserPreferencesData(userId)
         checkRefresh()
         val userPref = data.getEntry(area, name)?.userPrefDO ?: return null
-        if (userPref.valueObject != null) return userPref.valueObject as T
-        return null
+        return userPref.valueObject ?: userPrefDao.deserizalizeValueObject(userPref)
     }
 
     private fun removeEntry(userId: Int, area: String, name: String) {
@@ -155,15 +177,15 @@ class UserPrefCache : AbstractCache() {
                 // No access.
                 return
             }
-        }
-        val user = emgrFactory.runInTrans { emgr -> emgr.selectByPk(PFUserDO::class.java, userId) }
-        if (AccessChecker.isDemoUser(user)) {
-            // Do nothing for demo user.
-            return
+            val user = emgrFactory.runInTrans { emgr -> emgr.selectByPk(PFUserDO::class.java, userId) }
+            if (AccessChecker.isDemoUser(user)) {
+                // Do nothing for demo user.
+                return
+            }
         }
         val data = allPreferences[userId]
         data?.getModifiedPersistentEntries()?.forEach {
-            userPrefDao.saveOrUpdate(it.userPrefDO)
+            userPrefDao.internalSaveOrUpdate(it.userPrefDO)
         }
     }
 
