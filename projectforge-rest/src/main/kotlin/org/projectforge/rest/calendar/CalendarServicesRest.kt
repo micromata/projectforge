@@ -28,6 +28,7 @@ import org.projectforge.business.calendar.CalendarFilter
 import org.projectforge.business.calendar.CalendarView
 import org.projectforge.business.calendar.TeamCalendar
 import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.user.service.UserXmlPreferencesService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -73,7 +74,7 @@ class CalendarServicesRest {
     private lateinit var calendarConfigServicesRest: CalendarFilterServicesRest
 
     @Autowired
-    private lateinit var userXmlPreferenceService: UserXmlPreferencesService
+    private lateinit var userPrefService: UserPrefService
 
     @PostMapping("events")
     fun getEvents(@RequestBody filter: CalendarRestFilter): ResponseEntity<Any> {
@@ -130,7 +131,7 @@ class CalendarServicesRest {
         }
         var visibleCalendarIds = filter.activeCalendarIds
         if (filter.useVisibilityState == true && !visibleCalendarIds.isNullOrEmpty()) {
-            val currentFilter = userXmlPreferenceService.getEntry(CalendarFilter::class.java, CalendarFilterServicesRest.PREF_KEY_CURRENT_FAV)
+            val currentFilter = CalendarFilterServicesRest.getCurrentFilter(userPrefService)
             if (currentFilter != null) {
                 val set = mutableSetOf<Int>()
                 visibleCalendarIds.forEach {

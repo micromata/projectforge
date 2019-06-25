@@ -24,7 +24,6 @@
 package org.projectforge.business.task
 
 import org.projectforge.business.user.UserPrefDao
-import org.projectforge.business.user.service.UserXmlPreferencesService
 import org.projectforge.favorites.Favorites
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -34,14 +33,11 @@ class TaskFavoritesService {
     private val log = org.slf4j.LoggerFactory.getLogger(TaskFavoritesService::class.java)
 
     @Autowired
-    private lateinit var userXmlPreferencesService: UserXmlPreferencesService
-
-    @Autowired
     private lateinit var userPrefDao: UserPrefDao
 
     fun getList(): List<TaskFavorite> {
         val userPrefs = userPrefDao.getListWithoutEntries(AREA_ID)
-        return userPrefs.map { TaskFavorite(it.name, it.id) }
+        return userPrefs.map { TaskFavorite(it.name, it.id!!) }
     }
 
     fun selectTaskId(id: Int): Int? {

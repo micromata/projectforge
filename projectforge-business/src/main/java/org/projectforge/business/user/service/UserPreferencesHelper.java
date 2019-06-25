@@ -26,6 +26,10 @@ package org.projectforge.business.user.service;
 
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 
+/**
+ * Use {@link UserPrefService} instead.
+ */
+@Deprecated
 public class UserPreferencesHelper
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserPreferencesHelper.class);

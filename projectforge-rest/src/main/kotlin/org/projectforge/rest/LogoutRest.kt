@@ -23,6 +23,7 @@
 
 package org.projectforge.rest
 
+import org.projectforge.business.user.UserPrefCache
 import org.projectforge.business.user.UserXmlPreferencesCache
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.filter.UserFilter
@@ -49,6 +50,9 @@ open class LogoutRest {
     @Autowired
     private lateinit var userXmlPreferencesCache: UserXmlPreferencesCache
 
+    @Autowired
+    private lateinit var userPrefCache: UserPrefCache
+
     @GetMapping
     fun logout(request: HttpServletRequest,
                response: HttpServletResponse)
@@ -56,8 +60,10 @@ open class LogoutRest {
         val stayLoggedInCookie = cookieService.getStayLoggedInCookie(request)
         val user = UserFilter.getUser(request)
         if (user != null) {
-            userXmlPreferencesCache.flushToDB(user.getId())
-            userXmlPreferencesCache.clear(user.getId())
+            userXmlPreferencesCache.flushToDB(user.id)
+            userXmlPreferencesCache.clear(user.id)
+            userPrefCache.flushToDB(user.id)
+            userPrefCache.clear(user.id)
         }
         UserFilter.logout(request)
         if (stayLoggedInCookie != null) {

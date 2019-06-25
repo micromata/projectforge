@@ -117,6 +117,21 @@ class IndexPage extends React.Component {
                 </Row>
                 <Row>
                     <Col>
+                        <h1>Manual data-base updates</h1>
+                        To be included in Flyway mechanism.
+                        <ol>
+                            <li>
+                                <code>
+                                    ALTER TABLE t_user_pref ADD COLUMN value VARCHAR(100000);
+                                    <br/>
+                                    ALTER TABLE t_user_pref ADD COLUMN type VARCHAR(1000);
+                                </code>
+                            </li>
+                        </ol>
+                    </Col>
+                </Row>
+                <Row>
+                    <Col>
                         <h1>ToDo&apos;s (Fin)</h1>
                         <ol>
                             <li>Translations in SearchFilter.jsx</li>
@@ -188,6 +203,7 @@ class IndexPage extends React.Component {
                                 TaskSelect panel: collapse search fields to have more a feeling
                                 of a bread crumb...
                             </li>
+                            <li>Remove BookDO.task from data base.</li>
                         </ol>
                         <h1>ToDo&apos;s (Kai)</h1>
                         <ol>
