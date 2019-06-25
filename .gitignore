@@ -33,3 +33,7 @@ local.properties
 *.launch
 
 /log4j-dev.properties
+projectforge.properties
+
+#Node
+projectforge-webapp/node_modules
