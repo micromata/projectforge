@@ -41,135 +41,137 @@ function DynamicTaskSelect(
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const setTask = (taskId, selectedTask) => {
-        if (selectedTask) {
-            setPanelVisible(false);
-        }
-
-        if (!taskId) {
-            setStateTask(undefined);
-            setData({ [id]: undefined });
-
-            // Emit onKost2Changed handler if defined.
-            if (onKost2Changed) {
-                onKost2Changed();
+    return React.useMemo(() => {
+        const setTask = (taskId, selectedTask) => {
+            if (selectedTask) {
+                setPanelVisible(false);
             }
 
-            setModalHighlight(undefined);
+            if (!taskId) {
+                setStateTask(undefined);
+                setData({ [id]: undefined });
 
-            return;
-        }
-
-        fetch(
-            getServiceURL(`task/info/${taskId}`),
-            {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    Accept: 'application/json',
-                },
-            },
-        )
-            .then(handleHTTPErrors)
-            .then(response => response.json())
-            .then((json) => {
-                setStateTask(json);
-
-                if (json) {
-                    setData({ [id]: { id: json.id } });
-
-                    if (onKost2Changed) {
-                        onKost2Changed(json.kost2List);
-                    }
-
-                    setStateTask(json);
+                // Emit onKost2Changed handler if defined.
+                if (onKost2Changed) {
+                    onKost2Changed();
                 }
-            });
-    };
 
-    const toggleModal = () => {
-        setPanelVisible(!panelVisible);
-        setModalHighlight(undefined); // Reset to highlight current task.
-    };
+                setModalHighlight(undefined);
 
-    // Opens the task tree modal dialog with the given task highlighted.
-    const openModal = (taskId) => {
-        setPanelVisible(true);
-        setModalHighlight(taskId); // Highlight selected ancestor task.
-    };
+                return;
+            }
 
-    const treePanel = (
-        <TaskTreePanel
-            highlightTaskId={modalHighlight || (task ? task.id : undefined)}
-            onTaskSelect={setTask}
-            shortForm
-            showRootForAdmins={showRootForAdmins}
-            visible={panelVisible}
-        />
-    );
+            fetch(
+                getServiceURL(`task/info/${taskId}`),
+                {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        Accept: 'application/json',
+                    },
+                },
+            )
+                .then(handleHTTPErrors)
+                .then(response => response.json())
+                .then((json) => {
+                    setStateTask(json);
 
-    return (
-        <div>
-            {task
-                ? (
-                    <TaskPath
-                        path={[...task.path, task]}
-                        openModal={openModal}
-                        setTask={setTask}
+                    if (json) {
+                        setData({ [id]: { id: json.id } });
+
+                        if (onKost2Changed) {
+                            onKost2Changed(json.kost2List);
+                        }
+
+                        setStateTask(json);
+                    }
+                });
+        };
+
+        const toggleModal = () => {
+            setPanelVisible(!panelVisible);
+            setModalHighlight(undefined); // Reset to highlight current task.
+        };
+
+        // Opens the task tree modal dialog with the given task highlighted.
+        const openModal = (taskId) => {
+            setPanelVisible(true);
+            setModalHighlight(taskId); // Highlight selected ancestor task.
+        };
+
+        const treePanel = (
+            <TaskTreePanel
+                highlightTaskId={modalHighlight || (task ? task.id : undefined)}
+                onTaskSelect={setTask}
+                shortForm
+                showRootForAdmins={showRootForAdmins}
+                visible={panelVisible}
+            />
+        );
+
+        return (
+            <div>
+                {task
+                    ? (
+                        <TaskPath
+                            path={[...task.path, task]}
+                            openModal={openModal}
+                            setTask={setTask}
+                        />
+                    )
+                    : <span className={inputStyle.text}>{label}</span>}
+                <Button
+                    color="link"
+                    className="selectPanelIconLinks"
+                    onClick={toggleModal}
+                >
+                    <FontAwesomeIcon
+                        icon={faStream}
+                        className={inputStyle.icon}
                     />
-                )
-                : <span className={inputStyle.text}>{label}</span>}
-            <Button
-                color="link"
-                className="selectPanelIconLinks"
-                onClick={toggleModal}
-            >
-                <FontAwesomeIcon
-                    icon={faStream}
-                    className={inputStyle.icon}
-                />
-            </Button>
-            <Button
-                color="link"
-                className="selectPanelIconLinks"
-                onClick={toggleModal}
-                disabled
-            >
-                <FontAwesomeIcon
-                    icon={faStar}
-                    className={inputStyle.icon}
-                />
-            </Button>
-            {showInline
-                ? (
-                    <Collapse
-                        isOpen={panelVisible}
-                        style={{
-                            maxHeight: '600px',
-                            overflow: 'scroll',
-                            scroll: 'auto',
-                        }}
-                    >
-                        {treePanel}
-                    </Collapse>
-                )
-                : (
-                    <Modal
-                        isOpen={panelVisible}
-                        className="modal-xl"
-                        toggle={toggleModal}
-                        fade={false}
-                    >
-                        <ModalHeader toggle={toggleModal}>
-                            {ui.translations['task.title.list.select']}
-                        </ModalHeader>
-                        <ModalBody>
+                </Button>
+                <Button
+                    color="link"
+                    className="selectPanelIconLinks"
+                    onClick={toggleModal}
+                    disabled
+                >
+                    <FontAwesomeIcon
+                        icon={faStar}
+                        className={inputStyle.icon}
+                    />
+                </Button>
+                {showInline
+                    ? (
+                        <Collapse
+                            isOpen={panelVisible}
+                            style={{
+                                maxHeight: '600px',
+                                overflow: 'scroll',
+                                scroll: 'auto',
+                            }}
+                        >
                             {treePanel}
-                        </ModalBody>
-                    </Modal>
-                )}
-        </div>
-    );
+                        </Collapse>
+                    )
+                    : (
+                        <Modal
+                            isOpen={panelVisible}
+                            className="modal-xl"
+                            toggle={toggleModal}
+                            fade={false}
+                        >
+                            <ModalHeader toggle={toggleModal}>
+                                {ui.translations['task.title.list.select']}
+                            </ModalHeader>
+                            <ModalBody>
+                                {treePanel}
+                            </ModalBody>
+                        </Modal>
+                    )}
+            </div>
+        );
+    }, [panelVisible, modalHighlight, task, panelRef]);
 }
 
 DynamicTaskSelect.propTypes = {

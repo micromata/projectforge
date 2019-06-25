@@ -10,12 +10,15 @@ function DynamicFieldset({ content }) {
     const { renderLayout } = React.useContext(DynamicLayoutContext);
 
     // Render a Column around the fieldset and the enclosed layout.
-    return (
-        <Col>
-            <fieldset>
-                {renderLayout(content)}
-            </fieldset>
-        </Col>
+    return React.useMemo(
+        () => (
+            <Col>
+                <fieldset>
+                    {renderLayout(content)}
+                </fieldset>
+            </Col>
+        ),
+        [content],
     );
 }
 

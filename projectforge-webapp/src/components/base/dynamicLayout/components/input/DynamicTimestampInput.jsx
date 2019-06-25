@@ -28,60 +28,62 @@ function DynamicTimestampInput(
     const dateStr = Object.getByString(data, id);
     const [date, setDate] = React.useState(dateStr ? timezone(dateStr) : undefined);
 
-    const setFields = (newDate) => {
-        setDate(newDate);
-        setData({
-            [id]: newDate.toDate(),
-        });
-    };
+    return React.useMemo(() => {
+        const setFields = (newDate) => {
+            setDate(newDate);
+            setData({
+                [id]: newDate.toDate(),
+            });
+        };
 
-    const handleTimeChange = (value) => {
-        if (value === undefined) {
-            return;
-        }
+        const handleTimeChange = (value) => {
+            if (value === undefined) {
+                return;
+            }
 
-        setFields(value);
-    };
+            setFields(value);
+        };
 
-    const handleDayChange = (value) => {
-        const newDate = timezone(value);
-        newDate.set({
-            hour: date ? date.hours() : 0,
-            minute: date ? date.minutes() : 0,
-            second: 0,
-            millisecond: 0,
-        });
-        setFields(newDate);
-    };
+        const handleDayChange = (value) => {
+            const newDate = timezone(value);
+            newDate.set({
+                hour: date ? date.hours() : 0,
+                minute: date ? date.minutes() : 0,
+                second: 0,
+                millisecond: 0,
+            });
+            setFields(newDate);
+        };
 
-    return (
-        <React.Fragment>
-            <span className={style.text}>{label}</span>
-            <ValidationManager>
-                <DayPickerInput
-                    formatDate={formatDate}
-                    parseDate={parseDate}
-                    format={jsDateFormat}
-                    value={date ? date.toDate() : undefined}
-                    onDayChange={handleDayChange}
-                    dayPickerProps={{
-                        locale,
-                        localeUtils: MomentLocaleUtils,
-                    }}
-                    placeholder={jsDateFormat}
-                />
-                <TimePicker
-                    value={date}
-                    showSecond={false}
-                    minuteStep={15}
-                    allowEmpty={false}
-                    use12Hours={timeNotation === 'H12'}
-                    onChange={handleTimeChange()}
-                />
-                <AdditionalLabel title={additionalLabel} />
-            </ValidationManager>
-        </React.Fragment>
-    );
+        return (
+            <React.Fragment>
+                <span className={style.text}>{label}</span>
+                <ValidationManager>
+                    <DayPickerInput
+                        formatDate={formatDate}
+                        parseDate={parseDate}
+                        format={jsDateFormat}
+                        value={date ? date.toDate() : undefined}
+                        onDayChange={handleDayChange}
+                        dayPickerProps={{
+                            locale,
+                            localeUtils: MomentLocaleUtils,
+                        }}
+                        placeholder={jsDateFormat}
+                    />
+                    <TimePicker
+                        value={date}
+                        showSecond={false}
+                        minuteStep={15}
+                        allowEmpty={false}
+                        use12Hours={timeNotation === 'H12'}
+                        onChange={handleTimeChange()}
+                    />
+                    <AdditionalLabel title={additionalLabel} />
+                </ValidationManager>
+            </React.Fragment>
+        );
+    }, [date]);
 }
 
 DynamicTimestampInput.propTypes = {

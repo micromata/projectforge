@@ -15,42 +15,44 @@ function TaskPath(
         setTask,
     },
 ) {
-    let recentAncecstorId;
+    return React.useMemo(() => {
+        let recentAncecstorId;
 
-    return (
-        <React.Fragment>
-            {path.map((ancestor) => {
-                const parenTaskId = recentAncecstorId;
-                recentAncecstorId = ancestor.id;
+        return (
+            <React.Fragment>
+                {path.map((ancestor) => {
+                    const parenTaskId = recentAncecstorId;
+                    recentAncecstorId = ancestor.id;
 
-                return (
-                    <React.Fragment key={ancestor.id}>
-                        <TaskTitle
-                            id={ancestor.id}
-                            isHighlighted={ancestor.id === modalHighlight}
-                            title={ancestor.title}
-                            openModal={openModal}
-                        />
-                        {' '}
-                        <Button
-                            color="link"
-                            onClick={() => setTask(parenTaskId)}
-                            style={{ padding: 0 }}
-                        >
-                            <FontAwesomeIcon
-                                icon={faTimesCircle}
-                                className={inputStyle.icon}
-                                color="lightGray"
+                    return (
+                        <React.Fragment key={ancestor.id}>
+                            <TaskTitle
+                                id={ancestor.id}
+                                isHighlighted={ancestor.id === modalHighlight}
+                                title={ancestor.title}
+                                openModal={openModal}
                             />
-                        </Button>
-                        <span className={style.divider}>
-                            {' | '}
-                        </span>
-                    </React.Fragment>
-                );
-            })}
-        </React.Fragment>
-    );
+                            {' '}
+                            <Button
+                                color="link"
+                                onClick={() => setTask(parenTaskId)}
+                                style={{ padding: 0 }}
+                            >
+                                <FontAwesomeIcon
+                                    icon={faTimesCircle}
+                                    className={inputStyle.icon}
+                                    color="lightGray"
+                                />
+                            </Button>
+                            <span className={style.divider}>
+                                {' | '}
+                            </span>
+                        </React.Fragment>
+                    );
+                })}
+            </React.Fragment>
+        );
+    }, [modalHighlight, openModal, path, setTask]);
 }
 
 TaskPath.propTypes = {
