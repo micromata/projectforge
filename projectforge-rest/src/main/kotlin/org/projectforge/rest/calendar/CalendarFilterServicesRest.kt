@@ -85,6 +85,7 @@ class CalendarFilterServicesRest {
     /**
      * Only for migrating old calendars from ProjectForge version 6.
      */
+    @Suppress("DEPRECATION")
     @Autowired
     private lateinit var userXmlPreferencesService: UserXmlPreferencesService
 

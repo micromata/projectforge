@@ -32,6 +32,10 @@ import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
 
+/**
+ * Will be replaced by UserPrefService.
+ */
+@Deprecated
 @Service
 public class UserXmlPreferencesService {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserXmlPreferencesService.class);
