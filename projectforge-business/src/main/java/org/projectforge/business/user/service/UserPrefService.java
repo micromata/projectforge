@@ -38,6 +38,20 @@ public class UserPrefService {
   private UserPrefCache userPrefCache;
 
   /**
+   * Needed for migrations.
+   */
+  @SuppressWarnings("deprecation")
+  @Autowired
+  private UserXmlPreferencesService userXmlPreferencesService;
+
+  /**
+   * Should only be used for migration issues.
+   */
+  public UserXmlPreferencesService getUserXmlPreferencesService() {
+    return userXmlPreferencesService;
+  }
+
+  /**
    * Stores the given value for the current user as persistent value.
    *
    * @param name

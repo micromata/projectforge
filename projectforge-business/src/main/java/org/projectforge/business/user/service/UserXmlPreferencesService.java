@@ -33,7 +33,7 @@ import org.springframework.stereotype.Service;
 import java.io.Serializable;
 
 /**
- * Will be replaced by UserPrefService.
+ * Use {@link UserPrefService} instead.
  */
 @Deprecated
 @Service
