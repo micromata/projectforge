@@ -31,23 +31,58 @@ import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO;
+import org.projectforge.framework.time.DateHelper;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
-import java.util.Iterator;
-import java.util.List;
+import java.sql.Timestamp;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class UserPrefTest extends AbstractTestBase
-{
+@SuppressWarnings("deprecation")
+public class UserPrefTest extends AbstractTestBase {
   @Autowired
   private UserPrefDao userPrefDao;
 
+  static class User {
+    String firstname;
+    Locale locale;
+    TimeZone timeZone;
+    Date lastPasswordChange;
+    Timestamp lastLogin;
+  }
+
   @Test
-  public void convertPrefParameters()
-  {
+  void jsonTest() {
+    final PFUserDO loggedInUser = getUser(AbstractTestBase.TEST_USER);
+    logon(loggedInUser);
+    User user = new User();
+    user.firstname = "Kai";
+    user.locale = Locale.GERMAN;
+    user.timeZone = DateHelper.EUROPE_BERLIN;
+    Date date = new Date();
+    user.lastPasswordChange = date;
+    user.lastLogin = new Timestamp(date.getTime());
+    UserPrefDO userPref = new UserPrefDO();
+    userPref.setUser(loggedInUser);
+    userPref.setValueObject(user);
+    userPref.setArea("TEST_AREA");
+    Integer id = userPrefDao.save(userPref);
+    userPref = userPrefDao.internalGetById(id);
+    User user2 = (User) userPrefDao.deserizalizeValueObject(userPref);
+    assertEquals(User.class.getName(), userPref.getTypeString());
+    assertEquals(User.class, userPref.getType());
+    assertEquals(user.firstname, user2.firstname);
+    assertEquals(user.locale, user2.locale);
+    assertEquals(user.timeZone, user2.timeZone);
+    assertEquals(user.lastPasswordChange, user2.lastPasswordChange);
+    assertEquals(user.lastLogin, user2.lastLogin);
+  }
+
+  @Test
+  public void convertPrefParameters() {
     final PFUserDO user = getUser(AbstractTestBase.TEST_USER);
     logon(user);
     final PFUserDO user2 = getUser(AbstractTestBase.TEST_USER2);
@@ -91,7 +126,7 @@ public class UserPrefTest extends AbstractTestBase
     assertEquals(1, names.length);
     assertEquals("test", names[0]);
     List<UserPrefEntryDO> dependents = userPref
-        .getDependentUserPrefEntries(userPref.getUserPrefEntry("user").getParameter());
+            .getDependentUserPrefEntries(userPref.getUserPrefEntry("user").getParameter());
     assertNull(dependents);
     dependents = userPref.getDependentUserPrefEntries(userPref.getUserPrefEntry("task").getParameter());
     assertEquals(1, dependents.size());
@@ -99,8 +134,7 @@ public class UserPrefTest extends AbstractTestBase
   }
 
   private void assertUserPrefEntry(final UserPrefEntryDO userPrefEntry, final String parameter, final Class<?> type,
-      final String valueAsString, final String i18nKey, final Integer maxLength, final String orderString)
-  {
+                                   final String valueAsString, final String i18nKey, final Integer maxLength, final String orderString) {
     assertEquals(parameter, userPrefEntry.getParameter());
     assertEquals(type, userPrefEntry.getType());
     assertEquals(i18nKey, userPrefEntry.getI18nKey());
@@ -110,8 +144,7 @@ public class UserPrefTest extends AbstractTestBase
   }
 
   private TimesheetDO createTimesheet(final PFUserDO user, final TaskDO task, final String location,
-      final String description)
-  {
+                                      final String description) {
     TimesheetDO timesheet = new TimesheetDO();
     timesheet.setUser(user);
     timesheet.setTask(task);
@@ -120,11 +153,10 @@ public class UserPrefTest extends AbstractTestBase
     return timesheet;
   }
 
-  private UserPrefDO createUserPref(final PFUserDO user, final UserPrefArea area, final String name)
-  {
+  private UserPrefDO createUserPref(final PFUserDO user, final UserPrefArea area, final String name) {
     UserPrefDO userPref = new UserPrefDO();
     userPref.setUser(user);
-    userPref.setArea(area);
+    userPref.setAreaObject(area);
     userPref.setName(name);
     return userPref;
   }

@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.hibernate.Hibernate
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.ProjektDO
@@ -92,6 +93,7 @@ class ToStringUtil {
             register(module, ProjektDO::class.java, ProjektSerializer(), obj, ignoreEmbeddedSerializers)
             register(module, TaskDO::class.java, TaskSerializer(), obj, ignoreEmbeddedSerializers)
             mapper.registerModule(module)
+            mapper.registerModule(KotlinModule())
             return mapper.writeValueAsString(obj)
         }
 

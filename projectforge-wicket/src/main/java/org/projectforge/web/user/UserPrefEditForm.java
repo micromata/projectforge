@@ -23,11 +23,7 @@
 
 package org.projectforge.web.user;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.Model;
@@ -35,7 +31,6 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.kost.Kost2DO;
@@ -54,6 +49,7 @@ import org.projectforge.web.fibu.NewCustomerSelectPanel;
 import org.projectforge.web.fibu.NewProjektSelectPanel;
 import org.projectforge.web.task.TaskSelectPanel;
 import org.projectforge.web.wicket.AbstractEditForm;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
@@ -63,6 +59,10 @@ import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.slf4j.Logger;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditPage>
 {
@@ -131,11 +131,11 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
         @Override
         public void validate(final IValidatable<String> validatable)
         {
-          if (data.getArea() == null) {
+          if (data.getAreaObject() == null) {
             return;
           }
           final String value = validatable.getValue();
-          if (parentPage.userPrefDao.doesParameterNameAlreadyExist(data.getId(), data.getUser(), data.getArea(),
+          if (parentPage.userPrefDao.doesParameterNameAlreadyExist(data.getId(), data.getUser(), data.getAreaObject(),
               value)) {
             name.error(getString("userPref.error.nameDoesAlreadyExist"));
           }
@@ -160,7 +160,7 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
         public boolean isVisible()
         {
           // Show area only if given, otherwise the drop down choice for area is shown.
-          return data.getArea() != null;
+          return data.getAreaObject() != null;
         }
       }.suppressLabelForWarning();
       fieldset.add(new DivTextPanel(fieldset.newChildId(), new Model<String>()
@@ -168,15 +168,15 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
         @Override
         public String getObject()
         {
-          if (data.getArea() != null) {
-            return getString(data.getArea().getI18nKey());
+          if (data.getAreaObject() != null) {
+            return getString(data.getAreaObject().getI18nKey());
           } else {
             return "";
           }
         }
       }));
     }
-    if (isNew() == true && data.getArea() == null) {
+    if (isNew() == true && data.getAreaObject() == null) {
       // Area choice
       final FieldsetPanel fieldset = new FieldsetPanel(gridBuilder.getPanel(), getString("userPref.area"))
       {
@@ -184,13 +184,13 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
         public boolean isVisible()
         {
           // Show area only if given, otherwise the drop down choice for area is shown.
-          return data.getArea() == null;
+          return data.getAreaObject() == null;
         }
       };
       final LabelValueChoiceRenderer<UserPrefArea> areaChoiceRenderer = createAreaChoiceRenderer(this);
       final DropDownChoice<UserPrefArea> areaDropDownChoice = new DropDownChoice<UserPrefArea>(
           fieldset.getDropDownChoiceId(),
-          new PropertyModel<UserPrefArea>(data, "area"), areaChoiceRenderer.getValues(), areaChoiceRenderer)
+          new PropertyModel<UserPrefArea>(data, "areaObject"), areaChoiceRenderer.getValues(), areaChoiceRenderer)
       {
         @Override
         protected boolean wantOnSelectionChangedNotifications()
@@ -223,12 +223,12 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
       return;
     }
     parameterCreated = true;
-    if (data.getArea() == null) {
+    if (data.getAreaObject() == null) {
       log.warn("Could not create ParameterRepeater because UserPrefArea is not given.");
       return;
     }
     if (isNew() == true && data.getUserPrefEntries() == null) {
-      parentPage.userPrefDao.addUserPrefParameters(data, data.getArea());
+      parentPage.userPrefDao.addUserPrefParameters(data, data.getAreaObject());
     }
     if (data.getUserPrefEntries() != null) {
       for (final UserPrefEntryDO param : data.getSortedUserPrefEntries()) {
@@ -244,7 +244,7 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
               new UserPrefPropertyModel<PFUserDO>(userPrefDao,
                   param, "valueAsObject"),
               parentPage, param.getParameter());
-          if (data.getArea() == UserPrefArea.USER_FAVORITE) {
+          if (data.getAreaObject() == UserPrefArea.USER_FAVORITE) {
             userSelectPanel.setShowFavorites(false);
           }
           fs.add(userSelectPanel);
@@ -254,7 +254,7 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
               new UserPrefPropertyModel<TaskDO>(userPrefDao, param,
                   "valueAsObject"),
               parentPage, param.getParameter());
-          if (data.getArea() == UserPrefArea.TASK_FAVORITE) {
+          if (data.getAreaObject() == UserPrefArea.TASK_FAVORITE) {
             taskSelectPanel.setShowFavorites(false);
           }
           fs.add(taskSelectPanel);
@@ -295,7 +295,7 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
               new UserPrefPropertyModel<ProjektDO>(
                   userPrefDao, param, "valueAsObject"),
               parentPage, param.getParameter());
-          if (data.getArea() == UserPrefArea.PROJEKT_FAVORITE) {
+          if (data.getAreaObject() == UserPrefArea.PROJEKT_FAVORITE) {
             projektSelectPanel.setShowFavorites(false);
           }
           fs.add(projektSelectPanel);
@@ -305,7 +305,7 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
               new UserPrefPropertyModel<KundeDO>(
                   userPrefDao, param, "valueAsObject"),
               null, parentPage, param.getParameter());
-          if (data.getArea() == UserPrefArea.KUNDE_FAVORITE) {
+          if (data.getAreaObject() == UserPrefArea.KUNDE_FAVORITE) {
             kundeSelectPanel.setShowFavorites(false);
           }
           fs.add(kundeSelectPanel);

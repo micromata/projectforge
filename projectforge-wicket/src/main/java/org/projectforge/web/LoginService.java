@@ -12,6 +12,7 @@ import org.projectforge.business.login.LoginResultStatus;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
+import org.projectforge.business.user.UserPrefCache;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.user.filter.CookieService;
 import org.projectforge.business.user.filter.UserFilter;
@@ -146,9 +147,10 @@ public class LoginService {
   }
 
   public void logout(final MySession mySession, final WebRequest request, final WebResponse response,
-                     final UserXmlPreferencesCache userXmlPreferencesCache) {
+                     final UserXmlPreferencesCache userXmlPreferencesCache,
+                     final UserPrefCache userPrefCache) {
     final Cookie stayLoggedInCookie = cookieService.getStayLoggedInCookie(WicketUtils.getHttpServletRequest(request));
-    logout(mySession, stayLoggedInCookie, userXmlPreferencesCache);
+    logout(mySession, stayLoggedInCookie, userXmlPreferencesCache, userPrefCache);
     if (stayLoggedInCookie != null) {
       response.addCookie(stayLoggedInCookie);
     }
@@ -156,20 +158,24 @@ public class LoginService {
 
   public void logout(final MySession mySession, final HttpServletRequest request,
                      final HttpServletResponse response,
-                     final UserXmlPreferencesCache userXmlPreferencesCache) {
+                     final UserXmlPreferencesCache userXmlPreferencesCache,
+                     final UserPrefCache userPrefCache) {
     final Cookie stayLoggedInCookie = cookieService.getStayLoggedInCookie(request);
-    logout(mySession, stayLoggedInCookie, userXmlPreferencesCache);
+    logout(mySession, stayLoggedInCookie, userXmlPreferencesCache, userPrefCache);
     if (stayLoggedInCookie != null) {
       response.addCookie(stayLoggedInCookie);
     }
   }
 
   private void logout(final MySession mySession, final Cookie stayLoggedInCookie,
-                      final UserXmlPreferencesCache userXmlPreferencesCache) {
+                      final UserXmlPreferencesCache userXmlPreferencesCache,
+                      final UserPrefCache userPrefCache) {
     final PFUserDO user = mySession.getUser();
     if (user != null) {
       userXmlPreferencesCache.flushToDB(user.getId());
       userXmlPreferencesCache.clear(user.getId());
+      userPrefCache.flushToDB(user.getId());
+      userPrefCache.clear(user.getId());
     }
     mySession.logout();
     if (stayLoggedInCookie != null) {

@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.core
 
-import org.projectforge.business.user.UserXmlPreferencesCache
+import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.CloneHelper
@@ -33,79 +33,78 @@ import java.io.Serializable
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpSession
 
+/**
+ * Uses [UserPrefService].
+ */
 @Component
-class RestUserXmlPreferencesService {
-    private val log = org.slf4j.LoggerFactory.getLogger(RestUserXmlPreferencesService::class.java)
+class UserPrefRestService {
+    private val log = org.slf4j.LoggerFactory.getLogger(UserPrefRestService::class.java)
 
     @Autowired
-    private lateinit var userXmlPreferencesCache: UserXmlPreferencesCache
+    private lateinit var userPrefService: UserPrefService
 
-    fun putEntry(request: HttpServletRequest, key: String, value: Any?, persistent: Boolean) {
-        putEntry(request.session, key, value, persistent)
+    fun putEntry(request: HttpServletRequest, area: String, name: String, value: Any?, persistent: Boolean) {
+        putEntry(request.session, area, name, value, persistent)
     }
 
     /**
      * Stores the given value for the current user.
      *
-     * @param session    Only for demo users, the value will be stored to session, not to [UserXmlPreferencesCache].
-     * @param key
-     * @param value
+     * @param session    Only for demo users, the value will be stored to session, not to [UserPrefService].
      * @param persistent If true, the object will be persisted in the database.
-     * @see UserXmlPreferencesCache.putEntry
      */
-    fun putEntry(session: HttpSession, key: String, value: Any?, persistent: Boolean) {
+    fun putEntry(session: HttpSession, area: String, name: String, value: Any?, persistent: Boolean) {
         val user = ThreadLocalUserContext.getUser()
         if (user == null || value == null) {
             // Should only occur, if user is not logged in.
             return
         }
-        if (AccessChecker.isDemoUser(user) == true && value is Serializable) {
+        if (AccessChecker.isDemoUser(user) && value is Serializable) {
             // Store user pref for demo user only in user's session.
-            session.setAttribute(key, value as Serializable?)
+            session.setAttribute(getSessionAttributename(area, name), value as Serializable?)
             return
         }
         try {
-            userXmlPreferencesCache.putEntry(user.id, key, value, persistent)
+            userPrefService.putEntry(area, name, value, persistent)
         } catch (ex: Exception) {
             log.error("Should only occur in maintenance mode: " + ex.message, ex)
         }
 
     }
 
-    fun getEntry(request: HttpServletRequest, key: String): Any? {
-        return getEntry(request.session, key)
+    fun getEntry(request: HttpServletRequest, area: String, name: String): Any? {
+        return getEntry(request.session, area, name)
     }
 
     /**
      * Gets the stored user preference entry.
      *
-     * @param session Only for demo users, the value will be stored to session, not to [UserXmlPreferencesCache].
-     * @param key
-     * @return Return a persistent object with this key, if existing, or if not a volatile object with this key, if
+     * @param session Only for demo users, the value will be stored to session, not to [UserPrefService].
+     * @param area
+     * @param name
+     * @return Return a persistent object with this name, if existing, or if not a volatile object with this name, if
      * existing, otherwise null;
-     * @see UserXmlPreferencesCache.getEntry
      */
-    fun getEntry(session: HttpSession, key: String): Any? {
+    fun getEntry(session: HttpSession, area: String, name: String): Any? {
         val user = ThreadLocalUserContext.getUser()
                 ?: // Should only occur, if user is not logged in.
                 return null
-        val userId = user.id
-        if (AccessChecker.isDemoUser(user) == true) {
+        if (AccessChecker.isDemoUser(user)) {
             // Store user pref for demo user only in user's session.
-            var value: Any? = session.getAttribute(key)
+            var value: Any? = session.getAttribute(getSessionAttributename(area, name))
             if (value != null) {
                 return value
             }
-            value = userXmlPreferencesCache.getEntry(userId, key)
-            if (value == null || value is Serializable == false) {
+            value = userPrefService.getEntry(area, name)
+            if (value == null || value !is Serializable) {
                 return null
             }
             value = CloneHelper.cloneBySerialization<Any>(value)
-            session.setAttribute(key, value as Serializable?)
+            session.setAttribute(getSessionAttributename(area, name), value as Serializable?)
             return value
         }
         try {
-            return userXmlPreferencesCache.getEntry(userId, key)
+            return userPrefService.getEntry(area, name)
         } catch (ex: Exception) {
             log.error("Should only occur in maintenance mode: " + ex.message, ex)
             return null
@@ -113,49 +112,56 @@ class RestUserXmlPreferencesService {
 
     }
 
-    fun <T : Class<*>> getEntry(request: HttpServletRequest, expectedType: T, key: String): T? {
-        return getEntry(request.session, expectedType, key)
+    fun <T : Class<*>> getEntry(request: HttpServletRequest, expectedType: Class<T>, area: String, name: String): T? {
+        return getEntry(request.session, expectedType, area, name)
     }
 
     /**
      * Gets the stored user preference entry.
      *
-     * @param session      Only for demo users, the value will be stored to session, not to [UserXmlPreferencesCache].
-     * @param key
+     * @param session      Only for demo users, the value will be stored to session, not to [UserPrefService].
+     * @param name
      * @param expectedType Checks the type of the user pref entry (if found) and returns only this object if the object is
      * from the expected type, otherwise null is returned.
-     * @return Return a persistent object with this key, if existing, or if not a volatile object with this key, if
+     * @return Return a persistent object with this name, if existing, or if not a volatile object with this name, if
      * existing, otherwise null;
-     * @see UserXmlPreferencesCache.getEntry
      */
-    fun <T : Class<*>> getEntry(session: HttpSession, expectedType: T, key: String): T? {
-        val entry = getEntry(session, expectedType, key) ?: return null
-        if (expectedType.isAssignableFrom(entry.javaClass) == true) {
-            return entry
+    fun <T : Class<*>> getEntry(session: HttpSession, expectedType: Class<T>, area: String, name: String): T? {
+        val entry = getEntry(session, area, name) ?: return null
+        if (expectedType.isAssignableFrom(entry.javaClass)) {
+            @Suppress("UNCHECKED_CAST")
+            return entry as T
         }
         // Probably a new software release results in an incompability of old and new object format.
         log.info("Could not get user preference entry: (old) type "
                 + entry.javaClass.name
-                + " is not assignable to (new) required type "
+                + " is not assignable tox (new) required type "
                 + expectedType.name
                 + " (OK, probably new software release).")
         return null
     }
 
     /**
-     * Removes the entry under the given key.
+     * Removes the entry under the given name.
      *
-     * @param session Only for demo users, the value will be stored to session, not to [UserXmlPreferencesCache].
-     * @param key
+     * @param session Only for demo users, the value will be stored to session, not to [UserPrefService].
+     * @param area
+     * @param name
      * @return The removed entry if found.
      */
-    fun removeEntry(session: HttpSession, key: String): Any? {
+    fun removeEntry(session: HttpSession, area: String, name: String) {
         val user = ThreadLocalUserContext.getUser()
                 ?: // Should only occur, if user is not logged in.
-                return null
-        if (AccessChecker.isDemoUser(user) == true) {
-            session.removeAttribute(key)
+                return
+        if (AccessChecker.isDemoUser(user)) {
+            // Remove user pref for demo user only from user's session.
+            session.removeAttribute(getSessionAttributename(area, name))
+            return
         }
-        return userXmlPreferencesCache.removeEntry(user.id, key)
+        userPrefService.removeEntry(area, name)
+    }
+
+    private fun getSessionAttributename(area: String, name: String): String {
+        return "$area.$name"
     }
 }

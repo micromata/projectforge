@@ -23,6 +23,15 @@
 
 package org.projectforge.business.user;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -51,6 +60,7 @@ import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
@@ -60,6 +70,7 @@ import java.util.List;
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
+@SuppressWarnings("deprecation")
 @Repository
 public class UserPrefDao extends BaseDao<UserPrefDO> {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserPrefDao.class);
@@ -89,6 +100,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
 
   public UserPrefDao() {
     super(UserPrefDO.class);
+    logDatabaseActions = false;
   }
 
   /**
@@ -100,7 +112,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
   public String[] getPrefNames(final UserPrefArea area) {
     final PFUserDO user = ThreadLocalUserContext.getUser();
     @SuppressWarnings("unchecked") final List<Object> list = getSession()
-            .createQuery("select name from UserPrefDO t where user_fk=? and areaString = ? order by name")
+            .createQuery("select name from UserPrefDO t where user_fk=? and area = ? order by name")
             .setInteger(0, user.getId()).setParameter(1, area.getId()).list();
     final String[] result = new String[list.size()];
     int i = 0;
@@ -117,14 +129,14 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
   public List<UserPrefDO> getListWithoutEntries(String areaId) {
     final PFUserDO user = ThreadLocalUserContext.getUser();
     @SuppressWarnings("unchecked") final List<Object[]> list = getSession()
-            .createQuery("select id, name from UserPrefDO t where user_fk=? and areaString = ? order by name")
+            .createQuery("select id, name from UserPrefDO t where user_fk=? and area = ? order by name")
             .setInteger(0, user.getId()).setParameter(1, areaId).list();
     final List<UserPrefDO> result = new ArrayList<UserPrefDO>(list.size());
     int i = 0;
     for (final Object[] oa : list) {
       UserPrefDO userPref = new UserPrefDO();
       userPref.setUser(user);
-      userPref.setAreaString(areaId);
+      userPref.setArea(areaId);
       userPref.setId((Integer) oa[0]);
       userPref.setName((String) oa[1]);
       result.add(userPref);
@@ -153,7 +165,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
   /**
    * Does (another) entry for the given user with the given area and name already exists?
    *
-   * @param id   of the current data object (null for new objects).
+   * @param id     of the current data object (null for new objects).
    * @param userId
    * @param areaId
    * @param name
@@ -168,11 +180,11 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     final List<UserPrefDO> list;
     if (id != null) {
       list = (List<UserPrefDO>) getHibernateTemplate().find(
-              "from UserPrefDO u where id <> ? and u.user.id = ? and areaString = ? and name = ?",
+              "from UserPrefDO u where id <> ? and u.user.id = ? and area = ? and name = ?",
               new Object[]{id, userId, areaId, name});
     } else {
       list = (List<UserPrefDO>) getHibernateTemplate().find(
-              "from UserPrefDO u where u.user.id = ? and areaString = ? and name = ?",
+              "from UserPrefDO u where u.user.id = ? and area = ? and name = ?",
               new Object[]{userId, areaId, name});
     }
     if (CollectionUtils.isNotEmpty(list) == true) {
@@ -186,10 +198,10 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     final UserPrefFilter myFilter = (UserPrefFilter) filter;
     final QueryFilter queryFilter = new QueryFilter(filter);
     if (myFilter.getArea() != null) {
-      queryFilter.add(Restrictions.eq("areaString", myFilter.getArea().getId()));
+      queryFilter.add(Restrictions.eq("area", myFilter.getArea().getId()));
     }
     queryFilter.add(Restrictions.eq("user.id", ThreadLocalUserContext.getUserId()));
-    queryFilter.addOrder(Order.asc("areaString"));
+    queryFilter.addOrder(Order.asc("area"));
     queryFilter.addOrder(Order.asc("name"));
     final List<UserPrefDO> list = getList(queryFilter);
     return list;
@@ -205,7 +217,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
   public UserPrefDO getUserPref(final UserPrefArea area, final String name) {
     final PFUserDO user = ThreadLocalUserContext.getUser();
     @SuppressWarnings("unchecked") final List<UserPrefDO> list = (List<UserPrefDO>) getHibernateTemplate().find(
-            "from UserPrefDO u where u.user.id = ? and u.areaString = ? and u.name = ?",
+            "from UserPrefDO u where u.user.id = ? and u.area = ? and u.name = ?",
             new Object[]{user.getId(), area.getId(), name});
     if (list == null || list.size() != 1) {
       return null;
@@ -221,7 +233,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
   public UserPrefDO getUserPref(final String areaId, final Integer id) {
     final PFUserDO user = ThreadLocalUserContext.getUser();
     @SuppressWarnings("unchecked") final List<UserPrefDO> list = (List<UserPrefDO>) getHibernateTemplate().find(
-            "from UserPrefDO u where u.user.id = ? and u.areaString = ? and u.id = ?",
+            "from UserPrefDO u where u.user.id = ? and u.area = ? and u.id = ?",
             new Object[]{user.getId(), areaId, id});
     if (list == null || list.size() != 1) {
       return null;
@@ -233,8 +245,15 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
   public List<UserPrefDO> getUserPrefs(final UserPrefArea area) {
     final PFUserDO user = ThreadLocalUserContext.getUser();
     @SuppressWarnings("unchecked") final List<UserPrefDO> list = (List<UserPrefDO>) getHibernateTemplate().find(
-            "from UserPrefDO u where u.user.id = ? and u.areaString = ?",
+            "from UserPrefDO u where u.user.id = ? and u.area = ?",
             new Object[]{user.getId(), area.getId()});
+    return selectUnique(list);
+  }
+
+  public List<UserPrefDO> getUserPrefs() {
+    final PFUserDO user = ThreadLocalUserContext.getUser();
+    @SuppressWarnings("unchecked") final List<UserPrefDO> list = (List<UserPrefDO>) getHibernateTemplate().find(
+            "from UserPrefDO u where u.user.id = ?", user.getId());
     return selectUnique(list);
   }
 
@@ -416,11 +435,6 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     updateParameterValueObject(userPrefEntry);
   }
 
-  /**
-   * @param value
-   * @return
-   * @see #getParameterValue(String)
-   */
   public String convertParameterValueToString(final Object value) {
     if (value == null) {
       return null;
@@ -441,8 +455,6 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
   }
 
   /**
-   * @param value
-   * @return
    * @see #convertParameterValueToString(Object)
    */
   @SuppressWarnings("unchecked")
@@ -492,24 +504,20 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     if (userPref == null) {
       return null;
     }
-    if (userPref.getArea() != null) {
-      evaluateAnnotations(userPref, userPref.getArea().getBeanType());
+    if (userPref.getAreaObject() != null) {
+      evaluateAnnotations(userPref, userPref.getAreaObject().getBeanType());
     }
     return userPref;
   }
 
   /**
    * @return Always true, no generic select access needed for user pref objects.
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess()
    */
   @Override
   public boolean hasSelectAccess(final PFUserDO user, final boolean throwException) {
     return true;
   }
 
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasAccess(Object, OperationType)
-   */
   @Override
   public boolean hasAccess(final PFUserDO user, final UserPrefDO obj, final UserPrefDO oldObj,
                            final OperationType operationType,
@@ -529,4 +537,63 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     return new UserPrefDO();
   }
 
+  public Object deserizalizeValueObject(UserPrefDO userPref) {
+    if (userPref.getType() == null)
+      return null;
+    userPref.setValueObject(fromJson(userPref.getValue(), userPref.getType()));
+    return userPref.getValueObject();
+  }
+
+  @Override
+  protected void onSaveOrModify(UserPrefDO obj) {
+    if (obj.getValueObject() == null) {
+      obj.setValue(null);
+      obj.setTypeString(null);
+    } else {
+      obj.setValue(toJson(obj.getValueObject()));
+      obj.setTypeString(obj.getValueObject().getClass().getName());
+    }
+  }
+
+  private static final String MAGIC_JSON_START = "^JSON:";
+
+  private String toJson(Object obj) {
+    try {
+      return MAGIC_JSON_START + createObjectMapper().writeValueAsString(obj);
+    } catch (JsonProcessingException ex) {
+      log.error("Error while trying to serialze object as json: " + ex.getMessage(), ex);
+      return "";
+    }
+  }
+
+  private boolean isJsonObject(String value) {
+    return StringUtils.startsWith(value, MAGIC_JSON_START);
+  }
+
+  private <T> T fromJson(String json, final Class<T> classOfT) {
+    if (!isJsonObject(json))
+      return null;
+    json = json.substring(MAGIC_JSON_START.length());
+    try {
+      return createObjectMapper().readValue(json, classOfT);
+    } catch (IOException ex) {
+      log.error("Can't deserialize json object: " + ex.getMessage() + " json=" + json, ex);
+      return null;
+    }
+  }
+
+  private ObjectMapper createObjectMapper() {
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE);
+    mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    mapper.setSerializationInclusion(JsonInclude.Include.NON_DEFAULT);
+    mapper.configure(SerializationFeature.FAIL_ON_SELF_REFERENCES, false);
+    mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    SimpleModule module = new SimpleModule();
+    mapper.registerModule(module);
+    mapper.registerModule(new KotlinModule());
+    return mapper;
+  }
 }
