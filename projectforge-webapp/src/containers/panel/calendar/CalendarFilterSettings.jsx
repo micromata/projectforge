@@ -4,7 +4,7 @@ import { Button, Col, Container, Popover, PopoverBody, PopoverHeader, Row, } fro
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome/index';
 import { faCog } from '@fortawesome/free-solid-svg-icons';
 import style from '../../../components/design/input/Input.module.scss';
-import ReactSelect from '../../../components/base/page/layout/ReactSelect';
+import ReactSelect from '../../../components/design/ReactSelect';
 import UserSelect from '../../../components/base/page/layout/UserSelect';
 
 /**

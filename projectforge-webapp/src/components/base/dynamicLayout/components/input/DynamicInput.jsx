@@ -4,7 +4,7 @@ import Input from '../../../../design/input';
 import ValidationManager from '../../../../design/input/ValidationManager';
 import { DynamicLayoutContext } from '../../context';
 
-function DynamicInput({ id, ...props }) {
+function DynamicInput({ id, focus, ...props }) {
     const { data, setData } = React.useContext(DynamicLayoutContext);
 
     // Only rerender input when data has changed
@@ -16,6 +16,7 @@ function DynamicInput({ id, ...props }) {
                 <Input
                     id={id}
                     onChange={handleInputChange}
+                    autoFocus={focus}
                     {...props}
                     value={data[id] || ''}
                 />
@@ -26,6 +27,11 @@ function DynamicInput({ id, ...props }) {
 
 DynamicInput.propTypes = {
     id: PropTypes.string.isRequired,
+    focus: PropTypes.bool,
+};
+
+DynamicInput.defaultProps = {
+    focus: false,
 };
 
 export default DynamicInput;

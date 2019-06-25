@@ -1,15 +1,11 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Col, FormGroup, Row } from '../../../design';
-import CustomizedLayout from './customized';
-import LayoutDayPickerInput from './LayoutDayPickerInput';
 import LayoutInput from './LayoutInput';
 import LayoutLabel from './LayoutLabel';
 import LayoutTable from './table';
-import Timestamp from './Timestamp';
-import TaskSelect from './TaskSelect';
-import UserSelect from './UserSelect';
 import UncontrolledReactSelect from './UncontrolledReactSelect';
+import UserSelect from './UserSelect';
 
 function LayoutGroup(
     {
@@ -40,13 +36,7 @@ function LayoutGroup(
                         Tag = LayoutLabel;
                         break;
                     case 'INPUT':
-                        if (component.dataType === 'DATE') {
-                            Tag = LayoutDayPickerInput;
-                        } else if (component.dataType === 'TIMESTAMP') {
-                            Tag = Timestamp;
-                        } else if (component.dataType === 'TASK') {
-                            Tag = TaskSelect;
-                        } else if (component.dataType === 'USER') {
+                        if (component.dataType === 'USER') {
                             Tag = UserSelect;
                         } else {
                             Tag = LayoutInput;
@@ -67,9 +57,6 @@ function LayoutGroup(
                         break;
                     case 'TABLE':
                         Tag = LayoutTable;
-                        break;
-                    case 'CUSTOMIZED':
-                        Tag = CustomizedLayout;
                         break;
                     default:
                         return (

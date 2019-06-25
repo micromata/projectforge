@@ -6,9 +6,9 @@ import makeAnimated from 'react-select/lib/animated';
 import PropTypes from 'prop-types';
 import { faQuestion } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import style from '../../../design/input/Input.module.scss';
-import AdditionalLabel from '../../../design/input/AdditionalLabel';
-import revisedRandomId from '../../../../utilities/revisedRandomId';
+import style from './input/Input.module.scss';
+import AdditionalLabel from './input/AdditionalLabel';
+import revisedRandomId from '../../utilities/revisedRandomId';
 
 function ReactSelect(
     {
@@ -73,7 +73,7 @@ function ReactSelect(
                 className={className}
                 cache={{}}
             />
-            <AdditionalLabel title={additionalLabel}/>
+            <AdditionalLabel title={additionalLabel} />
         </React.Fragment>
     );
 }
