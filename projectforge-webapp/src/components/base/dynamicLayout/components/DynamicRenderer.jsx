@@ -6,6 +6,7 @@ import DynamicLabel from './DynamicLabel';
 import DynamicToLayoutGroup from './DynamicToLayoutGroup';
 import DynamicCheckbox from './input/DynamicCheckbox';
 import DynamicInputResolver from './input/DynamicInputResolver';
+import DynamicTextArea from './input/DynamicTextArea';
 
 // Renders the components out of a content array.
 export default (content) => {
@@ -39,6 +40,9 @@ export default (content) => {
                         break;
                     case 'LABEL':
                         Tag = DynamicLabel;
+                        break;
+                    case 'TEXTAREA':
+                        Tag = DynamicTextArea;
                         break;
                     default:
                         Tag = DynamicToLayoutGroup;
