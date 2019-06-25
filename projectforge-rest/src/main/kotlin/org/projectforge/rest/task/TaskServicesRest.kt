@@ -181,12 +181,15 @@ class TaskServicesRest {
         var openNodes = userPrefService.ensureEntry(PREF_ARA, TaskTree.USER_PREFS_KEY_OPEN_TASKS, mutableSetOf<Int>())
         val filter = listFilterService.getSearchFilter(request.session, TaskFilter::class.java) as TaskFilter
 
-        if (opened != null) filter.isOpened = opened
-        if (notOpened != null) filter.isNotOpened = notOpened
-        if (closed != null) filter.isClosed = closed
-        if (deleted != null) filter.isDeleted = deleted
-        filter.setSearchString(searchString);
-
+        if (initial != true) {
+            // User filter settings not on initial call.
+            // On initial calls the stored filter will be used and returned for restoring in the client.
+            if (opened != null) filter.isOpened = opened
+            if (notOpened != null) filter.isNotOpened = notOpened
+            if (closed != null) filter.isClosed = closed
+            if (deleted != null) filter.isDeleted = deleted
+            filter.setSearchString(searchString);
+        }
         val rootNode = taskTree.rootTaskNode
         val root = Task(rootNode)
         addKost2List(root)
