@@ -36,7 +36,7 @@ import java.util.*
  * DTO to  AbstractHistorizableBaseDO<Int> and vice versa.
  */
 open class BaseDTO<T : ExtendedBaseDO<Int>>(var id: Int? = null,
-                                            var isDeleted: Boolean = false,
+                                            var deleted: Boolean = false,
                                             var created: Date? = null,
                                             var lastUpdate: Date? = null,
                                             var tenantId: Int? = null) {

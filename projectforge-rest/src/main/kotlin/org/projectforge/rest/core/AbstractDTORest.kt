@@ -70,7 +70,7 @@ abstract class AbstractDTORest<
      */
     override fun isDeleted(dto: Any): Boolean {
         @Suppress("UNCHECKED_CAST")
-        return (dto as DTO).isDeleted
+        return (dto as DTO).deleted
     }
 
     override fun isHistorizable(): Boolean {

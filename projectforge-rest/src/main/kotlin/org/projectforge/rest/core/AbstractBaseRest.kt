@@ -423,7 +423,7 @@ abstract class AbstractBaseRest<
             }
         } else if (dto is BaseDTO<*>) {
             dto.id = null
-            dto.isDeleted = false
+            dto.deleted = false
             dto.lastUpdate = null
             dto.created = null
         }
