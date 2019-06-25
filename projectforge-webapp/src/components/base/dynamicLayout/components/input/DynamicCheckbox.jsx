@@ -16,7 +16,7 @@ function DynamicCheckbox({ id, label }) {
                     id={id}
                     label={label}
                     checked={data[id] || false}
-                    onClick={handleCheckboxChange}
+                    onChange={handleCheckboxChange}
                 />
             </ValidationManager>
         );

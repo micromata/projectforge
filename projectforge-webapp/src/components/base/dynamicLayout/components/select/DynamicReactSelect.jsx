@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import ReactSelect from '../../../page/layout/ReactSelect';
+import ReactSelect from '../../../../design/ReactSelect';
 import { DynamicLayoutContext } from '../../context';
 
 export const extractDataValue = (

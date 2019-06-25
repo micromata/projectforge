@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import style from '../../../design/input/Input.module.scss';
 import { getServiceURL } from '../../../../utilities/rest';
 import UncontrolledReactSelect from './UncontrolledReactSelect';
-import ReactSelect from './ReactSelect';
+import ReactSelect from '../../../design/ReactSelect';
 
 class UserSelect extends React.Component {
     constructor(props) {

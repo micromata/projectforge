@@ -1,11 +1,10 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
-import Formatter from '../../../Formatter';
 import history from '../../../../../utilities/history';
 import { tableColumnsPropType } from '../../../../../utilities/propTypes';
+import Formatter from '../../../Formatter';
 import style from '../../Page.module.scss';
-import CustomizedLayout from '../customized';
 
 class TableRow extends React.Component {
     constructor(props) {
@@ -29,6 +28,7 @@ class TableRow extends React.Component {
                 className={style.clickable}
             >
                 {columns.map(({ id, formatter, dataType }) => {
+                    /*
                     let element;
                     if (dataType === 'CUSTOMIZED') {
                         element = <CustomizedLayout id={id} data={data} variables={variables} />;
@@ -42,9 +42,15 @@ class TableRow extends React.Component {
                             />
                         );
                     }
+                    */
                     return (
                         <td key={`table-body-row-${data.id}-column-${id}`}>
-                            {element}
+                            <Formatter
+                                formatter={formatter}
+                                data={data}
+                                id={id}
+                                dataType={dataType}
+                            />
                         </td>
                     );
                 })}

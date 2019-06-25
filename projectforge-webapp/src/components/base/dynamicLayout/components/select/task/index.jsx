@@ -131,7 +131,7 @@ function DynamicTaskSelect(
             </Button>
             <Button
                 color="link"
-                class="selectPanelIconLinks"
+                className="selectPanelIconLinks"
                 onClick={toggleModal}
                 disabled
             >

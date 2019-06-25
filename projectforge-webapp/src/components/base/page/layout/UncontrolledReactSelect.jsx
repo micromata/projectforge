@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { dataPropType } from '../../../../utilities/propTypes';
 import { getServiceURL, handleHTTPErrors } from '../../../../utilities/rest';
-import ReactSelect from './ReactSelect';
+import ReactSelect from '../../../design/ReactSelect';
 
 class UncontrolledReactSelect extends React.Component {
     static extractDataValue(props) {
