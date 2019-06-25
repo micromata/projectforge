@@ -100,6 +100,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
 
   public UserPrefDao() {
     super(UserPrefDO.class);
+    logDatabaseActions = false;
   }
 
   /**

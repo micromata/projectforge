@@ -103,6 +103,8 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   protected Class<O> clazz;
 
+  protected boolean logDatabaseActions = true;
+
   @Autowired
   protected AccessChecker accessChecker;
 
@@ -801,7 +803,9 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     BaseDaoJpaAdapter.prepareInsert(obj);
     Session session = hibernateTemplate.getSessionFactory().getCurrentSession();
     Integer id = (Integer) session.save(obj);
-    log.info("New object added (" + id + "): " + obj.toString());
+    if (logDatabaseActions) {
+      log.info("New " + this.clazz.getSimpleName() + " added (" + id + "): " + obj.toString());
+    }
     prepareHibernateSearch(obj, OperationType.INSERT);
     if (NO_UPDATE_MAGIC == true) {
       // safe will assocated not working
@@ -931,7 +935,9 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
       if (tresult != ModificationStatus.NONE) {
         BaseDaoJpaAdapter.prepareUpdate(dbObj);
         dbObj.setLastUpdate();
-        log.info("Object updated: " + dbObj.toString());
+        if (logDatabaseActions) {
+          log.info(this.clazz.getSimpleName() + " updated: " + dbObj.toString());
+        }
       } else {
         log.info("No modifications detected (no update needed): " + dbObj.toString());
       }
@@ -1036,7 +1042,9 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     afterSaveOrModify(obj);
     afterDelete(obj);
     flushSession();
-    log.info("Object marked as deleted: " + dbObj.toString());
+    if (logDatabaseActions) {
+      log.info(clazz.getSimpleName() + " marked as deleted: " + dbObj.toString());
+    }
   }
 
   protected void flushSession() {
@@ -1080,7 +1088,9 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     checkPartOfCurrentTenant(obj, OperationType.DELETE);
     checkLoggedInUserDeleteAccess(obj, dbObj);
     hibernateTemplate.delete(dbObj);
-    log.info("Object deleted: " + obj.toString());
+    if (logDatabaseActions) {
+      log.info(clazz.getSimpleName() + " deleted: " + obj.toString());
+    }
     afterSaveOrModify(obj);
     afterDelete(obj);
   }
@@ -1124,7 +1134,9 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
     afterSaveOrModify(obj);
     afterUndelete(obj);
-    log.info("Object undeleted: " + dbObj.toString());
+    if (logDatabaseActions) {
+      log.info(clazz.getSimpleName() + " undeleted: " + dbObj.toString());
+    }
   }
 
   protected void checkPartOfCurrentTenant(final O obj, final OperationType operationType) {
