@@ -70,6 +70,7 @@ import java.util.List;
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
+@SuppressWarnings("deprecation")
 @Repository
 public class UserPrefDao extends BaseDao<UserPrefDO> {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserPrefDao.class);
@@ -535,19 +536,21 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     return new UserPrefDO();
   }
 
-  public <T> T deserizalizeValueObject(UserPrefDO userPref, final Class<T> classOfT) {
-    userPref.setValueObject(fromJson(userPref.getValue(), classOfT));
-    return (T)userPref.getValueObject();
+  public Object deserizalizeValueObject(UserPrefDO userPref) {
+    if (userPref.getType() == null)
+      return null;
+    userPref.setValueObject(fromJson(userPref.getValue(), userPref.getType()));
+    return userPref.getValueObject();
   }
 
   @Override
   protected void onSaveOrModify(UserPrefDO obj) {
     if (obj.getValueObject() == null) {
       obj.setValue(null);
-      obj.setType(null);
+      obj.setTypeString(null);
     } else {
       obj.setValue(toJson(obj.getValueObject()));
-      obj.setType(obj.getValueObject().getClass());
+      obj.setTypeString(obj.getValueObject().getClass().getName());
     }
   }
 

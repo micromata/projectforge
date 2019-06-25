@@ -21,6 +21,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+@file:Suppress("DEPRECATION")
+
 package org.projectforge.framework.persistence.user.entities
 
 import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist
@@ -88,10 +90,20 @@ class UserPrefDO : AbstractBaseDO<Int>() {
     var value: String? = null
 
     /**
-     * The value as string representation (e. g. json).
+     * The type of the value (class name). It's not of type class because types are may-be refactored or removed.
      */
-    @get:Column(length = 1000)
-    var type: Class<*>? = null
+    @get:Column(name = "type", length = 1000)
+    var typeString: String? = null
+
+    /**
+     * [typeString] as class or null, if [typeString] is null.
+     */
+    val type: Class<*>?
+        @Transient
+        get() =
+            if (typeString.isNullOrBlank())
+                null
+            else Class.forName(typeString)
 
     /**
      * The value as object (deserialized from json).
@@ -139,8 +151,6 @@ class UserPrefDO : AbstractBaseDO<Int>() {
     /**
      * Copies all values from the given src object excluding the values created and modified. Null values will be
      * excluded.
-     *
-     * @param src
      */
     @Deprecated("Use value with json serialization instead.")
     override fun copyValuesFrom(source: BaseDO<out Serializable>, vararg ignoreFields: String): ModificationStatus {
@@ -150,7 +160,7 @@ class UserPrefDO : AbstractBaseDO<Int>() {
             for (srcEntry in src.userPrefEntries!!) {
                 val destEntry = ensureAndGetAccessEntry(srcEntry.parameter)
                 val st = destEntry.copyValuesFrom(srcEntry)
-                modificationStatus = AbstractBaseDO.getModificationStatus(modificationStatus, st)
+                modificationStatus = getModificationStatus(modificationStatus, st)
             }
             val iterator = userPrefEntries!!.iterator()
             while (iterator.hasNext()) {
@@ -184,7 +194,7 @@ class UserPrefDO : AbstractBaseDO<Int>() {
             return null
         }
         for (entry in this.userPrefEntries!!) {
-            if (entry.parameter == parameter == true) {
+            if (entry.parameter == parameter) {
                 return entry
             }
         }
@@ -206,7 +216,7 @@ class UserPrefDO : AbstractBaseDO<Int>() {
     fun getDependentUserPrefEntries(parameter: String): List<UserPrefEntryDO>? {
         var list: MutableList<UserPrefEntryDO>? = null
         for (entry in this.userPrefEntries!!) {
-            if (parameter == entry.dependsOn == true) {
+            if (parameter == entry.dependsOn) {
                 if (list == null) {
                     list = ArrayList()
                 }
