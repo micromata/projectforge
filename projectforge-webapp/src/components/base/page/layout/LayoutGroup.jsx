@@ -5,7 +5,6 @@ import LayoutInput from './LayoutInput';
 import LayoutLabel from './LayoutLabel';
 import LayoutTable from './table';
 import UncontrolledReactSelect from './UncontrolledReactSelect';
-import UserSelect from './UserSelect';
 
 function LayoutGroup(
     {
@@ -34,13 +33,6 @@ function LayoutGroup(
                 switch (component.type) {
                     case 'LABEL':
                         Tag = LayoutLabel;
-                        break;
-                    case 'INPUT':
-                        if (component.dataType === 'USER') {
-                            Tag = UserSelect;
-                        } else {
-                            Tag = LayoutInput;
-                        }
                         break;
                     case 'CHECKBOX':
                     case 'TEXTAREA':
