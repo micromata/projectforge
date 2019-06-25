@@ -130,7 +130,7 @@ class CalendarServicesRest {
         }
         var visibleCalendarIds = filter.activeCalendarIds
         if (filter.useVisibilityState == true && !visibleCalendarIds.isNullOrEmpty()) {
-            val currentFilter = userXmlPreferenceService.getEntry(CalendarFilter::class.java, CalendarFilterServicesRest.PREF_KEY_CURRENT_FAV)
+            val currentFilter = userXmlPreferenceService.getEntry(CalendarFilter::class.java, CalendarFilterServicesRest.PREF_NAME_CURRENT_FAV)
             if (currentFilter != null) {
                 val set = mutableSetOf<Int>()
                 visibleCalendarIds.forEach {

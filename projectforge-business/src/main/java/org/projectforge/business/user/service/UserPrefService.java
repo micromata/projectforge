@@ -24,8 +24,6 @@
 package org.projectforge.business.user.service;
 
 import org.projectforge.business.user.UserPrefCache;
-import org.projectforge.business.user.UserXmlPreferencesCache;
-import org.projectforge.framework.access.AccessChecker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -37,44 +35,54 @@ public class UserPrefService {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserPrefService.class);
 
   @Autowired
-  private AccessChecker accessChecker;
-
-  @Autowired
   private UserPrefCache userPrefCache;
+
+  /**
+   * Stores the given value for the current user as persistent value.
+   *
+   * @param name
+   * @param value
+   */
+  public void putEntry(final String area, final String name, final Object value) {
+    putEntry(area, name, value, true);
+  }
 
   /**
    * Stores the given value for the current user.
    *
-   * @param key
+   * @param name
    * @param value
    * @param persistent If true, the object will be persisted in the database.
-   * @see UserXmlPreferencesCache#putEntry(Integer, String, Object, boolean)
    */
-  public void putEntry(final String area, final String key, final Object value, final boolean persistent) {
-    userPrefCache.putEntry(area, key, value, persistent);
+  public void putEntry(final String area, final String name, final Object value, final boolean persistent) {
+    userPrefCache.putEntry(area, name, value, persistent);
   }
 
   /**
    * Gets the stored user preference entry.
    *
-   * @param key
+   * @param area
+   * @param name
    * @param expectedType Checks the type of the user pref entry (if found) and returns only this object if the object is
    *                     from the expected type, otherwise null is returned.
-   * @return Return a persistent object with this key, if existing, or if not a volatile object with this key, if
+   * @return Return a persistent object with this name, if existing, or if not a volatile object with this name, if
    * existing, otherwise null;
-   * @see UserXmlPreferencesCache#getEntry(Integer, String)
    */
-  public <T> T getEntry(Class<T> expectedType, String area, String key) {
-    return userPrefCache.getEntry(area, key, expectedType);
+  public <T> T getEntry(String area, String name, Class<T> expectedType) {
+    return userPrefCache.getEntry(area, name, expectedType);
+  }
+
+  public Object getEntry(String area, String name) {
+    return userPrefCache.getEntry(area, name);
   }
 
   /**
-   * Removes the entry under the given key.
+   * Removes the entry under the given name.
    *
-   * @param key
+   * @param name
    * @return The removed entry if found.
    */
-  public void removeEntry(final String area, final String key) {
-    userPrefCache.removeEntry(area, key);
+  public void removeEntry(final String area, final String name) {
+    userPrefCache.removeEntry(area, name);
   }
 }

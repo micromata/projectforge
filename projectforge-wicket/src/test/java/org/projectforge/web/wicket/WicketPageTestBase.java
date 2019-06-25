@@ -41,6 +41,7 @@ import org.apache.wicket.util.tester.WicketTester;
 import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
 import org.projectforge.ProjectForgeApp;
+import org.projectforge.business.user.UserPrefCache;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.plugins.core.AbstractPlugin;
@@ -64,6 +65,9 @@ public class WicketPageTestBase extends AbstractTestBase {
   protected static final String KEY_LOGINPAGE_BUTTON_LOGIN = "loginButton:button";
 
   protected WicketTester tester;
+
+  @Autowired
+  private UserPrefCache userPrefCache;
 
   @Autowired
   private UserXmlPreferencesCache userXmlPreferencesCache;
@@ -297,7 +301,6 @@ public class WicketPageTestBase extends AbstractTestBase {
   /**
    * @param tester        WicketTester with the last rendered page.
    * @param containerPath path of the container to search in.
-   * @param label
    * @see #findComponentByLabel(MarkupContainer, String)
    */
   public Component findComponentByAccessKey(final WicketTester tester, final String containerPath, final char accessKey) {
@@ -309,7 +312,8 @@ public class WicketPageTestBase extends AbstractTestBase {
    * Logs out any current logged-in user and calls log-in page.
    */
   protected void logout() {
-    loginService.logout((MySession) tester.getSession(), tester.getRequest(), tester.getResponse(), userXmlPreferencesCache);
+    loginService.logout((MySession) tester.getSession(), tester.getRequest(), tester.getResponse(),
+            userXmlPreferencesCache, userPrefCache);
     tester.startPage(LoginPage.class);
     tester.assertRenderedPage(LoginPage.class);
   }
