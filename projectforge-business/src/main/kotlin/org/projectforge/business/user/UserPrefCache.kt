@@ -76,13 +76,25 @@ class UserPrefCache : AbstractCache() {
     /**
      * Gets the user's entry.
      */
-    fun getEntry(userId: Int, area: String, name: String, id: Int? = null): Any? {
-        val data = ensureAndGetUserPreferencesData(userId)
-        checkRefresh()
-        return data.getEntry(area, name)?.userPrefDO?.valueObject
+    fun <T> getEntry(area: String, name: String, clazz: Class<T>): T? {
+        val userId = ThreadLocalUserContext.getUserId()
+        return getEntry(userId, area, name, clazz)
     }
 
-    fun removeEntry(userId: Int, area: String, name: String) {
+    fun removeEntry(area: String, name: String) {
+        val userId = ThreadLocalUserContext.getUserId()
+        return removeEntry(userId, area, name)
+    }
+
+    private fun <T> getEntry(userId: Int, area: String, name: String, clazz: Class<T>): T? {
+        val data = ensureAndGetUserPreferencesData(userId)
+        checkRefresh()
+        val userPref = data.getEntry(area, name)?.userPrefDO ?: return null
+        if (userPref.valueObject != null) return userPref.valueObject as T
+        return null
+    }
+
+    private fun removeEntry(userId: Int, area: String, name: String) {
         val data = getUserPreferencesData(userId)
                 ?: // Should only occur for the pseudo-first-login-user setting up the system.
                 return

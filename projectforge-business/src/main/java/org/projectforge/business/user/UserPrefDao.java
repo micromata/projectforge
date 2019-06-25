@@ -544,8 +544,10 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
   protected void onSaveOrModify(UserPrefDO obj) {
     if (obj.getValueObject() == null) {
       obj.setValue(null);
+      obj.setType(null);
     } else {
       obj.setValue(toJson(obj.getValueObject()));
+      obj.setType(obj.getValueObject().getClass());
     }
   }
 

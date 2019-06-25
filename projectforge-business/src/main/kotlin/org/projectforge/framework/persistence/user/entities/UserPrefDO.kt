@@ -88,6 +88,12 @@ class UserPrefDO : AbstractBaseDO<Int>() {
     var value: String? = null
 
     /**
+     * The value as string representation (e. g. json).
+     */
+    @get:Column(length = 1000)
+    var type: Class<*>? = null
+
+    /**
      * The value as object (deserialized from json).
      */
     @get:Transient
