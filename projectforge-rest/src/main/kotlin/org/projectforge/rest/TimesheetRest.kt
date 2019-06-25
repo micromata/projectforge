@@ -29,7 +29,7 @@ import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.timesheet.TimesheetFilter
 import org.projectforge.business.timesheet.TimesheetPrefData
-import org.projectforge.business.user.service.UserXmlPreferencesService
+import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.common.DateFormatType
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
@@ -53,10 +53,15 @@ import javax.servlet.http.HttpServletRequest
 @RequestMapping("${Rest.URL}/timesheet")
 class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilter>(TimesheetDao::class.java, TimesheetFilter::class.java, "timesheet.title") {
 
+    companion object {
+        private const val PREF_AREA = "timesheet"
+        private const val PREF_EDIT_NAME = "edit.recent"
+    }
+
     private val dateTimeFormatter = DateTimeFormatter.instance()
 
     @Autowired
-    private lateinit var userXmlPreferencesService: UserXmlPreferencesService
+    private lateinit var userPrefService: UserPrefService
 
     private val taskTree: TaskTree
         /** Lazy init, because test cases failed due to NPE in TenantRegistryMap. */
@@ -217,15 +222,14 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilter>
     }
 
     private fun getTimesheetPrefData(): TimesheetPrefData {
-        val prefKey = "timesheetEditPref"
-        var pref: TimesheetPrefData? = userXmlPreferencesService.getEntry(TimesheetPrefData::class.java, prefKey)
+        var pref: TimesheetPrefData? = userPrefService.getEntry(PREF_AREA, PREF_EDIT_NAME, TimesheetPrefData::class.java)
         if (pref == null) {
             val oldPrefKey = "org.projectforge.web.timesheet.TimesheetEditPage" // From Wicket version.
-            pref = userXmlPreferencesService.getEntry(TimesheetPrefData::class.java, oldPrefKey)
+            pref = userPrefService.userXmlPreferencesService.getEntry(TimesheetPrefData::class.java, oldPrefKey)
             if (pref == null) {
                 pref = TimesheetPrefData()
             }
-            userXmlPreferencesService.putEntry(prefKey, pref, true)
+            userPrefService.putEntry(PREF_AREA, PREF_EDIT_NAME, pref)
         }
         return pref
     }
