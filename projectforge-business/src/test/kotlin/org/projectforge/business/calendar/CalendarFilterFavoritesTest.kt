@@ -40,8 +40,7 @@ class CalendarFilterFavoritesTest {
     fun autoNameTest() {
         val favs = Favorites<CalendarFilter>()
         favs.add(CalendarFilter())
-        val prefix = favs.getElementAt(0)!!.name
-        if (prefix ==null) fail("prefix can't be null")
+        val prefix = favs.getElementAt(0)!!.name ?: fail("prefix can't be null")
         assertTrue(prefix.startsWith("???")) // Translations not available
         assertTrue(prefix.endsWith("???")) // Translations not available
         favs.add(CalendarFilter())
