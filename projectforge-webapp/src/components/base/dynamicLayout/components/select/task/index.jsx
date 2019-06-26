@@ -226,6 +226,7 @@ function DynamicTaskSelect(
                     />
                 </Button>
                 <FavoritesPanel
+                    id="taskSelectFavorites"
                     onFavoriteDelete={handleFavoriteDelete}
                     onFavoriteRename={handleFavoriteRename}
                     onFavoriteSelect={handleFavoriteSelect}
