@@ -1,8 +1,8 @@
-import { faStar } from '@fortawesome/free-regular-svg-icons';
 import { faStream } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
+import FavoritesPanel from '../../../../../../containers/panel/FavoritesPanel';
 import TaskTreePanel from '../../../../../../containers/panel/task/TaskTreePanel';
 import { getServiceURL, handleHTTPErrors } from '../../../../../../utilities/rest';
 import { Button, Collapse, Modal, ModalBody, ModalHeader } from '../../../../../design';
@@ -24,6 +24,7 @@ function DynamicTaskSelect(
     const [panelVisible, setPanelVisible] = React.useState(false);
     const [modalHighlight, setModalHighlight] = React.useState(undefined);
     const [task, setStateTask] = React.useState(undefined);
+    const [favorites, setFavorites] = React.useState(undefined);
     const panelRef = React.useRef(null);
 
     // Handle mouse events
@@ -37,6 +38,21 @@ function DynamicTaskSelect(
         document.addEventListener('mousedown', handleClickOutside);
 
         setStateTask(variables.task);
+
+        fetch(
+            getServiceURL('task/favorites/list'),
+            {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    Accept: 'application/json',
+                },
+            },
+        )
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            .then(json => setFavorites(json))
+            .catch(error => alert(`Internal error: ${error}`));
 
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
@@ -88,6 +104,85 @@ function DynamicTaskSelect(
                 });
         };
 
+        const handleFavoriteCreate = (name) => {
+            if (!task) {
+                // Do nothing: can't set none existing task as favorite.
+                return;
+            }
+
+            fetch(
+                getServiceURL(
+                    'task/favorites/new',
+                    {
+                        name,
+                        taskId: task.id,
+                    },
+                ),
+                {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        Accept: 'application/json',
+                    },
+                },
+            )
+                .then(handleHTTPErrors)
+                .then(response => response.json())
+                .then(setFavorites)
+                .catch(error => alert(`Internal error: ${error}`));
+        };
+
+        const handleFavoriteDelete = favoriteId => fetch(
+            getServiceURL('task/favorites/delete', { id: favoriteId }),
+            {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    Accept: 'application/json',
+                },
+            },
+        )
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            .then(setFavorites)
+            .catch(error => alert(`Internal error: ${error}`));
+
+        const handleFavoriteSelect = favoriteId => fetch(
+            getServiceURL('task/favorites/select', { id: favoriteId }),
+            {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    Accept: 'application/json',
+                },
+            },
+        )
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            .then(setTask)
+            .catch(error => alert(`Internal error: ${error}`));
+
+        const handleFavoriteRename = (favoriteId, newName) => fetch(
+            getServiceURL(
+                'task/favorites/rename',
+                {
+                    id: favoriteId,
+                    newName,
+                },
+            ),
+            {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    Accept: 'application/json',
+                },
+            },
+        )
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            .then(setFavorites)
+            .catch(error => alert(`Internal error: ${error}`));
+
         const toggleModal = () => {
             setPanelVisible(!panelVisible);
             setModalHighlight(undefined); // Reset to highlight current task.
@@ -130,17 +225,14 @@ function DynamicTaskSelect(
                         className={inputStyle.icon}
                     />
                 </Button>
-                <Button
-                    color="link"
-                    className="selectPanelIconLinks"
-                    onClick={toggleModal}
-                    disabled
-                >
-                    <FontAwesomeIcon
-                        icon={faStar}
-                        className={inputStyle.icon}
-                    />
-                </Button>
+                <FavoritesPanel
+                    onFavoriteDelete={handleFavoriteDelete}
+                    onFavoriteRename={handleFavoriteRename}
+                    onFavoriteSelect={handleFavoriteSelect}
+                    onFavoriteCreate={handleFavoriteCreate}
+                    favorites={favorites}
+                    translations={ui.translations}
+                />
                 {showInline
                     ? (
                         <Collapse
@@ -171,7 +263,7 @@ function DynamicTaskSelect(
                     )}
             </div>
         );
-    }, [panelVisible, modalHighlight, task, panelRef]);
+    }, [panelVisible, modalHighlight, task, panelRef, favorites]);
 }
 
 DynamicTaskSelect.propTypes = {
