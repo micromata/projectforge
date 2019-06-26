@@ -1060,7 +1060,9 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
       Search.getFullTextSession(getSession()).flushToIndexes();
     }
     long end = System.currentTimeMillis();
-    log.info("BaseDao.flushSearchSession took: " + (end - begin) + " ms.");
+    if (end - begin > 1000) {
+      log.info("BaseDao.flushSearchSession took: " + (end - begin) + " ms (> 1s).");
+    }
   }
 
   /**
