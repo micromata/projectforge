@@ -43,7 +43,7 @@ import javax.annotation.PreDestroy
  */
 @Component
 @DependsOn("entityManagerFactory")
-class UserPrefCache : AbstractCache() {
+open class UserPrefCache : AbstractCache() { // Must be open for Wicket for creating proxy object.
     private val log = org.slf4j.LoggerFactory.getLogger(UserPrefCache::class.java)
 
     private val allPreferences = HashMap<Int, UserPrefCacheData>()
