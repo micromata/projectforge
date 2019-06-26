@@ -243,10 +243,10 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     final Calendar now = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
     final Calendar startDate = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
     final Calendar endDateVacationFromLastYear = getEndDateVacationFromLastYear();
-    if (vacationData.getIsSpecial() == true) {
+    if (vacationData.isSpecial() == true) {
       if (vacationData.getId() != null) {
         final VacationDO vacation = vacationDao.getById(vacationData.getId());
-        if (vacation.getIsSpecial() == false) {
+        if (vacation.isSpecial() == false) {
           return deleteUsedVacationDaysFromLastYear(vacation);
         }
       }
@@ -339,7 +339,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   @Override
   public BigDecimal deleteUsedVacationDaysFromLastYear(final VacationDO vacationData)
   {
-    if (vacationData == null || vacationData.getIsSpecial() == true || vacationData.getEmployee() == null || vacationData.getStartDate() == null
+    if (vacationData == null || vacationData.isSpecial() == true || vacationData.getEmployee() == null || vacationData.getStartDate() == null
         || vacationData.getEndDate() == null) {
       return BigDecimal.ZERO;
     }

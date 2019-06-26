@@ -218,7 +218,7 @@ public class VacationViewHelper
           final IModel<VacationDO> rowModel)
       {
         final VacationDO vacation = rowModel.getObject();
-        if (vacation.getIsSpecial() != null && vacation.getIsSpecial() == Boolean.TRUE) {
+        if (vacation.isSpecial() != null && vacation.isSpecial() == Boolean.TRUE) {
           item.add(new TextPanel(componentId, I18nHelper.getLocalizedMessage("yes")));
         } else {
           item.add(new TextPanel(componentId, I18nHelper.getLocalizedMessage("no")));
