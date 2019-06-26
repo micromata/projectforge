@@ -99,6 +99,7 @@ class FavoritesPanel extends Component {
             isModified,
             favorites,
             translations,
+            id
         } = this.props;
 
         const syncIcon = isModified
@@ -144,7 +145,7 @@ class FavoritesPanel extends Component {
         return (
             <React.Fragment>
                 <Button
-                    id="favoritesPopover"
+                    id={id}
                     color="link"
                     className="selectPanelIconLinks"
                     onClick={this.togglePopover}
@@ -158,7 +159,7 @@ class FavoritesPanel extends Component {
                 <Popover
                     placement="left-start"
                     isOpen={popoverOpen}
-                    target="favoritesPopover"
+                    target={id}
                     toggle={this.togglePopover}
                     trigger="legacy"
                 >
@@ -237,6 +238,7 @@ class FavoritesPanel extends Component {
 }
 
 FavoritesPanel.propTypes = {
+    id: PropTypes.string,
     favorites: PropTypes.arrayOf(PropTypes.shape({
         id: PropTypes.number,
         name: PropTypes.string,
@@ -257,6 +259,7 @@ FavoritesPanel.propTypes = {
 };
 
 FavoritesPanel.defaultProps = {
+    id: 'favoritesPopover',
     currentFavoriteId: 0,
     favorites: [],
     translations: [],
