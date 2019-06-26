@@ -36,7 +36,7 @@ import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO
  *
  * Ensures the uniqueness of favorite's names.
  */
-class Favorites<T : AbstractFavorite>() {
+open class Favorites<T : AbstractFavorite>() {
 
     constructor(list: List<T>) : this() {
         list.forEach {

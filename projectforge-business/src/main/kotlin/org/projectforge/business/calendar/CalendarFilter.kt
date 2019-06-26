@@ -23,7 +23,6 @@
 
 package org.projectforge.business.calendar
 
-import com.thoughtworks.xstream.annotations.XStreamAsAttribute
 import org.projectforge.business.teamcal.filter.TemplateEntry
 import org.projectforge.favorites.AbstractFavorite
 import java.util.*
@@ -35,37 +34,30 @@ import java.util.*
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
-class CalendarFilter(name: String = "",
-                     id: Int = 0,
+class CalendarFilter(name: String? = null,
+                     id: Int? = null,
                      /**
                       * New items created in the calendar will be assumed as entries of this calendar. If null, then the creation
                       * page for new time sheets is instantiated.
                       */
-                     @XStreamAsAttribute
                      var defaultCalendarId: Int? = null,
 
-                     @XStreamAsAttribute
                      var showBirthdays: Boolean? = null,
 
-                     @XStreamAsAttribute
                      var showStatistics: Boolean? = null,
 
                      /**
                       * Display the time sheets of the user with this id. If null, no time sheets are displayed.
                       */
-                     @XStreamAsAttribute
                      var timesheetUserId: Int? = null,
 
                      /**
                       * If true, own time sheets are displayed. It depends on the user rights if [showTimesheets] or [timesheetUserId] is used.
                       */
-                     @XStreamAsAttribute
                      var showTimesheets: Boolean? = null,
 
-                     @XStreamAsAttribute
                      var showBreaks: Boolean? = true,
 
-                     @XStreamAsAttribute
                      var showPlanning: Boolean? = null)
     : AbstractFavorite(name, id) {
 
