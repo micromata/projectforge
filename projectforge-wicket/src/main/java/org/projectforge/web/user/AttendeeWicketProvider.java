@@ -172,7 +172,8 @@ public class AttendeeWicketProvider extends ChoiceProvider<TeamEventAttendeeDO>
     }
 
     if (result.size() == 0) {
-      TeamEventAttendeeDO newAttendee = new TeamEventAttendeeDO().setUrl(term);
+      TeamEventAttendeeDO newAttendee = new TeamEventAttendeeDO();
+      newAttendee.setUrl(term);
       newAttendee.setStatus(TeamEventAttendeeStatus.IN_PROCESS);
       newAttendee.setId(getAndDecreaseInternalNewAttendeeSequence());
       customAttendees.add(newAttendee);

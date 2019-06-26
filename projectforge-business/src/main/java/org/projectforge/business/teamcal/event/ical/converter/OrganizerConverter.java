@@ -53,7 +53,7 @@ public class OrganizerConverter extends PropertyConverter
     final ParameterList param = new ParameterList();
     final String organizerMail;
 
-    if (event.isOwnership() != null && event.isOwnership()) {
+    if (event.getOwnership() != null && event.getOwnership()) {
       // TODO improve ownership handling
       param.add(new Cn(event.getCreator().getFullname()));
       param.add(CuType.INDIVIDUAL);
