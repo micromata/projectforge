@@ -147,7 +147,7 @@ public class VacationServiceTest
   public void testUpdateUsedVacationDaysFromLastYearLaterThanEndDate()
   {
     VacationDO vacationData = new VacationDO();
-    vacationData.setIsSpecial(false);
+    vacationData.setSpecial(false);
     vacationData.setEmployee(employee);
     Calendar startDate = Calendar.getInstance();
     startDate.set(Calendar.MONTH, Calendar.APRIL);
@@ -165,7 +165,7 @@ public class VacationServiceTest
   public void testUpdateUsedVacationDaysFromLastYearZero()
   {
     VacationDO vacationData = new VacationDO();
-    vacationData.setIsSpecial(false);
+    vacationData.setSpecial(false);
     vacationData.setEmployee(employee);
     Calendar startDate = Calendar.getInstance();
     startDate.set(Calendar.MONTH, Calendar.MARCH);
@@ -183,7 +183,7 @@ public class VacationServiceTest
   public void testUpdateUsedVacationDaysFromLastYearCompletUsed()
   {
     VacationDO vacationData = new VacationDO();
-    vacationData.setIsSpecial(false);
+    vacationData.setSpecial(false);
     when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(5));
     when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(5));
     vacationData.setEmployee(employee);
@@ -208,7 +208,7 @@ public class VacationServiceTest
     when(configService.getEndDateVacationFromLastYear()).thenReturn(endLastYear);
 
     VacationDO vacationData = new VacationDO();
-    vacationData.setIsSpecial(false);
+    vacationData.setSpecial(false);
     when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(10));
     when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(9));
     vacationData.setEmployee(employee);
@@ -233,7 +233,7 @@ public class VacationServiceTest
     when(configService.getEndDateVacationFromLastYear()).thenReturn(endLastYear);
 
     VacationDO vacationData = new VacationDO();
-    vacationData.setIsSpecial(false);
+    vacationData.setSpecial(false);
     when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(20));
     when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(1));
     vacationData.setEmployee(employee);
@@ -254,7 +254,7 @@ public class VacationServiceTest
   public void testUpdateUsedVacationDaysFromLastYearOverEndDate()
   {
     VacationDO vacationData = new VacationDO();
-    vacationData.setIsSpecial(false);
+    vacationData.setSpecial(false);
     when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(20));
     when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(1));
     vacationData.setEmployee(employee);
@@ -278,7 +278,7 @@ public class VacationServiceTest
     when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(20));
     when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(1));
     vacationData.setEmployee(employee);
-    vacationData.setIsSpecial(true);
+    vacationData.setSpecial(true);
     BigDecimal newValue = this.vacationService.updateUsedVacationDaysFromLastYear(vacationData);
     assertEquals(newValue, BigDecimal.ZERO);
   }
@@ -297,8 +297,8 @@ public class VacationServiceTest
     when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(3));
     vacationData.setEmployee(employee);
     vacationDataOld.setEmployee(employee);
-    vacationData.setIsSpecial(false);
-    vacationDataOld.setIsSpecial(false);
+    vacationData.setSpecial(false);
+    vacationDataOld.setSpecial(false);
     vacationData.setId(4711);
     vacationDataOld.setId(4711);
     final Calendar startDate = Calendar.getInstance();
@@ -316,7 +316,7 @@ public class VacationServiceTest
     when(vacationDao.getById(4711)).thenReturn(vacationDataOld);
     final BigDecimal numberOfDays = this.vacationService.getVacationDays(vacationData.getStartDate(), vacationData.getEndDate(), vacationData.getHalfDay());
     assertEquals(newValue, new BigDecimal(3).add(numberOfDays));
-    vacationData.setIsSpecial(true);
+    vacationData.setSpecial(true);
     final BigDecimal value = this.vacationService.updateUsedVacationDaysFromLastYear(vacationData);
     assertEquals(value, BigDecimal.ZERO);
   }
