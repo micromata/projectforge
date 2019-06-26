@@ -102,8 +102,10 @@ class Favorites<T : AbstractFavorite>() {
             }
             idSet.add(id)
             var name = it.name
-            if (name.isNullOrBlank())
+            if (name.isNullOrBlank()) {
                 name = getAutoName() // Fix empty names
+                it.name = name
+            }
             if (namesSet.contains(name)) {
                 // Doublet found
                 name = getAutoName(it.name)
