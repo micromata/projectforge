@@ -37,6 +37,7 @@ import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
+import org.projectforge.framework.json.*
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.TenantDO
@@ -71,8 +72,8 @@ open class JacksonConfiguration {
         module.addSerializer(PFDateTime::class.java, PFDateTimeSerializer())
         module.addDeserializer(PFDateTime::class.java, PFDateTimeDeserializer())
 
-        module.addSerializer(java.util.Date::class.java, UtilDateSerializer())
-        module.addDeserializer(java.util.Date::class.java, UtilDateDeserializer())
+        module.addSerializer(java.util.Date::class.java, UtilDateSerializer(UtilDateFormat.JS_DATE_TIME_MILLIS))
+        module.addDeserializer(java.util.Date::class.java, UtilDateDeserializer(UtilDateFormat.JS_DATE_TIME_MILLIS))
 
         module.addSerializer(java.sql.Date::class.java, SqlDateSerializer())
         module.addDeserializer(java.sql.Date::class.java, SqlDateDeserializer())

@@ -23,7 +23,6 @@
 
 package org.projectforge.favorites
 
-import com.thoughtworks.xstream.annotations.XStreamAsAttribute
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 
 /**
@@ -32,17 +31,19 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
  *
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
-abstract class AbstractFavorite(@XStreamAsAttribute
-                                var name: String = "",
-
-                                @XStreamAsAttribute
-                                var id: Int)
+abstract class AbstractFavorite(var name: String? = null,
+                                var id: Int? = null)
     : Comparable<AbstractFavorite> {
     /**
      * Uses the locale of the thread local user for comparing.
      * @see ThreadLocalUserContext.localeCompare
      */
     override fun compareTo(other: AbstractFavorite): Int {
+        if (name == null) {
+            return if (other.name == null) 0 else 1
+        } else if (other.name == null) {
+            return -1
+        }
         return ThreadLocalUserContext.localeCompare(name, other.name)
     }
 }

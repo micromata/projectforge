@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework
+package org.projectforge.framework.json
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test

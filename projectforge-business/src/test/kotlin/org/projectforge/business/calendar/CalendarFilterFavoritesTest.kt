@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -40,6 +41,7 @@ class CalendarFilterFavoritesTest {
         val favs = Favorites<CalendarFilter>()
         favs.add(CalendarFilter())
         val prefix = favs.getElementAt(0)!!.name
+        if (prefix ==null) fail("prefix can't be null")
         assertTrue(prefix.startsWith("???")) // Translations not available
         assertTrue(prefix.endsWith("???")) // Translations not available
         favs.add(CalendarFilter())

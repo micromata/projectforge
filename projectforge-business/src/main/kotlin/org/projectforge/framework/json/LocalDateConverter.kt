@@ -21,10 +21,9 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.json
+package org.projectforge.framework.json
 
 import com.fasterxml.jackson.core.JsonGenerator
-import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.DeserializationContext
@@ -32,42 +31,41 @@ import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import org.apache.commons.lang3.StringUtils
-import org.projectforge.framework.time.PFDateTime
 import java.io.IOException
-import java.text.ParseException
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
+internal val jsonDateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
 /**
  * Serialization of dates in ISO format and UTC time-zone.
- *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class PFDateTimeSerializer : StdSerializer<PFDateTime>(PFDateTime::class.java) {
+class LocalDateSerializer : StdSerializer<LocalDate>(LocalDate::class.java) {
 
     @Throws(IOException::class, JsonProcessingException::class)
-    override fun serialize(value: PFDateTime?, jgen: JsonGenerator, provider: SerializerProvider) {
+    override fun serialize(value: LocalDate?, jgen: JsonGenerator, provider: SerializerProvider) {
         if (value == null) {
             jgen.writeNull()
             return
         }
-        jgen.writeString(value.javaScriptString)
+        val dateFormatAsString = jsonDateTimeFormatter.format(value)
+        jgen.writeString(dateFormatAsString)
     }
 }
 
 /**
- * Deserialization of dates in ISO format and UTC time-zone.
+ * Deserialization for dates in ISO format and UTC time-zone.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class PFDateTimeDeserializer : StdDeserializer<PFDateTime>(PFDateTime::class.java) {
+class LocalDateDeserializer : StdDeserializer<LocalDate>(LocalDate::class.java) {
 
-    override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): PFDateTime? {
-        val dateString = p.text
-        if (StringUtils.isBlank(dateString)) {
+    override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): LocalDate? {
+        val date = p.getText()
+        if (StringUtils.isBlank(date)) {
             return null
         }
-        try {
-            return PFDateTime.parseUTCDate(dateString)
-        } catch (e: ParseException) {
-            throw JsonParseException(p, dateString, e)
-        }
+        return LocalDate.parse(date, jsonDateTimeFormatter)
     }
 }
+
