@@ -59,7 +59,7 @@ class UserPrefDO : AbstractBaseDO<Int>() {
     var user: PFUserDO? = null
 
     @Field
-    @get:Column(length = 255, nullable = false)
+    @get:Column(length = 255)
     var name: String? = null
 
     @get:Transient
