@@ -23,6 +23,7 @@
 
 package org.projectforge.business.user;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.task.TaskDO;
@@ -53,19 +54,24 @@ public class UserPrefTest extends AbstractTestBase {
     TimeZone timeZone;
     Date lastPasswordChange;
     Timestamp lastLogin;
+
+    static User createTestUser() {
+      User user = new User();
+      user.firstname = "Kai";
+      user.locale = Locale.GERMAN;
+      user.timeZone = DateHelper.EUROPE_BERLIN;
+      PFDateTime date = PFDateTime.parseUTCDate("2019-06-26 08:33");
+      user.lastPasswordChange = date.getUtilDate();
+      user.lastLogin = date.getSqlTimestamp();
+      return user;
+    }
   }
 
   @Test
   void jsonTest() {
     final PFUserDO loggedInUser = getUser(AbstractTestBase.TEST_USER);
     logon(loggedInUser);
-    User user = new User();
-    user.firstname = "Kai";
-    user.locale = Locale.GERMAN;
-    user.timeZone = DateHelper.EUROPE_BERLIN;
-    PFDateTime date = PFDateTime.parseUTCDate("2019-06-26 08:33");
-    user.lastPasswordChange = date.getUtilDate();
-    user.lastLogin = date.getSqlTimestamp();
+    User user = User.createTestUser();
     UserPrefDO userPref = new UserPrefDO();
     userPref.setUser(loggedInUser);
     userPref.setValueObject(user);
@@ -80,6 +86,88 @@ public class UserPrefTest extends AbstractTestBase {
     assertEquals(user.timeZone, user2.timeZone);
     assertEquals(user.lastPasswordChange.getTime(), user2.lastPasswordChange.getTime());
     assertEquals(user.lastLogin.getTime(), user2.lastLogin.getTime());
+  }
+
+  @Test
+  void saveAndUpdateTest() {
+    final PFUserDO loggedInUser = getUser(AbstractTestBase.TEST_USER);
+    logon(loggedInUser);
+    saveAndUpdateTest(null, loggedInUser);
+    saveAndUpdateTest("test", loggedInUser);
+
+    UserPrefDO userPref = new UserPrefDO();
+    userPref.setUser(loggedInUser);
+    userPref.setArea("TEST_AREA3");
+    addEntry(userPref, "param1", "value1");
+    addEntry(userPref, "param2", "value2");
+    userPrefDao.internalSaveOrUpdate(userPref);
+    userPref = userPrefDao.internalQuery(loggedInUser.getId(), "TEST_AREA3", null);
+    assertEquals(2, userPref.getUserPrefEntries().size());
+    assertEquals("value1", userPref.getUserPrefEntryAsString("param1"));
+    assertEquals("value2", userPref.getUserPrefEntryAsString("param2"));
+
+    userPref = new UserPrefDO();
+    userPref.setUser(loggedInUser);
+    userPref.setArea("TEST_AREA3");
+    addEntry(userPref, "param1", "value1b");
+    addEntry(userPref, "param3", "value3");
+    userPrefDao.internalSaveOrUpdate(userPref);
+    userPref = userPrefDao.internalQuery(loggedInUser.getId(), "TEST_AREA3", null);
+    assertEquals(2, userPref.getUserPrefEntries().size());
+    assertEquals("value1b", userPref.getUserPrefEntryAsString("param1"));
+    assertEquals("value3", userPref.getUserPrefEntryAsString("param3"));
+
+    userPref = new UserPrefDO();
+    userPref.setUser(loggedInUser);
+    userPref.setArea("TEST_AREA3");
+    userPrefDao.internalSaveOrUpdate(userPref);
+    userPref = userPrefDao.internalQuery(loggedInUser.getId(), "TEST_AREA3", null);
+    assertTrue(CollectionUtils.isEmpty(userPref.getUserPrefEntries()));
+
+    userPref = new UserPrefDO();
+    userPref.setUser(loggedInUser);
+    userPref.setArea("TEST_AREA4");
+    userPrefDao.internalSaveOrUpdate(userPref);
+    userPref = userPrefDao.internalQuery(loggedInUser.getId(), "TEST_AREA4", null);
+    assertTrue(CollectionUtils.isEmpty(userPref.getUserPrefEntries()));
+
+    userPref = new UserPrefDO();
+    userPref.setUser(loggedInUser);
+    userPref.setArea("TEST_AREA4");
+    addEntry(userPref, "param1", "value1");
+    addEntry(userPref, "param2", "value2");
+    userPrefDao.internalSaveOrUpdate(userPref);
+    userPref = userPrefDao.internalQuery(loggedInUser.getId(), "TEST_AREA4", null);
+    assertEquals(2, userPref.getUserPrefEntries().size());
+    assertEquals("value1", userPref.getUserPrefEntryAsString("param1"));
+    assertEquals("value2", userPref.getUserPrefEntryAsString("param2"));
+
+  }
+
+  private void addEntry(UserPrefDO userPref, String parameter, String value) {
+    UserPrefEntryDO entry = new UserPrefEntryDO();
+    entry.setParameter(parameter);
+    entry.setValue(value);
+    userPref.addUserPrefEntry(entry);
+  }
+
+
+  private void saveAndUpdateTest(String name, PFUserDO loggedInUser) {
+    User user = User.createTestUser();
+    UserPrefDO userPref = new UserPrefDO();
+    userPref.setUser(loggedInUser);
+    userPref.setValueObject(user);
+    userPref.setArea("TEST_AREA2");
+    userPref.setName(name);
+    userPrefDao.internalSaveOrUpdate(userPref);
+    Integer id = userPref.getId();
+    userPref = new UserPrefDO();
+    userPref.setUser(loggedInUser);
+    userPref.setValueObject(user);
+    userPref.setArea("TEST_AREA2");
+    userPref.setName(name);
+    userPrefDao.internalSaveOrUpdate(userPref);
+    assertEquals(id, userPref.getId(), "Object should be updated not inserted.");
   }
 
   @Test

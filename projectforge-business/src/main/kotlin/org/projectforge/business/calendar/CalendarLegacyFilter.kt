@@ -67,6 +67,7 @@ class CalendarLegacyFilter(val state: CalendarFilterState,
                 val filter = CalendarFilter.copyFrom(templateEntry)
                 filterList.add(filter)
             }
+            currentFilter.id = filterList.get(currentFilter.name)?.id
             oldFilter.templateEntries?.forEach { templateEntry ->
                 templateEntry.calendarProperties?.forEach {
                     if (!styleMap.contains(it.calId)) {
