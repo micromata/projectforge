@@ -32,6 +32,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -62,9 +63,9 @@ public class UserPrefTest extends AbstractTestBase {
     user.firstname = "Kai";
     user.locale = Locale.GERMAN;
     user.timeZone = DateHelper.EUROPE_BERLIN;
-    Date date = new Date();
-    user.lastPasswordChange = date;
-    user.lastLogin = new Timestamp(date.getTime());
+    PFDateTime date = PFDateTime.parseUTCDate("2019-06-26 08:33");
+    user.lastPasswordChange = date.getUtilDate();
+    user.lastLogin = date.getSqlTimestamp();
     UserPrefDO userPref = new UserPrefDO();
     userPref.setUser(loggedInUser);
     userPref.setValueObject(user);
@@ -77,8 +78,8 @@ public class UserPrefTest extends AbstractTestBase {
     assertEquals(user.firstname, user2.firstname);
     assertEquals(user.locale, user2.locale);
     assertEquals(user.timeZone, user2.timeZone);
-    assertEquals(user.lastPasswordChange, user2.lastPasswordChange);
-    assertEquals(user.lastLogin, user2.lastLogin);
+    assertEquals(user.lastPasswordChange.getTime(), user2.lastPasswordChange.getTime());
+    assertEquals(user.lastLogin.getTime(), user2.lastLogin.getTime());
   }
 
   @Test
