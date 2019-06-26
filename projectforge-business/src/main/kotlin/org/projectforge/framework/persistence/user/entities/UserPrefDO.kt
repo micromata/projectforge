@@ -136,7 +136,7 @@ class UserPrefDO : AbstractBaseDO<Int>() {
         return id
     }
 
-    override fun setId(id: Int) {
+    override fun setId(id: Int?) {
         this.id = id
     }
 

@@ -35,6 +35,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.hibernate.Query;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.KundeDO;
@@ -69,6 +70,8 @@ import java.lang.reflect.Field;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -218,14 +221,8 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
    */
   @Deprecated
   public UserPrefDO getUserPref(final UserPrefArea area, final String name) {
-    final PFUserDO user = ThreadLocalUserContext.getUser();
-    @SuppressWarnings("unchecked") final List<UserPrefDO> list = (List<UserPrefDO>) getHibernateTemplate().find(
-            "from UserPrefDO u where u.user.id = ? and u.area = ? and u.name = ?",
-            new Object[]{user.getId(), area.getId(), name});
-    if (list == null || list.size() != 1) {
-      return null;
-    }
-    return list.get(0);
+    final Integer userId = ThreadLocalUserContext.getUserId();
+    return internalQuery(userId, area.getId(), name);
   }
 
   /**
@@ -555,6 +552,101 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     } else {
       obj.setValue(toJson(obj.getValueObject()));
       obj.setTypeString(obj.getValueObject().getClass().getName());
+    }
+  }
+
+  /**
+   * Without check access.
+   * @param userId Must be given.
+   * @param area Must be not blank.
+   * @param name Optional, may-be null.
+   */
+  public UserPrefDO internalQuery(Integer userId, String area, String name) {
+    Validate.notNull(userId);
+    Validate.notBlank(area);
+    // Try to find any existing entry:
+    final String queryBaseString = "from UserPrefDO t where user_fk=:userId and area=:area and name";
+    final String queryString;
+    if (name == null) {
+      queryString = queryBaseString + " is null";
+    } else {
+      queryString = queryBaseString + "=:name";
+    }
+    final Query query = getSession()
+            .createQuery(queryString)
+            .setInteger("userId", userId)
+            .setParameter("area", area);
+    if (name != null) {
+      query.setParameter("name", name);
+    }
+    return (UserPrefDO)query.uniqueResult();
+  }
+
+  /**
+   * Checks if the user pref already exists in the data base by querying the data base with user id, area and name.
+   * The id of the given obj is ignored.
+   */
+  @Override
+  public Serializable internalSaveOrUpdate(UserPrefDO obj) {
+    Validate.notNull(obj.getUser());
+    synchronized (this) { // Avoid parallel insert, update, delete operations.
+      final UserPrefDO dbUserPref = (UserPrefDO) internalQuery(obj.getUser().getId(), obj.getArea(), obj.getName());
+      if (dbUserPref == null) {
+        obj.setId(null); // Add new entry (ignore id of any previous existing entry).
+        return super.internalSaveOrUpdate(obj);
+      } else {
+        dbUserPref.setValueObject(obj.getValueObject());
+        if (dbUserPref.getUserPrefEntries() != null ||
+                obj.getUserPrefEntries() != null) {
+          // Legacy entries:
+          if (CollectionUtils.isEmpty(obj.getUserPrefEntries())) {
+            // All existing entries are deleted, so clear db entries:
+            dbUserPref.getUserPrefEntries().clear();
+          } else {
+            // New entries exists, so we've to add them:
+            if (dbUserPref.getUserPrefEntries() == null) {
+              dbUserPref.setUserPrefEntries(new HashSet<>());
+            } else {
+              // Remove entries in db not existing anymore in given obj:
+              for (Iterator<UserPrefEntryDO> it = dbUserPref.getUserPrefEntries().iterator(); it.hasNext(); ) {
+                UserPrefEntryDO entry = it.next();
+                if (obj.getUserPrefEntry(entry.getParameter()) == null) {
+                  // This entry was removed (it's not present in the given object anymore:
+                  it.remove();
+                }
+              }
+            }
+            // Now we've to add / update all entries in the db of given obj:
+            for (UserPrefEntryDO newEntry : obj.getUserPrefEntries()) {
+              UserPrefEntryDO dbEntry = dbUserPref.getUserPrefEntry(newEntry.getParameter());
+              if (dbEntry == null) {
+                // New entry:
+                dbUserPref.getUserPrefEntries().add(newEntry);
+                newEntry.setId(null);
+              } else {
+                // Update current entry:
+                dbEntry.copyValuesFrom(newEntry, "id");
+              }
+            }
+          }
+        }
+        Integer id = (Integer) super.internalSaveOrUpdate(dbUserPref);
+        obj.setId(dbUserPref.getId());
+        return id;
+      }
+    }
+  }
+
+  /**
+   * Only for synchronization with {@link #internalSaveOrUpdate(UserPrefDO)}.
+   *
+   * @param obj
+   * @throws AccessException
+   */
+  @Override
+  public void delete(UserPrefDO obj) throws AccessException {
+    synchronized (this) {
+      super.delete(obj);
     }
   }
 

@@ -58,6 +58,12 @@ open class Favorites<T : AbstractFavorite>() {
         return set.find { it.id == id }
     }
 
+    fun get(name: String?): T? {
+        if (name == null) return null
+        fixNamesAndIds()
+        return set.find { it.name == name }
+    }
+
     fun add(favorite: T) {
         set.add(favorite)
         fixNamesAndIds()
