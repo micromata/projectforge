@@ -595,6 +595,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
         obj.setId(null); // Add new entry (ignore id of any previous existing entry).
         return super.internalSaveOrUpdate(obj);
       } else {
+        obj.setId(dbUserPref.getId());
         dbUserPref.setValueObject(obj.getValueObject());
         if (dbUserPref.getUserPrefEntries() != null ||
                 obj.getUserPrefEntries() != null) {
@@ -630,9 +631,9 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
             }
           }
         }
-        Integer id = (Integer) super.internalSaveOrUpdate(dbUserPref);
+        super.internalUpdate(dbUserPref);
         obj.setId(dbUserPref.getId());
-        return id;
+        return obj.getId();
       }
     }
   }
