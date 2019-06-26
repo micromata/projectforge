@@ -585,7 +585,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     }
   }
 
-  private ObjectMapper createObjectMapper() {
+  public static ObjectMapper createObjectMapper() {
     ObjectMapper mapper = new ObjectMapper();
     mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE);
     mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);

@@ -278,18 +278,18 @@ class CalendarFilterServicesRest {
     }
 
     // Ensures filter list (stored one, restored from legacy filter or a empty new one).
-    private fun getFilterFavorites(): Favorites<CalendarFilter> {
-        var filterList: Favorites<CalendarFilter>? = null
+    private fun getFilterFavorites(): CalendarFavorites {
+        var filterList: CalendarFavorites? = null
         try {
             @Suppress("UNCHECKED_CAST", "USELESS_ELVIS")
-            filterList = userPrefService.getEntry(PREF_AREA, PREF_NAME_FAV_LIST, Favorites::class.java) as Favorites<CalendarFilter>
+            filterList = userPrefService.getEntry(PREF_AREA, PREF_NAME_FAV_LIST, CalendarFavorites::class.java)
                     ?: migrateFromLegacyFilter(userPrefService)?.list
         } catch (ex: Exception) {
             log.error("Exception while getting user preferenced favorites: ${ex.message}. This might be OK for new releases. Ignoring filter.")
         }
         if (filterList == null) {
             // Creating empty filter list (user has no filter list yet):
-            filterList = Favorites()
+            filterList = CalendarFavorites()
             userPrefService.putEntry(PREF_AREA, PREF_NAME_FAV_LIST, filterList)
         }
         return filterList
