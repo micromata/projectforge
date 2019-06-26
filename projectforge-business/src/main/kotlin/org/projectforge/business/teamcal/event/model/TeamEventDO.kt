@@ -23,35 +23,14 @@
 
 package org.projectforge.business.teamcal.event.model
 
-import java.sql.Timestamp
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
-import java.util.HashSet
-import java.util.TimeZone
-import java.util.TreeSet
-
-import javax.persistence.CascadeType
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.EnumType
-import javax.persistence.Enumerated
-import javax.persistence.FetchType
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.OneToMany
-import javax.persistence.Table
-import javax.persistence.Transient
-import javax.persistence.UniqueConstraint
-
+import de.micromata.genome.db.jpa.history.api.NoHistory
+import de.micromata.genome.db.jpa.history.api.WithHistory
+import net.fortuna.ical4j.model.DateTime
+import net.fortuna.ical4j.model.Recur
+import net.fortuna.ical4j.model.WeekDay
+import net.fortuna.ical4j.model.property.RRule
 import org.apache.commons.lang3.StringUtils
-import org.hibernate.search.annotations.Analyze
-import org.hibernate.search.annotations.DateBridge
-import org.hibernate.search.annotations.EncodingType
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
-import org.hibernate.search.annotations.Resolution
+import org.hibernate.search.annotations.*
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.teamcal.event.RecurrenceMonthMode
 import org.projectforge.business.teamcal.event.TeamEventRecurrenceData
@@ -66,13 +45,10 @@ import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.RecurrenceFrequency
 import org.projectforge.framework.time.TimePeriod
-
-import de.micromata.genome.db.jpa.history.api.NoHistory
-import de.micromata.genome.db.jpa.history.api.WithHistory
-import net.fortuna.ical4j.model.DateTime
-import net.fortuna.ical4j.model.Recur
-import net.fortuna.ical4j.model.WeekDay
-import net.fortuna.ical4j.model.property.RRule
+import java.sql.Timestamp
+import java.text.SimpleDateFormat
+import java.util.*
+import javax.persistence.*
 
 /**
  * Overview of used (and may-be planned) fields:
@@ -205,7 +181,7 @@ class TeamEventDO : DefaultBaseDO(), TeamEvent, Cloneable {
     @get:Column(length = 1000)
     var organizer: String? = null
 
-    @get:Column(length = 1000, name = "organizerAdditionalParams")
+    @get:Column(length = 1000, name = "organizer_additional_params")
     var organizerAdditionalParams: String? = null
 
     // See RFC 2445 section 4.8.7.4
@@ -386,7 +362,7 @@ class TeamEventDO : DefaultBaseDO(), TeamEvent, Cloneable {
      * @param startDate the startDate to set
      * @return this for chaining.
      */
-    fun setStartDate(startDate: Timestamp): TeamEventDO {
+    fun setStartDate(startDate: Timestamp?): TeamEventDO {
         this.startDate = startDate
         return this
     }
@@ -403,7 +379,7 @@ class TeamEventDO : DefaultBaseDO(), TeamEvent, Cloneable {
      * @param endDate the endDate to set
      * @return this for chaining.
      */
-    fun setEndDate(endDate: Timestamp): TeamEventDO {
+    fun setEndDate(endDate: Timestamp?): TeamEventDO {
         this.endDate = endDate
         return this
     }
@@ -420,7 +396,7 @@ class TeamEventDO : DefaultBaseDO(), TeamEvent, Cloneable {
      * @param note the note to set
      * @return this for chaining.
      */
-    fun setNote(note: String): TeamEventDO {
+    fun setNote(note: String?): TeamEventDO {
         this.note = note
         return this
     }
