@@ -142,7 +142,7 @@ public class TeamAttendeesPanel extends Panel
           //            attendee.setUser(null);
           //          }
         }
-      }, TeamEventAttendeeDO.URL_MAX_LENGTH);
+      }, TeamEventAttendeeDO.Companion.getURL_MAX_LENGTH());
       this.attendeeModel = attendeeModel;
       this.lastEntry = lastEntry;
       setType(String.class);
@@ -174,7 +174,8 @@ public class TeamAttendeesPanel extends Panel
       final TeamEventAttendeeDO attendee = attendeeModel.getObject();
       if (lastEntry == true) {
         final TeamEventAttendeeDO clone = new TeamEventAttendeeDO();
-        clone.setUrl(attendee.getUrl()).setAddress(attendee.getAddress());
+        clone.setUrl(attendee.getUrl());
+        clone.setAddress(attendee.getAddress());
         addAttendee(clone);
         rebuildAttendees();
         target.add(mainContainer);

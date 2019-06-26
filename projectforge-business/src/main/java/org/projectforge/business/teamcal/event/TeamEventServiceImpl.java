@@ -334,7 +334,7 @@ public class TeamEventServiceImpl implements TeamEventService
   private boolean preCheckSendMail(final TeamEventDO event)
   {
     // check event ownership
-    if (event.isOwnership() != null && event.isOwnership() == false) {
+    if (event.getOwnership() != null && event.getOwnership() == false) {
       return false;
     }
 

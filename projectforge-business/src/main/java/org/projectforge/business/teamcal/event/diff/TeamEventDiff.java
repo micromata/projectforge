@@ -115,8 +115,8 @@ public class TeamEventDiff
         eventOldState.getRecurrenceExDate());
     diff.recurrenceRule = computeFieldDiff(diff, TeamEventField.RECURRENCE_RULE, fieldFilter, eventNewState.getRecurrenceRule(),
         eventOldState.getRecurrenceRule());
-    diff.recurrenceReferenceDate = computeFieldDiff(diff, TeamEventField.RECURRENCE_REFERENCE_DATE, fieldFilter, eventNewState.getRecurrenceDate(),
-        eventOldState.getRecurrenceDate());
+    diff.recurrenceReferenceDate = computeFieldDiff(diff, TeamEventField.RECURRENCE_REFERENCE_DATE, fieldFilter, eventNewState.getRecurrenceReferenceDate(),
+        eventOldState.getRecurrenceReferenceDate());
     diff.recurrenceReferenceId = computeFieldDiff(diff, TeamEventField.RECURRENCE_REFERENCE_ID, fieldFilter, eventNewState.getRecurrenceReferenceId(),
         eventOldState.getRecurrenceReferenceId());
     diff.recurrenceUntil = computeFieldDiff(diff, TeamEventField.RECURRENCE_UNTIL, fieldFilter, eventNewState.getRecurrenceUntil(),

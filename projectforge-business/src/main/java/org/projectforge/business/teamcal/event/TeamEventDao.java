@@ -245,7 +245,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
   protected void onChange(final TeamEventDO obj, final TeamEventDO dbObj)
   {
     // only increment sequence if PF has ownership!
-    if (obj.isOwnership() != null && obj.isOwnership() == false) {
+    if (obj.getOwnership() != null && obj.getOwnership() == false) {
       return;
     }
 
@@ -267,7 +267,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
   protected void onSave(final TeamEventDO event)
   {
     // set ownership if empty
-    if (event.isOwnership() == null) {
+    if (event.getOwnership() == null) {
       event.setOwnership(true);
     }
 
