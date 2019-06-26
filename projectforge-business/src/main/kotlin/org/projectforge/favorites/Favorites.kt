@@ -196,10 +196,16 @@ open class Favorites<T : AbstractFavorite>() {
         fun renameUserPref(userPrefDao: UserPrefDao, area: String, id: Int, newName: String) {
             val userPref = userPrefDao.getUserPref(area, id)
             if (userPref != null) {
+                if (userPref.name == newName) {
+                    // Nothing to-do: name isn't really changed.
+                    log.info("User tried to rename user pref with id #$id with name '${userPref.name}', but the new name doesn't differ.")
+                    return
+                }
                 if (userPrefDao.doesParameterNameAlreadyExist(id, ThreadLocalUserContext.getUserId(), area, newName)) {
                     log.warn("User tried to rename user pref with id #$id from '${userPref.name}' into '$newName', but another entry with this name already exist.")
                 } else {
-                    userPrefDao.delete(userPref)
+                    userPref.name = newName
+                    userPrefDao.update(userPref)
                 }
             } else {
                 log.warn("User tried to reanme user pref with id #$id for area '$area', but it can't be renamed (is from other user, different area or has an unknown id).")
