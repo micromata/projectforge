@@ -98,6 +98,7 @@ class UserPrefCache : AbstractCache() {
         return removeEntry(userId, area, name)
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun <T> getEntry(userId: Int, area: String, name: String, clazz: Class<T>): T? {
         val value = getEntry(userId, area, name)
         try {

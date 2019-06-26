@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.timesheet.TimesheetDO
-import org.projectforge.framework.JsonValidator
+import org.projectforge.framework.json.JsonValidator
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.toJsonString
 import org.projectforge.test.AbstractTestBase

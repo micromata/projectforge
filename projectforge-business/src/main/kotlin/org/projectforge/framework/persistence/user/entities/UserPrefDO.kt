@@ -60,7 +60,7 @@ class UserPrefDO : AbstractBaseDO<Int>() {
 
     @Field
     @get:Column(length = 255, nullable = false)
-    var name: String = ""
+    var name: String? = null
 
     @get:Transient
     var areaObject: UserPrefArea? = null // 20;

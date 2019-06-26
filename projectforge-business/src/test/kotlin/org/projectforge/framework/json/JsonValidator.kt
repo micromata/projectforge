@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework
+package org.projectforge.framework.json
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken

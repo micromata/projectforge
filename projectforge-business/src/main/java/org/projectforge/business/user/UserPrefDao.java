@@ -48,6 +48,7 @@ import org.projectforge.business.task.TaskDao;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
+import org.projectforge.framework.json.*;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -56,6 +57,7 @@ import org.projectforge.framework.persistence.user.api.UserPrefParameter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -64,6 +66,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -132,7 +135,6 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
             .createQuery("select id, name from UserPrefDO t where user_fk=? and area = ? order by name")
             .setInteger(0, user.getId()).setParameter(1, areaId).list();
     final List<UserPrefDO> result = new ArrayList<UserPrefDO>(list.size());
-    int i = 0;
     for (final Object[] oa : list) {
       UserPrefDO userPref = new UserPrefDO();
       userPref.setUser(user);
@@ -591,7 +593,20 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     mapper.configure(SerializationFeature.FAIL_ON_SELF_REFERENCES, false);
     mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
     SimpleModule module = new SimpleModule();
+    module.addSerializer(LocalDate.class, new LocalDateSerializer());
+    module.addDeserializer(LocalDate.class, new LocalDateDeserializer());
+
+    module.addSerializer(PFDateTime.class, new PFDateTimeSerializer());
+    module.addDeserializer(PFDateTime.class, new PFDateTimeDeserializer());
+
+    module.addSerializer(java.util.Date.class, new UtilDateSerializer(UtilDateFormat.ISO_DATE_TIME_SECONDS));
+    module.addDeserializer(java.util.Date.class, new UtilDateDeserializer(UtilDateFormat.ISO_DATE_TIME_SECONDS));
+
+    module.addSerializer(java.sql.Date.class, new SqlDateSerializer());
+    module.addDeserializer(java.sql.Date.class, new SqlDateDeserializer());
+
     mapper.registerModule(module);
     mapper.registerModule(new KotlinModule());
     return mapper;

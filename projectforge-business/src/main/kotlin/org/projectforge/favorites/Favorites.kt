@@ -52,7 +52,8 @@ class Favorites<T : AbstractFavorite>() {
 
     private val set: MutableSet<T> = mutableSetOf()
 
-    fun get(id: Int): T? {
+    fun get(id: Int?): T? {
+        if (id == null) return null
         fixNamesAndIds()
         return set.find { it.id == id }
     }
@@ -91,20 +92,24 @@ class Favorites<T : AbstractFavorite>() {
     private fun fixNamesAndIds() {
         val namesSet = mutableSetOf<String>()
         val idSet = mutableSetOf<Int>()
-        var maxId: Int = set.maxBy { it.id }?.id ?: 0
+        var maxId: Int = set.maxBy { it.id ?: 0 }?.id ?: 0
         set.forEach {
-            if (idSet.contains(it.id)) {
+            var id = it.id
+            if (id == null || idSet.contains(id)) {
                 // Id already used, must fix it:
-                it.id = ++maxId
+                id = ++maxId
+                it.id = id
             }
-            idSet.add(it.id)
-            if (it.name.isNullOrBlank())
-                it.name = getAutoName() // Fix empty names
-            if (namesSet.contains(it.name)) {
+            idSet.add(id)
+            var name = it.name
+            if (name.isNullOrBlank())
+                name = getAutoName() // Fix empty names
+            if (namesSet.contains(name)) {
                 // Doublet found
-                it.name = getAutoName(it.name)
+                name = getAutoName(it.name)
+                it.name = name
             }
-            namesSet.add(it.name)
+            namesSet.add(name)
         }
     }
 
@@ -135,7 +140,7 @@ class Favorites<T : AbstractFavorite>() {
     val favoriteNames: List<String>
         get() {
             fixNamesAndIds()
-            return set.map { it.name }
+            return set.map { it.name!! }
         }
 
     /**
@@ -144,7 +149,7 @@ class Favorites<T : AbstractFavorite>() {
     val idTitleList: List<FavoriteIdTitle>
         get() {
             fixNamesAndIds()
-            return sortedList.map { FavoriteIdTitle(it.id, it.name) }
+            return sortedList.map { FavoriteIdTitle(it.id!!, it.name!!) }
         }
 
     fun getElementAt(pos: Int): T? {

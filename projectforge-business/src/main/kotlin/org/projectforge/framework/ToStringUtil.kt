@@ -42,6 +42,8 @@ import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.multitenancy.TenantRegistryMap
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.tasktree.TaskTreeHelper
+import org.projectforge.framework.json.UtilDateFormat
+import org.projectforge.framework.json.UtilDateSerializer
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.TenantDO
@@ -81,7 +83,7 @@ class ToStringUtil {
             mapper.setSerializationInclusion(JsonInclude.Include.NON_DEFAULT)
             mapper.configure(SerializationFeature.FAIL_ON_SELF_REFERENCES, false);
             val module = SimpleModule()
-            module.addSerializer(java.util.Date::class.java, UtilDateSerializer())
+            module.addSerializer(java.util.Date::class.java, UtilDateSerializer(UtilDateFormat.ISO_DATE_TIME_SECONDS))
             module.addSerializer(java.sql.Date::class.java, SqlDateSerializer())
             module.addSerializer(TenantDO::class.java, TenantSerializer())
 
@@ -184,19 +186,6 @@ class ToStringUtil {
         override fun writeFields(jgen: JsonGenerator, value: TenantDO, initialized: Boolean) {
             writeFields(jgen, value.id, "name",  if (initialized) value.name else null)
         }
-    }
-
-    class UtilDateSerializer : StdSerializer<java.util.Date>(java.util.Date::class.java) {
-        @Throws(IOException::class, JsonProcessingException::class)
-        override fun serialize(value: java.util.Date?, jgen: JsonGenerator, provider: SerializerProvider) {
-            if (value == null) {
-                jgen.writeNull()
-                return
-            }
-            jgen.writeString(formatter.format(value.toInstant()))
-        }
-
-        private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneOffset.UTC)
     }
 
     class SqlDateSerializer : StdSerializer<java.sql.Date>(java.sql.Date::class.java) {

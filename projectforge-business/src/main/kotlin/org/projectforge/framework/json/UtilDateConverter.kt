@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.json
+package org.projectforge.framework.json
 
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonParseException
@@ -32,19 +32,31 @@ import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import org.apache.commons.lang3.StringUtils
-import org.projectforge.rest.converter.DateTimeFormat
 import java.io.IOException
 import java.text.ParseException
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
+enum class UtilDateFormat(val pattern: String) {
+    /** yyyy-MM-dd HH:mm:ss.SSS  */
+    ISO_DATE_TIME_MILLIS("yyyy-MM-dd HH:mm:ss.SSS"),
+
+    /** yyyy-MM-dd HH:mm:ss  */
+    ISO_DATE_TIME_SECONDS("yyyy-MM-dd HH:mm:ss"),
+
+    /** This is the date-time format for interoptability with JavaScript: yyyy-MM-dd'T'HH:mm:ss.SSS'Z' */
+    JS_DATE_TIME_MILLIS("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+
+    internal val formatter: DateTimeFormatter =  DateTimeFormatter.ofPattern(pattern).withZone(ZoneOffset.UTC)
+}
+
 /**
  * Serialization of dates in ISO format and UTC time-zone.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class UtilDateSerializer : StdSerializer<java.util.Date>(java.util.Date::class.java) {
+class UtilDateSerializer(private val format: UtilDateFormat) : StdSerializer<java.util.Date>(java.util.Date::class.java) {
 
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: java.util.Date?, jgen: JsonGenerator, provider: SerializerProvider) {
@@ -52,12 +64,8 @@ class UtilDateSerializer : StdSerializer<java.util.Date>(java.util.Date::class.j
             jgen.writeNull()
             return
         }
-        val dateFormatAsString = formatter.format(value.toInstant())
+        val dateFormatAsString = format.formatter.format(value.toInstant())
         jgen.writeString(dateFormatAsString)
-    }
-
-    companion object {
-        private val formatter = DateTimeFormatter.ofPattern(DateTimeFormat.JS_DATE_TIME_MILLIS.pattern).withZone(ZoneOffset.UTC)
     }
 }
 
@@ -65,7 +73,7 @@ class UtilDateSerializer : StdSerializer<java.util.Date>(java.util.Date::class.j
  * Deserialization of dates in ISO format and UTC time-zone.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class UtilDateDeserializer : StdDeserializer<java.util.Date>(java.util.Date::class.java) {
+class UtilDateDeserializer(private val format: UtilDateFormat) : StdDeserializer<java.util.Date>(java.util.Date::class.java) {
 
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): java.util.Date? {
         val dateString = p.text
@@ -76,14 +84,10 @@ class UtilDateDeserializer : StdDeserializer<java.util.Date>(java.util.Date::cla
             return java.util.Date(dateString.toLong())
         }
         try {
-            val date = LocalDateTime.parse(dateString, formatter)
+            val date = LocalDateTime.parse(dateString, format.formatter)
             return java.util.Date.from(date.toInstant(ZoneOffset.UTC))
         } catch (e: ParseException) {
             throw JsonParseException(p, dateString, e)
         }
-    }
-
-    companion object {
-        private val formatter = DateTimeFormatter.ofPattern(DateTimeFormat.JS_DATE_TIME_MILLIS.pattern).withZone(ZoneOffset.UTC)
     }
 }
