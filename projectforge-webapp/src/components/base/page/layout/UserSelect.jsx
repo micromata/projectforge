@@ -6,13 +6,30 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { connect } from 'react-redux';
 import style from '../../../design/input/Input.module.scss';
 import { getServiceURL } from '../../../../utilities/rest';
-import UncontrolledReactSelect from './UncontrolledReactSelect';
 import ReactSelect from '../../../design/ReactSelect';
 
 class UserSelect extends React.Component {
+    static extractDataValue(props) {
+        const {
+            id,
+            values,
+            data,
+            valueProperty,
+            multi,
+        } = props;
+        let dataValue = Object.getByString(data, id);
+        if (!multi && dataValue && values && values.length && values.length > 0) {
+            // For react-select it seems to be important, that the current selected element matches
+            // its value of the values list.
+            const valueOfArray = (typeof dataValue === 'object') ? dataValue[valueProperty] : dataValue;
+            dataValue = values.find(it => it[valueProperty] === valueOfArray);
+        }
+        return dataValue;
+    }
+
     constructor(props) {
         super(props);
-        const dataValue = UncontrolledReactSelect.extractDataValue(props);
+        const dataValue = UserSelect.extractDataValue(props);
         this.state = {
             value: dataValue,
             selectMeIcon: faSmile,
