@@ -3,10 +3,10 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import CreatableSelect from 'react-select/lib/Creatable';
 import { setListFilter } from '../../../actions';
+import DynamicLayout from '../../../components/base/dynamicLayout';
 import ActionGroup from '../../../components/base/page/action/Group';
-import EditableMultiValueLabel from '../../../components/design/EditableMultiValueLabel';
-import LayoutGroup from '../../../components/base/page/layout/LayoutGroup';
 import { Card, CardBody, Col, FormGroup, Label, Row, Select } from '../../../components/design';
+import EditableMultiValueLabel from '../../../components/design/EditableMultiValueLabel';
 import { getNamedContainer } from '../../../utilities/layout';
 import { buttonPropType } from '../../../utilities/propTypes';
 import FavoritesPanel from '../../panel/FavoritesPanel';
@@ -27,6 +27,7 @@ class SearchFilter extends Component {
         this.onFavoriteRename = this.onFavoriteRename.bind(this);
         this.onFavoriteSelect = this.onFavoriteSelect.bind(this);
         this.onFavoriteUpdate = this.onFavoriteUpdate.bind(this);
+        this.handleDynamicLayoutDataChange = this.handleDynamicLayoutDataChange.bind(this);
     }
 
     onFavoriteCreate(id) {
@@ -61,6 +62,13 @@ class SearchFilter extends Component {
         setFilter('maxRows', value);
     }
 
+    handleDynamicLayoutDataChange(newData) {
+        const { setFilter } = this.props;
+
+        Object.keys(newData)
+            .forEach(key => setFilter(key, newData[key]));
+    }
+
     handleFilterChange(id, newValue) {
         const { setFilter } = this.props;
 
@@ -78,7 +86,6 @@ class SearchFilter extends Component {
             actions,
             filter,
             namedContainers,
-            setFilter,
             translations,
         } = this.props;
         const {
@@ -95,6 +102,7 @@ class SearchFilter extends Component {
                 label: option.id,
             }));
         }
+
         return (
             <Card>
                 <CardBody>
@@ -129,10 +137,15 @@ class SearchFilter extends Component {
                                 <FormGroup row>
                                     <Label sm={2}>[Optionen]</Label>
                                     <Col sm={10}>
-                                        <LayoutGroup
-                                            {...getNamedContainer('filterOptions', namedContainers)}
+                                        <DynamicLayout
+                                            ui={{ layout: (getNamedContainer('filterOptions', namedContainers) || {}).content }}
                                             data={filter}
-                                            changeDataField={setFilter}
+                                            setData={this.handleDynamicLayoutDataChange}
+                                            options={{
+                                                displayPageMenu: false,
+                                                setBrowserTitle: false,
+                                                showActionButtons: false,
+                                            }}
                                         />
                                     </Col>
                                 </FormGroup>

@@ -3,7 +3,6 @@ import DynamicCustomized from './customized';
 import DynamicFieldset from './DynamicFieldset';
 import DynamicGroup from './DynamicGroup';
 import DynamicLabel from './DynamicLabel';
-import DynamicToLayoutGroup from './DynamicToLayoutGroup';
 import DynamicCheckbox from './input/DynamicCheckbox';
 import DynamicInputResolver from './input/DynamicInputResolver';
 import DynamicTextArea from './input/DynamicTextArea';
@@ -55,7 +54,7 @@ export default (content) => {
                         Tag = DynamicTextArea;
                         break;
                     default:
-                        Tag = DynamicToLayoutGroup;
+                        return <span>{`Type ${type} is not implemented in DynamicRenderer.`}</span>;
                 }
 
                 return (
