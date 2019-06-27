@@ -38,10 +38,5 @@ import java.io.Serializable;
 @WithHistory(noHistoryProperties = { "lastUpdate", "created" })
 public abstract class AbstractHistorizableBaseDO<I extends Serializable>extends AbstractBaseDO<I>
 {
-  @Override
-  public String toString() {
-    return ToStringUtil.toJsonString(this);
-  }
-
   private static final long serialVersionUID = -5980671510045450615L;
 }
