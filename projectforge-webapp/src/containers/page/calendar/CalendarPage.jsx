@@ -1,7 +1,7 @@
 import React from 'react';
 import Select from 'react-select';
 import { Card, CardBody, Col, Row } from 'reactstrap';
-import EditableMultiValueLabel from '../../../components/base/page/layout/EditableMultiValueLabel';
+import EditableMultiValueLabel from '../../../components/design/EditableMultiValueLabel';
 import LoadingContainer from '../../../components/design/loading-container';
 import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import CalendarFilterSettings from '../../panel/calendar/CalendarFilterSettings';

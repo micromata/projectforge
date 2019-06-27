@@ -1,9 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Col, FormGroup, Row } from '../../../design';
-import LayoutLabel from './LayoutLabel';
 import LayoutTable from './table';
-import UncontrolledReactSelect from './UncontrolledReactSelect';
 
 function LayoutGroup(
     {
@@ -30,16 +28,7 @@ function LayoutGroup(
                 const properties = {};
 
                 switch (component.type) {
-                    case 'LABEL':
-                        Tag = LayoutLabel;
-                        break;
-                    case 'SELECT':
-                        Tag = UncontrolledReactSelect;
-                        break;
                     case 'GROUP':
-                    case 'ROW':
-                    case 'COL':
-                    case 'FIELDSET':
                         Tag = LayoutGroup;
                         break;
                     case 'TABLE':

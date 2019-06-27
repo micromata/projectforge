@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import CreatableSelect from 'react-select/lib/Creatable';
 import { setListFilter } from '../../../actions';
 import ActionGroup from '../../../components/base/page/action/Group';
-import EditableMultiValueLabel from '../../../components/base/page/layout/EditableMultiValueLabel';
+import EditableMultiValueLabel from '../../../components/design/EditableMultiValueLabel';
 import LayoutGroup from '../../../components/base/page/layout/LayoutGroup';
 import { Card, CardBody, Col, FormGroup, Label, Row, Select } from '../../../components/design';
 import { getNamedContainer } from '../../../utilities/layout';

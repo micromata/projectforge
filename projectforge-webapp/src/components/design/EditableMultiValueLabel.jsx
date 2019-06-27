@@ -3,12 +3,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { components } from 'react-select';
-import { CalendarContext } from '../../../../containers/page/calendar/CalendarContext';
-import CalendarStyler from '../../../../containers/panel/calendar/CalendarStyler';
-import { getServiceURL, handleHTTPErrors } from '../../../../utilities/rest';
-import { Button } from '../../../design';
-import Input from '../../../design/input';
-import Popper from '../../../design/popper';
+import { CalendarContext } from '../../containers/page/calendar/CalendarContext';
+import CalendarStyler from '../../containers/panel/calendar/CalendarStyler';
+import { getServiceURL, handleHTTPErrors } from '../../utilities/rest';
+import { Button } from './index';
+import Input from './input';
+import Popper from './popper';
 
 function EditableMultiValueLabel({ data, selectProps, ...props }) {
     const initialValue = selectProps.values[data.id] || '';
