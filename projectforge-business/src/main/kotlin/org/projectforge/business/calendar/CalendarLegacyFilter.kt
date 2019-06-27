@@ -21,6 +21,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+@file:Suppress("DEPRECATION")
+
 package org.projectforge.business.calendar
 
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter
