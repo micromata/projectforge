@@ -3,9 +3,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { changeEditFormField, loadEditPage } from '../../../actions';
 import DynamicLayout from '../../../components/base/dynamicLayout';
-import ActionGroup from '../../../components/base/page/action/Group';
 import TabNavigation from '../../../components/base/page/edit/TabNavigation';
-import LayoutGroup from '../../../components/base/page/layout/LayoutGroup';
 import { Alert, Container, TabContent, TabPane, } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
 import { getTranslation } from '../../../utilities/layout';
@@ -16,12 +14,8 @@ import EditHistory from './history';
 class EditPage extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {
-            useDynamicLayout: true,
-        };
 
         this.setData = this.setData.bind(this);
-        this.toggleDynamicLayout = this.toggleDynamicLayout.bind(this);
     }
 
     componentDidMount() {
@@ -62,29 +56,17 @@ class EditPage extends React.Component {
         return absoluteNewData;
     }
 
-    toggleDynamicLayout() {
-        this.setState(({ useDynamicLayout }) => ({
-            useDynamicLayout: !useDynamicLayout,
-        }));
-    }
-
     render() {
         const {
-            changeDataField,
             data,
             variables,
             error,
             loading,
             ui,
-            validation,
             match,
         } = this.props;
 
         const { category, id } = match.params;
-
-        const {
-            useDynamicLayout,
-        } = this.state;
 
         if (error) {
             return (
@@ -125,50 +107,18 @@ class EditPage extends React.Component {
                 >
                     <TabPane tabId="edit">
                         <Container fluid>
-                            <Alert color="secondary">
-                                <p>
-                                    Da die LayoutGroup noch nicht vollständig zu DynamicLayout
-                                    umgezogen wurde, kann hier noch die alte LayoutGroup angezeigt
-                                    werden. Bearbeitet sollte jedoch nur das DynamicLayout, da
-                                    dieses bald die LayoutGroup vollständig ablöst.
-                                    <br />
-                                    Komponente, welche noch nicht umgezogen sind, werden mit einem
-                                    roten Rand markiert.
-                                </p>
-                                <button onClick={this.toggleDynamicLayout} type="button">
-                                    {`Wechsel zu ${useDynamicLayout ? 'LayoutGroup' : 'DynamicLayout'}`}
-                                </button>
-                            </Alert>
                             <form>
-                                {useDynamicLayout
-                                    // TODO GET THE CALL OUT OF REDUX
-                                    ? (
-                                        <DynamicLayout
-                                            data={data}
-                                            options={{
-                                                displayPageMenu: id !== undefined,
-                                                setBrowserTitle: true,
-                                                showPageMenuTitle: false,
-                                            }}
-                                            setData={this.setData}
-                                            ui={ui}
-                                            variables={variables}
-                                        />
-                                    )
-                                    : (
-                                        <React.Fragment>
-                                            <LayoutGroup
-                                                content={ui.layout}
-                                                data={data}
-                                                variables={variables}
-                                                translations={ui.translations}
-                                                changeDataField={changeDataField}
-                                                validation={validation}
-                                            />
-                                            <ActionGroup actions={ui.actions} />
-                                        </React.Fragment>
-                                    )
-                                }
+                                <DynamicLayout
+                                    data={data}
+                                    options={{
+                                        displayPageMenu: id !== undefined,
+                                        setBrowserTitle: true,
+                                        showPageMenuTitle: false,
+                                    }}
+                                    setData={this.setData}
+                                    ui={ui}
+                                    variables={variables}
+                                />
                             </form>
                         </Container>
                     </TabPane>
@@ -211,7 +161,6 @@ EditPage.propTypes = {
     ]),
     loading: PropTypes.bool,
     onClose: PropTypes.func,
-    validation: PropTypes.shape({}),
     variables: PropTypes.shape({}),
 };
 
@@ -220,7 +169,6 @@ EditPage.defaultProps = {
     error: undefined,
     loading: false,
     onClose: undefined,
-    validation: {},
     variables: {},
 };
 
@@ -229,7 +177,6 @@ const mapStateToProps = state => ({
     error: state.editPage.error,
     loading: state.editPage.loading,
     ui: state.editPage.ui,
-    validation: state.editPage.validation,
     variables: state.editPage.variables,
 });
 

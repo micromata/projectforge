@@ -27,6 +27,8 @@ export default (content) => {
                         Tag = DynamicCheckbox;
                         break;
                     case 'COL':
+                    case 'FRAGMENT':
+                    case 'GROUP':
                     case 'ROW':
                         Tag = DynamicGroup;
                         break;
