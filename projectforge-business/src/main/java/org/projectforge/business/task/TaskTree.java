@@ -23,19 +23,6 @@
 
 package org.projectforge.business.task;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.io.StringWriter;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.Validate;
@@ -64,6 +51,12 @@ import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.framework.utils.StackTraceHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.io.StringWriter;
+import java.math.BigDecimal;
+import java.util.*;
 
 /**
  * Holds the complete task list in a tree. It will be initialized by the values read from the database. Any changes will
@@ -328,12 +321,18 @@ public class TaskTree extends AbstractCache implements Serializable
       }
     } else if (kost2IsBlackList == false && blackWhiteList != null) {
       // Add all given KoSt2DOs.
+      boolean infoLogDone = false;
       for (final String item : blackWhiteList) {
         final Kost2DO kost2 = kostCache.getKost2(item);
         if (kost2 != null) {
           kost2List.add(kost2);
-        } else {
-          log.info("Given kost2 not found: '" + item + "'. Specified at task " + task.getId() + " - " + task);
+        } else if (!infoLogDone) {
+          if (item.length() <= 2) {
+            log.info("Given kost2 not found: '" + item + "' of white list '" + task.getKost2BlackWhiteList() + "'. Project not linked anymore to task? Task id=" + task.getId() + ", task=" + task);
+          } else {
+            log.info("Given kost2 not found: '" + item + "' of white list '" + task.getKost2BlackWhiteList() + "'. Specified at task with id " + task.getId() + ": " + task);
+          }
+          infoLogDone = true;
         }
       }
     }
