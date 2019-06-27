@@ -19,8 +19,9 @@ function DynamicLayout({ ui, options, ...props }) {
     } = ui;
 
     const {
-        setBrowserTitle,
         displayPageMenu,
+        setBrowserTitle,
+        showActionButtons,
     } = options;
 
     // Set the document title when a title for the page is specified and the option
@@ -43,11 +44,11 @@ function DynamicLayout({ ui, options, ...props }) {
     // Render ActionGroup if actions were found in the ui object.
     const actionGroup = React.useMemo(() => (
         <React.Fragment>
-            {actions
+            {actions && showActionButtons
                 ? <ActionGroup actions={actions} />
                 : undefined}
         </React.Fragment>
-    ), [actions]);
+    ), [actions, showActionButtons]);
 
     return (
         <DynamicLayoutContext.Provider
@@ -78,6 +79,7 @@ DynamicLayout.propTypes = {
     options: PropTypes.shape({
         displayPageMenu: PropTypes.bool,
         setBrowserTitle: PropTypes.bool,
+        showActionButtons: PropTypes.bool,
         showPageMenuTitle: PropTypes.bool,
     }),
 };

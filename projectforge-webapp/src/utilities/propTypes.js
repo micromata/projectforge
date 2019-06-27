@@ -60,6 +60,7 @@ export const dynamicTypePropType = PropTypes.oneOf([
     'LABEL',
     'ROW',
     'SELECT',
+    'TABLE',
     'TEXTAREA',
 ]);
 

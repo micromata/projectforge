@@ -113,6 +113,7 @@ class EditPage extends React.Component {
                                     options={{
                                         displayPageMenu: id !== undefined,
                                         setBrowserTitle: true,
+                                        showActionButtons: true,
                                         showPageMenuTitle: false,
                                     }}
                                     setData={this.setData}
