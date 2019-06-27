@@ -19,6 +19,10 @@ export const defaultValues = {
          */
         setBrowserTitle: true,
         /**
+         *  @type {Boolean} Shows the action group buttons on the bottom.
+         */
+        showActionButtons: true,
+        /**
          * @type {Boolean} Shows the layout title in the page menu.
          */
         showPageMenuTitle: true,

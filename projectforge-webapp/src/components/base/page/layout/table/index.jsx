@@ -26,11 +26,13 @@ function LayoutTable(
                     <thead>
                         <tr>
                             {columns.map((column) => {
-                                let sortingDirection = 'neutral';
+                                const sortingDirection = 'neutral';
 
+                                /*
                                 if (sorting.column === column.id) {
                                     sortingDirection = sorting.direction === 'ASC' ? 'down' : 'up';
                                 }
+                                */
 
                                 return (
                                     <th key={`table-head-column-${column.id}`}>

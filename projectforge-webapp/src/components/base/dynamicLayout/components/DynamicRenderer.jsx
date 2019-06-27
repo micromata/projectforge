@@ -8,6 +8,7 @@ import DynamicCheckbox from './input/DynamicCheckbox';
 import DynamicInputResolver from './input/DynamicInputResolver';
 import DynamicTextArea from './input/DynamicTextArea';
 import DynamicReactSelect from './select/DynamicReactSelect';
+import DynamicTable from './table/DynamicTable';
 
 // Renders the components out of a content array.
 export default (content) => {
@@ -46,6 +47,9 @@ export default (content) => {
                         break;
                     case 'SELECT':
                         Tag = DynamicReactSelect;
+                        break;
+                    case 'TABLE':
+                        Tag = DynamicTable;
                         break;
                     case 'TEXTAREA':
                         Tag = DynamicTextArea;

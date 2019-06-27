@@ -3,8 +3,8 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { loadList } from '../../../actions';
+import DynamicLayout from '../../../components/base/dynamicLayout';
 import Navigation from '../../../components/base/navigation';
-import LayoutGroup from '../../../components/base/page/layout/LayoutGroup';
 import PageNavigation from '../../../components/base/page/Navigation';
 import { Alert, Button, NavItem } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
@@ -43,7 +43,7 @@ class ListPage extends React.Component {
             error,
             loading,
             match,
-            sorting,
+            // sorting,
             ui,
         } = this.props;
 
@@ -65,11 +65,14 @@ class ListPage extends React.Component {
                     <Navigation entries={ui.pageMenu || []} />
                 </PageNavigation>
                 <SearchFilter translations={ui.translations} />
-                <LayoutGroup
-                    content={ui.layout}
+                <DynamicLayout
                     data={data}
-                    sorting={sorting}
-                    translations={ui.translations}
+                    ui={ui}
+                    options={{
+                        displayPageMenu: false,
+                        setBrowserTitle: false,
+                        showActionButtons: false,
+                    }}
                 />
             </LoadingContainer>
         );
