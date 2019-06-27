@@ -4,7 +4,7 @@ import {
     faCheckSquare,
     faEdit,
     faSync,
-    faTrashAlt
+    faTrashAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
@@ -25,6 +25,9 @@ class FavoritesPanel extends Component {
             popoverOpen: false,
         };
 
+        this.popperRef = React.createRef();
+
+        this.handleMouseClickEvent = this.handleMouseClickEvent.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
         this.onCreateClick = this.onCreateClick.bind(this);
         this.onDeleteClick = this.onDeleteClick.bind(this);
@@ -33,7 +36,6 @@ class FavoritesPanel extends Component {
         this.onUpdateClick = this.onUpdateClick.bind(this);
         this.togglePopover = this.togglePopover.bind(this);
     }
-
 
     onCreateClick(event) {
         event.preventDefault();
@@ -65,7 +67,7 @@ class FavoritesPanel extends Component {
 
         const { closeOnSelect } = this.props;
         if (closeOnSelect) {
-            this.setState({ popoverOpen: false });
+            this.togglePopover();
         }
     }
 
@@ -85,7 +87,33 @@ class FavoritesPanel extends Component {
         });
     }
 
+    handleMouseClickEvent(event) {
+        if (
+            !this.popperRef.current
+            || this.popperRef.current.parentElement.contains(event.target)
+        ) {
+            return;
+        }
+
+        this.setState({
+            popoverOpen: false,
+        });
+        document.removeEventListener('click', this.handleMouseClickEvent);
+    }
+
     togglePopover() {
+        this.setState(({ popoverOpen }) => {
+            if (popoverOpen) {
+                document.removeEventListener('click', this.handleMouseClickEvent);
+            } else {
+                document.addEventListener('click', this.handleMouseClickEvent);
+            }
+
+            return ({
+                popoverOpen: !popoverOpen,
+            });
+        });
+
         const { popoverOpen } = this.state;
         this.setState({
             popoverOpen: !popoverOpen,
@@ -99,7 +127,7 @@ class FavoritesPanel extends Component {
             isModified,
             favorites,
             translations,
-            id
+            id,
         } = this.props;
 
         const syncIcon = isModified
@@ -161,10 +189,9 @@ class FavoritesPanel extends Component {
                     isOpen={popoverOpen}
                     target={id}
                     toggle={this.togglePopover}
-                    trigger="legacy"
                 >
                     <PopoverBody>
-                        <ul className={style.favoritesList}>
+                        <ul className={style.favoritesList} ref={this.popperRef}>
                             <li className={style.addFavorite}>
                                 <Input
                                     id="newFilterName"
