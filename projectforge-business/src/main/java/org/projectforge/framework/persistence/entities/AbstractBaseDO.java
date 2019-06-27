@@ -23,6 +23,17 @@
 
 package org.projectforge.framework.persistence.entities;
 
+import de.micromata.genome.db.jpa.history.api.NoHistory;
+import org.apache.commons.lang3.ClassUtils;
+import org.projectforge.common.anots.PropertyInfo;
+import org.projectforge.framework.ToStringUtil;
+import org.projectforge.framework.persistence.api.BaseDO;
+import org.projectforge.framework.persistence.api.ExtendedBaseDO;
+import org.projectforge.framework.persistence.api.ModificationStatus;
+import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter;
+import org.projectforge.framework.persistence.user.entities.TenantDO;
+
+import javax.persistence.*;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -30,29 +41,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.Transient;
-
-import org.apache.commons.lang3.ClassUtils;
-import org.projectforge.common.anots.PropertyInfo;
-import org.projectforge.framework.persistence.api.BaseDO;
-import org.projectforge.framework.persistence.api.ExtendedBaseDO;
-import org.projectforge.framework.persistence.api.ModificationStatus;
-import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
-import org.projectforge.framework.persistence.utils.ReflectionToString;
-
-import de.micromata.genome.db.jpa.history.api.NoHistory;
-
 /**
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @MappedSuperclass
 public abstract class AbstractBaseDO<I extends Serializable> implements ExtendedBaseDO<I>, Serializable
@@ -148,9 +140,9 @@ public abstract class AbstractBaseDO<I extends Serializable> implements Extended
   }
 
   /**
-   * 
+   *
    * Last update will be modified automatically for every update of the database object.
-   * 
+   *
    * @return
    */
   @Override
@@ -175,7 +167,7 @@ public abstract class AbstractBaseDO<I extends Serializable> implements Extended
 
   /**
    * Default value is false.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDO#isMinorChange()
    */
   @Override
@@ -212,20 +204,17 @@ public abstract class AbstractBaseDO<I extends Serializable> implements Extended
   }
 
   /**
-   * Returns string containing all fields (except the password, via ReflectionToStringBuilder).
-   * 
-   * @return
+   * as json.
    */
   @Override
-  public String toString()
-  {
-    return ReflectionToString.asString(this);
+  public String toString() {
+    return ToStringUtil.toJsonString(this);
   }
 
   /**
    * Copies all values from the given src object excluding the values created and lastUpdate. Do not overwrite created
    * and lastUpdate from the original database object.
-   * 
+   *
    * @param src
    * @param ignoreFields Does not copy these properties (by field name).
    * @return true, if any modifications are detected, otherwise false;
@@ -239,7 +228,7 @@ public abstract class AbstractBaseDO<I extends Serializable> implements Extended
   /**
    * Copies all values from the given src object excluding the values created and lastUpdate. Do not overwrite created
    * and lastUpdate from the original database object.
-   * 
+   *
    * @param src
    * @param dest
    * @param ignoreFields Does not copy these properties (by field name).
@@ -265,7 +254,7 @@ public abstract class AbstractBaseDO<I extends Serializable> implements Extended
    * <li>Ignore static fields
    * <li>Ignore inner class fields</li>
    * </ul>
-   * 
+   *
    * @param field The Field to test.
    * @return Whether or not to consider the given <code>Field</code>.
    */
