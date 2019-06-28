@@ -23,19 +23,15 @@
 
 package org.projectforge.business.teamcal.event.diff;
 
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.model.ReminderActionType;
 import org.projectforge.business.teamcal.event.model.ReminderDurationUnit;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.sql.Timestamp;
+import java.util.*;
 
 /**
  * @author Stefan Niemczyk (s.niemczyk@micromata.de)
@@ -126,7 +122,7 @@ public class TeamEventDiff
 
     diff.reminderDuration = computeFieldDiff(diff, TeamEventField.REMINDER_DURATION, fieldFilter, eventNewState.getReminderDuration(),
         eventOldState.getReminderDuration());
-    diff.reminderDurationType = computeFieldDiff(diff, TeamEventField.REMINDER_DURATION_TYPE, fieldFilter, eventNewState.getReminderDurationUnit(),
+    diff.reminderDurationUnit = computeFieldDiff(diff, TeamEventField.REMINDER_DURATION_UNIT, fieldFilter, eventNewState.getReminderDurationUnit(),
         eventOldState.getReminderDurationUnit());
     diff.reminderActionType = computeFieldDiff(diff, TeamEventField.REMINDER_ACTION_TYPE, fieldFilter, eventNewState.getReminderActionType(),
         eventOldState.getReminderActionType());
@@ -227,7 +223,7 @@ public class TeamEventDiff
   private TeamEventFieldDiff<Timestamp> lastEmail;
   private TeamEventFieldDiff<Integer> sequence;
   private TeamEventFieldDiff<Integer> reminderDuration;
-  private TeamEventFieldDiff<ReminderDurationUnit> reminderDurationType;
+  private TeamEventFieldDiff<ReminderDurationUnit> reminderDurationUnit;
   private TeamEventFieldDiff<ReminderActionType> reminderActionType;
 
   // attendees
