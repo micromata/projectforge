@@ -134,8 +134,16 @@ class IndexPage extends React.Component {
                     <Col>
                         <h1>ToDo&apos;s (Fin)</h1>
                         <ol>
+                            <li>MagicFilter: send filter settings to server on search action</li>
+                            <li>
+                                TimesheetEditTaskAndKost2.jsx: set kost2list on initial call and
+                                update of kost2list after task selections. See classic version.
+                            </li>
+                            <li>
+                                switch from edit page time-sheets to calendar event and vica
+                                versa. see classic version.
+                            </li>
                             <li>Translations in SearchFilter.jsx</li>
-                            <li>Enable localized customized pages (login page, setup page etc.)</li>
                             <li>Display global validation errors of forms</li>
                             <li>
                                 Display field validation errors in ReactSelect and date input
@@ -145,6 +153,7 @@ class IndexPage extends React.Component {
                                 Edit / rename entry of favorite filter, e. g. calendar page (star
                                 icon)
                             </li>
+                            <li>Enable localized customized pages (login page, setup page etc.)</li>
                             <li>
                                 Clone button (e. g. address): reload page with data sent by server
                                 as response after fetching clone
@@ -188,7 +197,6 @@ class IndexPage extends React.Component {
                             <li>Search filter</li>
                             <li>Favorites</li>
                             <li>Setup page</li>
-                            <li>Switch between edit pages of time sheets and calendar events</li>
                             <li>
                                 Edit of addresses: preserve address books without access of current
                                 logged in user.
