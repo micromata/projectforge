@@ -86,10 +86,14 @@ public class ContactEntryPanel extends Panel
   protected void onInitialize()
   {
     super.onInitialize();
-    newEntryValue = new ContactEntryDO().setStreet(DEFAULT_ENTRY_VALUE).setCity(DEFAULT_CITY_VALUE) //
-        .setZipCode(DEFAULT_ZIPCODE_VALUE).setCountry(DEFAULT_COUNTRY_VALUE).setState(DEFAULT_STATE_VALUE)
-        .setContactType(ContactType.PRIVATE) //
-        .setContact(model.getObject());
+    newEntryValue = new ContactEntryDO();
+    newEntryValue.setStreet(DEFAULT_ENTRY_VALUE);
+    newEntryValue.setCity(DEFAULT_CITY_VALUE);
+    newEntryValue.setZipCode(DEFAULT_ZIPCODE_VALUE);
+    newEntryValue.setCountry(DEFAULT_COUNTRY_VALUE);
+    newEntryValue.setState(DEFAULT_STATE_VALUE);
+    newEntryValue.setContactType(ContactType.PRIVATE); //
+    newEntryValue.setContact(model.getObject());
     formChoiceRenderer = new LabelValueChoiceRenderer<ContactType>(this, ContactType.values());
     mainContainer = new WebMarkupContainer("main");
     add(mainContainer.setOutputMarkupId(true));
@@ -213,14 +217,23 @@ public class ContactEntryPanel extends Panel
       @Override
       protected void onSubmit(final AjaxRequestTarget target)
       {
+        ContactEntryDO contactEntry = new ContactEntryDO();
+        contactEntry.setStreet(newEntryValue.getStreet());
+        contactEntry.setCity(newEntryValue.getCity());
+        contactEntry.setZipCode(newEntryValue.getZipCode());
+        contactEntry.setCountry(newEntryValue.getCountry());
+        contactEntry.setState(newEntryValue.getState());
+        contactEntry.setContactType(newEntryValue.getContactType());
+
         super.onSubmit(target);
-        model.getObject()
-            .addContactEntry(new ContactEntryDO().setStreet(newEntryValue.getStreet()).setCity(newEntryValue.getCity()) //
-                .setZipCode(newEntryValue.getZipCode()).setCountry(newEntryValue.getCountry()) //
-                .setState(newEntryValue.getState()).setContactType(newEntryValue.getContactType()));
+        model.getObject().addContactEntry(contactEntry);
         rebuildEntrys();
-        newEntryValue.setStreet(DEFAULT_ENTRY_VALUE).setCity(DEFAULT_CITY_VALUE).setZipCode(DEFAULT_ZIPCODE_VALUE) //
-            .setCountry(DEFAULT_COUNTRY_VALUE).setState(DEFAULT_STATE_VALUE).setContactType(ContactType.PRIVATE);
+        newEntryValue.setStreet(DEFAULT_ENTRY_VALUE);
+        newEntryValue.setCity(DEFAULT_CITY_VALUE);
+        newEntryValue.setZipCode(DEFAULT_ZIPCODE_VALUE);
+        newEntryValue.setCountry(DEFAULT_COUNTRY_VALUE);
+        newEntryValue.setState(DEFAULT_STATE_VALUE);
+        newEntryValue.setContactType(ContactType.PRIVATE);
         target.add(mainContainer);
         zipCode.setVisible(false);
         city.setVisible(false);

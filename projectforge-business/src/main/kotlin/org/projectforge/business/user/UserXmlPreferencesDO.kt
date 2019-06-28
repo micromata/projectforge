@@ -39,7 +39,7 @@ import java.util.Date
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
-@Table(name = "T_USER_XML_PREFS", uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "key", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_user_xml_prefs_user_id", columnList = "user_id"), javax.persistence.Index(name = "idx_fk_t_user_xml_prefs_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_USER_XML_PREFS", uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "key", "tenant_id"])], indexes = [Index(name = "idx_fk_t_user_xml_prefs_user_id", columnList = "user_id"), Index(name = "idx_fk_t_user_xml_prefs_tenant_id", columnList = "tenant_id")])
 @JpaXmlPersist(beforePersistListener = [UserXmlPreferenceXmlBeforePersistListener::class])
 class UserXmlPreferencesDO : Serializable, DbRecord<Int> {
 
