@@ -22,10 +22,10 @@ You only need the following steps for developing ProjectForge.
 If you just want to run it, please download it from https://sourceforge.net/projects/pforge/
 ====
 
-1. Checkout:  
+1. Checkout:
    https://github.com/micromata/projectforge.git
 2. Ensure running *Java 1.8* (*not* 1.9+): `java -version`.
-3. Build ProjectForge:  
+3. Build ProjectForge:
    `mvn clean install -DskipTests`
 4. Run ProjectForge:
    `java -jar projectforge-application/target/projectforge-application-X.X.X.jar`
@@ -98,8 +98,9 @@ spring.datasource.driver-class-name=org.postgresql.Driver
 |PSQL|`docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:11.2 psql -h postgres -U projectforge`
 |Reset passwords (optional)|`update t_pf_user SET password='SHA{BC871652288E56E306CFA093BEFC3FFCD0ED8872}', password_salt=null, email='m.developer@acme.com';` +
 password is now `test123`.
-|Clear calendar subscriptions (optional)|`update t_plugin_calendar set ext_subscription=false;` +
-This is useful for avoiding a lot of external calendar calls if your productive data contains a lot of users with calendar subscriptions.
+|Clear calendar subscriptions (optional)|`update t_plugin_calendar set ext_subscription=false where owner_fk != ###;` +
+This is useful for avoiding a lot of external calendar calls of foreign users if your productive data contains a lot of users with calendar subscriptions.
+|PSQL|`docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:11.2 psql -h postgres -U projectforge`
 |Uninstall|`docker rm projectforge-postgres`
 |===
 
@@ -126,13 +127,13 @@ Please have a lock at all available config parameters: https://github.com/microm
 10. Create new SNAPSHOT-Release by increasing version number of all `pom.xml`files: +
    `export PF_NEW_VERSION=6.27.0-SNAPSHOT` +
    `find . -name pom.xml | xargs perl -pi -e 's|<version>.*</version><!-- projectforge.version -\->|<version>$ENV{PF_NEW_VERSION}</version><!-- projectforge.version -\->|g'`
-11. Commit everything to master and develop branch and push it to Github 
+11. Commit everything to master and develop branch and push it to Github
 12. Upload the saved jar files to Github (Create release from taged version) and SourceForge (e.g. as zip (see previous versions as example)).
 
 == Adding your own plugins
 ProjectForge support plugins. The existing menu can be modified and own entities and functionalities can be added.
 
-Please note: We're working highly on a new release (will be published soon). Wicket will be replaced by Wicket technology. The implementation of plugins will be changed as well.
+Please note: We're working highly on a new release (will be published soon). Wicket will be replaced by ReactJS and Rest technology. The implementation of plugins will be changed as well.
 
 The menu is customizable (you can add or remove menu entries in the config.xml file).
 Deploy your plugins by adding your jar(s) to the plugin directory next to the jar file. In eclipse you have to add the plugin project to the run configuration classpath. The jars contains both, the Java classes and the web pages (Wicket-pages). Nothing more is needed.
