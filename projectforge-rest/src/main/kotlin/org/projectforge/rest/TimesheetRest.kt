@@ -31,6 +31,7 @@ import org.projectforge.business.timesheet.TimesheetFilter
 import org.projectforge.business.timesheet.TimesheetPrefData
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.common.DateFormatType
+import org.projectforge.favorites.Favorites
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -213,6 +214,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilter>
                 .add(lc, "description")
                 .add(UIRow().add(UICol().add(UILabel("'ToDo: Validation, resetting Kost2-Combobox after task selection, favorites, templates, Testing..."))))
                 .addTranslations("until", "fibu.kost2", "task")
+        Favorites.addTranslations(layout.translations)
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
