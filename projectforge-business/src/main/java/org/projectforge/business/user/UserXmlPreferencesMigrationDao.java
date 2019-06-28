@@ -123,7 +123,7 @@ public class UserXmlPreferencesMigrationDao
       buf.append(userPrefs.getUserId());
     }
     buf.append("': " + userPrefs.getKey() + " ... ");
-    if (userPrefs.getVersion() >= UserXmlPreferencesDO.CURRENT_VERSION) {
+    if (userPrefs.getVersion() >= UserXmlPreferencesDO.Companion.getCURRENT_VERSION()) {
       buf.append("version ").append(userPrefs.getVersion()).append(" (up to date)\n");
       return buf.toString();
     }
