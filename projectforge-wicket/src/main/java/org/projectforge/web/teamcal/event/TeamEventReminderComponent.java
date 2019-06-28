@@ -23,9 +23,6 @@
 
 package org.projectforge.web.teamcal.event;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -44,8 +41,11 @@ import org.projectforge.web.wicket.components.MinMaxNumberField;
 import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * Component renders DropDown to select reminder action, TextField to set duration and DropDown to select duration type.
+ * Component renders DropDown to select reminder action, TextField to set duration and DropDown to select duration unit.
  *
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  */
@@ -63,7 +63,7 @@ public class TeamEventReminderComponent extends Component
 
   @SuppressWarnings("unused")
   // used by wicked
-  private List<ReminderDurationUnit> reminderDurationTypeList;
+  private List<ReminderDurationUnit> reminderDuratioUnitList;
 
   private final FieldsetPanel reminderPanel;
 
@@ -90,9 +90,9 @@ public class TeamEventReminderComponent extends Component
     final boolean reminderOptionVisibility = data.getReminderActionType() != null;
 
     // ### unchecked
-    reminderDurationTypeList = (List<ReminderDurationUnit>) getTypeList(ReminderDurationUnit.class);
+    reminderDuratioUnitList = (List<ReminderDurationUnit>) getTypeList(ReminderDurationUnit.class);
     reminderActionTypeList = (List<ReminderActionType>) getTypeList(ReminderActionType.class);
-    final IChoiceRenderer<ReminderDurationUnit> reminderDurationTypeRenderer = (IChoiceRenderer<ReminderDurationUnit>) getChoiceRenderer(
+    final IChoiceRenderer<ReminderDurationUnit> reminderDurationUnitRenderer = (IChoiceRenderer<ReminderDurationUnit>) getChoiceRenderer(
         ReminderDurationUnit.class); //
     final IChoiceRenderer<ReminderActionType> reminderActionTypeRenderer = (IChoiceRenderer<ReminderActionType>) getChoiceRenderer(
         ReminderActionType.class); //
@@ -106,13 +106,13 @@ public class TeamEventReminderComponent extends Component
     // reminder duration dropDown
     final IModel<List<ReminderDurationUnit>> reminderDurationChoicesModel = new PropertyModel<List<ReminderDurationUnit>>(
         this,
-        "reminderDurationTypeList");
+        "reminderDuratioUnitList");
     final IModel<ReminderDurationUnit> reminderDurationActiveModel = new PropertyModel<ReminderDurationUnit>(data,
-        "reminderDurationType");
-    final DropDownChoicePanel<ReminderDurationUnit> reminderDurationTypeChoice = new DropDownChoicePanel<ReminderDurationUnit>(
+        "reminderDurationUnit");
+    final DropDownChoicePanel<ReminderDurationUnit> reminderDurationUnitChoice = new DropDownChoicePanel<ReminderDurationUnit>(
         reminderPanel.newChildId(), reminderDurationActiveModel, reminderDurationChoicesModel,
-        reminderDurationTypeRenderer, false);
-    setComponentProperties(reminderDurationTypeChoice.getDropDownChoice(), reminderOptionVisibility, true);
+        reminderDurationUnitRenderer, false);
+    setComponentProperties(reminderDurationUnitChoice.getDropDownChoice(), reminderOptionVisibility, true);
 
     // reminder action dropDown
     final IModel<List<ReminderActionType>> reminderActionTypeChoiceModel = new PropertyModel<List<ReminderActionType>>(
@@ -152,15 +152,15 @@ public class TeamEventReminderComponent extends Component
           }
         }
         reminderDuration.setVisible(isVisible);
-        reminderDurationTypeChoice.getDropDownChoice().setVisible(isVisible);
-        reminderDurationTypeChoice.setRequired(isVisible);
-        target.add(reminderDurationTypeChoice.getDropDownChoice(), reminderDuration);
+        reminderDurationUnitChoice.getDropDownChoice().setVisible(isVisible);
+        reminderDurationUnitChoice.setRequired(isVisible);
+        target.add(reminderDurationUnitChoice.getDropDownChoice(), reminderDuration);
       }
 
     });
     reminderPanel.add(reminderActionTypeChoice);
     reminderPanel.add(reminderDuration);
-    reminderPanel.add(reminderDurationTypeChoice);
+    reminderPanel.add(reminderDurationUnitChoice);
   }
 
   private void setComponentProperties(final FormComponent<?> comp, final boolean visible, final boolean markUp)
