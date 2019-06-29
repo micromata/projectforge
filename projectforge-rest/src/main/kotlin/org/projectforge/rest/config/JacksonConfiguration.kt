@@ -74,14 +74,15 @@ open class JacksonConfiguration {
         module.addDeserializer(PFDateTime::class.java, PFDateTimeDeserializer())
 
         module.addSerializer(java.util.Date::class.java, UtilDateSerializer(UtilDateFormat.JS_DATE_TIME_MILLIS))
-        module.addDeserializer(java.util.Date::class.java, UtilDateDeserializer(UtilDateFormat.JS_DATE_TIME_MILLIS))
+        module.addDeserializer(java.util.Date::class.java, UtilDateDeserializer())
 
-        module.addSerializer(Timestamp::class.java, TimestampSerializer(TimestampFormat.ISO_DATE_TIME_MILLIS))
-        module.addDeserializer(Timestamp::class.java, TimestampDeserializer(TimestampFormat.ISO_DATE_TIME_MILLIS))
+        module.addSerializer(Timestamp::class.java, TimestampSerializer(UtilDateFormat.JS_DATE_TIME_MILLIS))
+        module.addDeserializer(Timestamp::class.java, TimestampDeserializer())
 
         module.addSerializer(java.sql.Date::class.java, SqlDateSerializer())
         module.addDeserializer(java.sql.Date::class.java, SqlDateDeserializer())
 
+        module.addDeserializer(String::class.java, TextDeserializer())
         module.addDeserializer(java.lang.Integer::class.java, IntDeserializer())
         module.addDeserializer(BigDecimal::class.java, BigDecimalDeserializer())
 

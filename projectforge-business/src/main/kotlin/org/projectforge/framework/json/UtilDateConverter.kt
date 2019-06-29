@@ -48,7 +48,7 @@ enum class UtilDateFormat(val pattern: String) {
     /** This is the date-time format for interoptability with JavaScript: yyyy-MM-dd'T'HH:mm:ss.SSS'Z' */
     JS_DATE_TIME_MILLIS("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
-    internal val formatter: DateTimeFormatter =  DateTimeFormatter.ofPattern(pattern).withZone(ZoneOffset.UTC)
+    internal val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern(pattern).withZone(ZoneOffset.UTC)
 }
 
 /**
@@ -71,9 +71,10 @@ class UtilDateSerializer(private val format: UtilDateFormat) : StdSerializer<jav
 
 /**
  * Deserialization of dates in ISO format and UTC time-zone.
+ * @param format If given, only the given format will be tried for deserialization. If null, all formats will be tried (recommended).
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class UtilDateDeserializer(private val format: UtilDateFormat) : StdDeserializer<java.util.Date>(java.util.Date::class.java) {
+class UtilDateDeserializer(private val format: UtilDateFormat? = null) : StdDeserializer<java.util.Date>(java.util.Date::class.java) {
 
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): java.util.Date? {
         val dateString = p.text
@@ -83,11 +84,25 @@ class UtilDateDeserializer(private val format: UtilDateFormat) : StdDeserializer
         if (StringUtils.isNumeric(dateString)) {
             return java.util.Date(dateString.toLong())
         }
-        try {
-            val date = LocalDateTime.parse(dateString, format.formatter)
-            return java.util.Date.from(date.toInstant(ZoneOffset.UTC))
-        } catch (e: ParseException) {
-            throw JsonParseException(p, dateString, e)
+        val date = parseDate(format, dateString, p)
+        return java.util.Date.from(date.toInstant(ZoneOffset.UTC))
+    }
+
+    companion object {
+        fun parseDate(format: UtilDateFormat?, dateString: String, p: JsonParser): LocalDateTime {
+            try {
+                return if (format != null) {
+                    LocalDateTime.parse(dateString, format.formatter)
+                } else if (dateString.contains('T')) {
+                    LocalDateTime.parse(dateString, UtilDateFormat.JS_DATE_TIME_MILLIS.formatter)
+                } else if (dateString.contains('.')) {
+                    LocalDateTime.parse(dateString, UtilDateFormat.ISO_DATE_TIME_MILLIS.formatter)
+                } else {
+                    LocalDateTime.parse(dateString, UtilDateFormat.ISO_DATE_TIME_SECONDS.formatter)
+                }
+            } catch (e: ParseException) {
+                throw JsonParseException(p, dateString, e)
+            }
         }
     }
 }
