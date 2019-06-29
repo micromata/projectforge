@@ -42,7 +42,6 @@ import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.multitenancy.TenantRegistryMap
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.tasktree.TaskTreeHelper
-import org.projectforge.framework.json.TimestampFormat
 import org.projectforge.framework.json.TimestampSerializer
 import org.projectforge.framework.json.UtilDateFormat
 import org.projectforge.framework.json.UtilDateSerializer
@@ -84,10 +83,10 @@ class ToStringUtil {
             mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
             mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL)
             mapper.setSerializationInclusion(JsonInclude.Include.NON_DEFAULT)
-            mapper.configure(SerializationFeature.FAIL_ON_SELF_REFERENCES, false);
+            mapper.configure(SerializationFeature.FAIL_ON_SELF_REFERENCES, false)
             val module = SimpleModule()
             module.addSerializer(java.util.Date::class.java, UtilDateSerializer(UtilDateFormat.ISO_DATE_TIME_SECONDS))
-            module.addSerializer(Timestamp::class.java, TimestampSerializer(TimestampFormat.ISO_DATE_TIME_MILLIS))
+            module.addSerializer(Timestamp::class.java, TimestampSerializer(UtilDateFormat.ISO_DATE_TIME_MILLIS))
             module.addSerializer(java.sql.Date::class.java, SqlDateSerializer())
             module.addSerializer(TenantDO::class.java, TenantSerializer())
 

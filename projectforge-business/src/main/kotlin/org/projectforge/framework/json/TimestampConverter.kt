@@ -24,7 +24,6 @@
 package org.projectforge.framework.json
 
 import com.fasterxml.jackson.core.JsonGenerator
-import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.DeserializationContext
@@ -34,24 +33,14 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import org.apache.commons.lang3.StringUtils
 import java.io.IOException
 import java.sql.Timestamp
-import java.text.ParseException
-import java.time.LocalDateTime
 import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
-
-enum class TimestampFormat(val pattern: String) {
-    /** yyyy-MM-dd HH:mm:ss.SSS  */
-    ISO_DATE_TIME_MILLIS("yyyy-MM-dd HH:mm:ss.SSS");
-
-    internal val formatter: DateTimeFormatter =  DateTimeFormatter.ofPattern(pattern).withZone(ZoneOffset.UTC)
-}
 
 /**
  * Serialization of dates in ISO format and UTC time-zone.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class TimestampSerializer(private val format: TimestampFormat) : StdSerializer<Timestamp>(Timestamp::class.java) {
+class TimestampSerializer(private val format: UtilDateFormat) : StdSerializer<Timestamp>(Timestamp::class.java) {
 
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: Timestamp?, jgen: JsonGenerator, provider: SerializerProvider) {
@@ -66,9 +55,10 @@ class TimestampSerializer(private val format: TimestampFormat) : StdSerializer<T
 
 /**
  * Deserialization of dates in ISO format and UTC time-zone.
+ * @param format If given, only the given format will be tried for deserialization. If null, all formats will be tried (recommended).
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class TimestampDeserializer(private val format: TimestampFormat) : StdDeserializer<Timestamp>(Timestamp::class.java) {
+class TimestampDeserializer(private val format: UtilDateFormat? = null) : StdDeserializer<Timestamp>(Timestamp::class.java) {
 
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Timestamp? {
         val dateString = p.text
@@ -78,11 +68,7 @@ class TimestampDeserializer(private val format: TimestampFormat) : StdDeserializ
         if (StringUtils.isNumeric(dateString)) {
             return Timestamp(dateString.toLong())
         }
-        try {
-            val date = LocalDateTime.parse(dateString, format.formatter)
-            return Timestamp.from(date.toInstant(ZoneOffset.UTC))
-        } catch (e: ParseException) {
-            throw JsonParseException(p, dateString, e)
-        }
+        val date = UtilDateDeserializer.parseDate(format, dateString, p)
+        return Timestamp.from(date.toInstant(ZoneOffset.UTC))
     }
 }
