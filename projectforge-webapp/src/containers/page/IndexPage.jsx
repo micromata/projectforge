@@ -138,26 +138,20 @@ class IndexPage extends React.Component {
                                 Bugs after dynamic layout refactoring
                                 <ol>
                                     <li>
-                                        Address edit page
-                                        <br />
+                                        Address edit page (for existing addresses with assigned
+                                        address books):
+                                        <br/>
                                         <code>
-                                            Failed prop type: Invalid prop `dataType` of value
-                                            `LOCALE` supplied to `DynamicInputResolver`, expected
-                                            one of [&quot;STRING&quot;,&quot;DATE&quot;,&quot;TIMESTAMP&quot;,&quot;TASK&quot;,&quot;USER&quot;]
-                                        </code>
-                                    </li>
-                                    <li>
-                                        Address edit page (for existing addresses with assigned address books):
-                                        <br />
-                                        <code>
-                                            Assigned address books are not preset in multi ReactSelect.
+                                            Assigned address books are not preset in multi
+                                            ReactSelect.
                                         </code>
                                     </li>
                                     <li>
                                         Address list page
-                                        <br />
+                                        <br/>
                                         <code>
-                                            Failed prop type: Invalid prop `translations` of type `array` supplied to `FavoritesPanel`, expected `object`.
+                                            Failed prop type: Invalid prop `translations` of type
+                                            `array` supplied to `FavoritesPanel`, expected `object`.
                                             in FavoritesPanel (at SearchFilter.jsx:125)
                                         </code>
                                     </li>
@@ -220,6 +214,16 @@ class IndexPage extends React.Component {
                     <Col>
                         <h1>ToDo&apos;s (Kai)</h1>
                         <ol>
+                            <li>
+                                Address edit page
+                                <br/>
+                                <code>
+                                    Failed prop type: Invalid prop `dataType` of value
+                                    `LOCALE` supplied to `DynamicInputResolver`, expected
+                                    one of
+                                    [&quot;STRING&quot;,&quot;DATE&quot;,&quot;TIMESTAMP&quot;,&quot;TASK&quot;,&quot;USER&quot;]
+                                </code>
+                            </li>
                             <li>Finishing time sheet editing</li>
                             <li>Calendar events (especially recurrences)</li>
                             <li>List pages: addresses, tasks etc.</li>
