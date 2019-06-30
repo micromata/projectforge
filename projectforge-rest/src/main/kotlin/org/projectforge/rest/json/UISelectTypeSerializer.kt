@@ -68,7 +68,14 @@ class UISelectTypeSerializer : StdSerializer<UISelect<*>>(UISelect::class.java) 
         }
 
         if (value.favorites != null) {
-            writeEntries(jgen, value.favorites, "favorites", value.valueProperty, value.labelProperty) // See above.
+            jgen.writeArrayFieldStart("favorites")
+            value.favorites?.forEach {
+                jgen.writeStartObject();
+                JacksonUtils.writeField(jgen, "id", it.id)
+                jgen.writeStringField("name", it.name)
+                jgen.writeEndObject()
+            }
+            jgen.writeEndArray()
         }
 
         if (value.autoCompletion != null) {

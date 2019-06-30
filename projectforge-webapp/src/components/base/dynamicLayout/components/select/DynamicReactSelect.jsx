@@ -3,6 +3,7 @@ import React from 'react';
 import { getServiceURL, handleHTTPErrors } from '../../../../../utilities/rest';
 import ReactSelect from '../../../../design/ReactSelect';
 import { DynamicLayoutContext } from '../../context';
+import FavoritesPanel from '../../../../../containers/panel/FavoritesPanel';
 
 export const extractDataValue = (
     {
@@ -25,7 +26,7 @@ export const extractDataValue = (
 
 function DynamicReactSelect(props) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
-    const { id, autoCompletion } = props;
+    const { id, favorites, autoCompletion } = props;
     const [value, setValue] = React.useState(extractDataValue({ data, ...props }));
 
     return React.useMemo(() => {
@@ -52,15 +53,29 @@ function DynamicReactSelect(props) {
         if (url && url.length > 0) {
             console.log('DynamicReactSelect.loadOptions', loadOptions, url);
         }
+        let favoritesElement;
+        if (favorites) {
+            favoritesElement = (
+                <FavoritesPanel
+                    id="taskSelectFavorites"
+                    onFavoriteSelect={onChange}
+                    favorites={favorites}
+                    translations={ui.translations}
+                />
+            );
+        }
 
         return (
-            <ReactSelect
-                onChange={onChange}
-                translations={ui.translations}
-                value={value}
-                loadOptions={(url && url.length > 0) ? loadOptions : undefined}
-                {...props}
-            />
+            <React.Fragment>
+                <ReactSelect
+                    onChange={onChange}
+                    translations={ui.translations}
+                    value={value}
+                    loadOptions={(url && url.length > 0) ? loadOptions : undefined}
+                    {...props}
+                />
+                {favoritesElement}
+            </React.Fragment>
         );
     }, [data[id], value]);
 }
@@ -69,6 +84,7 @@ DynamicReactSelect.propTypes = {
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
     values: PropTypes.arrayOf(PropTypes.object),
+    favorites: PropTypes.arrayOf(PropTypes.object),
     additionalLabel: PropTypes.string,
     autoCompletion: PropTypes.shape({
         url: PropTypes.string,
@@ -84,6 +100,7 @@ DynamicReactSelect.propTypes = {
 
 DynamicReactSelect.defaultProps = {
     value: undefined,
+    favorites: undefined,
     additionalLabel: undefined,
     className: undefined,
     getOptionLabel: undefined,

@@ -53,11 +53,14 @@ class UISelect<T>(val id: String,
                    * The recent or favorite entries, if given, will be shown as favorites for quick select
                    * (in rest client as star beside the select input).
                    */
-                  var favorites: List<AutoCompletion.Entry<T>>? = null,
+                  var favorites: List<Favorite<T>>? = null,
                   var autoCompletion: AutoCompletion<*>? = null,
                   key: String? = null,
                   cssClass: String? = null)
     : UIElement(UIElementType.SELECT, key = key, cssClass = cssClass), UILabelledElement {
+
+    class Favorite<T>(val id: T, val name: String)
+
     @Transient
     private val log = org.slf4j.LoggerFactory.getLogger(LayoutUtils::class.java)
 

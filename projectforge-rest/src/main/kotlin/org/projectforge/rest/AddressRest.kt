@@ -234,7 +234,7 @@ class AddressRest()
         val communicationLanguage = UISelect<String>("communicationLanguage", lc,
                 labelProperty = "displayName",
                 valueProperty = "lang",
-                favorites = addressServicesRest.getUsedLanguages().map { AutoCompletion.Entry(it.lang, it.displayName) },
+                favorites = addressServicesRest.getUsedLanguages().map { UISelect.Favorite(it.lang, it.displayName) },
                 autoCompletion = AutoCompletion<String>(url = "address/acLang"))
         val layout = super.createEditLayout(dto)
                 //autoCompletion = AutoCompletion(url = "addressBook/ac?search="))))
