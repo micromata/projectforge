@@ -30,6 +30,7 @@ function ReactSelect(
 ) {
     let Tag = Select;
     let defaultOptions;
+    console.log("ReactSelect.loadOptions", loadOptions)
     if (loadOptions) {
         Tag = AsyncSelect;
         defaultOptions = true;
@@ -96,6 +97,7 @@ ReactSelect.propTypes = {
 };
 
 ReactSelect.defaultProps = {
+    values: undefined,
     value: undefined,
     additionalLabel: undefined,
     valueProperty: 'value',

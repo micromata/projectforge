@@ -49,6 +49,9 @@ function DynamicReactSelect(props) {
             .then(callback);
 
         const url = autoCompletion ? autoCompletion.url : undefined;
+        if (url && url.length > 0) {
+            console.log('DynamicReactSelect.loadOptions', loadOptions, url);
+        }
 
         return (
             <ReactSelect
@@ -65,7 +68,7 @@ function DynamicReactSelect(props) {
 DynamicReactSelect.propTypes = {
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
-    values: PropTypes.arrayOf(PropTypes.object).isRequired,
+    values: PropTypes.arrayOf(PropTypes.object),
     additionalLabel: PropTypes.string,
     autoCompletion: PropTypes.shape({
         url: PropTypes.string,
@@ -80,6 +83,7 @@ DynamicReactSelect.propTypes = {
 };
 
 DynamicReactSelect.defaultProps = {
+    value: undefined,
     additionalLabel: undefined,
     className: undefined,
     getOptionLabel: undefined,
