@@ -127,7 +127,10 @@ class FavoritesPanel extends Component {
             isModified,
             favorites,
             translations,
-            id,
+            htmlId,
+            onFavoriteCreate,
+            onFavoriteDelete,
+            onFavoriteRename,
         } = this.props;
 
         const syncIcon = isModified
@@ -173,7 +176,7 @@ class FavoritesPanel extends Component {
         return (
             <React.Fragment>
                 <Button
-                    id={id}
+                    id={htmlId}
                     color="link"
                     className="selectPanelIconLinks"
                     onClick={this.togglePopover}
@@ -187,27 +190,29 @@ class FavoritesPanel extends Component {
                 <Popover
                     placement="left-start"
                     isOpen={popoverOpen}
-                    target={id}
+                    target={htmlId}
                     toggle={this.togglePopover}
                 >
                     <PopoverBody>
                         <ul className={style.favoritesList} ref={this.popperRef}>
-                            <li className={style.addFavorite}>
-                                <Input
-                                    id="newFilterName"
-                                    label={translations['favorite.addNew']}
-                                    onChange={this.handleInputChange}
-                                />
-                                <FontAwesomeIcon
-                                    className={classNames(
-                                        style.icon,
-                                        style.saveIcon,
-                                    )}
-                                    icon={faCheckSquare}
-                                    size="lg"
-                                    onClick={event => this.onCreateClick(event)}
-                                />
-                            </li>
+                            {onFavoriteCreate ? (
+                                <li className={style.addFavorite}>
+                                    <Input
+                                        id="newFilterName"
+                                        label={translations['favorite.addNew']}
+                                        onChange={this.handleInputChange}
+                                    />
+                                    <FontAwesomeIcon
+                                        className={classNames(
+                                            style.icon,
+                                            style.saveIcon,
+                                        )}
+                                        icon={faCheckSquare}
+                                        size="lg"
+                                        onClick={event => this.onCreateClick(event)}
+                                    />
+                                </li>
+                            ) : ''}
                             {favorites.map(favorite => (
                                 <li
                                     key={favorite.id}
@@ -222,33 +227,41 @@ class FavoritesPanel extends Component {
                                         {favorite.name}
                                     </span>
                                     <div className={style.actions}>
-                                        <FontAwesomeIcon
-                                            id={`ren-${favorite.id}`}
-                                            icon={faEdit}
-                                            className={style.icon}
-                                            onClick={event => this.onRenameClick(event, favorite.id)}
-                                        />
-                                        <UncontrolledTooltip
-                                            placement="right"
-                                            target={`ren-${favorite.id}`}
-                                        >
-                                            {translations.rename}
-                                        </UncontrolledTooltip>
-                                        <FontAwesomeIcon
-                                            id={`del-${favorite.id}`}
-                                            icon={faTrashAlt}
-                                            className={classNames(
-                                                style.icon,
-                                                style.deleteIcon,
-                                            )}
-                                            onClick={event => this.onDeleteClick(event, favorite.id)}
-                                        />
-                                        <UncontrolledTooltip
-                                            placement="right"
-                                            target={`del-${favorite.id}`}
-                                        >
-                                            {translations.delete}
-                                        </UncontrolledTooltip>
+                                        {onFavoriteRename ? (
+                                            <React.Fragment>
+                                                <FontAwesomeIcon
+                                                    id={`ren-${favorite.id}`}
+                                                    icon={faEdit}
+                                                    className={style.icon}
+                                                    onClick={event => this.onRenameClick(event, favorite.id)}
+                                                />
+                                                <UncontrolledTooltip
+                                                    placement="right"
+                                                    target={`ren-${favorite.id}`}
+                                                >
+                                                    {translations.rename}
+                                                </UncontrolledTooltip>
+                                            </React.Fragment>
+                                        ) : ''}
+                                        {onFavoriteDelete ? (
+                                            <React.Fragment>
+                                                <FontAwesomeIcon
+                                                    id={`del-${favorite.id}`}
+                                                    icon={faTrashAlt}
+                                                    className={classNames(
+                                                        style.icon,
+                                                        style.deleteIcon,
+                                                    )}
+                                                    onClick={event => this.onDeleteClick(event, favorite.id)}
+                                                />
+                                                <UncontrolledTooltip
+                                                    placement="right"
+                                                    target={`del-${favorite.id}`}
+                                                >
+                                                    {translations.delete}
+                                                </UncontrolledTooltip>
+                                            </React.Fragment>
+                                        ) : ''}
                                         {' '}
                                         {favorite.id === currentFavoriteId ? (
                                             syncIcon
@@ -265,16 +278,16 @@ class FavoritesPanel extends Component {
 }
 
 FavoritesPanel.propTypes = {
-    id: PropTypes.string,
+    htmlId: PropTypes.string,
     favorites: PropTypes.arrayOf(PropTypes.shape({
-        id: PropTypes.number,
+        id: PropTypes.any,
         name: PropTypes.string,
     })),
     // The current used favorite (can be saved with modified settings).
     currentFavoriteId: PropTypes.number,
-    onFavoriteCreate: PropTypes.func.isRequired,
-    onFavoriteDelete: PropTypes.func.isRequired,
-    onFavoriteRename: PropTypes.func.isRequired,
+    onFavoriteCreate: PropTypes.func,
+    onFavoriteDelete: PropTypes.func,
+    onFavoriteRename: PropTypes.func,
     onFavoriteSelect: PropTypes.func.isRequired,
     onFavoriteUpdate: PropTypes.func,
     // Is true, if the current favorite filter is modified and is ready for update, otherwise false.
@@ -286,12 +299,15 @@ FavoritesPanel.propTypes = {
 };
 
 FavoritesPanel.defaultProps = {
-    id: 'favoritesPopover',
+    htmlId: 'favoritesPopover',
     currentFavoriteId: 0,
     favorites: [],
     translations: [],
     isModified: false,
     closeOnSelect: true,
+    onFavoriteCreate: undefined,
+    onFavoriteDelete: undefined,
+    onFavoriteRename: undefined,
     onFavoriteUpdate: undefined,
 };
 
