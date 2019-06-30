@@ -1,14 +1,14 @@
-import React from 'react';
-import Select from 'react-select';
-import { UncontrolledTooltip } from 'reactstrap';
-import AsyncSelect from 'react-select/lib/Async';
-import makeAnimated from 'react-select/lib/animated';
-import PropTypes from 'prop-types';
 import { faQuestion } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import style from './input/Input.module.scss';
-import AdditionalLabel from './input/AdditionalLabel';
+import PropTypes from 'prop-types';
+import React from 'react';
+import Select from 'react-select';
+import makeAnimated from 'react-select/lib/animated';
+import AsyncSelect from 'react-select/lib/Async';
+import { UncontrolledTooltip } from 'reactstrap';
 import revisedRandomId from '../../utilities/revisedRandomId';
+import AdditionalLabel from './input/AdditionalLabel';
+import style from './input/Input.module.scss';
 
 function ReactSelect(
     {
@@ -30,11 +30,12 @@ function ReactSelect(
 ) {
     let Tag = Select;
     let defaultOptions;
-    console.log("ReactSelect.loadOptions", loadOptions)
+
     if (loadOptions) {
         Tag = AsyncSelect;
         defaultOptions = true;
     }
+
     let tooltipElement;
     if (tooltip) {
         const tooltipId = `rs-${revisedRandomId()}`;
