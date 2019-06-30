@@ -1,9 +1,9 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import FavoritesPanel from '../../../../../containers/panel/FavoritesPanel';
 import { getServiceURL, handleHTTPErrors } from '../../../../../utilities/rest';
 import ReactSelect from '../../../../design/ReactSelect';
 import { DynamicLayoutContext } from '../../context';
-import FavoritesPanel from '../../../../../containers/panel/FavoritesPanel';
 
 export const extractDataValue = (
     {
@@ -50,9 +50,7 @@ function DynamicReactSelect(props) {
             .then(callback);
 
         const url = autoCompletion ? autoCompletion.url : undefined;
-        if (url && url.length > 0) {
-            console.log('DynamicReactSelect.loadOptions', loadOptions, url);
-        }
+
         let favoritesElement;
         if (favorites) {
             favoritesElement = (
@@ -70,9 +68,9 @@ function DynamicReactSelect(props) {
                 <ReactSelect
                     onChange={onChange}
                     translations={ui.translations}
+                    {...props}
                     value={value}
                     loadOptions={(url && url.length > 0) ? loadOptions : undefined}
-                    {...props}
                 />
                 {favoritesElement}
             </React.Fragment>
