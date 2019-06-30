@@ -73,7 +73,7 @@ class UISelectTypeSerializer : StdSerializer<UISelect<*>>(UISelect::class.java) 
             JacksonUtils.writeField(jgen, "minChars", ac?.minChars)
             JacksonUtils.writeField(jgen, "url", ac?.url)
             writeEntries(jgen, ac?.values, "values", value.valueProperty, value.labelProperty) // See above.
-            writeEntries(jgen, ac?.recent, "recent", value.valueProperty, value.labelProperty) // See above.
+            writeEntries(jgen, ac?.favorites, "favorites", value.valueProperty, value.labelProperty) // See above.
             jgen.writeEndObject()
         }
         jgen.writeEndObject()

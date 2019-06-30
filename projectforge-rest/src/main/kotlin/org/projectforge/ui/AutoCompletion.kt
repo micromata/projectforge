@@ -37,9 +37,10 @@ class AutoCompletion<T>(
          */
         var values: List<Entry<T>>? = null,
         /**
-         * The recent entries, if given, will be shown at the top of the drop down for quick select.
+         * The recent or favorite entries, if given, will be shown as favorites for quick select
+         * (in rest client as star beside the select input).
          */
-        var recent: List<Entry<T>>? = null,
+        var favorites: List<Entry<T>>? = null,
         /**
          * If given, the url will be called for getting the auto-completion values.
          */

@@ -66,6 +66,9 @@ class AddressRest()
     private lateinit var addressbookDao: AddressbookDao
 
     @Autowired
+    private lateinit var addressServicesRest: AddressServicesRest
+
+    @Autowired
     private lateinit var imageService: ImageService
 
     @Autowired
@@ -228,6 +231,12 @@ class AddressRest()
         addressbookDOs.forEach {
             addressbooks.add(UISelectValue(it.id, it.title!!))
         }
+        val communicationLanguage = UISelect<String>("communicationLanguage", lc,
+                labelProperty = "displayName",
+                valueProperty = "lang",
+                autoCompletion = AutoCompletion<String>(
+                        url = "address/acLang",
+                        favorites = addressServicesRest.getUsedLanguages().map { AutoCompletion.Entry(it.lang, it.displayName) }))
         val layout = super.createEditLayout(dto)
                 //autoCompletion = AutoCompletion(url = "addressBook/ac?search="))))
                 .add(UIRow()
@@ -249,7 +258,7 @@ class AddressRest()
                                 .add(lc, "name", "firstName", "form", "title", "email", "privateEmail"))
                         .add(UIFieldset(6)
                                 .add(lc, "birthday")
-                                .add(lc, "communicationLanguage")
+                                .add(UIRow().add(UICol().add(communicationLanguage)))
                                 .add(lc, "organization", "division", "positionText", "website")))
                 .add(UIRow()
                         .add(UIFieldset()

@@ -28,10 +28,7 @@ import org.apache.commons.io.IOUtils
 import org.projectforge.business.address.*
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDORest
-import org.projectforge.rest.core.ListFilterService
-import org.projectforge.rest.core.ReplaceUtils
-import org.projectforge.rest.core.ResultSet
+import org.projectforge.rest.core.*
 import org.projectforge.ui.UIStyle
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ByteArrayResource
@@ -77,6 +74,19 @@ class AddressServicesRest() {
 
     @Autowired
     private lateinit var personalAddressDao: PersonalAddressDao
+
+    @Autowired
+    private lateinit var languageService: LanguageService
+
+    @GetMapping("acLang")
+    fun getLanguages(searchString: String?): List<LanguageService.Language> {
+        return languageService.getLanguages(searchString)
+    }
+
+    @GetMapping("usedLanguages")
+    fun getUsedLanguages(): List<LanguageService.Language> {
+        return languageService.getLanguages(addressDao.usedCommunicationLanguages.asIterable())
+    }
 
     @GetMapping("exportFavoritesVCards")
     fun exportFavoritesVCards(): ResponseEntity<Any> {
