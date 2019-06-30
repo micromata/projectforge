@@ -49,6 +49,11 @@ class UISelect<T>(val id: String,
                    * Optional property of label, needed by the client for mapping the data to the label. Default is "label".
                    */
                   var labelProperty: String = "label",
+                  /**
+                   * The recent or favorite entries, if given, will be shown as favorites for quick select
+                   * (in rest client as star beside the select input).
+                   */
+                  var favorites: List<AutoCompletion.Entry<T>>? = null,
                   var autoCompletion: AutoCompletion<*>? = null,
                   key: String? = null,
                   cssClass: String? = null)

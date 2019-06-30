@@ -37,11 +37,6 @@ class AutoCompletion<T>(
          */
         var values: List<Entry<T>>? = null,
         /**
-         * The recent or favorite entries, if given, will be shown as favorites for quick select
-         * (in rest client as star beside the select input).
-         */
-        var favorites: List<Entry<T>>? = null,
-        /**
          * If given, the url will be called for getting the auto-completion values.
          */
         var url: String? = null) {
