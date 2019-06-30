@@ -59,11 +59,11 @@ class FavoritesPanel extends Component {
         onFavoriteRename(id, newName);
     }
 
-    onSelectClick(event, id) {
+    onSelectClick(event, id, name) {
         event.preventDefault();
         event.stopPropagation();
         const { onFavoriteSelect } = this.props;
-        onFavoriteSelect(id);
+        onFavoriteSelect(id, name);
 
         const { closeOnSelect } = this.props;
         if (closeOnSelect) {
@@ -216,7 +216,7 @@ class FavoritesPanel extends Component {
                             {favorites.map(favorite => (
                                 <li
                                     key={favorite.id}
-                                    onClick={event => this.onSelectClick(event, favorite.id)}
+                                    onClick={event => this.onSelectClick(event, favorite.id, favorite.name)}
                                     role="presentation"
                                     className={classNames(
                                         style.favorite,

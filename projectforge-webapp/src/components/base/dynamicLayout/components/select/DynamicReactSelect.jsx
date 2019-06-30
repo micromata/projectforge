@@ -26,13 +26,27 @@ export const extractDataValue = (
 
 function DynamicReactSelect(props) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
-    const { id, favorites, autoCompletion } = props;
+    const {
+        id,
+        favorites,
+        autoCompletion,
+        labelProperty,
+        valueProperty,
+    } = props;
     const [value, setValue] = React.useState(extractDataValue({ data, ...props }));
 
     return React.useMemo(() => {
         const onChange = (newValue) => {
             setValue(newValue);
             setData({ [id]: newValue });
+        };
+
+        const onFavoriteSelect = (favoriteId, name) => {
+            const newValue = {
+                [valueProperty]: favoriteId,
+                [labelProperty]: name,
+            };
+            onChange(newValue);
         };
 
         const loadOptions = (search, callback) => fetch(
@@ -52,11 +66,11 @@ function DynamicReactSelect(props) {
         const url = autoCompletion ? autoCompletion.url : undefined;
 
         let favoritesElement;
-        if (favorites) {
+        if (favorites && favorites.length > 0) {
             favoritesElement = (
                 <FavoritesPanel
                     id="taskSelectFavorites"
-                    onFavoriteSelect={onChange}
+                    onFavoriteSelect={onFavoriteSelect}
                     favorites={favorites}
                     translations={ui.translations}
                 />
