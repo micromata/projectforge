@@ -176,6 +176,10 @@ class IndexPage extends React.Component {
                                 Edit / rename entry of favorite filter, e. g. calendar page (star
                                 icon)
                             </li>
+                            <li>
+                                DynamicReactSelect: support of autocompletion and favorites (see
+                                field communication language of edit page for addresses).
+                            </li>
                             <li>Enable localized customized pages (login page, setup page etc.)</li>
                             <li>
                                 Clone button (e. g. address): reload page with data sent by server
@@ -214,16 +218,6 @@ class IndexPage extends React.Component {
                     <Col>
                         <h1>ToDo&apos;s (Kai)</h1>
                         <ol>
-                            <li>
-                                Address edit page
-                                <br/>
-                                <code>
-                                    Failed prop type: Invalid prop `dataType` of value
-                                    `LOCALE` supplied to `DynamicInputResolver`, expected
-                                    one of
-                                    [&quot;STRING&quot;,&quot;DATE&quot;,&quot;TIMESTAMP&quot;,&quot;TASK&quot;,&quot;USER&quot;]
-                                </code>
-                            </li>
                             <li>Finishing time sheet editing</li>
                             <li>Calendar events (especially recurrences)</li>
                             <li>List pages: addresses, tasks etc.</li>
