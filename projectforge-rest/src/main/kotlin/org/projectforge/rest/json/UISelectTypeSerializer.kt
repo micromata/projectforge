@@ -67,13 +67,16 @@ class UISelectTypeSerializer : StdSerializer<UISelect<*>>(UISelect::class.java) 
             jgen.writeEndArray()
         }
 
+        if (value.favorites != null) {
+            writeEntries(jgen, value.favorites, "favorites", value.valueProperty, value.labelProperty) // See above.
+        }
+
         if (value.autoCompletion != null) {
             jgen.writeObjectFieldStart("autoCompletion")
             val ac = value.autoCompletion
             JacksonUtils.writeField(jgen, "minChars", ac?.minChars)
             JacksonUtils.writeField(jgen, "url", ac?.url)
             writeEntries(jgen, ac?.values, "values", value.valueProperty, value.labelProperty) // See above.
-            writeEntries(jgen, ac?.favorites, "favorites", value.valueProperty, value.labelProperty) // See above.
             jgen.writeEndObject()
         }
         jgen.writeEndObject()
