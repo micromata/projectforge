@@ -68,7 +68,7 @@ public class AddressCampaignEditForm extends AbstractEditForm<AddressCampaignDO,
       fs.add(valuesField);
       fs.addAlertIcon(getString("plugins.marketing.addressCampaign.edit.warning.doNotChangeValues"));
       valuesField.add((IValidator<String>) validatable -> {
-        if (AddressCampaignDO.getValuesArray(validatable.getValue()) == null) {
+        if (AddressCampaignDO.Companion.getValuesArray(validatable.getValue()) == null) {
           valuesField.error(getString("plugins.marketing.addressCampaign.values.invalidFormat"));
         }
       });

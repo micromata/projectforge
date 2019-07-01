@@ -291,6 +291,7 @@ class ContactDO : DefaultBaseDO() {
     }
 
     companion object {
+
         /**
          * Used for representation in the data base and for hibernate search (lucene).
          */
