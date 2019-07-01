@@ -352,7 +352,9 @@ public class SkillTree extends AbstractCache implements Serializable
       rootSkill.setRateable(false);
       final String s = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache()
           .getGroup(ProjectForgeGroup.ADMIN_GROUP).getId().toString();
-      rootSkill.setFullAccessGroupIds(s).setReadOnlyAccessGroupIds(s).setTrainingAccessGroupIds(s);
+      rootSkill.setFullAccessGroupIds(s);
+      rootSkill.setReadOnlyAccessGroupIds(s);
+      rootSkill.setTrainingGroupsIds(s);
       Integer rootId = emgr.insert(rootSkill);
       return emgr.selectByPk(SkillDO.class, rootId);
     });
