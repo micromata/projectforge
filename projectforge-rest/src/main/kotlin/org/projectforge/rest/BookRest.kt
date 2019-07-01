@@ -54,11 +54,6 @@ class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::class.ja
             validationErrors.add(ValidationError(translate("book.error.signatureAlreadyExists"), fieldId = "signature"))
     }
 
-    override fun transformFromDB(obj: BookDO, editMode: Boolean): BookDO {
-        obj.task = null
-        return obj
-    }
-
     /**
      * LAYOUT List page
      */

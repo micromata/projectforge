@@ -23,13 +23,11 @@
 
 package org.projectforge.business.book
 
-import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
 import org.hibernate.search.annotations.*
 import org.hibernate.search.annotations.Index
-import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -127,13 +125,6 @@ class BookDO : DefaultBaseDO() {
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "book_type", length = 20, nullable = true)
     var type: BookType? = null
-
-    @Deprecated("This field will be removed from the data-base. Is not in use anymore and will be automatically set to ProjectForge's root task.")
-    @field:NoHistory
-    @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "task_id", nullable = false)
-    @Transient
-    var task : TaskDO? = null
 
     /**
      * Converts numbers in signature for alphanumeric sorting in 5-digit form. For example: "WT-145a" -&gt; "WT-00145a".

@@ -86,24 +86,24 @@ class UserPrefDO : AbstractBaseDO<Int>() {
     /**
      * The value as string representation (e. g. json).
      */
-    @get:Column(length = 100000) // 100.000, should be space enough.
-    var value: String? = null
+    @get:Column(name = "value_string", length = 100000) // 100.000, should be space enough.
+    var valueString: String? = null
 
     /**
      * The type of the value (class name). It's not of type class because types are may-be refactored or removed.
      */
-    @get:Column(name = "type", length = 1000)
-    var typeString: String? = null
+    @get:Column(name = "value_type", length = 1000)
+    var valueTypeString: String? = null
 
     /**
-     * [typeString] as class or null, if [typeString] is null.
+     * [valueTypeString] as class or null, if [valueTypeString] is null.
      */
-    val type: Class<*>?
+    val valueType: Class<*>?
         @Transient
         get() =
-            if (typeString.isNullOrBlank())
+            if (valueTypeString.isNullOrBlank())
                 null
-            else Class.forName(typeString)
+            else Class.forName(valueTypeString)
 
     /**
      * The value as object (deserialized from json).
@@ -113,7 +113,7 @@ class UserPrefDO : AbstractBaseDO<Int>() {
 
     @get:Transient
     val getIntValue: Int?
-        get() = value?.toInt()
+        get() = valueString?.toInt()
 
     /**
      * User pref's ar
