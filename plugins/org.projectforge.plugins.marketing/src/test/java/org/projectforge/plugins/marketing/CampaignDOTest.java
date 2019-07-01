@@ -47,7 +47,7 @@ public class CampaignDOTest
     final AddressCampaignDO campaign = new AddressCampaignDO();
     campaign.setValues(values);
     final String[] result = campaign.getValuesArray();
-    assertArrayEquals(result, AddressCampaignDO.getValuesArray(campaign.getValues()));
+    assertArrayEquals(result, AddressCampaignDO.Companion.getValuesArray(campaign.getValues()));
     return result;
   }
 }
