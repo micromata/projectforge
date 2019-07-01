@@ -229,7 +229,7 @@ public class TrainingEditForm extends AbstractEditForm<TrainingDO, TrainingEditP
         @Override
         public void validate(final IValidatable<String> validatable)
         {
-          if (TrainingDO.getValuesArray(validatable.getValue()) == null) {
+          if (TrainingDO.Companion.getValuesArray(validatable.getValue()) == null) {
             valuesRating.error(getString("plugins.skillmatrix.skilltraining.values.invalidFormat"));
           }
         }
@@ -250,7 +250,7 @@ public class TrainingEditForm extends AbstractEditForm<TrainingDO, TrainingEditP
         @Override
         public void validate(final IValidatable<String> validatable)
         {
-          if (TrainingDO.getValuesArray(validatable.getValue()) == null) {
+          if (TrainingDO.Companion.getValuesArray(validatable.getValue()) == null) {
             valuesCertificate.error(getString("plugins.skillmatrix.skilltraining.values.invalidFormat"));
           }
         }

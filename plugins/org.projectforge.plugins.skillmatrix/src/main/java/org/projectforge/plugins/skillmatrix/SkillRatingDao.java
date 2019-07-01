@@ -102,9 +102,9 @@ public class SkillRatingDao extends BaseDao<SkillRatingDO>
       throw new UserException(I18N_KEY_ERROR_DUPLICATE_RATING);
     }
 
-    if (skillRating.getSkill().isRateable() == false && skillRating.getSkillRating() != null) {
+    if (skillRating.getSkill().getRateable() == false && skillRating.getSkillRating() != null) {
       throw new UserException(I18N_KEY_ERROR_UNRATEABLE_SKILL_WITH_RATING);
-    } else if (skillRating.getSkill().isRateable() == true && skillRating.getSkillRating() == null) {
+    } else if (skillRating.getSkill().getRateable() == true && skillRating.getSkillRating() == null) {
       throw new UserException(I18N_KEY_ERROR_RATEABLE_SKILL_WITH_NULL_RATING);
     }
   }

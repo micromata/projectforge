@@ -219,7 +219,7 @@ public class SkillEditForm extends AbstractEditForm<SkillDO, SkillEditPage>
       fs = gridBuilder.newFieldset(getString("plugins.skillmatrix.skill.trainingAccess"),
           getString("plugins.teamcal.access.groups"));
       final Collection<GroupDO> trainingAccessGroups = groupService
-          .getSortedGroups(getData().getTrainingAccessGroupIds());
+          .getSortedGroups(getData().getTrainingGroupsIds());
       trainingAccessGroupsListHelper = new MultiChoiceListHelper<GroupDO>().setComparator(new GroupsComparator())
           .setFullList(
               groupService.getSortedGroups());

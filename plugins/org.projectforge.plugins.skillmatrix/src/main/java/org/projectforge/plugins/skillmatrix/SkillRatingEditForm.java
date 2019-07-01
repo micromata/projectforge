@@ -139,10 +139,10 @@ public class SkillRatingEditForm extends AbstractEditForm<SkillRatingDO, SkillRa
       {
         final SkillSelectPanel skillSelectPanel = (SkillSelectPanel) dependentFormComponents[0];
         final DropDownChoice<SkillRating> skillRatingDropDown = (DropDownChoice<SkillRating>) dependentFormComponents[1];
-        if (skillSelectPanel.getConvertedInput().isRateable() == true
+        if (skillSelectPanel.getConvertedInput().getRateable() == true
             && skillRatingDropDown.getConvertedInput() == null) {
           error(getString(I18N_KEY_ERROR_RATEABLE_SKILL_WITH_NULL_RATING));
-        } else if (skillSelectPanel.getConvertedInput().isRateable() == false
+        } else if (skillSelectPanel.getConvertedInput().getRateable() == false
             && skillRatingDropDown.getConvertedInput() != null) {
           error(getString(I18N_KEY_ERROR_UNRATEABLE_SKILL_WITH_RATING));
         }
@@ -202,7 +202,7 @@ public class SkillRatingEditForm extends AbstractEditForm<SkillRatingDO, SkillRa
         @Override
         public boolean isVisible()
         {
-          if (data == null || data.getSkill() == null || data.getSkill().isRateable() == false) {
+          if (data == null || data.getSkill() == null || data.getSkill().getRateable() == false) {
             // If a skill is selected that is unrateable, reset the rating of the previous (probably rateable) skill.
             data.setSkillRating(null);
             return false;

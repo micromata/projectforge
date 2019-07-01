@@ -174,9 +174,9 @@ public class SkillRight extends UserRightAccessCheck<SkillDO>
 
   private void getTrainingAccessGroupIds(final Set<Integer> groupIds, final SkillDO skill)
   {
-    if (StringUtils.isNotBlank(skill.getTrainingAccessGroupIds()) == true) {
+    if (StringUtils.isNotBlank(skill.getTrainingGroupsIds()) == true) {
       final Collection<GroupDO> groups = groupService
-          .getSortedGroups(skill.getTrainingAccessGroupIds());
+          .getSortedGroups(skill.getTrainingGroupsIds());
       if (groups != null) {
         for (final GroupDO group : groups) {
           groupIds.add(group.getId());

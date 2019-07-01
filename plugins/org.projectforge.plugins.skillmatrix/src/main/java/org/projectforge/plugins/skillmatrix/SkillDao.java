@@ -220,12 +220,12 @@ public class SkillDao extends BaseDao<SkillDO>
    */
   public void setTrainingAccessGroups(final SkillDO skill, final Collection<GroupDO> trainingAccessGroups)
   {
-    skill.setTrainingAccessGroupIds(groupService.getGroupIds(trainingAccessGroups));
+    skill.setTrainingGroupsIds(groupService.getGroupIds(trainingAccessGroups));
   }
 
   public Collection<GroupDO> getSortedTrainingAccessGroups(final SkillDO skill)
   {
-    return groupService.getSortedGroups(skill.getTrainingAccessGroupIds());
+    return groupService.getSortedGroups(skill.getTrainingGroupsIds());
   }
 
   /**
