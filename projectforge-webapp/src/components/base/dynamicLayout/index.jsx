@@ -9,7 +9,14 @@ import {
 } from './context';
 import DynamicPageMenu from './DynamicPageMenu';
 
-function DynamicLayout({ ui, options, ...props }) {
+function DynamicLayout(
+    {
+        children,
+        ui,
+        options,
+        ...props
+    },
+) {
     // Destructure the 'ui' prop.
     const {
         actions,
@@ -61,6 +68,7 @@ function DynamicLayout({ ui, options, ...props }) {
             }}
         >
             {menu}
+            {children}
             {renderLayout(layout)}
             {actionGroup}
         </DynamicLayoutContext.Provider>
@@ -75,6 +83,8 @@ DynamicLayout.propTypes = {
         title: PropTypes.string,
         pageMenu: PropTypes.arrayOf(menuItemPropType),
     }).isRequired,
+    // Additional content to be displayed in the DynamicLayout context.
+    children: PropTypes.node,
     // Customization options
     options: PropTypes.shape({
         displayPageMenu: PropTypes.bool,
@@ -85,6 +95,7 @@ DynamicLayout.propTypes = {
 };
 
 DynamicLayout.defaultProps = {
+    children: undefined,
     options: dynamicLayoutContextDefaultValues.options,
 };
 
