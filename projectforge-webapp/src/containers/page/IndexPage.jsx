@@ -117,21 +117,6 @@ class IndexPage extends React.Component {
                 </Row>
                 <Row>
                     <Col>
-                        <h1>Manual data-base updates</h1>
-                        To be included in Flyway mechanism.
-                        <ol>
-                            <li>
-                                <code>
-                                    ALTER TABLE t_user_pref ADD COLUMN value VARCHAR(100000);
-                                    <br/>
-                                    ALTER TABLE t_user_pref ADD COLUMN type VARCHAR(1000);
-                                </code>
-                            </li>
-                        </ol>
-                    </Col>
-                </Row>
-                <Row>
-                    <Col>
                         <h1>ToDo&apos;s (Fin)</h1>
                         <ol>
                             <li>
