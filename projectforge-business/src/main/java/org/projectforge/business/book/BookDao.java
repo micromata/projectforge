@@ -111,13 +111,6 @@ public class BookDao extends BaseDao<BookDO> {
     return getList(queryFilter);
   }
 
-  @Override
-  protected void onSaveOrModify(BookDO obj) {
-    super.onSaveOrModify(obj);
-    if (obj.getTask() == null)
-      obj.setTask(getRootTask());
-  }
-
   /**
    * Does the book's signature already exists? If signature is null, then return always false.
    *

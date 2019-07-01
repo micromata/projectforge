@@ -46,7 +46,7 @@ public class UserPrefArea implements Serializable, Comparable<UserPrefArea>
 {
   private static final long serialVersionUID = -6594785391128587090L;
 
-  public static final int MAX_ID_LENGTH = 20;
+  public static final int MAX_ID_LENGTH = 255;
 
   public static final UserPrefArea KUNDE_FAVORITE = new UserPrefArea("KUNDE_FAVORITE", KundeFavorite.class,
       "kunde.favorite");

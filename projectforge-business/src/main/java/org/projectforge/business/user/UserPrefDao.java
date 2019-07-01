@@ -538,20 +538,20 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
   }
 
   public Object deserizalizeValueObject(UserPrefDO userPref) {
-    if (userPref.getType() == null)
+    if (userPref.getValueType() == null)
       return null;
-    userPref.setValueObject(fromJson(userPref.getValue(), userPref.getType()));
+    userPref.setValueObject(fromJson(userPref.getValueString(), userPref.getValueType()));
     return userPref.getValueObject();
   }
 
   @Override
   protected void onSaveOrModify(UserPrefDO obj) {
     if (obj.getValueObject() == null) {
-      obj.setValue(null);
-      obj.setTypeString(null);
+      obj.setValueString(null);
+      obj.setValueTypeString(null);
     } else {
-      obj.setValue(toJson(obj.getValueObject()));
-      obj.setTypeString(obj.getValueObject().getClass().getName());
+      obj.setValueString(toJson(obj.getValueObject()));
+      obj.setValueTypeString(obj.getValueObject().getClass().getName());
     }
   }
 
