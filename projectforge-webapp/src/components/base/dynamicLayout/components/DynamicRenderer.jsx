@@ -9,6 +9,12 @@ import DynamicTextArea from './input/DynamicTextArea';
 import DynamicReactSelect from './select/DynamicReactSelect';
 import DynamicTable from './table/DynamicTable';
 
+const components = {};
+
+export const registerComponent = (type, tag) => {
+    components[type] = tag;
+};
+
 // Renders the components out of a content array.
 export default (content) => {
     if (!content) {
@@ -18,48 +24,20 @@ export default (content) => {
     return (
         <React.Fragment>
             {content.map(({ type, key, ...props }) => {
+                const Tag = components[type];
                 const componentKey = `dynamic-layout-${key}`;
-                let Tag;
 
-                // See all allowed types in propTypes.js -> dynamicTypePropType
-                switch (type) {
-                    case 'CHECKBOX':
-                        Tag = DynamicCheckbox;
-                        break;
-                    case 'COL':
-                    case 'FRAGMENT':
-                    case 'GROUP':
-                    case 'ROW':
-                        Tag = DynamicGroup;
-                        break;
-                    case 'CUSTOMIZED':
-                        Tag = DynamicCustomized;
-                        break;
-                    case 'FIELDSET':
-                        Tag = DynamicFieldset;
-                        break;
-                    case 'INPUT':
-                        Tag = DynamicInputResolver;
-                        break;
-                    case 'LABEL':
-                        Tag = DynamicLabel;
-                        break;
-                    case 'SELECT':
-                        Tag = DynamicReactSelect;
-                        break;
-                    case 'TABLE':
-                        Tag = DynamicTable;
-                        break;
-                    case 'TEXTAREA':
-                        Tag = DynamicTextArea;
-                        break;
-                    default:
-                        return <span>{`Type ${type} is not implemented in DynamicRenderer.`}</span>;
+                if (!Tag) {
+                    return (
+                        <span key={componentKey}>
+                            {`Type ${type} is not implemented in DynamicRenderer.`}
+                        </span>
+                    );
                 }
 
                 return (
                     <Tag
-                        key={`dynamic-layout-${componentKey}`}
+                        key={componentKey}
                         type={type}
                         {...props}
                     />
@@ -68,3 +46,17 @@ export default (content) => {
         </React.Fragment>
     );
 };
+
+// register default components
+registerComponent('CHECKBOX', DynamicCheckbox);
+registerComponent('COL', DynamicGroup);
+registerComponent('FRAGMENT', DynamicGroup);
+registerComponent('GROUP', DynamicGroup);
+registerComponent('ROW', DynamicGroup);
+registerComponent('CUSTOMIZED', DynamicCustomized);
+registerComponent('FIELDSET', DynamicFieldset);
+registerComponent('INPUT', DynamicInputResolver);
+registerComponent('LABEL', DynamicLabel);
+registerComponent('SELECT', DynamicReactSelect);
+registerComponent('TABLE', DynamicTable);
+registerComponent('TEXTAREA', DynamicTextArea);
