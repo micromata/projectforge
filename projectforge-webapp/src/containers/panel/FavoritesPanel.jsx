@@ -302,7 +302,7 @@ FavoritesPanel.defaultProps = {
     htmlId: 'favoritesPopover',
     currentFavoriteId: 0,
     favorites: [],
-    translations: [],
+    translations: {},
     isModified: false,
     closeOnSelect: true,
     onFavoriteCreate: undefined,
