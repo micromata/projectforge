@@ -14,7 +14,7 @@ import CalendarPage from './page/calendar/CalendarPage';
 import EditPage from './page/edit';
 import IndexPage from './page/IndexPage';
 import InputTestPage from './page/InputTest';
-import ListPage from './page/list';
+import ListPage from './page/listWithoutRedux/ListPage';
 import TaskTreePage from './page/TaskTreePage';
 import { SystemStatusContext, systemStatusContextDefaultValues } from './SystemStatusContext';
 
