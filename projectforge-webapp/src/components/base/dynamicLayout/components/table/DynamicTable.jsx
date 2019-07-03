@@ -42,7 +42,7 @@ function DynamicTable({ columns, id }) {
                     : undefined}
             </CardBody>
         </Card>
-    ), [data[id]]);
+    ), [data[id], ui]);
 }
 
 DynamicTable.propTypes = {
