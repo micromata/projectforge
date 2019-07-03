@@ -14,7 +14,6 @@ function SearchFilter() {
         filter,
         ui,
         renderLayout,
-        setFilter,
     } = React.useContext(DynamicLayoutContext);
 
     const handleFavoriteCreate = id => console.log(id);
@@ -23,19 +22,33 @@ function SearchFilter() {
     const handleFavoriteRename = (id, newName) => console.log(id, newName);
     const handleFavoriteUpdate = id => console.log(id);
 
-    const handleMaxRowsChange = ({ value }) => setFilter({
-        ...filter,
-        maxRows: value,
-    });
+    const handleMaxRowsChange = ({ value }) => filter.setSearchFilter('maxRows', value);
 
-    const handleSearchFilterChange = (id, newValue) => setFilter(stateFilter => ({
-        ...stateFilter,
-        [id]: newValue,
-    }));
+    const handleSearchFilterValueChange = filter.editEntry;
+
+    const handleSearchFilterChange = (value, meta) => {
+        switch (meta.action) {
+            case 'clear':
+                filter.clearEntries();
+                break;
+            case 'create-option':
+                filter.addEntry({ search: value[value.length - 1].value });
+                break;
+            case 'select-option':
+                filter.addEntry({
+                    field: meta.option.id,
+                    value: '',
+                });
+                break;
+            case 'pop-value':
+            case 'remove-value':
+                filter.removeEntry(meta.removedValue.id || meta.removedValue.label);
+                break;
+            default:
+        }
+    };
 
     const searchFilter = getNamedContainer('searchFilter', ui.namedContainers);
-
-    console.log(filter);
 
     return (
         <Card>
@@ -56,8 +69,12 @@ function SearchFilter() {
                                     // TODO DISPLAYED LABEL CAN BE SET HERE
                                     label: option.id,
                                 })) : []}
-                                setMultiValue={handleSearchFilterChange}
-                                values={filter}
+                                onChange={handleSearchFilterChange}
+                                setMultiValue={handleSearchFilterValueChange}
+                                values={filter.entries.reduce((accumulator, currentValue) => ({
+                                    ...accumulator,
+                                    [currentValue.field]: currentValue.value,
+                                }), {})}
                             />
                         </Col>
                         <Col sm={1} className="d-flex align-items-center">
@@ -87,8 +104,8 @@ function SearchFilter() {
                                 required
                                 translations={ui.translations}
                                 value={{
-                                    value: filter.maxRows,
-                                    label: filter.maxRows,
+                                    value: filter.searchFilter.maxRows,
+                                    label: filter.searchFilter.maxRows,
                                 }}
                                 values={[
                                     {

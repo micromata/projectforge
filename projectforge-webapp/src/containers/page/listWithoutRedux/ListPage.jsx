@@ -17,15 +17,64 @@ function ListPage(
 ) {
     const [ui, setUI] = React.useState({ translations: {} });
     const [data, setData] = React.useState({});
-    const [filter, setFilter] = React.useState({});
+    const [stateFilter, setFilter] = React.useState({
+        entries: [],
+        searchFilter: {},
+    });
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState(undefined);
+
+    // TODO USE MEMO
+    const filter = React.useMemo(() => ({
+        entries: stateFilter.entries,
+        searchFilter: stateFilter.searchFilter,
+        addEntry: entry => setFilter({
+            ...stateFilter,
+            entries: [
+                ...stateFilter.entries,
+                entry,
+            ],
+        }),
+        removeEntry: fieldOrSearch => setFilter({
+            ...stateFilter,
+            entries: stateFilter.entries.filter(
+                currentEntry => (currentEntry.field || currentEntry.search) !== fieldOrSearch,
+            ),
+        }),
+        editEntry: (id, newValue) => setFilter({
+            ...stateFilter,
+            entries: stateFilter.entries.map((currentEntry) => {
+                if (currentEntry.field !== id) {
+                    return currentEntry;
+                }
+
+                return {
+                    ...currentEntry,
+                    field: id,
+                    value: newValue,
+                };
+            }),
+        }),
+        clearEntries: () => setFilter({
+            ...stateFilter,
+            entries: [],
+        }),
+        setSearchFilter: (id, value) => setFilter({
+            ...stateFilter,
+            searchFilter: {
+                ...stateFilter.searchFilter,
+                [id]: value,
+            },
+        }),
+        setFilter,
+    }), [stateFilter]);
 
     // Register DynamicFilterCheckbox only for the ListPage
     // Attention: Can't use DynamicLayout twice here. Because the normal checkbox got an override.
     React.useEffect(() => {
         registerComponent('CHECKBOX', DynamicFilterCheckbox);
 
+        // Re-Register the DynamicCheckbox component on unmount.
         return () => registerComponent('CHECKBOX', DynamicCheckbox);
     }, []);
 
@@ -49,9 +98,12 @@ function ListPage(
             .then(handleHTTPErrors)
             .then(response => response.json())
             .then(({ ui: responseUi, data: responseData, filter: responseFilter }) => {
-                setUI(responseUi);
+                setFilter({
+                    searchFilter: responseFilter,
+                    entries: [],
+                });
                 setData(responseData);
-                setFilter(responseFilter);
+                setUI(responseUi);
             })
             .catch(responseError => setError(responseError));
     };
@@ -62,11 +114,6 @@ function ListPage(
     if (error) {
         return <h4>{error.message}</h4>;
     }
-
-    const dynamicSetFilter = newFilter => setFilter(stateFilter => ({
-        ...stateFilter,
-        ...newFilter,
-    }));
 
     return (
         <LoadingContainer loading={loading}>
@@ -79,7 +126,6 @@ function ListPage(
                     showActionButtons: false,
                 }}
                 filter={filter}
-                setFilter={dynamicSetFilter}
                 category={match.params.category}
             >
                 <SearchFilter />

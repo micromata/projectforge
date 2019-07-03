@@ -8,7 +8,7 @@ import ValidationManager from '../../../components/design/input/ValidationManage
 
 // The checkbox for the SearchFilter that consumes the filter data from the DynamicLayout
 function DynamicFilterCheckbox({ id, label }) {
-    const { filter, setFilter } = React.useContext(DynamicLayoutContext);
+    const { filter } = React.useContext(DynamicLayoutContext);
 
     // Redirect to DynamicCheckbox if FilterCheckbox wasn't unregistered in time.
     if (!filter) {
@@ -16,19 +16,19 @@ function DynamicFilterCheckbox({ id, label }) {
     }
 
     return React.useMemo(() => {
-        const handleCheckboxChange = ({ target }) => setFilter({ [id]: target.checked });
+        const handleCheckboxChange = ({ target }) => filter.setSearchFilter(id, target.checked);
 
         return (
             <ValidationManager>
                 <CheckBox
                     id={id}
                     label={label}
-                    checked={filter[id] || false}
+                    checked={filter.searchFilter[id] || false}
                     onChange={handleCheckboxChange}
                 />
             </ValidationManager>
         );
-    }, [filter[id]]);
+    }, [filter]);
 }
 
 DynamicFilterCheckbox.propTypes = {
