@@ -1,6 +1,6 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import moment from 'moment';
+import PropTypes from 'prop-types';
+import React from 'react';
 import { connect } from 'react-redux';
 
 const DATE_FORMATTER = 'DATE';
@@ -12,7 +12,7 @@ const PROJECT_FORMATTER = 'PROJECT';
 const USER_FORMATTER = 'USER';
 const TASK_FORMATTER = 'TASK_PATH';
 const TIMESTAMP_MINUTES_FORMATTER = 'TIMESTAMP_MINUTES';
-const AUFTRAGPOSITION_FORMATTER = "AUFTRAG_POSITION";
+const AUFTRAGPOSITION_FORMATTER = 'AUFTRAG_POSITION';
 const GROUP_FORMATTER = 'GROUP';
 
 function Formatter(
