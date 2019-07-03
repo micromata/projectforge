@@ -8,43 +8,41 @@ import DynamicTableRow from './DynamicTableRow';
 function DynamicTable({ columns, id }) {
     const { data, ui } = React.useContext(DynamicLayoutContext);
 
-    return React.useMemo(() => {
-        return (
-            <Card>
-                <CardBody>
-                    <Table striped hover responsive>
-                        <thead>
-                            <tr>
-                                {columns.map(({ id: columnId, title }) => (
-                                    <th key={`table-head-column-${columnId}`}>
-                                        {/* TODO Handle Sorting */}
-                                        <AnimatedChevron direction="neutral" />
-                                        {title}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {(data[id] || []).map(row => (
-                                <DynamicTableRow
-                                    key={`table-body-row-${row.id}`}
-                                    columns={columns}
-                                    row={row}
-                                />
+    return React.useMemo(() => (
+        <Card>
+            <CardBody>
+                <Table striped hover responsive>
+                    <thead>
+                        <tr>
+                            {columns.map(({ id: columnId, title }) => (
+                                <th key={`table-head-column-${columnId}`}>
+                                    {/* TODO Handle Sorting */}
+                                    <AnimatedChevron direction="neutral" />
+                                    {title}
+                                </th>
                             ))}
-                        </tbody>
-                    </Table>
-                    {data.size
-                        ? (
-                            <span>
-                                {`${ui.translations['table.showing']} ${data.size}/${data.totalSize}`}
-                            </span>
-                        )
-                        : undefined}
-                </CardBody>
-            </Card>
-        );
-    }, [data[id]]);
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {(data[id] || []).map(row => (
+                            <DynamicTableRow
+                                key={`table-body-row-${row.id}`}
+                                columns={columns}
+                                row={row}
+                            />
+                        ))}
+                    </tbody>
+                </Table>
+                {data.size
+                    ? (
+                        <span>
+                            {`${ui.translations['table.showing']} ${data.size}/${data.totalSize}`}
+                        </span>
+                    )
+                    : undefined}
+            </CardBody>
+        </Card>
+    ), [data[id]]);
 }
 
 DynamicTable.propTypes = {
