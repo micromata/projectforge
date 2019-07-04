@@ -1669,13 +1669,56 @@ VALUES (247, '2010-04-21 00:13:19.651', 'org.projectforge.web.admin.Configuratio
       </org.projectforge.framework.persistence.api.BaseSearchFilter>
     ', 4, 1, 17);
 INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, tenant_id, user_id)
-VALUES (248, '2010-04-21 00:13:19.653', 'CalendarPage.userPrefs', '2013-04-07 18:14:25.506', '<org.projectforge.web.calendar.CalendarFilter>
-      <startDate>2013-04-07</startDate>
-      <firstHour>8</firstHour>
+VALUES (248, '2010-04-21 00:13:19.653', 'CalendarPage.userPrefs', '2013-04-07 18:14:25.506', '<org.projectforge.business.teamcal.filter.TeamCalCalendarFilter>
+  <startDate>2019-06-23</startDate>
+  <firstHour>8</firstHour>
+  <viewType>AGENDA_WEEK</viewType>
+  <templateEntries>
+    <org.projectforge.business.teamcal.filter.TemplateEntry>
+      <calendarProperties class="sorted-set">
+        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+          <calId>157</calId>
+          <colorCode>#008000</colorCode>
+          <visible>true</visible>
+          <millisOfLastChange>1562227222945</millisOfLastChange>
+        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+          <calId>158</calId>
+          <colorCode>#ff0</colorCode>
+          <visible>true</visible>
+          <millisOfLastChange>1562227225273</millisOfLastChange>
+        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+          <calId>159</calId>
+          <colorCode>#FAAF26</colorCode>
+          <visible>true</visible>
+          <millisOfLastChange>1562227214916</millisOfLastChange>
+        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+          <calId>160</calId>
+          <colorCode>#f0f</colorCode>
+          <visible>true</visible>
+          <millisOfLastChange>1562227233067</millisOfLastChange>
+        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+      </calendarProperties>
+      <visibleCalendarIds>
+        <int>160</int>
+        <int>157</int>
+        <int>158</int>
+        <int>159</int>
+      </visibleCalendarIds>
+      <name>Default</name>
+      <defaultCalendarId>-1</defaultCalendarId>
+      <showBirthdays>true</showBirthdays>
+      <showStatistics>true</showStatistics>
+      <timesheetUserId>19</timesheetUserId>
       <selectedCalendar>timesheet</selectedCalendar>
-      <timesheetUserId>1</timesheetUserId>
       <showBreaks>true</showBreaks>
-      </org.projectforge.web.calendar.CalendarFilter>
+      <showPlanning>true</showPlanning>
+    </org.projectforge.business.teamcal.filter.TemplateEntry>
+  </templateEntries>
+  <activeTemplateEntryIndex>0</activeTemplateEntryIndex>
+      </org.projectforge.business.teamcal.filter.TeamCalCalendarFilter>
     ', 4, 1, 17);
 INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, tenant_id, user_id)
 VALUES (249, '2010-04-20 22:24:43.644', 'org.projectforge.web.fibu.KundeListAction:Filter', '2013-04-07 18:14:25.493', '<org.projectforge.framework.persistence.api.BaseSearchFilter>
@@ -1863,14 +1906,56 @@ VALUES (276, '2010-04-21 23:11:22.362', 'org.projectforge.web.user.UserListActio
   <searchHistory>false</searchHistory>
 </org.projectforge.framework.persistence.api.BaseSearchFilter>', 4, 1, 19);
 INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, tenant_id, user_id)
-VALUES (272, '2010-04-21 22:11:35.596', 'CalendarPage.userPrefs', '2017-11-23 12:56:37.575', '<org.projectforge.web.calendar.CalendarFilter>
-  <startDate>2013-04-01</startDate>
+VALUES (272, '2010-04-21 22:11:35.596', 'CalendarPage.userPrefs', '2017-11-23 12:56:37.575', '<org.projectforge.business.teamcal.filter.TeamCalCalendarFilter>
+  <startDate>2019-06-23</startDate>
   <firstHour>8</firstHour>
   <viewType>AGENDA_WEEK</viewType>
-  <selectedCalendar>timesheet</selectedCalendar>
-  <timesheetUserId>3</timesheetUserId>
-  <showBreaks>true</showBreaks>
-</org.projectforge.web.calendar.CalendarFilter>', 4, 1, 19);
+  <templateEntries>
+    <org.projectforge.business.teamcal.filter.TemplateEntry>
+      <calendarProperties class="sorted-set">
+        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+          <calId>157</calId>
+          <colorCode>#008000</colorCode>
+          <visible>true</visible>
+          <millisOfLastChange>1562227222945</millisOfLastChange>
+        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+          <calId>158</calId>
+          <colorCode>#ff0</colorCode>
+          <visible>true</visible>
+          <millisOfLastChange>1562227225273</millisOfLastChange>
+        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+          <calId>159</calId>
+          <colorCode>#FAAF26</colorCode>
+          <visible>true</visible>
+          <millisOfLastChange>1562227214916</millisOfLastChange>
+        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+          <calId>160</calId>
+          <colorCode>#f0f</colorCode>
+          <visible>true</visible>
+          <millisOfLastChange>1562227233067</millisOfLastChange>
+        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+      </calendarProperties>
+      <visibleCalendarIds>
+        <int>160</int>
+        <int>157</int>
+        <int>158</int>
+        <int>159</int>
+      </visibleCalendarIds>
+      <name>Default</name>
+      <defaultCalendarId>-1</defaultCalendarId>
+      <showBirthdays>true</showBirthdays>
+      <showStatistics>true</showStatistics>
+      <timesheetUserId>19</timesheetUserId>
+      <selectedCalendar>timesheet</selectedCalendar>
+      <showBreaks>true</showBreaks>
+      <showPlanning>true</showPlanning>
+    </org.projectforge.business.teamcal.filter.TemplateEntry>
+  </templateEntries>
+  <activeTemplateEntryIndex>0</activeTemplateEntryIndex>
+</org.projectforge.business.teamcal.filter.TeamCalCalendarFilter>', 4, 1, 19);
 INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, tenant_id, user_id)
 VALUES (277, '2010-04-21 23:11:22.364', 'org.projectforge.web.humanresources.HRListForm:Filter', '2017-11-23 12:56:37.597', '<org.projectforge.business.humanresources.HRFilter>
   <searchString></searchString>
@@ -2040,14 +2125,56 @@ VALUES (293, '2010-04-22 21:45:34.799', 'org.projectforge.web.timesheet.Timeshee
       !rO0ABXVyAAJbQqzzF/gGCFTgAgAAeHAAAAGhH4sIAAAAAAAAALWU207CQBCG732KSS+8oqmFUhItJAgoB0mIknhpljK0G9ou7m7x8DI+jC9mawtpmyVC1KudU/b/ZtpZR9IQhY8oZxxXnTMAh6OLkRSpnXgheX2g79hpXjjGzs4ypbrEL900iCR/A0nEerRsa7YGsUCemnUN1kzIemq3NAiYSyRlUVsbIlnCc0y4RK7BEoXL6SZL9XGLAduEiRywFaxIyGIBQ7pAHhGJ0AuIECguYXajm/VGLT3tVlMz/oqtK8FnIVawbjn7/Eh4qYcwJluiT745IvCSKp9TXGB0HINpqiEaRYgpdTkLiSQVjDG97+ojIeJ0At3edPD0OLjWTcuuFb3WkSSWmsQqkkzSNgPQzz15BUMSLmLuVaDmnNBjmz9GMlfJNTOAf5ZUdvmr601FR5UmpsmFNPLghUof+mSLO0XHKOxb2cnseSJ++tLSSHZsx0iPYsg0FTGrEFPi7BFymbu82dOxhOTJFDrFN8Ex8mClJt/NQ+n91hwqUH3mQ7Wqv/CH2nJaObbCmByj/B5/AUD89kmfBQAA
     ', 4, 1, 18);
 INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, tenant_id, user_id)
-VALUES (294, '2010-04-22 21:45:34.801', 'CalendarPage.userPrefs', '2013-04-12 03:48:24.601', '<org.projectforge.web.calendar.CalendarFilter>
-      <startDate>2013-04-12</startDate>
-      <firstHour>8</firstHour>
-      <selectedCalendar>timesheet</selectedCalendar>
+VALUES (294, '2010-04-22 21:45:34.801', 'CalendarPage.userPrefs', '2013-04-12 03:48:24.601', '<org.projectforge.business.teamcal.filter.TeamCalCalendarFilter>
+  <startDate>2019-06-23</startDate>
+  <firstHour>8</firstHour>
+  <viewType>AGENDA_WEEK</viewType>
+  <templateEntries>
+    <org.projectforge.business.teamcal.filter.TemplateEntry>
+      <calendarProperties class="sorted-set">
+        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+          <calId>157</calId>
+          <colorCode>#008000</colorCode>
+          <visible>true</visible>
+          <millisOfLastChange>1562227222945</millisOfLastChange>
+        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+          <calId>158</calId>
+          <colorCode>#ff0</colorCode>
+          <visible>true</visible>
+          <millisOfLastChange>1562227225273</millisOfLastChange>
+        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+          <calId>159</calId>
+          <colorCode>#FAAF26</colorCode>
+          <visible>true</visible>
+          <millisOfLastChange>1562227214916</millisOfLastChange>
+        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+          <calId>160</calId>
+          <colorCode>#f0f</colorCode>
+          <visible>true</visible>
+          <millisOfLastChange>1562227233067</millisOfLastChange>
+        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+      </calendarProperties>
+      <visibleCalendarIds>
+        <int>160</int>
+        <int>157</int>
+        <int>158</int>
+        <int>159</int>
+      </visibleCalendarIds>
+      <name>Default</name>
+      <defaultCalendarId>-1</defaultCalendarId>
       <showBirthdays>true</showBirthdays>
-      <timesheetUserId>3</timesheetUserId>
+      <showStatistics>true</showStatistics>
+      <timesheetUserId>19</timesheetUserId>
+      <selectedCalendar>timesheet</selectedCalendar>
       <showBreaks>true</showBreaks>
-      </org.projectforge.web.calendar.CalendarFilter>
+      <showPlanning>true</showPlanning>
+    </org.projectforge.business.teamcal.filter.TemplateEntry>
+  </templateEntries>
+  <activeTemplateEntryIndex>0</activeTemplateEntryIndex>
+      </org.projectforge.business.teamcal.filter.TeamCalCalendarFilter>
     ', 4, 1, 18);
 INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, tenant_id, user_id)
 VALUES (296, '2010-04-23 21:13:12.76', 'org.projectforge.web.fibu.Kost2ListForm:Filter', '2017-11-23 12:56:37.368', '<org.projectforge.web.fibu.Kost2ListFilter>
