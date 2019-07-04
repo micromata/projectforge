@@ -260,11 +260,11 @@ VALUES
                                                                                                               'track & trace project', NULL, 'O', 'INHERIT',
    'Yellow track & trace', NULL, 1, NULL, 48, 16);
 
-INSERT INTO t_book (pk, created, deleted, last_update, abstract_text, authors, comment, editor, isbn, keywords, lend_out_comment, lend_out_date, publisher, signature, status, title, book_type, year_of_publishing, tenant_id, lend_out_by, task_id)
+INSERT INTO t_book (pk, created, deleted, last_update, abstract_text, authors, comment, editor, isbn, keywords, lend_out_comment, lend_out_date, publisher, signature, status, title, book_type, year_of_publishing, tenant_id, lend_out_by)
 VALUES (168, '2008-01-10 08:27:53.675', FALSE, '2011-01-23 17:23:34.283', NULL, 'Harnisch, Carsten', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'PRESENT',
                                                                                                                                    'eBay API', 'BOOK', '2007',
-                                                                                                                                   1, NULL, 47);
-INSERT INTO t_book (pk, created, deleted, last_update, abstract_text, authors, comment, editor, isbn, keywords, lend_out_comment, lend_out_date, publisher, signature, status, title, book_type, year_of_publishing, tenant_id, lend_out_by, task_id)
+                                                                                                                                   1, NULL);
+INSERT INTO t_book (pk, created, deleted, last_update, abstract_text, authors, comment, editor, isbn, keywords, lend_out_comment, lend_out_date, publisher, signature, status, title, book_type, year_of_publishing, tenant_id, lend_out_by)
 VALUES (169, '2008-01-10 08:44:59.304', FALSE, '2011-01-23 17:23:29.555', NULL, 'Hart, Matthew u. Freeman, Robert G.', NULL, NULL, NULL, NULL, NULL, NULL,
                                                                                                                                                      'OraclePress',
                                                                                                                                                      NULL,
@@ -272,21 +272,20 @@ VALUES (169, '2008-01-10 08:44:59.304', FALSE, '2011-01-23 17:23:29.555', NULL, 
                                                                                                                                                      'Oracle Database 10g RMAN Backup & Recovery',
                                                                                                                                                      'BOOK',
                                                                                                                                                      '2007', 1,
-                                                                                                                                                     NULL, 57);
-INSERT INTO t_book (pk, created, deleted, last_update, abstract_text, authors, comment, editor, isbn, keywords, lend_out_comment, lend_out_date, publisher, signature, status, title, book_type, year_of_publishing, tenant_id, lend_out_by, task_id)
+                                                                                                                                                     NULL);
+INSERT INTO t_book (pk, created, deleted, last_update, abstract_text, authors, comment, editor, isbn, keywords, lend_out_comment, lend_out_date, publisher, signature, status, title, book_type, year_of_publishing, tenant_id, lend_out_by)
 VALUES (170, '2011-02-07 21:18:40.005', FALSE, '2011-02-07 21:18:40.005', NULL, 'Bien, Adam', NULL, NULL, '978-3-939084-24-2', 'Java EE5', NULL, NULL,
                                                                                                                                                  'entwickler.press',
                                                                                                                                                  NULL,
                                                                                                                                                  'PRESENT',
                                                                                                                                                  'Java EE5, Patterns und Idiome',
                                                                                                                                                  'BOOK', '2007',
-                                                                                                                                                 1, NULL, 57);
-INSERT INTO t_book (pk, created, deleted, last_update, abstract_text, authors, comment, editor, isbn, keywords, lend_out_comment, lend_out_date, publisher, signature, status, title, book_type, year_of_publishing, tenant_id, lend_out_by, task_id)
+                                                                                                                                                 1, NULL);
+INSERT INTO t_book (pk, created, deleted, last_update, abstract_text, authors, comment, editor, isbn, keywords, lend_out_comment, lend_out_date, publisher, signature, status, title, book_type, year_of_publishing, tenant_id, lend_out_by)
 VALUES (171, '2011-02-07 21:19:47.902', FALSE, '2011-02-07 21:19:47.902', NULL, 'Bien, Adam', NULL, NULL, '3-935042-99-X', NULL, NULL, NULL, 'entwickler.press',
                                                                                                                                        NULL, 'PRESENT',
                                                                                                                                        'Enterprise Architekturen. Leitfaden für effiziente Software-Entwicklung',
-                                                                                                                                       'BOOK', '2006', 1, NULL,
-                                                                                                                                       57);
+                                                                                                                                       'BOOK', '2006', 1, NULL);
 
 INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, intvalue, parameter, stringvalue, tenant_id)
 VALUES (3, '2010-04-21 00:12:07.601', FALSE, '2011-02-07 21:22:26.455', 'STRING', NULL, FALSE, NULL, 'feedbackEMail', 'admin@dev-null.com', 1);
@@ -2549,11 +2548,3 @@ VALUES (297, '2010-04-24 06:01:19.467', 'org.projectforge.web.orga.PostausgangLi
   <year>-1</year>
   <month>-1</month>
 </org.projectforge.web.orga.PostausgangListFilter>', 4, 1, 19);
-
-SELECT pg_catalog.setval('hibernate_sequence', 617, TRUE);
-
-SELECT pg_catalog.setval('sq_base_ghistory_attr_data_pk', 1, FALSE);
-
-SELECT pg_catalog.setval('sq_base_ghistory_attr_pk', 1, FALSE);
-
-SELECT pg_catalog.setval('sq_base_ghistory_pk', 1, FALSE);
