@@ -24,7 +24,6 @@
 package org.projectforge.web;
 
 import org.apache.wicket.Page;
-import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.web.access.AccessListPage;
 import org.projectforge.web.address.AddressListPage;
@@ -54,7 +53,6 @@ import org.projectforge.web.timesheet.TimesheetListPage;
 import org.projectforge.web.user.*;
 import org.projectforge.web.vacation.VacationListPage;
 import org.projectforge.web.vacation.VacationViewPage;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -77,10 +75,6 @@ public class MenuItemRegistry implements Serializable {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MenuItemRegistry.class);
 
   private final Map<String, Class<? extends Page>> wicketClassesMap = new HashMap<>();
-
-
-  @Autowired
-  private MenuCreator menuCreator;
 
   @PostConstruct
   public void init() {

@@ -44,8 +44,8 @@ import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.web.LoginPage;
+import org.projectforge.web.kotlinsupport.KotlinComponents;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.AbstractUnsecureBasePage;
 import org.projectforge.web.wicket.MessagePage;
@@ -77,13 +77,11 @@ public class SetupPage extends AbstractUnsecureBasePage
 
   private final SetupImportForm importForm;
 
-  @SpringBean
-  private MenuCreator menuCreator;
-
   public SetupPage(final PageParameters parameters)
   {
     super(parameters);
     checkAccess();
+    KotlinComponents.getMenuCreator().refresh();
     setupForm = new SetupForm(this);
     body.add(setupForm);
     setupForm.init();
@@ -124,7 +122,7 @@ public class SetupPage extends AbstractUnsecureBasePage
       databaseService.afterCreatedTestDb(false);
       message = "administration.setup.message.testdata";
       // refreshes the visibility of the costConfigured dependent menu items:
-      menuCreator.refresh();
+      KotlinComponents.getMenuCreator().refresh();
     }
 
     loginAdminUser(adminUser);

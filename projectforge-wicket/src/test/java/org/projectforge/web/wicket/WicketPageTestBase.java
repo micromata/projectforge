@@ -49,6 +49,7 @@ import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.test.AbstractTestBase;
 import org.projectforge.web.LoginPage;
 import org.projectforge.web.LoginService;
+import org.projectforge.web.kotlinsupport.KotlinComponents;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,9 +66,6 @@ public class WicketPageTestBase extends AbstractTestBase {
   protected static final String KEY_LOGINPAGE_BUTTON_LOGIN = "loginButton:button";
 
   protected WicketTester tester;
-
-  @Autowired
-  private UserPrefCache userPrefCache;
 
   @Autowired
   private UserXmlPreferencesCache userXmlPreferencesCache;
@@ -313,7 +311,7 @@ public class WicketPageTestBase extends AbstractTestBase {
    */
   protected void logout() {
     loginService.logout((MySession) tester.getSession(), tester.getRequest(), tester.getResponse(),
-            userXmlPreferencesCache, userPrefCache);
+            userXmlPreferencesCache, KotlinComponents.getUserPrefCache());
     tester.startPage(LoginPage.class);
     tester.assertRenderedPage(LoginPage.class);
   }
