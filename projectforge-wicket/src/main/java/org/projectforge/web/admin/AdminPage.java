@@ -47,10 +47,10 @@ import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.fibu.ISelectCallerPage;
+import org.projectforge.web.kotlinsupport.KotlinComponents;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
@@ -93,9 +93,6 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
 
   @SpringBean
   private PfEmgrFactory emf;
-
-  @SpringBean
-  MenuCreator menuCreator;
 
   @SpringBean
   PluginAdminService pluginAdminService;
@@ -378,7 +375,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     if (result != null) {
       result = result.replaceAll("\n", "<br/>\n");
     }
-    menuCreator.refresh();
+    KotlinComponents.getMenuCreator().refresh();
     setResponsePage(new MessagePage("administration.rereadConfiguration", result));
   }
 

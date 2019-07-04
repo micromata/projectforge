@@ -28,6 +28,7 @@ import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.web.WicketSupport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.DependsOn
 import org.springframework.stereotype.Component
@@ -43,7 +44,7 @@ import javax.annotation.PreDestroy
  */
 @Component
 @DependsOn("entityManagerFactory")
-open class UserPrefCache : AbstractCache() { // Must be open for Wicket for creating proxy object.
+class UserPrefCache : AbstractCache() {
     private val log = org.slf4j.LoggerFactory.getLogger(UserPrefCache::class.java)
 
     private val allPreferences = HashMap<Int, UserPrefCacheData>()
@@ -56,6 +57,13 @@ open class UserPrefCache : AbstractCache() { // Must be open for Wicket for crea
 
     @Autowired
     private lateinit var emgrFactory: PfEmgrFactory
+
+    /**
+     * Needed for WicketSupport.
+     */
+    init {
+        WicketSupport.getInstance().register(this::class.java, this)
+    }
 
     /**
      * Does nothing for demo user.
