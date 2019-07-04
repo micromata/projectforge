@@ -83,6 +83,12 @@ public class UserService implements UserChangedListener {
 
   private final UsersComparator usersComparator = new UsersComparator();
 
+  /**
+   * Needed by Wicket for proxying.
+   */
+  public UserService() {
+  }
+
   @Autowired
   public UserService(AccessChecker accessChecker,
                      ConfigurationService configurationService,
