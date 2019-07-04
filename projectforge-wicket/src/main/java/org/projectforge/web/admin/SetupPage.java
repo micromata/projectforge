@@ -32,6 +32,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.user.filter.UserFilter;
+import org.projectforge.common.DatabaseDialect;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.ConfigurationParam;
@@ -111,6 +112,10 @@ public class SetupPage extends AbstractUnsecureBasePage
       try {
         ScriptUtils.executeSqlScript(databaseService.getDataSource().getConnection(),
             configurationDao.getApplicationContext().getResource("classpath:data/pfTestdata.sql"));
+        if (databaseService.getDialect() == DatabaseDialect.PostgreSQL) {
+          ScriptUtils.executeSqlScript(databaseService.getDataSource().getConnection(),
+                  configurationDao.getApplicationContext().getResource("classpath:data/pfTestdataPostgres.sql"));
+        }
       } catch (Exception e) {
         log.error("Exception occured while running test data insert script. Message: " + e.getMessage());
       }
