@@ -910,6 +910,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    */
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
   public ModificationStatus internalUpdate(final O obj, final boolean checkAccess) {
+    beforeSaveOrModify(obj);
     tenantChecker.isTenantSet(obj, true);
     onSaveOrModify(obj);
     if (checkAccess == true) {
