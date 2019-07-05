@@ -123,15 +123,6 @@ class IndexPage extends React.Component {
                                 Bugs after dynamic layout refactoring
                                 <ol>
                                     <li>
-                                        Address edit page (for existing addresses with assigned
-                                        address books):
-                                        <br/>
-                                        <code>
-                                            Assigned address books are not preset in multi
-                                            ReactSelect.
-                                        </code>
-                                    </li>
-                                    <li>
                                         Address list page
                                         <br/>
                                         <code>
