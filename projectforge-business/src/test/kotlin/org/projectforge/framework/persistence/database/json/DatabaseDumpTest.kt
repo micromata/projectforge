@@ -37,9 +37,9 @@ class DatabaseDumpTest : AbstractTestBase() {
     fun dumpTest() {
         logon(ADMIN)
         val out = ByteArrayOutputStream()
-        databaseDump.dump("hurzel", out)
+        databaseDump.dump( out)
         val result = out.toString("UTF-8")
         log.info("$result")
-        assertEquals("Administration", "Administration")
+        assertEquals("WIP", "WIP")
     }
 }

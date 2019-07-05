@@ -28,6 +28,7 @@ import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.io.InputStream
 import java.io.OutputStream
 import javax.annotation.PostConstruct
 
@@ -54,7 +55,15 @@ class DatabaseDump {
      * @param filename virtual filename: If the filename suffix is "gz" then the dump will be compressed.
      * @param out
      */
-    fun dump(filename: String, out: OutputStream?) {
-        DatabaseWriter(emf, sessionFactory).dump(filename, out)
+    fun dump(out: OutputStream) {
+        DatabaseWriter(emf, sessionFactory).dump(out)
+    }
+
+    /**
+     * @param filename virtual filename: If the filename suffix is "gz" then the dump will be compressed.
+     * @param out
+     */
+    fun restore(inputStream: InputStream) {
+        DatabaseWriter(emf, sessionFactory).restore(inputStream)
     }
 }
