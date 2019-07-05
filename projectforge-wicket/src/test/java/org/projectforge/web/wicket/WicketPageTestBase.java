@@ -41,7 +41,6 @@ import org.apache.wicket.util.tester.WicketTester;
 import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
 import org.projectforge.ProjectForgeApp;
-import org.projectforge.business.user.UserPrefCache;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.plugins.core.AbstractPlugin;
@@ -49,7 +48,7 @@ import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.test.AbstractTestBase;
 import org.projectforge.web.LoginPage;
 import org.projectforge.web.LoginService;
-import org.projectforge.web.kotlinsupport.KotlinComponents;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -311,7 +310,7 @@ public class WicketPageTestBase extends AbstractTestBase {
    */
   protected void logout() {
     loginService.logout((MySession) tester.getSession(), tester.getRequest(), tester.getResponse(),
-            userXmlPreferencesCache, KotlinComponents.getUserPrefCache());
+            userXmlPreferencesCache, WicketSupport.getUserPrefCache());
     tester.startPage(LoginPage.class);
     tester.assertRenderedPage(LoginPage.class);
   }

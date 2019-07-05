@@ -28,7 +28,6 @@ import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.web.WicketSupport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.DependsOn
 import org.springframework.stereotype.Component
@@ -59,13 +58,6 @@ class UserPrefCache : AbstractCache() {
     private lateinit var emgrFactory: PfEmgrFactory
 
     /**
-     * Needed for WicketSupport.
-     */
-    init {
-        WicketSupport.getInstance().register(this::class.java, this)
-    }
-
-    /**
      * Does nothing for demo user.
      * @param persistent If true (default) this user preference will be stored to the data base, otherwise it will
      * be volatile stored in memory and will expire.
@@ -84,7 +76,7 @@ class UserPrefCache : AbstractCache() {
     /**
      * Gets the user's entry.
      */
-    fun  getEntry(area: String, name: String): Any? {
+    fun getEntry(area: String, name: String): Any? {
         val userId = ThreadLocalUserContext.getUserId()
         return getEntry(userId, area, name)
     }
@@ -112,7 +104,7 @@ class UserPrefCache : AbstractCache() {
         try {
             @Suppress("UNCHECKED_CAST")
             return value as T
-        } catch(ex:Exception) {
+        } catch (ex: Exception) {
             log.error("Can't deserialize user pref (new version of ProjectForge and old prefs? ${ex.message}", ex)
             return null
         }

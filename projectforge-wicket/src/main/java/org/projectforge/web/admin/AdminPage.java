@@ -49,8 +49,8 @@ import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.web.WebConfiguration;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
-import org.projectforge.web.kotlinsupport.KotlinComponents;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
@@ -375,7 +375,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     if (result != null) {
       result = result.replaceAll("\n", "<br/>\n");
     }
-    KotlinComponents.getMenuCreator().refresh();
+    WicketSupport.getMenuCreator().refresh();
     setResponsePage(new MessagePage("administration.rereadConfiguration", result));
   }
 

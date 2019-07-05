@@ -44,21 +44,16 @@ import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.multitenancy.TenantService;
-import org.projectforge.business.user.UserPrefCache;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
-import org.projectforge.web.LoginPage;
-import org.projectforge.web.LoginService;
-import org.projectforge.web.WicketMenuBuilder;
-import org.projectforge.web.WicketMenuEntry;
+import org.projectforge.web.*;
 import org.projectforge.web.core.menuconfig.MenuConfig;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.doc.DocumentationPage;
-import org.projectforge.web.kotlinsupport.KotlinComponents;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.user.ChangePasswordPage;
 import org.projectforge.web.user.MyAccountEditPage;
@@ -214,7 +209,7 @@ public class NavTopPanel extends NavAbstractPanel {
         @Override
         public void onClick() {
           loginService.logout((MySession) getSession(), (WebRequest) getRequest(), (WebResponse) getResponse(),
-                  userXmlPreferencesCache, KotlinComponents.getUserPrefCache());
+                  userXmlPreferencesCache, WicketSupport.getUserPrefCache());
           setResponsePage(LoginPage.class);
         }
 

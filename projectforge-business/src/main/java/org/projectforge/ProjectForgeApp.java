@@ -23,8 +23,7 @@
 
 package org.projectforge;
 
-import java.util.TimeZone;
-
+import net.fortuna.ical4j.util.CompatibilityHints;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.systeminfo.SystemInfoCache;
@@ -37,9 +36,10 @@ import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.registry.Registry;
+import org.projectforge.web.WicketSupport;
 import org.springframework.context.ApplicationContext;
 
-import net.fortuna.ical4j.util.CompatibilityHints;
+import java.util.TimeZone;
 
 /**
  * Doing some initialization stuff and stuff on shutdown (planned). Most stuff is yet done by WicketApplication.
@@ -129,6 +129,9 @@ public class ProjectForgeApp
     this.databaseUpdater = applicationContext.getBean(DatabaseService.class);
     this.userXmlPreferencesCache = applicationContext.getBean(UserXmlPreferencesCache.class);
     this.systemInfoCache = applicationContext.getBean(SystemInfoCache.class);
+
+    // Wicket workaround for not be able to proxy Kotlin base SpringBeans:
+    WicketSupport.register(applicationContext);
 
     Registry.getInstance().init(applicationContext);
 
