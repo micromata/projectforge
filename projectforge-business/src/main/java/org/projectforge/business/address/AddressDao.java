@@ -284,13 +284,24 @@ public class AddressDao extends BaseDao<AddressDO> {
 
   @Override
   protected void beforeSaveOrModify(final AddressDO obj) {
-    if (obj != null) {
+    if (obj.getId() == null) {
       if (obj.getAddressbookList() == null) {
         Set<AddressbookDO> addressbookSet = new HashSet<>();
-        addressbookSet.add(addressbookDao.getGlobalAddressbook());
         obj.setAddressbookList(addressbookSet);
-      } else if (obj.getAddressbookList().size() < 1) {
+      }
+      if (obj.getAddressbookList().isEmpty()) {
         obj.getAddressbookList().add(addressbookDao.getGlobalAddressbook());
+      }
+    } else {
+      //Check addressbook changes
+      AddressDO dbAddress = internalGetById(obj.getId());
+      AddressbookRight addressbookRight = (AddressbookRight) userRights.getRight(UserRightId.MISC_ADDRESSBOOK);
+      for (AddressbookDO dbAddressbook : dbAddress.getAddressbookList()) {
+        //If user has no right for assigned addressbook, it could not be removed
+        if (addressbookRight.hasSelectAccess(ThreadLocalUserContext.getUser(), dbAddressbook) == false
+                && obj.getAddressbookList().contains(dbAddressbook) == false) {
+          obj.getAddressbookList().add(dbAddressbook);
+        }
       }
     }
   }
