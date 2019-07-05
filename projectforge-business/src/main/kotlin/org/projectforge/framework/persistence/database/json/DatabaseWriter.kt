@@ -45,6 +45,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.TenantDO
 import org.projectforge.framework.time.PFDateTime
 import org.slf4j.LoggerFactory
+import java.io.InputStream
 import java.io.OutputStream
 import java.io.Writer
 import java.sql.Timestamp
@@ -64,7 +65,7 @@ class DatabaseWriter(val emf: PfEmgrFactory,
      * @param filename virtual filename: If the filename suffix is "gz" then the dump will be compressed.
      * @param out
      */
-    fun dump(filename: String, out: OutputStream?) {
+    fun dump(out: OutputStream?) {
         val jfactory = JsonFactory()
         val jgen = jfactory.createGenerator(out, JsonEncoding.UTF8)
         jgen.codec = createObjectMapper()
@@ -89,6 +90,14 @@ class DatabaseWriter(val emf: PfEmgrFactory,
         jgen.writeEndArray()
         jgen.writeEndObject()
         jgen.flush()
+    }
+
+    /**
+     * @param filename virtual filename: If the filename suffix is "gz" then the dump will be compressed.
+     * @param out
+     */
+    fun restore(inputStream: InputStream) {
+        //createObjectMapper().readValue(in, )
     }
 
     private fun createObjectMapper(): ObjectMapper {

@@ -23,10 +23,8 @@
 
 package org.projectforge.framework.persistence.database.json
 
-import com.fasterxml.jackson.databind.BeanDescription
-import com.fasterxml.jackson.databind.JsonSerializer
-import com.fasterxml.jackson.databind.Module
-import com.fasterxml.jackson.databind.SerializationConfig
+import com.fasterxml.jackson.databind.*
+import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.ser.BeanSerializerModifier
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
@@ -47,6 +45,11 @@ class MyJacksonModule: SimpleModule() {
                 return if (AbstractBaseDO::class.java.isAssignableFrom(desc.getBeanClass())) {
                     AbstractBaseDOSerializer(serializer as JsonSerializer<Any>, objectIdRegistry)
                 } else serializer
+            }
+        })
+        context.addBeanDeserializerModifier(object : BeanDeserializerModifier() {
+            override fun modifyDeserializer(config: DeserializationConfig?, beanDesc: BeanDescription?, deserializer: JsonDeserializer<*>?): JsonDeserializer<*> {
+                return super.modifyDeserializer(config, beanDesc, deserializer)
             }
         })
     }
