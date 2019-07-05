@@ -9,13 +9,13 @@ export const extractDataValue = (
     {
         data,
         id,
-        isMulti,
+        multi,
         valueProperty,
         values,
     },
 ) => {
     let dataValue = Object.getByString(data, id);
-    if (!isMulti && dataValue && values && values.length && values.length > 0) {
+    if (!multi && dataValue && values && values.length && values.length > 0) {
         // For react-select it seems to be important, that the current selected element matches
         // its value of the values list.
         const valueOfArray = (typeof dataValue === 'object') ? dataValue[valueProperty] : dataValue;
