@@ -30,10 +30,8 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.menu.Menu;
 import org.projectforge.menu.MenuItem;
 import org.projectforge.menu.builder.FavoritesMenuCreator;
-import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.menu.builder.MenuCreatorContext;
 import org.projectforge.menu.builder.MenuItemDef;
-import org.projectforge.web.kotlinsupport.KotlinComponents;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -66,7 +64,7 @@ public class WicketMenuBuilder {
     if (user == null) {
       return null;
     }
-    Menu menu = KotlinComponents.getMenuCreator().build(new MenuCreatorContext(user, false));
+    Menu menu = WicketSupport.getMenuCreator().build(new MenuCreatorContext(user, false));
     return buildMenuTree(menu);
   }
 

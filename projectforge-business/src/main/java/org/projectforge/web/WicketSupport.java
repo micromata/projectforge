@@ -24,6 +24,9 @@
 package org.projectforge.web;
 
 import org.projectforge.ProjectForgeApp;
+import org.projectforge.business.user.UserPrefCache;
+import org.projectforge.menu.builder.MenuCreator;
+import org.springframework.context.ApplicationContext;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,6 +41,31 @@ import java.util.Map;
 public class WicketSupport {
   private static WicketSupport instance = new WicketSupport();
 
+  /**
+   * Workaround for SpringBean and Kotlin Spring components issues.
+   *
+   * @see WicketSupport
+   */
+  public static MenuCreator getMenuCreator() {
+    return instance.get(MenuCreator.class);
+  }
+
+  /**
+   * Workarround for SpringBean and Kotlin Spring components issues.
+   *
+   * @see WicketSupport
+   */
+  public static UserPrefCache getUserPrefCache() {
+    return instance.get(UserPrefCache.class);
+  }
+
+  public static void register(ApplicationContext applicationContext) {
+    // Wicket workaround for not be able to proxy Kotlin base SpringBeans:
+    WicketSupport.getInstance().register(applicationContext.getBean(MenuCreator.class));
+    WicketSupport.getInstance().register(applicationContext.getBean(UserPrefCache.class));
+
+  }
+
   private final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjectForgeApp.class);
 
   private Map<Class<?>, Object> componentsMap = new HashMap<>();
@@ -45,18 +73,23 @@ public class WicketSupport {
   private WicketSupport() {
   }
 
-  public static WicketSupport getInstance() {
+  private static WicketSupport getInstance() {
     return instance;
   }
 
-  public void register(Class<?> clazz, Object component) {
+  private void register(Object component) {
+    Class<?> clazz = component.getClass();
+    register(clazz, component);
+  }
+
+  private void register(Class<?> clazz, Object component) {
     if (componentsMap.containsKey(clazz)) {
       log.error("An object for the given clazz " + clazz.getName() + " is already registered and will be overwritten.");
     }
     componentsMap.put(clazz, component);
   }
 
-  public <T> T get(Class<T> clazz) {
+  private <T> T get(Class<T> clazz) {
     return (T) componentsMap.get(clazz);
   }
 }

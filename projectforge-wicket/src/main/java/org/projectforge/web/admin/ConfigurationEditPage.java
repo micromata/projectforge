@@ -28,8 +28,8 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.web.MenuItemRegistry;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
-import org.projectforge.web.kotlinsupport.KotlinComponents;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
@@ -65,7 +65,7 @@ public class ConfigurationEditPage extends AbstractEditPage<ConfigurationDO, Con
   @Override
   public AbstractSecuredBasePage afterSaveOrUpdate()
   {
-    KotlinComponents.getMenuCreator().refresh();
+    WicketSupport.getMenuCreator().refresh();
     return null;
   }
 

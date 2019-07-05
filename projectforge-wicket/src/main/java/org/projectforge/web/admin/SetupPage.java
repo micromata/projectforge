@@ -45,7 +45,7 @@ import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.LoginPage;
-import org.projectforge.web.kotlinsupport.KotlinComponents;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.AbstractUnsecureBasePage;
 import org.projectforge.web.wicket.MessagePage;
@@ -81,7 +81,7 @@ public class SetupPage extends AbstractUnsecureBasePage
   {
     super(parameters);
     checkAccess();
-    KotlinComponents.getMenuCreator().refresh();
+    WicketSupport.getMenuCreator().refresh();
     setupForm = new SetupForm(this);
     body.add(setupForm);
     setupForm.init();
@@ -122,7 +122,7 @@ public class SetupPage extends AbstractUnsecureBasePage
       databaseService.afterCreatedTestDb(false);
       message = "administration.setup.message.testdata";
       // refreshes the visibility of the costConfigured dependent menu items:
-      KotlinComponents.getMenuCreator().refresh();
+      WicketSupport.getMenuCreator().refresh();
     }
 
     loginAdminUser(adminUser);

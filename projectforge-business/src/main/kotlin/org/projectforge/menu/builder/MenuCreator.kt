@@ -46,7 +46,6 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.Menu
 import org.projectforge.menu.MenuItem
 import org.projectforge.sms.SmsSenderConfig
-import org.projectforge.web.WicketSupport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -56,13 +55,6 @@ import org.springframework.stereotype.Component
 @Component
 class MenuCreator {
     private val log = org.slf4j.LoggerFactory.getLogger(MenuCreator::class.java)
-
-    /**
-     * Needed for WicketSupport.
-     */
-    init {
-        WicketSupport.getInstance().register(this::class.java, this)
-    }
 
     internal class MenuItemDefHolder {
         internal val menuItems: MutableList<MenuItemDef> = mutableListOf()

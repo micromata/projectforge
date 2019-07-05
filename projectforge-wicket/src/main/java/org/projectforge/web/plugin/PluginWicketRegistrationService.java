@@ -8,7 +8,7 @@ import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.registry.Registry;
 import org.projectforge.web.MenuItemRegistry;
-import org.projectforge.web.kotlinsupport.KotlinComponents;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.registry.WebRegistry;
 import org.projectforge.web.registry.WebRegistryEntry;
 import org.projectforge.web.wicket.IListPageColumnsCreator;
@@ -20,7 +20,7 @@ public class PluginWicketRegistrationService {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PluginWicketRegistrationService.class);
 
   public MenuCreator getMenuCreator() {
-    return KotlinComponents.getMenuCreator();
+    return WicketSupport.getMenuCreator();
   }
 
   @Autowired
