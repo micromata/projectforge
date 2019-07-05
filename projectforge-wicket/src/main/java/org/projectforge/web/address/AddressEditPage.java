@@ -23,36 +23,27 @@
 
 package org.projectforge.web.address;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.lang.reflect.Field;
-import java.util.Date;
-import java.util.Map;
-
+import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
-import org.projectforge.business.address.AddressbookDO;
-import org.projectforge.business.address.AddressbookRight;
 import org.projectforge.business.address.PersonalAddressDO;
 import org.projectforge.business.address.PersonalAddressDao;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.image.ImageService;
-import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.UserRightService;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.web.wicket.AbstractEditForm;
-import org.projectforge.web.wicket.AbstractEditPage;
-import org.projectforge.web.wicket.AbstractSecuredBasePage;
-import org.projectforge.web.wicket.DownloadUtils;
-import org.projectforge.web.wicket.EditPage;
+import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.slf4j.Logger;
 
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.reflect.Field;
+import java.util.Date;
+import java.util.Map;
 
 @EditPage(defaultReturnPage = AddressListPage.class)
 public class AddressEditPage extends AbstractEditPage<AddressDO, AddressEditForm, AddressDao>
@@ -203,19 +194,6 @@ public class AddressEditPage extends AbstractEditPage<AddressDO, AddressEditForm
       }
       cloneFlag = false;
     }
-    //Check addressbook changes
-    if (getData().getId() != null) {
-      AddressDO dbAddress = addressDao.internalGetById(getData().getId());
-      AddressbookRight addressbookRight = (AddressbookRight) userRights.getRight(UserRightId.MISC_ADDRESSBOOK);
-      for (AddressbookDO dbAddressbook : dbAddress.getAddressbookList()) {
-        //If user has no right for assigned addressbook, it could not be removed
-        if (addressbookRight.hasSelectAccess(ThreadLocalUserContext.getUser(), dbAddressbook) == false
-            && getData().getAddressbookList().contains(dbAddressbook) == false) {
-          getData().getAddressbookList().add(dbAddressbook);
-        }
-      }
-    }
-
     byte[] image = null;
     if (getData().getImageData() != null) {
       image = imageService.resizeImage(getData().getImageData());

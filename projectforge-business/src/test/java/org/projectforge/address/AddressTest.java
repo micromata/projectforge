@@ -30,6 +30,7 @@ import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -200,6 +201,45 @@ public class AddressTest extends AbstractTestBase {
       assertEquals(UserRightId.MISC_ADDRESSBOOK.getId(), ex.getParams()[0].toString());
       assertEquals("delete", ex.getParams()[1].toString());
     }
+  }
+
+  /**
+   * The user shouldn't be able to remove address books from addresses he has no access to.
+   */
+  @Test
+  void preserveAddressbooksTest() {
+    logon(TEST_ADMIN_USER);
+    PFUserDO testUser = getUser(TEST_USER);
+    AddressbookDO addressbookWithUserAccess = new AddressbookDO();
+    addressbookWithUserAccess.setTitle("address book with user access");
+    addressbookWithUserAccess.setFullAccessUserIds("" + testUser.getId());
+    addressbookDao.save(addressbookWithUserAccess);
+
+    AddressbookDO addressbookWithoutUserAccess = new AddressbookDO();
+    addressbookWithoutUserAccess.setTitle("address book without user access");
+    addressbookDao.save(addressbookWithoutUserAccess);
+
+    Set<AddressbookDO> addressbookSet = new HashSet<>();
+    addressbookSet.add(addressbookWithUserAccess);
+    addressbookSet.add(addressbookWithoutUserAccess);
+
+    AddressDO address = new AddressDO();
+    address.setName("Kai Reinhard");
+    address.setAddressbookList(addressbookSet);
+    Integer id = addressDao.save(address);
+
+    address = addressDao.getById(id);
+    assertEquals(2, address.getAddressbookList().size());
+
+    logon(testUser);
+    address = addressDao.getById(id);
+    assertEquals(2, address.getAddressbookList().size());
+    address.getAddressbookList().clear();
+    address.getAddressbookList().add(addressbookWithUserAccess);
+    addressDao.update(address);
+
+    address = addressDao.getById(id);
+    assertEquals(2, address.getAddressbookList().size(), "Address book without user access should be preserved.");
   }
 
   @Test
