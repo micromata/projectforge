@@ -64,13 +64,5 @@ public class JsonUtils {
     ObjectMapper mapper = new ObjectMapper();
     mapper.registerModule(new KotlinModule());
     return mapper;
-/*    mapper.re
-    final GsonBuilder builder = new GsonBuilder()//
-            .registerTypeAdapter(java.sql.Date.class, new DateTypeAdapter())//
-            .registerTypeAdapter(java.util.Date.class, new DateTimeTypeAdapter());
-    for (final Map.Entry<Class<?>, Object> entry : typeAdapterMap.entrySet()) {
-      builder.registerTypeHierarchyAdapter(entry.getKey(), entry.getValue());
-    }
-    return builder.create();*/
   }
 }
