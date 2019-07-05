@@ -184,7 +184,7 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
     {
       // Calendar domain
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("administration.configuration.param.calendarDomain"));
-      final RequiredMaxLengthTextField textField = new RequiredMaxLengthTextField(InputPanel.WICKET_ID, calendarDomainModel, ConfigurationDO.PARAM_LENGTH);
+      final RequiredMaxLengthTextField textField = new RequiredMaxLengthTextField(InputPanel.WICKET_ID, calendarDomainModel, ConfigurationDO.Companion.getPARAM_LENGTH());
       fs.add(textField);
       textField.setMarkupId("calendarDomain").setOutputMarkupId(true);
       textField.add(new IValidator<String>()
@@ -204,7 +204,7 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
       final FieldsetPanel fs = gridBuilder.newFieldset(
           getString("administration.configuration.param.systemAdministratorEMail.label"),
           getString("email"));
-      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, sysopEMailModel, ConfigurationDO.PARAM_LENGTH));
+      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, sysopEMailModel, ConfigurationDO.Companion.getPARAM_LENGTH()));
       fs.addHelpIcon(getString("administration.configuration.param.systemAdministratorEMail.description"));
     }
     {
@@ -212,7 +212,7 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
       final FieldsetPanel fs = gridBuilder.newFieldset(
           getString("administration.configuration.param.feedbackEMail.label"),
           getString("email"));
-      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, feedbackEMailModel, ConfigurationDO.PARAM_LENGTH));
+      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, feedbackEMailModel, ConfigurationDO.Companion.getPARAM_LENGTH()));
       fs.addHelpIcon(getString("administration.configuration.param.feedbackEMail.description"));
     }
     final RepeatingView actionButtons = new RepeatingView("buttons");
