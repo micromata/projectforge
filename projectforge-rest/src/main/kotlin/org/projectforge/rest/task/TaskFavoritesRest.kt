@@ -51,9 +51,9 @@ class TaskFavoritesRest {
      * Adds new favorite task with given id under the given name.
      * @return new list of favorites.
      */
-    @GetMapping("new")
+    @GetMapping("create")
     fun new(@RequestParam("taskId", required = true) taskId: Int, @RequestParam("name", required = true) name: String): List<TaskFavorite> {
-        return taskFavorites.addFavorite(name, taskId)
+        return taskFavorites.createFavorite(name, taskId)
     }
 
     /**

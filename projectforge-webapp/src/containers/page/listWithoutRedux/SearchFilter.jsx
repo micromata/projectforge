@@ -7,6 +7,7 @@ import EditableMultiValueLabel from '../../../components/design/EditableMultiVal
 import ReactSelect from '../../../components/design/ReactSelect';
 import { getNamedContainer } from '../../../utilities/layout';
 import FavoritesPanel from '../../panel/FavoritesPanel';
+import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 
 
 function SearchFilter() {
@@ -16,11 +17,67 @@ function SearchFilter() {
         renderLayout,
     } = React.useContext(DynamicLayoutContext);
 
-    const handleFavoriteCreate = id => console.log(id);
-    const handleFavoriteDelete = id => console.log(id);
-    const handleFavoriteSelect = id => console.log(id);
+    const category = 'address'; // tbd: get it from context.
+
+    const handleFavoriteCreate = (newFilterName) => {
+        // TBD: Set the name of the magic filter before post.
+        fetch(getServiceURL(`${category}/filter/create`, // TBD: Send current magic filter as POST request.
+            { newFilterName }), {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                Accept: 'application/json',
+            },
+        })
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            // .then(this.saveUpdateResponseInState) TBD!!!!!!!!!!!!
+            .catch(error => alert(`Internal error: ${error}`));
+    };
+    const handleFavoriteDelete = (id) => {
+        fetch(getServiceURL(`${category}/filter/delete`,
+            { id }), {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                Accept: 'application/json',
+            },
+        })
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            // .then(this.saveUpdateResponseInState) TBD!!!!!!!!!!!!
+            .catch(error => alert(`Internal error: ${error}`));
+    };
+    const handleFavoriteSelect = (id) => {
+        fetch(getServiceURL(`${category}/filter/select`,
+            { id }), {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                Accept: 'application/json',
+            },
+        })
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            // .then(this.saveUpdateResponseInState) TBD!!!!!!!!!!!!
+            .catch(error => alert(`Internal error: ${error}`));
+    };
     const handleFavoriteRename = (id, newName) => console.log(id, newName);
-    const handleFavoriteUpdate = id => console.log(id);
+
+    const handleFavoriteUpdate = (id) => {
+        fetch(getServiceURL(`${category}/filter/update`,
+            { id }), {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                Accept: 'application/json',
+            },
+        })
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            // .then(this.saveUpdateResponseInState) TBD!!!!!!!!!!!!
+            .catch(error => alert(`Internal error: ${error}`));
+    };
 
     const handleMaxRowsChange = ({ value }) => filter.setSearchFilter('maxRows', value);
 
@@ -138,7 +195,7 @@ function SearchFilter() {
                     </Row>
                     <FormGroup row>
                         <Col>
-                            <ActionGroup actions={ui.actions} />
+                            <ActionGroup actions={ui.actions}/>
                         </Col>
                     </FormGroup>
                 </form>
