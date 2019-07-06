@@ -8,18 +8,21 @@ import ReactSelect from '../../../components/design/ReactSelect';
 import { getNamedContainer } from '../../../utilities/layout';
 import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import FavoritesPanel from '../../panel/FavoritesPanel';
+import { ListPageContext } from './ListPageContext';
 
 
 function SearchFilter() {
     const {
-        filter,
-        filterHelper,
         ui,
         renderLayout,
         setData,
-        setUI,
-        category,
     } = React.useContext(DynamicLayoutContext);
+    const {
+        category,
+        filter,
+        filterHelper,
+        setUI,
+    } = React.useContext(ListPageContext);
 
     const saveUpdateResponse = ({ data: responseData, ui: responseUI, filter: responseFilter }) => {
         setData(responseData);

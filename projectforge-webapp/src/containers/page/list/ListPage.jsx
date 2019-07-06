@@ -6,8 +6,9 @@ import DynamicCheckbox
     from '../../../components/base/dynamicLayout/components/input/DynamicCheckbox';
 import LoadingContainer from '../../../components/design/loading-container';
 import { getObjectFromQuery, getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
-import SearchFilterCheckbox from './SearchFilterCheckbox';
+import { defaultValues as defaultContextValues, ListPageContext } from './ListPageContext';
 import SearchFilter from './SearchFilter';
+import SearchFilterCheckbox from './SearchFilterCheckbox';
 
 function ListPage(
     {
@@ -170,25 +171,31 @@ function ListPage(
     }
 
     return (
-        <LoadingContainer loading={loading}>
-            <DynamicLayout
-                callAction={callAction}
-                ui={ui}
-                data={data}
-                setData={setData}
-                setUI={setUI}
-                options={{
-                    displayPageMenu: true,
-                    setBrowserTitle: true,
-                    showActionButtons: false,
-                }}
-                filter={filter}
-                filterHelper={filterHelper}
-                category={match.params.category}
-            >
-                <SearchFilter />
-            </DynamicLayout>
-        </LoadingContainer>
+        <ListPageContext.Provider
+            value={{
+                ...defaultContextValues,
+                category: match.params.category,
+                filter,
+                filterHelper,
+                setUI,
+            }}
+        >
+            <LoadingContainer loading={loading}>
+                <DynamicLayout
+                    callAction={callAction}
+                    ui={ui}
+                    data={data}
+                    setData={setData}
+                    options={{
+                        displayPageMenu: true,
+                        setBrowserTitle: true,
+                        showActionButtons: false,
+                    }}
+                >
+                    <SearchFilter />
+                </DynamicLayout>
+            </LoadingContainer>
+        </ListPageContext.Provider>
     );
 }
 
