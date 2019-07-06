@@ -6,8 +6,8 @@ import { Card, CardBody, Col, FormGroup, Label, Row } from '../../../components/
 import EditableMultiValueLabel from '../../../components/design/EditableMultiValueLabel';
 import ReactSelect from '../../../components/design/ReactSelect';
 import { getNamedContainer } from '../../../utilities/layout';
-import FavoritesPanel from '../../panel/FavoritesPanel';
 import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
+import FavoritesPanel from '../../panel/FavoritesPanel';
 
 
 function SearchFilter() {
@@ -16,9 +16,17 @@ function SearchFilter() {
         filterHelper,
         ui,
         renderLayout,
+        setData,
+        setUI,
     } = React.useContext(DynamicLayoutContext);
 
     const category = 'address'; // tbd: get it from context.
+
+    const saveUpdateResponse = ({ data: responseData, ui: responseUI, filter: responseFilter }) => {
+        setData(responseData);
+        setUI(responseUI);
+        filterHelper.setFilter(responseFilter);
+    };
 
     const handleFavoriteCreate = (newFilterName) => {
         // TBD: Set the name of the magic filter before post.
@@ -32,7 +40,7 @@ function SearchFilter() {
         })
             .then(handleHTTPErrors)
             .then(response => response.json())
-            // .then(this.saveUpdateResponseInState) TBD!!!!!!!!!!!!
+            .then(saveUpdateResponse)
             .catch(error => alert(`Internal error: ${error}`));
     };
     const handleFavoriteDelete = (id) => {
@@ -46,7 +54,7 @@ function SearchFilter() {
         })
             .then(handleHTTPErrors)
             .then(response => response.json())
-            // .then(this.saveUpdateResponseInState) TBD!!!!!!!!!!!!
+            .then(saveUpdateResponse)
             .catch(error => alert(`Internal error: ${error}`));
     };
     const handleFavoriteSelect = (id) => {
@@ -60,7 +68,7 @@ function SearchFilter() {
         })
             .then(handleHTTPErrors)
             .then(response => response.json())
-            // .then(this.saveUpdateResponseInState) TBD!!!!!!!!!!!!
+            .then(saveUpdateResponse)
             .catch(error => alert(`Internal error: ${error}`));
     };
     const handleFavoriteRename = (id, newName) => console.log(id, newName);
@@ -76,7 +84,7 @@ function SearchFilter() {
         })
             .then(handleHTTPErrors)
             .then(response => response.json())
-            // .then(this.saveUpdateResponseInState) TBD!!!!!!!!!!!!
+            .then(saveUpdateResponse)
             .catch(error => alert(`Internal error: ${error}`));
     };
 
