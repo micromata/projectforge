@@ -1,7 +1,16 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
-import { changeEditFormField, loadEditPage } from '../../../actions';
+import {
+    abortEditPage,
+    changeEditFormField,
+    clone,
+    deleteIt,
+    loadEditPage,
+    markAsDeleted,
+    undelete,
+    updateEditPageData,
+} from '../../../actions';
 import DynamicLayout from '../../../components/base/dynamicLayout';
 import TabNavigation from '../../../components/base/page/edit/TabNavigation';
 import { Alert, Container, TabContent, TabPane, } from '../../../components/design';
@@ -16,6 +25,7 @@ class EditPage extends React.Component {
         super(props);
 
         this.setData = this.setData.bind(this);
+        this.callAction = this.callAction.bind(this);
     }
 
     componentDidMount() {
@@ -54,6 +64,17 @@ class EditPage extends React.Component {
         }
 
         return absoluteNewData;
+    }
+
+    callAction(id) {
+        const actionFunction = this.props[id];
+
+        if (actionFunction) {
+            actionFunction();
+            return;
+        }
+
+        throw Error(`Action ${id} not handled.`);
     }
 
     render() {
@@ -109,6 +130,7 @@ class EditPage extends React.Component {
                         <Container fluid>
                             <form>
                                 <DynamicLayout
+                                    callAction={this.callAction}
                                     data={data}
                                     options={{
                                         displayPageMenu: id !== undefined,
@@ -182,8 +204,15 @@ const mapStateToProps = state => ({
 });
 
 const actions = {
+    cancel: abortEditPage,
     changeDataField: changeEditFormField,
+    clone,
+    create: updateEditPageData,
+    deleteIt,
     load: loadEditPage,
+    markAsDeleted,
+    undelete,
+    update: updateEditPageData,
 };
 
 export default connect(mapStateToProps, actions)(EditPage);
