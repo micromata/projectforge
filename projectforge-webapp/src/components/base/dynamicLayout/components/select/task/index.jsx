@@ -112,7 +112,7 @@ function DynamicTaskSelect(
 
             fetch(
                 getServiceURL(
-                    'task/favorites/new',
+                    'task/favorites/create',
                     {
                         name,
                         taskId: task.id,

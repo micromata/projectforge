@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.core
 
+import org.projectforge.favorites.AbstractFavorite
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 
 class MagicFilter<F : BaseSearchFilter>(
@@ -34,8 +35,11 @@ class MagicFilter<F : BaseSearchFilter>(
         /**
          * Optional entries for searching (keywords, field search, range search etc.)
          */
-        val entries: MutableList<MagicFilterEntry>? = null
-) {
+        val entries: MutableList<MagicFilterEntry>? = null,
+        name: String? = null,
+        id: Int? = null
+) : AbstractFavorite(name, id) {
+
     internal val log = org.slf4j.LoggerFactory.getLogger(MagicFilter::class.java)
 
     /**
@@ -64,7 +68,8 @@ class MagicFilter<F : BaseSearchFilter>(
                 MagicFilterEntry.Type.FIELD_RANGE_SEARCH -> {
                     log.warn("Unsupported field search: ${entry.type()}.")
                 }
-                MagicFilterEntry.Type.NONE -> { }
+                MagicFilterEntry.Type.NONE -> {
+                }
             }
         }
         return filter

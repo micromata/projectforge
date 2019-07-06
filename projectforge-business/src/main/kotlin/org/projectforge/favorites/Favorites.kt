@@ -79,7 +79,7 @@ open class Favorites<T : AbstractFavorite>() {
         set.removeIf { it.id == id }
     }
 
-    fun saveNewUserPref(userPrefDao: UserPrefDao, newFavorite: T, area: String, parameter: String, value: String) {
+    fun createUserPref(userPrefDao: UserPrefDao, newFavorite: T, area: String, parameter: String, value: String) {
         add(newFavorite) // If name is already given, a new name is set.
         val userPref = UserPrefDO()
         userPref.area = area

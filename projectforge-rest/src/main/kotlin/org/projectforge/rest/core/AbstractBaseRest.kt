@@ -280,6 +280,39 @@ abstract class AbstractBaseRest<
         return resultSet
     }
 
+    /**
+     * Get the list of all items matching the given filter.
+     */
+    @RequestMapping("filter/create")
+    fun createNewFilter(request: HttpServletRequest, @RequestBody filter: MagicFilter<F>) {
+        log.info("createNewFilter has to be implemented.")
+    }
+
+    /**
+     * Updates the named Filter with the values of the current filter.
+     * @return The current filter with flag modified=false.
+     */
+    @GetMapping("filter/update")
+    fun updateFilter(@RequestParam("id", required = true) id: Int): Map<String, Any> {
+        log.info("updateFilter has to be implemented.")
+        return mapOf("isCurrentFilterModified" to false)
+    }
+
+    /**
+     * @return The new list of filterFavorites (id's with titles) without the deleted filter.
+     */
+    @GetMapping("filter/delete")
+    fun removeFilter(@RequestParam("id", required = true) id: Int): Map<String, Any> {
+        log.info("deleteFilter has to be implemented.")
+        return mapOf()//"filterFavorites" to getFilterFavorites().idTitleList)
+    }
+
+    @GetMapping("filter/select")
+    fun selectFilter(@RequestParam("id", required = true) id: Int): Any {
+        log.info("selectFilter has to be implemented.")
+        return ""
+    }
+
     abstract fun processResultSetBeforeExport(resultSet: ResultSet<O>): ResultSet<*>
 
     /**

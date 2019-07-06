@@ -50,10 +50,10 @@ class TaskFavoritesService {
         }
     }
 
-    fun addFavorite(name: String, taskId: Int): List<TaskFavorite> {
+    fun createFavorite(name: String, taskId: Int): List<TaskFavorite> {
         val favorites = Favorites(getList())
         val newFavorite = TaskFavorite(name)
-        favorites.saveNewUserPref(userPrefDao, newFavorite, AREA_ID, PARAMETER, taskId.toString())
+        favorites.createUserPref(userPrefDao, newFavorite, AREA_ID, PARAMETER, taskId.toString())
         return getList()
     }
 
