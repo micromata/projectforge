@@ -13,6 +13,7 @@ import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 function SearchFilter() {
     const {
         filter,
+        filterHelper,
         ui,
         renderLayout,
     } = React.useContext(DynamicLayoutContext);
@@ -79,27 +80,27 @@ function SearchFilter() {
             .catch(error => alert(`Internal error: ${error}`));
     };
 
-    const handleMaxRowsChange = ({ value }) => filter.setSearchFilter('maxRows', value);
+    const handleMaxRowsChange = ({ value }) => filterHelper.setSearchFilter('maxRows', value);
 
-    const handleSearchFilterValueChange = filter.editEntry;
+    const handleSearchFilterValueChange = filterHelper.editEntry;
 
     const handleSearchFilterChange = (value, meta) => {
         switch (meta.action) {
             case 'clear':
-                filter.clearEntries();
+                filterHelper.clearEntries();
                 break;
             case 'create-option':
-                filter.addEntry({ search: value[value.length - 1].value });
+                filterHelper.addEntry({ search: value[value.length - 1].value });
                 break;
             case 'select-option':
-                filter.addEntry({
+                filterHelper.addEntry({
                     field: meta.option.id,
                     value: '',
                 });
                 break;
             case 'pop-value':
             case 'remove-value':
-                filter.removeEntry(meta.removedValue.id || meta.removedValue.label);
+                filterHelper.removeEntry(meta.removedValue.id || meta.removedValue.label);
                 break;
             default:
         }
@@ -195,7 +196,7 @@ function SearchFilter() {
                     </Row>
                     <FormGroup row>
                         <Col>
-                            <ActionGroup actions={ui.actions}/>
+                            <ActionGroup actions={ui.actions} />
                         </Col>
                     </FormGroup>
                 </form>
