@@ -1,7 +1,7 @@
 import React from 'react';
 import CreatableSelect from 'react-select/lib/Creatable';
+import DynamicActionGroup from '../../../components/base/dynamicLayout/action/DynamicActionGroup';
 import { DynamicLayoutContext } from '../../../components/base/dynamicLayout/context';
-import ActionGroup from '../../../components/base/page/action/Group';
 import { Card, CardBody, Col, FormGroup, Label, Row } from '../../../components/design';
 import EditableMultiValueLabel from '../../../components/design/EditableMultiValueLabel';
 import ReactSelect from '../../../components/design/ReactSelect';
@@ -204,7 +204,7 @@ function SearchFilter() {
                     </Row>
                     <FormGroup row>
                         <Col>
-                            <ActionGroup actions={ui.actions} />
+                            <DynamicActionGroup actions={ui.actions} />
                         </Col>
                     </FormGroup>
                 </form>

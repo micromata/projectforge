@@ -75,7 +75,7 @@ function ListPage(
         return () => registerComponent('CHECKBOX', DynamicCheckbox);
     }, []);
 
-    const loadList = () => {
+    const loadInitialList = () => {
         setLoading(true);
         setError(undefined);
         fetch(
@@ -102,11 +102,68 @@ function ListPage(
                 setData(responseData);
                 setUI(responseUi);
             })
-            .catch(responseError => setError(responseError));
+            .catch(setError);
+    };
+
+    const performListUpdate = () => {
+        setLoading(true);
+        setError(undefined);
+
+        fetch(
+            getServiceURL(`${match.params.category}/list`),
+            {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(filter),
+            },
+        )
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            .then((responseData) => {
+                setLoading(false);
+                setData(responseData);
+            })
+            .catch(setError);
+    };
+
+    const performReset = () => {
+        setLoading(true);
+        setError(undefined);
+
+        fetch(
+            getServiceURL(`${match.params.category}/filterReset`),
+            {
+                method: 'GET',
+                credentials: 'include',
+            },
+        )
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            .then((responseFilter) => {
+                setLoading(false);
+                setFilter(responseFilter);
+            })
+            .catch(setError);
+    };
+
+    const callAction = (actionId) => {
+        switch (actionId) {
+            case 'search':
+                performListUpdate();
+                break;
+            case 'reset':
+                performReset();
+                break;
+            default:
+                throw Error(`Action ${actionId} not implemented.`);
+        }
     };
 
     // Only reload the list when the category or search string changes.
-    React.useEffect(loadList, [match.params.category, location.search]);
+    React.useEffect(loadInitialList, [match.params.category, location.search]);
 
     if (error) {
         return <h4>{error.message}</h4>;
@@ -115,13 +172,14 @@ function ListPage(
     return (
         <LoadingContainer loading={loading}>
             <DynamicLayout
+                callAction={callAction}
                 ui={ui}
                 data={data}
                 setData={setData}
                 setUI={setUI}
                 options={{
                     displayPageMenu: true,
-                    setBrowserTitle: false,
+                    setBrowserTitle: true,
                     showActionButtons: false,
                 }}
                 filter={filter}
