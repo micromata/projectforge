@@ -6,7 +6,7 @@ import DynamicCheckbox
     from '../../../components/base/dynamicLayout/components/input/DynamicCheckbox';
 import LoadingContainer from '../../../components/design/loading-container';
 import { getObjectFromQuery, getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
-import DynamicFilterCheckbox from './DynamicFilterCheckbox';
+import SearchFilterCheckbox from './SearchFilterCheckbox';
 import SearchFilter from './SearchFilter';
 
 function ListPage(
@@ -69,7 +69,7 @@ function ListPage(
     // Register DynamicFilterCheckbox only for the ListPage
     // Attention: Can't use DynamicLayout twice here. Because the normal checkbox got an override.
     React.useEffect(() => {
-        registerComponent('CHECKBOX', DynamicFilterCheckbox);
+        registerComponent('CHECKBOX', SearchFilterCheckbox);
 
         // Re-Register the DynamicCheckbox component on unmount.
         return () => registerComponent('CHECKBOX', DynamicCheckbox);

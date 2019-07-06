@@ -7,7 +7,7 @@ import CheckBox from '../../../components/design/input/CheckBox';
 import ValidationManager from '../../../components/design/input/ValidationManager';
 
 // The checkbox for the SearchFilter that consumes the filter data from the DynamicLayout
-function DynamicFilterCheckbox({ id, label }) {
+function SearchFilterCheckbox({ id, label }) {
     const { filter, filterHelper } = React.useContext(DynamicLayoutContext);
 
     // Redirect to DynamicCheckbox if FilterCheckbox wasn't unregistered in time.
@@ -32,11 +32,11 @@ function DynamicFilterCheckbox({ id, label }) {
     }, [filter]);
 }
 
-DynamicFilterCheckbox.propTypes = {
+SearchFilterCheckbox.propTypes = {
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
 };
 
-DynamicFilterCheckbox.defaultProps = {};
+SearchFilterCheckbox.defaultProps = {};
 
-export default DynamicFilterCheckbox;
+export default SearchFilterCheckbox;
