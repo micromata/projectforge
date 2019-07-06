@@ -18,9 +18,8 @@ function SearchFilter() {
         renderLayout,
         setData,
         setUI,
+        category,
     } = React.useContext(DynamicLayoutContext);
-
-    const category = 'address'; // tbd: get it from context.
 
     const saveUpdateResponse = ({ data: responseData, ui: responseUI, filter: responseFilter }) => {
         setData(responseData);
@@ -29,14 +28,15 @@ function SearchFilter() {
     };
 
     const handleFavoriteCreate = (newFilterName) => {
-        // TBD: Set the name of the magic filter before post.
-        fetch(getServiceURL(`${category}/filter/create`, // TBD: Send current magic filter as POST request.
-            { newFilterName }), {
-            method: 'GET',
+        filter.name = newFilterName;
+        fetch(getServiceURL(`${category}/filter/create`), {
+            method: 'POST',
             credentials: 'include',
             headers: {
+                'Content-Type': 'application/json',
                 Accept: 'application/json',
             },
+            body: JSON.stringify({ filter }),
         })
             .then(handleHTTPErrors)
             .then(response => response.json())

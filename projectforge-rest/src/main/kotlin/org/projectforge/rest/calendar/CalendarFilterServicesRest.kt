@@ -50,7 +50,10 @@ class CalendarFilterServicesRest {
                        @Suppress("unused") var view: CalendarView? = CalendarView.WEEK,
                        var teamCalendars: List<StyledTeamCalendar>? = null,
                        var filterFavorites: List<Favorites.FavoriteIdTitle>? = null,
-                       var currentFilter: CalendarFilter? = null,
+                       /**
+                        * The current filter.
+                        */
+                       var filter: CalendarFilter? = null,
                        var activeCalendars: MutableList<StyledTeamCalendar>? = null,
                        /**
                         * This is the list of possible default calendars (with full access). The user may choose one which is
@@ -63,7 +66,7 @@ class CalendarFilterServicesRest {
                        /**
                         * If true, the client should provide an save button for syncing the current filter to the data base.
                         */
-                       var isCurrentFilterModified: Boolean = false)
+                       var isFilterModified: Boolean = false)
 
     companion object {
         private val log = org.slf4j.LoggerFactory.getLogger(CalendarFilterServicesRest::class.java)
@@ -103,7 +106,7 @@ class CalendarFilterServicesRest {
         val initial = CalendarInit()
         val calendars = getCalendars()
         val currentFilter = getCurrentFilter()
-        initial.currentFilter = currentFilter
+        initial.filter = currentFilter
 
         val styleMap = getStyleMap()
         initial.styleMap = styleMap
@@ -119,7 +122,7 @@ class CalendarFilterServicesRest {
         val favorites = getFilterFavorites()
         initial.filterFavorites = favorites.idTitleList
 
-        initial.isCurrentFilterModified = isCurrentFilterModified(currentFilter, favorites.get(currentFilter.id))
+        initial.isFilterModified = isCurrentFilterModified(currentFilter, favorites.get(currentFilter.id))
 
         val listOfDefaultCalendars = mutableListOf<TeamCalendar>()
         initial.activeCalendars?.forEach { activeCal ->
@@ -223,7 +226,7 @@ class CalendarFilterServicesRest {
         return mapOf(
                 "currentFilter" to currentFilter,
                 "activeCalendars" to getActiveCalendars(currentFilter, calendars, styleMap),
-                "isCurrentFilterModified" to isCurrentFilterModified(currentFilter))
+                "isFilterModified" to isCurrentFilterModified(currentFilter))
     }
 
     /**
@@ -240,7 +243,7 @@ class CalendarFilterServicesRest {
         return mapOf(
                 "currentFilter" to currentFilter,
                 "filterFavorites" to getFilterFavorites().idTitleList,
-                "isCurrentFilterModified" to false)
+                "isFilterModified" to false)
     }
 
     /**
@@ -251,7 +254,7 @@ class CalendarFilterServicesRest {
     fun updateFilter(@RequestParam("id", required = true) id: Int): Map<String, Any> {
         val currentFilter = getCurrentFilter()
         getFilterFavorites().get(id)?.copyFrom(currentFilter)
-        return mapOf("isCurrentFilterModified" to false)
+        return mapOf("isFilterModified" to false)
     }
 
     /**

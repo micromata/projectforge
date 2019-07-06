@@ -24,6 +24,8 @@
 package org.projectforge.rest.core
 
 import org.apache.commons.beanutils.PropertyUtils
+import org.projectforge.business.common.MagicFilter
+import org.projectforge.business.user.UserPrefCache
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.i18n.translate
@@ -93,7 +95,11 @@ abstract class AbstractBaseRest<
     /**
      * Contains the data, layout and filter settings served by [getInitialList].
      */
-    class InitialListData(val ui: UILayout?, val data: ResultSet<*>, val filter: BaseSearchFilter)
+    class InitialListData<F : BaseSearchFilter>(
+            val ui: UILayout?,
+            val data: ResultSet<*>,
+            val filterFavorites: List<MagicFilter<F>>,
+            val filter: MagicFilter<F>)
 
     private var initialized = false
 
@@ -105,6 +111,12 @@ abstract class AbstractBaseRest<
     private var restPath: String? = null
 
     private var category: String? = null
+
+    protected val favoriteFiltersUserPrefArea = "${getCategory()}.filterFavorites"
+
+    protected val currentFilterUserPrefArea = "${getCategory()}.filter"
+
+    protected val currentFilterUserPrefName = "current"
 
     /**
      * The layout context is needed to examine the data objects for maxLength, nullable, dataType etc.
@@ -130,6 +142,9 @@ abstract class AbstractBaseRest<
 
     @Autowired
     private lateinit var listFilterService: ListFilterService
+
+    @Autowired
+    private lateinit var userPrefCache: UserPrefCache
 
     /**
      * Override this method for initializing fields for new objects.
@@ -233,19 +248,16 @@ abstract class AbstractBaseRest<
      * Get the current filter from the server, all matching items and the layout of the list page.
      */
     @GetMapping("initialList")
-    open fun getInitialList(session: HttpSession): InitialListData {
+    open fun getInitialList(session: HttpSession): InitialListData<F> {
         //val test = providers.getContextResolver(MyObjectMapper::class.java,  MediaType.WILDCARD_TYPE)
         @Suppress("UNCHECKED_CAST")
-        val filter: F = listFilterService.getSearchFilter(session, filterClazz) as F
-        if (filter.maxRows <= 0)
-            filter.maxRows = 50
-        filter.isSortAndLimitMaxRowsWhileSelect = true
-        val resultSet = processResultSetBeforeExport(getList(this, baseDao, filter))
+        val currentFilter = getCurrentFilter()
+        val resultSet = processResultSetBeforeExport(getList(this, baseDao, currentFilter, filterClazz))
         val layout = createListLayout()
                 .addTranslations("table.showing")
         layout.add(LayoutListFilterUtils.createNamedContainer(baseDao, lc))
         layout.postProcessPageMenu()
-        return InitialListData(ui = layout, data = resultSet, filter = filter)
+        return InitialListData<F>(ui = layout, data = resultSet, filter = currentFilter, filterFavorites = getFavoriteFilterList())
     }
 
     /**
@@ -273,19 +285,47 @@ abstract class AbstractBaseRest<
      */
     @RequestMapping(RestPaths.LIST)
     fun getList(request: HttpServletRequest, @RequestBody filter: MagicFilter<F>): ResultSet<*> {
-        val list = getList(this, baseDao, filter.prepareQueryFilter(filterClazz))
+        val list = getList(this, baseDao, filter, filterClazz)
         val resultSet = processResultSetBeforeExport(list)
         val storedFilter = listFilterService.getSearchFilter(request.session, filterClazz)
         BeanUtils.copyProperties(filter, storedFilter)
         return resultSet
     }
 
+    fun getFavoriteFilterList(): List<MagicFilter<F>> {
+        val userPrefs = userPrefCache.getEntries(favoriteFiltersUserPrefArea)
+        return userPrefs.map {
+            @Suppress("UNCHECKED_CAST")
+            it.valueObject as MagicFilter<F>
+        }
+    }
+
+    fun getCurrentFilter(): MagicFilter<F> {
+        var currentFilter = userPrefCache.getEntry(currentFilterUserPrefArea, currentFilterUserPrefName, MagicFilter::class.java)
+        if (currentFilter == null) {
+            currentFilter = MagicFilter<F>()
+            userPrefCache.putEntry(currentFilterUserPrefArea, currentFilterUserPrefName, currentFilter)
+        }
+        @Suppress("UNCHECKED_CAST")
+        return currentFilter as MagicFilter<F>
+    }
+
+    @GetMapping("filter/select")
+    fun selectFavoriteFilter(@RequestParam("id", required = true) id: Int): Any {
+        //val userPref = userPrefDao.getUserPref(favoriteFiltersUserPrefArea, id) ?: return ""
+        //@Suppress("UNCHECKED_CAST")
+        //return userPref.valueObject as MagicFilter<F>
+        return MagicFilter<F>()
+    }
+
     /**
      * Get the list of all items matching the given filter.
      */
     @RequestMapping("filter/create")
-    fun createNewFilter(request: HttpServletRequest, @RequestBody filter: MagicFilter<F>) {
-        log.info("createNewFilter has to be implemented.")
+    fun createFavoriteFilter(request: HttpServletRequest, @RequestBody newFilter: MagicFilter<F>): List<MagicFilter<F>> {
+        //val favorites = Favorites(getFavoriteFilterList(), favoriteFiltersUserPrefArea)
+        //favorites.createUserPref(userPrefDao, newFilter)
+        return getFavoriteFilterList()
     }
 
     /**
@@ -293,24 +333,18 @@ abstract class AbstractBaseRest<
      * @return The current filter with flag modified=false.
      */
     @GetMapping("filter/update")
-    fun updateFilter(@RequestParam("id", required = true) id: Int): Map<String, Any> {
+    fun updateFavoriteFilter(@RequestParam("id", required = true) id: Int): Map<String, Any> {
         log.info("updateFilter has to be implemented.")
-        return mapOf("isCurrentFilterModified" to false)
+        return mapOf("isFilterModified" to false)
     }
 
     /**
      * @return The new list of filterFavorites (id's with titles) without the deleted filter.
      */
     @GetMapping("filter/delete")
-    fun removeFilter(@RequestParam("id", required = true) id: Int): Map<String, Any> {
+    fun removeFavoriteFilter(@RequestParam("id", required = true) id: Int): Map<String, Any> {
         log.info("deleteFilter has to be implemented.")
         return mapOf()//"filterFavorites" to getFilterFavorites().idTitleList)
-    }
-
-    @GetMapping("filter/select")
-    fun selectFilter(@RequestParam("id", required = true) id: Int): Any {
-        log.info("selectFilter has to be implemented.")
-        return ""
     }
 
     abstract fun processResultSetBeforeExport(resultSet: ResultSet<O>): ResultSet<*>

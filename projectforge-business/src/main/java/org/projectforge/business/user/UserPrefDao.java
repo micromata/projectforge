@@ -62,6 +62,9 @@ import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -227,7 +230,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
 
   /**
    * @param areaId
-   * @param id
+   * @param id     id of the user pref to search.
    * @return The user pref of the areaId with the given id of the logged in user (from ThreadLocal).
    */
   public UserPrefDO getUserPref(final String areaId, final Integer id) {
@@ -241,6 +244,23 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     return list.get(0);
   }
 
+  /**
+   * Gets the single entry. If more entries found matching the user's pref with the given areaId, an NonUniqueResultException will
+   * be thrown.
+   * @param areaId
+   * @param name
+   * @return The user pref of the areaId with the given id of the logged in user (from ThreadLocal).
+   */
+  public UserPrefDO getUserPref(final String areaId, final String name) {
+    final PFUserDO user = ThreadLocalUserContext.getUser();
+    UserPrefDO userPrefDO = (UserPrefDO) getSession()
+            .createQuery("from UserPrefDO t where t.user.id=:id and t.area=:area and t.name=:name")
+            .setInteger("id", user.getId())
+            .setParameter("area", areaId)
+            .setParameter("name", name)
+            .uniqueResult();
+    return userPrefDO;
+  }
 
   public List<UserPrefDO> getUserPrefs(final UserPrefArea area) {
     final PFUserDO user = ThreadLocalUserContext.getUser();
@@ -557,9 +577,10 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
 
   /**
    * Without check access.
+   *
    * @param userId Must be given.
-   * @param area Must be not blank.
-   * @param name Optional, may-be null.
+   * @param area   Must be not blank.
+   * @param name   Optional, may-be null.
    */
   public UserPrefDO internalQuery(Integer userId, String area, String name) {
     Validate.notNull(userId);
@@ -579,7 +600,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     if (name != null) {
       query.setParameter("name", name);
     }
-    return (UserPrefDO)query.uniqueResult();
+    return (UserPrefDO) query.uniqueResult();
   }
 
   /**

@@ -67,6 +67,19 @@ internal class UserPrefCacheData {
     }
 
     /**
+     * Gets the stored user preference entry for the given area
+     *
+     * @return Return a persistent objects, if existing, or if not a volatile objects, if
+     * existing, otherwise emtpy list;
+     */
+    internal fun getEntries(area: String): List<CacheEntry> {
+        val cacheEntries = findEntries(area)
+        // Assuming modification after use-age:
+        cacheEntries.forEach { it.modified = true }
+        return cacheEntries
+    }
+
+    /**
      * Gets the stored user preference entry.
      *
      * @return Return a persistent object with this key, if existing, or if not a volatile object with this key, if
@@ -107,4 +120,7 @@ internal class UserPrefCacheData {
         return entries.find { it.userPrefDO.name == name && it.userPrefDO.area == area }
     }
 
+    private fun findEntries(area: String): List<CacheEntry> {
+        return entries.filter { it.userPrefDO.area == area }
+    }
 }
