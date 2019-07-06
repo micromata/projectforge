@@ -1,207 +1,220 @@
-import PropTypes from 'prop-types';
-import React, { Component } from 'react';
-import { connect } from 'react-redux';
+import React from 'react';
 import CreatableSelect from 'react-select/lib/Creatable';
-import { setListFilter } from '../../../actions';
-import DynamicLayout from '../../../components/base/dynamicLayout';
-import ActionGroup from '../../../components/base/page/action/Group';
-import { Card, CardBody, Col, FormGroup, Label, Row, Select } from '../../../components/design';
+import DynamicActionGroup from '../../../components/base/dynamicLayout/action/DynamicActionGroup';
+import { DynamicLayoutContext } from '../../../components/base/dynamicLayout/context';
+import { Card, CardBody, Col, FormGroup, Label, Row } from '../../../components/design';
 import EditableMultiValueLabel from '../../../components/design/EditableMultiValueLabel';
+import ReactSelect from '../../../components/design/ReactSelect';
 import { getNamedContainer } from '../../../utilities/layout';
-import { buttonPropType } from '../../../utilities/propTypes';
+import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import FavoritesPanel from '../../panel/FavoritesPanel';
 
-class SearchFilter extends Component {
-    constructor(props) {
-        super(props);
 
-        this.state = {
-            filter: {},
-        };
+function SearchFilter() {
+    const {
+        filter,
+        filterHelper,
+        ui,
+        renderLayout,
+        setData,
+        setUI,
+        category,
+    } = React.useContext(DynamicLayoutContext);
 
-        this.handleInputChange = this.handleInputChange.bind(this);
-        this.handleSelectChange = this.handleSelectChange.bind(this);
-        this.handleFilterChange = this.handleFilterChange.bind(this);
-        this.onFavoriteCreate = this.onFavoriteCreate.bind(this);
-        this.onFavoriteDelete = this.onFavoriteDelete.bind(this);
-        this.onFavoriteRename = this.onFavoriteRename.bind(this);
-        this.onFavoriteSelect = this.onFavoriteSelect.bind(this);
-        this.onFavoriteUpdate = this.onFavoriteUpdate.bind(this);
-        this.handleDynamicLayoutDataChange = this.handleDynamicLayoutDataChange.bind(this);
-    }
+    const saveUpdateResponse = ({ data: responseData, ui: responseUI, filter: responseFilter }) => {
+        setData(responseData);
+        setUI(responseUI);
+        filterHelper.setFilter(responseFilter);
+    };
 
-    onFavoriteCreate(id) {
-        console.log(id);
-    }
-
-    onFavoriteDelete(id) {
-        console.log(id);
-    }
-
-    onFavoriteSelect(id) {
-        console.log(id);
-    }
-
-    onFavoriteRename(id, newName) {
-        console.log(id, newName);
-    }
-
-    onFavoriteUpdate(id) {
-        console.log(id);
-    }
-
-    handleInputChange(event) {
-        const { setFilter } = this.props;
-
-        setFilter(event.target.id, event.target.value);
-    }
-
-    handleSelectChange(value) {
-        const { setFilter } = this.props;
-
-        setFilter('maxRows', value);
-    }
-
-    handleDynamicLayoutDataChange(newData) {
-        const { setFilter } = this.props;
-
-        Object.keys(newData)
-            .forEach(key => setFilter(key, newData[key]));
-    }
-
-    handleFilterChange(id, newValue) {
-        const { setFilter } = this.props;
-
-        setFilter(id, newValue);
-        this.setState(({ filter }) => ({
-            filter: {
-                ...filter,
-                [id]: newValue,
+    const handleFavoriteCreate = (newFilterName) => {
+        filter.name = newFilterName;
+        fetch(getServiceURL(`${category}/filter/create`), {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
             },
-        }));
-    }
+            body: JSON.stringify({ filter }),
+        })
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            .then(saveUpdateResponse)
+            .catch(error => alert(`Internal error: ${error}`));
+    };
+    const handleFavoriteDelete = (id) => {
+        fetch(getServiceURL(`${category}/filter/delete`,
+            { id }), {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                Accept: 'application/json',
+            },
+        })
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            .then(saveUpdateResponse)
+            .catch(error => alert(`Internal error: ${error}`));
+    };
+    const handleFavoriteSelect = (id) => {
+        fetch(getServiceURL(`${category}/filter/select`,
+            { id }), {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                Accept: 'application/json',
+            },
+        })
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            .then(saveUpdateResponse)
+            .catch(error => alert(`Internal error: ${error}`));
+    };
+    const handleFavoriteRename = (id, newName) => console.log(id, newName);
 
-    render() {
-        const {
-            actions,
-            filter,
-            namedContainers,
-            translations,
-        } = this.props;
-        const {
-            filter: newFilter,
-        } = this.state;
+    const handleFavoriteUpdate = (id) => {
+        fetch(getServiceURL(`${category}/filter/update`,
+            { id }), {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                Accept: 'application/json',
+            },
+        })
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            .then(saveUpdateResponse)
+            .catch(error => alert(`Internal error: ${error}`));
+    };
 
-        let options = [];
-        const searchFilter = getNamedContainer('searchFilter', namedContainers);
+    const handleMaxRowsChange = ({ value }) => filterHelper.setSearchFilter('maxRows', value);
 
-        if (searchFilter) {
-            options = searchFilter.content.map(option => ({
-                ...option,
-                value: option.key,
-                label: option.id,
-            }));
+    const handleSearchFilterValueChange = filterHelper.editEntry;
+
+    const handleSearchFilterChange = (value, meta) => {
+        switch (meta.action) {
+            case 'clear':
+                filterHelper.clearEntries();
+                break;
+            case 'create-option':
+                filterHelper.addEntry({ search: value[value.length - 1].value });
+                break;
+            case 'select-option':
+                filterHelper.addEntry({
+                    field: meta.option.id,
+                    value: '',
+                });
+                break;
+            case 'pop-value':
+            case 'remove-value':
+                filterHelper.removeEntry(meta.removedValue.id || meta.removedValue.label);
+                break;
+            default:
         }
+    };
 
-        return (
-            <Card>
-                <CardBody>
-                    <form>
-                        <Row>
-                            <Col sm={11}>
-                                <CreatableSelect
-                                    name="searchFilter"
-                                    options={options}
-                                    isClearable
-                                    isMulti
-                                    components={{
-                                        MultiValueLabel: EditableMultiValueLabel,
-                                    }}
-                                    setMultiValue={this.handleFilterChange}
-                                    values={newFilter}
-                                />
-                            </Col>
-                            <Col sm={1} className="d-flex align-items-center">
-                                <FavoritesPanel
-                                    onFavoriteCreate={this.onFavoriteCreate}
-                                    onFavoriteDelete={this.onFavoriteDelete}
-                                    onFavoriteRename={this.onFavoriteRename}
-                                    onFavoriteSelect={this.onFavoriteSelect}
-                                    onFavoriteUpdate={this.onFavoriteUpdate}
-                                    translations={translations}
-                                />
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col sm={8}>
-                                <FormGroup row>
-                                    <Label sm={2}>[Optionen]</Label>
-                                    <Col sm={10}>
-                                        <DynamicLayout
-                                            ui={{ layout: (getNamedContainer('filterOptions', namedContainers) || {}).content }}
-                                            data={filter}
-                                            setData={this.handleDynamicLayoutDataChange}
-                                            options={{
-                                                displayPageMenu: false,
-                                                setBrowserTitle: false,
-                                                showActionButtons: false,
-                                            }}
-                                        />
-                                    </Col>
-                                </FormGroup>
-                            </Col>
-                            <Col sm={4}>
-                                <Select
-                                    selected={filter.maxRows}
-                                    setSelected={this.handleSelectChange}
-                                    id="maxRows"
-                                    label="[Seitengröße]"
-                                    options={['25', '50', '100', '200', '500', '1000']}
-                                />
-                            </Col>
-                        </Row>
-                        <FormGroup row>
-                            <Col>
-                                <ActionGroup
-                                    actions={actions}
-                                />
-                            </Col>
-                        </FormGroup>
-                    </form>
-                </CardBody>
-            </Card>
-        );
-    }
+    const searchFilter = getNamedContainer('searchFilter', ui.namedContainers);
+
+    return (
+        <Card>
+            <CardBody>
+                <form>
+                    <Row>
+                        <Col sm={11}>
+                            <CreatableSelect
+                                components={{
+                                    MultiValueLabel: EditableMultiValueLabel,
+                                }}
+                                isClearable
+                                isMulti
+                                name="searchFilter"
+                                options={searchFilter ? searchFilter.content.map(option => ({
+                                    ...option,
+                                    value: option.key,
+                                    // TODO DISPLAYED LABEL CAN BE SET HERE
+                                    label: option.id,
+                                })) : []}
+                                onChange={handleSearchFilterChange}
+                                setMultiValue={handleSearchFilterValueChange}
+                                values={filter.entries.reduce((accumulator, currentValue) => ({
+                                    ...accumulator,
+                                    [currentValue.field]: currentValue.value,
+                                }), {})}
+                            />
+                        </Col>
+                        <Col sm={1} className="d-flex align-items-center">
+                            <FavoritesPanel
+                                onFavoriteCreate={handleFavoriteCreate}
+                                onFavoriteDelete={handleFavoriteDelete}
+                                onFavoriteRename={handleFavoriteRename}
+                                onFavoriteSelect={handleFavoriteSelect}
+                                onFavoriteUpdate={handleFavoriteUpdate}
+                                translations={ui.translations}
+                            />
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col sm={8}>
+                            <FormGroup row>
+                                <Label sm={2}>[Optionen]</Label>
+                                <Col sm={10}>
+                                    {renderLayout((getNamedContainer('filterOptions', ui.namedContainers) || {}).content)}
+                                </Col>
+                            </FormGroup>
+                        </Col>
+                        <Col sm={4}>
+                            <ReactSelect
+                                label="[Seitengröße]"
+                                onChange={handleMaxRowsChange}
+                                required
+                                translations={ui.translations}
+                                value={{
+                                    value: filter.searchFilter.maxRows,
+                                    label: filter.searchFilter.maxRows,
+                                }}
+                                values={[
+                                    {
+                                        value: 25,
+                                        label: '25',
+                                    },
+                                    {
+                                        value: 50,
+                                        label: '50',
+                                    },
+                                    {
+                                        value: 100,
+                                        label: '100',
+                                    },
+                                    {
+                                        value: 200,
+                                        label: '200',
+                                    },
+                                    {
+                                        value: 500,
+                                        label: '500',
+                                    },
+                                    {
+                                        value: 1000,
+                                        label: '1000',
+                                    },
+                                ]}
+                            />
+                        </Col>
+                    </Row>
+                    <FormGroup row>
+                        <Col>
+                            <DynamicActionGroup actions={ui.actions} />
+                        </Col>
+                    </FormGroup>
+                </form>
+            </CardBody>
+        </Card>
+    );
 }
 
-SearchFilter.propTypes = {
-    setFilter: PropTypes.func.isRequired,
-    actions: PropTypes.arrayOf(buttonPropType),
-    filter: PropTypes.shape({
-        searchString: PropTypes.string,
-        maxRows: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-    }),
-    namedContainers: PropTypes.arrayOf(PropTypes.shape({})),
-    translations: PropTypes.shape({}).isRequired,
-};
+SearchFilter.propTypes = {};
 
-SearchFilter.defaultProps = {
-    actions: [],
-    filter: {
-        searchString: '',
-        maxRows: 50,
-    },
-    namedContainers: [],
-};
+SearchFilter.defaultProps = {};
 
-const mapStateToProps = state => ({
-    filter: state.listPage.filter,
-    actions: state.listPage.ui.actions,
-    namedContainers: state.listPage.ui.namedContainers,
-});
-
-const actions = {
-    setFilter: setListFilter,
-};
-
-export default connect(mapStateToProps, actions)(SearchFilter);
+export default SearchFilter;
