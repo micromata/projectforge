@@ -23,7 +23,7 @@ class CalendarPage extends React.Component {
             listOfDefaultCalendars: [],
             defaultCalendar: undefined,
             filterFavorites: undefined,
-            isCurrentFilterModified: false,
+            isFilterModified: false,
             translations: undefined,
         };
 
@@ -47,7 +47,7 @@ class CalendarPage extends React.Component {
         activeCalendars.sort((a, b) => a.title.localeCompare(b.title));
         this.setState({
             activeCalendars,
-            isCurrentFilterModified: true,
+            isFilterModified: true,
         });
     }
 
@@ -161,9 +161,9 @@ class CalendarPage extends React.Component {
         const {
             activeCalendars,
             listOfDefaultCalendars,
-            isCurrentFilterModified,
+            isFilterModified,
             colors,
-            currentFilter,
+            filter,
             date,
             filterFavorites,
             loading,
@@ -228,8 +228,8 @@ class CalendarPage extends React.Component {
                                             onFavoriteUpdate={this.onFavoriteUpdate}
                                             favorites={filterFavorites}
                                             translations={translations}
-                                            currentFavoriteId={currentFilter.id}
-                                            isModified={isCurrentFilterModified}
+                                            currentFavoriteId={filter.id}
+                                            isModified={isFilterModified}
                                             closeOnSelect={false}
                                         />
                                         <CalendarFilterSettings

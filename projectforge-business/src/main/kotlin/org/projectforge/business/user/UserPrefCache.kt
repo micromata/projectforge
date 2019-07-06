@@ -28,6 +28,7 @@ import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.persistence.user.entities.UserPrefDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.DependsOn
 import org.springframework.stereotype.Component
@@ -71,6 +72,16 @@ class UserPrefCache : AbstractCache() {
         val data = ensureAndGetUserPreferencesData(userId)
         data.putEntry(area, name, value, persistent)
         checkRefresh() // Should be called at the end of this method for considering changes inside this method.
+    }
+
+    /**
+     * Gets all user's entry for given area.
+     */
+    fun getEntries(area: String): List<UserPrefDO> {
+        val userId = ThreadLocalUserContext.getUserId()
+        val data = ensureAndGetUserPreferencesData(userId)
+        checkRefresh()
+        return data.getEntries(area).map { it.userPrefDO }
     }
 
     /**

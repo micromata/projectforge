@@ -41,6 +41,7 @@ class TaskFavoritesService {
     }
 
     fun selectTaskId(id: Int): Int? {
+        @Suppress("DEPRECATION")
         val taskIdString = userPrefDao.getUserPref(AREA_ID, id)?.getUserPrefEntryAsString(PARAMETER)
         try {
             return taskIdString?.toInt()
@@ -51,9 +52,9 @@ class TaskFavoritesService {
     }
 
     fun createFavorite(name: String, taskId: Int): List<TaskFavorite> {
-        val favorites = Favorites(getList())
+        val favorites = Favorites(getList(), AREA_ID)
         val newFavorite = TaskFavorite(name)
-        favorites.createUserPref(userPrefDao, newFavorite, AREA_ID, PARAMETER, taskId.toString())
+        favorites.createUserPrefLegacyEntry(userPrefDao, newFavorite, PARAMETER, taskId.toString())
         return getList()
     }
 

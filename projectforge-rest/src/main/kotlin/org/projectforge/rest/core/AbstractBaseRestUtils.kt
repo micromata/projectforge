@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.core
 
+import org.projectforge.business.common.MagicFilter
 import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDao
@@ -38,8 +39,12 @@ import javax.servlet.http.HttpServletRequest
 internal val log = org.slf4j.LoggerFactory.getLogger("org.projectforge.rest.core.AbstractBaseRestUtils")
 
 fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
-        getList(dataObjectRest: AbstractBaseRest<O, DTO, B, F>, baseDao: BaseDao<O>, filter: F)
+        getList(dataObjectRest: AbstractBaseRest<O, DTO, B, F>,
+                baseDao: BaseDao<O>,
+                magicFilter: MagicFilter<F>,
+                filterClass: Class<F>)
         : ResultSet<O> {
+    val filter = magicFilter.prepareQueryFilter(filterClass)
     filter.isSortAndLimitMaxRowsWhileSelect = true
     val list = baseDao.getList(filter)
     val resultSet = ResultSet<O>(dataObjectRest.filterList(list, filter), list.size)

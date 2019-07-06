@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.core
+package org.projectforge.business.common
 
 import org.projectforge.favorites.AbstractFavorite
 import org.projectforge.framework.persistence.api.BaseSearchFilter
@@ -31,15 +31,16 @@ class MagicFilter<F : BaseSearchFilter>(
          * Optional searchfilter of ProjectForge's entities, such as [org.projectforge.business.address.AddressFilter],
          * [org.projectforge.business.timesheet.TimesheetFilter] etc.
          */
-        val searchFilter: F? = null,
+        var searchFilter: F? = null,
         /**
          * Optional entries for searching (keywords, field search, range search etc.)
          */
-        val entries: MutableList<MagicFilterEntry>? = null,
+        var entries: MutableList<MagicFilterEntry> = mutableListOf(),
         name: String? = null,
         id: Int? = null
 ) : AbstractFavorite(name, id) {
 
+    @Transient
     internal val log = org.slf4j.LoggerFactory.getLogger(MagicFilter::class.java)
 
     /**
@@ -50,6 +51,11 @@ class MagicFilter<F : BaseSearchFilter>(
      */
     fun prepareQueryFilter(filterClass: Class<F>): F {
         val filter = searchFilter ?: filterClass.newInstance()
+        if (searchFilter == null)
+            searchFilter = filter
+        if (filter.maxRows <= 0)
+            filter.maxRows = 50
+        filter.isSortAndLimitMaxRowsWhileSelect = true
         if (entries.isNullOrEmpty()) {
             return filter // Nothing to configure.
         }

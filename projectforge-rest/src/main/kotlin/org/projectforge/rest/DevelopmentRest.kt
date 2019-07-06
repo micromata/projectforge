@@ -25,8 +25,8 @@ package org.projectforge.rest
 
 import org.projectforge.business.book.BookFilter
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.MagicFilter
-import org.projectforge.rest.core.MagicFilterEntry
+import org.projectforge.business.common.MagicFilter
+import org.projectforge.business.common.MagicFilterEntry
 import org.projectforge.rest.dto.User
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping

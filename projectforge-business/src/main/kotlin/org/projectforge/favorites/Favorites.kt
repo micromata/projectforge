@@ -23,6 +23,7 @@
 
 package org.projectforge.favorites
 
+import org.apache.commons.lang3.Validate
 import org.projectforge.business.user.UserPrefDao
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
@@ -36,9 +37,14 @@ import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO
  *
  * Ensures the uniqueness of favorite's names.
  */
-open class Favorites<T : AbstractFavorite>() {
+open class Favorites<T : AbstractFavorite>(
+        /**
+         * If the persistence of the favorites is done by this class, the [userPrefAreaPrefix] is used to store the
+         * favorites as user preferences.
+         */
+        val userPrefAreaPrefix: String? = null) {
 
-    constructor(list: List<T>) : this() {
+    constructor(list: List<T>, userPrefAreaPrefix: String? = null) : this(userPrefAreaPrefix) {
         list.forEach {
             set.add(it)
         }
@@ -79,17 +85,43 @@ open class Favorites<T : AbstractFavorite>() {
         set.removeIf { it.id == id }
     }
 
-    fun createUserPref(userPrefDao: UserPrefDao, newFavorite: T, area: String, parameter: String, value: String) {
+    fun createUserPrefLegacyEntry(userPrefDao: UserPrefDao, newFavorite: T, parameter: String, value: String) {
+        Validate.notBlank(userPrefAreaPrefix, "userPrefAreaPrefix must be given for using user preferences.")
         add(newFavorite) // If name is already given, a new name is set.
         val userPref = UserPrefDO()
-        userPref.area = area
+        userPref.area = userPrefAreaPrefix
         userPref.user = ThreadLocalUserContext.getUser()
         userPref.name = newFavorite.name
         val userPrefEntry = UserPrefEntryDO()
         userPrefEntry.parameter = parameter
         userPrefEntry.value = value
+        @Suppress("DEPRECATION")
         userPref.addUserPrefEntry(userPrefEntry)
         userPrefDao.save(userPref)
+    }
+
+    fun createUserPref(userPrefDao: UserPrefDao, newFavorite: T) {
+        Validate.notBlank(userPrefAreaPrefix, "userPrefAreaPrefix must be given for using user preferences.")
+        add(newFavorite) // If name is already given, a new name is set.
+        val userPref = UserPrefDO()
+        userPref.area = userPrefAreaPrefix
+        userPref.user = ThreadLocalUserContext.getUser()
+        userPref.name = newFavorite.name
+        userPref.id = newFavorite.id
+        userPref.valueObject = newFavorite
+        userPrefDao.save(userPref)
+    }
+
+    fun getCurrentUserPref(userPrefDao: UserPrefDao) {
+        Validate.notBlank(userPrefAreaPrefix, "userPrefAreaPrefix must be given for using user preferences.")
+       /* add(newFavorite) // If name is already given, a new name is set.
+        val userPref = UserPrefDO()
+        userPref.area = area
+        userPref.user = ThreadLocalUserContext.getUser()
+        userPref.name = newFavorite.name
+        userPref.id = newFavorite.id
+        userPref.valueObject = newFavorite
+        userPrefDao.save(userPref)*/
     }
 
     /**
