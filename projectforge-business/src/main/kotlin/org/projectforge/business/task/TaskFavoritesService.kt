@@ -52,9 +52,9 @@ class TaskFavoritesService {
     }
 
     fun createFavorite(name: String, taskId: Int): List<TaskFavorite> {
-        val favorites = Favorites(getList(), AREA_ID)
+        val favorites = Favorites(getList())
         val newFavorite = TaskFavorite(name)
-        favorites.createUserPrefLegacyEntry(userPrefDao, newFavorite, PARAMETER, taskId.toString())
+        favorites.createUserPrefLegacyEntry(userPrefDao, AREA_ID, newFavorite, PARAMETER, taskId.toString())
         return getList()
     }
 

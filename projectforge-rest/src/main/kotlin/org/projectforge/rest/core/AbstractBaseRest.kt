@@ -25,6 +25,7 @@ package org.projectforge.rest.core
 
 import org.apache.commons.beanutils.PropertyUtils
 import org.projectforge.business.common.MagicFilter
+import org.projectforge.business.common.MagicFilterEntry
 import org.projectforge.business.user.UserPrefCache
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.InternalErrorException
@@ -116,7 +117,9 @@ abstract class AbstractBaseRest<
 
     protected val currentFilterUserPrefArea = "${getCategory()}.filter"
 
-    protected val currentFilterUserPrefName = "current"
+    protected val currentFilterUserPrefName = "currentFilter"
+
+    protected val currentFilterEntriesUserPrefName = "currentEntries"
 
     /**
      * The layout context is needed to examine the data objects for maxLength, nullable, dataType etc.
@@ -301,13 +304,21 @@ abstract class AbstractBaseRest<
     }
 
     fun getCurrentFilter(): MagicFilter<F> {
-        var currentFilter = userPrefCache.getEntry(currentFilterUserPrefArea, currentFilterUserPrefName, MagicFilter::class.java)
-        if (currentFilter == null) {
-            currentFilter = MagicFilter<F>()
-            userPrefCache.putEntry(currentFilterUserPrefArea, currentFilterUserPrefName, currentFilter)
+        var currentSearchFilter = userPrefCache.getEntry(currentFilterUserPrefArea, currentFilterUserPrefName, filterClazz)
+        if (currentSearchFilter == null) {
+            currentSearchFilter = filterClazz.newInstance()
+            userPrefCache.putEntry(currentFilterUserPrefArea, currentFilterUserPrefName, currentSearchFilter)
         }
-        @Suppress("UNCHECKED_CAST")
-        return currentFilter as MagicFilter<F>
+        var currentEntries = userPrefCache.getEntry(currentFilterUserPrefArea, currentFilterEntriesUserPrefName, MagicFilterEntries::class.java)
+        if (currentEntries == null) {
+            currentEntries = MagicFilterEntries()
+            userPrefCache.putEntry(currentFilterUserPrefArea, currentFilterEntriesUserPrefName, currentEntries)
+        }
+        val currentFilter = MagicFilter<F>(searchFilter = currentSearchFilter,
+                entries = currentEntries.entries,
+                name = currentEntries.name,
+                id = currentEntries.id)
+        return currentFilter
     }
 
     @GetMapping("filter/select")
@@ -632,4 +643,8 @@ abstract class AbstractBaseRest<
     abstract fun isDeleted(dto: Any): Boolean
 
     abstract fun isHistorizable(): Boolean
+
+    private class MagicFilterEntries(var entries: MutableList<MagicFilterEntry> = mutableListOf(),
+                                     var name: String? = null,
+                                     var id: Int? = null)
 }
