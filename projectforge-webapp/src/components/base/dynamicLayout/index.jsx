@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { buttonPropType, menuItemPropType } from '../../../utilities/propTypes';
-import ActionGroup from '../page/action/Group';
+import DynamicActionGroup from './action/DynamicActionGroup';
 import renderLayout from './components/DynamicRenderer';
 import {
     defaultValues as dynamicLayoutContextDefaultValues,
@@ -52,7 +52,7 @@ function DynamicLayout(
     const actionGroup = React.useMemo(() => (
         <React.Fragment>
             {actions && showActionButtons
-                ? <ActionGroup actions={actions} />
+                ? <DynamicActionGroup actions={actions} />
                 : undefined}
         </React.Fragment>
     ), [actions, showActionButtons]);
@@ -83,8 +83,10 @@ DynamicLayout.propTypes = {
         title: PropTypes.string,
         pageMenu: PropTypes.arrayOf(menuItemPropType),
     }).isRequired,
+    callAction: PropTypes.func,
     // Additional content to be displayed in the DynamicLayout context.
     children: PropTypes.node,
+    data: PropTypes.shape({}),
     // Customization options
     options: PropTypes.shape({
         displayPageMenu: PropTypes.bool,
@@ -92,11 +94,17 @@ DynamicLayout.propTypes = {
         showActionButtons: PropTypes.bool,
         showPageMenuTitle: PropTypes.bool,
     }),
+    setData: PropTypes.func,
+    variables: PropTypes.shape({}),
 };
 
 DynamicLayout.defaultProps = {
+    callAction: dynamicLayoutContextDefaultValues.callAction,
     children: undefined,
+    data: {},
     options: dynamicLayoutContextDefaultValues.options,
+    setData: dynamicLayoutContextDefaultValues.setData,
+    variables: {},
 };
 
 export default DynamicLayout;
