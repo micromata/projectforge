@@ -2,13 +2,13 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import DynamicCheckbox
     from '../../../components/base/dynamicLayout/components/input/DynamicCheckbox';
-import { DynamicLayoutContext } from '../../../components/base/dynamicLayout/context';
 import CheckBox from '../../../components/design/input/CheckBox';
 import ValidationManager from '../../../components/design/input/ValidationManager';
+import { ListPageContext } from './ListPageContext';
 
 // The checkbox for the SearchFilter that consumes the filter data from the DynamicLayout
 function SearchFilterCheckbox({ id, label }) {
-    const { filter, filterHelper } = React.useContext(DynamicLayoutContext);
+    const { filter, filterHelper } = React.useContext(ListPageContext);
 
     // Redirect to DynamicCheckbox if FilterCheckbox wasn't unregistered in time.
     if (!filter) {
