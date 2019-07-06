@@ -3,6 +3,16 @@ import React from 'react';
 // Default values for the context. Everything you can use, should be listed here.
 export const defaultValues = {
     /**
+     * Call actions delivered in ui by the rest call.
+     *
+     * @param {string} id The id of the action object, delivered by the rest api (ui).
+     */
+    // Disable no-unused-vars so its clear what you need to override the function.
+    /* eslint-disable-next-line no-unused-vars */
+    callAction: (id) => {
+        throw Error('not implemented yet.');
+    },
+    /**
      * @type {Object} Stores data for input fields etc. Can be changed via setData().
      */
     data: {},
@@ -30,7 +40,8 @@ export const defaultValues = {
     /**
      * Renders the layout out of an array of dynamic layout objects.
      *
-     * @param {Array<Object>} Array of dynamic content objects. @see propTypes.contentPropType
+     * @param {Array<Object>} content Array of dynamic content objects.
+     *  @see propTypes.contentPropType
      *
      * @returns {Node} The node that should be rendered in render() function of a React component.
      */
@@ -42,10 +53,10 @@ export const defaultValues = {
      *
      * Note: That it only touches the values specified in newData!
      *
-     * @param {(Object|function(Object):Object)} The new data as an object or an function that
-     *  except the current data and calculates the new data to be set.
-     * @param {function(Object):void=} The callback function will be called when the new Data was
-     *  set.
+     * @param {(Object|function(Object):Object)} newData The new data as an object or an function
+     *  that except the current data and calculates the new data to be set.
+     * @param {function(Object):void=} callback The callback function will be called when the new
+     *  Data was set.
      *
      * @returns {Promise<Object>} If you want to use the promise architecture instead of a callback
      *  function you can go with the returned promise.
