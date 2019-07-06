@@ -23,6 +23,7 @@
 
 package org.projectforge.ui
 
+import org.projectforge.favorites.Favorites
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseDao
@@ -79,6 +80,7 @@ class LayoutUtils {
                     .addAction(UIButton("search", style = UIStyle.PRIMARY, default = true))
             process(layout)
             addCommonTranslations(layout)
+            Favorites.addTranslations(layout.translations)
             return layout
         }
 

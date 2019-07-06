@@ -199,7 +199,7 @@ class FavoritesPanel extends Component {
                                 <li className={style.addFavorite}>
                                     <Input
                                         id="newFilterName"
-                                        label={translations['favorite.addNew']}
+                                        label={translations['favorite.addNew'] || 'Add new'}
                                         onChange={this.handleInputChange}
                                     />
                                     <FontAwesomeIcon
