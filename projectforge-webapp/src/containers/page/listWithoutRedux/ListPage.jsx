@@ -17,33 +17,30 @@ function ListPage(
 ) {
     const [ui, setUI] = React.useState({ translations: {} });
     const [data, setData] = React.useState({});
-    const [stateFilter, setFilter] = React.useState({
+    const [filter, setFilter] = React.useState({
         entries: [],
         searchFilter: {},
     });
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState(undefined);
 
-    // TODO USE MEMO
-    const filter = React.useMemo(() => ({
-        entries: stateFilter.entries,
-        searchFilter: stateFilter.searchFilter,
+    const filterHelper = React.useMemo(() => ({
         addEntry: entry => setFilter({
-            ...stateFilter,
+            ...filter,
             entries: [
-                ...stateFilter.entries,
+                ...filter.entries,
                 entry,
             ],
         }),
         removeEntry: fieldOrSearch => setFilter({
-            ...stateFilter,
-            entries: stateFilter.entries.filter(
+            ...filter,
+            entries: filter.entries.filter(
                 currentEntry => (currentEntry.field || currentEntry.search) !== fieldOrSearch,
             ),
         }),
         editEntry: (id, newValue) => setFilter({
-            ...stateFilter,
-            entries: stateFilter.entries.map((currentEntry) => {
+            ...filter,
+            entries: filter.entries.map((currentEntry) => {
                 if (currentEntry.field !== id) {
                     return currentEntry;
                 }
@@ -56,18 +53,18 @@ function ListPage(
             }),
         }),
         clearEntries: () => setFilter({
-            ...stateFilter,
+            ...filter,
             entries: [],
         }),
         setSearchFilter: (id, value) => setFilter({
-            ...stateFilter,
+            ...filter,
             searchFilter: {
-                ...stateFilter.searchFilter,
+                ...filter.searchFilter,
                 [id]: value,
             },
         }),
         setFilter,
-    }), [stateFilter]);
+    }), [filter]);
 
     // Register DynamicFilterCheckbox only for the ListPage
     // Attention: Can't use DynamicLayout twice here. Because the normal checkbox got an override.
@@ -120,12 +117,15 @@ function ListPage(
             <DynamicLayout
                 ui={ui}
                 data={data}
+                setData={setData}
+                setUI={setUI}
                 options={{
                     displayPageMenu: true,
                     setBrowserTitle: false,
                     showActionButtons: false,
                 }}
                 filter={filter}
+                filterHelper={filterHelper}
                 category={match.params.category}
             >
                 <SearchFilter />

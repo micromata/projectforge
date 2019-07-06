@@ -32,6 +32,7 @@ class ActionButton extends React.Component {
             return;
         }
 
+        // TODO IMPLEMENT ACTION HANDLING WITHOUT REDUX
         const actionFunction = props[action.id];
 
         if (actionFunction) {
