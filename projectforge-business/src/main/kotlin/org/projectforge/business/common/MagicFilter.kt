@@ -81,7 +81,7 @@ class MagicFilter<F : BaseSearchFilter>(
                 }
             }
         }
-        filter.searchString = searchStrings.joinToString(" ")
+        filter.searchString = searchStrings.joinToString(" AND ")
         return filter
     }
 }

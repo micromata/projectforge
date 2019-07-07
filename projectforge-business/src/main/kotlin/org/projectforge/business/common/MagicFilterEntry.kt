@@ -109,15 +109,19 @@ class MagicFilterEntry(
         return Type.NONE // Nothing given for field search (might be OK).
     }
 
-    internal fun getSearchStringStrategy() : String {
-        if (search == null) {
+    internal fun getSearchStringStrategy(): String {
+        var str = search
+        if (search == null && (value == null || value !is String)) {
             return ""
         }
+        if (str == null) {
+            str = value as String
+        }
         return when (matchType) {
-            MatchType.EXACT -> search!!
-            MatchType.ENDS_WITH -> "*$search"
-            MatchType.CONTAINS -> "*$search*"
-            else -> "$search*"
+            MatchType.EXACT -> str!!
+            MatchType.ENDS_WITH -> "*$str"
+            MatchType.CONTAINS -> "*$str*"
+            else -> "$str*"
         }
     }
 }
