@@ -19,3 +19,11 @@ Object.getByString = (object, multiKey) => {
 
     return obj;
 };
+
+Array.findByField = (array, field, value) => array.reduce((accumulator, currentValue) => {
+    if (currentValue[field] === value) {
+        return currentValue;
+    }
+
+    return accumulator;
+}, undefined);
