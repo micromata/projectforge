@@ -135,8 +135,7 @@ function SearchFilter() {
                                 options={searchFilter ? searchFilter.content.map(option => ({
                                     ...option,
                                     value: option.key,
-                                    // TODO DISPLAYED LABEL CAN BE SET HERE
-                                    label: option.id,
+                                    label: option.label,
                                 })) : []}
                                 onChange={handleSearchFilterChange}
                                 setMultiValue={handleSearchFilterValueChange}
