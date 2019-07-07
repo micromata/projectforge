@@ -123,60 +123,60 @@ class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
     @get:Column(length = 255)
     var fax: String? = null
 
-    @PropertyInfo(i18nKey = "address.addressText")
+    @PropertyInfo(i18nKey = "address.addressText", additionalI18nKey = "address.business")
     @Field
     @get:Column(length = 255)
     var addressText: String? = null
 
-    @PropertyInfo(i18nKey = "address.zipCode")
+    @PropertyInfo(i18nKey = "address.zipCode", additionalI18nKey = "address.business")
     @Field
     @get:Column(name = "zip_code", length = 255)
     var zipCode: String? = null
 
-    @PropertyInfo(i18nKey = "address.city")
+    @PropertyInfo(i18nKey = "address.city", additionalI18nKey = "address.business")
     @Field
     @get:Column(length = 255)
     var city: String? = null
 
-    @PropertyInfo(i18nKey = "address.country")
+    @PropertyInfo(i18nKey = "address.country", additionalI18nKey = "address.business")
     @Field
     @get:Column(length = 255)
     var country: String? = null
 
-    @PropertyInfo(i18nKey = "address.state")
+    @PropertyInfo(i18nKey = "address.state", additionalI18nKey = "address.business")
     @Field
     @get:Column(length = 255)
     var state: String? = null
-
-    @PropertyInfo(i18nKey = "address.addressText")
-    @Field
-    @get:Column(length = 255, name = "postal_addresstext")
-    var postalAddressText: String? = null
-
-    @PropertyInfo(i18nKey = "address.zipCode")
-    @Field
-    @get:Column(name = "postal_zip_code", length = 255)
-    var postalZipCode: String? = null
-
-    @PropertyInfo(i18nKey = "address.city")
-    @Field
-    @get:Column(length = 255, name = "postal_city")
-    var postalCity: String? = null
-
-    @PropertyInfo(i18nKey = "address.country")
-    @Field
-    @get:Column(name = "postal_country", length = 255)
-    var postalCountry: String? = null
-
-    @PropertyInfo(i18nKey = "address.state")
-    @Field
-    @get:Column(name = "postal_state", length = 255)
-    var postalState: String? = null
 
     @PropertyInfo(i18nKey = "email", additionalI18nKey = "address.business")
     @Field
     @get:Column(length = 255)
     var email: String? = null
+
+    @PropertyInfo(i18nKey = "address.addressText", additionalI18nKey = "address.postal")
+    @Field
+    @get:Column(length = 255, name = "postal_addresstext")
+    var postalAddressText: String? = null
+
+    @PropertyInfo(i18nKey = "address.zipCode", additionalI18nKey = "address.postal")
+    @Field
+    @get:Column(name = "postal_zip_code", length = 255)
+    var postalZipCode: String? = null
+
+    @PropertyInfo(i18nKey = "address.city", additionalI18nKey = "address.postal")
+    @Field
+    @get:Column(length = 255, name = "postal_city")
+    var postalCity: String? = null
+
+    @PropertyInfo(i18nKey = "address.country", additionalI18nKey = "address.postal")
+    @Field
+    @get:Column(name = "postal_country", length = 255)
+    var postalCountry: String? = null
+
+    @PropertyInfo(i18nKey = "address.state", additionalI18nKey = "address.postal")
+    @Field
+    @get:Column(name = "postal_state", length = 255)
+    var postalState: String? = null
 
     @PropertyInfo(i18nKey = "address.website")
     @Field
@@ -202,27 +202,27 @@ class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
     @get:Column(name = "private_mobile_phone", length = 255)
     var privateMobilePhone: String? = null
 
-    @PropertyInfo(i18nKey = "address.addressText")
+    @PropertyInfo(i18nKey = "address.addressText", additionalI18nKey = "address.private")
     @Field
     @get:Column(length = 255, name = "private_addresstext")
     var privateAddressText: String? = null
 
-    @PropertyInfo(i18nKey = "address.zipCode")
+    @PropertyInfo(i18nKey = "address.zipCode", additionalI18nKey = "address.private")
     @Field
     @get:Column(name = "private_zip_code", length = 255)
     var privateZipCode: String? = null
 
-    @PropertyInfo(i18nKey = "address.city")
+    @PropertyInfo(i18nKey = "address.city", additionalI18nKey = "address.private")
     @Field
     @get:Column(length = 255, name = "private_city")
     var privateCity: String? = null
 
-    @PropertyInfo(i18nKey = "address.country")
+    @PropertyInfo(i18nKey = "address.country", additionalI18nKey = "address.private")
     @Field
     @get:Column(name = "private_country", length = 255)
     var privateCountry: String? = null
 
-    @PropertyInfo(i18nKey = "address.state")
+    @PropertyInfo(i18nKey = "address.state", additionalI18nKey = "address.private")
     @Field
     @get:Column(name = "private_state", length = 255)
     var privateState: String? = null

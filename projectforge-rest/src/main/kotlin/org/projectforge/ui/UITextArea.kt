@@ -37,5 +37,6 @@ data class UITextArea(val id: String,
                       var maxRows:Int? = 10,
                       override var label: String? = null,
                       override var additionalLabel: String? = null,
-                      override var tooltip: String? = null)
+                      override var tooltip: String? = null,
+                      override val ignoreAdditionalLabel: Boolean = false)
     : UIElement(UIElementType.TEXTAREA), UILabelledElement

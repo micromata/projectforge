@@ -26,9 +26,13 @@ package org.projectforge.ui
 interface UILabelledElement {
     var label: String?
     var additionalLabel: String?
-    var tooltip : String?
+    var tooltip: String?
     /**
      * Only the clazz property of layout setting is used for getting i18n keys from the entity fields if not given.
      */
-    val layoutContext : LayoutContext?
+    val layoutContext: LayoutContext?
+    /**
+     * If true, the additional label will be ignored (neither auto translated nor serialized).
+     */
+    val ignoreAdditionalLabel: Boolean
 }

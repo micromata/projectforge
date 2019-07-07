@@ -48,6 +48,7 @@ class LayoutListFilterUtils {
                             UIFilterTimestampElement.QuickSelector.DAY,
                             UIFilterTimestampElement.QuickSelector.UNTIL_NOW)))
             val searchFields = baseDao.searchFields
+            val elements = mutableListOf<UILabelledElement>()
             searchFields.forEach {
                 val elInfo = ElementsRegistry.getElementInfo(lc, it)
                 if (elInfo == null) {
@@ -58,16 +59,22 @@ class LayoutListFilterUtils {
                         val element = UISelect<String>(it, required = elInfo.required, layoutContext = lc,
                                 multi = true)
                                 .buildValues(i18nEnum = elInfo.propertyType as Class<out Enum<*>>)
-                        container.add(element)
+                        elements.add(element)
                     } else {
                         val element = UIFilterElement(it)
                         if (!elInfo.i18nKey.isNullOrBlank()) {
-                            element.label = translate(elInfo.i18nKey)
+                            if (elInfo.additionalI18nKey.isNullOrBlank()) {
+                                element.label = translate(elInfo.i18nKey)
+                            } else {
+                                element.label = "${translate(elInfo.i18nKey)}, ${translate(elInfo.additionalI18nKey)}"
+                            }
                         }
-                        container.add(element)
+                        elements.add(element)
                     }
                 }
             }
+            elements.sortBy { it.label }
+            elements.forEach { container.add(it as UIElement) }
             return container
         }
     }
