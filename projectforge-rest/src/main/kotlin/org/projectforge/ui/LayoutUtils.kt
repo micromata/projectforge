@@ -192,7 +192,7 @@ class LayoutUtils {
                 return
             if (!elementInfo.i18nKey.isNullOrEmpty())
                 element.label = elementInfo.i18nKey
-            if (!elementInfo.additionalI18nKey.isNullOrEmpty())
+            if (!elementInfo.additionalI18nKey.isNullOrEmpty() && element.ignoreAdditionalLabel != true)
                 element.additionalLabel = elementInfo.additionalI18nKey
         }
 
@@ -272,6 +272,9 @@ class LayoutUtils {
         internal fun getLabelTransformation(label: String?, labelledElement: UIElement? = null, additionalLabel: Boolean = false): String? {
             if (label == null) {
                 if (labelledElement is UILabelledElement) {
+                    if (additionalLabel && labelledElement.ignoreAdditionalLabel) {
+                        return null
+                    }
                     val layoutSettings = labelledElement.layoutContext
                     if (layoutSettings != null) {
                         val id = getId(labelledElement)

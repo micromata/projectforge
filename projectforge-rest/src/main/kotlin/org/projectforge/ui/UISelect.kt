@@ -41,6 +41,7 @@ class UISelect<T>(val id: String,
                   override var label: String? = null,
                   override var additionalLabel: String? = null,
                   override var tooltip: String? = null,
+                  override val ignoreAdditionalLabel: Boolean = false,
                   /**
                    * Optional property of value, needed by the client for mapping the data to the value. Default is "value".
                    */
