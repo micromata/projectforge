@@ -117,9 +117,7 @@ abstract class AbstractBaseRest<
 
     protected val currentFilterUserPrefArea = "${getCategory()}.filter"
 
-    protected val currentFilterUserPrefName = "currentFilter"
-
-    protected val currentFilterEntriesUserPrefName = "currentEntries"
+    protected val currentFilterUserPrefName = "current"
 
     /**
      * The layout context is needed to examine the data objects for maxLength, nullable, dataType etc.
@@ -304,21 +302,13 @@ abstract class AbstractBaseRest<
     }
 
     fun getCurrentFilter(): MagicFilter<F> {
-        var currentSearchFilter = userPrefCache.getEntry(currentFilterUserPrefArea, currentFilterUserPrefName, filterClazz)
-        if (currentSearchFilter == null) {
-            currentSearchFilter = filterClazz.newInstance()
-            userPrefCache.putEntry(currentFilterUserPrefArea, currentFilterUserPrefName, currentSearchFilter)
+        var currentFilter = userPrefCache.getEntry(currentFilterUserPrefArea, currentFilterUserPrefName, MagicFilter::class.java)
+        if (currentFilter == null) {
+            currentFilter = MagicFilter<F>()
+            currentFilter.searchFilter = filterClazz.newInstance()
+            userPrefCache.putEntry(currentFilterUserPrefArea, currentFilterUserPrefName, currentFilter)
         }
-        var currentEntries = userPrefCache.getEntry(currentFilterUserPrefArea, currentFilterEntriesUserPrefName, MagicFilterEntries::class.java)
-        if (currentEntries == null) {
-            currentEntries = MagicFilterEntries()
-            userPrefCache.putEntry(currentFilterUserPrefArea, currentFilterEntriesUserPrefName, currentEntries)
-        }
-        val currentFilter = MagicFilter<F>(searchFilter = currentSearchFilter,
-                entries = currentEntries.entries,
-                name = currentEntries.name,
-                id = currentEntries.id)
-        return currentFilter
+        return currentFilter as MagicFilter<F>
     }
 
     @GetMapping("filter/select")
