@@ -96,10 +96,7 @@ function ListPage(
             .then(handleHTTPErrors)
             .then(response => response.json())
             .then(({ ui: responseUi, data: responseData, filter: responseFilter }) => {
-                setFilter({
-                    searchFilter: responseFilter,
-                    entries: [],
-                });
+                setFilter(responseFilter);
                 setData(responseData);
                 setUI(responseUi);
             })
@@ -119,10 +116,7 @@ function ListPage(
                     'Content-Type': 'application/json',
                 },
                 // Workaround for wrong object hierarchy:
-                body: JSON.stringify({
-                    searchFilter: filter.searchFilter.searchFilter,
-                    entries: filter.entries,
-                }),
+                body: JSON.stringify(filter),
             },
         )
             .then(handleHTTPErrors)
