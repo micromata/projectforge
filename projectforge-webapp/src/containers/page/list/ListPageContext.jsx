@@ -22,6 +22,8 @@ export const defaultValues = {
          */
         searchFilter: {},
     },
+    filterFavorites: [],
+    isFilterModified: false,
     /**
      * @type {Object} Contains some functions that support the filter manipulation.
      */
