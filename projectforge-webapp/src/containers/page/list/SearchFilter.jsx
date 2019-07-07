@@ -117,7 +117,43 @@ function SearchFilter() {
         }
     };
 
-    const searchFilter = getNamedContainer('searchFilter', ui.namedContainers);
+    const select = React.useMemo(() => {
+        const searchFilter = getNamedContainer('searchFilter', ui.namedContainers);
+
+        if (!searchFilter) {
+            return <React.Fragment />;
+        }
+
+        const options = searchFilter.content.map(option => ({
+            ...option,
+            value: option.key,
+            label: option.label,
+        }));
+        const entries = filter.entries || [];
+
+        return (
+            <CreatableSelect
+                components={{
+                    MultiValueLabel: EditableMultiValueLabel,
+                }}
+                isClearable
+                isMulti
+                name="searchFilter"
+                options={options}
+                onChange={handleSearchFilterChange}
+                placeholder={ui.translations['select.placeholder']}
+                setMultiValue={handleSearchFilterValueChange}
+                value={entries.map(entry => ({
+                    ...entry,
+                    ...Array.findByField(options, 'id', entry.field),
+                }))}
+                values={entries.reduce((accumulator, currentValue) => ({
+                    ...accumulator,
+                    [currentValue.field]: currentValue.value,
+                }), {})}
+            />
+        );
+    }, [ui.namedContainers, ui.translations, filter.entries]);
 
     return (
         <Card>
@@ -125,26 +161,7 @@ function SearchFilter() {
                 <form>
                     <Row>
                         <Col sm={11}>
-                            <CreatableSelect
-                                components={{
-                                    MultiValueLabel: EditableMultiValueLabel,
-                                }}
-                                isClearable
-                                isMulti
-                                name="searchFilter"
-                                options={searchFilter ? searchFilter.content.map(option => ({
-                                    ...option,
-                                    value: option.key,
-                                    label: option.label,
-                                })) : []}
-                                onChange={handleSearchFilterChange}
-                                placeholder={ui.translations['select.placeholder']}
-                                setMultiValue={handleSearchFilterValueChange}
-                                values={filter.entries.reduce((accumulator, currentValue) => ({
-                                    ...accumulator,
-                                    [currentValue.field]: currentValue.value,
-                                }), {})}
-                            />
+                            {select}
                         </Col>
                         <Col sm={1} className="d-flex align-items-center">
                             <FavoritesPanel
