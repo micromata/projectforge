@@ -62,10 +62,6 @@ class MagicFilter<F : BaseSearchFilter>(
             return filter // Nothing to configure.
         }
         val searchStrings = mutableListOf<String>()
-        val filterSearch = searchFilter?.searchString
-        if (!filterSearch.isNullOrBlank()) {
-            searchStrings.add(filterSearch)
-        }
         entries.forEach { entry ->
             when (entry.type()) {
                 MagicFilterEntry.Type.STRING_SEARCH -> {
@@ -85,9 +81,7 @@ class MagicFilter<F : BaseSearchFilter>(
                 }
             }
         }
-        if (searchStrings.isNotEmpty()) {
-            filter.searchString = searchStrings.joinToString(" ")
-        }
+        filter.searchString = searchStrings.joinToString(" ")
         return filter
     }
 }
