@@ -29,6 +29,7 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.projectforge.business.user.UserPrefDao
+import org.projectforge.favorites.Favorites
 import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
@@ -39,24 +40,24 @@ class CalendarFilterFavoritesTest {
     @Test
     fun jsonTest() {
         val json = "{\"set\":[" +
-                "{\"name\":\"Abwesenheiten\",\"defaultCalendarId\":-1,\"calendarIds\":[1240530]}," +
-                "{\"name\":\"Alex\",\"id\":1,\"defaultCalendarId\":-1,\"timesheetUserId\":48,\"showTimesheets\":true,\"showBreaks\":true,\"calendarIds\":[1722123]}," +
-                "{\"name\":\"Filter\",\"id\":2,\"defaultCalendarId\":-1,\"calendarIds\":[1292975]}," +
-                "{\"name\":\"Kai\",\"id\":3,\"defaultCalendarId\":-1,\"showBirthdays\":true,\"showStatistics\":true,\"timesheetUserId\":2,\"showTimesheets\":true,\"showBreaks\":true,\"showPlanning\":true,\"calendarIds\":[1240526,1240528,1245916,1245918,1285741,1292975],\"invisibleCalendars\":[1245916,1245918]}," +
-                "{\"name\":\"Kai Zeitbuchungen\",\"id\":4,\"defaultCalendarId\":-1,\"showBirthdays\":true,\"showStatistics\":true,\"timesheetUserId\":2,\"showTimesheets\":true,\"showBreaks\":true,\"calendarIds\":[1240526,1240530,15573458],\"invisibleCalendars\":[1240526,1240530]}," +
-                "{\"name\":\"Kollegen\",\"id\":5,\"defaultCalendarId\":-1,\"showStatistics\":true,\"timesheetUserId\":40,\"showTimesheets\":true}," +
-                "{\"name\":\"Micromata\",\"id\":6,\"defaultCalendarId\":1240538,\"calendarIds\":[1240530,1240532,1240538,1265941,1272155,1959521]}," +
-                "{\"name\":\"Mitarbeiter\",\"id\":7,\"defaultCalendarId\":-1,\"showStatistics\":true,\"timesheetUserId\":141925,\"showTimesheets\":true,\"showBreaks\":true}," +
-                "{\"name\":\"Standard\",\"id\":8,\"defaultCalendarId\":-1,\"showStatistics\":true,\"timesheetUserId\":2,\"showTimesheets\":true,\"showBreaks\":true,\"showPlanning\":true,\"calendarIds\":[1240526,1240528],\"invisibleCalendars\":[1240528]},"+
-                "{\"name\":\"Stéphanie\",\"id\":9,\"defaultCalendarId\":-1,\"calendarIds\":[1245916,1245918]}," +
-                "{\"name\":\"Urlaub\",\"id\":10,\"defaultCalendarId\":-1,\"showBreaks\":true,\"calendarIds\":[1240530]}]}"
-        val favorites = UserPrefDao.createObjectMapper().readValue(json, CalendarFavorites::class.java)
+                "{\"type\":\"org.projectforge.business.calendar.CalendarFilter\",\"name\":\"Abwesenheiten\",\"defaultCalendarId\":-1,\"calendarIds\":[1240530]}," +
+                "{\"type\":\"org.projectforge.business.calendar.CalendarFilter\",\"name\":\"Alex\",\"id\":1,\"defaultCalendarId\":-1,\"timesheetUserId\":48,\"showTimesheets\":true,\"showBreaks\":true,\"calendarIds\":[1722123]}," +
+                "{\"type\":\"org.projectforge.business.calendar.CalendarFilter\",\"name\":\"Filter\",\"id\":2,\"defaultCalendarId\":-1,\"calendarIds\":[1292975]}," +
+                "{\"type\":\"org.projectforge.business.calendar.CalendarFilter\",\"name\":\"Kai\",\"id\":3,\"defaultCalendarId\":-1,\"showBirthdays\":true,\"showStatistics\":true,\"timesheetUserId\":2,\"showTimesheets\":true,\"showBreaks\":true,\"showPlanning\":true,\"calendarIds\":[1240526,1240528,1245916,1245918,1285741,1292975],\"invisibleCalendars\":[1245916,1245918]}," +
+                "{\"type\":\"org.projectforge.business.calendar.CalendarFilter\",\"name\":\"Kai Zeitbuchungen\",\"id\":4,\"defaultCalendarId\":-1,\"showBirthdays\":true,\"showStatistics\":true,\"timesheetUserId\":2,\"showTimesheets\":true,\"showBreaks\":true,\"calendarIds\":[1240526,1240530,15573458],\"invisibleCalendars\":[1240526,1240530]}," +
+                "{\"type\":\"org.projectforge.business.calendar.CalendarFilter\",\"name\":\"Kollegen\",\"id\":5,\"defaultCalendarId\":-1,\"showStatistics\":true,\"timesheetUserId\":40,\"showTimesheets\":true}," +
+                "{\"type\":\"org.projectforge.business.calendar.CalendarFilter\",\"name\":\"Micromata\",\"id\":6,\"defaultCalendarId\":1240538,\"calendarIds\":[1240530,1240532,1240538,1265941,1272155,1959521]}," +
+                "{\"type\":\"org.projectforge.business.calendar.CalendarFilter\",\"name\":\"Mitarbeiter\",\"id\":7,\"defaultCalendarId\":-1,\"showStatistics\":true,\"timesheetUserId\":141925,\"showTimesheets\":true,\"showBreaks\":true}," +
+                "{\"type\":\"org.projectforge.business.calendar.CalendarFilter\",\"name\":\"Standard\",\"id\":8,\"defaultCalendarId\":-1,\"showStatistics\":true,\"timesheetUserId\":2,\"showTimesheets\":true,\"showBreaks\":true,\"showPlanning\":true,\"calendarIds\":[1240526,1240528],\"invisibleCalendars\":[1240528]},"+
+                "{\"type\":\"org.projectforge.business.calendar.CalendarFilter\",\"name\":\"Stéphanie\",\"id\":9,\"defaultCalendarId\":-1,\"calendarIds\":[1245916,1245918]}," +
+                "{\"type\":\"org.projectforge.business.calendar.CalendarFilter\",\"name\":\"Urlaub\",\"id\":10,\"defaultCalendarId\":-1,\"showBreaks\":true,\"calendarIds\":[1240530]}]}"
+        val favorites = UserPrefDao.createObjectMapper().readValue(json, Favorites::class.java)
         assertEquals(11, favorites.favoriteNames.size)
     }
 
     @Test
     fun autoNameTest() {
-        val favs = CalendarFavorites()
+        val favs = Favorites<CalendarFilter>()
         favs.add(CalendarFilter())
         val prefix = favs.getElementAt(0)!!.name ?: fail("prefix can't be null")
         assertTrue(prefix.startsWith("???")) // Translations not available

@@ -23,6 +23,7 @@
 
 package org.projectforge.favorites
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.projectforge.business.user.UserPrefDao
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
@@ -50,6 +51,7 @@ open class Favorites<T : AbstractFavorite>() {
      */
     class FavoriteIdTitle(val id: Int, val name: String)
 
+    @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "type")
     private val set: MutableSet<T> = mutableSetOf()
 
     fun get(id: Int?): T? {
@@ -105,14 +107,14 @@ open class Favorites<T : AbstractFavorite>() {
     }
 
     fun getCurrentUserPref(userPrefDao: UserPrefDao, area: String) {
-       /* add(newFavorite) // If name is already given, a new name is set.
-        val userPref = UserPrefDO()
-        userPref.area = area
-        userPref.user = ThreadLocalUserContext.getUser()
-        userPref.name = newFavorite.name
-        userPref.id = newFavorite.id
-        userPref.valueObject = newFavorite
-        userPrefDao.save(userPref)*/
+        /* add(newFavorite) // If name is already given, a new name is set.
+         val userPref = UserPrefDO()
+         userPref.area = area
+         userPref.user = ThreadLocalUserContext.getUser()
+         userPref.name = newFavorite.name
+         userPref.id = newFavorite.id
+         userPref.valueObject = newFavorite
+         userPrefDao.save(userPref)*/
     }
 
     /**
