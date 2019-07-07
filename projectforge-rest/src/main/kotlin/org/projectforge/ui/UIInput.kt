@@ -36,7 +36,8 @@ data class UIInput(val id: String,
                    var dataType: UIDataType = UIDataType.STRING,
                    override var label: String? = null,
                    override var additionalLabel: String? = null,
-                   override var tooltip: String? = null)
+                   override var tooltip: String? = null,
+                   override val ignoreAdditionalLabel: Boolean = false)
     : UIElement(UIElementType.INPUT), UILabelledElement {
     var autoCompletionUrl: String? = null
 
