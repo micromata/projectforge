@@ -33,7 +33,7 @@ function DynamicTable({ columns, id }) {
                         ))}
                     </tbody>
                 </Table>
-                {data.size
+                {data.size !== undefined
                     ? (
                         <span>
                             {`${ui.translations['table.showing']} ${data.size}/${data.totalSize}`}
