@@ -198,6 +198,9 @@ open class Favorites<T : AbstractFavorite>() {
     companion object {
         private val log = org.slf4j.LoggerFactory.getLogger(Favorites::class.java)
 
+        const val PREF_NAME_LIST = "favorites.list"
+        const val PREF_NAME_CURRENT = "favorites.current"
+
         fun addTranslations(translations: MutableMap<String, String>) {
             addTranslations(
                     "favorites",
