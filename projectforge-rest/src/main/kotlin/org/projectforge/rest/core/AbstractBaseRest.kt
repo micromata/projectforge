@@ -53,7 +53,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpSession
 import javax.validation.Valid
 
 /**
@@ -101,11 +100,7 @@ abstract class AbstractBaseRest<
             val ui: UILayout?,
             val data: ResultSet<*>,
             val filterFavorites: List<Favorites.FavoriteIdTitle>,
-            val filter: MagicFilter<F>,
-            /**
-             * If true, the client should provide an save button for syncing the current filter to the data base.
-             */
-            var isFilterModified: Boolean = false)
+            val filter: MagicFilter<F>)
 
     private var initialized = false
 
@@ -250,22 +245,20 @@ abstract class AbstractBaseRest<
      * Get the current filter from the server, all matching items and the layout of the list page.
      */
     @GetMapping("initialList")
-    open fun getInitialList(session: HttpSession): InitialListData<F> {
+    fun getInitialList(): InitialListData<F> {
         //val test = providers.getContextResolver(MyObjectMapper::class.java,  MediaType.WILDCARD_TYPE)
         @Suppress("UNCHECKED_CAST")
         val currentFilter = getCurrentFilter()
         val favorites = getFilterFavorites()
-        val isFilterModified = isCurrentFilterModified(currentFilter, favorites.get(currentFilter.id))
         val resultSet = processResultSetBeforeExport(getList(this, baseDao, currentFilter, filterClazz))
         val layout = createListLayout()
                 .addTranslations("table.showing")
         layout.add(LayoutListFilterUtils.createNamedContainer(baseDao, lc))
         layout.postProcessPageMenu()
-        return InitialListData<F>(ui = layout,
+        return InitialListData(ui = layout,
                 data = resultSet,
                 filter = currentFilter,
-                filterFavorites = favorites.idTitleList,
-                isFilterModified = isFilterModified)
+                filterFavorites = favorites.idTitleList)
     }
 
     /**
@@ -335,51 +328,55 @@ abstract class AbstractBaseRest<
     }
 
     @GetMapping("filter/select")
-    fun selectFavoriteFilter(@RequestParam("id", required = true) id: Int): Any {
-        //val userPref = userPrefDao.getUserPref(favoriteFiltersUserPrefArea, id) ?: return ""
-        //@Suppress("UNCHECKED_CAST")
-        //return userPref.valueObject as MagicFilter<F>
-        return MagicFilter<F>()
+    fun selectFavoriteFilter(@RequestParam("id", required = true) id: Int): InitialListData<F> {
+        val favorites = getFilterFavorites()
+        val currentFilter = favorites.get(id)
+        if (currentFilter != null) {
+            // Puts a deep copy of the current filter. Without copying, the favorite filter of the list will
+            // be synchronized with the current filter.
+            saveCurrentFilter(currentFilter.clone())
+        } else {
+            log.warn("Can't select filter $id, because it's not found in favorites list.")
+        }
+        return getInitialList()
     }
 
     /**
      * @return currentFilter, new filterFavorites and isFilterModified=false.
      */
     @RequestMapping("filter/create")
-    fun createFavoriteFilter(request: HttpServletRequest, @RequestBody newFilter: MagicFilter<F>):Map<String, Any> {
+    fun createFavoriteFilter(request: HttpServletRequest, @RequestBody newFilter: MagicFilter<F>): Map<String, Any> {
         val favorites = getFilterFavorites()
         favorites.add(newFilter)
         val currentFilter = newFilter.clone() // A clone is needed, otherwise current and favorite of list are the same object.
         saveCurrentFilter(currentFilter)
         return mapOf(
                 "filter" to currentFilter,
-                "filterFavorites" to favorites.idTitleList,
-                "isFilterModified" to false)
+                "filterFavorites" to favorites.idTitleList)
     }
 
     /**
      * Updates the named Filter with the values of the current filter.
-     * @return The current filter with flag modified=false.
+     * @return The current filter.
      */
     @GetMapping("filter/update")
     fun updateFavoriteFilter(@RequestParam("id", required = true) id: Int): Map<String, Any> {
-        log.info("updateFilter has to be implemented.")
-        return mapOf("isFilterModified" to false)
+        val currentFilter = getCurrentFilter()
+        val favorites = getFilterFavorites()
+        favorites.remove(id)
+        currentFilter.id = id // Just for the case...
+        favorites.add(currentFilter)
+        return mapOf()
     }
 
     /**
      * @return The new list of filterFavorites (id's with titles) without the deleted filter.
      */
     @GetMapping("filter/delete")
-    fun removeFavoriteFilter(@RequestParam("id", required = true) id: Int): Map<String, Any> {
-        log.info("deleteFilter has to be implemented.")
-        return mapOf()//"filterFavorites" to getFilterFavorites().idTitleList)
-    }
-
-    private fun isCurrentFilterModified(currentFilter: MagicFilter<F>, favoriteFilter: MagicFilter<F>?): Boolean {
-        if (favoriteFilter == null)
-            return false
-        return currentFilter.isModified(favoriteFilter)
+    fun deleteFavoriteFilter(@RequestParam("id", required = true) id: Int): Map<String, Any> {
+        val favorites = getFilterFavorites()
+        favorites.remove(id)
+        return mapOf("filterFavorites" to getFilterFavorites().idTitleList)
     }
 
     abstract fun processResultSetBeforeExport(resultSet: ResultSet<O>): ResultSet<*>

@@ -21,7 +21,6 @@ function SearchFilter() {
         category,
         filter,
         filterFavorites,
-        isFilterModified,
         filterHelper,
         setUI,
     } = React.useContext(ListPageContext);
@@ -174,7 +173,7 @@ function SearchFilter() {
                                 onFavoriteUpdate={handleFavoriteUpdate}
                                 favorites={filterFavorites}
                                 currentFavoriteId={filter.id}
-                                isModified={isFilterModified}
+                                isModified
                                 closeOnSelect={false}
                                 translations={ui.translations}
                             />
