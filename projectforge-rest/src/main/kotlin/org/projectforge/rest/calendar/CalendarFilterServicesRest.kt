@@ -222,7 +222,7 @@ class CalendarFilterServicesRest {
         val calendars = getCalendars()
         val styleMap = getStyleMap()
         return mapOf(
-                "currentFilter" to currentFilter,
+                "filter" to currentFilter,
                 "activeCalendars" to getActiveCalendars(currentFilter, calendars, styleMap),
                 "isFilterModified" to isCurrentFilterModified(currentFilter))
     }
@@ -239,8 +239,8 @@ class CalendarFilterServicesRest {
         favorites.add(newFavorite) // Favorite must be a copy of current filter (new instance).
         currentFilter.id = newFavorite.id // Id is set by function favorites.add
         return mapOf(
-                "currentFilter" to currentFilter,
-                "filterFavorites" to getFilterFavorites().idTitleList,
+                "filter" to currentFilter,
+                "filterFavorites" to favorites.idTitleList,
                 "isFilterModified" to false)
     }
 
@@ -280,20 +280,20 @@ class CalendarFilterServicesRest {
 
     // Ensures filter list (stored one, restored from legacy filter or a empty new one).
     private fun getFilterFavorites(): Favorites<CalendarFilter> {
-        var filterList: Favorites<CalendarFilter>? = null
+        var favorites: Favorites<CalendarFilter>? = null
         try {
             @Suppress("UNCHECKED_CAST", "USELESS_ELVIS")
-            filterList = userPrefService.getEntry(PREF_AREA, Favorites.PREF_NAME_LIST, Favorites::class.java) as Favorites<CalendarFilter>
+            favorites = userPrefService.getEntry(PREF_AREA, Favorites.PREF_NAME_LIST, Favorites::class.java) as Favorites<CalendarFilter>
                     ?: migrateFromLegacyFilter(userPrefService)?.list
         } catch (ex: Exception) {
-            log.error("Exception while getting user preferenced favorites: ${ex.message}. This might be OK for new releases. Ignoring filter.")
+            log.error("Exception while getting user preferred favorites: ${ex.message}. This might be OK for new releases. Ignoring filter.")
         }
-        if (filterList == null) {
+        if (favorites == null) {
             // Creating empty filter list (user has no filter list yet):
-            filterList = Favorites()
-            userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_LIST, filterList)
+            favorites = Favorites()
+            userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_LIST, favorites)
         }
-        return filterList
+        return favorites
     }
 
     private fun getCurrentFilter(): CalendarFilter {
