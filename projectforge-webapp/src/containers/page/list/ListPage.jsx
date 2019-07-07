@@ -118,7 +118,11 @@ function ListPage(
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(filter),
+                // Workaround for wrong object hierarchy:
+                body: JSON.stringify({
+                    searchFilter: filter.searchFilter.searchFilter,
+                    entries: filter.entries,
+                }),
             },
         )
             .then(handleHTTPErrors)
@@ -192,7 +196,7 @@ function ListPage(
                         showActionButtons: false,
                     }}
                 >
-                    <SearchFilter />
+                    <SearchFilter/>
                 </DynamicLayout>
             </LoadingContainer>
         </ListPageContext.Provider>
