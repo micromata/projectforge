@@ -28,6 +28,7 @@ package org.projectforge.ui.filter
  * Filter attributes are e. g. title or authors for books as well as modifiedInIntervall or modifiedByUser.
  */
 open class UIFilterTimestampElement(id: String,
+                                    label: String? = null,
                                     /**
                                      * openInterval means, that begin or end of interval is nullable.
                                      */
@@ -36,7 +37,7 @@ open class UIFilterTimestampElement(id: String,
                                      * The provided quickselectors for time intervals.
                                      */
                                     var selectors: List<QuickSelector>? = null)
-    : UIFilterElement(id, filterType = FilterType.TIME_STAMP) {
+    : UIFilterElement(id, filterType = FilterType.TIME_STAMP, label = label) {
     enum class QuickSelector {
         /**
          * Quick select of year (01/01/2019 0:00 until 31/12/2019 24:00) with scrolling buttons.

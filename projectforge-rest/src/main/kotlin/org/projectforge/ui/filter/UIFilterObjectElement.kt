@@ -34,10 +34,11 @@ open class UIFilterObjectElement(
          *  The id (property) of the filter to be defined.
          */
         id: String,
+        label: String? = null,
         /**
          * This filter option is an autocompletion field.
          */
         var autoCompletion: AutoCompletion<*>? = null
-) :UIFilterElement(id, FilterType.OBJECT) {
+) :UIFilterElement(id, FilterType.OBJECT, label = label) {
     enum class Type { STRING, DATE, CHOICE }
 }
