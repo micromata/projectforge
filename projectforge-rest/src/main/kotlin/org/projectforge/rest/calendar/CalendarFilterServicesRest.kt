@@ -72,21 +72,19 @@ class CalendarFilterServicesRest {
         private val log = org.slf4j.LoggerFactory.getLogger(CalendarFilterServicesRest::class.java)
 
         private const val PREF_AREA = "calendar"
-        private const val PREF_NAME_FAV_LIST = "favorites.list"
-        private const val PREF_NAME_CURRENT_FAV = "favorites.current"
         private const val PREF_NAME_STATE = "state"
         private const val PREF_NAME_STYLES = "styles"
 
         internal fun getCurrentFilter(userPrefService: UserPrefService): CalendarFilter? {
-            return userPrefService.getEntry(PREF_AREA, PREF_NAME_CURRENT_FAV, CalendarFilter::class.java)
+            return userPrefService.getEntry(PREF_AREA, Favorites.PREF_NAME_CURRENT, CalendarFilter::class.java)
                     ?: migrateFromLegacyFilter(userPrefService)?.current
         }
 
         private fun migrateFromLegacyFilter(userPrefService: UserPrefService): CalendarLegacyFilter? {
             val legacyFilter = CalendarLegacyFilter.migrate(userPrefService.userXmlPreferencesService) ?: return null
             log.info("User's legacy calendar filter migrated.")
-            userPrefService.putEntry(PREF_AREA, PREF_NAME_FAV_LIST, legacyFilter.list)
-            userPrefService.putEntry(PREF_AREA, PREF_NAME_CURRENT_FAV, legacyFilter.current)
+            userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_LIST, legacyFilter.list)
+            userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_CURRENT, legacyFilter.current)
             // Filter state is now separately stored:
             userPrefService.putEntry(PREF_AREA, PREF_NAME_STATE, legacyFilter.state)
             // Filter styles are now separately stored:
@@ -274,7 +272,7 @@ class CalendarFilterServicesRest {
         if (currentFilter != null)
         // Puts a deep copy of the current filter. Without copying, the favorite filter of the list will
         // be synchronized with the current filter.
-            userPrefService.putEntry(PREF_AREA, PREF_NAME_CURRENT_FAV, CalendarFilter().copyFrom(currentFilter))
+            userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_CURRENT, CalendarFilter().copyFrom(currentFilter))
         else
             log.warn("Can't select filter $id, because it's not found in favorites list.")
         return getInitialCalendar()
@@ -285,7 +283,7 @@ class CalendarFilterServicesRest {
         var filterList: Favorites<CalendarFilter>? = null
         try {
             @Suppress("UNCHECKED_CAST", "USELESS_ELVIS")
-            filterList = userPrefService.getEntry(PREF_AREA, PREF_NAME_FAV_LIST, Favorites::class.java) as Favorites<CalendarFilter>
+            filterList = userPrefService.getEntry(PREF_AREA, Favorites.PREF_NAME_LIST, Favorites::class.java) as Favorites<CalendarFilter>
                     ?: migrateFromLegacyFilter(userPrefService)?.list
         } catch (ex: Exception) {
             log.error("Exception while getting user preferenced favorites: ${ex.message}. This might be OK for new releases. Ignoring filter.")
@@ -293,7 +291,7 @@ class CalendarFilterServicesRest {
         if (filterList == null) {
             // Creating empty filter list (user has no filter list yet):
             filterList = Favorites()
-            userPrefService.putEntry(PREF_AREA, PREF_NAME_FAV_LIST, filterList)
+            userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_LIST, filterList)
         }
         return filterList
     }
@@ -303,7 +301,7 @@ class CalendarFilterServicesRest {
         if (currentFilter == null) {
             // Creating empty filter (user has no filter list yet):
             currentFilter = CalendarFilter()
-            userPrefService.putEntry(PREF_AREA, PREF_NAME_CURRENT_FAV, currentFilter)
+            userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_CURRENT, currentFilter)
         }
         currentFilter.afterDeserialization()
         return currentFilter
