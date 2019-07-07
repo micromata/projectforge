@@ -23,6 +23,7 @@
 
 package org.projectforge.business.common
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.projectforge.favorites.AbstractFavorite
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 
@@ -31,6 +32,7 @@ class MagicFilter<F : BaseSearchFilter>(
          * Optional searchfilter of ProjectForge's entities, such as [org.projectforge.business.address.AddressFilter],
          * [org.projectforge.business.timesheet.TimesheetFilter] etc.
          */
+        @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "type")
         var searchFilter: F? = null,
         /**
          * Optional entries for searching (keywords, field search, range search etc.)
