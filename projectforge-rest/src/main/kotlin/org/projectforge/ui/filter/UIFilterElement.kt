@@ -23,8 +23,10 @@
 
 package org.projectforge.ui.filter
 
+import org.projectforge.ui.LayoutContext
 import org.projectforge.ui.UIElement
 import org.projectforge.ui.UIElementType
+import org.projectforge.ui.UILabelledElement
 
 /**
  * An element for the UI specifying a filter attribute which may be added by the user to the search string.
@@ -40,8 +42,13 @@ open class UIFilterElement(
          * text field is used, for date ranges date-picker etc.
          */
         var filterType: FilterType? = FilterType.STRING,
-        var label: String? = id
-) : UIElement(UIElementType.FILTER_ELEMENT) {
+        override var label: String? = null,
+        override var additionalLabel: String? = null,
+        override var tooltip: String? = null,
+        override val ignoreAdditionalLabel: Boolean = false,
+        @Transient
+        override val layoutContext: LayoutContext? = null
+) : UIElement(UIElementType.FILTER_ELEMENT), UILabelledElement {
     enum class FilterType { STRING, DATE, TIME_STAMP, CHOICE, OBJECT }
 
     init {
