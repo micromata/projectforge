@@ -104,13 +104,15 @@ class IndexPage extends React.Component {
                 </Row>
                 <Row>
                     <Col>
-                        <p style={{
-                            marginTop: '10ex',
-                            marginBottom: '5ex',
-                            color: 'red',
-                            fontWeight: 'bold',
-                            fontSize: '18px',
-                        }}>
+                        <p
+                            style={{
+                                marginTop: '10ex',
+                                marginBottom: '5ex',
+                                color: 'red',
+                                fontWeight: 'bold',
+                                fontSize: '18px',
+                            }}
+                        >
                             To-do&apos;s (most have to be done before going public)
                         </p>
                     </Col>
@@ -120,21 +122,6 @@ class IndexPage extends React.Component {
                         <h1>ToDo&apos;s (Fin)</h1>
                         <ol>
                             <li>
-                                Bugs after dynamic layout refactoring
-                                <ol>
-                                    <li>
-                                        Address list page
-                                        <br/>
-                                        <code>
-                                            Failed prop type: Invalid prop `translations` of type
-                                            `array` supplied to `FavoritesPanel`, expected `object`.
-                                            in FavoritesPanel (at SearchFilter.jsx:125)
-                                        </code>
-                                    </li>
-                                </ol>
-                            </li>
-                            <li>MagicFilter: send filter settings to server on search action</li>
-                            <li>
                                 TimesheetEditTaskAndKost2.jsx: set kost2list on initial call and
                                 update of kost2list after task selections. See classic version.
                             </li>
@@ -142,7 +129,6 @@ class IndexPage extends React.Component {
                                 switch from edit page time-sheets to calendar event and vica
                                 versa. see classic version.
                             </li>
-                            <li>Translations in SearchFilter.jsx</li>
                             <li>Display global validation errors of forms</li>
                             <li>
                                 Display field validation errors in ReactSelect and date input
@@ -172,11 +158,27 @@ class IndexPage extends React.Component {
                             <li>Redirect after logout</li>
                         </ol>
                         <h1>Done</h1>
-                        <ol>
-                            <li style={todoDone}>
+                        <ol style={todoDone}>
+                            <li>Translations in SearchFilter.jsx</li>
+                            <li>MagicFilter: send filter settings to server on search action</li>
+                            <li>
+                                Bugs after dynamic layout refactoring
+                                <ol>
+                                    <li>
+                                        Address list page
+                                        <br />
+                                        <code>
+                                            Failed prop type: Invalid prop `translations` of type
+                                            `array` supplied to `FavoritesPanel`, expected `object`.
+                                            in FavoritesPanel (at SearchFilter.jsx:125)
+                                        </code>
+                                    </li>
+                                </ol>
+                            </li>
+                            <li>
                                 Redirect menu entries on edit page (address - print view)
                             </li>
-                            <li style={todoDone}>
+                            <li>
                                 Display Logo
                                 <ol>
                                     <li>
@@ -208,14 +210,14 @@ class IndexPage extends React.Component {
                             </li>
                         </ol>
                         <h1>Done</h1>
-                        <ol>
-                            <li style={todoDone}>updateFilter-Rest call for favorites</li>
-                            <li style={todoDone}>
+                        <ol style={todoDone}>
+                            <li>updateFilter-Rest call for favorites</li>
+                            <li>
                                 Remove Apple-Control chars in all input fields (generated by copy
                                 and paste e. g. from Apple&apos; address book)
                             </li>
-                            <li style={todoDone}>Remove BookDO.task from data base.</li>
-                            <li style={todoDone}>
+                            <li>Remove BookDO.task from data base.</li>
+                            <li>
                                 Edit of addresses: preserve address books without access of current
                                 logged in user.
                             </li>
