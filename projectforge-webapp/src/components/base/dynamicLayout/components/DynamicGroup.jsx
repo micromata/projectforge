@@ -1,11 +1,11 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { contentPropType } from '../../../../utilities/propTypes';
-import { Col, Row, FormGroup } from '../../../design';
+import { Col, FormGroup, Row } from '../../../design';
 import { DynamicLayoutContext } from '../context';
 
 // A Component to put a tag around dynamic layout content
-function DynamicGroup({ content, type }) {
+function DynamicGroup({ content, length, type }) {
     // Get renderLayout function from context.
     const { renderLayout } = React.useContext(DynamicLayoutContext);
 
@@ -17,6 +17,7 @@ function DynamicGroup({ content, type }) {
         switch (type) {
             case 'COL':
                 Tag = Col;
+                groupProperties.sm = length;
                 break;
             case 'FRAGMENT':
                 Tag = React.Fragment;
@@ -51,6 +52,11 @@ DynamicGroup.propTypes = {
         'GROUP',
         'ROW',
     ]).isRequired,
+    length: PropTypes.number,
+};
+
+DynamicGroup.defaultProps = {
+    length: undefined,
 };
 
 export default DynamicGroup;
