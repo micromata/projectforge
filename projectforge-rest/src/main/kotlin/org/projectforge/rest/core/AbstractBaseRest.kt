@@ -26,7 +26,8 @@ package org.projectforge.rest.core
 import org.apache.commons.beanutils.PropertyUtils
 import org.projectforge.business.common.MagicFilter
 import org.projectforge.business.common.MagicFilterEntry
-import org.projectforge.business.user.UserPrefCache
+import org.projectforge.business.user.service.UserPrefService
+import org.projectforge.favorites.Favorites
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.i18n.translate
@@ -99,7 +100,7 @@ abstract class AbstractBaseRest<
     class InitialListData<F : BaseSearchFilter>(
             val ui: UILayout?,
             val data: ResultSet<*>,
-            val filterFavorites: List<MagicFilter<F>>,
+            val filterFavorites: Favorites<MagicFilter<F>>,
             val filter: MagicFilter<F>)
 
     private var initialized = false
@@ -113,11 +114,7 @@ abstract class AbstractBaseRest<
 
     private var category: String? = null
 
-    protected val favoriteFiltersUserPrefArea = "${getCategory()}.filterFavorites"
-
-    protected val currentFilterUserPrefArea = "${getCategory()}.filter"
-
-    protected val currentFilterUserPrefName = "current"
+    private val userPrefArea = getCategory()
 
     /**
      * The layout context is needed to examine the data objects for maxLength, nullable, dataType etc.
@@ -145,7 +142,7 @@ abstract class AbstractBaseRest<
     private lateinit var listFilterService: ListFilterService
 
     @Autowired
-    private lateinit var userPrefCache: UserPrefCache
+    private lateinit var userPrefService: UserPrefService
 
     /**
      * Override this method for initializing fields for new objects.
@@ -258,7 +255,7 @@ abstract class AbstractBaseRest<
                 .addTranslations("table.showing")
         layout.add(LayoutListFilterUtils.createNamedContainer(baseDao, lc))
         layout.postProcessPageMenu()
-        return InitialListData<F>(ui = layout, data = resultSet, filter = currentFilter, filterFavorites = getFavoriteFilterList())
+        return InitialListData<F>(ui = layout, data = resultSet, filter = currentFilter, filterFavorites = getFilterFavorites())
     }
 
     /**
@@ -294,20 +291,29 @@ abstract class AbstractBaseRest<
         return resultSet
     }
 
-    fun getFavoriteFilterList(): List<MagicFilter<F>> {
-        val userPrefs = userPrefCache.getEntries(favoriteFiltersUserPrefArea)
-        return userPrefs.map {
-            @Suppress("UNCHECKED_CAST")
-            it.valueObject as MagicFilter<F>
+    private fun getFilterFavorites(): Favorites<MagicFilter<F>> {
+        var favorites: Favorites<MagicFilter<F>>? = null
+        try {
+            @Suppress("UNCHECKED_CAST", "USELESS_ELVIS")
+            favorites = userPrefService.getEntry(userPrefArea, Favorites.PREF_NAME_LIST, Favorites::class.java) as Favorites<MagicFilter<F>>
+        } catch (ex: Exception) {
+            log.error("Exception while getting user preferred favorites: ${ex.message}. This might be OK for new releases. Ignoring filter.")
         }
+        if (favorites == null) {
+            // Creating empty filter list (user has no filter list yet):
+            favorites = Favorites()
+            userPrefService.putEntry(userPrefArea, Favorites.PREF_NAME_LIST, favorites)
+        }
+        return favorites
     }
 
-    fun getCurrentFilter(): MagicFilter<F> {
-        var currentFilter = userPrefCache.getEntry(currentFilterUserPrefArea, currentFilterUserPrefName, MagicFilter::class.java)
+    private fun getCurrentFilter(): MagicFilter<F> {
+        var currentFilter = userPrefService.getEntry(userPrefArea, Favorites.PREF_NAME_CURRENT, MagicFilter::class.java)
         if (currentFilter == null) {
             currentFilter = MagicFilter<F>()
             saveCurrentFilter(currentFilter)
         }
+        @Suppress("UNCHECKED_CAST")
         return currentFilter as MagicFilter<F>
     }
 
@@ -315,7 +321,7 @@ abstract class AbstractBaseRest<
         if (currentFilter.searchFilter == null) {
             currentFilter.searchFilter = filterClazz.newInstance()
         }
-        userPrefCache.putEntry(currentFilterUserPrefArea, currentFilterUserPrefName, currentFilter)
+        userPrefService.putEntry(userPrefArea, Favorites.PREF_NAME_CURRENT, currentFilter)
     }
 
     @GetMapping("filter/select")
@@ -327,13 +333,19 @@ abstract class AbstractBaseRest<
     }
 
     /**
-     * Get the list of all items matching the given filter.
+     * @return currentFilter, new filterFavorites and isFilterModified=false.
      */
     @RequestMapping("filter/create")
-    fun createFavoriteFilter(request: HttpServletRequest, @RequestBody newFilter: MagicFilter<F>): List<MagicFilter<F>> {
-        //val favorites = Favorites(getFavoriteFilterList(), favoriteFiltersUserPrefArea)
-        //favorites.createUserPref(userPrefDao, newFilter)
-        return getFavoriteFilterList()
+    fun createFavoriteFilter(request: HttpServletRequest, @RequestBody newFilter: MagicFilter<F>):Map<String, Any> {
+        val favorites = getFilterFavorites()
+        favorites.add(newFilter)
+        val currentFilter = getCurrentFilter()
+        currentFilter.name = newFilter.name
+        currentFilter.id = newFilter.id // Id is set by function favorites.add
+        return mapOf(
+                "filter" to currentFilter,
+                "filterFavorites" to favorites.idTitleList,
+                "isFilterModified" to false)
     }
 
     /**
