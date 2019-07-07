@@ -231,7 +231,7 @@ class CalendarFilterServicesRest {
      * @return The currentFilter with changed name and defaultCalendarId and the new list of filterFavorites (id's with titles).
      */
     @GetMapping("createNewFilter")
-    fun createNewFilter(@RequestParam("newFilterName", required = true) newFilterName: String): Map<String, Any> {
+    fun createFavoriteilter(@RequestParam("newFilterName", required = true) newFilterName: String): Map<String, Any> {
         val currentFilter = getCurrentFilter()
         currentFilter.name = newFilterName
         val favorites = getFilterFavorites()
@@ -249,7 +249,7 @@ class CalendarFilterServicesRest {
      * @return The current filter with flag modified=false.
      */
     @GetMapping("updateFilter")
-    fun updateFilter(@RequestParam("id", required = true) id: Int): Map<String, Any> {
+    fun updateFavoriteFilter(@RequestParam("id", required = true) id: Int): Map<String, Any> {
         val currentFilter = getCurrentFilter()
         getFilterFavorites().get(id)?.copyFrom(currentFilter)
         return mapOf("isFilterModified" to false)
@@ -259,7 +259,7 @@ class CalendarFilterServicesRest {
      * @return The new list of filterFavorites (id's with titles) without the deleted filter.
      */
     @GetMapping("deleteFilter")
-    fun removeFilter(@RequestParam("id", required = true) id: Int): Map<String, Any> {
+    fun deleteFavoriteFilter(@RequestParam("id", required = true) id: Int): Map<String, Any> {
         val favorites = getFilterFavorites()
         favorites.remove(id)
         return mapOf("filterFavorites" to getFilterFavorites().idTitleList)
