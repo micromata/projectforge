@@ -22,7 +22,9 @@ function ListPage(
         entries: [],
         searchFilter: {},
     });
+    const [filterFavorites, setFilterFavorites] = React.useState([]);
     const [loading, setLoading] = React.useState(false);
+    const [isFilterModified, setIsFilterModified] = React.useState(false);
     const [error, setError] = React.useState(undefined);
 
     const filterHelper = React.useMemo(() => ({
@@ -95,8 +97,18 @@ function ListPage(
             })
             .then(handleHTTPErrors)
             .then(response => response.json())
-            .then(({ ui: responseUi, data: responseData, filter: responseFilter }) => {
+            .then((
+                {
+                    ui: responseUi,
+                    data: responseData,
+                    filter: responseFilter,
+                    filterFavorites: responseFilterFavorites,
+                    isFilterModified: responseIsFilterModified,
+                },
+            ) => {
                 setFilter(responseFilter);
+                setFilterFavorites(responseFilterFavorites);
+                setIsFilterModified(responseIsFilterModified);
                 setData(responseData);
                 setUI(responseUi);
             })
@@ -174,6 +186,8 @@ function ListPage(
                 ...defaultContextValues,
                 category: match.params.category,
                 filter,
+                filterFavorites,
+                isFilterModified,
                 filterHelper,
                 setUI,
             }}
@@ -190,7 +204,7 @@ function ListPage(
                         showActionButtons: false,
                     }}
                 >
-                    <SearchFilter />
+                    <SearchFilter/>
                 </DynamicLayout>
             </LoadingContainer>
         </ListPageContext.Provider>

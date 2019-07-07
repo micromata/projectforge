@@ -24,6 +24,7 @@
 package org.projectforge.business.common
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import org.projectforge.business.user.UserPrefDao
 import org.projectforge.favorites.AbstractFavorite
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 
@@ -106,5 +107,11 @@ class MagicFilter<F : BaseSearchFilter>(
             }
         }
         return "${this.searchFilter}" != "${other.searchFilter}" // Compares json representation (toString)
+    }
+
+    fun clone(): MagicFilter<F> {
+        val mapper = UserPrefDao.createObjectMapper()
+        val json = mapper.writeValueAsString(this)
+        return mapper.readValue(json, MagicFilter::class.java) as MagicFilter<F>
     }
 }

@@ -100,8 +100,12 @@ abstract class AbstractBaseRest<
     class InitialListData<F : BaseSearchFilter>(
             val ui: UILayout?,
             val data: ResultSet<*>,
-            val filterFavorites: Favorites<MagicFilter<F>>,
-            val filter: MagicFilter<F>)
+            val filterFavorites: List<Favorites.FavoriteIdTitle>,
+            val filter: MagicFilter<F>,
+            /**
+             * If true, the client should provide an save button for syncing the current filter to the data base.
+             */
+            var isFilterModified: Boolean = false)
 
     private var initialized = false
 
@@ -250,12 +254,18 @@ abstract class AbstractBaseRest<
         //val test = providers.getContextResolver(MyObjectMapper::class.java,  MediaType.WILDCARD_TYPE)
         @Suppress("UNCHECKED_CAST")
         val currentFilter = getCurrentFilter()
+        val favorites = getFilterFavorites()
+        val isFilterModified = isCurrentFilterModified(currentFilter, favorites.get(currentFilter.id))
         val resultSet = processResultSetBeforeExport(getList(this, baseDao, currentFilter, filterClazz))
         val layout = createListLayout()
                 .addTranslations("table.showing")
         layout.add(LayoutListFilterUtils.createNamedContainer(baseDao, lc))
         layout.postProcessPageMenu()
-        return InitialListData<F>(ui = layout, data = resultSet, filter = currentFilter, filterFavorites = getFilterFavorites())
+        return InitialListData<F>(ui = layout,
+                data = resultSet,
+                filter = currentFilter,
+                filterFavorites = favorites.idTitleList,
+                isFilterModified = isFilterModified)
     }
 
     /**
@@ -339,9 +349,8 @@ abstract class AbstractBaseRest<
     fun createFavoriteFilter(request: HttpServletRequest, @RequestBody newFilter: MagicFilter<F>):Map<String, Any> {
         val favorites = getFilterFavorites()
         favorites.add(newFilter)
-        val currentFilter = getCurrentFilter()
-        currentFilter.name = newFilter.name
-        currentFilter.id = newFilter.id // Id is set by function favorites.add
+        val currentFilter = newFilter.clone() // A clone is needed, otherwise current and favorite of list are the same object.
+        saveCurrentFilter(currentFilter)
         return mapOf(
                 "filter" to currentFilter,
                 "filterFavorites" to favorites.idTitleList,
@@ -365,6 +374,12 @@ abstract class AbstractBaseRest<
     fun removeFavoriteFilter(@RequestParam("id", required = true) id: Int): Map<String, Any> {
         log.info("deleteFilter has to be implemented.")
         return mapOf()//"filterFavorites" to getFilterFavorites().idTitleList)
+    }
+
+    private fun isCurrentFilterModified(currentFilter: MagicFilter<F>, favoriteFilter: MagicFilter<F>?): Boolean {
+        if (favoriteFilter == null)
+            return false
+        return currentFilter.isModified(favoriteFilter)
     }
 
     abstract fun processResultSetBeforeExport(resultSet: ResultSet<O>): ResultSet<*>
