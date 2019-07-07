@@ -138,6 +138,7 @@ function SearchFilter() {
                                     label: option.label,
                                 })) : []}
                                 onChange={handleSearchFilterChange}
+                                placeholder={ui.translations['select.placeholder']}
                                 setMultiValue={handleSearchFilterValueChange}
                                 values={filter.entries.reduce((accumulator, currentValue) => ({
                                     ...accumulator,
