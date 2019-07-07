@@ -39,7 +39,7 @@ function SearchFilter() {
                 'Content-Type': 'application/json',
                 Accept: 'application/json',
             },
-            body: JSON.stringify({ filter }),
+            body: JSON.stringify({ ...filter }),
         })
             .then(handleHTTPErrors)
             .then(response => response.json())
@@ -121,7 +121,7 @@ function SearchFilter() {
         const searchFilter = getNamedContainer('searchFilter', ui.namedContainers);
 
         if (!searchFilter) {
-            return <React.Fragment />;
+            return <React.Fragment/>;
         }
 
         const options = searchFilter.content.map(option => ({
@@ -224,7 +224,7 @@ function SearchFilter() {
                     </Row>
                     <FormGroup row>
                         <Col>
-                            <DynamicActionGroup actions={ui.actions} />
+                            <DynamicActionGroup actions={ui.actions}/>
                         </Col>
                     </FormGroup>
                 </form>
