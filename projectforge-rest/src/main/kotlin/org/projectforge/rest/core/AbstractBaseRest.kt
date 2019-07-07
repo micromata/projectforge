@@ -287,6 +287,7 @@ abstract class AbstractBaseRest<
     @RequestMapping(RestPaths.LIST)
     fun getList(request: HttpServletRequest, @RequestBody filter: MagicFilter<F>): ResultSet<*> {
         val list = getList(this, baseDao, filter, filterClazz)
+        saveCurrentFilter(filter)
         val resultSet = processResultSetBeforeExport(list)
         val storedFilter = listFilterService.getSearchFilter(request.session, filterClazz)
         BeanUtils.copyProperties(filter, storedFilter)
@@ -305,10 +306,16 @@ abstract class AbstractBaseRest<
         var currentFilter = userPrefCache.getEntry(currentFilterUserPrefArea, currentFilterUserPrefName, MagicFilter::class.java)
         if (currentFilter == null) {
             currentFilter = MagicFilter<F>()
-            currentFilter.searchFilter = filterClazz.newInstance()
-            userPrefCache.putEntry(currentFilterUserPrefArea, currentFilterUserPrefName, currentFilter)
+            saveCurrentFilter(currentFilter)
         }
         return currentFilter as MagicFilter<F>
+    }
+
+    private fun saveCurrentFilter(currentFilter: MagicFilter<F>) {
+        if (currentFilter.searchFilter == null) {
+            currentFilter.searchFilter = filterClazz.newInstance()
+        }
+        userPrefCache.putEntry(currentFilterUserPrefArea, currentFilterUserPrefName, currentFilter)
     }
 
     @GetMapping("filter/select")
