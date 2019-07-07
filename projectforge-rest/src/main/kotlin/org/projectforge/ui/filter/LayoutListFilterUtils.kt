@@ -25,6 +25,7 @@ package org.projectforge.ui.filter
 
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.ui.*
 
 /**
@@ -78,7 +79,7 @@ class LayoutListFilterUtils {
                     elements.add(element)
                 }
             }
-            elements.sortBy { it.label }
+            elements.sortWith(compareBy(ThreadLocalUserContext.getLocaleComparator()) { it.label })
             elements.forEach { container.add(it as UIElement) }
             return container
         }
