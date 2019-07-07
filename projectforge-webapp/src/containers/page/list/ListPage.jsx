@@ -24,7 +24,6 @@ function ListPage(
     });
     const [filterFavorites, setFilterFavorites] = React.useState([]);
     const [loading, setLoading] = React.useState(false);
-    const [isFilterModified, setIsFilterModified] = React.useState(false);
     const [error, setError] = React.useState(undefined);
 
     const filterHelper = React.useMemo(() => ({
@@ -103,12 +102,10 @@ function ListPage(
                     data: responseData,
                     filter: responseFilter,
                     filterFavorites: responseFilterFavorites,
-                    isFilterModified: responseIsFilterModified,
                 },
             ) => {
                 setFilter(responseFilter);
                 setFilterFavorites(responseFilterFavorites);
-                setIsFilterModified(responseIsFilterModified);
                 setData(responseData);
                 setUI(responseUi);
             })
@@ -187,7 +184,6 @@ function ListPage(
                 category: match.params.category,
                 filter,
                 filterFavorites,
-                isFilterModified,
                 filterHelper,
                 setUI,
             }}
