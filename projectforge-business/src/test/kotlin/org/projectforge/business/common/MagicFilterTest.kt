@@ -23,6 +23,7 @@
 
 package org.projectforge.business.common
 
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.business.address.AddressFilter
@@ -35,9 +36,14 @@ class MagicFilterTest {
         val addressFilter = AddressFilter()
         addressFilter.setLeaved(true)
         filter.searchFilter = addressFilter
+        filter.entries.add(MagicFilterEntry("zipCode", "12345"))
         val om = UserPrefDao.createObjectMapper()
-        val json = om.writeValueAsString(filter)
-        val obj = om.readValue(json, MagicFilter::class.java) as MagicFilter<AddressFilter>
+        var json = om.writeValueAsString(filter)
+        var obj = om.readValue(json, MagicFilter::class.java) as MagicFilter<AddressFilter>
         assertTrue(obj.searchFilter!!.isLeaved)
+
+        json = "{\"searchFilter\":{\"type\":\"org.projectforge.business.address.AddressFilter\",\"searchString\":\"\",\"deleted\":false,\"ignoreDeleted\":false,\"maxRows\":50,\"useModificationFilter\":false,\"searchHistory\":false,\"sortProperties\":[{\"sortOrder\":\"ASCENDING\",\"property\":\"name\"},{\"sortOrder\":\"ASCENDING\",\"property\":\"firstName\"}],\"uptodate\":true,\"outdated\":false,\"leaved\":false,\"active\":true,\"nonActive\":false,\"uninteresting\":false,\"personaIngrata\":false,\"departed\":false,\"listType\":\"filter\"},\"entries\":[{\"search\":\"reinh\"},{\"field\":\"modifiedByUser\",\"value\":\"\"}]}"
+        obj = om.readValue(json, MagicFilter::class.java) as MagicFilter<AddressFilter>
+        assertFalse(obj.searchFilter!!.isLeaved)
     }
 }
