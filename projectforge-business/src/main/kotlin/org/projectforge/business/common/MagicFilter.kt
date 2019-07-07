@@ -62,6 +62,10 @@ class MagicFilter<F : BaseSearchFilter>(
             return filter // Nothing to configure.
         }
         val searchStrings = mutableListOf<String>()
+        val filterSearch = searchFilter?.searchString
+        if (!filterSearch.isNullOrBlank()) {
+            searchStrings.add(filterSearch)
+        }
         entries.forEach { entry ->
             when (entry.type()) {
                 MagicFilterEntry.Type.STRING_SEARCH -> {
@@ -77,8 +81,12 @@ class MagicFilter<F : BaseSearchFilter>(
                     log.warn("Unsupported field search: ${entry.type()}.")
                 }
                 MagicFilterEntry.Type.NONE -> {
+                    searchStrings.add(entry.getSearchStringStrategy())
                 }
             }
+        }
+        if (searchStrings.isNotEmpty()) {
+            filter.searchString = searchStrings.joinToString(" ")
         }
         return filter
     }
