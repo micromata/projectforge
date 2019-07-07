@@ -190,7 +190,7 @@ function ListPage(
                         showActionButtons: false,
                     }}
                 >
-                    <SearchFilter/>
+                    <SearchFilter />
                 </DynamicLayout>
             </LoadingContainer>
         </ListPageContext.Provider>
