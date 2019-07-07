@@ -84,4 +84,27 @@ class MagicFilter<F : BaseSearchFilter>(
         filter.searchString = searchStrings.joinToString(" AND ")
         return filter
     }
+
+    fun isModified(other: MagicFilter<F>): Boolean {
+        if (this.name != other.name) return true
+        if (this.id != other.id) return true
+
+        val entries1 = this.entries
+        val entries2 = other.entries
+        if (entries1 == null) {
+            return entries2 != null
+        }
+        if (entries2 == null) {
+            return true
+        }
+        if (entries1.size != entries2.size) {
+            return true
+        }
+        entries1.forEachIndexed { i, value ->
+            if (entries2[i].isModified(value)) {
+                return true
+            }
+        }
+        return "${this.searchFilter}" != "${other.searchFilter}" // Compares json representation (toString)
+    }
 }

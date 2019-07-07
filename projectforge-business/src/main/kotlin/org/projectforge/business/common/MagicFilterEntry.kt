@@ -118,10 +118,36 @@ class MagicFilterEntry(
             str = value as String
         }
         return when (matchType) {
-            MatchType.EXACT -> str!!
+            MatchType.EXACT -> str
             MatchType.ENDS_WITH -> "*$str"
             MatchType.CONTAINS -> "*$str*"
             else -> "$str*"
         }
+    }
+
+    fun isModified(other: MagicFilterEntry): Boolean {
+        if (this.field != other.field) return true
+        if (this.fromValue != other.fromValue) return true
+        if (this.matchType != other.matchType) return true
+        if (this.search != other.search) return true
+        if (this.toValue != other.toValue) return true
+        if (this.value != other.value) return true
+        val values1 = this.values
+        val values2 = other.values
+        if (values1 == null) {
+            return values2 != null
+        }
+        if (values2 == null) {
+            return true
+        }
+        if (values1.size != values2.size) {
+            return true
+        }
+        values1.forEachIndexed { i, value ->
+            if (values2[i] != value) {
+                return true
+            }
+        }
+        return false
     }
 }
