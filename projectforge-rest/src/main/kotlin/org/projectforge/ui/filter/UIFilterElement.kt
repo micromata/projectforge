@@ -39,7 +39,8 @@ open class UIFilterElement(
          * Dependent on this type the ui offers different options. For strings (default) a simple input
          * text field is used, for date ranges date-picker etc.
          */
-        var filterType: FilterType? = FilterType.STRING
+        var filterType: FilterType? = FilterType.STRING,
+        var label: String? = id
 ) : UIElement(UIElementType.FILTER_ELEMENT) {
     enum class FilterType { STRING, DATE, TIME_STAMP, CHOICE, OBJECT }
 

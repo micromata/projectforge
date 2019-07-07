@@ -23,6 +23,7 @@
 
 package org.projectforge.ui.filter
 
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.ui.*
 
@@ -59,7 +60,11 @@ class LayoutListFilterUtils {
                                 .buildValues(i18nEnum = elInfo.propertyType as Class<out Enum<*>>)
                         container.add(element)
                     } else {
-                        container.add(UIFilterElement(it))
+                        val element = UIFilterElement(it)
+                        if (!elInfo.i18nKey.isNullOrBlank()) {
+                            element.label = translate(elInfo.i18nKey)
+                        }
+                        container.add(element)
                     }
                 }
             }
