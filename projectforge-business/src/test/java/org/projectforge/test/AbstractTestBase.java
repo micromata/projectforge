@@ -51,6 +51,7 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.registry.Registry;
+import org.projectforge.web.WicketSupport;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -59,6 +60,7 @@ import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.util.Calendar;
@@ -161,6 +163,11 @@ public abstract class AbstractTestBase {
 
   @Autowired
   private DatabaseService initDatabaseDao;
+
+  @PostConstruct
+  private void postConstruct() {
+    WicketSupport.register(applicationContext);
+  }
 
   protected int mCount = 0;
 
