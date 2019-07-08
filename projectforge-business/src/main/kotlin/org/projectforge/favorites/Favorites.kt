@@ -106,17 +106,6 @@ open class Favorites<T : AbstractFavorite>() {
         userPrefDao.save(userPref)
     }
 
-    fun getCurrentUserPref(userPrefDao: UserPrefDao, area: String) {
-        /* add(newFavorite) // If name is already given, a new name is set.
-         val userPref = UserPrefDO()
-         userPref.area = area
-         userPref.user = ThreadLocalUserContext.getUser()
-         userPref.name = newFavorite.name
-         userPref.id = newFavorite.id
-         userPref.valueObject = newFavorite
-         userPrefDao.save(userPref)*/
-    }
-
     /**
      * Fixes empty names and doublets of names.
      */
@@ -146,8 +135,8 @@ open class Favorites<T : AbstractFavorite>() {
         }
     }
 
-    fun getAutoName(prefix: String? = null): String {
-        var _prefix = prefix ?: translate("favorite.untitled")
+    private fun getAutoName(prefix: String? = null): String {
+        val _prefix = prefix ?: translate("favorite.untitled")
         if (set.isEmpty()) {
             return _prefix
         }
@@ -162,7 +151,7 @@ open class Favorites<T : AbstractFavorite>() {
         return _prefix // Giving up, 1..30 are already used.
     }
 
-    val sortedList: List<T>
+    private val sortedList: List<T>
         get() {
             return set.sorted()
         }

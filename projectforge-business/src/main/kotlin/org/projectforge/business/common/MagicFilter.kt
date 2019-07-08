@@ -86,16 +86,17 @@ class MagicFilter<F : BaseSearchFilter>(
         return filter
     }
 
+    @Suppress("SENSELESS_COMPARISON")
     fun isModified(other: MagicFilter<F>): Boolean {
         if (this.name != other.name) return true
         if (this.id != other.id) return true
 
         val entries1 = this.entries
         val entries2 = other.entries
-        if (entries1 == null) {
+        if (entries1 == null) { // Might be null after deserialization
             return entries2 != null
         }
-        if (entries2 == null) {
+        if (entries2 == null) { // Might be null after deserialization
             return true
         }
         if (entries1.size != entries2.size) {
@@ -112,6 +113,7 @@ class MagicFilter<F : BaseSearchFilter>(
     fun clone(): MagicFilter<F> {
         val mapper = UserPrefDao.createObjectMapper()
         val json = mapper.writeValueAsString(this)
+        @Suppress("UNCHECKED_CAST")
         return mapper.readValue(json, MagicFilter::class.java) as MagicFilter<F>
     }
 }
