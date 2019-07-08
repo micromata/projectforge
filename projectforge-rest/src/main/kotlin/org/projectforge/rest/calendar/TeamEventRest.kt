@@ -117,9 +117,9 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao, TeamEventFilte
         if (dto.hasRecurrence()) {
             layout.add(UIFieldset(12, title = "plugins.teamcal.event.recurrence.change.text")
                     .add(UIGroup()
-                            .add(UICheckbox("all", label = "plugins.teamcal.event.recurrence.change.text.all"))
-                            .add(UICheckbox("future", label = "plugins.teamcal.event.recurrence.change.future"))
-                            .add(UICheckbox("single", label = "plugins.teamcal.event.recurrence.change.single"))
+                            .add(UIRadioButton("all", "selection", label = "plugins.teamcal.event.recurrence.change.text.all"))
+                            .add(UIRadioButton("future", "selection", label = "plugins.teamcal.event.recurrence.change.future"))
+                            .add(UIRadioButton("single", "selection", label = "plugins.teamcal.event.recurrence.change.single"))
                     ))
         }
         layout.add(UIFieldset(12)

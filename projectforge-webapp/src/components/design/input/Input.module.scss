@@ -4,6 +4,10 @@
 
 }
 
+.radioButtonGroup {
+
+}
+
 .formGroup {
   position: relative;
   font-size: 1.5rem;
@@ -160,6 +164,83 @@
           left: 5px;
           border-top-color: transparent;
           border-left-color: transparent;
+          width: .6em;
+        }
+      }
+    }
+  }
+
+  .radioButtonLabel {
+    position: relative;
+    margin-left: 5px;
+
+    .radio {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+
+      & + .text {
+        &::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          border: 2px solid #333;
+          border-radius: 25px;
+          width: 1.2em;
+          height: 1.2em;
+
+          @include transition(.3s);
+        }
+
+        padding-left: 2em;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+
+        @mixin color($color) {
+          &::before {
+            border-color: $color;
+          }
+
+          color: $color;
+        }
+
+        &.primary {
+          @include color(#007bff);
+        }
+
+        &.secondary {
+          @include color(#6c757d);
+        }
+
+        &.success {
+          @include color(#28a745);
+        }
+
+        &.danger {
+          @include color(#dc3545);
+        }
+
+        &.warning {
+          @include color(#ffc107);
+        }
+
+        &.info {
+          @include color(#17a2b8);
+        }
+      }
+
+      &:checked + .text {
+        &::before {
+          @include transform(rotate(40deg));
+          top: -3px;
+          left: 5px;
+          border-top-color: transparent;
+          border-left-color: transparent;
+          border-radius: 0;
           width: .6em;
         }
       }
