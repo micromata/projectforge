@@ -26,9 +26,15 @@ function SearchFilter() {
     } = React.useContext(ListPageContext);
 
     const saveUpdateResponse = ({ data: responseData, ui: responseUI, filter: responseFilter }) => {
-        setData(responseData);
-        setUI(responseUI);
-        filterHelper.setFilter(responseFilter);
+        if (responseData) {
+            setData(responseData);
+        }
+        if (responseUI) {
+            setUI(responseUI);
+        }
+        if (responseFilter) {
+            filterHelper.setFilter(responseFilter);
+        }
     };
 
     const handleFavoriteCreate = (newFilterName) => {
