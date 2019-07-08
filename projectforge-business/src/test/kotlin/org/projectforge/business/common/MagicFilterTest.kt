@@ -30,11 +30,12 @@ import org.projectforge.business.address.AddressFilter
 import org.projectforge.business.user.UserPrefDao
 
 class MagicFilterTest {
+    @Suppress("UNCHECKED_CAST")
     @Test
     fun serializationTest() {
         val filter = MagicFilter<AddressFilter>()
         val addressFilter = AddressFilter()
-        addressFilter.setLeaved(true)
+        addressFilter.isLeaved = true
         filter.searchFilter = addressFilter
         filter.entries.add(MagicFilterEntry("zipCode", "12345"))
         val om = UserPrefDao.createObjectMapper()

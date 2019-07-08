@@ -37,12 +37,13 @@ import org.projectforge.framework.persistence.entities.AbstractBaseDO
 class MyJacksonModule: SimpleModule() {
     private val objectIdRegistry = ObjectIdRegistry()
 
-    override fun setupModule(context: Module.SetupContext) {
+    override fun setupModule(context: SetupContext) {
         super.setupModule(context)
         context.addBeanSerializerModifier(object : BeanSerializerModifier() {
             override fun modifySerializer(
                     config: SerializationConfig, desc: BeanDescription, serializer: JsonSerializer<*>): JsonSerializer<*> {
                 return if (AbstractBaseDO::class.java.isAssignableFrom(desc.getBeanClass())) {
+                    @Suppress("UNCHECKED_CAST")
                     AbstractBaseDOSerializer(serializer as JsonSerializer<Any>, objectIdRegistry)
                 } else serializer
             }
