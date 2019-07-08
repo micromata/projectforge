@@ -76,6 +76,7 @@ public class UserPrefTest extends AbstractTestBase {
     userPref.setUser(loggedInUser);
     userPref.setValueObject(user);
     userPref.setArea("TEST_AREA");
+    userPref.setName("");
     Integer id = userPrefDao.save(userPref);
     userPref = userPrefDao.internalGetById(id);
     User user2 = (User) userPrefDao.deserizalizeValueObject(userPref);
@@ -92,16 +93,17 @@ public class UserPrefTest extends AbstractTestBase {
   void saveAndUpdateTest() {
     final PFUserDO loggedInUser = getUser(AbstractTestBase.TEST_USER);
     logon(loggedInUser);
-    saveAndUpdateTest(null, loggedInUser);
+    saveAndUpdateTest("", loggedInUser);
     saveAndUpdateTest("test", loggedInUser);
 
     UserPrefDO userPref = new UserPrefDO();
     userPref.setUser(loggedInUser);
     userPref.setArea("TEST_AREA3");
+    userPref.setName("");
     addEntry(userPref, "param1", "value1");
     addEntry(userPref, "param2", "value2");
     userPrefDao.internalSaveOrUpdate(userPref);
-    userPref = userPrefDao.internalQuery(loggedInUser.getId(), "TEST_AREA3", null);
+    userPref = userPrefDao.internalQuery(loggedInUser.getId(), "TEST_AREA3", "");
     assertEquals(2, userPref.getUserPrefEntries().size());
     assertEquals("value1", userPref.getUserPrefEntryAsString("param1"));
     assertEquals("value2", userPref.getUserPrefEntryAsString("param2"));
@@ -109,10 +111,11 @@ public class UserPrefTest extends AbstractTestBase {
     userPref = new UserPrefDO();
     userPref.setUser(loggedInUser);
     userPref.setArea("TEST_AREA3");
+    userPref.setName("");
     addEntry(userPref, "param1", "value1b");
     addEntry(userPref, "param3", "value3");
     userPrefDao.internalSaveOrUpdate(userPref);
-    userPref = userPrefDao.internalQuery(loggedInUser.getId(), "TEST_AREA3", null);
+    userPref = userPrefDao.internalQuery(loggedInUser.getId(), "TEST_AREA3", "");
     assertEquals(2, userPref.getUserPrefEntries().size());
     assertEquals("value1b", userPref.getUserPrefEntryAsString("param1"));
     assertEquals("value3", userPref.getUserPrefEntryAsString("param3"));
@@ -120,24 +123,27 @@ public class UserPrefTest extends AbstractTestBase {
     userPref = new UserPrefDO();
     userPref.setUser(loggedInUser);
     userPref.setArea("TEST_AREA3");
+    userPref.setName("");
     userPrefDao.internalSaveOrUpdate(userPref);
-    userPref = userPrefDao.internalQuery(loggedInUser.getId(), "TEST_AREA3", null);
+    userPref = userPrefDao.internalQuery(loggedInUser.getId(), "TEST_AREA3", "");
     assertTrue(CollectionUtils.isEmpty(userPref.getUserPrefEntries()));
 
     userPref = new UserPrefDO();
     userPref.setUser(loggedInUser);
     userPref.setArea("TEST_AREA4");
+    userPref.setName("");
     userPrefDao.internalSaveOrUpdate(userPref);
-    userPref = userPrefDao.internalQuery(loggedInUser.getId(), "TEST_AREA4", null);
+    userPref = userPrefDao.internalQuery(loggedInUser.getId(), "TEST_AREA4", "");
     assertTrue(CollectionUtils.isEmpty(userPref.getUserPrefEntries()));
 
     userPref = new UserPrefDO();
     userPref.setUser(loggedInUser);
     userPref.setArea("TEST_AREA4");
+    userPref.setName("");
     addEntry(userPref, "param1", "value1");
     addEntry(userPref, "param2", "value2");
     userPrefDao.internalSaveOrUpdate(userPref);
-    userPref = userPrefDao.internalQuery(loggedInUser.getId(), "TEST_AREA4", null);
+    userPref = userPrefDao.internalQuery(loggedInUser.getId(), "TEST_AREA4", "");
     assertEquals(2, userPref.getUserPrefEntries().size());
     assertEquals("value1", userPref.getUserPrefEntryAsString("param1"));
     assertEquals("value2", userPref.getUserPrefEntryAsString("param2"));
