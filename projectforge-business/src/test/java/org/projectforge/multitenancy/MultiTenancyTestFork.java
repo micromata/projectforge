@@ -102,7 +102,9 @@ public class MultiTenancyTestFork extends AbstractTestBase
 
   private TenantDO createTenant(final String name, final boolean isDefault, final PFUserDO... assignedUsers)
   {
-    final TenantDO tenant = new TenantDO().setName(name).setDefaultTenant(isDefault);
+    final TenantDO tenant = new TenantDO();
+    tenant.setName(name);
+    tenant.setDefaultTenant(isDefault);
     tenantDao.internalSave(tenant);
     return tenant;
   }
