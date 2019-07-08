@@ -24,12 +24,10 @@
 package org.projectforge.rest.calendar
 
 import org.projectforge.business.address.AddressDao
-import org.projectforge.business.calendar.CalendarFilter
 import org.projectforge.business.calendar.CalendarView
 import org.projectforge.business.calendar.TeamCalendar
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.service.UserPrefService
-import org.projectforge.business.user.service.UserXmlPreferencesService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
@@ -104,12 +102,7 @@ class CalendarServicesRest {
         val startDate = if (start != null) RestHelper.parseJSDateTime(start)?.epochSeconds else null
         val endDate = if (end != null) RestHelper.parseJSDateTime(end)?.epochSeconds else null
 
-        val category: String;
-        if (calendar.isNullOrBlank()) {
-            category = "timesheet"
-        } else {
-            category = "teamEvent"
-        }
+        val category = if (calendar.isNullOrBlank()) "timesheet" else "teamEvent"
         val responseAction = ResponseAction("$category/edit?start=$startDate&end=$endDate")
                 .addVariable("category", category)
                 .addVariable("startDate", startDate)

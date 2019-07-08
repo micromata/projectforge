@@ -178,7 +178,7 @@ class TaskServicesRest {
                 @RequestParam("showRootForAdmins") showRootForAdmins: Boolean?)
             : Result {
         @Suppress("UNCHECKED_CAST")
-        var openNodes = userPrefService.ensureEntry(PREF_ARA, TaskTree.USER_PREFS_KEY_OPEN_TASKS, mutableSetOf<Int>())
+        val openNodes = userPrefService.ensureEntry(PREF_ARA, TaskTree.USER_PREFS_KEY_OPEN_TASKS, mutableSetOf<Int>())
         val filter = listFilterService.getSearchFilter(request.session, TaskFilter::class.java) as TaskFilter
 
         if (initial != true) {
@@ -188,7 +188,7 @@ class TaskServicesRest {
             if (notOpened != null) filter.isNotOpened = notOpened
             if (closed != null) filter.isClosed = closed
             if (deleted != null) filter.isDeleted = deleted
-            filter.setSearchString(searchString);
+            filter.setSearchString(searchString)
         }
         val rootNode = taskTree.rootTaskNode
         val root = Task(rootNode)
@@ -267,9 +267,7 @@ class TaskServicesRest {
      */
     @GetMapping("info/{id}")
     fun getTaskInfo(@PathVariable("id") id: Int?): ResponseEntity<Task> {
-        val task = createTask(id)
-        if (task == null)
-            return ResponseEntity(HttpStatus.NOT_FOUND)
+        val task = createTask(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
         return ResponseEntity(task, HttpStatus.OK)
     }
 
@@ -291,7 +289,7 @@ class TaskServicesRest {
                     addKost2List(child)
                     child.consumption = Consumption.create(node)
                     if (indent != null) {
-                        var hidden = false;
+                        var hidden = false
                         val highlightedTaskNode = ctx.highlightedTaskNode
                         if (highlightedTaskNode != null) {
                             // Show only ancestor, the highlighted node itself and descendants. siblings only for leafs.

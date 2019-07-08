@@ -21,6 +21,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+@file:Suppress("DEPRECATION")
+
 package org.projectforge.menu.builder
 
 import org.projectforge.business.user.service.UserXmlPreferencesService
@@ -59,7 +61,7 @@ open class FavoritesMenuCreator {
         if (!menu.menuItems.isNullOrEmpty())
             return menu
         menu = Menu()
-        if (accessChecker.isLoggedInUserMemberOfAdminGroup()) {
+        if (accessChecker.isLoggedInUserMemberOfAdminGroup) {
             val adminMenu = MenuItem(MenuItemDefId.ADMINISTRATION.id, translate(MenuItemDefId.ADMINISTRATION.getI18nKey()))
             menu.add(adminMenu)
             adminMenu.add(menuCreator.findById(MenuItemDefId.ACCESS_LIST))
@@ -67,7 +69,7 @@ open class FavoritesMenuCreator {
             adminMenu.add(menuCreator.findById(MenuItemDefId.GROUP_LIST))
             adminMenu.add(menuCreator.findById(MenuItemDefId.SYSTEM))
         }
-        if (accessChecker.isRestrictedUser()) {
+        if (accessChecker.isRestrictedUser) {
             // Restricted users see only the change password menu entry (as favorite).
             val adminMenu = MenuItem(menuCreator.findById(MenuItemDefId.CHANGE_PASSWORD))
             menu.add(adminMenu)
@@ -91,8 +93,8 @@ open class FavoritesMenuCreator {
     }
 
     companion object {
-        val USER_PREF_FAVORITES_MENU_KEY = "usersFavoritesMenu"
+        const val USER_PREF_FAVORITES_MENU_KEY = "usersFavoritesMenu"
 
-        internal val USER_PREF_FAVORITES_MENU_ENTRIES_KEY = "usersFavoriteMenuEntries"
+        internal const val USER_PREF_FAVORITES_MENU_ENTRIES_KEY = "usersFavoriteMenuEntries"
     }
 }
