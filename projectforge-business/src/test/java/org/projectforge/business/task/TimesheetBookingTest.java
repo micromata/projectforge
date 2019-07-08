@@ -64,10 +64,10 @@ public class TimesheetBookingTest extends AbstractTestBase {
     logon(getUser(AbstractTestBase.TEST_ADMIN_USER));
     TaskDO task;
     task = initTestDB.addTask("TimesheetBookingTest", "root");
-    final GroupTaskAccessDO access = new GroupTaskAccessDO().setGroup(initTestDB.addGroup("TBT", AbstractTestBase.TEST_USER))
-            .addAccessEntry(
-                    new AccessEntryDO(AccessType.OWN_TIMESHEETS, true, true, true, true))
-            .setTask(task);
+    final GroupTaskAccessDO access = new GroupTaskAccessDO();
+    access.setGroup(initTestDB.addGroup("TBT", AbstractTestBase.TEST_USER));
+    access.addAccessEntry(
+        new AccessEntryDO(AccessType.OWN_TIMESHEETS, true, true, true, true)).setTask(task);
     accessDao.save(access);
     logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     taskDao.update(initTestDB.addTask("TBT-1", "TimesheetBookingTest"));
