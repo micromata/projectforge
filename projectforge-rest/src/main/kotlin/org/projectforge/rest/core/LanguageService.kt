@@ -32,18 +32,20 @@ import java.util.*
  */
 @Component
 class LanguageService {
-    class Language(val lang: String, val displayName: String)
+    class Language(var lang: String, var displayName: String) {
+        constructor(locale: Locale) : this(locale.toString(), locale.getDisplayName(ThreadLocalUserContext.getLocale()))
+    }
 
-    fun getAllLanguages() : List<Language> {
+    fun getAllLanguages(): List<Language> {
         return getLanguages(Locale.getAvailableLocales().asIterable())
     }
 
-    fun getLanguages(searchString: String?) : List<Language> {
+    fun getLanguages(searchString: String?): List<Language> {
         if (searchString.isNullOrBlank()) return getAllLanguages()
-        return getAllLanguages().filter { it.displayName.contains(searchString, true)  }
+        return getAllLanguages().filter { it.displayName.contains(searchString, true) }
     }
 
-    fun getLanguages(locales: Iterable<Locale>) : List<Language> {
+    fun getLanguages(locales: Iterable<Locale>): List<Language> {
         val locale = ThreadLocalUserContext.getLocale()
         val languages = locales.map { Language(it.toString(), it.getDisplayName(locale)) }
         languages.sortedBy { it.displayName }
