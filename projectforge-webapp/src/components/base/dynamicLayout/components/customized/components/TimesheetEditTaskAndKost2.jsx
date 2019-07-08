@@ -33,7 +33,11 @@ function TimesheetEditTaskAndKost2({ values }) {
                             <DynamicReactSelect
                                 label={ui.translations['fibu.kost2']}
                                 id={values.id}
-                                values={kost2List}
+                                values={kost2List.map(kost2 => ({
+                                    ...kost2,
+                                    label: kost2.title,
+                                }))}
+                                valueProperty="id"
                             />
                         </FormGroup>
                     </Col>
