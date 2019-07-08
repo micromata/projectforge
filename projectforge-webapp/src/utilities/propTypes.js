@@ -50,22 +50,8 @@ export const badgePropType = PropTypes.shape({
     counter: PropTypes.number,
 });
 
-// Supported types for the DynamicLayout
-export const dynamicTypePropType = PropTypes.oneOf([
-    'CHECKBOX',
-    'COL',
-    'CUSTOMIZED',
-    'FIELDSET',
-    'INPUT',
-    'LABEL',
-    'ROW',
-    'SELECT',
-    'TABLE',
-    'TEXTAREA',
-]);
-
 // Content PropType for DynamicLayout
 export const contentPropType = PropTypes.shape({
-    type: dynamicTypePropType.isRequired,
+    type: PropTypes.string.isRequired,
     key: PropTypes.string.isRequired,
 });
