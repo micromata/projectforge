@@ -23,21 +23,16 @@
 
 package org.projectforge.ui
 
-enum class UIElementType {
-    BUTTON,
-    CHECKBOX,
-    COL,
-    CUSTOMIZED,
-    FIELDSET,
-    FILTER_ELEMENT,
-    GROUP,
-    INPUT,
-    LABEL,
-    NAMED_CONTAINER,
-    RADIOBUTTON,
-    ROW,
-    SELECT,
-    TABLE,
-    TABLE_COLUMN,
-    TEXTAREA
-}
+data class UIRadioButton(val id: String,
+                         /**
+                          * Name of the group, this radio button is part of.
+                          */
+                         val name: String,
+                         @Transient
+                         override val layoutContext: LayoutContext? = null,
+                         override var tooltip: String? = null,
+                         override var label: String? = null,
+                         override var additionalLabel: String? = null,
+                         @Transient
+                         override val ignoreAdditionalLabel: Boolean = false)
+    : UIElement(UIElementType.RADIOBUTTON), UILabelledElement
