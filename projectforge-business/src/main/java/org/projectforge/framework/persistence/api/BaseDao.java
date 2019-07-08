@@ -940,7 +940,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
           log.info(this.clazz.getSimpleName() + " updated: " + dbObj.toString());
         }
       } else {
-        log.info("No modifications detected (no update needed): " + dbObj.toString());
+        log.info("No modifications detected (no update needed): " + dbObj.getClass().getSimpleName() + ":" + dbObj.getId());
       }
       prepareHibernateSearch(obj, OperationType.UPDATE);
       // TODO HIBERNATE5 Magie nicht notwendig?!?!?!
