@@ -29,5 +29,6 @@ data class UICheckbox(val id: String,
                       override var tooltip: String? = null,
                       override var label: String? = null,
                       override var additionalLabel: String? = null,
+                      @Transient
                       override val ignoreAdditionalLabel: Boolean = false)
     : UIElement(UIElementType.CHECKBOX), UILabelledElement

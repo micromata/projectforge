@@ -45,6 +45,7 @@ open class UIFilterElement(
         override var label: String? = null,
         override var additionalLabel: String? = null,
         override var tooltip: String? = null,
+        @Transient
         override val ignoreAdditionalLabel: Boolean = false,
         @Transient
         override val layoutContext: LayoutContext? = null
