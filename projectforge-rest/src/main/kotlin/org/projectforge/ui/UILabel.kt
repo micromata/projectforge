@@ -36,5 +36,6 @@ data class UILabel(
         var reference: UIElement? = null,
         override var additionalLabel: String? = null,
         override var tooltip: String? = null,
+        @Transient
         override val ignoreAdditionalLabel: Boolean = false)
     : UIElement(UIElementType.LABEL), UILabelledElement

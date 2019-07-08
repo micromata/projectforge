@@ -38,5 +38,6 @@ data class UITextArea(val id: String,
                       override var label: String? = null,
                       override var additionalLabel: String? = null,
                       override var tooltip: String? = null,
+                      @Transient
                       override val ignoreAdditionalLabel: Boolean = false)
     : UIElement(UIElementType.TEXTAREA), UILabelledElement
