@@ -345,7 +345,7 @@ abstract class AbstractBaseRest<
      * @return currentFilter, new filterFavorites and isFilterModified=false.
      */
     @RequestMapping("filter/create")
-    fun createFavoriteFilter(request: HttpServletRequest, @RequestBody newFilter: MagicFilter<F>): Map<String, Any> {
+    fun createFavoriteFilter(@RequestBody newFilter: MagicFilter<F>): Map<String, Any> {
         val favorites = getFilterFavorites()
         favorites.add(newFilter)
         val currentFilter = newFilter.clone() // A clone is needed, otherwise current and favorite of list are the same object.
