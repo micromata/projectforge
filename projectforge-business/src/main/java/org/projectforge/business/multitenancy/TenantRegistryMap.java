@@ -170,8 +170,10 @@ public class TenantRegistryMap extends AbstractCache {
 
   private void createDummyTenantRegistry() {
     synchronized (this) {
-      final TenantDO dummyTenant = new TenantDO().setName("Dummy tenant").setShortName("Dummy tenant")
-              .setDescription("This tenant is only a technical tenant, if no default tenant is given.");
+      final TenantDO dummyTenant = new TenantDO();
+      dummyTenant.setName("Dummy tenant");
+      dummyTenant.setShortName("Dummy tenant");
+      dummyTenant.setDescription("This tenant is only a technical tenant, if no default tenant is given.");
       dummyTenant.setId(-1);
       dummyTenantRegistry = new TenantRegistry(dummyTenant, applicationContext);
     }
