@@ -30,10 +30,18 @@ function ReactSelect(
 ) {
     let Tag = Select;
     let defaultOptions;
+    let options;
 
     if (loadOptions) {
         Tag = AsyncSelect;
-        defaultOptions = true;
+        if (values && values.length > 0) {
+            // values are now the default options for the drop down without autocompletion call.
+            defaultOptions = values;
+        } else {
+            defaultOptions = true;
+        }
+    } else {
+        options = values;
     }
 
     let tooltipElement;
@@ -64,7 +72,7 @@ function ReactSelect(
                 components={makeAnimated()}
                 value={value}
                 isMulti={multi}
-                options={values}
+                options={options}
                 isClearable={!required}
                 getOptionValue={option => (option[valueProperty])}
                 getOptionLabel={getOptionLabel || (option => (option[labelProperty]))}
