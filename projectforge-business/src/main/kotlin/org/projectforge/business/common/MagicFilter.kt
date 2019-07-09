@@ -60,6 +60,7 @@ class MagicFilter<F : BaseSearchFilter>(
             filter.maxRows = 50
         filter.isSortAndLimitMaxRowsWhileSelect = true
         if (entries.isNullOrEmpty()) {
+            filter.searchString = null // Must be reset from any previous run
             return filter // Nothing to configure.
         }
         val searchStrings = mutableListOf<String>()
