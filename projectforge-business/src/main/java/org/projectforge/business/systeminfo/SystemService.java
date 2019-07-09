@@ -23,15 +23,6 @@
 
 package org.projectforge.business.systeminfo;
 
-import java.io.File;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TimeZone;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.AppVersion;
@@ -53,6 +44,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.*;
+
 /**
  * Provides some system routines.
  *
@@ -60,8 +56,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
-public class SystemService
-{
+public class SystemService {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SystemService.class);
 
   @Autowired
@@ -92,22 +87,24 @@ public class SystemService
   @Autowired
   private RestCallService restCallService;
 
-  public VersionCheck getVersionCheckInformations()
-  {
+  public VersionCheck getVersionCheckInformations() {
     Locale locale = ThreadLocalUserContext.getUser() != null && ThreadLocalUserContext.getUser().getLocale() != null ?
-        ThreadLocalUserContext.getUser().getLocale() :
-        ThreadLocalUserContext.getLocale();
+            ThreadLocalUserContext.getUser().getLocale() :
+            ThreadLocalUserContext.getLocale();
     TimeZone timeZone = ThreadLocalUserContext.getUser() != null && ThreadLocalUserContext.getUser().getTimeZone() != null ?
-        TimeZone.getTimeZone(ThreadLocalUserContext.getUser().getTimeZone()) :
-        ThreadLocalUserContext.getTimeZone();
+            TimeZone.getTimeZone(ThreadLocalUserContext.getUser().getTimeZone()) :
+            ThreadLocalUserContext.getTimeZone();
     VersionCheck versionCheck = new VersionCheck(AppVersion.VERSION.toString(), locale, timeZone);
-    versionCheck = restCallService.callRestInterfaceForUrl(versionCheckUrl, HttpMethod.POST, VersionCheck.class, versionCheck);
+    try {
+      versionCheck = restCallService.callRestInterfaceForUrl(versionCheckUrl, HttpMethod.POST, VersionCheck.class, versionCheck);
+    } catch (Exception ex) {
+      // System offline?
+    }
     return versionCheck;
   }
 
   @Transactional(propagation = Propagation.SUPPORTS)
-  public boolean isNewPFVersionAvailable()
-  {
+  public boolean isNewPFVersionAvailable() {
     LocalDate now = LocalDate.now();
     if (lastVersionCheckDate == null) {
       lastVersionCheckDate = LocalDate.now().minusDays(1);
@@ -118,7 +115,7 @@ public class SystemService
       try {
         VersionCheck versionCheckInformations = getVersionCheckInformations();
         if (versionCheckInformations != null && StringUtils.isNotEmpty(versionCheckInformations.getSourceVersion()) && StringUtils
-            .isNotEmpty(versionCheckInformations.getTargetVersion())) {
+                .isNotEmpty(versionCheckInformations.getTargetVersion())) {
           String[] sourceVersionPartsWithoutMinus = versionCheckInformations.getSourceVersion().split("-");
           String[] targetVersionPartsWithoutMinus = versionCheckInformations.getTargetVersion().split("-");
           if (sourceVersionPartsWithoutMinus.length > 0 && targetVersionPartsWithoutMinus.length > 0) {
@@ -147,8 +144,7 @@ public class SystemService
     return newPFVersionAvailable;
   }
 
-  private int[] getIntegerVersionArray(final String[] sourceVersionParts)
-  {
+  private int[] getIntegerVersionArray(final String[] sourceVersionParts) {
     int[] result = new int[4];
     for (int i = 0; i < 4; i++) {
       try {
@@ -160,13 +156,11 @@ public class SystemService
     return result;
   }
 
-  public void setLastVersionCheckDate(LocalDate newDateValue)
-  {
+  public void setLastVersionCheckDate(LocalDate newDateValue) {
     lastVersionCheckDate = newDateValue;
   }
 
-  public String exportSchema()
-  {
+  public String exportSchema() {
     final SchemaExport exp = new SchemaExport();
     File file;
     try {
@@ -192,8 +186,7 @@ public class SystemService
    *
    * @return
    */
-  public String checkSystemIntegrity()
-  {
+  public String checkSystemIntegrity() {
     final StringBuffer buf = new StringBuffer();
     buf.append("ProjectForge system integrity check.\n\n");
     buf.append("------------------------------------\n");
@@ -253,8 +246,7 @@ public class SystemService
    *
    * @return the name of the refreshed caches.
    */
-  public String refreshCaches()
-  {
+  public String refreshCaches() {
     final TenantRegistry tenantRegistry = TenantRegistryMap.getInstance().getTenantRegistry();
     tenantRegistry.getUserGroupCache().forceReload();
     tenantRegistry.getTaskTree().forceReload();
@@ -265,8 +257,7 @@ public class SystemService
     return "UserGroupCache, TaskTree, KontoCache, KostCache, RechnungCache, SystemInfoCache";
   }
 
-  public void setEnableVersionCheck(final boolean enableVersionCheck)
-  {
+  public void setEnableVersionCheck(final boolean enableVersionCheck) {
     this.enableVersionCheck = enableVersionCheck;
   }
 }
