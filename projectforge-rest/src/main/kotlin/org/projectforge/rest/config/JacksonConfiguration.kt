@@ -49,7 +49,6 @@ import org.springframework.context.annotation.Configuration
 import java.math.BigDecimal
 import java.sql.Timestamp
 import java.time.LocalDate
-import java.util.*
 
 @Configuration
 open class JacksonConfiguration {
@@ -86,9 +85,6 @@ open class JacksonConfiguration {
         module.addDeserializer(String::class.java, TextDeserializer())
         module.addDeserializer(java.lang.Integer::class.java, IntDeserializer())
         module.addDeserializer(BigDecimal::class.java, BigDecimalDeserializer())
-
-        module.addSerializer(Locale::class.java, LocaleSerializer())
-        module.addDeserializer(Locale::class.java, LocaleDeserializer())
 
         module.addSerializer(Kost1DO::class.java, Kost1DOSerializer())
         module.addSerializer(Kost2DO::class.java, Kost2DOSerializer())
