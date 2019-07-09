@@ -32,7 +32,7 @@ import java.util.*
  */
 @Component
 class LanguageService {
-    class Language(var lang: String, var displayName: String) {
+    class Language(var value: String, var label: String) {
         constructor(locale: Locale) : this(locale.toString(), locale.getDisplayName(ThreadLocalUserContext.getLocale()))
     }
 
@@ -42,13 +42,18 @@ class LanguageService {
 
     fun getLanguages(searchString: String?): List<Language> {
         if (searchString.isNullOrBlank()) return getAllLanguages()
-        return getAllLanguages().filter { it.displayName.contains(searchString, true) }
+        return getAllLanguages().filter { it.label.contains(searchString, true) }
     }
 
     fun getLanguages(locales: Iterable<Locale>): List<Language> {
-        val locale = ThreadLocalUserContext.getLocale()
-        val languages = locales.map { Language(it.toString(), it.getDisplayName(locale)) }
-        languages.sortedBy { it.displayName }
+        val userslocale = ThreadLocalUserContext.getLocale()
+        val languages = locales.map { Language(it.toString(), it.getDisplayName(userslocale)) }
+        languages.sortedBy { it.label }
         return languages
+    }
+
+    fun getLanguage(locale: Locale): Language {
+        val userslocale = ThreadLocalUserContext.getLocale()
+        return Language(locale.toString(), locale.getDisplayName(userslocale))
     }
 }

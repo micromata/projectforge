@@ -35,6 +35,7 @@ import org.projectforge.rest.AddressImageServicesRest.Companion.SESSION_IMAGE_AT
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTORest
 import org.projectforge.rest.core.ExpiringSessionAttributes
+import org.projectforge.rest.core.LanguageService
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.dto.Address
 import org.projectforge.sms.SmsSenderConfig
@@ -70,6 +71,9 @@ class AddressRest()
 
     @Autowired
     private lateinit var imageService: ImageService
+
+    @Autowired
+    private lateinit var languageService: LanguageService
 
     @Autowired
     private lateinit var personalAddressDao: PersonalAddressDao
@@ -231,11 +235,15 @@ class AddressRest()
         addressbookDOs.forEach {
             addressbooks.add(UISelectValue(it.id, it.title!!))
         }
-        val communicationLanguage = UISelect<String>("communicationLanguage", lc,
-                labelProperty = "displayName",
-                valueProperty = "lang",
-                favorites = addressServicesRest.getUsedLanguages().map { UISelect.Favorite(it.lang, it.displayName) },
+        val communicationLanguage = UISelect("communicationLanguage", lc,
+                values = addressServicesRest.getUsedLanguages().map { UISelectValue(it.value, it.label) },
                 autoCompletion = AutoCompletion<String>(url = "address/acLang"))
+        /*val locale = dto.communicationLanguage
+        if (locale != null) {
+            // The current language of the dto must be a part of the values for displaying the current value.
+            val lang = languageService.getLanguage(locale)
+            communicationLanguage.values = listOf(UISelectValue(lang.value, lang.label))
+        }*/
         val layout = super.createEditLayout(dto)
                 //autoCompletion = AutoCompletion(url = "addressBook/ac?search="))))
                 .add(UIRow()
