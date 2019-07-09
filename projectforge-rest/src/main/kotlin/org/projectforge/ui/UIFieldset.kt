@@ -23,6 +23,26 @@
 
 package org.projectforge.ui
 
-class UIFieldset(length: Int? = null,
-                 var title: String? = null) :
-        UICol(length, type = UIElementType.FIELDSET)
+class UIFieldset(
+        /**
+         * Length in grid system (1-12)
+         */
+        length: Int? = null,
+        /**
+         * Length for small screens (1-12)
+         */
+        smLength: Int? = null,
+        /**
+         * Length for large screens (1-12)
+         */
+        mdLength: Int? = null,
+        /**
+         * Length for large screens (1-12)
+         */
+        lgLength: Int? = null,
+        /**
+         * Length for large screens (1-12)
+         */
+        xlLength: Int? = null,
+        var title: String? = null) :
+        UICol(length, smLength, mdLength, lgLength, xlLength, type = UIElementType . FIELDSET)
