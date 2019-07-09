@@ -243,41 +243,39 @@ class AddressRest()
         val layout = super.createEditLayout(dto)
                 //autoCompletion = AutoCompletion(url = "addressBook/ac?search="))))
                 .add(UIRow()
-                        .add(UIFieldset(6)
-                                .add(createFavoriteRow(UISelect("addressbookList", lc,
-                                        multi = true,
-                                        values = addressbooks,
-                                        labelProperty = "title",
-                                        valueProperty = "id"),
-                                        "isFavoriteCard")))
-                        .add(UIFieldset(6)
+                        .add(UIFieldset(length = 12)
                                 .add(UIRow()
-                                        .add(UICol(length = 6)
-                                                .add(lc, "addressStatus"))
-                                        .add(UICol(length = 6)
-                                                .add(lc, "contactStatus")))))
+                                        .add(UICol(mdLength = 6)
+                                                .add(UIRow()
+                                                        .add(UICol(lgLength = 6)
+                                                                .add(lc, "addressStatus"))
+                                                        .add(UICol(lgLength = 6)
+                                                                .add(lc, "contactStatus"))))
+                                        .add(UICol(mdLength = 6)
+                                                .add(createFavoriteRow(UISelect("addressbookList", lc,
+                                                        multi = true,
+                                                        values = addressbooks,
+                                                        labelProperty = "title",
+                                                        valueProperty = "id"),
+                                                        "isFavoriteCard"))))))
                 .add(UIRow()
-                        .add(UIFieldset(6)
+                        .add(UIFieldset(smLength = 6, lgLength = 4)
                                 .add(lc, "name", "firstName", "form", "title", "email", "privateEmail"))
-                        .add(UIFieldset(6)
+                        .add(UIFieldset(smLength = 6, lgLength = 4)
                                 .add(lc, "birthday")
                                 .add(UIRow().add(UICol().add(communicationLanguage)))
-                                .add(lc, "organization", "division", "positionText", "website")))
-                .add(UIRow()
-                        .add(UIFieldset(12)
-                                .add(UIRow()
-                                        .add(UICol(6)
-                                                .add(createFavoriteRow(UIInput("businessPhone", lc),
-                                                        "isFavoriteBusinessPhone"))
-                                                .add(createFavoriteRow(UIInput("mobilePhone", lc),
-                                                        "isFavoriteMobilePhone"))
-                                                .add(createFavoriteRow(UIInput("fax", lc),
-                                                        "isFavoriteFax")))
-                                        .add(UICol(6)
-                                                .add(createFavoriteRow(UIInput("privatePhone", lc),
-                                                        "isFavoritePrivatePhone"))
-                                                .add(createFavoriteRow(UIInput("privateMobilePhone", lc),
-                                                        "isFavoritePrivateMobilePhone"))))))
+                                .add(lc, "organization", "division", "positionText", "website"))
+                        .add(UIFieldset(smLength = 6, lgLength = 4)
+                                .add(createFavoriteRow(UIInput("businessPhone", lc),
+                                        "isFavoriteBusinessPhone"))
+                                .add(createFavoriteRow(UIInput("mobilePhone", lc),
+                                        "isFavoriteMobilePhone"))
+                                .add(createFavoriteRow(UIInput("fax", lc),
+                                        "isFavoriteFax"))
+                                .add(createFavoriteRow(UIInput("privatePhone", lc),
+                                        "isFavoritePrivatePhone"))
+                                .add(createFavoriteRow(UIInput("privateMobilePhone", lc),
+                                        "isFavoritePrivateMobilePhone"))))
                 .add(UIRow()
                         .add(UIFieldset(smLength = 6, lgLength = 4, title = "address.heading.businessAddress")
                                 .add(UIInput("addressText", lc, ignoreAdditionalLabel = true))
@@ -316,9 +314,11 @@ class AddressRest()
                                         .add(UICol(xlLength = 6)
                                                 .add(UIInput("privateState", lc, ignoreAdditionalLabel = true))))))
                 .add(UIRow()
-                        .add(UIFieldset(6, title = "address.image")
+                        .add(UIFieldset(title = "address.image")
                                 .add(UICustomized("address.edit.image"))))
-                .add(lc, "comment")
+                .add(UIRow()
+                        .add(UICol(mdLength = 12)
+                                .add(lc, "comment")))
 
         layout.getInputById("name").focus = true
         layout.getTextAreaById("comment").cssClass = CssClassnames.MT_5
