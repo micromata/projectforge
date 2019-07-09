@@ -25,6 +25,7 @@ package org.projectforge.rest.core
 
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.stereotype.Component
+import java.text.Collator
 import java.util.*
 
 /**
@@ -32,7 +33,7 @@ import java.util.*
  */
 @Component
 class LanguageService {
-    class Language(var value: String, var label: String) {
+    class Language(val value: String, val label: String) {
         constructor(locale: Locale) : this(locale.toString(), locale.getDisplayName(ThreadLocalUserContext.getLocale()))
     }
 
@@ -46,10 +47,10 @@ class LanguageService {
     }
 
     fun getLanguages(locales: Iterable<Locale>): List<Language> {
-        val userslocale = ThreadLocalUserContext.getLocale()
-        val languages = locales.map { Language(it.toString(), it.getDisplayName(userslocale)) }
-        languages.sortedBy { it.label }
-        return languages
+        val usersLocale = ThreadLocalUserContext.getLocale()
+        val comparator = Collator.getInstance(usersLocale)
+        val languages = locales.map { Language(it.toString(), it.getDisplayName(usersLocale)) }
+        return languages.sortedWith(compareBy(comparator) { it.label })
     }
 
     fun getLanguage(locale: Locale): Language {
