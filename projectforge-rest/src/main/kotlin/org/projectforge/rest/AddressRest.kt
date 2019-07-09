@@ -314,10 +314,10 @@ class AddressRest()
                                         .add(UICol(xlLength = 6)
                                                 .add(UIInput("privateState", lc, ignoreAdditionalLabel = true))))))
                 .add(UIRow()
-                        .add(UIFieldset(title = "address.image")
+                        .add(UIFieldset(smLength = 6, lgLength = 4, title = "address.image")
                                 .add(UICustomized("address.edit.image"))))
                 .add(UIRow()
-                        .add(UICol(mdLength = 12)
+                        .add(UICol(length = 12)
                                 .add(lc, "comment")))
 
         layout.getInputById("name").focus = true
