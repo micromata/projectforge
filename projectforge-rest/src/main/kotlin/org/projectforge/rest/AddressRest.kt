@@ -236,14 +236,10 @@ class AddressRest()
             addressbooks.add(UISelectValue(it.id, it.title!!))
         }
         val communicationLanguage = UISelect("communicationLanguage", lc,
+                // The used languages are the values (for quicker select). The current language of the dto is
+                // therefore a part of the values as well and is needed for displaying the current value.
                 values = addressServicesRest.getUsedLanguages().map { UISelectValue(it.value, it.label) },
                 autoCompletion = AutoCompletion<String>(url = "address/acLang"))
-        /*val locale = dto.communicationLanguage
-        if (locale != null) {
-            // The current language of the dto must be a part of the values for displaying the current value.
-            val lang = languageService.getLanguage(locale)
-            communicationLanguage.values = listOf(UISelectValue(lang.value, lang.label))
-        }*/
         val layout = super.createEditLayout(dto)
                 //autoCompletion = AutoCompletion(url = "addressBook/ac?search="))))
                 .add(UIRow()
