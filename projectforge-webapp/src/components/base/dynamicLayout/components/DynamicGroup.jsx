@@ -5,7 +5,17 @@ import { Col, FormGroup, Row } from '../../../design';
 import { DynamicLayoutContext } from '../context';
 
 // A Component to put a tag around dynamic layout content
-function DynamicGroup({ content, length, type }) {
+function DynamicGroup(
+    {
+        content,
+        length,
+        type,
+        smLength,
+        mdLength,
+        lgLength,
+        xlLength,
+    },
+) {
     // Get renderLayout function from context.
     const { renderLayout } = React.useContext(DynamicLayoutContext);
 
@@ -17,7 +27,11 @@ function DynamicGroup({ content, length, type }) {
         switch (type) {
             case 'COL':
                 Tag = Col;
-                groupProperties.sm = length;
+                groupProperties.xs = length;
+                groupProperties.sm = smLength;
+                groupProperties.md = mdLength;
+                groupProperties.lg = lgLength;
+                groupProperties.xl = xlLength;
                 break;
             case 'FRAGMENT':
                 Tag = React.Fragment;
@@ -53,10 +67,18 @@ DynamicGroup.propTypes = {
         'ROW',
     ]).isRequired,
     length: PropTypes.number,
+    smLength: PropTypes.number,
+    mdLength: PropTypes.number,
+    lgLength: PropTypes.number,
+    xlLength: PropTypes.number,
 };
 
 DynamicGroup.defaultProps = {
     length: undefined,
+    smLength: undefined,
+    mdLength: undefined,
+    lgLength: undefined,
+    xlLength: undefined,
 };
 
 export default DynamicGroup;

@@ -23,9 +23,29 @@
 
 package org.projectforge.ui
 
-open class UICol(val length: Int? = null,
-                 val content: MutableList<UIElement> = mutableListOf(),
-                 type: UIElementType = UIElementType.COL)
+open class UICol(
+        /**
+         * Length in grid system (1-12)
+         */
+        val length: Int? = null,
+        /**
+         * Length for small screens (1-12)
+         */
+        val smLength: Int? = null,
+        /**
+         * Length for small screens (1-12)
+         */
+        val mdLength: Int? = null,
+        /**
+         * Length for large screens (1-12)
+         */
+        val lgLength: Int? = null,
+        /**
+         * Length for large screens (1-12)
+         */
+        val xlLength: Int? = null,
+        val content: MutableList<UIElement> = mutableListOf(),
+        type: UIElementType = UIElementType.COL)
     : UIElement(type) {
     fun add(element: UIElement): UICol {
         content.add(element)
