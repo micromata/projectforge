@@ -1,0 +1,96 @@
+ProjectForge development documentation
+=======================================
+Micromata GmbH, Version {version}
+:toc:
+:toclevels: 4
+
+:last-update-label: Copyright (C) 2019, Last updated
+
+ifdef::env-github,env-browser[:outfilesuffix: .adoc]
+link:index{outfilesuffix}[Top]
+
+:sectnums:
+
+
+== Kotlin
+With ProjectForge 7.x Kotlin and ReactJS is introduced.
+
+=== Why Kotlin
+* Kotlin is used for smarter and less code, especially for BaseDO objects as well as for easier creation of data transfer classes for the new introduced REST API.
+* Java and Kotlin will both exist. Only most BaseDO classes were migrated and new functionality will mostly be written in Kotlin.
+
+==== Base entities (BaseDO)
+The BaseDO objects are the entities of ProjectForge stored in the data base:
+
+.AddressDO.kt
+[#src-listing]
+[source,java]
+----
+class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
+
+    @PropertyInfo(i18nKey = "address.contactStatus")
+    @Field
+    var contactStatus = ContactStatus.ACTIVE
+
+    @PropertyInfo(i18nKey = "name", required = true)
+    @Field
+    @get:Column(length = 255)
+    var name: String? = null
+
+    @PropertyInfo(i18nKey = "address.phone", additionalI18nKey = "address.business")
+    @Field
+    @get:Column(length = 255)
+    var businessPhone: String? = null
+    ...
+}
+
+
+----
+
+As example some parts of `AddressDO.kt` are shown and described below:
+
+|===
+|`@PropertyInfo` | The given `ì18nKey` is used for translating the field label and will be served for the frontend(s).
+The optional given `additionalI18nKey` is used for having an additional translated label, in the example there are different phone numbers, categorized as business or private.
+|`@Field`|This database field will be indexed and available for a full text search as well as for specifying search values for this field by the user.
+|`@get:Column(length=255)` | JPA annotations. The JPA annotations are available as Meta information from all parts and will be served for the frontends, e. g. for
+defining the html field `max-length` of input fields.
+|Property type|The property type is also available as Meta information also for the clients. The input fields of the frontend may be autodetected (string, date picker, user selectors, drop down choices for enums etc.)
+|===
+
+.ContactStatus.java
+[#src-listing]
+[source,java]
+----
+public enum ContactStatus implements I18nEnum
+{
+  ACTIVE("active"), NON_ACTIVE("nonActive"), DEPARTED("departed");
+
+  public String getI18nKey()
+  {
+    return "address.contactStatus." + key;
+  }
+  ...
+}
+----
+The enumerations of type `I18nEnum` are also designed for auto translation purposes. The field `contactStatus` will be presented as a drop down choice field with translated
+labels.
+
+==== BaseDao
+The BaseDao classes provide all CRUD operations for the BaseDO entities and will handle the access rights. No user is able to select or modify entities without the required access rights.
+
+== UI
+The new UI is based on REST and ReactJS. The ReactJS code includes a dynamic auto layout component for standard components, such as:
+
+|===
+|Input | Html input fields (text, date picker with text input etc.)
+|Select boxes | For selecting values for e. g. enums (auto completion and asynchronous are calls supported.)
+|Multi select | Select field for selecting multi values (auto completion, asynchronous). This may be used for selecting values as well as of selecting entities assigned to current object, e. g. users may assigned to groups or calendars are selectable for displaying.
+|Fieldset|Fieldsets with titles and length settings (Bootstrap grid system is supported)
+|Columns|Columns with length settings (Bootstrap grid system is supported)
+|Customized fields|You may register customized UI components which will be used for displaying and modifiing values. Refer the image upload for addresses as an example.
+|...|...
+|===
+
+
+=== Standard list views

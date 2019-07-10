@@ -1,0 +1,22 @@
+ProjectForge documentation
+==========================
+Micromata GmbH, Version {version}
+:toc:
+:toclevels: 4
+
+:last-update-label: Copyright (C) 2019, Last updated
+
+ifdef::env-github,env-browser[:outfilesuffix: .adoc]
+
+== Welcome to ProjectForge's world
+
+*_Enjoy ProjectForge!_*
+
+== Documents
+
+[%autowidth, frame="topbot",options="header"]
+|=======
+|Document | Description
+|link:technical{outfilesuffix}[Development]|Development docs.
+|link:license{outfilesuffix}[License]| GNU GENERAL PUBLIC LICENSE, Version 3
+|=======
