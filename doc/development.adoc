@@ -17,7 +17,14 @@ With ProjectForge 7.x Kotlin and ReactJS is introduced.
 
 === Why Kotlin
 * Kotlin is used for smarter and less code, especially for BaseDO objects as well as for easier creation of data transfer classes for the new introduced REST API.
+* Other advantages:
+  ** Smart operations on collections (map, find, sort etc.)
+  ** Immutable objects, classes and functions as default.
+  ** Null safety
+  ** Compability with JAVA code.
 * Java and Kotlin will both exist. Only most BaseDO classes were migrated and new functionality will mostly be written in Kotlin.
+
+Please note: Kotlin must be compiled with target 1.8 (Java version) but is fully runnable on Java 9, 10 and 11 VMs.
 
 ==== Base entities (BaseDO)
 The BaseDO objects are the entities of ProjectForge stored in the data base. As default, all modification of entity attributes are available in a history with the information about the modification (user, timestamp, old and new value).
@@ -44,13 +51,12 @@ class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
     ...
 }
 
-
 ----
 
 As example some parts of `AddressDO.kt` are shown and described below:
 
 |===
-|`@PropertyInfo` | The given `ì18nKey` is used for translating the field label and will be served for the frontend(s).
+|`@PropertyInfo` | The given `i18nKey` is used for translating the field label and will be served for the frontend(s).
 The optional given `additionalI18nKey` is used for having an additional translated label, in the example there are different phone numbers, categorized as business or private.
 |`@Field`|This database field will be indexed and available for a full text search as well as for specifying search values for this field by the user.
 |`@get:Column(length=255)` | JPA annotations. The JPA annotations are available as Meta information from all parts and will be served for the frontends, e. g. for
@@ -283,3 +289,13 @@ a|* The new URL to redirect to.
             },
             ...
 ----
+
+
+==== Putting all together in Kotlin code
+
+Please see `BookRest`[https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/BookRest.kt]
+as an example. Nothing more is needed to create a list and edit page for an entity.
+
+There is no more code (HTML, JavaScript or anything else needed).
+
+For creating own entities a description for smart plugins with a minimum of code is under construction.
