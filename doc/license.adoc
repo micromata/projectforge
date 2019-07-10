@@ -7,4 +7,4 @@ Micromata GmbH, Version {version}
 ifdef::env-github,env-browser[:outfilesuffix: .adoc]
 link:index{outfilesuffix}[Top]
 
-include::../LICENSE[]
+include::../LICENSE.txt[]
