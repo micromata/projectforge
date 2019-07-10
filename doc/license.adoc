@@ -1,0 +1,10 @@
+ProjectForge License
+====================
+Micromata GmbH, Version {version}
+
+:last-update-label: Copyright (C) 2018, Last updated
+
+ifdef::env-github,env-browser[:outfilesuffix: .adoc]
+link:index{outfilesuffix}[Top]
+
+include::../LICENSE[]
