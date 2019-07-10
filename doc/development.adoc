@@ -93,6 +93,7 @@ The new UI is based on REST and ReactJS. The ReactJS code includes a dynamic aut
 |Multi select | Select field for selecting multi values (auto completion, asynchronous). This may be used for selecting values as well as of selecting entities assigned to current object, e. g. users may assigned to groups or calendars are selectable for displaying.
 |Fieldset|Fieldsets with titles and length settings (Bootstrap grid system is supported)
 |Columns|Columns with length settings (Bootstrap grid system is supported)
+|Tables|For displaying result sets etc.
 |Customized fields|You may register customized UI components which will be used for displaying and modifiing values. Refer the image upload for addresses as an example.
 |...|...
 |===
@@ -117,31 +118,31 @@ a|* UI layout (available filter options, columns of the result data, page menu i
 |Call with current filter settings as POST parameter after clicking the search button.
 a|* Result set matching the given filter settings.
 
-|'rs/address/filter/create'
+|`rs/address/filter/create`
 |For creating a new favorite filter. The current filter settings of the UI including the specified name of the new filter are required.
 a|* filter (new current filter)
 
-|'rs/address/filter/select?id={filter-id}'
+|`rs/address/filter/select?id={filter-id}`
 |For selecting a previous stored favorite filter. Same parameter as for initialList will be returned.
 a|* UI layout
   * recent used filter by the user
   * Available favorites
   * Result set
 
-|'rs/address/filter/update'
+|`rs/address/filter/update`
 |For updating the current filter with the new filter settings done by the user.
 |
 
-|'rs/address/filter/delete'
+|`rs/address/filter/delete`
 |For deleting a favorite filter.
 a|* Modified list of available favorites.
 
-|'rs/address/filter/reset'
+|`rs/address/filter/reset`
 |Resets the current filter by default values.
 a|* The default filter.
 
 
-|'rs/address/reindexFull'
+|`rs/address/reindexFull`
 |For rebuilding the full search index for the enties (e. g. all addresses).
 |
 |===
