@@ -1,4 +1,4 @@
-import timezone from 'moment-timezone';
+import moment from 'moment-timezone';
 
 import 'moment/min/locales';
 import PropTypes from 'prop-types';
@@ -22,7 +22,7 @@ import {
 } from './CalendarRendering';
 import CalendarToolBar from './CalendarToolBar';
 
-const localizer = BigCalendar.momentLocalizer(timezone); // or globalizeLocalizer
+const localizer = BigCalendar.momentLocalizer(moment); // or globalizeLocalizer
 
 const DragAndDropCalendar = withDragAndDrop(BigCalendar);
 
@@ -32,8 +32,8 @@ class CalendarPanel extends React.Component {
 
         const { firstDayOfWeek, timeZone, locale } = this.props;
         const useLocale = locale || 'en';
-        timezone.tz.setDefault(timeZone);
-        timezone.updateLocale(useLocale,
+        moment.tz.setDefault(timeZone);
+        moment.updateLocale(useLocale,
             {
                 week: {
                     dow: firstDayOfWeek, // First day of week (got from UserStatus).

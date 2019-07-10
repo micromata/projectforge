@@ -18,7 +18,7 @@
     "prop-types": "^15.7.2",
     "rc-time-picker": "^3.6.4",
     "react": "^16.8.6",
-    "react-big-calendar": "^0.21.0",
+    "react-big-calendar": "^0.22.0",
     "react-color": "^2.17.3",
     "react-cookies": "^0.1.0",
     "react-day-picker": "^7.3.0",
