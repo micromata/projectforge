@@ -10,8 +10,8 @@ import MomentLocaleUtils, { formatDate, parseDate } from 'react-day-picker/momen
 import { connect } from 'react-redux';
 import AdditionalLabel from '../../../../design/input/AdditionalLabel';
 import style from '../../../../design/input/Input.module.scss';
-import ValidationManager from '../../../../design/input/ValidationManager';
 import { DynamicLayoutContext } from '../../context';
+import DynamicValidationManager from './DynamicValidationManager';
 
 function DynamicTimestampInput(
     {
@@ -58,7 +58,7 @@ function DynamicTimestampInput(
         return (
             <React.Fragment>
                 <span className={style.text}>{label}</span>
-                <ValidationManager>
+                <DynamicValidationManager id={id}>
                     <DayPickerInput
                         formatDate={formatDate}
                         parseDate={parseDate}
@@ -80,7 +80,7 @@ function DynamicTimestampInput(
                         onChange={handleTimeChange()}
                     />
                     <AdditionalLabel title={additionalLabel} />
-                </ValidationManager>
+                </DynamicValidationManager>
             </React.Fragment>
         );
     }, [date]);

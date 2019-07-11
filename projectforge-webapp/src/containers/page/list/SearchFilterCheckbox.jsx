@@ -3,7 +3,6 @@ import React from 'react';
 import DynamicCheckbox
     from '../../../components/base/dynamicLayout/components/input/DynamicCheckbox';
 import CheckBox from '../../../components/design/input/CheckBox';
-import ValidationManager from '../../../components/design/input/ValidationManager';
 import { ListPageContext } from './ListPageContext';
 
 // The checkbox for the SearchFilter that consumes the filter data from the DynamicLayout
@@ -20,14 +19,12 @@ function SearchFilterCheckbox({ id, label }) {
             .setSearchFilter(id, target.checked);
 
         return (
-            <ValidationManager>
-                <CheckBox
-                    id={id}
-                    label={label}
-                    checked={filter.searchFilter[id] || false}
-                    onChange={handleCheckboxChange}
-                />
-            </ValidationManager>
+            <CheckBox
+                id={id}
+                label={label}
+                checked={filter.searchFilter[id] || false}
+                onChange={handleCheckboxChange}
+            />
         );
     }, [filter]);
 }
