@@ -25,23 +25,24 @@ package org.projectforge.business.book
 
 import org.projectforge.common.i18n.I18nEnum
 
-/**
- *
- * @author Kai Reinhard (k.reinhard@micromata.de)
- *
- *
- *  MISSED - Book not found (espacially after an inventory).
- *  PRESENT - Book is present at the office ore lend out is known.
- *  DISPOSED - Book is disposed.
- *
- */
 enum class BookStatus private constructor(
         /**
          * The key will be used e. g. for i18n.
-         * @return
          */
         val key: String) : I18nEnum {
-    PRESENT("present"), MISSED("missed"), DISPOSED("disposed"), UNKNOWN("unknown");
+    /**
+     * Book is present at the office ore lend out is known.
+     */
+    PRESENT("present"),
+    /**
+     * Book not found (especially after an inventory).
+     */
+    MISSED("missed"),
+    /**
+     * Book is disposed.
+     */
+    DISPOSED("disposed"),
+    UNKNOWN("unknown");
 
     /**
      * @return The full i18n key including the i18n prefix "book.status.".
