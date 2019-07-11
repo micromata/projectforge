@@ -157,8 +157,8 @@ function ListPage(
             .catch(setError);
     };
 
-    const callAction = (actionId) => {
-        switch (actionId) {
+    const callAction = (action) => {
+        switch (action.id) {
             case 'search':
                 performListUpdate();
                 break;
@@ -166,7 +166,7 @@ function ListPage(
                 performReset();
                 break;
             default:
-                throw Error(`Action ${actionId} not implemented.`);
+                throw Error(`Action ${action.id} not implemented.`);
         }
     };
 
