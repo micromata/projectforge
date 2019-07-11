@@ -4,21 +4,20 @@ import { colorPropType } from '../../../../utilities/propTypes';
 import { Button } from '../../../design';
 import { DynamicLayoutContext } from '../context';
 
-function DynamicActionButton(
-    {
+function DynamicActionButton(props) {
+    const {
         default: isDefault,
-        id,
         style,
         title,
-    },
-) {
+    } = props;
+
     const { callAction } = React.useContext(DynamicLayoutContext);
 
     const handleClick = (event) => {
         event.preventDefault();
         event.stopPropagation();
 
-        callAction(id);
+        callAction(props);
     };
 
     let type = 'button';
@@ -39,7 +38,6 @@ function DynamicActionButton(
 }
 
 DynamicActionButton.propTypes = {
-    id: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
     default: PropTypes.bool,
     style: colorPropType,

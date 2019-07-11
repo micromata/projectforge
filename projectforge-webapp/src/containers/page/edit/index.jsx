@@ -66,15 +66,15 @@ class EditPage extends React.Component {
         return absoluteNewData;
     }
 
-    callAction(id) {
-        const actionFunction = this.props[id];
+    callAction(action) {
+        const actionFunction = this.props[action.id];
 
         if (actionFunction) {
             actionFunction();
             return;
         }
 
-        throw Error(`Action ${id} not handled.`);
+        throw Error(`Action ${action.id} not handled.`);
     }
 
     render() {
