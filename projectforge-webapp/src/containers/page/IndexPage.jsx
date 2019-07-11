@@ -130,10 +130,6 @@ class IndexPage extends React.Component {
                                 versa. see classic version.
                             </li>
                             <li>
-                                Display field validation errors in ReactSelect and date input
-                                fields
-                            </li>
-                            <li>
                                 Edit / rename entry of favorite filter, e. g. calendar page (star
                                 icon)
                             </li>
@@ -190,6 +186,10 @@ class IndexPage extends React.Component {
                             <li>
                                 Clone button (e. g. address): reload page with data sent by server
                                 as response after fetching clone
+                            </li>
+                            <li>
+                                Display field validation errors in ReactSelect and date input
+                                fields
                             </li>
                         </ol>
                     </Col>
