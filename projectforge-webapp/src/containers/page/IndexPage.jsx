@@ -129,7 +129,6 @@ class IndexPage extends React.Component {
                                 switch from edit page time-sheets to calendar event and vica
                                 versa. see classic version.
                             </li>
-                            <li>Display global validation errors of forms</li>
                             <li>
                                 Display field validation errors in ReactSelect and date input
                                 fields
@@ -143,10 +142,6 @@ class IndexPage extends React.Component {
                                 field communication language of edit page for addresses).
                             </li>
                             <li>Enable localized customized pages (login page, setup page etc.)</li>
-                            <li>
-                                Clone button (e. g. address): reload page with data sent by server
-                                as response after fetching clone
-                            </li>
                             <li>
                                 Edit page in Modals: handle tabs (especially history), see time
                                 sheet edit page as modal of CalendarPage.
@@ -190,6 +185,11 @@ class IndexPage extends React.Component {
                                         Logo service: rsPublic/logo.png (rsPublic/&lt;logoUrl&gt;)
                                     </li>
                                 </ol>
+                            </li>
+                            <li>Display global validation errors of forms</li>
+                            <li>
+                                Clone button (e. g. address): reload page with data sent by server
+                                as response after fetching clone
                             </li>
                         </ol>
                     </Col>
