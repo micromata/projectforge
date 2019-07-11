@@ -185,6 +185,7 @@ function ListPage(
                 filter,
                 filterFavorites,
                 filterHelper,
+                setFilterFavorites,
                 setUI,
             }}
         >

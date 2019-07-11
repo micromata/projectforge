@@ -74,6 +74,13 @@ export const defaultValues = {
         setSearchFilter: (id, value) => notImplementedFunction(),
     },
     /**
+     * Set the filter favorites.
+     * @param {Object} filterFavorites The filter favorites provided by the rest api.
+     */
+    // Disable no-unused-vars so its clear what you need to override the function.
+    /* eslint-disable-next-line no-unused-vars */
+    setFilterFavorites: filterFavorites => notImplementedFunction(),
+    /**
      * Set the ui object. Needed for favorite handling.
      * @param {Object} ui The ui object provided by rest. See DynamicLayoutContext.ui
      */
