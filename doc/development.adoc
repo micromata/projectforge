@@ -349,10 +349,21 @@ Simple example (books)
 |===
 |Class|Description|link
 
-|`BookDO`|Defines the entity|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/book/BookDO.kt
-|`BookDao`|Defines access rights and special functionality for books|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/book/BookDO.kt
-|`BookRest`|Books with support of ReactJS as well as REST API for CRUD operations|https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/BookRest.kt
-|`BookStatus`|Enumeration of book status|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/java/org/projectforge/business/book/BookStatus.java
+|`BookDO`
+|Defines the entity
+|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/book/BookDO.kt[BookDO.kt]
+
+|`BookDao`
+|Defines access rights and special functionality for books
+|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/java/org/projectforge/business/book/BookDao.java[BookDao.java]
+
+|`BookRest`
+|Books with support of ReactJS as well as REST API for CRUD operations
+|https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/BookRest.kt[BookRest.kt]
+
+|`BookStatus`
+|Enumeration of book status including i18n
+|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/book/BookStatus.kt[BookStatus.kt]
 |===
 
 Nothing more is needed to have a simple entity provided by ProjectForge!!! No HTML, no JavaScript, nothing else.
@@ -362,12 +373,23 @@ Nothing more is needed to have a simple entity provided by ProjectForge!!! No HT
 Simple example (addresses) with more fields and UI layout with more fieldsets and columns (supporting different screen resolutions, responsive).
 [cols=3*,options="header"]
 |===
-|Class|Description|link
+|Class|Description|Link
 
-|`AddressDO`|Defines the entity|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/address/AddressDO.kt
-|`AddressDao`|Defines access rights and special functionality for addresses|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/book/BookDO.kt
-|`AddressRest`|Addresses with support of ReactJS (responsive) as well as REST API for CRUD operations|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/java/org/projectforge/business/address/AddressDao.java
-|'Address`|Data transfer object for the client. For simple objects, the BaseDO object may be used for the REST-CRUD functionality. For more complex objects providing special functionality, the usage of a DTO is required/recommended. |https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/Address.kt
+|`AddressDO`
+|Defines the entity
+|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/address/AddressDO.kt[AddressDO.kt]
+
+|`AddressDao`
+|Defines access rights and special functionality for addresses
+|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/java/org/projectforge/business/address/AddressDao.java[AddressDao.java]
+
+|`AddressRest`
+|Addresses with support of ReactJS (responsive) as well as REST API for CRUD operations
+|https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/AddressRest.kt[AddressRest.kt]
+
+|`Address`
+|Data transfer object for the client. For simple objects, the BaseDO object may be used for the REST-CRUD functionality. For more complex objects providing special functionality, the usage of a DTO is required/recommended.
+|https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/Address.kt[Address.kt]
 |===
 
 Nothing more is needed to have a simple entity provided by ProjectForge!!! No HTML, no JavaScript, nothing else.
