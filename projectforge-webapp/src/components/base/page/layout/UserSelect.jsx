@@ -147,6 +147,7 @@ class UserSelect extends React.Component {
 
 UserSelect.propTypes = {
     changeDataField: PropTypes.func.isRequired,
+    data: PropTypes.shape().isRequired,
     required: PropTypes.bool,
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
