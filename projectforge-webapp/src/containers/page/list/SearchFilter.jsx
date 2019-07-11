@@ -194,6 +194,7 @@ function SearchFilter() {
                                 isModified
                                 closeOnSelect={false}
                                 translations={ui.translations}
+                                htmlId="searchFilterFavoritesPopover"
                             />
                         </Col>
                     </Row>
