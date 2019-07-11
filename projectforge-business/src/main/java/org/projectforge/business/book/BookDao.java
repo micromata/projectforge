@@ -28,8 +28,6 @@ import org.apache.commons.lang3.Validate;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
-import org.projectforge.business.task.TaskDO;
-import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseDao;
@@ -48,27 +46,12 @@ import java.util.List;
  */
 @Repository
 public class BookDao extends BaseDao<BookDO> {
-  // private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BookDao.class);
 
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"lendOutBy.username", "lendOutBy.firstname",
           "lendOutBy.lastname"};
 
   @Autowired
   private UserDao userDao;
-
-  // Deprecated (will be removed)
-  @Deprecated
-  private TaskDO rootTask;
-
-  /**
-   * Need lazy init due to TenantRegistryHelper.
-   */
-  @Deprecated
-  private TaskDO getRootTask() {
-    if (rootTask == null)
-      rootTask = TaskTreeHelper.getTaskTree().getRootTaskNode().getTask();
-    return rootTask;
-  }
 
   public BookDao() {
     super(BookDO.class);
@@ -79,6 +62,9 @@ public class BookDao extends BaseDao<BookDO> {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
+  /**
+   * Optional if you have your own BaseSearchFilter (here Bookfilter). This special filter will be obsolete since version 7.x.
+   */
   @Override
   public List<BookDO> getList(final BaseSearchFilter filter) {
     final BookFilter myFilter;

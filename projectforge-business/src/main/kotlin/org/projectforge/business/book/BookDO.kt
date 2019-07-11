@@ -35,6 +35,8 @@ import java.util.*
 import javax.persistence.*
 
 /**
+ * For managing libraries including lend-out functionality.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
@@ -157,8 +159,4 @@ class BookDO : DefaultBaseDO() {
             }
             return buf.toString()
         }
-
-    companion object {
-        private val serialVersionUID = 8036741307214351813L
-    }
 }
