@@ -4,6 +4,7 @@ import FavoritesPanel from '../../../../../containers/panel/FavoritesPanel';
 import { getServiceURL, handleHTTPErrors } from '../../../../../utilities/rest';
 import ReactSelect from '../../../../design/ReactSelect';
 import { DynamicLayoutContext } from '../../context';
+import DynamicValidationManager from '../input/DynamicValidationManager';
 
 export const extractDataValue = (
     {
@@ -79,14 +80,17 @@ function DynamicReactSelect(props) {
 
         return (
             <React.Fragment>
-                <ReactSelect
-                    onChange={onChange}
-                    translations={ui.translations}
-                    {...props}
-                    value={value}
-                    loadOptions={(url && url.length > 0) ? loadOptions : undefined}
-                />
-                {favoritesElement}
+                <DynamicValidationManager id={id}>
+                    <ReactSelect
+                        className="invalid"
+                        onChange={onChange}
+                        translations={ui.translations}
+                        {...props}
+                        value={value}
+                        loadOptions={(url && url.length > 0) ? loadOptions : undefined}
+                    />
+                    {favoritesElement}
+                </DynamicValidationManager>
             </React.Fragment>
         );
     }, [data[id], value]);
