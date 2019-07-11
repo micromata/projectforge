@@ -7,6 +7,7 @@ import LoadingContainer from '../../../components/design/loading-container';
 import history from '../../../utilities/history';
 import { getTranslation } from '../../../utilities/layout';
 import { getObjectFromQuery, getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
+import revisedRandomId from '../../../utilities/revisedRandomId';
 import style from '../../ProjectForge.module.scss';
 import EditHistory from './history';
 
@@ -24,6 +25,10 @@ function EditPage({ match, location }) {
     const loadPage = () => {
         setLoading(false);
         setError(undefined);
+        setUI({});
+        setDataState({});
+        setValidationErrors([]);
+        setVariables({});
 
         const params = {
             ...getObjectFromQuery(location.search || ''),
@@ -67,6 +72,7 @@ function EditPage({ match, location }) {
 
         setLoading(true);
         setError(undefined);
+        setValidationErrors([]);
 
         let status = 0;
 
@@ -170,6 +176,26 @@ function EditPage({ match, location }) {
         });
     }
 
+    const globalValidation = React.useMemo(() => {
+        const globalErrors = validationErrors.filter(entry => entry.fieldId === undefined);
+
+        if (globalErrors.length === 0) {
+            return <React.Fragment />;
+        }
+
+        return (
+            <Alert color="danger">
+                <ul>
+                    {globalErrors.map(entry => (
+                        <li key={`edit-page-global-validation-${revisedRandomId()}`}>
+                            {entry.message}
+                        </li>
+                    ))}
+                </ul>
+            </Alert>
+        );
+    }, [validationErrors]);
+
     return (
         <LoadingContainer loading={loading}>
             <TabNavigation
@@ -196,7 +222,9 @@ function EditPage({ match, location }) {
                                 ui={ui}
                                 validationErrors={validationErrors}
                                 variables={variables}
-                            />
+                            >
+                                {globalValidation}
+                            </DynamicLayout>
                         </form>
                     </Container>
                 </TabPane>
