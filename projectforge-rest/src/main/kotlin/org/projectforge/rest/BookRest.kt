@@ -24,8 +24,12 @@
 package org.projectforge.rest
 
 import org.projectforge.Const
-import org.projectforge.business.book.*
+import org.projectforge.business.book.BookDO
+import org.projectforge.business.book.BookDao
+import org.projectforge.business.book.BookStatus
+import org.projectforge.business.book.BookType
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.rest.core.Validation
@@ -36,7 +40,7 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/book")
-class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::class.java, BookFilter::class.java, "book.title") {
+class BookRest() : AbstractDORest<BookDO, BookDao, BaseSearchFilter>(BookDao::class.java, BaseSearchFilter::class.java, "book.title") {
 
     /**
      * Initializes new books for adding.
@@ -62,8 +66,6 @@ class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::class.ja
                 .add(UITable.UIResultSetTable()
                         .add(lc, "created", "yearOfPublishing", "signature", "authors", "title", "keywords", "lendOutBy"))
         layout.getTableColumnById("lendOutBy").formatter = Formatter.USER
-        LayoutUtils.addListFilterContainer(layout, "present", "missed", "disposed",
-                filterClass = BookFilter::class.java)
         return LayoutUtils.processListPage(layout)
     }
 

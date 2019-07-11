@@ -189,7 +189,6 @@ class AddressRest()
                         .add(lc, "addressbookList"))
         layout.getTableColumnById("address.lastUpdate").formatter = Formatter.DATE
         LayoutUtils.addListFilterContainer(layout,
-                UICheckbox("filter", label = "filter"),
                 UICheckbox("newest", label = "filter.newest"),
                 UICheckbox("favorites", label = "address.filter.myFavorites"),
                 UICheckbox("dublets", label = "address.filter.doublets"))

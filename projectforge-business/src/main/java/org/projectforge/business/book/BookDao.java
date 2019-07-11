@@ -25,20 +25,13 @@ package org.projectforge.business.book;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.Validate;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseDao;
-import org.projectforge.framework.persistence.api.BaseSearchFilter;
-import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -60,41 +53,6 @@ public class BookDao extends BaseDao<BookDO> {
   @Override
   protected String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
-  }
-
-  /**
-   * Optional if you have your own BaseSearchFilter (here Bookfilter). This special filter will be obsolete since version 7.x.
-   */
-  @Override
-  public List<BookDO> getList(final BaseSearchFilter filter) {
-    final BookFilter myFilter;
-    if (filter instanceof BookFilter) {
-      myFilter = (BookFilter) filter;
-    } else {
-      myFilter = new BookFilter(filter);
-    }
-    final QueryFilter queryFilter = new QueryFilter(myFilter);
-    Collection<BookStatus> col = null;
-    Criterion inCrit = null;
-    if (myFilter.isPresent() == true || myFilter.isMissed() == true || myFilter.isDisposed() == true) {
-      col = new ArrayList<BookStatus>();
-      if (myFilter.isPresent() == true) {
-        // Book must be have status 'present'.
-        col.add(BookStatus.PRESENT);
-      }
-      if (myFilter.isMissed() == true) {
-        // Book must be have status 'missed'.
-        col.add(BookStatus.MISSED);
-      }
-      if (myFilter.isDisposed() == true) {
-        // Book must be have status 'disposed'.
-        col.add(BookStatus.DISPOSED);
-      }
-      queryFilter.add(Restrictions.in("status", col));
-    }
-    queryFilter.addOrder(Order.desc("created"));
-    queryFilter.addOrder(Order.asc("authors"));
-    return getList(queryFilter);
   }
 
   /**
