@@ -11,11 +11,46 @@ link:index{outfilesuffix}[Top]
 
 :sectnums:
 
+== Architecture
 
-== Kotlin
+=== The layers
+
+The main functionality of ProjectForge is to display and search data list and to modify data (CRUD - create, read, update and delete). Therefore the
+goal of the architecture is not to write thousands lines of code for same base functionality.
+
+==== Business layer (business)
+
+The business layer handles all entities including access checking for CRUD operations as well as well as user services (storage for preferences etc.).
+
+
+==== REST API and front-end support (rest)
+
+The REST layer provides CRUD services etc. and also front-end support functionality. These both parts might be separated, but regarding code efficiency both are combined.
+For using only CRUD operations (without interest in the front-end support functionality), so simply ignore some additional information in the result data (json).
+
+==== ReactJS (webapp)
+
+The ReactJS layer handles the data and UI layout information provided by the REST API. A dynamic layout management system is used to visualize the
+html pages defined by the server. In addition customized components are provided for specialized functionality.
+
+Except for the customized components and pages, the client has no clue, of what entities are provided by the server. The client gets the menu from the server and
+calls the server for how to proceed for given entities (e. g. list or edit view of users, addresses, book, time sheets etc.). The server provides both, the data
+to display (model) and the layout information of how to display (view).
+The users actions (clicking on buttons or menu entries) results in most cases in server calls, and the server responses how to proceed:
+
+1. The front-end supports defined state manipulations by the server (see below, e. g. selecting favorite filter etc., or list of calendar events after selecting calendars etc.)
+2. The server may respond in addition on URLs to redirect to by the front-end.
+3. The server provides also validation information (e. g. max-length of text input fields) as well as errors after complex server-side validations after submitting a form.
+4. The front-end defines customized pages and components (non standard components are not ruled by the server). Examples: Image upload for addresses or lend-out functionality for books.
+
+
+== Backend
+
+Java is the language used since the very beginning of ProjectForge in 2001.
+
 With ProjectForge 7.x Kotlin and ReactJS is introduced.
 
-=== Why Kotlin
+=== Why Kotlin in addition to Java?
 * Kotlin is used for smarter and less code, especially for BaseDO objects as well as for easier creation of data transfer classes for the new introduced REST API.
 * Other advantages:
   ** Smart operations on collections (map, find, sort etc.)
@@ -85,6 +120,9 @@ labels.
 ==== BaseDao
 The BaseDao classes provide all CRUD operations for the BaseDO entities and will handle the access rights. No user is able to select or modify entities without the required access rights.
 
+The implementation of BaseDao for entities, such as users, addresses, books etc. extends the BaseDao object by defining the access rights and additional special functionality. The base CRUD functionality including access
+checks, history service etc. will be inherited.
+
 == REST API
 
 Since version 7.0 ProjectForge provides all CRUD operations through a REST API and much more. The user's access rights will be checked. For available standard REST calls you
@@ -104,6 +142,8 @@ The new UI is based on REST and ReactJS. The ReactJS code includes a dynamic aut
 |...|...
 |===
 
+=== Responsive
+Bootstrap is used and responsive layout control is fully supported.
 
 === Standard list views
 
@@ -290,12 +330,49 @@ a|* The new URL to redirect to.
             ...
 ----
 
+==== REST-API: JPA entities vs. DTO
+For simple objects the JPA objects (BaseDO) may be used for the CRUD functionality through the REST-API. For more complex objects, especially if these objects
+are embedded by other entities (users, tasks etc.) a DTO (data transfer object) has to be used.
+
+In thanks to Kotlin, the creation of a DTO is very simple and efficient. Examples:
+
+* `Address` The DTO for addresses is needed, because addresses may contain images with a special handling: https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/Address.kt
+* `User` The DTO for users is needed, because user objects are embedded in other JPA entities: https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/User.kt
+* `Task` Task is embedded by other entities as well: https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/Task.kt
+
+The base class `BaseDTO` provides base functionality for the automatically transformation of DTO and BaseDO.
 
 ==== Putting all together in Kotlin code
 
-Please see `BookRest`[https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/BookRest.kt]
-as an example. Nothing more is needed to create a list and edit page for an entity.
+Simple example (books)
+[cols=3*,options="header"]
+|===
+|Class|Description|link
 
-There is no more code (HTML, JavaScript or anything else needed).
+|`BookDO`|Defines the entity|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/book/BookDO.kt
+|`BookDao`|Defines access rights and special functionality for books|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/book/BookDO.kt
+|`BookRest`|Books with support of ReactJS as well as REST API for CRUD operations|https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/BookRest.kt
+|`BookStatus`|Enumeration of book status|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/java/org/projectforge/business/book/BookStatus.java
+|===
+
+Nothing more is needed to have a simple entity provided by ProjectForge!!! No HTML, no JavaScript, nothing else.
+
+(The used BookFilter is deprecated and will be removed in 7.x., the new MagicFilter will replace most filters.)
+
+Simple example (addresses) with more fields and UI layout with more fieldsets and columns (supporting different screen resolutions, responsive).
+[cols=3*,options="header"]
+|===
+|Class|Description|link
+
+|`AddressDO`|Defines the entity|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/address/AddressDO.kt
+|`AddressDao`|Defines access rights and special functionality for addresses|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/book/BookDO.kt
+|`AddressRest`|Addresses with support of ReactJS (responsive) as well as REST API for CRUD operations|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/java/org/projectforge/business/address/AddressDao.java
+|'Address`|Data transfer object for the client. For simple objects, the BaseDO object may be used for the REST-CRUD functionality. For more complex objects providing special functionality, the usage of a DTO is required/recommended. |https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/Address.kt
+|===
+
+Nothing more is needed to have a simple entity provided by ProjectForge!!! No HTML, no JavaScript, nothing else.
+
+(The used BookFilter is deprecated and will be removed in 7.x., the new MagicFilter will replace most filters.)
+
 
 For creating own entities a description for smart plugins with a minimum of code is under construction.
