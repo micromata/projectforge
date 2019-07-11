@@ -28,6 +28,9 @@ The business layer handles all entities including access checking for CRUD opera
 The REST layer provides CRUD services etc. and also front-end support functionality. These both parts might be separated, but regarding code efficiency both are combined.
 For using only CRUD operations (without interest in the front-end support functionality), so simply ignore some additional information in the result data (json).
 
+Yes, you're totally right: Should you not separate front-end from back-end code more strictly? But, the code is separated and despite the fact, that UI layout info and CRUD services are combined, it should be allowed
+to have a server-side application support. So this REST-API is a result of efficient development without dozens of front-end and back-end developers.
+
 ==== ReactJS (webapp)
 
 The ReactJS layer handles the data and UI layout information provided by the REST API. A dynamic layout management system is used to visualize the
@@ -154,11 +157,11 @@ Available REST calls:
 |Rest call|Description|Return values
 
 |`rs/address/initialList`
-|Initial call for displaying a list including layout and filter
+|Initial call for displaying a list including layout, recent filter settings, result data and favorites.
 a|* UI layout (available filter options, columns of the result data, page menu items, ...)
-* recent used filter by the user
-* Available favorites
-* Result set
+* Recent used filter settings by the user.
+* Available personal favorites.
+* Result set for recent filter.
 
 |`rs/address/list`
 |Call with current filter settings as POST parameter after clicking the search button.
@@ -168,12 +171,11 @@ a|* Result set matching the given filter settings.
 |For creating a new favorite filter. The current filter settings of the UI including the specified name of the new filter are required.
 a|* filter (new current filter)
 
-|`rs/address/filter/select?id={filter-id}`
+|`rs/address/filter/select?id={filterId}`
 |For selecting a previous stored favorite filter. Same parameter as for initialList will be returned.
 a|* UI layout
-  * recent used filter by the user
-  * Available favorites
-  * Result set
+  * New filter settings from selected favorite.
+  * Result set matching the new selected filter.
 
 |`rs/address/filter/update`
 |For updating the current filter with the new filter settings done by the user.
@@ -217,14 +219,115 @@ a|* The default filter.
             "type": "TABLE_COLUMN",
             "key": "el-2"
           },
-   ...
+     ...
+    "namedContainers": [
+     {
+        "id": "searchFilter",
+        "content": [
+          {
+            "id": "name",
+            "filterType": "STRING",
+            "label": "Name",
+            "type": "FILTER_ELEMENT",
+            "key": "name"
+          },
+          {
+            "id": "contactStatus",
+            "type": "SELECT",
+            "key": null,
+            "required": true,
+            "multi": true,
+            "label": "Contact status",
+            "labelProperty": "label",
+            "valueProperty": "value",
+            "values": [
+              {
+                "value": "ACTIVE",
+                "label": "active"
+              },
+              {
+                "value": "NON_ACTIVE",
+                "label": "non-active"
+              },
+              ...
+            ]
+          },
+          {
+            "id": "modifiedByUser",
+            "label": "modified by",
+            "autoCompletion": {
+              "minChars": 2,
+              "url": "user/ac"
+            },
+            "type": "FILTER_ELEMENT",
+            "key": "modifiedByUser",
+            "filterType": "OBJECT"
+          },
+          {
+            "id": "modifiedInterval",
+            "label": "Time of modification",
+            "openInterval": true,
+            "selectors": [
+              "YEAR",
+              "MONTH",
+              "WEEK",
+              "DAY",
+              "UNTIL_NOW"
+            ],
+            "type": "FILTER_ELEMENT",
+            "key": "modifiedInterval",
+            "filterType": "TIME_STAMP"
+          },
+       ...
+   "actions": [
+      {
+        "id": "reset",
+        "title": "Reset",
+        "style": "danger",
+        "type": "BUTTON",
+        "key": "el-17"
+      },
+      {
+        "id": "search",
+    ...
+    "translations": {
+      "select.placeholder": "Select...",
+      "task.title.list.select": "Select structure element",
+      "favorites": "Favorites",
+      "favorite.addNew": "Add new favorite",
+     ...
+    "pageMenu": [
+      {
+        "id": "address.writeSMS",
+        "title": "Write a text message",
+        "i18nKey": "address.tooltip.writeSMS",
+        "url": "wa/sendSms"
+      },
+      ...
   "data": {
     "resultSet": [
       {
         "address": {
           "name": "Reinhard",
         ...
+  "filterFavorites": [
+    {
+      "id": 3,
+      "name": "People of Kassel"
+    },
+    ...
 ----
+
+Explanation
+|===
+|`ui`|Contains the page title and the layout information for the dynamic layout render engine (ReactJS).
+|`namedContainer`|Contains containers usable by the front-end, such as search filter and filter options.
+|`actions`|The action buttons to display and handle by the front-end.
+|`translations`|All required translations usable by the front-end for i18n.
+|`pageMenu`|The context menu to show on the list page including the actions to execute by the front-end.
+|`data`|Contains the result set with all result data matching the current filter settings.
+|`filterFavorites`|List of personal named filter favorites customizable by the user.
+|===
 
 === Standard edit pages
 
@@ -284,7 +387,6 @@ a|* The new URL to redirect to.
 ==== Example of json format
 
 .rs/address/initialList
-[#src-listing]
 [source,json]
 ----
 {
@@ -328,7 +430,109 @@ a|* The new URL to redirect to.
               "key": "el-24"
             },
             ...
+    "actions": [
+      {
+        "id": "cancel",
+        "title": "Cancel",
+        "style": "danger",
+        "type": "BUTTON",
+        "key": "el-137"
+      },
+      {
+        "id": "update",
+        "title": "Save",
+        "style": "primary",
+        "default": true,
+        "type": "BUTTON",
+        "key": "el-140"
+      }
+      ...
+    ],
+    "pageMenu": [
+      {
+        "id": "address.printView",
+        "title": "print view",
+        "i18nKey": "printView",
+        "url": "wa/addressView?id=2",
+        "type": "REDIRECT"
+      },
+      ...
+    "translations": {
+      "file.upload.dropArea": "Select a file, or drop it here.",
+      "label.historyOfChanges": "History of changes",
+      ...
 ----
+
+Explanation
+|===
+|`data`|Contains the result set with all result data matching the current filter settings.
+|`ui`|Contains the page title and the layout information for the dynamic layout render engine (ReactJS).
+|`actions`|The action buttons to display and handle by the front-end.
+|`pageMenu`|The context menu to show on the list page including the actions to execute by the front-end.
+|`translations`|All required translations usable by the front-end for i18n.
+|===
+
+==== Magic filter
+
+An example filter for querying a result set:
+
+.MagicFilter.json
+[source,json]
+----
+   "entries": [
+      {
+        "search": "fin"
+      },
+      {
+        "search": "inhard",
+        "matchType": "ENDS_WITH"
+      },
+      {
+        "search": "amb",
+        "matchType": "CONTAINS"
+      },
+      {
+        "field": "modifiedByUser",
+        "value": {
+          "id": 2,
+          "deleted": false
+        }
+      },
+      {
+        "field": "title",
+        "search": "java",
+        "matchType": "STARTS_WITH"
+      },
+      {
+        "field": "yearOfPublishing",
+        "fromValue": 2010
+      },
+      {
+        "field": "modifiedInterval",
+        "fromValue": "2019-04-28'T'10:00:05.000Z",
+        "toValue": "2019-04-28'T'17:00:05.000Z"
+      },
+      {
+        "field": "type",
+        "values": [
+          "BOOK",
+          "MAGAZINE"
+        ]
+      }
+    ]
+----
+
+Explanation for filter settings:
+|===
+|`"search": "fin"`|Full text search (for all fields) with standard `matchType=STARTS_WITH`: `fin*`
+|`"search": "inhard"`|Full text search (for all fields) with `matchType=ENDS_WITH`, `*fin`.
+|`"field": "modifiedByUser"`|Selects all entries modified by the given user.
+|`"field": "title"`|Selects entries with the matching title.
+|`"field": "yearOfPublishing"`|Selects entries with the `yearOfPublishing` 2010 and newer.
+|`"field": "modifiedInterval"`|Selects entries modified in the given time interval.
+|`"field": "type"`|Selects entries with the type matching one of the given values.
+|===
+
 
 ==== REST-API: JPA entities vs. DTO
 For simple objects the JPA objects (BaseDO) may be used for the CRUD functionality through the REST-API. For more complex objects, especially if these objects
