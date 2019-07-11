@@ -28,7 +28,8 @@ import org.projectforge.business.user.UserXmlPreferencesCache
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.rest.config.Rest
-import org.projectforge.ui.UIStyle
+import org.projectforge.ui.ResponseAction
+import org.projectforge.ui.TargetType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -56,7 +57,7 @@ open class LogoutRest {
     @GetMapping
     fun logout(request: HttpServletRequest,
                response: HttpServletResponse)
-            : ResponseData {
+            : ResponseAction {
         val stayLoggedInCookie = cookieService.getStayLoggedInCookie(request)
         val user = UserFilter.getUser(request)
         if (user != null) {
@@ -74,7 +75,6 @@ open class LogoutRest {
         if (stayLoggedInCookie != null) {
             response.addCookie(stayLoggedInCookie)
         }
-        return ResponseData("logout.successful", messageType = MessageType.TOAST, style = UIStyle.SUCCESS)
-        //Response.temporaryRedirect(restHelper.buildUri(request, "login")).build()
+        return ResponseAction(url = "/", targetType = TargetType.REDIRECT)
     }
 }
