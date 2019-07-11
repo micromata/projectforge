@@ -81,6 +81,8 @@ public class RestPaths
 
   public static final String CANCEL = "cancel";
 
+  public static final String EDIT = "edit";
+
   public static final String SAVE = "save";
 
   public static final String UPDATE = "update";

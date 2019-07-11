@@ -410,7 +410,7 @@ abstract class AbstractBaseRest<
      * a group with a separate label and input field will be generated.
      * layout will be also included if the id is not given.
      */
-    @GetMapping("edit")
+    @GetMapping(RestPaths.EDIT)
     fun getItemAndLayout(request: HttpServletRequest, @RequestParam("id") id: String?)
             : ResponseEntity<EditLayoutData> {
         val item = (if (null != id) getById(id, true) else newBaseDTO(request))
@@ -503,7 +503,7 @@ abstract class AbstractBaseRest<
             : ResponseAction {
         val item = prepareClone(dto)
         val editLayoutData = getItemAndLayout(request, item)
-        return ResponseAction(targetType = TargetType.UPDATE)
+        return ResponseAction(url = getRestPath(RestPaths.EDIT), targetType = TargetType.UPDATE)
                 .addVariable("data", editLayoutData.data)
                 .addVariable("ui", editLayoutData.ui)
                 .addVariable("variables", editLayoutData.variables)
