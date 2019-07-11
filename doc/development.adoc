@@ -476,20 +476,14 @@ Explanation
 
 An example filter for querying a result set:
 
+image::images/Books-magicfilter.png[]
+
 .MagicFilter.json
 [source,json]
 ----
    "entries": [
       {
         "search": "fin"
-      },
-      {
-        "search": "inhard",
-        "matchType": "ENDS_WITH"
-      },
-      {
-        "search": "amb",
-        "matchType": "CONTAINS"
       },
       {
         "field": "modifiedByUser",
@@ -504,13 +498,13 @@ An example filter for querying a result set:
         "matchType": "STARTS_WITH"
       },
       {
-        "field": "yearOfPublishing",
-        "fromValue": 2010
-      },
-      {
         "field": "modifiedInterval",
         "fromValue": "2019-04-28'T'10:00:05.000Z",
         "toValue": "2019-04-28'T'17:00:05.000Z"
+      },
+      {
+        "field": "yearOfPublishing",
+        "fromValue": 2010
       },
       {
         "field": "type",
@@ -525,11 +519,10 @@ An example filter for querying a result set:
 Explanation for filter settings:
 |===
 |`"search": "fin"`|Full text search (for all fields) with standard `matchType=STARTS_WITH`: `fin*`
-|`"search": "inhard"`|Full text search (for all fields) with `matchType=ENDS_WITH`, `*fin`.
 |`"field": "modifiedByUser"`|Selects all entries modified by the given user.
 |`"field": "title"`|Selects entries with the matching title.
-|`"field": "yearOfPublishing"`|Selects entries with the `yearOfPublishing` 2010 and newer.
 |`"field": "modifiedInterval"`|Selects entries modified in the given time interval.
+|`"field": "yearOfPublishing"`|Selects entries with the `yearOfPublishing` 2010 and newer.
 |`"field": "type"`|Selects entries with the type matching one of the given values.
 |===
 
