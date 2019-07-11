@@ -100,7 +100,7 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao, TeamEventFilte
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
                         .add(lc, "subject"))
-        return LayoutUtils.processListPage(layout)
+        return LayoutUtils.processListPage(layout, this)
     }
 
     /**
@@ -114,6 +114,7 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao, TeamEventFilte
         val subject = UIInput("subject", lc)
         subject.focus = true
         val layout = super.createEditLayout(dto)
+        //layout.addAction(UIButton("switchToTimesheet", style = UIStyle.PRIMARY, default = true))
         if (dto.hasRecurrence()) {
             layout.add(UIFieldset(12, title = "plugins.teamcal.event.recurrence.change.text")
                     .add(UIGroup()

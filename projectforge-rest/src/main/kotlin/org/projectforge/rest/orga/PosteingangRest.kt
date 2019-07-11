@@ -65,7 +65,7 @@ class PosteingangRest(): AbstractDORest<PosteingangDO, PosteingangDao, PostFilte
         layout.getTableColumnById("datum").formatter = Formatter.DATE
         LayoutUtils.addListFilterContainer(layout, UILabel("'TODO: date range"),
                 filterClass = PostFilter::class.java)
-        return LayoutUtils.processListPage(layout)
+        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

@@ -56,7 +56,7 @@ class RechnungRest() : AbstractDORest<RechnungDO, RechnungDao, BaseSearchFilter>
         layout.getTableColumnById("bezahlDatum").formatter = Formatter.DATE
         layout.getTableColumnById("periodOfPerformanceBegin").formatter = Formatter.DATE
         layout.getTableColumnById("periodOfPerformanceEnd").formatter = Formatter.DATE
-        return LayoutUtils.processListPage(layout)
+        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

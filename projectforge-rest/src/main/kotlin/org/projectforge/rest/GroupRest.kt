@@ -69,7 +69,7 @@ class GroupRest() : AbstractDTORest<GroupDO, Group, GroupDao, GroupFilter>(Group
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
                         .add(lc, "name", "organization", "description", "assignedUsers", "ldapValues"))
-        return LayoutUtils.processListPage(layout)
+        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

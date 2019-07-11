@@ -61,7 +61,7 @@ class KundeRest
                 .add(UITable.UIResultSetTable()
                         .add(lc, "nummer", "identifier", "name", "division", "konto", "status", "description"))
         layout.getTableColumnById("konto").formatter = Formatter.KONTO
-        return LayoutUtils.processListPage(layout)
+        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

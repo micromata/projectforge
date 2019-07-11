@@ -436,7 +436,22 @@ a|* The new URL to redirect to.
         "title": "Cancel",
         "style": "danger",
         "type": "BUTTON",
-        "key": "el-137"
+        "key": "el-137",
+        "responseAction": {
+          "url": "address/cancel",
+          "targetType": "POST"
+        }
+      },
+      {
+        "id": "markAsDeleted",
+        "title": "Mark as deleted",
+        "style": "warning",
+        "type": "BUTTON",
+        "key": "el-138",
+        "responseAction": {
+          "url": "address/markAsDeleted",
+          "targetType": "DELETE"
+        }
       },
       {
         "id": "update",
@@ -444,7 +459,11 @@ a|* The new URL to redirect to.
         "style": "primary",
         "default": true,
         "type": "BUTTON",
-        "key": "el-140"
+        "key": "el-140",
+        "responseAction": {
+          "url": "address/saveorupdate",
+          "targetType": "POST"
+        }
       }
       ...
     ],

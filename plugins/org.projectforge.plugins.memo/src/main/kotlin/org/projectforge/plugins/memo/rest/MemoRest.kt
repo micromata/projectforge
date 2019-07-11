@@ -55,7 +55,7 @@ class MemoRest() : AbstractDORest<MemoDO, MemoDao, BaseSearchFilter>(MemoDao::cl
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
                         .add(lc, "created", "lastUpdate", "subject", "memo"))
-        return LayoutUtils.processListPage(layout)
+        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

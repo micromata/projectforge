@@ -66,7 +66,7 @@ class LayoutUtils {
          * <br>
          * If no named container called "filter-options" is found, it will be attached automatically by calling [addListFilterContainer]
          */
-        fun processListPage(layout: UILayout): UILayout {
+        fun processListPage(layout: UILayout, restService: AbstractBaseRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>, out BaseSearchFilter>): UILayout {
             var found = false
             layout.namedContainers.forEach {
                 if (it.id == "filterOptions") {
@@ -77,8 +77,13 @@ class LayoutUtils {
                 addListFilterContainer(layout)
             }
             layout
-                    .addAction(UIButton("reset", style = UIStyle.DANGER))
-                    .addAction(UIButton("search", style = UIStyle.PRIMARY, default = true))
+                    .addAction(UIButton("reset",
+                            style = UIStyle.DANGER,
+                            responseAction = ResponseAction(restService.getRestPath(RestPaths.FILTER_RESET), targetType = TargetType.GET)))
+                    .addAction(UIButton("search",
+                            style = UIStyle.PRIMARY,
+                            default = true,
+                            responseAction = ResponseAction(restService.getRestPath(RestPaths.LIST), targetType = TargetType.POST)))
             process(layout)
             addCommonTranslations(layout)
             Favorites.addTranslations(layout.translations)

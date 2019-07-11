@@ -49,7 +49,7 @@ class VacationRest : AbstractDORest<VacationDO, VacationDao, BaseSearchFilter>(V
                                 "specialLeave", "manager", "substitution"))
         layout.getTableColumnById("startDate").formatter = Formatter.DATE
         layout.getTableColumnById("endDate").formatter = Formatter.DATE
-        return LayoutUtils.processListPage(layout)
+        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

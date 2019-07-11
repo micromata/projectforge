@@ -222,7 +222,7 @@ class AddressRest()
                 tooltipTitle = "address.book.export.appleScript4Notes",
                 tooltip = "address.book.export.appleScript4Notes.tooltip",
                 type = MenuItemTargetType.DOWNLOAD))
-        return LayoutUtils.processListPage(layout)
+        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

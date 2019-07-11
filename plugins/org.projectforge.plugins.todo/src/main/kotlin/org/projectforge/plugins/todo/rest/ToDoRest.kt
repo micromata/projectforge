@@ -53,7 +53,7 @@ class ToDoRest() : AbstractDORest<ToDoDO, ToDoDao, BaseSearchFilter>(ToDoDao::cl
                         .add(lc, "created", "modified", "subject", "assignee", "reporter", "dueDate", "status",
                                 "priority", "type", "structureElement", "group", "description"))
         layout.getTableColumnById("group").formatter = Formatter.GROUP
-        return LayoutUtils.processListPage(layout)
+        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

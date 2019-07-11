@@ -95,7 +95,7 @@ class TeamCalRest : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao, TeamCalFilte
         layout.getTableColumnById("last_update").formatter = Formatter.TIMESTAMP_MINUTES
         LayoutUtils.addListFilterContainer(layout, "longFormat", "recursive",
                 filterClass = TimesheetFilter::class.java)
-        return LayoutUtils.processListPage(layout)
+        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

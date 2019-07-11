@@ -58,7 +58,7 @@ class EmployeeRest : AbstractDTORest<EmployeeDO, Employee, EmployeeDao, Employee
                         .add(UITableColumn("kost1", "fibu.kost1", formatter = Formatter.COST1))
                         .add(lc, "position", "abteilung", "eintrittsDatum", "austrittsDatum", "comment"))
         layout.getTableColumnById("user").formatter = Formatter.USER
-        return LayoutUtils.processListPage(layout)
+        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

@@ -66,7 +66,7 @@ class BookRest() : AbstractDORest<BookDO, BookDao, BaseSearchFilter>(BookDao::cl
                 .add(UITable.UIResultSetTable()
                         .add(lc, "created", "yearOfPublishing", "signature", "authors", "title", "keywords", "lendOutBy"))
         layout.getTableColumnById("lendOutBy").formatter = Formatter.USER
-        return LayoutUtils.processListPage(layout)
+        return LayoutUtils.processListPage(layout, this)
     }
 
     /**
