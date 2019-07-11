@@ -22,10 +22,18 @@ function SearchFilter() {
         filter,
         filterFavorites,
         filterHelper,
+        setFilterFavorites,
         setUI,
     } = React.useContext(ListPageContext);
 
-    const saveUpdateResponse = ({ data: responseData, ui: responseUI, filter: responseFilter }) => {
+    const saveUpdateResponse = (
+        {
+            data: responseData,
+            ui: responseUI,
+            filter: responseFilter,
+            filterFavorites: responseFilterFavorites,
+        },
+    ) => {
         if (responseData) {
             setData(responseData);
         }
@@ -34,6 +42,9 @@ function SearchFilter() {
         }
         if (responseFilter) {
             filterHelper.setFilter(responseFilter);
+        }
+        if (responseFilterFavorites) {
+            setFilterFavorites(responseFilterFavorites);
         }
     };
 
