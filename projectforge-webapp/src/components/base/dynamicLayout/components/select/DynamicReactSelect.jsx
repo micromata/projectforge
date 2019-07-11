@@ -70,10 +70,10 @@ function DynamicReactSelect(props) {
         if (favorites && favorites.length > 0) {
             favoritesElement = (
                 <FavoritesPanel
-                    id="taskSelectFavorites"
                     onFavoriteSelect={onFavoriteSelect}
                     favorites={favorites}
                     translations={ui.translations}
+                    htmlId={`dynamicFavoritesPopover-${id}`}
                 />
             );
         }

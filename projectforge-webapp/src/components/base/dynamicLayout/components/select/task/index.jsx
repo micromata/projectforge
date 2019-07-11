@@ -226,13 +226,13 @@ function DynamicTaskSelect(
                     />
                 </Button>
                 <FavoritesPanel
-                    id="taskSelectFavorites"
                     onFavoriteDelete={handleFavoriteDelete}
                     onFavoriteRename={handleFavoriteRename}
                     onFavoriteSelect={handleFavoriteSelect}
                     onFavoriteCreate={handleFavoriteCreate}
                     favorites={favorites}
                     translations={ui.translations}
+                    htmlId="taskFavoritesPopover"
                 />
                 {showInline
                     ? (
