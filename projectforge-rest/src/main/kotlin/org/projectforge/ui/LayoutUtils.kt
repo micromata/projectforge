@@ -168,12 +168,12 @@ class LayoutUtils {
                     layout.addAction(UIButton("update",
                             style = UIStyle.PRIMARY,
                             default = true,
-                            responseAction = ResponseAction(restService.getRestPath(RestPaths.SAVE_OR_UDATE), targetType = TargetType.POST)))
+                            responseAction = ResponseAction(restService.getRestPath(RestPaths.SAVE_OR_UDATE), targetType = TargetType.PUT)))
             } else {
                 layout.addAction(UIButton("create",
                         style = UIStyle.PRIMARY,
                         default = true,
-                        responseAction = ResponseAction(restService.getRestPath(RestPaths.SAVE_OR_UDATE), targetType = TargetType.POST)))
+                        responseAction = ResponseAction(restService.getRestPath(RestPaths.SAVE_OR_UDATE), targetType = TargetType.PUT)))
             }
             process(layout)
             layout.addTranslations("label.historyOfChanges")
