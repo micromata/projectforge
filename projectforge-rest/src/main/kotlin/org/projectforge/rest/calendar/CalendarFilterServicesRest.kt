@@ -31,6 +31,7 @@ import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
@@ -145,7 +146,9 @@ class CalendarFilterServicesRest {
                 "calendar.view.day",
                 "calendar.view.month",
                 "calendar.view.week",
-                "calendar.view.workWeek")
+                "calendar.view.workWeek",
+                "settings",
+                "timesheet.user")
         Favorites.addTranslations(translations)
         initial.translations = translations
         return initial
@@ -225,6 +228,18 @@ class CalendarFilterServicesRest {
                 "filter" to currentFilter,
                 "activeCalendars" to getActiveCalendars(currentFilter, calendars, styleMap),
                 "isFilterModified" to isCurrentFilterModified(currentFilter))
+    }
+
+    @GetMapping("changeDefaultCalendar")
+    fun changeDefaultCalendar(@RequestParam("id", required = true) id: String) {
+        val currentFilter = getCurrentFilter()
+        currentFilter.defaultCalendarId = NumberHelper.parseInteger(id)
+    }
+
+    @GetMapping("changeTimesheetUser")
+    fun changeTimesheetUser(@RequestParam("userId", required = true) userId: String) {
+        val currentFilter = getCurrentFilter()
+        currentFilter.timesheetUserId = NumberHelper.parseInteger(userId)
     }
 
     /**

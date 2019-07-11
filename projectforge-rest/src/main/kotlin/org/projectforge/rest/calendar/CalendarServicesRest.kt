@@ -29,7 +29,6 @@ import org.projectforge.business.calendar.TeamCalendar
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.framework.access.AccessChecker
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.RestHelper
@@ -80,8 +79,6 @@ class CalendarServicesRest {
         if (filter.start == null) {
             return ResponseEntity("At least start date required for getting events.", HttpStatus.BAD_REQUEST)
         }
-        val userId = ThreadLocalUserContext.getUserId()
-        filter.timesheetUserId = userId // TODO: get from client
         return ResponseEntity(buildEvents(filter), HttpStatus.OK)
     }
 
