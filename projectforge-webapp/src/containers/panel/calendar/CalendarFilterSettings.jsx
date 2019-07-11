@@ -6,6 +6,7 @@ import { faCog } from '@fortawesome/free-solid-svg-icons';
 import style from '../../../components/design/input/Input.module.scss';
 import ReactSelect from '../../../components/design/ReactSelect';
 import UserSelect from '../../../components/base/page/layout/UserSelect';
+import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 
 /**
  * Settings of a calendar view: time sheet user, default calendar for new events, show holidays etc.
@@ -22,7 +23,6 @@ class CalendarFilterSettings extends Component {
         this.state = {
             defaultCalendar,
             popoverOpen: false,
-            timesheetUser: undefined,
         };
 
         this.onDefaultCalendarChange = this.onDefaultCalendarChange.bind(this);
@@ -31,12 +31,31 @@ class CalendarFilterSettings extends Component {
     }
 
     onDefaultCalendarChange(value) {
+        const id = value ? value.id : '';
         this.setState({ defaultCalendar: value });
+        fetch(getServiceURL('calendar/changeDefaultCalendar',
+            { id }), {
+            method: 'GET',
+            credentials: 'include',
+        })
+            .then(handleHTTPErrors)
+            .catch(error => alert(`Internal error: ${error}`));
     }
 
     onTimesheetUserChange(id, value) {
-        console.log(id, value);
-        this.setState({ timesheetUser: value });
+        const { onTimesheetUserChange } = this.props;
+        const userId = value ? value.id : '';
+        fetch(getServiceURL('calendar/changeTimesheetUser',
+            { userId }), {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                Accept: 'application/json',
+            },
+        })
+            .then(handleHTTPErrors)
+            .then(() => onTimesheetUserChange(userId))
+            .catch(error => alert(`Internal error: ${error}`));
     }
 
     togglePopover() {
@@ -73,7 +92,7 @@ class CalendarFilterSettings extends Component {
                     trigger="legacy"
                 >
                     <PopoverHeader>
-                        {translations.favorites}
+                        {translations.settings}
                     </PopoverHeader>
                     <PopoverBody>
                         <Container>
@@ -96,7 +115,8 @@ class CalendarFilterSettings extends Component {
                                     <UserSelect
                                         changeDataField={this.onTimesheetUserChange}
                                         id="timesheetUser"
-                                        label="[timesheetUser]"
+                                        data={this.props}
+                                        label={translations['timesheet.user']}
                                         translations={translations}
                                     />
                                 </Col>
@@ -116,6 +136,7 @@ class CalendarFilterSettings extends Component {
 }
 
 CalendarFilterSettings.propTypes = {
+    onTimesheetUserChange: PropTypes.func.isRequired,
     /* eslint-disable-next-line react/no-unused-prop-types */
     defaultCalendarId: PropTypes.number,
     listOfDefaultCalendars: PropTypes.arrayOf(PropTypes.shape({})).isRequired,

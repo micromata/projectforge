@@ -78,8 +78,18 @@ class CalendarPanel extends React.Component {
         this.fetchEvents();
     }
 
-    componentDidUpdate({ activeCalendars: prevActiveCalendars }) {
-        const { activeCalendars } = this.props;
+    componentDidUpdate(
+        {
+            activeCalendars: prevActiveCalendars,
+            timesheetUserId: prevTimesheetUserId,
+        },
+    ) {
+        const { activeCalendars, timesheetUserId } = this.props;
+
+        if (timesheetUserId !== prevTimesheetUserId) {
+            this.fetchEvents();
+            return;
+        }
 
         if (prevActiveCalendars === activeCalendars || activeCalendars == null) {
             return;
@@ -233,7 +243,7 @@ class CalendarPanel extends React.Component {
 
     fetchEvents() {
         const { start, end, view } = this.state;
-        const { activeCalendars } = this.props;
+        const { activeCalendars, timesheetUserId } = this.props;
         const activeCalendarIds = activeCalendars ? activeCalendars.map(obj => obj.id) : [];
         this.setState({ loading: true });
         fetch(getServiceURL('calendar/events'), {
@@ -247,6 +257,7 @@ class CalendarPanel extends React.Component {
                 end,
                 view,
                 activeCalendarIds,
+                timesheetUserId,
                 updateState: true,
                 useVisibilityState: true,
             }),
@@ -357,6 +368,7 @@ class CalendarPanel extends React.Component {
 
 CalendarPanel.propTypes = {
     activeCalendars: PropTypes.arrayOf(PropTypes.shape({})),
+    timesheetUserId: PropTypes.number,
     firstDayOfWeek: PropTypes.number.isRequired,
     timeZone: PropTypes.string.isRequired,
     locale: PropTypes.string,
@@ -368,6 +380,7 @@ CalendarPanel.propTypes = {
 
 CalendarPanel.defaultProps = {
     activeCalendars: [],
+    timesheetUserId: undefined,
     locale: undefined,
     topHeight: '164px',
     defaultDate: new Date(),
