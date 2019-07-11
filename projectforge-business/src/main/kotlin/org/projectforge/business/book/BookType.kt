@@ -25,10 +25,6 @@ package org.projectforge.business.book
 
 import org.projectforge.common.i18n.I18nEnum
 
-/**
- *
- * @author Kai Reinhard (k.reinhard@micromata.de)
- */
 enum class BookType private constructor(
         /**
          * The key will be used e. g. for i18n.

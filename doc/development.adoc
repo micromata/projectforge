@@ -345,25 +345,21 @@ The base class `BaseDTO` provides base functionality for the automatically trans
 ==== Putting all together in Kotlin code
 
 Simple example (books)
-[cols=3*,options="header"]
+[cols=2*,options="header"]
 |===
-|Class|Description|link
+|Class (Link)|Description
 
-|`BookDO`
+|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/book/BookDO.kt[`BookDO.kt`]
 |Defines the entity
-|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/book/BookDO.kt[BookDO.kt]
 
-|`BookDao`
+|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/java/org/projectforge/business/book/BookDao.java[`BookDao.java`]
 |Defines access rights and special functionality for books
-|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/java/org/projectforge/business/book/BookDao.java[BookDao.java]
 
-|`BookRest`
+|https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/BookRest.kt[`BookRest.kt`]
 |Books with support of ReactJS as well as REST API for CRUD operations
-|https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/BookRest.kt[BookRest.kt]
 
-|`BookStatus`
+|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/book/BookStatus.kt[`BookStatus.kt`]
 |Enumeration of book status including i18n
-|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/book/BookStatus.kt[BookStatus.kt]
 |===
 
 Nothing more is needed to have a simple entity provided by ProjectForge!!! No HTML, no JavaScript, nothing else.
@@ -371,25 +367,21 @@ Nothing more is needed to have a simple entity provided by ProjectForge!!! No HT
 (The used BookFilter is deprecated and will be removed in 7.x., the new MagicFilter will replace most filters.)
 
 Simple example (addresses) with more fields and UI layout with more fieldsets and columns (supporting different screen resolutions, responsive).
-[cols=3*,options="header"]
+[cols=2*,options="header"]
 |===
-|Class|Description|Link
+|Class (Link)|Description
 
-|`AddressDO`
+|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/address/AddressDO.kt[`AddressDO.kt`]
 |Defines the entity
-|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/address/AddressDO.kt[AddressDO.kt]
 
-|`AddressDao`
+|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/java/org/projectforge/business/address/AddressDao.java[`AddressDao.java`]
 |Defines access rights and special functionality for addresses
-|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/java/org/projectforge/business/address/AddressDao.java[AddressDao.java]
 
-|`AddressRest`
+|https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/AddressRest.kt[`AddressRest.kt`]
 |Addresses with support of ReactJS (responsive) as well as REST API for CRUD operations
-|https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/AddressRest.kt[AddressRest.kt]
 
-|`Address`
+|https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/Address.kt[`Address.kt`]
 |Data transfer object for the client. For simple objects, the BaseDO object may be used for the REST-CRUD functionality. For more complex objects providing special functionality, the usage of a DTO is required/recommended.
-|https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/Address.kt[Address.kt]
 |===
 
 Nothing more is needed to have a simple entity provided by ProjectForge!!! No HTML, no JavaScript, nothing else.
