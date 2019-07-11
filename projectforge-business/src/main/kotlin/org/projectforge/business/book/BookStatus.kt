@@ -21,45 +21,32 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.book;
+package org.projectforge.business.book
 
-import org.projectforge.common.i18n.I18nEnum;
+import org.projectforge.common.i18n.I18nEnum
 
 /**
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
- *         <ul>
- *         <li>MISSED - Book not found (espacially after an inventory).</li>
- *         <li>PRESENT - Book is present at the office ore lend out is known.</li>
- *         <li>DISPOSED - Book is disposed.</li>
- *         </ul>
+ *
+ *
+ *  MISSED - Book not found (espacially after an inventory).
+ *  PRESENT - Book is present at the office ore lend out is known.
+ *  DISPOSED - Book is disposed.
+ *
  */
-public enum BookStatus implements I18nEnum
-{
-  PRESENT("present"), MISSED("missed"), DISPOSED("disposed"), UNKNOWN("unknown");
+enum class BookStatus private constructor(
+        /**
+         * The key will be used e. g. for i18n.
+         * @return
+         */
+        val key: String) : I18nEnum {
+    PRESENT("present"), MISSED("missed"), DISPOSED("disposed"), UNKNOWN("unknown");
 
-  private String key;
-
-  /**
-   * @return The full i18n key including the i18n prefix "book.status.".
-   */
-  public String getI18nKey()
-  {
-    return "book.status." + key;
-  }
-
-  /**
-   * The key will be used e. g. for i18n.
-   * @return
-   */
-  public String getKey()
-  {
-    return key;
-  }
-
-  BookStatus(String key)
-  {
-    this.key = key;
-  }
+    /**
+     * @return The full i18n key including the i18n prefix "book.status.".
+     */
+    override fun getI18nKey(): String {
+        return "book.status.$key"
+    }
 }

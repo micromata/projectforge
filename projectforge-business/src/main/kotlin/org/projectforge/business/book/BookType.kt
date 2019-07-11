@@ -21,41 +21,33 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.book;
+package org.projectforge.business.book
 
-import org.projectforge.common.i18n.I18nEnum;
+import org.projectforge.common.i18n.I18nEnum
 
 /**
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public enum BookType implements I18nEnum
-{
-  BOOK("book"), MAGAZINE("magazine"), ARTICLE("article"), NEWSPAPER("newspaper"), PERIODICAL("periodical"), FILM("film"), SOFTWARE("software"), MISC(
-      "misc");
+enum class BookType private constructor(
+        /**
+         * The key will be used e. g. for i18n.
+         * @return
+         */
+        val key: String) : I18nEnum {
+    BOOK("book"),
+    MAGAZINE("magazine"),
+    ARTICLE("article"),
+    NEWSPAPER("newspaper"),
+    PERIODICAL("periodical"),
+    FILM("film"),
+    SOFTWARE("software"),
+    MISC("misc");
 
-  private String key;
-
-  /**
-   * @return The full i18n key including the i18n prefix "book.type.".
-   */
-  public String getI18nKey()
-  {
-    return "book.type." + key;
-  }
-
-  /**
-   * The key will be used e. g. for i18n.
-   * @return
-   */
-  public String getKey()
-  {
-    return key;
-  }
-
-  BookType(String key)
-  {
-    this.key = key;
-  }
+    /**
+     * @return The full i18n key including the i18n prefix "book.type.".
+     */
+    override fun getI18nKey(): String {
+        return "book.type.$key"
+    }
 }
