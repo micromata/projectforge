@@ -31,7 +31,6 @@ import org.projectforge.web.address.AddressbookListPage;
 import org.projectforge.web.address.PhoneCallPage;
 import org.projectforge.web.address.SendSmsPage;
 import org.projectforge.web.admin.*;
-import org.projectforge.web.book.BookListPage;
 import org.projectforge.web.core.SearchPage;
 import org.projectforge.web.fibu.*;
 import org.projectforge.web.gantt.GanttChartListPage;
@@ -94,7 +93,6 @@ public class MenuItemRegistry implements Serializable {
     register(MenuItemDefId.VACATION, VacationListPage.class);
     // createdMenuEntry.setNewCounterModel(new MenuNewCounterVacation());
 
-    register(MenuItemDefId.BOOK_LIST, BookListPage.class);
     register(MenuItemDefId.ADDRESSBOOK_LIST, AddressbookListPage.class);
     register(MenuItemDefId.ADDRESS_LIST, AddressListPage.class);
     register(MenuItemDefId.PHONE_CALL, PhoneCallPage.class);

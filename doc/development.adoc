@@ -564,8 +564,6 @@ Simple example (books)
 
 Nothing more is needed to have a simple entity provided by ProjectForge!!! No HTML, no JavaScript, nothing else.
 
-(The used BookFilter is deprecated and will be removed in 7.x., the new MagicFilter will replace most filters.)
-
 Simple example (addresses) with more fields and UI layout with more fieldsets and columns (supporting different screen resolutions, responsive).
 [cols=2*,options="header"]
 |===
@@ -583,10 +581,6 @@ Simple example (addresses) with more fields and UI layout with more fieldsets an
 |https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/Address.kt[`Address.kt`]
 |Data transfer object for the client. For simple objects, the BaseDO object may be used for the REST-CRUD functionality. For more complex objects providing special functionality, the usage of a DTO is required/recommended.
 |===
-
-Nothing more is needed to have a simple entity provided by ProjectForge!!! No HTML, no JavaScript, nothing else.
-
-(The used BookFilter is deprecated and will be removed in 7.x., the new MagicFilter will replace most filters.)
 
 
 For creating own entities a description for smart plugins with a minimum of code is under construction.

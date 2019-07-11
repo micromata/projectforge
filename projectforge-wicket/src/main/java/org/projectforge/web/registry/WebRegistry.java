@@ -37,8 +37,6 @@ import org.projectforge.web.admin.AdminPage;
 import org.projectforge.web.admin.ConfigurationListPage;
 import org.projectforge.web.admin.SetupPage;
 import org.projectforge.web.admin.SystemUpdatePage;
-import org.projectforge.web.book.BookEditPage;
-import org.projectforge.web.book.BookListPage;
 import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.core.SearchPage;
 import org.projectforge.web.doc.DocumentationPage;
@@ -265,9 +263,6 @@ public class WebRegistry
     register(DaoConst.ADDRESS, AddressListPage.class);
     addMountPages(DaoConst.ADDRESS, AddressListPage.class, AddressEditPage.class);
     addMountPage(DaoConst.ADDRESS + "View", AddressViewPage.class);
-
-    register(DaoConst.BOOK, BookListPage.class);
-    addMountPages(DaoConst.BOOK, BookListPage.class, BookEditPage.class);
 
     register(DaoConst.TASK, TaskListPage.class);
     addMountPages(DaoConst.TASK, TaskListPage.class, TaskEditPage.class);
