@@ -211,6 +211,9 @@ function ListPage(
 ListPage.propTypes = {
     location: PropTypes.shape({
         search: PropTypes.string,
+        state: PropTypes.shape({
+            id: PropTypes.number,
+        }),
     }).isRequired,
     match: PropTypes.shape({
         params: PropTypes.shape({

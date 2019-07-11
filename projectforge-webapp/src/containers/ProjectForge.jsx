@@ -11,7 +11,7 @@ import { Container } from '../components/design';
 import history from '../utilities/history';
 import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
 import CalendarPage from './page/calendar/CalendarPage';
-import EditPage from './page/edit';
+import EditPage from './page/edit/EditPage';
 import IndexPage from './page/IndexPage';
 import InputTestPage from './page/InputTest';
 import ListPage from './page/list/ListPage';
