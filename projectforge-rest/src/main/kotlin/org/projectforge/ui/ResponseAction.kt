@@ -27,8 +27,17 @@ package org.projectforge.ui
  * Given as response of a rest call to inform the client on how to proceed.
  */
 class ResponseAction(val url: String? = null,
-                     val targetType: TargetType? = null,
+                     /**
+                      * Default value is [TargetType.REDIRECT] for given url, otherwise null.
+                      */
+                     var targetType: TargetType? = null,
                      val validationErrors: List<ValidationError>? = null) {
+    init {
+        if (!url.isNullOrEmpty() && targetType == null) {
+            targetType = TargetType.REDIRECT
+        }
+    }
+
     /**
      * Variables sent to the client.
      */
