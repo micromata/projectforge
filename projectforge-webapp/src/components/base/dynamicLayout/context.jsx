@@ -76,6 +76,10 @@ export const defaultValues = {
         translations: {},
     },
     /**
+     * @type {Array<Object>} The validationErrors sent by the server. Not always present.
+     */
+    validationErrors: [],
+    /**
      * @type {Object} The variables object sent by the server. @see AbstractBaseRest.kt >
      *  EditLayoutData. Only sometimes present.
      */

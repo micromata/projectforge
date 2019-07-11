@@ -9,7 +9,6 @@ function ValidationManager({ children, customValidation }) {
                 const { props: childProps } = child;
                 const {
                     checked,
-                    id,
                     required,
                     maxLength,
                     value,
@@ -26,16 +25,16 @@ function ValidationManager({ children, customValidation }) {
                     valid = false;
                 }
 
-                // Load the custom validation message for the given child.
-                if (customValidation && customValidation[id]) {
+                // Check for a custom validation.
+                if (customValidation) {
                     valid = false;
 
                     if (additionalLabel) {
                         // Add the validation message to the additional label if existing
-                        additionalLabel += ` - ${customValidation[id]}`;
+                        additionalLabel += ` - ${customValidation.message}`;
                     } else {
                         // or else set the additional label to the validation message.
-                        additionalLabel = customValidation[id];
+                        additionalLabel = customValidation.message;
                     }
                 }
 
@@ -55,11 +54,13 @@ function ValidationManager({ children, customValidation }) {
 
 ValidationManager.propTypes = {
     children: PropTypes.node.isRequired,
-    customValidation: PropTypes.shape({}),
+    customValidation: PropTypes.shape({
+        message: PropTypes.string,
+    }),
 };
 
 ValidationManager.defaultProps = {
-    customValidation: {},
+    customValidation: undefined,
 };
 
 export default ValidationManager;

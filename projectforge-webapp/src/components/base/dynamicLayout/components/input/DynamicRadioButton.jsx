@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import RadioButton from '../../../../design/input/RadioButton';
-import ValidationManager from '../../../../design/input/ValidationManager';
 import { DynamicLayoutContext } from '../../context';
+import DynamicValidationManager from './DynamicValidationManager';
 
 function DynamicRadioButton({ id, name, label }) {
     const { data, setData } = React.useContext(DynamicLayoutContext);
@@ -11,7 +11,7 @@ function DynamicRadioButton({ id, name, label }) {
         const handleCheckboxChange = ({ target }) => setData({ [id]: target.checked });
 
         return (
-            <ValidationManager>
+            <DynamicValidationManager id={id}>
                 <RadioButton
                     id={id}
                     name={name}
@@ -19,7 +19,7 @@ function DynamicRadioButton({ id, name, label }) {
                     checked={data[id] || false}
                     onChange={handleCheckboxChange}
                 />
-            </ValidationManager>
+            </DynamicValidationManager>
         );
     }, [data[id]]);
 }

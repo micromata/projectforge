@@ -95,6 +95,10 @@ DynamicLayout.propTypes = {
         showPageMenuTitle: PropTypes.bool,
     }),
     setData: PropTypes.func,
+    validationErrors: PropTypes.arrayOf(PropTypes.shape({
+        message: PropTypes.string,
+        fieldId: PropTypes.string,
+    })),
     variables: PropTypes.shape({}),
 };
 
@@ -104,6 +108,7 @@ DynamicLayout.defaultProps = {
     data: {},
     options: dynamicLayoutContextDefaultValues.options,
     setData: dynamicLayoutContextDefaultValues.setData,
+    validationErrors: [],
     variables: {},
 };
 

@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import Input from '../../../../design/input';
-import ValidationManager from '../../../../design/input/ValidationManager';
 import { DynamicLayoutContext } from '../../context';
+import DynamicValidationManager from './DynamicValidationManager';
 
 function DynamicInput({ id, focus, ...props }) {
     const { data, setData } = React.useContext(DynamicLayoutContext);
@@ -12,7 +12,7 @@ function DynamicInput({ id, focus, ...props }) {
         const handleInputChange = ({ target }) => setData({ [id]: target.value });
 
         return (
-            <ValidationManager>
+            <DynamicValidationManager id={id}>
                 <Input
                     id={id}
                     onChange={handleInputChange}
@@ -20,7 +20,7 @@ function DynamicInput({ id, focus, ...props }) {
                     {...props}
                     value={data[id] || ''}
                 />
-            </ValidationManager>
+            </DynamicValidationManager>
         );
     }, [data[id]]);
 }

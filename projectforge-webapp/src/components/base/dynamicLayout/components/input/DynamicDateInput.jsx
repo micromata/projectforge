@@ -8,8 +8,8 @@ import MomentLocaleUtils, { formatDate, parseDate } from 'react-day-picker/momen
 import { connect } from 'react-redux';
 import AdditionalLabel from '../../../../design/input/AdditionalLabel';
 import style from '../../../../design/input/Input.module.scss';
-import ValidationManager from '../../../../design/input/ValidationManager';
 import { DynamicLayoutContext } from '../../context';
+import DynamicValidationManager from './DynamicValidationManager';
 
 function DynamicDateInput(props) {
     const {
@@ -34,7 +34,7 @@ function DynamicDateInput(props) {
         return (
             <React.Fragment>
                 <span className={style.dayPickerLabel}>{label}</span>
-                <ValidationManager>
+                <DynamicValidationManager id={id}>
                     <DayPickerInput
                         autoFocus={focus}
                         formatDate={formatDate}
@@ -51,7 +51,7 @@ function DynamicDateInput(props) {
                         required={required}
                     />
                     <AdditionalLabel title={additionalLabel} />
-                </ValidationManager>
+                </DynamicValidationManager>
             </React.Fragment>
         );
     }, [props, value]);
