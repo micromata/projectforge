@@ -194,7 +194,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilter>
         layout.getTableColumnById("timesheet.task").formatter = Formatter.TASK_PATH
         LayoutUtils.addListFilterContainer(layout, "longFormat", "recursive",
                 filterClass = TimesheetFilter::class.java)
-        return LayoutUtils.processListPage(layout)
+        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

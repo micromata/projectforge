@@ -63,6 +63,10 @@ enum class TargetType {
      */
     UPDATE,
     /**
+     * The client should call the given url with http method GET.
+     */
+    GET,
+    /**
      * The client should call the given url with http method PUT.
      */
     PUT,

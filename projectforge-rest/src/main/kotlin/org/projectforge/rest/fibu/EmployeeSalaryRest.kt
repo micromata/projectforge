@@ -64,7 +64,7 @@ class EmployeeSalaryRest
                         .add(UITableColumn("fibu.employee.user.firstname", "firstName"))
                         .add(UITableColumn("fibu.employee.staffNumber", "fibu.employee.staffNumber"))
                         .add(lc, "type", "bruttoMitAgAnteil", "comment"))
-        return LayoutUtils.processListPage(layout)
+        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

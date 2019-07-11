@@ -68,7 +68,7 @@ class UserRest
                 .add(UITable.UIResultSetTable()
                         .add(lc, "username", "deactivated", "lastname", "firstname", "personalPhoneIdentifiers",
                                 "description", "rights", "ldapValues"))
-        return LayoutUtils.processListPage(layout)
+        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

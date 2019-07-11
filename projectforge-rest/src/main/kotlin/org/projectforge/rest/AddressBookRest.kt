@@ -78,7 +78,7 @@ class AddressBookRest : AbstractDTORest<AddressbookDO, Addressbook, AddressbookD
                         .add(lc, "title", "description", "owner", "accessright", "last_update"))
         layout.getTableColumnById("owner").formatter = Formatter.USER
         layout.getTableColumnById("last_update").formatter = Formatter.TIMESTAMP_MINUTES
-        return LayoutUtils.processListPage(layout)
+        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

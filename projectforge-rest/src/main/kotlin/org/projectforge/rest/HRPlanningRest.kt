@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/hrPlanning")
-class HRPlanningRest: AbstractDORest<HRPlanningDO, HRPlanningDao, HRPlanningFilter>(HRPlanningDao::class.java, HRPlanningFilter::class.java, "hr.planning.title") {
+class HRPlanningRest : AbstractDORest<HRPlanningDO, HRPlanningDao, HRPlanningFilter>(HRPlanningDao::class.java, HRPlanningFilter::class.java, "hr.planning.title") {
 
     /**
      * LAYOUT List page
@@ -46,7 +46,7 @@ class HRPlanningRest: AbstractDORest<HRPlanningDO, HRPlanningDao, HRPlanningFilt
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
                         .add(lc, "user", "sum", "rest"))
-        return LayoutUtils.processListPage(layout)
+        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

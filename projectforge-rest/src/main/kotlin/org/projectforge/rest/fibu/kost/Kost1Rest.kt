@@ -57,7 +57,7 @@ class Kost1Rest : AbstractDTORest<Kost1DO, Kost1, Kost1Dao, BaseSearchFilter>(Ko
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
                         .add(lc, "formattedNumber", "description", "kostentraegerStatus"))
-        return LayoutUtils.processListPage(layout)
+        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

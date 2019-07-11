@@ -72,7 +72,7 @@ class TaskRest
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
                         .add(lc, "title"))
-        return LayoutUtils.processListPage(layout)
+        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

@@ -50,7 +50,7 @@ class AuftragRest() : AbstractDORest<AuftragDO, AuftragDao, BaseSearchFilter>(Au
         layout.getTableColumnById("entscheidungsDatum").formatter = Formatter.DATE
         layout.getTableColumnById("periodOfPerformanceBegin").formatter = Formatter.DATE
         layout.getTableColumnById("periodOfPerformanceEnd").formatter = Formatter.DATE
-        return LayoutUtils.processListPage(layout)
+        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

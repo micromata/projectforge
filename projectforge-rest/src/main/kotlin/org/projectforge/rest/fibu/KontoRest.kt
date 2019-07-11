@@ -60,7 +60,7 @@ class KontoRest
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
                         .add(lc, "nummer", "status", "bezeichnung", "description"))
-        return LayoutUtils.processListPage(layout)
+        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

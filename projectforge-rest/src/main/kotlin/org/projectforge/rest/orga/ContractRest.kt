@@ -65,7 +65,7 @@ class ContractRest() : AbstractDORest<ContractDO, ContractDao, ContractFilter>(C
         layout.getTableColumnById("date").formatter = Formatter.DATE
         LayoutUtils.addListFilterContainer(layout, UILabel("'TODO: date range"),
                 filterClass = ContractFilter::class.java)
-        return LayoutUtils.processListPage(layout)
+        return LayoutUtils.processListPage(layout, this)
     }
 
     /**
