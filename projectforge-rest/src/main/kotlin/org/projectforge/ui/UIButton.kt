@@ -30,5 +30,9 @@ data class UIButton(val id : String,
                     /**
                      * There should be one default button in every form, used if the user hits return.
                      */
-                    val default : Boolean? = null)
+                    val default : Boolean? = null,
+                    /**
+                     * Tell the client of what to do after clicking this button.
+                     */
+                    val responseAction: ResponseAction? = null)
     : UIElement(UIElementType.BUTTON)

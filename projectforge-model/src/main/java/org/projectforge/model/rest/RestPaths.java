@@ -93,6 +93,8 @@ public class RestPaths
 
   public static final String UNDELETE = "undelete";
 
+  public static final String CLONE = "clone";
+
   public static final String TREE = "tree";
 
   public static final String TEAMCAL = "teamcal";

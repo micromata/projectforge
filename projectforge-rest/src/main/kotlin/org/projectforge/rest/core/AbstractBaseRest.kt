@@ -183,13 +183,13 @@ abstract class AbstractBaseRest<
     /**
      * Relative rest path (without leading /rs
      */
-    fun getRestPath(): String {
+    fun getRestPath(subPath: String? = null): String {
         if (restPath == null) {
             val requestMapping = this::class.annotations.find { it is RequestMapping } as? RequestMapping
             val url = requestMapping?.value?.joinToString("/") { it } ?: "/"
             restPath = url.substringAfter("${Rest.URL}/")
         }
-        return restPath!!
+        return if (subPath != null) "${restPath!!}/$subPath" else restPath!!
     }
 
     private fun getCategory(): String {
@@ -498,7 +498,7 @@ abstract class AbstractBaseRest<
      * Will be called by clone button. Sets the id of the form data object to null and deleted to false.
      * @return ResponseAction with [TargetType.UPDATE] and variable "initial" with all the initial data of [getItemAndLayout] as given for new objects.
      */
-    @RequestMapping("clone")
+    @RequestMapping(RestPaths.CLONE)
     fun clone(request: HttpServletRequest, @RequestBody dto: DTO)
             : ResponseAction {
         val item = prepareClone(dto)
