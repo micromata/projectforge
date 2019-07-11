@@ -336,9 +336,12 @@ are embedded by other entities (users, tasks etc.) a DTO (data transfer object) 
 
 In thanks to Kotlin, the creation of a DTO is very simple and efficient. Examples:
 
-* `Address` The DTO for addresses is needed, because addresses may contain images with a special handling: https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/Address.kt
-* `User` The DTO for users is needed, because user objects are embedded in other JPA entities: https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/User.kt
-* `Task` Task is embedded by other entities as well: https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/Task.kt
+* https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/Address.kt[`Address.kt`]
+The DTO for addresses is needed, because addresses may contain images with a special handling.
+* https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/User.kt[`User.kt`]
+The DTO for users is needed, because user objects are embedded in other JPA entities.
+* https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/Task.kt[`Task.kt`]
+Task is embedded by other entities as well.
 
 The base class `BaseDTO` provides base functionality for the automatically transformation of DTO and BaseDO.
 
