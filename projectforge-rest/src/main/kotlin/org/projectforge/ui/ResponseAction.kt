@@ -29,9 +29,13 @@ package org.projectforge.ui
 class ResponseAction(val url: String? = null,
                      val targetType: TargetType? = null,
                      val validationErrors: List<ValidationError>? = null) {
+    /**
+     * Variables sent to the client.
+     */
     private var variables: MutableMap<String, Any>? = null
 
     /**
+     * Adds a variable sent to the client.
      * @return this for chaining.
      */
     fun addVariable(variable: String, value: Any?): ResponseAction {
@@ -55,11 +59,19 @@ enum class TargetType {
      */
     DOWNLOAD,
     /**
-     * The client calls the rest service with the given url and will receive a response.
-     */
-    RESTCALL,
-    /**
      * The client should update all values / states. The values to update are given as variable.
      */
-    UPDATE
+    UPDATE,
+    /**
+     * The client should call the given url with http method PUT.
+     */
+    PUT,
+    /**
+     * The client should call the given url with http method POST.
+     */
+    POST,
+    /**
+     * The client should call the given url with http method DELETE.
+     */
+    DELETE
 }

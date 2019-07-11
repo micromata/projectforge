@@ -30,6 +30,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.HibernateUtils
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.core.AbstractBaseRest
 
 /**
@@ -131,27 +132,43 @@ class LayoutUtils {
         fun processEditPage(layout: UILayout, dto: Any,
                             restService: AbstractBaseRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>, out BaseSearchFilter>)
                 : UILayout {
-            layout.addAction(UIButton("cancel", style = UIStyle.DANGER))
+            layout.addAction(UIButton("cancel",
+                    style = UIStyle.DANGER,
+                    responseAction = ResponseAction(restService.getRestPath(RestPaths.CANCEL), targetType = TargetType.POST)))
             if (restService.isHistorizable()) {
                 // 99% of the objects are historizable (undeletable):
                 if (restService.getId(dto) != null) {
                     if (restService.isDeleted(dto))
-                        layout.addAction(UIButton("undelete", style = UIStyle.WARNING))
+                        layout.addAction(UIButton("undelete",
+                                style = UIStyle.WARNING,
+                                responseAction = ResponseAction(restService.getRestPath(RestPaths.UNDELETE), targetType = TargetType.PUT)))
                     else
-                        layout.addAction(UIButton("markAsDeleted", style = UIStyle.WARNING))
+                        layout.addAction(UIButton("markAsDeleted",
+                                style = UIStyle.WARNING,
+                                responseAction = ResponseAction(restService.getRestPath(RestPaths.MARK_AS_DELETED), targetType = TargetType.DELETE)))
                 }
             } else {
                 // MemoDO for example isn't historizable:
-                layout.addAction(UIButton("deleteIt", style = UIStyle.WARNING))
+                layout.addAction(UIButton("deleteIt",
+                        style = UIStyle.WARNING,
+                        responseAction = ResponseAction(restService.getRestPath(RestPaths.DELETE), targetType = TargetType.DELETE)))
             }
             if (restService.getId(dto) != null) {
                 if (restService.cloneSupported) {
-                    layout.addAction(UIButton("clone", style = UIStyle.SECONDARY))
+                    layout.addAction(UIButton("clone",
+                            style = UIStyle.SECONDARY,
+                            responseAction = ResponseAction(restService.getRestPath(RestPaths.CLONE), targetType = TargetType.POST)))
                 }
                 if (!restService.isDeleted(dto))
-                    layout.addAction(UIButton("update", style = UIStyle.PRIMARY, default = true))
+                    layout.addAction(UIButton("update",
+                            style = UIStyle.PRIMARY,
+                            default = true,
+                            responseAction = ResponseAction(restService.getRestPath(RestPaths.SAVE_OR_UDATE), targetType = TargetType.POST)))
             } else {
-                layout.addAction(UIButton("create", style = UIStyle.PRIMARY, default = true))
+                layout.addAction(UIButton("create",
+                        style = UIStyle.PRIMARY,
+                        default = true,
+                        responseAction = ResponseAction(restService.getRestPath(RestPaths.SAVE_OR_UDATE), targetType = TargetType.POST)))
             }
             process(layout)
             layout.addTranslations("label.historyOfChanges")
