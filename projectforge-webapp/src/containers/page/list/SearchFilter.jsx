@@ -152,6 +152,7 @@ function SearchFilter() {
                 setMultiValue={handleSearchFilterValueChange}
                 value={entries.map(entry => ({
                     ...entry,
+                    label: entry.search,
                     ...Array.findByField(options, 'id', entry.field),
                 }))}
                 values={entries.reduce((accumulator, currentValue) => ({
