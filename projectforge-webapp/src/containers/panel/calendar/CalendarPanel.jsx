@@ -3,7 +3,7 @@ import moment from 'moment-timezone';
 import 'moment/min/locales';
 import PropTypes from 'prop-types';
 import React from 'react';
-import BigCalendar from 'react-big-calendar';
+import { Calendar, momentLocalizer } from 'react-big-calendar';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
@@ -22,9 +22,9 @@ import {
 } from './CalendarRendering';
 import CalendarToolBar from './CalendarToolBar';
 
-const localizer = BigCalendar.momentLocalizer(moment); // or globalizeLocalizer
+const localizer = momentLocalizer(moment);
 
-const DragAndDropCalendar = withDragAndDrop(BigCalendar);
+const DragAndDropCalendar = withDragAndDrop(Calendar);
 
 class CalendarPanel extends React.Component {
     constructor(props) {
