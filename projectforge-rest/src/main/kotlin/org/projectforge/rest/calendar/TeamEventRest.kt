@@ -28,6 +28,8 @@ import org.projectforge.business.teamcal.event.TeamEventDao
 import org.projectforge.business.teamcal.event.TeamEventFilter
 import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache
+import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractBaseRest
 import org.projectforge.rest.core.AbstractDORest
@@ -55,6 +57,11 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao, TeamEventFilte
     override fun onGetItemAndLayout(request: HttpServletRequest, dto: TeamEventDO, editLayoutData: AbstractBaseRest.EditLayoutData) {
         val recurrentDateString = request.getParameter("recurrentDate")
         println("TeamEventRest: recurrentDate=$recurrentDateString")
+        val startDateAsSeconds = NumberHelper.parseLong(request.getParameter("startDate"))
+        if (startDateAsSeconds != null) dto.setStartDate(PFDateTime.from(startDateAsSeconds).sqlTimestamp)
+        val endDateSeconds = NumberHelper.parseLong(request.getParameter("endDate"))
+        if (endDateSeconds != null) dto.setEndDate(PFDateTime.from(endDateSeconds).sqlTimestamp)
+        super.onGetItemAndLayout(request, dto, editLayoutData)
     }
 
     override fun afterEdit(obj: TeamEventDO, dto: TeamEventDO): ResponseAction {

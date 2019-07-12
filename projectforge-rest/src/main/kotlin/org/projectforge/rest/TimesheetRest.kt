@@ -23,6 +23,8 @@
 
 package org.projectforge.rest
 
+import org.projectforge.business.common.MagicFilter
+import org.projectforge.business.common.MagicFilterEntry
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.business.timesheet.TimesheetDO
@@ -38,6 +40,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.rest.core.RestHelper
@@ -69,7 +72,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilter>
         get() = TaskTreeHelper.getTaskTree()
 
     /**
-     * For exporting list of tiesheets.
+     * For exporting list of timesheets.
      */
     private class Timesheet(val timesheet: TimesheetDO,
                             val id: Int, // Needed for history Service
@@ -77,6 +80,13 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilter>
                             val dayName: String,
                             val timePeriod: String,
                             val duration: String)
+
+    override fun getInitialList(request: HttpServletRequest): InitialListData<TimesheetFilter> {
+        val taskId = NumberHelper.parseInteger(request.getParameter("taskId")) ?: return super.getInitialList(request)
+        val filter = MagicFilter<TimesheetFilter>()
+        filter.entries.add(MagicFilterEntry("taskId", value = taskId))
+        return super.getInitialList(filter)
+    }
 
     /**
      * Initializes new timesheets for adding.
@@ -148,7 +158,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilter>
                 .addVariable("id", obj.id ?: -1)
     }
 
-    override fun processResultSetBeforeExport(resultSet: ResultSet<TimesheetDO>) : ResultSet<*> {
+    override fun processResultSetBeforeExport(resultSet: ResultSet<TimesheetDO>): ResultSet<*> {
         val list: List<Timesheet> = resultSet.resultSet.map {
             Timesheet(it,
                     id = it.id,
@@ -216,6 +226,14 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilter>
                 .addTranslations("until", "fibu.kost2", "task")
         Favorites.addTranslations(layout.translations)
         return LayoutUtils.processEditPage(layout, dto, this)
+    }
+
+    override fun onGetItemAndLayout(request: HttpServletRequest, dto: TimesheetDO, editLayoutData: EditLayoutData) {
+        val startDateAsSeconds = NumberHelper.parseLong(request.getParameter("startDate"))
+        if (startDateAsSeconds != null) dto.setStartDate(startDateAsSeconds * 1000)
+        val endDateSeconds = NumberHelper.parseLong(request.getParameter("endDate"))
+        if (endDateSeconds != null) dto.setStopDate(endDateSeconds * 1000)
+        super.onGetItemAndLayout(request, dto, editLayoutData)
     }
 
     override fun addVariablesForEditPage(dto: TimesheetDO): Map<String, Any>? {
