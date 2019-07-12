@@ -5,11 +5,11 @@ export const defaultValues = {
     /**
      * Call actions delivered in ui by the rest call.
      *
-     * @param {string} id The id of the action object, delivered by the rest api (ui).
+     * @param {Object} action The action object, delivered by the rest api (ui).
      */
     // Disable no-unused-vars so its clear what you need to override the function.
     /* eslint-disable-next-line no-unused-vars */
-    callAction: (id) => {
+    callAction: (action) => {
         throw Error('not implemented yet.');
     },
     /**
