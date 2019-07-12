@@ -9,10 +9,11 @@ import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { connect } from 'react-redux';
-import { Modal, ModalBody } from 'reactstrap';
+import { Route } from 'react-router-dom';
 import LoadingContainer from '../../../components/design/loading-container';
+import history from '../../../utilities/history';
 import { getServiceURL } from '../../../utilities/rest';
-import CalendarEntryEditPanel from './CalendarEntryEditPanel';
+import EditModal from '../../page/edit/EditModal';
 import {
     dayStyle,
     renderAgendaEvent,
@@ -52,14 +53,6 @@ class CalendarPanel extends React.Component {
             start: defaultDate,
             end: undefined,
             calendar: '',
-            editPanel: {
-                visible: false,
-                category: undefined,
-                dbId: undefined,
-                uid: undefined,
-                startDate: undefined,
-                endDate: undefined,
-            },
         };
 
         this.eventStyle = this.eventStyle.bind(this);
@@ -71,7 +64,6 @@ class CalendarPanel extends React.Component {
         this.onNavigate = this.onNavigate.bind(this);
         this.onView = this.onView.bind(this);
         this.convertJsonDates = this.convertJsonDates.bind(this);
-        this.toggleEditModal = this.toggleEditModal.bind(this);
     }
 
     componentDidMount() {
@@ -155,6 +147,11 @@ class CalendarPanel extends React.Component {
 
     // Callback fired when a calendar event is selected.
     onSelectEvent(event) {
+        const { match } = this.props;
+
+        history.push(`${match.url}/edit/${event.category}/${event.uid || event.dbId}`);
+
+        /*
         this.setState({
             editPanel: {
                 visible: true,
@@ -165,11 +162,14 @@ class CalendarPanel extends React.Component {
                 endDate: undefined,
             },
         });
+         */
     }
 
     // A callback fired when a date selection is made. Only fires when selectable is true.
     onSelectSlot(slotInfo) {
         const { calendar } = this.state;
+        const { match } = this.props;
+
         fetch(getServiceURL('calendar/action', {
             action: 'select',
             start: slotInfo.start ? slotInfo.start.toJSON() : '',
@@ -185,25 +185,10 @@ class CalendarPanel extends React.Component {
             .then(response => response.json())
             .then((json) => {
                 const { variables } = json;
-                this.setState({
-                    editPanel: {
-                        visible: true,
-                        category: variables.category,
-                        startDate: variables.startDate,
-                        endDate: variables.endDate,
-                    },
-                });
+
+                history.push(`${match.url}/edit/${variables.category}/?startDate=${variables.startDate}&endDate=${variables.endDate}`);
             })
             .catch(error => alert(`Internal error: ${error}`));
-    }
-
-    toggleEditModal() {
-        this.setState(prevState => ({
-            editPanel: {
-                ...prevState.editPanel,
-                visible: !prevState.editPanel.visible,
-            },
-        }));
     }
 
     convertJsonDates(e) {
@@ -286,26 +271,13 @@ class CalendarPanel extends React.Component {
         const {
             date,
             view,
-            editPanel,
             specialDays,
         } = this.state;
-        const { topHeight, translations } = this.props;
+        const { topHeight, translations, match } = this.props;
         const initTime = new Date(date.getDate());
         initTime.setHours(8);
         initTime.setMinutes(0);
-        let editModalContent;
-        if (editPanel.visible) {
-            editModalContent = (
-                <CalendarEntryEditPanel
-                    category={editPanel.category}
-                    dbId={editPanel.dbId ? editPanel.dbId.toString() : ''}
-                    uid={editPanel.uid || ''}
-                    startDate={editPanel.startDate}
-                    endDate={editPanel.endDate}
-                    afterEdit={this.toggleEditModal}
-                />
-            );
-        }
+
         return (
             <LoadingContainer loading={loading}>
                 <DragAndDropCalendar
@@ -350,17 +322,10 @@ class CalendarPanel extends React.Component {
                     }}
                     messages={translations}
                 />
-                <Modal
-                    isOpen={editPanel.visible}
-                    className="modal-xl"
-                    toggle={this.toggleEditModal}
-                    fade={false}
-                >
-                    <ModalBody>
-                        {editModalContent}
-                    </ModalBody>
-                </Modal>
-
+                <Route
+                    path={`${match.url}/edit/:category/:id?/:tab?`}
+                    render={props => <EditModal baseUrl={match.url} {...props} />}
+                />
             </LoadingContainer>
         );
     }
@@ -376,6 +341,7 @@ CalendarPanel.propTypes = {
     defaultDate: PropTypes.instanceOf(Date),
     defaultView: PropTypes.string,
     translations: PropTypes.shape({}).isRequired,
+    match: PropTypes.shape({}).isRequired,
 };
 
 CalendarPanel.defaultProps = {
