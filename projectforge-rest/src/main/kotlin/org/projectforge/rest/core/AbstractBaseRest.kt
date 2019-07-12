@@ -246,12 +246,17 @@ abstract class AbstractBaseRest<
      * Get the current filter from the server, all matching items and the layout of the list page.
      */
     @GetMapping("initialList")
-    fun getInitialList(): InitialListData<F> {
-        //val test = providers.getContextResolver(MyObjectMapper::class.java,  MediaType.WILDCARD_TYPE)
-        @Suppress("UNCHECKED_CAST")
-        val currentFilter = getCurrentFilter()
+    fun requestInitialList(request: HttpServletRequest): InitialListData<F> {
+        return getInitialList(request)
+    }
+
+    protected open fun getInitialList(request: HttpServletRequest): InitialListData<F> {
+        return getInitialList(getCurrentFilter())
+    }
+
+    protected fun getInitialList(filter: MagicFilter<F>): InitialListData<F> {
         val favorites = getFilterFavorites()
-        val resultSet = processResultSetBeforeExport(getList(this, baseDao, currentFilter, filterClazz))
+        val resultSet = processResultSetBeforeExport(getList(this, baseDao, filter, filterClazz))
         val layout = createListLayout()
                 .addTranslations("table.showing")
         layout.add(LayoutListFilterUtils.createNamedContainer(baseDao, lc))
@@ -259,7 +264,7 @@ abstract class AbstractBaseRest<
         layout.add(MenuItem(CREATE_MENU, title = "+", url = "${getCategory()}/edit"), 0)
         return InitialListData(ui = layout,
                 data = resultSet,
-                filter = currentFilter,
+                filter = filter,
                 filterFavorites = favorites.idTitleList)
     }
 
@@ -268,9 +273,9 @@ abstract class AbstractBaseRest<
      * @see [BaseDao.rebuildDatabaseIndex4NewestEntries]
      */
     @GetMapping("reindexNewest")
-    fun reindexNewest(): ResponseData {
+    fun reindexNewest(): ResponseAction {
         baseDao.rebuildDatabaseIndex4NewestEntries()
-        return ResponseData("administration.reindexNewest.successful", messageType = MessageType.TOAST, style = UIStyle.SUCCESS)
+        return ResponseAction(message = ResponseAction.Message("administration.reindexNewest.successful", style = UIStyle.SUCCESS))
     }
 
     /**
@@ -278,9 +283,9 @@ abstract class AbstractBaseRest<
      * @see [BaseDao.rebuildDatabaseIndex]
      */
     @GetMapping("reindexFull")
-    fun reindexFull(): ResponseData {
+    fun reindexFull(): ResponseAction {
         baseDao.rebuildDatabaseIndex()
-        return ResponseData("administration.reindexFull.successful", messageType = MessageType.TOAST, style = UIStyle.SUCCESS)
+        return ResponseAction(message = ResponseAction.Message("administration.reindexFull.successful", style = UIStyle.SUCCESS))
     }
 
     /**
@@ -340,7 +345,7 @@ abstract class AbstractBaseRest<
         } else {
             log.warn("Can't select filter $id, because it's not found in favorites list.")
         }
-        return getInitialList()
+        return getInitialList(currentFilter ?: getCurrentFilter())
     }
 
     /**
@@ -430,6 +435,10 @@ abstract class AbstractBaseRest<
         return result
     }
 
+    /**
+     * Will be called after getting the item from the database before creating the layout data. Overwrite this for
+     * e. g. parsing the request and preset the item values.
+     */
     protected open fun onGetItemAndLayout(request: HttpServletRequest, dto: DTO, editLayoutData: EditLayoutData) {
     }
 

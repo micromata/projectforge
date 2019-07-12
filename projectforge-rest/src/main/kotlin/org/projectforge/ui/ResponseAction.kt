@@ -23,6 +23,9 @@
 
 package org.projectforge.ui
 
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
+
 /**
  * Given as response of a rest call to inform the client on how to proceed.
  */
@@ -31,9 +34,32 @@ class ResponseAction(val url: String? = null,
                       * Default value is [TargetType.REDIRECT] for given url, otherwise null.
                       */
                      var targetType: TargetType? = null,
-                     val validationErrors: List<ValidationError>? = null) {
+                     val validationErrors: List<ValidationError>? = null,
+                     val message: Message? = null) {
+    class Message(val i18nKey: String? = null,
+                  /**
+                   * The message to display for the user.
+                   */
+                  var message: String? = null,
+                  /** The (technical) message. */
+                  var technicalMessage: String? = null,
+                  var style: UIStyle? = null,
+                  vararg messageParams: String) {
+        init {
+            if (message == null && i18nKey != null) {
+                if (messageParams.isNotEmpty())
+                    message = translateMsg(i18nKey, messageParams)
+                else
+                    message = translate(i18nKey)
+            }
+        }
+    }
+
+
     init {
-        if (!url.isNullOrEmpty() && targetType == null) {
+        if (message != null && targetType == null) {
+            targetType = TargetType.TOAST
+        } else if (!url.isNullOrEmpty() && targetType == null) {
             targetType = TargetType.REDIRECT
         }
     }
@@ -67,6 +93,10 @@ enum class TargetType {
      * The client will receive a download file after calling the rest service with the given url.
      */
     DOWNLOAD,
+    /**
+     * Show the result message as toast message.
+     */
+    TOAST,
     /**
      * The client should update all values / states. The values to update are given as variable.
      */
