@@ -23,7 +23,6 @@
 
 package org.projectforge.web;
 
-import org.projectforge.ProjectForgeApp;
 import org.projectforge.business.user.UserPrefCache;
 import org.projectforge.menu.builder.MenuCreator;
 import org.springframework.context.ApplicationContext;
@@ -66,7 +65,7 @@ public class WicketSupport {
 
   }
 
-  private final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjectForgeApp.class);
+  private final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(WicketSupport.class);
 
   private Map<Class<?>, Object> componentsMap = new HashMap<>();
 
@@ -83,7 +82,7 @@ public class WicketSupport {
   }
 
   private void register(Class<?> clazz, Object component) {
-    if (componentsMap.containsKey(clazz)) {
+    if (componentsMap.containsKey(clazz) && componentsMap.get(clazz) != component) {
       log.error("An object for the given clazz " + clazz.getName() + " is already registered and will be overwritten.");
     }
     componentsMap.put(clazz, component);
