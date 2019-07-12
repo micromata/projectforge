@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import { Route } from 'react-router-dom';
 import DynamicLayout from '../../../components/base/dynamicLayout';
 import TabNavigation from '../../../components/base/page/edit/TabNavigation';
 import { Alert, Container, TabContent, TabPane } from '../../../components/design';
@@ -12,7 +13,7 @@ import style from '../../ProjectForge.module.scss';
 import EditHistory from './history';
 
 function EditPage({ match, location }) {
-    const { category, id, tab } = match.params;
+    const { category, id } = match.params;
 
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState(undefined);
@@ -178,13 +179,11 @@ function EditPage({ match, location }) {
         );
     }
 
-    const activeTab = tab || 'edit';
-    const baseUrl = `/${category}/edit/${id}`;
     const tabs = [
         {
             id: 'edit',
             title: ui.title,
-            link: baseUrl,
+            link: match.url,
         },
     ];
 
@@ -192,56 +191,63 @@ function EditPage({ match, location }) {
         tabs.push({
             id: 'history',
             title: getTranslation('label.historyOfChanges', ui.translations),
-            link: `${baseUrl}/history`,
+            link: `${match.url}/history`,
         });
     }
 
     return (
         <LoadingContainer loading={loading}>
-            <TabNavigation
-                tabs={tabs}
-                activeTab={activeTab}
+            <Route
+                path={`${match.url}/:tab?`}
+                render={({ match: tabMatch }) => (
+                    <React.Fragment>
+                        <TabNavigation
+                            tabs={tabs}
+                            activeTab={tabMatch.params.tab || 'edit'}
+                        />
+                        <TabContent
+                            activeTab={tabMatch.params.tab || 'edit'}
+                            className={style.tabContent}
+                        >
+                            <TabPane tabId="edit">
+                                <Container fluid>
+                                    <form>
+                                        <DynamicLayout
+                                            callAction={callAction}
+                                            data={data}
+                                            options={{
+                                                displayPageMenu: id !== undefined,
+                                                setBrowserTitle: true,
+                                                showActionButtons: true,
+                                                showPageMenuTitle: false,
+                                            }}
+                                            setData={setData}
+                                            ui={ui}
+                                            validationErrors={validationErrors}
+                                            variables={variables}
+                                        >
+                                            {globalValidation}
+                                        </DynamicLayout>
+                                    </form>
+                                </Container>
+                            </TabPane>
+                            {id
+                                ? (
+                                    <TabPane tabId="history">
+                                        <Container fluid>
+                                            <EditHistory
+                                                category={category}
+                                                id={id}
+                                                translations={ui.translations}
+                                            />
+                                        </Container>
+                                    </TabPane>
+                                )
+                                : undefined}
+                        </TabContent>
+                    </React.Fragment>
+                )}
             />
-            <TabContent
-                activeTab={activeTab}
-                className={style.tabContent}
-            >
-                <TabPane tabId="edit">
-                    <Container fluid>
-                        <form>
-                            <DynamicLayout
-                                callAction={callAction}
-                                data={data}
-                                options={{
-                                    displayPageMenu: id !== undefined,
-                                    setBrowserTitle: true,
-                                    showActionButtons: true,
-                                    showPageMenuTitle: false,
-                                }}
-                                setData={setData}
-                                ui={ui}
-                                validationErrors={validationErrors}
-                                variables={variables}
-                            >
-                                {globalValidation}
-                            </DynamicLayout>
-                        </form>
-                    </Container>
-                </TabPane>
-                {id
-                    ? (
-                        <TabPane tabId="history">
-                            <Container fluid>
-                                <EditHistory
-                                    category={category}
-                                    id={id}
-                                    translations={ui.translations}
-                                />
-                            </Container>
-                        </TabPane>
-                    )
-                    : undefined}
-            </TabContent>
         </LoadingContainer>
     );
 }

@@ -74,7 +74,7 @@ function ProjectForge(
                                 component={InputTestPage}
                             />
                             <Route
-                                path="/:category/edit/:id?/:tab?"
+                                path="/:category/edit/:id?"
                                 component={EditPage}
                             />
                             <Route
