@@ -142,6 +142,7 @@ class CalendarFilterServicesRest {
                 "calendar.defaultCalendar",
                 "calendar.defaultCalendar.tooltip",
                 "calendar.navigation.today",
+                "calendar.title",
                 "calendar.view.agenda",
                 "calendar.view.day",
                 "calendar.view.month",
