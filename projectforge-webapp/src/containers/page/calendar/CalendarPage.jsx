@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import Select from 'react-select';
 import { Card, CardBody, Col, Row } from 'reactstrap';
@@ -183,6 +184,8 @@ class CalendarPage extends React.Component {
             return <div>...</div>;
         }
 
+        const { match } = this.props;
+
         const options = teamCalendars.map(option => ({
             ...option,
             filterType: 'COLOR_PICKER',
@@ -258,6 +261,7 @@ class CalendarPage extends React.Component {
                         timesheetUserId={timesheetUserId}
                         topHeight="225px"
                         translations={translations}
+                        match={match}
                     />
                 </CalendarContext.Provider>
             </LoadingContainer>
@@ -265,7 +269,9 @@ class CalendarPage extends React.Component {
     }
 }
 
-CalendarPage.propTypes = {};
+CalendarPage.propTypes = {
+    match: PropTypes.shape({}).isRequired,
+};
 
 CalendarPage.defaultProps = {};
 
