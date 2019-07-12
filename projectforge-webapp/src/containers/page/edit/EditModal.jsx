@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import history from '../../../utilities/history';
 import { Modal, ModalBody } from '../../../components/design';
-import EditPage from './index';
+import EditPage from './EditPage';
 
 function EditModal(props) {
     const { baseUrl } = props;
