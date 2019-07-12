@@ -1,18 +1,24 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
-import { lendOutBook, returnBook } from '../../../../../../actions/customized';
 import { Button } from '../../../../../design';
 import { DynamicLayoutContext } from '../../../context';
 
-function CustomizedBookLendOutComponent(
-    {
-        handBack,
-        lendOut,
-        user,
-    },
-) {
-    const { data, ui } = React.useContext(DynamicLayoutContext);
+function CustomizedBookLendOutComponent({ user }) {
+    const { data, ui, callAction } = React.useContext(DynamicLayoutContext);
+
+    const lendOut = () => callAction({
+        responseAction: {
+            url: 'book/lendOut',
+            targetType: 'POST',
+        },
+    });
+    const handBack = () => callAction({
+        responseAction: {
+            url: 'book/returnBook',
+            targetType: 'POST',
+        },
+    });
 
     return React.useMemo(
         () => (
@@ -43,8 +49,6 @@ function CustomizedBookLendOutComponent(
 }
 
 CustomizedBookLendOutComponent.propTypes = {
-    handBack: PropTypes.func.isRequired,
-    lendOut: PropTypes.func.isRequired,
     user: PropTypes.shape({}).isRequired,
 };
 
@@ -55,9 +59,5 @@ const mapStateToProps = state => ({
     user: state.authentication.user,
 });
 
-const actions = {
-    handBack: returnBook,
-    lendOut: lendOutBook,
-};
 
-export default connect(mapStateToProps, actions)(CustomizedBookLendOutComponent);
+export default connect(mapStateToProps)(CustomizedBookLendOutComponent);
