@@ -147,7 +147,7 @@ function EditPage({ match, location }) {
             return;
         }
         loadPage();
-    }, [category, id, location]);
+    }, [category, id, location.state]);
 
     const globalValidation = React.useMemo(() => {
         const globalErrors = validationErrors.filter(entry => entry.fieldId === undefined);
