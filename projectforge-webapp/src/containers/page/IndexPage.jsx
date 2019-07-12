@@ -126,10 +126,6 @@ class IndexPage extends React.Component {
                                 update of kost2list after task selections. See classic version.
                             </li>
                             <li>
-                                switch from edit page time-sheets to calendar event and vica
-                                versa. see classic version.
-                            </li>
-                            <li>
                                 Edit / rename entry of favorite filter, e. g. calendar page (star
                                 icon)
                             </li>
@@ -138,10 +134,6 @@ class IndexPage extends React.Component {
                                 field communication language of edit page for addresses).
                             </li>
                             <li>Enable localized customized pages (login page, setup page etc.)</li>
-                            <li>
-                                Edit page in Modals: handle tabs (especially history), see time
-                                sheet edit page as modal of CalendarPage.
-                            </li>
                             <li>
                                 main.chunk.js with hash sum / version id, use service worker for
                                 caching app
@@ -191,6 +183,10 @@ class IndexPage extends React.Component {
                                 Display field validation errors in ReactSelect and date input
                                 fields
                             </li>
+                            <li>
+                                Edit page in Modals: handle tabs (especially history), see time
+                                sheet edit page as modal of CalendarPage.
+                            </li>
                         </ol>
                     </Col>
                     <Col>
@@ -207,6 +203,15 @@ class IndexPage extends React.Component {
                             <li>
                                 TaskSelect panel: collapse search fields to have more a feeling
                                 of a bread crumb...
+                            </li>
+
+                            <li>
+                                switch from edit page time-sheets to calendar event and vica
+                                versa. see classic version.
+                                Via Action Buttons and UPDATE action
+                            </li>
+                            <li>
+                                Calendar edit pages redirect url to /calendar
                             </li>
                         </ol>
                         <h1>Done</h1>
