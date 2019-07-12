@@ -1,9 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { performGetCall } from '../../../actions';
-import { getServiceURL } from '../../../utilities/rest';
+import history from '../../../utilities/history';
+import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import { NavLink } from '../../design';
 
 class NavigationAction extends React.Component {
@@ -16,17 +15,36 @@ class NavigationAction extends React.Component {
     handleClick(event) {
         event.preventDefault();
 
-        const { type, getCall, url } = this.props;
+        const { type, url } = this.props;
 
-        if (type === 'RESTCALL' && getCall) {
-            getCall(url);
+        if (type === 'RESTCALL') {
+            fetch(
+                getServiceURL(url),
+                {
+                    method: 'GET',
+                    credentials: 'include',
+                },
+            )
+                .then(handleHTTPErrors)
+                .then(response => response.json())
+                .then(({ targetType, url: redirectUrl }) => {
+                    switch (targetType) {
+                        case 'REDIRECT':
+                            history.push(redirectUrl);
+                            break;
+                        default:
+                            // TODO: HANDLE TOAST MESSAGE
+                            alert(`Target type ${targetType} not handled.`);
+                    }
+                })
+                // TODO: HANDLE ERRORS
+                .catch(alert);
         }
     }
 
     render() {
         const { type, title, url } = this.props;
 
-        // TODO: IMPLEMENT REDIRECT
         switch (type) {
             case 'RESTCALL':
                 return (
@@ -59,7 +77,6 @@ class NavigationAction extends React.Component {
 }
 
 NavigationAction.propTypes = {
-    getCall: PropTypes.func.isRequired,
     title: PropTypes.string.isRequired,
     type: PropTypes.oneOf([
         'REDIRECT',
@@ -76,10 +93,4 @@ NavigationAction.defaultProps = {
     url: '',
 };
 
-const mapStateToProps = () => ({});
-
-const actions = {
-    getCall: performGetCall,
-};
-
-export default connect(mapStateToProps, actions)(NavigationAction);
+export default NavigationAction;
