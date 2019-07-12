@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import history from '../../../utilities/history';
 import { Modal, ModalBody } from '../../../components/design';
+import history from '../../../utilities/history';
 import EditPage from './EditPage';
 
 function EditModal(props) {
