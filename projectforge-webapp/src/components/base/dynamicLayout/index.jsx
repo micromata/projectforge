@@ -31,14 +31,17 @@ function DynamicLayout(
         showActionButtons,
     } = options;
 
+    const [previousTitle, setPreviousTitle] = React.useState(document.title);
+
     // Set the document title when a title for the page is specified and the option
     // setBrowserTitle is true.
     React.useEffect(() => {
         if (setBrowserTitle && title) {
+            setPreviousTitle(document.title);
             document.title = `ProjectForge - ${title}`;
 
             return () => {
-                document.title = 'ProjectForge';
+                document.title = previousTitle;
             };
         }
 

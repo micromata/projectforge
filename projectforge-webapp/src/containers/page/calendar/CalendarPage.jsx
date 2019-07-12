@@ -29,6 +29,9 @@ class CalendarPage extends React.Component {
             translations: undefined,
         };
 
+        // TODO: translation
+        document.title = 'ProjectForge - Kalender';
+
         this.fetchInitial = this.fetchInitial.bind(this);
         this.onChange = this.onChange.bind(this);
         this.handleMultiValueChange = this.handleMultiValueChange.bind(this);
