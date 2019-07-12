@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
-import ReactSelect from '../ReactSelect';
 import AdditionalLabel from './AdditionalLabel';
 
 // Automatically validate the input fields nested inside. (Only first level)
