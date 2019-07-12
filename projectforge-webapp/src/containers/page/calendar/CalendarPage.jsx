@@ -4,6 +4,7 @@ import Select from 'react-select';
 import { Card, CardBody, Col, Row } from 'reactstrap';
 import EditableMultiValueLabel from '../../../components/design/EditableMultiValueLabel';
 import LoadingContainer from '../../../components/design/loading-container';
+import { getTranslation } from '../../../utilities/layout';
 import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import CalendarFilterSettings from '../../panel/calendar/CalendarFilterSettings';
 import CalendarPanel from '../../panel/calendar/CalendarPanel';
@@ -28,9 +29,6 @@ class CalendarPage extends React.Component {
             isFilterModified: false,
             translations: undefined,
         };
-
-        // TODO: translation
-        document.title = 'ProjectForge - Kalender';
 
         this.fetchInitial = this.fetchInitial.bind(this);
         this.onChange = this.onChange.bind(this);
@@ -150,6 +148,10 @@ class CalendarPage extends React.Component {
             loading: false,
             ...json,
         };
+
+        if (newState.translations) {
+            document.title = `ProjectForge - ${getTranslation('calendar.title', newState.translations)}`;
+        }
 
         if (newState.date) {
             newState.date = new Date(newState.date);
