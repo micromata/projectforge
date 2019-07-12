@@ -314,7 +314,10 @@ class TaskTreePanel extends React.Component {
                                         >
                                             <td>{link}</td>
                                             <td>
-                                                <ConsumptionBar progress={task.consumption}/>
+                                                <ConsumptionBar
+                                                    progress={task.consumption}
+                                                    taskId={task.id}
+                                                />
                                             </td>
                                             {columnsVisibility.kost2 ? <td>...</td> : undefined}
                                             {!shortForm && columnsVisibility.orders

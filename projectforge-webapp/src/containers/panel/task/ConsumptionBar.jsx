@@ -3,15 +3,19 @@ import PropTypes from 'prop-types';
 import { UncontrolledTooltip } from 'reactstrap';
 import style from './ConsumptionBar.module.scss';
 
-function CustomizedBar({ progress }) {
+function CustomizedBar({ progress, taskId }) {
     if (!progress) {
         return <React.Fragment />;
     }
-    const { title, status, width, id } = progress;
-    return (
-        // ToDo: onClick
-        <a href="http://www.micromata.de" id={`cb-${id}`}>
-            <div className={`${style.progress} ${style[status]}`}>
+    const {
+        title,
+        status,
+        width,
+        id,
+    } = progress;
+    const element = (
+        <React.Fragment>
+            <div className={`${style.progress} ${style[status]}`} id={`cb-${id}`}>
                 <div style={{ width }}>
                     {' '}
                 </div>
@@ -19,8 +23,17 @@ function CustomizedBar({ progress }) {
             <UncontrolledTooltip placement="right" target={`cb-${id}`}>
                 {title}
             </UncontrolledTooltip>
-        </a>
+        </React.Fragment>
     );
+    if (taskId) {
+        return (
+            // ToDo: onClick
+            <a href={`/wa/timesheetList?clear=true&taskId=${taskId}`}>
+                {element}
+            </a>
+        );
+    }
+    return element;
 }
 
 CustomizedBar.propTypes = {
@@ -30,10 +43,12 @@ CustomizedBar.propTypes = {
         width: PropTypes.string,
         id: PropTypes.number,
     }),
+    taskId: PropTypes.number,
 };
 
 CustomizedBar.defaultProps = {
     progress: undefined,
+    taskId: undefined,
 };
 
 export default CustomizedBar;
