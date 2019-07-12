@@ -327,6 +327,7 @@ Explanation
 |`pageMenu`|The context menu to show on the list page including the actions to execute by the front-end.
 |`data`|Contains the result set with all result data matching the current filter settings.
 |`filterFavorites`|List of personal named filter favorites customizable by the user.
+|`key`|The key attribute is a service for the React client, a unique key for elements of a collection is neede.
 |===
 
 === Standard edit pages
@@ -386,7 +387,7 @@ a|* The new URL to redirect to.
 
 ==== Example of json format
 
-.rs/address/initialList
+.rs/address/edit?id={id}
 [source,json]
 ----
 {
@@ -489,6 +490,7 @@ Explanation
 |`actions`|The action buttons to display and handle by the front-end.
 |`pageMenu`|The context menu to show on the list page including the actions to execute by the front-end.
 |`translations`|All required translations usable by the front-end for i18n.
+|`key`|The key attribute is a service for the React client, a unique key for elements of a collection is neede.
 |===
 
 ==== Magic filter
