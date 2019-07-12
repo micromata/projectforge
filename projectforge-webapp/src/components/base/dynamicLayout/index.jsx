@@ -36,7 +36,14 @@ function DynamicLayout(
     React.useEffect(() => {
         if (setBrowserTitle && title) {
             document.title = `ProjectForge - ${title}`;
+
+            return () => {
+                document.title = 'ProjectForge';
+            };
         }
+
+        return () => {
+        };
     }, [setBrowserTitle, title]);
 
     // Render PageMenu if the option displayPageMenu is true.
