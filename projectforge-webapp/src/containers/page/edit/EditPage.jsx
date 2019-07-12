@@ -149,11 +149,31 @@ function EditPage({ match, location }) {
         loadPage();
     }, [category, id, location]);
 
+    const globalValidation = React.useMemo(() => {
+        const globalErrors = validationErrors.filter(entry => entry.fieldId === undefined);
+
+        if (globalErrors.length === 0) {
+            return <React.Fragment />;
+        }
+
+        return (
+            <Alert color="danger">
+                <ul>
+                    {globalErrors.map(entry => (
+                        <li key={`edit-page-global-validation-${revisedRandomId()}`}>
+                            {entry.message}
+                        </li>
+                    ))}
+                </ul>
+            </Alert>
+        );
+    }, [validationErrors]);
+
     if (error) {
         return (
             <Alert color="danger">
-                <h4>[Failed to Fetch Design]</h4>
-                <p>[Description Here]</p>
+                <h4>[An error occured]</h4>
+                <p>{error.message}</p>
             </Alert>
         );
     }
@@ -175,26 +195,6 @@ function EditPage({ match, location }) {
             link: `${baseUrl}/history`,
         });
     }
-
-    const globalValidation = React.useMemo(() => {
-        const globalErrors = validationErrors.filter(entry => entry.fieldId === undefined);
-
-        if (globalErrors.length === 0) {
-            return <React.Fragment />;
-        }
-
-        return (
-            <Alert color="danger">
-                <ul>
-                    {globalErrors.map(entry => (
-                        <li key={`edit-page-global-validation-${revisedRandomId()}`}>
-                            {entry.message}
-                        </li>
-                    ))}
-                </ul>
-            </Alert>
-        );
-    }, [validationErrors]);
 
     return (
         <LoadingContainer loading={loading}>
