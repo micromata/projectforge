@@ -30,7 +30,6 @@ import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.springframework.beans.BeanUtils
 import java.math.BigDecimal
 import java.util.*
 import javax.persistence.Basic
@@ -49,10 +48,14 @@ object ElementsRegistry {
                       var maxLength: Int? = null,
                       var required: Boolean? = null,
                       var i18nKey: String? = null,
-                      var additionalI18nKey: String? = null)
+                      var additionalI18nKey: String? = null,
+                      /**
+                       * For nested properties, the property where this is nested in.
+                       */
+                      var parent: ElementInfo? = null)
 
     fun getProperties(clazz: Class<*>): Map<String, ElementInfo>? {
-        return registryMap.get(clazz)
+        return registryMap[clazz]
     }
 
     /**
@@ -65,10 +68,7 @@ object ElementsRegistry {
     private val unavailableElementsSet = mutableSetOf<String>()
 
     internal fun buildElement(layoutSettings: LayoutContext, property: String): UIElement {
-        val mapKey = getMapKey(layoutSettings.dataObjectClazz, property)
-        if (mapKey == null) {
-            return UILabel(property)
-        }
+        val mapKey = getMapKey(layoutSettings.dataObjectClazz, property) ?: return UILabel(property)
         val elementInfo = getElementInfo(layoutSettings.dataObjectClazz, property)
         if (elementInfo == null) {
             log.info("Can't build UIElement from ${mapKey}.")
@@ -103,12 +103,12 @@ object ElementsRegistry {
                     element = UISelect<String>(property, required = elementInfo.required, layoutContext = layoutSettings)
                             .buildValues(i18nEnum = elementInfo.propertyType as Class<out Enum<*>>)
                 } else {
-                    log.warn("Properties of enum not implementing I18nEnum not yet supported: ${mapKey}.")
+                    log.warn("Properties of enum not implementing I18nEnum not yet supported: $mapKey.")
                     unavailableElementsSet.add(mapKey)
-                    return UILabel("??? ${mapKey} ???")
+                    return UILabel("??? $mapKey ???")
                 }
             } else {
-                log.warn("Unsupported property type '${elementInfo.propertyType}': ${mapKey}")
+                log.warn("Unsupported property type '${elementInfo.propertyType}': $mapKey")
             }
         }
         if (element is UILabelledElement) {
@@ -118,14 +118,17 @@ object ElementsRegistry {
     }
 
     internal fun getElementInfo(layoutSettings: LayoutContext, property: String): ElementInfo? {
-        return ElementsRegistry.getElementInfo(layoutSettings.dataObjectClazz, property)
+        return getElementInfo(layoutSettings.dataObjectClazz, property)
     }
 
+    /**
+     * @param property name of property (nested properties are supported, like timesheet.task.id.
+     */
     internal fun getElementInfo(clazz: Class<*>?, property: String): ElementInfo? {
         if (clazz == null)
             return null
         val mapKey = getMapKey(clazz, property)!!
-        var elementInfo = ensureClassMap(clazz).get(property)
+        var elementInfo = ensureClassMap(clazz)[property]
         if (elementInfo != null) {
             return elementInfo // Element found
         }
@@ -134,45 +137,45 @@ object ElementsRegistry {
         }
         val propertyType = getPropertyType(clazz, property)
         if (propertyType == null) {
-            log.info("Property ${clazz}.${property} not found. Can't autodetect layout.")
+            log.info("Property $clazz.$property not found. Can't autodetect layout.")
             unavailableElementsSet.add(mapKey)
             return null
         }
         elementInfo = ElementInfo(propertyType)
+        if (property.contains('.')) { // Nested property, like timesheet.task.id?
+            val parentProperty = property.substring(0, property.lastIndexOf('.'))
+            val parentInfo = getElementInfo(clazz, parentProperty)
+            elementInfo.parent = parentInfo
+        }
         val propertyInfo = PropUtils.get(clazz, property)
         if (propertyInfo == null) {
-            log.warn("@PropertyInfo '${clazz}:${property}' not found.")
+            log.warn("@PropertyInfo '$clazz:$property' not found.")
             return elementInfo
         }
         val colinfo = getColumnMetadata(clazz, property)
         if (colinfo != null) {
-            elementInfo.maxLength = colinfo.getMaxLength()
+            elementInfo.maxLength = colinfo.maxLength
             if (!(colinfo.isNullable) || propertyInfo.required)
                 elementInfo.required = true
         }
         elementInfo.i18nKey = getNullIfEmpty(propertyInfo.i18nKey)
         elementInfo.additionalI18nKey = getNullIfEmpty(propertyInfo.additionalI18nKey)
 
-        ensureClassMap(clazz).put(property, elementInfo)
+        ensureClassMap(clazz)[property] = elementInfo
         return elementInfo
     }
 
     private fun getPropertyType(clazz: Class<*>?, property: String): Class<*>? {
         if (clazz == null)
             return null
-        val desc = BeanUtils.getPropertyDescriptor(clazz, property)
-        if (desc != null)
-            return desc.propertyType
-        if (clazz.superclass != null && clazz.superclass != Object::class.java)
-            return getPropertyType(clazz.superclass, property)
-        return null
+        return PropUtils.getField(clazz, property)?.type
     }
 
     private fun ensureClassMap(clazz: Class<*>): MutableMap<String, ElementInfo> {
-        var result = registryMap.get(clazz)
+        var result = registryMap[clazz]
         if (result == null) {
             result = mutableMapOf()
-            registryMap.put(clazz, result)
+            registryMap[clazz] = result
         }
         return result
     }
@@ -181,7 +184,7 @@ object ElementsRegistry {
         if (clazz == null || property == null) {
             return null
         }
-        return "${clazz.name}.${property}"
+        return "${clazz.name}.$property"
     }
 
     /**
@@ -193,11 +196,9 @@ object ElementsRegistry {
         if (entity == null)
             return null
         val persistentClass = PfEmgrFactory.get().metadataRepository.findEntityMetadata(entity) ?: return null
-        val columnMetaData = persistentClass.columns[property]
-        if (columnMetaData == null)
-            return null
+        val columnMetaData = persistentClass.columns[property] ?: return null
         if (!columnMetaData.isNullable) {
-            var joinColumnAnn = columnMetaData.findAnnoation(JoinColumn::class.java)
+            val joinColumnAnn = columnMetaData.findAnnoation(JoinColumn::class.java)
             if (joinColumnAnn != null) {
                 // Fix for error in method findEntityMetadata: For @JoinColumn nullable is always returned as false:
                 (columnMetaData as ColumnMetadataBean).isNullable = joinColumnAnn.nullable
