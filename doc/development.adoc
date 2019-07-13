@@ -11,6 +11,19 @@ link:index{outfilesuffix}[Top]
 
 :sectnums:
 
+== Want to see it live?
+You're welcome to run ProjectForge by simply doing:
+
+1. Download the current version 7 snapshot (beta version): https://sourceforge.net/projects/pforge/files/ProjectForge/Snapshots/projectforge-application-7.0-SNAPSHOT.jar/download[projectforge-application-7.0-SNAPSHOT.jar]
+2. Run `java -jar projectforge-application-7.0-SNAPSHOT.jar` (Java 8 is needed).
+3. Visit http://localhost:8080
+4. Enter a password for the admin and submit.
+5. ProjectForge is now creating a system with some test data in a few seconds.
+6. Enjoy it.
+
+
+
+
 == Architecture
 
 === The layers
@@ -327,8 +340,10 @@ Explanation
 |`pageMenu`|The context menu to show on the list page including the actions to execute by the front-end.
 |`data`|Contains the result set with all result data matching the current filter settings.
 |`filterFavorites`|List of personal named filter favorites customizable by the user.
-|`key`|The key attribute is a service for the React client, a unique key for elements of a collection is neede.
+|`key`|The key attribute is a service for the React client, a unique key for elements of a collection is needed.
 |===
+
+Visit http://localhost:8080/rs/address/initialList for a full example.
 
 === Standard edit pages
 
@@ -490,8 +505,12 @@ Explanation
 |`actions`|The action buttons to display and handle by the front-end.
 |`pageMenu`|The context menu to show on the list page including the actions to execute by the front-end.
 |`translations`|All required translations usable by the front-end for i18n.
-|`key`|The key attribute is a service for the React client, a unique key for elements of a collection is neede.
+|`key`|The key attribute is a service for the React client, a unique key for elements of a collection is needed.
 |===
+
+Visit http://localhost:8080/rs/address/edit?id=128 for a full example. May-be another id is needed, so refer the initilList for address id's
+ (`data.resultSet.address.id`, not tenant's id)!
+
 
 ==== Magic filter
 
