@@ -58,6 +58,12 @@ public class PropUtilsTest
   }
 
   @Test
+  public void getNestedField()
+  {
+    Assertions.assertNotNull(PropUtils.getField(Timesheet.class, "task.id"));
+  }
+
+  @Test
   public void testGetI18NKey()
   {
     Assertions.assertNull(PropUtils.getI18nKey(Integer.class, "class"));
@@ -74,7 +80,6 @@ public class PropUtilsTest
 
   class TestProp
   {
-
     @PropertyInfo(i18nKey = i18nKey)
     private String property;
 
@@ -87,5 +92,11 @@ public class PropUtilsTest
     {
       this.property = property;
     }
+  }
+  class Task {
+    Integer id;
+  }
+  class Timesheet {
+    Task task;
   }
 }
