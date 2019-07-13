@@ -23,13 +23,13 @@
 
 package org.projectforge.rest.pub
 
-import org.projectforge.ProjectForgeVersion
-import org.projectforge.framework.configuration.ConfigurationParam
-import org.projectforge.framework.configuration.GlobalConfiguration
+import org.projectforge.SystemStatus
 import org.projectforge.rest.config.Rest
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import javax.annotation.PostConstruct
 
 
 /**
@@ -45,25 +45,41 @@ class SystemStatusRest {
                           var releaseYear: String,
                           var messageOfTheDay: String? = null,
                           var logoUrl: String? = null,
-                          var copyRightYears: String)
+                          var copyRightYears: String,
+                          /**
+                           * If given, the client should redirect to this url.
+                           */
+                          var setupRedirectUrl: String? = null)
 
-    @GetMapping("systemStatus")
-    fun loginTest(): SystemData {
-        return getSystemData()
+    private var _systemData: SystemData? = null
+
+    val systemData: SystemData
+        get() = _systemData!!
+
+    @Autowired
+    private lateinit var systemStatus: SystemStatus
+
+    @PostConstruct
+    fun postConstruct() {
+        _systemData = SystemData(appname = systemStatus.appname,
+                version = systemStatus.version,
+                releaseTimestamp = systemStatus.releaseTimestamp,
+                releaseDate = systemStatus.releaseDate,
+                releaseYear = systemStatus.releaseYear,
+                logoUrl = LogoServiceRest.logoUrl,
+                messageOfTheDay = systemStatus.messageOfTheDay,
+                copyRightYears = systemStatus.copyRightYears,
+                setupRedirectUrl = if (systemStatus.setupRequiredFirst == true) "/wa/setup" else null)
     }
 
-    companion object {
-        fun getSystemData(): SystemData {
-            val systemStatus = SystemData(appname = ProjectForgeVersion.APP_ID,
-                    version = ProjectForgeVersion.VERSION_STRING,
-                    releaseTimestamp = ProjectForgeVersion.RELEASE_TIMESTAMP,
-                    releaseDate = ProjectForgeVersion.RELEASE_DATE,
-                    releaseYear = ProjectForgeVersion.YEAR,
-                    logoUrl = LogoServiceRest.logoUrl,
-                    copyRightYears = ProjectForgeVersion.COPYRIGHT_YEARS)
-            systemStatus.messageOfTheDay = GlobalConfiguration.getInstance()
-                    .getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY)
-            return systemStatus
+    @GetMapping("systemStatus")
+    fun getSystemStatus(): SystemStatusRest.SystemData {
+        if (systemData.setupRedirectUrl != null
+                && systemStatus.setupRequiredFirst != true
+                && systemStatus.updateRequiredFirst != true) {
+            // Setup was already done:
+            systemData.setupRedirectUrl = null
         }
+        return systemData
     }
 }
