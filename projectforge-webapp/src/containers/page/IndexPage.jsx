@@ -158,6 +158,10 @@ class IndexPage extends React.Component {
                                 main.chunk.js with hash sum / version id, use service worker for
                                 caching app
                             </li>
+                            <li>
+                                Redirect to setup-page if ProjectForge isn&apos;t initialized on
+                                first useage.
+                            </li>
                         </ol>
                         <h1>Done</h1>
                         <ol style={todoDone}>
