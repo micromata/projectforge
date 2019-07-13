@@ -29,7 +29,6 @@ import org.projectforge.business.book.BookDao
 import org.projectforge.business.book.BookStatus
 import org.projectforge.business.book.BookType
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.rest.core.Validation
@@ -40,7 +39,7 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/book")
-class BookRest() : AbstractDORest<BookDO, BookDao, BaseSearchFilter>(BookDao::class.java, BaseSearchFilter::class.java, "book.title") {
+class BookRest() : AbstractDORest<BookDO, BookDao>(BookDao::class.java, "book.title") {
 
     /**
      * Initializes new books for adding.

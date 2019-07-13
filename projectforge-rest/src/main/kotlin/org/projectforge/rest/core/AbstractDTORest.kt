@@ -24,7 +24,6 @@
 package org.projectforge.rest.core
 
 import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.rest.dto.BaseDTO
 
@@ -39,13 +38,11 @@ import org.projectforge.rest.dto.BaseDTO
 abstract class AbstractDTORest<
         O : ExtendedBaseDO<Int>,
         DTO : BaseDTO<O>,
-        B : BaseDao<O>,
-        F : BaseSearchFilter>(
+        B : BaseDao<O>>(
         baseDaoClazz: Class<B>,
-        filterClazz: Class<F>,
         i18nKeyPrefix: String,
         cloneSupported: Boolean = false)
-    : AbstractBaseRest<O, DTO, B, F>(baseDaoClazz, filterClazz, i18nKeyPrefix, cloneSupported) {
+    : AbstractBaseRest<O, DTO, B>(baseDaoClazz, i18nKeyPrefix, cloneSupported) {
 
     /**
      * @return New result set of dto's, transformed from data base objects.

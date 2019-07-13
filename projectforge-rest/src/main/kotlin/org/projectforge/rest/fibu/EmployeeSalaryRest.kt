@@ -25,7 +25,6 @@ package org.projectforge.rest.fibu
 
 import org.projectforge.business.fibu.EmployeeSalaryDO
 import org.projectforge.business.fibu.EmployeeSalaryDao
-import org.projectforge.business.fibu.EmployeeSalaryFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTORest
 import org.projectforge.rest.dto.EmployeeSalary
@@ -36,9 +35,8 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("${Rest.URL}/employeeSalary")
 class EmployeeSalaryRest
-    : AbstractDTORest<EmployeeSalaryDO, EmployeeSalary, EmployeeSalaryDao, EmployeeSalaryFilter>(
+    : AbstractDTORest<EmployeeSalaryDO, EmployeeSalary, EmployeeSalaryDao>(
         EmployeeSalaryDao::class.java,
-        EmployeeSalaryFilter::class.java,
         "fibu.employee.salary.title") {
 
     override fun transformFromDB(obj: EmployeeSalaryDO, editMode: Boolean): EmployeeSalary {

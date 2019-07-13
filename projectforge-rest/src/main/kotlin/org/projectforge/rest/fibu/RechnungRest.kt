@@ -26,7 +26,6 @@ package org.projectforge.rest.fibu
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.ui.*
@@ -35,7 +34,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/invoice")
-class RechnungRest() : AbstractDORest<RechnungDO, RechnungDao, BaseSearchFilter>(RechnungDao::class.java, BaseSearchFilter::class.java, "fibu.rechnung.title") {
+class RechnungRest() : AbstractDORest<RechnungDO, RechnungDao>(RechnungDao::class.java, "fibu.rechnung.title") {
 
     /**
      * LAYOUT List page

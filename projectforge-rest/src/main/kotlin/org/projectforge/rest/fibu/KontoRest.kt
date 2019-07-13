@@ -25,7 +25,6 @@ package org.projectforge.rest.fibu
 
 import org.projectforge.business.fibu.KontoDO
 import org.projectforge.business.fibu.KontoDao
-import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTORest
 import org.projectforge.rest.dto.Konto
@@ -36,9 +35,8 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("${Rest.URL}/konto")
 class KontoRest
-    : AbstractDTORest<KontoDO, Konto, KontoDao, BaseSearchFilter>(
+    : AbstractDTORest<KontoDO, Konto, KontoDao>(
         KontoDao::class.java,
-        BaseSearchFilter::class.java,
         "fibu.konto.title") {
 
     override fun transformFromDB(obj: KontoDO, editMode: Boolean): Konto {

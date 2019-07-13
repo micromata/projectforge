@@ -26,7 +26,6 @@ package org.projectforge.rest.task
 import org.projectforge.business.address.AddressbookDao
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskDao
-import org.projectforge.business.task.TaskFilter
 import org.projectforge.favorites.Favorites
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTORest
@@ -39,9 +38,8 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("${Rest.URL}/task")
 class TaskRest
-    : AbstractDTORest<TaskDO, Task, TaskDao, TaskFilter>(
+    : AbstractDTORest<TaskDO, Task, TaskDao>(
         TaskDao::class.java,
-        TaskFilter::class.java,
         "task.title") {
 
     @Autowired

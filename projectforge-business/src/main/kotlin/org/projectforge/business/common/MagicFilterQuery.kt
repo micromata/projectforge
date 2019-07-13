@@ -23,17 +23,15 @@
 
 package org.projectforge.business.common
 
-import org.junit.jupiter.api.Test
-import org.projectforge.business.user.UserPrefDao
+import org.hibernate.Criteria
+import org.hibernate.Session
 
-class MagicFilterTest {
-    @Suppress("UNCHECKED_CAST")
-    @Test
-    fun serializationTest() {
-        val filter = MagicFilter()
-        filter.entries.add(MagicFilterEntry("zipCode", "12345"))
-        val om = UserPrefDao.createObjectMapper()
-        var json = om.writeValueAsString(filter)
-        var obj = om.readValue(json, MagicFilter::class.java) as MagicFilter
+class MagicFilterQuery {
+
+    fun buildCriteria(session: Session, clazz: Class<*>): Criteria {
+        val criteria = session.createCriteria(clazz)
+       // buildCriteria(criteria)
+        return criteria
     }
+
 }

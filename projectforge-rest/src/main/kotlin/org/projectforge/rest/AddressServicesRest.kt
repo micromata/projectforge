@@ -25,10 +25,15 @@ package org.projectforge.rest
 
 import org.apache.commons.collections.CollectionUtils
 import org.apache.commons.io.IOUtils
-import org.projectforge.business.address.*
+import org.projectforge.business.address.AddressDO
+import org.projectforge.business.address.AddressDao
+import org.projectforge.business.address.AddressExport
+import org.projectforge.business.address.PersonalAddressDao
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.*
+import org.projectforge.rest.core.LanguageService
+import org.projectforge.rest.core.ReplaceUtils
+import org.projectforge.rest.core.ResultSet
 import org.projectforge.ui.UIStyle
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ByteArrayResource
@@ -59,9 +64,6 @@ class AddressServicesRest() {
 
     @Autowired
     private lateinit var addressDao: AddressDao
-
-    @Autowired
-    private lateinit var listFilterService: ListFilterService
 
     @Autowired
     private lateinit var addressRest: AddressRest
@@ -104,14 +106,12 @@ class AddressServicesRest() {
     }
 
     /**
-     * Exports all the addresses with the last used filter. If the user works with different browser windows and devices, the result may not match
-     * the current displayed list. The recent search result is used (stored in [AbstractDORest.getList] or [AbstractDORest.getInitialList].
+     * Exports favorites addresses.
      */
     @GetMapping("exportFavoritesExcel")
     fun exportFavoritesExcel(request: HttpServletRequest): ResponseEntity<Any> {
         log.info("Exporting personal address book as Excel file.")
-        var storedFilter = listFilterService.getSearchFilter(request.session, AddressFilter::class.java)
-        val list = addressDao.getList(storedFilter)
+        val list = addressDao.favoriteVCards.map { it.address!! }
         val resultSet = ResultSet<AddressDO>(list, list.size)
         addressRest.processResultSetBeforeExport(resultSet)
 

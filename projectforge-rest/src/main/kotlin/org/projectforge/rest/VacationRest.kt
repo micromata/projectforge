@@ -25,7 +25,6 @@ package org.projectforge.rest
 
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.repository.VacationDao
-import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.ui.Formatter
@@ -37,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/vacation")
-class VacationRest : AbstractDORest<VacationDO, VacationDao, BaseSearchFilter>(VacationDao::class.java, BaseSearchFilter::class.java, "vacation.title") {
+class VacationRest : AbstractDORest<VacationDO, VacationDao>(VacationDao::class.java, "vacation.title") {
 
     /**
      * LAYOUT List page

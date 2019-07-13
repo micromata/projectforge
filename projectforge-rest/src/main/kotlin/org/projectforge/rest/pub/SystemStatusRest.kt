@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.*
 import javax.annotation.PostConstruct
 
 
@@ -49,7 +50,8 @@ class SystemStatusRest {
                           /**
                            * If given, the client should redirect to this url.
                            */
-                          var setupRedirectUrl: String? = null)
+                          var setupRedirectUrl: String? = null,
+                          var startTimeUTC: Date? = null)
 
     private var _systemData: SystemData? = null
 
@@ -69,11 +71,12 @@ class SystemStatusRest {
                 logoUrl = LogoServiceRest.logoUrl,
                 messageOfTheDay = systemStatus.messageOfTheDay,
                 copyRightYears = systemStatus.copyRightYears,
-                setupRedirectUrl = if (systemStatus.setupRequiredFirst == true) "/wa/setup" else null)
+                setupRedirectUrl = if (systemStatus.setupRequiredFirst == true) "/wa/setup" else null,
+                startTimeUTC = Date(systemStatus.startTimeMillis))
     }
 
     @GetMapping("systemStatus")
-    fun getSystemStatus(): SystemStatusRest.SystemData {
+    fun getSystemStatus(): SystemData {
         if (systemData.setupRedirectUrl != null
                 && systemStatus.setupRequiredFirst != true
                 && systemStatus.updateRequiredFirst != true) {

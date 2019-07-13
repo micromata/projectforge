@@ -42,6 +42,7 @@ import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AbstractBaseRest
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.rest.core.RestHelper
 import org.projectforge.rest.core.ResultSet
@@ -57,7 +58,7 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/timesheet")
-class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilter>(TimesheetDao::class.java, TimesheetFilter::class.java, "timesheet.title") {
+class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::class.java, "timesheet.title") {
 
     companion object {
         private const val PREF_AREA = "timesheet"
@@ -83,9 +84,9 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilter>
                             val timePeriod: String,
                             val duration: String)
 
-    override fun getInitialList(request: HttpServletRequest): InitialListData<TimesheetFilter> {
+    override fun getInitialList(request: HttpServletRequest): AbstractBaseRest.InitialListData {
         val taskId = NumberHelper.parseInteger(request.getParameter("taskId")) ?: return super.getInitialList(request)
-        val filter = MagicFilter<TimesheetFilter>()
+        val filter = MagicFilter()
         filter.entries.add(MagicFilterEntry("task.id", value = taskId))
         return super.getInitialList(filter)
     }

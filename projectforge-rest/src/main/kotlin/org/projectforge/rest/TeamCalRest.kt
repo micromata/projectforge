@@ -25,7 +25,6 @@ package org.projectforge.rest
 
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.teamcal.admin.TeamCalDao
-import org.projectforge.business.teamcal.admin.TeamCalFilter
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.teamcal.admin.right.TeamCalRight
 import org.projectforge.business.timesheet.TimesheetFilter
@@ -42,7 +41,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/teamCal")
-class TeamCalRest : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao, TeamCalFilter>(TeamCalDao::class.java, TeamCalFilter::class.java, "plugins.teamcal.title") {
+class TeamCalRest : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao>(TeamCalDao::class.java, "plugins.teamcal.title") {
 
     @Autowired
     private lateinit var groupService: GroupService

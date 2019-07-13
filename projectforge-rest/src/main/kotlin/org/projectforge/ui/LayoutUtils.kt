@@ -27,7 +27,6 @@ import org.projectforge.favorites.Favorites
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.model.rest.RestPaths
@@ -66,7 +65,7 @@ class LayoutUtils {
          * <br>
          * If no named container called "filter-options" is found, it will be attached automatically by calling [addListFilterContainer]
          */
-        fun processListPage(layout: UILayout, restService: AbstractBaseRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>, out BaseSearchFilter>): UILayout {
+        fun processListPage(layout: UILayout, restService: AbstractBaseRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>): UILayout {
             var found = false
             layout.namedContainers.forEach {
                 if (it.id == "filterOptions") {
@@ -135,7 +134,7 @@ class LayoutUtils {
          * @see LayoutUtils.process
          */
         fun processEditPage(layout: UILayout, dto: Any,
-                            restService: AbstractBaseRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>, out BaseSearchFilter>)
+                            restService: AbstractBaseRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>)
                 : UILayout {
             layout.addAction(UIButton("cancel",
                     style = UIStyle.DANGER,
