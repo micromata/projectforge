@@ -31,7 +31,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.ProjectForgeApp;
 import org.projectforge.business.login.LoginResultStatus;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.filter.CookieService;
@@ -122,7 +121,7 @@ public class LoginPage extends AbstractUnsecureBasePage
     body.add(form);
     form.init();
     // Use the following message to check a ProjectForge installation with your monitoring tool (such as Nagios):
-    final String message = ProjectForgeApp.getInstance().isUpAndRunning() ? "ProjectForge is alive."
+    final String message = WicketSupport.getSystemStatus().getUpAndRunning() ? "ProjectForge is alive."
         : "ProjectForge is not full available (perhaps in maintenance mode or in start-up phase).";
     body.add(new Label("statusComment", "<!-- " + HtmlHelper.escapeHtml(message, false) + " -->")
         .setEscapeModelStrings(false)

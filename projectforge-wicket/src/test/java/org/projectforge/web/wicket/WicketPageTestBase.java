@@ -40,7 +40,6 @@ import org.apache.wicket.util.tester.FormTester;
 import org.apache.wicket.util.tester.WicketTester;
 import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
-import org.projectforge.ProjectForgeApp;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.plugins.core.AbstractPlugin;
@@ -80,6 +79,8 @@ public class WicketPageTestBase extends AbstractTestBase {
    */
   private static ResourceSettings resourceSettings;
 
+  private static boolean initialized = false;
+
   private class WicketTestApplication extends WebApplication implements WicketApplicationInterface {
 
     @Override
@@ -87,13 +88,13 @@ public class WicketPageTestBase extends AbstractTestBase {
       log.info("Init WicketTestApplication");
       super.init();
       getComponentInstantiationListeners().add(new SpringComponentInjector(this, applicationContext));
-      if (ProjectForgeApp.getInstance() == null || ProjectForgeApp.getInstance().isInitialized() == false) {
+      if (!initialized) {
         // Only on first initialization.
         log.info("Init resource loader");
         addResourceBundle(WicketApplication.RESOURCE_BUNDLE_NAME);
         resourceSettings = getResourceSettings();
-        ProjectForgeApp.init(applicationContext, isDevelopmentSystem());
         addPluginResources();
+        initialized = true;
       } else {
         log.info("Restore resource settings from last initialization");
         setResourceSettings(resourceSettings);

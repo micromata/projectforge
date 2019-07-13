@@ -23,6 +23,7 @@
 
 package org.projectforge.web;
 
+import org.projectforge.SystemStatus;
 import org.projectforge.business.user.UserPrefCache;
 import org.projectforge.menu.builder.MenuCreator;
 import org.springframework.context.ApplicationContext;
@@ -50,7 +51,7 @@ public class WicketSupport {
   }
 
   /**
-   * Workarround for SpringBean and Kotlin Spring components issues.
+   * Workaround for SpringBean and Kotlin Spring components issues.
    *
    * @see WicketSupport
    */
@@ -58,11 +59,21 @@ public class WicketSupport {
     return instance.get(UserPrefCache.class);
   }
 
+  /**
+   * Workaround for SpringBean and Kotlin Spring components issues.
+   *
+   * @see WicketSupport
+   */
+  public static SystemStatus getSystemStatus() {
+    return instance.get(SystemStatus.class);
+  }
+
+
   public static void register(ApplicationContext applicationContext) {
     // Wicket workaround for not be able to proxy Kotlin base SpringBeans:
     WicketSupport.getInstance().register(applicationContext.getBean(MenuCreator.class));
     WicketSupport.getInstance().register(applicationContext.getBean(UserPrefCache.class));
-
+    WicketSupport.getInstance().register(applicationContext.getBean(SystemStatus.class));
   }
 
   private final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(WicketSupport.class);

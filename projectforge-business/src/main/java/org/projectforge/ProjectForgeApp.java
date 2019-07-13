@@ -37,18 +37,22 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.registry.Registry;
 import org.projectforge.web.WicketSupport;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.TimeZone;
 
 /**
  * Doing some initialization stuff and stuff on shutdown (planned). Most stuff is yet done by WicketApplication.
- * <p>
- * TODO * DESIGNBUG enkoppeln.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-
+@Component
 public class ProjectForgeApp
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjectForgeApp.class);
@@ -67,42 +71,31 @@ public class ProjectForgeApp
 
   private SystemInfoCache systemInfoCache;
 
-  private boolean initialized;
-
-  public boolean isInitialized()
-  {
-    return initialized;
+  @Autowired
+  ProjectForgeApp(ApplicationContext applicationContext,
+                  DatabaseService databaseUpdater,
+                  UserXmlPreferencesCache userXmlPreferencesCache,
+                  SystemInfoCache systemInfoCache) {
+    this.applicationContext = applicationContext;
+    this.databaseUpdater = databaseUpdater;
+    this.userXmlPreferencesCache = userXmlPreferencesCache;
+    this.systemInfoCache = systemInfoCache;
   }
 
-  public void setInitialized(boolean initialized)
-  {
-    this.initialized = initialized;
+  @PostConstruct
+  void postConstruct() {
+    Registry.getInstance().init(applicationContext);
   }
 
-  public synchronized static ProjectForgeApp init(ApplicationContext applicationContext, final boolean developmentMode)
-  {
-    if (instance != null) {
-      log.warn("ProjectForge is already initialized!");
-      return instance;
-    }
-    instance = new ProjectForgeApp();
-    instance.internalInit(applicationContext, developmentMode);
-    return instance;
+  @EventListener(ApplicationReadyEvent.class)
+  public void startApp() {
+    internalInit();
+    finalizeInitialization();
   }
 
-  public static ProjectForgeApp getInstance()
-  {
-    return instance;
-  }
-
-  public static void shutdown()
-  {
-    if (instance == null) {
-      log.error("ProjectForge isn't initialized, can't excecute shutdown!");
-      return;
-    }
-    instance.internalShutdown();
-    instance = null;
+  @PreDestroy
+  public void shutdownApp() {
+    internalShutdown();
   }
 
   /**
@@ -110,7 +103,7 @@ public class ProjectForgeApp
    * login should be started. <br>
    * Flag upAndRunning will be set to true.
    */
-  public void finalizeInitialization()
+  private void finalizeInitialization()
   {
     log.info(AppVersion.APP_ID + " " + AppVersion.NUMBER + " (" + AppVersion.RELEASE_TIMESTAMP + ") initialized.");
     // initialize ical4j to be more "relaxed"
@@ -121,20 +114,9 @@ public class ProjectForgeApp
     log.info("ProjectForge is now available (up and running).");
   }
 
-  private void internalInit(ApplicationContext applicationContext,
-      final boolean developmentMode)
+  private void internalInit()
   {
     log.info("Initializing...");
-    this.applicationContext = applicationContext;
-    this.databaseUpdater = applicationContext.getBean(DatabaseService.class);
-    this.userXmlPreferencesCache = applicationContext.getBean(UserXmlPreferencesCache.class);
-    this.systemInfoCache = applicationContext.getBean(SystemInfoCache.class);
-
-    // Wicket workaround for not be able to proxy Kotlin base SpringBeans:
-    WicketSupport.register(applicationContext);
-
-    Registry.getInstance().init(applicationContext);
-
     // Time zone
     log.info("Default TimeZone is: " + TimeZone.getDefault());
     if ("UTC".equals(TimeZone.getDefault().getID()) == false) {
@@ -158,9 +140,6 @@ public class ProjectForgeApp
     }
 
     SystemInfoCache.internalInitialize(systemInfoCache);
-
-    this.initialized = true;
-
   }
 
   private TenantRegistry getTenantRegistry()

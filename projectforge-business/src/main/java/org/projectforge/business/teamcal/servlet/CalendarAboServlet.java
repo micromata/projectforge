@@ -23,24 +23,14 @@
 
 package org.projectforge.business.teamcal.servlet;
 
-import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import net.fortuna.ical4j.model.component.VEvent;
+import net.fortuna.ical4j.model.property.Description;
+import net.fortuna.ical4j.model.property.Location;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateMidnight;
 import org.joda.time.DateTime;
-import org.projectforge.ProjectForgeApp;
+import org.projectforge.SystemStatus;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.teamcal.TeamCalConfig;
@@ -69,9 +59,17 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
-import net.fortuna.ical4j.model.component.VEvent;
-import net.fortuna.ical4j.model.property.Description;
-import net.fortuna.ical4j.model.property.Location;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
 
 /**
  * Feed Servlet, which generates a 'text/calendar' output of the last four mounts. Currently relevant information is
@@ -103,6 +101,9 @@ public class CalendarAboServlet extends HttpServlet
   @Autowired
   private TeamEventService teamEventService;
 
+  @Autowired
+  private SystemStatus systemStatus;
+
   @Override
   public void init(final ServletConfig config) throws ServletException
   {
@@ -116,7 +117,7 @@ public class CalendarAboServlet extends HttpServlet
   protected void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException
   {
     // check if PF is running
-    if (ProjectForgeApp.getInstance().isUpAndRunning() == false) {
+    if (systemStatus.getUpAndRunning() == false) {
       log.error("System isn't up and running, CalendarFeed call denied. The system is may-be in start-up phase or in maintenance mode.");
       resp.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
       return;

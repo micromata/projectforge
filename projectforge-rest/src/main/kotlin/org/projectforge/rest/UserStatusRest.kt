@@ -30,6 +30,7 @@ import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.TimeNotation
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.pub.SystemStatusRest
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -47,6 +48,9 @@ open class UserStatusRest {
     companion object {
         internal val WEEKDAYS = arrayOf("-", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY")
     }
+
+    @Autowired
+    private lateinit var systemStatusRest: SystemStatusRest
 
     data class UserData(var username: String? = null,
                         var organization: String? = null,
@@ -102,7 +106,7 @@ open class UserStatusRest {
         userData.jsTimestampFormatMinutes = convertToJavascriptFormat(userData.timestampFormatMinutes)
         userData.jsTimestampFormatSeconds = convertToJavascriptFormat(userData.timestampFormatSeconds)
 
-        val systemData = SystemStatusRest.getSystemData()
+        val systemData = systemStatusRest.systemData
         return ResponseEntity<Result>(Result(userData, systemData), HttpStatus.OK)
     }
 
