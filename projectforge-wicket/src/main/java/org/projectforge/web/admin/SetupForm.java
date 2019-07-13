@@ -23,9 +23,6 @@
 
 package org.projectforge.web.admin;
 
-import java.util.List;
-import java.util.TimeZone;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.form.Button;
@@ -53,12 +50,10 @@ import org.projectforge.web.wicket.components.MaxLengthTextField;
 import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.components.TimeZonePanel;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
-import org.projectforge.web.wicket.flowlayout.ParTextPanel;
-import org.projectforge.web.wicket.flowlayout.PasswordPanel;
-import org.projectforge.web.wicket.flowlayout.RadioGroupPanel;
+import org.projectforge.web.wicket.flowlayout.*;
+
+import java.util.List;
+import java.util.TimeZone;
 
 public class SetupForm extends AbstractForm<SetupForm, SetupPage>
 {
@@ -183,6 +178,7 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
     }
     {
       // Calendar domain
+      calendarDomainModel.setObject("local");
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("administration.configuration.param.calendarDomain"));
       final RequiredMaxLengthTextField textField = new RequiredMaxLengthTextField(InputPanel.WICKET_ID, calendarDomainModel, ConfigurationDO.Companion.getPARAM_LENGTH());
       fs.add(textField);
