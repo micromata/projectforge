@@ -154,7 +154,6 @@ class IndexPage extends React.Component {
                                 DynamicReactSelect: support of autocompletion and favorites (see
                                 field communication language of edit page for addresses).
                             </li>
-                            <li>Enable localized customized pages (login page, setup page etc.)</li>
                             <li>
                                 main.chunk.js with hash sum / version id, use service worker for
                                 caching app
@@ -208,6 +207,7 @@ class IndexPage extends React.Component {
                                 sheet edit page as modal of CalendarPage.
                             </li>
                             <li>Redirect after logout</li>
+                            <li>Enable localized customized pages (login page, setup page etc.)</li>
                         </ol>
                     </Col>
                     <Col>
