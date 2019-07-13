@@ -1,9 +1,4 @@
-import {
-    USER_LOGIN_BEGIN,
-    USER_LOGIN_FAILURE,
-    USER_LOGIN_SUCCESS,
-    USER_LOGOUT,
-} from '../actions';
+import { USER_LOGIN_BEGIN, USER_LOGIN_FAILURE, USER_LOGIN_SUCCESS } from '../actions';
 
 const initialState = {
     loading: false,
@@ -35,13 +30,6 @@ const reducer = (state = initialState, { type, payload }) => {
                 user: null,
                 loading: false,
                 error: payload.error,
-            };
-        case USER_LOGOUT:
-            return {
-                ...state,
-                loading: false,
-                error: null,
-                user: null,
             };
         default:
             return state;

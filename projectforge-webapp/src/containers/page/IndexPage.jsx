@@ -1,5 +1,8 @@
+import PropTypes from 'prop-types';
 import React from 'react';
+import { connect } from 'react-redux';
 import { Card, CardBody, CardHeader, CardText, CardTitle, Col, Container, Row } from 'reactstrap';
+import { loadUserStatus } from '../../actions';
 import { getServiceURL } from '../../utilities/rest';
 
 class IndexPage extends React.Component {
@@ -17,7 +20,19 @@ class IndexPage extends React.Component {
         this.fetchInitial();
     }
 
+    componentWillUpdate({ location: nextLocation }) {
+        const { location, loadUserStatus: checkAuthentication } = this.props;
+
+        if (location.key === nextLocation.key) {
+            return;
+        }
+
+        checkAuthentication();
+    }
+
     fetchInitial() {
+        const { loadUserStatus: checkAuthentication } = this.props;
+
         fetch(getServiceURL('index'), {
             method: 'GET',
             credentials: 'include',
@@ -25,7 +40,13 @@ class IndexPage extends React.Component {
                 Accept: 'application/json',
             },
         })
-            .then(response => response.json())
+            .then((response) => {
+                if (response.status === 401) {
+                    throw response.status;
+                }
+
+                return response.json();
+            })
             .then((json) => {
                 const {
                     translations,
@@ -34,7 +55,7 @@ class IndexPage extends React.Component {
                     translations,
                 });
             })
-            .catch(error => alert(`Internal error: ${error}`));
+            .catch(() => checkAuthentication());
     }
 
     render() {
@@ -138,7 +159,6 @@ class IndexPage extends React.Component {
                                 main.chunk.js with hash sum / version id, use service worker for
                                 caching app
                             </li>
-                            <li>Redirect after logout</li>
                         </ol>
                         <h1>Done</h1>
                         <ol style={todoDone}>
@@ -187,6 +207,7 @@ class IndexPage extends React.Component {
                                 Edit page in Modals: handle tabs (especially history), see time
                                 sheet edit page as modal of CalendarPage.
                             </li>
+                            <li>Redirect after logout</li>
                         </ol>
                     </Col>
                     <Col>
@@ -245,8 +266,17 @@ class IndexPage extends React.Component {
     }
 }
 
-IndexPage.propTypes = {};
+IndexPage.propTypes = {
+    loadUserStatus: PropTypes.func.isRequired,
+    location: PropTypes.shape({
+        key: PropTypes.string.isRequired,
+    }).isRequired,
+};
 
 IndexPage.defaultProps = {};
 
-export default IndexPage;
+const actions = {
+    loadUserStatus,
+};
+
+export default connect(undefined, actions)(IndexPage);
