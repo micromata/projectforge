@@ -23,18 +23,7 @@
 
 package org.projectforge.business.timesheet;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.collections.CollectionUtils;
-import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -73,6 +62,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.*;
+
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
@@ -93,7 +84,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
       + "h!";
 
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "user.username", "user.firstname",
-      "user.lastname", "task.title",
+      "user.lastname", "task.id", "task.title",
       "task.taskpath", "kost2.nummer", "kost2.description", "kost2.projekt.name" };
 
   public static final String HIDDEN_FIELD_MARKER = "[...]";
