@@ -45,13 +45,16 @@ class SystemStatusRest {
                           var releaseDate: String,
                           var releaseYear: String,
                           var messageOfTheDay: String? = null,
-                          var logoUrl: String? = null,
                           var copyRightYears: String,
                           /**
                            * If given, the client should redirect to this url.
                            */
                           var setupRedirectUrl: String? = null,
-                          var startTimeUTC: Date? = null)
+                          var startTimeUTC: Date? = null) {
+        val logoUrl
+            get() = LogoServiceRest.logoUrl
+
+    }
 
     private var _systemData: SystemData? = null
 
@@ -68,7 +71,6 @@ class SystemStatusRest {
                 releaseTimestamp = systemStatus.releaseTimestamp,
                 releaseDate = systemStatus.releaseDate,
                 releaseYear = systemStatus.releaseYear,
-                logoUrl = LogoServiceRest.logoUrl,
                 messageOfTheDay = systemStatus.messageOfTheDay,
                 copyRightYears = systemStatus.copyRightYears,
                 setupRedirectUrl = if (systemStatus.setupRequiredFirst == true) "/wa/setup" else null,
