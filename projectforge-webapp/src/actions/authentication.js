@@ -4,8 +4,6 @@ export const USER_LOGIN_BEGIN = 'USER_LOGIN_BEGIN';
 export const USER_LOGIN_SUCCESS = 'USER_LOGIN_SUCCESS';
 export const USER_LOGIN_FAILURE = 'USER_LOGIN_FAILURE';
 
-export const USER_LOGOUT = 'USER_LOGOUT';
-
 export const userLoginBegin = () => ({
     type: USER_LOGIN_BEGIN,
 });
@@ -26,10 +24,6 @@ export const userLoginFailure = error => ({
     },
 });
 
-export const userLogout = () => ({
-    type: USER_LOGOUT,
-});
-
 const catchError = dispatch => error => dispatch(userLoginFailure(error.message));
 
 export const loadUserStatus = () => (dispatch) => {
@@ -47,7 +41,7 @@ export const loadUserStatus = () => (dispatch) => {
         .then(({ userData, systemData }) => {
             dispatch(userLoginSuccess(userData, systemData.version, systemData.releaseTimestamp));
         })
-        .catch(catchError(dispatch));
+        .catch(() => catchError(dispatch)({ message: undefined }));
 };
 
 export const login = (username, password, keepSignedIn) => (dispatch) => {
@@ -71,11 +65,3 @@ export const login = (username, password, keepSignedIn) => (dispatch) => {
         .then(() => loadUserStatus()(dispatch))
         .catch(catchError(dispatch));
 };
-
-export const logout = () => dispatch => fetch(
-    getServiceURL('../rs/logout'),
-    {
-        credentials: 'include',
-    },
-)
-    .then(() => dispatch(userLogout()));
