@@ -23,12 +23,6 @@
 
 package org.projectforge.framework.utils;
 
-import java.math.BigDecimal;
-import java.security.SecureRandom;
-import java.text.NumberFormat;
-import java.text.ParseException;
-import java.util.Locale;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -37,6 +31,12 @@ import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.math.BigDecimal;
+import java.security.SecureRandom;
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.util.Locale;
 
 /**
  * Some helper methods ...
@@ -216,14 +216,14 @@ public class NumberHelper
   /**
    * Catches any NumberFormatException and returns 0, otherwise the long value represented by the given value is returned.
    */
-  public static long parseLong(String value)
+  public static Long parseLong(String value)
   {
     if (value == null) {
-      return 0;
+      return null;
     }
     value = value.trim();
     if (value.length() == 0) {
-      return 0;
+      return null;
     }
     Long result = null;
     try {
