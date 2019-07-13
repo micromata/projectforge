@@ -23,9 +23,7 @@
 
 package org.projectforge.rest
 
-import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.UserDao
-import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTORest
@@ -40,12 +38,12 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("${Rest.URL}/user")
 class UserRest
-    : AbstractDTORest<PFUserDO, User, UserDao, BaseSearchFilter>(UserDao::class.java, BaseSearchFilter::class.java, "user.title") {
+    : AbstractDTORest<PFUserDO, User, UserDao>(UserDao::class.java, "user.title") {
 
     override fun transformFromDB(obj: PFUserDO, editMode: Boolean): User {
         val user = User()
         val copy = PFUserDO.createCopyWithoutSecretFields(obj)
-        if(copy != null) {
+        if (copy != null) {
             user.copyFrom(copy)
         }
         return user

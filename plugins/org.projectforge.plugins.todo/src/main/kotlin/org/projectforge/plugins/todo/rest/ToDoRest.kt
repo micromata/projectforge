@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.todo.rest
 
-import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.plugins.todo.ToDoDO
 import org.projectforge.plugins.todo.ToDoDao
 import org.projectforge.rest.config.Rest
@@ -35,7 +34,7 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/todo")
-class ToDoRest() : AbstractDORest<ToDoDO, ToDoDao, BaseSearchFilter>(ToDoDao::class.java, BaseSearchFilter::class.java, "plugins.todo.title") {
+class ToDoRest() : AbstractDORest<ToDoDO, ToDoDao>(ToDoDao::class.java, "plugins.todo.title") {
     /**
      * Initializes new toDos for adding.
      */

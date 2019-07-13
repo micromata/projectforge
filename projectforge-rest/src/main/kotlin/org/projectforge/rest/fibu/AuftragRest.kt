@@ -25,7 +25,6 @@ package org.projectforge.rest.fibu
 
 import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.AuftragDao
-import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.ui.*
@@ -34,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/order")
-class AuftragRest() : AbstractDORest<AuftragDO, AuftragDao, BaseSearchFilter>(AuftragDao::class.java, BaseSearchFilter::class.java, "fibu.auftrag.title") {
+class AuftragRest() : AbstractDORest<AuftragDO, AuftragDao>(AuftragDao::class.java, "fibu.auftrag.title") {
 
     /**
      * LAYOUT List page

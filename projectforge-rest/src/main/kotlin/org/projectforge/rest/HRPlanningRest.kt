@@ -25,7 +25,6 @@ package org.projectforge.rest
 
 import org.projectforge.business.humanresources.HRPlanningDO
 import org.projectforge.business.humanresources.HRPlanningDao
-import org.projectforge.business.humanresources.HRPlanningFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.ui.LayoutUtils
@@ -37,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/hrPlanning")
-class HRPlanningRest : AbstractDORest<HRPlanningDO, HRPlanningDao, HRPlanningFilter>(HRPlanningDao::class.java, HRPlanningFilter::class.java, "hr.planning.title") {
+class HRPlanningRest : AbstractDORest<HRPlanningDO, HRPlanningDao>(HRPlanningDao::class.java, "hr.planning.title") {
 
     /**
      * LAYOUT List page

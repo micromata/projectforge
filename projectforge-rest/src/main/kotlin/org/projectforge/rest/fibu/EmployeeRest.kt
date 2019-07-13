@@ -25,7 +25,6 @@ package org.projectforge.rest.fibu
 
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
-import org.projectforge.business.fibu.EmployeeFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTORest
 import org.projectforge.rest.dto.Employee
@@ -35,7 +34,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/employee")
-class EmployeeRest : AbstractDTORest<EmployeeDO, Employee, EmployeeDao, EmployeeFilter>(EmployeeDao::class.java, EmployeeFilter::class.java, "fibu.employee.title") {
+class EmployeeRest : AbstractDTORest<EmployeeDO, Employee, EmployeeDao>(EmployeeDao::class.java, "fibu.employee.title") {
     override fun transformFromDB(obj: EmployeeDO, editMode: Boolean): Employee {
         val employee = Employee()
         employee.copyFrom(obj)

@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.memo.rest
 
-import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.plugins.memo.MemoDO
 import org.projectforge.plugins.memo.MemoDao
@@ -38,7 +37,7 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/memo")
-class MemoRest() : AbstractDORest<MemoDO, MemoDao, BaseSearchFilter>(MemoDao::class.java, BaseSearchFilter::class.java, "plugins.memo.title") {
+class MemoRest() : AbstractDORest<MemoDO, MemoDao>(MemoDao::class.java, "plugins.memo.title") {
     /**
      * Initializes new memos for adding.
      */

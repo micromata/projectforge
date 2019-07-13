@@ -216,8 +216,8 @@ function SearchFilter() {
                                 required
                                 translations={ui.translations}
                                 value={{
-                                    value: filter.searchFilter.maxRows,
-                                    label: filter.searchFilter.maxRows,
+                                    value: filter.maxRows,
+                                    label: filter.maxRows,
                                 }}
                                 values={[
                                     {

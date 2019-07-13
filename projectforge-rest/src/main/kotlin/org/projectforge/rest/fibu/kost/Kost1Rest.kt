@@ -26,7 +26,6 @@ package org.projectforge.rest.fibu.kost
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost1Dao
-import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTORest
 import org.projectforge.rest.dto.Kost1
@@ -36,7 +35,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/kost1")
-class Kost1Rest : AbstractDTORest<Kost1DO, Kost1, Kost1Dao, BaseSearchFilter>(Kost1Dao::class.java, BaseSearchFilter::class.java, "fibu.kost1.title") {
+class Kost1Rest : AbstractDTORest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao::class.java, "fibu.kost1.title") {
     override fun transformFromDB(obj: Kost1DO, editMode: Boolean): Kost1 {
         val kost1 = Kost1()
         kost1.copyFrom(obj)

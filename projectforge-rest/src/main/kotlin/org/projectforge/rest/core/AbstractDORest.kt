@@ -38,13 +38,11 @@ import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
  */
 abstract class AbstractDORest<
         O : ExtendedBaseDO<Int>,
-        B : BaseDao<O>,
-        F : BaseSearchFilter>(
+        B : BaseDao<O>>(
         baseDaoClazz: Class<B>,
-        filterClazz: Class<F>,
         i18nKeyPrefix: String,
         cloneSupported: Boolean = false)
-    : AbstractBaseRest<O, O, B, F>(baseDaoClazz, filterClazz, i18nKeyPrefix, cloneSupported) {
+    : AbstractBaseRest<O, O, B>(baseDaoClazz, i18nKeyPrefix, cloneSupported) {
 
     companion object {
         // For caching historizable flag:

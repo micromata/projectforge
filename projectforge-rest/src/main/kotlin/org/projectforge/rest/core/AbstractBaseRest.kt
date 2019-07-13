@@ -43,7 +43,6 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.dto.BaseDTO
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
-import org.springframework.beans.BeanUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.http.HttpStatus
@@ -64,10 +63,8 @@ import javax.validation.Valid
 abstract class AbstractBaseRest<
         O : ExtendedBaseDO<Int>,
         DTO : Any, // DTO may be equals to O if no special data transfer objects are used.
-        B : BaseDao<O>,
-        F : BaseSearchFilter>(
+        B : BaseDao<O>>(
         private val baseDaoClazz: Class<B>,
-        private val filterClazz: Class<F>,
         private val i18nKeyPrefix: String,
         val cloneSupported: Boolean = false) {
     /**
@@ -95,11 +92,11 @@ abstract class AbstractBaseRest<
     /**
      * Contains the data, layout and filter settings served by [getInitialList].
      */
-    class InitialListData<F : BaseSearchFilter>(
+    class InitialListData(
             val ui: UILayout?,
             val data: ResultSet<*>,
             val filterFavorites: List<Favorites.FavoriteIdTitle>,
-            val filter: MagicFilter<F>)
+            val filter: MagicFilter)
 
     private var initialized = false
 
@@ -135,9 +132,6 @@ abstract class AbstractBaseRest<
 
     @Autowired
     private lateinit var historyService: HistoryService
-
-    @Autowired
-    private lateinit var listFilterService: ListFilterService
 
     @Autowired
     private lateinit var userPrefService: UserPrefService
@@ -244,17 +238,17 @@ abstract class AbstractBaseRest<
      * Get the current filter from the server, all matching items and the layout of the list page.
      */
     @GetMapping("initialList")
-    fun requestInitialList(request: HttpServletRequest): InitialListData<F> {
+    fun requestInitialList(request: HttpServletRequest): InitialListData {
         return getInitialList(request)
     }
 
-    protected open fun getInitialList(request: HttpServletRequest): InitialListData<F> {
+    protected open fun getInitialList(request: HttpServletRequest): InitialListData {
         return getInitialList(getCurrentFilter())
     }
 
-    protected fun getInitialList(filter: MagicFilter<F>): InitialListData<F> {
+    protected fun getInitialList(filter: MagicFilter): InitialListData {
         val favorites = getFilterFavorites()
-        val resultSet = processResultSetBeforeExport(getList(this, baseDao, filter, filterClazz))
+        val resultSet = processResultSetBeforeExport(getList(this, baseDao, filter))
         val layout = createListLayout()
                 .addTranslations("table.showing")
         layout.add(LayoutListFilterUtils.createNamedContainer(this, lc))
@@ -276,20 +270,18 @@ abstract class AbstractBaseRest<
      * Get the list of all items matching the given filter.
      */
     @RequestMapping(RestPaths.LIST)
-    fun getList(request: HttpServletRequest, @RequestBody filter: MagicFilter<F>): ResultSet<*> {
-        val list = getList(this, baseDao, filter, filterClazz)
+    fun getList(request: HttpServletRequest, @RequestBody filter: MagicFilter): ResultSet<*> {
+        val list = getList(this, baseDao, filter)
         saveCurrentFilter(filter)
         val resultSet = processResultSetBeforeExport(list)
-        val storedFilter = listFilterService.getSearchFilter(request.session, filterClazz)
-        BeanUtils.copyProperties(filter, storedFilter)
         return resultSet
     }
 
-    private fun getFilterFavorites(): Favorites<MagicFilter<F>> {
-        var favorites: Favorites<MagicFilter<F>>? = null
+    private fun getFilterFavorites(): Favorites<MagicFilter> {
+        var favorites: Favorites<MagicFilter>? = null
         try {
             @Suppress("UNCHECKED_CAST", "USELESS_ELVIS")
-            favorites = userPrefService.getEntry(userPrefArea, Favorites.PREF_NAME_LIST, Favorites::class.java) as Favorites<MagicFilter<F>>
+            favorites = userPrefService.getEntry(userPrefArea, Favorites.PREF_NAME_LIST, Favorites::class.java) as Favorites<MagicFilter>
         } catch (ex: Exception) {
             log.error("Exception while getting user preferred favorites: ${ex.message}. This might be OK for new releases. Ignoring filter.")
         }
@@ -301,25 +293,22 @@ abstract class AbstractBaseRest<
         return favorites
     }
 
-    private fun getCurrentFilter(): MagicFilter<F> {
+    private fun getCurrentFilter(): MagicFilter {
         var currentFilter = userPrefService.getEntry(userPrefArea, Favorites.PREF_NAME_CURRENT, MagicFilter::class.java)
         if (currentFilter == null) {
-            currentFilter = MagicFilter<F>()
+            currentFilter = MagicFilter()
             saveCurrentFilter(currentFilter)
         }
         @Suppress("UNCHECKED_CAST")
-        return currentFilter as MagicFilter<F>
+        return currentFilter
     }
 
-    private fun saveCurrentFilter(currentFilter: MagicFilter<F>) {
-        if (currentFilter.searchFilter == null) {
-            currentFilter.searchFilter = filterClazz.newInstance()
-        }
+    private fun saveCurrentFilter(currentFilter: MagicFilter) {
         userPrefService.putEntry(userPrefArea, Favorites.PREF_NAME_CURRENT, currentFilter)
     }
 
     @GetMapping("filter/select")
-    fun selectFavoriteFilter(@RequestParam("id", required = true) id: Int): InitialListData<F> {
+    fun selectFavoriteFilter(@RequestParam("id", required = true) id: Int): InitialListData {
         val favorites = getFilterFavorites()
         val currentFilter = favorites.get(id)
         if (currentFilter != null) {
@@ -336,7 +325,7 @@ abstract class AbstractBaseRest<
      * @return currentFilter, new filterFavorites and isFilterModified=false.
      */
     @RequestMapping("filter/create")
-    fun createFavoriteFilter(@RequestBody newFilter: MagicFilter<F>): Map<String, Any> {
+    fun createFavoriteFilter(@RequestBody newFilter: MagicFilter): Map<String, Any> {
         val favorites = getFilterFavorites()
         favorites.add(newFilter)
         val currentFilter = newFilter.clone() // A clone is needed, otherwise current and favorite of list are the same object.
@@ -597,8 +586,10 @@ abstract class AbstractBaseRest<
      * The filters are reset and the default returned.
      */
     @GetMapping(RestPaths.FILTER_RESET)
-    fun filterReset(request: HttpServletRequest): BaseSearchFilter {
-        return listFilterService.getSearchFilter(request.session, filterClazz).reset()
+    fun filterReset(request: HttpServletRequest): MagicFilter {
+        val filter = getCurrentFilter()
+        filter.reset()
+        return filter
     }
 
     internal open fun beforeSaveOrUpdate(request: HttpServletRequest, obj: O, dto: DTO) {
@@ -657,10 +648,10 @@ abstract class AbstractBaseRest<
         return ResponseAction("/${getCategory()}").addVariable("id", obj.id ?: -1)
     }
 
-    internal open fun filterList(resultSet: MutableList<O>, filter: F): List<O> {
-        if (filter.maxRows > 0 && resultSet.size > filter.maxRows) {
-            return resultSet.take(filter.maxRows)
-        }
+    internal open fun filterList(resultSet: MutableList<O>, filter: MagicFilter): List<O> {
+        //  if (filter.maxRows > 0 && resultSet.size > filter.maxRows) {
+        //      return resultSet.take(filter.maxRows)
+        //  }
         return resultSet
     }
 

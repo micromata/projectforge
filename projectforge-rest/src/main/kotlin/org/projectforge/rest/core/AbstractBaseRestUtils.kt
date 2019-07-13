@@ -38,25 +38,28 @@ import javax.servlet.http.HttpServletRequest
 
 internal val log = org.slf4j.LoggerFactory.getLogger("org.projectforge.rest.core.AbstractBaseRestUtils")
 
-fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
-        getList(dataObjectRest: AbstractBaseRest<O, DTO, B, F>,
+fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
+        getList(dataObjectRest: AbstractBaseRest<O, DTO, B>,
                 baseDao: BaseDao<O>,
-                magicFilter: MagicFilter<F>,
-                filterClass: Class<F>)
+                magicFilter: MagicFilter)
         : ResultSet<O> {
-    val filter = magicFilter.prepareQueryFilter(filterClass)
-    filter.isSortAndLimitMaxRowsWhileSelect = true
-    val list = baseDao.getList(filter)
-    val resultSet = ResultSet<O>(dataObjectRest.filterList(list, filter), list.size)
+    val filter = magicFilter.prepareQueryFilter()
+    //filter.isSortAndLimitMaxRowsWhileSelect = true
+    log.error("******* TODO *****")
+    val legacyFilter = BaseSearchFilter()
+    legacyFilter.isSortAndLimitMaxRowsWhileSelect = true
+    legacyFilter.maxRows = 50
+    val list = baseDao.getList(legacyFilter)
+    val resultSet = ResultSet<O>(dataObjectRest.filterList(list, magicFilter), list.size)
     return resultSet
 }
 
-fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
+fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
         saveOrUpdate(request: HttpServletRequest,
                      baseDao: BaseDao<O>,
                      obj: O,
                      dto: DTO,
-                     dataObjectRest: AbstractBaseRest<O, DTO, B, F>,
+                     dataObjectRest: AbstractBaseRest<O, DTO, B>,
                      validationErrorsList: List<ValidationError>?)
         : ResponseEntity<ResponseAction> {
 
@@ -67,7 +70,7 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
     val isNew = obj.id == null || obj.created == null // obj.created is needed for KundeDO (id isn't null for inserting new customers).
     dataObjectRest.beforeSaveOrUpdate(request, obj, dto)
     try {
-       baseDao.saveOrUpdate(obj) ?: obj.id
+        baseDao.saveOrUpdate(obj) ?: obj.id
     } catch (ex: UserException) {
         log.error("Error while trying to save/update object '${obj::class.java}' with id #${obj.id}: message=${ex.i18nKey}, params='${ex.msgParams?.joinToString() { it.toString() }}'")
         val error = ValidationError(translateMsg(ex), messageId = ex.i18nKey)
@@ -83,11 +86,11 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
     }
 }
 
-fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
+fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
         undelete(baseDao: BaseDao<O>,
                  obj: O,
                  dto: DTO,
-                 dataObjectRest: AbstractBaseRest<O, DTO, B, F>,
+                 dataObjectRest: AbstractBaseRest<O, DTO, B>,
                  validationErrorsList: List<ValidationError>?)
         : ResponseEntity<ResponseAction> {
     if (validationErrorsList.isNullOrEmpty()) {
@@ -98,11 +101,11 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
     return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)
 }
 
-fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
+fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
         markAsDeleted(baseDao: BaseDao<O>,
                       obj: O,
                       dto: DTO,
-                      dataObjectRest: AbstractBaseRest<O, DTO, B, F>,
+                      dataObjectRest: AbstractBaseRest<O, DTO, B>,
                       validationErrorsList: List<ValidationError>?)
         : ResponseEntity<ResponseAction> {
     if (validationErrorsList.isNullOrEmpty()) {
@@ -113,11 +116,11 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
     return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)
 }
 
-fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>, F : BaseSearchFilter>
+fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
         delete(baseDao: BaseDao<O>,
                obj: O,
                dto: DTO,
-               dataObjectRest: AbstractBaseRest<O, DTO, B, F>,
+               dataObjectRest: AbstractBaseRest<O, DTO, B>,
                validationErrorsList: List<ValidationError>?)
         : ResponseEntity<ResponseAction> {
     if (validationErrorsList.isNullOrEmpty()) {

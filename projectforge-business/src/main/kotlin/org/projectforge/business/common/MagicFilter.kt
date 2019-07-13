@@ -23,22 +23,19 @@
 
 package org.projectforge.business.common
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.projectforge.business.user.UserPrefDao
 import org.projectforge.favorites.AbstractFavorite
-import org.projectforge.framework.persistence.api.BaseSearchFilter
 
-class MagicFilter<F : BaseSearchFilter>(
-        /**
-         * Optional searchfilter of ProjectForge's entities, such as [org.projectforge.business.address.AddressFilter],
-         * [org.projectforge.business.timesheet.TimesheetFilter] etc.
-         */
-        @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "type")
-        var searchFilter: F? = null,
+class MagicFilter(
         /**
          * Optional entries for searching (keywords, field search, range search etc.)
          */
         var entries: MutableList<MagicFilterEntry> = mutableListOf(),
+        var maxRows: Int = 50,
+        /**
+         * If true, only deleted entries will be shown. If false, no deleted entries will be shown. If null, all entries will be shown.
+         */
+        var deleted: Boolean? = false,
         name: String? = null,
         id: Int? = null
 ) : AbstractFavorite(name, id) {
@@ -46,23 +43,11 @@ class MagicFilter<F : BaseSearchFilter>(
     @Transient
     internal val log = org.slf4j.LoggerFactory.getLogger(MagicFilter::class.java)
 
-    /**
-     * Creates the search filter for the data-base query.
-     * @param filterClass Needed for creating a new filter instance if not yet given.
-     *
-     * Please note: Range search and search for values must be implemented for every specific filter.
-     */
-    fun prepareQueryFilter(filterClass: Class<F>): F {
-        val filter = searchFilter ?: filterClass.newInstance()
-        if (searchFilter == null)
-            searchFilter = filter
-        if (filter.maxRows <= 0)
-            filter.maxRows = 50
-        filter.isSortAndLimitMaxRowsWhileSelect = true
-        if (entries.isNullOrEmpty()) {
-            filter.searchString = null // Must be reset from any previous run
-            return filter // Nothing to configure.
-        }
+    open fun reset() {
+        entries.clear()
+    }
+
+    fun prepareQueryFilter() {
         val searchStrings = mutableListOf<String>()
         entries.forEach { entry ->
             when (entry.type()) {
@@ -83,12 +68,10 @@ class MagicFilter<F : BaseSearchFilter>(
                 }
             }
         }
-        filter.searchString = searchStrings.joinToString(" AND ")
-        return filter
     }
 
     @Suppress("SENSELESS_COMPARISON")
-    fun isModified(other: MagicFilter<F>): Boolean {
+    fun isModified(other: MagicFilter): Boolean {
         if (this.name != other.name) return true
         if (this.id != other.id) return true
 
@@ -108,13 +91,12 @@ class MagicFilter<F : BaseSearchFilter>(
                 return true
             }
         }
-        return "${this.searchFilter}" != "${other.searchFilter}" // Compares json representation (toString)
+        return false
     }
 
-    fun clone(): MagicFilter<F> {
+    fun clone(): MagicFilter {
         val mapper = UserPrefDao.createObjectMapper()
         val json = mapper.writeValueAsString(this)
-        @Suppress("UNCHECKED_CAST")
-        return mapper.readValue(json, MagicFilter::class.java) as MagicFilter<F>
+        return mapper.readValue(json, MagicFilter::class.java)
     }
 }

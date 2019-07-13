@@ -22,7 +22,7 @@ function SearchFilterCheckbox({ id, label }) {
             <CheckBox
                 id={id}
                 label={label}
-                checked={filter.searchFilter[id] || false}
+                checked={filter[id] || false}
                 onChange={handleCheckboxChange}
             />
         );

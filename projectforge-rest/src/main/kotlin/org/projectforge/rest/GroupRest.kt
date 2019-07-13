@@ -24,7 +24,6 @@
 package org.projectforge.rest
 
 import org.projectforge.business.user.GroupDao
-import org.projectforge.business.user.GroupFilter
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.rest.config.Rest
@@ -37,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/group")
-class GroupRest() : AbstractDTORest<GroupDO, Group, GroupDao, GroupFilter>(GroupDao::class.java, GroupFilter::class.java, "group.title") {
+class GroupRest() : AbstractDTORest<GroupDO, Group, GroupDao>(GroupDao::class.java, "group.title") {
 
     @Autowired
     private lateinit var userService: UserService

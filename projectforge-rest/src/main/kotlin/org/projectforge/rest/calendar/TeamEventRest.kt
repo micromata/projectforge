@@ -25,7 +25,6 @@ package org.projectforge.rest.calendar
 
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.event.TeamEventDao
-import org.projectforge.business.teamcal.event.TeamEventFilter
 import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache
 import org.projectforge.framework.time.PFDateTime
@@ -41,9 +40,8 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/teamEvent")
-class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao, TeamEventFilter>(
+class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao>(
         TeamEventDao::class.java,
-        TeamEventFilter::class.java,
         "plugins.teamcal.event.title") {
 
     private val log = org.slf4j.LoggerFactory.getLogger(TeamEventRest::class.java)

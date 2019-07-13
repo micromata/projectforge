@@ -38,9 +38,8 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/addressBook")
-class AddressBookRest : AbstractDTORest<AddressbookDO, Addressbook, AddressbookDao, AddressbookFilter>(
+class AddressBookRest : AbstractDTORest<AddressbookDO, Addressbook, AddressbookDao>(
         AddressbookDao::class.java,
-        AddressbookFilter::class.java,
         "addressbook.title"
 ) {
     @Autowired

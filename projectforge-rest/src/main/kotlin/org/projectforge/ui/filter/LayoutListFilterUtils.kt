@@ -38,7 +38,7 @@ class LayoutListFilterUtils {
     companion object {
         internal val log = org.slf4j.LoggerFactory.getLogger(LayoutListFilterUtils::class.java)
 
-        fun createNamedContainer(restService: AbstractBaseRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>, out BaseSearchFilter>,
+        fun createNamedContainer(restService: AbstractBaseRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>,
                                  lc: LayoutContext): UINamedContainer {
             val container = UINamedContainer("searchFilter")
             val elements = mutableListOf<UILabelledElement>()
