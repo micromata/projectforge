@@ -11,6 +11,7 @@ import { Container } from '../components/design';
 import history from '../utilities/history';
 import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
 import CalendarPage from './page/calendar/CalendarPage';
+import DynamicPage from './page/DynamicPage';
 import EditPage from './page/edit/EditPage';
 import IndexPage from './page/IndexPage';
 import InputTestPage from './page/InputTest';
@@ -47,54 +48,68 @@ function ProjectForge(
 
     if (user) {
         content = (
-            <Router history={history}>
-                <React.Fragment>
-                    <GlobalNavigation />
-                    <Container fluid>
-                        <Switch>
-                            <Route
-                                exact
-                                path="/"
-                                component={IndexPage}
-                            />
-                            <Route
-                                path="/wa"
-                                component={() => window.location.reload()}
-                            />
-                            <Route
-                                path="/calendar"
-                                component={CalendarPage}
-                            />
-                            <Route
-                                path="/taskTree"
-                                component={TaskTreePage}
-                            />
-                            <Route
-                                path="/inputTest"
-                                component={InputTestPage}
-                            />
-                            <Route
-                                path="/:category/edit/:id?"
-                                component={EditPage}
-                            />
-                            <Route
-                                path="/:category/"
-                                component={ListPage}
-                            />
-                        </Switch>
-                    </Container>
-                </React.Fragment>
-            </Router>
+            <React.Fragment>
+                <GlobalNavigation />
+                <Container fluid>
+                    <Switch>
+                        <Route
+                            exact
+                            path="/"
+                            component={IndexPage}
+                        />
+                        <Route
+                            path="/wa"
+                            component={() => window.location.reload()}
+                        />
+                        <Route
+                            path="/calendar"
+                            component={CalendarPage}
+                        />
+                        <Route
+                            path="/taskTree"
+                            component={TaskTreePage}
+                        />
+                        <Route
+                            path="/inputTest"
+                            component={InputTestPage}
+                        />
+                        <Route
+                            path="/dynamic/:page"
+                            component={DynamicPage}
+                        />
+                        <Route
+                            path="/:category/edit/:id?"
+                            component={EditPage}
+                        />
+                        <Route
+                            path="/:category/"
+                            component={ListPage}
+                        />
+                    </Switch>
+                </Container>
+            </React.Fragment>
         );
     } else {
         content = (
-            <LoginView
-                // TODO: EXAMPLE DATA, REPLACE WITH REAL DATA FROM REST API
-                motd="[Please try user demo with password demo123. Have a lot of fun!]"
-                login={login}
-                loading={loginInProgress}
-                error={loginError}
-            />
+            <Switch>
+                <Route
+                    path="/:restPrefix/:page"
+                    component={DynamicPage}
+                />
+                <Route
+                    path="/"
+                    render={props => (
+                        <LoginView
+                            // TODO REPLACE OLD LOGIN VIEW WITH DYNAMIC PAGE
+                            {...props}
+                            motd="[Please try user demo with password demo123. Have a lot of fun!]"
+                            login={login}
+                            loading={loginInProgress}
+                            error={loginError}
+                        />
+                    )}
+                />
+            </Switch>
         );
     }
 
@@ -106,7 +121,9 @@ function ProjectForge(
             }}
         >
             <TopBar />
-            {content}
+            <Router history={history}>
+                {content}
+            </Router>
             <Footer />
         </SystemStatusContext.Provider>
     );
