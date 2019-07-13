@@ -28,7 +28,7 @@ function CustomizedBar({ progress, taskId }) {
     if (taskId) {
         return (
             // ToDo: onClick
-            <a href={`/wa/timesheetList?clear=true&taskId=${taskId}`}>
+            <a href={`/timesheet?taskId=${taskId}`}>
                 {element}
             </a>
         );
