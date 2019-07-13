@@ -129,7 +129,9 @@ function SearchFilter() {
                 break;
             case 'pop-value':
             case 'remove-value':
-                filterHelper.removeEntry(meta.removedValue.id || meta.removedValue.label);
+                if (meta.removedValue !== undefined) {
+                    filterHelper.removeEntry(meta.removedValue.id || meta.removedValue.label);
+                }
                 break;
             default:
         }
