@@ -25,7 +25,10 @@ package org.projectforge.ui.filter
 
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.rest.core.AbstractBaseRest
 import org.projectforge.ui.*
 
 /**
@@ -35,9 +38,9 @@ class LayoutListFilterUtils {
     companion object {
         internal val log = org.slf4j.LoggerFactory.getLogger(LayoutListFilterUtils::class.java)
 
-        fun createNamedContainer(baseDao: BaseDao<*>, lc: LayoutContext): UINamedContainer {
+        fun createNamedContainer(restService: AbstractBaseRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>, out BaseSearchFilter>,
+                                 lc: LayoutContext): UINamedContainer {
             val container = UINamedContainer("searchFilter")
-            val searchFields = baseDao.searchFields
             val elements = mutableListOf<UILabelledElement>()
             elements.add(UIFilterObjectElement("modifiedByUser",
                     label = translate("modifiedBy"),
@@ -52,6 +55,9 @@ class LayoutListFilterUtils {
                             UIFilterTimestampElement.QuickSelector.WEEK,
                             UIFilterTimestampElement.QuickSelector.DAY,
                             UIFilterTimestampElement.QuickSelector.UNTIL_NOW)))
+
+            val baseDao = restService.baseDao
+            val searchFields = baseDao.searchFields
             searchFields.forEach {
                 val elInfo = ElementsRegistry.getElementInfo(lc, it)
                 if (elInfo == null) {
@@ -73,14 +79,16 @@ class LayoutListFilterUtils {
                     elements.add(element)
                 }
             }
+            restService.addMagicFilterElements(elements)
+
             elements.sortWith(compareBy(ThreadLocalUserContext.getLocaleComparator()) { it.label })
             elements.forEach { container.add(it as UIElement) }
             return container
         }
 
-        private fun getLabel(elInfo: ElementsRegistry.ElementInfo): String {
+        fun getLabel(elInfo: ElementsRegistry.ElementInfo): String {
             val sb = StringBuilder()
-                addLabel(sb, elInfo)
+            addLabel(sb, elInfo)
             return sb.toString()
         }
 

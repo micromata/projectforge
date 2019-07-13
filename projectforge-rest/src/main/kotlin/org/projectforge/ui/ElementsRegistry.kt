@@ -44,8 +44,8 @@ import javax.persistence.JoinColumn
 object ElementsRegistry {
     private val log = org.slf4j.LoggerFactory.getLogger(ElementsRegistry::class.java)
 
-    class ElementInfo(val propertyType: Class<*>,
-                      val propertyName: String,
+    class ElementInfo(val propertyName: String,
+                      var propertyType: Class<*> = String::class.java,
                       var maxLength: Int? = null,
                       var required: Boolean? = null,
                       var i18nKey: String? = null,
@@ -148,7 +148,7 @@ object ElementsRegistry {
             unavailableElementsSet.add(mapKey)
             return null
         }
-        elementInfo = ElementInfo(propertyType, property)
+        elementInfo = ElementInfo(property, propertyType)
         if (property.contains('.')) { // Nested property, like timesheet.task.id?
             val parentProperty = property.substring(0, property.lastIndexOf('.'))
             val parentInfo = getElementInfo(clazz, parentProperty)

@@ -47,6 +47,8 @@ import org.projectforge.rest.core.RestHelper
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
+import org.projectforge.ui.filter.LayoutListFilterUtils
+import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -84,7 +86,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilter>
     override fun getInitialList(request: HttpServletRequest): InitialListData<TimesheetFilter> {
         val taskId = NumberHelper.parseInteger(request.getParameter("taskId")) ?: return super.getInitialList(request)
         val filter = MagicFilter<TimesheetFilter>()
-        filter.entries.add(MagicFilterEntry("taskId", value = taskId))
+        filter.entries.add(MagicFilterEntry("task.id", value = taskId))
         return super.getInitialList(filter)
     }
 
@@ -254,4 +256,12 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao, TimesheetFilter>
         return pref
     }
 
+    override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+        val element = UIFilterElement("kost2.nummer")
+        element.label = element.id // Default label if no translation will be found below.
+        element.label = LayoutListFilterUtils.getLabel(ElementsRegistry.ElementInfo("nummer",
+                i18nKey = "fibu.kost2.nummer",
+                parent = ElementsRegistry.ElementInfo("kost2", i18nKey = "fibu.kost2")))
+        elements.add(element)
+    }
 }
