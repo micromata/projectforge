@@ -39,8 +39,6 @@ import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
-import org.projectforge.rest.MessageType
-import org.projectforge.rest.ResponseData
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.dto.BaseDTO
 import org.projectforge.ui.*
@@ -259,7 +257,7 @@ abstract class AbstractBaseRest<
         val resultSet = processResultSetBeforeExport(getList(this, baseDao, filter, filterClazz))
         val layout = createListLayout()
                 .addTranslations("table.showing")
-        layout.add(LayoutListFilterUtils.createNamedContainer(baseDao, lc))
+        layout.add(LayoutListFilterUtils.createNamedContainer(this, lc))
         layout.postProcessPageMenu()
         layout.add(MenuItem(CREATE_MENU, title = "+", url = "${getCategory()}/edit"), 0)
         return InitialListData(ui = layout,
@@ -269,23 +267,9 @@ abstract class AbstractBaseRest<
     }
 
     /**
-     * Rebuilds the index by the search engine for the newest entries.
-     * @see [BaseDao.rebuildDatabaseIndex4NewestEntries]
+     * Add customized magic filter element in addition to the automatically detected elements.
      */
-    @GetMapping("reindexNewest")
-    fun reindexNewest(): ResponseAction {
-        baseDao.rebuildDatabaseIndex4NewestEntries()
-        return ResponseAction(message = ResponseAction.Message("administration.reindexNewest.successful", style = UIStyle.SUCCESS))
-    }
-
-    /**
-     * Rebuilds the index by the search engine for all entries.
-     * @see [BaseDao.rebuildDatabaseIndex]
-     */
-    @GetMapping("reindexFull")
-    fun reindexFull(): ResponseAction {
-        baseDao.rebuildDatabaseIndex()
-        return ResponseAction(message = ResponseAction.Message("administration.reindexFull.successful", style = UIStyle.SUCCESS))
+    open fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
     }
 
     /**
@@ -384,6 +368,26 @@ abstract class AbstractBaseRest<
         val favorites = getFilterFavorites()
         favorites.remove(id)
         return mapOf("filterFavorites" to getFilterFavorites().idTitleList)
+    }
+
+    /**
+     * Rebuilds the index by the search engine for the newest entries.
+     * @see [BaseDao.rebuildDatabaseIndex4NewestEntries]
+     */
+    @GetMapping("reindexNewest")
+    fun reindexNewest(): ResponseAction {
+        baseDao.rebuildDatabaseIndex4NewestEntries()
+        return ResponseAction(message = ResponseAction.Message("administration.reindexNewest.successful", style = UIStyle.SUCCESS))
+    }
+
+    /**
+     * Rebuilds the index by the search engine for all entries.
+     * @see [BaseDao.rebuildDatabaseIndex]
+     */
+    @GetMapping("reindexFull")
+    fun reindexFull(): ResponseAction {
+        baseDao.rebuildDatabaseIndex()
+        return ResponseAction(message = ResponseAction.Message("administration.reindexFull.successful", style = UIStyle.SUCCESS))
     }
 
     abstract fun processResultSetBeforeExport(resultSet: ResultSet<O>): ResultSet<*>
