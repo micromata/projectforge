@@ -23,30 +23,19 @@
 
 package org.projectforge.business.ldap;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-
-import javax.annotation.PostConstruct;
-import javax.naming.NameNotFoundException;
-import javax.naming.NamingEnumeration;
-import javax.naming.NamingException;
-import javax.naming.directory.Attributes;
-import javax.naming.directory.BasicAttribute;
-import javax.naming.directory.DirContext;
-import javax.naming.directory.ModificationItem;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
-
+import arlut.csd.crypto.SmbEncrypt;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import arlut.csd.crypto.SmbEncrypt;
+import javax.annotation.PostConstruct;
+import javax.naming.NameNotFoundException;
+import javax.naming.NamingEnumeration;
+import javax.naming.NamingException;
+import javax.naming.directory.*;
+import java.util.*;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -246,8 +235,10 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
       user.setSambaNTPassword(LdapUtils.getAttributeStringValue(attributes, "sambaNTPassword"));
       final String sambaPwdLastSet = LdapUtils.getAttributeStringValue(attributes, "sambaPwdLastSet");
       if (sambaPwdLastSet != null) {
-        final long value = NumberHelper.parseLong(sambaPwdLastSet) * 1000; // ms since 1970
-        user.setSambaPwdLastSet(new Date(value));
+        final Long value = NumberHelper.parseLong(sambaPwdLastSet);  // seconds since 1970
+        if (value != null) {
+          user.setSambaPwdLastSet(new Date(value * 1000));
+        }
       }
     }
     if (dn != null) {
