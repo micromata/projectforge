@@ -57,7 +57,7 @@ class LayoutListFilterUtils {
                 if (elInfo == null) {
                     log.warn("Search field '${baseDao.doClass}.$it' not found. Ignoring it.")
                 } else {
-                    var element: UIElement
+                    val element: UIElement
                     if (elInfo.propertyType.isEnum) {
                         @Suppress("UNCHECKED_CAST")
                         element = UISelect<String>(it, required = elInfo.required, layoutContext = lc,
@@ -69,19 +69,37 @@ class LayoutListFilterUtils {
                         element.label = element.id // Default label if no translation will be found below.
                     }
                     element as UILabelledElement
-                    if (!elInfo.i18nKey.isNullOrBlank()) {
-                        if (elInfo.additionalI18nKey.isNullOrBlank()) {
-                            element.label = translate(elInfo.i18nKey)
-                        } else {
-                            element.label = "${translate(elInfo.i18nKey)}, ${translate(elInfo.additionalI18nKey)}"
-                        }
-                    }
+                    element.label = getLabel(elInfo)
                     elements.add(element)
                 }
             }
             elements.sortWith(compareBy(ThreadLocalUserContext.getLocaleComparator()) { it.label })
             elements.forEach { container.add(it as UIElement) }
             return container
+        }
+
+        private fun getLabel(elInfo: ElementsRegistry.ElementInfo): String {
+            val sb = StringBuilder()
+                addLabel(sb, elInfo)
+            return sb.toString()
+        }
+
+        private fun addLabel(sb: StringBuilder, elInfo: ElementsRegistry.ElementInfo?) {
+            if (elInfo == null) return
+            if (sb.length > 1000) { // Paranoia test for endless loops
+                log.error("Oups, paranoia test detects endless loop in ElementInfo.parent '$sb'!")
+                return
+            }
+            addLabel(sb, elInfo.parent)
+            if (elInfo.parent != null) sb.append(" - ")
+            if (!elInfo.i18nKey.isNullOrBlank()) {
+                sb.append(translate(elInfo.i18nKey))
+            } else {
+                sb.append(elInfo.simplePropertyName)
+            }
+            if (!elInfo.additionalI18nKey.isNullOrBlank()) {
+                sb.append(" (").append(translate(elInfo.additionalI18nKey)).append(")")
+            }
         }
     }
 }

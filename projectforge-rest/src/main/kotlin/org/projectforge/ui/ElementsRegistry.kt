@@ -45,6 +45,7 @@ object ElementsRegistry {
     private val log = org.slf4j.LoggerFactory.getLogger(ElementsRegistry::class.java)
 
     class ElementInfo(val propertyType: Class<*>,
+                      val propertyName: String,
                       var maxLength: Int? = null,
                       var required: Boolean? = null,
                       var i18nKey: String? = null,
@@ -52,7 +53,13 @@ object ElementsRegistry {
                       /**
                        * For nested properties, the property where this is nested in.
                        */
-                      var parent: ElementInfo? = null)
+                      var parent: ElementInfo? = null) {
+        /**
+         * Property name without parent names if nested, otherwise equals to [propertyName]
+         */
+        val simplePropertyName
+            get() = if (propertyName.contains('.')) propertyName.substring(propertyName.lastIndexOf('.') + 1) else propertyName
+    }
 
     fun getProperties(clazz: Class<*>): Map<String, ElementInfo>? {
         return registryMap[clazz]
@@ -141,7 +148,7 @@ object ElementsRegistry {
             unavailableElementsSet.add(mapKey)
             return null
         }
-        elementInfo = ElementInfo(propertyType)
+        elementInfo = ElementInfo(propertyType, property)
         if (property.contains('.')) { // Nested property, like timesheet.task.id?
             val parentProperty = property.substring(0, property.lastIndexOf('.'))
             val parentInfo = getElementInfo(clazz, parentProperty)
