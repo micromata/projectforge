@@ -24,7 +24,9 @@
 package org.projectforge.framework.persistence.api
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import org.projectforge.framework.persistence.api.MagicFilterEntry.MatchType
+import org.projectforge.common.props.PropUtils
+import org.projectforge.framework.time.PFDateTime
+import java.util.*
 
 class MagicFilterEntry(
         /**
@@ -32,29 +34,67 @@ class MagicFilterEntry(
          */
         var field: String? = null,
         /**
-         * Search the given text.
+         * Value representsFind entries where the given field is equals to this given single value, or as search string.
          */
-        var search: String? = null,
-        /**
-         * The match strategy for the string search. [MatchType.STARTS_WITH] is the default.
-         */
-        var matchType: MatchType? = null,
-        /**
-         * Find entries where the given field is equals to this given single value.
-         */
-        var value: Any? = null,
-        /**
-         * Find entries where the given field is equals or higher than the given fromValue (range search).
-         */
-        var fromValue: Any? = null,
-        /**
-         * Find entries where the given field is equals or lower than the given toValue (range search).
-         */
-        var toValue: Any? = null,
-        /**
-         * Find entries where the given field has one of the given values).
-         */
-        var values: MutableList<Any>? = null) {
+        var value: String? = null) {
+
+    @JsonIgnore
+    internal var type: Class<*>? = null
+
+    @JsonIgnore
+    internal var dbSearchString: String? = null
+
+    @JsonIgnore
+    internal var plainSearchString: String? = null
+
+    @JsonIgnore
+    internal var matchType: MatchType? = null
+
+    @JsonIgnore
+    internal var searchType: SearchType? = null
+
+    @JsonIgnore
+    var fromValue: String? = null
+        private set
+
+    @JsonIgnore
+    var toValue: String? = null
+        private set
+
+    @JsonIgnore
+    var values: Array<String>? = null
+        private set
+
+    @JsonIgnore
+    var fromValueDate: PFDateTime? = null
+        private set
+
+    @JsonIgnore
+    var toValueDate: PFDateTime? = null
+        private set
+
+    /**
+     * Only for documentation
+     */
+    private class Value(
+            /**
+             * Find entries where the given field is equals to this given single value, or as search string.
+             */
+            var value: String? = null,
+            /**
+             * Find entries where the given field is equals or higher than the given fromValue (range search).
+             */
+            var fromValue: String? = null,
+            /**
+             * Find entries where the given field is equals or lower than the given toValue (range search).
+             */
+            var toValue: String? = null,
+            /**
+             * Find entries where the given field has one of the given values).
+             */
+            var values: MutableList<String>? = null)
+
+    internal enum class SearchType { NONE, STRING_SEARCH, FIELD_STRING_SEARCH, FIELD_RANGE_SEARCH, FIELD_VALUES_SEARCH }
 
     enum class MatchType {
         /**
@@ -75,85 +115,50 @@ class MagicFilterEntry(
         ENDS_WITH
     }
 
-    internal enum class Type { NONE, STRING_SEARCH, FIELD_STRING_SEARCH, FIELD_RANGE_SEARCH, FIELD_VALUES_SEARCH }
-
     @JsonIgnore
     private val log = org.slf4j.LoggerFactory.getLogger(MagicFilterEntry::class.java)
 
-    internal fun type(): Type {
-        val valuesGiven = !values.isNullOrEmpty()
-        if (field == null) {
-            if (value != null || fromValue != null || toValue != null || valuesGiven) {
-                log.warn("MagicFilterEntry inconsistent: No field given, value, fromValue, toValue and values are ignored.")
+    internal fun analyze(entityClass: Class<*>) {
+        val fieldType = PropUtils.getField(entityClass, field)?.type ?: String::class.java
+        this.type = fieldType
+        if (fieldType == String::class.java) {
+            searchType = if (field.isNullOrBlank()) SearchType.STRING_SEARCH else SearchType.FIELD_STRING_SEARCH
+            val str = value?.trim() ?: ""
+            var plainStr = str
+            var dbStr: String
+            if (str.startsWith("*")) {
+                plainStr = plainStr.substring(1)
+                if (str.endsWith("*")) {
+                    plainStr = plainStr.substring(0, plainStr.lastIndex)
+                    dbStr = "%$plainStr%"
+                    matchType = MatchType.CONTAINS
+                } else {
+                    dbStr = "%$plainStr"
+                    matchType = MatchType.STARTS_WITH
+                }
+            } else {
+                if (str.endsWith("*")) {
+                    plainStr = plainStr.substring(0, plainStr.lastIndex)
+                    dbStr = "$plainStr%"
+                    matchType = MatchType.ENDS_WITH
+                } else {
+                    matchType = MatchType.EXACT
+                    dbStr = "$plainStr"
+                }
             }
-            if (search.isNullOrBlank()) {
-                return Type.NONE
-            }
-            return Type.STRING_SEARCH
-        }
-        if (search.isNullOrBlank()) {
-            if (value != null || fromValue != null || toValue != null || valuesGiven) {
-                log.warn("MagicFilterEntry inconsistent for field '$field' search ('$search'): value, fromValue, toValue and values are ignored.")
-            }
-            return Type.FIELD_STRING_SEARCH
-        }
-        if (value != null && value is String) {
-            if (fromValue != null || toValue != null || valuesGiven) {
-                log.warn("MagicFilterEntry inconsistent for field '$field' search ('$value'): fromValue, toValue and values are ignored.")
-            }
-            return Type.FIELD_STRING_SEARCH
-        }
-        if (fromValue != null || toValue != null) {
-            if (valuesGiven) {
-                log.warn("MagicFilterEntry inconsistent for field '$field' range search (from '$fromValue' to '$toValue'): values are ignored.")
-            }
-            return Type.FIELD_RANGE_SEARCH
-        }
-        if (valuesGiven) {
-            return Type.FIELD_VALUES_SEARCH
-        }
-        return Type.NONE // Nothing given for field search (might be OK).
-    }
-
-    internal fun getSearchStringStrategy(): String {
-        var str = search
-        if (search == null && (value == null || value !is String)) {
-            return ""
-        }
-        if (str == null) {
-            str = value as String
-        }
-        return when (matchType) {
-            MatchType.EXACT -> str
-            MatchType.ENDS_WITH -> "*$str"
-            MatchType.CONTAINS -> "*$str*"
-            else -> "$str*"
+            this.plainSearchString = plainStr
+            this.dbSearchString = dbStr
+        } else if (fieldType == Date::class.java) {
+            fromValueDate = PFDateTime.parseUTCDate(fromValue)
+            toValueDate = PFDateTime.parseUTCDate(toValue)
+        } else {
+            log.warn("Search entry of type '${fieldType.name}' not yet supported for field '$field'.")
         }
     }
 
     fun isModified(other: MagicFilterEntry): Boolean {
         if (this.field != other.field) return true
-        if (this.fromValue != other.fromValue) return true
-        if (this.matchType != other.matchType) return true
-        if (this.search != other.search) return true
-        if (this.toValue != other.toValue) return true
         if (this.value != other.value) return true
-        val values1 = this.values
-        val values2 = other.values
-        if (values1 == null) {
-            return values2 != null
-        }
-        if (values2 == null) {
-            return true
-        }
-        if (values1.size != values2.size) {
-            return true
-        }
-        values1.forEachIndexed { i, value ->
-            if (values2[i] != value) {
-                return true
-            }
-        }
         return false
     }
 }
