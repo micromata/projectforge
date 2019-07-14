@@ -2,7 +2,7 @@ import { faStream } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
-import FavoritesPanel from '../../../../../../containers/panel/FavoritesPanel';
+import FavoritesPanel from '../../../../../../containers/panel/favorite/FavoritesPanel';
 import TaskTreePanel from '../../../../../../containers/panel/task/TaskTreePanel';
 import { getServiceURL, handleHTTPErrors } from '../../../../../../utilities/rest';
 import { Button, Collapse, Modal, ModalBody, ModalHeader } from '../../../../../design';
