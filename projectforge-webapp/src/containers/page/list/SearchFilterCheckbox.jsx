@@ -6,7 +6,7 @@ import CheckBox from '../../../components/design/input/CheckBox';
 import { ListPageContext } from './ListPageContext';
 
 // The checkbox for the SearchFilter that consumes the filter data from the DynamicLayout
-function SearchFilterCheckbox({ id, label }) {
+function SearchFilterCheckbox({ id, label, ...props }) {
     const { filter, filterHelper } = React.useContext(ListPageContext);
 
     // Redirect to DynamicCheckbox if FilterCheckbox wasn't unregistered in time.
@@ -24,6 +24,7 @@ function SearchFilterCheckbox({ id, label }) {
                 label={label}
                 checked={filter[id] || false}
                 onChange={handleCheckboxChange}
+                {...props}
             />
         );
     }, [filter]);
