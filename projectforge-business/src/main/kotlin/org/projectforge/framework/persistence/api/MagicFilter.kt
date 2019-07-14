@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.common
+package org.projectforge.framework.persistence.api
 
 import org.projectforge.business.user.UserPrefDao
 import org.projectforge.favorites.AbstractFavorite
@@ -31,6 +31,7 @@ class MagicFilter(
          * Optional entries for searching (keywords, field search, range search etc.)
          */
         var entries: MutableList<MagicFilterEntry> = mutableListOf(),
+        var sortAndLimitMaxRowsWhileSelect: Boolean = true,
         var maxRows: Int = 50,
         /**
          * If true, only deleted entries will be shown. If false, no deleted entries will be shown. If null, all entries will be shown.
@@ -42,6 +43,8 @@ class MagicFilter(
 
     @Transient
     internal val log = org.slf4j.LoggerFactory.getLogger(MagicFilter::class.java)
+
+    val sortProperties = mutableListOf<SortProperty>()
 
     open fun reset() {
         entries.clear()

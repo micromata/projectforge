@@ -21,10 +21,10 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.common
+package org.projectforge.framework.persistence.api
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import org.projectforge.business.common.MagicFilterEntry.MatchType
+import org.projectforge.framework.persistence.api.MagicFilterEntry.MatchType
 
 class MagicFilterEntry(
         /**

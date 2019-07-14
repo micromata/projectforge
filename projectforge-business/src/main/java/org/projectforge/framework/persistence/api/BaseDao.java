@@ -32,10 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.hibernate.*;
 import org.hibernate.criterion.Restrictions;
-import org.hibernate.search.FullTextQuery;
-import org.hibernate.search.FullTextSession;
 import org.hibernate.search.Search;
-import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
@@ -107,6 +104,12 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   @Autowired
   protected AccessChecker accessChecker;
+
+  @Autowired
+  protected BaseDaoLegacyQueryBuilder baseDaoLegacyQueryBuilder;
+
+  @Autowired
+  protected MagicFilterQueryBuilder magicFilterQueryBuilder;
 
   @Autowired
   protected DatabaseDao databaseDao;
@@ -322,24 +325,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    */
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> getList(final QueryFilter filter) throws AccessException {
-    long begin = System.currentTimeMillis();
-    checkLoggedInUserSelectAccess();
-    if (accessChecker.isRestrictedUser() == true) {
-      return new ArrayList<>();
-    }
-    List<O> list = internalGetList(filter);
-    if (list == null || list.size() == 0) {
-      return list;
-    }
-    list = extractEntriesWithSelectAccess(list);
-    List<O> result = sort(list);
-    long end = System.currentTimeMillis();
-    if (end - begin > 2000) {
-      // Show only slow requests.
-      log.info(
-              "BaseDao.getList for entity class: " + getEntityClass().getSimpleName() + " took: " + (end - begin) + " ms (>2s).");
-    }
-    return result;
+    return baseDaoLegacyQueryBuilder.getList(this, filter);
   }
 
   /**
@@ -351,101 +337,30 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   @SuppressWarnings("unchecked")
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> internalGetList(final QueryFilter filter) throws AccessException {
-    final BaseSearchFilter searchFilter = filter.getFilter();
-    filter.clearErrorMessage();
-    if (searchFilter.isIgnoreDeleted() == false) {
-      filter.add(Restrictions.eq("deleted", searchFilter.isDeleted()));
-    }
-    if (searchFilter.getModifiedSince() != null) {
-      filter.add(Restrictions.ge("lastUpdate", searchFilter.getModifiedSince()));
-    }
+    return baseDaoLegacyQueryBuilder.internalGetList(this, filter);
+  }
 
-    List<O> list = null;
-    Session session = getSession();
-    {
-      if (searchFilter.isSearchNotEmpty() == true) {
-        final String searchString = HibernateSearchFilterUtils.modifySearchString(searchFilter.getSearchString());
-        final String[] searchFields = searchFilter.getSearchFields() != null ? searchFilter.getSearchFields() : getSearchFields();
-        try {
+  /**
+   * Gets the list filtered by the given filter.
+   *
+   * @param filter
+   * @return
+   */
+  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+  public List<O> getList(final MagicFilter filter) throws AccessException {
+    return magicFilterQueryBuilder.getList(this, filter);
+  }
 
-          int firstIndex = 0;
-          int maxIndex = 32000; // maximum numbers of values in IN statements in postgres
-          List<O> result;
-          final List<O> allResult = new ArrayList<>();
-
-          do {
-            final Criteria criteria = filter.buildCriteria(session, clazz);
-            setCacheRegion(criteria);
-
-            FullTextSession fullTextSession = Search.getFullTextSession(session);
-            org.apache.lucene.search.Query query = HibernateSearchFilterUtils.createFullTextQuery(fullTextSession, searchFields, filter, searchString, clazz);
-            FullTextQuery fullTextQuery = fullTextSession.createFullTextQuery(query, clazz);
-
-            fullTextQuery.setCriteriaQuery(criteria);
-            fullTextQuery.setFirstResult(firstIndex);
-            fullTextQuery.setMaxResults(maxIndex);
-
-            firstIndex += maxIndex;
-
-            result = fullTextQuery.list(); // return a list of managed objects
-            allResult.addAll(result);
-          } while (result.isEmpty() == false);
-
-          list = allResult;
-        } catch (final Exception ex) {
-          final String errorMsg = "Lucene error message: "
-                  + ex.getMessage()
-                  + " (for "
-                  + this.getClass().getSimpleName()
-                  + ": "
-                  + searchString
-                  + ").";
-          filter.setErrorMessage(errorMsg);
-          log.info(errorMsg);
-        }
-      } else {
-        final Criteria criteria = filter.buildCriteria(session, clazz);
-        setCacheRegion(criteria);
-        list = criteria.list();
-      }
-      if (list != null) {
-        list = selectUnique(list);
-        if (list.size() > 0 && searchFilter.applyModificationFilter()) {
-          // Search now all history entries which were modified by the given user and/or in the given time period.
-          final Set<Integer> idSet = getHistoryEntries(getSession(), searchFilter);
-          final List<O> result = new ArrayList<O>();
-          for (final O entry : list) {
-            if (contains(idSet, entry) == true) {
-              result.add(entry);
-            }
-          }
-          list = result;
-        }
-      }
-    }
-    if (searchFilter.isSearchHistory() == true && searchFilter.isSearchNotEmpty() == true) {
-      // Search now all history for the given search string.
-      final Set<Integer> idSet = searchHistoryEntries(getSession(), searchFilter);
-      if (CollectionUtils.isNotEmpty(idSet) == true) {
-        for (final O entry : list) {
-          if (idSet.contains(entry.getId()) == true) {
-            idSet.remove(entry.getId()); // Object does already exist in list.
-          }
-        }
-        if (idSet.isEmpty() == false) {
-          final Criteria criteria = filter.buildCriteria(getSession(), clazz);
-          setCacheRegion(criteria);
-          criteria.add(Restrictions.in("id", idSet));
-          final List<O> historyMatchingEntities = criteria.list();
-          list.addAll(historyMatchingEntities);
-        }
-      }
-    }
-    if (list == null) {
-      // History search without search string.
-      list = new ArrayList<O>();
-    }
-    return list;
+  /**
+   * Gets the list filtered by the given filter.
+   *
+   * @param filter
+   * @return
+   */
+  @SuppressWarnings("unchecked")
+  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+  public List<O> internalGetList(final MagicFilter filter) throws AccessException {
+    return magicFilterQueryBuilder.internalGetList(this, filter, false);
   }
 
   /**
@@ -453,7 +368,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    *
    * @param idSet
    * @param entry
-   * @see org.projectforge.business.fibu.AuftragDao#contains(Set, AuftragDO)
    */
   protected boolean contains(final Set<Integer> idSet, final O entry) {
     if (idSet == null) {
@@ -1601,7 +1515,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     throw new UnsupportedOperationException("Mass update is not supported by this dao for: " + clazz.getName());
   }
 
-  private Set<Integer> getHistoryEntries(final Session session, final BaseSearchFilter filter) {
+  Set<Integer> getHistoryEntries(final Session session, final BaseSearchFilter filter) {
     if (hasLoggedInUserSelectAccess(false) == false || hasLoggedInUserHistoryAccess(false) == false) {
       // User has in general no access to history entries of the given object type (clazz).
       return null;
@@ -1616,7 +1530,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     return idSet;
   }
 
-  private Set<Integer> searchHistoryEntries(final Session session, final BaseSearchFilter filter) {
+  protected Set<Integer> searchHistoryEntries(final Session session, final BaseSearchFilter filter) {
     if (hasLoggedInUserSelectAccess(false) == false || hasLoggedInUserHistoryAccess(false) == false) {
       // User has in general no access to history entries of the given object type (clazz).
       return null;
@@ -1662,21 +1576,13 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * If true then a eh cache region is used for this dao for every criteria search of this class. <br/>
    * Please note: If you write your own criteria searches in extended classes, don't forget to call
-   * {@link #setCacheRegion(Criteria)}. <br/>
+   * {@link BaseDaoLegacyQueryBuilder#setCacheRegion(BaseDao, Criteria)}. <br/>
    * Don't forget to add your base dao class name in ehcache.xml.
    *
    * @return false at default.
    */
   protected boolean useOwnCriteriaCacheRegion() {
     return false;
-  }
-
-  private void setCacheRegion(final Criteria criteria) {
-    criteria.setCacheable(true);
-    if (useOwnCriteriaCacheRegion() == false) {
-      return;
-    }
-    criteria.setCacheRegion(this.getClass().getName());
   }
 
   public Session getSession() {

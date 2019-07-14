@@ -23,8 +23,8 @@
 
 package org.projectforge.rest
 
-import org.projectforge.business.common.MagicFilter
-import org.projectforge.business.common.MagicFilterEntry
+import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.business.timesheet.TimesheetDO

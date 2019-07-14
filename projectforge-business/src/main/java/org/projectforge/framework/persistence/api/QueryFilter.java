@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.api;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.Session;
@@ -50,8 +49,6 @@ import java.util.Locale;
  */
 public class QueryFilter {
   private final List<Object> filterSettings = new ArrayList<Object>();
-
-  private String name;
 
   private String alias;
 
@@ -97,14 +94,6 @@ public class QueryFilter {
         }
       }
     }
-  }
-
-  private QueryFilter(final String name) {
-    this.name = name;
-  }
-
-  public String getName() {
-    return name;
   }
 
   public String getAlias() {
@@ -223,15 +212,6 @@ public class QueryFilter {
       } else if (obj instanceof Alias) {
         final Alias alias = (Alias) obj;
         criteria.createAlias(alias.arg0, alias.arg1, alias.joinType);
-      } else if (obj instanceof QueryFilter) {
-        final QueryFilter filter = (QueryFilter) obj;
-        Criteria subCriteria;
-        if (StringUtils.isEmpty(filter.getAlias()) == true) {
-          subCriteria = criteria.createCriteria(filter.getName());
-        } else {
-          subCriteria = criteria.createCriteria(filter.getName(), filter.getAlias());
-        }
-        filter.buildCriteria(subCriteria);
       }
     }
     if (associationPath != null) {
@@ -264,19 +244,6 @@ public class QueryFilter {
   public QueryFilter createAlias(final String arg0, final String arg1, final int joinType) {
     filterSettings.add(new Alias(arg0, arg1, joinType));
     return this;
-  }
-
-  public QueryFilter createCriteria(final String name) {
-    final QueryFilter filter = new QueryFilter(name);
-    filterSettings.add(filter);
-    return filter;
-  }
-
-  public QueryFilter createCriteria(final String name, final String alias) {
-    final QueryFilter filter = new QueryFilter(name);
-    filter.alias = alias;
-    filterSettings.add(filter);
-    return filter;
   }
 
   class Alias {
