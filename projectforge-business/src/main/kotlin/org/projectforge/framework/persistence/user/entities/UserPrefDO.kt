@@ -52,6 +52,7 @@ import javax.persistence.*
         indexes = [Index(name = "idx_fk_t_user_pref_user_fk", columnList = "user_fk"), Index(name = "idx_fk_t_user_pref_tenant_id", columnList = "tenant_id")])
 @JpaXmlPersist(beforePersistListener = [UserPrefXmlBeforePersistListener::class])
 class UserPrefDO : AbstractBaseDO<Int>() {
+    private val log = org.slf4j.LoggerFactory.getLogger(UserPrefDO::class.java)
 
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
@@ -100,10 +101,16 @@ class UserPrefDO : AbstractBaseDO<Int>() {
      */
     val valueType: Class<*>?
         @Transient
-        get() =
-            if (valueTypeString.isNullOrBlank())
-                null
-            else Class.forName(valueTypeString)
+        get() {
+            try {
+                return if (valueTypeString.isNullOrBlank())
+                    null
+                else Class.forName(valueTypeString)
+            } catch(ex: ClassNotFoundException) {
+                log.error("Can't get value type from '$valueTypeString'. Class not found (old incompatible ProjectForge version)?")
+                return null
+            }
+        }
 
     /**
      * The value as object (deserialized from json).
