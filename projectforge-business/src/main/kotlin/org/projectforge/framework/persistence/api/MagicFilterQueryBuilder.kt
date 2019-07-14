@@ -145,6 +145,21 @@ class MagicFilterQueryBuilder {
                     } else if (it.toValueDate != null) criteria.add(Restrictions.le(it.field, it.toValueDate))
                     else log.error("Error while building query: fromValue and/or toValue must be given for filtering field '${it.field}'.")
                 }
+                Integer::class.java -> {
+                    if (it.valueInt != null) {
+                        criteria.add(Restrictions.eq(it.field, it.valueInt))
+                    } else if (it.fromValueInt != null) {
+                        if (it.toValueInt != null) {
+                            criteria.add(Restrictions.between(it.field, it.fromValue, it.toValue))
+                        } else {
+                            criteria.add(Restrictions.ge(it.field, it.fromValue))
+                        }
+                    } else if (it.toValueInt != null) {
+                        criteria.add(Restrictions.le(it.field, it.toValue))
+                    } else {
+                        log.error("Querying field '${it.field}' of type '$fieldType' without value, fromValue and toValue. At least one required.")
+                    }
+                }
                 else -> {
                     log.error("Querying fields of type '$fieldType' not yet implemented.")
                 }

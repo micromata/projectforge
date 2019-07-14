@@ -26,6 +26,7 @@ package org.projectforge.framework.persistence.api
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.utils.NumberHelper
 import java.util.*
 
 class MagicFilterEntry(
@@ -71,6 +72,18 @@ class MagicFilterEntry(
 
     @JsonIgnore
     var toValueDate: PFDateTime? = null
+        private set
+
+    @JsonIgnore
+    var valueInt: Int? = null
+        private set
+
+    @JsonIgnore
+    var fromValueInt: Int? = null
+        private set
+
+    @JsonIgnore
+    var toValueInt: Int? = null
         private set
 
     /**
@@ -151,6 +164,10 @@ class MagicFilterEntry(
         } else if (fieldType == Date::class.java) {
             fromValueDate = PFDateTime.parseUTCDate(fromValue)
             toValueDate = PFDateTime.parseUTCDate(toValue)
+        } else if (fieldType == Integer::class.java) {
+            valueInt = NumberHelper.parseInteger(value)
+            fromValueInt = NumberHelper.parseInteger(fromValue)
+            toValueInt = NumberHelper.parseInteger(toValue)
         } else {
             log.warn("Search entry of type '${fieldType.name}' not yet supported for field '$field'.")
         }
