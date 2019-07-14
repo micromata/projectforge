@@ -139,7 +139,12 @@ function ListPage(
     };
 
     const performListUpdate = () => {
+        if (loading) {
+            return;
+        }
+
         setError(undefined);
+        setLoading(true);
 
         fetch(
             getServiceURL(`${match.params.category}/list`),
@@ -149,10 +154,13 @@ function ListPage(
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                // Workaround for wrong object hierarchy:
                 body: JSON.stringify(filter),
             },
         )
+            .then((response) => {
+                setLoading(false);
+                return response;
+            })
             .then(handleHTTPErrors)
             .then(response => response.json())
             .then(setData)
@@ -160,6 +168,10 @@ function ListPage(
     };
 
     const performReset = () => {
+        if (loading) {
+            return;
+        }
+
         setLoading(true);
         setError(undefined);
 
@@ -195,6 +207,7 @@ function ListPage(
     // Only reload the list when the category or search string changes.
     React.useEffect(loadInitialList, [match.params.category, location.search]);
 
+    // Update the list on new sorting
     React.useEffect(() => {
         if (loading || !filter.sortProperties) {
             return;
