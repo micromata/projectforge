@@ -1,3 +1,4 @@
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { ListPageContext } from '../../../../../containers/page/list/ListPageContext';
@@ -8,7 +9,7 @@ import style from '../../../page/Page.module.scss';
 import DynamicCustomized from '../customized';
 
 function DynamicTableRow({ columns, row }) {
-    const { category } = React.useContext(ListPageContext);
+    const { category, highlightRow } = React.useContext(ListPageContext);
 
     return React.useMemo(() => {
         const handleRowClick = () => history.push(`/${category}/edit/${row.id}`);
@@ -16,7 +17,10 @@ function DynamicTableRow({ columns, row }) {
         return (
             <tr
                 onClick={handleRowClick}
-                className={style.clickable}
+                className={classNames(
+                    style.clickable,
+                    { [style.highlighted]: highlightRow === row.id },
+                )}
             >
                 {columns.map((
                     {

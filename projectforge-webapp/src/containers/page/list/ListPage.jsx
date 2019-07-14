@@ -189,6 +189,7 @@ function ListPage(
                 filter,
                 filterFavorites,
                 filterHelper,
+                highlightRow: location.state ? location.state.id : -1,
                 setFilterFavorites,
                 setUI,
             }}
