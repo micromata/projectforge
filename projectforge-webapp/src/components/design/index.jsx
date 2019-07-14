@@ -38,6 +38,8 @@ export {
     NavbarToggler,
     NavItem,
     NavLink,
+    Popover,
+    PopoverBody,
     Row,
     Spinner,
     TabContent,
