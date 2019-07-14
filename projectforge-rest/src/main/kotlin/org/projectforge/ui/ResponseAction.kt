@@ -43,7 +43,7 @@ class ResponseAction(val url: String? = null,
                   var message: String? = null,
                   /** The (technical) message. */
                   var technicalMessage: String? = null,
-                  var style: UIStyle? = null,
+                  var color: UIColor? = null,
                   vararg messageParams: String) {
         init {
             if (message == null && i18nKey != null) {

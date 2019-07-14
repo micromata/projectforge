@@ -150,11 +150,11 @@ class UILayoutTest : AbstractTestBase() {
         assertEquals(2, jsonValidator.getList("actions")?.size)
         assertEquals("reset", jsonValidator.get("actions[0].id"))
         assertEquals("???reset???", jsonValidator.get("actions[0].title"))
-        assertEquals("DANGER", jsonValidator.get("actions[0].style")) // Gson doesn't know JsonProperty of Jacskon (DANGER -> danger.)
+        assertEquals("DANGER", jsonValidator.get("actions[0].color")) // Gson doesn't know JsonProperty of Jacskon (DANGER -> danger.)
         assertEquals("BUTTON", jsonValidator.get("actions[0].type"))
         assertEquals("el-12", jsonValidator.get("actions[0].key"))
 
-        assertEquals("PRIMARY", jsonValidator.get("actions[1].style")) // Gson doesn't know JsonProperty of Jacskon.
+        assertEquals("PRIMARY", jsonValidator.get("actions[1].color")) // Gson doesn't know JsonProperty of Jacskon.
     }
 
     private fun assertField(element: Map<String, *>?, id: String, maxLength: Double, dataType: String?, label: String, type: String, key: String) {

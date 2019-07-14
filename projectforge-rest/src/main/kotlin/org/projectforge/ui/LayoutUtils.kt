@@ -77,10 +77,10 @@ class LayoutUtils {
             }
             layout
                     .addAction(UIButton("reset",
-                            style = UIStyle.DANGER,
+                            color = UIColor.DANGER,
                             responseAction = ResponseAction(restService.getRestPath(RestPaths.FILTER_RESET), targetType = TargetType.GET)))
                     .addAction(UIButton("search",
-                            style = UIStyle.PRIMARY,
+                            color = UIColor.PRIMARY,
                             default = true,
                             responseAction = ResponseAction(restService.getRestPath(RestPaths.LIST), targetType = TargetType.POST)))
             process(layout)
@@ -122,7 +122,7 @@ class LayoutUtils {
          */
         fun addListDefaultOptions(group: UIGroup) {
             group
-                    .add(UICheckbox("deleted", label = "onlyDeleted", tooltip = "onlyDeleted.tooltip", style = UIStyle.DANGER))
+                    .add(UICheckbox("deleted", label = "onlyDeleted", tooltip = "onlyDeleted.tooltip", color = UIColor.DANGER))
                     .add(UICheckbox("searchHistory", label = "search.searchHistory", tooltip = "search.searchHistory.additional.tooltip"))
         }
 
@@ -137,40 +137,40 @@ class LayoutUtils {
                             restService: AbstractBaseRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>)
                 : UILayout {
             layout.addAction(UIButton("cancel",
-                    style = UIStyle.DANGER,
+                    color = UIColor.DANGER,
                     responseAction = ResponseAction(restService.getRestPath(RestPaths.CANCEL), targetType = TargetType.POST)))
             if (restService.isHistorizable()) {
                 // 99% of the objects are historizable (undeletable):
                 if (restService.getId(dto) != null) {
                     if (restService.isDeleted(dto))
                         layout.addAction(UIButton("undelete",
-                                style = UIStyle.WARNING,
+                                color = UIColor.WARNING,
                                 responseAction = ResponseAction(restService.getRestPath(RestPaths.UNDELETE), targetType = TargetType.PUT)))
                     else
                         layout.addAction(UIButton("markAsDeleted",
-                                style = UIStyle.WARNING,
+                                color = UIColor.WARNING,
                                 responseAction = ResponseAction(restService.getRestPath(RestPaths.MARK_AS_DELETED), targetType = TargetType.DELETE)))
                 }
             } else {
                 // MemoDO for example isn't historizable:
                 layout.addAction(UIButton("deleteIt",
-                        style = UIStyle.WARNING,
+                        color = UIColor.WARNING,
                         responseAction = ResponseAction(restService.getRestPath(RestPaths.DELETE), targetType = TargetType.DELETE)))
             }
             if (restService.getId(dto) != null) {
                 if (restService.cloneSupported) {
                     layout.addAction(UIButton("clone",
-                            style = UIStyle.SECONDARY,
+                            color = UIColor.SECONDARY,
                             responseAction = ResponseAction(restService.getRestPath(RestPaths.CLONE), targetType = TargetType.POST)))
                 }
                 if (!restService.isDeleted(dto))
                     layout.addAction(UIButton("update",
-                            style = UIStyle.PRIMARY,
+                            color = UIColor.PRIMARY,
                             default = true,
                             responseAction = ResponseAction(restService.getRestPath(RestPaths.SAVE_OR_UDATE), targetType = TargetType.PUT)))
             } else {
                 layout.addAction(UIButton("create",
-                        style = UIStyle.PRIMARY,
+                        color = UIColor.PRIMARY,
                         default = true,
                         responseAction = ResponseAction(restService.getRestPath(RestPaths.SAVE_OR_UDATE), targetType = TargetType.PUT)))
             }

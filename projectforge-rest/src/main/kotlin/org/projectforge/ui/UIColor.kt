@@ -25,7 +25,7 @@ package org.projectforge.ui
 
 import com.fasterxml.jackson.annotation.JsonProperty
 
-enum class UIStyle {
+enum class UIColor {
     @JsonProperty("danger")
     DANGER,
     @JsonProperty("info")
