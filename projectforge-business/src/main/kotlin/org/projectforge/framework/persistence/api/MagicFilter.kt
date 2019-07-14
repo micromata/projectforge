@@ -38,6 +38,10 @@ class MagicFilter(
          */
         var deleted: Boolean? = false,
         var searchHistory: Boolean? = null,
+        /**
+         * Extend the filter by additional variables and settings.
+         */
+        var extended: MutableMap<String, Any> = mutableMapOf(),
         name: String? = null,
         id: Int? = null
 ) : AbstractFavorite(name, id) {
