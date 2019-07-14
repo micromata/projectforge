@@ -53,10 +53,14 @@ class MagicFilter(
 
     open fun reset() {
         entries.clear()
+        sortProperties.clear()
+        sortAndLimitMaxRowsWhileSelect = true
+        deleted = false
+        searchHistory = null
+        extended.clear()
     }
 
     fun prepareQueryFilter(clazz: Class<*>) {
-        val searchStrings = mutableListOf<String>()
         entries.forEach { entry ->
             entry.analyze(clazz)
         }
