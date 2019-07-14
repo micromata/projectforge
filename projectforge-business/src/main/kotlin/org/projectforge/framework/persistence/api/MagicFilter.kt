@@ -37,6 +37,7 @@ class MagicFilter(
          * If true, only deleted entries will be shown. If false, no deleted entries will be shown. If null, all entries will be shown.
          */
         var deleted: Boolean? = false,
+        var searchHistory: Boolean? = null,
         name: String? = null,
         id: Int? = null
 ) : AbstractFavorite(name, id) {
@@ -55,6 +56,8 @@ class MagicFilter(
         entries.forEach { entry ->
             when (entry.type()) {
                 MagicFilterEntry.Type.STRING_SEARCH -> {
+                    entry.search = entry.value as String // value not yet supported, but received from front-end.
+                    entry.value = null
                     searchStrings.add(entry.getSearchStringStrategy())
                 }
                 MagicFilterEntry.Type.FIELD_STRING_SEARCH -> {

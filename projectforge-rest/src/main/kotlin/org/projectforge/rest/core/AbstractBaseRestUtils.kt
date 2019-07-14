@@ -23,12 +23,11 @@
 
 package org.projectforge.rest.core
 
-import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.ValidationError
 import org.springframework.http.HttpStatus
@@ -43,13 +42,10 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
                 baseDao: BaseDao<O>,
                 magicFilter: MagicFilter)
         : ResultSet<O> {
-    val filter = magicFilter.prepareQueryFilter()
-    //filter.isSortAndLimitMaxRowsWhileSelect = true
-    log.error("******* TODO *****")
-    val legacyFilter = BaseSearchFilter()
-    legacyFilter.isSortAndLimitMaxRowsWhileSelect = true
-    legacyFilter.maxRows = 50
-    val list = baseDao.getList(legacyFilter)
+    magicFilter.prepareQueryFilter()
+    magicFilter.sortAndLimitMaxRowsWhileSelect = true
+    magicFilter.maxRows = 50
+    val list = baseDao.getList(magicFilter)
     val resultSet = ResultSet<O>(dataObjectRest.filterList(list, magicFilter), list.size)
     return resultSet
 }
