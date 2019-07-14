@@ -102,6 +102,12 @@ class LayoutUtils {
                                 it.label = elementInfo?.i18nKey
                             }
                         }
+                        /**
+                         * ID must be set as extended to store in extended map of MagicFilter.
+                         */
+                        if (it is UICheckbox) {
+                            it.id = "extended.${it.id}"
+                        }
                     }
                     is String -> {
                         val element = buildLabelInputElement(LayoutContext(filterClass), it)

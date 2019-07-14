@@ -23,7 +23,7 @@
 
 package org.projectforge.ui
 
-data class UICheckbox(val id: String,
+data class UICheckbox(var id: String,
                       @Transient
                       override val layoutContext: LayoutContext? = null,
                       val color : UIColor? = null,

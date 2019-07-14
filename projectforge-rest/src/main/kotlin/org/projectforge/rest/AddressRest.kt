@@ -34,7 +34,6 @@ import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.AddressImageServicesRest.Companion.SESSION_IMAGE_ATTR
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.*
-import org.projectforge.rest.core.AbstractBaseRest.Companion.GEAR_MENU
 import org.projectforge.rest.dto.Address
 import org.projectforge.sms.SmsSenderConfig
 import org.projectforge.ui.*
@@ -188,7 +187,7 @@ class AddressRest()
         LayoutUtils.addListFilterContainer(layout,
                 UICheckbox("newest", label = "filter.newest"),
                 UICheckbox("favorites", label = "address.filter.myFavorites"),
-                UICheckbox("dublets", label = "address.filter.doublets"))
+                UICheckbox("doublets", label = "address.filter.doublets"))
         var menuIndex = 0
         if (smsSenderConfig.isSmsConfigured()) {
             layout.add(MenuItem("address.writeSMS", i18nKey = "address.tooltip.writeSMS", url = "wa/sendSms"), menuIndex++)
