@@ -24,18 +24,13 @@
 package org.projectforge.rest.core
 
 import org.apache.commons.beanutils.PropertyUtils
-import org.projectforge.framework.persistence.api.MagicFilter
-import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.framework.persistence.api.BaseDO
-import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.api.BaseSearchFilter
-import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.*
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
@@ -332,6 +327,22 @@ abstract class AbstractBaseRest<
         saveCurrentFilter(currentFilter)
         return mapOf(
                 "filter" to currentFilter,
+                "filterFavorites" to favorites.idTitleList)
+    }
+
+    /**
+     * @return new filterFavorites
+     */
+    @RequestMapping("filter/rename")
+    fun renameFavoriteFilter(@RequestParam("id", required = true) id: Int, @RequestParam("newName", required = true) newName: String): Map<String, Any> {
+        val favorites = getFilterFavorites()
+        val filter = favorites.get(id)
+        if (filter != null) {
+            filter.name = newName
+        } else {
+            log.warn("Could not rename the user's filter. Filter with id '$id' not found for category '$category'.")
+        }
+        return mapOf(
                 "filterFavorites" to favorites.idTitleList)
     }
 
