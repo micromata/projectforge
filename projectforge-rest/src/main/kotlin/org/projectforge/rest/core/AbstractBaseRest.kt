@@ -176,7 +176,7 @@ abstract class AbstractBaseRest<
             val url = requestMapping?.value?.joinToString("/") { it } ?: "/"
             restPath = url.substringAfter("${Rest.URL}/")
         }
-        return if (subPath != null) "${restPath!!}/$subPath" else restPath!!
+        return if (subPath != null) "/${restPath!!}/$subPath" else "/$restPath!!"
     }
 
     private fun getCategory(): String {
@@ -427,7 +427,7 @@ abstract class AbstractBaseRest<
         return ResponseEntity(getItemAndLayout(request, item), HttpStatus.OK)
     }
 
-    private fun getItemAndLayout(request: HttpServletRequest, dto: DTO): EditLayoutData {
+    protected fun getItemAndLayout(request: HttpServletRequest, dto: DTO): EditLayoutData {
         val layout = createEditLayout(dto)
         layout.addTranslations("changes", "tooltip.selectMe")
         layout.postProcessPageMenu()
