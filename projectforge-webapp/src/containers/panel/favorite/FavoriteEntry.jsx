@@ -1,10 +1,9 @@
 import { faCheck, faEdit, faSync, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { UncontrolledTooltip } from 'reactstrap';
 import style from '../../../components/design/input/Input.module.scss';
+import FavoriteActionButton from './FavoriteActionButton';
 
 function FavoriteEntry(
     {
@@ -19,19 +18,14 @@ function FavoriteEntry(
         translations,
     },
 ) {
-    const handleItemClick = () => onFavoriteSelect(id, name);
-    const handleRenameClick = (event) => {
-        event.stopPropagation();
-        // TODO CHANGE FIELD
-        onFavoriteRename(id);
-    };
-    const handleDeleteClick = (event) => {
-        event.stopPropagation();
-        onFavoriteDelete(id);
-    };
-    const handleSyncClick = (event) => {
-        event.stopPropagation();
+    const [inEditMode, setInEditMode] = React.useState(false);
 
+    const handleItemClick = () => onFavoriteSelect(id, name);
+
+    const handleRenameClick = () => setInEditMode(true);
+
+    const handleDeleteClick = () => onFavoriteDelete(id);
+    const handleSyncClick = () => {
         if (!(isModified && onFavoriteUpdate)) {
             return;
         }
@@ -48,43 +42,30 @@ function FavoriteEntry(
             <span className={style.favoriteName}>{name}</span>
             <div className={style.actions}>
                 {onFavoriteRename ? (
-                    <React.Fragment>
-                        <FontAwesomeIcon
-                            id={`rename-favorite-${id}`}
-                            icon={faEdit}
-                            className={style.icon}
-                            onClick={handleRenameClick}
-                        />
-                        <UncontrolledTooltip placement="right" target={`rename-favorite-${id}`}>
-                            {translations.rename}
-                        </UncontrolledTooltip>
-                    </React.Fragment>
+                    <FavoriteActionButton
+                        icon={faEdit}
+                        id={`rename-favorite-${id}`}
+                        onClick={handleRenameClick}
+                        tooltip={translations.rename}
+                    />
                 ) : undefined}
                 {onFavoriteDelete ? (
-                    <React.Fragment>
-                        <FontAwesomeIcon
-                            id={`delete-favorite-${id}`}
-                            icon={faTrashAlt}
-                            className={classNames(style.icon, style.deleteIcon)}
-                            onClick={handleDeleteClick}
-                        />
-                        <UncontrolledTooltip placement="right" target={`delete-favorite-${id}`}>
-                            {translations.delete}
-                        </UncontrolledTooltip>
-                    </React.Fragment>
+                    <FavoriteActionButton
+                        className={style.deleteIcon}
+                        icon={faTrashAlt}
+                        id={`delete-favorite-${id}`}
+                        onClick={handleDeleteClick}
+                        tooltip={translations.delete}
+                    />
                 ) : undefined}
                 {currentFavoriteId === id ? (
-                    <React.Fragment>
-                        <FontAwesomeIcon
-                            id="syncFavoriteIcon"
-                            onClick={handleSyncClick}
-                            icon={isModified ? faSync : faCheck}
-                            className={classNames(style.icon, style.syncIcon)}
-                        />
-                        <UncontrolledTooltip placement="right" target="syncFavoriteIcon">
-                            {translations[isModified ? 'save' : 'uptodate']}
-                        </UncontrolledTooltip>
-                    </React.Fragment>
+                    <FavoriteActionButton
+                        className={style.syncIcon}
+                        icon={isModified ? faSync : faCheck}
+                        id={`syncFavoriteIcon-${id}`}
+                        onClick={handleSyncClick}
+                        tooltip={translations[isModified ? 'save' : 'uptodate']}
+                    />
                 ) : undefined}
             </div>
         </li>
