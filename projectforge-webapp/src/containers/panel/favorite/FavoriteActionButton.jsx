@@ -11,6 +11,7 @@ function FavoriteActionButton(
         icon,
         id,
         onClick,
+        size,
         tooltip,
     },
 ) {
@@ -27,8 +28,9 @@ function FavoriteActionButton(
                 icon={icon}
                 className={classNames(style.icon, className)}
                 onClick={handleClick}
+                size={size}
             />
-            {tooltip ? (
+            {tooltip && id ? (
                 <UncontrolledTooltip placement="right" target={id}>
                     {tooltip}
                 </UncontrolledTooltip>
@@ -39,14 +41,17 @@ function FavoriteActionButton(
 
 FavoriteActionButton.propTypes = {
     icon: PropTypes.shape({}).isRequired,
-    id: PropTypes.string.isRequired,
     onClick: PropTypes.func.isRequired,
     className: PropTypes.string,
+    id: PropTypes.string,
+    size: PropTypes.string,
     tooltip: PropTypes.string,
 };
 
 FavoriteActionButton.defaultProps = {
     className: undefined,
+    id: undefined,
+    size: undefined,
     tooltip: undefined,
 };
 
