@@ -33,7 +33,7 @@ div.chevronContainer {
       left: 50%;
     }
 
-    &.up {
+    &.descending {
       @include transform(translateY(-.125em));
 
       &::before {
@@ -47,7 +47,7 @@ div.chevronContainer {
       }
     }
 
-    &.down {
+    &.ascending {
       @include transform(translateY(.25em));
 
       &::before {
