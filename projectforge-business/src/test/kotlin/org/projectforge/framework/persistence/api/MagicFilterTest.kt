@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.common
+package org.projectforge.framework.persistence.api
 
 import org.junit.jupiter.api.Test
 import org.projectforge.business.user.UserPrefDao

@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.core
 
-import org.projectforge.business.common.MagicFilter
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDao

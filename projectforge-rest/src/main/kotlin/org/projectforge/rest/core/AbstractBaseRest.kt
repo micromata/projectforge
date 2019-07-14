@@ -24,8 +24,8 @@
 package org.projectforge.rest.core
 
 import org.apache.commons.beanutils.PropertyUtils
-import org.projectforge.business.common.MagicFilter
-import org.projectforge.business.common.MagicFilterEntry
+import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.access.AccessChecker
