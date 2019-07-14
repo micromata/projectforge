@@ -24,6 +24,7 @@
 package org.projectforge.framework.persistence.api
 
 import org.hibernate.Criteria
+import org.hibernate.criterion.Order
 import org.hibernate.criterion.Restrictions
 import org.projectforge.business.multitenancy.TenantService
 import org.projectforge.business.task.TaskDO
@@ -184,6 +185,15 @@ class MagicFilterQueryBuilder {
                     log.error("Querying fields of type '$fieldType' not yet implemented.")
                 }
             }
+        }
+
+        var maxOrder = 3;
+        for (sortProperty in filter.sortProperties) {
+            val order = if (sortProperty.sortOrder == SortOrder.ASCENDING) Order.asc(sortProperty.property)
+            else Order.desc(sortProperty.property)
+            criteria.addOrder(order)
+            if (--maxOrder <= 0)
+                break // Add only 3 orders.
         }
         criteria.setMaxResults(1000)
         setCacheRegion(baseDao, criteria)
