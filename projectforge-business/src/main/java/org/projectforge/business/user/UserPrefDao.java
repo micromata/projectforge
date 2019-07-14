@@ -691,7 +691,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     try {
       return createObjectMapper().readValue(json, classOfT);
     } catch (IOException ex) {
-      log.error("Can't deserialize json object: " + ex.getMessage() + " json=" + json, ex);
+      log.error("Can't deserialize json object (may-be incompatible ProjectForge versions): " + ex.getMessage() + " json=" + json, ex);
       return null;
     }
   }
