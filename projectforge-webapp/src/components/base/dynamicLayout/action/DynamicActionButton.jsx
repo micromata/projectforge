@@ -1,14 +1,13 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { colorPropType } from '../../../../utilities/propTypes';
 import { Button } from '../../../design';
 import { DynamicLayoutContext } from '../context';
 
 function DynamicActionButton(props) {
     const {
         default: isDefault,
-        style,
         title,
+        ...stylingProps
     } = props;
 
     const { callAction } = React.useContext(DynamicLayoutContext);
@@ -28,9 +27,9 @@ function DynamicActionButton(props) {
 
     return (
         <Button
-            color={style}
             onClick={handleClick}
             type={type}
+            {...stylingProps}
         >
             {title}
         </Button>
@@ -40,12 +39,10 @@ function DynamicActionButton(props) {
 DynamicActionButton.propTypes = {
     title: PropTypes.string.isRequired,
     default: PropTypes.bool,
-    style: colorPropType,
 };
 
 DynamicActionButton.defaultProps = {
     default: false,
-    style: 'secondary',
 };
 
 export default DynamicActionButton;
