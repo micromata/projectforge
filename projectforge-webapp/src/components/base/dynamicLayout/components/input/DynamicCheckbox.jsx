@@ -4,7 +4,7 @@ import CheckBox from '../../../../design/input/CheckBox';
 import { DynamicLayoutContext } from '../../context';
 import DynamicValidationManager from './DynamicValidationManager';
 
-function DynamicCheckbox({ id, label }) {
+function DynamicCheckbox({ id, label, ...props }) {
     const { data, setData } = React.useContext(DynamicLayoutContext);
 
     return React.useMemo(() => {
@@ -17,6 +17,7 @@ function DynamicCheckbox({ id, label }) {
                     label={label}
                     checked={data[id] || false}
                     onChange={handleCheckboxChange}
+                    {...props}
                 />
             </DynamicValidationManager>
         );
