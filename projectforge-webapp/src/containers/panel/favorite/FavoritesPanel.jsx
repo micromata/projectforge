@@ -42,10 +42,7 @@ function FavoritesPanel(
     };
 
     const handleMouseClickEvent = ({ target }) => {
-        if (
-            !popperRef.current
-            || popperRef.current.parentElement.contains(target)
-        ) {
+        if (!popperRef.current || popperRef.current.parentElement.contains(target)) {
             return;
         }
 
@@ -83,10 +80,7 @@ function FavoritesPanel(
                                     value={filterName}
                                 />
                                 <FontAwesomeIcon
-                                    className={classNames(
-                                        style.icon,
-                                        style.saveIcon,
-                                    )}
+                                    className={classNames(style.icon, style.saveIcon)}
                                     icon={faCheckSquare}
                                     size="lg"
                                     onClick={handleCreateClick}

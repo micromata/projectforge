@@ -43,10 +43,7 @@ function FavoriteEntry(
         <li
             role="presentation"
             onClick={handleItemClick}
-            className={classNames(
-                style.favorite,
-                { [style.selected]: id === currentFavoriteId },
-            )}
+            className={classNames(style.favorite, { [style.selected]: id === currentFavoriteId })}
         >
             <span className={style.favoriteName}>{name}</span>
             <div className={style.actions}>
