@@ -25,6 +25,7 @@ package org.projectforge.rest
 
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.tasktree.TaskTreeHelper
+import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.timesheet.TimesheetFilter
@@ -41,6 +42,8 @@ import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.model.rest.RestPaths
+import org.projectforge.rest.calendar.TeamEventRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractBaseRest
 import org.projectforge.rest.core.AbstractDORest
@@ -51,6 +54,7 @@ import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
 import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -69,6 +73,9 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
 
     @Autowired
     private lateinit var userPrefService: UserPrefService
+
+    @Autowired
+    private lateinit var teamEventRest: TeamEventRest
 
     private val taskTree: TaskTree
         /** Lazy init, because test cases failed due to NPE in TenantRegistryMap. */
@@ -229,8 +236,37 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
                 .add(UIRow().add(UICol().add(UILabel("'ToDo: Validation, resetting Kost2-Combobox after task selection, favorites, templates, Testing..."))))
                 .addTranslations("until", "fibu.kost2", "task")
         Favorites.addTranslations(layout.translations)
+        layout.addAction(UIButton("switch",
+                title = translate("plugins.teamcal.switchToTeamEventButton"),
+                color = UIColor.SECONDARY,
+                responseAction = ResponseAction(getRestPath("switch2CalendarEvent"), targetType = TargetType.POST)))
+
         return LayoutUtils.processEditPage(layout, dto, this)
     }
+
+    /**
+     * Will be called by clone button. Sets the id of the form data object to null and deleted to false.
+     * @return ResponseAction with [TargetType.UPDATE] and variable "initial" with all the initial data of [getItemAndLayout] as given for new objects.
+     */
+    @RequestMapping("switch2CalendarEvent")
+    fun switch2CalendarEvent(request: HttpServletRequest, @RequestBody timesheet: TimesheetDO)
+            : ResponseAction {
+        return teamEventRest.cloneFromTimesheet(request, timesheet)
+    }
+
+    fun cloneFromTimesheet(request: HttpServletRequest, teamEvent: TeamEventDO): ResponseAction {
+        val timesheet = TimesheetDO()
+        timesheet.startTime = teamEvent.startDate
+        timesheet.stopTime = teamEvent.endDate
+        timesheet.location = teamEvent.location
+        timesheet.description = "${teamEvent.subject} ${teamEvent.note}"
+        val editLayoutData = getItemAndLayout(request, timesheet)
+        return ResponseAction(url = "/calendar${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
+                .addVariable("data", editLayoutData.data)
+                .addVariable("ui", editLayoutData.ui)
+                .addVariable("variables", editLayoutData.variables)
+    }
+
 
     override fun onGetItemAndLayout(request: HttpServletRequest, dto: TimesheetDO, editLayoutData: EditLayoutData) {
         val startDateAsSeconds = NumberHelper.parseLong(request.getParameter("startDate"))

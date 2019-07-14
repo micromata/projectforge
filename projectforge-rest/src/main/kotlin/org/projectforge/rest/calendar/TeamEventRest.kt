@@ -27,13 +27,18 @@ import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.event.TeamEventDao
 import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache
+import org.projectforge.business.timesheet.TimesheetDO
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.model.rest.RestPaths
+import org.projectforge.rest.TimesheetRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractBaseRest
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
@@ -48,6 +53,9 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao>(
 
     @Autowired
     private lateinit var teamCalDao: TeamCalDao
+
+    @Autowired
+    private lateinit var timesheetRest: TimesheetRest
 
     @Autowired
     private lateinit var teamEventExternalSubscriptionCache: TeamEventExternalSubscriptionCache
@@ -99,6 +107,29 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao>(
     }
 
     /**
+     * Will be called by clone button. Sets the id of the form data object to null and deleted to false.
+     * @return ResponseAction with [TargetType.UPDATE] and variable "initial" with all the initial data of [getItemAndLayout] as given for new objects.
+     */
+    @RequestMapping("switch2Timesheet")
+    fun switch2Timesheet(request: HttpServletRequest, @RequestBody teamEvent: TeamEventDO)
+            : ResponseAction {
+        return timesheetRest.cloneFromTimesheet(request, teamEvent)
+    }
+
+    fun cloneFromTimesheet(request: HttpServletRequest, timesheet: TimesheetDO): ResponseAction {
+        val teamEvent = TeamEventDO()
+        teamEvent.startDate = timesheet.startTime
+        teamEvent.endDate = timesheet.stopTime
+        teamEvent.location = timesheet.location
+        teamEvent.note = timesheet.description
+        val editLayoutData = getItemAndLayout(request, teamEvent)
+        return ResponseAction(url = "/calendar${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
+                .addVariable("data", editLayoutData.data)
+                .addVariable("ui", editLayoutData.ui)
+                .addVariable("variables", editLayoutData.variables)
+    }
+
+    /**
      * LAYOUT List page
      */
     override fun createListLayout(): UILayout {
@@ -141,7 +172,10 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao>(
                                         .add(UICustomized("reminder")))
                                 .add(UIFieldset(12)
                                         .add(UICustomized("recurrence"))))))
-
+        layout.addAction(UIButton("switch",
+                title = translate("plugins.teamcal.switchToTimesheetButton"),
+                color = UIColor.SECONDARY,
+                responseAction = ResponseAction(getRestPath("switch2Timesheet"), targetType = TargetType.POST)))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }
