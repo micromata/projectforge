@@ -70,6 +70,31 @@ function ListPage(
             },
         }),
         setFilterState: setFilter,
+        sort: (column, sortProperty) => {
+            let newSortProperty = sortProperty;
+
+            if (!sortProperty) {
+                newSortProperty = {
+                    property: column,
+                    sortOrder: 'ASCENDING',
+                };
+            } else if (sortProperty.sortOrder === 'DESCENDING') {
+                newSortProperty = undefined;
+            } else {
+                newSortProperty.sortOrder = 'DESCENDING';
+            }
+
+            setFilter({
+                ...filter,
+                sortProperties: [
+                    newSortProperty,
+                    ...filter.sortProperties
+                        .filter(entry => entry.property !== column)
+                        .slice(0, 2),
+                ]
+                    .filter(entry => entry !== undefined),
+            });
+        },
     }), [filter]);
 
     // Register DynamicFilterCheckbox only for the ListPage
@@ -117,7 +142,6 @@ function ListPage(
     };
 
     const performListUpdate = () => {
-        setLoading(true);
         setError(undefined);
 
         fetch(
@@ -134,10 +158,7 @@ function ListPage(
         )
             .then(handleHTTPErrors)
             .then(response => response.json())
-            .then((responseData) => {
-                setLoading(false);
-                setData(responseData);
-            })
+            .then(setData)
             .catch(setError);
     };
 
@@ -176,6 +197,8 @@ function ListPage(
 
     // Only reload the list when the category or search string changes.
     React.useEffect(loadInitialList, [match.params.category, location.search]);
+
+    React.useEffect(performListUpdate, [filter.sortProperties]);
 
     if (error) {
         return <h4>{error.message}</h4>;

@@ -1,0 +1,8 @@
+.tableHead {
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+    color: #555;
+  }
+}

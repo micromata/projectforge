@@ -80,6 +80,15 @@ export const defaultValues = {
         // Disable no-unused-vars so its clear what you need to override the function.
         /* eslint-disable-next-line no-unused-vars */
         setFilterState: filter => notImplementedFunction(),
+        /**
+         * Change the sorting for a specific column.
+         *
+         * @param {String} column The id of the column to be sorted.
+         * @param {String} sortProperty If present. @see filter.sortProperties
+         */
+        // Disable no-unused-vars so its clear what you need to override the function.
+        /* eslint-disable-next-line no-unused-vars */
+        sort: (column, sortProperty) => notImplementedFunction(),
     },
     /**
      * @type {Number} The id of the object that should be highlighted in the row.

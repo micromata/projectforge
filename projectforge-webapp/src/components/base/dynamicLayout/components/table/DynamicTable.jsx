@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Card, CardBody, Table } from '../../../../design';
-import AnimatedChevron from '../../../../design/input/chevron/Animated';
 import { DynamicLayoutContext } from '../../context';
+import DynamicTableHead from './DynamicTableHead';
 import DynamicTableRow from './DynamicTableRow';
 
 function DynamicTable({ columns, id }) {
@@ -14,12 +14,11 @@ function DynamicTable({ columns, id }) {
                 <Table striped hover responsive>
                     <thead>
                         <tr>
-                            {columns.map(({ id: columnId, title }) => (
-                                <th key={`table-head-column-${columnId}`}>
-                                    {/* TODO Handle Sorting */}
-                                    <AnimatedChevron direction="neutral" />
-                                    {title}
-                                </th>
+                            {columns.map(column => (
+                                <DynamicTableHead
+                                    key={`table-head-column-${column.id}`}
+                                    {...column}
+                                />
                             ))}
                         </tr>
                     </thead>
