@@ -109,7 +109,7 @@ function SearchFilter() {
             .catch(error => alert(`Internal error: ${error}`));
     };
 
-    const handleMaxRowsChange = ({ value }) => filterHelper.setSearchFilter('maxRows', value);
+    const handleMaxRowsChange = ({ value }) => filterHelper.setFilter('maxRows', value);
 
     const handleSearchFilterValueChange = filterHelper.editEntry;
 
@@ -124,7 +124,7 @@ function SearchFilter() {
             case 'select-option':
                 filterHelper.addEntry({
                     field: meta.option.id,
-                    value: '',
+                    search: '',
                 });
                 break;
             case 'pop-value':
@@ -170,7 +170,7 @@ function SearchFilter() {
                 }))}
                 values={entries.reduce((accumulator, currentValue) => ({
                     ...accumulator,
-                    [currentValue.field]: currentValue.value,
+                    [currentValue.field]: currentValue.search,
                 }), {})}
             />
         );
