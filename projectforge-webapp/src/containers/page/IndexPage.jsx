@@ -154,6 +154,11 @@ class IndexPage extends React.Component {
                                 main.chunk.js with hash sum / version id, use service worker for
                                 caching app
                             </li>
+                            <li>
+                                Design improvements for selection of task tree (e. g. time
+                                sheet editing). Highlighting of current active breadcrumb,
+                                smaller search bar, no table head row.
+                            </li>
                         </ol>
                         <h1>Done</h1>
                         <ol style={todoDone}>
