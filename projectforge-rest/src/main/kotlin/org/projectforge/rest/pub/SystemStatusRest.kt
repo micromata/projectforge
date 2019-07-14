@@ -30,7 +30,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.*
-import javax.annotation.PostConstruct
 
 
 /**
@@ -46,15 +45,12 @@ class SystemStatusRest {
                           var releaseYear: String,
                           var messageOfTheDay: String? = null,
                           var copyRightYears: String,
+                          var logoUrl: String? = null,
                           /**
                            * If given, the client should redirect to this url.
                            */
                           var setupRedirectUrl: String? = null,
-                          var startTimeUTC: Date? = null) {
-        val logoUrl
-            get() = LogoServiceRest.logoUrl
-
-    }
+                          var startTimeUTC: Date? = null)
 
     private var _systemData: SystemData? = null
 
@@ -64,21 +60,21 @@ class SystemStatusRest {
     @Autowired
     private lateinit var systemStatus: SystemStatus
 
-    @PostConstruct
-    fun postConstruct() {
-        _systemData = SystemData(appname = systemStatus.appname,
-                version = systemStatus.version,
-                releaseTimestamp = systemStatus.releaseTimestamp,
-                releaseDate = systemStatus.releaseDate,
-                releaseYear = systemStatus.releaseYear,
-                messageOfTheDay = systemStatus.messageOfTheDay,
-                copyRightYears = systemStatus.copyRightYears,
-                setupRedirectUrl = if (systemStatus.setupRequiredFirst == true) "/wa/setup" else null,
-                startTimeUTC = Date(systemStatus.startTimeMillis))
-    }
-
     @GetMapping("systemStatus")
     fun getSystemStatus(): SystemData {
+        if (_systemData == null) {
+            // Must be initialized on demand, LogServiceRest is not available on @PostConstruct in test cases.
+            _systemData = SystemData(appname = systemStatus.appname,
+                    version = systemStatus.version,
+                    releaseTimestamp = systemStatus.releaseTimestamp,
+                    releaseDate = systemStatus.releaseDate,
+                    releaseYear = systemStatus.releaseYear,
+                    messageOfTheDay = systemStatus.messageOfTheDay,
+                    copyRightYears = systemStatus.copyRightYears,
+                    logoUrl = LogoServiceRest.logoUrl,
+                    setupRedirectUrl = if (systemStatus.setupRequiredFirst == true) "/wa/setup" else null,
+                    startTimeUTC = Date(systemStatus.startTimeMillis))
+        }
         if (systemData.setupRedirectUrl != null
                 && systemStatus.setupRequiredFirst != true
                 && systemStatus.updateRequiredFirst != true) {
