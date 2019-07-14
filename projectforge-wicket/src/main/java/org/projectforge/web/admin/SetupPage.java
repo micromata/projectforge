@@ -125,6 +125,7 @@ public class SetupPage extends AbstractUnsecureBasePage
       WicketSupport.getMenuCreator().refresh();
     }
 
+    WicketSupport.getSystemStatus().setSetupRequiredFirst(false);
     loginAdminUser(adminUser);
 
     configurationDao.checkAndUpdateDatabaseEntries();
