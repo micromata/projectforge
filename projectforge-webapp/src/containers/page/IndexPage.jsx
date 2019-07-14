@@ -213,6 +213,7 @@ class IndexPage extends React.Component {
                                 Edit / rename entry of favorite filter, e. g. calendar page (star
                                 icon)
                             </li>
+                            <li>Highlight last edited entry in list page</li>
                         </ol>
                     </Col>
                     <Col>
@@ -264,7 +265,6 @@ class IndexPage extends React.Component {
                         <ol>
                             <li>Magic filter in list pages</li>
                             <li>List pagination and sorting</li>
-                            <li>Highlight last edited entry in list page</li>
                             <li>
                                 Registration of customized containers (e. g. for external plugins)
                             </li>

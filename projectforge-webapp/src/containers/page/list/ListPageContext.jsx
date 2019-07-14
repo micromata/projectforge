@@ -82,6 +82,10 @@ export const defaultValues = {
         setFilterState: filter => notImplementedFunction(),
     },
     /**
+     * @type {Number} The id of the object that should be highlighted in the row.
+     */
+    highlightRow: 0,
+    /**
      * Set the filter favorites.
      * @param {Object} filterFavorites The filter favorites provided by the rest api.
      */
