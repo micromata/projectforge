@@ -108,7 +108,7 @@ function EditPage({ match, location }) {
                                 history.push(json.url, json.variables);
                                 break;
                             case 'UPDATE':
-                                history.push(`/${json.url}`, { noReload: true });
+                                history.push(`${json.url}`, { noReload: true });
                                 window.scrollTo(0, 0);
                                 setDataState(json.variables.data);
                                 setUI(json.variables.ui);
