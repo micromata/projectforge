@@ -151,10 +151,6 @@ class IndexPage extends React.Component {
                                 icon)
                             </li>
                             <li>
-                                DynamicReactSelect: support of autocompletion and favorites (see
-                                field communication language of edit page for addresses).
-                            </li>
-                            <li>
                                 main.chunk.js with hash sum / version id, use service worker for
                                 caching app
                             </li>
@@ -238,6 +234,7 @@ class IndexPage extends React.Component {
                             <li>
                                 Calendar edit pages redirect url to /calendar
                             </li>
+                            <li>CSRF</li>
                         </ol>
                         <h1>Done</h1>
                         <ol style={todoDone}>
@@ -250,6 +247,10 @@ class IndexPage extends React.Component {
                             <li>
                                 Edit of addresses: preserve address books without access of current
                                 logged in user.
+                            </li>
+                            <li>
+                                DynamicReactSelect: support of autocompletion and favorites (see
+                                field communication language of edit page for addresses).
                             </li>
                         </ol>
                     </Col>
