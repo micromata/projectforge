@@ -97,6 +97,12 @@ class MagicFilterEntry(
             }
             return Type.FIELD_STRING_SEARCH
         }
+        if (value != null && value is String) {
+            if (fromValue != null || toValue != null || valuesGiven) {
+                log.warn("MagicFilterEntry inconsistent for field '$field' search ('$value'): fromValue, toValue and values are ignored.")
+            }
+            return Type.FIELD_STRING_SEARCH
+        }
         if (fromValue != null || toValue != null) {
             if (valuesGiven) {
                 log.warn("MagicFilterEntry inconsistent for field '$field' range search (from '$fromValue' to '$toValue'): values are ignored.")
