@@ -37,7 +37,7 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/poll")
-class PollRest : AbstractDTORest<PollDO, Poll, PollDao, BaseSearchFilter>(PollDao::class.java, BaseSearchFilter::class.java, "plugins.poll.title") {
+class PollRest : AbstractDTORest<PollDO, Poll, PollDao>(PollDao::class.java, "plugins.poll.title") {
 
     override fun transformFromDB(obj: PollDO, editMode: Boolean): Poll {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
@@ -65,7 +65,7 @@ class PollRest : AbstractDTORest<PollDO, Poll, PollDao, BaseSearchFilter>(PollDa
                         .add(lc, "title", "description", "location", "owner", "lastUpdate"))
         layout.getTableColumnById("owner").formatter = Formatter.USER
         layout.getTableColumnById("lastUpdate").formatter = Formatter.TIMESTAMP_MINUTES
-        return LayoutUtils.processListPage(layout)
+        return LayoutUtils.processListPage(layout, this)
     }
 
     /**
