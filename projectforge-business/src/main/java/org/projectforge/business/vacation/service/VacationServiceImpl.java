@@ -23,17 +23,6 @@
 
 package org.projectforge.business.vacation.service;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
@@ -65,6 +54,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Standard implementation of the vacation service interface.
@@ -243,10 +239,10 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     final Calendar now = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
     final Calendar startDate = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
     final Calendar endDateVacationFromLastYear = getEndDateVacationFromLastYear();
-    if (vacationData.isSpecial() == true) {
+    if (vacationData.getSpecial() == true) {
       if (vacationData.getId() != null) {
         final VacationDO vacation = vacationDao.getById(vacationData.getId());
-        if (vacation.isSpecial() == false) {
+        if (vacation.getSpecial() == false) {
           return deleteUsedVacationDaysFromLastYear(vacation);
         }
       }
@@ -339,7 +335,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   @Override
   public BigDecimal deleteUsedVacationDaysFromLastYear(final VacationDO vacationData)
   {
-    if (vacationData == null || vacationData.isSpecial() == true || vacationData.getEmployee() == null || vacationData.getStartDate() == null
+    if (vacationData == null || vacationData.getSpecial() == true || vacationData.getEmployee() == null || vacationData.getStartDate() == null
         || vacationData.getEndDate() == null) {
       return BigDecimal.ZERO;
     }

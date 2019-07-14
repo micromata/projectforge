@@ -23,19 +23,6 @@
 
 package org.projectforge.web.vacation;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.projectforge.business.teamcal.common.CalendarHelper;
-import org.slf4j.Logger;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.basic.Label;
@@ -50,6 +37,7 @@ import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
+import org.projectforge.business.teamcal.common.CalendarHelper;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.business.vacation.model.VacationDO;
@@ -69,13 +57,13 @@ import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.DatePanel;
 import org.projectforge.web.wicket.components.DatePanelSettings;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.LabelPanel;
-import org.projectforge.web.wicket.flowlayout.Select2MultiChoicePanel;
-import org.projectforge.web.wicket.flowlayout.Select2SingleChoicePanel;
+import org.projectforge.web.wicket.flowlayout.*;
+import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2Choice;
 import org.wicketstuff.select2.Select2MultiChoice;
+
+import java.math.BigDecimal;
+import java.util.*;
 
 public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditPage>
 {
@@ -258,9 +246,9 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
 
     {
       // Special holiday
-      final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "isSpecial");
-      final CheckBoxPanel checkboxPanel = new CheckBoxPanel(fs.newChildId(), new PropertyModel<>(data, "isSpecial"), "");
-      checkboxPanel.setMarkupId("vacation-isSpecial").setOutputMarkupId(true);
+      final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "special");
+      final CheckBoxPanel checkboxPanel = new CheckBoxPanel(fs.newChildId(), new PropertyModel<>(data, "special"), "");
+      checkboxPanel.setMarkupId("vacation-special").setOutputMarkupId(true);
       checkboxPanel.setEnabled(checkEnableInputField());
       formValidator.getDependentFormComponents()[5] = checkboxPanel.getCheckBox();
       fs.add(checkboxPanel);
