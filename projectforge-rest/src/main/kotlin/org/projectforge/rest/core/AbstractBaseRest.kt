@@ -366,7 +366,7 @@ abstract class AbstractBaseRest<
     @GetMapping("reindexNewest")
     fun reindexNewest(): ResponseAction {
         baseDao.rebuildDatabaseIndex4NewestEntries()
-        return ResponseAction(message = ResponseAction.Message("administration.reindexNewest.successful", style = UIStyle.SUCCESS))
+        return ResponseAction(message = ResponseAction.Message("administration.reindexNewest.successful", color = UIColor.SUCCESS))
     }
 
     /**
@@ -376,7 +376,7 @@ abstract class AbstractBaseRest<
     @GetMapping("reindexFull")
     fun reindexFull(): ResponseAction {
         baseDao.rebuildDatabaseIndex()
-        return ResponseAction(message = ResponseAction.Message("administration.reindexFull.successful", style = UIStyle.SUCCESS))
+        return ResponseAction(message = ResponseAction.Message("administration.reindexFull.successful", color = UIColor.SUCCESS))
     }
 
     abstract fun processResultSetBeforeExport(resultSet: ResultSet<O>): ResultSet<*>

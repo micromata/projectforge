@@ -34,7 +34,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.LanguageService
 import org.projectforge.rest.core.ReplaceUtils
 import org.projectforge.rest.core.ResultSet
-import org.projectforge.ui.UIStyle
+import org.projectforge.ui.UIColor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.HttpHeaders
@@ -92,7 +92,7 @@ class AddressServicesRest() {
         log.info("Exporting personal address book as vcards.")
         val list = addressDao.favoriteVCards
         if (CollectionUtils.isEmpty(list) == true) {
-            return ResponseEntity(ResponseData("address.book.hasNoVCards", messageType = MessageType.TOAST, style = UIStyle.WARNING), HttpStatus.NOT_FOUND)
+            return ResponseEntity(ResponseData("address.book.hasNoVCards", messageType = MessageType.TOAST, color = UIColor.WARNING), HttpStatus.NOT_FOUND)
         }
         val filename = ("ProjectForge-PersonalAddressBook_" + DateHelper.getDateAsFilenameSuffix(Date())
                 + ".vcf")
@@ -119,7 +119,7 @@ class AddressServicesRest() {
 
         val xls = addressExport.export(list, personalAddressMap)
         if (xls == null || xls.size == 0) {
-            return ResponseEntity(ResponseData("address.book.hasNoVCards", messageType = MessageType.TOAST, style = UIStyle.WARNING), HttpStatus.NOT_FOUND)
+            return ResponseEntity(ResponseData("address.book.hasNoVCards", messageType = MessageType.TOAST, color = UIColor.WARNING), HttpStatus.NOT_FOUND)
         }
         val filename = ("ProjectForge-AddressExport_" + DateHelper.getDateAsFilenameSuffix(Date())
                 + ".xls")
@@ -136,7 +136,7 @@ class AddressServicesRest() {
         log.info("Exporting personal phone list as txt file.")
         val list = addressDao.favoritePhoneEntries
         if (CollectionUtils.isEmpty(list) == true) {
-            return ResponseEntity(ResponseData("address.book.hasNoPhoneNumbers", messageType = MessageType.TOAST, style = UIStyle.WARNING), HttpStatus.NOT_FOUND)
+            return ResponseEntity(ResponseData("address.book.hasNoPhoneNumbers", messageType = MessageType.TOAST, color = UIColor.WARNING), HttpStatus.NOT_FOUND)
         }
         val filename = ("ProjectForge-PersonalPhoneList_" + DateHelper.getDateAsFilenameSuffix(Date())
                 + ".txt")
