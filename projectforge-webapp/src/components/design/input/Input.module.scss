@@ -502,6 +502,17 @@ svg[class^="css-"] {
       margin-right: 75px;
     }
 
+    .hidden {
+      visibility: hidden;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      opacity: 0;
+    }
+
     &.selected {
       color: #009BA3;
     }

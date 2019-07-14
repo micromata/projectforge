@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import style from '../../../components/design/input/Input.module.scss';
 import FavoriteActionButton from './FavoriteActionButton';
+import FavoriteNameInput from './FavoriteNameInput';
 
 function FavoriteEntry(
     {
@@ -19,10 +20,44 @@ function FavoriteEntry(
     },
 ) {
     const [inEditMode, setInEditMode] = React.useState(false);
+    const entryRef = React.useRef(null);
 
-    const handleItemClick = () => onFavoriteSelect(id, name);
+    const handleMouseClickEvent = ({ target }) => {
+        if (!entryRef.current || entryRef.current.contains(target)) {
+            return;
+        }
 
-    const handleRenameClick = () => setInEditMode(true);
+        setInEditMode(false);
+    };
+
+    React.useEffect(() => {
+        if (inEditMode) {
+            document.addEventListener('click', handleMouseClickEvent);
+
+            return () => document.removeEventListener('click', handleMouseClickEvent);
+        }
+
+        return () => {
+        };
+    }, [inEditMode]);
+
+    const handleItemClick = () => {
+        if (inEditMode) {
+            return;
+        }
+
+        onFavoriteSelect(id, name);
+    };
+
+    const handleRenameClick = (event) => {
+        event.preventDefault();
+        setInEditMode(true);
+    };
+    const handleRenameComplete = (newName) => {
+        onFavoriteRename(id, newName);
+
+        setInEditMode(false);
+    };
 
     const handleDeleteClick = () => onFavoriteDelete(id);
     const handleSyncClick = () => {
@@ -38,36 +73,48 @@ function FavoriteEntry(
             role="presentation"
             onClick={handleItemClick}
             className={classNames(style.favorite, { [style.selected]: id === currentFavoriteId })}
+            ref={entryRef}
         >
-            <span className={style.favoriteName}>{name}</span>
-            <div className={style.actions}>
-                {onFavoriteRename ? (
-                    <FavoriteActionButton
-                        icon={faEdit}
-                        id={`rename-favorite-${id}`}
-                        onClick={handleRenameClick}
-                        tooltip={translations.rename}
-                    />
-                ) : undefined}
-                {onFavoriteDelete ? (
-                    <FavoriteActionButton
-                        className={style.deleteIcon}
-                        icon={faTrashAlt}
-                        id={`delete-favorite-${id}`}
-                        onClick={handleDeleteClick}
-                        tooltip={translations.delete}
-                    />
-                ) : undefined}
-                {currentFavoriteId === id ? (
-                    <FavoriteActionButton
-                        className={style.syncIcon}
-                        icon={isModified ? faSync : faCheck}
-                        id={`syncFavoriteIcon-${id}`}
-                        onClick={handleSyncClick}
-                        tooltip={translations[isModified ? 'save' : 'uptodate']}
-                    />
-                ) : undefined}
-            </div>
+            <span className={classNames({ [style.hidden]: !inEditMode })}>
+                <FavoriteNameInput
+                    defaultValue={name}
+                    onSave={handleRenameComplete}
+                    label={translations.rename}
+                    id={`rename-favorite-input-${id}`}
+                    autoFocus
+                />
+            </span>
+            <span className={classNames({ [style.hidden]: inEditMode })}>
+                <span className={style.favoriteName}>{name}</span>
+                <div className={style.actions}>
+                    {onFavoriteRename ? (
+                        <FavoriteActionButton
+                            icon={faEdit}
+                            id={`rename-favorite-${id}`}
+                            onClick={handleRenameClick}
+                            tooltip={translations.rename}
+                        />
+                    ) : undefined}
+                    {onFavoriteDelete ? (
+                        <FavoriteActionButton
+                            className={style.deleteIcon}
+                            icon={faTrashAlt}
+                            id={`delete-favorite-${id}`}
+                            onClick={handleDeleteClick}
+                            tooltip={translations.delete}
+                        />
+                    ) : undefined}
+                    {currentFavoriteId === id ? (
+                        <FavoriteActionButton
+                            className={style.syncIcon}
+                            icon={isModified ? faSync : faCheck}
+                            id={`syncFavoriteIcon-${id}`}
+                            onClick={handleSyncClick}
+                            tooltip={translations[isModified ? 'save' : 'uptodate']}
+                        />
+                    ) : undefined}
+                </div>
+            </span>
         </li>
     );
 }

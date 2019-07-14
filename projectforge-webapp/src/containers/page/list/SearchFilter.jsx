@@ -92,7 +92,10 @@ function SearchFilter() {
             .then(saveUpdateResponse)
             .catch(error => alert(`Internal error: ${error}`));
     };
-    const handleFavoriteRename = (id, newName) => console.log(id, newName);
+    const handleFavoriteRename = (id, newName) => console.log({
+        id,
+        newName,
+    });
 
     const handleFavoriteUpdate = (id) => {
         fetch(getServiceURL(`${category}/filter/update`,

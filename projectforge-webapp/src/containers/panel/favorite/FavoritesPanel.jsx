@@ -1,11 +1,9 @@
-import { faCheckSquare } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Input, Popover, PopoverBody } from '../../../components/design';
+import { Popover, PopoverBody } from '../../../components/design';
 import style from '../../../components/design/input/Input.module.scss';
 import FavoriteEntry from './FavoriteEntry';
+import FavoriteNameInput from './FavoriteNameInput';
 import FavoritesButton from './FavoritesButton';
 
 function FavoritesPanel(
@@ -23,14 +21,10 @@ function FavoritesPanel(
         translations,
     },
 ) {
-    const [filterName, setFilterName] = React.useState('');
     const [open, setOpen] = React.useState(false);
     const popperRef = React.useRef(null);
 
     const toggle = () => setOpen(!open);
-
-    const handleCreateInputChange = ({ target }) => setFilterName(target.value);
-    const handleCreateClick = () => onFavoriteCreate(filterName);
 
     const handleFavoriteSelect = (id, name) => {
         if (closeOnSelect) {
@@ -68,22 +62,18 @@ function FavoritesPanel(
                 isOpen={open}
                 target={htmlId}
                 toggle={toggle}
+                style={{
+                    minWidth: 300,
+                }}
             >
                 <PopoverBody>
                     <ul className={style.favoritesList} ref={popperRef}>
                         {onFavoriteCreate ? (
                             <li className={style.addFavorite}>
-                                <Input
+                                <FavoriteNameInput
                                     id="newFilterName"
+                                    onSave={onFavoriteCreate}
                                     label={translations['favorite.addNew'] || 'Add new'}
-                                    onChange={handleCreateInputChange}
-                                    value={filterName}
-                                />
-                                <FontAwesomeIcon
-                                    className={classNames(style.icon, style.saveIcon)}
-                                    icon={faCheckSquare}
-                                    size="lg"
-                                    onClick={handleCreateClick}
                                 />
                             </li>
                         ) : undefined}

@@ -147,10 +147,6 @@ class IndexPage extends React.Component {
                                 update of kost2list after task selections. See classic version.
                             </li>
                             <li>
-                                Edit / rename entry of favorite filter, e. g. calendar page (star
-                                icon)
-                            </li>
-                            <li>
                                 main.chunk.js with hash sum / version id, use service worker for
                                 caching app
                             </li>
@@ -212,6 +208,10 @@ class IndexPage extends React.Component {
                             <li>
                                 Redirect to setup-page if ProjectForge isn&apos;t initialized on
                                 first usage.
+                            </li>
+                            <li>
+                                Edit / rename entry of favorite filter, e. g. calendar page (star
+                                icon)
                             </li>
                         </ol>
                     </Col>
