@@ -23,11 +23,6 @@
 
 package org.projectforge.web.vacation;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -46,14 +41,13 @@ import org.projectforge.export.DOGetterListExcelExporter;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.fibu.ISelectCallerPage;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerLambdaColumn;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
+import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.flowlayout.TextPanel;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 @ListPage(editPage = VacationEditPage.class)
 public class VacationListPage extends AbstractListPage<VacationListForm, VacationService, VacationDO> implements
@@ -143,7 +137,7 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
     );
 
     columns
-        .add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "isSpecial", "isSpecial",
+        .add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "special", "special",
             cellItemListener)
         {
           @Override
@@ -151,7 +145,7 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
               final IModel<VacationDO> rowModel)
           {
             final VacationDO vacation = rowModel.getObject();
-            if (vacation.isSpecial() != null && vacation.isSpecial() == Boolean.TRUE) {
+            if (vacation.getSpecial() != null && vacation.getSpecial() == Boolean.TRUE) {
               item.add(new TextPanel(componentId, I18nHelper.getLocalizedMessage("yes")));
             } else {
               item.add(new TextPanel(componentId, I18nHelper.getLocalizedMessage("no")));

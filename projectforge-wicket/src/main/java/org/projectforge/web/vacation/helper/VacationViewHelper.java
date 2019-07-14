@@ -1,11 +1,5 @@
 package org.projectforge.web.vacation.helper;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -35,23 +29,18 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.web.vacation.VacationEditPage;
 import org.projectforge.web.vacation.VacationViewPageSortableDataProvider;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerLambdaColumn;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.ListSelectActionPanel;
-import org.projectforge.web.wicket.WicketUtils;
+import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.Heading1Panel;
-import org.projectforge.web.wicket.flowlayout.Heading3Panel;
-import org.projectforge.web.wicket.flowlayout.LinkPanel;
-import org.projectforge.web.wicket.flowlayout.TablePanel;
-import org.projectforge.web.wicket.flowlayout.TextPanel;
+import org.projectforge.web.wicket.flowlayout.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.List;
 
 @Component
 public class VacationViewHelper
@@ -211,14 +200,14 @@ public class VacationViewHelper
         cellItemListener)
     );
 
-    columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "isSpecial", "isSpecial", cellItemListener)
+    columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "special", "special", cellItemListener)
     {
       @Override
       public void populateItem(final Item<ICellPopulator<VacationDO>> item, final String componentId,
           final IModel<VacationDO> rowModel)
       {
         final VacationDO vacation = rowModel.getObject();
-        if (vacation.isSpecial() != null && vacation.isSpecial() == Boolean.TRUE) {
+        if (vacation.getSpecial() != null && vacation.getSpecial() == Boolean.TRUE) {
           item.add(new TextPanel(componentId, I18nHelper.getLocalizedMessage("yes")));
         } else {
           item.add(new TextPanel(componentId, I18nHelper.getLocalizedMessage("no")));

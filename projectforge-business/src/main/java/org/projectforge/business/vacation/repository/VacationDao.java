@@ -23,15 +23,6 @@
 
 package org.projectforge.business.vacation.repository;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.EmployeeDO;
@@ -54,6 +45,10 @@ import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
+
 /**
  * DAO für Urlaubsanträge.
  *
@@ -62,7 +57,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class VacationDao extends BaseDao<VacationDO>
 {
-  private final static String META_SQL = " AND v.isSpecial = false AND v.deleted = :deleted AND v.tenant = :tenant";
+  private final static String META_SQL = " AND v.special = false AND v.deleted = :deleted AND v.tenant = :tenant";
 
   private final static String META_SQL_WITH_SPECIAL = " AND v.deleted = :deleted AND v.tenant = :tenant";
 
@@ -189,10 +184,10 @@ public class VacationDao extends BaseDao<VacationDO>
     final Calendar startYear = new GregorianCalendar(year, Calendar.JANUARY, 1);
     final Calendar endYear = new GregorianCalendar(year, Calendar.DECEMBER, 31);
     final List<VacationDO> resultList = emgrFactory.runRoTrans(emgr -> {
-      final String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.startDate >= :startDate AND v.startDate <= :endDate AND v.status = :status AND v.isSpecial = :isSpecial";
+      final String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.startDate >= :startDate AND v.startDate <= :endDate AND v.status = :status AND v.special = :special";
       return emgr
           .selectDetached(VacationDO.class, baseSQL + META_SQL_WITH_SPECIAL, "employee", employee, "startDate", startYear.getTime(), "endDate",
-              endYear.getTime(), "status", status, "isSpecial", true, "deleted", false, "tenant", getTenant());
+              endYear.getTime(), "status", status, "special", true, "deleted", false, "tenant", getTenant());
     });
     return resultList != null ? resultList : Collections.emptyList();
   }

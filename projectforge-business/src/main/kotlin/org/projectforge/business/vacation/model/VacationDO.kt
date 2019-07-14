@@ -23,24 +23,6 @@
 
 package org.projectforge.business.vacation.model
 
-import java.util.Date
-import java.util.HashSet
-
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.EnumType
-import javax.persistence.Enumerated
-import javax.persistence.FetchType
-import javax.persistence.Index
-import javax.persistence.JoinColumn
-import javax.persistence.JoinTable
-import javax.persistence.ManyToMany
-import javax.persistence.ManyToOne
-import javax.persistence.Table
-import javax.persistence.Temporal
-import javax.persistence.TemporalType
-import javax.persistence.Transient
-
 import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.business.fibu.EmployeeDO
@@ -49,6 +31,8 @@ import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import java.util.*
+import javax.persistence.*
 
 /**
  * Repräsentiert einen Urlaub. Ein Urlaub ist einem ProjectForge-Mitarbeiter zugeordnet und enthält buchhalterische
@@ -120,14 +104,14 @@ class VacationDO : DefaultBaseDO() {
             VacationStatus.IN_PROGRESS
         } else field
 
-    //TODO FB: Wird leider nur über dem Feld ausgewertewt und nicht an der Methode.
+    //TODO FB: Wird leider nur über dem Feld ausgewertet und nicht an der Methode.
     //Feld wird eigentlich nicht benötigt
     @PropertyInfo(i18nKey = "vacation.vacationmode")
     private val vacationmode: VacationMode? = null
 
     @PropertyInfo(i18nKey = "vacation.isSpecial")
     @get:Column(name = "is_special", nullable = false)
-    var isSpecial: Boolean? = null
+    var special: Boolean? = null
 
     @PropertyInfo(i18nKey = "vacation.isHalfDay")
     @get:Column(name = "is_half_day")
