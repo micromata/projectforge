@@ -7,6 +7,7 @@ function DynamicActionButton(props) {
     const {
         default: isDefault,
         title,
+        responseAction,
         ...stylingProps
     } = props;
 
@@ -39,10 +40,12 @@ function DynamicActionButton(props) {
 DynamicActionButton.propTypes = {
     title: PropTypes.string.isRequired,
     default: PropTypes.bool,
+    responseAction: PropTypes.shape({}),
 };
 
 DynamicActionButton.defaultProps = {
     default: false,
+    responseAction: {},
 };
 
 export default DynamicActionButton;
