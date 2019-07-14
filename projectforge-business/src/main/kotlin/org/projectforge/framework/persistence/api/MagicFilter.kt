@@ -31,6 +31,7 @@ class MagicFilter(
          * Optional entries for searching (keywords, field search, range search etc.)
          */
         var entries: MutableList<MagicFilterEntry> = mutableListOf(),
+        var sortEntries: MutableList<SortProperty>? = null,
         var sortAndLimitMaxRowsWhileSelect: Boolean = true,
         var maxRows: Int = 50,
         /**
