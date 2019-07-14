@@ -168,6 +168,8 @@ class MagicFilterEntry(
             valueInt = NumberHelper.parseInteger(value)
             fromValueInt = NumberHelper.parseInteger(fromValue)
             toValueInt = NumberHelper.parseInteger(toValue)
+        } else if (BaseDO::class.java.isAssignableFrom(fieldType)) {
+            valueInt = NumberHelper.parseInteger(value)
         } else {
             log.warn("Search entry of type '${fieldType.name}' not yet supported for field '$field'.")
         }

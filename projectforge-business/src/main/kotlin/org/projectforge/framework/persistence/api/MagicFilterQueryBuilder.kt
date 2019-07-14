@@ -26,6 +26,8 @@ package org.projectforge.framework.persistence.api
 import org.hibernate.Criteria
 import org.hibernate.criterion.Restrictions
 import org.projectforge.business.multitenancy.TenantService
+import org.projectforge.business.task.TaskDO
+import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -160,11 +162,30 @@ class MagicFilterQueryBuilder {
                         log.error("Querying field '${it.field}' of type '$fieldType' without value, fromValue and toValue. At least one required.")
                     }
                 }
+                TaskDO::class.java -> {
+                    val node = TaskTreeHelper.getTaskTree().getTaskNodeById(it.valueInt)
+                    if (node == null) {
+                        log.warn("Can't query for given task id #${it.valueInt}, no such task node found.")
+                    } else {
+                        val recursive = true
+                        if (recursive) {
+                            val taskIds = node.descendantIds
+                            taskIds.add(node.id)
+                            criteria.add(Restrictions.`in`("task.id", taskIds))
+                            if (log.isDebugEnabled) {
+                                log.debug("search in tasks: $taskIds")
+                            }
+                        } else {
+                            criteria.add(Restrictions.eq("task.id", it.valueInt))
+                        }
+                    }
+                }
                 else -> {
                     log.error("Querying fields of type '$fieldType' not yet implemented.")
                 }
             }
         }
+        criteria.setMaxResults(1000)
         setCacheRegion(baseDao, criteria)
         @Suppress("UNCHECKED_CAST")
         var list = criteria.list() as List<O>
@@ -185,7 +206,7 @@ class MagicFilterQueryBuilder {
                 }
             }
             list = result
-            log.error("Histor search not yet implemented.")
+            log.error("History search not yet implemented.")
 /*
             if (CollectionUtils.isNotEmpty(idSet) == true) {
                 for (entry in list) {

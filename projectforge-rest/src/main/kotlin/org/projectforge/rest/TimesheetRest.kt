@@ -87,7 +87,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
     override fun getInitialList(request: HttpServletRequest): AbstractBaseRest.InitialListData {
         val taskId = NumberHelper.parseInteger(request.getParameter("taskId")) ?: return super.getInitialList(request)
         val filter = MagicFilter()
-        filter.entries.add(MagicFilterEntry("task.id", value = "$taskId"))
+        filter.entries.add(MagicFilterEntry("task", value = "$taskId"))
         return super.getInitialList(filter)
     }
 
@@ -192,6 +192,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
     override fun createListLayout(): UILayout {
         lc.idPrefix = "timesheet."
         val layout = super.createListLayout()
+                .add(UILabel("'${translate("timesheet.totalDuration")}: tbd.")) // See TimesheetListForm
                 .add(UITable.UIResultSetTable()
                         .add(lc, "user")
                         .add(UITableColumn("timesheet.kost2.project.customer", "fibu.kunde", formatter = Formatter.CUSTOMER))
