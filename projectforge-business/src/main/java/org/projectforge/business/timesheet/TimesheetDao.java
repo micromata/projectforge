@@ -84,8 +84,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
       + "h!";
 
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "user.username", "user.firstname",
-      "user.lastname", "task.id", "task.title",
-      "task.taskpath", "kost2.nummer", "kost2.description", "kost2.projekt.name" };
+      "user.lastname", "task", "kost2.nummer", "kost2.description", "kost2.projekt.name" };
 
   public static final String HIDDEN_FIELD_MARKER = "[...]";
 

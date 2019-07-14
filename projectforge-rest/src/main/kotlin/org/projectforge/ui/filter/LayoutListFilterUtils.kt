@@ -24,8 +24,8 @@
 package org.projectforge.ui.filter
 
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.core.AbstractBaseRest
@@ -73,6 +73,9 @@ class LayoutListFilterUtils {
                     } else {
                         element = UIFilterElement(it)
                         element.label = element.id // Default label if no translation will be found below.
+                        if (BaseDO::class.java.isAssignableFrom(elInfo.propertyType)) {
+                            element.filterType = UIFilterElement.FilterType.OBJECT
+                        }
                     }
                     element as UILabelledElement
                     element.label = getLabel(elInfo)
