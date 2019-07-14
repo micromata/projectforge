@@ -231,9 +231,6 @@ class IndexPage extends React.Component {
                                 versa. see classic version.
                                 Via Action Buttons and UPDATE action
                             </li>
-                            <li>
-                                Calendar edit pages redirect url to /calendar
-                            </li>
                             <li>CSRF</li>
                         </ol>
                         <h1>Done</h1>
@@ -251,6 +248,9 @@ class IndexPage extends React.Component {
                             <li>
                                 DynamicReactSelect: support of autocompletion and favorites (see
                                 field communication language of edit page for addresses).
+                            </li>
+                            <li>
+                                Calendar edit pages redirect url to /calendar
                             </li>
                         </ol>
                     </Col>
