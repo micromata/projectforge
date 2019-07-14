@@ -122,7 +122,7 @@ function SearchFilter() {
                 filterHelper.clearEntries();
                 break;
             case 'create-option':
-                filterHelper.addEntry({ search: value[value.length - 1].value });
+                filterHelper.addEntry({ field: value[value.length - 1].value });
                 break;
             case 'select-option':
                 filterHelper.addEntry({
@@ -168,8 +168,8 @@ function SearchFilter() {
                 setMultiValue={handleSearchFilterValueChange}
                 value={entries.map(entry => ({
                     ...entry,
-                    key: entry.search,
-                    label: entry.search,
+                    key: entry.field,
+                    label: entry.field,
                     ...Array.findByField(options, 'id', entry.field),
                 }))}
                 values={entries.reduce((accumulator, currentValue) => ({
