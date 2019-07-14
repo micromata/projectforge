@@ -50,7 +50,7 @@ function ListPage(
                 return {
                     ...currentEntry,
                     field: id,
-                    search: newValue,
+                    value: newValue,
                 };
             }),
         }),

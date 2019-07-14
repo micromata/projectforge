@@ -124,7 +124,7 @@ function SearchFilter() {
             case 'select-option':
                 filterHelper.addEntry({
                     field: meta.option.id,
-                    search: '',
+                    value: '',
                 });
                 break;
             case 'pop-value':
@@ -141,7 +141,7 @@ function SearchFilter() {
         const searchFilter = getNamedContainer('searchFilter', ui.namedContainers);
 
         if (!searchFilter) {
-            return <React.Fragment/>;
+            return <React.Fragment />;
         }
 
         const options = searchFilter.content.map(option => ({
@@ -165,12 +165,13 @@ function SearchFilter() {
                 setMultiValue={handleSearchFilterValueChange}
                 value={entries.map(entry => ({
                     ...entry,
+                    key: entry.search,
                     label: entry.search,
                     ...Array.findByField(options, 'id', entry.field),
                 }))}
                 values={entries.reduce((accumulator, currentValue) => ({
                     ...accumulator,
-                    [currentValue.field]: currentValue.search,
+                    [currentValue.field]: currentValue.value,
                 }), {})}
             />
         );
@@ -250,7 +251,7 @@ function SearchFilter() {
                     </Row>
                     <FormGroup row>
                         <Col>
-                            <DynamicActionGroup actions={ui.actions}/>
+                            <DynamicActionGroup actions={ui.actions} />
                         </Col>
                     </FormGroup>
                 </form>
