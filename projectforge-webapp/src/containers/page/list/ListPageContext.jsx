@@ -57,6 +57,14 @@ export const defaultValues = {
         /* eslint-disable-next-line no-unused-vars */
         removeEntry: fieldOrSearch => notImplementedFunction(),
         /**
+         * Sets a specific extended filter.
+         * @param {String} id The id of the extended filter.
+         * @param {Any} value The new value of the extended filter.
+         */
+        // Disable no-unused-vars so its clear what you need to override the function.
+        /* eslint-disable-next-line no-unused-vars */
+        setExtended: (id, value) => notImplementedFunction(),
+        /**
          * Sets a specific filter.
          * @param {String} id The id of the filter like maxRows.
          * @param {Any} value The new value of the filter.

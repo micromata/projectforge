@@ -15,14 +15,21 @@ function SearchFilterCheckbox({ id, label, ...props }) {
     }
 
     return React.useMemo(() => {
-        const handleCheckboxChange = ({ target }) => filterHelper
-            .setFilter(id, target.checked);
+        const handleCheckboxChange = ({ target }) => {
+            // If it is an extended option, set the value in the extended object.
+            if (id.startsWith('extended.')) {
+                filterHelper.setExtended(id.replace('.extended', ''), target.checked);
+                return;
+            }
+
+            filterHelper.setFilter(id, target.checked);
+        };
 
         return (
             <CheckBox
                 id={id}
                 label={label}
-                checked={filter[id] || false}
+                checked={Object.getByString(filter, id) || false}
                 onChange={handleCheckboxChange}
                 {...props}
             />

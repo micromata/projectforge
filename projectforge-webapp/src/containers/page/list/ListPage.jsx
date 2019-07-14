@@ -20,7 +20,7 @@ function ListPage(
     const [data, setData] = React.useState({});
     const [filter, setFilter] = React.useState({
         entries: [],
-        searchFilter: {},
+        extended: {},
     });
     const [filterFavorites, setFilterFavorites] = React.useState([]);
     const [loading, setLoading] = React.useState(false);
@@ -61,6 +61,13 @@ function ListPage(
         setFilter: (id, value) => setFilter({
             ...filter,
             [id]: value,
+        }),
+        setExtended: (id, value) => setFilter({
+            ...filter,
+            extended: {
+                ...filter.extended,
+                [id]: value,
+            },
         }),
         setFilterState: setFilter,
     }), [filter]);
