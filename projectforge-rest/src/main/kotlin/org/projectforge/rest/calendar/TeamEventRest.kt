@@ -117,13 +117,14 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao>(
     }
 
     fun cloneFromTimesheet(request: HttpServletRequest, timesheet: TimesheetDO): ResponseAction {
+        // TODO null null null
         val teamEvent = TeamEventDO()
         teamEvent.startDate = timesheet.startTime
         teamEvent.endDate = timesheet.stopTime
         teamEvent.location = timesheet.location
         teamEvent.note = timesheet.description
         val editLayoutData = getItemAndLayout(request, teamEvent)
-        return ResponseAction(url = "/calendar${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
+        return ResponseAction(url = "/calendar/${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
                 .addVariable("data", editLayoutData.data)
                 .addVariable("ui", editLayoutData.ui)
                 .addVariable("variables", editLayoutData.variables)
@@ -175,7 +176,7 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao>(
         layout.addAction(UIButton("switch",
                 title = translate("plugins.teamcal.switchToTimesheetButton"),
                 color = UIColor.SECONDARY,
-                responseAction = ResponseAction(getRestPath("switch2Timesheet"), targetType = TargetType.POST)))
+                responseAction = ResponseAction(getRestRootPath("switch2Timesheet"), targetType = TargetType.POST)))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }
