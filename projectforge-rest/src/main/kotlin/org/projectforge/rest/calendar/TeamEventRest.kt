@@ -63,7 +63,7 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao>(
     }
 
     override fun afterEdit(obj: TeamEventDO, dto: TeamEventDO): ResponseAction {
-        return ResponseAction("calendar")
+        return ResponseAction("/calendar")
                 .addVariable("date", obj.startDate)
                 .addVariable("id", obj.id ?: -1)
     }

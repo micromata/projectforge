@@ -23,8 +23,6 @@
 
 package org.projectforge.rest
 
-import org.projectforge.framework.persistence.api.MagicFilter
-import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.business.timesheet.TimesheetDO
@@ -36,6 +34,8 @@ import org.projectforge.common.DateFormatType
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.DateTimeFormatter
@@ -156,7 +156,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
     }
 
     override fun afterEdit(obj: TimesheetDO, dto: TimesheetDO): ResponseAction {
-        return ResponseAction("calendar")
+        return ResponseAction("/calendar")
                 .addVariable("date", obj.startTime)
                 .addVariable("id", obj.id ?: -1)
     }
