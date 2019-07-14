@@ -58,14 +58,11 @@ function ListPage(
             ...filter,
             entries: [],
         }),
-        setSearchFilter: (id, value) => setFilter({
+        setFilter: (id, value) => setFilter({
             ...filter,
-            searchFilter: {
-                ...filter.searchFilter,
-                [id]: value,
-            },
+            [id]: value,
         }),
-        setFilter,
+        setFilterState: setFilter,
     }), [filter]);
 
     // Register DynamicFilterCheckbox only for the ListPage

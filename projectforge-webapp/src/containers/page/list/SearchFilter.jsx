@@ -41,7 +41,7 @@ function SearchFilter() {
             setUI(responseUI);
         }
         if (responseFilter) {
-            filterHelper.setFilter(responseFilter);
+            filterHelper.setFilterState(responseFilter);
         }
         if (responseFilterFavorites) {
             setFilterFavorites(responseFilterFavorites);

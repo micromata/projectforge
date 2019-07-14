@@ -16,7 +16,7 @@ function SearchFilterCheckbox({ id, label }) {
 
     return React.useMemo(() => {
         const handleCheckboxChange = ({ target }) => filterHelper
-            .setSearchFilter(id, target.checked);
+            .setFilter(id, target.checked);
 
         return (
             <CheckBox

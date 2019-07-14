@@ -273,7 +273,7 @@ class IndexPage extends React.Component {
 IndexPage.propTypes = {
     loadUserStatus: PropTypes.func.isRequired,
     location: PropTypes.shape({
-        key: PropTypes.string.isRequired,
+        key: PropTypes.string,
     }).isRequired,
 };
 
