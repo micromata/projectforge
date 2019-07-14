@@ -31,7 +31,6 @@ class MagicFilter(
          * Optional entries for searching (keywords, field search, range search etc.)
          */
         var entries: MutableList<MagicFilterEntry> = mutableListOf(),
-        var sortEntries: MutableList<SortProperty>? = null,
         var sortAndLimitMaxRowsWhileSelect: Boolean = true,
         var maxRows: Int = 50,
         /**
@@ -50,7 +49,7 @@ class MagicFilter(
     @Transient
     internal val log = org.slf4j.LoggerFactory.getLogger(MagicFilter::class.java)
 
-    val sortProperties = mutableListOf<SortProperty>()
+    var sortProperties = mutableListOf<SortProperty>()
 
     open fun reset() {
         entries.clear()
