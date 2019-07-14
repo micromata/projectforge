@@ -119,10 +119,6 @@ function ListPage(
                 credentials: 'include',
             },
         )
-            .then((response) => {
-                setLoading(false);
-                return response;
-            })
             .then(handleHTTPErrors)
             .then(response => response.json())
             .then((
@@ -137,6 +133,7 @@ function ListPage(
                 setFilterFavorites(responseFilterFavorites);
                 setData(responseData);
                 setUI(responseUi);
+                setLoading(false);
             })
             .catch(setError);
     };
@@ -198,7 +195,13 @@ function ListPage(
     // Only reload the list when the category or search string changes.
     React.useEffect(loadInitialList, [match.params.category, location.search]);
 
-    React.useEffect(performListUpdate, [filter.sortProperties]);
+    React.useEffect(() => {
+        if (loading || !filter.sortProperties) {
+            return;
+        }
+
+        performListUpdate();
+    }, [filter.sortProperties]);
 
     if (error) {
         return <h4>{error.message}</h4>;
