@@ -18,7 +18,7 @@ function SearchFilterCheckbox({ id, label, ...props }) {
         const handleCheckboxChange = ({ target }) => {
             // If it is an extended option, set the value in the extended object.
             if (id.startsWith('extended.')) {
-                filterHelper.setExtended(id.replace('.extended', ''), target.checked);
+                filterHelper.setExtended(id.replace('extended.', ''), target.checked);
                 return;
             }
 
