@@ -34,10 +34,10 @@ function ListPage(
                 entry,
             ],
         }),
-        removeEntry: fieldOrSearch => setFilter({
+        removeEntry: fieldOrValue => setFilter({
             ...filter,
             entries: filter.entries.filter(
-                currentEntry => (currentEntry.field || currentEntry.search) !== fieldOrSearch,
+                currentEntry => (currentEntry.field || currentEntry.value) !== fieldOrValue,
             ),
         }),
         editEntry: (id, newValue) => setFilter({
@@ -173,8 +173,8 @@ function ListPage(
             .then(handleHTTPErrors)
             .then(response => response.json())
             .then((responseFilter) => {
-                setLoading(false);
                 setFilter(responseFilter);
+                setLoading(false);
             })
             .catch(setError);
     };
