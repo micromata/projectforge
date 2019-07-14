@@ -54,13 +54,16 @@ class MagicFilter(
     fun prepareQueryFilter() {
         val searchStrings = mutableListOf<String>()
         entries.forEach { entry ->
-            when (entry.type()) {
+            val type = entry.type()
+            when (type) {
                 MagicFilterEntry.Type.STRING_SEARCH -> {
                     entry.search = entry.value as String // value not yet supported, but received from front-end.
                     entry.value = null
                     searchStrings.add(entry.getSearchStringStrategy())
                 }
                 MagicFilterEntry.Type.FIELD_STRING_SEARCH -> {
+                    entry.search = entry.value as String // value not yet supported, but received from front-end.
+                    entry.value = null
                     searchStrings.add("${entry.field}:${entry.getSearchStringStrategy()}")
                 }
                 MagicFilterEntry.Type.FIELD_VALUES_SEARCH -> {
