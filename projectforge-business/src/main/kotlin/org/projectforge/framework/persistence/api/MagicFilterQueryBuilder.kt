@@ -26,10 +26,11 @@ package org.projectforge.framework.persistence.api
 import org.hibernate.Criteria
 import org.hibernate.criterion.Restrictions
 import org.projectforge.business.multitenancy.TenantService
-import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.utils.NumberHelper
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -102,29 +103,50 @@ class MagicFilterQueryBuilder {
             criteria.add(Restrictions.eq("deleted", filter.deleted))
         }
 
-        filter.entries.forEach {
-            if (!it.field.isNullOrBlank()) { // Use only field specific query (others are done by full text search
-                val fieldType = PropUtils.getField(clazz, it.field)?.type ?: String::class.java
-                when (fieldType) {
-                    String::class.java -> {
-                        if (it.value != null)
-                            criteria.add(Restrictions.eq(it.field, it.value))
-                        else if (!it.values.isNullOrEmpty())
+        var queryModifiedByUserId: Int? = null
+        var queryModifiedFromDate: PFDateTime? = null
+        var queryModifiedToDate: PFDateTime? = null
+        for (it in filter.entries) {
+            if (it.field.isNullOrBlank())
+                continue // Use only field specific query (others are done by full text search
+            if (it.field == "modifiedBy") {
+                queryModifiedByUserId = NumberHelper.parseInteger(it.value)
+                continue
+            }
+            if (it.field == "modifiedInterval") {
+                if (it.fromValue != null)
+                    queryModifiedFromDate = it.fromValueDate
+                if (it.toValue != null)
+                    queryModifiedToDate = it.toValueDate
+                continue
+            }
+            val fieldType = it.type
+            when (fieldType) {
+                String::class.java -> {
+                    when (it.searchType) {
+                        MagicFilterEntry.SearchType.FIELD_STRING_SEARCH -> {
+                            criteria.add(Restrictions.ilike(it.field, "${it.dbSearchString}"))
+                        }
+                        MagicFilterEntry.SearchType.FIELD_RANGE_SEARCH -> {
+                            log.error("Unsupported searchType '${it.searchType}' for strings.")
+                        }
+                        MagicFilterEntry.SearchType.FIELD_VALUES_SEARCH -> {
                             criteria.add(Restrictions.`in`(it.field, it.values))
-                        else {
-                            criteria.add(Restrictions.ilike(it.field, "${it.search}%"))
+                        }
+                        else -> {
+                            log.error("Unsupported searchType '${it.searchType}' for strings.")
                         }
                     }
-                    Date::class.java -> {
-                        if (it.fromValue != null) {
-                            if (it.toValue != null) criteria.add(Restrictions.between(it.field, it.fromValue, it.toValue))
-                            else criteria.add(Restrictions.ge(it.field, it.fromValue))
-                        } else if (it.toValue != null) criteria.add(Restrictions.le(it.field, it.toValue))
-                        else log.error("Error while building query: fromValue and/or toValue must be given for filtering field '${it.field}'.")
-                    }
-                    else -> {
-                        log.error("Querying fields of type '$fieldType' not yet implemented.")
-                    }
+                }
+                Date::class.java -> {
+                    if (it.fromValueDate != null) {
+                        if (it.toValueDate != null) criteria.add(Restrictions.between(it.field, it.fromValueDate, it.toValueDate))
+                        else criteria.add(Restrictions.ge(it.field, it.fromValueDate))
+                    } else if (it.toValueDate != null) criteria.add(Restrictions.le(it.field, it.toValueDate))
+                    else log.error("Error while building query: fromValue and/or toValue must be given for filtering field '${it.field}'.")
+                }
+                else -> {
+                    log.error("Querying fields of type '$fieldType' not yet implemented.")
                 }
             }
         }
@@ -132,26 +154,24 @@ class MagicFilterQueryBuilder {
         @Suppress("UNCHECKED_CAST")
         var list = criteria.list() as List<O>
 
-        /*
-        History entries
-        if (list != null) {
-            list = baseDao.selectUnique(list)
-            if (list.size > 0 && searchFilter.applyModificationFilter()) {
-                // Search now all history entries which were modified by the given user and/or in the given time period.
-                val idSet = baseDao.getHistoryEntries(baseDao.session, searchFilter)
-                val result = ArrayList<O>()
-                for (entry in list) {
-                    if (baseDao.contains(idSet, entry) == true) {
-                        result.add(entry)
-                    }
+        list = baseDao.selectUnique(list)
+        if (list.size > 0 && (queryModifiedByUserId != null || queryModifiedFromDate != null || queryModifiedToDate != null
+                        || !filter.searchHistory.isNullOrBlank())) {
+            val baseSearchFilter = BaseSearchFilter()
+            baseSearchFilter.modifiedByUserId = queryModifiedByUserId
+            baseSearchFilter.startTimeOfModification = queryModifiedFromDate?.utilDate
+            baseSearchFilter.stopTimeOfModification = queryModifiedToDate?.utilDate
+            // Search now all history entries which were modified by the given user and/or in the given time period.
+            val idSet = baseDao.getHistoryEntries(baseDao.session, baseSearchFilter)
+            val result = ArrayList<O>()
+            for (entry in list) {
+                if (baseDao.contains(idSet, entry)) {
+                    result.add(entry)
                 }
-                list = result
             }
-        }*/
-        /*
-        if (searchFilter.isSearchHistory() == true && searchFilter.isSearchNotEmpty() == true) {
-            // Search now all history for the given search string.
-            val idSet = baseDao.searchHistoryEntries(baseDao.getSession(), searchFilter)
+            list = result
+            log.error("Histor search not yet implemented.")
+/*
             if (CollectionUtils.isNotEmpty(idSet) == true) {
                 for (entry in list) {
                     if (idSet!!.contains(entry.getId()) == true) {
@@ -165,14 +185,45 @@ class MagicFilterQueryBuilder {
                     val historyMatchingEntities = criteria.list()
                     list.addAll(historyMatchingEntities)
                 }
+            }*/
+        }
+/*
+        try {
+            val fullTextSession = Search.getFullTextSession(session)
+
+            val query = createFullTextQuery(fullTextSession, HISTORY_SEARCH_FIELDS, null,
+                    searchString, PfHistoryMasterDO::class.java)
+                    ?: // An error occured:
+                    return
+            val fullTextQuery = fullTextSession.createFullTextQuery(query, PfHistoryMasterDO::class.java)
+            fullTextQuery.isCacheable = true
+            fullTextQuery.cacheRegion = "historyItemCache"
+            fullTextQuery.setProjection("entityId")
+            val result = fullTextQuery.list()
+            if (result != null && result.size > 0) {
+                for (oa in result) {
+                    idSet.add(oa[0] as Int)
+                }
             }
-        }*/
+        } catch (ex: Exception) {
+            val errorMsg = ("Lucene error message: "
+                    + ex.message
+                    + " (for "
+                    + clazz.simpleName
+                    + ": "
+                    + searchString
+                    + ").")
+            filter.setErrorMessage(errorMsg)
+            LOG.error(errorMsg)
+        }
+*/
+
         return list
     }
 
     private fun setCacheRegion(baseDao: BaseDao<*>, criteria: Criteria) {
         criteria.setCacheable(true)
-        if (baseDao.useOwnCriteriaCacheRegion() == false) {
+        if (!baseDao.useOwnCriteriaCacheRegion()) {
             return
         }
         criteria.setCacheRegion(baseDao.javaClass.name)

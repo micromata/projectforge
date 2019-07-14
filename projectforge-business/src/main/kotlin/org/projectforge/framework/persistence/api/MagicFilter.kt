@@ -37,7 +37,7 @@ class MagicFilter(
          * If true, only deleted entries will be shown. If false, no deleted entries will be shown. If null, all entries will be shown.
          */
         var deleted: Boolean? = false,
-        var searchHistory: Boolean? = null,
+        var searchHistory: String? = null,
         /**
          * Extend the filter by additional variables and settings.
          */
@@ -55,31 +55,10 @@ class MagicFilter(
         entries.clear()
     }
 
-    fun prepareQueryFilter() {
+    fun prepareQueryFilter(clazz: Class<*>) {
         val searchStrings = mutableListOf<String>()
         entries.forEach { entry ->
-            val type = entry.type()
-            when (type) {
-                MagicFilterEntry.Type.STRING_SEARCH -> {
-                    entry.search = entry.value as String // value not yet supported, but received from front-end.
-                    entry.value = null
-                    searchStrings.add(entry.getSearchStringStrategy())
-                }
-                MagicFilterEntry.Type.FIELD_STRING_SEARCH -> {
-                    entry.search = entry.value as String // value not yet supported, but received from front-end.
-                    entry.value = null
-                    searchStrings.add("${entry.field}:${entry.getSearchStringStrategy()}")
-                }
-                MagicFilterEntry.Type.FIELD_VALUES_SEARCH -> {
-                    log.warn("Unsupported field search: ${entry.type()}.")
-                }
-                MagicFilterEntry.Type.FIELD_RANGE_SEARCH -> {
-                    log.warn("Unsupported field search: ${entry.type()}.")
-                }
-                MagicFilterEntry.Type.NONE -> {
-                    searchStrings.add(entry.getSearchStringStrategy())
-                }
-            }
+            entry.analyze(clazz)
         }
     }
 
