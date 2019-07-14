@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.poll.rest
 
-import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.plugins.poll.PollDO
 import org.projectforge.plugins.poll.PollDao
