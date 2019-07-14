@@ -239,7 +239,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
         layout.addAction(UIButton("switch",
                 title = translate("plugins.teamcal.switchToTeamEventButton"),
                 color = UIColor.SECONDARY,
-                responseAction = ResponseAction(getRestPath("switch2CalendarEvent"), targetType = TargetType.POST)))
+                responseAction = ResponseAction(getRestRootPath("switch2CalendarEvent"), targetType = TargetType.POST)))
 
         return LayoutUtils.processEditPage(layout, dto, this)
     }
@@ -261,7 +261,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
         timesheet.location = teamEvent.location
         timesheet.description = "${teamEvent.subject} ${teamEvent.note}"
         val editLayoutData = getItemAndLayout(request, timesheet)
-        return ResponseAction(url = "/calendar${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
+        return ResponseAction(url = "/calendar/${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
                 .addVariable("data", editLayoutData.data)
                 .addVariable("ui", editLayoutData.ui)
                 .addVariable("variables", editLayoutData.variables)

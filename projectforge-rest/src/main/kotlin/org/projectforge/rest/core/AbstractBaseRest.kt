@@ -176,7 +176,14 @@ abstract class AbstractBaseRest<
             val url = requestMapping?.value?.joinToString("/") { it } ?: "/"
             restPath = url.substringAfter("${Rest.URL}/")
         }
-        return if (subPath != null) "/${restPath!!}/$subPath" else "/$restPath!!"
+        return if (subPath != null) "${restPath!!}/$subPath" else restPath!!
+    }
+
+    /**
+     * Relative rest path (without leading /rs
+     */
+    fun getRestRootPath(subPath: String? = null): String {
+        return "/${getRestPath(subPath)}"
     }
 
     private fun getCategory(): String {
@@ -516,7 +523,7 @@ abstract class AbstractBaseRest<
             : ResponseAction {
         val item = prepareClone(dto)
         val editLayoutData = getItemAndLayout(request, item)
-        return ResponseAction(url = getRestPath(RestPaths.EDIT), targetType = TargetType.UPDATE)
+        return ResponseAction(url = getRestRootPath(RestPaths.EDIT), targetType = TargetType.UPDATE)
                 .addVariable("data", editLayoutData.data)
                 .addVariable("ui", editLayoutData.ui)
                 .addVariable("variables", editLayoutData.variables)
