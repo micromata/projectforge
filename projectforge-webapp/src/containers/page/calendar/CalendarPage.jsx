@@ -8,7 +8,7 @@ import { getTranslation } from '../../../utilities/layout';
 import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import CalendarFilterSettings from '../../panel/calendar/CalendarFilterSettings';
 import CalendarPanel from '../../panel/calendar/CalendarPanel';
-import FavoritesPanel from '../../panel/FavoritesPanel';
+import FavoritesPanel from '../../panel/favorite/FavoritesPanel';
 import { customStyles } from './Calendar.module';
 import { CalendarContext, defaultValues as calendarContextDefaultValues } from './CalendarContext';
 

@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import FavoritesPanel from '../../../../../containers/panel/FavoritesPanel';
+import FavoritesPanel from '../../../../../containers/panel/favorite/FavoritesPanel';
 import { getServiceURL, handleHTTPErrors } from '../../../../../utilities/rest';
 import ReactSelect from '../../../../design/ReactSelect';
 import { DynamicLayoutContext } from '../../context';
