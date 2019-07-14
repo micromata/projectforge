@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.api
 
-import org.apache.xalan.xsltc.runtime.CallFunction.clazz
 import org.hibernate.Criteria
 import org.hibernate.criterion.Restrictions
 import org.projectforge.business.multitenancy.TenantService
@@ -35,6 +34,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
+
 
 @Service
 class MagicFilterQueryBuilder {
@@ -83,57 +83,91 @@ class MagicFilterQueryBuilder {
      */
     @Throws(AccessException::class)
     fun <O : ExtendedBaseDO<Int>> internalGetList(baseDao: BaseDao<O>, filter: MagicFilter, ignoreTenant: Boolean = false): List<O> {
-        val query = MagicFilterQuery(filter, baseDao.doClass)
-        query.errorMessage = null
-
-        if (filter.deleted != null) {
-            query.add(Restrictions.eq("deleted", filter.deleted))
-        }
+        val session = baseDao.session
+        val clazz = baseDao.doClass
+        val criteria = session.createCriteria(clazz)
         if (!ignoreTenant && tenantService.isMultiTenancyAvailable) {
             val userContext = ThreadLocalUserContext.getUserContext()
             val currentTenant = userContext.currentTenant
             if (currentTenant != null) {
                 if (currentTenant.isDefault == true) {
-                    query.add(Restrictions.or(Restrictions.eq("tenant", userContext.currentTenant),
+                    criteria.add(Restrictions.or(Restrictions.eq("tenant", userContext.currentTenant),
                             Restrictions.isNull("tenant")))
                 } else {
-                    query.add(Restrictions.eq("tenant", userContext.currentTenant))
+                    criteria.add(Restrictions.eq("tenant", userContext.currentTenant))
                 }
             }
         }
+        if (filter.deleted != null) {
+            criteria.add(Restrictions.eq("deleted", filter.deleted))
+        }
 
         filter.entries.forEach {
-            if (!it.field.isNullOrBlank()) {
+            if (!it.field.isNullOrBlank()) { // Use only field specific query (others are done by full text search
                 val fieldType = PropUtils.getField(clazz, it.field)?.type ?: String::class.java
                 when (fieldType) {
                     String::class.java -> {
-                        // Will be handled throug fulltextSearch
                         if (it.value != null)
-                            query.add(Restrictions.eq(it.field, it.value))
+                            criteria.add(Restrictions.eq(it.field, it.value))
                         else if (!it.values.isNullOrEmpty())
-                            query.add(Restrictions.`in`(it.field, it.values))
+                            criteria.add(Restrictions.`in`(it.field, it.values))
                         else {
-                            query.add(Restrictions.ilike(it.field, "${it.search}%"))
+                            criteria.add(Restrictions.ilike(it.field, "${it.search}%"))
                         }
                     }
                     Date::class.java -> {
                         if (it.fromValue != null) {
-                            if (it.toValue != null) query.add(Restrictions.between(it.field, it.fromValue, it.toValue))
-                            else query.add(Restrictions.ge(it.field, it.fromValue))
-                        } else if (it.toValue != null) query.add(Restrictions.le(it.field, it.toValue))
+                            if (it.toValue != null) criteria.add(Restrictions.between(it.field, it.fromValue, it.toValue))
+                            else criteria.add(Restrictions.ge(it.field, it.fromValue))
+                        } else if (it.toValue != null) criteria.add(Restrictions.le(it.field, it.toValue))
                         else log.error("Error while building query: fromValue and/or toValue must be given for filtering field '${it.field}'.")
                     }
                     else -> {
                         log.error("Querying fields of type '$fieldType' not yet implemented.")
                     }
                 }
-            } else {
-                if (!it.search.isNullOrBlank()) {
-
-                }
             }
         }
-        return mutableListOf()
+        setCacheRegion(baseDao, criteria)
+        @Suppress("UNCHECKED_CAST")
+        var list = criteria.list() as List<O>
+
+        /*
+        History entries
+        if (list != null) {
+            list = baseDao.selectUnique(list)
+            if (list.size > 0 && searchFilter.applyModificationFilter()) {
+                // Search now all history entries which were modified by the given user and/or in the given time period.
+                val idSet = baseDao.getHistoryEntries(baseDao.session, searchFilter)
+                val result = ArrayList<O>()
+                for (entry in list) {
+                    if (baseDao.contains(idSet, entry) == true) {
+                        result.add(entry)
+                    }
+                }
+                list = result
+            }
+        }*/
+        /*
+        if (searchFilter.isSearchHistory() == true && searchFilter.isSearchNotEmpty() == true) {
+            // Search now all history for the given search string.
+            val idSet = baseDao.searchHistoryEntries(baseDao.getSession(), searchFilter)
+            if (CollectionUtils.isNotEmpty(idSet) == true) {
+                for (entry in list) {
+                    if (idSet!!.contains(entry.getId()) == true) {
+                        idSet!!.remove(entry.getId()) // Object does already exist in list.
+                    }
+                }
+                if (idSet!!.isEmpty() == false) {
+                    val criteria = filter.buildCriteria(baseDao.getSession(), baseDao.clazz)
+                    setCacheRegion(baseDao, criteria)
+                    criteria.add(Restrictions.`in`("id", idSet!!))
+                    val historyMatchingEntities = criteria.list()
+                    list.addAll(historyMatchingEntities)
+                }
+            }
+        }*/
+        return list
     }
 
     private fun setCacheRegion(baseDao: BaseDao<*>, criteria: Criteria) {
