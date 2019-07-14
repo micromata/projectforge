@@ -294,6 +294,23 @@ class CalendarFilterServicesRest {
         return getInitialCalendar()
     }
 
+    /**
+     * @return new filterFavorites
+     */
+    @RequestMapping("renameFilter")
+    fun renameFavoriteFilter(@RequestParam("id", required = true) id: Int, @RequestParam("newName", required = true) newName: String): Map<String, Any> {
+        val favorites = getFilterFavorites()
+        val filter = favorites.get(id)
+        if (filter != null) {
+            filter.name = newName
+        } else {
+            org.projectforge.rest.core.log.warn("Could not rename the user's filter. Filter with id '$id' not found for calendar.")
+        }
+        return mapOf("filterFavorites" to favorites.idTitleList)
+    }
+
+
+
     // Ensures filter list (stored one, restored from legacy filter or a empty new one).
     private fun getFilterFavorites(): Favorites<CalendarFilter> {
         var favorites: Favorites<CalendarFilter>? = null
