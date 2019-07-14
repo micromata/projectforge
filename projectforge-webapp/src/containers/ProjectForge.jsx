@@ -33,17 +33,35 @@ function ProjectForge(
     React.useEffect(() => {
         checkAuthentication();
 
-        fetch(
-            getServiceURL('../rsPublic/systemStatus'),
-            {
-                method: 'GET',
-            },
-        )
+        fetch(getServiceURL('../rsPublic/systemStatus'))
             .then(handleHTTPErrors)
             .then(response => response.json())
-            .then(setSystemStatus);
+            .then((json) => {
+                const { setupRedirectUrl } = json;
+                setSystemStatus(json);
+                if (setupRedirectUrl) {
+                    history.push(setupRedirectUrl);
+                }
+            });
     }, []);
 
+    const wicketRoute = (
+        <Route
+            path="/wa"
+            component={({ location }) => {
+                if (process.env.NODE_ENV === 'development') {
+                    return (
+                        <a href={getServiceURL(`..${location.pathname}`)}>
+                            Redirect to Wicket
+                        </a>
+                    );
+                }
+
+                window.location.reload();
+                return <React.Fragment />;
+            }}
+        />
+    );
     let content;
 
     if (user) {
@@ -52,14 +70,11 @@ function ProjectForge(
                 <GlobalNavigation />
                 <Container fluid>
                     <Switch>
+                        {wicketRoute}
                         <Route
                             exact
                             path="/"
                             component={IndexPage}
-                        />
-                        <Route
-                            path="/wa"
-                            component={() => window.location.reload()}
                         />
                         <Route
                             path="/calendar"
@@ -92,6 +107,7 @@ function ProjectForge(
     } else {
         content = (
             <Switch>
+                {wicketRoute}
                 <Route
                     path="/:restPrefix/:page"
                     component={DynamicPage}
