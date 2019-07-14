@@ -149,20 +149,7 @@ class CalendarPanel extends React.Component {
     onSelectEvent(event) {
         const { match } = this.props;
 
-        history.push(`${match.url}/edit/${event.category}/${event.uid || event.dbId}`);
-
-        /*
-        this.setState({
-            editPanel: {
-                visible: true,
-                category: event.category,
-                dbId: event.dbId,
-                uid: event.uid,
-                startDate: undefined,
-                endDate: undefined,
-            },
-        });
-         */
+        history.push(`${match.url}/${event.category}/edit/${event.uid || event.dbId}`);
     }
 
     // A callback fired when a date selection is made. Only fires when selectable is true.
@@ -186,7 +173,7 @@ class CalendarPanel extends React.Component {
             .then((json) => {
                 const { variables } = json;
 
-                history.push(`${match.url}/edit/${variables.category}/?startDate=${variables.startDate}&endDate=${variables.endDate}`);
+                history.push(`${match.url}/${variables.category}/edit/?startDate=${variables.startDate}&endDate=${variables.endDate}`);
             })
             .catch(error => alert(`Internal error: ${error}`));
     }
@@ -323,7 +310,7 @@ class CalendarPanel extends React.Component {
                     messages={translations}
                 />
                 <Route
-                    path={`${match.url}/edit/:category/:id?`}
+                    path={`${match.url}/:category/edit/:id?`}
                     render={props => <EditModal baseUrl={match.url} {...props} />}
                 />
             </LoadingContainer>
