@@ -79,7 +79,7 @@ class EingangsrechnungDO : AbstractRechnungDO<EingangsrechnungsPositionDO>(), Co
 
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
     @JsonBackReference
-    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, mappedBy = "eingangsrechnung", targetEntity = EingangsrechnungsPositionDO::class)
+    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, mappedBy = "eingangsrechnung", targetEntity = EingangsrechnungsPositionDO::class)
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
     @get:ListIndexBase(1)
     override var positionen: MutableList<EingangsrechnungsPositionDO>? = null

@@ -51,7 +51,7 @@ class AuftragsPositionDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     // @JsonIgnore needed due to circular references.
     @JsonIgnore
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "auftrag_fk", nullable = false)
     var auftrag: AuftragDO? = null
 
