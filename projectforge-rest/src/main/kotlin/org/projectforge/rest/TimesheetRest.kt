@@ -259,7 +259,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
         timesheet.startTime = teamEvent.startDate
         timesheet.stopTime = teamEvent.endDate
         timesheet.location = teamEvent.location
-        timesheet.description = "${teamEvent.subject} ${teamEvent.note}"
+        timesheet.description = "${teamEvent.subject ?: ""} ${teamEvent.note ?: ""}"
         val editLayoutData = getItemAndLayout(request, timesheet)
         return ResponseAction(url = "/calendar/${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
                 .addVariable("data", editLayoutData.data)
