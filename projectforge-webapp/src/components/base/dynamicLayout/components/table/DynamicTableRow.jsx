@@ -5,7 +5,7 @@ import { ListPageContext } from '../../../../../containers/page/list/ListPageCon
 import history from '../../../../../utilities/history';
 import { tableColumnsPropType } from '../../../../../utilities/propTypes';
 import Formatter from '../../../Formatter';
-import style from '../../../page/Page.module.scss';
+import style from './DynamicTable.module.scss';
 import DynamicCustomized from '../customized';
 
 function DynamicTableRow({ columns, row }) {
