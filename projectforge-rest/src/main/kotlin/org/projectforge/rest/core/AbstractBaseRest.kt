@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.core
 
+import org.apache.commons.beanutils.NestedNullException
 import org.apache.commons.beanutils.PropertyUtils
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.favorites.Favorites
@@ -207,7 +208,12 @@ abstract class AbstractBaseRest<
         propertiesMap.forEach {
             val property = it.key
             val elementInfo = it.value
-            val value = PropertyUtils.getProperty(dbObj, property)
+            val value =
+                    try {
+                        PropertyUtils.getProperty(dbObj, property)
+                    } catch (ex: NestedNullException) {
+                        null
+                    }
             if (elementInfo.required == true) {
                 var error = false
                 if (value == null) {
