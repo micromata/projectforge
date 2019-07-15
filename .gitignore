@@ -34,3 +34,6 @@ local.properties
 
 /log4j-dev.properties
 projectforge.properties
+
+#Node
+projectforge-webapp/node_modules
