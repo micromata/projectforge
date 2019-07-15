@@ -145,6 +145,7 @@ class IndexPage extends React.Component {
                             <li>
                                 TimesheetEditTaskAndKost2.jsx: set kost2list on initial call and
                                 update of kost2list after task selections. See classic version.
+                                <i>Part of TaskTree refactor</i>
                             </li>
                             <li>
                                 Design improvements for selection of task tree (e. g. time
