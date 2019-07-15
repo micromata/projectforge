@@ -519,7 +519,7 @@ class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
         return AddressAttrWithDataDO(this, key, type, value)
     }
 
-    @OneToMany(cascade = [CascadeType.ALL], mappedBy = "parent", targetEntity = AddressAttrDO::class, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(cascade = [CascadeType.ALL], mappedBy = "parent", targetEntity = AddressAttrDO::class, orphanRemoval = true, fetch = FetchType.LAZY)
     @MapKey(name = "propertyName")
     @HistoryProperty(converter = TabAttrHistoryPropertyConverter::class)
     override fun getAttrs(): Map<String, JpaTabAttrBaseDO<AddressDO, Int>> {

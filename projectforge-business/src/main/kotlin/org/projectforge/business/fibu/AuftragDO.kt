@@ -82,7 +82,7 @@ class AuftragDO : DefaultBaseDO() {
 
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
     @IndexedEmbedded(depth = 1)
-    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "auftrag")
+    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true, mappedBy = "auftrag")
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
     @get:ListIndexBase(1)
     var positionen: MutableList<AuftragsPositionDO>? = null
@@ -94,13 +94,13 @@ class AuftragDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "contactPerson")
     @IndexedEmbedded(depth = 1)
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "contact_person_fk", nullable = true)
     var contactPerson: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "fibu.kunde")
     @IndexedEmbedded(depth = 1)
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "kunde_fk", nullable = true)
     var kunde: KundeDO? = null
 
@@ -113,7 +113,7 @@ class AuftragDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "fibu.projekt")
     @IndexedEmbedded(depth = 2)
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "projekt_fk", nullable = true)
     var projekt: ProjektDO? = null
 
@@ -188,7 +188,7 @@ class AuftragDO : DefaultBaseDO() {
      * Get the payment schedule entries for this object.
      */
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
-    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "auftrag")
+    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true, mappedBy = "auftrag")
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
     @get:ListIndexBase(1)
     var paymentSchedules: MutableList<PaymentScheduleDO>? = null

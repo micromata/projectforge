@@ -40,12 +40,12 @@ import javax.persistence.*
 class RechnungsPositionDO : AbstractRechnungsPositionDO() {
 
     @get:JsonManagedReference
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "rechnung_fk", nullable = false)
     var rechnung : RechnungDO? = null
 
     @IndexedEmbedded(depth = 1)
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "auftrags_position_fk")
     var auftragsPosition: AuftragsPositionDO? = null
 
