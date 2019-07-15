@@ -87,50 +87,62 @@ class ScriptDO : DefaultBaseDO() {
     @get:Column(name = "file_name", length = 255)
     var filename: String? = null
 
+    @PropertyInfo(i18nKey = "scripting.script.parameterName")
     @get:Field
     @get:Column(length = PARAMETER_NAME_MAX_LENGTH)
     var parameter1Name: String? = null
 
+    @PropertyInfo(i18nKey = "scripting.script.parameterType")
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
     var parameter1Type: ScriptParameterType? = null
 
+    @PropertyInfo(i18nKey = "scripting.script.parameterName")
     @get:Field
     @get:Column(length = PARAMETER_NAME_MAX_LENGTH)
     var parameter2Name: String? = null
 
+    @PropertyInfo(i18nKey = "scripting.script.parameterType")
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
     var parameter2Type: ScriptParameterType? = null
 
+    @PropertyInfo(i18nKey = "scripting.script.parameterName")
     @get:Field
     @get:Column(length = PARAMETER_NAME_MAX_LENGTH)
     var parameter3Name: String? = null
 
+    @PropertyInfo(i18nKey = "scripting.script.parameterType")
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
     var parameter3Type: ScriptParameterType? = null
 
+    @PropertyInfo(i18nKey = "scripting.script.parameterName")
     @get:Field
     @get:Column(length = PARAMETER_NAME_MAX_LENGTH)
     var parameter4Name: String? = null
 
+    @PropertyInfo(i18nKey = "scripting.script.parameterType")
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
     var parameter4Type: ScriptParameterType? = null
 
+    @PropertyInfo(i18nKey = "scripting.script.parameterName")
     @get:Field
     @get:Column(length = PARAMETER_NAME_MAX_LENGTH)
     var parameter5Name: String? = null
 
+    @PropertyInfo(i18nKey = "scripting.script.parameterType")
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
     var parameter5Type: ScriptParameterType? = null
 
+    @PropertyInfo(i18nKey = "scripting.script.parameterName")
     @get:Field
     @get:Column(length = PARAMETER_NAME_MAX_LENGTH)
     var parameter6Name: String? = null
 
+    @PropertyInfo(i18nKey = "scripting.script.parameterType")
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
     var parameter6Type: ScriptParameterType? = null
