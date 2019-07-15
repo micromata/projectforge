@@ -64,9 +64,9 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao>(
         val recurrentDateString = request.getParameter("recurrentDate")
         println("TeamEventRest: recurrentDate=$recurrentDateString")
         val startDateAsSeconds = NumberHelper.parseLong(request.getParameter("startDate"))
-        if (startDateAsSeconds != null) dto.setStartDate(PFDateTime.from(startDateAsSeconds).sqlTimestamp)
+        if (startDateAsSeconds != null) dto.startDate = PFDateTime.from(startDateAsSeconds)!!.sqlTimestamp
         val endDateSeconds = NumberHelper.parseLong(request.getParameter("endDate"))
-        if (endDateSeconds != null) dto.setEndDate(PFDateTime.from(endDateSeconds).sqlTimestamp)
+        if (endDateSeconds != null) dto.endDate = PFDateTime.from(endDateSeconds)!!.sqlTimestamp
         super.onGetItemAndLayout(request, dto, editLayoutData)
     }
 

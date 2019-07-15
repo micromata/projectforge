@@ -163,9 +163,9 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
          * Sets the user's time zone.
          */
         @JvmStatic
-        fun from(epochSeconds: Long?): PFDateTime {
+        fun from(epochSeconds: Long?, nowIfNull: Boolean = false): PFDateTime? {
             if (epochSeconds == null)
-                return now()
+                return if (nowIfNull) now() else null
             val instant = Instant.ofEpochSecond(epochSeconds)
             return PFDateTime(ZonedDateTime.ofInstant(instant, getUsersZoneId()))
         }
@@ -174,9 +174,9 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
          * Sets the user's time zone.
          */
         @JvmStatic
-        fun from(localDateTime: LocalDateTime?): PFDateTime {
+        fun from(localDateTime: LocalDateTime?, nowIfNull: Boolean = false): PFDateTime? {
             if (localDateTime == null)
-                return now()
+                return if (nowIfNull) now() else null
             return PFDateTime(ZonedDateTime.of(localDateTime, getUsersZoneId()))
         }
 
@@ -184,9 +184,9 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
          * Creates mindnight [ZonedDateTime] from given [LocalDate].
          */
         @JvmStatic
-        fun from(localDate: LocalDate?): PFDateTime {
+        fun from(localDate: LocalDate?, nowIfNull: Boolean = false): PFDateTime? {
             if (localDate == null)
-                return now()
+                return if (nowIfNull) now() else null
             val localDateTime = LocalDateTime.of(localDate, LocalTime.MIDNIGHT)
             return PFDateTime(ZonedDateTime.of(localDateTime, getUsersZoneId()))
         }
@@ -209,9 +209,9 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
          * Creates mindnight [ZonedDateTime] from given [LocalDate].
          */
         @JvmStatic
-        fun from(date: java.sql.Date?): PFDateTime {
+        fun from(date: java.sql.Date?, nowIfNull: Boolean = false): PFDateTime? {
             if (date == null)
-                return now()
+                return if (nowIfNull) now() else null
             val dateTime = date.toInstant().atZone(getUsersZoneId())
             return PFDateTime(dateTime)
         }

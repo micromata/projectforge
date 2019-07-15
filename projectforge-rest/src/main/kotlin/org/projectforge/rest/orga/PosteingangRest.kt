@@ -49,8 +49,7 @@ class PosteingangRest() : AbstractDORest<PosteingangDO, PosteingangDao>(Posteing
 
     override fun validate(validationErrors: MutableList<ValidationError>, dto: PosteingangDO) {
         val date = PFDate.from(dto.datum)
-        val today = PFDate.now()
-        if (today.isBefore(date)) { // No dates in the future accepted.
+        if (date != null && PFDate.now().isBefore(date)) { // No dates in the future accepted.
             validationErrors.add(ValidationError(translate("error.dateInFuture"), fieldId = "datum"))
         }
     }

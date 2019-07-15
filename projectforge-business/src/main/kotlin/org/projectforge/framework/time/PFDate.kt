@@ -71,29 +71,23 @@ class PFDate(val date: LocalDate) {
          * Creates mindnight [ZonedDateTime] from given [LocalDate].
          */
         @JvmStatic
-        fun from(localDate: LocalDate?): PFDate {
+        fun from(localDate: LocalDate?, nowIfNull: Boolean = false): PFDate? {
             if (localDate == null)
-                return now()
+                return if (nowIfNull) now() else null
             return PFDate(localDate)
         }
 
         /**
-         * Creates mindnight [ZonedDateTime] from given [LocalDate].
+         * @param date Date of type java.util.Date or java.sql.Date.
+         * Creates mindnight [ZonedDateTime] from given [date].
          */
         @JvmStatic
-        fun from(date: java.sql.Date?): PFDate {
+        fun from(date: java.util.Date?, nowIfNull: Boolean = false): PFDate? {
             if (date == null)
-                return now()
-            return PFDate(date.toLocalDate())
-        }
-
-        /**
-         * Creates mindnight [ZonedDateTime] from given [LocalDate].
-         */
-        @JvmStatic
-        fun from(date: java.util.Date?): PFDate? {
-            if (date == null)
-                return null
+                return if (nowIfNull) now() else null
+            if (date is java.sql.Date) {
+                return PFDate(date.toLocalDate())
+            }
             return PFDate(date.toInstant()
                     .atZone(ZoneId.of("UTC"))
                     .toLocalDate())

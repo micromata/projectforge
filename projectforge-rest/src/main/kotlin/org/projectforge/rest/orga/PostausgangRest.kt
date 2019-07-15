@@ -51,8 +51,7 @@ class PostausgangRest() : AbstractDORest<PostausgangDO, PostausgangDao>(Postausg
 
     override fun validate(validationErrors: MutableList<ValidationError>, dto: PostausgangDO) {
         val date = PFDate.from(dto.datum)
-        val today = PFDate.now()
-        if (today.isBefore(date)) { // No dates in the future accepted.
+        if (date != null && PFDate.now().isBefore(date)) { // No dates in the future accepted.
             validationErrors.add(ValidationError(translate("error.dateInFuture"), fieldId = "datum"))
         }
     }
