@@ -245,7 +245,7 @@ function DynamicTaskSelect(
                 </Collapse>
             </div>
         );
-    }, [panelVisible, modalHighlight, task, panelRef, favorites]);
+    }, [panelVisible, modalHighlight, task, panelRef, favorites, setData]);
 }
 
 DynamicTaskSelect.propTypes = {

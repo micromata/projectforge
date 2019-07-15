@@ -21,7 +21,7 @@ function DynamicRadioButton({ id, name, label }) {
                 />
             </DynamicValidationManager>
         );
-    }, [data[id]]);
+    }, [data[id], setData]);
 }
 
 DynamicRadioButton.propTypes = {

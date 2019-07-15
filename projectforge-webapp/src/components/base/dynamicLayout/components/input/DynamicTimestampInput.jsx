@@ -83,7 +83,7 @@ function DynamicTimestampInput(
                 </DynamicValidationManager>
             </React.Fragment>
         );
-    }, [date]);
+    }, [date, setData]);
 }
 
 DynamicTimestampInput.propTypes = {

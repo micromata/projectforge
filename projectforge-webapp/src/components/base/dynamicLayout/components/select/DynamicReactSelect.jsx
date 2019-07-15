@@ -93,7 +93,7 @@ function DynamicReactSelect(props) {
                 </DynamicValidationManager>
             </React.Fragment>
         );
-    }, [data[id], value]);
+    }, [data[id], value, setData]);
 }
 
 DynamicReactSelect.propTypes = {
