@@ -146,10 +146,6 @@ class IndexPage extends React.Component {
                                 Bug: States of Inputfields!
                             </li>
                             <li>
-                                In der Listenansicht werden nur die geraden (hellen) Zeilen
-                                gehighlighted nach der Editierseite (even-odd).
-                            </li>
-                            <li>
                                 TimesheetEditTaskAndKost2.jsx: set kost2list on initial call and
                                 update of kost2list after task selections. See classic version.
                             </li>
@@ -227,6 +223,10 @@ class IndexPage extends React.Component {
                                 icon)
                             </li>
                             <li>Highlight last edited entry in list page</li>
+                            <li>
+                                In der Listenansicht werden nur die geraden (hellen) Zeilen
+                                gehighlighted nach der Editierseite (even-odd).
+                            </li>
                         </ol>
                     </Col>
                     <Col>
