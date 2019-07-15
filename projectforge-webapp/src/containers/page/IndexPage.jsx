@@ -152,7 +152,7 @@ class IndexPage extends React.Component {
                             <li>
                                 Design improvements for selection of task tree (e. g. time
                                 sheet editing). Highlighting of current active breadcrumb,
-                                smaller search bar, no table head row.
+                                smaller search bar, no table head row. Collapse like Apple Finder.
                             </li>
                             <li>
                                 Open Popover with focus in Inputfield after selecting a new
@@ -163,6 +163,14 @@ class IndexPage extends React.Component {
                             <li>
                                 main.chunk.js with hash sum / version id, use service worker for
                                 caching app
+                            </li>
+                            <li>
+                                Backlog: Timepicker (substituion of current used),
+                                and date-range picker.
+                            </li>
+                            <li>
+                                Prepare nested, indexed properties, such as{' '}
+                                <code>invoice.positions[2].amount</code>
                             </li>
                         </ol>
                         <h1>Done</h1>
@@ -232,6 +240,15 @@ class IndexPage extends React.Component {
                     <Col>
                         <h1>ToDo&apos;s (Kai)</h1>
                         <ol>
+                            <li>
+                                <code>
+                                    java.lang.UnsupportedOperationException: null
+                                    at java.sql.Date.toInstant(Date.java:304)
+                                    at org.projectforge.framework.time.PFDate$Companion.from(PFDate.kt:97)
+                                    at org.projectforge.rest.task.TaskServicesRest$Task.&lt;init&gt;(TaskServicesRest.kt:87)
+                                    at org.projectforge.rest.task.TaskServicesRest.getTree(TaskServicesRest.kt:194)
+                                </code>
+                            </li>
                             <li>Finishing time sheet editing</li>
                             <li>Calendar events (especially recurrences)</li>
                             <li>List pages: addresses, tasks etc.</li>
@@ -277,6 +294,9 @@ class IndexPage extends React.Component {
                         <h1>ToDo&apos;s (both)</h1>
                         <ol>
                             <li>Magic filter in list pages</li>
+                            <li>
+                                Markdown (AsciiDoc) View component for displaying dynamic content.
+                            </li>
                             <li>List pagination and sorting</li>
                             <li>Selection component for time of day (timesheets, cal events)</li>
                             <li>
