@@ -54,7 +54,7 @@ function DynamicDateInput(props) {
                 </DynamicValidationManager>
             </React.Fragment>
         );
-    }, [props, value]);
+    }, [props, value, setData]);
 }
 
 DynamicDateInput.propTypes = {

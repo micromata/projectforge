@@ -5,8 +5,8 @@ import { Col } from '../../../design';
 import { DynamicLayoutContext } from '../context';
 
 // The Fieldset component enclosed in a col. Very similar to DynamicGroup.
-function DynamicFieldset(
-    {
+function DynamicFieldset(props) {
+    const {
         content,
         title,
         length,
@@ -14,8 +14,8 @@ function DynamicFieldset(
         mdLength,
         lgLength,
         xlLength,
-    },
-) {
+    } = props;
+
     // Get renderLayout function from context
     const { renderLayout } = React.useContext(DynamicLayoutContext);
 
@@ -29,7 +29,7 @@ function DynamicFieldset(
                 </fieldset>
             </Col>
         ),
-        [content, title, length],
+        [props],
     );
 }
 

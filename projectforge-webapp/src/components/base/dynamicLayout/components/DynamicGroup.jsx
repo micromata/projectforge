@@ -5,8 +5,8 @@ import { Col, FormGroup, Row } from '../../../design';
 import { DynamicLayoutContext } from '../context';
 
 // A Component to put a tag around dynamic layout content
-function DynamicGroup(
-    {
+function DynamicGroup(props) {
+    const {
         content,
         length,
         type,
@@ -14,8 +14,8 @@ function DynamicGroup(
         mdLength,
         lgLength,
         xlLength,
-    },
-) {
+    } = props;
+
     // Get renderLayout function from context.
     const { renderLayout } = React.useContext(DynamicLayoutContext);
 
@@ -54,7 +54,7 @@ function DynamicGroup(
                 {renderLayout(content)}
             </Tag>
         );
-    }, [content, type]);
+    }, [props]);
 }
 
 DynamicGroup.propTypes = {

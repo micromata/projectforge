@@ -101,7 +101,7 @@ function DynamicUserSelect(props) {
                 </div>
             </div>
         );
-    }, [props, value, selectMeIcon]);
+    }, [props, value, selectMeIcon, setData]);
 }
 
 DynamicUserSelect.propTypes = {
