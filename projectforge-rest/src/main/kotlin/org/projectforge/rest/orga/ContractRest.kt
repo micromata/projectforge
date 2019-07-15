@@ -49,8 +49,7 @@ class ContractRest() : AbstractDORest<ContractDO, ContractDao>(ContractDao::clas
 
     override fun validate(validationErrors: MutableList<ValidationError>, dto: ContractDO) {
         val date = PFDate.from(dto.date)
-        val today = PFDate.now()
-        if (today.isBefore(date)) { // No dates in the future accepted.
+        if (date != null && PFDate.now().isBefore(date)) { // No dates in the future accepted.
             validationErrors.add(ValidationError(translate("error.dateInFuture"), fieldId = "date"))
         }
     }

@@ -40,11 +40,11 @@ class PFDateTest {
         val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z")
         formatter.timeZone = TimeZone.getTimeZone("UTC")
 
-        var sqlDate = date.sqlDate
+        var sqlDate = date!!.sqlDate
         assertEquals("2019-04-10", sqlDate.toString())
 
         date = PFDate.from(sqlDate)
-        checkDate(date.date, 2019, Month.APRIL, 10)
+        checkDate(date!!.date, 2019, Month.APRIL, 10)
     }
 
     private fun checkDate(date: LocalDate, year: Int, month: Month, dayOfMonth: Int) {
