@@ -109,7 +109,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   protected BaseDaoLegacyQueryBuilder baseDaoLegacyQueryBuilder;
 
   @Autowired
-  protected MagicFilterQueryBuilder magicFilterQueryBuilder;
+  protected MagicFilterQuery magicFilterQueryBuilder;
 
   @Autowired
   protected DatabaseDao databaseDao;
@@ -383,10 +383,11 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   protected List<O> extractEntriesWithSelectAccess(final List<O> origList) {
     final List<O> result = new ArrayList<O>();
+    final boolean superAdmin = TenantChecker.isSuperAdmin(ThreadLocalUserContext.getUser());
+    final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
     for (final O obj : origList) {
-      if ((TenantChecker.isSuperAdmin(ThreadLocalUserContext.getUser()) == true
-              || tenantChecker.isPartOfCurrentTenant(obj) == true)
-              && hasLoggedInUserSelectAccess(obj, false) == true) {
+      if ((superAdmin || tenantChecker.isPartOfCurrentTenant(obj) == true)
+              && hasSelectAccess(loggedInUser, obj, false) == true) {
         result.add(obj);
         afterLoad(obj);
       }
