@@ -77,7 +77,7 @@ function DynamicTimestampInput(
                         minuteStep={15}
                         allowEmpty={false}
                         use12Hours={timeNotation === 'H12'}
-                        onChange={handleTimeChange()}
+                        onChange={handleTimeChange}
                     />
                     <AdditionalLabel title={additionalLabel} />
                 </DynamicValidationManager>

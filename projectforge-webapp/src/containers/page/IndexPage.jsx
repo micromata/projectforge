@@ -143,10 +143,6 @@ class IndexPage extends React.Component {
                         <h1>ToDo&apos;s (Fin)</h1>
                         <ol>
                             <li>
-                                Bug: States of Inputfields!
-                            </li>
-                            <li>Change time of day in calendar events.</li>
-                            <li>
                                 TimesheetEditTaskAndKost2.jsx: set kost2list on initial call and
                                 update of kost2list after task selections. See classic version.
                             </li>
@@ -239,6 +235,10 @@ class IndexPage extends React.Component {
                                 In der Listenansicht werden nur die geraden (hellen) Zeilen
                                 gehighlighted nach der Editierseite (even-odd).
                             </li>
+                            <li>
+                                Bug: States of Inputfields!
+                            </li>
+                            <li>Change time of day in calendar events.</li>
                         </ol>
                     </Col>
                     <Col>
