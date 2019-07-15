@@ -5,7 +5,7 @@ import React from 'react';
 import FavoritesPanel from '../../../../../../containers/panel/favorite/FavoritesPanel';
 import TaskTreePanel from '../../../../../../containers/panel/task/TaskTreePanel';
 import { getServiceURL, handleHTTPErrors } from '../../../../../../utilities/rest';
-import { Button, Collapse, Modal, ModalBody, ModalHeader } from '../../../../../design';
+import { Button, Collapse } from '../../../../../design';
 import inputStyle from '../../../../../design/input/Input.module.scss';
 import { DynamicLayoutContext } from '../../../context';
 import TaskPath from './TaskPath';
@@ -15,7 +15,6 @@ function DynamicTaskSelect(
         id,
         label,
         onKost2Changed,
-        showInline,
         showRootForAdmins,
     },
 ) {
@@ -234,34 +233,16 @@ function DynamicTaskSelect(
                     translations={ui.translations}
                     htmlId="taskFavoritesPopover"
                 />
-                {showInline
-                    ? (
-                        <Collapse
-                            isOpen={panelVisible}
-                            style={{
-                                maxHeight: '600px',
-                                overflow: 'scroll',
-                                scroll: 'auto',
-                            }}
-                        >
-                            {treePanel}
-                        </Collapse>
-                    )
-                    : (
-                        <Modal
-                            isOpen={panelVisible}
-                            className="modal-xl"
-                            toggle={toggleModal}
-                            fade={false}
-                        >
-                            <ModalHeader toggle={toggleModal}>
-                                {ui.translations['task.title.list.select']}
-                            </ModalHeader>
-                            <ModalBody>
-                                {treePanel}
-                            </ModalBody>
-                        </Modal>
-                    )}
+                <Collapse
+                    isOpen={panelVisible}
+                    style={{
+                        maxHeight: '600px',
+                        overflow: 'scroll',
+                        scroll: 'auto',
+                    }}
+                >
+                    {treePanel}
+                </Collapse>
             </div>
         );
     }, [panelVisible, modalHighlight, task, panelRef, favorites]);
@@ -271,13 +252,11 @@ DynamicTaskSelect.propTypes = {
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
     onKost2Changed: PropTypes.func,
-    showInline: PropTypes.bool,
     showRootForAdmins: PropTypes.bool,
 };
 
 DynamicTaskSelect.defaultProps = {
     onKost2Changed: undefined,
-    showInline: true,
     showRootForAdmins: false,
 };
 
