@@ -189,7 +189,7 @@ class CalendarPage extends React.Component {
             return <div>...</div>;
         }
 
-        const { match } = this.props;
+        const { match, location } = this.props;
 
         const options = teamCalendars.map(option => ({
             ...option,
@@ -267,6 +267,7 @@ class CalendarPage extends React.Component {
                         topHeight="225px"
                         translations={translations}
                         match={match}
+                        location={location}
                     />
                 </CalendarContext.Provider>
             </LoadingContainer>
@@ -276,6 +277,7 @@ class CalendarPage extends React.Component {
 
 CalendarPage.propTypes = {
     match: PropTypes.shape({}).isRequired,
+    location: PropTypes.shape({}).isRequired,
 };
 
 CalendarPage.defaultProps = {};

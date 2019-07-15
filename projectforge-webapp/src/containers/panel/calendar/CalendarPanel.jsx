@@ -70,6 +70,20 @@ class CalendarPanel extends React.Component {
         this.fetchEvents();
     }
 
+    componentWillReceiveProps({ location: nextLocation }) {
+        const { location } = this.props;
+
+        if (
+            nextLocation.state !== location.state
+            && nextLocation.state
+            && nextLocation.state.date
+        ) {
+            this.setState({
+                date: new Date(nextLocation.state.date),
+            });
+        }
+    }
+
     componentDidUpdate(
         {
             activeCalendars: prevActiveCalendars,
@@ -328,7 +342,10 @@ CalendarPanel.propTypes = {
     defaultDate: PropTypes.instanceOf(Date),
     defaultView: PropTypes.string,
     translations: PropTypes.shape({}).isRequired,
-    match: PropTypes.shape({}).isRequired,
+    match: PropTypes.shape({
+        url: PropTypes.string.isRequired,
+    }).isRequired,
+    location: PropTypes.shape({}).isRequired,
 };
 
 CalendarPanel.defaultProps = {
