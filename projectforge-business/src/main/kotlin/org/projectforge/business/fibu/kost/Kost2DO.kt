@@ -44,6 +44,7 @@ import javax.persistence.*
 @WithHistory
 class Kost2DO : DefaultBaseDO(), ShortDisplayNameCapable, Comparable<Kost2DO> {
 
+    @PropertyInfo(i18nKey = "status")
     @Field
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 30)
