@@ -145,6 +145,7 @@ class IndexPage extends React.Component {
                             <li>
                                 Bug: States of Inputfields!
                             </li>
+                            <li>Change time of day in calendar events.</li>
                             <li>
                                 TimesheetEditTaskAndKost2.jsx: set kost2list on initial call and
                                 update of kost2list after task selections. See classic version.
@@ -159,6 +160,9 @@ class IndexPage extends React.Component {
                                 field in list&apos;s search filter.
                                 Return key closes the popover, another Return click submits the
                                 filter and requests a new list?
+                            </li>
+                            <li>
+                                Set date of calendar view after editing timesheet or event.
                             </li>
                             <li>
                                 main.chunk.js with hash sum / version id, use service worker for
