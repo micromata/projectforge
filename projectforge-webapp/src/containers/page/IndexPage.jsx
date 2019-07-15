@@ -143,6 +143,13 @@ class IndexPage extends React.Component {
                         <h1>ToDo&apos;s (Fin)</h1>
                         <ol>
                             <li>
+                                States of Inputfields!
+                            </li>
+                            <li>
+                                In der Listenansicht werden nur die geraden (hellen) Zeilen
+                                gehighlighted nach der Editierseite (even-odd).
+                            </li>
+                            <li>
                                 TimesheetEditTaskAndKost2.jsx: set kost2list on initial call and
                                 update of kost2list after task selections. See classic version.
                             </li>
@@ -223,7 +230,6 @@ class IndexPage extends React.Component {
                             <li>Calendar events (especially recurrences)</li>
                             <li>List pages: addresses, tasks etc.</li>
                             <li>Search filter</li>
-                            <li>Favorites</li>
                             <li>Setup page</li>
                             <li>Message of the day</li>
                             <li>System alert message</li>
@@ -232,11 +238,6 @@ class IndexPage extends React.Component {
                                 of a bread crumb...
                             </li>
 
-                            <li>
-                                switch from edit page time-sheets to calendar event and vica
-                                versa. see classic version.
-                                Via Action Buttons and UPDATE action
-                            </li>
                             <li>CSRF</li>
                         </ol>
                         <h1>Done</h1>
@@ -257,6 +258,12 @@ class IndexPage extends React.Component {
                             </li>
                             <li>
                                 Calendar edit pages redirect url to /calendar
+                            </li>
+                            <li>Favorites</li>
+                            <li>
+                                switch from edit page time-sheets to calendar event and vica
+                                versa. see classic version.
+                                Via Action Buttons and UPDATE action
                             </li>
                         </ol>
                     </Col>
