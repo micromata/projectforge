@@ -143,7 +143,7 @@ class IndexPage extends React.Component {
                         <h1>ToDo&apos;s (Fin)</h1>
                         <ol>
                             <li>
-                                States of Inputfields!
+                                Bug: States of Inputfields!
                             </li>
                             <li>
                                 In der Listenansicht werden nur die geraden (hellen) Zeilen
@@ -154,13 +154,19 @@ class IndexPage extends React.Component {
                                 update of kost2list after task selections. See classic version.
                             </li>
                             <li>
-                                main.chunk.js with hash sum / version id, use service worker for
-                                caching app
-                            </li>
-                            <li>
                                 Design improvements for selection of task tree (e. g. time
                                 sheet editing). Highlighting of current active breadcrumb,
                                 smaller search bar, no table head row.
+                            </li>
+                            <li>
+                                Open Popover with focus in Inputfield after selecting a new
+                                field in list&apos;s search filter.
+                                Return key closes the popover, another Return click submits the
+                                filter and requests a new list?
+                            </li>
+                            <li>
+                                main.chunk.js with hash sum / version id, use service worker for
+                                caching app
                             </li>
                         </ol>
                         <h1>Done</h1>
@@ -272,6 +278,7 @@ class IndexPage extends React.Component {
                         <ol>
                             <li>Magic filter in list pages</li>
                             <li>List pagination and sorting</li>
+                            <li>Selection component for time of day (timesheets, cal events)</li>
                             <li>
                                 Registration of customized containers (e. g. for external plugins)
                             </li>
