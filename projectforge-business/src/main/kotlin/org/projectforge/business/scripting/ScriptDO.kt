@@ -49,13 +49,11 @@ class ScriptDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "scripting.script.name")
     @Field
-    @get:Field
     @get:Column(length = 255, nullable = false)
     var name: String? = null // 255 not null
 
     @PropertyInfo(i18nKey = "description")
     @Field
-    @get:Field
     @get:Column(length = 4000)
     var description: String? = null // 4000;
 

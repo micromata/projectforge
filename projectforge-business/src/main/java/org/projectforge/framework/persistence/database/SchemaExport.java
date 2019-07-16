@@ -23,17 +23,14 @@
 
 package org.projectforge.framework.persistence.database;
 
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
+
+import javax.persistence.Persistence;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.persistence.Persistence;
-
-import org.hibernate.HibernateException;
-import org.hibernate.cfg.Configuration;
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
-
 /**
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  *
  */
@@ -43,7 +40,7 @@ public class SchemaExport
 
   /**
    * Generates the database schema for the current configured database.
-   * 
+   *
    * @param filename Write the schema to the given file. No file output, if null.
    * @param script Print the DDL to the console.
    * @param export If true, the script will be executed (export the script to the database).
@@ -56,26 +53,5 @@ public class SchemaExport
     props.put("javax.persistence.schema-generation.scripts.create-target", filename);
     Persistence.generateSchema(PfEmgrFactory.get().getUnitName(), props);
 
-  }
-
-  /**
-   * Generates the database schema for the current configured database.
-   * 
-   * @param filename Write the schema to the given file. No file output, if null.
-   * @param script Print the DDL to the console.
-   * @param export If true, the script will be executed (export the script to the database).
-   */
-  public void exportDropSchema(Configuration cfg, String filename, boolean script, boolean export)
-  {
-    //String[] dropSQL;
-    try {
-      org.hibernate.tool.hbm2ddl.SchemaExport exp = new org.hibernate.tool.hbm2ddl.SchemaExport(cfg);
-      exp.setOutputFile(filename);
-      exp.setDelimiter(";\n");
-      exp.drop(script, export);
-    } catch (HibernateException ex) {
-      log.error("Cant't generate drop statements for schema: " + ex.getMessage(), ex);
-      return;
-    }
   }
 }
