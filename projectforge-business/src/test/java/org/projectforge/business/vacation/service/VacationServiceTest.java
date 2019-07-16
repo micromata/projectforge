@@ -92,7 +92,7 @@ public class VacationServiceTest
     Locale locale = Locale.getDefault();
     TimeZone timeZone = TimeZone.getDefault();
     sdf.setTimeZone(timeZone);
-    ConfigXml configXml = new ConfigXml("./target/Projectforge");
+    ConfigXml configXml = new ConfigXml("./target/ProjectForge");
     PowerMockito.when(ThreadLocalUserContext.getLocale()).thenReturn(locale);
     PowerMockito.when(ThreadLocalUserContext.getTimeZone()).thenReturn(timeZone);
     PowerMockito.when(ConfigXml.getInstance()).thenReturn(configXml);

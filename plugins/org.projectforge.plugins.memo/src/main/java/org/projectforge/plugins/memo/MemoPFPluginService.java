@@ -21,31 +21,59 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.password;
+package org.projectforge.plugins.memo;
 
-import java.util.List;
-
-import org.projectforge.framework.i18n.I18nKeyAndParams;
+import org.projectforge.plugins.core.AbstractPlugin;
+import org.projectforge.plugins.core.PFPluginService;
 
 /**
- * Interface holding password quality check functions in ProjectForge.
- *
- * @author Matthias Altmann (m.altmann@micromata.de)
+ * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
-public interface PasswordQualityService
+public class MemoPFPluginService implements PFPluginService
 {
-  /**
-   * Gets password quality.
-   */
-  I18nKeyAndParams getPasswordQualityI18nKeyAndParams();
 
   /**
-   * Check password quality and compare old and new password.
+   * {@inheritDoc}
+   *
    */
-  List<I18nKeyAndParams> checkPasswordQuality(String oldPassword, String newPassword);
+
+  @Override
+  public String getPluginId()
+  {
+    return "memo";
+  }
 
   /**
-   * Checks the password quality of a new password.
+   * {@inheritDoc}
+   *
    */
-  List<I18nKeyAndParams> checkPasswordQuality(String password);
+
+  @Override
+  public String getPluginName()
+  {
+    return "Memo";
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   */
+
+  @Override
+  public String getPluginDescription()
+  {
+    return "Memo description";
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   */
+
+  @Override
+  public AbstractPlugin createPluginInstance()
+  {
+    return new MemoPlugin();
+  }
+
 }

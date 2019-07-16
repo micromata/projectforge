@@ -30,7 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.ServiceLoader;
 
-import org.projectforge.plugins.core.ProjectforgePluginService;
+import org.projectforge.plugins.core.PFPluginService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +41,7 @@ import de.micromata.genome.util.matcher.StringMatchers;
 
 /**
  * URLs to plugins.
- * 
+ *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
  */
@@ -57,9 +57,9 @@ public class JpaPfJpaPluginScannerUrlProvider implements JpaExtScannerUrlProvide
         StringMatchers.containsString("/target/"),
         StringMatchers.containsString("/plugins/"),
         StringMatchers.containsString("org.projectforge"));
-    ServiceLoader<ProjectforgePluginService> ls = ServiceLoader.load(ProjectforgePluginService.class);
-    for (ProjectforgePluginService ps : ls) {
-      Class<? extends ProjectforgePluginService> clazz = ps.getClass();
+    ServiceLoader<PFPluginService> ls = ServiceLoader.load(PFPluginService.class);
+    for (PFPluginService ps : ls) {
+      Class<? extends PFPluginService> clazz = ps.getClass();
       ClassLoader cls = ps.getClass().getClassLoader();
       if (cls instanceof URLClassLoader) {
         URLClassLoader urlcls = (URLClassLoader) cls;

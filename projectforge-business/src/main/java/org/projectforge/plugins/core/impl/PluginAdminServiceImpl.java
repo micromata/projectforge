@@ -42,7 +42,7 @@ import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.AvailablePlugin;
 import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.plugins.core.PluginsRegistry;
-import org.projectforge.plugins.core.ProjectforgePluginService;
+import org.projectforge.plugins.core.PFPluginService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,10 +83,10 @@ public class PluginAdminServiceImpl implements PluginAdminService
   {
 
     Set<String> activated = getActivePlugins();
-    ServiceLoader<ProjectforgePluginService> ls = ServiceLoader.load(ProjectforgePluginService.class);
+    ServiceLoader<PFPluginService> ls = ServiceLoader.load(PFPluginService.class);
 
     List<AvailablePlugin> ret = new ArrayList<>();
-    for (ProjectforgePluginService e : ls) {
+    for (PFPluginService e : ls) {
       AvailablePlugin ap = new AvailablePlugin(e, activated.contains(e.getPluginId()), e.isBuildIn());
       ret.add(ap);
     }
@@ -133,7 +133,7 @@ public class PluginAdminServiceImpl implements PluginAdminService
 
   }
 
-  protected void activatePlugin(ProjectforgePluginService projectForgePluginService)
+  protected void activatePlugin(PFPluginService projectForgePluginService)
   {
     AbstractPlugin plugin = projectForgePluginService.createPluginInstance();
     AutowireCapableBeanFactory factory = applicationContext.getAutowireCapableBeanFactory();
