@@ -42,6 +42,9 @@ class MagicFilterEntry(
     @JsonIgnore
     internal var type: Class<*>? = null
 
+    /**
+     * The search string for data base queries (SQL), '*' will be replaced by '%'.
+     */
     @JsonIgnore
     internal var dbSearchString: String? = null
 
