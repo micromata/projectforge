@@ -41,9 +41,9 @@ import java.util.*
 
 
 @Service
-class MagicFilterQueryBuilder {
+class MagicFilterQuery {
 
-    private val log = LoggerFactory.getLogger(MagicFilterQueryBuilder::class.java)
+    private val log = LoggerFactory.getLogger(MagicFilterQuery::class.java)
 
     @Autowired
     private lateinit var accessChecker: AccessChecker
@@ -69,14 +69,13 @@ class MagicFilterQueryBuilder {
             return list
         }
         list = baseDao.extractEntriesWithSelectAccess(list)
-        val result = baseDao.sort(list)
         val end = System.currentTimeMillis()
         if (end - begin > 2000) {
             // Show only slow requests.
             log.info(
                     "BaseDao.getList for entity class: " + baseDao.entityClass.simpleName + " took: " + (end - begin) + " ms (>2s).")
         }
-        return result
+        return list
     }
 
     /**
@@ -198,7 +197,7 @@ class MagicFilterQueryBuilder {
                 if (--maxOrder <= 0)
                     break // Add only 3 orders.
             }
-            criteria.setMaxResults(1000)
+            //criteria.setMaxResults(1000)
             setCacheRegion(baseDao, criteria)
             @Suppress("UNCHECKED_CAST")
             var list = criteria.list() as List<O>
@@ -266,9 +265,8 @@ class MagicFilterQueryBuilder {
             LOG.error(errorMsg)
         }
 */
-
             return list
-        } catch(ex: Exception) {
+        } catch (ex: Exception) {
             log.error("Error while querying: ${ex.message}. Magicfilter: ${filter}.", ex)
             return mutableListOf()
         }
