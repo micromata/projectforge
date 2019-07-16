@@ -245,15 +245,6 @@ class IndexPage extends React.Component {
                     <Col>
                         <h1>ToDo&apos;s (Kai)</h1>
                         <ol>
-                            <li>
-                                <code>
-                                    java.lang.UnsupportedOperationException: null
-                                    at java.sql.Date.toInstant(Date.java:304)
-                                    at org.projectforge.framework.time.PFDate$Companion.from(PFDate.kt:97)
-                                    at org.projectforge.rest.task.TaskServicesRest$Task.&lt;init&gt;(TaskServicesRest.kt:87)
-                                    at org.projectforge.rest.task.TaskServicesRest.getTree(TaskServicesRest.kt:194)
-                                </code>
-                            </li>
                             <li>Finishing time sheet editing</li>
                             <li>Calendar events (especially recurrences)</li>
                             <li>List pages: addresses, tasks etc.</li>
@@ -292,6 +283,19 @@ class IndexPage extends React.Component {
                                 switch from edit page time-sheets to calendar event and vica
                                 versa. see classic version.
                                 Via Action Buttons and UPDATE action
+                            </li>
+                            <li>
+                                <code>
+                                    java.lang.UnsupportedOperationException: null
+                                    at java.sql.Date.toInstant(Date.java:304)
+                                </code>
+                            </li>
+                            <li>
+                                Fix calendar issues, if the user&apos;s time zone differs from the
+                                browser&apos;s time zone. BigCalendar doesn&apos;t support this. The
+                                client should send his time zone for getting the events for the
+                                matching calendar week, otherwise the calendar get the events
+                                for the week or day before and can&apos;t display them.
                             </li>
                         </ol>
                     </Col>
