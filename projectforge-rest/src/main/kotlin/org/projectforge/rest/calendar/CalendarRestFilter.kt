@@ -49,7 +49,12 @@ class CalendarRestFilter(var start: Date? = null,
                           * Default is false (all active calendars are displayed).
                           * This flag is only used by the React client for hiding active calendars.
                           */
-                         var useVisibilityState: Boolean? = false) {
+                         var useVisibilityState: Boolean? = false,
+                         /**
+                          * The browsers time zone is needed for BigCalendar if the user's timezone of the server
+                          * differs from the browsers timezone. BigCalendar doesn't support the setting of a timezone.
+                          */
+                         var timeZone: String? = null) {
     /**
      * The set [activeCalendarIds] may contain a null value after deserialization. This will be removed by calling this
      * function.

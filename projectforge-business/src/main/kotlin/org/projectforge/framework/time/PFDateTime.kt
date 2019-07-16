@@ -29,6 +29,7 @@ import java.time.*
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
+import java.util.*
 
 /**
  * Immutable holder of [ZonedDateTime] for transforming to [java.util.Date] (once) if used several times.
@@ -192,16 +193,16 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
         }
 
         /**
-         * Creates mindnight [ZonedDateTime] from given [LocalDate].
+         * @param timeZone: TimeZone to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
          */
         @JvmStatic
-        fun from(date: java.util.Date?, nowIfNull: Boolean = false): PFDateTime? {
+        fun from(date: java.util.Date?, nowIfNull: Boolean = false, timeZone: TimeZone? = null): PFDateTime? {
             if (date == null)
                 return if (nowIfNull) now() else null
             return if (date is java.sql.Date) { // Yes, this occurs!
                 from(date.toLocalDate())
             } else {
-                PFDateTime(date.toInstant().atZone(getUsersZoneId()))
+                PFDateTime(date.toInstant().atZone(timeZone?.toZoneId() ?: getUsersZoneId()))
             }
         }
 

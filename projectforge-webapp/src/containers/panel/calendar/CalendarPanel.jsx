@@ -246,6 +246,12 @@ class CalendarPanel extends React.Component {
                 timesheetUserId,
                 updateState: true,
                 useVisibilityState: true,
+                // Needed as a workaround if the user's timezone (backend) differs from timezone of
+                // the browser. BigCalendar doesn't use moment's timezone for converting the
+                // dates start and end. They will be converted by using the browser's timezone.
+                // With this timeZone, the server is able to detect the correct start-end
+                // interval of the requested events.
+                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             }),
         })
             .then(response => response.json())

@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import sun.util.calendar.ZoneInfo
 import java.time.LocalDate
 import javax.ws.rs.BadRequestException
 
@@ -110,10 +111,14 @@ class CalendarServicesRest {
     private fun buildEvents(filter: CalendarRestFilter): CalendarData { //startParam: PFDateTime? = null, endParam: PFDateTime? = null, viewParam: CalendarViewType? = null): Response {
         val events = mutableListOf<BigCalendarEvent>()
         val view = CalendarView.from(filter.view)
+        // Workaround for BigCalendar, if the browser's timezone differs from user's timezone in ThreadLocalUserContext.
+        // ZoneInfo.getTimeZone returns null, if timeZone not known. TimeZone.getTimeZone returns GMT on failure!
+        val timeZone = if (filter.timeZone != null) ZoneInfo.getTimeZone(filter.timeZone) else null
         if (filter.updateState == true) {
             calendarConfigServicesRest.updateCalendarFilter(filter.start, view, filter.activeCalendarIds)
         }
-        val range = DateTimeRange(PFDateTime.from(filter.start)!!, PFDateTime.from(filter.end))
+        val range = DateTimeRange(PFDateTime.from(filter.start, timeZone = timeZone)!!,
+                PFDateTime.from(filter.end, timeZone = timeZone))
         adjustRange(range, view)
         val timesheetUserId = filter.timesheetUserId
         if (timesheetUserId != null) {
