@@ -23,10 +23,7 @@
 
 package org.projectforge.framework.persistence.jpa;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
+import de.micromata.genome.util.bean.PrivateBeanUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.MetadataBuilder;
 import org.hibernate.boot.MetadataSources;
@@ -37,11 +34,12 @@ import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.boot.registry.selector.spi.StrategySelector;
 import org.hibernate.boot.spi.MetadataImplementor;
-import org.hibernate.tool.hbm2ddl.SchemaExport;
-import org.projectforge.test.AbstractTestBase;
 import org.junit.jupiter.api.Test;
+import org.projectforge.test.AbstractTestBase;
 
-import de.micromata.genome.util.bean.PrivateBeanUtils;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 public class JpaSchemaExportTest extends AbstractTestBase
 {
@@ -59,7 +57,7 @@ public class JpaSchemaExportTest extends AbstractTestBase
     StandardServiceRegistry serviceRegistry = (StandardServiceRegistry) sreg;
     MetadataImplementor metadata = buildMetadata(serviceRegistry);
 
-    SchemaExport schemaExport = new SchemaExport(serviceRegistry, metadata, true)
+/*    SchemaExport schemaExport = new SchemaExport(serviceRegistry, metadata, true)
         .setHaltOnError(true)
         .setOutputFile("target/pf2out.sql")
         .setDelimiter(";\n")
@@ -70,7 +68,7 @@ public class JpaSchemaExportTest extends AbstractTestBase
         true,
         false,
         false);
-
+*/
     //    Persistence.generateSchema(PfEmgrFactory.get().getUnitName(), props);
   }
 
