@@ -272,7 +272,7 @@ class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
      * @param addressbookList the addressbookList to set
      */
     @PropertyInfo(i18nKey = "address.addressbooks")
-    @get:ManyToMany
+    @get:ManyToMany(fetch = FetchType.LAZY)
     @get:JoinTable(name = "t_addressbook_address",
             joinColumns = [JoinColumn(name = "address_id", referencedColumnName = "PK")],
             inverseJoinColumns = [JoinColumn(name = "addressbook_id", referencedColumnName = "PK")],
