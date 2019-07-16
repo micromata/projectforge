@@ -33,7 +33,7 @@ public class DaoConst
 
   public static final String ADDRESS = "address";
 
-  public static final String ADDRESSKAT = "addressKat";
+  public static final String ADDRESSBOOK = "addressbook";
 
   public static final String BOOK = "book";
 
