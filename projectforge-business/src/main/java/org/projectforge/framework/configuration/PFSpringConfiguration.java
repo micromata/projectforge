@@ -21,7 +21,32 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.test;
+package org.projectforge.framework.configuration;
+
+import javax.annotation.PostConstruct;
+import javax.persistence.EntityManagerFactory;
+import javax.sql.DataSource;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.projectforge.continuousdb.DatabaseSupport;
+import org.projectforge.framework.persistence.api.HibernateUtils;
+import org.projectforge.framework.persistence.attr.impl.AttrSchemaServiceSpringBeanImpl;
+import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
+import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.orm.hibernate5.HibernateTemplate;
+import org.springframework.orm.hibernate5.HibernateTransactionManager;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.client.RestTemplate;
 
 import de.micromata.genome.db.jpa.history.api.HistoryServiceManager;
 import de.micromata.genome.db.jpa.history.entities.HistoryMasterBaseDO;
@@ -30,59 +55,26 @@ import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 import de.micromata.genome.db.jpa.tabattr.impl.TimeableServiceImpl;
 import de.micromata.mgc.jpa.spring.SpringEmgrFilterBean;
 import de.micromata.mgc.jpa.spring.factories.JpaToSessionSpringBeanFactory;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.projectforge.continuousdb.DatabaseSupport;
-import org.projectforge.framework.persistence.api.HibernateUtils;
-import org.projectforge.framework.persistence.attr.impl.AttrSchemaServiceSpringBeanImpl;
-import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
-import org.projectforge.web.servlet.SMSReceiverServlet;
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.boot.jdbc.DataSourceBuilder;
-import org.springframework.context.annotation.*;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.orm.hibernate5.HibernateTemplate;
-import org.springframework.orm.hibernate5.HibernateTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.web.client.RestTemplate;
 
-import javax.annotation.PostConstruct;
-import javax.persistence.EntityManagerFactory;
-import javax.sql.DataSource;
-
+/**
+ * Intial spring configuration for projectforge.
+ *
+ * @author Florian Blumenstein, Roger Rene Kommer (r.kommer.extern@micromata.de)
+ */
 @Configuration
-@ComponentScan(value = { "org.projectforge", "de.micromata.mgc.jpa.spring" },
-    excludeFilters = { @ComponentScan.Filter(type = FilterType.ASPECTJ,
-        pattern = "org.projectforge.framework.configuration.PFSpringConfiguration"),
-        @ComponentScan.Filter(type = FilterType.ASPECTJ,
-            pattern = "org.projectforge.web.configuration.PFWebConfiguration") })
-@PropertySource({"classpath:/application.properties", "classpath:/application-test.properties"})
 @EnableTransactionManagement
+@EnableScheduling
 //Needed, because not only interfaces are used as injection points
 @EnableAspectJAutoProxy(proxyTargetClass = true)
-public class TestConfiguration
+public class PFSpringConfiguration
 {
-
-  @Value("${spring.datasource.url}")
-  private String datasourceUrl;
-
-  @Value("${spring.datasource.username}")
-  private String datasourceUsername;
-
-  @Value("${spring.datasource.password}")
-  private String datasourcePassword;
-
-  @Value("${spring.datasource.driver-class-name}")
-  private String datasourceDriver;
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PFSpringConfiguration.class);
 
   @Value("${projectforge.base.dir}")
   private String applicationDir;
+
+  @Autowired
+  private DataSource dataSource;
 
   @Autowired
   private SpringEmgrFilterBean springEmgrFilterBean;
@@ -90,40 +82,13 @@ public class TestConfiguration
   @Autowired
   private PfEmgrFactory pfEmgrFactory;
 
-  @Bean
-  public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer()
-  {
-    return new PropertySourcesPlaceholderConfigurer();
-  }
+  @Value("${hibernate.search.default.indexBase}")
+  private String hibernateIndexDir;
 
   @Bean
-  public DataSource dataSource()
+  public RestTemplate restTemplate(RestTemplateBuilder builder)
   {
-    return DataSourceBuilder
-        .create()
-        .username(datasourceUsername)
-        .password(datasourcePassword)
-        .url(datasourceUrl)
-        .driverClassName(datasourceDriver)
-        .build();
-  }
-
-  @Bean
-  public JdbcTemplate jdbcTemplate()
-  {
-    return new JdbcTemplate(dataSource());
-  }
-
-  @Bean
-  public SMSReceiverServlet smsReceiverServlet()
-  {
-    return new SMSReceiverServlet();
-  }
-
-  @Bean
-  public RestTemplate restTemplate()
-  {
-    return new RestTemplate();
+    return builder.build();
   }
 
   @Bean
@@ -138,6 +103,12 @@ public class TestConfiguration
     return entityManagerFactory().unwrap(SessionFactory.class);
   }
 
+  /**
+   * has to be defined, otherwise spring creates a LocalContainerEntityManagerFactoryBean, which has no correct
+   * sessionFactory.getCurrentSession();.
+   *
+   * @return
+   */
   @Bean
   public EntityManagerFactory entityManagerFactory()
   {
@@ -149,7 +120,7 @@ public class TestConfiguration
   {
     HibernateTransactionManager ret = new HibernateTransactionManager(sessionFactory());
     ret.setAutodetectDataSource(false);
-    ret.setDataSource(dataSource());
+    ret.setDataSource(dataSource);
     return ret;
   }
 
@@ -183,16 +154,6 @@ public class TestConfiguration
   public TimeableService timeableService()
   {
     return new TimeableServiceImpl();
-  }
-
-  /**
-   * This is a workaround because we are using spring unit tests and not spring boot unit tests.
-   * Without this, the spring context within our unit tests does not know this spring boot configuration bean.
-   */
-  @Bean
-  public ServerProperties serverProperties()
-  {
-    return new ServerProperties();
   }
 
   @PostConstruct

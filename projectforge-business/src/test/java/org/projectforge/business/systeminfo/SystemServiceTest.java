@@ -71,7 +71,7 @@ public class SystemServiceTest
     MockitoAnnotations.initMocks(this);
     mockStatic(ThreadLocalUserContext.class);
     mockStatic(ConfigXml.class);
-    ConfigXml configXml = new ConfigXml("./target/Projectforge");
+    ConfigXml configXml = new ConfigXml("./target/ProjectForge");
     PowerMockito.when(ThreadLocalUserContext.getLocale()).thenReturn(locale);
     PowerMockito.when(ThreadLocalUserContext.getTimeZone()).thenReturn(timeZone);
     PowerMockito.when(ConfigXml.getInstance()).thenReturn(configXml);

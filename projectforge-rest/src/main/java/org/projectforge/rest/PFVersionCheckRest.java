@@ -23,14 +23,6 @@
 
 package org.projectforge.rest;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-
 import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONObject;
 import org.projectforge.business.jsonRest.RestCallService;
@@ -45,6 +37,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 
 @Controller
 @Path(RestPaths.VERSION_CHECK)
@@ -68,12 +68,12 @@ public class PFVersionCheckRest
   {
     log.info(marker, "Request for check PF Version from: " + request.getRemoteAddr() + " (X-FORWARDED-FOR: " + StringUtils
         .defaultIfEmpty(request.getHeader("X-FORWARDED-FOR"), "n.a.") + ")");
-    synchronizeWithProjectforgeGithub(versionCheck);
+    synchronizeWithProjectForgeGithub(versionCheck);
     log.info(marker, "Result for PF version check: " + versionCheck);
     return versionCheck;
   }
 
-  private VersionCheck synchronizeWithProjectforgeGithub(VersionCheck versionCheck)
+  private VersionCheck synchronizeWithProjectForgeGithub(VersionCheck versionCheck)
   {
     String url = "https://api.github.com/repos/micromata/projectforge/releases/latest";
     try {

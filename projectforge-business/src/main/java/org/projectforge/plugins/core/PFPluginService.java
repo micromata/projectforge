@@ -21,31 +21,46 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.password;
-
-import java.util.List;
-
-import org.projectforge.framework.i18n.I18nKeyAndParams;
+package org.projectforge.plugins.core;
 
 /**
- * Interface holding password quality check functions in ProjectForge.
+ * A service, which is registered via JDK ServiceLoader.
  *
- * @author Matthias Altmann (m.altmann@micromata.de)
+ * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
+ *
  */
-public interface PasswordQualityService
+public interface PFPluginService
 {
   /**
-   * Gets password quality.
+   * A short id of this plugin.
+   *
+   * @return
    */
-  I18nKeyAndParams getPasswordQualityI18nKeyAndParams();
+  String getPluginId();
 
   /**
-   * Check password quality and compare old and new password.
+   * Name of the plugin
+   *
+   * @return
    */
-  List<I18nKeyAndParams> checkPasswordQuality(String oldPassword, String newPassword);
+  String getPluginName();
 
   /**
-   * Checks the password quality of a new password.
+   * Short explanation of the plugin.
+   *
+   * @return
    */
-  List<I18nKeyAndParams> checkPasswordQuality(String password);
+  String getPluginDescription();
+
+  /**
+   * Creates the plugin instance.
+   *
+   * @return the abstract plugin
+   */
+  AbstractPlugin createPluginInstance();
+
+  default boolean isBuildIn()
+  {
+    return false;
+  }
 }

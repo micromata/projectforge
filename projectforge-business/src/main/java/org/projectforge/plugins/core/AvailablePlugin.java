@@ -25,13 +25,13 @@ package org.projectforge.plugins.core;
 
 /**
  * Status of a plugin
- * 
+ *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
  */
 public class AvailablePlugin
 {
-  private ProjectforgePluginService projectForgePluginService;
+  private PFPluginService projectForgePluginService;
 
   private boolean activated;
 
@@ -42,7 +42,7 @@ public class AvailablePlugin
 
   }
 
-  public AvailablePlugin(ProjectforgePluginService projectForgePluginService, boolean activated, boolean buildIn)
+  public AvailablePlugin(PFPluginService projectForgePluginService, boolean activated, boolean buildIn)
   {
 
     this.projectForgePluginService = projectForgePluginService;
@@ -50,12 +50,12 @@ public class AvailablePlugin
     this.buildIn = buildIn;
   }
 
-  public ProjectforgePluginService getProjectForgePluginService()
+  public PFPluginService getProjectForgePluginService()
   {
     return projectForgePluginService;
   }
 
-  public void setProjectForgePluginService(ProjectforgePluginService projectForgePluginService)
+  public void setProjectForgePluginService(PFPluginService projectForgePluginService)
   {
     this.projectForgePluginService = projectForgePluginService;
   }

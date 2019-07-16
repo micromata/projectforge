@@ -21,31 +21,42 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.password;
+package org.projectforge.plugins.banking;
 
-import java.util.List;
-
-import org.projectforge.framework.i18n.I18nKeyAndParams;
+import org.projectforge.plugins.core.AbstractPlugin;
+import org.projectforge.plugins.core.PFPluginService;
 
 /**
- * Interface holding password quality check functions in ProjectForge.
+ * Banking plugin.
  *
- * @author Matthias Altmann (m.altmann@micromata.de)
+ * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
+ *
  */
-public interface PasswordQualityService
+public class BankingPFPluginService implements PFPluginService
 {
-  /**
-   * Gets password quality.
-   */
-  I18nKeyAndParams getPasswordQualityI18nKeyAndParams();
 
-  /**
-   * Check password quality and compare old and new password.
-   */
-  List<I18nKeyAndParams> checkPasswordQuality(String oldPassword, String newPassword);
+  @Override
+  public String getPluginId()
+  {
+    return "banking";
+  }
 
-  /**
-   * Checks the password quality of a new password.
-   */
-  List<I18nKeyAndParams> checkPasswordQuality(String password);
+  @Override
+  public String getPluginName()
+  {
+    return getPluginId();
+  }
+
+  @Override
+  public String getPluginDescription()
+  {
+    return getPluginName();
+  }
+
+  @Override
+  public AbstractPlugin createPluginInstance()
+  {
+    return new BankingPlugin();
+  }
+
 }
