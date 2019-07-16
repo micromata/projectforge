@@ -24,8 +24,11 @@
 package org.projectforge.framework.persistence.api
 
 import org.hibernate.Criteria
+import org.hibernate.Session
 import org.hibernate.criterion.Order
 import org.hibernate.criterion.Restrictions
+import org.hibernate.search.Search.getFullTextSession
+import org.hibernate.search.query.dsl.QueryBuilder
 import org.projectforge.business.multitenancy.TenantService
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.tasktree.TaskTreeHelper
@@ -42,6 +45,21 @@ import java.util.*
 
 @Service
 class MagicFilterQuery {
+    private class BuildContext(val doClass: Class<*>,
+                               val session: Session) {
+        var _query: QueryBuilder? = null
+        val query: QueryBuilder
+            get() {
+                if (_query == null) {
+                    val fullTextSession = getFullTextSession(session)
+                    _query = fullTextSession.searchFactory
+                            .buildQueryBuilder().forEntity(doClass).get()
+                }
+                return _query!!
+            }
+        val fullText
+            get() = _query != null
+    }
 
     private val log = LoggerFactory.getLogger(MagicFilterQuery::class.java)
 
@@ -108,11 +126,14 @@ class MagicFilterQuery {
             var queryModifiedByUserId: Int? = null
             var queryModifiedFromDate: PFDateTime? = null
             var queryModifiedToDate: PFDateTime? = null
+            var builderContext = BuildContext(baseDao.doClass, session)
             for (it in filter.entries) {
                 if (it.field.isNullOrBlank())
                     continue // Use only field specific query (others are done by full text search
                 if (it.field == "modifiedBy") {
                     queryModifiedByUserId = NumberHelper.parseInteger(it.value)
+                    // TODO
+                    log.warn("TODO: Implement modifiedBy filter setting.")
                     continue
                 }
                 if (it.field == "modifiedInterval") {
@@ -120,13 +141,18 @@ class MagicFilterQuery {
                         queryModifiedFromDate = it.fromValueDate
                     if (it.toValue != null)
                         queryModifiedToDate = it.toValueDate
+                    // TODO
+                    log.warn("TODO: Implement modifiedInterval filter setting.")
                     continue
                 }
                 val fieldType = it.type
-                when (fieldType) {
+                when (it.type) {
                     String::class.java -> {
                         when (it.searchType) {
                             MagicFilterEntry.SearchType.FIELD_STRING_SEARCH -> {
+                                //builderContext.query.
+                                //        .onField("history")
+                                //        .matching("storm")
                                 criteria.add(Restrictions.ilike(it.field, "${it.dbSearchString}"))
                             }
                             MagicFilterEntry.SearchType.FIELD_RANGE_SEARCH -> {
