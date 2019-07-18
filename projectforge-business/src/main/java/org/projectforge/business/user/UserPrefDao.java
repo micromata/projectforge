@@ -261,18 +261,16 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
 
   public List<UserPrefDO> getUserPrefs(final UserPrefArea area) {
     final PFUserDO user = ThreadLocalUserContext.getUser();
-    Query<UserPrefDO> query = getSession().createNamedQuery(UserPrefDO.FIND_BY_USER_ID_AND_AREA, UserPrefDO.class);
-    query.setParameter("userId", user.getId());
-    query.setParameter("area", area.getId());
-    final List<UserPrefDO> list = query.list();
+    @SuppressWarnings("unchecked") final List<UserPrefDO> list = (List<UserPrefDO>) getHibernateTemplate().find(
+            "from UserPrefDO u where u.user.id = ? and u.area = ?",
+            new Object[]{user.getId(), area.getId()});
     return selectUnique(list);
   }
 
   public List<UserPrefDO> getUserPrefs() {
     final PFUserDO user = ThreadLocalUserContext.getUser();
-    Query<UserPrefDO> query = getSession().createNamedQuery(UserPrefDO.FIND_BY_USER_ID, UserPrefDO.class);
-    query.setParameter("userId", user.getId());
-    @SuppressWarnings("unchecked") final List<UserPrefDO> list = query.list();
+    @SuppressWarnings("unchecked") final List<UserPrefDO> list = (List<UserPrefDO>) getHibernateTemplate().find(
+            "from UserPrefDO u where u.user.id = ?", user.getId());
     return selectUnique(list);
   }
 
