@@ -23,8 +23,13 @@
 
 package org.projectforge.framework.configuration;
 
+import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.TimeZone;
+
 import org.apache.commons.lang3.Validate;
-import org.hibernate.query.Query;
 import org.projectforge.business.multitenancy.TenantDao;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
@@ -43,12 +48,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.TimeZone;
 
 /**
  * Configuration values persistet in the data base. Please access the configuration parameters via
@@ -121,9 +120,9 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
   public ConfigurationDO getEntry(final IConfigurationParam param)
   {
     Validate.notNull(param);
-    Query<ConfigurationDO> query = getSession().createNamedQuery(ConfigurationDO.FIND_BY_PARAMETER, ConfigurationDO.class);
-    query.setParameter("parameter", param.getKey());
-    final List<ConfigurationDO> list = query.list();
+    @SuppressWarnings("unchecked")
+    final List<ConfigurationDO> list = (List<ConfigurationDO>) getHibernateTemplate()
+        .find("from ConfigurationDO c where c.parameter = ?", param.getKey());
     if (list == null || list.isEmpty() == true || list.get(0) == null) {
       return null;
     }

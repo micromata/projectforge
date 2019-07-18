@@ -35,8 +35,6 @@ import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.ModificationStatus
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.user.api.UserPrefArea
-import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_ID
-import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_ID_AND_AREA
 import java.io.Serializable
 import java.util.*
 import javax.persistence.*
@@ -53,9 +51,6 @@ import javax.persistence.*
         uniqueConstraints = [UniqueConstraint(columnNames = ["user_fk", "area", "name", "tenant_id"])],
         indexes = [Index(name = "idx_fk_t_user_pref_user_fk", columnList = "user_fk"), Index(name = "idx_fk_t_user_pref_tenant_id", columnList = "tenant_id")])
 @JpaXmlPersist(beforePersistListener = [UserPrefXmlBeforePersistListener::class])
-@org.hibernate.annotations.NamedQueries(
-        org.hibernate.annotations.NamedQuery(name = FIND_BY_USER_ID_AND_AREA, query = "from UserPrefDO where user.id = :userId and area = :area"),
-        org.hibernate.annotations.NamedQuery(name = FIND_BY_USER_ID, query = "from UserPrefDO where user.id = :userId"))
 class UserPrefDO : AbstractBaseDO<Int>() {
     private val log = org.slf4j.LoggerFactory.getLogger(UserPrefDO::class.java)
 
@@ -236,11 +231,5 @@ class UserPrefDO : AbstractBaseDO<Int>() {
             }
         }
         return list
-    }
-
-    companion object {
-        internal const val FIND_BY_USER_ID = "UserPrefDO_findByUserId"
-
-        internal const val FIND_BY_USER_ID_AND_AREA = "UserPrefDO_findByUserIdAndArea"
     }
 }
