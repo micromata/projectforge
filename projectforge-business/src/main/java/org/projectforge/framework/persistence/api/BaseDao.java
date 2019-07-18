@@ -69,6 +69,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -254,9 +255,10 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
       return list;
     }
     if (tenant.isDefault() == true) {
-      @SuppressWarnings("unchecked") final List<O> list = (List<O>) hibernateTemplate.find(
-              "from " + clazz.getSimpleName() + " t where tenant_id = ? or tenant_id is null",
-              tenant.getId());
+      org.hibernate.query.Query query = getSession().createQuery("FROM " + clazz.getSimpleName() + " t WHERE t.tenant.id=:tid or t.tenant.id is null");
+      query.setParameter("tid", tenant.getId());
+      @SuppressWarnings("unchecked")
+      List<O> list = (List<O>) query.list();
       return list;
     } else {
       @SuppressWarnings("unchecked") final List<O> list = (List<O>) hibernateTemplate
