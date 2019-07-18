@@ -29,6 +29,13 @@
     <system>Jenkins</system>
     <url>https://www.projectforge.org</url>
   </ciManagement>
+  <repositories>
+    <repository>
+      <id>oss-sonatype</id>
+      <name>oss-sonatype</name>
+      <url>https://oss.sonatype.org/content/repositories/public/</url>
+    </repository>
+  </repositories>
   <scm>
     <url>https://github.com/micromata/projectforge</url>
     <connection>scm:git:git://github.com/micromata/projectforge.git</connection>
@@ -245,7 +252,7 @@
 
     <hibernate.version>5.4.3.Final</hibernate.version>
     <hibernate-search.version>5.11.2.Final</hibernate-search.version>
-    <mgc.version>3.0.9</mgc.version>
+    <mgc.version>3.1.0</mgc.version>
 
     <commons-lang.version>2.6</commons-lang.version>
     <commons-httpclient.version>3.1</commons-httpclient.version>
