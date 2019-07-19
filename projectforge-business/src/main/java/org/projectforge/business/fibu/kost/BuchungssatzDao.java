@@ -23,10 +23,6 @@
 
 package org.projectforge.business.fibu.kost;
 
-import java.util.Calendar;
-import java.util.List;
-
-import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.user.ProjectForgeGroup;
@@ -36,38 +32,38 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.stereotype.Repository;
 
+import java.util.Calendar;
+import java.util.List;
+
 @Repository
-public class BuchungssatzDao extends BaseDao<BuchungssatzDO>
-{
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "kost1.nummer", "kost1.description",
-      "kost2.nummer",
-      "kost2.description", "kost2.comment", "kost2.projekt.name", "kost2.projekt.kunde.name", "konto.nummer",
-      "gegenKonto.nummer" };
+public class BuchungssatzDao extends BaseDao<BuchungssatzDO> {
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"kost1.nummer", "kost1.description",
+          "kost2.nummer",
+          "kost2.description", "kost2.comment", "kost2.projekt.name", "kost2.projekt.kunde.name", "konto.nummer",
+          "gegenKonto.nummer"};
 
   @Override
-  protected String[] getAdditionalSearchFields()
-  {
+  protected String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
-  public BuchungssatzDao()
-  {
+  public BuchungssatzDao() {
     super(BuchungssatzDO.class);
   }
 
   /**
    * List of all years witch BuchungssatzDO entries: select min(year), max(year) from t_fibu_buchungssatz.
-   * 
+   *
    * @return
    */
   @SuppressWarnings("unchecked")
-  public int[] getYears()
-  {
+  public int[] getYears() {
     final List<Object[]> list = getSession().createQuery("select min(year), max(year) from BuchungssatzDO t").list();
     if (list.size() == 0 || list.get(0) == null || list.get(0)[0] == null) {
-      return new int[] { Calendar.getInstance().get(Calendar.YEAR) };
+      return new int[]{Calendar.getInstance().get(Calendar.YEAR)};
     }
     final int minYear = (Integer) list.get(0)[0];
     final int maxYear = (Integer) list.get(0)[1];
@@ -82,20 +78,15 @@ public class BuchungssatzDao extends BaseDao<BuchungssatzDO>
     return res;
   }
 
-  @SuppressWarnings("unchecked")
-  public BuchungssatzDO getBuchungssatz(final int year, final int month, final int satznr)
-  {
-    final List<BuchungssatzDO> list = (List<BuchungssatzDO>) getHibernateTemplate().find(
-        "from BuchungssatzDO satz where satz.year = ? and satz.month = ? and satz.satznr = ?",
-        new Object[] { year, month, satznr });
-    if (CollectionUtils.isEmpty(list) == true) {
-      return null;
-    }
-    return list.get(0);
+  public BuchungssatzDO getBuchungssatz(final int year, final int month, final int satznr) {
+    return SQLHelper.ensureUniqueResult(
+            getSession().createNamedQuery(BuchungssatzDO.FIND_BY_YEAR_MONTH_SATZNR, BuchungssatzDO.class)
+                    .setParameter("year", year)
+                    .setParameter("month", month)
+                    .setParameter("satznr", satznr));
   }
 
-  public boolean validateTimeperiod(final BuchungssatzFilter myFilter)
-  {
+  public boolean validateTimeperiod(final BuchungssatzFilter myFilter) {
     final int toMonth = myFilter.getToMonth();
     final int toYear = myFilter.getToYear();
     if (toMonth >= 0 && toYear < 0 || toMonth < 0 && toYear > 0) {
@@ -122,10 +113,9 @@ public class BuchungssatzDao extends BaseDao<BuchungssatzDO>
   }
 
   @Override
-  public List<BuchungssatzDO> getList(final BaseSearchFilter filter)
-  {
+  public List<BuchungssatzDO> getList(final BaseSearchFilter filter) {
     accessChecker.checkIsLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
-        ProjectForgeGroup.CONTROLLING_GROUP);
+            ProjectForgeGroup.CONTROLLING_GROUP);
     final BuchungssatzFilter myFilter;
     if (filter instanceof BuchungssatzFilter) {
       myFilter = (BuchungssatzFilter) filter;
@@ -147,14 +137,14 @@ public class BuchungssatzDao extends BaseDao<BuchungssatzDO>
       } else {
         // between but different years
         queryFilter.add(Restrictions.disjunction().add(
-            Restrictions.and(Restrictions.eq("year", myFilter.getFromYear()),
-                Restrictions.ge("month", myFilter.getFromMonth())))
-            .add(
-                Restrictions.and(Restrictions.eq("year", myFilter.getToYear()),
-                    Restrictions.le("month", myFilter.getToMonth())))
-            .add(
-                Restrictions.and(Restrictions.gt("year", myFilter.getFromYear()),
-                    Restrictions.lt("year", myFilter.getToYear()))));
+                Restrictions.and(Restrictions.eq("year", myFilter.getFromYear()),
+                        Restrictions.ge("month", myFilter.getFromMonth())))
+                .add(
+                        Restrictions.and(Restrictions.eq("year", myFilter.getToYear()),
+                                Restrictions.le("month", myFilter.getToMonth())))
+                .add(
+                        Restrictions.and(Restrictions.gt("year", myFilter.getFromYear()),
+                                Restrictions.lt("year", myFilter.getToYear()))));
       }
     } else {
       // Nur Von-Monat gesetzt.
@@ -168,42 +158,38 @@ public class BuchungssatzDao extends BaseDao<BuchungssatzDO>
 
   /**
    * User must member of group finance or controlling.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess()
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException)
-  {
+  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException) {
     return accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.FINANCE_GROUP,
-        ProjectForgeGroup.CONTROLLING_GROUP);
+            ProjectForgeGroup.CONTROLLING_GROUP);
   }
 
   /**
    * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess(PFUserDO,
-   *      org.projectforge.core.ExtendedBaseDO, boolean)
+   * org.projectforge.core.ExtendedBaseDO, boolean)
    * @see #hasSelectAccess(PFUserDO, boolean)
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final BuchungssatzDO obj, final boolean throwException)
-  {
+  public boolean hasSelectAccess(final PFUserDO user, final BuchungssatzDO obj, final boolean throwException) {
     return hasSelectAccess(user, throwException);
   }
 
   /**
    * User must member of group finance.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#hasAccess(Object, OperationType)
    */
   @Override
   public boolean hasAccess(final PFUserDO user, final BuchungssatzDO obj, final BuchungssatzDO oldObj,
-      final OperationType operationType, final boolean throwException)
-  {
+                           final OperationType operationType, final boolean throwException) {
     return accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.FINANCE_GROUP);
   }
 
   @Override
-  public BuchungssatzDO newInstance()
-  {
+  public BuchungssatzDO newInstance() {
     return new BuchungssatzDO();
   }
 }

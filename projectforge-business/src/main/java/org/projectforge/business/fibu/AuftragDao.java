@@ -60,21 +60,20 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Repository
-public class AuftragDao extends BaseDao<AuftragDO>
-{
+public class AuftragDao extends BaseDao<AuftragDO> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.PM_ORDER_BOOK;
 
   public final static int START_NUMBER = 1;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuftragDao.class);
 
-  private static final Class<?>[] ADDITIONAL_HISTORY_SEARCH_DOS = new Class[] { AuftragsPositionDO.class };
+  private static final Class<?>[] ADDITIONAL_HISTORY_SEARCH_DOS = new Class[]{AuftragsPositionDO.class};
 
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "contactPerson.username",
-      "contactPerson.firstname",
-      "contactPerson.lastname", "kunde.name", "projekt.name", "projekt.kunde.name", "positionen.position",
-      "positionen.art",
-      "positionen.status", "positionen.titel", "positionen.bemerkung", "positionen.nettoSumme" };
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"contactPerson.username",
+          "contactPerson.firstname",
+          "contactPerson.lastname", "kunde.name", "projekt.name", "projekt.kunde.name", "positionen.position",
+          "positionen.art",
+          "positionen.status", "positionen.titel", "positionen.bemerkung", "positionen.nettoSumme"};
 
   @Autowired
   private UserDao userDao;
@@ -106,20 +105,17 @@ public class AuftragDao extends BaseDao<AuftragDO>
    *
    * @param taskTree
    */
-  public void registerTaskTree(final TaskTree taskTree)
-  {
+  public void registerTaskTree(final TaskTree taskTree) {
     this.taskTree = taskTree;
   }
 
-  public AuftragDao()
-  {
+  public AuftragDao() {
     super(AuftragDO.class);
     userRightId = USER_RIGHT_ID;
   }
 
   @Override
-  protected String[] getAdditionalSearchFields()
-  {
+  protected String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
@@ -128,30 +124,26 @@ public class AuftragDao extends BaseDao<AuftragDO>
    *
    * @return
    */
-  @SuppressWarnings("unchecked")
-  public int[] getYears()
-  {
-    final List<Object[]> list = getSession()
-        .createQuery("select min(angebotsDatum), max(angebotsDatum) from AuftragDO t").list();
-    return SQLHelper.getYears(list);
+  public int[] getYears() {
+    final Object[] minMaxDate = getSession().createNamedQuery(AuftragDO.SELECT_MIN_MAX_DATE, Object[].class)
+            .getSingleResult();
+    return SQLHelper.getYears((java.sql.Date)minMaxDate[0], (java.sql.Date)minMaxDate[1]);
   }
 
   /**
    * @return Map with all order positions referencing a task. The key of the map is the task id.
    */
-  public Map<Integer, Set<AuftragsPositionVO>> getTaskReferences()
-  {
+  public Map<Integer, Set<AuftragsPositionVO>> getTaskReferences() {
     final Map<Integer, Set<AuftragsPositionVO>> result = new HashMap<Integer, Set<AuftragsPositionVO>>();
-    @SuppressWarnings("unchecked")
-    final List<AuftragsPositionDO> list = (List<AuftragsPositionDO>) getHibernateTemplate()
-        .find("from AuftragsPositionDO a where a.task.id is not null and a.deleted = false");
+    @SuppressWarnings("unchecked") final List<AuftragsPositionDO> list = (List<AuftragsPositionDO>) getHibernateTemplate()
+            .find("from AuftragsPositionDO a where a.task.id is not null and a.deleted = false");
     if (list == null) {
       return result;
     }
     for (final AuftragsPositionDO pos : list) {
       if (pos.getTaskId() == null) {
         log.error(
-            "Oups, should not occur, that in getTaskReference a order position without a task reference is found.");
+                "Oups, should not occur, that in getTaskReference a order position without a task reference is found.");
         continue;
       }
       final AuftragsPositionVO vo = new AuftragsPositionVO(pos);
@@ -165,8 +157,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
     return result;
   }
 
-  public AuftragsStatistik buildStatistik(final List<AuftragDO> list)
-  {
+  public AuftragsStatistik buildStatistik(final List<AuftragDO> list) {
     final AuftragsStatistik stats = new AuftragsStatistik();
     if (list == null) {
       return stats;
@@ -184,8 +175,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
    * @param col
    * @see RechnungCache#getRechnungsPositionVOSetByAuftragsPositionId(Integer)
    */
-  public void calculateInvoicedSum(final Collection<AuftragDO> col)
-  {
+  public void calculateInvoicedSum(final Collection<AuftragDO> col) {
     if (col == null) {
       return;
     }
@@ -200,15 +190,14 @@ public class AuftragDao extends BaseDao<AuftragDO>
    * @param order
    * @see RechnungCache#getRechnungsPositionVOSetByAuftragsPositionId(Integer)
    */
-  public void calculateInvoicedSum(final AuftragDO order)
-  {
+  public void calculateInvoicedSum(final AuftragDO order) {
     if (order == null) {
       return;
     }
     if (order.getPositionenExcludingDeleted() != null) {
       for (final AuftragsPositionDO pos : order.getPositionenExcludingDeleted()) {
         final Set<RechnungsPositionVO> set = rechnungCache
-            .getRechnungsPositionVOSetByAuftragsPositionId(pos.getId());
+                .getRechnungsPositionVOSetByAuftragsPositionId(pos.getId());
         if (set != null) {
           pos.setFakturiertSum(RechnungDao.getNettoSumme(set));
         }
@@ -221,8 +210,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
    * @param contactPersonId If null, then contact person will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
-  public void setContactPerson(final AuftragDO auftrag, final Integer contactPersonId)
-  {
+  public void setContactPerson(final AuftragDO auftrag, final Integer contactPersonId) {
     if (contactPersonId == null) {
       auftrag.setContactPerson(null);
     } else {
@@ -236,8 +224,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
    * @param taskId
    * @see BaseDao#getOrLoad(Integer)
    */
-  public void setTask(final AuftragsPositionDO position, final Integer taskId)
-  {
+  public void setTask(final AuftragsPositionDO position, final Integer taskId) {
     final TaskDO task = taskDao.getOrLoad(taskId);
     position.setTask(task);
   }
@@ -247,8 +234,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
    * @param kundeId If null, then kunde will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
-  public void setKunde(final AuftragDO auftrag, final Integer kundeId)
-  {
+  public void setKunde(final AuftragDO auftrag, final Integer kundeId) {
     final KundeDO kunde = kundeDao.getOrLoad(kundeId);
     auftrag.setKunde(kunde);
   }
@@ -258,8 +244,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
    * @param projektId If null, then projekt will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
-  public void setProjekt(final AuftragDO auftrag, final Integer projektId)
-  {
+  public void setProjekt(final AuftragDO auftrag, final Integer projektId) {
     final ProjektDO projekt = projektDao.getOrLoad(projektId);
     auftrag.setProjekt(projekt);
   }
@@ -268,8 +253,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
    * @param posString Format ###.## (&lt;order number&gt;.&lt;position number&gt;).
    */
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public AuftragsPositionDO getAuftragsPosition(final String posString)
-  {
+  public AuftragsPositionDO getAuftragsPosition(final String posString) {
     Integer auftragsNummer = null;
     Short positionNummer = null;
     if (posString == null) {
@@ -285,17 +269,14 @@ public class AuftragDao extends BaseDao<AuftragDO>
       log.info("Cannot parse order number (format ###.## expected: " + posString);
       return null;
     }
-    @SuppressWarnings("unchecked")
-    final List<AuftragDO> list = (List<AuftragDO>) getHibernateTemplate().find("from AuftragDO k where k.nummer=?",
-        auftragsNummer);
-    if (CollectionUtils.isEmpty(list) == true) {
-      return null;
-    }
-    return list.get(0).getPosition(positionNummer);
+    final AuftragDO auftrag = SQLHelper.ensureUniqueResult(
+            getSession()
+                    .createNamedQuery(AuftragDO.FIND_BY_NUMMER, AuftragDO.class)
+                    .setParameter("nummer", auftragsNummer));
+    return auftrag != null ? auftrag.getPosition(positionNummer) : null;
   }
 
-  public synchronized int getAbgeschlossenNichtFakturiertAnzahl()
-  {
+  public synchronized int getAbgeschlossenNichtFakturiertAnzahl() {
     if (abgeschlossenNichtFakturiert != null) {
       return abgeschlossenNichtFakturiert;
     }
@@ -314,13 +295,11 @@ public class AuftragDao extends BaseDao<AuftragDO>
   }
 
   @Override
-  public List<AuftragDO> getList(final BaseSearchFilter filter)
-  {
+  public List<AuftragDO> getList(final BaseSearchFilter filter) {
     return getList(filter, true);
   }
 
-  private List<AuftragDO> getList(final BaseSearchFilter filter, final boolean checkAccess)
-  {
+  private List<AuftragDO> getList(final BaseSearchFilter filter, final boolean checkAccess) {
     final AuftragFilter myFilter;
     if (filter instanceof AuftragFilter) {
       myFilter = (AuftragFilter) filter;
@@ -334,12 +313,12 @@ public class AuftragDao extends BaseDao<AuftragDO>
 
     if (myFilter.getUser() != null) {
       queryFilter.add(
-          Restrictions.or(
-              Restrictions.eq("contactPerson", myFilter.getUser()),
-              Restrictions.eq("projectManager", myFilter.getUser()),
-              Restrictions.eq("headOfBusinessManager", myFilter.getUser()),
-              Restrictions.eq("salesManager", myFilter.getUser())
-          )
+              Restrictions.or(
+                      Restrictions.eq("contactPerson", myFilter.getUser()),
+                      Restrictions.eq("projectManager", myFilter.getUser()),
+                      Restrictions.eq("headOfBusinessManager", myFilter.getUser()),
+                      Restrictions.eq("salesManager", myFilter.getUser())
+              )
       );
     }
 
@@ -381,8 +360,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
     return list;
   }
 
-  private void addCriterionForAuftragsStatuses(final AuftragFilter myFilter, final QueryFilter queryFilter)
-  {
+  private void addCriterionForAuftragsStatuses(final AuftragFilter myFilter, final QueryFilter queryFilter) {
     final Collection<AuftragsStatus> auftragsStatuses = myFilter.getAuftragsStatuses();
     if (CollectionUtils.isEmpty(auftragsStatuses)) {
       // nothing to do
@@ -400,8 +378,8 @@ public class AuftragDao extends BaseDao<AuftragDO>
     }
 
     queryFilter
-        .createAlias("positionen", "position", Criteria.FULL_JOIN)
-        .add(Restrictions.or(orCriterions.toArray(new Criterion[orCriterions.size()])));
+            .createAlias("positionen", "position", Criteria.FULL_JOIN)
+            .add(Restrictions.or(orCriterions.toArray(new Criterion[orCriterions.size()])));
 
     // check deleted
     if (myFilter.isIgnoreDeleted() == false) {
@@ -409,34 +387,32 @@ public class AuftragDao extends BaseDao<AuftragDO>
     }
   }
 
-  private Optional<Criterion> createCriterionForErfassungsDatum(final AuftragFilter myFilter)
-  {
+  private Optional<Criterion> createCriterionForErfassungsDatum(final AuftragFilter myFilter) {
     final java.sql.Date startDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getStartDate());
     final java.sql.Date endDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getEndDate());
 
     if (startDate != null && endDate != null) {
       return Optional.of(
-          Restrictions.between("erfassungsDatum", startDate, endDate)
+              Restrictions.between("erfassungsDatum", startDate, endDate)
       );
     }
 
     if (startDate != null) {
       return Optional.of(
-          Restrictions.ge("erfassungsDatum", startDate)
+              Restrictions.ge("erfassungsDatum", startDate)
       );
     }
 
     if (endDate != null) {
       return Optional.of(
-          Restrictions.le("erfassungsDatum", endDate)
+              Restrictions.le("erfassungsDatum", endDate)
       );
     }
 
     return Optional.empty();
   }
 
-  private void filterFakturiert(final AuftragFilter myFilter, final List<AuftragDO> list)
-  {
+  private void filterFakturiert(final AuftragFilter myFilter, final List<AuftragDO> list) {
     final AuftragFakturiertFilterStatus auftragFakturiertFilterStatus = myFilter.getAuftragFakturiertFilterStatus();
     if (auftragFakturiertFilterStatus == null || auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ALL) {
       // do not filter
@@ -451,7 +427,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
 
       // special case
       if (HibernateUtils.getDialect() != DatabaseDialect.HSQL &&
-          vollstaendigFakturiert == false && myFilter.getAuftragsStatuses().contains(AuftragsStatus.ABGESCHLOSSEN)) {
+              vollstaendigFakturiert == false && myFilter.getAuftragsStatuses().contains(AuftragsStatus.ABGESCHLOSSEN)) {
 
         // if order is completed and not all positions are completely invoiced
         if (auftrag.getAuftragsStatus() == AuftragsStatus.ABGESCHLOSSEN && orderIsCompletelyInvoiced == false) {
@@ -482,8 +458,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
     });
   }
 
-  private void filterPositionsArten(final AuftragFilter myFilter, final List<AuftragDO> list)
-  {
+  private void filterPositionsArten(final AuftragFilter myFilter, final List<AuftragDO> list) {
     final Collection<AuftragsPositionsArt> auftragsPositionsArten = myFilter.getAuftragsPositionsArten();
 
     if (CollectionUtils.isNotEmpty(auftragsPositionsArten)) {
@@ -492,19 +467,17 @@ public class AuftragDao extends BaseDao<AuftragDO>
 
         // check if any of the current positions contains at least one AuftragsPositionsArt of the auftragsPositionsArten of the filter
         return CollectionUtils.isNotEmpty(positionen) && positionen.stream()
-            .map(AuftragsPositionDO::getArt)
-            .anyMatch(positionsArt -> auftragsPositionsArten.stream().anyMatch(art -> art == positionsArt));
+                .map(AuftragsPositionDO::getArt)
+                .anyMatch(positionsArt -> auftragsPositionsArten.stream().anyMatch(art -> art == positionsArt));
       });
     }
   }
 
-  @SuppressWarnings("unchecked")
   @Override
-  protected void onSaveOrModify(final AuftragDO obj)
-  {
+  protected void onSaveOrModify(final AuftragDO obj) {
     if (obj.getNummer() == null) {
       throw new UserException("validation.required.valueNotPresent",
-          new MessageParam("fibu.auftrag.nummer", MessageParamType.I18N_KEY));
+              new MessageParam("fibu.auftrag.nummer", MessageParamType.I18N_KEY));
     }
     if (obj.getId() == null) {
       // Neuer Auftrag/Angebot
@@ -513,10 +486,11 @@ public class AuftragDao extends BaseDao<AuftragDO>
         throw new UserException("fibu.auftrag.error.nummerIstNichtFortlaufend");
       }
     } else {
-      final List<RechnungDO> list = (List<RechnungDO>) getHibernateTemplate().find(
-          "from AuftragDO r where r.nummer = ? and r.id <> ?",
-          new Object[] { obj.getNummer(), obj.getId() });
-      if (list != null && list.size() > 0) {
+      final AuftragDO other = getSession().createNamedQuery(AuftragDO.FIND_OTHER_BY_NUMMER, AuftragDO.class)
+              .setParameter("nummer", obj.getNummer())
+              .setParameter("id", obj.getId())
+              .uniqueResult();
+      if (other != null) {
         throw new UserException("fibu.auftrag.error.nummerBereitsVergeben");
       }
     }
@@ -558,8 +532,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
     validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition(obj);
   }
 
-  void validateDatesInPaymentScheduleWithinPeriodOfPerformanceOfPosition(final AuftragDO auftrag)
-  {
+  void validateDatesInPaymentScheduleWithinPeriodOfPerformanceOfPosition(final AuftragDO auftrag) {
     final List<PaymentScheduleDO> paymentSchedules = auftrag.getPaymentSchedules();
     if (paymentSchedules == null) {
       // if there are no payment schedules, there are no dates which are not within the period of performance
@@ -572,10 +545,10 @@ public class AuftragDao extends BaseDao<AuftragDO>
       final Date periodOfPerformanceEnd = pos.hasOwnPeriodOfPerformance() ? pos.getPeriodOfPerformanceEnd() : auftrag.getPeriodOfPerformanceEnd();
 
       final boolean hasDateNotInRange = paymentSchedules.stream()
-          .filter(payment -> payment.getPositionNumber() == pos.getNumber())
-          .map(PaymentScheduleDO::getScheduleDate)
-          .filter(Objects::nonNull)
-          .anyMatch(date -> date.before(periodOfPerformanceBegin) || date.after(periodOfPerformanceEnd));
+              .filter(payment -> payment.getPositionNumber() == pos.getNumber())
+              .map(PaymentScheduleDO::getScheduleDate)
+              .filter(Objects::nonNull)
+              .anyMatch(date -> date.before(periodOfPerformanceBegin) || date.after(periodOfPerformanceEnd));
 
       if (hasDateNotInRange) {
         positionsWithDatesNotWithinPop.add(pos.getNumber());
@@ -584,15 +557,14 @@ public class AuftragDao extends BaseDao<AuftragDO>
 
     if (positionsWithDatesNotWithinPop.isEmpty() == false) {
       final String positions = positionsWithDatesNotWithinPop.stream()
-          .map(Object::toString)
-          .collect(Collectors.joining(", "));
+              .map(Object::toString)
+              .collect(Collectors.joining(", "));
 
       throw new UserException("fibu.auftrag.error.datesInPaymentScheduleNotWithinPeriodOfPerformanceOfPosition", positions);
     }
   }
 
-  void validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition(final AuftragDO auftrag)
-  {
+  void validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition(final AuftragDO auftrag) {
     final List<PaymentScheduleDO> paymentSchedules = auftrag.getPaymentSchedules();
     if (paymentSchedules == null) {
       // if there are no payment schedules, there are no amounts which can be greater -> validation OK
@@ -601,10 +573,10 @@ public class AuftragDao extends BaseDao<AuftragDO>
 
     for (final AuftragsPositionDO pos : auftrag.getPositionenExcludingDeleted()) {
       final BigDecimal sumOfAmountsForCurrentPosition = paymentSchedules.stream()
-          .filter(payment -> payment.getPositionNumber() == pos.getNumber())
-          .map(PaymentScheduleDO::getAmount)
-          .filter(Objects::nonNull)
-          .reduce(BigDecimal.ZERO, BigDecimal::add); // sum
+              .filter(payment -> payment.getPositionNumber() == pos.getNumber())
+              .map(PaymentScheduleDO::getAmount)
+              .filter(Objects::nonNull)
+              .reduce(BigDecimal.ZERO, BigDecimal::add); // sum
 
       final BigDecimal netSum = pos.getNettoSumme();
       if (netSum != null && sumOfAmountsForCurrentPosition.compareTo(netSum) > 0) {
@@ -614,8 +586,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
   }
 
   @Override
-  protected void afterSaveOrModify(final AuftragDO obj)
-  {
+  protected void afterSaveOrModify(final AuftragDO obj) {
     super.afterSaveOrModify(obj);
     if (taskTree != null) {
       taskTree.refreshOrderPositionReferences();
@@ -626,8 +597,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#prepareHibernateSearch(ExtendedBaseDO, OperationType)
    */
   @Override
-  protected void prepareHibernateSearch(final AuftragDO obj, final OperationType operationType)
-  {
+  protected void prepareHibernateSearch(final AuftragDO obj, final OperationType operationType) {
     projektDao.initializeProjektManagerGroup(obj.getProjekt());
   }
 
@@ -640,8 +610,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
    */
 
   public boolean sendNotificationIfRequired(final AuftragDO auftrag, final OperationType operationType,
-      final String requestUrl)
-  {
+                                            final String requestUrl) {
     if (configurationService.isSendMailConfigured() == false) {
       return false;
     }
@@ -693,8 +662,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
    */
   @SuppressWarnings("unchecked")
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public Integer getNextNumber(final AuftragDO auftrag)
-  {
+  public Integer getNextNumber(final AuftragDO auftrag) {
     if (auftrag.getId() != null) {
       final AuftragDO orig = internalGetById(auftrag.getId());
       if (orig.getNummer() != null) {
@@ -718,8 +686,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#getDisplayHistoryEntries(ExtendedBaseDO)
    */
   @Override
-  public List<DisplayHistoryEntry> getDisplayHistoryEntries(final AuftragDO obj)
-  {
+  public List<DisplayHistoryEntry> getDisplayHistoryEntries(final AuftragDO obj) {
     final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(obj);
     if (hasLoggedInUserHistoryAccess(obj, false) == false) {
       return list;
@@ -752,11 +719,9 @@ public class AuftragDao extends BaseDao<AuftragDO>
         list.addAll(entries);
       }
     }
-    Collections.sort(list, new Comparator<DisplayHistoryEntry>()
-    {
+    Collections.sort(list, new Comparator<DisplayHistoryEntry>() {
       @Override
-      public int compare(final DisplayHistoryEntry o1, final DisplayHistoryEntry o2)
-      {
+      public int compare(final DisplayHistoryEntry o1, final DisplayHistoryEntry o2) {
         return (o2.getTimestamp().compareTo(o1.getTimestamp()));
       }
     });
@@ -764,8 +729,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
   }
 
   @Override
-  protected Class<?>[] getAdditionalHistorySearchDOs()
-  {
+  protected Class<?>[] getAdditionalHistorySearchDOs() {
     return ADDITIONAL_HISTORY_SEARCH_DOS;
   }
 
@@ -775,8 +739,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#contains(Set, ExtendedBaseDO)
    */
   @Override
-  protected boolean contains(final Set<Integer> idSet, final AuftragDO entry)
-  {
+  protected boolean contains(final Set<Integer> idSet, final AuftragDO entry) {
     if (super.contains(idSet, entry) == true) {
       return true;
     }
@@ -789,8 +752,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
   }
 
   @Override
-  public AuftragDO newInstance()
-  {
+  public AuftragDO newInstance() {
     return new AuftragDO();
   }
 
@@ -798,8 +760,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#useOwnCriteriaCacheRegion()
    */
   @Override
-  protected boolean useOwnCriteriaCacheRegion()
-  {
+  protected boolean useOwnCriteriaCacheRegion() {
     return true;
   }
 }

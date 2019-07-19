@@ -23,7 +23,6 @@
 
 package org.projectforge.business.book;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.framework.access.OperationType;
@@ -31,8 +30,6 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -61,30 +58,28 @@ public class BookDao extends BaseDao<BookDO> {
    * @param book
    * @return
    */
-  @SuppressWarnings("unchecked")
   public boolean doesSignatureAlreadyExist(final BookDO book) {
     Validate.notNull(book);
     if (book.getSignature() == null) {
       return false;
     }
-    List<BookDO> list = null;
+    BookDO other = null;
     if (book.getId() == null) {
       // New book
-      list = (List<BookDO>) getHibernateTemplate().find("from BookDO b where b.signature = ?", book.getSignature());
+      other = getSession().createNamedQuery(BookDO.FIND_BY_SIGNATURE, BookDO.class)
+              .setParameter("signature", book.getSignature())
+              .uniqueResult();
     } else {
       // Book already exists. Check maybe changed signature:
-      list = (List<BookDO>) getHibernateTemplate().find("from BookDO b where b.signature = ? and pk <> ?",
-              new Object[]{book.getSignature(), book.getId()});
+      other = getSession().createNamedQuery(BookDO.FIND_OTHER_BY_SIGNATURE, BookDO.class)
+              .setParameter("signature", book.getSignature())
+              .setParameter("id", book.getId())
+              .uniqueResult();
     }
-    if (CollectionUtils.isNotEmpty(list) == true) {
-      return true;
-    }
-    return false;
+    return other != null;
   }
 
   /**
-   * @param book
-   * @param lendOutById
    * @see BaseDao#getOrLoad(Integer)
    */
   public void setLendOutBy(final BookDO book, final Integer lendOutById) {

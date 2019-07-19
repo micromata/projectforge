@@ -45,6 +45,9 @@ import javax.persistence.*
 @Indexed
 @Table(name = "t_fibu_buchungssatz", uniqueConstraints = [UniqueConstraint(columnNames = ["year", "month", "satznr", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_gegenkonto_id", columnList = "gegenkonto_id"), javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_konto_id", columnList = "konto_id"), javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_kost1_id", columnList = "kost1_id"), javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_kost2_id", columnList = "kost2_id"), javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_tenant_id", columnList = "tenant_id")])
 @WithHistory
+@NamedQueries(
+        NamedQuery(name = BuchungssatzDO.FIND_BY_YEAR_MONTH_SATZNR,
+                query = "from BuchungssatzDO where year=:year and month=:month and satznr=:satznr"))
 class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
 
     private val log = LoggerFactory.getLogger(BuchungssatzDO::class.java)
@@ -221,5 +224,9 @@ class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
         return if (r != 0) {
             r
         } else this.satznr!!.compareTo(other.satznr!!)
+    }
+
+    companion object {
+        internal const val FIND_BY_YEAR_MONTH_SATZNR = "BuchungssatzDO_FindByYearMonthSatznr"
     }
 }

@@ -47,6 +47,9 @@ import javax.persistence.*
 @Indexed
 @Table(name = "T_HR_PLANNING", uniqueConstraints = [UniqueConstraint(columnNames = ["user_fk", "week", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_hr_planning_user_fk", columnList = "user_fk"), javax.persistence.Index(name = "idx_fk_t_hr_planning_tenant_id", columnList = "tenant_id")])
 @WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [HRPlanningEntryDO::class])
+@NamedQueries(
+        NamedQuery(name = HRPlanningDO.FIND_BY_USER_AND_WEEK, query = "from HRPlanningDO where user.id=:userId and week=:week"),
+        NamedQuery(name = HRPlanningDO.FIND_OTHER_BY_USER_AND_WEEK, query = "from HRPlanningDO where user.id=:userId and week=:week and id!=:id"))
 class HRPlanningDO : DefaultBaseDO() {
 
     /**
@@ -337,6 +340,10 @@ class HRPlanningDO : DefaultBaseDO() {
 
     companion object {
         private val log = org.slf4j.LoggerFactory.getLogger(HRPlanningDO::class.java)
+
+        internal const val FIND_BY_USER_AND_WEEK = "HrPlanningDO_FindByUserAndWeek"
+
+        internal const val FIND_OTHER_BY_USER_AND_WEEK = "HrPlanningDO_FindOtherByUserAndWeek"
 
         /**
          * @param date

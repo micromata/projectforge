@@ -23,19 +23,23 @@
 
 package org.projectforge.start;
 
-import org.projectforge.config.ServerConfiguration;
 import org.projectforge.framework.time.DateHelper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.TimeZone;
 
-@SpringBootApplication(scanBasePackages = {"org.projectforge", "de.micromata.mgc.jpa.spring"})
+@SpringBootApplication(
+        scanBasePackages = {"org.projectforge", "de.micromata.mgc.jpa.spring"},
+        // Needed for Spring 5.5, exception was:
+        // java.lang.ClassCastException: org.springframework.orm.jpa.EntityManagerHolder cannot be cast to org.springframework.orm.hibernate5.SessionHolder
+        exclude = HibernateJpaAutoConfiguration.class
+)
 @ServletComponentScan({"org.projectforge.web", "org.projectforge.business.teamcal.servlet"})
 public class ProjectForgeApplication {
   static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjectForgeApplication.class);

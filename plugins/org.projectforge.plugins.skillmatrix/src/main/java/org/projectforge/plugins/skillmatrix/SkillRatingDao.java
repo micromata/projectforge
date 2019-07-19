@@ -23,9 +23,6 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import java.util.List;
-
-import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
@@ -35,9 +32,11 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * DAO for SkillRatingDO. Handles constraint validation and database access.
- * 
+ *
  * @author Billy Duong (b.duong@micromata.de)
  *
  */
@@ -88,17 +87,22 @@ public class SkillRatingDao extends BaseDao<SkillRatingDO>
   @SuppressWarnings("unchecked")
   private void checkConstraintViolation(final SkillRatingDO skillRating) throws UserException
   {
-    List<SkillRatingDO> list;
+    SkillRatingDO other;
     if (skillRating.getId() != null) {
-      list = (List<SkillRatingDO>) getHibernateTemplate().find(
-          "from SkillRatingDO s where s.user.id = ? and s.skill.id = ? and s.id != ?",
-          new Object[] { skillRating.getUserId(), skillRating.getSkillId(), skillRating.getId() });
+      other = getSession()
+              .createNamedQuery(SkillRatingDO.FIND_OTHER_BY_USER_AND_SKILL, SkillRatingDO.class)
+              .setParameter("userId", skillRating.getUserId())
+              .setParameter("skillId", skillRating.getSkillId())
+              .setParameter("id", skillRating.getId())
+              .uniqueResult();
     } else {
-      list = (List<SkillRatingDO>) getHibernateTemplate().find(
-          "from SkillRatingDO s where s.user.id = ? and s.skill.id = ?",
-          new Object[] { skillRating.getUserId(), skillRating.getSkillId() });
+      other = getSession()
+              .createNamedQuery(SkillRatingDO.FIND_BY_USER_AND_SKILL, SkillRatingDO.class)
+              .setParameter("userId", skillRating.getUserId())
+              .setParameter("skillId", skillRating.getSkillId())
+              .uniqueResult();
     }
-    if (CollectionUtils.isNotEmpty(list) == true) {
+    if (other != null) {
       throw new UserException(I18N_KEY_ERROR_DUPLICATE_RATING);
     }
 

@@ -23,13 +23,6 @@
 
 package org.projectforge.business.humanresources;
 
-import java.sql.Date;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -51,6 +44,7 @@ import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.slf4j.Logger;
@@ -58,19 +52,19 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Date;
+import java.util.*;
+
 /**
- *
  * @author Mario Groß (m.gross@micromata.de)
- *
  */
 @Repository
-public class HRPlanningDao extends BaseDao<HRPlanningDO>
-{
+public class HRPlanningDao extends BaseDao<HRPlanningDO> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.PM_HR_PLANNING;
 
   private static final Logger log = LoggerFactory.getLogger(HRPlanningDao.class);
 
-  private static final Class<?>[] ADDITIONAL_SEARCH_DOS = new Class[] { HRPlanningEntryDO.class };
+  private static final Class<?>[] ADDITIONAL_SEARCH_DOS = new Class[]{HRPlanningEntryDO.class};
 
   @Autowired
   private ProjektDao projektDao;
@@ -81,25 +75,22 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO>
   @Autowired
   private AccessChecker accessChecker;
 
-  protected HRPlanningDao()
-  {
+  protected HRPlanningDao() {
     super(HRPlanningDO.class);
     userRightId = USER_RIGHT_ID;
   }
 
   @Override
-  protected String[] getAdditionalSearchFields()
-  {
-    return new String[] { "entries.projekt.name", "entries.projekt.kunde.name", "user.username", "user.firstname",
-        "user.lastname" };
+  protected String[] getAdditionalSearchFields() {
+    return new String[]{"entries.projekt.name", "entries.projekt.kunde.name", "user.username", "user.firstname",
+            "user.lastname"};
   }
 
   /**
    * @param sheet
    * @param projektId If null, then projekt will be set to null;
    */
-  public void setProjekt(final HRPlanningEntryDO sheet, final Integer projektId)
-  {
+  public void setProjekt(final HRPlanningEntryDO sheet, final Integer projektId) {
     final ProjektDO projekt = projektDao.getOrLoad(projektId);
     sheet.setProjekt(projekt);
   }
@@ -109,8 +100,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO>
    * @param userId If null, then user will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
-  public void setUser(final HRPlanningDO sheet, final Integer userId)
-  {
+  public void setUser(final HRPlanningDO sheet, final Integer userId) {
     final PFUserDO user = userDao.getOrLoad(userId);
     sheet.setUser(user);
   }
@@ -121,8 +111,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO>
    * @param planning
    * @return If week or user id is not given, return false.
    */
-  public boolean doesEntryAlreadyExist(final HRPlanningDO planning)
-  {
+  public boolean doesEntryAlreadyExist(final HRPlanningDO planning) {
     Validate.notNull(planning);
     return doesEntryAlreadyExist(planning.getId(), planning.getUserId(), planning.getWeek());
   }
@@ -135,46 +124,45 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO>
    * @param week
    * @return If week or user id is not given, return false.
    */
-  @SuppressWarnings("unchecked")
-  public boolean doesEntryAlreadyExist(final Integer planningId, final Integer userId, final Date week)
-  {
+  public boolean doesEntryAlreadyExist(final Integer planningId, final Integer userId, final Date week) {
     if (week == null || userId == null) {
       return false;
     }
-    final List<HRPlanningDO> list;
+    final HRPlanningDO other;
     if (planningId == null) {
       // New entry
-      list = (List<HRPlanningDO>) getHibernateTemplate().find("from HRPlanningDO p where p.user.id = ? and p.week = ?",
-          new Object[] { userId, week });
+      other = getSession().createNamedQuery(HRPlanningDO.FIND_BY_USER_AND_WEEK, HRPlanningDO.class)
+              .setParameter("userId", userId)
+              .setParameter("week", week)
+              .uniqueResult();
     } else {
       // Entry already exists. Check collision:
-      list = (List<HRPlanningDO>) getHibernateTemplate().find(
-          "from HRPlanningDO p where p.user.id = ? and p.week = ? and pk <> ?",
-          new Object[] { userId, week, planningId });
+      other = getSession().createNamedQuery(HRPlanningDO.FIND_OTHER_BY_USER_AND_WEEK, HRPlanningDO.class)
+              .setParameter("userId", userId)
+              .setParameter("week", week)
+              .setParameter("id", planningId)
+              .uniqueResult();
     }
-    return (CollectionUtils.isNotEmpty(list) == true);
+    return other != null;
   }
 
-  public HRPlanningDO getEntry(final PFUserDO user, final Date week)
-  {
+  public HRPlanningDO getEntry(final PFUserDO user, final Date week) {
     return getEntry(user.getId(), week);
   }
 
-  @SuppressWarnings("unchecked")
-  public HRPlanningDO getEntry(final Integer userId, final Date week)
-  {
+  public HRPlanningDO getEntry(final Integer userId, final Date week) {
     final DateHolder date = new DateHolder(week, DateHelper.UTC, Locale.GERMANY);
     if (date.isBeginOfWeek() == false) {
       log.error("Date is not begin of week, try to change date: " + DateHelper.formatAsUTC(date.getDate()));
       date.setBeginOfWeek();
     }
-    final List<HRPlanningDO> list = (List<HRPlanningDO>) getHibernateTemplate().find(
-        "from HRPlanningDO p where p.user.id = ? and p.week = ?",
-        new Object[] { userId, date.getSQLDate() });
-    if (list == null || list.size() != 1) {
+    final HRPlanningDO planning = SQLHelper.ensureUniqueResult(getSession()
+            .createNamedQuery(HRPlanningDO.FIND_BY_USER_AND_WEEK, HRPlanningDO.class)
+            .setParameter("userId", userId)
+            .setParameter("week", week));
+    if (planning == null) {
       return null;
     }
-    final HRPlanningDO planning = list.get(0);
     if (accessChecker.hasLoggedInUserSelectAccess(userRightId, planning, false) == true) {
       return planning;
     } else {
@@ -183,8 +171,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO>
   }
 
   @Override
-  public List<HRPlanningDO> getList(final BaseSearchFilter filter)
-  {
+  public List<HRPlanningDO> getList(final BaseSearchFilter filter) {
     final HRPlanningFilter myFilter = (HRPlanningFilter) filter;
     if (myFilter.getStopTime() != null) {
       final DateHolder date = new DateHolder(myFilter.getStopTime());
@@ -199,8 +186,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO>
     return result;
   }
 
-  private boolean entryHasUpdates(final HRPlanningEntryDO entry, final HRPlanningDO existingPlanning)
-  {
+  private boolean entryHasUpdates(final HRPlanningEntryDO entry, final HRPlanningDO existingPlanning) {
     if (entry.getId() == null) {
       return true;
     }
@@ -214,8 +200,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO>
     return false;
   }
 
-  public QueryFilter buildQueryFilter(final HRPlanningFilter filter)
-  {
+  public QueryFilter buildQueryFilter(final HRPlanningFilter filter) {
     final QueryFilter queryFilter = new QueryFilter(filter);
     if (filter.getUserId() != null) {
       final PFUserDO user = new PFUserDO();
@@ -248,11 +233,10 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#onSaveOrModify(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
-  protected void onSaveOrModify(final HRPlanningDO obj)
-  {
+  protected void onSaveOrModify(final HRPlanningDO obj) {
     final DateHolder date = new DateHolder(obj.getWeek(), DateHelper.UTC, Locale.GERMANY);
     if (date.getDayOfWeek() != Calendar.MONDAY || date.getMilliSecond() != 0 || date.getMinute() != 0
-        || date.getHourOfDay() != 0) {
+            || date.getHourOfDay() != 0) {
       log.error("Date is not begin of week, try to change date: " + DateHelper.formatAsUTC(date.getDate()));
       obj.setFirstDayOfWeek(date.getSQLDate());
     }
@@ -276,7 +260,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO>
 
           final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
           if (projekt.getProjektManagerGroup() != null
-              && userGroupCache.isUserMemberOfGroup(userId, projekt.getProjektManagerGroupId()) == true) {
+                  && userGroupCache.isUserMemberOfGroup(userId, projekt.getProjektManagerGroupId()) == true) {
             userHasRightForProject = true;
           }
           if (userHasRightForProject == false) {
@@ -291,11 +275,10 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO>
 
   /**
    * @see org.projectforge.framework.persistence.api.BaseDao#prepareHibernateSearch(org.projectforge.core.ExtendedBaseDO,
-   *      org.projectforge.framework.access.OperationType)
+   * org.projectforge.framework.access.OperationType)
    */
   @Override
-  protected void prepareHibernateSearch(final HRPlanningDO obj, final OperationType operationType)
-  {
+  protected void prepareHibernateSearch(final HRPlanningDO obj, final OperationType operationType) {
     final List<HRPlanningEntryDO> entries = obj.getEntries();
     if (entries != null) {
       for (final HRPlanningEntryDO entry : entries) {
@@ -309,8 +292,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO>
   }
 
   @Override
-  public HRPlanningDO newInstance()
-  {
+  public HRPlanningDO newInstance() {
     return new HRPlanningDO();
   }
 
@@ -320,8 +302,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#getDisplayHistoryEntries(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
-  public List<DisplayHistoryEntry> getDisplayHistoryEntries(final HRPlanningDO obj)
-  {
+  public List<DisplayHistoryEntry> getDisplayHistoryEntries(final HRPlanningDO obj) {
     final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(obj);
     if (accessChecker.hasLoggedInUserHistoryAccess(userRightId, obj, false) == false) {
       return list;
@@ -348,11 +329,9 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO>
         list.addAll(entries);
       }
     }
-    Collections.sort(list, new Comparator<DisplayHistoryEntry>()
-    {
+    Collections.sort(list, new Comparator<DisplayHistoryEntry>() {
       @Override
-      public int compare(final DisplayHistoryEntry o1, final DisplayHistoryEntry o2)
-      {
+      public int compare(final DisplayHistoryEntry o1, final DisplayHistoryEntry o2) {
         return (o2.getTimestamp().compareTo(o1.getTimestamp()));
       }
     });
@@ -360,8 +339,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO>
   }
 
   @Override
-  protected Class<?>[] getAdditionalHistorySearchDOs()
-  {
+  protected Class<?>[] getAdditionalHistorySearchDOs() {
     return ADDITIONAL_SEARCH_DOS;
   }
 

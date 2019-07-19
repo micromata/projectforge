@@ -249,19 +249,20 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> internalLoadAll(final TenantDO tenant) {
     if (tenant == null) {
-      @SuppressWarnings("unchecked") final List<O> list = (List<O>) hibernateTemplate
-              .find("from " + clazz.getSimpleName() + " t where tenant_id is null");
-      return list;
+      return getSession().createQuery("FROM " + clazz.getSimpleName() + " t WHERE t.tenant.id is null",
+              clazz)
+              .list();
     }
-    if (tenant.isDefault() == true) {
-      @SuppressWarnings("unchecked") final List<O> list = (List<O>) hibernateTemplate.find(
-              "from " + clazz.getSimpleName() + " t where tenant_id = ? or tenant_id is null",
-              tenant.getId());
-      return list;
+    if (tenant.isDefault()) {
+      return getSession().createQuery("FROM " + clazz.getSimpleName() + " t WHERE t.tenant.id=:tid or t.tenant.id is null",
+              clazz)
+              .setParameter("tid", tenant.getId())
+              .list();
     } else {
-      @SuppressWarnings("unchecked") final List<O> list = (List<O>) hibernateTemplate
-              .find("from " + clazz.getSimpleName() + " t where tenant_id = ?", tenant.getId());
-      return list;
+      return getSession().createQuery("FROM " + clazz.getSimpleName() + " t WHERE t.tenant.id=:tid",
+              clazz)
+              .setParameter("tid", tenant.getId())
+              .list();
     }
   }
 

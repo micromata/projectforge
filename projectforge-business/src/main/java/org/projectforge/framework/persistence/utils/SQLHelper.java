@@ -23,60 +23,113 @@
 
 package org.projectforge.framework.persistence.utils;
 
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.query.Query;
+import org.projectforge.framework.i18n.InternalErrorException;
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.lang3.Validate;
-
 /**
  * Some helper methods ...
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class SQLHelper
-{
+public class SQLHelper {
   /**
    * Usage:<br/>
-   * 
    * <pre>
-   * List&lt;Object[]&gt; list = () getSession().createQuery(&quot;select min(datum), max(datum) from AuftragDO t&quot;).list();
-   * getYears(list);
+   *     final Object[] minMaxDate = getSession().createNamedQuery(ContractDO.SELECT_MIN_MAX_DATE, Object[].class)
+   *             .getSingleResult();
+   *     return SQLHelper.getYears((Date)minMaxDate[0], (Date)minMaxDate[1]);
    * </pre>
-   * 
-   * or
-   * 
-   * <pre>
-   * List&lt;Object[]&gt; list = () getSession().createQuery(&quot;select min(year), max(year) from EmployeeSalaryDO t&quot;).list();
-   * getYears(list);
-   * </pre>
-   * 
-   * @param list
-   * @return Array of years in descendent order.
+   *
+   * @return Array of years in descendent order. If min or max is null, the current year is returned.
    */
-  public static int[] getYears(List<Object[]> list)
-  {
-    Validate.notNull(list);
-    if (list.size() == 0 || list.get(0) == null || list.get(0)[0] == null) {
-      return new int[] { Calendar.getInstance().get(Calendar.YEAR)};
+  public static int[] getYears(Date min, Date max) {
+    if (min == null || max == null) {
+      return new int[]{Calendar.getInstance().get(Calendar.YEAR)};
     }
     int from, to;
-    if (list.get(0)[0] instanceof Date) {
-      Date min = (Date) list.get(0)[0];
-      Date max = (Date) list.get(0)[1];
-      Calendar cal = Calendar.getInstance();
-      cal.setTime(min);
-      from = cal.get(Calendar.YEAR);
-      cal.setTime(max);
-      to = cal.get(Calendar.YEAR);
-    } else {
-      from = (Integer) list.get(0)[0];
-      to = (Integer) list.get(0)[1];
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(min);
+    from = cal.get(Calendar.YEAR);
+    cal.setTime(max);
+    to = cal.get(Calendar.YEAR);
+    return getYears(from, to);
+  }
+
+  public static int[] getYears(Integer min, Integer max) {
+    if (min == null || max == null) {
+      return new int[]{Calendar.getInstance().get(Calendar.YEAR)};
     }
-    int[] res = new int[to - from + 1];
+    int[] res = new int[max - min + 1];
     int i = 0;
-    for (int year = to; year >= from; year--) {
+    for (int year = max; year >= min; year--) {
       res[i++] = year;
     }
     return res;
+  }
+
+  /**
+   * Do a query.list() call and ensures that the result is either null/empty or the result list has only one element (size == 1).
+   * If multiple entries were received, an Exception will be thrown
+   * <br/>
+   * Through this method ProjectForge ensures, that some entities are unique by their defined attributes (invoices with unique number etc.), especially
+   * if the uniquness can't be guaranteed by a data base constraint.
+   * <br/>
+   * An internal error prevents the system on proceed with inconsistent (multiple) data entries.
+   *
+   * @throws InternalErrorException if the list is not empty and has more than one elements (size > 1).
+   */
+  public static <T> T ensureUniqueResult(Query<T> query) {
+    return ensureUniqueResult(query, null);
+  }
+
+  /**
+   * Do a query.list() call and ensures that the result is either null/empty or the result list has only one element (size == 1).
+   * If multiple entries were received, an Exception will be thrown
+   * <br/>
+   * Through this method ProjectForge ensures, that some entities are unique by their defined attributes (invoices with unique number etc.), especially
+   * if the uniquness can't be guaranteed by a data base constraint.
+   * <br/>
+   * An internal error prevents the system on proceed with inconsistent (multiple) data entries.
+   *
+   * @param errorMessage An optional error message to display.
+   * @throws InternalErrorException if the list is not empty and has more than one elements (size > 1).
+   */
+  public static <T> T ensureUniqueResult(Query<T> query, String errorMessage) {
+    List<T> list = query.list();
+    if (list == null || list.size() == 0) {
+      return null;
+    }
+    if (list.size() > 1) {
+      throw new InternalErrorException("Internal error: ProjectForge detects an uniqueness violation in the database. Found multiple entries for: " + queryToString(query, errorMessage));
+    }
+    return list.get(0);
+  }
+
+
+  static String queryToString(Query<?> query, String errorMessage) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("query='")
+            .append(query.getQueryString())
+            .append("', params=[");
+    boolean first = true;
+    for (String param : query.getParameterMetadata().getNamedParameterNames()) {
+      if (!first) sb.append(",");
+      else first = false;
+      sb.append(param)
+              .append("=[")
+              .append(query.getParameterValue(param))
+              .append("]");
+    }
+    sb.append("]");
+    if (StringUtils.isNotBlank(errorMessage))
+      sb.append(", msg=[")
+              .append(errorMessage)
+              .append("]");
+    return sb.toString();
   }
 }

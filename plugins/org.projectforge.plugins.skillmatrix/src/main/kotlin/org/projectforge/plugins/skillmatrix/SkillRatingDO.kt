@@ -23,27 +23,17 @@
 
 package org.projectforge.plugins.skillmatrix
 
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.EnumType
-import javax.persistence.Enumerated
-import javax.persistence.FetchType
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.Table
-import javax.persistence.Transient
-
 import org.hibernate.search.annotations.Analyze
 import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Index
 import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.IndexedEmbedded
-import org.hibernate.search.annotations.Store
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.UserPrefParameter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.persistence.user.entities.UserPrefDO
+import javax.persistence.*
 
 /**
  * A skill usable for a skill matrix.
@@ -52,7 +42,15 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
  */
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_SKILL_RATING", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_skill_rating_skill_fk", columnList = "skill_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_skill_rating_user_fk", columnList = "user_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_skill_rating_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_PLUGIN_SKILL_RATING",
+        indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_skill_rating_skill_fk", columnList = "skill_fk"),
+            javax.persistence.Index(name = "idx_fk_t_plugin_skill_rating_user_fk", columnList = "user_fk"),
+            javax.persistence.Index(name = "idx_fk_t_plugin_skill_rating_tenant_id", columnList = "tenant_id")])
+@NamedQueries(
+        NamedQuery(name = SkillRatingDO.FIND_BY_USER_AND_SKILL,
+                query = "from SkillRatingDO where user.id=:userId and skill.id=:skillId"),
+        NamedQuery(name = SkillRatingDO.FIND_OTHER_BY_USER_AND_SKILL,
+                query = "from SkillRatingDO where user.id=:userId and skill.id=:skillId and id!=:id"))
 class SkillRatingDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skillrating.user")
@@ -108,4 +106,9 @@ class SkillRatingDO : DefaultBaseDO() {
     val skillId: Int?
         @Transient
         get() = if (skill != null) skill!!.id else null
+
+    companion object {
+        internal const val FIND_BY_USER_AND_SKILL = "SkillRatingDO_FindByUserAndSkill"
+        internal const val FIND_OTHER_BY_USER_AND_SKILL = "SkillRatingDO_FindOtherByUserAndSkill"
+    }
 }

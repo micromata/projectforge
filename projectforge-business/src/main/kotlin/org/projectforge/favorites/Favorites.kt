@@ -206,7 +206,7 @@ open class Favorites<T : AbstractFavorite>() {
             if (userPref != null) {
                 userPrefDao.delete(userPref)
             } else {
-                log.warn("User tried to delete user pref with id #$id for area '$area', but it can't be deleted (is from other user, different area or an has unknown id).")
+                log.warn("User tried to delete user pref with id #$id for area '$area', but it can't be deleted (is from other user, different area or has an unknown id).")
             }
         }
 

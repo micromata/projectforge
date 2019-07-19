@@ -25,6 +25,7 @@ package org.projectforge.test;
 
 import de.micromata.genome.db.jpa.history.api.HistoryEntry;
 import de.micromata.genome.db.jpa.history.entities.EntityOpType;
+import org.hibernate.SessionFactory;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -142,6 +143,9 @@ public abstract class AbstractTestBase {
 
   @Autowired
   protected HibernateTemplate hibernateTemplate;
+
+  @Autowired
+  protected SessionFactory sessionFactory;
 
   @Autowired
   protected UserService userService;

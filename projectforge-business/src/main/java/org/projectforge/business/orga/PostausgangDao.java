@@ -25,6 +25,7 @@ package org.projectforge.business.orga;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.hibernate.criterion.Order;
+import org.projectforge.business.fibu.RechnungDO;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
@@ -57,14 +58,12 @@ public class PostausgangDao extends BaseDao<PostausgangDO>
 
   /**
    * List of all years with invoices: select min(datum), max(datum) from t_fibu_rechnung.
-   *
-   * @return
    */
-  @SuppressWarnings("unchecked")
   public int[] getYears()
   {
-    final List<Object[]> list = getSession().createQuery("select min(datum), max(datum) from PostausgangDO t").list();
-    return SQLHelper.getYears(list);
+    final Object[] minMaxDate = getSession().createNamedQuery(PostausgangDO.SELECT_MIN_MAX_DATE, Object[].class)
+            .getSingleResult();
+    return SQLHelper.getYears((java.sql.Date)minMaxDate[0], (java.sql.Date)minMaxDate[1]);
   }
 
   @Override
