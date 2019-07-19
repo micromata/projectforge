@@ -229,9 +229,6 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
 
   public List<UserPrefDO> getUserPrefs(final UserPrefArea area) {
     final PFUserDO user = ThreadLocalUserContext.getUser();
-    @SuppressWarnings("unchecked") final List<UserPrefDO> list = (List<UserPrefDO>) getHibernateTemplate().find(
-            "from UserPrefDO u where u.user.id = ? and u.area = ?",
-            new Object[]{user.getId(), area.getId()});
     final List<UserPrefDO> list = getSession().createNamedQuery(UserPrefDO.FIND_BY_USER_ID_AND_AREA, UserPrefDO.class)
             .setParameter("userId", user.getId())
             .setParameter("area", area.getId())
