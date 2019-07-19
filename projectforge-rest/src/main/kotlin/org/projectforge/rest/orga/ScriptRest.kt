@@ -23,24 +23,17 @@
 
 package org.projectforge.rest.orga
 
-import org.projectforge.business.orga.PostFilter
-import org.projectforge.business.orga.PostType
-import org.projectforge.business.orga.PosteingangDO
-import org.projectforge.business.orga.PosteingangDao
 import org.projectforge.business.scripting.ScriptDO
 import org.projectforge.business.scripting.ScriptDao
-import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.time.PFDate
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/script")
-class ScriptRest() : AbstractDORest<ScriptDO, ScriptDao>(baseDaoClazz = ScriptDao::class.java, i18nKeyPrefix = "scripting.title") {
+class ScriptRest: AbstractDORest<ScriptDO, ScriptDao>(baseDaoClazz = ScriptDao::class.java, i18nKeyPrefix = "scripting.title") {
 
     /**
      * LAYOUT List page
@@ -84,7 +77,7 @@ class ScriptRest() : AbstractDORest<ScriptDO, ScriptDao>(baseDaoClazz = ScriptDa
                                 .add(lc, "parameter6Name")
                                 .add(lc, "parameter6Type")))
                 .add(lc, "description")
-                .add(UILabel("TODO: Implement script component"))
+                .add(UILabel("TODO: Implement script cmd window"))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }
