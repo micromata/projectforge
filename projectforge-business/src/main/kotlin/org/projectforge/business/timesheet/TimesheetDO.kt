@@ -55,7 +55,11 @@ import javax.persistence.*
         NamedQuery(name = TimesheetDO.FIND_START_STOP_BY_TASKID,
                 query = "select startTime, stopTime from TimesheetDO where task.id = :taskId and deleted = false"),
         NamedQuery(name = TimesheetDO.SELECT_MIN_MAX_DATE_FOR_USER,
-                query = "select min(startTime), max(startTime) from TimesheetDO where user.id=:userId and deleted=false"))
+                query = "select min(startTime), max(startTime) from TimesheetDO where user.id=:userId and deleted=false"),
+        NamedQuery(name = TimesheetDO.SELECT_USED_LOCATIONS_BY_USER_AND_LOCATION_SEARCHSTRING,
+                query = "select distinct location from TimesheetDO where deleted=false and user.id=:userId and lastUpdate>:lastUpdate and lower(location) like :locationSearch order by location"),
+        NamedQuery(name = TimesheetDO.SELECT_RECENT_USED_LOCATIONS_BY_USER_AND_LAST_UPDATE,
+                query = "select distinct location from TimesheetDO where deleted=false and user.id=:userId and lastUpdate>:lastUpdate and location!=null and location!='' order by lastUpdate desc"))
 class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
 
     @PropertyInfo(i18nKey = "task")
@@ -236,5 +240,7 @@ class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
     companion object {
         const val FIND_START_STOP_BY_TASKID = "TimesheetDO_FindStartStopByTaskId"
         internal const val SELECT_MIN_MAX_DATE_FOR_USER = "TimesheetDO_SelectMinMaxDateForUser"
+        internal const val SELECT_USED_LOCATIONS_BY_USER_AND_LOCATION_SEARCHSTRING = "TimesheetDO_SelectLocationsByUserAndLocationSearchstring"
+        internal const val SELECT_RECENT_USED_LOCATIONS_BY_USER_AND_LAST_UPDATE = "TimesheetDO_SelectRecentUsedLocationsByUserAndLastUpdate"
     }
 }

@@ -45,46 +45,37 @@ import java.util.List;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-public class EmployeeSalaryDao extends BaseDao<EmployeeSalaryDO>
-{
-  private static final Logger log = LoggerFactory.getLogger(EmployeeSalaryDao.class);
-
+public class EmployeeSalaryDao extends BaseDao<EmployeeSalaryDO> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.HR_EMPLOYEE_SALARY;
+  private static final Logger log = LoggerFactory.getLogger(EmployeeSalaryDao.class);
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"employee.user.lastname",
+          "employee.user.firstname"};
+  @Autowired
+  private PfEmgrFactory pfEmgrFactory;
+  @Autowired
+  private EmployeeDao employeeDao;
 
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "employee.user.lastname",
-      "employee.user.firstname" };
-
-  public EmployeeSalaryDao()
-  {
+  public EmployeeSalaryDao() {
     super(EmployeeSalaryDO.class);
     userRightId = USER_RIGHT_ID;
   }
 
-  @Autowired
-  private PfEmgrFactory pfEmgrFactory;
-
-  @Autowired
-  private EmployeeDao employeeDao;
-
   @Override
-  protected String[] getAdditionalSearchFields()
-  {
+  protected String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
   /**
    * List of all years with employee salaries: select min(year), max(year) from t_fibu_employee_salary.
    */
-  public int[] getYears()
-  {
-    final Integer[] minMaxYear = getSession().createNamedQuery(EmployeeSalaryDO.SELECT_MIN_MAX_YEAR,Integer[].class)
+  public int[] getYears() {
+    final Object[] minMaxYear = getSession().createNamedQuery(EmployeeSalaryDO.SELECT_MIN_MAX_YEAR, Object[].class)
             .getSingleResult();
-    return SQLHelper.getYears(minMaxYear[0], minMaxYear[1]);
+    return SQLHelper.getYears((Integer)minMaxYear[0], (Integer)minMaxYear[1]);
   }
 
   @Override
-  public List<EmployeeSalaryDO> getList(BaseSearchFilter filter)
-  {
+  public List<EmployeeSalaryDO> getList(BaseSearchFilter filter) {
     final EmployeeSalaryFilter myFilter;
     if (filter instanceof EmployeeSalaryFilter) {
       myFilter = (EmployeeSalaryFilter) filter;
@@ -105,28 +96,27 @@ public class EmployeeSalaryDao extends BaseDao<EmployeeSalaryDO>
   }
 
   @Override
-  protected void onSaveOrModify(EmployeeSalaryDO obj)
-  {
+  protected void onSaveOrModify(EmployeeSalaryDO obj) {
     if (obj.getId() == null) {
       List<EmployeeSalaryDO> list = pfEmgrFactory.runRoTrans(emgr -> {
         return emgr.select(EmployeeSalaryDO.class, "SELECT s FROM EmployeeSalaryDO s WHERE s.year = :year and s.month = :month and s.employee.id = :employeeid",
-            "year", obj.getYear(), "month", obj.getMonth(), "employeeid", obj.getEmployeeId());
+                "year", obj.getYear(), "month", obj.getMonth(), "employeeid", obj.getEmployeeId());
       });
       if (CollectionUtils.isNotEmpty(list)) {
         log.info("Insert of EmployeeSalaryDO not possible. There is a existing one for employee with id: " + obj.getEmployeeId() + " and year: " +
-            obj.getYear() + " and month: " + obj.getMonth() + " . Existing one: " + list.get(0).toString());
+                obj.getYear() + " and month: " + obj.getMonth() + " . Existing one: " + list.get(0).toString());
         throw new UserException("fibu.employee.salary.error.salaryAlreadyExist");
       }
     } else {
       List<EmployeeSalaryDO> list = pfEmgrFactory.runRoTrans(emgr -> {
         return emgr
-            .select(EmployeeSalaryDO.class,
-                "SELECT s FROM EmployeeSalaryDO s WHERE s.year = :year and s.month = :month and s.employee.id = :employeeid and s.id <> :id",
-                "year", obj.getYear(), "month", obj.getMonth(), "employeeid", obj.getEmployeeId(), "id", obj.getId());
+                .select(EmployeeSalaryDO.class,
+                        "SELECT s FROM EmployeeSalaryDO s WHERE s.year = :year and s.month = :month and s.employee.id = :employeeid and s.id <> :id",
+                        "year", obj.getYear(), "month", obj.getMonth(), "employeeid", obj.getEmployeeId(), "id", obj.getId());
       });
       if (CollectionUtils.isNotEmpty(list)) {
         log.info("Update of EmployeeSalaryDO not possible. There is a existing one for employee with id: " + obj.getEmployeeId() + " and year: " +
-            obj.getYear() + " and month: " + obj.getMonth() + " and ID: " + obj.getId() + " . Existing one: " + list.get(0).toString());
+                obj.getYear() + " and month: " + obj.getMonth() + " and ID: " + obj.getId() + " . Existing one: " + list.get(0).toString());
         throw new UserException("fibu.employee.salary.error.salaryAlreadyExist");
       }
     }
@@ -137,25 +127,22 @@ public class EmployeeSalaryDao extends BaseDao<EmployeeSalaryDO>
    * @param employeeId     If null, then employee will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
-  public void setEmployee(final EmployeeSalaryDO employeeSalary, Integer employeeId)
-  {
+  public void setEmployee(final EmployeeSalaryDO employeeSalary, Integer employeeId) {
     EmployeeDO employee = employeeDao.getOrLoad(employeeId);
     employeeSalary.setEmployee(employee);
   }
 
   @Override
-  public EmployeeSalaryDO newInstance()
-  {
+  public EmployeeSalaryDO newInstance() {
     return new EmployeeSalaryDO();
   }
 
-  public List<EmployeeSalaryDO> findByEmployee(EmployeeDO employee)
-  {
+  public List<EmployeeSalaryDO> findByEmployee(EmployeeDO employee) {
     List<EmployeeSalaryDO> salaryList = new ArrayList<>();
     salaryList = pfEmgrFactory.runRoTrans(emgr -> {
       return emgr
-          .createQuery(EmployeeSalaryDO.class, "from EmployeeSalaryDO sal where sal.employee = :emp", "emp", employee)
-          .getResultList();
+              .createQuery(EmployeeSalaryDO.class, "from EmployeeSalaryDO sal where sal.employee = :emp", "emp", employee)
+              .getResultList();
     });
     return salaryList;
   }

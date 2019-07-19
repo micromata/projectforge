@@ -23,20 +23,13 @@
 
 package org.projectforge.plugins.marketing
 
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.FetchType
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.Table
-import javax.persistence.Transient
-import javax.persistence.UniqueConstraint
-
 import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.business.address.AddressDO
 import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.user.entities.UserPrefDO
+import javax.persistence.*
 
 /**
  * A marketing campaign.
@@ -46,6 +39,11 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 @Entity
 @Indexed
 @Table(name = "T_PLUGIN_MARKETING_ADDRESS_CAMPAIGN_VALUE", uniqueConstraints = [UniqueConstraint(columnNames = ["address_fk", "address_campaign_fk"])], indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_marketing_address_campaign_value_address_campai", columnList = "address_campaign_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_marketing_address_campaign_value_address_fk", columnList = "address_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_marketing_address_campaign_value_tenant_id", columnList = "tenant_id")])
+@NamedQueries(
+        NamedQuery(name = AddressCampaignValueDO.FIND_BY_ADDRESS_AND_CAMPAIGN,
+                query = "from AddressCampaignValueDO where address.id=:addressId and addressCampaign.id=:addressCampaignId"),
+        NamedQuery(name = AddressCampaignValueDO.FIND_BY_CAMPAIGN,
+                query = "from AddressCampaignValueDO where addressCampaign.id=:addressCampaignId and deleted=false"))
 class AddressCampaignValueDO : DefaultBaseDO() {
 
     @IndexedEmbedded(depth = 1)
@@ -72,4 +70,8 @@ class AddressCampaignValueDO : DefaultBaseDO() {
         @Transient
         get() = if (this.address != null) this.address!!.id else null
 
+    companion object {
+        internal const val FIND_BY_ADDRESS_AND_CAMPAIGN = "AddressCampaignValueDO_FindByAddressAndCampaign"
+        internal const val FIND_BY_CAMPAIGN = "AddressCampaignValueDO_FindByCampaign"
+    }
 }

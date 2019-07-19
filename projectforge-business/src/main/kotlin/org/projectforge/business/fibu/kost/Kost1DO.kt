@@ -40,6 +40,11 @@ import javax.persistence.*
 @ClassBridge(name = "nummer", impl = HibernateSearchKost1Bridge::class)
 @Table(name = "T_FIBU_KOST1", uniqueConstraints = [UniqueConstraint(columnNames = ["nummernkreis", "bereich", "teilbereich", "endziffer", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_kost1_tenant_id", columnList = "tenant_id")])
 @WithHistory
+@NamedQueries(
+        NamedQuery(name = Kost1DO.FIND_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER,
+                query = "from Kost1DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and endziffer=:endziffer"),
+        NamedQuery(name = Kost1DO.FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER,
+                query = "from Kost1DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and endziffer=:endziffer and id!=:id"))
 class Kost1DO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     @PropertyInfo(i18nKey = "status")
@@ -133,6 +138,7 @@ class Kost1DO : DefaultBaseDO(), ShortDisplayNameCapable {
     }
 
     companion object {
-        private val serialVersionUID = -6534347300453425760L
+        const val FIND_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER = "Kost1DO_FindByNKBereichTeilbereichEndziffer"
+        const val FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER = "Kost1DO_FindOtherByNKBereichTeilbereichEndziffer"
     }
 }

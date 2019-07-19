@@ -23,9 +23,6 @@
 
 package org.projectforge.business.fibu.kost;
 
-import java.util.List;
-
-import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.ProjektDO;
@@ -36,20 +33,22 @@ import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Repository
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS, isolation = Isolation.REPEATABLE_READ)
-public class Kost2Dao extends BaseDao<Kost2DO>
-{
+public class Kost2Dao extends BaseDao<Kost2DO> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.FIBU_COST_UNIT;
 
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "projekt.name", "projekt.kunde.name",
-      "nummer" };
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"projekt.name", "projekt.kunde.name",
+          "nummer"};
 
   @Autowired
   private ProjektDao projektDao;
@@ -60,8 +59,7 @@ public class Kost2Dao extends BaseDao<Kost2DO>
   @Autowired
   private KostCache kostCache;
 
-  public Kost2Dao()
-  {
+  public Kost2Dao() {
     super(Kost2DO.class);
     userRightId = USER_RIGHT_ID;
   }
@@ -69,14 +67,12 @@ public class Kost2Dao extends BaseDao<Kost2DO>
   /**
    * @return the kostCache
    */
-  public KostCache getKostCache()
-  {
+  public KostCache getKostCache() {
     return kostCache;
   }
 
   @Override
-  protected String[] getAdditionalSearchFields()
-  {
+  protected String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
@@ -85,8 +81,7 @@ public class Kost2Dao extends BaseDao<Kost2DO>
    * @param projektId If null, then projekt will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
-  public void setProjekt(final Kost2DO kost2, final Integer projektId)
-  {
+  public void setProjekt(final Kost2DO kost2, final Integer projektId) {
     final ProjektDO projekt = projektDao.getOrLoad(projektId);
     if (projekt != null) {
       kost2.setProjekt(projekt);
@@ -101,8 +96,7 @@ public class Kost2Dao extends BaseDao<Kost2DO>
    * @param kost2ArtId If null, then kost2Art will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
-  public void setKost2Art(final Kost2DO kost2, final Integer kost2ArtId)
-  {
+  public void setKost2Art(final Kost2DO kost2, final Integer kost2ArtId) {
     final Kost2ArtDO kost2Art = kost2ArtDao.getOrLoad(kost2ArtId);
     kost2.setKost2Art(kost2Art);
   }
@@ -112,8 +106,7 @@ public class Kost2Dao extends BaseDao<Kost2DO>
    * @see #getKost2(int, int, int, int)
    */
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public Kost2DO getKost2(final String kostString)
-  {
+  public Kost2DO getKost2(final String kostString) {
     final int[] kost = KostHelper.parseKostString(kostString);
     if (kost == null) {
       return null;
@@ -121,37 +114,28 @@ public class Kost2Dao extends BaseDao<Kost2DO>
     return getKost2(kost[0], kost[1], kost[2], kost[3]);
   }
 
-  @SuppressWarnings("unchecked")
-  public Kost2DO getKost2(final int nummernkreis, final int bereich, final int teilbereich, final int kost2Art)
-  {
-    final List<Kost2DO> list = (List<Kost2DO>) getHibernateTemplate().find(
-        "from Kost2DO k where k.nummernkreis=? and k.bereich=? and k.teilbereich=? and k.kost2Art.id=?",
-        new Object[] { nummernkreis, bereich, teilbereich, kost2Art });
-    if (CollectionUtils.isEmpty(list) == true) {
-      return null;
-    }
-    return list.get(0);
+  public Kost2DO getKost2(final int nummernkreis, final int bereich, final int teilbereich, final int kost2Art) {
+    return SQLHelper.ensureUniqueResult(getSession()
+            .createNamedQuery(Kost2DO.FIND_BY_NK_BEREICH_TEILBEREICH_KOST2ART, Kost2DO.class)
+            .setParameter("nummernkreis", nummernkreis)
+            .setParameter("bereich", bereich)
+            .setParameter("teilbereich", teilbereich)
+            .setParameter("kost2ArtId", kost2Art));
   }
 
-  @SuppressWarnings("unchecked")
-  public List<Kost2DO> getActiveKost2(final int nummernkreis, final int bereich, final int teilbereich)
-  {
-    final List<Kost2DO> list = (List<Kost2DO>) getHibernateTemplate()
-        .find(
-            "from Kost2DO k where k.nummernkreis=? and k.bereich=? and k.teilbereich=? and (k.kostentraegerStatus='ACTIVE' or k.kostentraegerStatus is null) order by k.kost2Art.id",
-            new Object[] { nummernkreis, bereich, teilbereich });
-    if (CollectionUtils.isEmpty(list) == true) {
-      return null;
-    }
-    return list;
+  public List<Kost2DO> getActiveKost2(final int nummernkreis, final int bereich, final int teilbereich) {
+    return getSession().createNamedQuery(Kost2DO.FIND_ACTIVES_BY_NK_BEREICH_TEILBEREICH, Kost2DO.class)
+            .setParameter("nummernkreis", nummernkreis)
+            .setParameter("bereich", bereich)
+            .setParameter("teilbereich", teilbereich)
+            .list();
   }
 
   /**
    * @param projekt
    * @see #getActiveKost2(int, int, int)
    */
-  public List<Kost2DO> getActiveKost2(final ProjektDO projekt)
-  {
+  public List<Kost2DO> getActiveKost2(final ProjektDO projekt) {
     if (projekt == null) {
       return null;
     }
@@ -160,8 +144,7 @@ public class Kost2Dao extends BaseDao<Kost2DO>
 
   @Override
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public List<Kost2DO> getList(final BaseSearchFilter filter)
-  {
+  public List<Kost2DO> getList(final BaseSearchFilter filter) {
     final KostFilter myFilter;
     if (filter instanceof KostFilter) {
       myFilter = (KostFilter) filter;
@@ -178,68 +161,67 @@ public class Kost2Dao extends BaseDao<Kost2DO>
       queryFilter.add(Restrictions.eq("kostentraegerStatus", KostentraegerStatus.ENDED));
     } else if (myFilter.isNotEnded() == true) {
       queryFilter.add(Restrictions.or(Restrictions.ne("kostentraegerStatus", ProjektStatus.ENDED),
-          Restrictions.isNull("kostentraegerStatus")));
+              Restrictions.isNull("kostentraegerStatus")));
     }
     queryFilter.addOrder(Order.asc("nummernkreis")).addOrder(Order.asc("bereich")).addOrder(Order.asc("teilbereich"))
-        .addOrder(
-            Order.asc("art.id"));
+            .addOrder(
+                    Order.asc("art.id"));
     return getList(queryFilter);
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  protected void onSaveOrModify(final Kost2DO obj)
-  {
+  protected void onSaveOrModify(final Kost2DO obj) {
     if (obj.getProjektId() != null) {
       // Projekt ist gegeben. Dann müssen auch die Ziffern stimmen:
       final ProjektDO projekt = projektDao.getById(obj.getProjektId()); // Bei Neuanlage ist Projekt nicht wirklich gebunden.
       if (projekt.getNummernkreis() != obj.getNummernkreis()
-          || projekt.getBereich() != obj.getBereich()
-          || projekt.getNummer() != obj.getTeilbereich()) {
+              || projekt.getBereich() != obj.getBereich()
+              || projekt.getNummer() != obj.getTeilbereich()) {
         throw new UserException("Inkonsistenz bei Kost2: "
-            + obj.getNummernkreis()
-            + "."
-            + obj.getBereich()
-            + "."
-            + obj.getTeilbereich()
-            + " != "
-            + projekt.getNummernkreis()
-            + "."
-            + projekt.getBereich()
-            + "."
-            + projekt.getNummer()
-            + " (Projekt)");
+                + obj.getNummernkreis()
+                + "."
+                + obj.getBereich()
+                + "."
+                + obj.getTeilbereich()
+                + " != "
+                + projekt.getNummernkreis()
+                + "."
+                + projekt.getBereich()
+                + "."
+                + projekt.getNummer()
+                + " (Projekt)");
       }
     } else if (obj.getNummernkreis() == 4 || obj.getNummernkreis() == 5) {
       throw new UserException("fibu.kost2.error.projektNeededForNummernkreis");
     }
-    List<Kost2DO> list = null;
-    final String sql = "from Kost2DO k where k.nummernkreis = ? and k.bereich = ? and k.teilbereich = ? and k.kost2Art.id = ?";
+    Kost2DO other = null;
     if (obj.getId() == null) {
       // New kost entry
-      list = (List<Kost2DO>) getHibernateTemplate().find(sql,
-          new Object[] { obj.getNummernkreis(), obj.getBereich(), obj.getTeilbereich(), obj.getKost2ArtId() });
+      other = getKost2(obj.getNummernkreis(), obj.getBereich(), obj.getTeilbereich(), obj.getKost2ArtId());
     } else {
       // kost entry already exists. Check maybe changed:
-      list = (List<Kost2DO>) getHibernateTemplate().find(sql + " and pk <> ?",
-          new Object[] { obj.getNummernkreis(), obj.getBereich(), obj.getTeilbereich(), obj.getKost2ArtId(),
-              obj.getId() });
+      other = getSession().createNamedQuery(Kost2DO.FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_KOST2ART, Kost2DO.class)
+              .setParameter("nummernkreis", obj.getNummernkreis())
+              .setParameter("bereich", obj.getBereich())
+              .setParameter("teilbereich", obj.getTeilbereich())
+              .setParameter("kost2ArtId", obj.getKost2ArtId())
+              .setParameter("id", obj.getId())
+              .uniqueResult();
     }
-    if (CollectionUtils.isNotEmpty(list) == true) {
+    if (other != null) {
       throw new UserException("fibu.kost.error.collision");
     }
   }
 
   @Override
-  protected void afterSaveOrModify(final Kost2DO kost2)
-  {
+  protected void afterSaveOrModify(final Kost2DO kost2) {
     super.afterSaveOrModify(kost2);
     getKostCache().updateKost2(kost2);
   }
 
   @Override
-  public Kost2DO newInstance()
-  {
+  public Kost2DO newInstance() {
     return new Kost2DO();
   }
 }

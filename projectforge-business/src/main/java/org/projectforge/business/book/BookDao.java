@@ -23,7 +23,6 @@
 
 package org.projectforge.business.book;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.framework.access.OperationType;
@@ -31,8 +30,6 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -66,20 +63,20 @@ public class BookDao extends BaseDao<BookDO> {
     if (book.getSignature() == null) {
       return false;
     }
-    List<BookDO> list = null;
+    BookDO other = null;
     if (book.getId() == null) {
       // New book
-      list = getSession().createNamedQuery(BookDO.FIND_BY_SIGNATURE, BookDO.class)
+      other = getSession().createNamedQuery(BookDO.FIND_BY_SIGNATURE, BookDO.class)
               .setParameter("signature", book.getSignature())
-              .list();
+              .uniqueResult();
     } else {
       // Book already exists. Check maybe changed signature:
-      list = getSession().createNamedQuery(BookDO.FIND_OTHER_BY_SIGNATURE, BookDO.class)
+      other = getSession().createNamedQuery(BookDO.FIND_OTHER_BY_SIGNATURE, BookDO.class)
               .setParameter("signature", book.getSignature())
               .setParameter("id", book.getId())
-              .list();
+              .uniqueResult();
     }
-    return CollectionUtils.isNotEmpty(list);
+    return other != null;
   }
 
   /**

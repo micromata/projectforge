@@ -59,7 +59,7 @@ import javax.persistence.Index
 @JpaXmlPersist(beforePersistListener = [TaskXmlBeforePersistListener::class])
 @NamedQueries(
         NamedQuery(name = TaskDO.FIND_OTHER_TASK_BY_PARENTTASKID_AND_TITLE,
-                query = "from TaskDO where parentTask.id=:parentTaskId and title=:title and id<>id"),
+                query = "from TaskDO where parentTask.id=:parentTaskId and title=:title and id!=:id"),
         NamedQuery(name = TaskDO.FIND_BY_PARENTTASKID_AND_TITLE,
                 query = "from TaskDO where parentTask.id=:parentTaskId and title=:title"))
 class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObject

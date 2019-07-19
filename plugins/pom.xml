@@ -18,7 +18,6 @@
     <module>org.projectforge.plugins.liquidityplanning</module>
     <module>org.projectforge.plugins.licensemanagement</module>
     <module>org.projectforge.plugins.poll</module>
-    <module>org.projectforge.plugins.crm</module>
     <module>org.projectforge.plugins.ihkexport</module>
     <module>org.projectforge.plugins.extendemployeedata</module>
     <module>org.projectforge.plugins.financialfairplay</module>

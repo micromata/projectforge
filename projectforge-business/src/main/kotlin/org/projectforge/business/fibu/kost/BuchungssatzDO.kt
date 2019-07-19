@@ -23,39 +23,20 @@
 
 package org.projectforge.business.fibu.kost
 
-import java.math.BigDecimal
-import java.math.RoundingMode
-import java.util.Date
-
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.EnumType
-import javax.persistence.Enumerated
-import javax.persistence.FetchType
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.Table
-import javax.persistence.Transient
-import javax.persistence.UniqueConstraint
-
+import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.apache.commons.lang3.StringUtils
-import org.hibernate.search.annotations.Analyze
-import org.hibernate.search.annotations.DateBridge
-import org.hibernate.search.annotations.EncodingType
-import org.hibernate.search.annotations.Field
+import org.hibernate.search.annotations.*
 import org.hibernate.search.annotations.Index
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
-import org.hibernate.search.annotations.Resolution
-import org.hibernate.search.annotations.Store
 import org.projectforge.business.fibu.KontoDO
 import org.projectforge.common.StringHelper
-import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-
-import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.user.entities.UserPrefDO
+import org.slf4j.LoggerFactory
+import java.math.BigDecimal
+import java.math.RoundingMode
+import java.util.*
+import javax.persistence.*
 
 /**
  * Repräsentiert einen importierten Datev-Buchungssatz. Die Buchungssätze bilden die Grundlage für
@@ -65,6 +46,9 @@ import org.projectforge.common.anots.PropertyInfo
 @Indexed
 @Table(name = "t_fibu_buchungssatz", uniqueConstraints = [UniqueConstraint(columnNames = ["year", "month", "satznr", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_gegenkonto_id", columnList = "gegenkonto_id"), javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_konto_id", columnList = "konto_id"), javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_kost1_id", columnList = "kost1_id"), javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_kost2_id", columnList = "kost2_id"), javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_tenant_id", columnList = "tenant_id")])
 @WithHistory
+@NamedQueries(
+        NamedQuery(name = BuchungssatzDO.FIND_BY_YEAR_MONTH_SATZNR,
+                query = "from BuchungssatzDO where year=:year and month=:month and satznr=:satznr"))
 class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
 
     private val log = LoggerFactory.getLogger(BuchungssatzDO::class.java)
@@ -239,5 +223,9 @@ class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
         return if (r != 0) {
             r
         } else this.satznr!!.compareTo(other.satznr!!)
+    }
+
+    companion object {
+        internal const val FIND_BY_YEAR_MONTH_SATZNR = "BuchungssatzDO_FindByYearMonthSatznr"
     }
 }

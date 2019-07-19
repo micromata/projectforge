@@ -29,13 +29,14 @@
     <system>Jenkins</system>
     <url>https://www.projectforge.org</url>
   </ciManagement>
-  <repositories>
+  <!--repositories>
+  Only needed e. g. for new mgc releases, they're might be available on mvnrepository on day later.
     <repository>
       <id>oss-sonatype</id>
       <name>oss-sonatype</name>
       <url>https://oss.sonatype.org/content/repositories/public/</url>
     </repository>
-  </repositories>
+  </repositories-->
   <scm>
     <url>https://github.com/micromata/projectforge</url>
     <connection>scm:git:git://github.com/micromata/projectforge.git</connection>

@@ -50,10 +50,11 @@ import javax.persistence.*
             javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_projekt_id", columnList = "projekt_id"),
             javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_tenant_id", columnList = "tenant_id")
         ])
-@NamedQueries(
-        NamedQuery(name = RechnungDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from RechnungDO"))
 @WithHistory(noHistoryProperties = ["lastUpdate", "created"],
         nestedEntities = [RechnungsPositionDO::class])
+@NamedQueries(
+        NamedQuery(name = RechnungDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from RechnungDO"),
+        NamedQuery(name = RechnungDO.FIND_OTHER_BY_NUMMER, query = "from RechnungDO where nummer=:nummer and id!=:id"))
 class RechnungDO : AbstractRechnungDO<RechnungsPositionDO>(), Comparable<RechnungDO> {
 
     @PropertyInfo(i18nKey = "fibu.rechnung.nummer")
@@ -198,5 +199,6 @@ class RechnungDO : AbstractRechnungDO<RechnungsPositionDO>(), Comparable<Rechnun
 
     companion object {
         internal const val SELECT_MIN_MAX_DATE = "RechnungDO_SelectMinMaxDate"
+        internal const val FIND_OTHER_BY_NUMMER = "RechnungDO_FindOtherByNummer"
     }
 }
