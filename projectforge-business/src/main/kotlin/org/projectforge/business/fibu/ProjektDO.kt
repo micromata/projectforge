@@ -45,6 +45,8 @@ import javax.persistence.*
 @ClassBridge(name = "kost2", impl = HibernateSearchProjectKostBridge::class)
 @Table(name = "T_FIBU_PROJEKT", uniqueConstraints = [UniqueConstraint(columnNames = ["nummer", "kunde_id", "tenant_id"]), UniqueConstraint(columnNames = ["nummer", "intern_kost2_4", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_projekt_konto_id", columnList = "konto_id"), javax.persistence.Index(name = "idx_fk_t_fibu_projekt_kunde_id", columnList = "kunde_id"), javax.persistence.Index(name = "idx_fk_t_fibu_projekt_projektmanager_group_fk", columnList = "projektmanager_group_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_projekt_projectManager_fk", columnList = "projectmanager_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_projekt_headofbusinessmanager_fk", columnList = "headofbusinessmanager_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_projekt_salesmanager_fk", columnList = "salesmanager_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_projekt_task_fk", columnList = "task_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_projekt_tenant_id", columnList = "tenant_id")])
 @WithHistory
+@NamedQueries(
+        NamedQuery(name = ProjektDO.FIND_BY_INTERNKOST24_AND_NUMMER, query = "from ProjektDO where internKost2_4=:internKost24 and nummer=:nummer"))
 class ProjektDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     /**
@@ -201,5 +203,9 @@ class ProjektDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @Transient
     override fun getShortDisplayName(): String {
         return KostFormatter.formatProjekt(this)
+    }
+
+    companion object {
+        internal const val FIND_BY_INTERNKOST24_AND_NUMMER = "ProjektDO_FindByInternkostAndNummer"
     }
 }

@@ -198,16 +198,16 @@ public class TaskDao extends BaseDao<TaskDO> {
         return (Long) list.get(0);
       }
     }
-    List<Timestamp[]> result = getSession().createNamedQuery(TimesheetDO.FIND_START_STOP_BY_TASKID, Timestamp[].class)
+    List<Object[]> result = getSession().createNamedQuery(TimesheetDO.FIND_START_STOP_BY_TASKID, Object[].class)
             .setParameter("taskId", taskId)
             .list();
     if (CollectionUtils.isEmpty(result) == true) {
       return new Long(0);
     }
     long totalDuration = 0;
-    for (final Timestamp[] oa : result) {
-      final Timestamp startTime = oa[0];
-      final Timestamp stopTime = oa[1];
+    for (final Object[] oa : result) {
+      final Timestamp startTime = (Timestamp)oa[0];
+      final Timestamp stopTime = (Timestamp)oa[1];
       final long duration = stopTime.getTime() - startTime.getTime();
       totalDuration += duration;
     }
@@ -264,20 +264,20 @@ public class TaskDao extends BaseDao<TaskDO> {
         throw new UserException(I18N_KEY_ERROR_PARENT_TASK_NOT_GIVEN);
       }
     } else {
-      List<TaskDO> list;
+      TaskDO other;
       if (task.getId() != null) {
-        list = getSession().createNamedQuery(TaskDO.FIND_OTHER_TASK_BY_PARENTTASKID_AND_TITLE, TaskDO.class)
+        other = getSession().createNamedQuery(TaskDO.FIND_OTHER_TASK_BY_PARENTTASKID_AND_TITLE, TaskDO.class)
                 .setParameter("parentTaskId", task.getParentTaskId())
                 .setParameter("title", task.getTitle())
                 .setParameter("id", task.getId()) // Find other (different from this id).
-                .list();
+                .uniqueResult();
       } else {
-        list = getSession().createNamedQuery(TaskDO.FIND_BY_PARENTTASKID_AND_TITLE, TaskDO.class)
+        other = getSession().createNamedQuery(TaskDO.FIND_BY_PARENTTASKID_AND_TITLE, TaskDO.class)
                 .setParameter("parentTaskId", task.getParentTaskId())
                 .setParameter("title", task.getTitle())
-                .list();
+                .uniqueResult();
       }
-      if (CollectionUtils.isNotEmpty(list) == true) {
+      if (other != null) {
         throw new UserException(I18N_KEY_ERROR_DUPLICATE_CHILD_TASKS);
       }
     }

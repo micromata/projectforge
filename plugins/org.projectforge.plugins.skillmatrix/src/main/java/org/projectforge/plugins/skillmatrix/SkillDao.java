@@ -23,36 +23,32 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.apache.commons.collections.CollectionUtils;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+
 /**
  * DAO for SkillDO. Handles constraint validation and database access.
- * 
- * @author Billy Duong (b.duong@micromata.de)
  *
+ * @author Billy Duong (b.duong@micromata.de)
  */
 @Repository
-public class SkillDao extends BaseDao<SkillDO>
-{
+public class SkillDao extends BaseDao<SkillDO> {
   public static final String I18N_KEY_ERROR_CYCLIC_REFERENCE = "plugins.skillmatrix.error.cyclicReference";
 
   public static final String I18N_KEY_ERROR_DUPLICATE_CHILD_SKILL = "plugins.skillmatrix.error.duplicateChildSkill";
 
   public static final String I18N_KEY_ERROR_PARENT_SKILL_NOT_FOUND = "plugins.skillmatrix.error.parentNotFound";
 
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "parent.title" };
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"parent.title"};
 
   @Autowired
   SkillTree skillTree;
@@ -62,24 +58,18 @@ public class SkillDao extends BaseDao<SkillDO>
 
   // private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SkillDao.class);
 
-  public SkillDao()
-  {
+  public SkillDao() {
     super(SkillDO.class);
     userRightId = SkillmatrixPluginUserRightId.PLUGIN_SKILL_MATRIX_SKILL;
   }
 
   @Override
-  public SkillDO newInstance()
-  {
+  public SkillDO newInstance() {
     return new SkillDO();
   }
 
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#onSaveOrModify(org.projectforge.core.ExtendedBaseDO)
-   */
   @Override
-  protected void onSaveOrModify(final SkillDO obj)
-  {
+  protected void onSaveOrModify(final SkillDO obj) {
     synchronized (this) {
       checkConstraintViolation(obj);
     }
@@ -90,47 +80,54 @@ public class SkillDao extends BaseDao<SkillDO>
 
   /**
    * Sets the tree as expired to force a refresh (rebuild of tree).
-   * 
-   * @see org.projectforge.framework.persistence.api.BaseDao#afterSaveOrModify(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
-  protected void afterSaveOrModify(final SkillDO obj)
-  {
+  protected void afterSaveOrModify(final SkillDO obj) {
     skillTree.setExpired();
   }
 
   /**
-   *
    * @param skill that needs to be validated.
    * @throws UserException is thrown when the user wants to create a duplicate.
    */
-  @SuppressWarnings("unchecked")
-  public void checkConstraintViolation(final SkillDO skill) throws UserException
-  {
+  public void checkConstraintViolation(final SkillDO skill) throws UserException {
     // TODO: Check for valid Tree structure (root) -> example TaskDao.checkConstraintVilation
-    List<SkillDO> list;
-    final StringBuilder sb = new StringBuilder();
-    sb.append("from SkillDO s where s.title=? and deleted=false and s.parent.id");
-    final List<Object> params = new LinkedList<Object>();
-    params.add(skill.getTitle());
+    SkillDO other = null;
     if (skill.getParentId() != null) {
-      sb.append("=?");
-      params.add(skill.getParentId());
+      if (skill.getId() != null) {
+        other = getSession()
+                .createNamedQuery(SkillDO.FIND_OTHER_BY_TITLE_AND_PARENT, SkillDO.class)
+                .setParameter("title", skill.getTitle())
+                .setParameter("parentId", skill.getParentId())
+                .setParameter("id", skill.getId())
+                .uniqueResult();
+      } else {
+        other = getSession()
+                .createNamedQuery(SkillDO.FIND_BY_TITLE_AND_PARENT, SkillDO.class)
+                .setParameter("title", skill.getTitle())
+                .setParameter("parentId", skill.getParentId())
+                .uniqueResult();
+      }
     } else {
-      sb.append(" is null ");
+      if (skill.getId() != null) {
+        other = getSession()
+                .createNamedQuery(SkillDO.FIND_OTHER_BY_TITLE_ON_TOPLEVEL, SkillDO.class)
+                .setParameter("title", skill.getTitle())
+                .setParameter("id", skill.getId())
+                .uniqueResult();
+      } else {
+        other = getSession()
+                .createNamedQuery(SkillDO.FIND_BY_TITLE_ON_TOPLEVEL, SkillDO.class)
+                .setParameter("title", skill.getTitle())
+                .uniqueResult();
+      }
     }
-    if (skill.getId() != null) {
-      sb.append(" and s.id != ?");
-      params.add(skill.getId());
-    }
-    list = (List<SkillDO>) getHibernateTemplate().find(sb.toString(), params.toArray());
-    if (CollectionUtils.isNotEmpty(list) == true) {
+    if (other != null) {
       throw new UserException(I18N_KEY_ERROR_DUPLICATE_CHILD_SKILL);
     }
   }
 
-  private void checkCyclicReference(final SkillDO obj)
-  {
+  private void checkCyclicReference(final SkillDO obj) {
     if (obj.getId().equals(obj.getParentId()) == true) {
       // Self reference
       throw new UserException(I18N_KEY_ERROR_CYCLIC_REFERENCE);
@@ -147,14 +144,9 @@ public class SkillDao extends BaseDao<SkillDO>
     }
   }
 
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasUpdateAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
-   *      org.projectforge.core.ExtendedBaseDO, org.projectforge.core.ExtendedBaseDO, boolean)
-   */
   @Override
   public boolean hasUpdateAccess(final PFUserDO user, final SkillDO obj, final SkillDO dbObj,
-      final boolean throwException)
-  {
+                                 final boolean throwException) {
     checkCyclicReference(obj);
     return super.hasUpdateAccess(user, obj, dbObj, throwException);
   }
@@ -163,8 +155,7 @@ public class SkillDao extends BaseDao<SkillDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#getAdditionalSearchFields()
    */
   @Override
-  protected String[] getAdditionalSearchFields()
-  {
+  protected String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
@@ -173,8 +164,7 @@ public class SkillDao extends BaseDao<SkillDO>
    * @param parentId If null, then skill will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
-  public SkillDO setParentSkill(final SkillDO skill, final Integer parentId)
-  {
+  public SkillDO setParentSkill(final SkillDO skill, final Integer parentId) {
     final SkillDO parentSkill = getOrLoad(parentId);
     skill.setParent(parentSkill);
     return skill;
@@ -182,78 +172,72 @@ public class SkillDao extends BaseDao<SkillDO>
 
   /**
    * Please note: Only the string group.fullAccessGroupIds will be modified (but not be saved)!
-   * 
+   *
    * @param skill
    * @param fullAccessGroups
    */
-  public void setFullAccessGroups(final SkillDO skill, final Collection<GroupDO> fullAccessGroups)
-  {
+  public void setFullAccessGroups(final SkillDO skill, final Collection<GroupDO> fullAccessGroups) {
     skill.setFullAccessGroupIds(groupService.getGroupIds(fullAccessGroups));
   }
 
-  public Collection<GroupDO> getSortedFullAccessGroups(final SkillDO skill)
-  {
+  public Collection<GroupDO> getSortedFullAccessGroups(final SkillDO skill) {
     return groupService.getSortedGroups(skill.getFullAccessGroupIds());
   }
 
   /**
    * Please note: Only the string group.readonlyAccessGroupIds will be modified (but not be saved)!
-   * 
+   *
    * @param skill
    * @param readonlyAccessGroups
    */
-  public void setReadonlyAccessGroups(final SkillDO skill, final Collection<GroupDO> readonlyAccessGroups)
-  {
+  public void setReadonlyAccessGroups(final SkillDO skill, final Collection<GroupDO> readonlyAccessGroups) {
     skill.setReadOnlyAccessGroupIds(groupService.getGroupIds(readonlyAccessGroups));
   }
 
-  public Collection<GroupDO> getSortedReadonlyAccessGroups(final SkillDO skill)
-  {
+  public Collection<GroupDO> getSortedReadonlyAccessGroups(final SkillDO skill) {
     return groupService.getSortedGroups(skill.getReadOnlyAccessGroupIds());
   }
 
   /**
    * Please note: Only the string group.trainingAccessGroupIds will be modified (but not be saved)!
-   * 
+   *
    * @param skill
    * @param trainingAccessGroups
    */
-  public void setTrainingAccessGroups(final SkillDO skill, final Collection<GroupDO> trainingAccessGroups)
-  {
+  public void setTrainingAccessGroups(final SkillDO skill, final Collection<GroupDO> trainingAccessGroups) {
     skill.setTrainingGroupsIds(groupService.getGroupIds(trainingAccessGroups));
   }
 
-  public Collection<GroupDO> getSortedTrainingAccessGroups(final SkillDO skill)
-  {
+  public Collection<GroupDO> getSortedTrainingAccessGroups(final SkillDO skill) {
     return groupService.getSortedGroups(skill.getTrainingGroupsIds());
   }
 
   /**
    * Has the current logged in user select access to the given skill?
-   * 
+   *
    * @param node
    * @return
    */
-  public boolean hasSelectAccess(final SkillNode node)
-  {
+  public boolean hasSelectAccess(final SkillNode node) {
     return hasLoggedInUserSelectAccess(node.getSkill(), false);
   }
 
-  @SuppressWarnings("unchecked")
-  public SkillDO getSkill(final String title)
-  {
+  /**
+   * TODO: Skills with same title are possible but result in an exception here.
+   *
+   * @param title
+   * @return
+   */
+  public SkillDO getSkill(final String title) {
     if (title == null) {
       return null;
     }
-    final List<SkillDO> list = (List<SkillDO>) getHibernateTemplate().find("from SkillDO u where u.title = ?", title);
-    if (CollectionUtils.isEmpty(list) == true) {
-      return null;
-    }
-    return list.get(0);
+    return SQLHelper.ensureUniqueResult(getSession()
+            .createNamedQuery(SkillDO.FIND_BY_TITLE, SkillDO.class)
+            .setParameter("title", title));
   }
 
-  public SkillTree getSkillTree()
-  {
+  public SkillTree getSkillTree() {
     return skillTree;
   }
 }

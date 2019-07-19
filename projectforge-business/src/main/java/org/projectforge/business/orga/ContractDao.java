@@ -94,9 +94,9 @@ public class ContractDao extends BaseDao<ContractDO> {
    * @return
    */
   public int[] getYears() {
-    final java.sql.Date[] minMaxDate = getSession().createNamedQuery(ContractDO.SELECT_MIN_MAX_DATE, java.sql.Date[].class)
+    final Object[] minMaxDate = getSession().createNamedQuery(ContractDO.SELECT_MIN_MAX_DATE, Object[].class)
             .getSingleResult();
-    return SQLHelper.getYears(minMaxDate[0], minMaxDate[1]);
+    return SQLHelper.getYears((java.sql.Date)minMaxDate[0], (java.sql.Date)minMaxDate[1]);
   }
 
   /**
@@ -115,11 +115,11 @@ public class ContractDao extends BaseDao<ContractDO> {
         throw new UserException("legalAffaires.contract.error.numberNotConsecutivelyNumbered").setCausedByField("number");
       }
     } else {
-      final List<ContractDO> list = getSession().createNamedQuery(ContractDO.FIND_OTHER_BY_NUMBER, ContractDO.class)
+      ContractDO other = getSession().createNamedQuery(ContractDO.FIND_OTHER_BY_NUMBER, ContractDO.class)
               .setParameter("number", obj.getNumber())
               .setParameter("id", obj.getId())
-              .list();
-      if (list != null && list.size() > 0) {
+              .uniqueResult();
+      if (other != null) {
         throw new UserException("legalAffaires.contract.error.numberAlreadyExists").setCausedByField("number");
       }
     }

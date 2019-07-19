@@ -125,9 +125,9 @@ public class AuftragDao extends BaseDao<AuftragDO> {
    * @return
    */
   public int[] getYears() {
-    final java.sql.Date[] minMaxDate = getSession().createNamedQuery(AuftragDO.SELECT_MIN_MAX_DATE, java.sql.Date[].class)
+    final Object[] minMaxDate = getSession().createNamedQuery(AuftragDO.SELECT_MIN_MAX_DATE, Object[].class)
             .getSingleResult();
-    return SQLHelper.getYears(minMaxDate[0], minMaxDate[1]);
+    return SQLHelper.getYears((java.sql.Date)minMaxDate[0], (java.sql.Date)minMaxDate[1]);
   }
 
   /**
@@ -269,12 +269,11 @@ public class AuftragDao extends BaseDao<AuftragDO> {
       log.info("Cannot parse order number (format ###.## expected: " + posString);
       return null;
     }
-    @SuppressWarnings("unchecked") final List<AuftragDO> list = (List<AuftragDO>) getHibernateTemplate().find("from AuftragDO k where k.nummer=?",
-            auftragsNummer);
-    if (CollectionUtils.isEmpty(list) == true) {
-      return null;
-    }
-    return list.get(0).getPosition(positionNummer);
+    final AuftragDO auftrag = SQLHelper.ensureUniqueResult(
+            getSession()
+                    .createNamedQuery(AuftragDO.FIND_BY_NUMMER, AuftragDO.class)
+                    .setParameter("nummer", auftragsNummer));
+    return auftrag != null ? auftrag.getPosition(positionNummer) : null;
   }
 
   public synchronized int getAbgeschlossenNichtFakturiertAnzahl() {
@@ -474,7 +473,6 @@ public class AuftragDao extends BaseDao<AuftragDO> {
     }
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   protected void onSaveOrModify(final AuftragDO obj) {
     if (obj.getNummer() == null) {
@@ -488,10 +486,11 @@ public class AuftragDao extends BaseDao<AuftragDO> {
         throw new UserException("fibu.auftrag.error.nummerIstNichtFortlaufend");
       }
     } else {
-      final List<RechnungDO> list = (List<RechnungDO>) getHibernateTemplate().find(
-              "from AuftragDO r where r.nummer = ? and r.id <> ?",
-              new Object[]{obj.getNummer(), obj.getId()});
-      if (list != null && list.size() > 0) {
+      final AuftragDO other = getSession().createNamedQuery(AuftragDO.FIND_OTHER_BY_NUMMER, AuftragDO.class)
+              .setParameter("nummer", obj.getNummer())
+              .setParameter("id", obj.getId())
+              .uniqueResult();
+      if (other != null) {
         throw new UserException("fibu.auftrag.error.nummerBereitsVergeben");
       }
     }

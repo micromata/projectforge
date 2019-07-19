@@ -39,6 +39,7 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
+import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -102,7 +103,7 @@ public class UserGroupCache extends AbstractCache {
     this.tenant = tenant;
     this.tenantChecker = applicationContext.getBean(TenantChecker.class);
     this.userRights = applicationContext.getBean(UserRightService.class);
-    this.sessionFactory = applicationContext.getBean(SessionFactory.class);
+    this.sessionFactory = applicationContext.getBean("sessionFactory", SessionFactory.class);
     this.tenantService = applicationContext.getBean(TenantService.class);
   }
 
@@ -385,9 +386,9 @@ public class UserGroupCache extends AbstractCache {
     checkRefresh();
     EmployeeDO employee = this.employeeMap.get(userId);
     if (employee == null) {
-      employee = sessionFactory.getCurrentSession().createNamedQuery(EmployeeDO.FIND_BY_USER_ID, EmployeeDO.class)
-              .setParameter("userId", userId)
-              .uniqueResult();
+      employee = SQLHelper.ensureUniqueResult(sessionFactory.getCurrentSession()
+              .createNamedQuery(EmployeeDO.FIND_BY_USER_ID, EmployeeDO.class)
+              .setParameter("userId", userId));
       if (employee != null) this.employeeMap.put(userId, employee);
     }
     return employee;

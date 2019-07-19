@@ -35,6 +35,7 @@ import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Repository;
@@ -196,27 +197,12 @@ public class PersonalAddressDao {
     final PFUserDO owner = ThreadLocalUserContext.getUser();
     Validate.notNull(owner);
     Validate.notNull(owner.getId());
-    final List<PersonalAddressDO> list = sessionFactory.getCurrentSession()
+    return SQLHelper.ensureUniqueResult(sessionFactory.getCurrentSession()
             .createNamedQuery(PersonalAddressDO.FIND_BY_OWNER_AND_ADDRESS_ID, PersonalAddressDO.class)
             .setParameter("ownerId", owner.getId())
-            .setParameter("addressId", addressId)
-            .list();
-    if (list != null) {
-      if (list.size() == 0) {
-        return null;
-      }
-      if (list.size() > 1) {
-        log.error("Multiple personal address book entries for same user ("
-                + owner.getId()
-                + " and same address ("
-                + addressId
-                + "). Should not occur?!");
-      }
-      if (checkAccess(list.get(0), false)) {
-        return list.get(0);
-      }
-    }
-    return null;
+            .setParameter("addressId", addressId),
+            "Multiple personal address book entries for same user (" + owner.getId() + ") and same address ("
+                                    + addressId + "). Should not occur?!");
   }
 
   /**

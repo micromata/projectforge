@@ -73,9 +73,9 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
    */
   public int[] getYears()
   {
-    final java.sql.Date[] minMaxDate = getSession().createNamedQuery(EingangsrechnungDO.SELECT_MIN_MAX_DATE, java.sql.Date[].class)
+    final Object[] minMaxDate = getSession().createNamedQuery(EingangsrechnungDO.SELECT_MIN_MAX_DATE, Object[].class)
             .getSingleResult();
-    return SQLHelper.getYears(minMaxDate[0], minMaxDate[1]);
+    return SQLHelper.getYears((java.sql.Date)minMaxDate[0], (java.sql.Date)minMaxDate[1]);
   }
 
   public EingangsrechnungsStatistik buildStatistik(final List<EingangsrechnungDO> list)
@@ -106,8 +106,6 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
    * Gutschriftsanzeigen dürfen keine Rechnungsnummer haben. Wenn eine Rechnungsnummer für neue Rechnungen gegeben
    * wurde, so muss sie fortlaufend sein. Berechnet das Zahlungsziel in Tagen, wenn nicht gesetzt, damit es indiziert
    * wird.
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao#onSaveOrModify(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
   protected void onSaveOrModify(final EingangsrechnungDO rechnung)
@@ -118,14 +116,14 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
       rechnung.setZahlBetrag(rechnung.getZahlBetrag().setScale(2, RoundingMode.HALF_UP));
     }
     rechnung.recalculate();
-    if (CollectionUtils.isEmpty(rechnung.getPositionen()) == true) {
+    if (CollectionUtils.isEmpty(rechnung.getPositionen())) {
       throw new UserException("fibu.rechnung.error.rechnungHatKeinePositionen");
     }
     final int size = rechnung.getPositionen().size();
     for (int i = size - 1; i > 0; i--) {
       // Don't remove first position, remove only the last empty positions.
       final EingangsrechnungsPositionDO position = rechnung.getPositionen().get(i);
-      if (position.getId() == null && position.isEmpty() == true) {
+      if (position.getId() == null && position.isEmpty()) {
         rechnung.getPositionen().remove(i);
       } else {
         break;
@@ -160,22 +158,22 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
     queryFilter.addOrder(Order.desc("kreditor"));
 
     final List<EingangsrechnungDO> list = getList(queryFilter);
-    if (myFilter.isShowAll() == true || myFilter.isDeleted() == true) {
+    if (myFilter.isShowAll() || myFilter.isDeleted()) {
       return list;
     }
 
     final List<EingangsrechnungDO> result = new ArrayList<EingangsrechnungDO>();
     for (final EingangsrechnungDO rechnung : list) {
-      if (myFilter.isShowUnbezahlt() == true) {
+      if (myFilter.isShowUnbezahlt()) {
         if (rechnung.isBezahlt() == false) {
           result.add(rechnung);
         }
-      } else if (myFilter.isShowBezahlt() == true) {
-        if (rechnung.isBezahlt() == true) {
+      } else if (myFilter.isShowBezahlt()) {
+        if (rechnung.isBezahlt()) {
           result.add(rechnung);
         }
-      } else if (myFilter.isShowUeberFaellig() == true) {
-        if (rechnung.isUeberfaellig() == true) {
+      } else if (myFilter.isShowUeberFaellig()) {
+        if (rechnung.isUeberfaellig()) {
           result.add(rechnung);
         }
       } else {
@@ -197,7 +195,7 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
     if (hasLoggedInUserHistoryAccess(obj, false) == false) {
       return list;
     }
-    if (CollectionUtils.isNotEmpty(obj.getPositionen()) == true) {
+    if (CollectionUtils.isNotEmpty(obj.getPositionen())) {
       for (final EingangsrechnungsPositionDO position : obj.getPositionen()) {
         final List<DisplayHistoryEntry> entries = internalGetDisplayHistoryEntries(position);
         for (final DisplayHistoryEntry entry : entries) {
@@ -209,7 +207,7 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
           }
         }
         list.addAll(entries);
-        if (CollectionUtils.isNotEmpty(position.getKostZuweisungen()) == true) {
+        if (CollectionUtils.isNotEmpty(position.getKostZuweisungen())) {
           for (final KostZuweisungDO zuweisung : position.getKostZuweisungen()) {
             final List<DisplayHistoryEntry> kostEntries = internalGetDisplayHistoryEntries(zuweisung);
             for (final DisplayHistoryEntry entry : kostEntries) {
@@ -253,11 +251,11 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
   @Override
   protected boolean contains(final Set<Integer> idSet, final EingangsrechnungDO entry)
   {
-    if (super.contains(idSet, entry) == true) {
+    if (super.contains(idSet, entry)) {
       return true;
     }
     for (final EingangsrechnungsPositionDO pos : entry.getPositionen()) {
-      if (idSet.contains(pos.getId()) == true) {
+      if (idSet.contains(pos.getId())) {
         return true;
       }
     }

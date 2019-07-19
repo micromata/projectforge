@@ -30,6 +30,7 @@ import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.UserPrefParameter
+import org.projectforge.framework.persistence.user.entities.UserPrefDO
 import java.sql.Date
 import javax.persistence.*
 
@@ -40,7 +41,11 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_SKILL_TRAINING", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_skill_training_skill_fk", columnList = "skill_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_skill_training_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_PLUGIN_SKILL_TRAINING",
+        indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_skill_training_skill_fk", columnList = "skill_fk"),
+            javax.persistence.Index(name = "idx_fk_t_plugin_skill_training_tenant_id", columnList = "tenant_id")])
+@NamedQueries(
+        NamedQuery(name = TrainingDO.FIND_BY_TITLE, query = "from TrainingDO where title=:title"))
 class TrainingDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skill.title")
@@ -112,6 +117,8 @@ class TrainingDO : DefaultBaseDO(), ShortDisplayNameCapable {
     }
 
     companion object {
+        internal const val FIND_BY_TITLE = "TrainingDO_FindByTitle"
+
         @Transient
         fun getValuesArray(values: String?): Array<String>? {
             if (StringUtils.isBlank(values)) {

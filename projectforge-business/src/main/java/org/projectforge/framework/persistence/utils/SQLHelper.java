@@ -23,8 +23,13 @@
 
 package org.projectforge.framework.persistence.utils;
 
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.query.Query;
+import org.projectforge.framework.i18n.InternalErrorException;
+
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Some helper methods ...
@@ -35,16 +40,16 @@ public class SQLHelper {
   /**
    * Usage:<br/>
    * <pre>
-   *     final java.sql.Date[] minMaxDate = getSession().createNamedQuery(ContractDO.SELECT_MIN_MAX_DATE, java.sql.Date[].class)
+   *     final Object[] minMaxDate = getSession().createNamedQuery(ContractDO.SELECT_MIN_MAX_DATE, Object[].class)
    *             .getSingleResult();
-   *     return SQLHelper.getYears(minMaxDate[0], minMaxDate[1]);
+   *     return SQLHelper.getYears((Date)minMaxDate[0], (Date)minMaxDate[1]);
    * </pre>
    *
    * @return Array of years in descendent order. If min or max is null, the current year is returned.
    */
   public static int[] getYears(Date min, Date max) {
     if (min == null || max == null) {
-      return new int[] { Calendar.getInstance().get(Calendar.YEAR)};
+      return new int[]{Calendar.getInstance().get(Calendar.YEAR)};
     }
     int from, to;
     Calendar cal = Calendar.getInstance();
@@ -57,7 +62,7 @@ public class SQLHelper {
 
   public static int[] getYears(Integer min, Integer max) {
     if (min == null || max == null) {
-      return new int[] { Calendar.getInstance().get(Calendar.YEAR)};
+      return new int[]{Calendar.getInstance().get(Calendar.YEAR)};
     }
     int[] res = new int[max - min + 1];
     int i = 0;
@@ -65,5 +70,66 @@ public class SQLHelper {
       res[i++] = year;
     }
     return res;
+  }
+
+  /**
+   * Do a query.list() call and ensures that the result is either null/empty or the result list has only one element (size == 1).
+   * If multiple entries were received, an Exception will be thrown
+   * <br/>
+   * Through this method ProjectForge ensures, that some entities are unique by their defined attributes (invoices with unique number etc.), especially
+   * if the uniquness can't be guaranteed by a data base constraint.
+   * <br/>
+   * An internal error prevents the system on proceed with inconsistent (multiple) data entries.
+   *
+   * @throws InternalErrorException if the list is not empty and has more than one elements (size > 1).
+   */
+  public static <T> T ensureUniqueResult(Query<T> query) {
+    return ensureUniqueResult(query, null);
+  }
+
+  /**
+   * Do a query.list() call and ensures that the result is either null/empty or the result list has only one element (size == 1).
+   * If multiple entries were received, an Exception will be thrown
+   * <br/>
+   * Through this method ProjectForge ensures, that some entities are unique by their defined attributes (invoices with unique number etc.), especially
+   * if the uniquness can't be guaranteed by a data base constraint.
+   * <br/>
+   * An internal error prevents the system on proceed with inconsistent (multiple) data entries.
+   *
+   * @param errorMessage An optional error message to display.
+   * @throws InternalErrorException if the list is not empty and has more than one elements (size > 1).
+   */
+  public static <T> T ensureUniqueResult(Query<T> query, String errorMessage) {
+    List<T> list = query.list();
+    if (list == null || list.size() == 0) {
+      return null;
+    }
+    if (list.size() > 1) {
+      throw new InternalErrorException("Internal error: ProjectForge detects an uniqueness violation in the database. Found multiple entries for: " + queryToString(query, errorMessage));
+    }
+    return list.get(0);
+  }
+
+
+  static String queryToString(Query<?> query, String errorMessage) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("query='")
+            .append(query.getQueryString())
+            .append("', params=[");
+    boolean first = true;
+    for (String param : query.getParameterMetadata().getNamedParameterNames()) {
+      if (!first) sb.append(",");
+      else first = false;
+      sb.append(param)
+              .append("=[")
+              .append(query.getParameterValue(param))
+              .append("]");
+    }
+    sb.append("]");
+    if (StringUtils.isNotBlank(errorMessage))
+      sb.append(", msg=[")
+              .append(errorMessage)
+              .append("]");
+    return sb.toString();
   }
 }

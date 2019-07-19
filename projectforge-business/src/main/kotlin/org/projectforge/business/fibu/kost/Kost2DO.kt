@@ -42,6 +42,13 @@ import javax.persistence.*
 @ClassBridge(name = "nummer", impl = HibernateSearchKost2Bridge::class)
 @Table(name = "T_FIBU_KOST2", uniqueConstraints = [UniqueConstraint(columnNames = ["nummernkreis", "bereich", "teilbereich", "kost2_art_id", "tenant_id"])], indexes = [Index(name = "idx_fk_t_fibu_kost2_kost2_art_id", columnList = "kost2_art_id"), Index(name = "idx_fk_t_fibu_kost2_projekt_id", columnList = "projekt_id"), Index(name = "idx_fk_t_fibu_kost2_tenant_id", columnList = "tenant_id")])
 @WithHistory
+@NamedQueries(
+        NamedQuery(name = Kost2DO.FIND_BY_NK_BEREICH_TEILBEREICH_KOST2ART,
+                query = "from Kost2DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and kost2Art.id=:kost2ArtId"),
+        NamedQuery(name = Kost2DO.FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_KOST2ART,
+                query = "from Kost2DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and kost2Art.id=:kost2ArtId and id!=:id"),
+        NamedQuery(name = Kost2DO.FIND_ACTIVES_BY_NK_BEREICH_TEILBEREICH,
+                query = "from Kost2DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and kost2Art.id=:kost2ArtId and (kostentraegerStatus='ACTIVE' or kostentraegerStatus is null) order by kost2Art.id"))
 class Kost2DO : DefaultBaseDO(), ShortDisplayNameCapable, Comparable<Kost2DO> {
 
     @PropertyInfo(i18nKey = "status")
@@ -189,5 +196,11 @@ class Kost2DO : DefaultBaseDO(), ShortDisplayNameCapable, Comparable<Kost2DO> {
      */
     override fun compareTo(other: Kost2DO): Int {
         return this.shortDisplayName.compareTo(other.shortDisplayName)
+    }
+
+    companion object {
+        internal const val FIND_BY_NK_BEREICH_TEILBEREICH_KOST2ART = "Kost2DO_FindByNKBereichTeilbereichKost2Art"
+        internal const val FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_KOST2ART = "Kost2DO_FindOtherByNKBereichTeilbereichKost2Art"
+        internal const val FIND_ACTIVES_BY_NK_BEREICH_TEILBEREICH = "Kost2DO_FindActivesByNKBereichTeilbereich"
     }
 }

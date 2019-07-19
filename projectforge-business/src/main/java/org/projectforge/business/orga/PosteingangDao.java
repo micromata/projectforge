@@ -60,9 +60,9 @@ public class PosteingangDao extends BaseDao<PosteingangDO>
    */
   public int[] getYears()
   {
-    final java.sql.Date[] minMaxDate = getSession().createNamedQuery(PosteingangDO.SELECT_MIN_MAX_DATE, java.sql.Date[].class)
+    final Object[] minMaxDate = getSession().createNamedQuery(PosteingangDO.SELECT_MIN_MAX_DATE, Object[].class)
             .getSingleResult();
-    return SQLHelper.getYears(minMaxDate[0], minMaxDate[1]);
+    return SQLHelper.getYears((java.sql.Date)minMaxDate[0], (java.sql.Date)minMaxDate[1]);
   }
 
   @Override

@@ -410,11 +410,7 @@ public class UserDao extends BaseDao<PFUserDO> {
 
   /**
    * Does an user with the given username already exists? Works also for existing users (if username was modified).
-   *
-   * @param user
-   * @return
    */
-  @SuppressWarnings("unchecked")
   public boolean doesUsernameAlreadyExist(final PFUserDO user) {
     Validate.notNull(user);
     PFUserDO dbUser = null;
@@ -431,7 +427,6 @@ public class UserDao extends BaseDao<PFUserDO> {
     return dbUser != null;
   }
 
-  @SuppressWarnings("unchecked")
   public PFUserDO getUserByAuthenticationToken(final Integer userId, final String authKey) {
     final PFUserDO user = getSession()
             .createNamedQuery(PFUserDO.FIND_BY_USERID_AND_AUTHENTICATIONTOKEN, PFUserDO.class)
@@ -448,9 +443,6 @@ public class UserDao extends BaseDao<PFUserDO> {
   /**
    * Returns the user's authentication token if exists (must be not blank with a size >= 10). If not, a new token key
    * will be generated.
-   *
-   * @param userId
-   * @return
    */
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
   public String getAuthenticationToken(final Integer userId) {

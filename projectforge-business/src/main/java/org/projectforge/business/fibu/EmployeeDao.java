@@ -23,12 +23,6 @@
 
 package org.projectforge.business.fibu;
 
-import java.util.Date;
-import java.util.List;
-import java.util.StringTokenizer;
-
-import javax.persistence.NoResultException;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang3.Validate;
@@ -45,10 +39,16 @@ import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
+import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.NoResultException;
+import java.util.Date;
+import java.util.List;
+import java.util.StringTokenizer;
 
 /**
  * Ein Mitarbeiter ist einem ProjectForge-Benutzer zugeordnet und trägt einige buchhalterische Angaben.
@@ -56,15 +56,14 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-public class EmployeeDao extends BaseDao<EmployeeDO>
-{
+public class EmployeeDao extends BaseDao<EmployeeDO> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.HR_EMPLOYEE;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeDao.class);
 
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "user.firstname", "user.lastname",
-      "user.description",
-      "user.organization" };
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"user.firstname", "user.lastname",
+          "user.description",
+          "user.organization"};
 
   private final static String META_SQL = " AND e.deleted = :deleted AND e.tenant = :tenant";
 
@@ -77,25 +76,22 @@ public class EmployeeDao extends BaseDao<EmployeeDO>
   @Autowired
   private PfEmgrFactory emgrFactory;
 
-  public EmployeeDao()
-  {
+  public EmployeeDao() {
     super(EmployeeDO.class);
     userRightId = USER_RIGHT_ID;
   }
 
   @Override
-  protected String[] getAdditionalSearchFields()
-  {
+  protected String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public EmployeeDO findByUserId(final Integer userId)
-  {
+  public EmployeeDO findByUserId(final Integer userId) {
     return emgrFactory.runRoTrans(emgr -> {
       TenantDO tenant = TenantRegistryMap.getInstance().getTenantRegistry().getTenant();
       List<EmployeeDO> list = emgr
-          .select(EmployeeDO.class, "SELECT e FROM EmployeeDO e WHERE e.user.id = :userId AND e.tenant = :tenant", "userId", userId, "tenant", tenant);
+              .select(EmployeeDO.class, "SELECT e FROM EmployeeDO e WHERE e.user.id = :userId AND e.tenant = :tenant", "userId", userId, "tenant", tenant);
       if (list != null && list.size() > 0) {
         return list.get(0);
       }
@@ -109,8 +105,7 @@ public class EmployeeDao extends BaseDao<EmployeeDO>
    * @param fullname Format: &lt;last name&gt;, &lt;first name&gt;
    */
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public EmployeeDO findByName(final String fullname)
-  {
+  public EmployeeDO findByName(final String fullname) {
     final StringTokenizer tokenizer = new StringTokenizer(fullname, ",");
     if (tokenizer.countTokens() != 2) {
       log.error("EmployeeDao.getByName: Token '" + fullname + "' not supported.");
@@ -118,15 +113,11 @@ public class EmployeeDao extends BaseDao<EmployeeDO>
     Validate.isTrue(tokenizer.countTokens() == 2);
     final String lastname = tokenizer.nextToken().trim();
     final String firstname = tokenizer.nextToken().trim();
-    @SuppressWarnings("unchecked")
-    final List<EmployeeDO> list = (List<EmployeeDO>) getHibernateTemplate().find(
-        "from EmployeeDO e where e.user.lastname = ? and e.user.firstname = ?",
-        new Object[] { lastname, firstname });
-    // final List<EmployeeDO> list = getHibernateTemplate().find("from EmployeeDO e where e.user.lastname = ?", lastname);
-    if (list != null && list.size() == 1) {
-      return list.get(0);
-    }
-    return null;
+    return SQLHelper.ensureUniqueResult(
+            getSession()
+                    .createNamedQuery(EmployeeDO.FIND_BY_LASTNAME_AND_FIRST_NAME, EmployeeDO.class)
+                    .setParameter("firstname", firstname)
+                    .setParameter("lastname", lastname));
   }
 
   /**
@@ -135,8 +126,7 @@ public class EmployeeDao extends BaseDao<EmployeeDO>
    * @see BaseDao#getOrLoad(Integer)
    */
   @Deprecated
-  public void setUser(final EmployeeDO employee, final Integer userId)
-  {
+  public void setUser(final EmployeeDO employee, final Integer userId) {
     final PFUserDO user = userDao.getOrLoad(userId);
     employee.setUser(user);
   }
@@ -147,15 +137,13 @@ public class EmployeeDao extends BaseDao<EmployeeDO>
    * @see BaseDao#getOrLoad(Integer)
    */
   @Deprecated
-  public void setKost1(final EmployeeDO employee, final Integer kost1Id)
-  {
+  public void setKost1(final EmployeeDO employee, final Integer kost1Id) {
     final Kost1DO kost1 = kost1Dao.getOrLoad(kost1Id);
     employee.setKost1(kost1);
   }
 
   @Override
-  public List<EmployeeDO> getList(final BaseSearchFilter filter)
-  {
+  public List<EmployeeDO> getList(final BaseSearchFilter filter) {
     final EmployeeFilter myFilter;
     if (filter instanceof EmployeeFilter) {
       myFilter = (EmployeeFilter) filter;
@@ -166,11 +154,9 @@ public class EmployeeDao extends BaseDao<EmployeeDO>
     final List<EmployeeDO> list = getList(queryFilter);
     final Date now = new Date();
     if (myFilter.isShowOnlyActiveEntries() == true) {
-      CollectionUtils.filter(list, new Predicate()
-      {
+      CollectionUtils.filter(list, new Predicate() {
         @Override
-        public boolean evaluate(final Object object)
-        {
+        public boolean evaluate(final Object object) {
           final EmployeeDO employee = (EmployeeDO) object;
           if (employee.getEintrittsDatum() != null && now.before(employee.getEintrittsDatum()) == true) {
             return false;
@@ -181,16 +167,12 @@ public class EmployeeDao extends BaseDao<EmployeeDO>
         }
       });
     }
-    for(EmployeeDO employeeDO : list)
-    {
-      for(EmployeeTimedDO employeeTimedDO : employeeDO.getTimeableAttributes())
-      {
-        if(employeeTimedDO.getGroupName().equals(InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME))
-        {
+    for (EmployeeDO employeeDO : list) {
+      for (EmployeeTimedDO employeeTimedDO : employeeDO.getTimeableAttributes()) {
+        if (employeeTimedDO.getGroupName().equals(InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME)) {
           try {
-            employeeDO.setStatus(EmployeeStatus.findByi18nKey((String)employeeTimedDO.getAttribute("status")));
-          }
-          catch (Exception e) {
+            employeeDO.setStatus(EmployeeStatus.findByi18nKey((String) employeeTimedDO.getAttribute("status")));
+          } catch (Exception e) {
             log.error("Exception while setting timeable status to deprecated status employee field. Message: " + e.getMessage());
           }
         }
@@ -200,28 +182,24 @@ public class EmployeeDao extends BaseDao<EmployeeDO>
   }
 
   @Override
-  protected void afterSaveOrModify(final EmployeeDO employee)
-  {
+  protected void afterSaveOrModify(final EmployeeDO employee) {
     super.afterSaveOrModify(employee);
     getUserGroupCache().refreshEmployee(employee.getUserId());
   }
 
   @Override
-  public EmployeeDO newInstance()
-  {
+  public EmployeeDO newInstance() {
     return new EmployeeDO();
   }
 
-  public EmployeeTimedDO newEmployeeTimeAttrRow(final EmployeeDO employee)
-  {
+  public EmployeeTimedDO newEmployeeTimeAttrRow(final EmployeeDO employee) {
     final EmployeeTimedDO nw = new EmployeeTimedDO();
     nw.setEmployee(employee);
     employee.getTimeableAttributes().add(nw);
     return nw;
   }
 
-  public EmployeeDO getEmployeeByStaffnumber(String staffnumber)
-  {
+  public EmployeeDO getEmployeeByStaffnumber(String staffnumber) {
     EmployeeDO result = null;
     try {
       result = emgrFactory.runRoTrans(emgr -> {
@@ -233,7 +211,7 @@ public class EmployeeDao extends BaseDao<EmployeeDO>
           tenant = ThreadLocalUserContext.getUser().getTenant();
         }
         return emgr.selectSingleDetached(EmployeeDO.class, baseSQL + META_SQL, "staffNumber", staffnumber, "deleted", false, "tenant",
-            tenant);
+                tenant);
       });
     } catch (NoResultException ex) {
       log.warn("No employee found for staffnumber: " + staffnumber);

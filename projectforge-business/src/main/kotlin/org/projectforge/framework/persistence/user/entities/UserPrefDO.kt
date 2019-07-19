@@ -67,7 +67,7 @@ import javax.persistence.*
         NamedQuery(name = FIND_BY_USER_ID_AND_AREA_AND_NULLNAME, query = "from UserPrefDO where user.id=:userId and area=:area and name is null"),
         NamedQuery(name = FIND_NAMES_BY_USER_AND_AREA, query = "select name from UserPrefDO where user.id=:userId and area=:area order by name"),
         NamedQuery(name = FIND_IDS_AND_NAMES_BY_USER_AND_AREA, query = "select id, name from UserPrefDO where user.id=:userId and area=:area order by name"),
-        NamedQuery(name = FIND_OTHER_BY_USER_AND_AREA_AND_NAME, query = "from UserPrefDO where id<>:ID and user.id=:userId and area=:area and name=:name"))
+        NamedQuery(name = FIND_OTHER_BY_USER_AND_AREA_AND_NAME, query = "from UserPrefDO where id<>:id and user.id=:userId and area=:area and name=:name"))
 class UserPrefDO : AbstractBaseDO<Int>() {
     private val log = org.slf4j.LoggerFactory.getLogger(UserPrefDO::class.java)
 

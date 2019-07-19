@@ -57,6 +57,7 @@ import org.projectforge.framework.persistence.user.api.UserPrefParameter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO;
+import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -128,8 +129,8 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
 
   public List<UserPrefDO> getListWithoutEntries(String areaId) {
     final PFUserDO user = ThreadLocalUserContext.getUser();
-    final List<String[]> list = getSession()
-            .createNamedQuery(UserPrefDO.FIND_IDS_AND_NAMES_BY_USER_AND_AREA, String[].class)
+    final List<Object[]> list = getSession()
+            .createNamedQuery(UserPrefDO.FIND_IDS_AND_NAMES_BY_USER_AND_AREA, Object[].class)
             .setParameter("userId", user.getId())
             .setParameter("area", areaId)
             .list();
@@ -219,29 +220,11 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
   }
 
   private UserPrefDO getUserPref(final Integer userId, final String areaId, final Integer id) {
-    return getSession().createNamedQuery(UserPrefDO.FIND_BY_USER_AND_AREA_AND_ID, UserPrefDO.class)
-            .setParameter("userId", userId)
-            .setParameter("area", areaId)
-            .setParameter("id", id)
-            .uniqueResult();
-  }
-
-  /**
-   * Gets the single entry. If more entries found matching the user's pref with the given areaId, an NonUniqueResultException will
-   * be thrown.
-   *
-   * @param areaId
-   * @param name
-   * @return The user pref of the areaId with the given id of the logged in user (from ThreadLocal).
-   */
-  public UserPrefDO getUserPref(final String areaId, final String name) {
-    final PFUserDO user = ThreadLocalUserContext.getUser();
-    return (UserPrefDO) getSession()
-            .createQuery("from UserPrefDO t where t.user.id=:id and t.area=:area and t.name=:name")
-            .setInteger("id", user.getId())
-            .setParameter("area", areaId)
-            .setParameter("name", name)
-            .uniqueResult();
+    return SQLHelper.ensureUniqueResult(
+            getSession().createNamedQuery(UserPrefDO.FIND_BY_USER_AND_AREA_AND_ID, UserPrefDO.class)
+                    .setParameter("userId", userId)
+                    .setParameter("area", areaId)
+                    .setParameter("id", id));
   }
 
   public List<UserPrefDO> getUserPrefs(final UserPrefArea area) {
@@ -406,7 +389,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
               }
             }
             field.set(obj, value);
-          } catch (final IllegalArgumentException|IllegalAccessException ex) {
+          } catch (final IllegalArgumentException | IllegalAccessException ex) {
             log.error(ex.getMessage()
                     + " While setting declared field '"
                     + entry.getParameter()
@@ -553,16 +536,16 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     Validate.notNull(userId);
     Validate.notBlank(area);
     if (name == null) {
-      return getSession().createNamedQuery(UserPrefDO.FIND_BY_USER_ID_AND_AREA_AND_NULLNAME, UserPrefDO.class)
-              .setParameter("userId", userId)
-              .setParameter("area", area)
-              .uniqueResult();
+      return SQLHelper.ensureUniqueResult(
+              getSession().createNamedQuery(UserPrefDO.FIND_BY_USER_ID_AND_AREA_AND_NULLNAME, UserPrefDO.class)
+                      .setParameter("userId", userId)
+                      .setParameter("area", area));
     } else {
-      return getSession().createNamedQuery(UserPrefDO.FIND_BY_USER_AND_AREA_AND_NAME, UserPrefDO.class)
-              .setParameter("userId", userId)
-              .setParameter("area", area)
-              .setParameter("name", name)
-              .uniqueResult();
+      return SQLHelper.ensureUniqueResult(
+              getSession().createNamedQuery(UserPrefDO.FIND_BY_USER_AND_AREA_AND_NAME, UserPrefDO.class)
+                      .setParameter("userId", userId)
+                      .setParameter("area", area)
+                      .setParameter("name", name));
     }
   }
 

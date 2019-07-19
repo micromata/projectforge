@@ -75,6 +75,6 @@ class PosteingangDO : DefaultBaseDO() {
     var type: PostType? = null
 
     companion object {
-        internal const val SELECT_MIN_MAX_DATE = "RechnungDO_SelectMinMaxDate"
+        internal const val SELECT_MIN_MAX_DATE = "PosteingangDO_SelectMinMaxDate"
     }
 }
