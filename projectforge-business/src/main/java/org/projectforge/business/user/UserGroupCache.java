@@ -25,6 +25,7 @@ package org.projectforge.business.user;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.hibernate.SessionFactory;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.login.Login;
@@ -41,7 +42,6 @@ import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
-import org.springframework.orm.hibernate5.HibernateTemplate;
 
 import java.util.*;
 
@@ -50,8 +50,7 @@ import java.util.*;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class UserGroupCache extends AbstractCache
-{
+public class UserGroupCache extends AbstractCache {
   private static final long serialVersionUID = -6501106088529363341L;
 
   private static Logger log = LoggerFactory.getLogger(UserGroupCache.class);
@@ -90,7 +89,7 @@ public class UserGroupCache extends AbstractCache
 
   private Set<Integer> hrUsers;
 
-  private HibernateTemplate hibernateTemplate;
+  private SessionFactory sessionFactory;
 
   private TenantChecker tenantChecker;
 
@@ -98,29 +97,26 @@ public class UserGroupCache extends AbstractCache
 
   private UserRightService userRights;
 
-  public UserGroupCache(final TenantDO tenant, ApplicationContext applicationContext)
-  {
+  public UserGroupCache(final TenantDO tenant, ApplicationContext applicationContext) {
     setExpireTimeInHours(1);
     this.tenant = tenant;
     this.tenantChecker = applicationContext.getBean(TenantChecker.class);
     this.userRights = applicationContext.getBean(UserRightService.class);
-    this.hibernateTemplate = applicationContext.getBean(HibernateTemplate.class);
+    this.sessionFactory = applicationContext.getBean(SessionFactory.class);
     this.tenantService = applicationContext.getBean(TenantService.class);
   }
 
-  public GroupDO getGroup(final ProjectForgeGroup group)
-  {
+  public GroupDO getGroup(final ProjectForgeGroup group) {
     checkRefresh();
     for (final GroupDO g : groupMap.values()) {
-      if (group.equals(g.getName()) == true) {
+      if (group.equals(g.getName())) {
         return g;
       }
     }
     return null;
   }
 
-  public PFUserDO getUser(final Integer userId)
-  {
+  public PFUserDO getUser(final Integer userId) {
     if (userId == null) {
       return null;
     }
@@ -128,26 +124,24 @@ public class UserGroupCache extends AbstractCache
     return getUserMap() != null ? userMap.get(userId) : null; // Only null in maintenance mode (if t_user isn't readable).
   }
 
-  public PFUserDO getUser(final String username)
-  {
-    if (StringUtils.isEmpty(username) == true) {
+  public PFUserDO getUser(final String username) {
+    if (StringUtils.isEmpty(username)) {
       return null;
     }
     for (final PFUserDO user : getUserMap().values()) {
-      if (username.equals(user.getUsername()) == true) {
+      if (username.equals(user.getUsername())) {
         return user;
       }
     }
     return null;
   }
 
-  public PFUserDO getUserByFullname(final String fullname)
-  {
-    if (StringUtils.isEmpty(fullname) == true) {
+  public PFUserDO getUserByFullname(final String fullname) {
+    if (StringUtils.isEmpty(fullname)) {
       return null;
     }
     for (final PFUserDO user : getUserMap().values()) {
-      if (fullname.equals(user.getFullname()) == true) {
+      if (fullname.equals(user.getFullname())) {
         return user;
       }
     }
@@ -157,8 +151,7 @@ public class UserGroupCache extends AbstractCache
   /**
    * @return all users (also deleted users).
    */
-  public Collection<PFUserDO> getAllUsers()
-  {
+  public Collection<PFUserDO> getAllUsers() {
     // checkRefresh(); Done by getUserMap().
     return getUserMap().values();
   }
@@ -166,8 +159,7 @@ public class UserGroupCache extends AbstractCache
   /**
    * @return all groups (also deleted groups).
    */
-  public Collection<GroupDO> getAllGroups()
-  {
+  public Collection<GroupDO> getAllGroups() {
     // checkRefresh(); Done by getGMap().
     return getGroupMap().values();
   }
@@ -175,8 +167,7 @@ public class UserGroupCache extends AbstractCache
   /**
    * Only for internal use.
    */
-  public int internalGetNumberOfUsers()
-  {
+  public int internalGetNumberOfUsers() {
     if (userMap == null) {
       return 0;
     } else {
@@ -185,8 +176,7 @@ public class UserGroupCache extends AbstractCache
     }
   }
 
-  public String getUsername(final Integer userId)
-  {
+  public String getUsername(final Integer userId) {
     // checkRefresh(); Done by getUserMap().
     final PFUserDO user = getUserMap().get(userId);
     if (user == null) {
@@ -197,29 +187,19 @@ public class UserGroupCache extends AbstractCache
 
   /**
    * Check for current logged in user.
-   *
-   * @param groupId
-   * @return
    */
-  public boolean isLoggedInUserMemberOfGroup(final Integer groupId)
-  {
+  public boolean isLoggedInUserMemberOfGroup(final Integer groupId) {
     return isUserMemberOfGroup(ThreadLocalUserContext.getUserId(), groupId);
   }
 
-  /**
-   * @param groupId
-   * @return
-   */
-  public boolean isUserMemberOfGroup(final PFUserDO user, final Integer groupId)
-  {
+  public boolean isUserMemberOfGroup(final PFUserDO user, final Integer groupId) {
     if (user == null) {
       return false;
     }
     return isUserMemberOfGroup(user.getId(), groupId);
   }
 
-  public boolean isUserMemberOfGroup(final Integer userId, final Integer groupId)
-  {
+  public boolean isUserMemberOfGroup(final Integer userId, final Integer groupId) {
     if (groupId == null) {
       return false;
     }
@@ -228,8 +208,7 @@ public class UserGroupCache extends AbstractCache
     return (groupSet != null) ? groupSet.contains(groupId) : false;
   }
 
-  public boolean isUserMemberOfAtLeastOneGroup(final Integer userId, final Integer... groupIds)
-  {
+  public boolean isUserMemberOfAtLeastOneGroup(final Integer userId, final Integer... groupIds) {
     if (groupIds == null) {
       return false;
     }
@@ -242,63 +221,54 @@ public class UserGroupCache extends AbstractCache
       if (groupId == null) {
         continue;
       }
-      if (groupSet.contains(groupId) == true) {
+      if (groupSet.contains(groupId)) {
         return true;
       }
     }
     return false;
   }
 
-  public boolean isUserMemberOfAdminGroup()
-  {
+  public boolean isUserMemberOfAdminGroup() {
     return isUserMemberOfAdminGroup(ThreadLocalUserContext.getUserId());
   }
 
-  public boolean isUserMemberOfAdminGroup(final Integer userId)
-  {
+  public boolean isUserMemberOfAdminGroup(final Integer userId) {
     checkRefresh();
     // adminUsers should only be null in maintenance mode (e. g. if user table isn't readable).
     return adminUsers != null ? adminUsers.contains(userId) : false;
   }
 
-  public boolean isUserMemberOfFinanceGroup()
-  {
+  public boolean isUserMemberOfFinanceGroup() {
     return isUserMemberOfFinanceGroup(ThreadLocalUserContext.getUserId());
   }
 
-  public boolean isUserMemberOfFinanceGroup(final Integer userId)
-  {
+  public boolean isUserMemberOfFinanceGroup(final Integer userId) {
     checkRefresh();
     // financeUsers should only be null in maintenance mode (e. g. if user table isn't readable).
     return financeUsers != null ? financeUsers.contains(userId) : false;
   }
 
-  public boolean isUserMemberOfProjectManagers()
-  {
+  public boolean isUserMemberOfProjectManagers() {
     return isUserMemberOfProjectManagers(ThreadLocalUserContext.getUserId());
   }
 
-  public boolean isUserMemberOfProjectManagers(final Integer userId)
-  {
+  public boolean isUserMemberOfProjectManagers(final Integer userId) {
     checkRefresh();
     // projectManagers should only be null in maintenance mode (e. g. if user table isn't readable).
     return projectManagers != null ? projectManagers.contains(userId) : false;
   }
 
-  public boolean isUserMemberOfProjectAssistant()
-  {
+  public boolean isUserMemberOfProjectAssistant() {
     return isUserMemberOfProjectAssistant(ThreadLocalUserContext.getUserId());
   }
 
-  public boolean isUserMemberOfProjectAssistant(final Integer userId)
-  {
+  public boolean isUserMemberOfProjectAssistant(final Integer userId) {
     checkRefresh();
     // projectAssistants should only be null in maintenance mode (e. g. if user table isn't readable).
     return projectAssistants != null ? projectAssistants.contains(userId) : false;
   }
 
-  public boolean isUserProjectManagerOrAssistantForProject(final ProjektDO projekt)
-  {
+  public boolean isUserProjectManagerOrAssistantForProject(final ProjektDO projekt) {
     if (projekt == null || projekt.getProjektManagerGroupId() == null) {
       return false;
     }
@@ -309,55 +279,44 @@ public class UserGroupCache extends AbstractCache
     return isUserMemberOfGroup(userId, projekt.getProjektManagerGroupId());
   }
 
-  public boolean isUserMemberOfControllingGroup()
-  {
+  public boolean isUserMemberOfControllingGroup() {
     return isUserMemberOfControllingGroup(ThreadLocalUserContext.getUserId());
   }
 
-  public boolean isUserMemberOfControllingGroup(final Integer userId)
-  {
+  public boolean isUserMemberOfControllingGroup(final Integer userId) {
     checkRefresh();
     // controllingUsers should only be null in maintenance mode (e. g. if user table isn't readable).
     return controllingUsers != null ? controllingUsers.contains(userId) : false;
   }
 
-  public boolean isUserMemberOfMarketingGroup()
-  {
+  public boolean isUserMemberOfMarketingGroup() {
     return isUserMemberOfMarketingGroup(ThreadLocalUserContext.getUserId());
   }
 
-  public boolean isUserMemberOfMarketingGroup(final Integer userId)
-  {
+  public boolean isUserMemberOfMarketingGroup(final Integer userId) {
     checkRefresh();
     return marketingUsers.contains(userId);
   }
 
-  public boolean isUserMemberOfOrgaGroup()
-  {
+  public boolean isUserMemberOfOrgaGroup() {
     return isUserMemberOfOrgaGroup(ThreadLocalUserContext.getUserId());
   }
 
-  public boolean isUserMemberOfOrgaGroup(final Integer userId)
-  {
+  public boolean isUserMemberOfOrgaGroup(final Integer userId) {
     checkRefresh();
     // orgaUsers should only be null in maintenance mode (e. g. if user table isn't readable).
     return orgaUsers != null ? orgaUsers.contains(userId) : false;
   }
 
-  public boolean isUserMemberOfHRGroup(final Integer userId)
-  {
+  public boolean isUserMemberOfHRGroup(final Integer userId) {
     checkRefresh();
     return hrUsers != null ? hrUsers.contains(userId) : false;
   }
 
   /**
    * Checks if the given user is at least member of one of the given groups.
-   *
-   * @param user
-   * @param groups
    */
-  public boolean isUserMemberOfGroup(final PFUserDO user, final ProjectForgeGroup... groups)
-  {
+  public boolean isUserMemberOfGroup(final PFUserDO user, final ProjectForgeGroup... groups) {
     if (user == null) {
       return false;
     }
@@ -383,34 +342,31 @@ public class UserGroupCache extends AbstractCache
       } else {
         throw new UnsupportedOperationException("Group not yet supported: " + group);
       }
-      if (result == true) {
+      if (result) {
         return true;
       }
     }
     return false;
   }
 
-  public List<UserRightDO> getUserRights(final Integer userId)
-  {
+  public List<UserRightDO> getUserRights(final Integer userId) {
     return getUserRightMap().get(userId);
   }
 
-  public UserRightDO getUserRight(final Integer userId, final UserRightId rightId)
-  {
+  public UserRightDO getUserRight(final Integer userId, final UserRightId rightId) {
     final List<UserRightDO> rights = getUserRights(userId);
     if (rights == null) {
       return null;
     }
     for (final UserRightDO right : rights) {
-      if (StringUtils.equals(right.getRightIdString(), rightId.getId()) == true) {
+      if (StringUtils.equals(right.getRightIdString(), rightId.getId())) {
         return right;
       }
     }
     return null;
   }
 
-  private Map<Integer, List<UserRightDO>> getUserRightMap()
-  {
+  private Map<Integer, List<UserRightDO>> getUserRightMap() {
     checkRefresh();
     return rightMap;
   }
@@ -418,67 +374,52 @@ public class UserGroupCache extends AbstractCache
   /**
    * Returns a collection of group id's to which the user is assigned to.
    *
-   * @param user
    * @return collection if found, otherwise null.
    */
-  public Collection<Integer> getUserGroups(final PFUserDO user)
-  {
+  public Collection<Integer> getUserGroups(final PFUserDO user) {
     checkRefresh();
     return getUserGroupIdMap().get(user.getId());
   }
 
-  public EmployeeDO getEmployee(final Integer userId)
-  {
+  public EmployeeDO getEmployee(final Integer userId) {
     checkRefresh();
     EmployeeDO employee = this.employeeMap.get(userId);
     if (employee == null) {
-      @SuppressWarnings("unchecked")
-      final List<EmployeeDO> list = (List<EmployeeDO>) this.hibernateTemplate
-          .find("from EmployeeDO e where e.user.id = ?", userId);
-      if (list != null && list.size() > 0) {
-        employee = list.get(0);
-        this.employeeMap.put(userId, employee);
-      }
+      employee = sessionFactory.getCurrentSession().createNamedQuery(EmployeeDO.FIND_BY_USER_ID, EmployeeDO.class)
+              .setParameter("userId", userId)
+              .uniqueResult();
+      if (employee != null) this.employeeMap.put(userId, employee);
     }
     return employee;
   }
 
   /**
    * Removes given employee from map, so refresh for next access is forced.
-   *
-   * @param userId
    */
-  public void refreshEmployee(final Integer userId)
-  {
+  public void refreshEmployee(final Integer userId) {
     if (this.employeeMap != null) {
       this.employeeMap.remove(userId);
     }
   }
 
-  private Map<Integer, GroupDO> getGroupMap()
-  {
+  private Map<Integer, GroupDO> getGroupMap() {
     checkRefresh();
     return groupMap;
   }
 
-  public Map<Integer, Set<Integer>> getUserGroupIdMap()
-  {
+  public Map<Integer, Set<Integer>> getUserGroupIdMap() {
     checkRefresh();
     return userGroupIdMap;
   }
 
   /**
    * Should be called after user modifications.
-   *
-   * @param user
    */
-  void updateUser(final PFUserDO user)
-  {
+  void updateUser(final PFUserDO user) {
     getUserMap().put(user.getId(), user);
   }
 
-  private Map<Integer, PFUserDO> getUserMap()
-  {
+  private Map<Integer, PFUserDO> getUserMap() {
     checkRefresh();
     return userMap;
   }
@@ -486,10 +427,8 @@ public class UserGroupCache extends AbstractCache
   /**
    * This method will be called by CacheHelper and is synchronized.
    */
-  @SuppressWarnings("unchecked")
   @Override
-  protected void refresh()
-  {
+  protected void refresh() {
     long begin = System.currentTimeMillis();
     String tenantLog = "";
     if (tenant != null) {
@@ -503,7 +442,7 @@ public class UserGroupCache extends AbstractCache
     final List<PFUserDO> users = Login.getInstance().getAllUsers();
     for (final PFUserDO user : users) {
       if (tenant != null) {
-        if (tenantChecker.isPartOfTenant(tenant, user) == false) {
+        if (!tenantChecker.isPartOfTenant(tenant, user)) {
           // Ignore users not assigned to current tenant.
           continue;
         }
@@ -525,7 +464,7 @@ public class UserGroupCache extends AbstractCache
     final Set<Integer> nhrUsers = new HashSet<Integer>();
     for (final GroupDO group : groups) {
       if (tenant != null) {
-        if (tenantChecker.isPartOfTenant(tenant.getId(), group) == false) {
+        if (!tenantChecker.isPartOfTenant(tenant.getId(), group)) {
           // Ignore groups not assigned to current tenant.
           continue;
         }
@@ -536,28 +475,28 @@ public class UserGroupCache extends AbstractCache
           if (user != null) {
             final Set<Integer> groupIdSet = ensureAndGetUserGroupIdMap(ugIdMap, user.getId());
             groupIdSet.add(group.getId());
-            if (ProjectForgeGroup.ADMIN_GROUP.equals(group.getName()) == true) {
+            if (ProjectForgeGroup.ADMIN_GROUP.equals(group.getName())) {
               log.debug("Adding user '" + user.getUsername() + "' as administrator.");
               nAdminUsers.add(user.getId());
-            } else if (ProjectForgeGroup.FINANCE_GROUP.equals(group.getName()) == true) {
+            } else if (ProjectForgeGroup.FINANCE_GROUP.equals(group.getName())) {
               log.debug("Adding user '" + user.getUsername() + "' for finance.");
               nFinanceUser.add(user.getId());
-            } else if (ProjectForgeGroup.CONTROLLING_GROUP.equals(group.getName()) == true) {
+            } else if (ProjectForgeGroup.CONTROLLING_GROUP.equals(group.getName())) {
               log.debug("Adding user '" + user.getUsername() + "' for controlling.");
               nControllingUsers.add(user.getId());
-            } else if (ProjectForgeGroup.PROJECT_MANAGER.equals(group.getName()) == true) {
+            } else if (ProjectForgeGroup.PROJECT_MANAGER.equals(group.getName())) {
               log.debug("Adding user '" + user.getUsername() + "' as project manager.");
               nProjectManagers.add(user.getId());
-            } else if (ProjectForgeGroup.PROJECT_ASSISTANT.equals(group.getName()) == true) {
+            } else if (ProjectForgeGroup.PROJECT_ASSISTANT.equals(group.getName())) {
               log.debug("Adding user '" + user.getUsername() + "' as project assistant.");
               nProjectAssistants.add(user.getId());
-            } else if (ProjectForgeGroup.MARKETING_GROUP.equals(group.getName()) == true) {
+            } else if (ProjectForgeGroup.MARKETING_GROUP.equals(group.getName())) {
               log.debug("Adding user '" + user.getUsername() + "' as marketing user.");
               nMarketingUsers.add(user.getId());
-            } else if (ProjectForgeGroup.ORGA_TEAM.equals(group.getName()) == true) {
+            } else if (ProjectForgeGroup.ORGA_TEAM.equals(group.getName())) {
               log.debug("Adding user '" + user.getUsername() + "' as orga user.");
               nOrgaUsers.add(user.getId());
-            } else if (ProjectForgeGroup.HR_GROUP.equals(group.getName()) == true) {
+            } else if (ProjectForgeGroup.HR_GROUP.equals(group.getName())) {
               log.debug("Adding user '" + user.getUsername() + "' as hr user.");
               nhrUsers.add(user.getId());
             }
@@ -580,12 +519,13 @@ public class UserGroupCache extends AbstractCache
     final Map<Integer, List<UserRightDO>> rMap = new HashMap<Integer, List<UserRightDO>>();
     List<UserRightDO> rights;
     try {
-      rights = (List<UserRightDO>) hibernateTemplate.find("from UserRightDO t order by user.id, right_id");
+      rights = sessionFactory.getCurrentSession().createNamedQuery(UserRightDO.FIND_ALL_ORDERED, UserRightDO.class)
+              .list();
     } catch (final Exception ex) {
       log.error(
-          "******* Exception while getting user rights from data-base (only OK for migration from older versions): "
-              + ex.getMessage(),
-          ex);
+              "******* Exception while getting user rights from data-base (only OK for migration from older versions): "
+                      + ex.getMessage(),
+              ex);
       rights = new ArrayList<UserRightDO>();
     }
     List<UserRightDO> list = null;
@@ -595,7 +535,7 @@ public class UserGroupCache extends AbstractCache
         log.warn("Oups, userId = null: " + right);
         continue;
       }
-      if (right.getUserId().equals(userId) == false) {
+      if (!right.getUserId().equals(userId)) {
         list = new ArrayList<UserRightDO>();
         userId = right.getUserId();
         if (userId != null) {
@@ -603,7 +543,7 @@ public class UserGroupCache extends AbstractCache
         }
       }
       if (userRights.getRight(right.getRightIdString()) != null
-          && userRights.getRight(right.getRightIdString()).isAvailable(this, right.getUser()) == true) {
+              && userRights.getRight(right.getRightIdString()).isAvailable(this, right.getUser())) {
         list.add(right);
       }
     }
@@ -614,8 +554,7 @@ public class UserGroupCache extends AbstractCache
     log.info("UserGroupCache.refresh took: " + (end - begin) + " ms.");
   }
 
-  private static Set<Integer> ensureAndGetUserGroupIdMap(final Map<Integer, Set<Integer>> ugIdMap, final Integer userId)
-  {
+  private static Set<Integer> ensureAndGetUserGroupIdMap(final Map<Integer, Set<Integer>> ugIdMap, final Integer userId) {
     Set<Integer> set = ugIdMap.get(userId);
     if (set == null) {
       set = new HashSet<Integer>();
@@ -624,11 +563,10 @@ public class UserGroupCache extends AbstractCache
     return set;
   }
 
-  public synchronized void internalSetAdminUser(final PFUserDO adminUser)
-  {
-    if (UserFilter.isUpdateRequiredFirst() == false) {
+  public synchronized void internalSetAdminUser(final PFUserDO adminUser) {
+    if (!UserFilter.isUpdateRequiredFirst()) {
       throw new IllegalStateException(
-          "Can't set admin user internally! This method is only available if system is under maintenance (update required first is true)!");
+              "Can't set admin user internally! This method is only available if system is under maintenance (update required first is true)!");
     }
     checkRefresh();
     this.adminUsers.add(adminUser.getId());
@@ -637,8 +575,7 @@ public class UserGroupCache extends AbstractCache
   /**
    * @return the tenant
    */
-  public TenantDO getTenant()
-  {
+  public TenantDO getTenant() {
     return tenant;
   }
 }

@@ -23,9 +23,6 @@
 
 package org.projectforge.business.fibu;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
@@ -40,6 +37,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -75,12 +75,11 @@ public class EmployeeSalaryDao extends BaseDao<EmployeeSalaryDO>
   /**
    * List of all years with employee salaries: select min(year), max(year) from t_fibu_employee_salary.
    */
-  @SuppressWarnings("unchecked")
   public int[] getYears()
   {
-    List<Object[]> list = (List<Object[]>) getSession()
-        .createQuery("select min(year), max(year) from EmployeeSalaryDO t").list();
-    return SQLHelper.getYears(list);
+    final Integer[] minMaxYear = getSession().createNamedQuery(EmployeeSalaryDO.SELECT_MIN_MAX_YEAR,Integer[].class)
+            .getSingleResult();
+    return SQLHelper.getYears(minMaxYear[0], minMaxYear[1]);
   }
 
   @Override

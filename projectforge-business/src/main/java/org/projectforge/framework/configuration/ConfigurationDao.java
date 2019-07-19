@@ -24,7 +24,6 @@
 package org.projectforge.framework.configuration;
 
 import org.apache.commons.lang3.Validate;
-import org.hibernate.query.Query;
 import org.projectforge.business.multitenancy.TenantDao;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
@@ -121,9 +120,9 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
   public ConfigurationDO getEntry(final IConfigurationParam param)
   {
     Validate.notNull(param);
-    Query<ConfigurationDO> query = getSession().createNamedQuery(ConfigurationDO.FIND_BY_PARAMETER, ConfigurationDO.class);
-    query.setParameter("parameter", param.getKey());
-    final List<ConfigurationDO> list = query.list();
+    final List<ConfigurationDO> list = getSession().createNamedQuery(ConfigurationDO.FIND_BY_PARAMETER, ConfigurationDO.class)
+            .setParameter("parameter", param.getKey())
+            .list();
     if (list == null || list.isEmpty() == true || list.get(0) == null) {
       return null;
     }

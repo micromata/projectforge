@@ -52,6 +52,16 @@ import javax.persistence.*
 @Indexed
 @Table(name = "T_PF_USER", uniqueConstraints = [UniqueConstraint(columnNames = ["username"])], indexes = [Index(name = "idx_fk_t_pf_user_tenant_id", columnList = "tenant_id")])
 @EntityDependencies(referencedBy = [TenantDO::class])
+@NamedQueries(
+        NamedQuery(name = PFUserDO.FIND_BY_USERNAME_AND_STAYLOGGEDINKEY,
+                query = "from PFUserDO where username=:username and stayLoggedInKey=:stayLoggedInKey"),
+        NamedQuery(name = PFUserDO.FIND_BY_USERNAME,
+                query = "from PFUserDO where username=:username"),
+        NamedQuery(name = PFUserDO.FIND_OTHER_USER_BY_USERNAME,
+                query = "from PFUserDO where username=:username and id<>:id"),
+        NamedQuery(name = PFUserDO.FIND_BY_USERID_AND_AUTHENTICATIONTOKEN,
+                query = "from PFUserDO where id=:id and authenticationToken=:authenticationToken"))
+// from PFUserDO u where u.id = ? and u.authenticationToken = ?
 class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     @Transient
@@ -521,6 +531,17 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
         private val log = org.slf4j.LoggerFactory.getLogger(PFUserDO::class.java)
 
         private const val NOPASSWORD = "--- none ---"
+
+        internal const val FIND_BY_USERNAME_AND_STAYLOGGEDINKEY = "PFUserDO_FindByUsernameAndStayLoggedInKey"
+
+        internal const val FIND_BY_USERNAME = "PFUserDO_FindByUsername"
+
+        internal const val FIND_BY_USERID_AND_AUTHENTICATIONTOKEN = "PFUserDO_FindByUserIdAndAuthenticationToken"
+
+        /**
+         * For detecting the existing of given username in the database for other user than given. Avoids duplicate usernames.
+         */
+        internal const val FIND_OTHER_USER_BY_USERNAME = "PFUserDO_FindOtherUserByUsername"
 
         /**
          * @return A copy of the given user without copying the secret fields (password, passwordSalt, stayLoggedInKey or

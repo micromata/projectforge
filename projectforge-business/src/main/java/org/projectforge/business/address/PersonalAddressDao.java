@@ -25,6 +25,7 @@ package org.projectforge.business.address;
 
 import org.apache.commons.lang3.Validate;
 import org.hibernate.LockMode;
+import org.hibernate.SessionFactory;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.AccessChecker;
@@ -49,8 +50,7 @@ import java.util.stream.Collectors;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-public class PersonalAddressDao
-{
+public class PersonalAddressDao {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PersonalAddressDao.class);
 
   @Autowired
@@ -61,6 +61,9 @@ public class PersonalAddressDao
 
   @Autowired
   private HibernateTemplate hibernateTemplate;
+
+  @Autowired
+  private SessionFactory sessionFactory;
 
   @Autowired
   private AddressbookDao addressbookDao;
@@ -75,8 +78,7 @@ public class PersonalAddressDao
    * @param ownerId         If null, then task will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
-  public void setOwner(final PersonalAddressDO personalAddress, final Integer ownerId)
-  {
+  public void setOwner(final PersonalAddressDO personalAddress, final Integer ownerId) {
     final PFUserDO user = userDao.getOrLoad(ownerId);
     personalAddress.setOwner(user);
   }
@@ -86,16 +88,14 @@ public class PersonalAddressDao
    * @return the generated identifier.
    */
   @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
-  public Serializable saveOrUpdate(final PersonalAddressDO obj)
-  {
+  public Serializable saveOrUpdate(final PersonalAddressDO obj) {
     if (internalUpdate(obj) == true) {
       return obj.getId();
     }
     return internalSave(obj);
   }
 
-  private boolean checkAccess(final PersonalAddressDO obj, boolean throwException)
-  {
+  private boolean checkAccess(final PersonalAddressDO obj, boolean throwException) {
     Validate.notNull(obj);
     Validate.notNull(obj.getOwnerId());
     Validate.notNull(obj.getAddressId());
@@ -108,7 +108,7 @@ public class PersonalAddressDao
     }
     Set<Integer> addressbookIDListForUser = getAddressbookIdsForUser(owner);
     Set<Integer> addressbookIDListFromAddress = obj.getAddress().getAddressbookList().stream().mapToInt(AddressbookDO::getId).boxed()
-        .collect(Collectors.toSet());
+            .collect(Collectors.toSet());
     if (Collections.disjoint(addressbookIDListForUser, addressbookIDListFromAddress)) {
       if (throwException) {
         throw new AccessException("address.accessException.userHasNoRightForAddressbook");
@@ -119,13 +119,11 @@ public class PersonalAddressDao
     return true;
   }
 
-  private boolean checkAccess(final PersonalAddressDO obj)
-  {
+  private boolean checkAccess(final PersonalAddressDO obj) {
     return checkAccess(obj, true);
   }
 
-  private Set<Integer> getAddressbookIdsForUser(final PFUserDO user)
-  {
+  private Set<Integer> getAddressbookIdsForUser(final PFUserDO user) {
     Set<Integer> abIdSet = new HashSet<>();
     //Get all addressbooks for user
     if (addressbookRight == null) {
@@ -140,8 +138,7 @@ public class PersonalAddressDao
     return abIdSet;
   }
 
-  private Serializable internalSave(final PersonalAddressDO obj)
-  {
+  private Serializable internalSave(final PersonalAddressDO obj) {
     if (isEmpty(obj) == true) {
       // No entry, so we do not need to save this entry.
       return null;
@@ -154,22 +151,20 @@ public class PersonalAddressDao
     return id;
   }
 
-  private boolean isEmpty(final PersonalAddressDO obj)
-  {
+  private boolean isEmpty(final PersonalAddressDO obj) {
     return (obj.isFavoriteCard() == false)
-        && (obj.isFavoriteBusinessPhone() == false)
-        && (obj.isFavoriteMobilePhone() == false)
-        && (obj.isFavoriteFax() == false)
-        && (obj.isFavoritePrivatePhone() == false)
-        && (obj.isFavoritePrivateMobilePhone() == false);
+            && (obj.isFavoriteBusinessPhone() == false)
+            && (obj.isFavoriteMobilePhone() == false)
+            && (obj.isFavoriteFax() == false)
+            && (obj.isFavoritePrivatePhone() == false)
+            && (obj.isFavoritePrivateMobilePhone() == false);
   }
 
   /**
    * @param obj
    * @return true, if already existing entry was updated, otherwise false (e. g. if no entry exists for update).
    */
-  private boolean internalUpdate(final PersonalAddressDO obj)
-  {
+  private boolean internalUpdate(final PersonalAddressDO obj) {
     PersonalAddressDO dbObj = null;
     if (obj.getId() != null) {
       dbObj = hibernateTemplate.load(PersonalAddressDO.class, obj.getId(), LockMode.PESSIMISTIC_WRITE);
@@ -197,24 +192,25 @@ public class PersonalAddressDao
    */
   @SuppressWarnings("unchecked")
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public PersonalAddressDO getByAddressId(final Integer addressId)
-  {
+  public PersonalAddressDO getByAddressId(final Integer addressId) {
     final PFUserDO owner = ThreadLocalUserContext.getUser();
     Validate.notNull(owner);
     Validate.notNull(owner.getId());
-    final List<PersonalAddressDO> list = (List<PersonalAddressDO>) hibernateTemplate.find(
-        "from " + PersonalAddressDO.class.getSimpleName() + " t where t.owner.id = ? and t.address.id = ?",
-        new Object[] { owner.getId(), addressId });
+    final List<PersonalAddressDO> list = sessionFactory.getCurrentSession()
+            .createNamedQuery(PersonalAddressDO.FIND_BY_OWNER_AND_ADDRESS_ID, PersonalAddressDO.class)
+            .setParameter("ownerId", owner.getId())
+            .setParameter("addressId", addressId)
+            .list();
     if (list != null) {
       if (list.size() == 0) {
         return null;
       }
       if (list.size() > 1) {
         log.error("Multiple personal address book entries for same user ("
-            + owner.getId()
-            + " and same address ("
-            + addressId
-            + "). Should not occur?!");
+                + owner.getId()
+                + " and same address ("
+                + addressId
+                + "). Should not occur?!");
       }
       if (checkAccess(list.get(0), false)) {
         return list.get(0);
@@ -227,18 +223,15 @@ public class PersonalAddressDao
    * @return the list of all PersonalAddressDO entries for the context user.
    */
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public List<PersonalAddressDO> getList()
-  {
+  public List<PersonalAddressDO> getList() {
     final PFUserDO owner = ThreadLocalUserContext.getUser();
     Validate.notNull(owner);
     Validate.notNull(owner.getId());
     final long start = System.currentTimeMillis();
-    @SuppressWarnings("unchecked")
-    List<PersonalAddressDO> list = (List<PersonalAddressDO>) hibernateTemplate.find(
-        "from "
-            + PersonalAddressDO.class.getSimpleName()
-            + " t join fetch t.address where t.owner.id=? and t.address.deleted=false order by t.address.name, t.address.firstName",
-        owner.getId());
+    List<PersonalAddressDO> list = sessionFactory.getCurrentSession()
+            .createNamedQuery(PersonalAddressDO.FIND_JOINED_BY_OWNER, PersonalAddressDO.class)
+            .setParameter("ownerId", owner.getId())
+            .list();
     log.info("PersonalDao.getList took " + (System.currentTimeMillis() - start) + "ms.");
     list = list.stream().filter(pa -> checkAccess(pa, false) == true).collect(Collectors.toList());
     return list;
@@ -248,17 +241,14 @@ public class PersonalAddressDao
    * @return the list of all PersonalAddressDO entries for the context user without any check access (addresses might be also deleted).
    */
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public List<Integer> getIdList()
-  {
+  public List<Integer> getIdList() {
     final PFUserDO owner = ThreadLocalUserContext.getUser();
     Validate.notNull(owner);
     Validate.notNull(owner.getId());
-    @SuppressWarnings("unchecked")
-    List<Integer> list = (List<Integer>) hibernateTemplate.find(
-            "select address.id from "
-                    + PersonalAddressDO.class.getSimpleName()
-                    + " where owner.id=?",
-            owner.getId());
+    List<Integer> list = sessionFactory.getCurrentSession()
+            .createNamedQuery(PersonalAddressDO.FIND_IDS_BY_OWNER, Integer.class)
+            .setParameter("ownerId", owner.getId())
+            .list();
     return list;
   }
 
@@ -268,13 +258,14 @@ public class PersonalAddressDao
    */
   @SuppressWarnings("unchecked")
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public Map<Integer, PersonalAddressDO> getPersonalAddressByAddressId()
-  {
+  public Map<Integer, PersonalAddressDO> getPersonalAddressByAddressId() {
     final PFUserDO owner = ThreadLocalUserContext.getUser();
     Validate.notNull(owner);
     Validate.notNull(owner.getId());
-    final List<PersonalAddressDO> list = (List<PersonalAddressDO>) hibernateTemplate.find(
-        "from " + PersonalAddressDO.class.getSimpleName() + " t where t.owner.id = ?", owner.getId());
+    final List<PersonalAddressDO> list = sessionFactory.getCurrentSession()
+            .createNamedQuery(PersonalAddressDO.FIND_BY_OWNER, PersonalAddressDO.class)
+            .setParameter("ownerId", owner.getId())
+            .list();
     final Map<Integer, PersonalAddressDO> result = new HashMap<Integer, PersonalAddressDO>();
     for (final PersonalAddressDO entry : list) {
       if (entry.isFavorite() == true && checkAccess(entry, false)) {
@@ -290,16 +281,11 @@ public class PersonalAddressDao
    */
   @SuppressWarnings("unchecked")
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public List<AddressDO> getMyAddresses()
-  {
+  public List<AddressDO> getMyAddresses() {
     final PFUserDO owner = ThreadLocalUserContext.getUser();
     Validate.notNull(owner);
     Validate.notNull(owner.getId());
-    final List<PersonalAddressDO> list = (List<PersonalAddressDO>) hibernateTemplate.find(
-        "from "
-            + PersonalAddressDO.class.getSimpleName()
-            + " t join fetch t.address where t.owner.id = ? and t.address.deleted = false order by t.address.name, t.address.firstName",
-        owner.getId());
+    final List<PersonalAddressDO> list = getList();
     final List<AddressDO> result = new ArrayList<AddressDO>();
     for (final PersonalAddressDO entry : list) {
       if (entry.isFavorite() == true && checkAccess(entry, false)) {

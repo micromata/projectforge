@@ -25,56 +25,43 @@ package org.projectforge.framework.persistence.utils;
 
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
-
-import org.apache.commons.lang3.Validate;
 
 /**
  * Some helper methods ...
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class SQLHelper
-{
+public class SQLHelper {
   /**
    * Usage:<br/>
-   * 
    * <pre>
-   * List&lt;Object[]&gt; list = () getSession().createQuery(&quot;select min(datum), max(datum) from AuftragDO t&quot;).list();
-   * getYears(list);
+   *     final java.sql.Date[] minMaxDate = getSession().createNamedQuery(ContractDO.SELECT_MIN_MAX_DATE, java.sql.Date[].class)
+   *             .getSingleResult();
+   *     return SQLHelper.getYears(minMaxDate[0], minMaxDate[1]);
    * </pre>
-   * 
-   * or
-   * 
-   * <pre>
-   * List&lt;Object[]&gt; list = () getSession().createQuery(&quot;select min(year), max(year) from EmployeeSalaryDO t&quot;).list();
-   * getYears(list);
-   * </pre>
-   * 
-   * @param list
-   * @return Array of years in descendent order.
+   *
+   * @return Array of years in descendent order. If min or max is null, the current year is returned.
    */
-  public static int[] getYears(List<Object[]> list)
-  {
-    Validate.notNull(list);
-    if (list.size() == 0 || list.get(0) == null || list.get(0)[0] == null) {
+  public static int[] getYears(Date min, Date max) {
+    if (min == null || max == null) {
       return new int[] { Calendar.getInstance().get(Calendar.YEAR)};
     }
     int from, to;
-    if (list.get(0)[0] instanceof Date) {
-      Date min = (Date) list.get(0)[0];
-      Date max = (Date) list.get(0)[1];
-      Calendar cal = Calendar.getInstance();
-      cal.setTime(min);
-      from = cal.get(Calendar.YEAR);
-      cal.setTime(max);
-      to = cal.get(Calendar.YEAR);
-    } else {
-      from = (Integer) list.get(0)[0];
-      to = (Integer) list.get(0)[1];
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(min);
+    from = cal.get(Calendar.YEAR);
+    cal.setTime(max);
+    to = cal.get(Calendar.YEAR);
+    return getYears(from, to);
+  }
+
+  public static int[] getYears(Integer min, Integer max) {
+    if (min == null || max == null) {
+      return new int[] { Calendar.getInstance().get(Calendar.YEAR)};
     }
-    int[] res = new int[to - from + 1];
+    int[] res = new int[max - min + 1];
     int i = 0;
-    for (int year = to; year >= from; year--) {
+    for (int year = max; year >= min; year--) {
       res[i++] = year;
     }
     return res;

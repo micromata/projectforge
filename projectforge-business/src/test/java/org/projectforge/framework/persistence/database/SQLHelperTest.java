@@ -28,37 +28,29 @@ import org.projectforge.framework.persistence.utils.SQLHelper;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 
 public class SQLHelperTest
 {
   @Test
   public void getYears()
   {
-    try {
-      SQLHelper.getYears(null);
-      fail("Validate exception should be thrown.");
-    } catch (NullPointerException ex) {
-      // OK
-    } catch (Throwable ex) {
-      fail("Unexpected exception was thrown: " + ex.getMessage());
-    }
     List<Object[]> list = new ArrayList<Object[]>();
-    int[] years = SQLHelper.getYears(list);
+    int[] years = SQLHelper.getYears((Date) null, null);
     assertEquals(1, years.length);
     assertEquals(Calendar.getInstance().get(Calendar.YEAR), years[0]);
-    java.sql.Date[] tupel = new java.sql.Date[2];
-    list.add(tupel);
-    tupel[0] = createDate(2008);
-    tupel[1] = createDate(2008);
-    years = SQLHelper.getYears(list);
+
+    years = SQLHelper.getYears((Integer) null, null);
+    assertEquals(1, years.length);
+    assertEquals(Calendar.getInstance().get(Calendar.YEAR), years[0]);
+
+    years = SQLHelper.getYears(createDate(2008), createDate(2008));
     assertEquals(1, years.length);
     assertEquals(2008, years[0]);
-    tupel[0] = createDate(2001);
-    years = SQLHelper.getYears(list);
+    years = SQLHelper.getYears(createDate(2001), createDate(2008));
     assertEquals(8, years.length);
     assertEquals(2008, years[0]);
     assertEquals(2007, years[1]);

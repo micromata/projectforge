@@ -23,55 +23,24 @@
 
 package org.projectforge.framework.persistence.database;
 
-import java.math.BigDecimal;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.temporal.ChronoField;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TimeZone;
-import java.util.UUID;
-import java.util.function.Predicate;
-
+import de.micromata.genome.db.jpa.history.api.HistoryEntry;
+import de.micromata.genome.db.jpa.tabattr.api.TimeableRow;
+import de.micromata.genome.jpa.CriteriaUpdate;
+import de.micromata.genome.jpa.metainf.EntityMetadata;
+import de.micromata.genome.jpa.metainf.JpaMetadataEntityNotFoundException;
+import net.fortuna.ical4j.model.DateTime;
+import net.fortuna.ical4j.model.property.RRule;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.AddressbookDao;
-import org.projectforge.business.fibu.AuftragDO;
-import org.projectforge.business.fibu.AuftragsPositionDO;
-import org.projectforge.business.fibu.AuftragsPositionsStatus;
-import org.projectforge.business.fibu.AuftragsStatus;
-import org.projectforge.business.fibu.EingangsrechnungDO;
-import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.EmployeeDao;
-import org.projectforge.business.fibu.EmployeeStatus;
-import org.projectforge.business.fibu.EmployeeTimedDO;
-import org.projectforge.business.fibu.KontoDO;
-import org.projectforge.business.fibu.KundeDO;
-import org.projectforge.business.fibu.PaymentScheduleDO;
-import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.fibu.RechnungDO;
-import org.projectforge.business.fibu.RechnungsPositionDO;
+import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.image.ImageService;
 import org.projectforge.business.multitenancy.TenantDao;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.multitenancy.TenantService;
-import org.projectforge.business.orga.VisitorbookDO;
-import org.projectforge.business.orga.VisitorbookTimedAttrDO;
-import org.projectforge.business.orga.VisitorbookTimedAttrDataDO;
-import org.projectforge.business.orga.VisitorbookTimedAttrWithDataDO;
-import org.projectforge.business.orga.VisitorbookTimedDO;
+import org.projectforge.business.orga.*;
 import org.projectforge.business.scripting.ScriptDO;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.teamcal.TeamCalConfig;
@@ -81,14 +50,7 @@ import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserXmlPreferencesDO;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.repository.VacationDao;
-import org.projectforge.continuousdb.DatabaseResultRow;
-import org.projectforge.continuousdb.SchemaGenerator;
-import org.projectforge.continuousdb.Table;
-import org.projectforge.continuousdb.TableAttribute;
-import org.projectforge.continuousdb.UpdateEntry;
-import org.projectforge.continuousdb.UpdateEntryImpl;
-import org.projectforge.continuousdb.UpdatePreCheckStatus;
-import org.projectforge.continuousdb.UpdateRunningStatus;
+import org.projectforge.continuousdb.*;
 import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationType;
@@ -105,13 +67,14 @@ import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateHelper;
 import org.springframework.context.ApplicationContext;
 
-import de.micromata.genome.db.jpa.history.api.HistoryEntry;
-import de.micromata.genome.db.jpa.tabattr.api.TimeableRow;
-import de.micromata.genome.jpa.CriteriaUpdate;
-import de.micromata.genome.jpa.metainf.EntityMetadata;
-import de.micromata.genome.jpa.metainf.JpaMetadataEntityNotFoundException;
-import net.fortuna.ical4j.model.DateTime;
-import net.fortuna.ical4j.model.property.RRule;
+import java.math.BigDecimal;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.temporal.ChronoField;
+import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -229,7 +192,7 @@ public class DatabaseCoreUpdates
           List<DatabaseResultRow> resultList = databaseService.query("select pk, imagedata from t_address where imagedata is not null");
           log.info("Found: " + resultList.size() + " event entries to update imagedata.");
 
-          String sql = "UPDATE t_address SET image_data_preview = ? WHERE pk = ?";
+          String sql = "UPDATE t_address SET image_data_preview = ?1 WHERE pk = ?2";
           PreparedStatement ps = null;
           try {
             ps = databaseService.getDataSource().getConnection().prepareStatement(sql);

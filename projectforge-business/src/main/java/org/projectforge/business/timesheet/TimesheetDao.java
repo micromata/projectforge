@@ -107,15 +107,13 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
   /**
    * List of all years with time sheets of the given user: select min(startTime), max(startTime) from t_timesheet where
    * user=?.
-   *
-   * @return
    */
-  @SuppressWarnings("unchecked")
   public int[] getYears(final Integer userId)
   {
-    final List<Object[]> list = (List<Object[]>) getHibernateTemplate().find(
-        "select min(startTime), max(startTime) from TimesheetDO t where user.id=? and deleted=false", userId);
-    return SQLHelper.getYears(list);
+    final java.sql.Date[] minMaxDate = getSession().createNamedQuery(TimesheetDO.SELECT_MIN_MAX_DATE_FOR_USER, java.sql.Date[].class)
+            .setParameter("userId", userId)
+            .getSingleResult();
+    return SQLHelper.getYears(minMaxDate[0], minMaxDate[1]);
   }
 
   /**
