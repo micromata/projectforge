@@ -23,39 +23,19 @@
 
 package org.projectforge.business.fibu.kost
 
-import java.math.BigDecimal
-import java.math.RoundingMode
-import java.util.Date
-
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.EnumType
-import javax.persistence.Enumerated
-import javax.persistence.FetchType
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.Table
-import javax.persistence.Transient
-import javax.persistence.UniqueConstraint
-
+import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.apache.commons.lang3.StringUtils
-import org.hibernate.search.annotations.Analyze
-import org.hibernate.search.annotations.DateBridge
-import org.hibernate.search.annotations.EncodingType
-import org.hibernate.search.annotations.Field
+import org.hibernate.search.annotations.*
 import org.hibernate.search.annotations.Index
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
-import org.hibernate.search.annotations.Resolution
-import org.hibernate.search.annotations.Store
 import org.projectforge.business.fibu.KontoDO
 import org.projectforge.common.StringHelper
-import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-
-import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.slf4j.LoggerFactory
+import java.math.BigDecimal
+import java.math.RoundingMode
+import java.util.*
+import javax.persistence.*
 
 /**
  * Repräsentiert einen importierten Datev-Buchungssatz. Die Buchungssätze bilden die Grundlage für
@@ -99,6 +79,7 @@ class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
             field = betrag?.setScale(2, RoundingMode.HALF_UP)
         }
 
+    @PropertyInfo(i18nKey = "finance.accountingRecord.dc")
     @Field(index = Index.NO, analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 7, nullable = false)
@@ -136,6 +117,7 @@ class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
     @get:Column(length = 255, name = "buchungstext")
     var text: String? = null
 
+    @PropertyInfo(i18nKey = "fibu.buchungssatz.menge")
     @Field
     @get:Column(length = 255)
     var menge: String? = null
@@ -198,16 +180,16 @@ class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
         }
         val kto = konto!!.nummer!!
         val sollHaben = sh
-        if (kto >= 4400 && kto <= 4499) {
+        if (kto in 4400..4499) {
             // Konto 4400 - 4499 werden im Haben gebucht: Umsatz.
         }
-        if (kto >= 5900 && kto <= 5999) {
+        if (kto in 5900..5999) {
             // Fremdleistungen
         }
         if (sollHaben == SHType.SOLL) {
             betrag = betrag!!.negate()
         }
-        if (kost2!!.isEqual(1, 0, 0, 0) == true && kto >= 6000 && kto <= 6299) { // "1.000.00.00"
+        if (kost2!!.isEqual(1, 0, 0, 0) && kto >= 6000 && kto <= 6299) { // "1.000.00.00"
             // Bei diesen Buchungen handelt es sich um Kontrollbuchungen mit dem Gegenkonto 3790, was wir hier nochmals prüfen:
             if (gegenKonto!!.nummer != 3790) {
                 // log.error("Bei dieser Buchung ist das Gegenkonto nicht 3790, wie von der Buchhaltung mitgeteilt "
@@ -219,14 +201,14 @@ class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
     }
 
     fun setSH(value: String) {
-        if ("S" == value) {
-            sh = SHType.SOLL
-        } else if ("H" == value) {
-            sh = SHType.HABEN
-        } else {
-            val msg = "Haben / Soll-Wert ist undefiniert: $this"
-            log.error(msg)
-            throw RuntimeException(msg)
+        sh = when (value) {
+            "S" -> SHType.SOLL
+            "H" -> SHType.HABEN
+            else -> {
+                val msg = "Haben / Soll-Wert ist undefiniert: $this"
+                log.error(msg)
+                throw RuntimeException(msg)
+            }
         }
     }
 
