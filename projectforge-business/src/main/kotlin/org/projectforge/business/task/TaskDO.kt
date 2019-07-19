@@ -26,7 +26,6 @@ package org.projectforge.business.task
 import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.search.annotations.*
-import org.hibernate.search.annotations.Index
 import org.hibernate.search.bridge.builtin.IntegerBridge
 import org.projectforge.business.gantt.GanttObjectType
 import org.projectforge.business.gantt.GanttRelationType
@@ -41,6 +40,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.math.BigDecimal
 import java.util.*
 import javax.persistence.*
+import javax.persistence.Index
 
 /**
  *
@@ -48,10 +48,20 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@ClassBridge(name = "taskpath", index = Index.YES, store = Store.NO, impl = HibernateSearchTaskPathBridge::class)
+@ClassBridge(name = "taskpath", index = org.hibernate.search.annotations.Index.YES, store = Store.NO, impl = HibernateSearchTaskPathBridge::class)
 /* TOKENIZED */
-@Table(name = "T_TASK", uniqueConstraints = [UniqueConstraint(columnNames = ["parent_task_id", "title"])], indexes = [javax.persistence.Index(name = "idx_fk_t_task_gantt_predecessor_fk", columnList = "gantt_predecessor_fk"), javax.persistence.Index(name = "idx_fk_t_task_parent_task_id", columnList = "parent_task_id"), javax.persistence.Index(name = "idx_fk_t_task_responsible_user_id", columnList = "responsible_user_id"), javax.persistence.Index(name = "idx_fk_t_task_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_TASK",
+        uniqueConstraints = [UniqueConstraint(columnNames = ["parent_task_id", "title"])],
+        indexes = [Index(name = "idx_fk_t_task_gantt_predecessor_fk", columnList = "gantt_predecessor_fk"),
+            Index(name = "idx_fk_t_task_parent_task_id", columnList = "parent_task_id"),
+            Index(name = "idx_fk_t_task_responsible_user_id", columnList = "responsible_user_id"),
+            Index(name = "idx_fk_t_task_tenant_id", columnList = "tenant_id")])
 @JpaXmlPersist(beforePersistListener = [TaskXmlBeforePersistListener::class])
+@NamedQueries(
+        NamedQuery(name = TaskDO.FIND_OTHER_TASK_BY_PARENTTASKID_AND_TITLE,
+                query = "from TaskDO where parentTask.id=:parentTaskId and title=:title and id<>id"),
+        NamedQuery(name = TaskDO.FIND_BY_PARENTTASKID_AND_TITLE,
+                query = "from TaskDO where parentTask.id=:parentTaskId and title=:title"))
 class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObject
 {
 
@@ -345,6 +355,13 @@ class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObje
 
     companion object {
         private const val KOST2_SEPARATOR_CHARS = ",; "
+
+        /**
+         * For detecting child tasks of the given parent task with same title.
+         */
+        const val FIND_OTHER_TASK_BY_PARENTTASKID_AND_TITLE = "TaskDO_FindOtherTaskByParentTaskIdAndTitle"
+
+        const val FIND_BY_PARENTTASKID_AND_TITLE = "TaskDO_FindByParentTaskIdAndTitle"
 
         const val TITLE_LENGTH = 40
 

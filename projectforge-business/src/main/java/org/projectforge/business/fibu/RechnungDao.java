@@ -23,18 +23,6 @@
 
 package org.projectforge.business.fibu;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -59,6 +47,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.*;
 
 @Repository
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
@@ -119,14 +112,12 @@ public class RechnungDao extends BaseDao<RechnungDO>
 
   /**
    * List of all years with invoices: select min(datum), max(datum) from t_fibu_rechnung.
-   *
-   * @return
    */
-  @SuppressWarnings("unchecked")
   public int[] getYears()
   {
-    final List<Object[]> list = getSession().createQuery("select min(datum), max(datum) from RechnungDO t").list();
-    return SQLHelper.getYears(list);
+    final java.sql.Date[] minMaxDate = getSession().createNamedQuery(RechnungDO.SELECT_MIN_MAX_DATE, java.sql.Date[].class)
+            .getSingleResult();
+    return SQLHelper.getYears(minMaxDate[0], minMaxDate[1]);
   }
 
   public RechnungsStatistik buildStatistik(final List<RechnungDO> list)

@@ -23,19 +23,14 @@
 
 package org.projectforge.business.task;
 
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import org.apache.commons.collections.CollectionUtils;
-import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.tasktree.TaskTreeHelper;
+import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.common.task.TaskStatus;
@@ -56,19 +51,24 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-public class TaskDao extends BaseDao<TaskDO>
-{
+public class TaskDao extends BaseDao<TaskDO> {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TaskDao.class);
 
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "responsibleUser.username",
-      "responsibleUser.firstname",
-      "responsibleUser.lastname", "taskpath", "projekt.name", "projekt.kunde.name", "kost2.nummer",
-      "kost2.description" };
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"responsibleUser.username",
+          "responsibleUser.firstname",
+          "responsibleUser.lastname", "taskpath", "projekt.name", "projekt.kunde.name", "kost2.nummer",
+          "kost2.description"};
 
   public static final String I18N_KEY_ERROR_CYCLIC_REFERENCE = "task.error.cyclicReference";
 
@@ -81,14 +81,12 @@ public class TaskDao extends BaseDao<TaskDO>
   @Autowired
   private UserDao userDao;
 
-  public TaskDao()
-  {
+  public TaskDao() {
     super(TaskDO.class);
   }
 
   @Override
-  protected String[] getAdditionalSearchFields()
-  {
+  protected String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
@@ -98,8 +96,7 @@ public class TaskDao extends BaseDao<TaskDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#onSaveOrModify(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
-  protected void onSaveOrModify(final TaskDO obj)
-  {
+  protected void onSaveOrModify(final TaskDO obj) {
     synchronized (this) {
       checkConstraintVioloation(obj);
     }
@@ -110,8 +107,7 @@ public class TaskDao extends BaseDao<TaskDO>
    * @param parentTaskId If null, then task will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
-  public TaskDO setParentTask(final TaskDO task, final Integer parentTaskId)
-  {
+  public TaskDO setParentTask(final TaskDO task, final Integer parentTaskId) {
     final TaskDO parentTask = getOrLoad(parentTaskId);
     task.setParentTask(parentTask);
     return task;
@@ -122,8 +118,7 @@ public class TaskDao extends BaseDao<TaskDO>
    * @param predecessorId If null, then task will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
-  public void setGanttPredecessor(final TaskDO task, final Integer predecessorId)
-  {
+  public void setGanttPredecessor(final TaskDO task, final Integer predecessorId) {
     final TaskDO predecessor = getOrLoad(predecessorId);
     task.setGanttPredecessor(predecessor);
   }
@@ -133,8 +128,7 @@ public class TaskDao extends BaseDao<TaskDO>
    * @param responsibleUserId If null, then task will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
-  public void setResponsibleUser(final TaskDO task, final Integer responsibleUserId)
-  {
+  public void setResponsibleUser(final TaskDO task, final Integer responsibleUserId) {
     final PFUserDO user = userDao.getOrLoad(responsibleUserId);
     task.setResponsibleUser(user);
   }
@@ -146,19 +140,16 @@ public class TaskDao extends BaseDao<TaskDO>
    * @return
    */
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public List<Object[]> readTotalDurations()
-  {
+  public List<Object[]> readTotalDurations() {
     log.debug("Calculating duration for all tasks");
     final String intervalInSeconds = DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime");
     if (intervalInSeconds != null) {
-      @SuppressWarnings("unchecked")
-      final List<Object[]> list = (List<Object[]>) getHibernateTemplate().find(
-          "select " + intervalInSeconds + ", task.id from TimesheetDO where deleted=false group by task.id");
+      @SuppressWarnings("unchecked") final List<Object[]> list = (List<Object[]>) getHibernateTemplate().find(
+              "select " + intervalInSeconds + ", task.id from TimesheetDO where deleted=false group by task.id");
       return list;
     }
-    @SuppressWarnings("unchecked")
-    final List<Object[]> result = (List<Object[]>) getHibernateTemplate().find(
-        "select startTime, stopTime, task.id from TimesheetDO where deleted=false order by task.id");
+    @SuppressWarnings("unchecked") final List<Object[]> result = (List<Object[]>) getHibernateTemplate().find(
+            "select startTime, stopTime, task.id from TimesheetDO where deleted=false order by task.id");
     final List<Object[]> list = new ArrayList<Object[]>();
     if (CollectionUtils.isEmpty(result) == false) {
       Integer currentTaskId = null;
@@ -170,7 +161,7 @@ public class TaskDao extends BaseDao<TaskDO>
         final long duration = (stopTime.getTime() - startTime.getTime()) / 1000;
         if (currentTaskId == null || currentTaskId.equals(taskId) == false) {
           if (currentTaskId != null) {
-            list.add(new Object[] { totalDuration, currentTaskId });
+            list.add(new Object[]{totalDuration, currentTaskId});
           }
           // New row.
           currentTaskId = taskId;
@@ -179,7 +170,7 @@ public class TaskDao extends BaseDao<TaskDO>
         totalDuration += duration;
       }
       if (currentTaskId != null) {
-        list.add(new Object[] { totalDuration, currentTaskId });
+        list.add(new Object[]{totalDuration, currentTaskId});
       }
     }
     return list;
@@ -187,44 +178,36 @@ public class TaskDao extends BaseDao<TaskDO>
 
   /**
    * Gets the total duration of all time sheets of the given task (excluding the child tasks).
-   *
-   * @param node
-   * @return
    */
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public long readTotalDuration(final Integer taskId)
-  {
+  public long readTotalDuration(final Integer taskId) {
     log.debug("Calculating duration for all tasks");
     final String intervalInSeconds = DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime");
     if (intervalInSeconds != null) {
-      @SuppressWarnings("unchecked")
-      final List<Object> list = (List<Object>) getHibernateTemplate().find(
-          "select "
+      final List<Long> list = getSession().createQuery("select "
               + DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime")
-              + " from TimesheetDO where task.id = ? and deleted=false",
-          taskId);
+              + " from TimesheetDO where task.id = :taskId and deleted=false", Long.class)
+              .setParameter("taskId", taskId).list();
       if (list.size() == 0) {
         return new Long(0);
       }
       Validate.isTrue(list.size() == 1);
       if (list.get(0) == null) { // Has happened one time, why (PROJECTFORGE-543)?
         return new Long(0);
-      } else if (list.get(0) instanceof Integer) {
-        return new Long((Integer) list.get(0));
       } else {
         return (Long) list.get(0);
       }
     }
-    @SuppressWarnings("unchecked")
-    final List<Object[]> result = (List<Object[]>) getHibernateTemplate().find(
-        "select startTime, stopTime from TimesheetDO where task.id = ? and deleted=false", taskId);
+    List<Timestamp[]> result = getSession().createNamedQuery(TimesheetDO.FIND_START_STOP_BY_TASKID, Timestamp[].class)
+            .setParameter("taskId", taskId)
+            .list();
     if (CollectionUtils.isEmpty(result) == true) {
       return new Long(0);
     }
     long totalDuration = 0;
-    for (final Object[] oa : result) {
-      final Timestamp startTime = (Timestamp) oa[0];
-      final Timestamp stopTime = (Timestamp) oa[1];
+    for (final Timestamp[] oa : result) {
+      final Timestamp startTime = oa[0];
+      final Timestamp stopTime = oa[1];
       final long duration = stopTime.getTime() - startTime.getTime();
       totalDuration += duration;
     }
@@ -233,8 +216,7 @@ public class TaskDao extends BaseDao<TaskDO>
 
   @Override
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public List<TaskDO> getList(final BaseSearchFilter filter) throws AccessException
-  {
+  public List<TaskDO> getList(final BaseSearchFilter filter) throws AccessException {
     final TaskFilter myFilter;
     if (filter instanceof TaskFilter) {
       myFilter = (TaskFilter) filter;
@@ -257,7 +239,7 @@ public class TaskDao extends BaseDao<TaskDO>
     } else {
       // Note: Result set should be empty, because every task should has one of the following status values.
       queryFilter.add(
-          Restrictions.not(Restrictions.in("status", new TaskStatus[] { TaskStatus.N, TaskStatus.O, TaskStatus.C })));
+              Restrictions.not(Restrictions.in("status", new TaskStatus[]{TaskStatus.N, TaskStatus.O, TaskStatus.C})));
     }
     queryFilter.addOrder(Order.asc("title"));
     if (log.isDebugEnabled() == true) {
@@ -273,8 +255,7 @@ public class TaskDao extends BaseDao<TaskDO>
    * @throws UserException
    */
   @SuppressWarnings("unchecked")
-  public void checkConstraintVioloation(final TaskDO task) throws UserException
-  {
+  public void checkConstraintVioloation(final TaskDO task) throws UserException {
     if (task.getParentTaskId() == null) {
       // Root task or task without parent task.
       final TaskTree taskTree = getTaskTree(task);
@@ -285,12 +266,16 @@ public class TaskDao extends BaseDao<TaskDO>
     } else {
       List<TaskDO> list;
       if (task.getId() != null) {
-        list = (List<TaskDO>) getHibernateTemplate().find(
-            "from TaskDO t where t.parentTask.id = ? and t.title = ? and t.id != ?",
-            new Object[] { task.getParentTaskId(), task.getTitle(), task.getId() });
+        list = getSession().createNamedQuery(TaskDO.FIND_OTHER_TASK_BY_PARENTTASKID_AND_TITLE, TaskDO.class)
+                .setParameter("parentTaskId", task.getParentTaskId())
+                .setParameter("title", task.getTitle())
+                .setParameter("id", task.getId()) // Find other (different from this id).
+                .list();
       } else {
-        list = (List<TaskDO>) getHibernateTemplate().find("from TaskDO t where t.parentTask.id = ? and t.title = ?",
-            new Object[] { task.getParentTaskId(), task.getTitle() });
+        list = getSession().createNamedQuery(TaskDO.FIND_BY_PARENTTASKID_AND_TITLE, TaskDO.class)
+                .setParameter("parentTaskId", task.getParentTaskId())
+                .setParameter("title", task.getTitle())
+                .list();
       }
       if (CollectionUtils.isNotEmpty(list) == true) {
         throw new UserException(I18N_KEY_ERROR_DUPLICATE_CHILD_TASKS);
@@ -299,8 +284,7 @@ public class TaskDao extends BaseDao<TaskDO>
   }
 
   @Override
-  protected void afterSaveOrModify(final TaskDO obj)
-  {
+  protected void afterSaveOrModify(final TaskDO obj) {
     // Reread it from the database to get the current version (given obj could be different, for example after markAsDeleted):
     final TaskDO task = internalGetById(obj.getId());
     final TaskTree taskTree = getTaskTree(task);
@@ -313,18 +297,16 @@ public class TaskDao extends BaseDao<TaskDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess(java.lang.Object, boolean)
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final TaskDO obj, final boolean throwException)
-  {
+  public boolean hasSelectAccess(final PFUserDO user, final TaskDO obj, final boolean throwException) {
     if (accessChecker.isUserMemberOfGroup(user, false, ProjectForgeGroup.ADMIN_GROUP, ProjectForgeGroup.FINANCE_GROUP,
-        ProjectForgeGroup.CONTROLLING_GROUP) == true) {
+            ProjectForgeGroup.CONTROLLING_GROUP) == true) {
       return true;
     }
     return super.hasSelectAccess(user, obj, throwException);
   }
 
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException)
-  {
+  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException) {
     return true;
   }
 
@@ -333,9 +315,8 @@ public class TaskDao extends BaseDao<TaskDO>
    */
   @Override
   public boolean hasAccess(final PFUserDO user, final TaskDO obj, final TaskDO oldObj,
-      final OperationType operationType,
-      final boolean throwException)
-  {
+                           final OperationType operationType,
+                           final boolean throwException) {
     return accessChecker.hasPermission(user, obj.getId(), AccessType.TASKS, operationType, throwException);
   }
 
@@ -344,8 +325,7 @@ public class TaskDao extends BaseDao<TaskDO>
    */
   @Override
   public boolean hasUpdateAccess(final PFUserDO user, final TaskDO obj, final TaskDO dbObj,
-      final boolean throwException)
-  {
+                                 final boolean throwException) {
     Validate.notNull(dbObj);
     Validate.notNull(obj);
     final TaskTree taskTree = getTaskTree(obj);
@@ -354,7 +334,7 @@ public class TaskDao extends BaseDao<TaskDO>
         throw new UserException(TaskDao.I18N_KEY_ERROR_CYCLIC_REFERENCE);
       }
       if (accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.ADMIN_GROUP,
-          ProjectForgeGroup.FINANCE_GROUP) == false) {
+              ProjectForgeGroup.FINANCE_GROUP) == false) {
         return false;
       }
       return true;
@@ -370,11 +350,11 @@ public class TaskDao extends BaseDao<TaskDO>
     // Checks cyclic and self reference. The parent task is not allowed to be a self reference.
     checkCyclicReference(obj);
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.ADMIN_GROUP,
-        ProjectForgeGroup.FINANCE_GROUP) == true) {
+            ProjectForgeGroup.FINANCE_GROUP) == true) {
       return true;
     }
     if (accessChecker.hasPermission(user, obj.getId(), AccessType.TASKS, OperationType.UPDATE,
-        throwException) == false) {
+            throwException) == false) {
       return false;
     }
     if (dbObj.getParentTaskId().equals(obj.getParentTaskId()) == false) {
@@ -384,7 +364,7 @@ public class TaskDao extends BaseDao<TaskDO>
         return false;
       }
       if (accessChecker.hasPermission(user, dbObj.getParentTaskId(), AccessType.TASKS, OperationType.DELETE,
-          throwException) == false) {
+              throwException) == false) {
         // Deleting of object under old task not allowed.
         return false;
       }
@@ -392,8 +372,7 @@ public class TaskDao extends BaseDao<TaskDO>
     return true;
   }
 
-  public boolean hasAccessForKost2AndTimesheetBookingStatus(final PFUserDO user, final TaskDO obj)
-  {
+  public boolean hasAccessForKost2AndTimesheetBookingStatus(final PFUserDO user, final TaskDO obj) {
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP) == true) {
       return true;
     }
@@ -411,8 +390,7 @@ public class TaskDao extends BaseDao<TaskDO>
   }
 
   @Override
-  protected void checkInsertAccess(final PFUserDO user, final TaskDO obj) throws AccessException
-  {
+  protected void checkInsertAccess(final PFUserDO user, final TaskDO obj) throws AccessException {
     super.checkInsertAccess(user, obj);
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP) == false) {
       if (obj.getProtectTimesheetsUntil() != null) {
@@ -434,8 +412,7 @@ public class TaskDao extends BaseDao<TaskDO>
   }
 
   @Override
-  protected void checkUpdateAccess(final PFUserDO user, final TaskDO obj, final TaskDO dbObj) throws AccessException
-  {
+  protected void checkUpdateAccess(final PFUserDO user, final TaskDO obj, final TaskDO dbObj) throws AccessException {
     super.checkUpdateAccess(user, obj, dbObj);
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP) == false) {
       Long ts1 = null, ts2 = null;
@@ -455,7 +432,7 @@ public class TaskDao extends BaseDao<TaskDO>
     if (hasAccessForKost2AndTimesheetBookingStatus(user, obj) == false) {
       // Non project managers are not able to manipulate the following fields:
       if (Objects.equals(obj.getKost2BlackWhiteList(), dbObj.getKost2BlackWhiteList()) == false
-          || obj.getKost2IsBlackList() != dbObj.getKost2IsBlackList()) {
+              || obj.getKost2IsBlackList() != dbObj.getKost2IsBlackList()) {
         throw new AccessException("task.error.kost2Readonly");
       }
       if (obj.getTimesheetBookingStatus() != dbObj.getTimesheetBookingStatus()) {
@@ -465,8 +442,7 @@ public class TaskDao extends BaseDao<TaskDO>
   }
 
   @Override
-  public boolean hasInsertAccess(final PFUserDO user, final TaskDO obj, final boolean throwException)
-  {
+  public boolean hasInsertAccess(final PFUserDO user, final TaskDO obj, final boolean throwException) {
     Validate.notNull(obj);
     // Checks if the task is orphan.
     final TaskTree taskTree = getTaskTree(obj);
@@ -479,32 +455,30 @@ public class TaskDao extends BaseDao<TaskDO>
       }
     }
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.ADMIN_GROUP,
-        ProjectForgeGroup.FINANCE_GROUP) == true) {
+            ProjectForgeGroup.FINANCE_GROUP) == true) {
       return true;
     }
     return accessChecker.hasPermission(user, obj.getParentTaskId(), AccessType.TASKS, OperationType.INSERT,
-        throwException);
+            throwException);
   }
 
   @Override
   public boolean hasDeleteAccess(final PFUserDO user, final TaskDO obj, final TaskDO dbObj,
-      final boolean throwException)
-  {
+                                 final boolean throwException) {
     Validate.notNull(obj);
     if (hasUpdateAccess(user, obj, dbObj, throwException) == true) {
       return true;
     }
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.ADMIN_GROUP,
-        ProjectForgeGroup.FINANCE_GROUP) == true) {
+            ProjectForgeGroup.FINANCE_GROUP) == true) {
       return true;
     }
     return accessChecker.hasPermission(user, obj.getParentTaskId(), AccessType.TASKS, OperationType.DELETE,
-        throwException);
+            throwException);
   }
 
   @Override
-  protected ModificationStatus copyValues(final TaskDO src, final TaskDO dest, final String... ignoreFields)
-  {
+  protected ModificationStatus copyValues(final TaskDO src, final TaskDO dest, final String... ignoreFields) {
     ModificationStatus modified = super.copyValues(src, dest, ignoreFields);
     // Priority value is null-able (may be was not copied from super.copyValues):
     if (Objects.equals(dest.getPriority(), src.getPriority()) == false) {
@@ -521,8 +495,7 @@ public class TaskDao extends BaseDao<TaskDO>
     return modified;
   }
 
-  private void checkCyclicReference(final TaskDO obj)
-  {
+  private void checkCyclicReference(final TaskDO obj) {
     if (obj.getId().equals(obj.getParentTaskId()) == true) {
       // Self reference
       throw new UserException(I18N_KEY_ERROR_CYCLIC_REFERENCE);
@@ -546,21 +519,18 @@ public class TaskDao extends BaseDao<TaskDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#onDelete(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
-  protected void onDelete(final TaskDO obj)
-  {
+  protected void onDelete(final TaskDO obj) {
     final TaskTree taskTree = getTaskTree(obj);
     if (taskTree.isRootNode(obj) == true) {
       throw new UserException("task.error.couldNotDeleteRootTask");
     }
   }
 
-  public TaskTree getTaskTree()
-  {
+  public TaskTree getTaskTree() {
     return TaskTreeHelper.getTaskTree();
   }
 
-  public TaskTree getTaskTree(final TaskDO task)
-  {
+  public TaskTree getTaskTree(final TaskDO task) {
     final TenantDO tenant = task.getTenant();
     return TaskTreeHelper.getTaskTree(tenant);
   }
@@ -572,8 +542,7 @@ public class TaskDao extends BaseDao<TaskDO>
    * org.projectforge.core.ExtendedBaseDO)
    */
   @Override
-  protected boolean wantsReindexAllDependentObjects(final TaskDO obj, final TaskDO dbObj)
-  {
+  protected boolean wantsReindexAllDependentObjects(final TaskDO obj, final TaskDO dbObj) {
     if (super.wantsReindexAllDependentObjects(obj, dbObj) == false) {
       return false;
     }
@@ -581,8 +550,7 @@ public class TaskDao extends BaseDao<TaskDO>
   }
 
   @Override
-  public TaskDO newInstance()
-  {
+  public TaskDO newInstance() {
     return new TaskDO();
   }
 
@@ -590,8 +558,7 @@ public class TaskDao extends BaseDao<TaskDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#useOwnCriteriaCacheRegion()
    */
   @Override
-  protected boolean useOwnCriteriaCacheRegion()
-  {
+  protected boolean useOwnCriteriaCacheRegion() {
     return true;
   }
 }

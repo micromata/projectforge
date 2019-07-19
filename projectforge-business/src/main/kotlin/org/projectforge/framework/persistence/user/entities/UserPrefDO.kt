@@ -35,8 +35,14 @@ import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.ModificationStatus
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.user.api.UserPrefArea
+import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_AND_AREA_AND_ID
+import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_AND_AREA_AND_NAME
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_ID
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_ID_AND_AREA
+import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_ID_AND_AREA_AND_NULLNAME
+import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_IDS_AND_NAMES_BY_USER_AND_AREA
+import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_NAMES_BY_USER_AND_AREA
+import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_OTHER_BY_USER_AND_AREA_AND_NAME
 import java.io.Serializable
 import java.util.*
 import javax.persistence.*
@@ -53,9 +59,15 @@ import javax.persistence.*
         uniqueConstraints = [UniqueConstraint(columnNames = ["user_fk", "area", "name", "tenant_id"])],
         indexes = [Index(name = "idx_fk_t_user_pref_user_fk", columnList = "user_fk"), Index(name = "idx_fk_t_user_pref_tenant_id", columnList = "tenant_id")])
 @JpaXmlPersist(beforePersistListener = [UserPrefXmlBeforePersistListener::class])
-@org.hibernate.annotations.NamedQueries(
-        org.hibernate.annotations.NamedQuery(name = FIND_BY_USER_ID_AND_AREA, query = "from UserPrefDO where user.id = :userId and area = :area"),
-        org.hibernate.annotations.NamedQuery(name = FIND_BY_USER_ID, query = "from UserPrefDO where user.id = :userId"))
+@NamedQueries(
+        NamedQuery(name = FIND_BY_USER_ID_AND_AREA, query = "from UserPrefDO where user.id=:userId and area=:area"),
+        NamedQuery(name = FIND_BY_USER_ID, query = "from UserPrefDO where user.id=:userId"),
+        NamedQuery(name = FIND_BY_USER_AND_AREA_AND_NAME, query = "from UserPrefDO where user.id=:userId and area=:area and name=:name"),
+        NamedQuery(name = FIND_BY_USER_AND_AREA_AND_ID, query = "from UserPrefDO where user.id=:userId and area=:area and id=:id"),
+        NamedQuery(name = FIND_BY_USER_ID_AND_AREA_AND_NULLNAME, query = "from UserPrefDO where user.id=:userId and area=:area and name is null"),
+        NamedQuery(name = FIND_NAMES_BY_USER_AND_AREA, query = "select name from UserPrefDO where user.id=:userId and area=:area order by name"),
+        NamedQuery(name = FIND_IDS_AND_NAMES_BY_USER_AND_AREA, query = "select id, name from UserPrefDO where user.id=:userId and area=:area order by name"),
+        NamedQuery(name = FIND_OTHER_BY_USER_AND_AREA_AND_NAME, query = "from UserPrefDO where id<>:ID and user.id=:userId and area=:area and name=:name"))
 class UserPrefDO : AbstractBaseDO<Int>() {
     private val log = org.slf4j.LoggerFactory.getLogger(UserPrefDO::class.java)
 
@@ -111,7 +123,7 @@ class UserPrefDO : AbstractBaseDO<Int>() {
                 return if (valueTypeString.isNullOrBlank())
                     null
                 else Class.forName(valueTypeString)
-            } catch(ex: ClassNotFoundException) {
+            } catch (ex: ClassNotFoundException) {
                 log.error("Can't get value type from '$valueTypeString'. Class not found (old incompatible ProjectForge version)?")
                 return null
             }
@@ -239,8 +251,20 @@ class UserPrefDO : AbstractBaseDO<Int>() {
     }
 
     companion object {
-        internal const val FIND_BY_USER_ID = "UserPrefDO_findByUserId"
+        internal const val FIND_BY_USER_ID = "UserPrefDO_FindByUserId"
 
-        internal const val FIND_BY_USER_ID_AND_AREA = "UserPrefDO_findByUserIdAndArea"
+        internal const val FIND_BY_USER_ID_AND_AREA = "UserPrefDO_FindByUserIdAndArea"
+
+        internal const val FIND_BY_USER_AND_AREA_AND_ID = "UserPrefDO_FindByUserIdAndAreaAndId"
+
+        internal const val FIND_BY_USER_AND_AREA_AND_NAME = "UserPrefDO_FindByUserIdAndAreaAndName"
+
+        internal const val FIND_OTHER_BY_USER_AND_AREA_AND_NAME = "UserPrefDO_FindOtherByUserIdAndAreaAndName"
+
+        internal const val FIND_BY_USER_ID_AND_AREA_AND_NULLNAME = "UserPrefDO_FindByUserIdAndAreaAndNullName"
+
+        internal const val FIND_NAMES_BY_USER_AND_AREA = "UserPrefDO_FindNamesByUserIdAndArea"
+
+        internal const val FIND_IDS_AND_NAMES_BY_USER_AND_AREA = "UserPrefDO_FindIdsAndNamesByUserIdAndArea"
     }
 }

@@ -18,8 +18,11 @@
 			<!-- To disable logoutput: https://hibernate.atlassian.net/browse/HHH-12368 -->
 			<property name="hibernate.jdbc.lob.non_contextual_creation" value="true"/>
 
+			<!-- Needed since upgrade from Hibernate 5.0 to 5.5: -->
+			<property name="hibernate.connection.release_mode" value="ON_CLOSE" />
+
 			<property name="hibernate.archive.scanner"
-				value="de.micromata.genome.jpa.impl.JpaWithExtLibrariesScanner" />
+					  value="de.micromata.genome.jpa.impl.JpaWithExtLibrariesScanner" />
 			<property name="de.micromata.genome.jpa.extlibrary.urlprovider"
 				value="org.projectforge.framework.persistence.jpa.impl.JpaPfJpaPluginScannerUrlProvider" />
 			<property name="de.micromata.genome.jpa.extlibrary.urlmatcher"

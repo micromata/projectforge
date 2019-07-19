@@ -26,7 +26,6 @@ package org.projectforge.business.orga;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
 import org.hibernate.criterion.Restrictions;
-import org.projectforge.business.fibu.RechnungDO;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.i18n.MessageParam;
@@ -94,18 +93,15 @@ public class ContractDao extends BaseDao<ContractDO> {
    *
    * @return
    */
-  @SuppressWarnings("unchecked")
   public int[] getYears() {
-    final List<Object[]> list = getSession().createQuery("select min(date), max(date) from ContractDO t").list();
-    return SQLHelper.getYears(list);
+    final java.sql.Date[] minMaxDate = getSession().createNamedQuery(ContractDO.SELECT_MIN_MAX_DATE, java.sql.Date[].class)
+            .getSingleResult();
+    return SQLHelper.getYears(minMaxDate[0], minMaxDate[1]);
   }
 
   /**
    * A given contract number must be consecutively numbered.
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao#onSaveOrModify(org.projectforge.core.ExtendedBaseDO)
    */
-  @SuppressWarnings("unchecked")
   @Override
   protected void onSaveOrModify(final ContractDO obj) {
     if (obj.getNumber() == null) {
@@ -119,9 +115,10 @@ public class ContractDao extends BaseDao<ContractDO> {
         throw new UserException("legalAffaires.contract.error.numberNotConsecutivelyNumbered").setCausedByField("number");
       }
     } else {
-      final List<RechnungDO> list = (List<RechnungDO>) getHibernateTemplate().find(
-              "from ContractDO c where c.number = ? and c.id <> ?",
-              new Object[]{obj.getNumber(), obj.getId()});
+      final List<ContractDO> list = getSession().createNamedQuery(ContractDO.FIND_OTHER_BY_NUMBER, ContractDO.class)
+              .setParameter("number", obj.getNumber())
+              .setParameter("id", obj.getId())
+              .list();
       if (list != null && list.size() > 0) {
         throw new UserException("legalAffaires.contract.error.numberAlreadyExists").setCausedByField("number");
       }

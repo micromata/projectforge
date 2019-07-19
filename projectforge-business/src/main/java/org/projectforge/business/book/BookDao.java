@@ -61,7 +61,6 @@ public class BookDao extends BaseDao<BookDO> {
    * @param book
    * @return
    */
-  @SuppressWarnings("unchecked")
   public boolean doesSignatureAlreadyExist(final BookDO book) {
     Validate.notNull(book);
     if (book.getSignature() == null) {
@@ -70,21 +69,20 @@ public class BookDao extends BaseDao<BookDO> {
     List<BookDO> list = null;
     if (book.getId() == null) {
       // New book
-      list = (List<BookDO>) getHibernateTemplate().find("from BookDO b where b.signature = ?", book.getSignature());
+      list = getSession().createNamedQuery(BookDO.FIND_BY_SIGNATURE, BookDO.class)
+              .setParameter("signature", book.getSignature())
+              .list();
     } else {
       // Book already exists. Check maybe changed signature:
-      list = (List<BookDO>) getHibernateTemplate().find("from BookDO b where b.signature = ? and pk <> ?",
-              new Object[]{book.getSignature(), book.getId()});
+      list = getSession().createNamedQuery(BookDO.FIND_OTHER_BY_SIGNATURE, BookDO.class)
+              .setParameter("signature", book.getSignature())
+              .setParameter("id", book.getId())
+              .list();
     }
-    if (CollectionUtils.isNotEmpty(list) == true) {
-      return true;
-    }
-    return false;
+    return CollectionUtils.isNotEmpty(list);
   }
 
   /**
-   * @param book
-   * @param lendOutById
    * @see BaseDao#getOrLoad(Integer)
    */
   public void setLendOutBy(final BookDO book, final Integer lendOutById) {

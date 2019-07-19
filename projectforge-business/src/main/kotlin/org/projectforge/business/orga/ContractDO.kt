@@ -38,6 +38,9 @@ import javax.persistence.*
 @Table(name = "T_CONTRACT",
         uniqueConstraints = [UniqueConstraint(columnNames = ["number", "tenant_id"])],
         indexes = [javax.persistence.Index(name = "idx_fk_t_contract_tenant_id", columnList = "tenant_id")])
+@NamedQueries(
+        NamedQuery(name = ContractDO.FIND_OTHER_BY_NUMBER, query = "from ContractDO where number=:number and id<>:id"),
+NamedQuery(name = ContractDO.SELECT_MIN_MAX_DATE, query = "select min(date), max(date) from ContractDO"))
 class ContractDO : DefaultBaseDO() {
 
     // TODO: Support int input field
@@ -144,6 +147,8 @@ class ContractDO : DefaultBaseDO() {
     var dueDate: Date? = null
 
     companion object {
-        val serialVersionUID = -1399338188515793833L
+        internal const val FIND_OTHER_BY_NUMBER = "ContractDO_FindOtherByNumber"
+
+        internal const val SELECT_MIN_MAX_DATE = "ContractDO_SelectMinMaxDate"
     }
 }

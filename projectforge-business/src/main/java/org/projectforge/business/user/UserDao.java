@@ -392,9 +392,11 @@ public class UserDao extends BaseDao<PFUserDO> {
 
   @SuppressWarnings("unchecked")
   public PFUserDO getUserByStayLoggedInKey(final String username, final String stayLoggedInKey) {
-    final List<PFUserDO> list = (List<PFUserDO>) getHibernateTemplate().find(
-            "from PFUserDO u where u.username = ? and u.stayLoggedInKey = ?",
-            new Object[]{username, stayLoggedInKey});
+    final List<PFUserDO> list = getSession()
+            .createNamedQuery(PFUserDO.FIND_BY_USERNAME_AND_STAYLOGGEDINKEY, PFUserDO.class)
+            .setParameter("username", username)
+            .setParameter("stayLoggedInKey", stayLoggedInKey)
+            .list();
     PFUserDO user = null;
     if (list != null && list.isEmpty() == false && list.get(0) != null) {
       user = list.get(0);
@@ -415,30 +417,27 @@ public class UserDao extends BaseDao<PFUserDO> {
   @SuppressWarnings("unchecked")
   public boolean doesUsernameAlreadyExist(final PFUserDO user) {
     Validate.notNull(user);
-    List<PFUserDO> list = null;
+    PFUserDO dbUser = null;
     if (user.getId() == null) {
       // New user
-      list = (List<PFUserDO>) getHibernateTemplate().find("from PFUserDO u where u.username = ?", user.getUsername());
+      dbUser = getInternalByName(user.getUsername());
     } else {
       // user already exists. Check maybe changed username:
-      list = (List<PFUserDO>) getHibernateTemplate().find("from PFUserDO u where u.username = ? and pk <> ?",
-              new Object[]{user.getUsername(), user.getId()});
+      dbUser = getSession().createNamedQuery(PFUserDO.FIND_OTHER_USER_BY_USERNAME, PFUserDO.class)
+              .setParameter("username", user.getUsername())
+              .setParameter("id", user.getId())
+              .uniqueResult();
     }
-    if (CollectionUtils.isNotEmpty(list) == true) {
-      return true;
-    }
-    return false;
+    return dbUser != null;
   }
 
   @SuppressWarnings("unchecked")
   public PFUserDO getUserByAuthenticationToken(final Integer userId, final String authKey) {
-    final List<PFUserDO> list = (List<PFUserDO>) getHibernateTemplate().find(
-            "from PFUserDO u where u.id = ? and u.authenticationToken = ?",
-            new Object[]{userId, authKey});
-    PFUserDO user = null;
-    if (list != null && list.isEmpty() == false && list.get(0) != null) {
-      user = list.get(0);
-    }
+    final PFUserDO user = getSession()
+            .createNamedQuery(PFUserDO.FIND_BY_USERID_AND_AUTHENTICATIONTOKEN, PFUserDO.class)
+            .setParameter("id", userId)
+            .setParameter("authenticationToken", authKey)
+            .uniqueResult();
     if (user != null && user.hasSystemAccess() == false) {
       log.warn("Deleted user tried to login (via authentication token): " + user);
       return null;
@@ -488,15 +487,11 @@ public class UserDao extends BaseDao<PFUserDO> {
     return NumberHelper.getSecureRandomUrlSaveString(AUTHENTICATION_TOKEN_LENGTH);
   }
 
-  @SuppressWarnings("unchecked")
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public PFUserDO getInternalByName(final String username) {
-    final List<PFUserDO> list = (List<PFUserDO>) getHibernateTemplate().find("from PFUserDO u where u.username = ?",
-            username);
-    if (list != null && list.size() > 0) {
-      return list.get(0);
-    }
-    return null;
+    return getSession().createNamedQuery(PFUserDO.FIND_BY_USERNAME, PFUserDO.class)
+            .setParameter("username", username)
+            .uniqueResult();
   }
 
   /**
@@ -585,7 +580,8 @@ public class UserDao extends BaseDao<PFUserDO> {
   }
 
   public List<PFUserDO> findByUsername(String username) {
-    return (List<PFUserDO>) getHibernateTemplate().find("from PFUserDO u where u.username = ?",
-            username);
+    return getSession().createNamedQuery(PFUserDO.FIND_BY_USERNAME, PFUserDO.class)
+            .setParameter("username", username)
+            .list();
   }
 }

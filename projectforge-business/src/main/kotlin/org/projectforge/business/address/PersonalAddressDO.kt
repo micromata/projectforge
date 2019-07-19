@@ -23,20 +23,14 @@
 
 package org.projectforge.business.address
 
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.FetchType
-import javax.persistence.GeneratedValue
-import javax.persistence.Id
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.Table
-import javax.persistence.Transient
-import javax.persistence.UniqueConstraint
-
 import org.hibernate.search.annotations.Indexed
+import org.projectforge.business.address.PersonalAddressDO.Companion.FIND_BY_OWNER
+import org.projectforge.business.address.PersonalAddressDO.Companion.FIND_BY_OWNER_AND_ADDRESS_ID
+import org.projectforge.business.address.PersonalAddressDO.Companion.FIND_IDS_BY_OWNER
+import org.projectforge.business.address.PersonalAddressDO.Companion.FIND_JOINED_BY_OWNER
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import javax.persistence.*
 
 /**
  * Every user has his own address book (a subset of all addresses). For every address a user can define which phone
@@ -46,7 +40,20 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
  */
 @Entity
 @Indexed
-@Table(name = "T_PERSONAL_ADDRESS", uniqueConstraints = [UniqueConstraint(columnNames = ["owner_id", "address_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_personal_address_address_id", columnList = "address_id"), javax.persistence.Index(name = "idx_fk_t_personal_address_owner_id", columnList = "owner_id"), javax.persistence.Index(name = "idx_fk_t_personal_address_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_PERSONAL_ADDRESS",
+        uniqueConstraints = [UniqueConstraint(columnNames = ["owner_id", "address_id"])],
+        indexes = [Index(name = "idx_fk_t_personal_address_address_id", columnList = "address_id"),
+            Index(name = "idx_fk_t_personal_address_owner_id", columnList = "owner_id"),
+            Index(name = "idx_fk_t_personal_address_tenant_id", columnList = "tenant_id")])
+@NamedQueries(
+        NamedQuery(name = FIND_IDS_BY_OWNER,
+                query = "select pa.address.id from PersonalAddressDO pa where pa.owner.id = :ownerId"),
+        NamedQuery(name = FIND_BY_OWNER,
+                query = "from PersonalAddressDO pa where pa.owner.id = :ownerId"),
+        NamedQuery(name = FIND_BY_OWNER_AND_ADDRESS_ID,
+                query = "from PersonalAddressDO where owner.id = :ownerId and address.id = :addressId"),
+        NamedQuery(name = FIND_JOINED_BY_OWNER,
+                query = "from PersonalAddressDO p join fetch p.address where p.owner.id = :ownerId and p.address.deleted=false order by p.address.name, p.address.firstName"))
 class PersonalAddressDO : AbstractBaseDO<Int>() {
 
     private var id: Int? = null
@@ -111,5 +118,15 @@ class PersonalAddressDO : AbstractBaseDO<Int>() {
 
     override fun setId(id: Int?) {
         this.id = id
+    }
+
+    companion object {
+        internal const val FIND_IDS_BY_OWNER = "PersonalAddressDO_FindIDsByOwner"
+        /**
+         * Also deleted ones.
+         */
+        internal const val FIND_BY_OWNER = "PersonalAddressDO_FindByOwner"
+        internal const val FIND_BY_OWNER_AND_ADDRESS_ID = "PersonalAddressDO_FindByOwnerAndAddressId"
+        internal const val FIND_JOINED_BY_OWNER = "PersonalAddressDO_FindJoinedByOwnerAndAddressId"
     }
 }

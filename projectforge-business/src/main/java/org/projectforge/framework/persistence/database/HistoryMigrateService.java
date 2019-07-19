@@ -23,23 +23,6 @@
 
 package org.projectforge.framework.persistence.database;
 
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.Date;
-import java.util.List;
-
-import javax.sql.DataSource;
-
-import org.apache.commons.lang3.StringUtils;
-import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.support.TransactionTemplate;
-
 import de.micromata.genome.db.jpa.history.api.DiffEntry;
 import de.micromata.genome.db.jpa.history.api.HistProp;
 import de.micromata.genome.db.jpa.history.entities.EntityOpType;
@@ -51,6 +34,21 @@ import de.micromata.genome.jpa.IEmgr;
 import de.micromata.genome.jpa.StdRecord;
 import de.micromata.genome.jpa.metainf.JpaMetadataEntityNotFoundException;
 import de.micromata.genome.util.types.Holder;
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import javax.sql.DataSource;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.List;
 
 @Service
 public class HistoryMigrateService

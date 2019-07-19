@@ -45,8 +45,8 @@ import javax.persistence.*
 @Table(name = "T_CONFIGURATION", uniqueConstraints = [UniqueConstraint(columnNames = ["parameter", "tenant_id"])], indexes = [Index(name = "idx_fk_t_configuration_tenant_id", columnList = "tenant_id")])
 @JpaXmlPersist(beforePersistListener = [ConfigurationXmlBeforePersistListener::class])
 @AUserRightId("ADMIN_CORE")
-@org.hibernate.annotations.NamedQueries(
-        org.hibernate.annotations.NamedQuery(name = ConfigurationDO.FIND_BY_PARAMETER, query = "from ConfigurationDO where parameter = :parameter"))
+@NamedQueries(
+        NamedQuery(name = ConfigurationDO.FIND_BY_PARAMETER, query = "from ConfigurationDO where parameter = :parameter"))
 class ConfigurationDO : DefaultBaseDO {
 
     /**
@@ -363,7 +363,7 @@ class ConfigurationDO : DefaultBaseDO {
     }
 
     companion object {
-        internal const val FIND_BY_PARAMETER = "ConfigurationDO_findByParameter"
+        internal const val FIND_BY_PARAMETER = "ConfigurationDO_FindByParameter"
 
         const val PARAM_LENGTH = 4000
 

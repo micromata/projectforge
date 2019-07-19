@@ -23,14 +23,6 @@
 
 package org.projectforge.business.user;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
@@ -50,17 +42,18 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.*;
+
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-public class GroupDao extends BaseDao<GroupDO>
-{
+public class GroupDao extends BaseDao<GroupDO> {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GroupDao.class);
 
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "assignedUsers.username",
-      "assignedUsers.firstname",
-      "assignedUsers.lastname" };
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"assignedUsers.username",
+          "assignedUsers.firstname",
+          "assignedUsers.lastname"};
 
   @Autowired
   private UserDao userDao;
@@ -69,31 +62,13 @@ public class GroupDao extends BaseDao<GroupDO>
 
   // private final GroupsProvider groupsProvider = new GroupsProvider();
 
-  public GroupDao()
-  {
+  public GroupDao() {
     super(GroupDO.class);
     this.supportAfterUpdate = true;
   }
 
-  /**
-   * ONLY FOR GENERATING TEST DATA
-   *
-   * @param supportAfterUpdate
-   */
-  public void setDoHistoryUpdate(boolean historyUpdate)
-  {
-    this.doHistoryUpdate = historyUpdate;
-  }
-
-  public QueryFilter getDefaultFilter()
-  {
-    final QueryFilter queryFilter = new QueryFilter();
-    return queryFilter;
-  }
-
   @Override
-  public List<GroupDO> getList(final BaseSearchFilter filter)
-  {
+  public List<GroupDO> getList(final BaseSearchFilter filter) {
     final GroupFilter myFilter;
     if (filter instanceof GroupFilter) {
       myFilter = (GroupFilter) filter;
@@ -114,27 +89,22 @@ public class GroupDao extends BaseDao<GroupDO>
 
   /**
    * Does a group with the given name already exists? Works also for existing users (if group name was modified).
-   *
-   * @param username
-   * @return
    */
   @SuppressWarnings("unchecked")
-  public boolean doesGroupnameAlreadyExist(final GroupDO group)
-  {
+  public boolean doesGroupnameAlreadyExist(final GroupDO group) {
     Validate.notNull(group);
-    List<GroupDO> list = null;
+    GroupDO dbGroup = null;
     if (group.getId() == null) {
       // New group
-      list = (List<GroupDO>) getHibernateTemplate().find("from GroupDO g where g.name = ?", group.getName());
+      dbGroup = getByName(group.getName());
     } else {
       // group already exists. Check maybe changed name:
-      list = (List<GroupDO>) getHibernateTemplate().find("from GroupDO g where g.name = ? and pk <> ?",
-          new Object[] { group.getName(), group.getId() });
+      dbGroup = getSession().createNamedQuery(GroupDO.FIND_OTHER_GROUP_BY_NAME, GroupDO.class)
+              .setParameter("name", group.getName())
+              .setParameter("id", group.getId())
+              .uniqueResult();
     }
-    if (CollectionUtils.isNotEmpty(list) == true) {
-      return true;
-    }
-    return false;
+    return dbGroup != null;
   }
 
   /**
@@ -144,8 +114,7 @@ public class GroupDao extends BaseDao<GroupDO>
    * @param assignedUsers Full list of all users which have to assigned to this group.
    * @return
    */
-  public void setAssignedUsers(final GroupDO group, final Collection<PFUserDO> assignedUsers) throws AccessException
-  {
+  public void setAssignedUsers(final GroupDO group, final Collection<PFUserDO> assignedUsers) throws AccessException {
     final Set<PFUserDO> origAssignedUsers = group.getAssignedUsers();
     if (origAssignedUsers != null) {
       final Iterator<PFUserDO> it = origAssignedUsers.iterator();
@@ -160,9 +129,9 @@ public class GroupDao extends BaseDao<GroupDO>
       final PFUserDO dbUser = userDao.internalGetById(user.getId());
       if (dbUser == null) {
         throw new RuntimeException("User '"
-            + user.getId()
-            + "' not found. Could not add this unknown user to new group: "
-            + group.getName());
+                + user.getId()
+                + "' not found. Could not add this unknown user to new group: "
+                + group.getName());
       }
       if (origAssignedUsers == null || origAssignedUsers.contains(dbUser) == false) {
         group.addUser(dbUser);
@@ -177,8 +146,7 @@ public class GroupDao extends BaseDao<GroupDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#afterSave(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
-  public void afterSave(final GroupDO group)
-  {
+  public void afterSave(final GroupDO group) {
     final Collection<GroupDO> groupList = new ArrayList<GroupDO>();
     groupList.add(group);
     if (group.getAssignedUsers() != null) {
@@ -197,8 +165,7 @@ public class GroupDao extends BaseDao<GroupDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#afterUpdate(GroupDO, GroupDO)
    */
   @Override
-  protected void afterUpdate(final GroupDO group, final GroupDO dbGroup)
-  {
+  protected void afterUpdate(final GroupDO group, final GroupDO dbGroup) {
     if (doHistoryUpdate) {
       final Set<PFUserDO> origAssignedUsers = dbGroup.getAssignedUsers();
       final Set<PFUserDO> assignedUsers = group.getAssignedUsers();
@@ -236,8 +203,7 @@ public class GroupDao extends BaseDao<GroupDO>
    * @throws AccessException
    */
   @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
-  public void assignGroups(final PFUserDO user, final Set<GroupDO> groupsToAssign, final Set<GroupDO> groupsToUnassign, final boolean updateUserGroupCache)
-  {
+  public void assignGroups(final PFUserDO user, final Set<GroupDO> groupsToAssign, final Set<GroupDO> groupsToUnassign, final boolean updateUserGroupCache) {
     final List<GroupDO> assignedGroups = new ArrayList<>();
     final List<GroupDO> unassignedGroups = new ArrayList<>();
     emgrFactory.runInTrans(emgr -> {
@@ -293,14 +259,12 @@ public class GroupDao extends BaseDao<GroupDO>
 
   @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
   public void assignGroups(final PFUserDO user, final Set<GroupDO> groupsToAssign, final Set<GroupDO> groupsToUnassign)
-      throws AccessException
-  {
+          throws AccessException {
     assignGroups(user, groupsToAssign, groupsToUnassign, true);
   }
 
   private void createHistoryEntry(final PFUserDO user, Collection<GroupDO> unassignedList,
-      Collection<GroupDO> assignedList)
-  {
+                                  Collection<GroupDO> assignedList) {
     if (unassignedList != null && unassignedList.size() == 0) {
       unassignedList = null;
     }
@@ -320,8 +284,7 @@ public class GroupDao extends BaseDao<GroupDO>
    */
   @SuppressWarnings("unchecked")
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  List<GroupDO> loadAll()
-  {
+  List<GroupDO> loadAll() {
     final List<GroupDO> list = (List<GroupDO>) getHibernateTemplate().find("from GroupDO t join");
     return list;
   }
@@ -333,15 +296,14 @@ public class GroupDao extends BaseDao<GroupDO>
    * org.projectforge.core.ExtendedBaseDO)
    */
   @Override
-  protected void onChange(final GroupDO obj, final GroupDO dbObj)
-  {
+  protected void onChange(final GroupDO obj, final GroupDO dbObj) {
     for (final ProjectForgeGroup group : ProjectForgeGroup.values()) {
       if (group.getName().equals(dbObj.getName()) == true) {
         // A group of ProjectForge will be changed.
         if (group.getName().equals(obj) == false) {
           // The group's name must be unmodified!
           log.warn(
-              "Preventing the change of ProjectForge's group '" + group.getName() + "' in '" + obj.getName() + "'.");
+                  "Preventing the change of ProjectForge's group '" + group.getName() + "' in '" + obj.getName() + "'.");
           obj.setName(group.getName());
         }
         break;
@@ -350,8 +312,7 @@ public class GroupDao extends BaseDao<GroupDO>
   }
 
   @Override
-  protected void afterSaveOrModify(final GroupDO group)
-  {
+  protected void afterSaveOrModify(final GroupDO group) {
     getUserGroupCache().setExpired();
   }
 
@@ -359,14 +320,12 @@ public class GroupDao extends BaseDao<GroupDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#afterDelete(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
-  protected void afterDelete(final GroupDO obj)
-  {
+  protected void afterDelete(final GroupDO obj) {
     getUserGroupCache().setExpired();
   }
 
   @Override
-  protected String[] getAdditionalSearchFields()
-  {
+  protected String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
@@ -376,8 +335,7 @@ public class GroupDao extends BaseDao<GroupDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess()
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException)
-  {
+  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException) {
     return true;
   }
 
@@ -387,15 +345,14 @@ public class GroupDao extends BaseDao<GroupDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess(org.projectforge.core.BaseDO, boolean)
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final GroupDO obj, final boolean throwException)
-  {
+  public boolean hasSelectAccess(final PFUserDO user, final GroupDO obj, final boolean throwException) {
     Validate.notNull(obj);
     boolean result = accessChecker.isUserMemberOfAdminGroup(user);
     if (result == true) {
       return true;
     }
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP,
-        ProjectForgeGroup.CONTROLLING_GROUP)) {
+            ProjectForgeGroup.CONTROLLING_GROUP)) {
       return true;
     }
     if (obj.isDeleted() == false) {
@@ -416,15 +373,13 @@ public class GroupDao extends BaseDao<GroupDO>
    */
   @Override
   public boolean hasAccess(final PFUserDO user, final GroupDO obj, final GroupDO oldObj,
-      final OperationType operationType,
-      final boolean throwException)
-  {
+                           final OperationType operationType,
+                           final boolean throwException) {
     return accessChecker.isUserMemberOfAdminGroup(user, throwException);
   }
 
   @Override
-  public boolean hasHistoryAccess(final PFUserDO user, final boolean throwException)
-  {
+  public boolean hasHistoryAccess(final PFUserDO user, final boolean throwException) {
     return accessChecker.isUserMemberOfAdminGroup(user, throwException);
   }
 
@@ -432,27 +387,21 @@ public class GroupDao extends BaseDao<GroupDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#hasInsertAccess(org.projectforge.framework.persistence.user.entities.PFUserDO)
    */
   @Override
-  public boolean hasInsertAccess(final PFUserDO user)
-  {
+  public boolean hasInsertAccess(final PFUserDO user) {
     return accessChecker.isUserMemberOfAdminGroup(user);
   }
 
   @Override
-  public GroupDO newInstance()
-  {
+  public GroupDO newInstance() {
     return new GroupDO();
   }
 
-  public GroupDO getByName(final String name)
-  {
+  public GroupDO getByName(final String name) {
     if (name == null) {
       return null;
     }
-    @SuppressWarnings("unchecked")
-    final List<GroupDO> list = (List<GroupDO>) getHibernateTemplate().find("from GroupDO u where u.name = ?", name);
-    if (CollectionUtils.isEmpty(list) == true) {
-      return null;
-    }
-    return list.get(0);
+    return getSession().createNamedQuery(GroupDO.FIND_BY_NAME, GroupDO.class)
+            .setParameter("name", name)
+            .uniqueResult();
   }
 }

@@ -44,6 +44,9 @@ import javax.persistence.*
 @Indexed
 @Table(name = "T_GROUP", uniqueConstraints = [UniqueConstraint(columnNames = ["name", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_group_tenant_id", columnList = "tenant_id")])
 @AUserRightId("ADMIN_CORE")
+@NamedQueries(
+        NamedQuery(name = GroupDO.FIND_BY_NAME, query = "from GroupDO where name=:name"),
+        NamedQuery(name = GroupDO.FIND_OTHER_GROUP_BY_NAME, query = "from GroupDO where name=:name and id<>:id"))
 class GroupDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     @PropertyInfo(i18nKey = "name")
@@ -179,7 +182,10 @@ class GroupDO : DefaultBaseDO(), ShortDisplayNameCapable {
     }
 
     companion object {
-        // private static final Logger log = Logger.getLogger(GroupDO.class);
-        private val serialVersionUID = 5044537226571167954L
+        internal const val FIND_BY_NAME = "GroupDO_FindByName"
+        /**
+         * For detecting other groups with same groupname.
+         */
+        internal const val FIND_OTHER_GROUP_BY_NAME = "GroupDO_FindOtherGroupByName"
     }
 }

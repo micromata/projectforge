@@ -57,14 +57,12 @@ public class PosteingangDao extends BaseDao<PosteingangDO>
 
   /**
    * List of all years with invoices: select min(datum), max(datum) from t_fibu_rechnung.
-   *
-   * @return
    */
-  @SuppressWarnings("unchecked")
   public int[] getYears()
   {
-    final List<Object[]> list = getSession().createQuery("select min(datum), max(datum) from PosteingangDO t").list();
-    return SQLHelper.getYears(list);
+    final java.sql.Date[] minMaxDate = getSession().createNamedQuery(PosteingangDO.SELECT_MIN_MAX_DATE, java.sql.Date[].class)
+            .getSingleResult();
+    return SQLHelper.getYears(minMaxDate[0], minMaxDate[1]);
   }
 
   @Override

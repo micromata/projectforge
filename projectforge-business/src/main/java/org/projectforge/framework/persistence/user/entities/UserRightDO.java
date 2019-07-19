@@ -24,7 +24,6 @@
 package org.projectforge.framework.persistence.user.entities;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import java.util.Objects;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.hibernate.search.annotations.Index;
@@ -37,6 +36,7 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Objects;
 
 @Entity
 @Indexed
@@ -48,6 +48,8 @@ import java.io.Serializable;
         @javax.persistence.Index(name = "idx_fk_t_user_right_user_fk", columnList = "user_fk"),
         @javax.persistence.Index(name = "idx_fk_t_user_right_tenant_id", columnList = "tenant_id")
     })
+@NamedQueries(
+        @NamedQuery(name = UserRightDO.FIND_ALL_ORDERED, query = "from UserRightDO order by user.id, rightIdString"))
 public class UserRightDO extends DefaultBaseDO implements Comparable<UserRightDO>, Serializable, ShortDisplayNameCapable
 {
   private static final long serialVersionUID = 6703048743393453733L;
@@ -194,4 +196,6 @@ public class UserRightDO extends DefaultBaseDO implements Comparable<UserRightDO
     sb.append("value", this.value);
     return sb.toString();
   }
+
+  public static final String FIND_ALL_ORDERED = "UserRightDO_FindAllOrdered";
 }

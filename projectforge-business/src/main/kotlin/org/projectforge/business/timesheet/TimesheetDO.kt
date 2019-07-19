@@ -51,6 +51,11 @@ import javax.persistence.*
             javax.persistence.Index(name = "idx_fk_t_timesheet_user_id", columnList = "user_id"),
             javax.persistence.Index(name = "idx_fk_t_timesheet_tenant_id", columnList = "tenant_id"),
             javax.persistence.Index(name = "idx_timesheet_user_time", columnList = "user_id, start_time")])
+@NamedQueries(
+        NamedQuery(name = TimesheetDO.FIND_START_STOP_BY_TASKID,
+                query = "select startTime, stopTime from TimesheetDO where task.id = :taskId and deleted = false"),
+        NamedQuery(name = TimesheetDO.SELECT_MIN_MAX_DATE_FOR_USER,
+                query = "select min(startTime), max(startTime) from TimesheetDO where user.id=:userId and deleted=false"))
 class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
 
     @PropertyInfo(i18nKey = "task")
@@ -226,5 +231,10 @@ class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
 
     override fun compareTo(other: TimesheetDO): Int {
         return startTime?.compareTo(other.startTime) ?: 1;
+    }
+
+    companion object {
+        const val FIND_START_STOP_BY_TASKID = "TimesheetDO_FindStartStopByTaskId"
+        internal const val SELECT_MIN_MAX_DATE_FOR_USER = "TimesheetDO_SelectMinMaxDateForUser"
     }
 }
