@@ -42,6 +42,7 @@ import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
+import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Repository;
@@ -120,13 +121,9 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
   public ConfigurationDO getEntry(final IConfigurationParam param)
   {
     Validate.notNull(param);
-    @SuppressWarnings("unchecked")
-    final List<ConfigurationDO> list = (List<ConfigurationDO>) getHibernateTemplate()
-        .find("from ConfigurationDO c where c.parameter = ?", param.getKey());
-    if (list == null || list.isEmpty() == true || list.get(0) == null) {
-      return null;
-    }
-    return list.get(0);
+    return SQLHelper.ensureUniqueResult(getSession()
+            .createNamedQuery(ConfigurationDO.FIND_BY_PARAMETER, ConfigurationDO.class)
+            .setParameter("parameter", param.getKey()));
   }
 
   public Object getValue(final IConfigurationParam parameter)

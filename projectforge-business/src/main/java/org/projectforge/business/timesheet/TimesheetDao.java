@@ -28,7 +28,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.hibernate.Hibernate;
-import org.hibernate.Query;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.kost.Kost2DO;
@@ -54,6 +53,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.NumberHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,8 +69,7 @@ import java.util.*;
  */
 @Repository
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-public class TimesheetDao extends BaseDao<TimesheetDO>
-{
+public class TimesheetDao extends BaseDao<TimesheetDO> {
   /**
    * Maximum allowed duration of time sheets is 14 hours.
    */
@@ -80,11 +79,11 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
    * Internal error message if maximum duration is exceeded.
    */
   private static final String MAXIMUM_DURATION_EXCEEDED = "Maximum duration of time sheet exceeded. Maximum is "
-      + (MAXIMUM_DURATION / 3600 / 1000)
-      + "h!";
+          + (MAXIMUM_DURATION / 3600 / 1000)
+          + "h!";
 
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "user.username", "user.firstname",
-      "user.lastname", "task", "kost2.nummer", "kost2.description", "kost2.projekt.name" };
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"user.username", "user.firstname",
+          "user.lastname", "task", "kost2.nummer", "kost2.description", "kost2.projekt.name"};
 
   public static final String HIDDEN_FIELD_MARKER = "[...]";
 
@@ -99,54 +98,44 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
   private final Map<Integer, Set<Integer>> timesheetsWithOverlapByUser = new HashMap<Integer, Set<Integer>>();
 
   @Override
-  protected String[] getAdditionalSearchFields()
-  {
+  protected String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
   /**
    * List of all years with time sheets of the given user: select min(startTime), max(startTime) from t_timesheet where
    * user=?.
-   *
-   * @return
    */
-  @SuppressWarnings("unchecked")
-  public int[] getYears(final Integer userId)
-  {
-    final List<Object[]> list = (List<Object[]>) getHibernateTemplate().find(
-        "select min(startTime), max(startTime) from TimesheetDO t where user.id=? and deleted=false", userId);
-    return SQLHelper.getYears(list);
+  public int[] getYears(final Integer userId) {
+    final Object[] minMaxDate = getSession().createNamedQuery(TimesheetDO.SELECT_MIN_MAX_DATE_FOR_USER, Object[].class)
+            .setParameter("userId", userId)
+            .getSingleResult();
+    return SQLHelper.getYears((java.sql.Date)minMaxDate[0], (java.sql.Date)minMaxDate[1]);
   }
 
   /**
-   * @param sheet
    * @param userId If null, then task will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
-  public void setUser(final TimesheetDO sheet, final Integer userId)
-  {
+  public void setUser(final TimesheetDO sheet, final Integer userId) {
     final PFUserDO user = userDao.getOrLoad(userId);
     sheet.setUser(user);
   }
 
   /**
-   * @param sheet
    * @param taskId If null, then task will be set to null;
    * @see TaskTree#getTaskById(Integer)
    */
-  public void setTask(final TimesheetDO sheet, final Integer taskId)
-  {
+  public void setTask(final TimesheetDO sheet, final Integer taskId) {
     final TaskDO task = TaskTreeHelper.getTaskTree(sheet).getTaskById(taskId);
     sheet.setTask(task);
   }
 
   /**
-   * @param sheet
    * @param kost2Id If null, then kost2 will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
-  public void setKost2(final TimesheetDO sheet, final Integer kost2Id)
-  {
+  public void setKost2(final TimesheetDO sheet, final Integer kost2Id) {
     final Kost2DO kost2 = kost2Dao.getOrLoad(kost2Id);
     sheet.setKost2(kost2);
   }
@@ -154,19 +143,16 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
   /**
    * Gets the available Kost2DO's for the given time sheet. The task must already be assigned to this time sheet.
    *
-   * @param timesheet
    * @return Available list of Kost2DO's or null, if not exist.
    */
-  public List<Kost2DO> getKost2List(final TimesheetDO timesheet)
-  {
+  public List<Kost2DO> getKost2List(final TimesheetDO timesheet) {
     if (timesheet == null || timesheet.getTaskId() == null) {
       return null;
     }
     return TaskTreeHelper.getTaskTree(timesheet).getKost2List(timesheet.getTaskId());
   }
 
-  public QueryFilter buildQueryFilter(final TimesheetFilter filter)
-  {
+  public QueryFilter buildQueryFilter(final TimesheetFilter filter) {
     final QueryFilter queryFilter = new QueryFilter(filter);
     if (filter.getUserId() != null) {
       final PFUserDO user = new PFUserDO();
@@ -175,19 +161,19 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
     }
     if (filter.getStartTime() != null && filter.getStopTime() != null) {
       queryFilter.add(Restrictions.and(Restrictions.ge("stopTime", filter.getStartTime()),
-          Restrictions.le("startTime", filter.getStopTime())));
+              Restrictions.le("startTime", filter.getStopTime())));
     } else if (filter.getStartTime() != null) {
       queryFilter.add(Restrictions.ge("startTime", filter.getStartTime()));
     } else if (filter.getStopTime() != null) {
       queryFilter.add(Restrictions.le("startTime", filter.getStopTime()));
     }
     if (filter.getTaskId() != null) {
-      if (filter.isRecursive() == true) {
+      if (filter.isRecursive()) {
         final TaskNode node = TaskTreeHelper.getTaskTree().getTaskNodeById(filter.getTaskId());
         final List<Integer> taskIds = node.getDescendantIds();
         taskIds.add(node.getId());
         queryFilter.add(Restrictions.in("task.id", taskIds));
-        if (log.isDebugEnabled() == true) {
+        if (log.isDebugEnabled()) {
           log.debug("search in tasks: " + taskIds);
         }
       } else {
@@ -199,14 +185,13 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
     } else {
       queryFilter.addOrder(Order.asc("startTime"));
     }
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug(ToStringBuilder.reflectionToString(filter));
     }
     return queryFilter;
   }
 
-  public TimesheetDao()
-  {
+  public TimesheetDao() {
     super(TimesheetDO.class);
   }
 
@@ -214,8 +199,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#getListForSearchDao(org.projectforge.framework.persistence.api.BaseSearchFilter)
    */
   @Override
-  public List<TimesheetDO> getListForSearchDao(final BaseSearchFilter filter)
-  {
+  public List<TimesheetDO> getListForSearchDao(final BaseSearchFilter filter) {
     final TimesheetFilter timesheetFilter = new TimesheetFilter(filter);
     if (filter.getModifiedByUserId() == null) {
       timesheetFilter.setUserId(ThreadLocalUserContext.getUserId());
@@ -225,14 +209,10 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
 
   /**
    * Gets the list filtered by the given filter.
-   *
-   * @param filter
-   * @return
    */
   @Override
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public List<TimesheetDO> getList(final BaseSearchFilter filter) throws AccessException
-  {
+  public List<TimesheetDO> getList(final BaseSearchFilter filter) throws AccessException {
     final TimesheetFilter myFilter;
     if (filter instanceof TimesheetFilter) {
       myFilter = (TimesheetFilter) filter;
@@ -252,26 +232,26 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
     // Check time period overlaps:
     for (final TimesheetDO entry : result) {
       Validate.notNull(entry.getUserId());
-      if (entry.getMarked() == true) {
+      if (entry.getMarked()) {
         continue; // Is already marked.
       }
       final Set<Integer> overlapSet = getTimesheetsWithTimeoverlap(entry.getUserId());
-      if (overlapSet.contains(entry.getId()) == true) {
+      if (overlapSet.contains(entry.getId())) {
         log.info("Overlap of time sheet decteced: " + entry);
         entry.setMarked(true);
       }
     }
-    if (myFilter.isMarked() == true) {
+    if (myFilter.isMarked()) {
       // Show only time sheets with time period violation (overlap):
       final List<TimesheetDO> list = result;
       result = new ArrayList<TimesheetDO>();
       for (final TimesheetDO entry : list) {
-        if (entry.getMarked() == true) {
+        if (entry.getMarked()) {
           result.add(entry);
         }
       }
     }
-    if (myFilter.isOnlyBillable() == true) {
+    if (myFilter.isOnlyBillable()) {
       final List<TimesheetDO> list = result;
       result = new ArrayList<TimesheetDO>();
       for (final TimesheetDO entry : list) {
@@ -306,12 +286,9 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
 
   /**
    * Rechecks the time sheet overlaps.
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao#afterSaveOrModify(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
-  protected void afterSaveOrModify(final TimesheetDO obj)
-  {
+  protected void afterSaveOrModify(final TimesheetDO obj) {
     super.afterSaveOrModify(obj);
     if (obj.getUser() != null) {
       // Force re-analysis of time sheet overlaps after any modification of time sheets.
@@ -322,12 +299,9 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
 
   /**
    * Checks the start and stop time. If seconds or millis is not null, a RuntimeException will be thrown.
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao#onSaveOrModify(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
-  protected void onSaveOrModify(final TimesheetDO obj)
-  {
+  protected void onSaveOrModify(final TimesheetDO obj) {
     validateTimestamp(obj.getStartTime(), "startTime");
     validateTimestamp(obj.getStopTime(), "stopTime");
     Validate.isTrue(obj.getDuration() >= 60000, "Duration of time sheet must be at minimum 60s!");
@@ -335,11 +309,11 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
     Validate.isTrue(obj.getStartTime().before(obj.getStopTime()), "Stop time of time sheet is before start time!");
     final List<Kost2DO> kost2List = TaskTreeHelper.getTaskTree(obj).getKost2List(obj.getTaskId());
     final Integer kost2Id = obj.getKost2Id();
-    if (CollectionUtils.isNotEmpty(kost2List) == true) {
+    if (CollectionUtils.isNotEmpty(kost2List)) {
       Validate.notNull(kost2Id, "Kost2Id must be given for time sheet and given kost2 list!");
       boolean kost2IdFound = false;
       for (final Kost2DO kost2 : kost2List) {
-        if (NumberHelper.isEqual(kost2Id, kost2.getId()) == true) {
+        if (NumberHelper.isEqual(kost2Id, kost2.getId())) {
           kost2IdFound = true;
           break;
         }
@@ -351,20 +325,14 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
   }
 
   @Override
-  protected void onChange(final TimesheetDO obj, final TimesheetDO dbObj)
-  {
+  protected void onChange(final TimesheetDO obj, final TimesheetDO dbObj) {
     if (obj.getTaskId().compareTo(dbObj.getTaskId()) != 0) {
       TaskTreeHelper.getTaskTree(obj).resetTotalDuration(dbObj.getTaskId());
     }
   }
 
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#prepareHibernateSearch(org.projectforge.core.ExtendedBaseDO,
-   * org.projectforge.framework.access.OperationType)
-   */
   @Override
-  protected void prepareHibernateSearch(final TimesheetDO obj, final OperationType operationType)
-  {
+  protected void prepareHibernateSearch(final TimesheetDO obj, final OperationType operationType) {
     final PFUserDO user = obj.getUser();
     if (user != null && Hibernate.isInitialized(user) == false) {
       obj.setUser(getUserGroupCache().getUser(user.getId()));
@@ -375,8 +343,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
     }
   }
 
-  private void validateTimestamp(final Date date, final String name)
-  {
+  private void validateTimestamp(final Date date, final String name) {
     if (date == null) {
       return;
     }
@@ -391,12 +358,8 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
   /**
    * Analyses all time sheets of the user and detects any collision (overlap) of the user's time sheets. The result will
    * be cached and the duration of a new analysis is only a few milliseconds!
-   *
-   * @param user
-   * @return
    */
-  public Set<Integer> getTimesheetsWithTimeoverlap(final Integer userId)
-  {
+  public Set<Integer> getTimesheetsWithTimeoverlap(final Integer userId) {
     long begin = System.currentTimeMillis();
     Validate.notNull(userId);
     final PFUserDO user = getUserGroupCache().getUser(userId);
@@ -425,7 +388,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
         lastEntry = entry;
       }
       timesheetsWithOverlapByUser.put(user.getId(), result);
-      if (CollectionUtils.isNotEmpty(result) == true) {
+      if (CollectionUtils.isNotEmpty(result)) {
         log.info("Time sheet overlaps for user '" + user.getUsername() + "': " + result);
       }
       long end = System.currentTimeMillis();
@@ -437,11 +400,8 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
   /**
    * Deletes any existing time sheet overlap analysis and forces therefore a new analysis before next time sheet list
    * selection. (The analysis will not be started inside this method!)
-   *
-   * @param userId
    */
-  public void recheckTimesheetOverlap(final Integer userId)
-  {
+  public void recheckTimesheetOverlap(final Integer userId) {
     Validate.notNull(userId);
     timesheetsWithOverlapByUser.remove(userId);
   }
@@ -452,8 +412,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
    *
    * @return The existing time sheet with the time period collision.
    */
-  public boolean hasTimeOverlap(final TimesheetDO timesheet, final boolean throwException)
-  {
+  public boolean hasTimeOverlap(final TimesheetDO timesheet, final boolean throwException) {
     long begin = System.currentTimeMillis();
     Validate.notNull(timesheet);
     Validate.notNull(timesheet.getUser());
@@ -468,13 +427,13 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
     final List<TimesheetDO> list = getList(queryFilter);
     if (list != null && list.size() > 0) {
       final TimesheetDO ts = list.get(0);
-      if (throwException == true) {
+      if (throwException) {
         log.info("Time sheet collision detected of time sheet " + timesheet + " with existing time sheet " + ts);
         final String startTime = DateHelper.formatIsoTimestamp(ts.getStartTime());
         final String stopTime = DateHelper.formatIsoTimestamp(ts.getStopTime());
         throw new UserException("timesheet.error.timeperiodOverlapDetection", new MessageParam(ts.getId()),
-            new MessageParam(startTime),
-            new MessageParam(stopTime));
+                new MessageParam(startTime),
+                new MessageParam(stopTime));
       }
       long end = System.currentTimeMillis();
       log.info("TimesheetDao.hasTimeOverlap took: " + (end - begin) + " ms.");
@@ -487,33 +446,29 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
 
   /**
    * return Always true, no generic select access needed for address objects.
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess()
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException)
-  {
+  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException) {
     return true;
   }
 
   @Override
   public boolean hasAccess(final PFUserDO user, final TimesheetDO obj, final TimesheetDO oldObj,
-      final OperationType operationType,
-      final boolean throwException)
-  {
-    if (accessChecker.userEquals(user, obj.getUser()) == true) {
+                           final OperationType operationType,
+                           final boolean throwException) {
+    if (accessChecker.userEquals(user, obj.getUser())) {
       // Own time sheet
       if (accessChecker.hasPermission(user, obj.getTaskId(), AccessType.OWN_TIMESHEETS, operationType,
-          throwException) == false) {
+              throwException) == false) {
         return false;
       }
     } else {
       // Foreign time sheet
-      if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP) == true) {
+      if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)) {
         return true;
       }
       if (accessChecker.hasPermission(user, obj.getTaskId(), AccessType.TIMESHEETS, operationType,
-          throwException) == false) {
+              throwException) == false) {
         return false;
       }
     }
@@ -528,22 +483,18 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
   /**
    * User can always see his own time sheets. But if he has no access then the location and description values are
    * hidden (empty strings).
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess(PFUserDO,
-   * org.projectforge.core.ExtendedBaseDO, boolean)
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final TimesheetDO obj, final boolean throwException)
-  {
+  public boolean hasSelectAccess(final PFUserDO user, final TimesheetDO obj, final boolean throwException) {
     if (hasAccess(user, obj, null, OperationType.SELECT, false) == false) {
       // User has no access by definition.
-      if (accessChecker.userEquals(user, obj.getUser()) == true
-          || accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.PROJECT_MANAGER) == true) {
+      if (accessChecker.userEquals(user, obj.getUser())
+              || accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.PROJECT_MANAGER)) {
         if (accessChecker.userEquals(user, obj.getUser()) == false) {
           // Check protection of privacy for foreign time sheets:
           final List<TaskNode> pathToRoot = TaskTreeHelper.getTaskTree(obj).getPathToRoot(obj.getTaskId());
           for (final TaskNode node : pathToRoot) {
-            if (node.getTask().getProtectionOfPrivacy() == true) {
+            if (node.getTask().getProtectionOfPrivacy()) {
               return false;
             }
           }
@@ -561,18 +512,13 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
   }
 
   @Override
-  public boolean hasHistoryAccess(final PFUserDO user, final TimesheetDO obj, final boolean throwException)
-  {
+  public boolean hasHistoryAccess(final PFUserDO user, final TimesheetDO obj, final boolean throwException) {
     return hasAccess(user, obj, null, OperationType.SELECT, throwException);
   }
 
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasUpdateAccess(Object, Object)
-   */
   @Override
   public boolean hasUpdateAccess(final PFUserDO user, final TimesheetDO obj, final TimesheetDO dbObj,
-      final boolean throwException)
-  {
+                                 final boolean throwException) {
     Validate.notNull(dbObj);
     Validate.notNull(obj);
     Validate.notNull(dbObj.getTaskId());
@@ -598,27 +544,26 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
         return false;
       }
     }
-    if (hasTimeOverlap(obj, throwException) == true) {
+    if (hasTimeOverlap(obj, throwException)) {
       return false;
     }
     boolean result = checkTimesheetProtection(user, obj, dbObj, OperationType.UPDATE, throwException);
-    if (result == true) {
+    if (result) {
       result = checkTaskBookable(obj, dbObj, OperationType.UPDATE, throwException);
     }
     return result;
   }
 
   @Override
-  public boolean hasInsertAccess(final PFUserDO user, final TimesheetDO obj, final boolean throwException)
-  {
+  public boolean hasInsertAccess(final PFUserDO user, final TimesheetDO obj, final boolean throwException) {
     if (hasAccess(user, obj, null, OperationType.INSERT, throwException) == false) {
       return false;
     }
-    if (hasTimeOverlap(obj, throwException) == true) {
+    if (hasTimeOverlap(obj, throwException)) {
       return false;
     }
     boolean result = checkTimesheetProtection(user, obj, null, OperationType.INSERT, throwException);
-    if (result == true) {
+    if (result) {
       result = checkTaskBookable(obj, null, OperationType.INSERT, throwException);
     }
     return result;
@@ -637,20 +582,17 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
    *
    * @param timesheet      The time sheet to insert or update.
    * @param oldTimesheet   The origin time sheet from the data base (could be null, if no update is done).
-   * @param operationType
-   * @param throwException
    * @return True if none of the rules above matches.
    */
   public boolean checkTaskBookable(final TimesheetDO timesheet, final TimesheetDO oldTimesheet,
-      final OperationType operationType,
-      final boolean throwException)
-  {
+                                   final OperationType operationType,
+                                   final boolean throwException) {
     if (operationType == OperationType.UPDATE) {
       if (timesheet.getStartTime().getTime() == oldTimesheet.getStartTime().getTime()
-          && timesheet.getStopTime().getTime() == oldTimesheet.getStopTime().getTime()
-          && Objects.equals(timesheet.getKost2Id(), oldTimesheet.getKost2Id()) == true
-          && Objects.equals(timesheet.getTaskId(), oldTimesheet.getTaskId()) == true
-          && Objects.equals(timesheet.getUserId(), oldTimesheet.getUserId()) == true) {
+              && timesheet.getStopTime().getTime() == oldTimesheet.getStopTime().getTime()
+              && Objects.equals(timesheet.getKost2Id(), oldTimesheet.getKost2Id())
+              && Objects.equals(timesheet.getTaskId(), oldTimesheet.getTaskId())
+              && Objects.equals(timesheet.getUserId(), oldTimesheet.getUserId())) {
         // Only minor fields are modified (description, location etc.).
         return true;
       }
@@ -661,7 +603,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
     do {
       final TaskDO task = node.getTask();
       String errorMessage = null;
-      if (task.isDeleted() == true) {
+      if (task.isDeleted()) {
         errorMessage = "timesheet.error.taskNotBookable.taskDeleted";
       } else if (task.getStatus().isIn(TaskStatus.O, TaskStatus.N) == false) {
         errorMessage = "timesheet.error.taskNotBookable.taskNotOpened";
@@ -669,7 +611,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
         errorMessage = "timesheet.error.taskNotBookable.treeClosedForBooking";
       }
       if (errorMessage != null) {
-        if (throwException == true) {
+        if (throwException) {
           throw new AccessException(errorMessage, task.getTitle() + " (#" + task.getId() + ")");
         }
         return false;
@@ -684,27 +626,27 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
       bookingStatus = node.getTask().getTimesheetBookingStatus();
     }
     if (bookingStatus == TimesheetBookingStatus.NO_BOOKING) {
-      if (throwException == true) {
+      if (throwException) {
         throw new AccessException("timesheet.error.taskNotBookable.taskClosedForBooking",
-            taskNode.getTask().getTitle()
-                + " (#"
-                + taskNode.getId()
-                + ")");
+                taskNode.getTask().getTitle()
+                        + " (#"
+                        + taskNode.getId()
+                        + ")");
       }
       return false;
     }
-    if (taskNode.hasChilds() == true) {
+    if (taskNode.hasChilds()) {
       // 3. Is the task not a leaf node and has this task or ancestor task the booking status ONLY_LEAFS?
       node = taskNode;
       do {
         final TaskDO task = node.getTask();
         if (task.getTimesheetBookingStatus() == TimesheetBookingStatus.ONLY_LEAFS) {
-          if (throwException == true) {
+          if (throwException) {
             throw new AccessException("timesheet.error.taskNotBookable.onlyLeafsAllowedForBooking",
-                taskNode.getTask().getTitle()
-                    + " (#"
-                    + taskNode.getId()
-                    + ")");
+                    taskNode.getTask().getTitle()
+                            + " (#"
+                            + taskNode.getId()
+                            + ")");
           }
           return false;
         }
@@ -712,13 +654,13 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
       } while (node != null);
       // 4. Does any of the descendant task node has an assigned order position?
       for (final TaskNode child : taskNode.getChilds()) {
-        if (TaskTreeHelper.getTaskTree(timesheet).hasOrderPositions(child.getId(), true) == true) {
-          if (throwException == true) {
+        if (TaskTreeHelper.getTaskTree(timesheet).hasOrderPositions(child.getId(), true)) {
+          if (throwException) {
             throw new AccessException("timesheet.error.taskNotBookable.orderPositionsFoundInSubTasks",
-                taskNode.getTask().getTitle()
-                    + " (#"
-                    + taskNode.getId()
-                    + ")");
+                    taskNode.getTask().getTitle()
+                            + " (#"
+                            + taskNode.getId()
+                            + ")");
           }
           return false;
         }
@@ -734,25 +676,23 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
    * done, if any modifications of the time stamps is done (e. g. descriptions of the task are allowed if the start and
    * stop time is untouched).
    *
-   * @param timesheet
    * @param oldTimesheet   (null for delete and insert)
    * @param throwException If true and the time sheet protection is violated then an AccessException will be thrown.
    * @return true, if no time sheet protection is violated or if the logged in user is member of the finance group.
    * @see ProjectForgeGroup#FINANCE_GROUP
    */
   public boolean checkTimesheetProtection(final PFUserDO user, final TimesheetDO timesheet,
-      final TimesheetDO oldTimesheet,
-      final OperationType operationType, final boolean throwException)
-  {
-    if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP) == true
-        && accessChecker.userEquals(user, timesheet.getUser()) == false) {
+                                          final TimesheetDO oldTimesheet,
+                                          final OperationType operationType, final boolean throwException) {
+    if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)
+            && accessChecker.userEquals(user, timesheet.getUser()) == false) {
       // Member of financial group are able to book foreign time sheets.
       return true;
     }
     if (operationType == OperationType.UPDATE) {
       if (timesheet.getStartTime().getTime() == oldTimesheet.getStartTime().getTime()
-          && timesheet.getStopTime().getTime() == oldTimesheet.getStopTime().getTime()
-          && Objects.equals(timesheet.getKost2Id(), oldTimesheet.getKost2Id()) == true) {
+              && timesheet.getStopTime().getTime() == oldTimesheet.getStopTime().getTime()
+              && Objects.equals(timesheet.getKost2Id(), oldTimesheet.getKost2Id())) {
         return true;
       }
     }
@@ -769,12 +709,12 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
       final DateHolder dh = new DateHolder(date);
       dh.setEndOfDay();
       //New and existing startdate have to be checked for protection
-      if ((oldTimesheet != null && oldTimesheet.getStartTime().before(dh.getDate()) == true) || timesheet.getStartTime().before(dh.getDate()) == true) {
-        if (throwException == true) {
+      if ((oldTimesheet != null && oldTimesheet.getStartTime().before(dh.getDate())) || timesheet.getStartTime().before(dh.getDate())) {
+        if (throwException) {
           throw new AccessException("timesheet.error.timesheetProtectionVioloation", node.getTask().getTitle()
-              + " (#"
-              + node.getTaskId()
-              + ")", DateHelper.formatIsoDate(dh.getDate()));
+                  + " (#"
+                  + node.getTaskId()
+                  + ")", DateHelper.formatIsoDate(dh.getDate()));
         }
         return false;
       }
@@ -784,24 +724,15 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
 
   /**
    * Get all locations of the user's time sheet (not deleted ones) with modification date within last year.
-   *
-   * @param searchString
    */
-  @SuppressWarnings("unchecked")
-  public List<String> getLocationAutocompletion(final String searchString)
-  {
+  public List<String> getLocationAutocompletion(final String searchString) {
     checkLoggedInUserSelectAccess();
-    final String s = "select distinct location from "
-        + clazz.getSimpleName()
-        + " t where deleted=false and t.user.id = ? and lastUpdate > ? and lower(t.location) like ?) order by t.location";
-    final Query query = getSession().createQuery(s);
-    query.setInteger(0, ThreadLocalUserContext.getUser().getId());
-    final DateHolder dh = new DateHolder();
-    dh.add(Calendar.YEAR, -1);
-    query.setDate(1, dh.getDate());
-    query.setString(2, "%" + StringUtils.lowerCase(searchString) + "%");
-    final List<String> list = query.list();
-    return list;
+    PFDateTime oneYearAgo = PFDateTime.now().minusDays(365);
+    return getSession().createNamedQuery(TimesheetDO.SELECT_USED_LOCATIONS_BY_USER_AND_LOCATION_SEARCHSTRING, String.class)
+            .setParameter("userId", ThreadLocalUserContext.getUserId())
+            .setParameter("lastUpdate", oneYearAgo.getUtilDate())
+            .setParameter("locationSearch", "%" + StringUtils.lowerCase(searchString) + "%")
+            .list();
   }
 
   /**
@@ -810,45 +741,25 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
    * @param maxResults Limit the result to the recent locations.
    * @return result as Json object.
    */
-  @SuppressWarnings("unchecked")
-  public Collection<String> getRecentLocation(final int maxResults)
-  {
+  public Collection<String> getRecentLocation(final int maxResults) {
     checkLoggedInUserSelectAccess();
     log.info("Get recent locations from the database.");
-    final String s = "select location from "
-        + (clazz.getSimpleName()
-        + " t where deleted=false and t.user.id = ? and lastUpdate > ? and t.location != null and t.location != '' order by t.lastUpdate desc");
-    final Query query = getSession().createQuery(s);
-    query.setInteger(0, ThreadLocalUserContext.getUser().getId());
-    final DateHolder dh = new DateHolder();
-    dh.add(Calendar.YEAR, -1);
-    query.setDate(1, dh.getDate());
-    final List<Object> list = query.list();
-    int counter = 0;
-    final List<String> res = new ArrayList<String>();
-    for (final Object loc : list) {
-      if (res.contains(loc) == true) {
-        continue;
-      }
-      res.add((String) loc);
-      if (++counter >= maxResults) {
-        break;
-      }
-    }
-    return res;
+    PFDateTime oneYearAgo = PFDateTime.now().minusDays(365);
+    return getSession().createNamedQuery(TimesheetDO.SELECT_RECENT_USED_LOCATIONS_BY_USER_AND_LAST_UPDATE, String.class)
+            .setParameter("userId", ThreadLocalUserContext.getUserId())
+            .setParameter("lastUpdate", oneYearAgo.getUtilDate())
+            .list();
   }
 
   @Override
-  protected Object prepareMassUpdateStore(final List<TimesheetDO> list, final TimesheetDO master)
-  {
+  protected Object prepareMassUpdateStore(final List<TimesheetDO> list, final TimesheetDO master) {
     if (master.getTaskId() != null) {
       return getKost2List(master);
     }
     return null;
   }
 
-  private boolean contains(final List<Kost2DO> kost2List, final Integer kost2Id)
-  {
+  private boolean contains(final List<Kost2DO> kost2List, final Integer kost2Id) {
     for (final Kost2DO entry : kost2List) {
       if (kost2Id.compareTo(entry.getId()) == 0) {
         return true;
@@ -858,11 +769,9 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
   }
 
   @Override
-  protected boolean massUpdateEntry(final TimesheetDO entry, final TimesheetDO master, final Object store)
-  {
+  protected boolean massUpdateEntry(final TimesheetDO entry, final TimesheetDO master, final Object store) {
     if (store != null) {
-      @SuppressWarnings("unchecked")
-      final List<Kost2DO> kost2List = (List<Kost2DO>) store;
+      @SuppressWarnings("unchecked") final List<Kost2DO> kost2List = (List<Kost2DO>) store;
       if (master.getKost2Id() != null) {
         if (contains(kost2List, master.getKost2Id()) == false) {
           throw new UserException("timesheet.error.massupdate.kost2notsupported");
@@ -895,15 +804,14 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
     //      // clear destination kost2 if master has no kost2 and there is no kost2List
     //      entry.setKost2(null);
     //    }
-    if (StringUtils.isNotBlank(master.getLocation()) == true) {
+    if (StringUtils.isNotBlank(master.getLocation())) {
       entry.setLocation(master.getLocation());
     }
     return true;
   }
 
   @Override
-  public TimesheetDO newInstance()
-  {
+  public TimesheetDO newInstance() {
     return new TimesheetDO();
   }
 
@@ -911,8 +819,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#useOwnCriteriaCacheRegion()
    */
   @Override
-  protected boolean useOwnCriteriaCacheRegion()
-  {
+  protected boolean useOwnCriteriaCacheRegion() {
     return true;
   }
 }

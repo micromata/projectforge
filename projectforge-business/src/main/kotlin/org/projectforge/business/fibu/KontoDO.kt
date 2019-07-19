@@ -40,6 +40,8 @@ import javax.persistence.*
 @Indexed
 @Table(name = "T_FIBU_KONTO", uniqueConstraints = [UniqueConstraint(columnNames = ["nummer", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_konto_tenant_id", columnList = "tenant_id")])
 @WithHistory
+@NamedQueries(
+        NamedQuery(name = KontoDO.FIND_BY_NUMMER, query = "from KontoDO where nummer=:nummer"))
 class KontoDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     @PropertyInfo(i18nKey = "fibu.konto.nummer")
@@ -94,7 +96,7 @@ class KontoDO : DefaultBaseDO(), ShortDisplayNameCapable {
     }
 
     companion object {
-        private val serialVersionUID = -7468158838560608225L
+        internal const val FIND_BY_NUMMER = "KontoDO_FindByNummer"
 
         /**
          * Formats the account as string: "[nummer] [title]", e. g. "11000 Micromata GmbH"

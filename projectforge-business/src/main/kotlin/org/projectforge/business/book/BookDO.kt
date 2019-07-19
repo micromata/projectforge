@@ -46,6 +46,9 @@ import javax.persistence.*
         indexes = [javax.persistence.Index(name = "idx_fk_t_book_lend_out_by",
                 columnList = "lend_out_by"), javax.persistence.Index(name = "idx_fk_t_book_tenant_id",
                 columnList = "tenant_id"), javax.persistence.Index(name = "t_book_pkey", columnList = "pk")])
+@NamedQueries(
+        NamedQuery(name = BookDO.FIND_BY_SIGNATURE, query = "from BookDO where signature=:signature"),
+        NamedQuery(name = BookDO.FIND_OTHER_BY_SIGNATURE, query = "from BookDO where signature=:signature and id<>:id"))
 class BookDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "book.title", required = true)
@@ -159,4 +162,10 @@ class BookDO : DefaultBaseDO() {
             }
             return buf.toString()
         }
+
+    companion object {
+        internal const val FIND_BY_SIGNATURE = "BookDO_FindBySignature"
+
+        internal const val FIND_OTHER_BY_SIGNATURE = "BookDO_FindOtherBySignature"
+    }
 }

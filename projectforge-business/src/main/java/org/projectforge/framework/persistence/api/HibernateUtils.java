@@ -23,20 +23,15 @@
 
 package org.projectforge.framework.persistence.api;
 
-import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-
+import de.micromata.genome.jpa.metainf.ColumnMetadata;
+import de.micromata.genome.jpa.metainf.EntityMetadata;
 import org.hibernate.Hibernate;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
+import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.HSQLDialect;
+import org.hibernate.engine.jdbc.spi.JdbcServices;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.kost.Kost2ArtDO;
 import org.projectforge.common.BeanHelper;
@@ -46,19 +41,22 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO;
 
-import de.micromata.genome.jpa.metainf.ColumnMetadata;
-import de.micromata.genome.jpa.metainf.EntityMetadata;
-import de.micromata.genome.util.bean.PrivateBeanUtils;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Singleton holding the hibernate configuration. Should be configured by a servlet on initialization after hibernate
  * initialization.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public class HibernateUtils
-{
+public class HibernateUtils {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HibernateUtils.class);
 
   private static final HibernateUtils instance = new HibernateUtils();
@@ -80,8 +78,7 @@ public class HibernateUtils
    * For internal test cases only! If true, log errors are suppressed. Please call {@link #exitTestMode()} always
    * directly after your test call!
    */
-  public static void enterTestMode()
-  {
+  public static void enterTestMode() {
     TEST_MODE = true;
     log.info("***** Entering TESTMODE.");
   }
@@ -90,20 +87,18 @@ public class HibernateUtils
    * For internal test cases only! If true, log errors are suppressed. Please set TEST_MODE always to false after your
    * test call!
    */
-  public static void exitTestMode()
-  {
+  public static void exitTestMode() {
     TEST_MODE = false;
     log.info("***** Exit TESTMODE.");
   }
 
   /**
    * Workaround for: http://opensource.atlassian.com/projects/hibernate/browse/HHH-3502:
-   * 
+   *
    * @param obj
    * @return
    */
-  public static Serializable getIdentifier(final BaseDO<?> obj)
-  {
+  public static Serializable getIdentifier(final BaseDO<?> obj) {
     if (Hibernate.isInitialized(obj) == true) {
       return ((BaseDO<?>) obj).getId();
     } else if (obj instanceof DefaultBaseDO) {
@@ -119,7 +114,7 @@ public class HibernateUtils
     }
 
     log.error("Couldn't get the identifier of the given object (Jassist/Hibernate-Bug: HHH-3502) for class: "
-        + obj.getClass().getName());
+            + obj.getClass().getName());
     return null;
   }
 
@@ -127,8 +122,7 @@ public class HibernateUtils
    * @param obj
    * @return
    */
-  public static <T extends Serializable> void setIdentifier(final BaseDO<T> obj, final T value)
-  {
+  public static <T extends Serializable> void setIdentifier(final BaseDO<T> obj, final T value) {
     if (Hibernate.isInitialized(obj) == true) {
       obj.setId(value);
     } else if (obj instanceof DefaultBaseDO) {
@@ -146,8 +140,7 @@ public class HibernateUtils
     }
   }
 
-  public static Serializable getIdentifier(final Object obj)
-  {
+  public static Serializable getIdentifier(final Object obj) {
     if (obj instanceof BaseDO<?>) {
       return getIdentifier((BaseDO<?>) obj);
     }
@@ -172,8 +165,7 @@ public class HibernateUtils
   }
 
   @SuppressWarnings("unchecked")
-  public static <T extends Serializable> void setIdentifier(final Object obj, final T value)
-  {
+  public static <T extends Serializable> void setIdentifier(final Object obj, final T value) {
     if (obj instanceof BaseDO<?>) {
       setIdentifier((BaseDO<T>) obj, value);
     }
@@ -194,18 +186,15 @@ public class HibernateUtils
   }
 
   @Deprecated
-  public static Configuration getConfiguration()
-  {
+  public static Configuration getConfiguration() {
     return instance.configuration;
   }
 
-  public static boolean isEntity(final Class<?> entity)
-  {
+  public static boolean isEntity(final Class<?> entity) {
     return instance.internalIsEntity(entity);
   }
 
-  public static String getDBTableName(final Class<?> entity)
-  {
+  public static String getDBTableName(final Class<?> entity) {
 
     EntityMetadata metadata = PfEmgrFactory.get().getMetadataRepository().getEntityMetadata(entity);
     return metadata.getDatabaseName();
@@ -213,25 +202,23 @@ public class HibernateUtils
 
   /**
    * Gets the length of the given property.
-   * 
-   * @param entityName Class name of the entity
+   *
+   * @param entityName   Class name of the entity
    * @param propertyName Java bean property name.
    * @return length if exists, otherwise null.
    */
-  public static Integer getPropertyLength(final Class<?> entity, final String propertyName)
-  {
+  public static Integer getPropertyLength(final Class<?> entity, final String propertyName) {
     return instance.internalGetPropertyMaxLength(entity.getName(), propertyName);
   }
 
   /**
    * Gets the length of the given property.
-   * 
-   * @param entityName Class name of the entity
+   *
+   * @param entityName   Class name of the entity
    * @param propertyName Java bean property name.
    * @return length if exists, otherwise null.
    */
-  public static Integer getPropertyLength(final String entityName, final String propertyName)
-  {
+  public static Integer getPropertyLength(final String entityName, final String propertyName) {
     return instance.internalGetPropertyMaxLength(entityName, propertyName);
   }
 
@@ -239,14 +226,13 @@ public class HibernateUtils
    * Shorten the length of the property if to long for the data-base. No log message is produced. The field must be
    * declared with JPA annotations in the given class (clazz). For getting and setting the property the getter and
    * setter method is used.
-   * 
-   * @param clazz The class where the field is declared.
+   *
+   * @param clazz        The class where the field is declared.
    * @param object
    * @param propertyName
    * @return true If at least one property was shortened.
    */
-  public static boolean shortenProperties(final Class<?> clazz, final Object object, final String... propertyNames)
-  {
+  public static boolean shortenProperties(final Class<?> clazz, final Object object, final String... propertyNames) {
     boolean result = false;
     for (final String propertyName : propertyNames) {
       if (shortenProperty(clazz, object, propertyName) == true) {
@@ -260,14 +246,13 @@ public class HibernateUtils
    * Shorten the length of the property if to long for the data-base. No log message is produced. The field must be
    * declared with JPA annotations in the given class (clazz). For getting and setting the property the getter and
    * setter method is used.
-   * 
-   * @param clazz The class where the field is declared.
+   *
+   * @param clazz        The class where the field is declared.
    * @param object
    * @param propertyName
    * @return true If the property was shortened.
    */
-  public static boolean shortenProperty(final Class<?> clazz, final Object object, final String propertyName)
-  {
+  public static boolean shortenProperty(final Class<?> clazz, final Object object, final String propertyName) {
     final Integer length = getPropertyLength(clazz, propertyName);
     if (length == null) {
       return false;
@@ -280,20 +265,20 @@ public class HibernateUtils
     return false;
   }
 
-  /** Should be set at initialization of ProjectForge after initialization of hibernate. */
-  public static void setConfiguration(final Configuration configuration)
-  {
+  /**
+   * Should be set at initialization of ProjectForge after initialization of hibernate.
+   */
+  public static void setConfiguration(final Configuration configuration) {
     instance.configuration = configuration;
   }
 
-  public static DatabaseDialect getDialect()
-  {
+  public static DatabaseDialect getDialect() {
 
     if (instance.databaseDialect != null) {
       return instance.databaseDialect;
     }
     SessionFactory sessfactory = PfEmgrFactory.get().getEntityManagerFactory().unwrap(SessionFactory.class);
-    Object dialect = PrivateBeanUtils.readField(sessfactory, "dialect");
+    Dialect dialect = ((SessionFactoryImplementor) sessfactory).getServiceRegistry().getService( JdbcServices.class ).getDialect();
     //Major class in hibernate hierachie
     if (dialect instanceof org.hibernate.dialect.PostgreSQL81Dialect) {
       instance.databaseDialect = DatabaseDialect.PostgreSQL;
@@ -310,22 +295,19 @@ public class HibernateUtils
   /**
    * FOR TESTS ONLY!!!
    */
-  public static void setDialect(DatabaseDialect dialect)
-  {
+  public static void setDialect(DatabaseDialect dialect) {
     instance.databaseDialect = dialect;
   }
 
-  private boolean internalIsEntity(final Class<?> entity)
-  {
+  private boolean internalIsEntity(final Class<?> entity) {
     return PfEmgrFactory.get().getMetadataRepository().isKnownEntity(entity);
   }
 
-  private String internalGetDBTableName(final Class<?> entity)
-  {
+  private String internalGetDBTableName(final Class<?> entity) {
     EntityMetadata persistentClass = PfEmgrFactory.get().getMetadataRepository().findEntityMetadata(entity);
     if (persistentClass == null) {
       String msg = "Could not find persistent class for entityName '" + entity.getName()
-          + "' (OK for non hibernate objects).";
+              + "' (OK for non hibernate objects).";
       if (entity.getName().endsWith("DO") == true) {
         log.error(msg);
       } else {
@@ -336,8 +318,7 @@ public class HibernateUtils
     return persistentClass.getDatabaseName();
   }
 
-  private Integer internalGetPropertyMaxLength(final String entityName, final String propertyName)
-  {
+  private Integer internalGetPropertyMaxLength(final String entityName, final String propertyName) {
     Integer length = columnLengthMap.get(getKey(entityName, propertyName));
     if (length != null) {
       return length;
@@ -349,7 +330,7 @@ public class HibernateUtils
 
     if (persistentClass == null) {
       final String msg = "Could not find persistent class for entityName '" + entityName
-          + "' (OK for non hibernate objects).";
+              + "' (OK for non hibernate objects).";
       if (entityName.endsWith("DO") == true) {
         log.error(msg);
       } else {
@@ -370,13 +351,11 @@ public class HibernateUtils
     return length;
   }
 
-  private void putFailedEntry(final String entityName, final String propertyName)
-  {
+  private void putFailedEntry(final String entityName, final String propertyName) {
     columnLengthFailedSet.add(getKey(entityName, propertyName));
   }
 
-  private String getKey(final String entityName, final String propertyName)
-  {
+  private String getKey(final String entityName, final String propertyName) {
     return entityName + "#" + propertyName;
   }
 }

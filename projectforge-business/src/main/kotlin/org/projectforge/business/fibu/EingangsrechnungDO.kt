@@ -49,6 +49,8 @@ import javax.persistence.*
         ])
 // @AssociationOverride(name="positionen", joinColumns=@JoinColumn(name="eingangsrechnung_fk"))
 @WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [EingangsrechnungsPositionDO::class])
+@NamedQueries(
+        NamedQuery(name = EingangsrechnungDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from EingangsrechnungDO"))
 class EingangsrechnungDO : AbstractRechnungDO<EingangsrechnungsPositionDO>(), Comparable<EingangsrechnungDO> {
 
     /**
@@ -111,5 +113,9 @@ class EingangsrechnungDO : AbstractRechnungDO<EingangsrechnungsPositionDO>(), Co
         s1 = StringUtils.defaultString(this.referenz)
         s2 = StringUtils.defaultString(other.referenz)
         return s1.compareTo(s2)
+    }
+
+    companion object {
+        internal const val SELECT_MIN_MAX_DATE = "EingangsrechnungDO_SelectMinMaxDate"
     }
 }

@@ -25,15 +25,8 @@ package org.projectforge.business.meb
 
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
-
-import java.util.Date
-
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.GeneratedValue
-import javax.persistence.Id
-import javax.persistence.Table
-import javax.persistence.UniqueConstraint
+import java.util.*
+import javax.persistence.*
 
 /**
  * All imported meb entries (by mail or by SMS servlet) will be registered as imported MEB entry for avoiding multiple imports of the same
@@ -43,6 +36,9 @@ import javax.persistence.UniqueConstraint
  */
 @Entity
 @Table(name = "T_IMPORTED_MEB_ENTRY", uniqueConstraints = [UniqueConstraint(columnNames = ["sender", "date", "check_sum"])], indexes = [javax.persistence.Index(name = "idx_fk_t_imported_meb_entry_tenant_id", columnList = "tenant_id")])
+@NamedQueries(
+        NamedQuery(name = ImportedMebEntryDO.FIND_BY_SENDER_AND_DATE_AND_CHECKSUM,
+                query = "from ImportedMebEntryDO where sender=:sender and date=:date and checkSum=:checkSum"))
 class ImportedMebEntryDO : AbstractBaseDO<Int>() {
 
     private var id: Int? = null
@@ -76,5 +72,9 @@ class ImportedMebEntryDO : AbstractBaseDO<Int>() {
 
     override fun setId(id: Int?) {
         this.id = id
+    }
+
+    companion object {
+        internal const val FIND_BY_SENDER_AND_DATE_AND_CHECKSUM = "ImportedMebEntryDO_FindBySenderAndDateAndChecksum"
     }
 }

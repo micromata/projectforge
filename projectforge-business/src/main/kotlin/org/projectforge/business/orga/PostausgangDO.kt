@@ -38,6 +38,8 @@ import javax.persistence.*
 @Indexed
 @Table(name = "T_ORGA_POSTAUSGANG",
         indexes = [javax.persistence.Index(name = "idx_fk_t_orga_postausgang_tenant_id", columnList = "tenant_id")])
+@NamedQueries(
+        NamedQuery(name = PostausgangDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from PostausgangDO"))
 class PostausgangDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "date")
@@ -71,4 +73,8 @@ class PostausgangDO : DefaultBaseDO() {
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "post_type", length = 100, nullable = false)
     var type: PostType? = null
+
+    companion object {
+        internal const val SELECT_MIN_MAX_DATE = "PostausgangDO_SelectMinMaxDate"
+    }
 }

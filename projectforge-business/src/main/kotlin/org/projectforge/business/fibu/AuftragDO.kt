@@ -61,6 +61,10 @@ import javax.persistence.*
             javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_tenant_id", columnList = "tenant_id")])
 @WithHistory(noHistoryProperties = ["lastUpdate", "created"],
         nestedEntities = [AuftragsPositionDO::class, PaymentScheduleDO::class])
+@NamedQueries(
+        NamedQuery(name = AuftragDO.SELECT_MIN_MAX_DATE, query = "select min(angebotsDatum), max(angebotsDatum) from AuftragDO"),
+        NamedQuery(name = AuftragDO.FIND_BY_NUMMER, query = "from AuftragDO where nummer=:nummer"),
+        NamedQuery(name = AuftragDO.FIND_OTHER_BY_NUMMER, query = "from AuftragDO where nummer=:nummer and id!=:id"))
 class AuftragDO : DefaultBaseDO() {
 
     private val log = org.slf4j.LoggerFactory.getLogger(AuftragDO::class.java)
@@ -608,5 +612,11 @@ class AuftragDO : DefaultBaseDO() {
             this.paymentSchedules = ArrayList()
         }
         return this.paymentSchedules
+    }
+
+    companion object {
+        internal const val SELECT_MIN_MAX_DATE = "AuftragDO_SelectMinMaxDate"
+        internal const val FIND_BY_NUMMER = "AuftragDO_FindByNummer"
+        internal const val FIND_OTHER_BY_NUMMER = "AuftragDO_FindOtherByNummer"
     }
 }

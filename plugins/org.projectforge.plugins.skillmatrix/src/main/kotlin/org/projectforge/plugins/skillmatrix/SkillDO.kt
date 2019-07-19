@@ -23,26 +23,17 @@
 
 package org.projectforge.plugins.skillmatrix
 
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.FetchType
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.Table
-import javax.persistence.Transient
-
+import de.micromata.genome.jpa.impl.ATableTruncater
 import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Index
 import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.IndexedEmbedded
-import org.hibernate.search.annotations.Store
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.UserPrefParameter
-
-import de.micromata.genome.jpa.impl.ATableTruncater
+import org.projectforge.framework.persistence.user.entities.UserPrefDO
+import javax.persistence.*
 
 /**
  * A skill usable for a skill-matrix.
@@ -51,9 +42,22 @@ import de.micromata.genome.jpa.impl.ATableTruncater
  */
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_SKILL", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_skill_parent_fk", columnList = "parent_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_skill_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_PLUGIN_SKILL",
+        indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_skill_parent_fk", columnList = "parent_fk"),
+            javax.persistence.Index(name = "idx_fk_t_plugin_skill_tenant_id", columnList = "tenant_id")])
 @ATableTruncater(value = org.projectforge.plugins.skillmatrix.SkillTableTruncater::class)
 @AUserRightId(value = "SKILL", checkAccess = false)
+@NamedQueries(
+        NamedQuery(name = SkillDO.FIND_BY_TITLE,
+                query = "from SkillDO where title=:title and deleted=false"),
+        NamedQuery(name = SkillDO.FIND_BY_TITLE_AND_PARENT,
+                query = "from SkillDO where title=:title and deleted=false and parent.id=:parentId"),
+        NamedQuery(name = SkillDO.FIND_OTHER_BY_TITLE_AND_PARENT,
+                query = "from SkillDO where title=:title and deleted=false and parent.id=:parentId and id=:id"),
+        NamedQuery(name = SkillDO.FIND_BY_TITLE_ON_TOPLEVEL,
+                query = "from SkillDO where title=:title and deleted=false and parent.id is null"),
+        NamedQuery(name = SkillDO.FIND_OTHER_BY_TITLE_ON_TOPLEVEL,
+                query = "from SkillDO where title=:title and deleted=false and parent.id is null and id=:id"))
 class SkillDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skill.title")
@@ -110,4 +114,12 @@ class SkillDO : DefaultBaseDO() {
     val parentId: Int?
         @Transient
         get() = if (parent != null) parent!!.id else null
+
+    companion object {
+        internal const val FIND_BY_TITLE = "SkillDO_FindByTitle"
+        internal const val FIND_BY_TITLE_AND_PARENT = "SkillDO_FindByTitleAndParent"
+        internal const val FIND_OTHER_BY_TITLE_AND_PARENT = "SkillDO_FindOtherByTitleAndParent"
+        internal const val FIND_BY_TITLE_ON_TOPLEVEL = "SkillDO_FindByTitleOnToplevel"
+        internal const val FIND_OTHER_BY_TITLE_ON_TOPLEVEL = "SkillDO_FindOtherByTitleOnToplevel"
+    }
 }

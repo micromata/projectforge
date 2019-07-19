@@ -23,24 +23,11 @@
 
 package org.projectforge.business.orga
 
-import org.hibernate.search.annotations.Analyze
-import org.hibernate.search.annotations.DateBridge
-import org.hibernate.search.annotations.EncodingType
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Index
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.Resolution
-import org.hibernate.search.annotations.Store
+import org.hibernate.search.annotations.*
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-
 import java.sql.Date
-
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.EnumType
-import javax.persistence.Enumerated
-import javax.persistence.Table
+import javax.persistence.*
 
 /**
  * Posteingangsbuch
@@ -51,6 +38,8 @@ import javax.persistence.Table
 @Indexed
 @Table(name = "T_ORGA_POSTEINGANG",
         indexes = arrayOf(javax.persistence.Index(name = "idx_fk_t_orga_posteingang_tenant_id", columnList = "tenant_id")))
+@NamedQueries(
+        NamedQuery(name = PosteingangDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from PosteingangDO"))
 class PosteingangDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "date")
@@ -86,6 +75,6 @@ class PosteingangDO : DefaultBaseDO() {
     var type: PostType? = null
 
     companion object {
-        private val serialVersionUID = -4713747110526000256L
+        internal const val SELECT_MIN_MAX_DATE = "PosteingangDO_SelectMinMaxDate"
     }
 }

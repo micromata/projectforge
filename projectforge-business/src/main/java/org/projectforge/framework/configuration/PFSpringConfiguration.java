@@ -23,10 +23,13 @@
 
 package org.projectforge.framework.configuration;
 
-import javax.annotation.PostConstruct;
-import javax.persistence.EntityManagerFactory;
-import javax.sql.DataSource;
-
+import de.micromata.genome.db.jpa.history.api.HistoryServiceManager;
+import de.micromata.genome.db.jpa.history.entities.HistoryMasterBaseDO;
+import de.micromata.genome.db.jpa.history.impl.HistoryServiceImpl;
+import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
+import de.micromata.genome.db.jpa.tabattr.impl.TimeableServiceImpl;
+import de.micromata.mgc.jpa.spring.SpringEmgrFilterBean;
+import de.micromata.mgc.jpa.spring.factories.JpaToSessionSpringBeanFactory;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.projectforge.continuousdb.DatabaseSupport;
@@ -37,10 +40,12 @@ import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Primary;
 import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -48,16 +53,12 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.client.RestTemplate;
 
-import de.micromata.genome.db.jpa.history.api.HistoryServiceManager;
-import de.micromata.genome.db.jpa.history.entities.HistoryMasterBaseDO;
-import de.micromata.genome.db.jpa.history.impl.HistoryServiceImpl;
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
-import de.micromata.genome.db.jpa.tabattr.impl.TimeableServiceImpl;
-import de.micromata.mgc.jpa.spring.SpringEmgrFilterBean;
-import de.micromata.mgc.jpa.spring.factories.JpaToSessionSpringBeanFactory;
+import javax.annotation.PostConstruct;
+import javax.persistence.EntityManagerFactory;
+import javax.sql.DataSource;
 
 /**
- * Intial spring configuration for projectforge.
+ * Intial spring configuration for ProjectForge.
  *
  * @author Florian Blumenstein, Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
@@ -66,6 +67,7 @@ import de.micromata.mgc.jpa.spring.factories.JpaToSessionSpringBeanFactory;
 @EnableScheduling
 //Needed, because not only interfaces are used as injection points
 @EnableAspectJAutoProxy(proxyTargetClass = true)
+@EntityScan("org.projectforge.business") // For detecting named queries.
 public class PFSpringConfiguration
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PFSpringConfiguration.class);
@@ -109,6 +111,7 @@ public class PFSpringConfiguration
    *
    * @return
    */
+  @Primary
   @Bean
   public EntityManagerFactory entityManagerFactory()
   {

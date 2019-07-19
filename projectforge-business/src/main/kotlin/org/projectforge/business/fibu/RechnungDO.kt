@@ -52,6 +52,9 @@ import javax.persistence.*
         ])
 @WithHistory(noHistoryProperties = ["lastUpdate", "created"],
         nestedEntities = [RechnungsPositionDO::class])
+@NamedQueries(
+        NamedQuery(name = RechnungDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from RechnungDO"),
+        NamedQuery(name = RechnungDO.FIND_OTHER_BY_NUMMER, query = "from RechnungDO where nummer=:nummer and id!=:id"))
 class RechnungDO : AbstractRechnungDO<RechnungsPositionDO>(), Comparable<RechnungDO> {
 
     @PropertyInfo(i18nKey = "fibu.rechnung.nummer")
@@ -192,5 +195,10 @@ class RechnungDO : AbstractRechnungDO<RechnungsPositionDO>(), Comparable<Rechnun
         return if (other.nummer == null) {
             -1
         } else this.nummer!!.compareTo(other.nummer!!)
+    }
+
+    companion object {
+        internal const val SELECT_MIN_MAX_DATE = "RechnungDO_SelectMinMaxDate"
+        internal const val FIND_OTHER_BY_NUMMER = "RechnungDO_FindOtherByNummer"
     }
 }

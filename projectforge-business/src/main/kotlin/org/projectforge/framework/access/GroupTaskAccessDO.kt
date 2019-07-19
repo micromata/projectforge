@@ -23,21 +23,7 @@
 
 package org.projectforge.framework.access
 
-import java.io.Serializable
-import java.util.ArrayList
-import java.util.HashSet
-
-import javax.persistence.CascadeType
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.FetchType
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.OneToMany
-import javax.persistence.Table
-import javax.persistence.Transient
-import javax.persistence.UniqueConstraint
-
+import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.apache.commons.lang3.builder.ToStringBuilder
 import org.hibernate.Hibernate
@@ -47,11 +33,12 @@ import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.business.task.TaskDO
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.ModificationStatus
+import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.GroupDO
-
-import de.micromata.genome.db.jpa.history.api.NoHistory
-import org.projectforge.framework.persistence.entities.AbstractBaseDO
+import java.io.Serializable
+import java.util.*
+import javax.persistence.*
 
 /**
  * Represents an access entry with the permissions of one group to one task. The persistent data object of
@@ -62,6 +49,9 @@ import org.projectforge.framework.persistence.entities.AbstractBaseDO
 @Entity
 @Indexed
 @Table(name = "T_GROUP_TASK_ACCESS", uniqueConstraints = [UniqueConstraint(columnNames = ["group_id", "task_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_group_task_access_group_id", columnList = "group_id"), javax.persistence.Index(name = "idx_fk_t_group_task_access_task_id", columnList = "task_id"), javax.persistence.Index(name = "idx_fk_t_group_task_access_tenant_id", columnList = "tenant_id")])
+@NamedQueries(
+        NamedQuery(name = GroupTaskAccessDO.FIND_BY_TASK_AND_GROUP,
+                query = "from GroupTaskAccessDO a where a.task.id=:taskId and a.group.id=:groupId"))
 class GroupTaskAccessDO : DefaultBaseDO() {
 
     @IndexedEmbedded(depth = 1)
@@ -293,5 +283,12 @@ class GroupTaskAccessDO : DefaultBaseDO() {
         ensureAndGetTasksEntry().setAccess(true, true, true, true)
         ensureAndGetOwnTimesheetsEntry().setAccess(true, true, true, true)
         ensureAndGetTimesheetsEntry().setAccess(true, true, true, true)
+    }
+
+    companion object {
+        /**
+         * from GroupTaskAccessDO a where a.task.id=:taskId and a.group.id=:groupId
+         */
+        internal const val FIND_BY_TASK_AND_GROUP = "GroupTaskAccessDO_FindByTaskAndGroup"
     }
 }

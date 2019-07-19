@@ -23,18 +23,6 @@
 
 package org.projectforge.business.fibu;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -59,6 +47,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.*;
 
 @Repository
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
@@ -119,14 +112,12 @@ public class RechnungDao extends BaseDao<RechnungDO>
 
   /**
    * List of all years with invoices: select min(datum), max(datum) from t_fibu_rechnung.
-   *
-   * @return
    */
-  @SuppressWarnings("unchecked")
   public int[] getYears()
   {
-    final List<Object[]> list = getSession().createQuery("select min(datum), max(datum) from RechnungDO t").list();
-    return SQLHelper.getYears(list);
+    final Object[] minMaxDate = getSession().createNamedQuery(RechnungDO.SELECT_MIN_MAX_DATE, Object[].class)
+            .getSingleResult();
+    return SQLHelper.getYears((java.sql.Date)minMaxDate[0], (java.sql.Date)minMaxDate[1]);
   }
 
   public RechnungsStatistik buildStatistik(final List<RechnungDO> list)
@@ -184,10 +175,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
    * Gutschriftsanzeigen dürfen keine Rechnungsnummer haben. Wenn eine Rechnungsnummer für neue Rechnungen gegeben
    * wurde, so muss sie fortlaufend sein. Berechnet das Zahlungsziel in Tagen, wenn nicht gesetzt, damit es indiziert
    * wird.
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao#onSaveOrModify(org.projectforge.core.ExtendedBaseDO)
    */
-  @SuppressWarnings("unchecked")
   @Override
   protected void onSaveOrModify(final RechnungDO rechnung)
   {
@@ -228,10 +216,11 @@ public class RechnungDao extends BaseDao<RechnungDO>
             throw new UserException("fibu.rechnung.error.rechnungsNummerIstNichtFortlaufend");
           }
         } else {
-          final List<RechnungDO> list = (List<RechnungDO>) getHibernateTemplate().find(
-              "from RechnungDO r where r.nummer = ? and r.id <> ?",
-              new Object[] { rechnung.getNummer(), rechnung.getId() });
-          if (list != null && list.size() > 0) {
+          final RechnungDO other = getSession().createNamedQuery(RechnungDO.FIND_OTHER_BY_NUMMER, RechnungDO.class)
+                  .setParameter("nummer", rechnung.getNummer())
+                  .setParameter("id", rechnung.getId())
+                  .uniqueResult();
+          if (other != null) {
             throw new UserException("fibu.rechnung.error.rechnungsNummerBereitsVergeben");
           }
         }
@@ -241,14 +230,14 @@ public class RechnungDao extends BaseDao<RechnungDO>
       rechnung.setZahlBetrag(rechnung.getZahlBetrag().setScale(2, RoundingMode.HALF_UP));
     }
     rechnung.recalculate();
-    if (CollectionUtils.isEmpty(rechnung.getPositionen()) == true) {
+    if (CollectionUtils.isEmpty(rechnung.getPositionen())) {
       throw new UserException("fibu.rechnung.error.rechnungHatKeinePositionen");
     }
     final int size = rechnung.getPositionen().size();
     for (int i = size - 1; i > 0; i--) {
       // Don't remove first position, remove only the last empty positions.
       final RechnungsPositionDO position = rechnung.getPositionen().get(i);
-      if (position.getId() == null && position.isEmpty() == true) {
+      if (position.getId() == null && position.isEmpty()) {
         rechnung.getPositionen().remove(i);
       } else {
         break;
@@ -280,10 +269,6 @@ public class RechnungDao extends BaseDao<RechnungDO>
     getRechnungCache().setExpired(); // Expire the cache because assignments to order position may be changed.
   }
 
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#prepareHibernateSearch(org.projectforge.core.ExtendedBaseDO,
-   * org.projectforge.framework.access.OperationType)
-   */
   @Override
   protected void prepareHibernateSearch(final RechnungDO obj, final OperationType operationType)
   {
@@ -335,7 +320,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
     AuftragAndRechnungDaoHelper.createCriterionForPeriodOfPerformance(myFilter).ifPresent(queryFilter::add);
 
     final List<RechnungDO> list = getList(queryFilter);
-    if (myFilter.isShowAll() == true || myFilter.isDeleted() == true) {
+    if (myFilter.isShowAll() || myFilter.isDeleted()) {
       return list;
     }
 
@@ -398,8 +383,6 @@ public class RechnungDao extends BaseDao<RechnungDO>
 
   /**
    * Gets history entries of super and adds all history entries of the RechnungsPositionDO childs.
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao#getDisplayHistoryEntries(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
   public List<DisplayHistoryEntry> getDisplayHistoryEntries(final RechnungDO obj)
@@ -408,7 +391,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
     if (hasLoggedInUserHistoryAccess(obj, false) == false) {
       return list;
     }
-    if (CollectionUtils.isNotEmpty(obj.getPositionen()) == true) {
+    if (CollectionUtils.isNotEmpty(obj.getPositionen())) {
       for (final RechnungsPositionDO position : obj.getPositionen()) {
         final List<DisplayHistoryEntry> entries = internalGetDisplayHistoryEntries(position);
         for (final DisplayHistoryEntry entry : entries) {
@@ -420,7 +403,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
           }
         }
         list.addAll(entries);
-        if (CollectionUtils.isNotEmpty(position.getKostZuweisungen()) == true) {
+        if (CollectionUtils.isNotEmpty(position.getKostZuweisungen())) {
           for (final KostZuweisungDO zuweisung : position.getKostZuweisungen()) {
             final List<DisplayHistoryEntry> kostEntries = internalGetDisplayHistoryEntries(zuweisung);
             for (final DisplayHistoryEntry entry : kostEntries) {
@@ -457,18 +440,15 @@ public class RechnungDao extends BaseDao<RechnungDO>
 
   /**
    * Returns also true, if idSet contains the id of any order position.
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao#contains(java.util.Set,
-   * org.projectforge.core.ExtendedBaseDO)
    */
   @Override
   protected boolean contains(final Set<Integer> idSet, final RechnungDO entry)
   {
-    if (super.contains(idSet, entry) == true) {
+    if (super.contains(idSet, entry)) {
       return true;
     }
     for (final RechnungsPositionDO pos : entry.getPositionen()) {
-      if (idSet.contains(pos.getId()) == true) {
+      if (idSet.contains(pos.getId())) {
         return true;
       }
     }
