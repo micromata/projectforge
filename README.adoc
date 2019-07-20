@@ -14,6 +14,10 @@ We're working on refactoring ProjectForge's frontend. We will introduce ReactJS 
 ProjectForge will be controlled by a new Rest API for most CRUD operations. Stay tuned!
 ====
 
+=== Migration 7.0 issues
+
+1. Remove old full text indices: `rm ~/ProjectForge/hibernateSearch` and restart.
+
 == Quickstart from command line
 
 [NOTE]
