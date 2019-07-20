@@ -1,55 +1,44 @@
-import { faTimesCircle } from '@fortawesome/free-solid-svg-icons';
+import { faHome } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Button } from '../../../../../design';
 import inputStyle from '../../../../../design/input/Input.module.scss';
 import style from './TaskSelect.module.scss';
-import TaskTitle from './TaskTitle';
 
 function TaskPath(
     {
-        modalHighlight,
-        openModal,
         path,
         setTask,
     },
 ) {
-    let recentAncecstorId;
-
     return (
-        <React.Fragment>
-            {path.map((ancestor) => {
-                const parenTaskId = recentAncecstorId;
-                recentAncecstorId = ancestor.id;
-
-                return (
-                    <React.Fragment key={ancestor.id}>
-                        <TaskTitle
-                            id={ancestor.id}
-                            isHighlighted={ancestor.id === modalHighlight}
-                            title={ancestor.title}
-                            openModal={openModal}
-                        />
-                        {' '}
-                        <Button
-                            color="link"
-                            onClick={() => setTask(parenTaskId)}
-                            style={{ padding: 0 }}
-                        >
-                            <FontAwesomeIcon
-                                icon={faTimesCircle}
-                                className={inputStyle.icon}
-                                color="lightGray"
-                            />
-                        </Button>
-                        <span className={style.divider}>
-                            {' | '}
-                        </span>
-                    </React.Fragment>
-                );
-            })}
-        </React.Fragment>
+        <div className={style.taskPath}>
+            <div className={style.breadcrumb}>
+                <Button
+                    color="link"
+                    onClick={() => setTask(undefined)}
+                    style={{ padding: 0 }}
+                >
+                    <FontAwesomeIcon
+                        icon={faHome}
+                        className={inputStyle.icon}
+                    />
+                </Button>
+            </div>
+            {path.map(({ id, title }) => (
+                <div
+                    role="link"
+                    tabIndex={0}
+                    key={id}
+                    className={style.breadcrumb}
+                    onClick={() => setTask(id)}
+                    onKeyPress={() => setTask(id)}
+                >
+                    {title}
+                </div>
+            ))}
+        </div>
     );
 }
 
@@ -58,14 +47,10 @@ TaskPath.propTypes = {
         id: PropTypes.number.isRequired,
         title: PropTypes.string.isRequired,
     })).isRequired,
-    modalHighlight: PropTypes.number,
-    openModal: PropTypes.func,
     setTask: PropTypes.func,
 };
 
 TaskPath.defaultProps = {
-    modalHighlight: undefined,
-    openModal: undefined,
     setTask: undefined,
 };
 
