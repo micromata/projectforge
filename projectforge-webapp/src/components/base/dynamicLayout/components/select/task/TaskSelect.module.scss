@@ -1,9 +1,37 @@
-.highlighted {
-  color: red;
-}
+.taskPath {
+  list-style: none;
+  margin-block-start: 0;
+  margin-block-end: 0;
+  margin-inline-start: 0;
+  margin-inline-end: 0;
+  padding-inline-start: 0;
+  display: inline-block;
 
-.divider {
-  font-weight: bold;
-  color: red;
-  font-size: 1.2em;
+  .breadcrumb {
+    display: inline-block;
+    margin-right: 5px;
+    color: #007bff;
+    cursor: pointer;
+
+    &:hover {
+      color: #0056b3;
+    }
+
+    &::after {
+      color: #999;
+      margin-left: 5px;
+      content: '/';
+    }
+
+    &:last-child {
+      color: #333;
+      margin: 0;
+      cursor: default;
+
+      &::after {
+        content: '';
+        margin: 0;
+      }
+    }
+  }
 }

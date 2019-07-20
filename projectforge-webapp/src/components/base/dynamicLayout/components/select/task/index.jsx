@@ -210,7 +210,10 @@ function DynamicTaskSelect(
                         <TaskPath
                             path={[...task.path, task]}
                             openModal={openModal}
-                            setTask={setTask}
+                            setTask={(taskId) => {
+                                openModal(taskId);
+                                setTask(taskId);
+                            }}
                         />
                     )
                     : <span className={inputStyle.text}>{label}</span>}
