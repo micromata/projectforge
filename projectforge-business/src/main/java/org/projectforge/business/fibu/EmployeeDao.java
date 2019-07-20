@@ -88,15 +88,10 @@ public class EmployeeDao extends BaseDao<EmployeeDO> {
 
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public EmployeeDO findByUserId(final Integer userId) {
-    return emgrFactory.runRoTrans(emgr -> {
-      TenantDO tenant = TenantRegistryMap.getInstance().getTenantRegistry().getTenant();
-      List<EmployeeDO> list = emgr
-              .select(EmployeeDO.class, "SELECT e FROM EmployeeDO e WHERE e.user.id = :userId AND e.tenant = :tenant", "userId", userId, "tenant", tenant);
-      if (list != null && list.size() > 0) {
-        return list.get(0);
-      }
-      return null;
-    });
+    return SQLHelper.ensureUniqueResult(getSession()
+            .createNamedQuery(EmployeeDO.FIND_BY_USER_ID, EmployeeDO.class)
+            .setParameter("userId", userId)
+            .setParameter("tenantId", TenantRegistryMap.getInstance().getTenantRegistry().getTenantId()));
   }
 
   /**
@@ -179,12 +174,6 @@ public class EmployeeDao extends BaseDao<EmployeeDO> {
       }
     }
     return list;
-  }
-
-  @Override
-  protected void afterSaveOrModify(final EmployeeDO employee) {
-    super.afterSaveOrModify(employee);
-    getUserGroupCache().refreshEmployee(employee.getUserId());
   }
 
   @Override

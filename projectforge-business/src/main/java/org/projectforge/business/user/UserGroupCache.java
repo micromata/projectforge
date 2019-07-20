@@ -25,8 +25,6 @@ package org.projectforge.business.user;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.hibernate.SessionFactory;
-import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.multitenancy.TenantChecker;
@@ -39,7 +37,6 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
-import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -72,8 +69,6 @@ public class UserGroupCache extends AbstractCache {
 
   private Map<Integer, PFUserDO> userMap;
 
-  private Map<Integer, EmployeeDO> employeeMap;
-
   private Set<Integer> adminUsers;
 
   private Set<Integer> financeUsers;
@@ -90,21 +85,30 @@ public class UserGroupCache extends AbstractCache {
 
   private Set<Integer> hrUsers;
 
-  private SessionFactory sessionFactory;
-
   private TenantChecker tenantChecker;
 
   private TenantService tenantService;
 
   private UserRightService userRights;
 
+  private UserRightDao userRightDao;
+
   public UserGroupCache(final TenantDO tenant, ApplicationContext applicationContext) {
     setExpireTimeInHours(1);
     this.tenant = tenant;
     this.tenantChecker = applicationContext.getBean(TenantChecker.class);
     this.userRights = applicationContext.getBean(UserRightService.class);
-    this.sessionFactory = applicationContext.getBean("sessionFactory", SessionFactory.class);
+    this.userRightDao = applicationContext.getBean(UserRightDao.class);
     this.tenantService = applicationContext.getBean(TenantService.class);
+  }
+
+  private static Set<Integer> ensureAndGetUserGroupIdMap(final Map<Integer, Set<Integer>> ugIdMap, final Integer userId) {
+    Set<Integer> set = ugIdMap.get(userId);
+    if (set == null) {
+      set = new HashSet<Integer>();
+      ugIdMap.put(userId, set);
+    }
+    return set;
   }
 
   public GroupDO getGroup(final ProjectForgeGroup group) {
@@ -206,7 +210,7 @@ public class UserGroupCache extends AbstractCache {
     }
     checkRefresh();
     final Set<Integer> groupSet = getUserGroupIdMap().get(userId);
-    return (groupSet != null) ? groupSet.contains(groupId) : false;
+    return (groupSet != null) && groupSet.contains(groupId);
   }
 
   public boolean isUserMemberOfAtLeastOneGroup(final Integer userId, final Integer... groupIds) {
@@ -236,7 +240,7 @@ public class UserGroupCache extends AbstractCache {
   public boolean isUserMemberOfAdminGroup(final Integer userId) {
     checkRefresh();
     // adminUsers should only be null in maintenance mode (e. g. if user table isn't readable).
-    return adminUsers != null ? adminUsers.contains(userId) : false;
+    return adminUsers != null && adminUsers.contains(userId);
   }
 
   public boolean isUserMemberOfFinanceGroup() {
@@ -246,7 +250,7 @@ public class UserGroupCache extends AbstractCache {
   public boolean isUserMemberOfFinanceGroup(final Integer userId) {
     checkRefresh();
     // financeUsers should only be null in maintenance mode (e. g. if user table isn't readable).
-    return financeUsers != null ? financeUsers.contains(userId) : false;
+    return financeUsers != null && financeUsers.contains(userId);
   }
 
   public boolean isUserMemberOfProjectManagers() {
@@ -256,7 +260,7 @@ public class UserGroupCache extends AbstractCache {
   public boolean isUserMemberOfProjectManagers(final Integer userId) {
     checkRefresh();
     // projectManagers should only be null in maintenance mode (e. g. if user table isn't readable).
-    return projectManagers != null ? projectManagers.contains(userId) : false;
+    return projectManagers != null && projectManagers.contains(userId);
   }
 
   public boolean isUserMemberOfProjectAssistant() {
@@ -266,7 +270,7 @@ public class UserGroupCache extends AbstractCache {
   public boolean isUserMemberOfProjectAssistant(final Integer userId) {
     checkRefresh();
     // projectAssistants should only be null in maintenance mode (e. g. if user table isn't readable).
-    return projectAssistants != null ? projectAssistants.contains(userId) : false;
+    return projectAssistants != null && projectAssistants.contains(userId);
   }
 
   public boolean isUserProjectManagerOrAssistantForProject(final ProjektDO projekt) {
@@ -287,7 +291,7 @@ public class UserGroupCache extends AbstractCache {
   public boolean isUserMemberOfControllingGroup(final Integer userId) {
     checkRefresh();
     // controllingUsers should only be null in maintenance mode (e. g. if user table isn't readable).
-    return controllingUsers != null ? controllingUsers.contains(userId) : false;
+    return controllingUsers != null && controllingUsers.contains(userId);
   }
 
   public boolean isUserMemberOfMarketingGroup() {
@@ -306,12 +310,12 @@ public class UserGroupCache extends AbstractCache {
   public boolean isUserMemberOfOrgaGroup(final Integer userId) {
     checkRefresh();
     // orgaUsers should only be null in maintenance mode (e. g. if user table isn't readable).
-    return orgaUsers != null ? orgaUsers.contains(userId) : false;
+    return orgaUsers != null && orgaUsers.contains(userId);
   }
 
   public boolean isUserMemberOfHRGroup(final Integer userId) {
     checkRefresh();
-    return hrUsers != null ? hrUsers.contains(userId) : false;
+    return hrUsers != null && hrUsers.contains(userId);
   }
 
   /**
@@ -380,27 +384,6 @@ public class UserGroupCache extends AbstractCache {
   public Collection<Integer> getUserGroups(final PFUserDO user) {
     checkRefresh();
     return getUserGroupIdMap().get(user.getId());
-  }
-
-  public EmployeeDO getEmployee(final Integer userId) {
-    checkRefresh();
-    EmployeeDO employee = this.employeeMap.get(userId);
-    if (employee == null) {
-      employee = SQLHelper.ensureUniqueResult(sessionFactory.getCurrentSession()
-              .createNamedQuery(EmployeeDO.FIND_BY_USER_ID, EmployeeDO.class)
-              .setParameter("userId", userId));
-      if (employee != null) this.employeeMap.put(userId, employee);
-    }
-    return employee;
-  }
-
-  /**
-   * Removes given employee from map, so refresh for next access is forced.
-   */
-  public void refreshEmployee(final Integer userId) {
-    if (this.employeeMap != null) {
-      this.employeeMap.remove(userId);
-    }
   }
 
   private Map<Integer, GroupDO> getGroupMap() {
@@ -516,12 +499,10 @@ public class UserGroupCache extends AbstractCache {
     this.orgaUsers = nOrgaUsers;
     this.hrUsers = nhrUsers;
     this.userGroupIdMap = ugIdMap;
-    this.employeeMap = new HashMap<Integer, EmployeeDO>();
     final Map<Integer, List<UserRightDO>> rMap = new HashMap<Integer, List<UserRightDO>>();
     List<UserRightDO> rights;
     try {
-      rights = sessionFactory.getCurrentSession().createNamedQuery(UserRightDO.FIND_ALL_ORDERED, UserRightDO.class)
-              .list();
+      rights = userRightDao.internalGetAllOrdered();
     } catch (final Exception ex) {
       log.error(
               "******* Exception while getting user rights from data-base (only OK for migration from older versions): "
@@ -553,15 +534,6 @@ public class UserGroupCache extends AbstractCache {
     Login.getInstance().afterUserGroupCacheRefresh(users, groups);
     long end = System.currentTimeMillis();
     log.info("UserGroupCache.refresh took: " + (end - begin) + " ms.");
-  }
-
-  private static Set<Integer> ensureAndGetUserGroupIdMap(final Map<Integer, Set<Integer>> ugIdMap, final Integer userId) {
-    Set<Integer> set = ugIdMap.get(userId);
-    if (set == null) {
-      set = new HashSet<Integer>();
-      ugIdMap.put(userId, set);
-    }
-    return set;
   }
 
   public synchronized void internalSetAdminUser(final PFUserDO adminUser) {

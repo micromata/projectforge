@@ -23,25 +23,21 @@
 
 package org.projectforge.business.user;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.framework.access.OperationType;
-import org.projectforge.framework.persistence.api.BaseDao;
-import org.projectforge.framework.persistence.api.BaseSearchFilter;
-import org.projectforge.framework.persistence.api.IUserRightId;
-import org.projectforge.framework.persistence.api.QueryFilter;
-import org.projectforge.framework.persistence.api.UserRightService;
+import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Repository
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
@@ -63,6 +59,11 @@ public class UserRightDao extends BaseDao<UserRightDO>
     final UserRightFilter filter = new UserRightFilter();
     filter.setUser(user);
     return getList(filter);
+  }
+
+  public List<UserRightDO> internalGetAllOrdered() {
+    return getSession().createNamedQuery(UserRightDO.FIND_ALL_ORDERED, UserRightDO.class)
+            .list();
   }
 
   @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
