@@ -245,6 +245,7 @@ class IndexPage extends React.Component {
                     <Col>
                         <h1>ToDo&apos;s (Kai)</h1>
                         <ol>
+                            <li>Loading plugins failed after mgc-update in executable jar.</li>
                             <li>Finishing time sheet editing</li>
                             <li>Calendar events (especially recurrences)</li>
                             <li>List pages: addresses, tasks etc.</li>
