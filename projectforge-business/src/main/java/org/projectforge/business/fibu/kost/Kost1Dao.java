@@ -25,15 +25,12 @@ package org.projectforge.business.fibu.kost;
 
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
-import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.fibu.ProjektStatus;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -59,33 +56,6 @@ public class Kost1Dao extends BaseDao<Kost1DO> {
   public Kost1Dao() {
     super(Kost1DO.class);
     userRightId = USER_RIGHT_ID;
-  }
-
-  /**
-   * Gets kost1 as string. Extends access: Users have read access to the number of their own kost1.
-   *
-   * @param id
-   * @return
-   */
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public String getKostString(final Integer id) {
-    if (id == null) {
-      return "";
-    }
-    final Kost1DO kost1 = internalGetById(id);
-    if (kost1 == null) {
-      return "";
-    }
-    if (hasLoggedInUserSelectAccess(kost1, false)) {
-      return KostFormatter.format(kost1);
-    } else {
-      final EmployeeDO employee = getUserGroupCache().getEmployee(ThreadLocalUserContext.getUserId());
-      if (employee != null && employee.getKost1Id() != null && employee.getKost1Id().compareTo(id) == 0) {
-        kost1.setDescription(""); // Paranoia (if KostFormatter shows description in future times and Kost1DO is not visible for the user).
-        return KostFormatter.format(kost1);
-      }
-    }
-    return null;
   }
 
   /**
