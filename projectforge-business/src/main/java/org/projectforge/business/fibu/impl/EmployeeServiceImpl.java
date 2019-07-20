@@ -23,31 +23,13 @@
 
 package org.projectforge.business.fibu.impl;
 
-import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
+import de.micromata.genome.db.jpa.tabattr.api.AttrSchemaService;
+import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 import org.apache.commons.collections.CollectionUtils;
-import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.EmployeeDao;
-import org.projectforge.business.fibu.EmployeeFilter;
-import org.projectforge.business.fibu.EmployeeStatus;
-import org.projectforge.business.fibu.EmployeeTimedDO;
-import org.projectforge.business.fibu.MonthlyEmployeeReport;
+import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost1Dao;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetFilter;
@@ -65,8 +47,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import de.micromata.genome.db.jpa.tabattr.api.AttrSchemaService;
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
+import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Standard implementation of the Employee service interface.
@@ -75,8 +62,7 @@ import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
  */
 @Service
 public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, EmployeeDO>
-    implements EmployeeService
-{
+        implements EmployeeService {
   private static final BigDecimal FULL_TIME_WEEKLY_WORKING_HOURS = new BigDecimal(40);
 
   private static final BigDecimal MONTHS_PER_YEAR = new BigDecimal(12);
@@ -103,31 +89,18 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   private TimesheetDao timesheetDao;
 
   @Override
-  public ModificationStatus update(EmployeeDO obj) throws AccessException
-  {
-    ModificationStatus mod = super.update(obj);
-    if (mod != ModificationStatus.NONE) {
-      TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache().refreshEmployee(obj.getUserId());
-    }
-    return mod;
-  }
-
-  @Override
-  public List<EmployeeDO> getList(BaseSearchFilter filter)
-  {
+  public List<EmployeeDO> getList(BaseSearchFilter filter) {
     return employeeDao.getList(filter);
   }
 
   @Override
-  public void setPfUser(EmployeeDO employee, Integer userId)
-  {
+  public void setPfUser(EmployeeDO employee, Integer userId) {
     final PFUserDO user = userDao.getOrLoad(userId);
     employee.setUser(user);
   }
 
   @Override
-  public EmployeeTimedDO addNewTimeAttributeRow(final EmployeeDO employee, final String groupName)
-  {
+  public EmployeeTimedDO addNewTimeAttributeRow(final EmployeeDO employee, final String groupName) {
     final EmployeeTimedDO nw = new EmployeeTimedDO();
     nw.setEmployee(employee);
     nw.setGroupName(groupName);
@@ -136,20 +109,18 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   }
 
   @Override
-  public EmployeeDO getEmployeeByUserId(Integer userId)
-  {
+  public EmployeeDO getEmployeeByUserId(Integer userId) {
     return employeeDao.findByUserId(userId);
   }
 
   @Override
-  public ModificationStatus updateAttribute(Integer userId, Object attribute, String attributeName)
-  {
+  public ModificationStatus updateAttribute(Integer userId, Object attribute, String attributeName) {
     EmployeeDO employeeDO = getEmployeeByUserId(userId);
     try {
       Class<?> type = EmployeeDO.class.getDeclaredField(attributeName).getType();
       Method declaredMethod = EmployeeDO.class.getDeclaredMethod(
-          "set" + attributeName.substring(0, 1).toUpperCase() + attributeName.substring(1, attributeName.length()),
-          type);
+              "set" + attributeName.substring(0, 1).toUpperCase() + attributeName.substring(1, attributeName.length()),
+              type);
       declaredMethod.invoke(employeeDO, type.cast(attribute));
 
     } catch (NoSuchFieldException e) {
@@ -171,79 +142,67 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
     attributes.removeIf((s) -> {
       return s.equals(attributeName);
     });
-    return update(employeeDO, attributes.toArray(new String[] {}));
+    return update(employeeDO, attributes.toArray(new String[]{}));
   }
 
   @Override
-  public void setKost1(EmployeeDO employee, final Integer kost1Id)
-  {
+  public void setKost1(EmployeeDO employee, final Integer kost1Id) {
     final Kost1DO kost1 = kost1Dao.getOrLoad(kost1Id);
     employee.setKost1(kost1);
   }
 
   @Override
-  public boolean hasLoggedInUserInsertAccess()
-  {
+  public boolean hasLoggedInUserInsertAccess() {
     return employeeDao.hasLoggedInUserInsertAccess();
   }
 
   @Override
-  public boolean hasLoggedInUserInsertAccess(EmployeeDO obj, boolean throwException)
-  {
+  public boolean hasLoggedInUserInsertAccess(EmployeeDO obj, boolean throwException) {
     return employeeDao.hasLoggedInUserInsertAccess(obj, throwException);
   }
 
   @Override
-  public boolean hasLoggedInUserUpdateAccess(EmployeeDO obj, EmployeeDO dbObj, boolean throwException)
-  {
+  public boolean hasLoggedInUserUpdateAccess(EmployeeDO obj, EmployeeDO dbObj, boolean throwException) {
     return employeeDao.hasLoggedInUserUpdateAccess(obj, dbObj, throwException);
   }
 
   @Override
-  public boolean hasLoggedInUserDeleteAccess(EmployeeDO obj, EmployeeDO dbObj, boolean throwException)
-  {
+  public boolean hasLoggedInUserDeleteAccess(EmployeeDO obj, EmployeeDO dbObj, boolean throwException) {
     return employeeDao.hasLoggedInUserDeleteAccess(obj, dbObj, throwException);
   }
 
   @Override
-  public boolean hasDeleteAccess(PFUserDO user, EmployeeDO obj, EmployeeDO dbObj, boolean throwException)
-  {
+  public boolean hasDeleteAccess(PFUserDO user, EmployeeDO obj, EmployeeDO dbObj, boolean throwException) {
     return employeeDao.hasDeleteAccess(user, obj, dbObj, throwException);
   }
 
   @Override
-  public EmployeeDO getById(Serializable id) throws AccessException
-  {
+  public EmployeeDO getById(Serializable id) throws AccessException {
     return employeeDao.getById(id);
   }
 
   @Override
-  public List<String> getAutocompletion(String property, String searchString)
-  {
+  public List<String> getAutocompletion(String property, String searchString) {
     return employeeDao.getAutocompletion(property, searchString);
   }
 
   @Override
-  public List<DisplayHistoryEntry> getDisplayHistoryEntries(EmployeeDO obj)
-  {
+  public List<DisplayHistoryEntry> getDisplayHistoryEntries(EmployeeDO obj) {
     return employeeDao.getDisplayHistoryEntries(obj);
   }
 
   @Override
-  public void rebuildDatabaseIndex4NewestEntries()
-  {
+  public void rebuildDatabaseIndex4NewestEntries() {
     employeeDao.rebuildDatabaseIndex4NewestEntries();
   }
 
   @Override
-  public void rebuildDatabaseIndex()
-  {
+  public void rebuildDatabaseIndex() {
     employeeDao.rebuildDatabaseIndex();
   }
 
   @Override
-  public boolean isEmployeeActive(final EmployeeDO employee)
-  {
+  public boolean isEmployeeActive(final EmployeeDO employee) {
     if (employee.getAustrittsDatum() == null) {
       return true;
     }
@@ -254,8 +213,7 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   }
 
   @Override
-  public BigDecimal getMonthlySalary(EmployeeDO employee, Calendar selectedDate)
-  {
+  public BigDecimal getMonthlySalary(EmployeeDO employee, Calendar selectedDate) {
     final EmployeeTimedDO attribute = timeableService.getAttrRowValidAtDate(employee, "annuity", selectedDate.getTime());
     final BigDecimal annualSalary = attribute != null ? attribute.getAttribute("annuity", BigDecimal.class) : null;
     final BigDecimal weeklyWorkingHours = employee.getWeeklyWorkingHours();
@@ -264,17 +222,16 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
       // do the multiplication before the division to minimize rounding problems
       // we need a rounding mode to avoid ArithmeticExceptions when the exact result cannot be represented in the result
       return annualSalary
-          .multiply(weeklyWorkingHours)
-          .divide(MONTHS_PER_YEAR, BigDecimal.ROUND_HALF_UP)
-          .divide(FULL_TIME_WEEKLY_WORKING_HOURS, BigDecimal.ROUND_HALF_UP);
+              .multiply(weeklyWorkingHours)
+              .divide(MONTHS_PER_YEAR, BigDecimal.ROUND_HALF_UP)
+              .divide(FULL_TIME_WEEKLY_WORKING_HOURS, BigDecimal.ROUND_HALF_UP);
     }
 
     return null;
   }
 
   @Override
-  public List<EmployeeDO> findAllActive(final boolean checkAccess)
-  {
+  public List<EmployeeDO> findAllActive(final boolean checkAccess) {
     final Collection<EmployeeDO> employeeList;
     if (checkAccess) {
       employeeList = employeeDao.getList(new EmployeeFilter());
@@ -282,27 +239,24 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
       employeeList = employeeDao.internalLoadAll();
     }
     return employeeList.stream()
-        .filter(this::isEmployeeActive)
-        .collect(Collectors.toList());
+            .filter(this::isEmployeeActive)
+            .collect(Collectors.toList());
   }
 
   @Override
-  public EmployeeDO getEmployeeByStaffnumber(String staffnumber)
-  {
+  public EmployeeDO getEmployeeByStaffnumber(String staffnumber) {
     return employeeDao.getEmployeeByStaffnumber(staffnumber);
   }
 
   @Override
-  public List<EmployeeDO> getAll(boolean checkAccess)
-  {
+  public List<EmployeeDO> getAll(boolean checkAccess) {
     return checkAccess ? employeeDao.getList(new EmployeeFilter()) : employeeDao.internalLoadAll();
   }
 
   @Override
-  public EmployeeStatus getEmployeeStatus(final EmployeeDO employee)
-  {
+  public EmployeeStatus getEmployeeStatus(final EmployeeDO employee) {
     final EmployeeTimedDO attrRow = timeableService
-        .getAttrRowValidAtDate(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, new Date());
+            .getAttrRowValidAtDate(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, new Date());
     if (attrRow != null && StringUtils.isEmpty(attrRow.getStringAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME)) == false) {
       return EmployeeStatus.findByi18nKey(attrRow.getStringAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME));
     }
@@ -310,8 +264,7 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   }
 
   @Override
-  public String getStudentVacationCountPerDay(EmployeeDO currentEmployee)
-  {
+  public String getStudentVacationCountPerDay(EmployeeDO currentEmployee) {
     String vacationCountPerDay = "";
     Calendar now = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
     Calendar eintrittsDatum = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
@@ -325,25 +278,24 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
       if (eintrittsDatum.before(deadline)) {
         if (now.get(Calendar.MONTH) >= Calendar.JUNE) {
           vacationCountPerDay = vacationService
-              .getVacationCount(now.get(Calendar.YEAR), now.get(Calendar.MONTH) - 5, now.get(Calendar.YEAR), now.get(Calendar.MONTH),
-                  currentEmployee.getUser());
+                  .getVacationCount(now.get(Calendar.YEAR), now.get(Calendar.MONTH) - 5, now.get(Calendar.YEAR), now.get(Calendar.MONTH),
+                          currentEmployee.getUser());
         } else {
           vacationCountPerDay = vacationService
-              .getVacationCount(now.get(Calendar.YEAR) - 1, 12 - (6 - now.get(Calendar.MONTH) + 1), now.get(Calendar.YEAR), now.get(Calendar.MONTH),
-                  currentEmployee.getUser());
+                  .getVacationCount(now.get(Calendar.YEAR) - 1, 12 - (6 - now.get(Calendar.MONTH) + 1), now.get(Calendar.YEAR), now.get(Calendar.MONTH),
+                          currentEmployee.getUser());
         }
       } else {
         vacationCountPerDay = vacationService
-            .getVacationCount(eintrittsDatum.get(Calendar.YEAR), eintrittsDatum.get(Calendar.MONTH), now.get(Calendar.YEAR), now.get(Calendar.MONTH),
-                currentEmployee.getUser());
+                .getVacationCount(eintrittsDatum.get(Calendar.YEAR), eintrittsDatum.get(Calendar.MONTH), now.get(Calendar.YEAR), now.get(Calendar.MONTH),
+                        currentEmployee.getUser());
       }
     }
     return vacationCountPerDay;
   }
 
   @Override
-  public MonthlyEmployeeReport getReportOfMonth(final int year, final int month, final PFUserDO user)
-  {
+  public MonthlyEmployeeReport getReportOfMonth(final int year, final int month, final PFUserDO user) {
     MonthlyEmployeeReport monthlyEmployeeReport = new MonthlyEmployeeReport(this, vacationService, user, year, month);
     monthlyEmployeeReport.init();
     TimesheetFilter filter = new TimesheetFilter();
@@ -362,8 +314,7 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   }
 
   @Override
-  public boolean isFulltimeEmployee(final EmployeeDO employee, final Calendar selectedDate)
-  {
+  public boolean isFulltimeEmployee(final EmployeeDO employee, final Calendar selectedDate) {
     final Calendar date = (Calendar) selectedDate.clone(); // create a clone to avoid changing the original object
     final Date startOfMonth = date.getTime();
     date.add(Calendar.MONTH, 1);
@@ -371,20 +322,20 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
     final Date endOfMonth = date.getTime();
 
     final List<EmployeeTimedDO> attrRows = timeableService
-        .getAttrRowsWithinDateRange(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, startOfMonth, endOfMonth);
+            .getAttrRowsWithinDateRange(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, startOfMonth, endOfMonth);
 
     final EmployeeTimedDO rowValidAtBeginOfMonth = timeableService
-        .getAttrRowValidAtDate(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, selectedDate.getTime());
+            .getAttrRowValidAtDate(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, selectedDate.getTime());
 
     if (rowValidAtBeginOfMonth != null) {
       attrRows.add(rowValidAtBeginOfMonth);
     }
 
     return attrRows
-        .stream()
-        .map(row -> row.getStringAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME))
-        .filter(Objects::nonNull)
-        .anyMatch(s -> EmployeeStatus.FEST_ANGESTELLTER.getI18nKey().equals(s) || EmployeeStatus.BEFRISTET_ANGESTELLTER.getI18nKey().equals(s));
+            .stream()
+            .map(row -> row.getStringAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME))
+            .filter(Objects::nonNull)
+            .anyMatch(s -> EmployeeStatus.FEST_ANGESTELLTER.getI18nKey().equals(s) || EmployeeStatus.BEFRISTET_ANGESTELLTER.getI18nKey().equals(s));
   }
 
 }

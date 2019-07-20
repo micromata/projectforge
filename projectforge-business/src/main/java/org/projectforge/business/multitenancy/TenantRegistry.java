@@ -176,6 +176,14 @@ public class TenantRegistry
     return tenant;
   }
 
+  /**
+   * @return the tenant id.
+   */
+  public Integer getTenantId()
+  {
+    return tenant != null ? tenant.getId() : null;
+  }
+
   private void updateUsageTime()
   {
     this.lastUsage = System.currentTimeMillis();
