@@ -48,15 +48,25 @@ import java.security.KeyStore;
 import java.util.*;
 
 @Service
-public class ConfigurationServiceImpl implements ConfigurationService
-{
+public class ConfigurationServiceImpl implements ConfigurationService {
 
   private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory
-      .getLogger(ConfigurationServiceImpl.class);
+          .getLogger(ConfigurationServiceImpl.class);
 
   private static transient final Set<String> nonExistingResources = new HashSet<>();
 
   private static transient final Set<String> existingResources = new HashSet<>();
+
+  private static String staticApplicationHomeDir;
+
+  /**
+   * Available early in the spring start up phase. Usable by Flyway.
+   *
+   * @return
+   */
+  public static String getStaticApplicationHomeDir() {
+    return staticApplicationHomeDir;
+  }
 
   private ConfigXml configXml;
 
@@ -172,8 +182,8 @@ public class ConfigurationServiceImpl implements ConfigurationService
   private String maxFileSizeXmlDumpImport;
 
   @PostConstruct
-  public void init()
-  {
+  public void init() {
+    staticApplicationHomeDir = this.applicationHomeDir;
     this.configXml = new ConfigXml(this.applicationHomeDir);
     if (StringUtils.isBlank(this.resourceDir)) {
       this.resourceDir = DEFAULT_RESOURCES_DIR;
@@ -200,8 +210,7 @@ public class ConfigurationServiceImpl implements ConfigurationService
    * @see #getResourceAsInputStream(String)
    */
   @Override
-  public Object[] getResourceContentAsString(final String filename)
-  {
+  public Object[] getResourceContentAsString(final String filename) {
     final Object[] result = getResourceAsInputStream(filename);
     final InputStream is = (InputStream) result[0];
     if (is != null) {
@@ -225,8 +234,7 @@ public class ConfigurationServiceImpl implements ConfigurationService
    * @return Object[2]: First value is the InputStream and second value is the url in external form.
    */
   @Override
-  public Object[] getResourceAsInputStream(final String filename)
-  {
+  public Object[] getResourceAsInputStream(final String filename) {
     InputStream is = null;
     String path = null;
     final File base = new File(getResourceDir());
@@ -255,7 +263,7 @@ public class ConfigurationServiceImpl implements ConfigurationService
     }
     if (is == null) {
       log.error("File '" + filename + "' not found (wether in file system under '" + base.getAbsolutePath()
-          + "' nor in resource!)");
+              + "' nor in resource!)");
     }
     final Object[] result = new Object[2];
     result[0] = is;
@@ -267,8 +275,7 @@ public class ConfigurationServiceImpl implements ConfigurationService
    * Resource directory relative to application's home (default 'resources').
    */
   @Override
-  public String getResourceDir()
-  {
+  public String getResourceDir() {
     return resourceDir;
   }
 
@@ -276,14 +283,12 @@ public class ConfigurationServiceImpl implements ConfigurationService
    * @return true if at least a send mail host is given, otherwise false.
    */
   @Override
-  public boolean isSendMailConfigured()
-  {
+  public boolean isSendMailConfigured() {
     return sendMailConfiguration != null && sendMailConfiguration.isMailSendConfigOk();
   }
 
   @Override
-  public SendMailConfig getSendMailConfiguration()
-  {
+  public SendMailConfig getSendMailConfiguration() {
     if (isSendMailConfigured()) {
       return sendMailConfiguration;
     }
@@ -296,8 +301,7 @@ public class ConfigurationServiceImpl implements ConfigurationService
    * @return the fontsDirectory
    */
   @Override
-  public String getFontsDir()
-  {
+  public String getFontsDir() {
     return fontsDirectory;
   }
 
@@ -306,20 +310,17 @@ public class ConfigurationServiceImpl implements ConfigurationService
    * #source will be replaced by the current user's phone and #target by the chosen phone number to call.
    */
   @Override
-  public String getTelephoneSystemUrl()
-  {
+  public String getTelephoneSystemUrl() {
     return telephoneSystemUrl;
   }
 
   @Override
-  public boolean isTelephoneSystemUrlConfigured()
-  {
+  public boolean isTelephoneSystemUrlConfigured() {
     return StringUtils.isNotEmpty(this.telephoneSystemUrl);
   }
 
   @Override
-  public List<ContractType> getContractTypes()
-  {
+  public List<ContractType> getContractTypes() {
     return configXml.getContractTypes();
   }
 
@@ -327,14 +328,12 @@ public class ConfigurationServiceImpl implements ConfigurationService
    * @return the securityConfig
    */
   @Override
-  public SecurityConfig getSecurityConfig()
-  {
+  public SecurityConfig getSecurityConfig() {
     return securityConfig;
   }
 
   @Override
-  public boolean isSecurityConfigured()
-  {
+  public boolean isSecurityConfigured() {
     return securityConfig != null && StringUtils.isNotBlank(securityConfig.getPasswordPepper());
   }
 
@@ -343,8 +342,7 @@ public class ConfigurationServiceImpl implements ConfigurationService
    * the ProjectForge app runs in another context, such as root context.
    */
   @Override
-  public String getServletContextPath()
-  {
+  public String getServletContextPath() {
     if (StringUtils.isBlank(servletContextPath) == false) {
       return servletContextPath;
     } else {
@@ -359,8 +357,7 @@ public class ConfigurationServiceImpl implements ConfigurationService
    * '&lt;app-home&gt;/resources/images').
    */
   @Override
-  public String getLogoFile()
-  {
+  public String getLogoFile() {
     return logoFile;
   }
 
@@ -372,8 +369,7 @@ public class ConfigurationServiceImpl implements ConfigurationService
    * @return domain (host) in form https://www.acme.de:8443/
    */
   @Override
-  public String getDomain()
-  {
+  public String getDomain() {
     return domain;
   }
 
@@ -381,8 +377,7 @@ public class ConfigurationServiceImpl implements ConfigurationService
    * @return The domain + context path, e.g. https://www.projectforge.org/demo or https://www.acme.com/ProjectForge.
    */
   @Override
-  public String getPfBaseUrl()
-  {
+  public String getPfBaseUrl() {
     return getDomain() + getServletContextPath();
   }
 
@@ -391,8 +386,7 @@ public class ConfigurationServiceImpl implements ConfigurationService
    * 23. So internal calls are supported.
    */
   @Override
-  public String getTelephoneSystemNumber()
-  {
+  public String getTelephoneSystemNumber() {
     return telephoneSystemNumber;
   }
 
@@ -401,8 +395,7 @@ public class ConfigurationServiceImpl implements ConfigurationService
    * The key should be an alpha numeric random value with at least 6 characters for security reasons.
    */
   @Override
-  public String getReceiveSmsKey()
-  {
+  public String getReceiveSmsKey() {
     return receiveSmsKey;
   }
 
@@ -413,8 +406,7 @@ public class ConfigurationServiceImpl implements ConfigurationService
    * @return the receivePhoneLookupKey
    */
   @Override
-  public String getPhoneLookupKey()
-  {
+  public String getPhoneLookupKey() {
     return phoneLookupKey;
   }
 
@@ -424,14 +416,12 @@ public class ConfigurationServiceImpl implements ConfigurationService
    * If given then the key-store file is used.
    */
   @Override
-  public String getKeystoreFile()
-  {
+  public String getKeystoreFile() {
     return keystoreFile;
   }
 
   @Override
-  public SSLSocketFactory getUsersSSLSocketFactory()
-  {
+  public SSLSocketFactory getUsersSSLSocketFactory() {
     return usersSSLSocketFactory;
   }
 
@@ -439,13 +429,11 @@ public class ConfigurationServiceImpl implements ConfigurationService
    * @return true if meb mail account with hostname is configured, otherwise false.
    */
   @Override
-  public boolean isMebMailAccountConfigured()
-  {
+  public boolean isMebMailAccountConfigured() {
     return mebMailClient.isMailAccountAvailable();
   }
 
-  private void setupKeyStores()
-  {
+  private void setupKeyStores() {
     if (StringUtils.isBlank(getKeystoreFile()) == false) {
       try {
         File keystoreFile = new File(getKeystoreFile());
@@ -466,8 +454,7 @@ public class ConfigurationServiceImpl implements ConfigurationService
     }
   }
 
-  private SSLSocketFactory createSSLSocketFactory(final InputStream is, final String passphrase) throws Exception
-  {
+  private SSLSocketFactory createSSLSocketFactory(final InputStream is, final String passphrase) throws Exception {
     final KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
     ks.load(is, passphrase.toCharArray());
     is.close();
@@ -475,24 +462,22 @@ public class ConfigurationServiceImpl implements ConfigurationService
     tmf.init(ks);
     final X509TrustManager defaultTrustManager = (X509TrustManager) tmf.getTrustManagers()[0];
     final SSLContext context = SSLContext.getInstance("TLS");
-    context.init(null, new TrustManager[] { defaultTrustManager }, null);
+    context.init(null, new TrustManager[]{defaultTrustManager}, null);
     return context.getSocketFactory();
   }
 
-  private static void showNonExistingMessage(final File file, final boolean directory)
-  {
+  private static void showNonExistingMessage(final File file, final boolean directory) {
     // Synchronized not needed, for concurrent calls, output entries exist twice in the worst case.
     if (nonExistingResources.contains(file.getAbsolutePath()) == false) {
       nonExistingResources.add(file.getAbsolutePath());
       existingResources.remove(file.getAbsolutePath()); // If changed by administrator during application running.
       final String type = directory == true ? "directory" : "file";
       log.info("Using default " + type + " of ProjectForge, because " + type + "'" + file.getAbsolutePath()
-          + "' does not exist (OK)");
+              + "' does not exist (OK)");
     }
   }
 
-  private static void showExistingMessage(final File file, final boolean directory)
-  {
+  private static void showExistingMessage(final File file, final boolean directory) {
     // Synchronized not needed, for concurrent calls, output entries exist twice in the worst case.
     if (existingResources.contains(file.getAbsolutePath()) == false) {
       existingResources.add(file.getAbsolutePath());
@@ -502,8 +487,7 @@ public class ConfigurationServiceImpl implements ConfigurationService
     }
   }
 
-  private boolean ensureDir(final File dir)
-  {
+  private boolean ensureDir(final File dir) {
     if (dir.exists() == false) {
       log.info("Creating directory " + dir);
       dir.mkdir();
@@ -516,26 +500,22 @@ public class ConfigurationServiceImpl implements ConfigurationService
   }
 
   @Override
-  public Object getDaoValue(IConfigurationParam parameter, ConfigurationDO configurationDO)
-  {
+  public Object getDaoValue(IConfigurationParam parameter, ConfigurationDO configurationDO) {
     return configDao.getValue(parameter, configurationDO);
   }
 
   @Override
-  public List<ConfigurationDO> daoInternalLoadAll()
-  {
+  public List<ConfigurationDO> daoInternalLoadAll() {
     return configDao.internalLoadAll();
   }
 
   @Override
-  public List<ConfigurationDO> daoInternalLoadAll(TenantDO tenant)
-  {
+  public List<ConfigurationDO> daoInternalLoadAll(TenantDO tenant) {
     return configDao.internalLoadAll(tenant);
   }
 
   @Override
-  public TimeZone getTimezone()
-  {
+  public TimeZone getTimezone() {
     ConfigurationDO configurationDO = configDao.getEntry(ConfigurationParam.DEFAULT_TIMEZONE);
     if (configurationDO != null) {
       return configurationDO.getTimeZone();
@@ -546,65 +526,56 @@ public class ConfigurationServiceImpl implements ConfigurationService
   }
 
   @Override
-  public MailSessionLocalSettingsConfigModel createMailSessionLocalSettingsConfigModel()
-  {
+  public MailSessionLocalSettingsConfigModel createMailSessionLocalSettingsConfigModel() {
     return new MailSessionLocalSettingsConfigModel()
-        .setEmailEnabled(pfmailsessionEmailEnabled)
-        .setName(pfmailsessionName)
-        .setEmailHost(pfmailsessionHost)
-        .setEmailPort(String.valueOf(pfmailsessionPort))
-        .setStandardEmailSender(pfmailsessionStandardEmailSender)
-        .setEmailAuthEnabled(String.valueOf(pfmailsessionAuth))
-        .setEmailAuthUser(pfmailsessionUser)
-        .setEmailAuthPass(pfmailsessionPassword)
-        .setEncryption(pfmailsessionEncryption);
+            .setEmailEnabled(pfmailsessionEmailEnabled)
+            .setName(pfmailsessionName)
+            .setEmailHost(pfmailsessionHost)
+            .setEmailPort(String.valueOf(pfmailsessionPort))
+            .setStandardEmailSender(pfmailsessionStandardEmailSender)
+            .setEmailAuthEnabled(String.valueOf(pfmailsessionAuth))
+            .setEmailAuthUser(pfmailsessionUser)
+            .setEmailAuthPass(pfmailsessionPassword)
+            .setEncryption(pfmailsessionEncryption);
   }
 
   @Override
-  public boolean isMultiTenancyConfigured()
-  {
+  public boolean isMultiTenancyConfigured() {
     return GlobalConfiguration.getInstance().isMultiTenancyConfigured();
   }
 
   @Override
-  public String getPfSupportMailAddress()
-  {
+  public String getPfSupportMailAddress() {
     return pfSupportMail;
   }
 
   @Override
-  public String getApplicationHomeDir()
-  {
+  public String getApplicationHomeDir() {
     return applicationHomeDir;
   }
 
   @Override
-  public boolean isSqlConsoleAvailable()
-  {
+  public boolean isSqlConsoleAvailable() {
     return sqlConsoleAvailable;
   }
 
   @Override
-  public boolean getCompileCss()
-  {
+  public boolean getCompileCss() {
     return compileCss;
   }
 
   @Override
-  public String getLoginHandlerClass()
-  {
+  public String getLoginHandlerClass() {
     return loginHandlerClass;
   }
 
   @Override
-  public String getTeamCalCryptPassword()
-  {
+  public String getTeamCalCryptPassword() {
     return teamCalCryptPassword;
   }
 
   @Override
-  public Calendar getEndDateVacationFromLastYear()
-  {
+  public Calendar getEndDateVacationFromLastYear() {
     int day = 31;
     int month = 2;
     ConfigurationDO configDO = configDao.getEntry(ConfigurationParam.END_DATE_VACATION_LASTR_YEAR);
@@ -626,8 +597,7 @@ public class ConfigurationServiceImpl implements ConfigurationService
   }
 
   @Override
-  public String getHREmailadress()
-  {
+  public String getHREmailadress() {
     ConfigurationDO hrMailaddress = configDao.getEntry(ConfigurationParam.HR_MAILADDRESS);
     if (hrMailaddress != null) {
       return hrMailaddress.getStringValue();
@@ -636,14 +606,12 @@ public class ConfigurationServiceImpl implements ConfigurationService
   }
 
   @Override
-  public TeamCalDO getVacationCalendar()
-  {
+  public TeamCalDO getVacationCalendar() {
     return teamCalCache.getCalendar((Integer) configDao.getValue(ConfigurationParam.VACATION_CAL_ID));
   }
 
   @Override
-  public int getMinPasswordLength()
-  {
+  public int getMinPasswordLength() {
     try {
       final ConfigurationDO minPwLenEntry = configDao.getEntry(ConfigurationParam.MIN_PASSWORD_LENGTH);
       if (minPwLenEntry != null) {
@@ -660,8 +628,7 @@ public class ConfigurationServiceImpl implements ConfigurationService
   }
 
   @Override
-  public boolean getFlagCheckPasswordChange()
-  {
+  public boolean getFlagCheckPasswordChange() {
     try {
       final ConfigurationDO flagCheckPwChangeConf = configDao.getEntry(ConfigurationParam.PASSWORD_FLAG_CHECK_CHANGE);
       if (flagCheckPwChangeConf != null) {
@@ -678,26 +645,22 @@ public class ConfigurationServiceImpl implements ConfigurationService
   }
 
   @Override
-  public String getMaxFileSizeImage()
-  {
+  public String getMaxFileSizeImage() {
     return this.maxFileSizeImage;
   }
 
   @Override
-  public String getMaxFileSizeDatev()
-  {
+  public String getMaxFileSizeDatev() {
     return this.maxFileSizeDatev;
   }
 
   @Override
-  public String getMaxFileSizeXmlDumpImport()
-  {
+  public String getMaxFileSizeXmlDumpImport() {
     return this.maxFileSizeXmlDumpImport;
   }
 
   @Override
-  public boolean isSnowEffectEnabled()
-  {
+  public boolean isSnowEffectEnabled() {
     return GlobalConfiguration.getInstance().getBooleanValue(ConfigurationParam.SNOW_EFFECT_ENABLED);
   }
 }
