@@ -126,7 +126,7 @@ class MagicFilterQuery {
             var queryModifiedByUserId: Int? = null
             var queryModifiedFromDate: PFDateTime? = null
             var queryModifiedToDate: PFDateTime? = null
-            var builderContext = BuildContext(baseDao.doClass, session)
+            //var bc = BuildContext(baseDao.doClass, session)
             for (it in filter.entries) {
                 if (it.field.isNullOrBlank())
                     continue // Use only field specific query (others are done by full text search
@@ -150,7 +150,8 @@ class MagicFilterQuery {
                     String::class.java -> {
                         when (it.searchType) {
                             MagicFilterEntry.SearchType.FIELD_STRING_SEARCH -> {
-                                //builderContext.query.
+                                //bc.query
+                                //        .simpleQueryString()
                                 //        .onField("history")
                                 //        .matching("storm")
                                 criteria.add(Restrictions.ilike(it.field, "${it.dbSearchString}"))
