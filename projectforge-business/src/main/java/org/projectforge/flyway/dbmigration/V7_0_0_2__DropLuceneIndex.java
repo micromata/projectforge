@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.flway.dbmigration;
+package org.projectforge.flyway.dbmigration;
 
 import org.apache.commons.io.FileUtils;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
