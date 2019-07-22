@@ -29,14 +29,14 @@
     <system>Jenkins</system>
     <url>https://www.projectforge.org</url>
   </ciManagement>
-  <!--repositories>
-  Only needed e. g. for new mgc releases, they're might be available on mvnrepository on day later.
+  <!-- Only needed e. g. for new mgc releases, they're might be available on mvnrepository one day later. -->
+  <repositories>
     <repository>
       <id>oss-sonatype</id>
       <name>oss-sonatype</name>
       <url>https://oss.sonatype.org/content/repositories/public/</url>
     </repository>
-  </repositories-->
+  </repositories>
   <scm>
     <url>https://github.com/micromata/projectforge</url>
     <connection>scm:git:git://github.com/micromata/projectforge.git</connection>
@@ -253,7 +253,7 @@
 
     <hibernate.version>5.4.3.Final</hibernate.version>
     <hibernate-search.version>5.11.2.Final</hibernate-search.version>
-    <mgc.version>3.1.0</mgc.version>
+    <mgc.version>3.1.1</mgc.version>
 
     <commons-lang.version>2.6</commons-lang.version>
     <commons-httpclient.version>3.1</commons-httpclient.version>
@@ -327,6 +327,13 @@
           <artifactId>commons-dbcp2</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/org.slf4j/log4j-over-slf4j -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>log4j-over-slf4j</artifactId>
+      <version>1.7.26</version>
     </dependency>
 
     <!-- DB -->
