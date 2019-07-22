@@ -57,6 +57,8 @@ class EmployeeRest : AbstractDTORest<EmployeeDO, Employee, EmployeeDao>(Employee
                         .add(UITableColumn("kost1", "fibu.kost1", formatter = Formatter.COST1))
                         .add(lc, "position", "abteilung", "eintrittsDatum", "austrittsDatum", "comment"))
         layout.getTableColumnById("user").formatter = Formatter.USER
+        layout.getTableColumnById("eintrittsDatum").formatter = Formatter.DATE
+        layout.getTableColumnById("austrittsDatum").formatter = Formatter.DATE
         return LayoutUtils.processListPage(layout, this)
     }
 
@@ -69,8 +71,8 @@ class EmployeeRest : AbstractDTORest<EmployeeDO, Employee, EmployeeDao>(Employee
                         .add(UICol()
                                 .add(lc, "user", "kost1", "abteilung", "position"))
                         .add(UICol()
-                                .add(lc, "staffNumber", "weeklyWorkingHours", "urlaubstage", "", "",
-                                        "eintrittsDatum", "austrittsDatum")))
+                                .add(lc, "staffNumber", "weeklyWorkingHours", "urlaubstage", "previousyearleave",
+                                        "previousyearleaveused", "eintrittsDatum", "austrittsDatum")))
                 .add(UIRow()
                         .add(UICol().add(lc, "street", "zipCode", "city"))
                         .add(UICol().add(lc, "country", "state"))
@@ -78,6 +80,7 @@ class EmployeeRest : AbstractDTORest<EmployeeDO, Employee, EmployeeDao>(Employee
                         .add(UICol().add(lc, "accountHolder", "iban", "bic")))
                 .add(UIRow()
                         .add(UICol().add(lc, "status")))
+                .add(UILabel("TODO: Custom properties here"))
                 .add(UIRow()
                         .add(UICol().add(lc, "comment")))
         return LayoutUtils.processEditPage(layout, dto, this)
