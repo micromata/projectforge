@@ -58,7 +58,7 @@ class EmployeeSalaryRest
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
                         .add(lc, "month")
-                        .add(UITableColumn("fibu.employee.user.name", "name"))
+                        .add(UITableColumn("fibu.employee.user.lastname", "name"))
                         .add(UITableColumn("fibu.employee.user.firstname", "firstName"))
                         .add(UITableColumn("fibu.employee.staffNumber", "fibu.employee.staffNumber"))
                         .add(lc, "type", "bruttoMitAgAnteil", "comment"))
@@ -72,7 +72,9 @@ class EmployeeSalaryRest
         val layout = super.createEditLayout(dto)
                 .add(UIRow()
                         .add(UICol()
-                                .add(lc, "employee", "month", "type", "bruttoMitAgAnteil", "comment")))
+                                .add(lc, "fibu.employee.user.lastname", "fibu.employee.user.firstname")
+                                .add(UILabel("TODO: Implement selector for year/month"))
+                                .add(lc, "type", "bruttoMitAgAnteil", "comment")))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

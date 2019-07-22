@@ -53,7 +53,9 @@ class EmployeeRest : AbstractDTORest<EmployeeDO, Employee, EmployeeDao>(Employee
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
-                        .add(lc, "user", "status", "staffNumber")
+                        .add(UITableColumn("fibu.employee.user.name", "name"))
+                        .add(UITableColumn("fibu.employee.user.firstname", "firstName"))
+                        .add(lc, "status", "staffNumber")
                         .add(UITableColumn("kost1", "fibu.kost1", formatter = Formatter.COST1))
                         .add(lc, "position", "abteilung", "eintrittsDatum", "austrittsDatum", "comment"))
         layout.getTableColumnById("user").formatter = Formatter.USER
