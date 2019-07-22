@@ -24,7 +24,7 @@
 package org.projectforge.business.teamcal.event;
 
 import org.projectforge.business.multitenancy.TenantService;
-import org.projectforge.business.teamcal.event.model.TeamEventICSDO;
+import org.projectforge.business.teamcal.event.model.CalEventDO;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
@@ -38,7 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Repository
-public class TeamEventICSDao extends BaseDao<TeamEventICSDO>
+public class CalEventDao extends BaseDao<CalEventDO>
 {
 
   @Autowired
@@ -47,17 +47,17 @@ public class TeamEventICSDao extends BaseDao<TeamEventICSDO>
   @Autowired
   private TenantService tenantService;
 
-  public TeamEventICSDao() {
-    super(TeamEventICSDO.class);
+  public CalEventDao() {
+    super(CalEventDO.class);
     userRightId = UserRightId.PLUGIN_CALENDAR_EVENT;
   }
 
-  public TeamEventICSDO getByUid(Integer calendarId, final String uid)
+  public CalEventDO getByUid(Integer calendarId, final String uid)
   {
     return this.getByUid(calendarId, uid, true);
   }
 
-  public TeamEventICSDO getByUid(Integer calendarId, final String uid, final boolean excludeDeleted) {
+  public CalEventDO getByUid(Integer calendarId, final String uid, final boolean excludeDeleted) {
     if (uid == null) {
       return null;
     }
@@ -65,7 +65,7 @@ public class TeamEventICSDao extends BaseDao<TeamEventICSDO>
     final StringBuilder sqlQuery = new StringBuilder();
     final List<Object> params = new ArrayList<>();
 
-    sqlQuery.append("select e from TeamEventICSDO e where e.uid = :uid AND e.tenant = :tenant");
+    sqlQuery.append("select e from CalEventDO e where e.uid = :uid AND e.tenant = :tenant");
 
     params.add("uid");
     params.add(uid);
@@ -86,14 +86,14 @@ public class TeamEventICSDao extends BaseDao<TeamEventICSDO>
     }
 
     try {
-      return emgrFac.runRoTrans(emgr -> emgr.selectSingleAttached(TeamEventICSDO.class, sqlQuery.toString(), params.toArray()));
+      return emgrFac.runRoTrans(emgr -> emgr.selectSingleAttached(CalEventDO.class, sqlQuery.toString(), params.toArray()));
     } catch (NoResultException | NonUniqueResultException e) {
       return null;
     }
   }
 
   @Override
-  public TeamEventICSDO newInstance()
+  public CalEventDO newInstance()
   {
     return null;
   }
