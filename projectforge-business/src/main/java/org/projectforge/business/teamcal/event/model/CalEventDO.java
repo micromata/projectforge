@@ -56,11 +56,11 @@ import java.util.Date;
 
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_CALENDAR_EVENT_ICS",
+@Table(name = "T_CALENDAR_EVENT",
   uniqueConstraints = { @UniqueConstraint(name = "unique_t_plugin_calendar_event_uid_calendar_fk", columnNames = { "uid", "calendar_fk" }) })
 @WithHistory(noHistoryProperties = { "lastUpdate", "created" }, nestedEntities = { TeamEventAttendeeDO.class })
 @AUserRightId(value = "PLUGIN_CALENDAR_EVENT")
-public class TeamEventICSDO extends DefaultBaseDO implements TeamEvent
+public class CalEventDO extends DefaultBaseDO implements TeamEvent
 {
 
   @IndexedEmbedded(depth = 1)
