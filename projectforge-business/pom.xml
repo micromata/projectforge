@@ -30,6 +30,12 @@
       <groupId>de.micromata.mgc</groupId>
       <artifactId>de.micromata.mgc.jpa.tabattr</artifactId>
       <version>${mgc.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>de.micromata.mgc</groupId>
@@ -50,6 +56,12 @@
       <groupId>de.micromata.mgc</groupId>
       <artifactId>de.micromata.mgc.email</artifactId>
       <version>${mgc.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>

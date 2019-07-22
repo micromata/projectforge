@@ -41,4 +41,7 @@
         <appender-ref ref="ROLLING-FILE-ONLY_VC"/>
     </root>
 
+    <!-- custom logging levels -->
+    <logger name="de.micromata.genome.jpa.impl.JpaWithExtLibrariesScanner" level="WARN" />
+
 </configuration>
