@@ -23,18 +23,21 @@
 
 package org.projectforge.framework.persistence.attr.impl;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.context.support.FileSystemXmlApplicationContext;
-
 import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
 import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
 import de.micromata.genome.db.jpa.tabattr.api.AttrSchema;
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithConfigurableAttr;
 import de.micromata.genome.db.jpa.tabattr.impl.AttrSchemaServiceBaseImpl;
+import org.apache.commons.io.FileUtils;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * AttrService which loads configuration from Spring context.
@@ -105,10 +108,21 @@ public class AttrSchemaServiceSpringBeanImpl extends AttrSchemaServiceBaseImpl
 
   private Map<String, AttrSchema> loadAttrSchemaFromFileSystem()
   {
-    final String location = "file:" + applicationDir + "/attrschema.xml";
+    final String attrschemaFilePath = applicationDir + "/attrschema.xml";
+    final File attrSchemaFile = new File(attrschemaFilePath);
+    if (!attrSchemaFile.exists()) {
+      URL inputUrl = getClass().getResource("/defaultAttrschema.xml");
+      try {
+        log.info("New installation, creating default attrschema.xml: " + attrSchemaFile.getAbsolutePath());
+        FileUtils.copyURLToFile(inputUrl, attrSchemaFile);
+      } catch (IOException ex) {
+        log.error("Error while creating ProjectForge's config file '" + attrSchemaFile.getAbsolutePath() + "': " + ex.getMessage(), ex);
+        return null;
+      }
+    }
     try {
-      final ApplicationContext context = new FileSystemXmlApplicationContext(location);
-      log.info("AttrSchema config file loaded from '" + location + "'");
+      final ApplicationContext context = new FileSystemXmlApplicationContext("file:" + attrschemaFilePath);
+      log.info("AttrSchema config file loaded from '" + attrSchemaFile.getAbsolutePath() + "'");
       return context.getBean("attrSchemataMap", Map.class);
     } catch (Exception e) {
       log.info("Can't load/parse external AttrSchema config file, using default values. Message: " + e.getMessage());

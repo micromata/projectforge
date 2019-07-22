@@ -1,0 +1,706 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <bean id="attrSchemataMap" class="java.util.HashMap">
+    <constructor-arg>
+      <map>
+
+        <entry key="employee">
+          <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrSchema">
+            <constructor-arg>
+              <list>
+
+                <!-- Krankenkasse -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="PERIOD"/>
+                  <property name="name" value="healthinsurance"/>
+                  <property name="i18nKey" value="fibu.employee.healthinsurance.title"/>
+                  <property name="i18nKeyStartTime" value="attr.validFrom"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="name"/>
+                        <property name="i18nkey" value="fibu.employee.healthinsurance.name"/>
+                        <property name="type" value="java.lang.String"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.StringAttrWicketComponentFactory"/>
+                        </property>
+                        <property name="maxLength" value="255"/>
+                        <property name="required" value="true"/>
+                      </bean>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="number"/>
+                        <property name="i18nkey" value="fibu.employee.healthinsurance.number"/>
+                        <property name="type" value="java.lang.String"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.StringAttrWicketComponentFactory"/>
+                        </property>
+                        <property name="maxLength" value="40"/>
+                        <property name="required" value="true"/>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+                <!-- Lohnsteuerklasse -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="PERIOD"/>
+                  <property name="name" value="wagetax"/>
+                  <property name="i18nKey" value="fibu.employee.taxbracket"/>
+                  <property name="i18nKeyStartTime" value="attr.validFrom"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="taxbracket"/>
+                        <property name="i18nkey" value="fibu.employee.taxbracket"/>
+                        <property name="type" value="java.lang.Integer"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.IntegerAttrWicketComponentFactory"/>
+                        </property>
+                        <property name="minIntValue" value="1"/>
+                        <property name="maxIntValue" value="6"/>
+                        <property name="required" value="true"/>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+                
+                <!-- Abrechnungsdaten -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="NOT_TIMEABLE"/>
+                  <property name="name" value="payetaxnumber"/>
+                  <property name="i18nKey" value="fibu.employee.payetaxnumber.title"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="payetaxnumber"/>
+                        <property name="i18nkey" value="fibu.employee.payetaxnumber.name"/>
+                        <property name="type" value="java.lang.String"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.StringAttrWicketComponentFactory"/>
+                        </property>
+                        <property name="maxLength" value="11"/>
+                        <!-- <property name="required" value="true"/> -->
+                      </bean>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="socialnumber"/>
+                        <property name="i18nkey" value="fibu.employee.socialnumber.name"/>
+                        <property name="type" value="java.lang.String"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.StringAttrWicketComponentFactory"/>
+                        </property>
+                        <!-- <property name="required" value="true"/> -->
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+                <!-- Ende Probezeit -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="NOT_TIMEABLE"/>
+                  <property name="name" value="probation"/>
+                  <property name="i18nKey" value="fibu.employee.probation.title"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="probation"/>
+                        <property name="i18nkey" value="fibu.employee.probation.title"/>
+                        <property name="type" value="java.util.Date"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.DateAttrWicketComponentFactory"/>
+                        </property>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+                <!-- Wochenendarbeit -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="INSTANT_OF_TIME"/>
+                  <property name="dayMonthGranularity" value="MONTH"/>
+                  <property name="name" value="weekendwork"/>
+                  <property name="i18nKey" value="fibu.employee.weekendwork.title"/>
+                  <property name="i18nKeyStartTime" value="attr.instantOfTime"/>
+                  <property name="i18nKeySubmenu" value="fibu.employee.tabs.salary"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="workinghourssaturday"/>
+                        <property name="i18nkey" value="fibu.employee.weekendwork.saturday"/>
+                        <property name="type" value="java.math.BigDecimal"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.BigDecimalAttrWicketComponentFactory"/>
+                        </property>
+                        <property name="minIntValue" value="0"/>
+                        <property name="maxIntValue" value="280"/>
+                      </bean>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="workinghourssunday"/>
+                        <property name="i18nkey" value="fibu.employee.weekendwork.sunday"/>
+                        <property name="type" value="java.math.BigDecimal"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.BigDecimalAttrWicketComponentFactory"/>
+                        </property>
+                        <property name="minIntValue" value="0"/>
+                        <property name="maxIntValue" value="280"/>
+                      </bean>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="workinghoursholiday"/>
+                        <property name="i18nkey" value="fibu.employee.weekendwork.holiday"/>
+                        <property name="type" value="java.math.BigDecimal"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.BigDecimalAttrWicketComponentFactory"/>
+                        </property>
+                        <property name="minIntValue" value="0"/>
+                        <property name="maxIntValue" value="280"/>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+                <!-- Reisekosten -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="INSTANT_OF_TIME"/>
+                  <property name="dayMonthGranularity" value="MONTH"/>
+                  <property name="name" value="costtravel"/>
+                  <property name="i18nKey" value="fibu.employee.costtravel.title"/>
+                  <property name="i18nKeyStartTime" value="attr.instantOfTime"/>
+                  <property name="i18nKeySubmenu" value="fibu.employee.tabs.salary"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="costtravel"/>
+                        <property name="i18nkey" value="fibu.employee.costtravel.amount"/>
+                        <property name="type" value="java.math.BigDecimal"/>
+                        <property name="minIntValue" value="0"/>
+                        <property name="maxIntValue" value="999999"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.BigDecimalAttrWicketComponentFactory"/>
+                        </property>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+                <!-- Jahresgehalt -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="PERIOD"/>
+                  <property name="dayMonthGranularity" value="MONTH"/>
+                  <property name="name" value="annuity"/>
+                  <property name="i18nKey" value="fibu.employee.annuity.title"/>
+                  <property name="i18nKeyStartTime" value="attr.validFrom"/>
+                  <property name="i18nKeySubmenu" value="fibu.employee.tabs.salary"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="annuity"/>
+                        <property name="i18nkey" value="fibu.employee.annuity.amount"/>
+                        <property name="type" value="java.math.BigDecimal"/>
+                        <property name="minIntValue" value="0"/>
+                        <property name="maxIntValue" value="999999"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.BigDecimalAttrWicketComponentFactory"/>
+                        </property>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+                <!-- Auslagen -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="INSTANT_OF_TIME"/>
+                  <property name="dayMonthGranularity" value="MONTH"/>
+                  <property name="name" value="expenses"/>
+                  <property name="i18nKey" value="fibu.employee.expenses.title"/>
+                  <property name="i18nKeyStartTime" value="attr.instantOfTime"/>
+                  <property name="i18nKeySubmenu" value="fibu.employee.tabs.salary"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="expenses"/>
+                        <property name="i18nkey" value="fibu.employee.expenses.amount"/>
+                        <property name="type" value="java.math.BigDecimal"/>
+                        <property name="minIntValue" value="0"/>
+                        <property name="maxIntValue" value="999999"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.BigDecimalAttrWicketComponentFactory"/>
+                        </property>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+
+                <!-- Überstunden -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="INSTANT_OF_TIME"/>
+                  <property name="dayMonthGranularity" value="MONTH"/>
+                  <property name="name" value="overtime"/>
+                  <property name="i18nKey" value="fibu.employee.overtime.title"/>
+                  <property name="i18nKeyStartTime" value="attr.instantOfTime"/>
+                  <property name="i18nKeySubmenu" value="fibu.employee.tabs.salary"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="overtime"/>
+                        <property name="i18nkey" value="fibu.employee.overtime.amount"/>
+                        <property name="type" value="java.math.BigDecimal"/>
+                        <property name="minIntValue" value="0"/>
+                        <property name="maxIntValue" value="40"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.BigDecimalAttrWicketComponentFactory"/>
+                        </property>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+
+                <!-- Bonus/Prämie -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="INSTANT_OF_TIME"/>
+                  <property name="dayMonthGranularity" value="MONTH"/>
+                  <property name="name" value="bonus"/>
+                  <property name="i18nKey" value="fibu.employee.bonus.title"/>
+                  <property name="i18nKeyStartTime" value="attr.instantOfTime"/>
+                  <property name="i18nKeySubmenu" value="fibu.employee.tabs.salary"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="bonus"/>
+                        <property name="i18nkey" value="fibu.employee.bonus.amount"/>
+                        <property name="type" value="java.math.BigDecimal"/>
+                        <property name="minIntValue" value="0"/>
+                        <property name="maxIntValue" value="999999"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.BigDecimalAttrWicketComponentFactory"/>
+                        </property>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+
+                <!-- Sonderzahlung -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="INSTANT_OF_TIME"/>
+                  <property name="dayMonthGranularity" value="MONTH"/>
+                  <property name="name" value="specialpayment"/>
+                  <property name="i18nKey" value="fibu.employee.specialpayment.title"/>
+                  <property name="i18nKeyStartTime" value="attr.instantOfTime"/>
+                  <property name="i18nKeySubmenu" value="fibu.employee.tabs.salary"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="specialpayment"/>
+                        <property name="i18nkey" value="fibu.employee.specialpayment.amount"/>
+                        <property name="type" value="java.math.BigDecimal"/>
+                        <property name="minIntValue" value="0"/>
+                        <property name="maxIntValue" value="999999"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.BigDecimalAttrWicketComponentFactory"/>
+                        </property>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+
+                <!-- Zielvereinbarung -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="INSTANT_OF_TIME"/>
+                  <property name="dayMonthGranularity" value="MONTH"/>
+                  <property name="name" value="targetagreements"/>
+                  <property name="i18nKey" value="fibu.employee.targetagreements.title"/>
+                  <property name="i18nKeyStartTime" value="attr.instantOfTime"/>
+                  <property name="i18nKeySubmenu" value="fibu.employee.tabs.salary"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="targetagreements"/>
+                        <property name="i18nkey" value="fibu.employee.targetagreements.amount"/>
+                        <property name="type" value="java.math.BigDecimal"/>
+                        <property name="minIntValue" value="0"/>
+                        <property name="maxIntValue" value="999999"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.BigDecimalAttrWicketComponentFactory"/>
+                        </property>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+
+                <!-- Abzug Shop -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="INSTANT_OF_TIME"/>
+                  <property name="dayMonthGranularity" value="MONTH"/>
+                  <property name="name" value="costshop"/>
+                  <property name="i18nKey" value="fibu.employee.costshop.title"/>
+                  <property name="i18nKeyStartTime" value="attr.instantOfTime"/>
+                  <property name="i18nKeySubmenu" value="fibu.employee.tabs.salary"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="costshop"/>
+                        <property name="i18nkey" value="fibu.employee.costshop.amount"/>
+                        <property name="type" value="java.math.BigDecimal"/>
+                        <property name="minIntValue" value="0"/>
+                        <property name="maxIntValue" value="999999"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.BigDecimalAttrWicketComponentFactory"/>
+                        </property>
+                      </bean>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="contents"/>
+                        <property name="i18nkey" value="fibu.employee.costshop.contents"/>
+                        <property name="type" value="java.lang.String"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.StringAttrWicketComponentFactory"/>
+                        </property>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+                <!-- Bemerkungen -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="INSTANT_OF_TIME"/>
+                  <property name="dayMonthGranularity" value="MONTH"/>
+                  <property name="name" value="others"/>
+                  <property name="i18nKey" value="fibu.employee.others.title"/>
+                  <property name="i18nKeyStartTime" value="attr.instantOfTime"/>
+                  <property name="i18nKeySubmenu" value="fibu.employee.tabs.salary"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="others"/>
+                        <property name="i18nkey" value="fibu.employee.others.remarks"/>
+                        <property name="type" value="java.lang.String"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.StringAttrWicketComponentFactory"/>
+                        </property>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+                <!-- Ernährungsweise -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="NOT_TIMEABLE"/>
+                  <property name="name" value="nutrition"/>
+                  <property name="i18nKey" value="fibu.employee.nutrition.title"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="nutrition"/>
+                        <property name="i18nkey" value="fibu.employee.nutrition.title"/>
+                        <property name="type" value="java.lang.String"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.DropDownAttrWicketComponentFactory">
+                            <property name="i18nKeyList">
+                              <list>
+                                <value>fibu.employee.nutrition.omnivorous</value>
+                                <value>fibu.employee.nutrition.vegetarian</value>
+                                <value>fibu.employee.nutrition.vegan</value>
+                              </list>
+                            </property>
+                          </bean>
+                        </property>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+                <!-- Telefontarif --><!--
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="PERIOD"/>
+                  <property name="name" value="mobilecontract"/>
+                  <property name="i18nKey" value="fibu.employee.mobilecontract.title"/>
+                  <property name="i18nKeyStartTime" value="attr.validFrom"/>
+                  <property name="i18nKeySubmenu" value="fibu.employee.tabs.salary"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="mobilecontract"/>
+                        <property name="i18nkey" value="fibu.employee.mobilecontract.title"/>
+                        <property name="type" value="java.lang.String"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.StringAttrWicketComponentFactory"/>
+                        </property>
+                        <property name="required" value="true"/>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>-->
+                
+                <!-- Mobilfunk Rechnung --><!--
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="PERIOD"/>
+                  <property name="name" value="mobilecheck"/>
+                  <property name="i18nKey" value="fibu.employee.mobilecheck.title"/>
+                  <property name="i18nKeyStartTime" value="attr.validFrom"/>
+                  <property name="i18nKeySubmenu" value="fibu.employee.tabs.salary"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="mobilecheck"/>
+                        <property name="i18nkey" value="fibu.employee.mobilecheck.fees"/>
+                        <property name="type" value="java.math.BigDecimal"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.BigDecimalAttrWicketComponentFactory"/>
+                        </property>
+                        <property name="minIntValue" value="0"/>
+                        <property name="maxIntValue" value="999999"/>
+                        <property name="required" value="true"/>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>-->
+                
+                <!-- Kita-Gebühren -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="PERIOD"/>
+                  <property name="dayMonthGranularity" value="MONTH"/>
+                  <property name="name" value="daycarecenter"/>
+                  <property name="i18nKey" value="fibu.employee.daycarecenter.title"/>
+                  <property name="i18nKeyStartTime" value="attr.validFrom"/>
+                  <property name="i18nKeySubmenu" value="fibu.employee.tabs.salary"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="daycarecenter"/>
+                        <property name="i18nkey" value="fibu.employee.daycarecenter.fees"/>
+                        <property name="type" value="java.math.BigDecimal"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.BigDecimalAttrWicketComponentFactory"/>
+                        </property>
+                        <property name="minIntValue" value="0"/>
+                        <property name="maxIntValue" value="999999"/>
+                        <property name="required" value="true"/>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+                
+                <!-- E-Bike Leasing -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="PERIOD"/>
+                  <property name="dayMonthGranularity" value="MONTH"/>
+                  <property name="name" value="ebikeleasing"/>
+                  <property name="i18nKey" value="fibu.employee.ebikeleasing.title"/>
+                  <property name="i18nKeyStartTime" value="attr.validFrom"/>
+                  <property name="i18nKeySubmenu" value="fibu.employee.tabs.salary"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="ebikeleasing"/>
+                        <property name="i18nkey" value="fibu.employee.ebikeleasing.rate"/>
+                        <property name="type" value="java.math.BigDecimal"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.BigDecimalAttrWicketComponentFactory"/>
+                        </property>
+                        <property name="minIntValue" value="0"/>
+                        <property name="maxIntValue" value="999999"/>
+                        <property name="required" value="true"/>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+                <!-- Add-on Tankgutschein -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="PERIOD"/>
+                  <property name="dayMonthGranularity" value="MONTH"/>
+                  <property name="name" value="fuelvoucher"/>
+                  <property name="i18nKey" value="fibu.employee.fuelvoucher.title"/>
+                  <property name="i18nKeyStartTime" value="attr.validFrom"/>
+                  <property name="i18nKeySubmenu" value="fibu.employee.tabs.addons"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="fuelvoucher"/>
+                        <property name="i18nkey" value="fibu.employee.fuelvoucher.checkbox"/>
+                        <property name="type" value="java.lang.Boolean"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.BooleanAttrWicketComponentFactory"/>
+                        </property>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+                <!-- Add-on Essen -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="PERIOD"/>
+                  <property name="dayMonthGranularity" value="MONTH"/>
+                  <property name="name" value="food"/>
+                  <property name="i18nKey" value="fibu.employee.food.title"/>
+                  <property name="i18nKeyStartTime" value="attr.validFrom"/>
+                  <property name="i18nKeySubmenu" value="fibu.employee.tabs.addons"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="food"/>
+                        <property name="i18nkey" value="fibu.employee.food.checkbox"/>
+                        <property name="type" value="java.lang.Boolean"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.BooleanAttrWicketComponentFactory"/>
+                        </property>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+              </list>
+            </constructor-arg>
+          </bean>
+        </entry>
+
+        <entry key="employeeConfiguration">
+          <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrSchema">
+            <constructor-arg>
+              <list>
+                <!-- Essen -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="PERIOD"/>
+                  <property name="name" value="food"/>
+                  <property name="i18nKey" value="plugins.eed.config.food.title"/>
+                  <property name="i18nKeyStartTime" value="attr.validFrom"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="referencevalue"/>
+                        <property name="i18nkey" value="plugins.eed.config.food.referencevalue"/>
+                        <property name="type" value="java.math.BigDecimal"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.BigDecimalAttrWicketComponentFactory"/>
+                        </property>
+                        <property name="minIntValue" value="0"/>
+                        <property name="maxIntValue" value="999999"/>
+                        <property name="required" value="true"/>
+                      </bean>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="contribution"/>
+                        <property name="i18nkey" value="plugins.eed.config.food.contribution"/>
+                        <property name="type" value="java.math.BigDecimal"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.BigDecimalAttrWicketComponentFactory"/>
+                        </property>
+                        <property name="minIntValue" value="0"/>
+                        <property name="maxIntValue" value="999999"/>
+                        <property name="required" value="true"/>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+                <!-- Tanken -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="PERIOD"/>
+                  <property name="name" value="refuel"/>
+                  <property name="i18nKey" value="plugins.eed.config.refuel.title"/>
+                  <property name="i18nKeyStartTime" value="attr.validFrom"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="voucher"/>
+                        <property name="i18nkey" value="plugins.eed.config.refuel.voucher"/>
+                        <property name="type" value="java.math.BigDecimal"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.BigDecimalAttrWicketComponentFactory"/>
+                        </property>
+                        <property name="minIntValue" value="0"/>
+                        <property name="maxIntValue" value="999999"/>
+                        <property name="required" value="true"/>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+                <!-- Jobticket -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="PERIOD"/>
+                  <property name="name" value="ticket"/>
+                  <property name="i18nKey" value="plugins.eed.config.ticket.title"/>
+                  <property name="i18nKeyStartTime" value="attr.validFrom"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="voucher"/>
+                        <property name="i18nkey" value="plugins.eed.config.ticket.contribution"/>
+                        <property name="type" value="java.math.BigDecimal"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.BigDecimalAttrWicketComponentFactory"/>
+                        </property>
+                        <property name="minIntValue" value="0"/>
+                        <property name="maxIntValue" value="999999"/>
+                        <property name="required" value="true"/>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+                <!-- Mobilfunk -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="PERIOD"/>
+                  <property name="name" value="mobile"/>
+                  <property name="i18nKey" value="plugins.eed.config.mobile.title"/>
+                  <property name="i18nKeyStartTime" value="attr.validFrom"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="voucher"/>
+                        <property name="i18nkey" value="plugins.eed.config.mobile.contribution"/>
+                        <property name="type" value="java.math.BigDecimal"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.BigDecimalAttrWicketComponentFactory"/>
+                        </property>
+                        <property name="minIntValue" value="0"/>
+                        <property name="maxIntValue" value="999999"/>
+                        <property name="required" value="true"/>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+                <!-- Salary Import -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="NOT_TIMEABLE"/>
+                  <property name="name" value="salaryimport"/>
+                  <property name="i18nKey" value="plugins.eed.config.salaryimport.title"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="staffnrcolumnname"/>
+                        <property name="i18nkey" value="plugins.eed.config.staffnrcolumnname"/>
+                        <property name="type" value="java.lang.String"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.StringAttrWicketComponentFactory"/>
+                        </property>
+                      </bean>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="salarycolumnname"/>
+                        <property name="i18nkey" value="plugins.eed.config.salarycolumnname"/>
+                        <property name="type" value="java.lang.String"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.StringAttrWicketComponentFactory"/>
+                        </property>
+                      </bean>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="remarkcolumnname"/>
+                        <property name="i18nkey" value="plugins.eed.config.remarkcolumnname"/>
+                        <property name="type" value="java.lang.String"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.StringAttrWicketComponentFactory"/>
+                        </property>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+              </list>
+            </constructor-arg>
+          </bean>
+        </entry>
+
+      </map>
+    </constructor-arg>
+  </bean>
+</beans>
