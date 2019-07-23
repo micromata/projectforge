@@ -23,12 +23,6 @@
 
 package org.projectforge.business.ldap;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import javax.naming.NameNotFoundException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.login.LoginDefaultHandler;
 import org.projectforge.business.login.LoginResult;
@@ -39,6 +33,11 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import javax.naming.NameNotFoundException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * This LDAP login handler acts as a LDAP slave, meaning, that LDAP will be accessed in read-only mode. There are 3
@@ -155,13 +154,13 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
       } else {
         userService.createEncryptedPassword(user, password);
       }
-      userService.save(user);
+      userDao.internalSave(user);
     } else if (mode != Mode.SIMPLE) {
       PFUserDOConverter.copyUserFields(pfUserDOConverter.convert(ldapUser), user);
       if (ldapConfig.isStorePasswords() == true) {
         userService.createEncryptedPassword(user, password);
       }
-      userService.update(user);
+      userDao.internalUpdate(user);
       if (user.hasSystemAccess() == false) {
         log.info("User has no system access (is deleted/deactivated): " + user.getDisplayUsername());
         return loginResult.setLoginResultStatus(LoginResultStatus.LOGIN_EXPIRED);
@@ -302,10 +301,10 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
               }
               PFUserDOConverter.copyUserFields(user, dbUser);
               if (dbUser.isDeleted() == true) {
-                userService.undelete(dbUser);
+                userDao.internalUndelete(dbUser);
                 ++undeleted;
               }
-              final ModificationStatus modificationStatus = userService.update(dbUser);
+              final ModificationStatus modificationStatus = userDao.internalUpdate(dbUser);
               if (modificationStatus != ModificationStatus.NONE) {
                 ++updated;
               } else {
@@ -314,7 +313,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
             } else {
               // New user:
               user.setId(null);
-              userService.save(user);
+              userDao.internalSave(user);
               ++created;
             }
           } catch (final Exception ex) {
@@ -333,7 +332,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
             if (user == null) {
               if (dbUser.isDeleted() == false) {
                 // User isn't available in LDAP, therefore mark the db user as deleted.
-                userService.markAsDeleted(dbUser);
+                userDao.internalMarkAsDeleted(dbUser);
                 ++deleted;
               } else {
                 ++unmodified;
