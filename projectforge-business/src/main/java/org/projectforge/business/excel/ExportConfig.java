@@ -24,11 +24,10 @@
 package org.projectforge.business.excel;
 
 import org.apache.poi.ss.usermodel.PrintSetup;
+import org.projectforge.business.configuration.ConfigurationServiceAccessor;
 
 public class ExportConfig
 {
-  private String excelDefaultPaperSize;
-
   private transient short excelDefaultPaperSizeValue = -42;
 
   private ExportContext defaultExportContext = new DefaultExportContext();
@@ -79,16 +78,6 @@ public class ExportConfig
     return this;
   }
 
-  public void setDefaultPaperSize(String excelDefaultPaperSize)
-  {
-    this.excelDefaultPaperSize = excelDefaultPaperSize;
-  }
-
-  public String getDefaultPaperSize()
-  {
-    return this.excelDefaultPaperSize;
-  }
-
   /**
    * Supported values "LETTER", default is "DINA4".
    *
@@ -100,6 +89,7 @@ public class ExportConfig
     if (excelDefaultPaperSizeValue != -42) {
       return excelDefaultPaperSizeValue;
     }
+    String excelDefaultPaperSize = ConfigurationServiceAccessor.get().getExcelPaperSize();
     if ("LETTER".equals(excelDefaultPaperSize) == true) {
       excelDefaultPaperSizeValue = PrintSetup.LETTER_PAPERSIZE;
     } else {

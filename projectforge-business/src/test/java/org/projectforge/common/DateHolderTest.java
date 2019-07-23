@@ -23,10 +23,12 @@
 
 package org.projectforge.common;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.test.TestSetup;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -36,6 +38,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class DateHolderTest
 {
+  @BeforeAll
+  public static void setUp() {
+    // Needed if this tests runs before the ConfigurationTest.
+    TestSetup.init();
+  }
+
   @Test
   public void isSameDay()
   {

@@ -23,16 +23,16 @@
 
 package org.projectforge.web.rest.converter;
 
-import java.util.Locale;
-import java.util.TimeZone;
-
 import org.hibernate.Hibernate;
+import org.projectforge.business.configuration.ConfigurationServiceAccessor;
 import org.projectforge.business.converter.DOConverter;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
-import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.model.rest.UserObject;
+
+import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * For conversion of PFUserDO to user object.
@@ -71,7 +71,7 @@ public class PFUserDOConverter
     }
     Locale locale = userDO.getLocale();
     if (locale == null) {
-      locale = ConfigXml.getInstance().getDefaultLocale();
+      locale = ConfigurationServiceAccessor.get().getDefaultLocale();
     }
     if (locale == null) {
       locale = Locale.getDefault();

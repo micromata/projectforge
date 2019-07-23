@@ -23,13 +23,13 @@
 
 package org.projectforge.framework.time;
 
-import java.util.Locale;
-
+import org.projectforge.business.configuration.ConfigurationServiceAccessor;
 import org.projectforge.common.DateFormatType;
-import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.util.Locale;
 
 /**
  * Date formats. All the formats base on the given defaultDateFormat. Default date formats are e. g. "dd.MM.yyyy", "dd.MM.yy", "dd/MM/yyyy",
@@ -175,8 +175,8 @@ public class DateFormats
     final PFUserDO user = ThreadLocalUserContext.getUser();
     TimeNotation defaultTimeNotation = user != null ? user.getTimeNotation() : null;
     if (defaultTimeNotation == null) {
-      if (ConfigXml.getInstance().getDefaultTimeNotation() != null) {
-        defaultTimeNotation = ConfigXml.getInstance().getDefaultTimeNotation();
+      if (ConfigurationServiceAccessor.get().getDefaultTimeNotation() != null) {
+        defaultTimeNotation = ConfigurationServiceAccessor.get().getDefaultTimeNotation();
       } else {
         final Locale locale = ThreadLocalUserContext.getLocale();
         if (locale != null && locale.toString().toLowerCase().startsWith("de") == true) {

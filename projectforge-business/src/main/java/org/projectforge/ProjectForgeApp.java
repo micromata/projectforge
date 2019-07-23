@@ -24,6 +24,7 @@
 package org.projectforge;
 
 import net.fortuna.ical4j.util.CompatibilityHints;
+import org.apache.commons.io.FileUtils;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.systeminfo.SystemInfoCache;
@@ -44,6 +45,9 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.util.TimeZone;
 
 /**
@@ -52,15 +56,21 @@ import java.util.TimeZone;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-public class ProjectForgeApp
-{
+public class ProjectForgeApp {
   public static final String CLASSPATH_INITIAL_BASEDIR_FILES = "initialBaseDirFiles";
 
   public static final String CONFIG_PARAM_BASE_DIR = "projectforge.base.dir";
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjectForgeApp.class);
 
-  private static ProjectForgeApp instance;
+  private static boolean junitTestMode = false;
+
+  /**
+   * Set by AbstractTestBase for avoiding the creation of config files (projectforge.properties, config.xml and attrschema.xml).
+   */
+  public static void internalSetJunitTestMode() {
+    junitTestMode = true;
+  }
 
   private boolean upAndRunning;
 
@@ -106,8 +116,7 @@ public class ProjectForgeApp
    * login should be started. <br>
    * Flag upAndRunning will be set to true.
    */
-  private void finalizeInitialization()
-  {
+  private void finalizeInitialization() {
     log.info(AppVersion.APP_ID + " " + AppVersion.NUMBER + " (" + AppVersion.RELEASE_TIMESTAMP + ") initialized.");
     // initialize ical4j to be more "relaxed"
     CompatibilityHints.setHintEnabled(CompatibilityHints.KEY_RELAXED_PARSING, true);
@@ -117,8 +126,7 @@ public class ProjectForgeApp
     log.info("ProjectForge is now available (up and running).");
   }
 
-  private void internalInit()
-  {
+  private void internalInit() {
     log.info("Initializing...");
     // Time zone
     log.info("Default TimeZone is: " + TimeZone.getDefault());
@@ -145,24 +153,21 @@ public class ProjectForgeApp
     SystemInfoCache.internalInitialize(systemInfoCache);
   }
 
-  private TenantRegistry getTenantRegistry()
-  {
+  private TenantRegistry getTenantRegistry() {
     return TenantRegistryMap.getInstance().getTenantRegistry();
   }
 
-  private UserGroupCache getUserGroupCache()
-  {
+  private UserGroupCache getUserGroupCache() {
     return getTenantRegistry().getUserGroupCache();
   }
 
-  private void internalShutdown()
-  {
+  private void internalShutdown() {
     log.info("Shutdown...");
     upAndRunning = false;
     try {
       final UserContext internalSystemAdminUserContext = UserContext
-          .__internalCreateWithSpecialUser(DatabaseService
-              .__internalGetSystemAdminPseudoUser(), getUserGroupCache());
+              .__internalCreateWithSpecialUser(DatabaseService
+                      .__internalGetSystemAdminPseudoUser(), getUserGroupCache());
       ThreadLocalUserContext.setUserContext(internalSystemAdminUserContext); // Logon admin user.
       databaseUpdater.shutdownDatabase();
     } finally {
@@ -174,16 +179,14 @@ public class ProjectForgeApp
   /**
    * @return the startTime
    */
-  public long getStartTime()
-  {
+  public long getStartTime() {
     return startTime;
   }
 
   /**
    * @return the upAndRunning
    */
-  public boolean isUpAndRunning()
-  {
+  public boolean isUpAndRunning() {
     return upAndRunning;
   }
 
@@ -192,19 +195,39 @@ public class ProjectForgeApp
    *
    * @param upAndRunning the upAndRunning to set
    */
-  public void internalSetUpAndRunning(final boolean upAndRunning)
-  {
+  public void internalSetUpAndRunning(final boolean upAndRunning) {
     log.warn("This method should only be called in test cases!");
     this.upAndRunning = upAndRunning;
   }
 
   private static final String[] UTC_RECOMMENDED = { //
-      "**********************************************************", //
-      "***                                                    ***", //
-      "*** It's highly recommended to start ProjectForge      ***", //
-      "*** with TimeZone UTC. This default TimeZone has to be ***", //
-      "*** set before any initialization of Hibernate!!!!     ***", //
-      "*** You can do this e. g. in JAVA_OPTS etc.            ***", //
-      "***                                                    ***", //
-      "**********************************************************" };
+          "**********************************************************", //
+          "***                                                    ***", //
+          "*** It's highly recommended to start ProjectForge      ***", //
+          "*** with TimeZone UTC. This default TimeZone has to be ***", //
+          "*** set before any initialization of Hibernate!!!!     ***", //
+          "*** You can do this e. g. in JAVA_OPTS etc.            ***", //
+          "***                                                    ***", //
+          "**********************************************************"};
+
+  /**
+   * @return True, if the dest file exists or was created successfully. False if an error while creation occured.
+   */
+  public static boolean ensureInitialConfigFile(String classPathSourceFilename, String destFilename) {
+    if (junitTestMode)
+      return true;
+    String baseDir = System.getProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR);
+    final File destFile = new File(baseDir, destFilename);
+    if (!destFile.exists()) {
+      URL classpathUrl = ProjectForgeApp.class.getResource("/" + ProjectForgeApp.CLASSPATH_INITIAL_BASEDIR_FILES + "/" + classPathSourceFilename);
+      try {
+        log.info("New installation, creating default '" + destFilename + "': " + destFile.getAbsolutePath());
+        FileUtils.copyURLToFile(classpathUrl, destFile);
+      } catch (IOException ex) {
+        log.error("Error while creating ProjectForge's config file '" + destFile.getAbsolutePath() + "': " + ex.getMessage(), ex);
+        return false;
+      }
+    }
+    return true;
+  }
 }

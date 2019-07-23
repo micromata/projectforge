@@ -28,15 +28,12 @@ import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
 import de.micromata.genome.db.jpa.tabattr.api.AttrSchema;
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithConfigurableAttr;
 import de.micromata.genome.db.jpa.tabattr.impl.AttrSchemaServiceBaseImpl;
-import org.apache.commons.io.FileUtils;
 import org.projectforge.ProjectForgeApp;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -101,18 +98,10 @@ public class AttrSchemaServiceSpringBeanImpl extends AttrSchemaServiceBaseImpl {
   }
 
   private Map<String, AttrSchema> loadAttrSchemaFromFileSystem() {
+    if (!ProjectForgeApp.ensureInitialConfigFile("initialAttrschema.xml", "attrschema.xml"))
+      return null;
     final String attrschemaFilePath = applicationDir + "/attrschema.xml";
     final File attrSchemaFile = new File(attrschemaFilePath);
-    if (!attrSchemaFile.exists()) {
-      URL classpathUrl = getClass().getResource("/" + ProjectForgeApp.CLASSPATH_INITIAL_BASEDIR_FILES + "/initialAttrschema.xml");
-      try {
-        log.info("New installation, creating default attrschema.xml: " + attrSchemaFile.getAbsolutePath());
-        FileUtils.copyURLToFile(classpathUrl, attrSchemaFile);
-      } catch (IOException ex) {
-        log.error("Error while creating ProjectForge's config file '" + attrSchemaFile.getAbsolutePath() + "': " + ex.getMessage(), ex);
-        return null;
-      }
-    }
     try {
       final ApplicationContext context = new FileSystemXmlApplicationContext("file:" + attrschemaFilePath);
       log.info("AttrSchema config file loaded from '" + attrSchemaFile.getAbsolutePath() + "'");

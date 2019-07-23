@@ -1,0 +1,23 @@
+ProjectForge development documentation
+=======================================
+Micromata GmbH, Version {version}
+:toc:
+:toclevels: 4
+
+:last-update-label: Copyright (C) 2019, Last updated
+
+ifdef::env-github,env-browser[:outfilesuffix: .adoc]
+link:index{outfilesuffix}[Top]
+
+:sectnums:
+
+== Migration guide
+
+=== Version 6.x to version 7
+
+. Configuration parameters moved from `config.xml` to `projectforge.properties`
+   .. `config.xml:currencySymbol` -> `projectforge.properties:projectforge.currencySymbol=€`
+   .. `config.xml:defaultLocale` -> `projectforge.properties:projectforge.defaultLocale=en`
+   .. `config.xml:defaultTimeNotation` -> `projectforge.properties:projectforge.defaultTimeNotation=H24`
+   .. `config.xml:firstDayOfWeek` -> `projectforge.properties:projectforge.defaultFirstDayOfWeek=2`
+   .. `config.xml:excelPaperSize` -> `projectforge.properties:projectforge.excelPaperSize=DINA4`

@@ -23,7 +23,6 @@
 
 package org.projectforge.start;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.ProjectForgeApp;
 import org.projectforge.framework.time.DateHelper;
@@ -33,8 +32,6 @@ import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfigurat
 import org.springframework.boot.web.servlet.ServletComponentScan;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.TimeZone;
@@ -55,6 +52,8 @@ public class ProjectForgeApplication {
 
   private static final String ENV_PROJECTFORGE_HOME = "PROJECTFORGE_HOME";
 
+  private static final String COMMAND_LINE_VAR_HOME_DIR = "home.dir";
+
   public static void main(String[] args) {
     String javaVersion = System.getProperty("java.version");
     if (javaVersion != null && javaVersion.compareTo("1.9") >= 0) {
@@ -72,9 +71,14 @@ public class ProjectForgeApplication {
       log.error("******************************************************************************************************************************************");
       log.error("******************************************************************************************************************************************");
     }
-    String appHomeDir = System.getProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR); // Might be defined as -Dprojectforge.base.dir=....
+    String param = ProjectForgeApp.CONFIG_PARAM_BASE_DIR;
+    String appHomeDir = System.getProperty(param); // Might be defined as -Dprojectforge.base.dir
+    if (StringUtils.isBlank(appHomeDir)) {
+      param = COMMAND_LINE_VAR_HOME_DIR;
+      appHomeDir = System.getProperty(param); // Might be defined as -Dhome.dir=....
+    }
     if (StringUtils.isNotBlank(appHomeDir)) {
-      log.info("Trying ProjectForges base dir as given at commandline -Dprojectforge.base.dir: " + appHomeDir);
+      log.info("Trying ProjectForges base dir as given at commandline -D" + param + "=" + appHomeDir);
     } else {
       appHomeDir = System.getenv(ENV_PROJECTFORGE_HOME); // Environment variable.
       if (StringUtils.isNotBlank(appHomeDir)) {
@@ -103,16 +107,7 @@ public class ProjectForgeApplication {
       }
     }
     System.setProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR, baseDir.getAbsolutePath());
-    File projectForgePropertiesFile = new File(baseDir, PROPERTIES_FILENAME);
-    if (!projectForgePropertiesFile.exists()) {
-      URL classpathUrl = ProjectForgeApplication.class.getResource("/" + ProjectForgeApp.CLASSPATH_INITIAL_BASEDIR_FILES + "/initialProjectForge.properties");
-      try {
-        log.info("Creating file: " + projectForgePropertiesFile.getAbsolutePath());
-        FileUtils.copyURLToFile(classpathUrl, projectForgePropertiesFile);
-      } catch (IOException ex) {
-        log.error("Error while creating ProjectForge's config file '" + projectForgePropertiesFile.getAbsolutePath() + "': " + ex.getMessage(), ex);
-      }
-    }
+    ProjectForgeApp.ensureInitialConfigFile("initialProjectForge.properties", PROPERTIES_FILENAME);
     args = addDefaultAdditionalLocation(baseDir, args);
     System.setProperty("user.timezone", "UTC");
     TimeZone.setDefault(DateHelper.UTC);
@@ -122,8 +117,8 @@ public class ProjectForgeApplication {
   private static void giveUp() {
     log.info("You options (please refer: https://github.com/micromata/projectforge):");
     log.info("  1. Create ProjectForge as a top level directory of your home directory: `$HOME/ProjectForge`, or");
-    log.info("  2. create a directory and define it as command line parameter: java -Dprojectforge.base.dir=yourdirectory -jar ...`, or");
-    log.info("  3. create a directory and define it as system environment variable `" + ENV_PROJECTFORGE_HOME + "`.");
+    log.info("  2. create a directory and define it as command line parameter: java -D" + COMMAND_LINE_VAR_HOME_DIR + "=yourdirectory -jar ...`, or");
+    log.info("  3. cmreate a directory and define it as system environment variable `" + ENV_PROJECTFORGE_HOME + "`.");
     log.info("Hope to see You again ;-)");
     System.exit(1);
   }
