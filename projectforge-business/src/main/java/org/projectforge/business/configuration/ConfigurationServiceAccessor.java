@@ -36,6 +36,7 @@ public class ConfigurationServiceAccessor {
     ConfigurationServiceImpl cfg = new ConfigurationServiceImpl();
     cfg.setDefaultLocale(Locale.ENGLISH);
     cfg.setDefaultFirstDayOfWeek(Calendar.MONDAY);
+    cfg.setCurrencySymbol("€");
     configurationService = cfg;
   }
 
