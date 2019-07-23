@@ -29,6 +29,7 @@ import de.micromata.genome.db.jpa.tabattr.api.AttrSchema;
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithConfigurableAttr;
 import de.micromata.genome.db.jpa.tabattr.impl.AttrSchemaServiceBaseImpl;
 import org.apache.commons.io.FileUtils;
+import org.projectforge.ProjectForgeApp;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
@@ -43,13 +44,11 @@ import java.util.Map;
  * AttrService which loads configuration from Spring context.
  *
  * @author Roger Kommer (r.kommer.extern@micromata.de)
- *
  */
-public class AttrSchemaServiceSpringBeanImpl extends AttrSchemaServiceBaseImpl
-{
+public class AttrSchemaServiceSpringBeanImpl extends AttrSchemaServiceBaseImpl {
 
   private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory
-      .getLogger(AttrSchemaServiceSpringBeanImpl.class);
+          .getLogger(AttrSchemaServiceSpringBeanImpl.class);
 
   private Map<String, AttrSchema> attrSchemata;
 
@@ -57,28 +56,24 @@ public class AttrSchemaServiceSpringBeanImpl extends AttrSchemaServiceBaseImpl
 
   private static AttrSchemaServiceSpringBeanImpl INSTANCE;
 
-  public static AttrSchemaServiceSpringBeanImpl get()
-  {
+  public static AttrSchemaServiceSpringBeanImpl get() {
     if (INSTANCE == null) {
       INSTANCE = new AttrSchemaServiceSpringBeanImpl();
     }
     return INSTANCE;
   }
 
-  public void setApplicationDir(String applicationDir)
-  {
+  public void setApplicationDir(String applicationDir) {
     this.applicationDir = applicationDir;
   }
 
-  protected void loadAttrSchema()
-  {
+  protected void loadAttrSchema() {
     attrSchemata = new HashMap<>();
     mergeAttrSchemata(loadAttrSchemaFromClassPath());
     mergeAttrSchemata(loadAttrSchemaFromFileSystem());
   }
 
-  private void mergeAttrSchemata(final Map<String, AttrSchema> attrSchemataToMerge)
-  {
+  private void mergeAttrSchemata(final Map<String, AttrSchema> attrSchemataToMerge) {
     if (attrSchemataToMerge == null) {
       return;
     }
@@ -95,8 +90,7 @@ public class AttrSchemaServiceSpringBeanImpl extends AttrSchemaServiceBaseImpl
     });
   }
 
-  private Map<String, AttrSchema> loadAttrSchemaFromClassPath()
-  {
+  private Map<String, AttrSchema> loadAttrSchemaFromClassPath() {
     try {
       final ApplicationContext context = new ClassPathXmlApplicationContext("internalattrschema.xml");
       return context.getBean("internalAttrSchemataMap", Map.class);
@@ -106,15 +100,14 @@ public class AttrSchemaServiceSpringBeanImpl extends AttrSchemaServiceBaseImpl
     }
   }
 
-  private Map<String, AttrSchema> loadAttrSchemaFromFileSystem()
-  {
+  private Map<String, AttrSchema> loadAttrSchemaFromFileSystem() {
     final String attrschemaFilePath = applicationDir + "/attrschema.xml";
     final File attrSchemaFile = new File(attrschemaFilePath);
     if (!attrSchemaFile.exists()) {
-      URL inputUrl = getClass().getResource("/defaultAttrschema.xml");
+      URL classpathUrl = getClass().getResource("/" + ProjectForgeApp.CLASSPATH_INITIAL_BASEDIR_FILES + "/initialAttrschema.xml");
       try {
         log.info("New installation, creating default attrschema.xml: " + attrSchemaFile.getAbsolutePath());
-        FileUtils.copyURLToFile(inputUrl, attrSchemaFile);
+        FileUtils.copyURLToFile(classpathUrl, attrSchemaFile);
       } catch (IOException ex) {
         log.error("Error while creating ProjectForge's config file '" + attrSchemaFile.getAbsolutePath() + "': " + ex.getMessage(), ex);
         return null;
@@ -134,8 +127,7 @@ public class AttrSchemaServiceSpringBeanImpl extends AttrSchemaServiceBaseImpl
    * @see org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService#getAttrSchema(java.lang.String)
    */
   @Override
-  public AttrSchema getAttrSchema(final String name)
-  {
+  public AttrSchema getAttrSchema(final String name) {
     if (attrSchemata == null) {
       loadAttrSchema();
     }
@@ -146,42 +138,38 @@ public class AttrSchemaServiceSpringBeanImpl extends AttrSchemaServiceBaseImpl
     }
   }
 
-  public void setAttrSchemata(Map<String, AttrSchema> attrSchemata)
-  {
+  public void setAttrSchemata(Map<String, AttrSchema> attrSchemata) {
     this.attrSchemata = attrSchemata;
   }
 
   @Override
-  public AttrGroup getAttrGroup(final EntityWithConfigurableAttr entity, final String groupName)
-  {
+  public AttrGroup getAttrGroup(final EntityWithConfigurableAttr entity, final String groupName) {
     if (attrSchemata == null) {
       loadAttrSchema();
     }
     final AttrSchema entitySchema = attrSchemata.get(entity.getAttrSchemaName());
     return entitySchema
-        .getGroups()
-        .stream()
-        .filter(group -> group.getName().equals(groupName))
-        .findFirst()
-        .orElse(null);
+            .getGroups()
+            .stream()
+            .filter(group -> group.getName().equals(groupName))
+            .findFirst()
+            .orElse(null);
   }
 
   @Override
-  public AttrDescription getAttrDescription(final EntityWithConfigurableAttr entity, final String groupName, final String descriptionName)
-  {
+  public AttrDescription getAttrDescription(final EntityWithConfigurableAttr entity, final String groupName, final String descriptionName) {
     final AttrGroup attrGroup = getAttrGroup(entity, groupName);
     return getAttrDescription(attrGroup, descriptionName);
   }
 
   @Override
-  public AttrDescription getAttrDescription(final AttrGroup attrGroup, final String descriptionName)
-  {
+  public AttrDescription getAttrDescription(final AttrGroup attrGroup, final String descriptionName) {
     return (attrGroup == null) ? null :
-        attrGroup
-            .getDescriptions()
-            .stream()
-            .filter(desc -> desc.getPropertyName().equals(descriptionName))
-            .findFirst()
-            .orElse(null);
+            attrGroup
+                    .getDescriptions()
+                    .stream()
+                    .filter(desc -> desc.getPropertyName().equals(descriptionName))
+                    .findFirst()
+                    .orElse(null);
   }
 }

@@ -3,7 +3,7 @@
 ProjectForge is a web-based solution for project management including time tracking, team calendar, gantt-charting, financial administration, issue management,
 controlling and managing work-break-down-structures (e. g. together with JIRA as issue management system).
 
-Full documentation on: http://www.projectforge.org/pf-en/Documentation
+Full documentation on: https://www.projectforge.org/documentation.html
 Please visit: https://www.projectforge.org/documentation/developer-guide.html
 
 == Version 7.0 will be released soon...
@@ -20,6 +20,7 @@ ProjectForge will be controlled by a new Rest API for most CRUD operations. Stay
 ====
 You only need the following steps for developing ProjectForge.
 If you just want to run it, please download it from https://sourceforge.net/projects/pforge/
+and simply start it `java -jar projectforge-application-X.X.X.jar`.
 ====
 
 1. Checkout:
@@ -34,19 +35,13 @@ If you just want to run it, please download it from https://sourceforge.net/proj
 
 === Configuration of ProjectForge
 
-.Minimal config `$HOME/ProjectForge/projectforge.properties`
-----
-projectforge.base.dir=${user.home}/ProjectForge
-----
+No configuration needed. ProjectForge creates a new installation by creating a new directory `ProjectForge` in the current working directory.
 
-ProjectForge searches automatically for configurations in the following order:
+To configure a different directory you have several options:
 
-1. Searches for `./config/application.properties` (in current directory).
-2. Searches for `./application.properties` (in current directory).
-3. Searches for `$HOME/ProjectForge/projectforge.properties`.
-
-You may specify another config location: +
-`java -jar target/projectforge-application-X.X.X.jar --spring.config.additional-location=file:/mypath/projectforge.properties`
+1. Create `ProjectForge` as top level directory of your home directory: `$HOME/ProjectForge`, or
+2. Create a directory and define it as command line parameter: `java -Dprojectforge.base.dir=yourdirectory -jar projectforge-application-X.X.X.jar`, or
+3. Create a directory and define it as system environment variable `PROJECTFORGE_HOME`.
 
 === Quickstart with Eclipse and maven
 

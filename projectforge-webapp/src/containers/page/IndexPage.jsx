@@ -245,7 +245,6 @@ class IndexPage extends React.Component {
                     <Col>
                         <h1>ToDo&apos;s (Kai)</h1>
                         <ol>
-                            <li>Loading plugins failed after mgc-update in executable jar.</li>
                             <li>Finishing time sheet editing</li>
                             <li>Calendar events (especially recurrences)</li>
                             <li>List pages: addresses, tasks etc.</li>
@@ -298,6 +297,7 @@ class IndexPage extends React.Component {
                                 matching calendar week, otherwise the calendar get the events
                                 for the week or day before and can&apos;t display them.
                             </li>
+                            <li>Loading plugins failed after mgc-update in executable jar.</li>
                         </ol>
                     </Col>
                     <Col>

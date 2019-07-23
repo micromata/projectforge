@@ -33,8 +33,8 @@ public class ProjectForgeApplicationTest {
 
   @Test
   public void addDefaultAdditionalLocation() {
-    String loc = ProjectForgeApplication.getAddtionalLocationArg();
-    if (ProjectForgeApplication.addDefaultAdditionalLocation(null) == null) {
+    String loc = ProjectForgeApplication.getAddtionalLocationArg(null);
+    if (ProjectForgeApplication.addDefaultAdditionalLocation(null, null) == null) {
       log.warn("Found application{-default}.properties in current working directory (you should move it to ~/ProjectForge/projectforge.properties). Can't process with this text (OK).");
       return;
     }
@@ -46,7 +46,7 @@ public class ProjectForgeApplicationTest {
   }
 
   private void checkArray(String[] expected, String[] array) {
-    String[] args = ProjectForgeApplication.addDefaultAdditionalLocation(array);
+    String[] args = ProjectForgeApplication.addDefaultAdditionalLocation(null, array);
     assertEquals(expected.length, args.length);
     for (int i = 0; i < expected.length; i++) {
       assertEquals(expected[i], args[i]);
