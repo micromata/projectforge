@@ -714,4 +714,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
   void setDefaultFirstDayOfWeek(int defaultFirstDayOfWeek) {
     this.defaultFirstDayOfWeek = defaultFirstDayOfWeek;
   }
+
+  void setCurrencySymbol(String currencySymbol) {
+    this.currencySymbol = currencySymbol;
+  }
 }
