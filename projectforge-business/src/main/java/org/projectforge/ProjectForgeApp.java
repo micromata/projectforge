@@ -36,7 +36,6 @@ import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.registry.Registry;
-import org.projectforge.web.WicketSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
@@ -55,6 +54,10 @@ import java.util.TimeZone;
 @Component
 public class ProjectForgeApp
 {
+  public static final String CLASSPATH_INITIAL_BASEDIR_FILES = "initialBaseDirFiles";
+
+  public static final String CONFIG_PARAM_BASE_DIR = "projectforge.base.dir";
+
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjectForgeApp.class);
 
   private static ProjectForgeApp instance;
