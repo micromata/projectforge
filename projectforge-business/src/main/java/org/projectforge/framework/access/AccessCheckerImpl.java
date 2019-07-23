@@ -857,7 +857,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
   {
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final PFUserDO user = userGroupCache.getUser(userId);
-    return user.isRestrictedUser();
+    return user == null || user.isRestrictedUser();
   }
 
   @Override
