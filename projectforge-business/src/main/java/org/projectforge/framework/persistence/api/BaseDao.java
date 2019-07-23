@@ -579,8 +579,9 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    */
   @Override
   @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
-  public Integer save(final O obj) throws AccessException {
-    long begin = System.currentTimeMillis();
+  public Integer save(final O obj) throws AccessException
+  {
+    //long begin = System.currentTimeMillis();
     Validate.notNull(obj);
     if (avoidNullIdCheckBeforeSave == false) {
       Validate.isTrue(obj.getId() == null);
@@ -590,8 +591,8 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     checkLoggedInUserInsertAccess(obj);
     accessChecker.checkRestrictedOrDemoUser();
     Integer result = internalSave(obj);
-    long end = System.currentTimeMillis();
-    log.info("BaseDao.save took: " + (end - begin) + " ms.");
+    //long end = System.currentTimeMillis();
+    //log.info("BaseDao.save took: " + (end - begin) + " ms.");
     return result;
   }
 
@@ -856,7 +857,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
           log.info(this.clazz.getSimpleName() + " updated: " + dbObj.toString());
         }
       } else {
-        log.info("No modifications detected (no update needed): " + dbObj.getClass().getSimpleName() + ":" + dbObj.getId());
+        //log.info("No modifications detected (no update needed): " + dbObj.toString());
       }
       prepareHibernateSearch(obj, OperationType.UPDATE);
       // TODO HIBERNATE5 Magie nicht notwendig?!?!?!
