@@ -23,26 +23,14 @@
 
 package org.projectforge.framework.persistence.api;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import de.micromata.genome.db.jpa.history.api.DiffEntry;
+import de.micromata.genome.db.jpa.history.api.HistoryEntry;
+import de.micromata.genome.util.runtime.ClassUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.PredicateUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.LockMode;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
+import org.hibernate.*;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.search.FullTextQuery;
 import org.hibernate.search.FullTextSession;
@@ -83,9 +71,9 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import de.micromata.genome.db.jpa.history.api.DiffEntry;
-import de.micromata.genome.db.jpa.history.api.HistoryEntry;
-import de.micromata.genome.util.runtime.ClassUtils;
+import java.io.Serializable;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -356,7 +344,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> getList(final QueryFilter filter) throws AccessException
   {
-    long begin = System.currentTimeMillis();
+    //long begin = System.currentTimeMillis();
     if (USE_SEARCH_SERVIVE == true) {
       return searchService.getList(filter, getEntityClass());
     }
@@ -370,9 +358,9 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     }
     list = extractEntriesWithSelectAccess(list);
     List<O> result = sort(list);
-    long end = System.currentTimeMillis();
-    log.info(
-        "BaseDao.getList for entity class: " + getEntityClass().getSimpleName() + " took: " + (end - begin) + " ms.");
+    //long end = System.currentTimeMillis();
+    //log.info(
+    //    "BaseDao.getList for entity class: " + getEntityClass().getSimpleName() + " took: " + (end - begin) + " ms.");
     return result;
   }
 
@@ -719,7 +707,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
   public Integer save(final O obj) throws AccessException
   {
-    long begin = System.currentTimeMillis();
+    //long begin = System.currentTimeMillis();
     Validate.notNull(obj);
     if (avoidNullIdCheckBeforeSave == false) {
       Validate.isTrue(obj.getId() == null);
@@ -729,8 +717,8 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     checkLoggedInUserInsertAccess(obj);
     accessChecker.checkRestrictedOrDemoUser();
     Integer result = internalSave(obj);
-    long end = System.currentTimeMillis();
-    log.info("BaseDao.save took: " + (end - begin) + " ms.");
+    //long end = System.currentTimeMillis();
+    //log.info("BaseDao.save took: " + (end - begin) + " ms.");
     return result;
   }
 
@@ -1012,7 +1000,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
         dbObj.setLastUpdate();
         log.info("Object updated: " + dbObj.toString());
       } else {
-        log.info("No modifications detected (no update needed): " + dbObj.toString());
+        //log.info("No modifications detected (no update needed): " + dbObj.toString());
       }
       prepareHibernateSearch(obj, OperationType.UPDATE);
       // TODO HIBERNATE5 Magie nicht notwendig?!?!?!
@@ -1133,12 +1121,12 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   protected void flushSearchSession()
   {
-    long begin = System.currentTimeMillis();
+    //long begin = System.currentTimeMillis();
     if (LUCENE_FLUSH_ALWAYS == true) {
       Search.getFullTextSession(getSession()).flushToIndexes();
     }
-    long end = System.currentTimeMillis();
-    log.info("BaseDao.flushSearchSession took: " + (end - begin) + " ms.");
+    //long end = System.currentTimeMillis();
+    //log.info("BaseDao.flushSearchSession took: " + (end - begin) + " ms.");
   }
 
   /**
