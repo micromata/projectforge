@@ -23,9 +23,6 @@
 
 package org.projectforge.framework.access;
 
-import java.io.Serializable;
-import java.util.Collection;
-
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.multitenancy.TenantRegistry;
@@ -33,25 +30,18 @@ import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.tasktree.TaskTreeHelper;
-import org.projectforge.business.user.ProjectForgeGroup;
-import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.business.user.UserRight;
-import org.projectforge.business.user.UserRightAccessCheck;
-import org.projectforge.business.user.UserRightId;
-import org.projectforge.business.user.UserRightValue;
+import org.projectforge.business.user.*;
 import org.projectforge.common.StringHelper;
-import org.projectforge.framework.persistence.api.AUserRightId;
-import org.projectforge.framework.persistence.api.BaseDao;
-import org.projectforge.framework.persistence.api.ExtendedBaseDO;
-import org.projectforge.framework.persistence.api.FallbackBaseDaoService;
-import org.projectforge.framework.persistence.api.IUserRightId;
-import org.projectforge.framework.persistence.api.UserRightService;
+import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.io.Serializable;
+import java.util.Collection;
 
 /**
  * Implementation of AccessChecker.
@@ -888,9 +878,12 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
   @Override
   public boolean isRestrictedUser(final Integer userId)
   {
+    if (userId < 0) {
+      return false; // Internal system user (e. g. init-db-pseudo user on test cases.
+    }
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final PFUserDO user = userGroupCache.getUser(userId);
-    return AccessChecker.isDemoUser(user);
+    return isRestrictedUser(user);
   }
 
   @Override
@@ -899,7 +892,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
     if (user == null) {
       return false;
     }
-    return user.getRestrictedUser();
+    return user.isRestrictedUser();
   }
 
   /**
@@ -909,7 +902,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
   public void checkRestrictedUser()
   {
     if (isRestrictedUser() == true) {
-      throw new AccessException("access.exception.demoUserHasNoAccess");
+      throw new AccessException("access.exception.restrictedUserHasNoAccess");
     }
   }
 
@@ -947,7 +940,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
       throw new AccessException("access.exception.demoUserHasNoAccess");
     }
     if (isRestrictedUser() == true) {
-      throw new AccessException("access.exception.demoUserHasNoAccess");
+      throw new AccessException("access.exception.restrictedUserHasNoAccess");
     }
   }
 

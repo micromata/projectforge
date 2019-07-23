@@ -45,9 +45,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Field;
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -63,16 +61,16 @@ public class HistoryBaseDaoAdapter
 
   public static HistoryEntry[] getHistoryFor(BaseDO<?> obj)
   {
-    long begin = System.currentTimeMillis();
+    //long begin = System.currentTimeMillis();
     HistoryEntry[] result = getHistoryEntries(obj).toArray(HISTORY_ARR_TEMPL);
-    long end = System.currentTimeMillis();
-    log.info("HistoryBaseDaoAdapter.getHistoryFor took: " + (end - begin) + " ms.");
+    //long end = System.currentTimeMillis();
+    //log.info("HistoryBaseDaoAdapter.getHistoryFor took: " + (end - begin) + " ms.");
     return result;
   }
 
   public static List<? extends HistoryEntry> getHistoryEntries(BaseDO<?> ob)
   {
-    long begin = System.currentTimeMillis();
+    //long begin = System.currentTimeMillis();
     HistoryService histservice = HistoryServiceManager.get().getHistoryService();
     PfEmgrFactory emf = ApplicationContextProvider.getApplicationContext().getBean(PfEmgrFactory.class);
     List<? extends HistoryEntry> ret = emf.runInTrans((emgr) -> {
@@ -80,24 +78,24 @@ public class HistoryBaseDaoAdapter
     });
     List<? extends HistoryEntry> nret = ret.stream()
         .sorted((e1, e2) -> e2.getModifiedAt().compareTo(e1.getModifiedAt())).collect(Collectors.toList());
-    long end = System.currentTimeMillis();
-    log.info("HistoryBaseDaoAdapter.getHistoryEntries took: " + (end - begin) + " ms.");
+    //long end = System.currentTimeMillis();
+    //log.info("HistoryBaseDaoAdapter.getHistoryEntries took: " + (end - begin) + " ms.");
     return nret;
   }
 
   public static PropertyDelta diffEntryToPropertyDelta(DiffEntry de)
   {
-    long begin = System.currentTimeMillis();
+    //long begin = System.currentTimeMillis();
     SimplePropertyDelta ret = new SimplePropertyDelta(de.getPropertyName(), String.class, de.getOldValue(),
         de.getNewValue());
-    long end = System.currentTimeMillis();
-    log.info("HistoryBaseDaoAdapter.diffEntryToPropertyDelta took: " + (end - begin) + " ms.");
+    //long end = System.currentTimeMillis();
+    //log.info("HistoryBaseDaoAdapter.diffEntryToPropertyDelta took: " + (end - begin) + " ms.");
     return ret;
   }
 
   public static List<SimpleHistoryEntry> getSimpleHistoryEntries(final BaseDO<?> ob, UserGroupCache userGroupCache)
   {
-    long begin = System.currentTimeMillis();
+    //long begin = System.currentTimeMillis();
     List<SimpleHistoryEntry> ret = new ArrayList<>();
     List<? extends HistoryEntry> hel = getHistoryEntries(ob);
 
@@ -114,8 +112,8 @@ public class HistoryBaseDaoAdapter
       }
 
     }
-    long end = System.currentTimeMillis();
-    log.info("HistoryBaseDaoAdapter.getSimpleHistoryEntries took: " + (end - begin) + " ms.");
+    //long end = System.currentTimeMillis();
+    //log.info("HistoryBaseDaoAdapter.getSimpleHistoryEntries took: " + (end - begin) + " ms.");
     return ret;
   }
 
@@ -129,7 +127,7 @@ public class HistoryBaseDaoAdapter
 
   public static boolean isHistorizable(Class<?> clazz)
   {
-    return HistoryServiceManager.get().getHistoryService().hasHistory(clazz);
+     return HistoryServiceManager.get().getHistoryService().hasHistory(clazz);
   }
 
   private static String histCollectionValueToString(Class<?> valueClass, Collection<?> value)
@@ -163,7 +161,7 @@ public class HistoryBaseDaoAdapter
   public static void createHistoryEntry(Object entity, Number id, String user, String property,
       Class<?> valueClass, Object oldValue, Object newValue)
   {
-    long begin = System.currentTimeMillis();
+    //long begin = System.currentTimeMillis();
     String oldVals = histValueToString(valueClass, oldValue);
     String newVals = histValueToString(valueClass, newValue);
 
@@ -174,26 +172,26 @@ public class HistoryBaseDaoAdapter
           id, user, property, valueClass.getName(), oldVals, newVals);
       return null;
     });
-    long end = System.currentTimeMillis();
-    log.info("HistoryBaseDaoAdapter.createHistoryEntry took: " + (end - begin) + " ms.");
+    //long end = System.currentTimeMillis();
+    //log.info("HistoryBaseDaoAdapter.createHistoryEntry took: " + (end - begin) + " ms.");
   }
 
   public static void inserted(BaseDO<?> ob)
   {
-    long begin = System.currentTimeMillis();
+    //long begin = System.currentTimeMillis();
     PfEmgrFactory emf = ApplicationContextProvider.getApplicationContext().getBean(PfEmgrFactory.class);
     emf.runInTrans((emgr) -> {
       EmgrAfterInsertedEvent event = new EmgrAfterInsertedEvent(emgr, ob);
       new HistoryEmgrAfterInsertedEventHandler().onEvent(event);
       return null;
     });
-    long end = System.currentTimeMillis();
-    log.info("HistoryBaseDaoAdapter.inserted took: " + (end - begin) + " ms.");
+    //long end = System.currentTimeMillis();
+    //log.info("HistoryBaseDaoAdapter.inserted took: " + (end - begin) + " ms.");
   }
 
   public static ModificationStatus wrappHistoryUpdate(BaseDO<?> dbo, Supplier<ModificationStatus> callback)
   {
-    long begin = System.currentTimeMillis();
+    //long begin = System.currentTimeMillis();
     final HistoryService historyService = HistoryServiceManager.get().getHistoryService();
     final List<WithHistory> whanots = historyService.internalFindWithHistoryEntity(dbo);
     if (whanots.isEmpty() == true) {
@@ -235,8 +233,8 @@ public class HistoryBaseDaoAdapter
       return ret;
     });
 
-    long end = System.currentTimeMillis();
-    log.info("HistoryBaseDaoAdapter.wrappHistoryUpdate took: " + (end - begin) + " ms.");
+    //long end = System.currentTimeMillis();
+    //log.info("HistoryBaseDaoAdapter.wrappHistoryUpdate took: " + (end - begin) + " ms.");
     return result;
   }
 
@@ -311,7 +309,7 @@ public class HistoryBaseDaoAdapter
 
   public static void updated(BaseDO<?> oldo, BaseDO<?> newo)
   {
-    long begin = System.currentTimeMillis();
+    //long begin = System.currentTimeMillis();
     PfEmgrFactory emf = ApplicationContextProvider.getApplicationContext().getBean(PfEmgrFactory.class);
     emf.runInTrans((emgr) -> {
       EmgrUpdateCopyFilterEvent event = new EmgrUpdateCopyFilterEvent(emgr, oldo.getClass(), oldo.getClass(), oldo,
@@ -320,29 +318,29 @@ public class HistoryBaseDaoAdapter
       new HistoryUpdateCopyFilterEventListener().onEvent(event);
       return null;
     });
-    long end = System.currentTimeMillis();
-    log.info("HistoryBaseDaoAdapter.updated took: " + (end - begin) + " ms.");
+    //long end = System.currentTimeMillis();
+    //log.info("HistoryBaseDaoAdapter.updated took: " + (end - begin) + " ms.");
   }
 
   public static void markedAsDeleted(ExtendedBaseDO<?> oldo, ExtendedBaseDO<?> newoj)
   {
-    long begin = System.currentTimeMillis();
+    //long begin = System.currentTimeMillis();
     boolean prev = newoj.isDeleted();
     newoj.setDeleted(true);
     updated(oldo, newoj);
     newoj.setDeleted(prev);
-    long end = System.currentTimeMillis();
-    log.info("HistoryBaseDaoAdapter.markedAsDeleted took: " + (end - begin) + " ms.");
+    //long end = System.currentTimeMillis();
+    //log.info("HistoryBaseDaoAdapter.markedAsDeleted took: " + (end - begin) + " ms.");
   }
 
   public static void markedAsUnDeleted(ExtendedBaseDO<?> oldo, ExtendedBaseDO<?> newoj)
   {
-    long begin = System.currentTimeMillis();
+    //long begin = System.currentTimeMillis();
     boolean prev = newoj.isDeleted();
     newoj.setDeleted(false);
     updated(oldo, newoj);
     newoj.setDeleted(prev);
-    long end = System.currentTimeMillis();
-    log.info("HistoryBaseDaoAdapter.markedAsUnDeleted took: " + (end - begin) + " ms.");
+    //long end = System.currentTimeMillis();
+    //log.info("HistoryBaseDaoAdapter.markedAsUnDeleted took: " + (end - begin) + " ms.");
   }
 }

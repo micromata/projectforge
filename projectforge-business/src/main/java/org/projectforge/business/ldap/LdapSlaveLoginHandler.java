@@ -154,13 +154,13 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
       } else {
         userService.createEncryptedPassword(user, password);
       }
-      userService.save(user);
+      userDao.internalSave(user);
     } else if (mode != Mode.SIMPLE) {
       PFUserDOConverter.copyUserFields(pfUserDOConverter.convert(ldapUser), user);
       if (ldapConfig.isStorePasswords() == true) {
         userService.createEncryptedPassword(user, password);
       }
-      userService.update(user);
+      userDao.internalUpdate(user);
       if (user.hasSystemAccess() == false) {
         log.info("User has no system access (is deleted/deactivated): " + user.getUserDisplayName());
         return loginResult.setLoginResultStatus(LoginResultStatus.LOGIN_EXPIRED);
@@ -301,10 +301,10 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
               }
               PFUserDOConverter.copyUserFields(user, dbUser);
               if (dbUser.isDeleted() == true) {
-                userService.undelete(dbUser);
+                userDao.internalUndelete(dbUser);
                 ++undeleted;
               }
-              final ModificationStatus modificationStatus = userService.update(dbUser);
+              final ModificationStatus modificationStatus = userDao.internalUpdate(dbUser);
               if (modificationStatus != ModificationStatus.NONE) {
                 ++updated;
               } else {
@@ -313,7 +313,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
             } else {
               // New user:
               user.setId(null);
-              userService.save(user);
+              userDao.internalSave(user);
               ++created;
             }
           } catch (final Exception ex) {
@@ -332,7 +332,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
             if (user == null) {
               if (dbUser.isDeleted() == false) {
                 // User isn't available in LDAP, therefore mark the db user as deleted.
-                userService.markAsDeleted(dbUser);
+                userDao.internalMarkAsDeleted(dbUser);
                 ++deleted;
               } else {
                 ++unmodified;
