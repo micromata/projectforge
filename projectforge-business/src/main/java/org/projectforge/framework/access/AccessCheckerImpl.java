@@ -855,6 +855,9 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
   @Override
   public boolean isRestrictedUser(final Integer userId)
   {
+    if (userId < 0) {
+      return false; // Internal system user (e. g. init-db-pseudo user on test cases.
+    }
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final PFUserDO user = userGroupCache.getUser(userId);
     return user == null || user.isRestrictedUser();
