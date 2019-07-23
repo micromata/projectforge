@@ -37,11 +37,12 @@ and simply start it `java -jar projectforge-application-X.X.X.jar`.
 
 No configuration needed. ProjectForge creates a new installation by creating a new directory `ProjectForge` in the current working directory.
 
-To configure a different directory you have several options:
+To configure a different directory you have several options (*choose Your favorite*):
 
-1. Create `ProjectForge` as top level directory of your home directory: `$HOME/ProjectForge`, or
-2. Create a directory and define it as command line parameter: `java -Dprojectforge.base.dir=yourdirectory -jar projectforge-application-X.X.X.jar`, or
-3. Create a directory and define it as system environment variable `PROJECTFORGE_HOME`.
+. Create `ProjectForge` as top level directory of your home directory: `$HOME/ProjectForge`, *or*
+. Create a directory name `ProjectForge` and put the jar file somewhere in it or in the same directory. ProjectForge detects the folder `ProjectForge` relative to the executed jar, *or*
+. Create a directory and define it as command line parameter: `java -Dhome.dir=yourdirectory -jar projectforge-application-X.X.X.jar`, *or*
+. Create a directory and define it as system environment variable `PROJECTFORGE_HOME`.
 
 === Quickstart with Eclipse and maven
 

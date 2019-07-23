@@ -26,13 +26,17 @@ package org.projectforge.start;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ProjectForgeApplicationTest {
   static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjectForgeApplicationTest.class);
 
   @Test
-  public void addDefaultAdditionalLocation() {
+  void addDefaultAdditionalLocation() {
     String loc = ProjectForgeApplication.getAddtionalLocationArg(null);
     if (ProjectForgeApplication.addDefaultAdditionalLocation(null, null) == null) {
       log.warn("Found application{-default}.properties in current working directory (you should move it to ~/ProjectForge/projectforge.properties). Can't process with this text (OK).");
@@ -43,6 +47,18 @@ public class ProjectForgeApplicationTest {
     checkArray(new String[]{"spring.datasource.driver-class-name=org.postgresql.Driver", loc}, new String[]{"spring.datasource.driver-class-name=org.postgresql.Driver"});
     checkArray(new String[]{"--spring.config.additional-location=file:/opt/projectforge/test.properties"}, new String[]{"--spring.config.additional-location=file:/opt/projectforge/test.properties"});
     checkArray(new String[]{"hurzel", "--spring.config.additional-location=file:/opt/projectforge/test.properties"}, new String[]{"hurzel", "--spring.config.additional-location=file:/opt/projectforge/test.properties"});
+  }
+
+  @Test
+  void findBaseDir() throws IOException {
+    ProjectForgeApplication.findBaseDir(new File("/"));
+    File tmpDir = Files.createTempDirectory("projectforge-application-basedir-test").toFile();
+    File pfDir = new File(tmpDir, "ProjectForge");
+    pfDir.mkdir();
+    File subDir = new File (pfDir, "subdir");
+    subDir.mkdir();
+    File dir = ProjectForgeApplication.findBaseDir(subDir);
+    assertEquals("ProjectForge", dir.getName());
   }
 
   private void checkArray(String[] expected, String[] array) {
