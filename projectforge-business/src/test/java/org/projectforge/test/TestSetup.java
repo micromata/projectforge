@@ -23,6 +23,7 @@
 
 package org.projectforge.test;
 
+import org.projectforge.business.configuration.ConfigurationServiceAccessor;
 import org.projectforge.framework.configuration.ConfigXmlTest;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
@@ -51,5 +52,6 @@ public class TestSetup {
     user.setFirstDayOfWeek(Calendar.MONDAY);
     ThreadLocalUserContext.setUserContext(new UserContext(user, null));
     ConfigXmlTest.createTestConfiguration();
+    ConfigurationServiceAccessor.internalInitJunitTestMode();
   }
 }

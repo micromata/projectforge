@@ -23,16 +23,16 @@
 
 package org.projectforge.framework.utils;
 
+import org.projectforge.business.configuration.ConfigurationServiceAccessor;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+
 import java.text.Collator;
 import java.util.Locale;
-
-import org.projectforge.framework.configuration.ConfigXml;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
 /**
  * Uses {@link Collator} and the user's locale to compare string.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class StringComparator
 {
@@ -124,7 +124,7 @@ public class StringComparator
   private Collator getDefaultCollator()
   {
     if (defaultCollator == null) {
-      Locale locale = ConfigXml.getInstance().getDefaultLocale();
+      Locale locale = ConfigurationServiceAccessor.get().getDefaultLocale();
       if (locale == null) {
         locale = Locale.getDefault();
       }

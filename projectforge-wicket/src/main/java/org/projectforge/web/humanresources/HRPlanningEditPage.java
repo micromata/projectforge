@@ -23,30 +23,26 @@
 
 package org.projectforge.web.humanresources;
 
-import java.sql.Date;
-
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.configuration.ConfigurationServiceAccessor;
 import org.projectforge.business.humanresources.HRPlanningDO;
 import org.projectforge.business.humanresources.HRPlanningDao;
 import org.projectforge.business.humanresources.HRPlanningEntryDO;
-import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.fibu.ISelectCallerPage;
-import org.projectforge.web.wicket.AbstractEditPage;
-import org.projectforge.web.wicket.AbstractSecuredBasePage;
-import org.projectforge.web.wicket.EditPage;
-import org.projectforge.web.wicket.WebConstants;
-import org.projectforge.web.wicket.WicketUtils;
+import org.projectforge.web.wicket.*;
 import org.slf4j.Logger;
 
+import java.sql.Date;
+
 /**
- * 
+ *
  * @author Mario Groß (m.gross@micromata.de)
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @EditPage(defaultReturnPage = HRPlanningListPage.class)
 public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlanningEditForm, HRPlanningDao> implements ISelectCallerPage
@@ -88,7 +84,7 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
       getData().setWeek(week);
     }
     if (getData().getWeek() != null) {
-      final DateHolder date = new DateHolder(getData().getWeek(), ConfigXml.getInstance().getDefaultLocale());
+      final DateHolder date = new DateHolder(getData().getWeek(), ConfigurationServiceAccessor.get().getDefaultLocale());
       if (date.isBeginOfWeek() == false) {
         date.setBeginOfWeek();
         getData().setWeek(date.getSQLDate());

@@ -34,6 +34,7 @@ import org.projectforge.framework.configuration.*;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
+import org.projectforge.framework.time.TimeNotation;
 import org.projectforge.framework.utils.FileHelper;
 import org.projectforge.mail.SendMailConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,8 +62,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
   /**
    * Available early in the spring start up phase. Usable by Flyway.
-   *
-   * @return
    */
   public static String getStaticApplicationHomeDir() {
     return staticApplicationHomeDir;
@@ -124,8 +123,23 @@ public class ConfigurationServiceImpl implements ConfigurationService {
   @Value("${projectforge.logoFile}")
   private String logoFile;
 
+  @Value("${projectforge.currencySymbol}")
+  private String currencySymbol;
+
   @Value("${projectforge.domain}")
   private String domain;
+
+  @Value("${projectforge.defaultLocale}")
+  private Locale defaultLocale;
+
+  @Value("${projectforge.defaultTimeNotation}")
+  private TimeNotation defaultTimeNotation;
+
+  @Value("${projectforge.defaultFirstDayOfWeek}")
+  private int defaultFirstDayOfWeek;
+
+  @Value("${projectforge.excelPaperSize}")
+  private String excelPaperSize;
 
   @Value("${projectforge.wicket.developmentMode}")
   private boolean developmentMode;
@@ -183,6 +197,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
   @PostConstruct
   public void init() {
+    ConfigurationServiceAccessor.setConfigurationService(this);
     staticApplicationHomeDir = this.applicationHomeDir;
     this.configXml = new ConfigXml(this.applicationHomeDir);
     if (StringUtils.isBlank(this.resourceDir)) {
@@ -359,6 +374,14 @@ public class ConfigurationServiceImpl implements ConfigurationService {
   @Override
   public String getLogoFile() {
     return logoFile;
+  }
+
+  /**
+   * Default is €
+   */
+  @Override
+  public String getCurrencySymbol() {
+    return currencySymbol;
   }
 
   /**
@@ -559,6 +582,26 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     return sqlConsoleAvailable;
   }
 
+  public Locale getDefaultLocale()
+  {
+    return defaultLocale;
+  }
+
+  public TimeNotation getDefaultTimeNotation()
+  {
+    return defaultTimeNotation;
+  }
+
+  @Override
+  public int getDefaultFirstDayOfWeek() {
+    return defaultFirstDayOfWeek;
+  }
+
+  @Override
+  public String getExcelPaperSize() {
+    return excelPaperSize;
+  }
+
   @Override
   public boolean getCompileCss() {
     return compileCss;
@@ -662,5 +705,13 @@ public class ConfigurationServiceImpl implements ConfigurationService {
   @Override
   public boolean isSnowEffectEnabled() {
     return GlobalConfiguration.getInstance().getBooleanValue(ConfigurationParam.SNOW_EFFECT_ENABLED);
+  }
+
+  void setDefaultLocale(Locale defaultLocale) {
+    this.defaultLocale = defaultLocale;
+  }
+
+  void setDefaultFirstDayOfWeek(int defaultFirstDayOfWeek) {
+    this.defaultFirstDayOfWeek = defaultFirstDayOfWeek;
   }
 }

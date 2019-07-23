@@ -23,6 +23,14 @@
 
 package org.projectforge.framework.time;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
+import org.projectforge.business.configuration.ConfigurationServiceAccessor;
+import org.projectforge.common.StringHelper;
+import org.projectforge.framework.configuration.Configuration;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.utils.LabelValueBean;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.DateFormat;
@@ -32,20 +40,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
-
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeConstants;
-import org.projectforge.common.StringHelper;
-import org.projectforge.framework.configuration.ConfigXml;
-import org.projectforge.framework.configuration.Configuration;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.utils.LabelValueBean;
+import java.util.*;
 
 /**
  * Parse and formats dates.
@@ -525,7 +520,7 @@ public class DateHelper implements Serializable
       return -1;
     }
     final Calendar cal = Calendar.getInstance(ThreadLocalUserContext.getTimeZone(),
-        ConfigXml.getInstance().getDefaultLocale());
+            ConfigurationServiceAccessor.get().getDefaultLocale());
     cal.setTime(date);
     return cal.get(Calendar.WEEK_OF_YEAR);
   }
@@ -539,14 +534,13 @@ public class DateHelper implements Serializable
    * 4 days in the new year. For "en" the first week of the year is the first week with a minimum of 1 days in
    * the new year.
    * @see java.util.Calendar#getMinimalDaysInFirstWeek()
-   * @see Configuration#getDefaultLocale()
    */
   public static int getWeekOfYear(final Calendar calendar)
   {
     if (calendar == null) {
       return -1;
     }
-    final Calendar cal = Calendar.getInstance(ConfigXml.getInstance().getDefaultLocale());
+    final Calendar cal = Calendar.getInstance(ConfigurationServiceAccessor.get().getDefaultLocale());
     cal.set(Calendar.YEAR, calendar.get(Calendar.YEAR));
     cal.set(Calendar.MONTH, calendar.get(Calendar.MONDAY));
     cal.set(Calendar.DAY_OF_MONTH, calendar.get(Calendar.DAY_OF_MONTH));
@@ -562,7 +556,6 @@ public class DateHelper implements Serializable
    * 4 days in the new year. For "en" the first week of the year is the first week with a minimum of 1 days in
    * the new year.
    * @see java.util.Calendar#getMinimalDaysInFirstWeek()
-   * @see Configuration#getDefaultLocale()
    */
   public static int getWeekOfYear(final DateTime date)
   {

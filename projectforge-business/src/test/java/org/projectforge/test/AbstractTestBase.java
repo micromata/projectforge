@@ -30,6 +30,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.projectforge.ProjectForgeApp;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.login.LoginDefaultHandler;
@@ -73,6 +74,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Every test should finish with a valid database with test cases. If not, the test should call recreateDatabase() on afterAll!
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @ExtendWith(SpringExtension.class)
@@ -181,6 +183,7 @@ public abstract class AbstractTestBase {
 
   @BeforeAll
   public static void _beforeAll() {
+    ProjectForgeApp.internalSetJunitTestMode();
     initialized = false;
   }
 

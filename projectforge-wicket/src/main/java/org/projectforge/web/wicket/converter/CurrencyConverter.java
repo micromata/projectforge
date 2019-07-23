@@ -23,16 +23,16 @@
 
 package org.projectforge.web.wicket.converter;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.util.convert.converter.BigDecimalConverter;
+import org.projectforge.business.configuration.ConfigurationServiceAccessor;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.utils.NumberHelper;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.Locale;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.util.convert.converter.BigDecimalConverter;
-import org.projectforge.framework.configuration.ConfigXml;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.utils.NumberHelper;
 
 
 /**
@@ -48,7 +48,7 @@ public class CurrencyConverter extends BigDecimalConverter
 
   public CurrencyConverter()
   {
-    currency = ConfigXml.getInstance().getCurrencySymbol();
+    currency = ConfigurationServiceAccessor.get().getCurrencySymbol();
   }
 
   /**

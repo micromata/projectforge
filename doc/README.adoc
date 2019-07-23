@@ -18,6 +18,7 @@ ifdef::env-github,env-browser[:outfilesuffix: .adoc]
 |=======
 |Document | Description
 |link:development{outfilesuffix}[Development]|Development docs.
+|link:migration{outfilesuffix}[Migration]|Migration guide.
 |link:deployment{outfilesuffix}[Deployment]|How to deploy a new release.
 |link:license{outfilesuffix}[License]| GNU GENERAL PUBLIC LICENSE, Version 3
 |=======

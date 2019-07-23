@@ -23,17 +23,10 @@
 
 package org.projectforge.business.scripting;
 
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TimeZone;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.common.OutputType;
 import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.configuration.ConfigurationServiceAccessor;
 import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
@@ -49,6 +42,14 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.utils.NumberFormatter;
 import org.projectforge.framework.utils.NumberHelper;
+
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class GroovyEngine
 {
@@ -78,7 +79,7 @@ public class GroovyEngine
     if (locale != null) {
       this.locale = locale;
     } else {
-      this.locale = ConfigXml.getInstance().getDefaultLocale();
+      this.locale = ConfigurationServiceAccessor.get().getDefaultLocale();
     }
     if (timeZone != null) {
       this.timeZone = timeZone;

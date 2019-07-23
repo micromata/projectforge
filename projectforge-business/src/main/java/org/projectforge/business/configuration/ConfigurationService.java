@@ -30,15 +30,17 @@ import org.projectforge.framework.configuration.IConfigurationParam;
 import org.projectforge.framework.configuration.SecurityConfig;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
+import org.projectforge.framework.time.TimeNotation;
 import org.projectforge.mail.SendMailConfig;
 
 import javax.net.ssl.SSLSocketFactory;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Map;
+import java.util.Locale;
 import java.util.TimeZone;
 
 public interface ConfigurationService {
+
   Object[] getResourceContentAsString(String filename);
 
   Object[] getResourceAsInputStream(String filename);
@@ -64,6 +66,8 @@ public interface ConfigurationService {
   String getServletContextPath();
 
   String getLogoFile();
+
+  String getCurrencySymbol();
 
   String getDomain();
 
@@ -91,6 +95,20 @@ public interface ConfigurationService {
 
   TimeZone getTimezone();
 
+  /**
+   * The default time notation (12-hour or 24-hour). This notation is used, if the user has not chosen his personal time
+   * notation. Default is 24-hour for locales starting with "de" (German), otherwise 12-hour.
+   */
+  TimeNotation getDefaultTimeNotation();
+
+  /**
+   * The default first day of week (1 - Sunday, 2 - Monday, ...)
+   *
+   * @return the firstDayOfWeek
+   */
+  int getDefaultFirstDayOfWeek();
+
+
   String getPfSupportMailAddress();
 
   MailSessionLocalSettingsConfigModel createMailSessionLocalSettingsConfigModel();
@@ -100,6 +118,16 @@ public interface ConfigurationService {
   String getApplicationHomeDir();
 
   boolean getCompileCss();
+
+  /**
+   * The default locale is currently used for getting the week of year in Calendar.
+   */
+  Locale getDefaultLocale();
+
+  /**
+   * The paper size for excel exports.
+   */
+  String getExcelPaperSize();
 
   String getLoginHandlerClass();
 

@@ -23,13 +23,13 @@
 
 package org.projectforge.business.utils;
 
+import org.projectforge.business.configuration.ConfigurationServiceAccessor;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.utils.NumberHelper;
+
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.Locale;
-
-import org.projectforge.framework.configuration.ConfigXml;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.utils.NumberHelper;
 
 /**
  * Converts BigDecimal values to formatted currency strings.
@@ -54,7 +54,6 @@ public class CurrencyFormatter
    * @param value
    * @param locale
    * @return 1,234.00 €
-   * @see ConfigXml#getCurrencySymbol()
    */
   public static String format(final BigDecimal value, final Locale locale)
   {
@@ -62,6 +61,6 @@ public class CurrencyFormatter
       return "";
     }
     NumberFormat nf = NumberHelper.getCurrencyFormat(locale);
-    return nf.format(value) + " " + ConfigXml.getInstance().getCurrencySymbol();
+    return nf.format(value) + " " + ConfigurationServiceAccessor.get().getCurrencySymbol();
   }
 }

@@ -24,8 +24,8 @@
 package org.projectforge.framework.persistence.user.api;
 
 import org.joda.time.DateTimeZone;
+import org.projectforge.business.configuration.ConfigurationServiceAccessor;
 import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -150,7 +150,7 @@ public class ThreadLocalUserContext
     if (defaultLocale != null) {
       return defaultLocale;
     }
-    final Locale locale = ConfigXml.getInstance().getDefaultLocale();
+    final Locale locale = ConfigurationServiceAccessor.get().getDefaultLocale();
     return locale != null ? locale : Locale.getDefault();
   }
 
@@ -178,12 +178,11 @@ public class ThreadLocalUserContext
   }
 
   /**
-   * The first day of the week, configured at the given user, if not configured {@link ConfigXml#getFirstDayOfWeek()} is
+   * The first day of the week, configured at the given user, if not configured {@link org.projectforge.business.configuration.ConfigurationService#getDefaultFirstDayOfWeek()} is
    * used.
    * Please note: 1 - sunday, 2 - monday, 3 - tuesday etc. (java.util.Calendar)!
    *
    * @return
-   * @see ConfigXml#getFirstDayOfWeek()
    */
   public final static int getCalendarFirstDayOfWeek()
   {
@@ -194,7 +193,7 @@ public class ThreadLocalUserContext
         return firstDayOfWeek;
       }
     }
-    return ConfigXml.getInstance().getFirstDayOfWeek();
+    return ConfigurationServiceAccessor.get().getDefaultFirstDayOfWeek();
   }
 
   public final static int getJodaFirstDayOfWeek()
