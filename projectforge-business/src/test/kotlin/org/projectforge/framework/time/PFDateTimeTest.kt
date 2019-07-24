@@ -123,7 +123,7 @@ class PFDateTimeTest {
         @BeforeAll
         @JvmStatic
         fun setup() {
-            ConfigXml(".")
+            ConfigXml.createForJunitTests()
             val user = PFUserDO()
             user.setTimeZone(TimeZone.getTimeZone("Europe/Berlin"))
             ThreadLocalUserContext.setUserContext(UserContext(user, null))

@@ -73,13 +73,9 @@ public class ConfigXmlTest {
           + "</config>");
 
   /**
-   * Creates a test configuration if no configuration does already exists. Puts also a context user in ThreadLocal
-   * with common used properties, such as time zone, locale etc.
+   * Creates a test configuration if no configuration does already exists.
    */
   public static ConfigXml createTestConfiguration() {
-    if (ConfigXml.isInitialized() == true && ConfigXml.getInstance().getHolidays() != null) {
-      return ConfigXml.getInstance();
-    }
     ConfigurationServiceAccessor.internalInitJunitTestMode();
     ConfigXml.internalSetInstance(xml);
     return ConfigXml.getInstance();

@@ -88,14 +88,12 @@ public class VacationServiceTest
   {
     MockitoAnnotations.initMocks(this);
     mockStatic(ThreadLocalUserContext.class);
-    mockStatic(ConfigXml.class);
     Locale locale = Locale.getDefault();
     TimeZone timeZone = TimeZone.getDefault();
     sdf.setTimeZone(timeZone);
-    ConfigXml configXml = new ConfigXml("./target/ProjectForge");
+    ConfigXml.createForJunitTests();
     PowerMockito.when(ThreadLocalUserContext.getLocale()).thenReturn(locale);
     PowerMockito.when(ThreadLocalUserContext.getTimeZone()).thenReturn(timeZone);
-    PowerMockito.when(ConfigXml.getInstance()).thenReturn(configXml);
     endLastYear.set(Calendar.YEAR, 2017);
     endLastYear.set(Calendar.MONTH, Calendar.MARCH);
     endLastYear.set(Calendar.DAY_OF_MONTH, 31);

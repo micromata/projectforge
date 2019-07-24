@@ -64,7 +64,7 @@ class ValidationTest {
         @BeforeAll
         @JvmStatic
         fun setup() {
-            ConfigXml(".")
+            ConfigXml.createForJunitTests()
             val user = PFUserDO()
             user.locale = Locale.GERMAN
             ThreadLocalUserContext.setUserContext(UserContext(user, null))
