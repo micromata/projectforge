@@ -25,6 +25,7 @@ package org.projectforge.start;
 
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.ProjectForgeApp;
+import org.projectforge.common.LoggerSupport;
 import org.projectforge.framework.time.DateHelper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -59,12 +60,11 @@ public class ProjectForgeApplication {
   public static void main(String[] args) {
     String javaVersion = System.getProperty("java.version");
     if (javaVersion != null && javaVersion.compareTo("1.9") >= 0) {
-      LoggerSupport loggerSupport = new LoggerSupport(log, LoggerSupport.Priority.VERY_IMPORTANT);
-      loggerSupport.logStartSeparator();
-      loggerSupport.log("ProjectForge doesn't support versions higher than Java 1.8!!!!");
-      loggerSupport.log("");
-      loggerSupport.log("Please downgrade. Sorry, we're working on newer Java versions.");
-      loggerSupport.logEndSeparator();
+      new LoggerSupport(log, LoggerSupport.Priority.VERY_IMPORTANT)
+              .log("ProjectForge doesn't support versions higher than Java 1.8!!!!")
+              .log("")
+              .log("Please downgrade. Sorry, we're working on newer Java versions.")
+              .logEnd();
     }
     String param = ProjectForgeApp.CONFIG_PARAM_BASE_DIR;
     String appHomeDir = System.getProperty(param); // Might be defined as -Dprojectforge.base.dir
@@ -101,20 +101,16 @@ public class ProjectForgeApplication {
         }
       }
     }
-    {
-      LoggerSupport loggerSupport = new LoggerSupport(log, LoggerSupport.Priority.HIGH);
-      loggerSupport.log("");
-      loggerSupport.log("Using ProjectForge directory: " + baseDir.getAbsolutePath());
-      loggerSupport.log("");
-    }
+    new LoggerSupport(log, LoggerSupport.Priority.HIGH)
+            .log("Using ProjectForge directory: " + baseDir.getAbsolutePath())
+            .logEnd();
     System.setProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR, baseDir.getAbsolutePath());
     if (!new File(baseDir, PROPERTIES_FILENAME).exists()) {
-      LoggerSupport loggerSupport = new LoggerSupport(log);
-      loggerSupport.logStartSeparator();
-      loggerSupport.log("Creating new ProjectForge installation!");
-      loggerSupport.log("");
-      loggerSupport.log(baseDir.getAbsolutePath());
-      loggerSupport.logEndSeparator();
+      new LoggerSupport(log)
+              .log("Creating new ProjectForge installation!")
+              .log("")
+              .log(baseDir.getAbsolutePath())
+              .logEnd();
     }
     ProjectForgeApp.ensureInitialConfigFile("initialProjectForge.properties", PROPERTIES_FILENAME);
     args = addDefaultAdditionalLocation(baseDir, args);

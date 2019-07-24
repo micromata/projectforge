@@ -21,31 +21,31 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.start;
+package org.projectforge.common;
 
 import org.apache.commons.lang3.StringUtils;
 
 /**
  * Helper for logging very important information and warnings.
  */
-class LoggerSupport {
+public class LoggerSupport {
   private org.slf4j.Logger log;
   private Alignment alignment;
   private int number;
 
-  LoggerSupport(org.slf4j.Logger log) {
+  public LoggerSupport(org.slf4j.Logger log) {
     this(log, Priority.IMPORTANT);
   }
 
-  LoggerSupport(org.slf4j.Logger log, Priority priority) {
+  public LoggerSupport(org.slf4j.Logger log, Priority priority) {
     this(log, priority, Alignment.CENTER);
   }
 
-  LoggerSupport(org.slf4j.Logger log, Alignment alignment) {
+  public LoggerSupport(org.slf4j.Logger log, Alignment alignment) {
     this(log, Priority.IMPORTANT, alignment);
   }
 
-  LoggerSupport(org.slf4j.Logger log, Priority priority, Alignment alignment) {
+  public LoggerSupport(org.slf4j.Logger log, Priority priority, Alignment alignment) {
     this.log = log;
     this.alignment = alignment;
     switch (priority) {
@@ -58,33 +58,42 @@ class LoggerSupport {
       default:
         this.number = 2;
     }
+    logStartSeparator();
   }
 
 
-  enum Priority {HIGH, IMPORTANT, VERY_IMPORTANT}
+  public enum Priority {HIGH, IMPORTANT, VERY_IMPORTANT}
 
-  enum Alignment {CENTER, LEFT}
+  public enum Alignment {CENTER, LEFT}
 
   private static final int CONSOLE_LENGTH = 80;
 
-  void logStartSeparator() {
+  /**
+   * @return this for chaining.
+   */
+  private LoggerSupport logStartSeparator() {
     for (int i = 0; i < number; i++) {
       log.info(StringUtils.rightPad("", CONSOLE_LENGTH, "*") + asterisks(number * 2 + 2));
     }
-    log("");
+    return log("");
   }
 
-  void logEndSeparator() {
+  /**
+   * @return this for chaining.
+   */
+  public LoggerSupport logEnd() {
     log("");
     for (int i = 0; i < number; i++) {
       log.info(StringUtils.rightPad("", CONSOLE_LENGTH, "*") + asterisks(number * 2 + 2));
     }
+    return this;
   }
 
-  void log(String text) {
+  public LoggerSupport log(String text) {
     String padText = alignment == Alignment.LEFT ? StringUtils.rightPad(text, CONSOLE_LENGTH)
             : StringUtils.center(text, CONSOLE_LENGTH);
     log.info(asterisks(number) + " " + padText + " " + asterisks(number));
+    return this;
   }
 
   private static String asterisks(int number) {

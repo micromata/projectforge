@@ -26,6 +26,7 @@ package org.projectforge.config;
 import org.apache.wicket.protocol.http.WicketFilter;
 import org.apache.wicket.spring.SpringWebApplicationFactory;
 import org.projectforge.business.user.filter.UserFilter;
+import org.projectforge.common.LoggerSupport;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.rest.config.CORSFilter;
 import org.projectforge.security.SecurityHeaderFilter;
@@ -87,15 +88,14 @@ public class WebXMLInitializer implements ServletContextInitializer {
     wicketApp.addMappingForUrlPatterns(null, filterAfterInternal, "/wa/*");
 
     if (webDevelopmentEnableCORSFilter) {
-      log.warn("*********************************");
-      log.warn("***********            **********");
-      log.warn("*********** ATTENTION! **********");
-      log.warn("***********            **********");
-      log.warn("*********** Running in **********");
-      log.warn("*********** dev mode!  **********");
-      log.warn("***********            **********");
-      log.warn("*********************************");
-      log.warn("Don't deliver this app in dev mode due to security reasons (cross origin allowed)!");
+      LoggerSupport loggerSupport = new LoggerSupport(log);
+      loggerSupport.log("ATTENTION!");
+      loggerSupport.log("");
+      loggerSupport.log("Running in dev mode!");
+      loggerSupport.log("");
+      loggerSupport.log("Don't deliver this app in dev mode due to security reasons!");
+      loggerSupport.log("(cross origin allowed)");
+      loggerSupport.logEnd();
       sc.addFilter("cors", new CORSFilter()).addMappingForUrlPatterns(null, false,
               "/" + RestPaths.REST_WEB_APP + "/*",
               "/" + RestPaths.REST_WEB_APP_PUBLIC + "/*"); // Needed for login service.
