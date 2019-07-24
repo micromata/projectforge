@@ -101,7 +101,10 @@ public class SourceFileHeadersMain {
         System.out.println("Closed: Validating and fixing all source code file headers in: " + path);
       }
     }
-    final Collection<File> files = FileUtils.listFiles(new File(path, "src"), new String[]{"java", "kt"}, true);
+    File dir = new File(path, "src");
+    if (!dir.exists() || !dir.isDirectory())
+      return;
+    final Collection<File> files = FileUtils.listFiles(dir, new String[]{"java", "kt"}, true);
     for (final File file : files) {
       if (file.getAbsolutePath().contains("org/projectforge/lucene/PF")
               || file.getAbsolutePath().contains("arlut/csd/crypto")
