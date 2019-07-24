@@ -48,11 +48,10 @@ import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ ThreadLocalUserContext.class, ConfigXml.class })
+@PrepareForTest({ThreadLocalUserContext.class, ConfigXml.class})
 //Needed for: java.lang.ClassCastException: com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl cannot be cast to javax.xml.parsers.SAXParserFactory
-@PowerMockIgnore({ "javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*" })
-public class SystemServiceTest
-{
+@PowerMockIgnore({"javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*"})
+public class SystemServiceTest {
   @InjectMocks
   SystemService systemService = new SystemService();
 
@@ -66,21 +65,17 @@ public class SystemServiceTest
   private VersionCheck targetVersionCheck = new VersionCheck();
 
   @Before
-  public void setUp()
-  {
+  public void setUp() {
     MockitoAnnotations.initMocks(this);
     mockStatic(ThreadLocalUserContext.class);
-    mockStatic(ConfigXml.class);
-    ConfigXml configXml = new ConfigXml("./target/ProjectForge");
+    ConfigXml.createForJunitTests();
     PowerMockito.when(ThreadLocalUserContext.getLocale()).thenReturn(locale);
     PowerMockito.when(ThreadLocalUserContext.getTimeZone()).thenReturn(timeZone);
-    PowerMockito.when(ConfigXml.getInstance()).thenReturn(configXml);
     systemService.setEnableVersionCheck(true);
   }
 
   @Test
-  public void isNewPFVersionAvailableNullTest()
-  {
+  public void isNewPFVersionAvailableNullTest() {
     when(restCallService.callRestInterfaceForUrl(any(), any(), any(), any())).thenReturn(new VersionCheck());
     assertFalse(systemService.isNewPFVersionAvailable());
     systemService.setLastVersionCheckDate(null);
@@ -91,8 +86,7 @@ public class SystemServiceTest
   }
 
   @Test
-  public void isNewPFVersionAvailableTest()
-  {
+  public void isNewPFVersionAvailableTest() {
     when(restCallService.callRestInterfaceForUrl(any(), any(), any(), any())).thenReturn(new VersionCheck("1", null, locale, timeZone));
     assertFalse(systemService.isNewPFVersionAvailable());
     systemService.setLastVersionCheckDate(null);
@@ -142,7 +136,7 @@ public class SystemServiceTest
     systemService.setLastVersionCheckDate(null);
 
     when(restCallService.callRestInterfaceForUrl(any(), any(), any(), any()))
-        .thenReturn(new VersionCheck("6.18.0-SNAPSHOT", "6.19.1-SNAPSHOT", locale, timeZone));
+            .thenReturn(new VersionCheck("6.18.0-SNAPSHOT", "6.19.1-SNAPSHOT", locale, timeZone));
     assertTrue(systemService.isNewPFVersionAvailable());
     systemService.setLastVersionCheckDate(null);
   }

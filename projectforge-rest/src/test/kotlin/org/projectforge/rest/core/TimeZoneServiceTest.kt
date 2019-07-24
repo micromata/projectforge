@@ -70,7 +70,7 @@ class TimeZoneServiceTest {
         @BeforeAll
         @JvmStatic
         fun setup() {
-            ConfigXml(".")
+            ConfigXml.createForJunitTests()
         }
     }
 

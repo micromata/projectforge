@@ -64,7 +64,7 @@ class UtilDateConverterTest {
         @BeforeAll
         @JvmStatic
         fun setup() {
-            ConfigXml(".")
+            ConfigXml.createForJunitTests()
             val user = PFUserDO()
             user.setTimeZone(TimeZone.getTimeZone("UTC"))
             ThreadLocalUserContext.setUserContext(UserContext(user, null))

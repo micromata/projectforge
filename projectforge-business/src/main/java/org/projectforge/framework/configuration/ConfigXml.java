@@ -586,4 +586,11 @@ public class ConfigXml {
 
     }.toString();
   }
+
+  public static ConfigXml createForJunitTests() {
+    File file = new File("target", "ProjectForge");
+    String applicationHomeDir = file.getAbsolutePath();
+    System.setProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR, applicationHomeDir);
+    return new ConfigXml(applicationHomeDir);
+  }
 }
