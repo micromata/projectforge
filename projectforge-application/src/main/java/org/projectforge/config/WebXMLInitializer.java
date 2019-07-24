@@ -88,14 +88,14 @@ public class WebXMLInitializer implements ServletContextInitializer {
     wicketApp.addMappingForUrlPatterns(null, filterAfterInternal, "/wa/*");
 
     if (webDevelopmentEnableCORSFilter) {
-      LoggerSupport loggerSupport = new LoggerSupport(log);
-      loggerSupport.log("ATTENTION!");
-      loggerSupport.log("");
-      loggerSupport.log("Running in dev mode!");
-      loggerSupport.log("");
-      loggerSupport.log("Don't deliver this app in dev mode due to security reasons!");
-      loggerSupport.log("(cross origin allowed)");
-      loggerSupport.logEnd();
+      new LoggerSupport(log)
+              .log("ATTENTION!")
+              .log("")
+              .log("Running in dev mode!")
+              .log("")
+              .log("Don't deliver this app in dev mode due to security reasons!")
+              .log("(cross origin allowed)")
+              .logEnd();
       sc.addFilter("cors", new CORSFilter()).addMappingForUrlPatterns(null, false,
               "/" + RestPaths.REST_WEB_APP + "/*",
               "/" + RestPaths.REST_WEB_APP_PUBLIC + "/*"); // Needed for login service.
