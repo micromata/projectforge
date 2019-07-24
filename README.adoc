@@ -105,6 +105,13 @@ This is useful for avoiding a lot of external calendar calls of foreign users if
 
 Please have a lock at all available config parameters: https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/resources/application.properties[application.properties]
 
+== Documentation
+
+Refer
+
+* https://github.com/micromata/projectforge/tree/develop/doc[doc (Github)], or
+* https://www.projectforge.org/documentation.html[www.projectforge.org]
+
 == Adding your own plugins
 ProjectForge support plugins. The existing menu can be modified and own entities and functionalities can be added.
 

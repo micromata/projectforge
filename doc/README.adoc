@@ -14,6 +14,8 @@ ifdef::env-github,env-browser[:outfilesuffix: .adoc]
 
 == Documents
 
+Please, refer also https://www.projectforge.org/documentation.html[www.projectforge.org]
+
 [%autowidth, frame="topbot",options="header"]
 |=======
 |Document | Description
