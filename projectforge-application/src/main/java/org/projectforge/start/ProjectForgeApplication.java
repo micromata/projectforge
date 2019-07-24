@@ -30,6 +30,7 @@ import org.projectforge.framework.time.DateHelper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
+import org.springframework.boot.web.embedded.tomcat.ConnectorStartFailedException;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 
 import java.io.File;
@@ -94,8 +95,18 @@ public class ProjectForgeApplication {
       if (baseDir == null) {
         // No ProjectForge base directory found. Assuming current directory.
         baseDir = new File("ProjectForge");
+        if (ProjectForgeHomeFinder.isProjectForgeSourceCodeRepository(baseDir)) {
+          log.error("Found '" + baseDir + "' as ProjectForge directory. This seems to be the source code repository. Can't use it as ProjectForge home dir.");
+          ProjectForgeHomeFinder.giveUp();
+        }
         log.info("No previous ProjectForge installation found (searched for ./ProjectForge and $HOME/ProjectForge). Trying to create a new base directory: " + baseDir.getAbsolutePath());
-        if (!baseDir.mkdir()) {
+        String msg = "Do you allow ProjectForge to create and initialize the directory (y/n) '" + baseDir.getAbsolutePath() + "'?";
+        String answer = new ConsoleTimeoutReader(msg).ask();
+        if (!StringUtils.startsWith(answer, "y")) {
+          // No permission by the user in console input or time out:
+          log.error("Creation of directory '" + baseDir.getAbsolutePath() + "' aborted, giving up :-(");
+          ProjectForgeHomeFinder.giveUp();
+        } else if (!baseDir.mkdir()) {
           log.error("Creation of directory '" + baseDir.getAbsolutePath() + "' failed, giving up :-(");
           ProjectForgeHomeFinder.giveUp();
         }
@@ -116,7 +127,22 @@ public class ProjectForgeApplication {
     args = addDefaultAdditionalLocation(baseDir, args);
     System.setProperty("user.timezone", "UTC");
     TimeZone.setDefault(DateHelper.UTC);
-    SpringApplication.run(ProjectForgeApplication.class, args);
+    try {
+      SpringApplication.run(ProjectForgeApplication.class, args);
+    } catch (Exception ex) {
+      log.error("Exception while running application: " + ex.getMessage(), ex);
+      LoggerSupport loggerSupport = new LoggerSupport(log, LoggerSupport.Priority.VERY_IMPORTANT, LoggerSupport.Alignment.LEFT)
+              .setLogLevel(LoggerSupport.LogLevel.ERROR)
+              .log("Error while running application:")
+              .log("")
+              .log(ex.getMessage());
+      if (ex instanceof ConnectorStartFailedException) {
+        loggerSupport.log("")
+                .log("May-be address of server port is already in use.");
+      }
+      loggerSupport.logEnd();
+      throw ex;
+    }
   }
 
   /**

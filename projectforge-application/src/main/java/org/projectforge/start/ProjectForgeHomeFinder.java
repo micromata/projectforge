@@ -50,7 +50,7 @@ public class ProjectForgeHomeFinder {
 
   static void giveUp() {
     new LoggerSupport(log, LoggerSupport.Alignment.LEFT)
-            .log("You options (please refer: https://github.com/micromata/projectforge):")
+            .log("Your options (please refer: https://github.com/micromata/projectforge):")
             .log("  1. Create ProjectForge as a top level directory of your home directory:")
             .log("     '$HOME/ProjectForge', or")
             .log("  2. create a directory named 'ProjectForge' and put the jar file somewhere in")
@@ -145,14 +145,19 @@ public class ProjectForgeHomeFinder {
       return false;
     }
     // Check for ProjectForge as source code repository:
-    if (new File(baseDir, "projectforge-application").exists()
-            && new File(baseDir, "projectforge-business").exists()
-            && new File(baseDir, "projectforge-common").exists()) {
+    if (isProjectForgeSourceCodeRepository(baseDir)) {
       if (logWarning) {
         log.warn("Configured base dir '" + baseDir.getAbsolutePath() + "' seems to be the source code repository and shouldn't be used. Ignoring it.");
       }
       return false;
     }
     return true;
+  }
+
+  static boolean isProjectForgeSourceCodeRepository(File dir) {
+    return dir.exists()
+            && new File(dir, "projectforge-application").exists()
+            && new File(dir, "projectforge-business").exists()
+            && new File(dir, "projectforge-common").exists();
   }
 }
