@@ -40,7 +40,7 @@ No configuration needed. ProjectForge creates a new installation by creating a n
 To configure a different directory you have several options (*choose Your favorite*):
 
 . Create `ProjectForge` as top level directory of your home directory: `$HOME/ProjectForge`, *or*
-. Create a directory name `ProjectForge` and put the jar file somewhere in it or in the same directory. ProjectForge detects the folder `ProjectForge` relative to the executed jar, *or*
+. Create a directory named `ProjectForge` and put the jar file somewhere in it or in the same directory. ProjectForge detects the folder `ProjectForge` relative to the executed jar, *or*
 . Create a directory and define it as command line parameter: `java -Dhome.dir=yourdirectory -jar projectforge-application-X.X.X.jar`, *or*
 . Create a directory and define it as system environment variable `PROJECTFORGE_HOME`.
 
