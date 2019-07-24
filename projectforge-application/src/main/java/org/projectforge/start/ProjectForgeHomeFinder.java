@@ -23,6 +23,8 @@
 
 package org.projectforge.start;
 
+import org.projectforge.common.LoggerSupport;
+
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -47,20 +49,19 @@ public class ProjectForgeHomeFinder {
   private static final String[] DIR_NAMES = {"ProjectForge", "Projectforge", "projectforge"};
 
   static void giveUp() {
-    LoggerSupport loggerSupport = new LoggerSupport(log, LoggerSupport.Alignment.LEFT);
-    loggerSupport.logStartSeparator();
-    loggerSupport.log("You options (please refer: https://github.com/micromata/projectforge):");
-    loggerSupport.log("  1. Create ProjectForge as a top level directory of your home directory:");
-    loggerSupport.log("     '$HOME/ProjectForge', or");
-    loggerSupport.log("  2. create a directory named 'ProjectForge' and put the jar file somewhere in");
-    loggerSupport.log("     it or in the same directory. ProjectForge detects the folder 'ProjectForge'");
-    loggerSupport.log("     relative to the executed jar, or");
-    loggerSupport.log("  3. create a directory and define it as command line parameter:");
-    loggerSupport.log("     'java -D" + COMMAND_LINE_VAR_HOME_DIR + "=yourdirectory -jar ...', or");
-    loggerSupport.log("  4. create a directory and define it as system environment variable");
-    loggerSupport.log("     '" + ENV_PROJECTFORGE_HOME + "'.");
-    loggerSupport.log("Hope to see You again ;-)");
-    loggerSupport.logEndSeparator();
+    new LoggerSupport(log, LoggerSupport.Alignment.LEFT)
+            .log("You options (please refer: https://github.com/micromata/projectforge):")
+            .log("  1. Create ProjectForge as a top level directory of your home directory:")
+            .log("     '$HOME/ProjectForge', or")
+            .log("  2. create a directory named 'ProjectForge' and put the jar file somewhere in")
+            .log("     it or in the same directory. ProjectForge detects the folder 'ProjectForge'")
+            .log("     relative to the executed jar, or")
+            .log("  3. create a directory and define it as command line parameter:")
+            .log("     'java -D" + COMMAND_LINE_VAR_HOME_DIR + "=yourdirectory -jar ...', or")
+            .log("  4. create a directory and define it as system environment variable")
+            .log("     '" + ENV_PROJECTFORGE_HOME + "'.")
+            .log("Hope to see You again ;-)")
+            .logEnd();
     System.exit(1);
   }
 
