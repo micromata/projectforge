@@ -63,4 +63,9 @@ abstract class AbstractWizardWindow(context: GUIContext,
         panel.addComponent(EmptySpace())
         return panel
     }
+
+    /**
+     * Will be called if window is shown again.
+     */
+    open fun redraw() {}
 }

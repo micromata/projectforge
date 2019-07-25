@@ -25,7 +25,6 @@ package org.projectforge.setup
 
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
-import com.googlecode.lanterna.gui2.BasicWindow
 import com.googlecode.lanterna.gui2.DefaultWindowManager
 import com.googlecode.lanterna.gui2.EmptySpace
 import com.googlecode.lanterna.gui2.MultiWindowTextGUI
@@ -87,8 +86,9 @@ class SetupMain {
         }
     }
 
-    private fun setActiveWindow(window: BasicWindow) {
+    private fun setActiveWindow(window: AbstractWizardWindow) {
         context.currentWindow = window
+        window.redraw()
         context.textGUI.setActiveWindow(window)
     }
 
