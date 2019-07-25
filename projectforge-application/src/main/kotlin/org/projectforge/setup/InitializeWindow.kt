@@ -23,12 +23,34 @@
 
 package org.projectforge.setup
 
-import com.googlecode.lanterna.gui2.Button
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.gui2.*
+import org.projectforge.start.ProjectForgeApplication
+import org.projectforge.start.ProjectForgeHomeFinder
+import java.io.File
 
-class InitializeWindow(context: GUIContext) : AbstractWizardWindow(context, "ProjectForge setup") {
+class InitializeWindow(context: GUIContext) : AbstractWizardWindow(context, "Finishing the directory setup") {
     private val log = org.slf4j.LoggerFactory.getLogger(InitializeWindow::class.java)
 
-    init {
+    private lateinit var dirLabel: Label
+    private lateinit var portextBox: TextBox
+    private lateinit var hintLabel: Label
+
+    override fun getContentPanel(): Panel {
+        dirLabel = Label("")
+        val panel = Panel()
+        panel.layoutManager = GridLayout(2)
+        panel.addComponent(Label("Directory").setSize(TerminalSize(10, 1)))
+                .addComponent(dirLabel)
+        panel.addComponent(EmptySpace().setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
+        portextBox = TextBox("8080").setPreferredSize(TerminalSize(5, 1))
+        panel.addComponent(Label("Port"))
+                .addComponent(portextBox)
+        panel.addComponent(EmptySpace().setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
+        hintLabel = Label("")
+        hintLabel.layoutData = GridLayout.createHorizontallyFilledLayoutData(2)
+        panel.addComponent(hintLabel)
+        return panel
     }
 
     override fun getButtons(): Array<Button> {
@@ -39,5 +61,44 @@ class InitializeWindow(context: GUIContext) : AbstractWizardWindow(context, "Pro
                 Button("Finish") {
                     context.setupMain.next()
                 })
+    }
+
+    override fun redraw() {
+        val dir = context.setupData.applicationHomeDir ?: File(System.getProperty("user.home"), "ProjectForge")
+        dirLabel.setPreferredSize(TerminalSize(context.terminalSize.columns - 20, 1))
+        dirLabel.setText(dir.absolutePath)
+        val sb = StringBuilder()
+        sb.append("Final steps to be done:\n")
+        var counter = 1
+        if (dir.exists() == false) {
+            sb.append(" ${counter++}. Creation of the directory\n")
+        } else {
+            sb.append(" ${counter++}. Directory does already exist (OK)\n")
+        }
+        if (!File(dir, ProjectForgeApplication.PROPERTIES_FILENAME).exists()) {
+            sb.append(" ${counter++}. Initialization of the directory with a default configuration.\n")
+        } else {
+            sb.append(" ${counter++}. Directory contains already a configuration (OK)\n")
+        }
+        sb.append(" ${counter++}. Starting the server.\n\n")
+        sb.append("Please open your favorite browser after startup: http://localhost:8080 and enjoy it!\n\n")
+        if (ProjectForgeHomeFinder.isStandardProjectForgeUserDir(dir))  {
+            sb.append("You chose the standard directory of ProjectForge, that will be found by ProjectForge automatically (OK).\n\n")
+        } else {
+            sb.append("You chose a directory different to ${File(System.getProperty("user.home"), "ProjectForge")}. That's OK.\n")
+            sb.append("To be sure, that this directory is found by the ProjectForge server, you may:\n")
+            sb.append(" 1. put the executable jar in the same directory or its parent directory, or\n")
+            sb.append(" 2. set the system environment variable 'PROJECTFORGE_HOME', or\n")
+            sb.append(" 3. start the jar with the command line flag -Dhome.dir=<dir>.\n\n")
+        }
+        sb.append("If you want to setup e. g. PostgreSQL, you may stop the server after start-up and do your configuration in:\n")
+        sb.append("'projectforge.properties' inside your chosen ProjectForge directory.\n\n")
+        sb.append("Press 'Finish' for starting the intialization and for starting-up the server.")
+        hintLabel.text = sb.toString()
+    }
+
+    override fun resize() {
+        super.resize()
+        dirLabel.setPreferredSize(TerminalSize(context.terminalSize.columns - 20, 1))
     }
 }

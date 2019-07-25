@@ -33,18 +33,23 @@ class GUIContext(
         val setupMain: SetupMain,
         val textGUI: MultiWindowTextGUI,
         val screen: Screen,
-        val terminalSize: TerminalSize
+        var terminalSize: TerminalSize
 ) {
     class SetupData {
         var applicationHomeDir: File? = null
     }
+
     var currentWindow: BasicWindow? = null
     var chooseDirectoryWindow: ChooseDirectoryWindow? = null
     var initializeWindow: InitializeWindow? = null
-    val windowSize: TerminalSize
+    var windowSize: TerminalSize = TerminalSize.ZERO
+
+        set(value) {
+            field = TerminalSize(value.columns - 15, value.rows - 5)
+        }
     val setupData = SetupData()
 
     init {
-        windowSize = TerminalSize(terminalSize.columns - 15, terminalSize.rows - 5)
+        windowSize = terminalSize
     }
 }

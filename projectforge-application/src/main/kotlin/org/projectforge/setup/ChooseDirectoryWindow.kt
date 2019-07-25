@@ -23,6 +23,7 @@
 
 package org.projectforge.setup
 
+import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.ActionListBox
 import com.googlecode.lanterna.gui2.Panel
 import com.googlecode.lanterna.gui2.dialogs.MessageDialog
@@ -36,12 +37,13 @@ class ChooseDirectoryWindow(context: GUIContext) : AbstractWizardWindow(context,
     private lateinit var actionListBox: ActionListBox
 
     override fun getContentPanel(): Panel {
-        actionListBox = ActionListBox(size)
+        actionListBox = ActionListBox()
         redraw()
         return Panel().addComponent(actionListBox)
     }
 
     override fun redraw() {
+        actionListBox.preferredSize = TerminalSize(context.terminalSize.columns - 5, size.rows)
         actionListBox.clearItems()
         val prevApplicationHomeDir = context.setupData.applicationHomeDir
         var prevApplicationHomeDirInList = false
@@ -91,8 +93,14 @@ class ChooseDirectoryWindow(context: GUIContext) : AbstractWizardWindow(context,
                 }
             }
             val file = dirBrowser.showDialog(context.textGUI)
-            context.setupData.applicationHomeDir = file
+            if (file != null)
+                context.setupData.applicationHomeDir = file
             context.setupMain.next()
         }
+    }
+
+    override fun resize() {
+        super.resize()
+        actionListBox.preferredSize = TerminalSize(context.terminalSize.columns - 5, size.rows)
     }
 }

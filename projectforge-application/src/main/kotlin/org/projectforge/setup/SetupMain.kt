@@ -33,6 +33,8 @@ import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import com.googlecode.lanterna.terminal.Terminal
 import java.io.IOException
 
+
+
 class SetupMain {
     private val log = org.slf4j.LoggerFactory.getLogger(SetupMain::class.java)
 
@@ -59,6 +61,12 @@ class SetupMain {
 
         setActiveWindow(context.chooseDirectoryWindow!!)
 
+        terminal.addResizeListener { terminal, newSize ->
+            context.terminalSize = newSize
+            context.windowSize = newSize
+            context.chooseDirectoryWindow!!.resize()
+            context.initializeWindow!!.resize()
+        }
         textGUI.addWindow(context.currentWindow)
         context.currentWindow!!.waitUntilClosed()
 

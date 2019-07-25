@@ -26,6 +26,7 @@ package org.projectforge.start;
 import org.projectforge.common.LoggerSupport;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -96,7 +97,7 @@ public class ProjectForgeHomeFinder {
   public static File[] getSuggestedDirectories() {
     List<File> files = new ArrayList<>();
     checkAndAdd(files, System.getProperty("user.home"));
-    checkAndAdd(files, getExecutableDir(true));
+    checkAndAdd(files, new File(getExecutableDir(true), "ProjectForge"));
     checkAndAdd(files, new File("ProjectForge"));
     return files.toArray(new File[files.size()]);
   }
@@ -180,6 +181,21 @@ public class ProjectForgeHomeFinder {
     return true;
   }
 
+  /**
+   * @return true only and only if the given dir represents the directory $HOME/ProjectPorge or $HOME/projectforge (case insensitive).
+   */
+  public static boolean isStandardProjectForgeUserDir(File dir) {
+    File parent = dir.getParentFile();
+    if (parent == null) return false;
+    try {
+      if (!parent.getCanonicalPath().equals(new File(System.getProperty("user.home")).getCanonicalPath())) {
+        return false;
+      }
+    } catch (IOException ex) {
+      return false;
+    }
+    return "projectforge".equals(dir.getName().toLowerCase());
+  }
   public static boolean isProjectForgeSourceCodeRepository(File dir) {
     File current = dir;
     //int recursiveCounter = 100; // Soft links may result in endless loops.
