@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.setup
+package org.projectforge.setup.wizard
 
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
@@ -31,13 +31,14 @@ import com.googlecode.lanterna.gui2.MultiWindowTextGUI
 import com.googlecode.lanterna.screen.TerminalScreen
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import com.googlecode.lanterna.terminal.Terminal
+import org.apache.commons.lang3.SystemUtils
+import org.projectforge.common.LoggerSupport
+import org.projectforge.setup.SetupData
+import java.io.File
 import java.io.IOException
 
 
-
-class SetupMain {
-    private val log = org.slf4j.LoggerFactory.getLogger(SetupMain::class.java)
-
+class SetupMain(presetAppHomeDir: File? = null) {
     private val context: GUIContext
     private val terminal: Terminal
 
@@ -54,9 +55,10 @@ class SetupMain {
         // Create gui and start gui
         val textGUI = MultiWindowTextGUI(screen, DefaultWindowManager(), EmptySpace(TextColor.ANSI.BLUE))
         context = GUIContext(this, textGUI, screen, TerminalSize(screen.terminalSize.columns, screen.terminalSize.rows))
+        context.setupData.applicationHomeDir = presetAppHomeDir
         context.chooseDirectoryWindow = ChooseDirectoryWindow(context)
         textGUI.addWindow(context.chooseDirectoryWindow)
-        context.initializeWindow = InitializeWindow(context)
+        context.initializeWindow = FinalizeWindow(context)
         textGUI.addWindow(context.initializeWindow)
 
         setActiveWindow(context.chooseDirectoryWindow!!)
@@ -68,8 +70,15 @@ class SetupMain {
             context.initializeWindow!!.resize()
         }
         textGUI.addWindow(context.currentWindow)
-        context.currentWindow!!.waitUntilClosed()
+    }
 
+    /**
+     * @return The user settings or null, if the user canceled the wizard through exit.
+     */
+    internal fun run(): SetupData? {
+        context.currentWindow!!.waitUntilClosed()
+        val setupData = context.setupData
+        return if (setupData.applicationHomeDir != null) setupData else null
     }
 
     internal fun next() {
@@ -86,7 +95,7 @@ class SetupMain {
     internal fun previous() {
         val previous =
                 when (context.currentWindow) {
-                    is InitializeWindow -> context.chooseDirectoryWindow
+                    is FinalizeWindow -> context.chooseDirectoryWindow
                     else -> null
                 }
         if (previous != null) {
@@ -100,17 +109,40 @@ class SetupMain {
         context.textGUI.setActiveWindow(window)
     }
 
-    internal fun exit() {
+    internal fun finish() {
         context.screen.stopScreen()
         terminal.exitPrivateMode()
         terminal.close()
     }
 
+    internal fun exit() {
+        finish()
+        context.setupData.applicationHomeDir = null
+    }
+
     companion object {
+        private val log = org.slf4j.LoggerFactory.getLogger(SetupMain::class.java)
+
+        @JvmStatic
+        fun run(appHomeDir: File? = null): SetupData? {
+            try {
+                return SetupMain(appHomeDir).run()
+            } catch (ex: IOException) {
+                val ls = LoggerSupport(log)
+                        .log("Can't start graphical setup wizard, your terminal seems not to be supported.")
+                if (SystemUtils.IS_OS_WINDOWS) {
+                    ls.log("On Windows: Please, try to start ProjectForge with javaw.exe instead of java.exe.")
+                }
+                ls.logEnd()
+                return null
+            }
+        }
+
         @JvmStatic
         fun main(args: Array<String>) {
             try {
-                SetupMain()
+                val result = SetupMain().run()
+                println("result directory='${result?.applicationHomeDir?.absolutePath}'")
             } catch (ex: IOException) {
                 System.err.println("No graphical terminal available.")
             }

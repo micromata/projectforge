@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.setup
+package org.projectforge.setup.wizard
 
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.*
@@ -47,7 +47,7 @@ internal object LayoutUtils {
         for (component in buttons) {
             buttonBar.addComponent(component)
         }
-        buttonBar.addComponent(LayoutUtils.getExitButton(context))
+        buttonBar.addComponent(getExitButton(context))
 
         panel.addComponent(buttonBar)
         return panel

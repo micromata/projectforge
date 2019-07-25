@@ -23,33 +23,19 @@
 
 package org.projectforge.setup
 
-import com.googlecode.lanterna.TerminalSize
-import com.googlecode.lanterna.gui2.BasicWindow
-import com.googlecode.lanterna.gui2.MultiWindowTextGUI
-import com.googlecode.lanterna.screen.Screen
+import org.projectforge.common.LoggerSupport
+import org.projectforge.start.ProjectForgeApplication
 import java.io.File
 
-class GUIContext(
-        val setupMain: SetupMain,
-        val textGUI: MultiWindowTextGUI,
-        val screen: Screen,
-        var terminalSize: TerminalSize
-) {
-    class SetupData {
-        var applicationHomeDir: File? = null
-    }
+object ProjectForgeInitializer {
+    private val log = org.slf4j.LoggerFactory.getLogger(ProjectForgeInitializer::class.java)
 
-    var currentWindow: BasicWindow? = null
-    var chooseDirectoryWindow: ChooseDirectoryWindow? = null
-    var initializeWindow: InitializeWindow? = null
-    var windowSize: TerminalSize = TerminalSize.ZERO
-
-        set(value) {
-            field = TerminalSize(value.columns - 15, value.rows - 5)
+    @JvmStatic
+    fun initialize(setupData: SetupData?): File? {
+        if (setupData == null) {
+            ProjectForgeApplication.giveUpAndSystemExit()
         }
-    val setupData = SetupData()
-
-    init {
-        windowSize = terminalSize
+        LoggerSupport(log, LoggerSupport.Priority.HIGH).log("Intializing ProjectForge...")
+        return setupData?.applicationHomeDir
     }
 }

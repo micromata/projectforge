@@ -23,7 +23,6 @@
 
 package org.projectforge.start;
 
-import org.apache.commons.lang3.StringUtils;
 import org.projectforge.ProjectForgeApp;
 import org.projectforge.common.LoggerSupport;
 import org.projectforge.framework.time.DateHelper;
@@ -67,51 +66,7 @@ public class ProjectForgeApplication {
               .log("Please downgrade. Sorry, we're working on newer Java versions.")
               .logEnd();
     }
-    String param = ProjectForgeApp.CONFIG_PARAM_BASE_DIR;
-    String appHomeDir = System.getProperty(param); // Might be defined as -Dprojectforge.base.dir
-    if (StringUtils.isBlank(appHomeDir)) {
-      param = COMMAND_LINE_VAR_HOME_DIR;
-      appHomeDir = System.getProperty(param); // Might be defined as -Dhome.dir=....
-    }
-    if (StringUtils.isNotBlank(appHomeDir)) {
-      log.info("Trying ProjectForges base dir as given at commandline -D" + param + "=" + appHomeDir);
-    } else {
-      appHomeDir = System.getenv(ENV_PROJECTFORGE_HOME); // Environment variable.
-      if (StringUtils.isNotBlank(appHomeDir)) {
-        log.info("Trying ProjectForges base dir as given as system environment variable $" + ENV_PROJECTFORGE_HOME + ": " + appHomeDir);
-        if (!ProjectForgeHomeFinder.checkDirectory(new File(appHomeDir), false)) {
-          log.error("Directory '" + appHomeDir + "' configured as environment variable not found. Create this directory or unset the environment variable $" + ENV_PROJECTFORGE_HOME + ".");
-        }
-      }
-    }
-    File baseDir = StringUtils.isNotBlank(appHomeDir) ? new File(appHomeDir) : null;
-    if (baseDir != null && !ProjectForgeHomeFinder.checkDirectory(baseDir, false)) {
-      log.error("The configured base directory doesn't exist or isn't a directory, giving up :-(");
-      ProjectForgeHomeFinder.giveUp();
-    }
-    if (baseDir == null) {
-      // Try to find ProjectForge in current directory:
-      baseDir = ProjectForgeHomeFinder.findBaseDir(new File("."));
-      if (baseDir == null) {
-        // No ProjectForge base directory found. Assuming current directory.
-        baseDir = new File("ProjectForge");
-        if (ProjectForgeHomeFinder.isProjectForgeSourceCodeRepository(baseDir)) {
-          log.error("Found '" + baseDir + "' as ProjectForge directory. This seems to be the source code repository. Can't use it as ProjectForge home dir.");
-          ProjectForgeHomeFinder.giveUp();
-        }
-        log.info("No previous ProjectForge installation found (searched for ./ProjectForge and $HOME/ProjectForge). Trying to create a new base directory: " + baseDir.getAbsolutePath());
-        String msg = "Do you allow ProjectForge to create and initialize the directory (y/n) '" + baseDir.getAbsolutePath() + "'?";
-        String answer = new ConsoleTimeoutReader(msg).ask();
-        if (!StringUtils.startsWith(answer, "y")) {
-          // No permission by the user in console input or time out:
-          log.error("Creation of directory '" + baseDir.getAbsolutePath() + "' aborted, giving up :-(");
-          ProjectForgeHomeFinder.giveUp();
-        } else if (!baseDir.mkdir()) {
-          log.error("Creation of directory '" + baseDir.getAbsolutePath() + "' failed, giving up :-(");
-          ProjectForgeHomeFinder.giveUp();
-        }
-      }
-    }
+    File baseDir = ProjectForgeHomeFinder.findAndEnsureAppHomeDir();
     new LoggerSupport(log, LoggerSupport.Priority.HIGH)
             .log("Using ProjectForge directory: " + baseDir.getAbsolutePath())
             .logEnd();
@@ -144,6 +99,25 @@ public class ProjectForgeApplication {
       throw ex;
     }
   }
+
+  public static void giveUpAndSystemExit() {
+    new LoggerSupport(log, LoggerSupport.Alignment.LEFT)
+            .log("Your options (please refer: https://github.com/micromata/projectforge):")
+            .log("  1. Run ProjectForge and follow the setup wizard, or")
+            .log("  2. Create ProjectForge as a top level directory of your home directory:")
+            .log("     '$HOME/ProjectForge', or")
+            .log("  3. create a directory named 'ProjectForge' and put the jar file somewhere in")
+            .log("     it or in the same directory. ProjectForge detects the folder 'ProjectForge'")
+            .log("     relative to the executed jar, or")
+            .log("  4. create a directory and define it as command line parameter:")
+            .log("     'java -D" + COMMAND_LINE_VAR_HOME_DIR + "=yourdirectory -jar ...', or")
+            .log("  5. create a directory and define it as system environment variable")
+            .log("     '" + ENV_PROJECTFORGE_HOME + "'.")
+            .log("Hope to see You again ;-)")
+            .logEnd();
+    System.exit(1);
+  }
+
 
   /**
    * For easier configuration, ProjectForge adds ${user.home}/ProjectForge/projectforge.properties as
