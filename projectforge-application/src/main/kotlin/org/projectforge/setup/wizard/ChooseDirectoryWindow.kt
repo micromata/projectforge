@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.setup
+package org.projectforge.setup.wizard
 
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.ActionListBox

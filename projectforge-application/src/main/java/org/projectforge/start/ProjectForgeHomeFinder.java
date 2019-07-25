@@ -23,7 +23,10 @@
 
 package org.projectforge.start;
 
-import org.projectforge.common.LoggerSupport;
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.ProjectForgeApp;
+import org.projectforge.setup.ProjectForgeInitializer;
+import org.projectforge.setup.wizard.SetupMain;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,7 +40,7 @@ import java.util.List;
  * Helper for finding ProjectForge's home directory:<br/>
  * <ol>
  * <li>Create ProjectForge as a top level directory of your home directory: '$HOME/ProjectForge', or</li>
- * <li>create a directory named 'ProjectForge' and put the jar file somewhere in it or in the same directory. ProjectForge detects the folder 'ProjectForge' relative to the executed jar, or</li>
+ * <li>create a directory and put the jar file somewhere inside this directory. ProjectForge detects the folder relative to the executed jar, or</li>
  * <li>create a directory and define it as command line parameter: java -D" + COMMAND_LINE_VAR_HOME_DIR + "=yourdirectory -jar ..., or</li>
  * <li>create a directory and define it as system environment variable $PROJECTFORGE_HOME.</li>
  * </ol>
@@ -51,26 +54,93 @@ public class ProjectForgeHomeFinder {
 
   private static final String[] DIR_NAMES = {"ProjectForge", "Projectforge", "projectforge"};
 
-  static void giveUp() {
-    new LoggerSupport(log, LoggerSupport.Alignment.LEFT)
-            .log("Your options (please refer: https://github.com/micromata/projectforge):")
-            .log("  1. Create ProjectForge as a top level directory of your home directory:")
-            .log("     '$HOME/ProjectForge', or")
-            .log("  2. create a directory named 'ProjectForge' and put the jar file somewhere in")
-            .log("     it or in the same directory. ProjectForge detects the folder 'ProjectForge'")
-            .log("     relative to the executed jar, or")
-            .log("  3. create a directory and define it as command line parameter:")
-            .log("     'java -D" + COMMAND_LINE_VAR_HOME_DIR + "=yourdirectory -jar ...', or")
-            .log("  4. create a directory and define it as system environment variable")
-            .log("     '" + ENV_PROJECTFORGE_HOME + "'.")
-            .log("Hope to see You again ;-)")
-            .logEnd();
-    System.exit(1);
+  /**
+   * Tries to find ProjectForge's home dir. If not found or isn't initialized, a setup wizard is started.
+   *
+   * @return The home dir. If not found, a System.exit() is done and user information are shown on how to proceed.
+   */
+  static File findAndEnsureAppHomeDir() {
+    // Try directory defined through command line: -Dprojectforge.base.dir:
+    File appHomeDir = proceed(System.getProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR),
+            "ProjectForge's home dir is defined as command line param, but isn't yet initialized: -D"
+                    + ProjectForgeApp.CONFIG_PARAM_BASE_DIR + "=$APP_HOME_DIR");
+    if (appHomeDir != null)
+      return appHomeDir;
+
+    // Try directory defined through command line: -Dhome.dir:
+    appHomeDir = proceed(System.getProperty("home.dir"),
+            "ProjectForge's home dir is defined as command line param, but isn't yet initialized: -D"
+                    + ProjectForgeApp.CONFIG_PARAM_BASE_DIR + "=$APP_HOME_DIR");
+    if (appHomeDir != null)
+      return appHomeDir;
+
+    // Try directory defined through environment variable:
+    appHomeDir = proceed(System.getenv(ENV_PROJECTFORGE_HOME),
+            "ProjectForge's home dir is defined as system environment variable $" + ENV_PROJECTFORGE_HOME + ": $APP_HOME_DIR");
+    if (appHomeDir != null)
+      return appHomeDir;
+
+    // Try directory where the executable jar resides:
+    appHomeDir = proceed(new File(System.getProperty("user.home")),
+            "ProjectForge's home dir might be at the top level of the user's home dir: $APP_HOME_DIR");
+    if (appHomeDir != null)
+      return appHomeDir;
+
+    // Try directory where the executable jar resides:
+    appHomeDir = proceed(getExecutableDir(true),
+            "ProjectForge's home dir might be a parent directory of the executable jar: $APP_HOME_DIR");
+    if (appHomeDir != null)
+      return appHomeDir;
+
+    // Try current directory:
+    appHomeDir = proceed(new File("."),
+            "ProjectForge's home dir might be the current path: $APP_HOME_DIR");
+    if (appHomeDir != null)
+      return appHomeDir;
+
+    log.error("No home directory of ProjectForge found or configured, giving up :-(");
+    ProjectForgeApplication.giveUpAndSystemExit();
+    return null; // unreachable, because SystemExit() was called before.
+  }
+
+  /**
+   * <ol>
+   *   <li>
+   *     If the given appHomeDir is null or blank, null is returned.
+   *   </li>
+   *   <li>
+   *     Checks if the given appHomeDir is already given. If so, the appHomeDir is returned as File object and ProjectForge
+   *     should continue the start-up phase with this directory.
+   *   </li>
+   *   <li>
+   *     If given appHomeDir doesn't exist or isn't already initialized, the setup wizard and installation is started.
+   *     If aborted by the user or any failure occurs, System.exit(1) is called, otherwise the file with the new installed
+   *     home directory is returned.
+   *   </li>
+   * </ol>
+   */
+  private static File proceed(String appHomeDir, String logMessage) {
+    if (StringUtils.isNotBlank(appHomeDir)) {
+      return proceed(new File(appHomeDir), logMessage);
+    }
+    return null;
+  }
+
+  private static File proceed(File appHomeDir, String logMessage) {
+    if (appHomeDir != null) {
+      if (isProjectForgeConfigured(appHomeDir)) {
+        return appHomeDir;
+      }
+      log.info(logMessage.replace("$APP_HOME_DIR", appHomeDir.getPath()));
+      return ProjectForgeInitializer.initialize(SetupMain.run(appHomeDir));
+    }
+    return null;
   }
 
   /**
    * Searches for the ProjectForge dir in the given baseDir and all its parent directories. If nothing found, the user's
    * home directory is searched.
+   * The ProjectForge dir is the parent dir containing ProjectForge files, such as projectforge.properties.
    *
    * @param baseDir
    * @return
@@ -160,6 +230,11 @@ public class ProjectForgeHomeFinder {
     return null;
   }
 
+  /**
+   * @param baseDir
+   * @param logWarning
+   * @return true, if the given baseDir exists and is a directory, but not the source code repository root dir.
+   */
   static boolean checkDirectory(File baseDir, boolean logWarning) {
     if (!baseDir.exists()) {
       if (logWarning)
@@ -198,6 +273,11 @@ public class ProjectForgeHomeFinder {
     }
     return "projectforge".equals(dir.getName().toLowerCase());
   }
+
+  /**
+   * @return true, if the given dir is the root directory of the source code repository, false otherwise, if the given
+   * dir is a sub directory of the source code repository or any other directory.
+   */
   public static boolean isProjectForgeSourceCodeRepository(File dir) {
     File current = dir;
     //int recursiveCounter = 100; // Soft links may result in endless loops.
@@ -211,5 +291,19 @@ public class ProjectForgeHomeFinder {
     //   current = current.getParentFile();
     // } while (current != null && --recursiveCounter > 0);
     return false;
+  }
+
+  /**
+   * @return true, if the directory exists and contains projectforge.properties.
+   */
+  public static boolean isProjectForgeConfigured(String dir) {
+    return StringUtils.isNotBlank(dir) && isProjectForgeConfigured(new File(dir));
+  }
+
+  /**
+   * @return true, if the directory exists and contains projectforge.properties.
+   */
+  public static boolean isProjectForgeConfigured(File dir) {
+    return dir != null && dir.exists() && new File(dir, "projectforge.properties").exists();
   }
 }

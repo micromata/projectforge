@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.setup
+package org.projectforge.setup.wizard
 
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.*
@@ -29,8 +29,8 @@ import org.projectforge.start.ProjectForgeApplication
 import org.projectforge.start.ProjectForgeHomeFinder
 import java.io.File
 
-class InitializeWindow(context: GUIContext) : AbstractWizardWindow(context, "Finishing the directory setup") {
-    private val log = org.slf4j.LoggerFactory.getLogger(InitializeWindow::class.java)
+class FinalizeWindow(context: GUIContext) : AbstractWizardWindow(context, "Finishing the directory setup") {
+    private val log = org.slf4j.LoggerFactory.getLogger(FinalizeWindow::class.java)
 
     private lateinit var dirLabel: Label
     private lateinit var portextBox: TextBox
@@ -59,7 +59,7 @@ class InitializeWindow(context: GUIContext) : AbstractWizardWindow(context, "Fin
                     context.setupMain.previous()
                 },
                 Button("Finish") {
-                    context.setupMain.next()
+                    context.setupMain.finish()
                 })
     }
 
@@ -87,7 +87,7 @@ class InitializeWindow(context: GUIContext) : AbstractWizardWindow(context, "Fin
         } else {
             sb.append("You chose a directory different to ${File(System.getProperty("user.home"), "ProjectForge")}. That's OK.\n")
             sb.append("To be sure, that this directory is found by the ProjectForge server, you may:\n")
-            sb.append(" 1. put the executable jar in the same directory or its parent directory, or\n")
+            sb.append(" 1. put the executable jar somewhere inside this directory, or\n")
             sb.append(" 2. set the system environment variable 'PROJECTFORGE_HOME', or\n")
             sb.append(" 3. start the jar with the command line flag -Dhome.dir=<dir>.\n\n")
         }
