@@ -29,6 +29,8 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Helper for finding ProjectForge's home directory:<br/>
@@ -79,26 +81,11 @@ public class ProjectForgeHomeFinder {
       return dir;
     }
 
-    try {
-      URL locationUrl = ProjectForgeHomeFinder.class.getProtectionDomain().getCodeSource().getLocation();
-      String location = locationUrl.toExternalForm();
-      if (location.startsWith("jar:")) {
-        location = location.substring(4);
-      } else {
-        // Development source code, don't use the ProjectForge source code repository as working directory directly:
-        return null;
-      }
-      if (location.indexOf('!') > 0) {
-        location = location.substring(0, location.indexOf('!'));
-      }
-      File jarFileDir = new File(new URI(location));
-      dir = findBaseDirAndAncestors(jarFileDir);
-      if (dir != null) {
-        log.info("Using location relative to running jar: " + dir.getAbsolutePath());
-        return dir;
-      }
-    } catch (URISyntaxException ex) {
-      log.error("Internal error while trying to get the location of ProjectForge's running code: " + ex.getMessage(), ex);
+    File jarFileDir = getExecutableDir(false);
+    dir = findBaseDirAndAncestors(jarFileDir);
+    if (dir != null) {
+      log.info("Using location relative to running jar: " + dir.getAbsolutePath());
+      return dir;
     }
 
     // Search the user's home dir:
@@ -106,16 +93,55 @@ public class ProjectForgeHomeFinder {
     return findBaseDirOnly(new File(userHome));
   }
 
+  public static File[] getSuggestedDirectories() {
+    List<File> files = new ArrayList<>();
+    checkAndAdd(files, System.getProperty("user.home"));
+    checkAndAdd(files, getExecutableDir(true));
+    checkAndAdd(files, new File("ProjectForge"));
+    return files.toArray(new File[files.size()]);
+  }
+
+  private static void checkAndAdd(List<File> files, String path) {
+    checkAndAdd(files, new File(path, "ProjectForge"));
+  }
+
+  private static void checkAndAdd(List<File> files, File dir) {
+    if (isProjectForgeSourceCodeRepository(dir))
+      return;
+    files.add(dir.getAbsoluteFile());
+  }
+
+  private static File getExecutableDir(boolean includingSourceCodeRepository) {
+    try {
+      URL locationUrl = ProjectForgeHomeFinder.class.getProtectionDomain().getCodeSource().getLocation();
+      String location = locationUrl.toExternalForm();
+      if (location.startsWith("jar:")) {
+        location = location.substring(4);
+      } else if (!includingSourceCodeRepository) {
+        // Development source code, don't use the ProjectForge source code repository as working directory directly:
+        return null;
+      }
+      if (location.indexOf('!') > 0) {
+        location = location.substring(0, location.indexOf('!'));
+      }
+      return new File(new URI(location));
+    } catch (URISyntaxException ex) {
+      log.error("Internal error while trying to get the location of ProjectForge's running code: " + ex.getMessage(), ex);
+      return null;
+    }
+  }
+
   private static File findBaseDirAndAncestors(File baseDir) {
     // Need absolute directory to check parent directories.
     File currentDir = baseDir.isAbsolute() ? baseDir : new File(baseDir.getAbsolutePath());
+    int recursiveCounter = 100; // Soft links may result in endless loops.
     do {
       File dir = findBaseDirOnly(currentDir);
       if (dir != null) {
         return dir;
       }
       currentDir = currentDir.getParentFile();
-    } while (currentDir != null);
+    } while (currentDir != null && --recursiveCounter > 0);
     return null;
   }
 
@@ -154,10 +180,18 @@ public class ProjectForgeHomeFinder {
     return true;
   }
 
-  static boolean isProjectForgeSourceCodeRepository(File dir) {
-    return dir.exists()
-            && new File(dir, "projectforge-application").exists()
-            && new File(dir, "projectforge-business").exists()
-            && new File(dir, "projectforge-common").exists();
+  public static boolean isProjectForgeSourceCodeRepository(File dir) {
+    File current = dir;
+    //int recursiveCounter = 100; // Soft links may result in endless loops.
+    //do {
+    if (current.exists()
+            && new File(current, "projectforge-application").exists()
+            && new File(current, "projectforge-business").exists()
+            && new File(current, "projectforge-common").exists()) {
+      return true;
+    }
+    //   current = current.getParentFile();
+    // } while (current != null && --recursiveCounter > 0);
+    return false;
   }
 }
