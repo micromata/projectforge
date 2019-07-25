@@ -36,7 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 public class ProjectForgeHomeFinderTest {
   @Test
   void findBaseDir() throws IOException {
-    ProjectForgeHomeFinder.findBaseDir(new File("/"));
     File tmpDir = Files.createTempDirectory("projectforge-application-basedir-test").toFile();
     File pfDir = new File(tmpDir, "ProjectForge");
     pfDir.mkdir();

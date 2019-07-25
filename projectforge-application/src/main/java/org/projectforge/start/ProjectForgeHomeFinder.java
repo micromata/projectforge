@@ -133,6 +133,8 @@ public class ProjectForgeHomeFinder {
   }
 
   private static File findBaseDirAndAncestors(File baseDir) {
+    if (baseDir == null)
+      return null;
     // Need absolute directory to check parent directories.
     File currentDir = baseDir.isAbsolute() ? baseDir : new File(baseDir.getAbsolutePath());
     int recursiveCounter = 100; // Soft links may result in endless loops.
