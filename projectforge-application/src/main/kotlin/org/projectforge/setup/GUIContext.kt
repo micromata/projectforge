@@ -35,11 +35,14 @@ class GUIContext(
         val screen: Screen,
         val terminalSize: TerminalSize
 ) {
+    class SetupData {
+        var applicationHomeDir: File? = null
+    }
     var currentWindow: BasicWindow? = null
-    var applicationHomeDir: File? = null
     var chooseDirectoryWindow: ChooseDirectoryWindow? = null
     var initializeWindow: InitializeWindow? = null
     val windowSize: TerminalSize
+    val setupData = SetupData()
 
     init {
         windowSize = TerminalSize(terminalSize.columns - 15, terminalSize.rows - 5)

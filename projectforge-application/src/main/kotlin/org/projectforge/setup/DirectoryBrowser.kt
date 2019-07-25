@@ -42,7 +42,7 @@ open class DirectoryBrowser(
         context: GUIContext,
         preselectedDirname: String? = "",
         showHiddenFilesAndDirs: Boolean = false,
-        preSelectedObject: File? = null
+        preSelectedParent: File? = null
 ) : DialogWindow(title) {
     private var directoryListBox: ActionListBox
     private var pathTextBox: TextBox
@@ -53,7 +53,7 @@ open class DirectoryBrowser(
     private var selectedFile: File? = null
 
     init {
-        var selectedObject = preSelectedObject
+        var selectedObject = preSelectedParent
         this.selectedFile = null
         this.showHiddenFilesAndDirs = showHiddenFilesAndDirs
 

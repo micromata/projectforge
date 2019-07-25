@@ -30,24 +30,55 @@ import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton
 import org.projectforge.start.ProjectForgeHomeFinder
 import java.io.File
 
-class ChooseDirectoryWindow(context: GUIContext) : AbstractWizardWindow(context,"Please select ProjectForge's home directory") {
+class ChooseDirectoryWindow(context: GUIContext) : AbstractWizardWindow(context, "Please select ProjectForge's home directory") {
     private val log = org.slf4j.LoggerFactory.getLogger(ChooseDirectoryWindow::class.java)
 
+    private lateinit var actionListBox: ActionListBox
+
     override fun getContentPanel(): Panel {
-        val actionListBox = ActionListBox(size)
+        actionListBox = ActionListBox(size)
+        redraw()
+        return Panel().addComponent(actionListBox)
+    }
+
+    override fun redraw() {
+        actionListBox.clearItems()
+        val prevApplicationHomeDir = context.setupData.applicationHomeDir
+        var prevApplicationHomeDirInList = false
+        var index = 0;
         for (dir in ProjectForgeHomeFinder.getSuggestedDirectories()) {
             actionListBox.addItem(dir.absolutePath) {
-                context.applicationHomeDir = dir.absoluteFile
+                context.setupData.applicationHomeDir = dir.absoluteFile
                 context.setupMain.next()
             }
+            if (dir == prevApplicationHomeDir) {
+                actionListBox.selectedIndex = index
+                prevApplicationHomeDirInList = true
+            }
+            ++index
         }
-        actionListBox.addItem("Choose own") {
+        if (prevApplicationHomeDir != null && !prevApplicationHomeDirInList) {
+            // The recent select directory by the user is different and has to be added:
+            actionListBox.addItem(prevApplicationHomeDir.absolutePath) {
+                // Nothing to do (application dir not changed).
+                context.setupMain.next()
+            }
+            actionListBox.selectedIndex = index
+        }
+        actionListBox.addItem("Choose other") {
+            var preSelectedParent = context.setupData.applicationHomeDir
+            var preselectedDirname = "ProjectForge"
+            if (preSelectedParent != null && preSelectedParent.parentFile != null) {
+                preselectedDirname = preSelectedParent.name
+                preSelectedParent = preSelectedParent.parentFile
+            }
             val dirBrowser = object : DirectoryBrowser(
                     title = "Choose ProjectForge's parent directory",
                     description = "Parent directory where to create home dir of ProjectForge",
                     actionLabel = "OK",
                     dialogSize = context.terminalSize,
-                    preselectedDirname = "ProjectForge",
+                    preSelectedParent = preSelectedParent,
+                    preselectedDirname = preselectedDirname,
                     context = context
             ) {
                 override fun validResult(path: String, dir: String): File? {
@@ -60,9 +91,8 @@ class ChooseDirectoryWindow(context: GUIContext) : AbstractWizardWindow(context,
                 }
             }
             val file = dirBrowser.showDialog(context.textGUI)
-            context.applicationHomeDir = file
+            context.setupData.applicationHomeDir = file
             context.setupMain.next()
         }
-        return Panel().addComponent(actionListBox)
     }
 }
