@@ -32,6 +32,12 @@ abstract class AbstractWizardWindow(context: GUIContext,
 
     protected val context: GUIContext
 
+    private val contentPanel: Panel
+
+    private val buttonPanel: Panel
+
+    private val separator: Separator
+
     init {
         this.context = context
         size = context.windowSize
@@ -44,14 +50,15 @@ abstract class AbstractWizardWindow(context: GUIContext,
         LayoutUtils.addEmptySpace(titlePanel)
         mainPanel.addComponent(titlePanel)
 
-        val contentPanel = getContentPanel()
-        contentPanel.setPreferredSize(TerminalSize(size.columns, size.rows - 5))
+        contentPanel = getContentPanel()
         contentPanel.layoutData = GridLayout.createLayoutData(GridLayout.Alignment.FILL, GridLayout.Alignment.FILL, true, true)
         mainPanel.addComponent(contentPanel)
 
-        val buttonPanel = LayoutUtils.createButtonBar(context, context.terminalSize.columns - 8, *getButtons())
+        separator = Separator(Direction.HORIZONTAL)
+        buttonPanel = LayoutUtils.createButtonBar(context, separator, *getButtons())
         mainPanel.addComponent(buttonPanel)
         component = mainPanel
+        resize()
     }
 
     open fun getButtons(): Array<Button> {
@@ -68,4 +75,10 @@ abstract class AbstractWizardWindow(context: GUIContext,
      * Will be called if window is shown again.
      */
     open fun redraw() {}
+
+    open fun resize() {
+        size = context.windowSize
+        contentPanel.setPreferredSize(TerminalSize(size.columns, size.rows - 5))
+        separator.preferredSize = TerminalSize(context.terminalSize.columns - 8, 0)
+    }
 }

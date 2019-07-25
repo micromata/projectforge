@@ -34,10 +34,14 @@ internal object LayoutUtils {
     }
 
     fun createButtonBar(context: GUIContext, width: Int, vararg buttons: Button): Panel {
+        return createButtonBar(context,
+                Separator(Direction.HORIZONTAL).setPreferredSize(TerminalSize(width, 1)),
+                *buttons)
+    }
+
+    fun createButtonBar(context: GUIContext, separator: Separator, vararg buttons: Button): Panel {
         val panel = Panel()
-        Separator(Direction.HORIZONTAL)
-                .setPreferredSize(TerminalSize(width, 1))
-                .addTo(panel)
+        separator.addTo(panel)
         val buttonBar = Panel()
         buttonBar.layoutManager = LinearLayout(Direction.HORIZONTAL)
         for (component in buttons) {

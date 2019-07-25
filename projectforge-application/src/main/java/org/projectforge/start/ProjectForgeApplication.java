@@ -50,7 +50,7 @@ public class ProjectForgeApplication {
 
   private static final String ADDITIONAL_LOCATION_ARG = "--spring.config.additional-location=";
 
-  private static final String PROPERTIES_FILENAME = "projectforge.properties";
+  public static final String PROPERTIES_FILENAME = "projectforge.properties";
 
   private static final String ENV_PROJECTFORGE_HOME = "PROJECTFORGE_HOME";
 
