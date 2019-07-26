@@ -50,7 +50,7 @@ public class ProjectForgeApplication {
 
   public static final String PROPERTIES_FILENAME = "projectforge.properties";
 
-  public static final String CLASSPATH_INITIAL_PROPERTIES_FILENAME ="initialProperties.properties";
+  public static final String CLASSPATH_INITIAL_PROPERTIES_FILENAME ="initialProjectForge.properties";
 
   private static final String[] DIR_NAMES = {"ProjectForge", "Projectforge", "projectforge"};
 
