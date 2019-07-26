@@ -130,7 +130,7 @@ class KundeDO : AbstractHistorizableBaseDO<Int>(), ShortDisplayNameCapable, IMan
      */
     val kundeIdentifierDisplayName: String?
         @Transient
-        get() = if (StringUtils.isNotBlank(this.identifier) == true) {
+        get() = if (StringUtils.isNotBlank(this.identifier)) {
             this.identifier
         } else this.name
 
