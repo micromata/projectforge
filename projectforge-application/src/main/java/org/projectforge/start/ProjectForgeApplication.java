@@ -24,7 +24,7 @@
 package org.projectforge.start;
 
 import org.projectforge.ProjectForgeApp;
-import org.projectforge.common.LoggerSupport;
+import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.framework.time.DateHelper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -33,7 +33,6 @@ import org.springframework.boot.web.embedded.tomcat.ConnectorStartFailedExceptio
 import org.springframework.boot.web.servlet.ServletComponentScan;
 
 import java.io.File;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.TimeZone;
 
@@ -51,34 +50,28 @@ public class ProjectForgeApplication {
 
   public static final String PROPERTIES_FILENAME = "projectforge.properties";
 
-  private static final String ENV_PROJECTFORGE_HOME = "PROJECTFORGE_HOME";
-
-  private static final String COMMAND_LINE_VAR_HOME_DIR = "home.dir";
+  public static final String CLASSPATH_INITIAL_PROPERTIES_FILENAME ="initialProperties.properties";
 
   private static final String[] DIR_NAMES = {"ProjectForge", "Projectforge", "projectforge"};
 
   public static void main(String[] args) {
     String javaVersion = System.getProperty("java.version");
     if (javaVersion != null && javaVersion.compareTo("1.9") >= 0) {
-      new LoggerSupport(log, LoggerSupport.Priority.VERY_IMPORTANT)
+      new EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.VERY_IMPORTANT)
               .log("ProjectForge doesn't support versions higher than Java 1.8!!!!")
               .log("")
               .log("Please downgrade. Sorry, we're working on newer Java versions.")
               .logEnd();
     }
+    // Find application home or start the setup wizard, if not found:
     File baseDir = ProjectForgeHomeFinder.findAndEnsureAppHomeDir();
-    new LoggerSupport(log, LoggerSupport.Priority.HIGH)
+
+    System.setProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR, baseDir.getAbsolutePath());
+
+    new EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.NORMAL)
             .log("Using ProjectForge directory: " + baseDir.getAbsolutePath())
             .logEnd();
-    System.setProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR, baseDir.getAbsolutePath());
-    if (!new File(baseDir, PROPERTIES_FILENAME).exists()) {
-      new LoggerSupport(log)
-              .log("Creating new ProjectForge installation!")
-              .log("")
-              .log(baseDir.getAbsolutePath())
-              .logEnd();
-    }
-    ProjectForgeApp.ensureInitialConfigFile("initialProjectForge.properties", PROPERTIES_FILENAME);
+
     args = addDefaultAdditionalLocation(baseDir, args);
     System.setProperty("user.timezone", "UTC");
     TimeZone.setDefault(DateHelper.UTC);
@@ -86,22 +79,27 @@ public class ProjectForgeApplication {
       SpringApplication.run(ProjectForgeApplication.class, args);
     } catch (Exception ex) {
       log.error("Exception while running application: " + ex.getMessage(), ex);
-      LoggerSupport loggerSupport = new LoggerSupport(log, LoggerSupport.Priority.VERY_IMPORTANT, LoggerSupport.Alignment.LEFT)
-              .setLogLevel(LoggerSupport.LogLevel.ERROR)
+      EmphasizedLogSupport emphasizedLog = new EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.VERY_IMPORTANT, EmphasizedLogSupport.Alignment.LEFT)
+              .setLogLevel(EmphasizedLogSupport.LogLevel.ERROR)
               .log("Error while running application:")
               .log("")
               .log(ex.getMessage());
       if (ex instanceof ConnectorStartFailedException) {
-        loggerSupport.log("")
+        emphasizedLog.log("")
                 .log("May-be address of server port is already in use.");
       }
-      loggerSupport.logEnd();
+      emphasizedLog.logEnd();
       throw ex;
     }
   }
 
-  public static void giveUpAndSystemExit() {
-    new LoggerSupport(log, LoggerSupport.Alignment.LEFT)
+  /**
+   * Show last message before exit.
+   *
+   * @return Does return nothing, System.exit() was called before.
+   */
+  public static File giveUpAndSystemExit() {
+    new EmphasizedLogSupport(log, EmphasizedLogSupport.Alignment.LEFT)
             .log("Your options (please refer: https://github.com/micromata/projectforge):")
             .log("  1. Run ProjectForge and follow the setup wizard, or")
             .log("  2. Create ProjectForge as a top level directory of your home directory:")
@@ -110,12 +108,13 @@ public class ProjectForgeApplication {
             .log("     it or in the same directory. ProjectForge detects the folder 'ProjectForge'")
             .log("     relative to the executed jar, or")
             .log("  4. create a directory and define it as command line parameter:")
-            .log("     'java -D" + COMMAND_LINE_VAR_HOME_DIR + "=yourdirectory -jar ...', or")
+            .log("     'java -D" + ProjectForgeHomeFinder.COMMAND_LINE_VAR_HOME_DIR + "=yourdirectory -jar ...', or")
             .log("  5. create a directory and define it as system environment variable")
-            .log("     '" + ENV_PROJECTFORGE_HOME + "'.")
+            .log("     '" + ProjectForgeHomeFinder.getHomeEnvironmentVariableDefinition() + "'.")
             .log("Hope to see You again ;-)")
             .logEnd();
     System.exit(1);
+    return null;
   }
 
 
@@ -161,16 +160,7 @@ public class ProjectForgeApplication {
    * @return --spring.config.additional-location=file:/$HOME/ProjectForge/projectforge.properties
    */
   static String getAddtionalLocationArg(File dir) {
-    return ADDITIONAL_LOCATION_ARG + "file:" + getAddtionLocation(dir).getAbsolutePath();
-  }
-
-  /**
-   * @param baseDir Used base dir to find projectforge.properties. If not given, the user's home dir will be used.
-   * @return The projectforge.properties file in path baseDir or user's home dir.
-   */
-  static File getAddtionLocation(File baseDir) {
-    return baseDir != null ? new File(baseDir, PROPERTIES_FILENAME)
-            : Paths.get(System.getProperty("user.home"), "ProjectForge", PROPERTIES_FILENAME).toFile();
+    return ADDITIONAL_LOCATION_ARG + "file:" + new File(dir, PROPERTIES_FILENAME).getAbsolutePath();
   }
 
   private static boolean checkConfiguration(String dir, String filename) {

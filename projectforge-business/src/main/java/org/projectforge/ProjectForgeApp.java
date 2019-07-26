@@ -214,14 +214,21 @@ public class ProjectForgeApp {
    * @return True, if the dest file exists or was created successfully. False if an error while creation occured.
    */
   public static boolean ensureInitialConfigFile(String classPathSourceFilename, String destFilename) {
+    String baseDir = System.getProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR);
+    return ensureInitialConfigFile(new File(baseDir), classPathSourceFilename,destFilename,true);
+  }
+
+  /**
+   * @return True, if the dest file exists or was created successfully. False if an error while creation occured.
+   */
+  public static boolean ensureInitialConfigFile(File baseDir, String classPathSourceFilename, String destFilename, boolean logEnabled) {
     if (junitTestMode)
       return true;
-    String baseDir = System.getProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR);
     final File destFile = new File(baseDir, destFilename);
     if (!destFile.exists()) {
       URL classpathUrl = ProjectForgeApp.class.getResource("/" + ProjectForgeApp.CLASSPATH_INITIAL_BASEDIR_FILES + "/" + classPathSourceFilename);
       try {
-        log.info("New installation, creating default '" + destFilename + "': " + destFile.getAbsolutePath());
+        if (logEnabled) log.info("New installation, creating default '" + destFilename + "': " + destFile.getAbsolutePath());
         FileUtils.copyURLToFile(classpathUrl, destFile);
       } catch (IOException ex) {
         log.error("Error while creating ProjectForge's config file '" + destFile.getAbsolutePath() + "': " + ex.getMessage(), ex);

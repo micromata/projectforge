@@ -32,7 +32,7 @@ import com.googlecode.lanterna.screen.TerminalScreen
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import com.googlecode.lanterna.terminal.Terminal
 import org.apache.commons.lang3.SystemUtils
-import org.projectforge.common.LoggerSupport
+import org.projectforge.common.EmphasizedLogSupport
 import org.projectforge.setup.SetupData
 import java.io.File
 import java.io.IOException
@@ -128,12 +128,12 @@ class SetupMain(presetAppHomeDir: File? = null) {
             try {
                 return SetupMain(appHomeDir).run()
             } catch (ex: IOException) {
-                val ls = LoggerSupport(log)
+                val emphasizedLog = EmphasizedLogSupport(log)
                         .log("Can't start graphical setup wizard, your terminal seems not to be supported.")
                 if (SystemUtils.IS_OS_WINDOWS) {
-                    ls.log("On Windows: Please, try to start ProjectForge with javaw.exe instead of java.exe.")
+                    emphasizedLog.log("On Windows: Please, try to start ProjectForge with javaw.exe instead of java.exe.")
                 }
-                ls.logEnd()
+                emphasizedLog.logEnd()
                 return null
             }
         }
