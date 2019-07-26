@@ -25,6 +25,7 @@ package org.projectforge.setup
 
 import org.projectforge.ProjectForgeApp
 import org.projectforge.common.EmphasizedLogSupport
+import org.projectforge.common.StringModifier
 import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.persistence.attr.impl.AttrSchemaServiceSpringBeanImpl
 import org.projectforge.start.ProjectForgeApplication
@@ -39,8 +40,7 @@ object ProjectForgeInitializer {
         val applicationHomeDir = setupData?.applicationHomeDir ?: return ProjectForgeApplication.giveUpAndSystemExit()
 
         val emphasizedLog = EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.NORMAL, EmphasizedLogSupport.Alignment.LEFT)
-                .log("Initializing ProjectForge...")
-        emphasizedLog.logEnd()
+                .log("Checking ProjectForge installation...")
 
         var counter = 0
         if (!applicationHomeDir.exists()) {
@@ -51,19 +51,27 @@ object ProjectForgeInitializer {
                 giveUpAndSystemExit()
             }
         }
-        counter = ensureConfigFile(applicationHomeDir, ConfigXml.CLASSPATH_INITIAL_CONFIG_XML_FILE, ConfigXml.CONFIG_XML_FILE, counter, emphasizedLog)
-        counter = ensureConfigFile(applicationHomeDir, ProjectForgeApplication.CLASSPATH_INITIAL_PROPERTIES_FILENAME, ProjectForgeApplication.PROPERTIES_FILENAME, counter, emphasizedLog)
-        counter = ensureConfigFile(applicationHomeDir, AttrSchemaServiceSpringBeanImpl.CLASSPATH_INITIAL_ATTR_SCHEMA_CONFIG_FILE, AttrSchemaServiceSpringBeanImpl.ATTR_SCHEMA_CONFIG_FILE, counter, emphasizedLog)
 
-        return setupData?.applicationHomeDir
+        var serverPort = if (setupData.serverPort in 1..65535) setupData.serverPort else 8080
+
+        counter = ensureConfigFile(applicationHomeDir,
+                ProjectForgeApplication.CLASSPATH_INITIAL_PROPERTIES_FILENAME, ProjectForgeApplication.PROPERTIES_FILENAME, counter, emphasizedLog,
+                StringModifier { it.replace("#server.port=8080", "server.port=$serverPort") }
+        )
+        counter = ensureConfigFile(applicationHomeDir,
+                ConfigXml.CLASSPATH_INITIAL_CONFIG_XML_FILE, ConfigXml.CONFIG_XML_FILE, counter, emphasizedLog)
+        counter = ensureConfigFile(applicationHomeDir,
+                AttrSchemaServiceSpringBeanImpl.CLASSPATH_INITIAL_ATTR_SCHEMA_CONFIG_FILE, AttrSchemaServiceSpringBeanImpl.ATTR_SCHEMA_CONFIG_FILE, counter, emphasizedLog)
+        emphasizedLog.logEnd()
+        return setupData.applicationHomeDir
     }
 
     private fun ensureConfigFile(baseDir: File, initialClasspathFilename: String, filename: String, counter: Int,
-                                 emphasizedLog: EmphasizedLogSupport): Int {
+                                 emphasizedLog: EmphasizedLogSupport, modifier: StringModifier? = null): Int {
         if (File(baseDir, filename).exists())
             return counter
         emphasizedLog.log("  ${counter}. Creating config file: $filename...")
-        if (!ProjectForgeApp.ensureInitialConfigFile(baseDir, initialClasspathFilename, filename, false)) {
+        if (!ProjectForgeApp.ensureInitialConfigFile(baseDir, initialClasspathFilename, filename, false, modifier)) {
             emphasizedLog.logEnd()
             giveUpAndSystemExit()
         }

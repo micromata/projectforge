@@ -25,9 +25,11 @@ package org.projectforge.setup.wizard
 
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.*
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.start.ProjectForgeApplication
 import org.projectforge.start.ProjectForgeHomeFinder
 import java.io.File
+import java.util.regex.Pattern
 
 class FinalizeWindow(context: GUIContext) : AbstractWizardWindow(context, "Finishing the directory setup") {
     private val log = org.slf4j.LoggerFactory.getLogger(FinalizeWindow::class.java)
@@ -43,7 +45,9 @@ class FinalizeWindow(context: GUIContext) : AbstractWizardWindow(context, "Finis
         panel.addComponent(Label("Directory").setSize(TerminalSize(10, 1)))
                 .addComponent(dirLabel)
         panel.addComponent(EmptySpace().setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
-        portextBox = TextBox("8080").setPreferredSize(TerminalSize(5, 1))
+        portextBox = TextBox("8080")
+                .setValidationPattern(Pattern.compile("[0-9]{1,5}?"))
+                .setPreferredSize(TerminalSize(7, 1))
         panel.addComponent(Label("Port"))
                 .addComponent(portextBox)
         panel.addComponent(EmptySpace().setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
@@ -56,11 +60,18 @@ class FinalizeWindow(context: GUIContext) : AbstractWizardWindow(context, "Finis
     override fun getButtons(): Array<Button> {
         return arrayOf(
                 Button("Previous") {
+                    setPort()
                     context.setupMain.previous()
                 },
                 Button("Finish") {
+                    setPort()
                     context.setupMain.finish()
                 })
+    }
+
+    private fun setPort() {
+        var port = NumberHelper.parseInteger(portextBox.text)
+        context.setupData.serverPort = if (port in 1..65535) port else 8080
     }
 
     override fun redraw() {
@@ -69,26 +80,26 @@ class FinalizeWindow(context: GUIContext) : AbstractWizardWindow(context, "Finis
         dirLabel.setText(dir.absolutePath)
         val sb = StringBuilder()
         sb.append("Final steps to be done:\n")
-        var counter = 1
+        var counter = 0
         if (dir.exists() == false) {
-            sb.append(" ${counter++}. Creation of the directory\n")
+            sb.append(" ${++counter}. Creation of the directory\n")
         } else {
-            sb.append(" ${counter++}. Directory does already exist (OK)\n")
+            sb.append(" ${++counter}. Directory does already exist (OK)\n")
         }
         if (!File(dir, ProjectForgeApplication.PROPERTIES_FILENAME).exists()) {
-            sb.append(" ${counter++}. Initialization of the directory with a default configuration.\n")
+            sb.append(" ${++counter}. Initialization of the directory with a default configuration.\n")
         } else {
-            sb.append(" ${counter++}. Directory contains already a configuration (OK)\n")
+            sb.append(" ${++counter}. Directory contains already a configuration (OK)\n")
         }
-        sb.append(" ${counter++}. Starting the server.\n\n")
+        sb.append(" ${++counter}. Starting the server.\n\n")
         sb.append("Please open your favorite browser after startup: http://localhost:8080 and enjoy it!\n\n")
-        if (ProjectForgeHomeFinder.isStandardProjectForgeUserDir(dir))  {
+        if (ProjectForgeHomeFinder.isStandardProjectForgeUserDir(dir)) {
             sb.append("You chose the standard directory of ProjectForge, that will be found by ProjectForge automatically (OK).\n\n")
         } else {
             sb.append("You chose a directory different to ${File(System.getProperty("user.home"), "ProjectForge")}. That's OK.\n")
             sb.append("To be sure, that this directory is found by the ProjectForge server, you may:\n")
             sb.append(" 1. put the executable jar somewhere inside this directory, or\n")
-            sb.append(" 2. set the system environment variable 'PROJECTFORGE_HOME', or\n")
+            sb.append(" 2. set the system environment variable ${ProjectForgeHomeFinder.getHomeEnvironmentVariableDefinition()}'PROJECTFORGE_HOME', or\n")
             sb.append(" 3. start the jar with the command line flag -Dhome.dir=<dir>.\n\n")
         }
         sb.append("If you want to setup e. g. PostgreSQL, you may stop the server after start-up and do your configuration in:\n")

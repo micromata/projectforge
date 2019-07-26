@@ -64,6 +64,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
+import java.io.File;
 import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
@@ -180,6 +181,10 @@ public abstract class AbstractTestBase {
   private static boolean initialized = false;
 
   private static AbstractTestBase instance = null;
+
+  protected AbstractTestBase() {
+    System.setProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR, new File("target", "ProjectForgeTest").getAbsolutePath());
+  }
 
   @BeforeAll
   public static void _beforeAll() {
