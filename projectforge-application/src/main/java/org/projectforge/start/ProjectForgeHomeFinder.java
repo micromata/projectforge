@@ -24,6 +24,7 @@
 package org.projectforge.start;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.projectforge.ProjectForgeApp;
 import org.projectforge.setup.ProjectForgeInitializer;
 import org.projectforge.setup.wizard.SetupMain;
@@ -48,11 +49,18 @@ import java.util.List;
 public class ProjectForgeHomeFinder {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjectForgeHomeFinder.class);
 
-  private static final String ENV_PROJECTFORGE_HOME = "PROJECTFORGE_HOME";
+  public static final String ENV_PROJECTFORGE_HOME = "PROJECTFORGE_HOME";
 
-  private static final String COMMAND_LINE_VAR_HOME_DIR = "home.dir";
+  public static final String COMMAND_LINE_VAR_HOME_DIR = "home.dir";
 
   private static final String[] DIR_NAMES = {"ProjectForge", "Projectforge", "projectforge"};
+
+  /**
+   * @return %PROJECTFORGE_HOME for Windows, otherwise $PPROJECTFORGE_HOME
+   */
+  public static String getHomeEnvironmentVariableDefinition() {
+    return (SystemUtils.IS_OS_WINDOWS ? "%" : "$") + ENV_PROJECTFORGE_HOME;
+  }
 
   /**
    * Tries to find ProjectForge's home dir. If not found or isn't initialized, a setup wizard is started.
@@ -60,15 +68,15 @@ public class ProjectForgeHomeFinder {
    * @return The home dir. If not found, a System.exit() is done and user information are shown on how to proceed.
    */
   static File findAndEnsureAppHomeDir() {
-    // Try directory defined through command line: -Dprojectforge.base.dir:
-    File appHomeDir = proceed(System.getProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR),
+    // Try directory defined through command line: -Dhome.dir:
+    File appHomeDir = proceed(System.getProperty(COMMAND_LINE_VAR_HOME_DIR),
             "ProjectForge's home dir is defined as command line param, but isn't yet initialized: -D"
-                    + ProjectForgeApp.CONFIG_PARAM_BASE_DIR + "=$APP_HOME_DIR");
+                    + COMMAND_LINE_VAR_HOME_DIR + "=$APP_HOME_DIR");
     if (appHomeDir != null)
       return appHomeDir;
 
     // Try directory defined through command line: -Dhome.dir:
-    appHomeDir = proceed(System.getProperty("home.dir"),
+    appHomeDir = proceed(System.getProperty(COMMAND_LINE_VAR_HOME_DIR),
             "ProjectForge's home dir is defined as command line param, but isn't yet initialized: -D"
                     + ProjectForgeApp.CONFIG_PARAM_BASE_DIR + "=$APP_HOME_DIR");
     if (appHomeDir != null)
@@ -132,7 +140,12 @@ public class ProjectForgeHomeFinder {
         return appHomeDir;
       }
       log.info(logMessage.replace("$APP_HOME_DIR", appHomeDir.getPath()));
-      return ProjectForgeInitializer.initialize(SetupMain.run(appHomeDir));
+      try {
+        return ProjectForgeInitializer.initialize(SetupMain.run(appHomeDir));
+      } catch (Exception ex) {
+        log.error("Error while initializing new ProjectForge home: " + ex.getMessage(), ex);
+        ProjectForgeApplication.giveUpAndSystemExit();
+      }
     }
     return null;
   }

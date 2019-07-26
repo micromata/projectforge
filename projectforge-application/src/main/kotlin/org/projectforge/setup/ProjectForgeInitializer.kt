@@ -23,8 +23,12 @@
 
 package org.projectforge.setup
 
-import org.projectforge.common.LoggerSupport
+import org.projectforge.ProjectForgeApp
+import org.projectforge.common.EmphasizedLogSupport
+import org.projectforge.framework.configuration.ConfigXml
+import org.projectforge.framework.persistence.attr.impl.AttrSchemaServiceSpringBeanImpl
 import org.projectforge.start.ProjectForgeApplication
+import org.projectforge.start.ProjectForgeApplication.giveUpAndSystemExit
 import java.io.File
 
 object ProjectForgeInitializer {
@@ -32,10 +36,37 @@ object ProjectForgeInitializer {
 
     @JvmStatic
     fun initialize(setupData: SetupData?): File? {
-        if (setupData == null) {
-            ProjectForgeApplication.giveUpAndSystemExit()
+        val applicationHomeDir = setupData?.applicationHomeDir ?: return ProjectForgeApplication.giveUpAndSystemExit()
+
+        val emphasizedLog = EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.NORMAL, EmphasizedLogSupport.Alignment.LEFT)
+                .log("Initializing ProjectForge...")
+        emphasizedLog.logEnd()
+
+        var counter = 0
+        if (!applicationHomeDir.exists()) {
+            emphasizedLog.log("  ${++counter}. Creating directory: ${applicationHomeDir.absolutePath}...")
+            applicationHomeDir.mkdirs()
+            if (!applicationHomeDir.exists() && !applicationHomeDir.isDirectory) {
+                emphasizedLog.log("    Error while creating directory: ${applicationHomeDir.absolutePath}").logEnd()
+                giveUpAndSystemExit()
+            }
         }
-        LoggerSupport(log, LoggerSupport.Priority.HIGH).log("Intializing ProjectForge...")
+        counter = ensureConfigFile(applicationHomeDir, ConfigXml.CLASSPATH_INITIAL_CONFIG_XML_FILE, ConfigXml.CONFIG_XML_FILE, counter, emphasizedLog)
+        counter = ensureConfigFile(applicationHomeDir, ProjectForgeApplication.CLASSPATH_INITIAL_PROPERTIES_FILENAME, ProjectForgeApplication.PROPERTIES_FILENAME, counter, emphasizedLog)
+        counter = ensureConfigFile(applicationHomeDir, AttrSchemaServiceSpringBeanImpl.CLASSPATH_INITIAL_ATTR_SCHEMA_CONFIG_FILE, AttrSchemaServiceSpringBeanImpl.ATTR_SCHEMA_CONFIG_FILE, counter, emphasizedLog)
+
         return setupData?.applicationHomeDir
+    }
+
+    private fun ensureConfigFile(baseDir: File, initialClasspathFilename: String, filename: String, counter: Int,
+                                 emphasizedLog: EmphasizedLogSupport): Int {
+        if (File(baseDir, filename).exists())
+            return counter
+        emphasizedLog.log("  ${counter}. Creating config file: $filename...")
+        if (!ProjectForgeApp.ensureInitialConfigFile(baseDir, initialClasspathFilename, filename, false)) {
+            emphasizedLog.logEnd()
+            giveUpAndSystemExit()
+        }
+        return counter + 1
     }
 }
