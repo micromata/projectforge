@@ -76,7 +76,7 @@ class SetupMain(presetAppHomeDir: File? = null) {
      * @return The user settings or null, if the user canceled the wizard through exit.
      */
     internal fun run(): SetupData? {
-        context.currentWindow!!.waitUntilClosed()
+        context.initializeWindow!!.waitUntilClosed()
         val setupData = context.setupData
         return if (setupData.applicationHomeDir != null) setupData else null
     }
@@ -110,6 +110,7 @@ class SetupMain(presetAppHomeDir: File? = null) {
     }
 
     internal fun finish() {
+        context.initializeWindow!!.close()
         context.screen.stopScreen()
         //terminal.exitPrivateMode()
         terminal.close()
