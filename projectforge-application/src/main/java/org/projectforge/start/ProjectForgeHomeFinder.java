@@ -93,21 +93,21 @@ public class ProjectForgeHomeFinder {
 
     // Try directory where the executable jar resides:
     appHomeDir = searchAndProceed(new File(System.getProperty("user.home")),
-            "ProjectForge's home dir might be at the top level of the user's home dir: $APP_HOME_DIR",
+            "ProjectForge's home directory found in the user's home dir: $APP_HOME_DIR",
             false);
     if (appHomeDir != null)
       return appHomeDir;
 
     // Try directory where the executable jar resides:
     appHomeDir = searchAndProceed(getExecutableDir(true),
-            "ProjectForge's home dir might be a parent directory of the executable jar: $APP_HOME_DIR",
+            "ProjectForge's home directory found relative to executable jar: $APP_HOME_DIR",
             false);
     if (appHomeDir != null)
       return appHomeDir;
 
     // Try current directory (launch wizard, because it's the last chance to do it):
     appHomeDir = searchAndProceed(new File("."),
-            "ProjectForge's home dir might be the current path: $APP_HOME_DIR",
+            "ProjectForge's home directory not found, searched for:\n  " + StringUtils.join(getSuggestedDirectories(), "\n  "),
             true);
     if (appHomeDir != null)
       return appHomeDir;
@@ -141,6 +141,9 @@ public class ProjectForgeHomeFinder {
 
   private File searchAndProceed(File parentDir, String logMessage, boolean forceDirectory) {
     File appHomeDir = findBaseDirAndAncestors(parentDir);
+    if (appHomeDir == null) {
+      appHomeDir = new File(parentDir, "ProjectForge");
+    }
     return proceed(appHomeDir, logMessage, forceDirectory);
   }
 
@@ -152,7 +155,7 @@ public class ProjectForgeHomeFinder {
       if (!forceDirectory) {
         return null;
       }
-      new EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.NORMAL)
+      new EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.NORMAL, EmphasizedLogSupport.Alignment.LEFT)
               .log(logMessage.replace("$APP_HOME_DIR", appHomeDir.getPath()))
               .logEnd();
       if (userAcceptsGraphicalTerminal == null) {

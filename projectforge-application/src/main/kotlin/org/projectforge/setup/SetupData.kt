@@ -27,4 +27,7 @@ import java.io.File
 
 class SetupData(
         var applicationHomeDir: File? = null,
-        var serverPort: Int = 8080)
+        var serverPort: Int = 8080,
+        var startServer: Boolean = true,
+        var developmentMode: Boolean = false)
+
