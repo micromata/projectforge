@@ -118,7 +118,7 @@ public class EmphasizedLogSupport {
     ensureStart();
     String padText = alignment == Alignment.LEFT ? StringUtils.rightPad(text, innerLength)
             : StringUtils.center(text, innerLength);
-    logLine(asterisks(number) + " " + padText + " " + asterisks(number));
+    logLine(asterisks(number) + " " + StringUtils.abbreviate(padText, innerLength) + " " + asterisks(number));
     return this;
   }
 

@@ -37,7 +37,7 @@ object ProjectForgeInitializer {
 
     @JvmStatic
     fun initialize(setupData: SetupData?): File? {
-        val applicationHomeDir = setupData?.applicationHomeDir ?: return ProjectForgeApplication.giveUpAndSystemExit()
+        val applicationHomeDir = setupData?.applicationHomeDir ?: return giveUpAndSystemExit("No directory configured in wizard.")
 
         val emphasizedLog = EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.NORMAL, EmphasizedLogSupport.Alignment.LEFT)
                 .log("Checking ProjectForge installation...")
@@ -48,7 +48,7 @@ object ProjectForgeInitializer {
             applicationHomeDir.mkdirs()
             if (!applicationHomeDir.exists() && !applicationHomeDir.isDirectory) {
                 emphasizedLog.log("    Error while creating directory: ${applicationHomeDir.absolutePath}").logEnd()
-                giveUpAndSystemExit()
+                giveUpAndSystemExit("Error while creating directory: ${applicationHomeDir.absolutePath}")
             }
         }
 
@@ -73,7 +73,7 @@ object ProjectForgeInitializer {
         emphasizedLog.log("  ${counter}. Creating config file: $filename...")
         if (!ProjectForgeApp.ensureInitialConfigFile(baseDir, initialClasspathFilename, filename, false, modifier)) {
             emphasizedLog.logEnd()
-            giveUpAndSystemExit()
+            giveUpAndSystemExit("Error while creating config file '$filename'.")
         }
         return counter + 1
     }
