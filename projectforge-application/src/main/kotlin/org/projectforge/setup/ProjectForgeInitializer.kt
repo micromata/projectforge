@@ -24,6 +24,7 @@
 package org.projectforge.setup
 
 import org.projectforge.ProjectForgeApp
+import org.projectforge.common.CanonicalFileUtils
 import org.projectforge.common.EmphasizedLogSupport
 import org.projectforge.common.StringModifier
 import org.projectforge.framework.configuration.ConfigXml
@@ -45,11 +46,11 @@ object ProjectForgeInitializer {
 
         var counter = 0
         if (!applicationHomeDir.exists()) {
-            emphasizedLog.log("  ${++counter}. Creating directory: ${applicationHomeDir.absolutePath}...")
+            emphasizedLog.log("  ${++counter}. Creating directory: ${CanonicalFileUtils.absolutePath(applicationHomeDir)}...")
             applicationHomeDir.mkdirs()
             if (!applicationHomeDir.exists() && !applicationHomeDir.isDirectory) {
-                emphasizedLog.log("    Error while creating directory: ${applicationHomeDir.absolutePath}").logEnd()
-                giveUpAndSystemExit("Error while creating directory: ${applicationHomeDir.absolutePath}")
+                emphasizedLog.log("    Error while creating directory: ${CanonicalFileUtils.absolutePath(applicationHomeDir)}").logEnd()
+                giveUpAndSystemExit("Error while creating directory: ${CanonicalFileUtils.absolutePath(applicationHomeDir)}")
             }
         }
 

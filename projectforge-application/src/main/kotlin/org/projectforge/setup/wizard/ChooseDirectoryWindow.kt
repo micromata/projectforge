@@ -28,6 +28,7 @@ import com.googlecode.lanterna.gui2.ActionListBox
 import com.googlecode.lanterna.gui2.Panel
 import com.googlecode.lanterna.gui2.dialogs.MessageDialog
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton
+import org.projectforge.common.CanonicalFileUtils
 import org.projectforge.start.ProjectForgeHomeFinder
 import java.io.File
 
@@ -45,12 +46,12 @@ class ChooseDirectoryWindow(context: GUIContext) : AbstractWizardWindow(context,
     override fun redraw() {
         actionListBox.preferredSize = TerminalSize(context.terminalSize.columns - 5, size.rows)
         actionListBox.clearItems()
-        val prevApplicationHomeDir = context.setupData.applicationHomeDir
+        val prevApplicationHomeDir = CanonicalFileUtils.absolute(context.setupData.applicationHomeDir)
         var prevApplicationHomeDirInList = false
         var index = 0;
         for (dir in ProjectForgeHomeFinder.getSuggestedDirectories()) {
-            actionListBox.addItem(dir.absolutePath) {
-                context.setupData.applicationHomeDir = dir.absoluteFile
+            actionListBox.addItem(CanonicalFileUtils.absolutePath(dir)) {
+                context.setupData.applicationHomeDir = CanonicalFileUtils.absolute(dir)
                 context.setupMain.next()
             }
             if (dir == prevApplicationHomeDir) {
@@ -61,7 +62,7 @@ class ChooseDirectoryWindow(context: GUIContext) : AbstractWizardWindow(context,
         }
         if (prevApplicationHomeDir != null && !prevApplicationHomeDirInList) {
             // The recent select directory by the user is different and has to be added:
-            actionListBox.addItem(prevApplicationHomeDir.absolutePath) {
+            actionListBox.addItem(CanonicalFileUtils.absolutePath(prevApplicationHomeDir)) {
                 // Nothing to do (application dir not changed).
                 context.setupMain.next()
             }

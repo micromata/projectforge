@@ -31,6 +31,7 @@ import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.systeminfo.SystemInfoCache;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserXmlPreferencesCache;
+import org.projectforge.common.CanonicalFileUtils;
 import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.common.StringModifier;
 import org.projectforge.continuousdb.DatabaseSupport;
@@ -225,7 +226,7 @@ public class ProjectForgeApp {
     final File destFile = new File(baseDir, destFilename);
     if (!destFile.exists()) {
       if (logEnabled)
-        log.info("New installation, creating default '" + destFilename + "': " + destFile.getAbsolutePath());
+        log.info("New installation, creating default '" + destFilename + "': " + CanonicalFileUtils.absolutePath(destFile));
       try {
         String resourcePath = ProjectForgeApp.CLASSPATH_INITIAL_BASEDIR_FILES + "/" + classPathSourceFilename;
         InputStream resourceStream = ProjectForgeApp.class.getClassLoader().getResourceAsStream(resourcePath);
@@ -239,7 +240,7 @@ public class ProjectForgeApp {
         }
         FileUtils.writeStringToFile(destFile, content, "UTF-8", false);
       } catch (IOException ex) {
-        log.error("Error while creating ProjectForge's config file '" + destFile.getAbsolutePath() + "': " + ex.getMessage(), ex);
+        log.error("Error while creating ProjectForge's config file '" + CanonicalFileUtils.absolutePath(destFile) + "': " + ex.getMessage(), ex);
         return false;
       }
     }

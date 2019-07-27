@@ -28,6 +28,7 @@ import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.gui2.dialogs.DialogWindow
 import com.googlecode.lanterna.gui2.dialogs.MessageDialog
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton
+import org.projectforge.common.CanonicalFileUtils
 import java.io.File
 import java.util.*
 
@@ -58,9 +59,9 @@ open class DirectoryBrowser(
         this.showHiddenFilesAndDirs = showHiddenFilesAndDirs
 
         if (selectedObject == null || !selectedObject.exists()) {
-            selectedObject = File("").absoluteFile
+            selectedObject = CanonicalFileUtils.absolute(File("."))
         }
-        selectedObject = selectedObject!!.absoluteFile
+        selectedObject = CanonicalFileUtils.absolute(selectedObject)
 
         val contentPane = Panel()
         contentPane.layoutManager = LinearLayout()
@@ -121,7 +122,7 @@ open class DirectoryBrowser(
         override fun run() {
             val dir = validResult(pathTextBox.text, dirTextBox.text)
             if (dir != null) {
-                selectedFile = dir.absoluteFile
+                selectedFile = CanonicalFileUtils.absolute(dir)
                 close()
             }
         }
@@ -135,14 +136,15 @@ open class DirectoryBrowser(
     }
 
     private fun reloadViews(directory: File) {
-        pathTextBox.text = directory.absolutePath
+        pathTextBox.text = CanonicalFileUtils.absolutePath(directory)
         directoryListBox.clearItems()
         val entries = directory.listFiles() ?: return
         Arrays.sort(entries) { o1, o2 -> o1.name.toLowerCase().compareTo(o2.name.toLowerCase()) }
-        if (directory.absoluteFile.parentFile != null) {
+        val parentFile = CanonicalFileUtils.absolute(directory.absoluteFile.parentFile)
+        if (parentFile != null) {
             directoryListBox.addItem("..") {
-                this@DirectoryBrowser.directory = directory.absoluteFile.parentFile
-                reloadViews(directory.absoluteFile.parentFile)
+                this@DirectoryBrowser.directory = parentFile
+                reloadViews(parentFile)
             }
         } else {
             val roots = File.listRoots()
