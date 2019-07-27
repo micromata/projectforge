@@ -48,7 +48,7 @@ class SetupMain(presetAppHomeDir: File? = null) {
         val terminalFactory = DefaultTerminalFactory()
         terminalFactory.setInitialTerminalSize(TerminalSize(120, 40))
         terminal = terminalFactory.createTerminal()
-        terminal.enterPrivateMode()
+        // terminal.enterPrivateMode() // may result in crash
         val screen = TerminalScreen(terminal)
         screen.startScreen()
 
@@ -111,7 +111,7 @@ class SetupMain(presetAppHomeDir: File? = null) {
 
     internal fun finish() {
         context.screen.stopScreen()
-        terminal.exitPrivateMode()
+        //terminal.exitPrivateMode()
         terminal.close()
     }
 
