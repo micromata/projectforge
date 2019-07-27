@@ -193,7 +193,9 @@ public class ProjectForgeHomeFinder {
   private static void checkAndAdd(List<File> files, File dir) {
     if (isProjectForgeSourceCodeRepository(dir))
       return;
-    files.add(CanonicalFileUtils.absolute(dir));
+    File canonicalDir = CanonicalFileUtils.absolute(dir);
+    if (!files.contains(canonicalDir))
+      files.add(canonicalDir);
   }
 
   private static File getExecutableDir(boolean includingSourceCodeRepository) {
