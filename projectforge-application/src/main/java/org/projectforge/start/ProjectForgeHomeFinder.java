@@ -26,6 +26,7 @@ package org.projectforge.start;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.projectforge.ProjectForgeApp;
+import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.setup.ProjectForgeInitializer;
 import org.projectforge.setup.wizard.SetupMain;
 
@@ -69,47 +70,49 @@ public class ProjectForgeHomeFinder {
    *
    * @return The home dir. If not found, a System.exit() is done and user information are shown on how to proceed.
    */
-   File findAndEnsureAppHomeDir() {
+  File findAndEnsureAppHomeDir() {
     // Try directory defined through command line: -Dhome.dir:
-    File appHomeDir = proceed(System.getProperty(COMMAND_LINE_VAR_HOME_DIR),
+    File appHomeDir = proceedForced(System.getProperty(COMMAND_LINE_VAR_HOME_DIR),
             "ProjectForge's home dir is defined as command line param, but isn't yet initialized: -D"
                     + COMMAND_LINE_VAR_HOME_DIR + "=$APP_HOME_DIR");
     if (appHomeDir != null)
       return appHomeDir;
 
-    // Try directory defined through command line: -Dhome.dir:
-    appHomeDir = proceed(System.getProperty(COMMAND_LINE_VAR_HOME_DIR),
+    // Try directory defined through command line: -Dprojectforge.base.dir:
+    appHomeDir = proceedForced(System.getProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR),
             "ProjectForge's home dir is defined as command line param, but isn't yet initialized: -D"
                     + ProjectForgeApp.CONFIG_PARAM_BASE_DIR + "=$APP_HOME_DIR");
     if (appHomeDir != null)
       return appHomeDir;
 
     // Try directory defined through environment variable:
-    appHomeDir = proceed(System.getenv(ENV_PROJECTFORGE_HOME),
+    appHomeDir = proceedForced(System.getenv(ENV_PROJECTFORGE_HOME),
             "ProjectForge's home dir is defined as system environment variable $" + ENV_PROJECTFORGE_HOME + ": $APP_HOME_DIR");
     if (appHomeDir != null)
       return appHomeDir;
 
     // Try directory where the executable jar resides:
-    appHomeDir = proceed(new File(System.getProperty("user.home")),
-            "ProjectForge's home dir might be at the top level of the user's home dir: $APP_HOME_DIR");
+    appHomeDir = searchAndProceed(new File(System.getProperty("user.home")),
+            "ProjectForge's home dir might be at the top level of the user's home dir: $APP_HOME_DIR",
+            false);
     if (appHomeDir != null)
       return appHomeDir;
 
     // Try directory where the executable jar resides:
-    appHomeDir = proceed(getExecutableDir(true),
-            "ProjectForge's home dir might be a parent directory of the executable jar: $APP_HOME_DIR");
+    appHomeDir = searchAndProceed(getExecutableDir(true),
+            "ProjectForge's home dir might be a parent directory of the executable jar: $APP_HOME_DIR",
+            false);
     if (appHomeDir != null)
       return appHomeDir;
 
-    // Try current directory:
-    appHomeDir = proceed(new File("."),
-            "ProjectForge's home dir might be the current path: $APP_HOME_DIR");
+    // Try current directory (launch wizard, because it's the last chance to do it):
+    appHomeDir = searchAndProceed(new File("."),
+            "ProjectForge's home dir might be the current path: $APP_HOME_DIR",
+            true);
     if (appHomeDir != null)
       return appHomeDir;
 
-    log.error("No home directory of ProjectForge found or configured, giving up :-(");
-    ProjectForgeApplication.giveUpAndSystemExit();
+    ProjectForgeApplication.giveUpAndSystemExit("No home directory of ProjectForge found or configured, giving up :-(");
     return null; // unreachable, because SystemExit() was called before.
   }
 
@@ -129,61 +132,46 @@ public class ProjectForgeHomeFinder {
    *   </li>
    * </ol>
    */
-  private File proceed(String appHomeDir, String logMessage) {
+  private File proceedForced(String appHomeDir, String logMessage) {
     if (StringUtils.isNotBlank(appHomeDir)) {
-      return proceed(new File(appHomeDir), logMessage);
+      return proceed(new File(appHomeDir), logMessage, true);
     }
     return null;
   }
 
-  private File proceed(File appHomeDir, String logMessage) {
+  private File searchAndProceed(File parentDir, String logMessage, boolean forceDirectory) {
+    File appHomeDir = findBaseDirAndAncestors(parentDir);
+    return proceed(appHomeDir, logMessage, forceDirectory);
+  }
+
+  private File proceed(File appHomeDir, String logMessage, boolean forceDirectory) {
     if (appHomeDir != null) {
       if (isProjectForgeConfigured(appHomeDir)) {
         return appHomeDir;
       }
-      log.info(logMessage.replace("$APP_HOME_DIR", appHomeDir.getPath()));
+      if (!forceDirectory) {
+        return null;
+      }
+      new EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.NORMAL)
+              .log(logMessage.replace("$APP_HOME_DIR", appHomeDir.getPath()))
+              .logEnd();
       if (userAcceptsGraphicalTerminal == null) {
-        String answer = new ConsoleTimeoutReader("Do you want to enter the graphical setup screen (Y/n)?", "y")
+        String answer = new ConsoleTimeoutReader("Do you want to enter the setup wizard (Y/n)?", "y")
                 .ask();
         userAcceptsGraphicalTerminal = StringUtils.startsWithIgnoreCase(answer, "y");
       }
-      if (userAcceptsGraphicalTerminal == true) {
+      if (userAcceptsGraphicalTerminal == Boolean.TRUE) {
         try {
           return ProjectForgeInitializer.initialize(SetupMain.run(appHomeDir));
         } catch (Exception ex) {
           log.error("Error while initializing new ProjectForge home: " + ex.getMessage(), ex);
-          ProjectForgeApplication.giveUpAndSystemExit();
+          ProjectForgeApplication.giveUpAndSystemExit("Error while initializing new ProjectForge home: " + appHomeDir.getAbsolutePath());
         }
+      } else {
+        ProjectForgeApplication.giveUpAndSystemExit("Can't start ProjectForge in specified directory '" + appHomeDir.getAbsolutePath() + "'.");
       }
     }
     return null;
-  }
-
-  /**
-   * Searches for the ProjectForge dir in the given baseDir and all its parent directories. If nothing found, the user's
-   * home directory is searched.
-   * The ProjectForge dir is the parent dir containing ProjectForge files, such as projectforge.properties.
-   *
-   * @param baseDir
-   * @return
-   */
-  static File findBaseDir(File baseDir) {
-    // Search the given baseDir and all parent dirs:
-    File dir = findBaseDirAndAncestors(baseDir);
-    if (dir != null) {
-      return dir;
-    }
-
-    File jarFileDir = getExecutableDir(false);
-    dir = findBaseDirAndAncestors(jarFileDir);
-    if (dir != null) {
-      log.info("Using location relative to running jar: " + dir.getAbsolutePath());
-      return dir;
-    }
-
-    // Search the user's home dir:
-    String userHome = System.getProperty("user.home");
-    return findBaseDirOnly(new File(userHome));
   }
 
   public static File[] getSuggestedDirectories() {
@@ -217,14 +205,24 @@ public class ProjectForgeHomeFinder {
       if (location.indexOf('!') > 0) {
         location = location.substring(0, location.indexOf('!'));
       }
-      return new File(new URI(location));
+      File file = new File(new URI(location));
+      for (int i = 0; i < 100; i++) {// Paranoi counter for endless loops (circular file system links)
+        if (file == null) {
+          return null;
+        }
+        if (file.exists() && file.isDirectory()) {
+          return file;
+        }
+        file = file.getParentFile();
+      }
+      return null;
     } catch (URISyntaxException ex) {
       log.error("Internal error while trying to get the location of ProjectForge's running code: " + ex.getMessage(), ex);
       return null;
     }
   }
 
-  private static File findBaseDirAndAncestors(File baseDir) {
+  static File findBaseDirAndAncestors(File baseDir) {
     if (baseDir == null)
       return null;
     // Need absolute directory to check parent directories.

@@ -37,7 +37,7 @@ import java.util.concurrent.*;
 public class ConsoleTimeoutReader {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ConsoleTimeoutReader.class);
 
-  private static final int CONSOLE_INPUT_TIMEOUT = 120;
+  private static final int CONSOLE_INPUT_TIMEOUT = 30;
 
   private int timeOutSeconds = CONSOLE_INPUT_TIMEOUT;
 
@@ -70,7 +70,7 @@ public class ConsoleTimeoutReader {
   }
 
   public String ask() {
-    log.info("ProjectForge is waiting " + timeOutSeconds + " seconds for your input on console (if running without console, ProjectForge isn't able to proceed): " + question);
+    log.info("ProjectForge is waiting " + timeOutSeconds + " seconds for your input on console (if running without console, ProjectForge will continue anyway): " + question);
     System.out.println();
     System.out.println(StringUtils.center(" QUESTION ", 120, "?"));
     System.out.println();
@@ -120,7 +120,7 @@ public class ConsoleTimeoutReader {
     try {
       answer = handler.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
     } catch (TimeoutException | InterruptedException | ExecutionException ex) {
-      log.info("Timeout of console input exceed (>" + timeOutSeconds + "s). Aborting.");
+      log.info("Timeout of console input exceeded (>" + timeOutSeconds + "s). Aborting.");
       handler.cancel(true);
     }
     executor.shutdownNow();

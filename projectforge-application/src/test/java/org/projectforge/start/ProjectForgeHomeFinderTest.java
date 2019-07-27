@@ -41,10 +41,12 @@ public class ProjectForgeHomeFinderTest {
     pfDir.mkdir();
     File subDir = new File(pfDir, "subdir");
     subDir.mkdir();
-    File dir = ProjectForgeHomeFinder.findBaseDir(subDir);
+
+
+    File dir = ProjectForgeHomeFinder.findBaseDirAndAncestors(subDir);
     assertEquals("ProjectForge", dir.getName());
 
-    dir = ProjectForgeHomeFinder.findBaseDir(new File("."));
+    dir = ProjectForgeHomeFinder.findBaseDirAndAncestors(new File("."));
     if (dir != null)
       assertFalse(new File(dir, "projectforge-business").exists(), "The source code directory shouldn't be found.");
   }

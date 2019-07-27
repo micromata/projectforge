@@ -50,7 +50,7 @@ public class ProjectForgeApplication {
 
   public static final String PROPERTIES_FILENAME = "projectforge.properties";
 
-  public static final String CLASSPATH_INITIAL_PROPERTIES_FILENAME ="initialProjectForge.properties";
+  public static final String CLASSPATH_INITIAL_PROPERTIES_FILENAME = "initialProjectForge.properties";
 
   private static final String[] DIR_NAMES = {"ProjectForge", "Projectforge", "projectforge"};
 
@@ -99,8 +99,20 @@ public class ProjectForgeApplication {
    * @return Does return nothing, System.exit() was called before.
    */
   public static File giveUpAndSystemExit() {
-    new EmphasizedLogSupport(log, EmphasizedLogSupport.Alignment.LEFT)
-            .log("Your options (please refer: https://github.com/micromata/projectforge):")
+    return giveUpAndSystemExit(null);
+  }
+
+  /**
+   * Show last message before exit.
+   *
+   * @return Does return nothing, System.exit() was called before.
+   */
+  public static File giveUpAndSystemExit(String message) {
+    EmphasizedLogSupport el = new EmphasizedLogSupport(log, EmphasizedLogSupport.Alignment.LEFT);
+    if (message != null) {
+      el.log(message).log("");
+    }
+    el.log("Your options (please refer: https://github.com/micromata/projectforge):")
             .log("  1. Run ProjectForge and follow the setup wizard, or")
             .log("  2. Create ProjectForge as a top level directory of your home directory:")
             .log("     '$HOME/ProjectForge', or")
@@ -116,7 +128,6 @@ public class ProjectForgeApplication {
     System.exit(1);
     return null;
   }
-
 
   /**
    * For easier configuration, ProjectForge adds ${user.home}/ProjectForge/projectforge.properties as
