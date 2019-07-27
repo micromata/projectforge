@@ -32,6 +32,7 @@ import com.googlecode.lanterna.screen.TerminalScreen
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import com.googlecode.lanterna.terminal.Terminal
 import org.apache.commons.lang3.SystemUtils
+import org.projectforge.common.CanonicalFileUtils
 import org.projectforge.common.EmphasizedLogSupport
 import org.projectforge.setup.SetupData
 import java.io.File
@@ -143,7 +144,7 @@ class SetupMain(presetAppHomeDir: File? = null) {
         fun main(args: Array<String>) {
             try {
                 val result = SetupMain().run()
-                println("result directory='${result?.applicationHomeDir?.absolutePath}'")
+                println("result directory='${CanonicalFileUtils.absolutePath(result?.applicationHomeDir)}'")
             } catch (ex: IOException) {
                 System.err.println("No graphical terminal available.")
             }

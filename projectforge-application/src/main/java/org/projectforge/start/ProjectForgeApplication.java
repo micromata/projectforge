@@ -24,6 +24,7 @@
 package org.projectforge.start;
 
 import org.projectforge.ProjectForgeApp;
+import org.projectforge.common.CanonicalFileUtils;
 import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.framework.time.DateHelper;
 import org.springframework.boot.SpringApplication;
@@ -66,10 +67,10 @@ public class ProjectForgeApplication {
     // Find application home or start the setup wizard, if not found:
     File baseDir = new ProjectForgeHomeFinder().findAndEnsureAppHomeDir();
 
-    System.setProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR, baseDir.getAbsolutePath());
+    System.setProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR, CanonicalFileUtils.absolutePath(baseDir));
 
     new EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.NORMAL)
-            .log("Using ProjectForge directory: " + baseDir.getAbsolutePath())
+            .log("Using ProjectForge directory: " + CanonicalFileUtils.absolutePath(baseDir))
             .logEnd();
 
     args = addDefaultAdditionalLocation(baseDir, args);
@@ -143,7 +144,7 @@ public class ProjectForgeApplication {
     checkConfiguration("config", "application.properties");
     checkConfiguration(".", "application-default.properties");
     checkConfiguration(".", "application.properties");
-    if (baseDir == null || !checkConfiguration(baseDir.getAbsolutePath(), PROPERTIES_FILENAME)) {
+    if (baseDir == null || !checkConfiguration(CanonicalFileUtils.absolutePath(baseDir), PROPERTIES_FILENAME)) {
       return args;
     }
     // Add found projectforge.properties as additional arg (Spring uses this file with highest priority for configuration).
@@ -171,7 +172,7 @@ public class ProjectForgeApplication {
    * @return --spring.config.additional-location=file:/$HOME/ProjectForge/projectforge.properties
    */
   static String getAddtionalLocationArg(File dir) {
-    return ADDITIONAL_LOCATION_ARG + "file:" + new File(dir, PROPERTIES_FILENAME).getAbsolutePath();
+    return ADDITIONAL_LOCATION_ARG + "file:" + CanonicalFileUtils.absolutePath(new File(dir, PROPERTIES_FILENAME));
   }
 
   private static boolean checkConfiguration(String dir, String filename) {
@@ -179,7 +180,7 @@ public class ProjectForgeApplication {
       return false;
     File file = new File(dir, filename);
     if (file.exists()) {
-      log.info("Configuration from '" + file.getAbsolutePath() + "' will be used.");
+      log.info("Configuration from '" + CanonicalFileUtils.absolutePath(file) + "' will be used.");
       return true;
     }
     return false;

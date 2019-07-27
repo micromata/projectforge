@@ -25,6 +25,7 @@ package org.projectforge.setup.wizard
 
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.*
+import org.projectforge.common.CanonicalFileUtils
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.start.ProjectForgeApplication
 import org.projectforge.start.ProjectForgeHomeFinder
@@ -92,7 +93,7 @@ class FinalizeWindow(context: GUIContext) : AbstractWizardWindow(context, "Finis
     override fun redraw() {
         val dir = context.setupData.applicationHomeDir ?: File(System.getProperty("user.home"), "ProjectForge")
         dirLabel.setPreferredSize(TerminalSize(context.terminalSize.columns - 20, 1))
-        dirLabel.setText(dir.absolutePath)
+        dirLabel.setText(CanonicalFileUtils.absolutePath(dir))
         val sb = StringBuilder()
         sb.append("Final steps to be done:\n")
         var counter = 0

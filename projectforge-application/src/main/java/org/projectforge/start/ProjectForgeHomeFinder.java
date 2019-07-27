@@ -26,6 +26,7 @@ package org.projectforge.start;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.projectforge.ProjectForgeApp;
+import org.projectforge.common.CanonicalFileUtils;
 import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.setup.ProjectForgeInitializer;
 import org.projectforge.setup.wizard.SetupMain;
@@ -168,10 +169,10 @@ public class ProjectForgeHomeFinder {
           return ProjectForgeInitializer.initialize(SetupMain.run(appHomeDir));
         } catch (Exception ex) {
           log.error("Error while initializing new ProjectForge home: " + ex.getMessage(), ex);
-          ProjectForgeApplication.giveUpAndSystemExit("Error while initializing new ProjectForge home: " + appHomeDir.getAbsolutePath());
+          ProjectForgeApplication.giveUpAndSystemExit("Error while initializing new ProjectForge home: " + CanonicalFileUtils.absolutePath(appHomeDir));
         }
       } else {
-        ProjectForgeApplication.giveUpAndSystemExit("Can't start ProjectForge in specified directory '" + appHomeDir.getAbsolutePath() + "'.");
+        ProjectForgeApplication.giveUpAndSystemExit("Can't start ProjectForge in specified directory '" + CanonicalFileUtils.absolutePath(appHomeDir) + "'.");
       }
     }
     return null;
@@ -186,13 +187,13 @@ public class ProjectForgeHomeFinder {
   }
 
   private static void checkAndAdd(List<File> files, String path) {
-    checkAndAdd(files, new File(path, "ProjectForge"));
+    checkAndAdd(files, CanonicalFileUtils.absolute(new File(path, "ProjectForge")));
   }
 
   private static void checkAndAdd(List<File> files, File dir) {
     if (isProjectForgeSourceCodeRepository(dir))
       return;
-    files.add(dir.getAbsoluteFile());
+    files.add(CanonicalFileUtils.absolute(dir));
   }
 
   private static File getExecutableDir(boolean includingSourceCodeRepository) {
@@ -229,7 +230,7 @@ public class ProjectForgeHomeFinder {
     if (baseDir == null)
       return null;
     // Need absolute directory to check parent directories.
-    File currentDir = baseDir.isAbsolute() ? baseDir : new File(baseDir.getAbsolutePath());
+    File currentDir = CanonicalFileUtils.absolute(baseDir); // absolute needed for getting the parent file.
     int recursiveCounter = 100; // Soft links may result in endless loops.
     do {
       File dir = findBaseDirOnly(currentDir);
@@ -261,20 +262,20 @@ public class ProjectForgeHomeFinder {
   static boolean checkDirectory(File baseDir, boolean logWarning) {
     if (!baseDir.exists()) {
       if (logWarning)
-        log.warn("Configured base dir '" + baseDir.getAbsolutePath() + "' doesn't exist. Ignoring it.");
+        log.warn("Configured base dir '" + CanonicalFileUtils.absolutePath(baseDir) + "' doesn't exist. Ignoring it.");
       return false;
     }
     if (!baseDir.isDirectory()) {
       if (logWarning)
-        log.warn("Configured base dir '" + baseDir.getAbsolutePath() + "' is not a directory. Ignoring it.");
+        log.warn("Configured base dir '" + CanonicalFileUtils.absolutePath(baseDir) + "' is not a directory. Ignoring it.");
       else
-        log.warn("'" + baseDir.getAbsolutePath() + "' found, but isn't a directory, ignoring...");
+        log.warn("'" + CanonicalFileUtils.absolutePath(baseDir) + "' found, but isn't a directory, ignoring...");
       return false;
     }
     // Check for ProjectForge as source code repository:
     if (isProjectForgeSourceCodeRepository(baseDir)) {
       if (logWarning) {
-        log.warn("Configured base dir '" + baseDir.getAbsolutePath() + "' seems to be the source code repository and shouldn't be used. Ignoring it.");
+        log.warn("Configured base dir '" + CanonicalFileUtils.absolutePath(baseDir) + "' seems to be the source code repository and shouldn't be used. Ignoring it.");
       }
       return false;
     }
