@@ -64,7 +64,7 @@ public class ProjectForgeApplication {
               .logEnd();
     }
     // Find application home or start the setup wizard, if not found:
-    File baseDir = ProjectForgeHomeFinder.findAndEnsureAppHomeDir();
+    File baseDir = new ProjectForgeHomeFinder().findAndEnsureAppHomeDir();
 
     System.setProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR, baseDir.getAbsolutePath());
 

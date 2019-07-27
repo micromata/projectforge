@@ -43,11 +43,22 @@ public class ConsoleTimeoutReader {
 
   private String question;
 
+  private String defaultAnswer;
+
   private InputStreamReader streamReader = new InputStreamReader(System.in);
   private BufferedReader bufferedReader = new BufferedReader(streamReader);
 
   public ConsoleTimeoutReader(String question) {
+    this(question, null);
+  }
+
+  /**
+   * @param question
+   * @param defaultAnswer The answer if the user hits simply return.
+   */
+  public ConsoleTimeoutReader(String question, String defaultAnswer) {
     this.question = question;
+    this.defaultAnswer = defaultAnswer;
   }
 
   /**
@@ -68,18 +79,30 @@ public class ConsoleTimeoutReader {
       answer = readConsoleAnswerWithTimeout();
       if (answer == null)
         return null;
-      answer = answer.toLowerCase();
-      if (answerValid(answer))
-        return answer;
+      String result;
+      if (defaultAnswer != null && answer.length() == 0) {
+        result = defaultAnswer;
+      } else {
+        result = answer.trim().toLowerCase();
+      }
+      if (answerValid(result))
+        return result;
     } while (true);
   }
 
   /**
+   * If the user hits simply return, the parameter answer will be the configured default answer or an empty string,
+   * if no default value is defined.
+   *
    * @param answer Answer given from console input ("" or input to lower case).
    * @return true if answer starts with 'y' or 'n', otherwise false.
    */
   protected boolean answerValid(String answer) {
     return answer.startsWith("y") || answer.startsWith("n");
+  }
+
+  public String getDefaultAnswer() {
+    return defaultAnswer;
   }
 
   private String readConsoleAnswerWithTimeout() {

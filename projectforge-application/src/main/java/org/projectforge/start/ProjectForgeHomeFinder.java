@@ -55,6 +55,8 @@ public class ProjectForgeHomeFinder {
 
   private static final String[] DIR_NAMES = {"ProjectForge", "Projectforge", "projectforge"};
 
+  private Boolean userAcceptsGraphicalTerminal = null;
+
   /**
    * @return %PROJECTFORGE_HOME for Windows, otherwise $PPROJECTFORGE_HOME
    */
@@ -67,7 +69,7 @@ public class ProjectForgeHomeFinder {
    *
    * @return The home dir. If not found, a System.exit() is done and user information are shown on how to proceed.
    */
-  static File findAndEnsureAppHomeDir() {
+   File findAndEnsureAppHomeDir() {
     // Try directory defined through command line: -Dhome.dir:
     File appHomeDir = proceed(System.getProperty(COMMAND_LINE_VAR_HOME_DIR),
             "ProjectForge's home dir is defined as command line param, but isn't yet initialized: -D"
@@ -127,24 +129,31 @@ public class ProjectForgeHomeFinder {
    *   </li>
    * </ol>
    */
-  private static File proceed(String appHomeDir, String logMessage) {
+  private File proceed(String appHomeDir, String logMessage) {
     if (StringUtils.isNotBlank(appHomeDir)) {
       return proceed(new File(appHomeDir), logMessage);
     }
     return null;
   }
 
-  private static File proceed(File appHomeDir, String logMessage) {
+  private File proceed(File appHomeDir, String logMessage) {
     if (appHomeDir != null) {
       if (isProjectForgeConfigured(appHomeDir)) {
         return appHomeDir;
       }
       log.info(logMessage.replace("$APP_HOME_DIR", appHomeDir.getPath()));
-      try {
-        return ProjectForgeInitializer.initialize(SetupMain.run(appHomeDir));
-      } catch (Exception ex) {
-        log.error("Error while initializing new ProjectForge home: " + ex.getMessage(), ex);
-        ProjectForgeApplication.giveUpAndSystemExit();
+      if (userAcceptsGraphicalTerminal == null) {
+        String answer = new ConsoleTimeoutReader("Do you want to enter the graphical setup screen (Y/n)?", "y")
+                .ask();
+        userAcceptsGraphicalTerminal = StringUtils.startsWithIgnoreCase(answer, "y");
+      }
+      if (userAcceptsGraphicalTerminal == true) {
+        try {
+          return ProjectForgeInitializer.initialize(SetupMain.run(appHomeDir));
+        } catch (Exception ex) {
+          log.error("Error while initializing new ProjectForge home: " + ex.getMessage(), ex);
+          ProjectForgeApplication.giveUpAndSystemExit();
+        }
       }
     }
     return null;
