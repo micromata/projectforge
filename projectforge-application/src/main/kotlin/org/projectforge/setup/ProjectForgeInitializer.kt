@@ -37,7 +37,8 @@ object ProjectForgeInitializer {
 
     @JvmStatic
     fun initialize(setupData: SetupData?): File? {
-        val applicationHomeDir = setupData?.applicationHomeDir ?: return giveUpAndSystemExit("No directory configured in wizard.")
+        val applicationHomeDir = setupData?.applicationHomeDir
+                ?: return giveUpAndSystemExit("No directory configured in wizard.")
 
         val emphasizedLog = EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.NORMAL, EmphasizedLogSupport.Alignment.LEFT)
                 .log("Checking ProjectForge installation...")
@@ -52,17 +53,26 @@ object ProjectForgeInitializer {
             }
         }
 
-        var serverPort = if (setupData.serverPort in 1..65535) setupData.serverPort else 8080
+        val serverPort = if (setupData.serverPort in 1..65535) setupData.serverPort else 8080
 
         counter = ensureConfigFile(applicationHomeDir,
                 ProjectForgeApplication.CLASSPATH_INITIAL_PROPERTIES_FILENAME, ProjectForgeApplication.PROPERTIES_FILENAME, counter, emphasizedLog,
-                StringModifier { it.replace("#server.port=8080", "server.port=$serverPort") }
+                StringModifier {
+                    var result = it.replace("#server.port=8080", "server.port=$serverPort")
+                    if (setupData.developmentMode) {
+                        result = result.replace("#projectforge.web.development.enableCORSFilter=true", "projectforge.web.development.enableCORSFilter=true")
+                    }
+                    result
+                }
         )
         counter = ensureConfigFile(applicationHomeDir,
                 ConfigXml.CLASSPATH_INITIAL_CONFIG_XML_FILE, ConfigXml.CONFIG_XML_FILE, counter, emphasizedLog)
         counter = ensureConfigFile(applicationHomeDir,
                 AttrSchemaServiceSpringBeanImpl.CLASSPATH_INITIAL_ATTR_SCHEMA_CONFIG_FILE, AttrSchemaServiceSpringBeanImpl.ATTR_SCHEMA_CONFIG_FILE, counter, emphasizedLog)
         emphasizedLog.logEnd()
+        if (setupData.startServer == false) {
+            giveUpAndSystemExit("Initialization of ProjectForge's home directory done. Autostart wasn't selected. Please restart the server manually.")
+        }
         return setupData.applicationHomeDir
     }
 

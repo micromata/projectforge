@@ -31,12 +31,15 @@ import org.projectforge.start.ProjectForgeHomeFinder
 import java.io.File
 import java.util.regex.Pattern
 
+
 class FinalizeWindow(context: GUIContext) : AbstractWizardWindow(context, "Finishing the directory setup") {
     private val log = org.slf4j.LoggerFactory.getLogger(FinalizeWindow::class.java)
 
     private lateinit var dirLabel: Label
-    private lateinit var portextBox: TextBox
+    private lateinit var portTextBox: TextBox
     private lateinit var hintLabel: Label
+    private lateinit var startCheckBox: CheckBox
+    private lateinit var developmentCheckBox: CheckBox
 
     override fun getContentPanel(): Panel {
         dirLabel = Label("")
@@ -45,11 +48,21 @@ class FinalizeWindow(context: GUIContext) : AbstractWizardWindow(context, "Finis
         panel.addComponent(Label("Directory").setSize(TerminalSize(10, 1)))
                 .addComponent(dirLabel)
         panel.addComponent(EmptySpace().setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
-        portextBox = TextBox("8080")
+        portTextBox = TextBox("8080")
                 .setValidationPattern(Pattern.compile("[0-9]{1,5}?"))
                 .setPreferredSize(TerminalSize(7, 1))
         panel.addComponent(Label("Port"))
-                .addComponent(portextBox)
+                .addComponent(portTextBox)
+        panel.addComponent(EmptySpace().setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
+        startCheckBox = CheckBox("Start ProjectForge (create a new embedded database)")
+                .setChecked(true)
+        developmentCheckBox = CheckBox("Enable CORS filter (for development only)")
+                .setChecked(false)
+        panel.addComponent(Label("Settings"))
+                .addComponent(startCheckBox)
+                .addComponent(EmptySpace())
+                .addComponent(developmentCheckBox)
+
         panel.addComponent(EmptySpace().setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
         hintLabel = Label("")
         hintLabel.layoutData = GridLayout.createHorizontallyFilledLayoutData(2)
@@ -60,18 +73,20 @@ class FinalizeWindow(context: GUIContext) : AbstractWizardWindow(context, "Finis
     override fun getButtons(): Array<Button> {
         return arrayOf(
                 Button("Previous") {
-                    setPort()
+                    saveValues()
                     context.setupMain.previous()
                 },
                 Button("Finish") {
-                    setPort()
+                    saveValues()
                     context.setupMain.finish()
                 })
     }
 
-    private fun setPort() {
-        var port = NumberHelper.parseInteger(portextBox.text)
+    private fun saveValues() {
+        var port = NumberHelper.parseInteger(portTextBox.text)
         context.setupData.serverPort = if (port in 1..65535) port else 8080
+        context.setupData.startServer = startCheckBox.isChecked
+        context.setupData.developmentMode = developmentCheckBox.isChecked
     }
 
     override fun redraw() {
