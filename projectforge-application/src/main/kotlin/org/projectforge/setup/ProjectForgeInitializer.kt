@@ -32,6 +32,7 @@ import org.projectforge.framework.persistence.attr.impl.AttrSchemaServiceSpringB
 import org.projectforge.start.ProjectForgeApplication
 import org.projectforge.start.ProjectForgeApplication.giveUpAndSystemExit
 import java.io.File
+import java.util.regex.Matcher
 
 object ProjectForgeInitializer {
     private val log = org.slf4j.LoggerFactory.getLogger(ProjectForgeInitializer::class.java)
@@ -59,9 +60,20 @@ object ProjectForgeInitializer {
         counter = ensureConfigFile(applicationHomeDir,
                 ProjectForgeApplication.CLASSPATH_INITIAL_PROPERTIES_FILENAME, ProjectForgeApplication.PROPERTIES_FILENAME, counter, emphasizedLog,
                 StringModifier {
-                    var result = it.replace("#server.port=8080", "server.port=$serverPort")
+                    var result = replace(it, "server.port", "$serverPort")
+                    result = replace(result, "projectforge.currencySymbol", setupData.currencySymbol)
+                    result = replace(result, "projectforge.defaultLocale", setupData.defaultLocale)
+                    result = replace(result, "projectforge.defaultTimeNotation", setupData.defaultTimeNotation)
+                    result = replace(result, "projectforge.defaultFirstDayOfWeek", setupData.defaultFirstDayOfWeek)
                     if (setupData.developmentMode) {
-                        result = result.replace("#projectforge.web.development.enableCORSFilter=true", "projectforge.web.development.enableCORSFilter=true")
+                        result = replace(result, "#projectforge.web.development.enableCORSFilter", "true")
+                    }
+                    val jdbc = setupData.jdbcSettings
+                    if (!setupData.useEmbeddedDatabase && jdbc != null) {
+                        result = replace(result, "spring.datasource.url", jdbc.jdbcUrl)
+                        result = replace(result, "spring.datasource.username", jdbc.user)
+                        result = replace(result, "spring.datasource.password", jdbc.password)
+                        result = replace(result, "spring.datasource.driver-class-name","org.postgresql.Driver")
                     }
                     result
                 }
@@ -75,6 +87,10 @@ object ProjectForgeInitializer {
             giveUpAndSystemExit("Initialization of ProjectForge's home directory done. Autostart wasn't selected. Please restart the server manually.")
         }
         return setupData.applicationHomeDir
+    }
+
+    private fun replace(text: String, property: String, value: Any?): String {
+        return text.replaceFirst("^#?+$property=.*$".toRegex(RegexOption.MULTILINE), Matcher.quoteReplacement("$property=$value"))
     }
 
     private fun ensureConfigFile(baseDir: File, initialClasspathFilename: String, filename: String, counter: Int,
