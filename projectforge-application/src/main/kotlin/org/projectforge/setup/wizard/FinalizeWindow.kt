@@ -26,8 +26,9 @@ package org.projectforge.setup.wizard
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.*
 import org.projectforge.common.CanonicalFileUtils
+import org.projectforge.framework.time.TimeNotation
+import org.projectforge.framework.utils.LabelValueBean
 import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.start.ProjectForgeApplication
 import org.projectforge.start.ProjectForgeHomeFinder
 import java.io.File
 import java.util.regex.Pattern
@@ -38,35 +39,106 @@ class FinalizeWindow(context: GUIContext) : AbstractWizardWindow(context, "Finis
 
     private lateinit var dirLabel: Label
     private lateinit var portTextBox: TextBox
-    private lateinit var hintLabel: Label
+
+    private lateinit var databaseCombobox: ComboBox<String>
+    private lateinit var jdbcSettingsButton: Button
+
+    private lateinit var currencyTextBox: TextBox
+    private lateinit var defaultLocaleCombobox: ComboBox<String>
+    private lateinit var defaultTimeNotationCombobox: ComboBox<String>
+    private lateinit var defaultFirstDayOfWeekCombobox: ComboBox<String>
+
     private lateinit var startCheckBox: CheckBox
     private lateinit var developmentCheckBox: CheckBox
+
+    private lateinit var hintLabel: Label
 
     override fun getContentPanel(): Panel {
         dirLabel = Label("")
         val panel = Panel()
-        panel.layoutManager = GridLayout(2)
+        panel.layoutManager = GridLayout(3)
+
         panel.addComponent(Label("Directory").setSize(TerminalSize(10, 1)))
-                .addComponent(dirLabel)
-        panel.addComponent(EmptySpace().setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
+                .addComponent(dirLabel.setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
+
+        panel.addComponent(EmptySpace().setLayoutData(GridLayout.createHorizontallyFilledLayoutData(3)))
+
         portTextBox = TextBox("8080")
                 .setValidationPattern(Pattern.compile("[0-9]{1,5}?"))
                 .setPreferredSize(TerminalSize(7, 1))
         panel.addComponent(Label("Port"))
                 .addComponent(portTextBox)
-        panel.addComponent(EmptySpace().setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
+                .addComponent(EmptySpace())
+
+        panel.addComponent(EmptySpace().setLayoutData(GridLayout.createHorizontallyFilledLayoutData(3)))
+
+        databaseCombobox = ComboBox()
+        listOfDatabases.forEach { databaseCombobox.addItem(it.label) }
+        databaseCombobox.addListener() { selectedIndex, previousSelection ->
+            if (previousSelection == 0 && selectedIndex > 0) {
+                jdbcSettingsButton.setEnabled(true)
+                // PostgreSQL is selected. Open the JdbcSetingsDialog:
+                JdbcSettingsDialog(
+                        this,
+                        dialogSize = context.terminalSize,
+                        context = context
+                ).showDialog()
+                context.setupData.useEmbeddedDatabase = false
+            } else {
+                jdbcSettingsButton.setEnabled(false)
+                context.setupData.useEmbeddedDatabase = true
+            }
+        }
+        jdbcSettingsButton = Button("Jdbc settings")
+                .setEnabled(false)
+        panel.addComponent(Label("Database"))
+                .addComponent(databaseCombobox)
+                .addComponent(jdbcSettingsButton)
+
+        panel.addComponent(EmptySpace().setLayoutData(GridLayout.createHorizontallyFilledLayoutData(3)))
+
+        currencyTextBox = TextBox("€")
+                .setPreferredSize(TerminalSize(4, 1))
+        panel.addComponent(Label("Currency"))
+                .addComponent(currencyTextBox)
+                .addComponent(EmptySpace())
+
+        defaultLocaleCombobox = ComboBox()
+        listOfLocales.forEach { defaultLocaleCombobox.addItem(it.label) }
+        panel.addComponent(Label("Locale"))
+                .addComponent(defaultLocaleCombobox)
+                .addComponent(Label("Default locale."))
+
+        defaultFirstDayOfWeekCombobox = ComboBox()
+        listOfWeekdays.forEach { defaultFirstDayOfWeekCombobox.addItem(it.label) }
+        defaultFirstDayOfWeekCombobox.selectedIndex = 1
+        panel.addComponent(Label("First day"))
+                .addComponent(defaultFirstDayOfWeekCombobox)
+                .addComponent(Label("Default first day of week."))
+
+        defaultTimeNotationCombobox = ComboBox()
+        listOfTimeNotations.forEach { defaultTimeNotationCombobox.addItem(it.label) }
+        panel.addComponent(Label("Time notation"))
+                .addComponent(defaultTimeNotationCombobox)
+                .addComponent(Label("Default time notation."))
+
+        panel.addComponent(EmptySpace().setLayoutData(GridLayout.createHorizontallyFilledLayoutData(3)))
+
         startCheckBox = CheckBox("Start ProjectForge (create a new embedded database)")
                 .setChecked(true)
+                .setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2))
+
         developmentCheckBox = CheckBox("Enable CORS filter (for development only)")
                 .setChecked(false)
+                .setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2))
         panel.addComponent(Label("Settings"))
                 .addComponent(startCheckBox)
                 .addComponent(EmptySpace())
                 .addComponent(developmentCheckBox)
 
-        panel.addComponent(EmptySpace().setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
+        panel.addComponent(EmptySpace().setLayoutData(GridLayout.createHorizontallyFilledLayoutData(3)))
         hintLabel = Label("")
-        hintLabel.layoutData = GridLayout.createHorizontallyFilledLayoutData(2)
+        hintLabel.layoutData = GridLayout.createHorizontallyFilledLayoutData(3)
         panel.addComponent(hintLabel)
         return panel
     }
@@ -86,40 +158,38 @@ class FinalizeWindow(context: GUIContext) : AbstractWizardWindow(context, "Finis
     private fun saveValues() {
         var port = NumberHelper.parseInteger(portTextBox.text)
         context.setupData.serverPort = if (port in 1..65535) port else 8080
+        context.setupData.currencySymbol = currencyTextBox.text
+        context.setupData.defaultLocale = listOfLocales.get(defaultLocaleCombobox.selectedIndex).value
+        context.setupData.defaultFirstDayOfWeek = listOfWeekdays.get(defaultFirstDayOfWeekCombobox.selectedIndex).value
+        context.setupData.defaultTimeNotation = listOfTimeNotations.get(defaultTimeNotationCombobox.selectedIndex).value
         context.setupData.startServer = startCheckBox.isChecked
         context.setupData.developmentMode = developmentCheckBox.isChecked
     }
 
     override fun redraw() {
+        if (context.setupData.jdbcSettings != null && !context.setupData.useEmbeddedDatabase) {
+            // PostgreSQL
+            databaseCombobox.selectedIndex = 1
+            jdbcSettingsButton.setEnabled(true)
+        } else {
+            // embedded
+            databaseCombobox.selectedIndex = 0
+            jdbcSettingsButton.setEnabled(false)
+        }
         val dir = context.setupData.applicationHomeDir ?: File(System.getProperty("user.home"), "ProjectForge")
         dirLabel.setPreferredSize(TerminalSize(context.terminalSize.columns - 20, 1))
-        dirLabel.setText(CanonicalFileUtils.absolutePath(dir))
+        val dirText = if (!dir.exists()) {
+            "Will be created and configured."
+        } else "Exists and will be checked for configuration."
+        dirLabel.setText("${CanonicalFileUtils.absolutePath(dir)} ($dirText)\n")
         val sb = StringBuilder()
-        sb.append("Final steps to be done:\n")
-        var counter = 0
-        if (dir.exists() == false) {
-            sb.append(" ${++counter}. Creation of the directory\n")
-        } else {
-            sb.append(" ${++counter}. Directory does already exist (OK)\n")
-        }
-        if (!File(dir, ProjectForgeApplication.PROPERTIES_FILENAME).exists()) {
-            sb.append(" ${++counter}. Initialization of the directory with a default configuration.\n")
-        } else {
-            sb.append(" ${++counter}. Directory contains already a configuration (OK)\n")
-        }
-        sb.append(" ${++counter}. Starting the server.\n\n")
-        sb.append("Please open your favorite browser after startup: http://localhost:8080 and enjoy it!\n\n")
+        sb.append("Please open your favorite browser after startup: http://localhost:${portTextBox.text} and enjoy it!\n\n")
         if (ProjectForgeHomeFinder.isStandardProjectForgeUserDir(dir)) {
             sb.append("You chose the standard directory of ProjectForge, that will be found by ProjectForge automatically (OK).\n\n")
         } else {
             sb.append("You chose a directory different to ${File(System.getProperty("user.home"), "ProjectForge")}. That's OK.\n")
-            sb.append("To be sure, that this directory is found by the ProjectForge server, you may:\n")
-            sb.append(" 1. put the executable jar somewhere inside this directory, or\n")
-            sb.append(" 2. set the system environment variable ${ProjectForgeHomeFinder.getHomeEnvironmentVariableDefinition()}'PROJECTFORGE_HOME', or\n")
-            sb.append(" 3. start the jar with the command line flag -Dhome.dir=<dir>.\n\n")
+            sb.append("To be sure, that this directory is found by the ProjectForge server, please refer log files or home page.\n\n")
         }
-        sb.append("If you want to setup e. g. PostgreSQL, you may stop the server after start-up and do your configuration in:\n")
-        sb.append("'projectforge.properties' inside your chosen ProjectForge directory.\n\n")
         sb.append("Press 'Finish' for starting the intialization and for starting-up the server.")
         hintLabel.text = sb.toString()
     }
@@ -127,5 +197,32 @@ class FinalizeWindow(context: GUIContext) : AbstractWizardWindow(context, "Finis
     override fun resize() {
         super.resize()
         dirLabel.setPreferredSize(TerminalSize(context.terminalSize.columns - 20, 1))
+    }
+
+    companion object {
+        private val listOfLocales = listOf(
+                LabelValueBean("en - English", "en"),
+                LabelValueBean("de - Deutsch", "de")
+        )
+
+        private val listOfTimeNotations = listOf(
+                LabelValueBean("H24", TimeNotation.H24),
+                LabelValueBean("H12", TimeNotation.H12)
+        )
+
+        private val listOfWeekdays = listOf(
+                LabelValueBean("Sunday", 1),
+                LabelValueBean("Monday", 2),
+                LabelValueBean("Tuesday", 3),
+                LabelValueBean("Wednesday", 4),
+                LabelValueBean("Thursday", 5),
+                LabelValueBean("Friday", 6),
+                LabelValueBean("Saturday", 7)
+        )
+
+        private val listOfDatabases = listOf(
+                LabelValueBean("Embedded", "HSQL"),
+                LabelValueBean("PostgreSQL", "POSTGRES")
+        )
     }
 }
