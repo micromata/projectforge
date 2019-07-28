@@ -49,17 +49,20 @@ open class JdbcSettingsDialog(
     init {
         val contentPane = Panel()
         contentPane.layoutManager = GridLayout(2)
-        jdbcUrlTextBox = TextBox(defaultJdbcUrl)
+
+        val jdbcSettings = context.setupData.jdbcSettings
+
+        jdbcUrlTextBox = TextBox(jdbcSettings?.jdbcUrl ?: defaultJdbcUrl)
                 .setPreferredSize(TerminalSize(60, 1))
         contentPane.addComponent(Label("JDBC Url"))
                 .addComponent(jdbcUrlTextBox)
 
-        jdbcUserTextBox = TextBox("")
+        jdbcUserTextBox = TextBox(jdbcSettings?.user ?: "projectforge")
                 .setPreferredSize(TerminalSize(20, 1))
         contentPane.addComponent(Label("User"))
                 .addComponent(jdbcUserTextBox)
 
-        jdbcPasswordBox = TextBox("")
+        jdbcPasswordBox = TextBox(jdbcSettings?.password ?: "")
                 .setPreferredSize(TerminalSize(20, 1))
                 .setMask('*')
 
