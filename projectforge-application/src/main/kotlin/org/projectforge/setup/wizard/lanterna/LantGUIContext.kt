@@ -21,15 +21,24 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.setup.wizard
+package org.projectforge.setup.wizard.lanterna
 
-import org.projectforge.setup.SetupData
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.gui2.MultiWindowTextGUI
+import org.projectforge.setup.wizard.AbstractSetupWizard
+import org.projectforge.setup.wizard.GUIContext
 
-open class GUIContext(
-        val mode: Mode,
-        val setupMain: AbstractSetupWizard
-) {
-    enum class Mode { CONSOLE, DESKTOP }
+class LantGUIContext(
+        setupMain: AbstractSetupWizard,
+        val textGUI: MultiWindowTextGUI,
+        var terminalSize: TerminalSize
+): GUIContext(Mode.CONSOLE, setupMain) {
+    var windowSize: TerminalSize = TerminalSize.ZERO
+        set(value) {
+            field = TerminalSize(value.columns - 15, value.rows - 5)
+        }
 
-    val setupData = SetupData()
+    init {
+        windowSize = terminalSize
+    }
 }

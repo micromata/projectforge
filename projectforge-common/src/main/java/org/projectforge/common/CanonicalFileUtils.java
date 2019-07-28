@@ -31,8 +31,7 @@ import java.io.IOException;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class CanonicalFileUtils
-{
+public class CanonicalFileUtils {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CanonicalFileUtils.class);
 
   public static String absolutePath(File file) {
@@ -57,5 +56,12 @@ public class CanonicalFileUtils
       log.error("Internal error while trying to get canonical path of " + file.getPath());
       return file.getAbsoluteFile();
     }
+  }
+
+  public static File absolute(String path) {
+    if (path == null) {
+      return null;
+    }
+    return absolute(new File(path));
   }
 }

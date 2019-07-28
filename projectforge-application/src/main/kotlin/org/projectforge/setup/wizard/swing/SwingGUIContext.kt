@@ -21,15 +21,12 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.setup.wizard
+package org.projectforge.setup.wizard.swing
 
-import org.projectforge.setup.SetupData
+import org.projectforge.setup.wizard.AbstractSetupWizard
+import org.projectforge.setup.wizard.GUIContext
+import javax.swing.JFrame
 
-open class GUIContext(
-        val mode: Mode,
-        val setupMain: AbstractSetupWizard
-) {
-    enum class Mode { CONSOLE, DESKTOP }
-
-    val setupData = SetupData()
-}
+class SwingGUIContext(
+        setupMain: AbstractSetupWizard,
+        val mainFrame: JFrame) : GUIContext(Mode.DESKTOP, setupMain)

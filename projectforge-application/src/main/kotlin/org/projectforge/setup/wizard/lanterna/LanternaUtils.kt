@@ -21,25 +21,25 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.setup.wizard
+package org.projectforge.setup.wizard.lanterna
 
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogBuilder
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton
 
-internal object LayoutUtils {
+internal object LanternaUtils {
     fun addEmptySpace(panel: Panel) {
         panel.addComponent(EmptySpace(TerminalSize(0, 1)))
     }
 
-    fun createButtonBar(context: GUIContext, width: Int, vararg buttons: Button): Panel {
+    fun createButtonBar(context: LantGUIContext, width: Int, vararg buttons: Button): Panel {
         return createButtonBar(context,
                 Separator(Direction.HORIZONTAL).setPreferredSize(TerminalSize(width, 1)),
                 *buttons)
     }
 
-    fun createButtonBar(context: GUIContext, separator: Separator, vararg buttons: Button): Panel {
+    fun createButtonBar(context: LantGUIContext, separator: Separator, vararg buttons: Button): Panel {
         val panel = Panel()
         separator.addTo(panel)
         val buttonBar = Panel()
@@ -53,7 +53,7 @@ internal object LayoutUtils {
         return panel
     }
 
-    fun getExitButton(context: GUIContext): Button {
+    fun getExitButton(context: LantGUIContext): Button {
         return Button("Exit") {
             val button = MessageDialogBuilder()
                     .setTitle("Exit")

@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.setup.wizard
+package org.projectforge.setup.wizard.lanterna
 
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.*
@@ -34,8 +34,8 @@ import java.io.File
 import java.util.regex.Pattern
 
 
-class FinalizeWindow(context: GUIContext) : AbstractWizardWindow(context, "Finishing the directory setup") {
-    private val log = org.slf4j.LoggerFactory.getLogger(FinalizeWindow::class.java)
+class LantFinalizeScreen(context: LantGUIContext) : LantAbstractWizardWindow(context, "Finishing the directory setup") {
+    private val log = org.slf4j.LoggerFactory.getLogger(LantFinalizeScreen::class.java)
 
     private lateinit var dirLabel: Label
     private lateinit var portTextBox: TextBox
@@ -144,7 +144,7 @@ class FinalizeWindow(context: GUIContext) : AbstractWizardWindow(context, "Finis
 
     private fun showJdbcSettingsDialog() {
         // PostgreSQL is selected. Open the JdbcSetingsDialog:
-        JdbcSettingsDialog(
+        LantJdbcSettingsDialog(
                 this,
                 dialogSize = context.terminalSize,
                 context = context

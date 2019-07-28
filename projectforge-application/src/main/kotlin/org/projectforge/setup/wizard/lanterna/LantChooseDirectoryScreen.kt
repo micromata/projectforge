@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.setup.wizard
+package org.projectforge.setup.wizard.lanterna
 
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.ActionListBox
@@ -32,8 +32,8 @@ import org.projectforge.common.CanonicalFileUtils
 import org.projectforge.start.ProjectForgeHomeFinder
 import java.io.File
 
-class ChooseDirectoryWindow(context: GUIContext) : AbstractWizardWindow(context, "Please select ProjectForge's home directory") {
-    private val log = org.slf4j.LoggerFactory.getLogger(ChooseDirectoryWindow::class.java)
+class LantChooseDirectoryScreen(context: LantGUIContext) : LantAbstractWizardWindow(context, "Please select ProjectForge's home directory") {
+    private val log = org.slf4j.LoggerFactory.getLogger(LantChooseDirectoryScreen::class.java)
 
     private lateinit var actionListBox: ActionListBox
 
@@ -75,7 +75,7 @@ class ChooseDirectoryWindow(context: GUIContext) : AbstractWizardWindow(context,
                 preselectedDirname = preSelectedParent.name
                 preSelectedParent = preSelectedParent.parentFile
             }
-            val dirBrowser = object : DirectoryBrowser(
+            val dirBrowser = object : LantDirectoryBrowser(
                     title = "Choose ProjectForge's parent directory",
                     description = "Parent directory where to create home dir of ProjectForge",
                     actionLabel = "OK",

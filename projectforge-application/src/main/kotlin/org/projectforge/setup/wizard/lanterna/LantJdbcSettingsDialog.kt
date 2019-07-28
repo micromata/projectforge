@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.setup.wizard
+package org.projectforge.setup.wizard.lanterna
 
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.*
@@ -33,12 +33,12 @@ import java.sql.DriverManager
 /**
  * Jdbc settings dialog (PostgreSQL).
  */
-open class JdbcSettingsDialog(
-        finalizeWindow: FinalizeWindow,
+open class LantJdbcSettingsDialog(
+        finalizeWindow: LantFinalizeScreen,
         dialogSize: TerminalSize,
-        val context: GUIContext
+        val context: LantGUIContext
 ) : DialogWindow("JDBC settings (PostgreSQL)") {
-    private val log = org.slf4j.LoggerFactory.getLogger(FinalizeWindow::class.java)
+    private val log = org.slf4j.LoggerFactory.getLogger(LantFinalizeScreen::class.java)
 
     private var jdbcUrlTextBox: TextBox
     private var jdbcUserTextBox: TextBox
@@ -92,7 +92,7 @@ open class JdbcSettingsDialog(
 
         val unitWidth = (dialogSize.columns - 10)
 
-        contentPane.addComponent(LayoutUtils.createButtonBar(context, unitWidth,
+        contentPane.addComponent(LanternaUtils.createButtonBar(context, unitWidth,
                 jdbcTestButton,
                 Button("Reset") {
                     jdbcUrlTextBox.text = defaultJdbcUrl

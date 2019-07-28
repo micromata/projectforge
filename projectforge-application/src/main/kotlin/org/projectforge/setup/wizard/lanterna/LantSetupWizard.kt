@@ -21,13 +21,14 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.setup.wizard
+package org.projectforge.setup.wizard.lanterna
 
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.gui2.DefaultWindowManager
 import com.googlecode.lanterna.gui2.EmptySpace
 import com.googlecode.lanterna.gui2.MultiWindowTextGUI
+import com.googlecode.lanterna.screen.Screen
 import com.googlecode.lanterna.screen.TerminalScreen
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import com.googlecode.lanterna.terminal.Terminal
@@ -35,13 +36,17 @@ import org.apache.commons.lang3.SystemUtils
 import org.projectforge.common.CanonicalFileUtils
 import org.projectforge.common.EmphasizedLogSupport
 import org.projectforge.setup.SetupData
+import org.projectforge.setup.wizard.AbstractSetupWizard
 import java.io.File
 import java.io.IOException
 
 
-class SetupMain(presetAppHomeDir: File? = null) {
-    private val context: GUIContext
+class LantSetupWizard(presetAppHomeDir: File? = null) : AbstractSetupWizard() {
+    override val context: LantGUIContext
     private val terminal: Terminal
+    private val chooseDirectoryScreen: LantChooseDirectoryScreen
+    private val finalizeScreen: LantFinalizeScreen
+    val lanternaScreen: Screen
 
     init {
         // Setup terminal and screen layers
@@ -50,85 +55,58 @@ class SetupMain(presetAppHomeDir: File? = null) {
         terminalFactory.setInitialTerminalSize(TerminalSize(120, 40))
         terminal = terminalFactory.createTerminal()
         // terminal.enterPrivateMode() // may result in crash
-        val screen = TerminalScreen(terminal)
-        screen.startScreen()
+        lanternaScreen = TerminalScreen(terminal)
+        lanternaScreen.startScreen()
 
         // Create gui and start gui
-        val textGUI = MultiWindowTextGUI(screen, DefaultWindowManager(), EmptySpace(TextColor.ANSI.BLUE))
-        context = GUIContext(this, textGUI, screen, TerminalSize(screen.terminalSize.columns, screen.terminalSize.rows))
+        val textGUI = MultiWindowTextGUI(lanternaScreen, DefaultWindowManager(), EmptySpace(TextColor.ANSI.BLUE))
+        context = LantGUIContext(this, textGUI, TerminalSize(lanternaScreen.terminalSize.columns, lanternaScreen.terminalSize.rows))
         context.setupData.applicationHomeDir = presetAppHomeDir
-        context.chooseDirectoryWindow = ChooseDirectoryWindow(context)
-        textGUI.addWindow(context.chooseDirectoryWindow)
-        context.initializeWindow = FinalizeWindow(context)
-        textGUI.addWindow(context.initializeWindow)
-
-        setActiveWindow(context.chooseDirectoryWindow!!)
+        chooseDirectoryScreen = LantChooseDirectoryScreen(context)
+        textGUI.addWindow(chooseDirectoryScreen)
+        finalizeScreen = LantFinalizeScreen(context)
+        textGUI.addWindow(finalizeScreen)
 
         terminal.addResizeListener { terminal, newSize ->
             context.terminalSize = newSize
             context.windowSize = newSize
-            context.chooseDirectoryWindow!!.resize()
-            context.initializeWindow!!.resize()
+            chooseDirectoryScreen.resize()
+            finalizeScreen.resize()
         }
-        textGUI.addWindow(context.currentWindow)
     }
 
     /**
      * @return The user settings or null, if the user canceled the wizard through exit.
      */
-    internal fun run(): SetupData? {
-        context.initializeWindow!!.waitUntilClosed()
-        val setupData = context.setupData
-        return if (setupData.applicationHomeDir != null) setupData else null
+    override fun run(): SetupData? {
+        super.initialize()
+        chooseDirectoryScreen.waitUntilClosed()
+        return super.run();
     }
 
-    internal fun next() {
-        val next =
-                when (context.currentWindow) {
-                    is ChooseDirectoryWindow -> context.initializeWindow
-                    else -> null
-                }
-        if (next != null) {
-            setActiveWindow(next)
+    override fun setActiveWindow(nextScreen: ScreenID) {
+        val window = when (nextScreen) {
+            ScreenID.CHOOSE_DIR -> chooseDirectoryScreen
+            else -> finalizeScreen
         }
-    }
-
-    internal fun previous() {
-        val previous =
-                when (context.currentWindow) {
-                    is FinalizeWindow -> context.chooseDirectoryWindow
-                    else -> null
-                }
-        if (previous != null) {
-            setActiveWindow(previous)
-        }
-    }
-
-    private fun setActiveWindow(window: AbstractWizardWindow) {
-        context.currentWindow = window
         window.redraw()
-        context.textGUI.setActiveWindow(window)
+        context.textGUI.activeWindow = window
     }
 
-    internal fun finish() {
-        context.initializeWindow!!.close()
-        context.screen.stopScreen()
+    override fun finish() {
+        chooseDirectoryScreen.close()
+        lanternaScreen.stopScreen()
         //terminal.exitPrivateMode()
         terminal.close()
     }
 
-    internal fun exit() {
-        finish()
-        context.setupData.applicationHomeDir = null
-    }
-
     companion object {
-        private val log = org.slf4j.LoggerFactory.getLogger(SetupMain::class.java)
+        private val log = org.slf4j.LoggerFactory.getLogger(LantSetupWizard::class.java)
 
         @JvmStatic
         fun run(appHomeDir: File? = null): SetupData? {
             try {
-                return SetupMain(appHomeDir).run()
+                return LantSetupWizard(appHomeDir).run()
             } catch (ex: IOException) {
                 val emphasizedLog = EmphasizedLogSupport(log)
                         .log("Can't start graphical setup wizard, your terminal seems not to be supported.")
@@ -143,7 +121,7 @@ class SetupMain(presetAppHomeDir: File? = null) {
         @JvmStatic
         fun main(args: Array<String>) {
             try {
-                val result = SetupMain().run()
+                val result = LantSetupWizard().run()
                 println("result directory='${CanonicalFileUtils.absolutePath(result?.applicationHomeDir)}'")
             } catch (ex: IOException) {
                 System.err.println("No graphical terminal available.")

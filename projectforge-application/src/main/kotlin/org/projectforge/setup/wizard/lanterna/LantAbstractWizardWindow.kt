@@ -21,16 +21,16 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.setup.wizard
+package org.projectforge.setup.wizard.lanterna
 
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.*
 
-abstract class AbstractWizardWindow(context: GUIContext,
-                                    title: String) : BasicWindow("ProjectForge setup") {
+abstract class LantAbstractWizardWindow(context: LantGUIContext,
+                                        title: String) : BasicWindow("ProjectForge setup") {
     protected val mainPanel: Panel
 
-    protected val context: GUIContext
+    protected val context: LantGUIContext
 
     private val contentPanel: Panel
 
@@ -45,9 +45,9 @@ abstract class AbstractWizardWindow(context: GUIContext,
         mainPanel.layoutManager = GridLayout(1)
 
         val titlePanel = Panel()
-        LayoutUtils.addEmptySpace(titlePanel)
+        LanternaUtils.addEmptySpace(titlePanel)
         titlePanel.addComponent(Label(title))
-        LayoutUtils.addEmptySpace(titlePanel)
+        LanternaUtils.addEmptySpace(titlePanel)
         mainPanel.addComponent(titlePanel)
 
         contentPanel = getContentPanel()
@@ -55,7 +55,7 @@ abstract class AbstractWizardWindow(context: GUIContext,
         mainPanel.addComponent(contentPanel)
 
         separator = Separator(Direction.HORIZONTAL)
-        buttonPanel = LayoutUtils.createButtonBar(context, separator, *getButtons())
+        buttonPanel = LanternaUtils.createButtonBar(context, separator, *getButtons())
         mainPanel.addComponent(buttonPanel)
         component = mainPanel
         resize()

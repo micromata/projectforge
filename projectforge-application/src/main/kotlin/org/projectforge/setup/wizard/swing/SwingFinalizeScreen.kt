@@ -21,15 +21,27 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.setup.wizard
+package org.projectforge.setup.wizard.swing
 
-import org.projectforge.setup.SetupData
+import java.awt.GridBagLayout
+import javax.swing.JButton
+import javax.swing.JPanel
 
-open class GUIContext(
-        val mode: Mode,
-        val setupMain: AbstractSetupWizard
-) {
-    enum class Mode { CONSOLE, DESKTOP }
+class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(context, "Please select ProjectForge's home directory") {
+    private val log = org.slf4j.LoggerFactory.getLogger(SwingFinalizeScreen::class.java)
 
-    val setupData = SetupData()
+    override fun getContentPanel(): JPanel {
+        redraw()
+        val panel = JPanel(GridBagLayout())
+        val browseButton = JButton("Browse")
+        panel.add(browseButton, SwingUtils.constraints(0, 0))
+        browseButton.addActionListener {
+            println("Browse")
+        }
+        return panel
+    }
+
+    override fun redraw() {
+        //actionListBox.preferredSize = TerminalSize(context.terminalSize.columns - 5, size.rows)
+    }
 }
