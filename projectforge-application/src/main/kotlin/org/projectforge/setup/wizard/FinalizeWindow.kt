@@ -75,21 +75,20 @@ class FinalizeWindow(context: GUIContext) : AbstractWizardWindow(context, "Finis
         databaseCombobox = ComboBox()
         listOfDatabases.forEach { databaseCombobox.addItem(it.label) }
         databaseCombobox.addListener() { selectedIndex, previousSelection ->
-            if (previousSelection == 0 && selectedIndex > 0) {
-                jdbcSettingsButton.setEnabled(true)
-                // PostgreSQL is selected. Open the JdbcSetingsDialog:
-                JdbcSettingsDialog(
-                        this,
-                        dialogSize = context.terminalSize,
-                        context = context
-                ).showDialog()
-                context.setupData.useEmbeddedDatabase = false
-            } else {
-                jdbcSettingsButton.setEnabled(false)
-                context.setupData.useEmbeddedDatabase = true
+            if (previousSelection != selectedIndex) {
+                if (selectedIndex > 0) {
+                    jdbcSettingsButton.setEnabled(true)
+                    showJdbcSettingsDialog()
+                    context.setupData.useEmbeddedDatabase = false
+                } else {
+                    jdbcSettingsButton.setEnabled(false)
+                    context.setupData.useEmbeddedDatabase = true
+                }
             }
         }
-        jdbcSettingsButton = Button("Jdbc settings")
+        jdbcSettingsButton = Button("Jdbc settings") {
+            showJdbcSettingsDialog()
+        }
                 .setEnabled(false)
         panel.addComponent(Label("Database"))
                 .addComponent(databaseCombobox)
@@ -141,6 +140,15 @@ class FinalizeWindow(context: GUIContext) : AbstractWizardWindow(context, "Finis
         hintLabel.layoutData = GridLayout.createHorizontallyFilledLayoutData(3)
         panel.addComponent(hintLabel)
         return panel
+    }
+
+    private fun showJdbcSettingsDialog() {
+        // PostgreSQL is selected. Open the JdbcSetingsDialog:
+        JdbcSettingsDialog(
+                this,
+                dialogSize = context.terminalSize,
+                context = context
+        ).showDialog()
     }
 
     override fun getButtons(): Array<Button> {
