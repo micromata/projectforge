@@ -29,7 +29,7 @@ import org.projectforge.ProjectForgeApp;
 import org.projectforge.common.CanonicalFileUtils;
 import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.setup.ProjectForgeInitializer;
-import org.projectforge.setup.wizard.SetupMain;
+import org.projectforge.setup.wizard.lanterna.LantSetupWizard;
 
 import java.io.File;
 import java.io.IOException;
@@ -166,7 +166,7 @@ public class ProjectForgeHomeFinder {
       }
       if (userAcceptsGraphicalTerminal == Boolean.TRUE) {
         try {
-          return ProjectForgeInitializer.initialize(SetupMain.run(appHomeDir));
+          return ProjectForgeInitializer.initialize(LantSetupWizard.run(appHomeDir));
         } catch (Exception ex) {
           log.error("Error while initializing new ProjectForge home: " + ex.getMessage(), ex);
           ProjectForgeApplication.giveUpAndSystemExit("Error while initializing new ProjectForge home: " + CanonicalFileUtils.absolutePath(appHomeDir));

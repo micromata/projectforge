@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.setup.wizard
+package org.projectforge.setup.wizard.lanterna
 
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.*
@@ -35,12 +35,12 @@ import java.util.*
 /**
  * Copy of FileDialog of lanterna to implement directory selection.
  */
-open class DirectoryBrowser(
+open class LantDirectoryBrowser(
         title: String,
         description: String?,
         actionLabel: String,
         dialogSize: TerminalSize,
-        context: GUIContext,
+        context: LantGUIContext,
         preselectedDirname: String? = "",
         showHiddenFilesAndDirs: Boolean = false,
         preSelectedParent: File? = null
@@ -67,7 +67,7 @@ open class DirectoryBrowser(
         contentPane.layoutManager = LinearLayout()
 
         if (description != null) {
-            LayoutUtils.addEmptySpace(contentPane)
+            LanternaUtils.addEmptySpace(contentPane)
             Label(description).addTo(contentPane)
         }
 
@@ -88,7 +88,7 @@ open class DirectoryBrowser(
                 .addComponent(dirTextBox)
         contentPane.addComponent(formPanel)
 
-        contentPane.addComponent(LayoutUtils.createButtonBar(context, unitWidth,
+        contentPane.addComponent(LanternaUtils.createButtonBar(context, unitWidth,
                 Button(actionLabel, OkHandler()),
                 Button(LocalizedString.Cancel.toString(), CancelHandler())))
 
@@ -143,7 +143,7 @@ open class DirectoryBrowser(
         val parentFile = CanonicalFileUtils.absolute(directory.absoluteFile.parentFile)
         if (parentFile != null) {
             directoryListBox.addItem("..") {
-                this@DirectoryBrowser.directory = parentFile
+                this@LantDirectoryBrowser.directory = parentFile
                 reloadViews(parentFile)
             }
         } else {
@@ -151,7 +151,7 @@ open class DirectoryBrowser(
             for (entry in roots) {
                 if (entry.canRead()) {
                     directoryListBox.addItem('['.toString() + entry.path + ']'.toString()) {
-                        this@DirectoryBrowser.directory = entry
+                        this@LantDirectoryBrowser.directory = entry
                         reloadViews(entry)
                     }
                 }
@@ -163,7 +163,7 @@ open class DirectoryBrowser(
             }
             if (entry.isDirectory) {
                 directoryListBox.addItem(entry.name) {
-                    this@DirectoryBrowser.directory = entry
+                    this@LantDirectoryBrowser.directory = entry
                     reloadViews(entry)
                 }
             }
