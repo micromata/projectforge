@@ -28,6 +28,7 @@ object Texts {
     val BUTTON_CANCEL = "Cancel"
     val BUTTON_EXIT = "Exit"
     val BUTTON_FINISH = "Finish"
+    val BUTTON_NEXT = "Next"
     val BUTTON_PREVIOUS = "Previous"
     val BUTTON_OK = "OK"
     val BUTTON_RESET = "Reset"

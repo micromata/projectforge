@@ -35,19 +35,22 @@ class SwingChooseDirectoryScreen(context: SwingGUIContext) : SwingAbstractWizard
 
     private lateinit var actionListBox: JList<String>
     private lateinit var listModel: DefaultListModel<String>
+    private var nextButton: JButton? = null
 
     override fun getContentPanel(): JPanel {
         listModel = DefaultListModel()
         actionListBox = JList(listModel)
-        actionListBox.addPropertyChangeListener() { valueChanged ->
-            if (actionListBox.selectedIndex >= 0) {
-                //Selection
-                val dir = listModel[actionListBox.selectedIndex]
-                context.setupData.applicationHomeDir = CanonicalFileUtils.absolute(dir)
-                context.setupMain.next()
+        redraw() // Redraw must called before ListSelectionListener is added.
+        actionListBox.addListSelectionListener { event ->
+            if (!event.valueIsAdjusting) {
+                if (actionListBox.selectedIndex >= 0) {
+                    //Selection
+                    val dir = listModel[actionListBox.selectedIndex]
+                    context.setupData.applicationHomeDir = CanonicalFileUtils.absolute(dir)
+                    nextIfDirExists()
+                }
             }
         }
-        redraw()
         val panel = JPanel(GridBagLayout())
         panel.add(actionListBox, SwingUtils.constraints(0, 0))
         val browseButton = JButton(Texts.BUTTON_BROWSE)
@@ -59,10 +62,8 @@ class SwingChooseDirectoryScreen(context: SwingGUIContext) : SwingAbstractWizard
             chooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
             chooser.isAcceptAllFileFilterUsed = false
             if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                println("getCurrentDirectory(): " + chooser.currentDirectory)
-                println("getSelectedFile() : " + chooser.selectedFile)
-            } else {
-                println("No Selection ")
+                context.setupData.applicationHomeDir = CanonicalFileUtils.absolute(chooser.selectedFile)
+                nextIfDirExists()
             }
         }
         return panel
@@ -86,6 +87,26 @@ class SwingChooseDirectoryScreen(context: SwingGUIContext) : SwingAbstractWizard
             // The recent select directory by the user is different and has to be added:
             listModel.addElement(CanonicalFileUtils.absolutePath(prevApplicationHomeDir))
             actionListBox.selectedIndex = index
+        }
+    }
+
+    override fun getButtons(): Array<JButton> {
+        val nextButton = JButton(Texts.BUTTON_NEXT)
+        nextButton.addActionListener {
+            nextIfDirExists()
+        }
+        this.nextButton = nextButton
+        return arrayOf(nextButton)
+    }
+
+    private fun nextIfDirExists() {
+        val dir = context.setupData.applicationHomeDir
+        if (dir == null || (!dir.exists() && dir.parentFile?.exists() != true)) {
+            JOptionPane.showMessageDialog(null, Texts.ERROR_DIR_NOT_EXISTS, Texts.ERROR_TITLE, JOptionPane.ERROR_MESSAGE);
+        } else if (ProjectForgeHomeFinder.isProjectForgeSourceCodeRepository(dir)) {
+            JOptionPane.showMessageDialog(null, Texts.ERROR_DIR_IS_SOURCE_REPO, Texts.ERROR_TITLE, JOptionPane.ERROR_MESSAGE);
+        } else {
+            context.setupMain.next()
         }
     }
 }
