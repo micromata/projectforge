@@ -33,9 +33,11 @@ import java.awt.GridBagLayout
 import java.awt.event.WindowEvent
 import java.io.File
 import java.io.IOException
+import java.util.concurrent.locks.ReentrantLock
 import javax.swing.JFrame
 import javax.swing.JPanel
 import javax.swing.JScrollPane
+import kotlin.concurrent.withLock
 
 
 class SwingSetupWizard(presetAppHomeDir: File? = null) : AbstractSetupWizard() {
@@ -45,6 +47,8 @@ class SwingSetupWizard(presetAppHomeDir: File? = null) : AbstractSetupWizard() {
     private val frame: JFrame
     private val cardLayout: CardLayout
     private val cards: JPanel
+    private val lock = ReentrantLock()
+    private val condition = lock.newCondition()
 
     init {
         frame = JFrame("ProjectForge setup")
@@ -78,6 +82,15 @@ class SwingSetupWizard(presetAppHomeDir: File? = null) : AbstractSetupWizard() {
      */
     override fun run(): SetupData? {
         super.initialize()
+        val t = object : Thread() {
+            override fun run() {
+                lock.withLock {
+                    condition.await()
+                }
+            }
+        }
+        t.start()
+        t.join()
         return super.run()
     }
 
@@ -94,6 +107,7 @@ class SwingSetupWizard(presetAppHomeDir: File? = null) : AbstractSetupWizard() {
 
     override fun finish() {
         frame.dispatchEvent(WindowEvent(frame, WindowEvent.WINDOW_CLOSING))
+        condition.signal()
     }
 
     companion object {
