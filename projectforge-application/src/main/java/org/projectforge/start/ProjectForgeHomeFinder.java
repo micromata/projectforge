@@ -29,8 +29,11 @@ import org.projectforge.ProjectForgeApp;
 import org.projectforge.common.CanonicalFileUtils;
 import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.setup.ProjectForgeInitializer;
+import org.projectforge.setup.SetupData;
 import org.projectforge.setup.wizard.lanterna.LantSetupWizard;
+import org.projectforge.setup.wizard.swing.SwingSetupWizard;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -57,7 +60,9 @@ public class ProjectForgeHomeFinder {
 
   private static final String[] DIR_NAMES = {"ProjectForge", "Projectforge", "projectforge"};
 
-  private Boolean userAcceptsGraphicalTerminal = null;
+  private WizardMode userAcceptsGraphicalTerminal = null;
+
+  private enum WizardMode {DESKTOP, CONSOLE, NONE}
 
   /**
    * @return %PROJECTFORGE_HOME for Windows, otherwise $PPROJECTFORGE_HOME
@@ -160,13 +165,35 @@ public class ProjectForgeHomeFinder {
               .log(logMessage.replace("$APP_HOME_DIR", appHomeDir.getPath()))
               .logEnd();
       if (userAcceptsGraphicalTerminal == null) {
-        String answer = new ConsoleTimeoutReader("Do you want to enter the setup wizard (Y/n)?", "y")
-                .ask();
-        userAcceptsGraphicalTerminal = StringUtils.startsWithIgnoreCase(answer, "y");
+        String answer = null;
+        if (GraphicsEnvironment.isHeadless()) {
+           answer = new ConsoleTimeoutReader("Do you want to enter the setup wizard (Y/n)?", "y")
+                  .ask();
+        } else {
+          answer = new ConsoleTimeoutReader("Do you want to enter the setup wizard? (1), 2, 3\n  (1) Graphical wizard (default)\n  (2) Console based wizard\n  (3) Abort", "1") {
+            @Override
+            protected boolean answerValid(String answer) {
+              return StringUtils.equalsAny(answer,"1", "2", "3");
+            }
+          }.ask();
+        }
+        if (StringUtils.startsWithIgnoreCase(answer, "y") || StringUtils.equals(answer, "2")) {
+          userAcceptsGraphicalTerminal = WizardMode.CONSOLE;
+        } else if (StringUtils.equals(answer, "1")) {
+          userAcceptsGraphicalTerminal = WizardMode.DESKTOP;
+        } else {
+          userAcceptsGraphicalTerminal = WizardMode.NONE;
+        }
       }
-      if (userAcceptsGraphicalTerminal == Boolean.TRUE) {
+      if (userAcceptsGraphicalTerminal != WizardMode.NONE) {
         try {
-          return ProjectForgeInitializer.initialize(LantSetupWizard.run(appHomeDir));
+          SetupData setupData;
+          if (userAcceptsGraphicalTerminal == WizardMode.CONSOLE) {
+            setupData = LantSetupWizard.run(appHomeDir);
+          } else {
+            setupData = SwingSetupWizard.run(appHomeDir);
+          }
+          return ProjectForgeInitializer.initialize(setupData);
         } catch (Exception ex) {
           log.error("Error while initializing new ProjectForge home: " + ex.getMessage(), ex);
           ProjectForgeApplication.giveUpAndSystemExit("Error while initializing new ProjectForge home: " + CanonicalFileUtils.absolutePath(appHomeDir));

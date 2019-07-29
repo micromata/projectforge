@@ -23,14 +23,18 @@
 
 package org.projectforge.setup.wizard.swing
 
+import org.projectforge.setup.wizard.Texts
 import java.awt.FlowLayout
 import java.awt.GridBagConstraints
 import javax.swing.JButton
 import javax.swing.JOptionPane
 import javax.swing.JPanel
 import javax.swing.JSeparator
+import javax.swing.text.MaskFormatter
 
 internal object SwingUtils {
+    private val log = org.slf4j.LoggerFactory.getLogger(SwingUtils::class.java)
+
     fun addEmptySpace(panel: JPanel) {
         //panel.add(EmptySpace(TerminalSize(0, 1)))
     }
@@ -75,12 +79,12 @@ internal object SwingUtils {
     }
 
     fun getExitButton(context: SwingGUIContext): JButton {
-        val exitButton = JButton("Exit")
+        val exitButton = JButton(Texts.BUTTON_EXIT)
         exitButton.addActionListener {
-            val options = arrayOf("Cancel", "Exit")
+            val options = arrayOf(Texts.BUTTON_CANCEL, Texts.BUTTON_EXIT)
             if (JOptionPane.showOptionDialog(context.mainFrame,
-                            "Do you really want to exit?",
-                            "Exit",
+                            Texts.EXIT_QUESTION,
+                            Texts.EXIT_TITLE,
                             JOptionPane.YES_NO_CANCEL_OPTION,
                             JOptionPane.QUESTION_MESSAGE,
                             null,
@@ -89,5 +93,20 @@ internal object SwingUtils {
                 context.setupMain.exit()
         }
         return exitButton
+    }
+
+     fun createFormatter(s: String): MaskFormatter {
+        var formatter: MaskFormatter? = null
+        try {
+            formatter = MaskFormatter(s)
+        } catch (ex: java.text.ParseException) {
+            log.error("Internal error while creating mask '$s' for JFormattedTextField: ${ex.message}", ex)
+            return MaskFormatter()
+        }
+         return formatter
+    }
+
+    fun convertToMultilineLabel(str: String): String {
+        return "<html>" + str.replace("\n", "<br>") + "</html>"
     }
 }
