@@ -24,6 +24,7 @@
 package org.projectforge.setup.wizard.swing
 
 import org.projectforge.common.CanonicalFileUtils
+import org.projectforge.common.EmphasizedLogSupport
 import org.projectforge.setup.SetupData
 import org.projectforge.setup.wizard.AbstractSetupWizard
 import java.awt.CardLayout
@@ -49,7 +50,7 @@ class SwingSetupWizard(presetAppHomeDir: File? = null) : AbstractSetupWizard() {
         frame = JFrame("ProjectForge setup")
         frame.layout = GridBagLayout()
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(800, 400)
+        frame.setSize(1024, 600)
 
         context = SwingGUIContext(this, frame)
         context.setupData.applicationHomeDir = presetAppHomeDir
@@ -97,6 +98,19 @@ class SwingSetupWizard(presetAppHomeDir: File? = null) : AbstractSetupWizard() {
 
     companion object {
         private val log = org.slf4j.LoggerFactory.getLogger(SwingSetupWizard::class.java)
+
+        @JvmStatic
+        fun run(appHomeDir: File? = null): SetupData? {
+            try {
+                return SwingSetupWizard(appHomeDir).run()
+            } catch (ex: IOException) {
+                EmphasizedLogSupport(SwingSetupWizard.log)
+                        .log("Can't start graphical setup wizard, a desktop seems not to be available.")
+                        .logEnd()
+                return null
+            }
+        }
+
         @JvmStatic
         fun main(args: Array<String>) {
             try {

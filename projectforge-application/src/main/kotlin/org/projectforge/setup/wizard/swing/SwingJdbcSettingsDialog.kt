@@ -21,20 +21,23 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.setup.wizard.lanterna
+package org.projectforge.setup.wizard.swing
 
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.gui2.dialogs.DialogWindow
 import org.projectforge.setup.SetupData
 import org.projectforge.setup.wizard.Texts
+import org.projectforge.setup.wizard.lanterna.LantFinalizeScreen
+import org.projectforge.setup.wizard.lanterna.LantGUIContext
+import org.projectforge.setup.wizard.lanterna.LanternaUtils
 import java.sql.DriverManager
 
 
 /**
  * Jdbc settings dialog (PostgreSQL).
  */
-open class LantJdbcSettingsDialog(
+open class SwingJdbcSettingsDialog(
         finalizeWindow: LantFinalizeScreen,
         dialogSize: TerminalSize,
         val context: LantGUIContext

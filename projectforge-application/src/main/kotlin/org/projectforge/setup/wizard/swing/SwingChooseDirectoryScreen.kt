@@ -24,14 +24,13 @@
 package org.projectforge.setup.wizard.swing
 
 import org.projectforge.common.CanonicalFileUtils
+import org.projectforge.setup.wizard.Texts
 import org.projectforge.start.ProjectForgeHomeFinder
 import java.awt.GridBagLayout
-import javax.swing.DefaultListModel
-import javax.swing.JButton
-import javax.swing.JList
-import javax.swing.JPanel
+import javax.swing.*
 
-class SwingChooseDirectoryScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(context, "Please select ProjectForge's home directory") {
+
+class SwingChooseDirectoryScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(context, Texts.CD_SCREEN_TITLE) {
     private val log = org.slf4j.LoggerFactory.getLogger(SwingChooseDirectoryScreen::class.java)
 
     private lateinit var actionListBox: JList<String>
@@ -40,23 +39,31 @@ class SwingChooseDirectoryScreen(context: SwingGUIContext) : SwingAbstractWizard
     override fun getContentPanel(): JPanel {
         listModel = DefaultListModel()
         actionListBox = JList(listModel)
-        actionListBox.addListSelectionListener() { valueChanged ->
-            if (!valueChanged.valueIsAdjusting) {
-                if (actionListBox.selectedIndex >= 0) {
-                    //Selection
-                    val dir = listModel[actionListBox.selectedIndex]
-                    context.setupData.applicationHomeDir = CanonicalFileUtils.absolute(dir)
-                    context.setupMain.next()
-                }
+        actionListBox.addPropertyChangeListener() { valueChanged ->
+            if (actionListBox.selectedIndex >= 0) {
+                //Selection
+                val dir = listModel[actionListBox.selectedIndex]
+                context.setupData.applicationHomeDir = CanonicalFileUtils.absolute(dir)
+                context.setupMain.next()
             }
         }
         redraw()
         val panel = JPanel(GridBagLayout())
         panel.add(actionListBox, SwingUtils.constraints(0, 0))
-        val browseButton = JButton("Browse")
+        val browseButton = JButton(Texts.BUTTON_BROWSE)
         panel.add(browseButton, SwingUtils.constraints(0, 1))
         browseButton.addActionListener {
-            println("Browse")
+            val chooser = JFileChooser()
+            chooser.currentDirectory = context.setupData.applicationHomeDir
+            chooser.dialogTitle = Texts.CD_CHOOSE_DIR_TITLE
+            chooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
+            chooser.isAcceptAllFileFilterUsed = false
+            if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+                println("getCurrentDirectory(): " + chooser.currentDirectory)
+                println("getSelectedFile() : " + chooser.selectedFile)
+            } else {
+                println("No Selection ")
+            }
         }
         return panel
     }
@@ -75,44 +82,10 @@ class SwingChooseDirectoryScreen(context: SwingGUIContext) : SwingAbstractWizard
             }
             ++index
         }
-        /*if (prevApplicationHomeDir != null && !prevApplicationHomeDirInList) {
+        if (prevApplicationHomeDir != null && !prevApplicationHomeDirInList) {
             // The recent select directory by the user is different and has to be added:
-            actionListBox.addItem(CanonicalFileUtils.absolutePath(prevApplicationHomeDir)) {
-                // Nothing to do (application dir not changed).
-                context.setupMain.next()
-            }
+            listModel.addElement(CanonicalFileUtils.absolutePath(prevApplicationHomeDir))
             actionListBox.selectedIndex = index
-        }*/
-        //listModel.addElement("Choose other")
-        /*{
-            var preSelectedParent = context.setupData.applicationHomeDir
-            var preselectedDirname = "ProjectForge"
-            if (preSelectedParent != null && preSelectedParent.parentFile != null) {
-                preselectedDirname = preSelectedParent.name
-                preSelectedParent = preSelectedParent.parentFile
-            }
-            val dirBrowser = object : DirectoryBrowser(
-                    title = "Choose ProjectForge's parent directory",
-                    description = "Parent directory where to create home dir of ProjectForge",
-                    actionLabel = "OK",
-                    dialogSize = context.terminalSize,
-                    preSelectedParent = preSelectedParent,
-                    preselectedDirname = preselectedDirname,
-                    context = context
-            ) {
-                override fun validResult(path: String, dir: String): File? {
-                    var dir = super.validResult(path, dir)
-                    if (dir != null && ProjectForgeHomeFinder.isProjectForgeSourceCodeRepository(dir)) {
-                        MessageDialog.showMessageDialog(textGUI, "Error", "This directory seems to be ProjectForge's source code repository..", MessageDialogButton.OK)
-                        return null
-                    }
-                    return dir
-                }
-            }
-            val file = dirBrowser.showDialog(context.textGUI)
-            if (file != null)
-                context.setupData.applicationHomeDir = file
-            context.setupMain.next()
-        }*/
+        }
     }
 }

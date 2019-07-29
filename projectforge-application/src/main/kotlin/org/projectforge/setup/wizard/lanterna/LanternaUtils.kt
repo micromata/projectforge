@@ -27,6 +27,7 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogBuilder
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton
+import org.projectforge.setup.wizard.Texts
 
 internal object LanternaUtils {
     fun addEmptySpace(panel: Panel) {
@@ -54,10 +55,10 @@ internal object LanternaUtils {
     }
 
     fun getExitButton(context: LantGUIContext): Button {
-        return Button("Exit") {
+        return Button(Texts.BUTTON_EXIT) {
             val button = MessageDialogBuilder()
-                    .setTitle("Exit")
-                    .setText("Do you really want to exit?")
+                    .setTitle(Texts.EXIT_TITLE)
+                    .setText(Texts.EXIT_QUESTION)
                     .addButton(MessageDialogButton.No)
                     .addButton(MessageDialogButton.Yes)
                     .build()

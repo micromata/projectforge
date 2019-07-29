@@ -29,6 +29,7 @@ import com.googlecode.lanterna.gui2.dialogs.DialogWindow
 import com.googlecode.lanterna.gui2.dialogs.MessageDialog
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton
 import org.projectforge.common.CanonicalFileUtils
+import org.projectforge.setup.wizard.Texts
 import java.io.File
 import java.util.*
 
@@ -112,7 +113,7 @@ open class LantDirectoryBrowser(
     protected open fun validResult(path: String, dir: String): File? {
         val dir = File(pathTextBox.text, dirTextBox.text)
         if (!dir.exists() && dir.parentFile?.exists() != true) {
-            MessageDialog.showMessageDialog(textGUI, "Error", "Please select an existing directory.", MessageDialogButton.OK)
+            MessageDialog.showMessageDialog(textGUI, Texts.ERROR_TITLE, Texts.ERROR_DIR_NOT_EXISTS, MessageDialogButton.OK)
             return null
         }
         return dir

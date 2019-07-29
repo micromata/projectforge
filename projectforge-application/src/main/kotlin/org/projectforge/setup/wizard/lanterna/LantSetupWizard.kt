@@ -109,9 +109,9 @@ class LantSetupWizard(presetAppHomeDir: File? = null) : AbstractSetupWizard() {
                 return LantSetupWizard(appHomeDir).run()
             } catch (ex: IOException) {
                 val emphasizedLog = EmphasizedLogSupport(log)
-                        .log("Can't start graphical setup wizard, your terminal seems not to be supported.")
+                        .log("Can't start the console based setup wizard, your terminal seems not to be supported.")
                 if (SystemUtils.IS_OS_WINDOWS) {
-                    emphasizedLog.log("On Windows: Please, try to start ProjectForge with javaw.exe instead of java.exe.")
+                    emphasizedLog.log("On Windows: Please, try to start ProjectForge with javaw.exe or try the desktop wizard.")
                 }
                 emphasizedLog.logEnd()
                 return null

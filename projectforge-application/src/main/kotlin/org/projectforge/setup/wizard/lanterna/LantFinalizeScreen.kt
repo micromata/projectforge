@@ -26,10 +26,12 @@ package org.projectforge.setup.wizard.lanterna
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.*
 import org.projectforge.common.CanonicalFileUtils
-import org.projectforge.framework.time.TimeNotation
-import org.projectforge.framework.utils.LabelValueBean
-import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.start.ProjectForgeHomeFinder
+import org.projectforge.setup.wizard.FinalizeScreenSupport
+import org.projectforge.setup.wizard.FinalizeScreenSupport.listOfDatabases
+import org.projectforge.setup.wizard.FinalizeScreenSupport.listOfLocales
+import org.projectforge.setup.wizard.FinalizeScreenSupport.listOfTimeNotations
+import org.projectforge.setup.wizard.FinalizeScreenSupport.listOfWeekdays
+import org.projectforge.setup.wizard.Texts
 import java.io.File
 import java.util.regex.Pattern
 
@@ -54,10 +56,10 @@ class LantFinalizeScreen(context: LantGUIContext) : LantAbstractWizardWindow(con
     private lateinit var hintLabel: Label
 
     override fun getContentPanel(): Panel {
-        dirLabel = Label("")
         val panel = Panel()
         panel.layoutManager = GridLayout(3)
 
+        dirLabel = Label("")
         panel.addComponent(Label("Directory").setSize(TerminalSize(10, 1)))
                 .addComponent(dirLabel.setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
 
@@ -66,7 +68,7 @@ class LantFinalizeScreen(context: LantGUIContext) : LantAbstractWizardWindow(con
         portTextBox = TextBox("8080")
                 .setValidationPattern(Pattern.compile("[0-9]{1,5}?"))
                 .setPreferredSize(TerminalSize(7, 1))
-        panel.addComponent(Label("Port"))
+        panel.addComponent(Label(Texts.FS_PORT))
                 .addComponent(portTextBox)
                 .addComponent(EmptySpace())
 
@@ -74,7 +76,7 @@ class LantFinalizeScreen(context: LantGUIContext) : LantAbstractWizardWindow(con
 
         databaseCombobox = ComboBox()
         listOfDatabases.forEach { databaseCombobox.addItem(it.label) }
-        databaseCombobox.addListener() { selectedIndex, previousSelection ->
+        databaseCombobox.addListener { selectedIndex, previousSelection ->
             if (previousSelection != selectedIndex) {
                 if (selectedIndex > 0) {
                     jdbcSettingsButton.setEnabled(true)
@@ -86,11 +88,11 @@ class LantFinalizeScreen(context: LantGUIContext) : LantAbstractWizardWindow(con
                 }
             }
         }
-        jdbcSettingsButton = Button("Jdbc settings") {
+        jdbcSettingsButton = Button(Texts.FS_JDBC_SETTINGS) {
             showJdbcSettingsDialog()
         }
                 .setEnabled(false)
-        panel.addComponent(Label("Database"))
+        panel.addComponent(Label(Texts.DATABASE))
                 .addComponent(databaseCombobox)
                 .addComponent(jdbcSettingsButton)
 
@@ -98,39 +100,39 @@ class LantFinalizeScreen(context: LantGUIContext) : LantAbstractWizardWindow(con
 
         currencyTextBox = TextBox("€")
                 .setPreferredSize(TerminalSize(4, 1))
-        panel.addComponent(Label("Currency"))
+        panel.addComponent(Label(Texts.FS_CURRENCY))
                 .addComponent(currencyTextBox)
                 .addComponent(EmptySpace())
 
         defaultLocaleCombobox = ComboBox()
         listOfLocales.forEach { defaultLocaleCombobox.addItem(it.label) }
-        panel.addComponent(Label("Locale"))
+        panel.addComponent(Label(Texts.FS_LOCALE))
                 .addComponent(defaultLocaleCombobox)
-                .addComponent(Label("Default locale."))
+                .addComponent(Label(Texts.FS_LOCALE_DESC))
 
         defaultFirstDayOfWeekCombobox = ComboBox()
         listOfWeekdays.forEach { defaultFirstDayOfWeekCombobox.addItem(it.label) }
         defaultFirstDayOfWeekCombobox.selectedIndex = 1
-        panel.addComponent(Label("First day"))
+        panel.addComponent(Label(Texts.FS_FIRST_DAY))
                 .addComponent(defaultFirstDayOfWeekCombobox)
-                .addComponent(Label("Default first day of week."))
+                .addComponent(Label(Texts.FS_FIRST_DAY_DESC))
 
         defaultTimeNotationCombobox = ComboBox()
         listOfTimeNotations.forEach { defaultTimeNotationCombobox.addItem(it.label) }
-        panel.addComponent(Label("Time notation"))
+        panel.addComponent(Label(Texts.FS_TIME_NOTATION))
                 .addComponent(defaultTimeNotationCombobox)
-                .addComponent(Label("Default time notation."))
+                .addComponent(Label(Texts.FS_TIME_NOTATION_DESC))
 
         panel.addComponent(EmptySpace().setLayoutData(GridLayout.createHorizontallyFilledLayoutData(3)))
 
-        startCheckBox = CheckBox("Start ProjectForge (create a new embedded database)")
+        startCheckBox = CheckBox(Texts.FS_CHECKBOX_START_SERVER)
                 .setChecked(true)
                 .setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2))
 
-        developmentCheckBox = CheckBox("Enable CORS filter (for development only)")
+        developmentCheckBox = CheckBox(Texts.FS_CHECKBOX_DEV)
                 .setChecked(false)
                 .setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2))
-        panel.addComponent(Label("Settings"))
+        panel.addComponent(Label(Texts.FS_SETTINGS))
                 .addComponent(startCheckBox)
                 .addComponent(EmptySpace())
                 .addComponent(developmentCheckBox)
@@ -153,25 +155,25 @@ class LantFinalizeScreen(context: LantGUIContext) : LantAbstractWizardWindow(con
 
     override fun getButtons(): Array<Button> {
         return arrayOf(
-                Button("Previous") {
+                Button(Texts.BUTTON_PREVIOUS) {
                     saveValues()
                     context.setupMain.previous()
                 },
-                Button("Finish") {
+                Button(Texts.BUTTON_FINISH) {
                     saveValues()
                     context.setupMain.finish()
                 })
     }
 
     private fun saveValues() {
-        var port = NumberHelper.parseInteger(portTextBox.text)
-        context.setupData.serverPort = if (port in 1..65535) port else 8080
-        context.setupData.currencySymbol = currencyTextBox.text
-        context.setupData.defaultLocale = listOfLocales.get(defaultLocaleCombobox.selectedIndex).value
-        context.setupData.defaultFirstDayOfWeek = listOfWeekdays.get(defaultFirstDayOfWeekCombobox.selectedIndex).value
-        context.setupData.defaultTimeNotation = listOfTimeNotations.get(defaultTimeNotationCombobox.selectedIndex).value
-        context.setupData.startServer = startCheckBox.isChecked
-        context.setupData.developmentMode = developmentCheckBox.isChecked
+        FinalizeScreenSupport.saveValues(context.setupData,
+                portText = portTextBox.text,
+                currencySymbol = currencyTextBox.text,
+                defaultLocaleSelectedIndex = defaultLocaleCombobox.selectedIndex,
+                defaultFirstDayOfWeekSelectedIndex = defaultFirstDayOfWeekCombobox.selectedIndex,
+                defaultTimeNotationSelectedIndex = defaultTimeNotationCombobox.selectedIndex,
+                startServer = startCheckBox.isChecked,
+                developmentMode = developmentCheckBox.isChecked)
     }
 
     override fun redraw() {
@@ -186,51 +188,13 @@ class LantFinalizeScreen(context: LantGUIContext) : LantAbstractWizardWindow(con
         }
         val dir = context.setupData.applicationHomeDir ?: File(System.getProperty("user.home"), "ProjectForge")
         dirLabel.setPreferredSize(TerminalSize(context.terminalSize.columns - 20, 1))
-        val dirText = if (!dir.exists()) {
-            "Will be created and configured."
-        } else "Exists and will be checked for configuration."
+        val dirText = FinalizeScreenSupport.getDirText(dir)
         dirLabel.setText("${CanonicalFileUtils.absolutePath(dir)} ($dirText)\n")
-        val sb = StringBuilder()
-        sb.append("Please open your favorite browser after startup: http://localhost:${portTextBox.text} and enjoy it!\n\n")
-        if (ProjectForgeHomeFinder.isStandardProjectForgeUserDir(dir)) {
-            sb.append("You chose the standard directory of ProjectForge, that will be found by ProjectForge automatically (OK).\n\n")
-        } else {
-            sb.append("You chose a directory different to ${File(System.getProperty("user.home"), "ProjectForge")}. That's OK.\n")
-            sb.append("To be sure, that this directory is found by the ProjectForge server, please refer log files or home page.\n\n")
-        }
-        sb.append("Press 'Finish' for starting the intialization and for starting-up the server.")
-        hintLabel.text = sb.toString()
+        hintLabel.text = FinalizeScreenSupport.getInfoText(portTextBox.text, dir)
     }
 
     override fun resize() {
         super.resize()
         dirLabel.setPreferredSize(TerminalSize(context.terminalSize.columns - 20, 1))
-    }
-
-    companion object {
-        private val listOfLocales = listOf(
-                LabelValueBean("en - English", "en"),
-                LabelValueBean("de - Deutsch", "de")
-        )
-
-        private val listOfTimeNotations = listOf(
-                LabelValueBean("H24", TimeNotation.H24),
-                LabelValueBean("H12", TimeNotation.H12)
-        )
-
-        private val listOfWeekdays = listOf(
-                LabelValueBean("Sunday", 1),
-                LabelValueBean("Monday", 2),
-                LabelValueBean("Tuesday", 3),
-                LabelValueBean("Wednesday", 4),
-                LabelValueBean("Thursday", 5),
-                LabelValueBean("Friday", 6),
-                LabelValueBean("Saturday", 7)
-        )
-
-        private val listOfDatabases = listOf(
-                LabelValueBean("Embedded", "HSQL"),
-                LabelValueBean("PostgreSQL", "POSTGRES")
-        )
     }
 }
