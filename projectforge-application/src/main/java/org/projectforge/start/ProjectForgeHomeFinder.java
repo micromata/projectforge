@@ -170,7 +170,7 @@ public class ProjectForgeHomeFinder {
            answer = new ConsoleTimeoutReader("Do you want to enter the setup wizard (Y/n)?", "y")
                   .ask();
         } else {
-          answer = new ConsoleTimeoutReader("Do you want to enter the setup wizard? (1), 2, 3\n  (1) Graphical wizard (default)\n  (2) Console based wizard\n  (3) Abort", "1") {
+          answer = new ConsoleTimeoutReader("Do you want to enter the setup wizard? (1), 2, 3\n *(1) Graphical wizard (default)\n  (2) Console based wizard\n  (3) Abort", "1") {
             @Override
             protected boolean answerValid(String answer) {
               return StringUtils.equalsAny(answer,"1", "2", "3");

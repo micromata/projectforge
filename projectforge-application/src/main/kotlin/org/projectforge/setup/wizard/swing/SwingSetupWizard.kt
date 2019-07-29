@@ -23,6 +23,8 @@
 
 package org.projectforge.setup.wizard.swing
 
+import com.apple.eawt.Application
+import com.apple.eawt.QuitStrategy
 import org.projectforge.common.CanonicalFileUtils
 import org.projectforge.common.EmphasizedLogSupport
 import org.projectforge.setup.SetupData
@@ -30,6 +32,7 @@ import org.projectforge.setup.wizard.AbstractSetupWizard
 import java.awt.CardLayout
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.io.File
 import java.io.IOException
@@ -38,7 +41,6 @@ import javax.swing.JFrame
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import kotlin.concurrent.withLock
-
 
 class SwingSetupWizard(presetAppHomeDir: File? = null) : AbstractSetupWizard() {
     override val context: SwingGUIContext
@@ -53,7 +55,14 @@ class SwingSetupWizard(presetAppHomeDir: File? = null) : AbstractSetupWizard() {
     init {
         frame = JFrame("ProjectForge setup")
         frame.layout = GridBagLayout()
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE)
+        Application.getApplication().setQuitStrategy(QuitStrategy.CLOSE_ALL_WINDOWS);
+        Application.getApplication().disableSuddenTermination();
+        frame.addWindowListener(object : WindowAdapter() {
+            override fun windowClosing(e: WindowEvent?) {
+                exit()
+            }
+        })
         frame.setSize(1024, 600)
 
         context = SwingGUIContext(this, frame)
@@ -82,15 +91,9 @@ class SwingSetupWizard(presetAppHomeDir: File? = null) : AbstractSetupWizard() {
      */
     override fun run(): SetupData? {
         super.initialize()
-        val t = object : Thread() {
-            override fun run() {
-                lock.withLock {
-                    condition.await()
-                }
-            }
+        lock.withLock {
+            condition.await()
         }
-        t.start()
-        t.join()
         return super.run()
     }
 
@@ -106,8 +109,10 @@ class SwingSetupWizard(presetAppHomeDir: File? = null) : AbstractSetupWizard() {
 
 
     override fun finish() {
-        frame.dispatchEvent(WindowEvent(frame, WindowEvent.WINDOW_CLOSING))
-        condition.signal()
+        frame.dispose()
+        lock.withLock {
+            condition.signal()
+        }
     }
 
     companion object {
