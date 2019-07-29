@@ -31,6 +31,7 @@ import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.persistence.attr.impl.AttrSchemaServiceSpringBeanImpl
 import org.projectforge.start.ProjectForgeApplication
 import org.projectforge.start.ProjectForgeApplication.giveUpAndSystemExit
+import org.projectforge.start.ProjectForgeHomeFinder
 import java.io.File
 import java.util.regex.Matcher
 
@@ -41,6 +42,10 @@ object ProjectForgeInitializer {
     fun initialize(setupData: SetupData?): File? {
         val applicationHomeDir = setupData?.applicationHomeDir
                 ?: return giveUpAndSystemExit("No directory configured in wizard.")
+
+        if (ProjectForgeHomeFinder.isProjectForgeSourceCodeRepository(applicationHomeDir)) {
+            giveUpAndSystemExit("ProjectForge shouldn't use source code repository as home directory: $applicationHomeDir")
+        }
 
         val emphasizedLog = EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.NORMAL, EmphasizedLogSupport.Alignment.LEFT)
                 .log("Checking ProjectForge installation...")

@@ -69,11 +69,10 @@ internal object SwingUtils {
         val panel = JPanel(FlowLayout())
         panel.add(separator)
         val buttonBar = JPanel()
-        //buttonBar.layoutManager = LinearLayout(Direction.HORIZONTAL)
+        buttonBar.add(getExitButton(context))
         for (component in buttons) {
             buttonBar.add(component)
         }
-        buttonBar.add(getExitButton(context))
         panel.add(buttonBar)
         return panel
     }
@@ -93,17 +92,6 @@ internal object SwingUtils {
                 context.setupMain.exit()
         }
         return exitButton
-    }
-
-     fun createFormatter(s: String): MaskFormatter {
-        var formatter: MaskFormatter? = null
-        try {
-            formatter = MaskFormatter(s)
-        } catch (ex: java.text.ParseException) {
-            log.error("Internal error while creating mask '$s' for JFormattedTextField: ${ex.message}", ex)
-            return MaskFormatter()
-        }
-         return formatter
     }
 
     fun convertToMultilineLabel(str: String): String {
