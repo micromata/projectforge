@@ -27,20 +27,25 @@ import org.projectforge.common.CanonicalFileUtils
 import org.projectforge.setup.wizard.FinalizeScreenSupport
 import org.projectforge.setup.wizard.Texts
 import org.projectforge.setup.wizard.swing.SwingUtils.constraints
+import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.awt.event.FocusEvent
+import java.awt.event.FocusListener
 import java.io.File
+import java.text.NumberFormat
 import javax.swing.*
 
 class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(context, "Finishing the directory setup") {
     private val log = org.slf4j.LoggerFactory.getLogger(SwingFinalizeScreen::class.java)
 
     private lateinit var dirLabel: JLabel
-    private lateinit var portTextBox: JTextField
+    private lateinit var dirTextField: JTextField
+    private lateinit var portTextField: JTextField
 
     private lateinit var databaseCombobox: JComboBox<String>
     private lateinit var jdbcSettingsButton: JButton
 
-    private lateinit var currencyTextBox: JTextField
+    private lateinit var currencyTextField: JTextField
     private lateinit var defaultLocaleCombobox: JComboBox<String>
     private lateinit var defaultTimeNotationCombobox: JComboBox<String>
     private lateinit var defaultFirstDayOfWeekCombobox: JComboBox<String>
@@ -55,16 +60,32 @@ class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(
 
         var y = -1
 
-        dirLabel = JLabel("")
+        val path = context.setupData.applicationHomeDir ?: File(".")
+        dirTextField = JTextField(CanonicalFileUtils.absolutePath(path))
         panel.add(JLabel("Directory"), constraints(0, ++y))
-        panel.add(dirLabel, constraints(1, y, width = 2))
+        panel.add(dirTextField, constraints(1, y, width = 2, weightx = 1.0, fill = GridBagConstraints.HORIZONTAL))
+        dirTextField.addFocusListener(object: FocusListener {
+            override fun focusGained(e: FocusEvent?) {
+                dirLabel.setText(FinalizeScreenSupport.getDirText(CanonicalFileUtils.absolute(dirTextField.text.trim())))
+            }
+
+            override fun focusLost(e: FocusEvent?) {
+                dirLabel.setText(FinalizeScreenSupport.getDirText(CanonicalFileUtils.absolute(dirTextField.text.trim())))
+            }
+        })
+
+        dirLabel = JLabel(FinalizeScreenSupport.getDirText(CanonicalFileUtils.absolute(dirTextField.text.trim())))
+        panel.add(dirLabel, constraints(1, ++y, width = 2))
 
         panel.add(JLabel(""), constraints(0, ++y))
 
-        portTextBox = JFormattedTextField(SwingUtils.createFormatter("#####"))
-        portTextBox.text = "8080"
+        val nf = NumberFormat.getInstance()
+        nf.setGroupingUsed(false)
+        portTextField = JFormattedTextField(nf)
+        portTextField.columns = 5
+        portTextField.text = "8080"
         panel.add(JLabel(Texts.FS_PORT), constraints(0, ++y))
-        panel.add(portTextBox, constraints(1, y))
+        panel.add(portTextField, constraints(1, y))
 
         panel.add(JLabel(""), constraints(0, ++y))
 
@@ -93,11 +114,11 @@ class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(
 
         panel.add(JLabel(""), constraints(0, ++y))
 
-        currencyTextBox = JTextField("Euro")
-        currencyTextBox.preferredSize = currencyTextBox.preferredSize
-        currencyTextBox.text = "€"
+        currencyTextField = JTextField("Euro")
+        currencyTextField.preferredSize = currencyTextField.preferredSize
+        currencyTextField.text = "€"
         panel.add(JLabel(Texts.FS_CURRENCY), constraints(0, ++y))
-        panel.add(currencyTextBox, constraints(1, y))
+        panel.add(currencyTextField, constraints(1, y))
 
         defaultLocaleCombobox = JComboBox()
         FinalizeScreenSupport.listOfLocales.forEach { defaultLocaleCombobox.addItem(it.label) }
@@ -149,9 +170,10 @@ class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(
     }
 
     private fun saveValues() {
+        context.setupData.applicationHomeDir = CanonicalFileUtils.absolute(dirTextField.text.trim())
         FinalizeScreenSupport.saveValues(context.setupData,
-                portText = portTextBox.text,
-                currencySymbol = currencyTextBox.text,
+                portText = portTextField.text,
+                currencySymbol = currencyTextField.text,
                 defaultLocaleSelectedIndex = defaultLocaleCombobox.selectedIndex,
                 defaultFirstDayOfWeekSelectedIndex = defaultFirstDayOfWeekCombobox.selectedIndex,
                 defaultTimeNotationSelectedIndex = defaultTimeNotationCombobox.selectedIndex,
@@ -171,8 +193,7 @@ class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(
             jdbcSettingsButton.setEnabled(false)
         }
         val dir = context.setupData.applicationHomeDir ?: File(System.getProperty("user.home"), "ProjectForge")
-        val dirText = FinalizeScreenSupport.getDirText(dir)
-        dirLabel.setText("${CanonicalFileUtils.absolutePath(dir)} ($dirText)\n")
-        hintLabel.text = SwingUtils.convertToMultilineLabel(FinalizeScreenSupport.getInfoText(portTextBox.text, dir))
+        dirLabel.setText(FinalizeScreenSupport.getDirText(context.setupData.applicationHomeDir))
+        hintLabel.text = SwingUtils.convertToMultilineLabel(FinalizeScreenSupport.getInfoText(portTextField.text, dir))
     }
 }

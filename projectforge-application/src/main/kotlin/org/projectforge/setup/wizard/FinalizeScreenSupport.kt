@@ -51,9 +51,13 @@ object FinalizeScreenSupport {
         setupData.developmentMode = developmentMode
     }
 
-    fun getDirText(dir: File): String {
-        return if (!dir.exists())
+    fun getDirText(dir: File?): String {
+        return if (dir == null)
+            "Please specify directory."
+        else if (!dir.exists())
             "Will be created and configured."
+        else if (ProjectForgeHomeFinder.isProjectForgeSourceCodeRepository(dir))
+            "This seems to be the source code repository. It's recommended to select another."
         else "Exists and will be checked for configuration."
     }
 
