@@ -89,7 +89,7 @@ open class LantDirectoryBrowser(
                 .addComponent(dirTextBox)
         contentPane.addComponent(formPanel)
 
-        contentPane.addComponent(LanternaUtils.createButtonBar(context, unitWidth,
+        contentPane.addComponent(LanternaUtils.createButtonBar(context, unitWidth, false,
                 Button(actionLabel, OkHandler()),
                 Button(LocalizedString.Cancel.toString(), CancelHandler())))
 

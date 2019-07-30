@@ -26,11 +26,7 @@ package org.projectforge.setup.wizard.swing
 import org.projectforge.setup.wizard.Texts
 import java.awt.FlowLayout
 import java.awt.GridBagConstraints
-import javax.swing.JButton
-import javax.swing.JOptionPane
-import javax.swing.JPanel
-import javax.swing.JSeparator
-import javax.swing.text.MaskFormatter
+import javax.swing.*
 
 internal object SwingUtils {
     private val log = org.slf4j.LoggerFactory.getLogger(SwingUtils::class.java)
@@ -65,11 +61,12 @@ internal object SwingUtils {
                  *buttons)
      }*/
 
-    fun createButtonBar(context: SwingGUIContext, separator: JSeparator, vararg buttons: JButton): JPanel {
+    fun createButtonBar(context: SwingGUIContext, showExitButton: Boolean = true, vararg buttons: JButton): JPanel {
         val panel = JPanel(FlowLayout())
-        panel.add(separator)
+        panel.add(JSeparator(SwingConstants.HORIZONTAL))
         val buttonBar = JPanel()
-        buttonBar.add(getExitButton(context))
+        if (showExitButton)
+            buttonBar.add(getExitButton(context))
         for (component in buttons) {
             buttonBar.add(component)
         }

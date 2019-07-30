@@ -31,9 +31,12 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
+import java.awt.event.ItemEvent
 import java.io.File
 import java.text.NumberFormat
 import javax.swing.*
+
+
 
 class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(context, "Finishing the directory setup") {
     private val log = org.slf4j.LoggerFactory.getLogger(SwingFinalizeScreen::class.java)
@@ -64,7 +67,7 @@ class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(
         dirTextField = JTextField(CanonicalFileUtils.absolutePath(path))
         panel.add(JLabel("Directory"), constraints(0, ++y))
         panel.add(dirTextField, constraints(1, y, width = 2, weightx = 1.0, fill = GridBagConstraints.HORIZONTAL))
-        dirTextField.addFocusListener(object: FocusListener {
+        dirTextField.addFocusListener(object : FocusListener {
             override fun focusGained(e: FocusEvent?) {
                 dirLabel.setText(FinalizeScreenSupport.getDirText(CanonicalFileUtils.absolute(dirTextField.text.trim())))
             }
@@ -91,11 +94,11 @@ class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(
 
         databaseCombobox = JComboBox()
         FinalizeScreenSupport.listOfDatabases.forEach { databaseCombobox.addItem(it.label) }
-        databaseCombobox.addPropertyChangeListener { propertyChangeEvent ->
-            if (propertyChangeEvent.oldValue != propertyChangeEvent.newValue) {
+        databaseCombobox.addItemListener { event ->
+            if (event.stateChange === ItemEvent.SELECTED) {
                 if (databaseCombobox.selectedIndex > 0) {
                     jdbcSettingsButton.setEnabled(true)
-                    //showJdbcSettingsDialog()
+                    showJdbcSettingsDialog()
                     context.setupData.useEmbeddedDatabase = false
                 } else {
                     jdbcSettingsButton.setEnabled(false)
@@ -105,7 +108,7 @@ class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(
         }
         jdbcSettingsButton = JButton(Texts.FS_JDBC_SETTINGS)
         jdbcSettingsButton.addActionListener {
-            //showJdbcSettingsDialog()
+            showJdbcSettingsDialog()
         }
         jdbcSettingsButton.setEnabled(false)
         panel.add(JLabel(Texts.DATABASE), constraints(0, ++y))
@@ -195,5 +198,12 @@ class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(
         val dir = context.setupData.applicationHomeDir ?: File(System.getProperty("user.home"), "ProjectForge")
         dirLabel.setText(FinalizeScreenSupport.getDirText(context.setupData.applicationHomeDir))
         hintLabel.text = SwingUtils.convertToMultilineLabel(FinalizeScreenSupport.getInfoText(portTextField.text, dir))
+    }
+
+    private fun showJdbcSettingsDialog() {
+        // PostgreSQL is selected. Open the JdbcSetingsDialog:
+        SwingJdbcSettingsDialog(this,
+                context = context
+        ).showDialog()
     }
 }
