@@ -95,6 +95,7 @@ class LantSetupWizard(presetAppHomeDir: File? = null) : AbstractSetupWizard() {
 
     override fun finish() {
         chooseDirectoryScreen.close()
+        finalizeScreen.close()
         lanternaScreen.stopScreen()
         //terminal.exitPrivateMode()
         terminal.close()

@@ -34,13 +34,14 @@ internal object LanternaUtils {
         panel.addComponent(EmptySpace(TerminalSize(0, 1)))
     }
 
-    fun createButtonBar(context: LantGUIContext, width: Int, vararg buttons: Button): Panel {
+    fun createButtonBar(context: LantGUIContext, width: Int, showExitButton: Boolean = true, vararg buttons: Button): Panel {
         return createButtonBar(context,
                 Separator(Direction.HORIZONTAL).setPreferredSize(TerminalSize(width, 1)),
+                showExitButton,
                 *buttons)
     }
 
-    fun createButtonBar(context: LantGUIContext, separator: Separator, vararg buttons: Button): Panel {
+    fun createButtonBar(context: LantGUIContext, separator: Separator, showExitButton: Boolean = true, vararg buttons: Button): Panel {
         val panel = Panel()
         separator.addTo(panel)
         val buttonBar = Panel()
@@ -48,7 +49,8 @@ internal object LanternaUtils {
         for (component in buttons) {
             buttonBar.addComponent(component)
         }
-        buttonBar.addComponent(getExitButton(context))
+        if (showExitButton)
+            buttonBar.addComponent(getExitButton(context))
 
         panel.addComponent(buttonBar)
         return panel

@@ -55,7 +55,7 @@ abstract class LantAbstractWizardWindow(context: LantGUIContext,
         mainPanel.addComponent(contentPanel)
 
         separator = Separator(Direction.HORIZONTAL)
-        buttonPanel = LanternaUtils.createButtonBar(context, separator, *getButtons())
+        buttonPanel = LanternaUtils.createButtonBar(context, separator, true, *getButtons())
         mainPanel.addComponent(buttonPanel)
         component = mainPanel
         resize()

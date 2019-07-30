@@ -23,111 +23,95 @@
 
 package org.projectforge.setup.wizard.swing
 
-import com.googlecode.lanterna.TerminalSize
-import com.googlecode.lanterna.gui2.*
-import com.googlecode.lanterna.gui2.dialogs.DialogWindow
 import org.projectforge.setup.SetupData
+import org.projectforge.setup.wizard.JdbcConnectionTest
 import org.projectforge.setup.wizard.Texts
-import org.projectforge.setup.wizard.lanterna.LantFinalizeScreen
-import org.projectforge.setup.wizard.lanterna.LantGUIContext
-import org.projectforge.setup.wizard.lanterna.LanternaUtils
-import java.sql.DriverManager
+import java.awt.GridBagConstraints
+import java.awt.GridBagLayout
+import javax.swing.*
 
 
 /**
  * Jdbc settings dialog (PostgreSQL).
  */
 open class SwingJdbcSettingsDialog(
-        finalizeWindow: LantFinalizeScreen,
-        dialogSize: TerminalSize,
-        val context: LantGUIContext
-) : DialogWindow(Texts.JDBC_TITLE) {
-    private val log = org.slf4j.LoggerFactory.getLogger(LantFinalizeScreen::class.java)
+        finalizeWindow: SwingFinalizeScreen,
+        val context: SwingGUIContext
+) : JDialog(context.mainFrame, Texts.JDBC_TITLE, true) {
+    private val log = org.slf4j.LoggerFactory.getLogger(SwingJdbcSettingsDialog::class.java)
 
-    private var jdbcUrlTextBox: TextBox
-    private var jdbcUserTextBox: TextBox
-    private var jdbcPasswordBox: TextBox
-    private var jdbcTestButton: Button
-    private var testResultLabel: Label
+    private lateinit var jdbcUrlTextField: JTextField
+    private lateinit var jdbcUserTextField: JTextField
+    private lateinit var jdbcPasswordTextField: JPasswordField
+    private lateinit var jdbcTestButton: JButton
+    private lateinit var testResultLabel: JLabel
 
     init {
-        val contentPane = Panel()
-        contentPane.layoutManager = GridLayout(2)
+        setSize(600, 400)
+        setLocationRelativeTo(context.mainFrame);
+        val panel = JPanel(GridBagLayout())
 
-        val jdbcSettings = context.setupData.jdbcSettings
+        var y = -1
 
-        jdbcUrlTextBox = TextBox(jdbcSettings?.jdbcUrl ?: defaultJdbcUrl)
-                .setPreferredSize(TerminalSize(60, 1))
-        contentPane.addComponent(Label(Texts.JDBC_URL))
-                .addComponent(jdbcUrlTextBox)
+        jdbcUrlTextField = JTextField()
+        panel.add(JLabel(Texts.JDBC_URL), SwingUtils.constraints(0, ++y))
+        panel.add(jdbcUrlTextField, SwingUtils.constraints(1, y, fill = GridBagConstraints.HORIZONTAL, weightx = 1.0))
 
-        jdbcUserTextBox = TextBox(jdbcSettings?.user ?: "projectforge")
-                .setPreferredSize(TerminalSize(20, 1))
-        contentPane.addComponent(Label(Texts.JDBC_USER))
-                .addComponent(jdbcUserTextBox)
+        jdbcUserTextField = JTextField()
+        panel.add(JLabel(Texts.JDBC_USER), SwingUtils.constraints(0, ++y))
+        panel.add(jdbcUserTextField, SwingUtils.constraints(1, y, fill = GridBagConstraints.HORIZONTAL, weightx = 1.0))
 
-        jdbcPasswordBox = TextBox(jdbcSettings?.password ?: "")
-                .setPreferredSize(TerminalSize(20, 1))
-                .setMask('*')
+        jdbcPasswordTextField = JPasswordField()
+        panel.add(JLabel(Texts.JDBC_PASSWORD), SwingUtils.constraints(0, ++y))
+        panel.add(jdbcPasswordTextField, SwingUtils.constraints(1, y, fill = GridBagConstraints.HORIZONTAL, weightx = 1.0))
 
-        contentPane.addComponent(Label(Texts.JDBC_PASSWORD))
-                .addComponent(jdbcPasswordBox)
+        testResultLabel = JLabel()
+        panel.add(JLabel(Texts.JDBC_TESTRESULT), SwingUtils.constraints(0, ++y))
+        panel.add(testResultLabel, SwingUtils.constraints(1, y, fill = GridBagConstraints.HORIZONTAL, weightx = 1.0))
 
-        testResultLabel = Label("")
-        contentPane.addComponent(Label(Texts.JDBC_TESTRESULT))
-                .addComponent(testResultLabel)
-
-        jdbcTestButton = Button(Texts.JDBC_BUTTON_TEST_CONNECTION) {
-            Class.forName("org.postgresql.Driver")
-            val jdbcUrl = jdbcUrlTextBox.text
-            val username = jdbcUserTextBox.text
-            val password = jdbcPasswordBox.text
-            try {
-                val connection = DriverManager.getConnection(jdbcUrl, username, password)
-                if (connection.isValid(10)) {
-                    testResultLabel.text = Texts.JDBC_TESTRESULT_OK
-                } else {
-                    testResultLabel.text = Texts.JDBC_TESTRESULT_NOT_VALID
-                }
-            } catch (ex: Exception) {
-                testResultLabel.text = "${Texts.JDBC_TESTRESULT_CONNECTION_FAILED}: ${ex.message}!"
-            }
+        jdbcTestButton = JButton(Texts.JDBC_BUTTON_TEST_CONNECTION)
+        jdbcTestButton.addActionListener {
+            testResultLabel.text = JdbcConnectionTest.testConnection(jdbcUrlTextField.text, jdbcUserTextField.text, jdbcPasswordTextField.text)
         }
 
-        val unitWidth = (dialogSize.columns - 10)
+        val resetButton = JButton(Texts.BUTTON_RESET)
+        resetButton.addActionListener {
+            jdbcUrlTextField.text = JdbcConnectionTest.defaultJdbcUrl
+        }
 
-        contentPane.addComponent(LanternaUtils.createButtonBar(context, unitWidth,
-                jdbcTestButton,
-                Button(Texts.BUTTON_RESET) {
-                    jdbcUrlTextBox.text = defaultJdbcUrl
-                },
-                Button(Texts.BUTTON_OK) {
-                    val jdbcSettings = SetupData.JdbcSettings()
-                    jdbcSettings.driverClass = "org.postgresql.Driver"
-                    jdbcSettings.jdbcUrl = jdbcUrlTextBox.text
-                    jdbcSettings.user = jdbcUserTextBox.text
-                    jdbcSettings.password = jdbcPasswordBox.text
-                    context.setupData.jdbcSettings = jdbcSettings
-                    context.setupData.useEmbeddedDatabase = false
-                    finalizeWindow.redraw()
-                    close()
-                },
-                Button(LocalizedString.Cancel.toString()) {
-                    finalizeWindow.redraw()
-                    close()
-                })
-                .setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2))
-        )
+        val okButton = JButton(Texts.BUTTON_OK)
+        okButton.addActionListener {
+            val jdbcSettings = SetupData.JdbcSettings()
+            jdbcSettings.driverClass = "org.postgresql.Driver"
+            jdbcSettings.jdbcUrl = jdbcUrlTextField.text
+            jdbcSettings.user = jdbcUserTextField.text
+            jdbcSettings.password = jdbcPasswordTextField.text
+            context.setupData.jdbcSettings = jdbcSettings
+            context.setupData.useEmbeddedDatabase = false
+            finalizeWindow.redraw()
+            isVisible = false
+        }
 
-        component = contentPane
+        val cancelButton = JButton(Texts.BUTTON_CANCEL)
+        cancelButton.addActionListener {
+            finalizeWindow.redraw()
+            isVisible = false
+        }
+
+        val cuttonBar = SwingUtils.createButtonBar(context, false, jdbcTestButton, resetButton, okButton, cancelButton)
+
+        panel.add(cuttonBar, SwingUtils.constraints(0, ++y, width = 2, fill = GridBagConstraints.HORIZONTAL, weightx = 1.0))
+        contentPane.add(panel)
     }
 
-    fun showDialog(): Any? {
-        super.showDialog(context.textGUI)
-        return null
-    }
+    fun showDialog() {
+        val jdbcSettings = context.setupData.jdbcSettings
 
-    companion object {
-        const val defaultJdbcUrl = "jdbc:postgresql://localhost:15432/projectforge"
+        jdbcUrlTextField.text = jdbcSettings?.jdbcUrl ?: JdbcConnectionTest.defaultJdbcUrl
+        jdbcUserTextField.text = jdbcSettings?.user ?: "projectforge"
+        jdbcPasswordTextField.text = jdbcSettings?.password ?: ""
+        testResultLabel.text = ""
+
+        isVisible = true
     }
 }

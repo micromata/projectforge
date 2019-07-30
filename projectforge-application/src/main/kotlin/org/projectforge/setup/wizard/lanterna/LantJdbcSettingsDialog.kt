@@ -27,8 +27,9 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.gui2.dialogs.DialogWindow
 import org.projectforge.setup.SetupData
+import org.projectforge.setup.wizard.JdbcConnectionTest
+import org.projectforge.setup.wizard.JdbcConnectionTest.defaultJdbcUrl
 import org.projectforge.setup.wizard.Texts
-import java.sql.DriverManager
 
 
 /**
@@ -53,7 +54,7 @@ open class LantJdbcSettingsDialog(
 
         val jdbcSettings = context.setupData.jdbcSettings
 
-        jdbcUrlTextBox = TextBox(jdbcSettings?.jdbcUrl ?: defaultJdbcUrl)
+        jdbcUrlTextBox = TextBox(jdbcSettings?.jdbcUrl ?: JdbcConnectionTest.defaultJdbcUrl)
                 .setPreferredSize(TerminalSize(60, 1))
         contentPane.addComponent(Label(Texts.JDBC_URL))
                 .addComponent(jdbcUrlTextBox)
@@ -75,25 +76,15 @@ open class LantJdbcSettingsDialog(
                 .addComponent(testResultLabel)
 
         jdbcTestButton = Button(Texts.JDBC_BUTTON_TEST_CONNECTION) {
-            Class.forName("org.postgresql.Driver")
             val jdbcUrl = jdbcUrlTextBox.text
             val username = jdbcUserTextBox.text
             val password = jdbcPasswordBox.text
-            try {
-                val connection = DriverManager.getConnection(jdbcUrl, username, password)
-                if (connection.isValid(10)) {
-                    testResultLabel.text = Texts.JDBC_TESTRESULT_OK
-                } else {
-                    testResultLabel.text = Texts.JDBC_TESTRESULT_NOT_VALID
-                }
-            } catch (ex: Exception) {
-                testResultLabel.text = "${Texts.JDBC_TESTRESULT_CONNECTION_FAILED}: ${ex.message}!"
-            }
+            testResultLabel.text = JdbcConnectionTest.testConnection(jdbcUrl, username, password)
         }
 
         val unitWidth = (dialogSize.columns - 10)
 
-        contentPane.addComponent(LanternaUtils.createButtonBar(context, unitWidth,
+        contentPane.addComponent(LanternaUtils.createButtonBar(context, unitWidth, false,
                 jdbcTestButton,
                 Button(Texts.BUTTON_RESET) {
                     jdbcUrlTextBox.text = defaultJdbcUrl
@@ -122,9 +113,5 @@ open class LantJdbcSettingsDialog(
     fun showDialog(): Any? {
         super.showDialog(context.textGUI)
         return null
-    }
-
-    companion object {
-        const val defaultJdbcUrl = "jdbc:postgresql://localhost:15432/projectforge"
     }
 }

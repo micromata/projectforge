@@ -25,7 +25,9 @@ package org.projectforge.setup.wizard.swing
 
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
-import javax.swing.*
+import javax.swing.JButton
+import javax.swing.JLabel
+import javax.swing.JPanel
 
 abstract class SwingAbstractWizardWindow(context: SwingGUIContext,
                                          title: String) : JPanel() {
@@ -36,8 +38,6 @@ abstract class SwingAbstractWizardWindow(context: SwingGUIContext,
     private val contentPanel: JPanel
 
     private val buttonPanel: JPanel
-
-    private val separator: JSeparator
 
     init {
         this.context = context
@@ -54,8 +54,7 @@ abstract class SwingAbstractWizardWindow(context: SwingGUIContext,
         mainPanel.add(contentPanel, SwingUtils.constraints(0, 1))
 
         mainPanel.add(JLabel(""), SwingUtils.constraints(0, 2, fill = GridBagConstraints.BOTH, weighty = 1.0))
-        separator = JSeparator(SwingConstants.HORIZONTAL)
-        buttonPanel = SwingUtils.createButtonBar(context, separator, *getButtons())
+        buttonPanel = SwingUtils.createButtonBar(context, true, *getButtons())
         mainPanel.add(buttonPanel, SwingUtils.constraints(0, 3, fill = GridBagConstraints.HORIZONTAL))
     }
 
