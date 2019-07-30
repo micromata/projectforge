@@ -116,10 +116,20 @@ public class LoggerSupport {
 
   public LoggerSupport log(String text) {
     ensureStart();
-    String padText = alignment == Alignment.LEFT ? StringUtils.rightPad(text, innerLength)
-            : StringUtils.center(text, innerLength);
-    logLine(asterisks(number) + " " + padText + " " + asterisks(number));
+    if (StringUtils.contains(text, "\n")) {
+      for (String line : StringUtils.splitPreserveAllTokens(text, '\n')) {
+        logLineText(line);
+      }
+    } else {
+      logLineText(text);
+    }
     return this;
+  }
+
+  private void logLineText(String line) {
+    String padText = alignment == Alignment.LEFT ? StringUtils.rightPad(line, innerLength)
+            : StringUtils.center(line, innerLength);
+    logLine(asterisks(number) + " " + padText + " " + asterisks(number));
   }
 
   private void logLine(String msg) {
