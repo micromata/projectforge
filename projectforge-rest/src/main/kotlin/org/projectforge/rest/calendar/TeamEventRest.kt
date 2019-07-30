@@ -70,6 +70,14 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao>(
         super.onGetItemAndLayout(request, dto, editLayoutData)
     }
 
+    override fun beforeSaveOrUpdate(request: HttpServletRequest, obj: TeamEventDO, dto: TeamEventDO) {
+        if (obj.calendarId != null) {
+            // Calendar from client has only id and title. Get the calendar object from the data base (e. g. owner
+            // is needed by the access checker.
+            obj.calendar = teamCalDao.getById(obj.calendarId)
+        }
+    }
+
     override fun afterEdit(obj: TeamEventDO, dto: TeamEventDO): ResponseAction {
         return ResponseAction("/calendar")
                 .addVariable("date", obj.startDate)
@@ -162,7 +170,11 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao>(
         layout.add(UIFieldset(12)
                 .add(UIRow()
                         .add(UICol(6)
-                                .add(UISelect<Int>("calendar", values = calendarSelectValues.toMutableList(), label = "plugins.teamcal.event.teamCal"))
+                                .add(UISelect<Int>("calendar",
+                                        values = calendarSelectValues.toMutableList(),
+                                        label = "plugins.teamcal.event.teamCal",
+                                        labelProperty = "title",
+                                        valueProperty = "id"))
                                 .add(subject)
                                 .add(lc, "attendees")
                                 .add(lc, "location", "note"))
