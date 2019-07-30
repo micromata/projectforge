@@ -131,11 +131,22 @@ public class ProjectForgeApplication {
       SpringApplication.run(ProjectForgeApplication.class, args);
     } catch (Exception ex) {
       log.error("Exception while running application: " + ex.getMessage(), ex);
+      Throwable cause = ex;
+      String message = ex.getMessage();
+      do {
+        cause = cause.getCause();
+        if (cause != null) {
+          if (StringUtils.containsIgnoreCase(cause.getMessage(), "lucene")
+                  && StringUtils.contains(cause.getMessage(), "codec")) {
+            message = "Lucene index not compatible (see above). Please remove directory\n'" + new File(baseDir, "hibernateSearch").getAbsolutePath() + "' and restart.";
+          }
+        }
+      } while (cause != null);
       LoggerSupport loggerSupport = new LoggerSupport(log, LoggerSupport.Priority.VERY_IMPORTANT, LoggerSupport.Alignment.LEFT)
               .setLogLevel(LoggerSupport.LogLevel.ERROR)
               .log("Error while running application:")
               .log("")
-              .log(ex.getMessage());
+              .log(message);
       if (ex instanceof ConnectorStartFailedException) {
         loggerSupport.log("")
                 .log("May-be address of server port is already in use.");
