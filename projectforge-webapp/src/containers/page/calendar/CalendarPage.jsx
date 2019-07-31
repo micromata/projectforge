@@ -33,7 +33,7 @@ class CalendarPage extends React.Component {
         this.fetchInitial = this.fetchInitial.bind(this);
         this.onChange = this.onChange.bind(this);
         this.handleMultiValueChange = this.handleMultiValueChange.bind(this);
-        this.changeDefaultCalendar = this.changeDefaultCalendar.bind(this);
+        this.onDefaultCalendarChange = this.onDefaultCalendarChange.bind(this);
         this.onFavoriteCreate = this.onFavoriteCreate.bind(this);
         this.onFavoriteDelete = this.onFavoriteDelete.bind(this);
         this.onFavoriteRename = this.onFavoriteRename.bind(this);
@@ -57,6 +57,10 @@ class CalendarPage extends React.Component {
 
     onTimesheetUserChange(timesheetUserId) {
         this.setState({ timesheetUserId });
+    }
+
+    onDefaultCalendarChange(defaultCalendar) {
+        this.setState({ defaultCalendar });
     }
 
     onFavoriteCreate(newFilterName) {
@@ -123,10 +127,6 @@ class CalendarPage extends React.Component {
             .catch(error => alert(`Internal error: ${error}`));
     }
 
-    changeDefaultCalendar(defaultCalendar) {
-        this.setState({ defaultCalendar });
-    }
-
     fetchInitial() {
         this.setState({ loading: true });
         fetch(getServiceURL('calendar/initial'), {
@@ -148,7 +148,6 @@ class CalendarPage extends React.Component {
             loading: false,
             ...json,
         };
-
         if (newState.translations) {
             document.title = `ProjectForge - ${getTranslation('calendar.title', newState.translations)}`;
         }
@@ -174,6 +173,7 @@ class CalendarPage extends React.Component {
             activeCalendars,
             timesheetUserId,
             listOfDefaultCalendars,
+            defaultCalendar,
             isFilterModified,
             colors,
             filter,
@@ -250,8 +250,10 @@ class CalendarPage extends React.Component {
                                         />
                                         <CalendarFilterSettings
                                             listOfDefaultCalendars={listOfDefaultCalendars}
+                                            defaultCalendarId={defaultCalendar ? defaultCalendar.id : undefined}
                                             translations={translations}
                                             onTimesheetUserChange={this.onTimesheetUserChange}
+                                            onDefaultCalendarChange={this.onDefaultCalendarChange}
                                             timesheetUserId={timesheetUserId}
                                         />
                                     </Col>
