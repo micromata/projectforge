@@ -46,24 +46,23 @@ class SwingSetupWizard(presetAppHomeDir: File? = null) : AbstractSetupWizard() {
     override val context: SwingGUIContext
     private val chooseDirectoryScreen: SwingChooseDirectoryScreen
     private val finalizeScreen: SwingFinalizeScreen
-    private val frame: JFrame
+    private val frame = JFrame("ProjectForge setup")
     private val cardLayout: CardLayout
     private val cards: JPanel
     private val lock = ReentrantLock()
     private val condition = lock.newCondition()
 
     init {
-        frame = JFrame("ProjectForge setup")
+        frame.setSize(1024, 600)
         frame.layout = GridBagLayout()
-        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE)
-        Application.getApplication().setQuitStrategy(QuitStrategy.CLOSE_ALL_WINDOWS);
-        Application.getApplication().disableSuddenTermination();
+        frame.defaultCloseOperation = JFrame.DO_NOTHING_ON_CLOSE
+        Application.getApplication().setQuitStrategy(QuitStrategy.CLOSE_ALL_WINDOWS)
+        Application.getApplication().disableSuddenTermination()
         frame.addWindowListener(object : WindowAdapter() {
             override fun windowClosing(e: WindowEvent?) {
                 exit()
             }
         })
-        frame.setSize(1024, 600)
 
         context = SwingGUIContext(this, frame)
         context.setupData.applicationHomeDir = presetAppHomeDir
@@ -71,19 +70,14 @@ class SwingSetupWizard(presetAppHomeDir: File? = null) : AbstractSetupWizard() {
         chooseDirectoryScreen = SwingChooseDirectoryScreen(context)
         finalizeScreen = SwingFinalizeScreen(context)
 
-        //jFrame.add(context.chooseDirectoryWindow!!.mainPanel)
-
         cardLayout = CardLayout()
         cards = JPanel(cardLayout)
-        //cards.setBorder(EmptyBorder(Insets(5, 10, 5, 10)))
         cards.add(chooseDirectoryScreen.mainPanel, ScreenID.CHOOSE_DIR.name)
         cards.add(finalizeScreen.mainPanel, ScreenID.FINALIZE.name)
         val scrPane = JScrollPane(cards)
-        //frame.contentPane.add(cardPanel)
         frame.contentPane.add(scrPane, SwingUtils.constraints(0, 0, fill = GridBagConstraints.BOTH, weightx = 1.0, weighty = 1.0))
 
-        //jFrame.setLayout(null)
-        frame.setVisible(true)
+        frame.isVisible = true
     }
 
     /**
@@ -123,7 +117,7 @@ class SwingSetupWizard(presetAppHomeDir: File? = null) : AbstractSetupWizard() {
             try {
                 return SwingSetupWizard(appHomeDir).run()
             } catch (ex: IOException) {
-                EmphasizedLogSupport(SwingSetupWizard.log)
+                EmphasizedLogSupport(log)
                         .log("Can't start graphical setup wizard, a desktop seems not to be available.")
                         .logEnd()
                 return null
