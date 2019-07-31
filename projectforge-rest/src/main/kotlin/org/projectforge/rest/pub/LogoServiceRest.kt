@@ -26,6 +26,7 @@ package org.projectforge.rest.pub
 import org.apache.commons.io.FileUtils
 import org.aspectj.weaver.tools.cache.SimpleCacheFactory.path
 import org.projectforge.business.configuration.ConfigurationService
+import org.projectforge.common.CanonicalFileUtils
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.rest.config.Rest
 import org.springframework.beans.factory.annotation.Autowired
@@ -76,7 +77,7 @@ class LogoServiceRest {
         try {
             return FileUtils.readFileToByteArray(logoFile)
         } catch(ex: IOException) {
-            log.error("Error while reading logo file '${logoFile?.absolutePath}': ${ex.message}")
+            log.error("Error while reading logo file '${CanonicalFileUtils.absolutePath(logoFile)}': ${ex.message}")
             throw ex
         }
     }
@@ -92,7 +93,7 @@ class LogoServiceRest {
                     val configuredFile = configurationService.logoFile
                     _logoUrl = createBaseUrl(configuredFile)
                     if (!_logoUrl.isNullOrBlank() && !isLogoFileValid()) {
-                        log.error("Logo file configured but not readable: '${logoFile?.absolutePath}'.")
+                        log.error("Logo file configured but not readable: '${CanonicalFileUtils.absolutePath(logoFile)}'.")
                     }
                     logoUrlInitialized = true
                 }

@@ -44,6 +44,10 @@ import java.util.Map;
  */
 public class AttrSchemaServiceSpringBeanImpl extends AttrSchemaServiceBaseImpl {
 
+  public static final String ATTR_SCHEMA_CONFIG_FILE = "attrschema.xml";
+
+  public static final String CLASSPATH_INITIAL_ATTR_SCHEMA_CONFIG_FILE = "initialAttrschema.xml";
+
   private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory
           .getLogger(AttrSchemaServiceSpringBeanImpl.class);
 
@@ -98,12 +102,11 @@ public class AttrSchemaServiceSpringBeanImpl extends AttrSchemaServiceBaseImpl {
   }
 
   private Map<String, AttrSchema> loadAttrSchemaFromFileSystem() {
-    if (!ProjectForgeApp.ensureInitialConfigFile("initialAttrschema.xml", "attrschema.xml"))
+    if (!ProjectForgeApp.ensureInitialConfigFile(CLASSPATH_INITIAL_ATTR_SCHEMA_CONFIG_FILE, ATTR_SCHEMA_CONFIG_FILE))
       return null;
-    final String attrschemaFilePath = applicationDir + "/attrschema.xml";
-    final File attrSchemaFile = new File(attrschemaFilePath);
+    final File attrSchemaFile = new File(applicationDir, ATTR_SCHEMA_CONFIG_FILE);
     try {
-      final ApplicationContext context = new FileSystemXmlApplicationContext("file:" + attrschemaFilePath);
+      final ApplicationContext context = new FileSystemXmlApplicationContext("file:" + attrSchemaFile.getAbsolutePath());
       log.info("AttrSchema config file loaded from '" + attrSchemaFile.getAbsolutePath() + "'");
       return context.getBean("attrSchemataMap", Map.class);
     } catch (Exception e) {

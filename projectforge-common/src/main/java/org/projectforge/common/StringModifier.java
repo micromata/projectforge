@@ -21,33 +21,14 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.start;
+package org.projectforge.common;
 
-
-import org.junit.jupiter.api.Test;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-
-public class ProjectForgeHomeFinderTest {
-  @Test
-  void findBaseDir() throws IOException {
-    File tmpDir = Files.createTempDirectory("projectforge-application-basedir-test").toFile();
-    File pfDir = new File(tmpDir, "ProjectForge");
-    pfDir.mkdir();
-    File subDir = new File(pfDir, "subdir");
-    subDir.mkdir();
-
-
-    File dir = ProjectForgeHomeFinder.findBaseDirAndAncestors(subDir);
-    assertEquals("ProjectForge", dir.getName());
-
-    dir = ProjectForgeHomeFinder.findBaseDirAndAncestors(new File("."));
-    if (dir != null)
-      assertFalse(new File(dir, "projectforge-business").exists(), "The source code directory shouldn't be found.");
-  }
+/**
+ * Simple interface usable for modification of strings. This is used e. g. by ProjectForge app to replace variables
+ * while creating config files on new installations of ProjectForge.
+ *
+ * @author Kai Reinhard (k.reinhard@micromata.de)
+ */
+public interface StringModifier {
+  String modify(String str);
 }

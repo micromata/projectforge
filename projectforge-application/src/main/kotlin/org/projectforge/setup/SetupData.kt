@@ -21,33 +21,27 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.start;
+package org.projectforge.setup
 
+import org.projectforge.framework.time.TimeNotation
+import java.io.File
+import java.util.*
 
-import org.junit.jupiter.api.Test;
+class SetupData(
+        var applicationHomeDir: File? = null,
+        var serverPort: Int = 8080,
+        var startServer: Boolean = true,
+        var developmentMode: Boolean = false,
+        var defaultLocale: String = "en",
+        var currencySymbol: String = "€",
+        var defaultTimeNotation: TimeNotation = TimeNotation.H24,
+        var defaultFirstDayOfWeek: Int = Calendar.MONDAY,
+        var useEmbeddedDatabase: Boolean = true,
+        var jdbcSettings: JdbcSettings? = null) {
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-
-public class ProjectForgeHomeFinderTest {
-  @Test
-  void findBaseDir() throws IOException {
-    File tmpDir = Files.createTempDirectory("projectforge-application-basedir-test").toFile();
-    File pfDir = new File(tmpDir, "ProjectForge");
-    pfDir.mkdir();
-    File subDir = new File(pfDir, "subdir");
-    subDir.mkdir();
-
-
-    File dir = ProjectForgeHomeFinder.findBaseDirAndAncestors(subDir);
-    assertEquals("ProjectForge", dir.getName());
-
-    dir = ProjectForgeHomeFinder.findBaseDirAndAncestors(new File("."));
-    if (dir != null)
-      assertFalse(new File(dir, "projectforge-business").exists(), "The source code directory shouldn't be found.");
-  }
+    class JdbcSettings(var jdbcUrl: String? = null,
+                       var user: String? = null,
+                       var password: String? = null,
+                       var driverClass: String? = null)
 }
+

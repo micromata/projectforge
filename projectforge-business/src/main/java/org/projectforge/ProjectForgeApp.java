@@ -25,11 +25,15 @@ package org.projectforge;
 
 import net.fortuna.ical4j.util.CompatibilityHints;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.systeminfo.SystemInfoCache;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserXmlPreferencesCache;
+import org.projectforge.common.CanonicalFileUtils;
+import org.projectforge.common.EmphasizedLogSupport;
+import org.projectforge.common.StringModifier;
 import org.projectforge.continuousdb.DatabaseSupport;
 import org.projectforge.export.MyXlsExportContext;
 import org.projectforge.framework.persistence.api.HibernateUtils;
@@ -41,13 +45,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
+import java.io.InputStream;
 import java.util.TimeZone;
 
 /**
@@ -80,6 +85,8 @@ public class ProjectForgeApp {
 
   private DatabaseService databaseUpdater;
 
+  private Environment environment;
+
   private UserXmlPreferencesCache userXmlPreferencesCache;
 
   private SystemInfoCache systemInfoCache;
@@ -87,10 +94,12 @@ public class ProjectForgeApp {
   @Autowired
   ProjectForgeApp(ApplicationContext applicationContext,
                   DatabaseService databaseUpdater,
+                  Environment environment,
                   UserXmlPreferencesCache userXmlPreferencesCache,
                   SystemInfoCache systemInfoCache) {
     this.applicationContext = applicationContext;
     this.databaseUpdater = databaseUpdater;
+    this.environment = environment;
     this.userXmlPreferencesCache = userXmlPreferencesCache;
     this.systemInfoCache = systemInfoCache;
   }
@@ -123,7 +132,9 @@ public class ProjectForgeApp {
     CompatibilityHints.setHintEnabled(CompatibilityHints.KEY_RELAXED_UNFOLDING, true);
     CompatibilityHints.setHintEnabled(CompatibilityHints.KEY_RELAXED_VALIDATION, true);
     this.upAndRunning = true;
-    log.info("ProjectForge is now available (up and running).");
+    new EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.NORMAL)
+            .log("ProjectForge is now available (up and running): localhost:" + environment.getProperty("server.port"))
+            .logEnd();
   }
 
   private void internalInit() {
@@ -131,12 +142,10 @@ public class ProjectForgeApp {
     // Time zone
     log.info("Default TimeZone is: " + TimeZone.getDefault());
     if ("UTC".equals(TimeZone.getDefault().getID()) == false) {
-      for (final String str : UTC_RECOMMENDED) {
-        log.error(str);
-      }
-      for (final String str : UTC_RECOMMENDED) {
-        System.err.println(str);
-      }
+      new EmphasizedLogSupport(log, EmphasizedLogSupport.Alignment.LEFT)
+              .log("It's highly recommended to start ProjectForge with TimeZone UTC. This default TimeZone has to be")
+              .log("set before any initialization of Hibernate!!!! You may do this through JAVA_OPTS etc.")
+              .logEnd();
     }
     log.info("user.timezone is: " + System.getProperty("user.timezone"));
 
@@ -200,31 +209,38 @@ public class ProjectForgeApp {
     this.upAndRunning = upAndRunning;
   }
 
-  private static final String[] UTC_RECOMMENDED = { //
-          "**********************************************************", //
-          "***                                                    ***", //
-          "*** It's highly recommended to start ProjectForge      ***", //
-          "*** with TimeZone UTC. This default TimeZone has to be ***", //
-          "*** set before any initialization of Hibernate!!!!     ***", //
-          "*** You can do this e. g. in JAVA_OPTS etc.            ***", //
-          "***                                                    ***", //
-          "**********************************************************"};
-
   /**
    * @return True, if the dest file exists or was created successfully. False if an error while creation occured.
    */
   public static boolean ensureInitialConfigFile(String classPathSourceFilename, String destFilename) {
+    String baseDir = System.getProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR);
+    return ensureInitialConfigFile(new File(baseDir), classPathSourceFilename, destFilename, true, null);
+  }
+
+  /**
+   * @return True, if the dest file exists or was created successfully. False if an error while creation occured.
+   */
+  public static boolean ensureInitialConfigFile(File baseDir, String classPathSourceFilename, String destFilename, boolean logEnabled, StringModifier modifier) {
     if (junitTestMode)
       return true;
-    String baseDir = System.getProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR);
     final File destFile = new File(baseDir, destFilename);
     if (!destFile.exists()) {
-      URL classpathUrl = ProjectForgeApp.class.getResource("/" + ProjectForgeApp.CLASSPATH_INITIAL_BASEDIR_FILES + "/" + classPathSourceFilename);
+      if (logEnabled)
+        log.info("New installation, creating default '" + destFilename + "': " + CanonicalFileUtils.absolutePath(destFile));
       try {
-        log.info("New installation, creating default '" + destFilename + "': " + destFile.getAbsolutePath());
-        FileUtils.copyURLToFile(classpathUrl, destFile);
+        String resourcePath = ProjectForgeApp.CLASSPATH_INITIAL_BASEDIR_FILES + "/" + classPathSourceFilename;
+        InputStream resourceStream = ProjectForgeApp.class.getClassLoader().getResourceAsStream(resourcePath);
+        if (resourceStream == null) {
+          log.error("Internal error: Can't read initial config data from class path: " + resourcePath);
+          return false;
+        }
+        String content = IOUtils.toString(resourceStream, "UTF-8");
+        if (modifier != null) {
+          content = modifier.modify(content);
+        }
+        FileUtils.writeStringToFile(destFile, content, "UTF-8", false);
       } catch (IOException ex) {
-        log.error("Error while creating ProjectForge's config file '" + destFile.getAbsolutePath() + "': " + ex.getMessage(), ex);
+        log.error("Error while creating ProjectForge's config file '" + CanonicalFileUtils.absolutePath(destFile) + "': " + ex.getMessage(), ex);
         return false;
       }
     }
