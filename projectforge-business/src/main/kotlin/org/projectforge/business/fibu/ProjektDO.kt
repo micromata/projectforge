@@ -175,7 +175,7 @@ class ProjektDO : DefaultBaseDO(), ShortDisplayNameCapable {
      */
     val projektIdentifierDisplayName: String?
         @Transient
-        get() = if (StringUtils.isNotBlank(this.identifier) == true) {
+        get() = if (StringUtils.isNotBlank(this.identifier)) {
             this.identifier
         } else this.name
 
