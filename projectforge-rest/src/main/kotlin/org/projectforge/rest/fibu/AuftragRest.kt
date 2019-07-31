@@ -25,6 +25,7 @@ package org.projectforge.rest.fibu
 
 import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.AuftragDao
+import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.ui.*
@@ -41,7 +42,21 @@ class AuftragRest() : AbstractDORest<AuftragDO, AuftragDao>(AuftragDao::class.ja
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
-                        .add(lc, "nummer", "kunde", "projekt", "titel", "positionen", "personDays", "referenz", "assignedPersons", "erfassungsDatum", "entscheidungsDatum", "nettoSumme", "beauftragtNettoSumme", "fakturiertSum", "zuFakturierenSum", "periodOfPerformanceBegin", "periodOfPerformanceEnd", "probabilityOfOccurrence"))
+                        .add(lc, "nummer", "kunde", "projekt", "titel", "positionen")
+                        .add(UITableColumn("personDays", title = translate("projectmanagement.personDays"),
+                                dataType = UIDataType.DECIMAL))
+                        .add(lc, "referenz")
+                        .add(UITableColumn("assignedPersons", title = translate("fibu.common.assignedPersons"),
+                                dataType = UIDataType.STRING))
+                        .add(lc, "erfassungsDatum", "entscheidungsDatum")
+                        .add(UITableColumn("nettoSumme", title = translate("fibu.auftrag.nettoSumme"),
+                                dataType = UIDataType.DECIMAL))
+                        .add(UITableColumn("beauftragtNettoSumme", title = translate("fibu.auftrag.commissioned"),
+                                dataType = UIDataType.DECIMAL))
+                        .add(lc,"fakturiertSum")
+                        .add(UITableColumn("zuFakturierenSum", title = translate("fibu.tobeinvoiced"),
+                                dataType = UIDataType.DECIMAL))
+                        .add(lc, "periodOfPerformanceBegin", "periodOfPerformanceEnd", "probabilityOfOccurrence", "status"))
         layout.getTableColumnById("kunde").formatter = Formatter.CUSTOMER
         layout.getTableColumnById("projekt").formatter = Formatter.PROJECT
         layout.getTableColumnById("positionen").formatter = Formatter.AUFTRAG_POSITION
