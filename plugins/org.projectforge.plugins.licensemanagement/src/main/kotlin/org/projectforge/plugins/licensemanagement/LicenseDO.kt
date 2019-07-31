@@ -25,29 +25,13 @@ package org.projectforge.plugins.licensemanagement
 
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.hibernate.annotations.Type
-import org.hibernate.search.annotations.Analyze
-import org.hibernate.search.annotations.ClassBridge
-import org.hibernate.search.annotations.DateBridge
-import org.hibernate.search.annotations.EncodingType
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Index
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.Resolution
-import org.hibernate.search.annotations.Store
+import org.hibernate.search.annotations.*
+import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.utils.ReflectionToString
-
 import java.sql.Date
-
-import javax.persistence.Basic
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.EnumType
-import javax.persistence.Enumerated
-import javax.persistence.FetchType
-import javax.persistence.Table
-import javax.persistence.Transient
+import javax.persistence.*
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -58,30 +42,37 @@ import javax.persistence.Transient
 @Table(name = "T_PLUGIN_LM_LICENSE", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_lm_license_tenant_id", columnList = "tenant_id")])
 class LicenseDO : DefaultBaseDO() {
 
+    @PropertyInfo(i18nKey = "organization")
     @Field
     @get:Column(length = 1000)
     var organization: String? = null
 
+    @PropertyInfo(i18nKey = "plugins.licensemanagement.product")
     @Field
     @get:Column(length = 1000)
     var product: String? = null
 
+    @PropertyInfo(i18nKey = "plugins.licensemanagement.version")
     @Field
     @get:Column(length = 1000)
     var version: String? = null
 
+    @PropertyInfo(i18nKey = "plugins.licensemanagement.updateFromVersion")
     @Field
     @get:Column(name = "update_from_version", length = 1000)
     var updateFromVersion: String? = null
 
+    @PropertyInfo(i18nKey = "plugins.licensemanagement.licenseHolder")
     @Field
     @get:Column(length = 10000, name = "license_holder")
     var licenseHolder: String? = null
 
+    @PropertyInfo(i18nKey = "plugins.licensemanagement.key")
     @Field
     @get:Column(length = 10000)
     var key: String? = null
 
+    @PropertyInfo(i18nKey = "plugins.licensemanagement.numberOfLicenses")
     @Field
     @get:Column(name = "number_of_licenses")
     var numberOfLicenses: Int? = null
@@ -89,13 +80,16 @@ class LicenseDO : DefaultBaseDO() {
     /**
      * Comma separated id's of owners (user id's).
      */
+    @PropertyInfo(i18nKey = "plugins.licensemanagement.owner")
     @get:Column(length = 4000)
     var ownerIds: String? = null
 
+    @PropertyInfo(i18nKey = "plugins.licensemanagement.device")
     @Field
     @get:Column(length = 4000)
     var device: String? = null
 
+    @PropertyInfo(i18nKey = "comment")
     @Field
     @get:Column(length = Constants.LENGTH_TEXT)
     var comment: String? = null
@@ -105,10 +99,12 @@ class LicenseDO : DefaultBaseDO() {
     @get:Column(length = 20)
     var status: LicenseStatus? = null
 
+    @PropertyInfo(i18nKey = "plugins.licensemanagement.validSince")
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "valid_since")
     var validSince: Date? = null
 
+    @PropertyInfo(i18nKey = "plugins.licensemanagement.validUntil")
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "valid_until")
     var validUntil: Date? = null
