@@ -99,6 +99,7 @@ class LantSetupWizard(presetAppHomeDir: File? = null) : AbstractSetupWizard() {
         lanternaScreen.stopScreen()
         //terminal.exitPrivateMode()
         terminal.close()
+        println("")
     }
 
     companion object {
