@@ -31,6 +31,7 @@ class CalendarFilterSettings extends Component {
     }
 
     onDefaultCalendarChange(value) {
+        const { onDefaultCalendarChange } = this.props;
         const id = value ? value.id : '';
         this.setState({ defaultCalendar: value });
         fetch(getServiceURL('calendar/changeDefaultCalendar',
@@ -39,6 +40,7 @@ class CalendarFilterSettings extends Component {
             credentials: 'include',
         })
             .then(handleHTTPErrors)
+            .then(() => onDefaultCalendarChange(value))
             .catch(error => alert(`Internal error: ${error}`));
     }
 
@@ -137,6 +139,7 @@ class CalendarFilterSettings extends Component {
 
 CalendarFilterSettings.propTypes = {
     onTimesheetUserChange: PropTypes.func.isRequired,
+    onDefaultCalendarChange: PropTypes.func.isRequired,
     /* eslint-disable-next-line react/no-unused-prop-types */
     defaultCalendarId: PropTypes.number,
     listOfDefaultCalendars: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
