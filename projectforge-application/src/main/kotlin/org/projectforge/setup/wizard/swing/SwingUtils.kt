@@ -26,6 +26,7 @@ package org.projectforge.setup.wizard.swing
 import org.projectforge.setup.wizard.Texts
 import java.awt.FlowLayout
 import java.awt.GridBagConstraints
+import java.awt.Insets
 import javax.swing.*
 
 internal object SwingUtils {
@@ -41,7 +42,11 @@ internal object SwingUtils {
                     fill: Int = GridBagConstraints.NONE,
                     anchor: Int = GridBagConstraints.LINE_START,
                     weightx: Double = 0.0,
-                    weighty: Double = 0.0
+                    weighty: Double = 0.0,
+                    insetTop: Int = 2,
+                    insetLeft: Int = 2,
+                    insetBottom: Int = 2,
+                    insetRight: Int = 2
     ): GridBagConstraints {
         val constraints = GridBagConstraints()
         constraints.gridx = x
@@ -52,6 +57,7 @@ internal object SwingUtils {
         constraints.anchor = anchor
         constraints.weightx = weightx
         constraints.weighty = weighty
+        constraints.insets = Insets(insetTop, insetLeft, insetBottom, insetRight)
         return constraints
     }
 

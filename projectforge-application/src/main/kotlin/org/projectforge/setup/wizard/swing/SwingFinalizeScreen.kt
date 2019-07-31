@@ -41,7 +41,7 @@ import javax.swing.*
 class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(context, "Finishing the directory setup") {
     private val log = org.slf4j.LoggerFactory.getLogger(SwingFinalizeScreen::class.java)
 
-    private lateinit var dirLabel: JLabel
+    private lateinit var dirStateLabel: JLabel
     private lateinit var dirTextField: JTextField
     private lateinit var portTextField: JTextField
 
@@ -64,21 +64,21 @@ class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(
         var y = -1
 
         val path = context.setupData.applicationHomeDir ?: File(".")
-        dirTextField = JTextField(CanonicalFileUtils.absolutePath(path))
+        dirTextField = JTextField("")
         panel.add(JLabel("Directory"), constraints(0, ++y))
         panel.add(dirTextField, constraints(1, y, width = 2, weightx = 1.0, fill = GridBagConstraints.HORIZONTAL))
         dirTextField.addFocusListener(object : FocusListener {
             override fun focusGained(e: FocusEvent?) {
-                dirLabel.setText(FinalizeScreenSupport.getDirText(CanonicalFileUtils.absolute(dirTextField.text.trim())))
+                dirStateLabel.setText(FinalizeScreenSupport.getDirText(CanonicalFileUtils.absolute(dirTextField.text.trim())))
             }
 
             override fun focusLost(e: FocusEvent?) {
-                dirLabel.setText(FinalizeScreenSupport.getDirText(CanonicalFileUtils.absolute(dirTextField.text.trim())))
+                dirStateLabel.setText(FinalizeScreenSupport.getDirText(CanonicalFileUtils.absolute(dirTextField.text.trim())))
             }
         })
 
-        dirLabel = JLabel(FinalizeScreenSupport.getDirText(CanonicalFileUtils.absolute(dirTextField.text.trim())))
-        panel.add(dirLabel, constraints(1, ++y, width = 2))
+        dirStateLabel = JLabel(FinalizeScreenSupport.getDirText(CanonicalFileUtils.absolute(dirTextField.text.trim())))
+        panel.add(dirStateLabel, constraints(1, ++y, width = 2))
 
         panel.add(JLabel(""), constraints(0, ++y))
 
@@ -196,7 +196,8 @@ class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(
             jdbcSettingsButton.setEnabled(false)
         }
         val dir = context.setupData.applicationHomeDir ?: File(System.getProperty("user.home"), "ProjectForge")
-        dirLabel.setText(FinalizeScreenSupport.getDirText(context.setupData.applicationHomeDir))
+        dirTextField.text = CanonicalFileUtils.absolutePath(dir)
+        dirStateLabel.setText(FinalizeScreenSupport.getDirText(context.setupData.applicationHomeDir))
         hintLabel.text = SwingUtils.convertToMultilineLabel(FinalizeScreenSupport.getInfoText(portTextField.text, dir))
     }
 
