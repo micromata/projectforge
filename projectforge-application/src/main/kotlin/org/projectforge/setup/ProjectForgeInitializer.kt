@@ -71,7 +71,7 @@ object ProjectForgeInitializer {
                     result = replace(result, "projectforge.defaultTimeNotation", setupData.defaultTimeNotation)
                     result = replace(result, "projectforge.defaultFirstDayOfWeek", setupData.defaultFirstDayOfWeek)
                     if (setupData.developmentMode) {
-                        result = replace(result, "#projectforge.web.development.enableCORSFilter", "true")
+                        result = replace(result, "projectforge.web.development.enableCORSFilter", "true")
                     }
                     val jdbc = setupData.jdbcSettings
                     if (!setupData.useEmbeddedDatabase && jdbc != null) {
