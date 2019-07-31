@@ -106,8 +106,9 @@ class LantSetupWizard(presetAppHomeDir: File? = null) : AbstractSetupWizard() {
 
         @JvmStatic
         fun run(appHomeDir: File? = null): SetupData? {
-            try {
-                return LantSetupWizard(appHomeDir).run()
+            log.info("Starting console wizard...")
+            return try {
+                LantSetupWizard(appHomeDir).run()
             } catch (ex: IOException) {
                 val emphasizedLog = EmphasizedLogSupport(log)
                         .log("Can't start the console based setup wizard, your terminal seems not to be supported.")

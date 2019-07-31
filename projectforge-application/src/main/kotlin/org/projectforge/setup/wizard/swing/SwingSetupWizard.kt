@@ -114,8 +114,9 @@ class SwingSetupWizard(presetAppHomeDir: File? = null) : AbstractSetupWizard() {
 
         @JvmStatic
         fun run(appHomeDir: File? = null): SetupData? {
-            try {
-                return SwingSetupWizard(appHomeDir).run()
+            log.info("Starting GUI wizard...")
+            return try {
+                SwingSetupWizard(appHomeDir).run()
             } catch (ex: IOException) {
                 EmphasizedLogSupport(log)
                         .log("Can't start graphical setup wizard, a desktop seems not to be available.")
