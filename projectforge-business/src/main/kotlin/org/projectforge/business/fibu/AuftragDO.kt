@@ -79,11 +79,12 @@ class AuftragDO : DefaultBaseDO() {
     /**
      * Dies sind die alten Auftragsnummern oder Kundenreferenzen.
      */
-    @PropertyInfo(i18nKey = "fibu.auftrag.customer.reference")
+    @PropertyInfo(i18nKey = "fibu.common.customer.reference")
     @Fields(Field(name = "referenz_tokenized"), Field(analyze = Analyze.NO))
     @get:Column(length = 255)
     var referenz: String? = null
 
+    @PropertyInfo(i18nKey = "label.position.short")
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
     @IndexedEmbedded(depth = 1)
     @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true, mappedBy = "auftrag")
@@ -91,6 +92,7 @@ class AuftragDO : DefaultBaseDO() {
     @get:ListIndexBase(1)
     var positionen: MutableList<AuftragsPositionDO>? = null
 
+    @PropertyInfo(i18nKey = "fibu.auftrag.status")
     @Field
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "status", length = 30)
@@ -174,7 +176,30 @@ class AuftragDO : DefaultBaseDO() {
     @get:Column(name = "beauftragungs_datum")
     var beauftragungsDatum: Date? = null
 
-    private var fakturiertSum: BigDecimal? = null
+    @PropertyInfo(i18nKey = "fibu.fakturiert")
+    @get:Transient
+    var fakturiertSum: BigDecimal? = null
+        /**
+         * Sums all positions. Must be set in all positions before usage. The value is not calculated automatically!
+         *
+         * @see AuftragDao.calculateInvoicedSum
+         */
+        get() {
+            if (field == null) {
+                field = BigDecimal.ZERO
+                if (positionen != null) {
+                    for (pos in positionen!!) {
+                        if (pos.isDeleted) {
+                            continue
+                        }
+                        if (NumberHelper.isNotZero(pos.fakturiertSum)) {
+                            field = field!!.add(pos.fakturiertSum)
+                        }
+                    }
+                }
+            }
+            return field!!
+        }
 
     /**
      * The user interface status of an order. The [AuftragUIStatus] is stored as XML.
@@ -534,29 +559,6 @@ class AuftragDO : DefaultBaseDO() {
             this.positionen = ArrayList()
         }
         return positionen!!
-    }
-
-    /**
-     * Sums all positions. Must be set in all positions before usage. The value is not calculated automatically!
-     *
-     * @see AuftragDao.calculateInvoicedSum
-     */
-    @Transient
-    fun getFakturiertSum(): BigDecimal {
-        if (this.fakturiertSum == null) {
-            this.fakturiertSum = BigDecimal.ZERO
-            if (positionen != null) {
-                for (pos in positionen!!) {
-                    if (pos.isDeleted) {
-                        continue
-                    }
-                    if (NumberHelper.isNotZero(pos.fakturiertSum)) {
-                        this.fakturiertSum = this.fakturiertSum!!.add(pos.fakturiertSum)
-                    }
-                }
-            }
-        }
-        return this.fakturiertSum!!
     }
 
     /**
