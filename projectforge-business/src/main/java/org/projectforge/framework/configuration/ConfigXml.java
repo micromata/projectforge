@@ -61,6 +61,9 @@ import java.util.List;
 public class ConfigXml {
   private static final String SECRET_PROPERTY_STRING = "******";
 
+  public static final String CLASSPATH_INITIAL_CONFIG_XML_FILE = "initialConfig.xml";
+  public static final String CONFIG_XML_FILE = "config.xml";
+
   private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ConfigXml.class);
 
   private static transient ConfigXml instance;
@@ -186,10 +189,10 @@ public class ConfigXml {
    */
   public String readConfiguration() {
     reset();
-    configFile = new File(applicationHomeDir, "config.xml");
+    configFile = new File(applicationHomeDir, CONFIG_XML_FILE);
     String msg = "";
     if (configFile.canRead() == false) {
-      if (!ProjectForgeApp.ensureInitialConfigFile("initialConfig.xml", "config.xml")) {
+      if (!ProjectForgeApp.ensureInitialConfigFile(CLASSPATH_INITIAL_CONFIG_XML_FILE, CONFIG_XML_FILE)) {
         msg = "Cannot read from config file: '" + getConfigFilePath() + "'. OK, assuming default values.";
         log.info(msg);
       }

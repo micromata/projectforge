@@ -26,7 +26,7 @@ package org.projectforge.config;
 import org.apache.wicket.protocol.http.WicketFilter;
 import org.apache.wicket.spring.SpringWebApplicationFactory;
 import org.projectforge.business.user.filter.UserFilter;
-import org.projectforge.common.LoggerSupport;
+import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.rest.config.CORSFilter;
 import org.projectforge.security.SecurityHeaderFilter;
@@ -88,7 +88,7 @@ public class WebXMLInitializer implements ServletContextInitializer {
     wicketApp.addMappingForUrlPatterns(null, filterAfterInternal, "/wa/*");
 
     if (webDevelopmentEnableCORSFilter) {
-      new LoggerSupport(log)
+      new EmphasizedLogSupport(log)
               .log("ATTENTION!")
               .log("")
               .log("Running in dev mode!")

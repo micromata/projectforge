@@ -25,7 +25,8 @@ package org.projectforge.start;
 
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.ProjectForgeApp;
-import org.projectforge.common.LoggerSupport;
+import org.projectforge.common.CanonicalFileUtils;
+import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.framework.time.DateHelper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -34,7 +35,6 @@ import org.springframework.boot.web.embedded.tomcat.ConnectorStartFailedExceptio
 import org.springframework.boot.web.servlet.ServletComponentScan;
 
 import java.io.File;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.TimeZone;
 
@@ -50,80 +50,30 @@ public class ProjectForgeApplication {
 
   private static final String ADDITIONAL_LOCATION_ARG = "--spring.config.additional-location=";
 
-  private static final String PROPERTIES_FILENAME = "projectforge.properties";
+  public static final String PROPERTIES_FILENAME = "projectforge.properties";
 
-  private static final String ENV_PROJECTFORGE_HOME = "PROJECTFORGE_HOME";
-
-  private static final String COMMAND_LINE_VAR_HOME_DIR = "home.dir";
+  public static final String CLASSPATH_INITIAL_PROPERTIES_FILENAME = "initialProjectForge.properties";
 
   private static final String[] DIR_NAMES = {"ProjectForge", "Projectforge", "projectforge"};
 
   public static void main(String[] args) {
     String javaVersion = System.getProperty("java.version");
     if (javaVersion != null && javaVersion.compareTo("1.9") >= 0) {
-      new LoggerSupport(log, LoggerSupport.Priority.VERY_IMPORTANT)
+      new EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.VERY_IMPORTANT)
               .log("ProjectForge doesn't support versions higher than Java 1.8!!!!")
               .log("")
               .log("Please downgrade. Sorry, we're working on newer Java versions.")
               .logEnd();
     }
-    String param = ProjectForgeApp.CONFIG_PARAM_BASE_DIR;
-    String appHomeDir = System.getProperty(param); // Might be defined as -Dprojectforge.base.dir
-    if (StringUtils.isBlank(appHomeDir)) {
-      param = COMMAND_LINE_VAR_HOME_DIR;
-      appHomeDir = System.getProperty(param); // Might be defined as -Dhome.dir=....
-    }
-    if (StringUtils.isNotBlank(appHomeDir)) {
-      log.info("Trying ProjectForges base dir as given at commandline -D" + param + "=" + appHomeDir);
-    } else {
-      appHomeDir = System.getenv(ENV_PROJECTFORGE_HOME); // Environment variable.
-      if (StringUtils.isNotBlank(appHomeDir)) {
-        log.info("Trying ProjectForges base dir as given as system environment variable $" + ENV_PROJECTFORGE_HOME + ": " + appHomeDir);
-        if (!ProjectForgeHomeFinder.checkDirectory(new File(appHomeDir), false)) {
-          log.error("Directory '" + appHomeDir + "' configured as environment variable not found. Create this directory or unset the environment variable $" + ENV_PROJECTFORGE_HOME + ".");
-        }
-      }
-    }
-    File baseDir = StringUtils.isNotBlank(appHomeDir) ? new File(appHomeDir) : null;
-    if (baseDir != null && !ProjectForgeHomeFinder.checkDirectory(baseDir, false)) {
-      log.error("The configured base directory doesn't exist or isn't a directory, giving up :-(");
-      ProjectForgeHomeFinder.giveUp();
-    }
-    if (baseDir == null) {
-      // Try to find ProjectForge in current directory:
-      baseDir = ProjectForgeHomeFinder.findBaseDir(new File("."));
-      if (baseDir == null) {
-        // No ProjectForge base directory found. Assuming current directory.
-        baseDir = new File("ProjectForge");
-        if (ProjectForgeHomeFinder.isProjectForgeSourceCodeRepository(baseDir)) {
-          log.error("Found '" + baseDir + "' as ProjectForge directory. This seems to be the source code repository. Can't use it as ProjectForge home dir.");
-          ProjectForgeHomeFinder.giveUp();
-        }
-        log.info("No previous ProjectForge installation found (searched for ./ProjectForge and $HOME/ProjectForge). Trying to create a new base directory: " + baseDir.getAbsolutePath());
-        String msg = "Do you allow ProjectForge to create and initialize the directory (y/n) '" + baseDir.getAbsolutePath() + "'?";
-        String answer = new ConsoleTimeoutReader(msg).ask();
-        if (!StringUtils.startsWith(answer, "y")) {
-          // No permission by the user in console input or time out:
-          log.error("Creation of directory '" + baseDir.getAbsolutePath() + "' aborted, giving up :-(");
-          ProjectForgeHomeFinder.giveUp();
-        } else if (!baseDir.mkdir()) {
-          log.error("Creation of directory '" + baseDir.getAbsolutePath() + "' failed, giving up :-(");
-          ProjectForgeHomeFinder.giveUp();
-        }
-      }
-    }
-    new LoggerSupport(log, LoggerSupport.Priority.HIGH)
-            .log("Using ProjectForge directory: " + baseDir.getAbsolutePath())
+    // Find application home or start the setup wizard, if not found:
+    File baseDir = new ProjectForgeHomeFinder().findAndEnsureAppHomeDir();
+
+    System.setProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR, CanonicalFileUtils.absolutePath(baseDir));
+
+    new EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.NORMAL)
+            .log("Using ProjectForge directory: " + CanonicalFileUtils.absolutePath(baseDir))
             .logEnd();
-    System.setProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR, baseDir.getAbsolutePath());
-    if (!new File(baseDir, PROPERTIES_FILENAME).exists()) {
-      new LoggerSupport(log)
-              .log("Creating new ProjectForge installation!")
-              .log("")
-              .log(baseDir.getAbsolutePath())
-              .logEnd();
-    }
-    ProjectForgeApp.ensureInitialConfigFile("initialProjectForge.properties", PROPERTIES_FILENAME);
+
     args = addDefaultAdditionalLocation(baseDir, args);
     System.setProperty("user.timezone", "UTC");
     TimeZone.setDefault(DateHelper.UTC);
@@ -142,18 +92,54 @@ public class ProjectForgeApplication {
           }
         }
       } while (cause != null);
-      LoggerSupport loggerSupport = new LoggerSupport(log, LoggerSupport.Priority.VERY_IMPORTANT, LoggerSupport.Alignment.LEFT)
-              .setLogLevel(LoggerSupport.LogLevel.ERROR)
+      EmphasizedLogSupport emphasizedLog = new EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.VERY_IMPORTANT, EmphasizedLogSupport.Alignment.LEFT)
+              .setLogLevel(EmphasizedLogSupport.LogLevel.ERROR)
               .log("Error while running application:")
               .log("")
               .log(message);
       if (ex instanceof ConnectorStartFailedException) {
-        loggerSupport.log("")
+        emphasizedLog.log("")
                 .log("May-be address of server port is already in use.");
       }
-      loggerSupport.logEnd();
+      emphasizedLog.logEnd();
       throw ex;
     }
+  }
+
+  /**
+   * Show last message before exit.
+   *
+   * @return Does return nothing, System.exit() was called before.
+   */
+  public static File giveUpAndSystemExit() {
+    return giveUpAndSystemExit(null);
+  }
+
+  /**
+   * Show last message before exit.
+   *
+   * @return Does return nothing, System.exit() was called before.
+   */
+  public static File giveUpAndSystemExit(String message) {
+    EmphasizedLogSupport el = new EmphasizedLogSupport(log, EmphasizedLogSupport.Alignment.LEFT);
+    if (message != null) {
+      el.log(message).log("");
+    }
+    el.log("Your options (please refer: https://github.com/micromata/projectforge):")
+            .log("  1. Run ProjectForge and follow the setup wizard, or")
+            .log("  2. Create ProjectForge as a top level directory of your home directory:")
+            .log("     '$HOME/ProjectForge', or")
+            .log("  3. create a directory named 'ProjectForge' and put the jar file somewhere in")
+            .log("     it or in the same directory. ProjectForge detects the folder 'ProjectForge'")
+            .log("     relative to the executed jar, or")
+            .log("  4. create a directory and define it as command line parameter:")
+            .log("     'java -D" + ProjectForgeHomeFinder.COMMAND_LINE_VAR_HOME_DIR + "=yourdirectory -jar ...', or")
+            .log("  5. create a directory and define it as system environment variable")
+            .log("     '" + ProjectForgeHomeFinder.getHomeEnvironmentVariableDefinition() + "'.")
+            .log("Hope to see You again ;-)")
+            .logEnd();
+    System.exit(1);
+    return null;
   }
 
   /**
@@ -170,7 +156,7 @@ public class ProjectForgeApplication {
     checkConfiguration("config", "application.properties");
     checkConfiguration(".", "application-default.properties");
     checkConfiguration(".", "application.properties");
-    if (baseDir == null || !checkConfiguration(baseDir.getAbsolutePath(), PROPERTIES_FILENAME)) {
+    if (baseDir == null || !checkConfiguration(CanonicalFileUtils.absolutePath(baseDir), PROPERTIES_FILENAME)) {
       return args;
     }
     // Add found projectforge.properties as additional arg (Spring uses this file with highest priority for configuration).
@@ -198,16 +184,7 @@ public class ProjectForgeApplication {
    * @return --spring.config.additional-location=file:/$HOME/ProjectForge/projectforge.properties
    */
   static String getAddtionalLocationArg(File dir) {
-    return ADDITIONAL_LOCATION_ARG + "file:" + getAddtionLocation(dir).getAbsolutePath();
-  }
-
-  /**
-   * @param baseDir Used base dir to find projectforge.properties. If not given, the user's home dir will be used.
-   * @return The projectforge.properties file in path baseDir or user's home dir.
-   */
-  static File getAddtionLocation(File baseDir) {
-    return baseDir != null ? new File(baseDir, PROPERTIES_FILENAME)
-            : Paths.get(System.getProperty("user.home"), "ProjectForge", PROPERTIES_FILENAME).toFile();
+    return ADDITIONAL_LOCATION_ARG + "file:" + CanonicalFileUtils.absolutePath(new File(dir, PROPERTIES_FILENAME));
   }
 
   private static boolean checkConfiguration(String dir, String filename) {
@@ -215,7 +192,7 @@ public class ProjectForgeApplication {
       return false;
     File file = new File(dir, filename);
     if (file.exists()) {
-      log.info("Configuration from '" + file.getAbsolutePath() + "' will be used.");
+      log.info("Configuration from '" + CanonicalFileUtils.absolutePath(file) + "' will be used.");
       return true;
     }
     return false;

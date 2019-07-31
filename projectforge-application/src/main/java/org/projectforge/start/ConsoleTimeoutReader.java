@@ -37,17 +37,28 @@ import java.util.concurrent.*;
 public class ConsoleTimeoutReader {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ConsoleTimeoutReader.class);
 
-  private static final int CONSOLE_INPUT_TIMEOUT = 120;
+  private static final int CONSOLE_INPUT_TIMEOUT = 30;
 
   private int timeOutSeconds = CONSOLE_INPUT_TIMEOUT;
 
   private String question;
 
+  private String defaultAnswer;
+
   private InputStreamReader streamReader = new InputStreamReader(System.in);
   private BufferedReader bufferedReader = new BufferedReader(streamReader);
 
   public ConsoleTimeoutReader(String question) {
+    this(question, null);
+  }
+
+  /**
+   * @param question
+   * @param defaultAnswer The answer if the user hits simply return.
+   */
+  public ConsoleTimeoutReader(String question, String defaultAnswer) {
     this.question = question;
+    this.defaultAnswer = defaultAnswer;
   }
 
   /**
@@ -59,7 +70,7 @@ public class ConsoleTimeoutReader {
   }
 
   public String ask() {
-    log.info("ProjectForge is waiting " + timeOutSeconds + " seconds for your input on console (if running without console, ProjectForge isn't able to proceed): " + question);
+    log.info("ProjectForge is waiting " + timeOutSeconds + " seconds for your input on console (if running without console, ProjectForge will continue anyway): " + question);
     System.out.println();
     System.out.println(StringUtils.center(" QUESTION ", 120, "?"));
     System.out.println();
@@ -68,18 +79,30 @@ public class ConsoleTimeoutReader {
       answer = readConsoleAnswerWithTimeout();
       if (answer == null)
         return null;
-      answer = answer.toLowerCase();
-      if (answerValid(answer))
-        return answer;
+      String result;
+      if (defaultAnswer != null && answer.length() == 0) {
+        result = defaultAnswer;
+      } else {
+        result = answer.trim().toLowerCase();
+      }
+      if (answerValid(result))
+        return result;
     } while (true);
   }
 
   /**
+   * If the user hits simply return, the parameter answer will be the configured default answer or an empty string,
+   * if no default value is defined.
+   *
    * @param answer Answer given from console input ("" or input to lower case).
    * @return true if answer starts with 'y' or 'n', otherwise false.
    */
   protected boolean answerValid(String answer) {
     return answer.startsWith("y") || answer.startsWith("n");
+  }
+
+  public String getDefaultAnswer() {
+    return defaultAnswer;
   }
 
   private String readConsoleAnswerWithTimeout() {
@@ -97,7 +120,7 @@ public class ConsoleTimeoutReader {
     try {
       answer = handler.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
     } catch (TimeoutException | InterruptedException | ExecutionException ex) {
-      log.info("Timeout of console input exceed (>" + timeOutSeconds + "s). Aborting.");
+      log.info("Timeout of console input exceeded (>" + timeOutSeconds + "s). Aborting.");
       handler.cancel(true);
     }
     executor.shutdownNow();

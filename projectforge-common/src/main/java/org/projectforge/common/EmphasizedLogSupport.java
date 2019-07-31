@@ -28,7 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * Helper for logging very important information and warnings.
  */
-public class LoggerSupport {
+public class EmphasizedLogSupport {
   private org.slf4j.Logger log;
   private Alignment alignment;
   private int number;
@@ -36,23 +36,23 @@ public class LoggerSupport {
   private LogLevel logLevel = LogLevel.INFO;
   private boolean started = false;
 
-  public LoggerSupport(org.slf4j.Logger log) {
+  public EmphasizedLogSupport(org.slf4j.Logger log) {
     this(log, Priority.IMPORTANT);
   }
 
-  public LoggerSupport(org.slf4j.Logger log, Priority priority) {
+  public EmphasizedLogSupport(org.slf4j.Logger log, Priority priority) {
     this(log, priority, Alignment.CENTER);
   }
 
-  public LoggerSupport(org.slf4j.Logger log, Alignment alignment) {
+  public EmphasizedLogSupport(org.slf4j.Logger log, Alignment alignment) {
     this(log, Priority.IMPORTANT, alignment);
   }
 
-  public LoggerSupport(org.slf4j.Logger log, Priority priority, Alignment alignment) {
+  public EmphasizedLogSupport(org.slf4j.Logger log, Priority priority, Alignment alignment) {
     this.log = log;
     this.alignment = alignment;
     switch (priority) {
-      case HIGH:
+      case NORMAL:
         this.number = 1;
         break;
       case VERY_IMPORTANT:
@@ -65,7 +65,7 @@ public class LoggerSupport {
     innerLength = CONSOLE_LENGTH - 2 * number;
   }
 
-  public enum Priority {HIGH, IMPORTANT, VERY_IMPORTANT}
+  public enum Priority {NORMAL, IMPORTANT, VERY_IMPORTANT}
 
   public enum Alignment {CENTER, LEFT}
 
@@ -83,7 +83,7 @@ public class LoggerSupport {
   /**
    * @return this for chaining.
    */
-  public LoggerSupport setLogLevel(LogLevel logLevel) {
+  public EmphasizedLogSupport setLogLevel(LogLevel logLevel) {
     this.logLevel = logLevel;
     return this;
   }
@@ -91,7 +91,7 @@ public class LoggerSupport {
   /**
    * @return this for chaining.
    */
-  private LoggerSupport logStartSeparator() {
+  private EmphasizedLogSupport logStartSeparator() {
     for (int i = 0; i < number; i++) {
       logSeparatorLine();
     }
@@ -101,7 +101,7 @@ public class LoggerSupport {
   /**
    * @return this for chaining.
    */
-  public LoggerSupport logEnd() {
+  public EmphasizedLogSupport logEnd() {
     ensureStart();
     log("");
     for (int i = 0; i < number; i++) {
@@ -114,7 +114,7 @@ public class LoggerSupport {
     logLine(StringUtils.rightPad("", innerLength, "*") + asterisks(number * 2 + 2));
   }
 
-  public LoggerSupport log(String text) {
+  public EmphasizedLogSupport log(String text) {
     ensureStart();
     if (StringUtils.contains(text, "\n")) {
       for (String line : StringUtils.splitPreserveAllTokens(text, '\n')) {
