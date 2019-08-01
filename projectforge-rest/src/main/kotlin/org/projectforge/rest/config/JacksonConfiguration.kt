@@ -59,7 +59,7 @@ open class JacksonConfiguration {
         mapper.registerModule(KotlinModule())
         mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true)
         mapper.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false)
-        //mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
         //mapper.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, true)
         mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
         mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
