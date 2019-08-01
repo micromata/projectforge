@@ -54,7 +54,7 @@ export const defaultValues = {
      * Note: That it only touches the values specified in newData!
      *
      * @param {(Object|function(Object):Object)} newData The new data as an object or an function
-     *  that except the current data and calculates the new data to be set.
+     *  that accept the current data and calculates the new data.
      * @param {function(Object):void=} callback The callback function will be called when the new
      *  Data was set.
      *
@@ -64,6 +64,23 @@ export const defaultValues = {
     // Disable no-unused-vars so its clear what you need to override the function.
     /* eslint-disable-next-line no-unused-vars */
     setData: async (newData, callback) => {
+        throw new Error('not implemented yet');
+    },
+    /**
+     * Modifies the context variables object in a way like Reacts setState()
+     *
+     * Note: Only changes the values specified in newVariables!
+     *
+     * @param {(Object|function(Object):Object)} newVariables The new variables as an object or an
+     *  function that accept the current data and calculates the new variables.
+     * @param {function(Object):void=} callback The callback function will be called then the new
+     *  variables were set.
+     * @returns {Promise<Object>} If you want to use the promise architecture instead of a callback
+     *  function you can go with the returned promise.
+     */
+    // Disable no-unused-vars so its clear what you need to override the function.
+    /* eslint-disable-next-line no-unused-vars */
+    setVariables: async (newVariables, callback) => {
         throw new Error('not implemented yet');
     },
     /**
