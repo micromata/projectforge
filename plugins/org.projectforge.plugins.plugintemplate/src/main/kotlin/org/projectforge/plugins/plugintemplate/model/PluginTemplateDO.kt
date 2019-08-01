@@ -21,35 +21,33 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.plugins.plugintemplate.rest;
+package org.projectforge.plugins.plugintemplate.model
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import javax.persistence.Column
+import javax.persistence.Entity
+import javax.persistence.Table
 
-import org.projectforge.model.rest.RestPaths;
-import org.springframework.stereotype.Controller;
+import org.hibernate.search.annotations.Field
+import org.hibernate.search.annotations.Indexed
+import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.persistence.entities.DefaultBaseDO
 
-/**
- * REST-Schnittstelle für PlugInTemplate
- *
- * @author Florian Blumenstein
- */
-@Controller
-@Path("plugintemplate")
-public class PluginTemplateRest
-{
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PluginTemplateRest.class);
+import de.micromata.genome.db.jpa.history.api.WithHistory
 
-  @GET
-  @Path(RestPaths.LIST)
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response getList()
-  {
-    final String json = "PlugInTemplate Test";
-    log.info("Rest call finished PlugInTemplate list.");
-    return Response.ok(json).build();
-  }
+@Entity
+@Indexed
+@Table(name = "T_PLUGIN_PLUGINTEMPLATE")
+@WithHistory
+class PluginTemplateDO : DefaultBaseDO() {
+
+    @Field
+    @PropertyInfo(i18nKey = "plugins.plugintemplate.key")
+    @get:Column(nullable = false)
+    var key: String? = null
+
+    @Field
+    @PropertyInfo(i18nKey = "plugins.plugintemplate.value")
+    @get:Column
+    var value: String? = null
+
 }
