@@ -58,7 +58,6 @@ class CalendarPage extends React.Component {
     }
 
     onTimesheetUserChange(timesheetUser) {
-        console.log(timesheetUser)
         this.setState({ timesheetUser });
     }
 
@@ -258,7 +257,7 @@ class CalendarPage extends React.Component {
                                         <CalendarFilterSettings
                                             listOfDefaultCalendars={listOfDefaultCalendars}
                                             defaultCalendarId={filter.defaultCalendarId}
-                                            timesheetUserId={filter.timesheetUserId}
+                                            timesheetUser={timesheetUser}
                                             translations={translations}
                                             onTimesheetUserChange={this.onTimesheetUserChange}
                                             onDefaultCalendarChange={this.onDefaultCalendarChange}
