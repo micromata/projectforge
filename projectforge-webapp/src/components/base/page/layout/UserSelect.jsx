@@ -2,6 +2,7 @@ import { faSmile, faSmileWink } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
+import { connect } from 'react-redux';
 import { Button, UncontrolledTooltip } from 'reactstrap';
 import { getServiceURL, handleHTTPErrors } from '../../../../utilities/rest';
 import style from '../../../design/input/Input.module.scss';
@@ -19,20 +20,14 @@ function UserSelect(props) {
     const [selectMeIcon, setSelectMeIcon] = React.useState(faSmile);
 
     const {
-        fullname,
         onChange: handleChange,
         required,
         translations,
-        userId,
-        username,
+        user,
         value,
     } = props;
 
-    const selectMe = () => handleChange({
-        username,
-        fullname,
-        id: userId,
-    });
+    const selectMe = () => handleChange(user);
 
     const handleSelectMeHoverBegin = () => setSelectMeIcon(faSmileWink);
     const handleSelectMeHoverEnd = () => setSelectMeIcon(faSmile);
@@ -69,7 +64,7 @@ function UserSelect(props) {
                 className={style.userSelect}
                 translations={translations}
             />
-            <div style={{ display: (!value || value.id !== userId) ? 'block' : 'none' }}>
+            <div style={{ display: (!value || value.id !== user.id) ? 'block' : 'none' }}>
                 <Button
                     id="selectMe"
                     color="link"
@@ -93,13 +88,15 @@ function UserSelect(props) {
 }
 
 UserSelect.propTypes = {
-    fullname: PropTypes.string.isRequired,
     onChange: PropTypes.func.isRequired,
     translations: PropTypes.shape({
         'tooltip.selectMe': PropTypes.string.isRequired,
     }).isRequired,
-    userId: PropTypes.number.isRequired,
-    username: PropTypes.string.isRequired,
+    user: PropTypes.shape({
+        fullname: PropTypes.string.isRequired,
+        id: PropTypes.number.isRequired,
+        username: PropTypes.string.isRequired,
+    }).isRequired,
     value: PropTypes.oneOfType([
         PropTypes.shape({}),
         PropTypes.arrayOf(PropTypes.shape({})),
@@ -111,4 +108,12 @@ UserSelect.defaultProps = {
     required: false,
 };
 
-export default UserSelect;
+const mapStateToProps = ({ authentication }) => ({
+    user: {
+        id: authentication.user.userId,
+        username: authentication.user.username,
+        fullname: authentication.user.fullname,
+    },
+});
+
+export default connect(mapStateToProps)(UserSelect);
