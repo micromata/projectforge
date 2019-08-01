@@ -50,7 +50,7 @@ class ToDoRest() : AbstractDORest<ToDoDO, ToDoDao>(ToDoDao::class.java, "plugins
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
                         .add(lc, "created", "modified", "subject", "assignee", "reporter", "dueDate", "status",
-                                "priority", "type", "structureElement", "group", "description"))
+                                "priority", "type", "task", "group", "description"))
         layout.getTableColumnById("group").formatter = Formatter.GROUP
         return LayoutUtils.processListPage(layout, this)
     }
@@ -66,8 +66,7 @@ class ToDoRest() : AbstractDORest<ToDoDO, ToDoDao>(ToDoDao::class.java, "plugins
                                 .add(lc, "type", "status", "dueDate"))
                         .add(UICol()
                                 .add(lc, "priority", "assignee", "reporter")))
-                .add(lc, "structureElement")
-
+                .add(lc, "task")
                 .add(lc, "description", "comment", "options")
         return LayoutUtils.processEditPage(layout, dto, this)
     }
