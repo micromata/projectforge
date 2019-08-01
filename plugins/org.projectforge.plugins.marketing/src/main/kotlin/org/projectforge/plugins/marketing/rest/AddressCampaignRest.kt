@@ -38,11 +38,15 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("${Rest.URL}/addressCampaign")
 class AddressCampaignRest: AbstractDTORest<AddressCampaignDO, AddressCampaign, AddressCampaignDao>(baseDaoClazz = AddressCampaignDao::class.java, i18nKeyPrefix = "plugins.marketing.addressCampaign.title") {
     override fun transformForDB(dto: AddressCampaign): AddressCampaignDO {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val addressCampaignDO = AddressCampaignDO()
+        dto.copyTo(addressCampaignDO)
+        return addressCampaignDO
     }
 
     override fun transformFromDB(obj: AddressCampaignDO, editMode: Boolean): AddressCampaign {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val addressCampaign = AddressCampaign()
+        addressCampaign.copyFrom(obj)
+        return addressCampaign
     }
 
     /**
