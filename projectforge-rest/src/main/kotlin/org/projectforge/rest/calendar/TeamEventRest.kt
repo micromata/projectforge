@@ -121,7 +121,7 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao>(
     @RequestMapping("switch2Timesheet")
     fun switch2Timesheet(request: HttpServletRequest, @RequestBody teamEvent: TeamEventDO)
             : ResponseAction {
-        return timesheetRest.cloneFromTimesheet(request, teamEvent)
+        return timesheetRest.cloneFromTeamEvent(request, teamEvent)
     }
 
     fun cloneFromTimesheet(request: HttpServletRequest, timesheet: TimesheetDO): ResponseAction {

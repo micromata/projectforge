@@ -254,7 +254,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
         return teamEventRest.cloneFromTimesheet(request, timesheet)
     }
 
-    fun cloneFromTimesheet(request: HttpServletRequest, teamEvent: TeamEventDO): ResponseAction {
+    fun cloneFromTeamEvent(request: HttpServletRequest, teamEvent: TeamEventDO): ResponseAction {
         val timesheet = TimesheetDO()
         timesheet.startTime = teamEvent.startDate
         timesheet.stopTime = teamEvent.endDate
