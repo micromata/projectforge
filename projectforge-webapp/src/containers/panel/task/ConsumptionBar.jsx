@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { UncontrolledTooltip } from 'reactstrap';
 import style from './ConsumptionBar.module.scss';
 
-function CustomizedBar({ progress, taskId }) {
+function ConsumptionBar({ progress, taskId }) {
     if (!progress) {
         return <React.Fragment />;
     }
@@ -36,7 +36,7 @@ function CustomizedBar({ progress, taskId }) {
     return element;
 }
 
-CustomizedBar.propTypes = {
+ConsumptionBar.propTypes = {
     progress: PropTypes.shape({
         title: PropTypes.string,
         status: PropTypes.string,
@@ -46,9 +46,9 @@ CustomizedBar.propTypes = {
     taskId: PropTypes.number,
 };
 
-CustomizedBar.defaultProps = {
+ConsumptionBar.defaultProps = {
     progress: undefined,
     taskId: undefined,
 };
 
-export default CustomizedBar;
+export default ConsumptionBar;
