@@ -137,31 +137,6 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
         return sheet
     }
 
-    override fun validate(validationErrors: MutableList<ValidationError>, dto: TimesheetDO) {
-        if (dto.getDuration() < 60000) {// Duration is less than 60 seconds.
-            validationErrors.add(ValidationError(translate("timesheet.error.zeroDuration"), fieldId = "stopTime"))
-        } else if (dto.getDuration() > TimesheetDao.MAXIMUM_DURATION) {
-            validationErrors.add(ValidationError(translate("timesheet.error.maximumDurationExceeded"), fieldId = "stopTime"))
-        }
-        if (Configuration.getInstance().isCostConfigured) {
-            if (dto.kost2 == null) {
-                val taskNode = taskTree.getTaskNodeById(dto.taskId)
-                if (taskNode != null) {
-                    val descendents = taskNode.descendantIds
-                    for (taskId in descendents) {
-                        if (!taskTree.getKost2List(taskId).isNullOrEmpty()) {
-                            // But Kost2 is available for sub task, so user should book his time sheet
-                            // on a sub task with kost2s.
-                            validationErrors.add(ValidationError(translate("timesheet.error.kost2NeededChooseSubTask"), fieldId = "cost2"))
-                            break
-                        }
-                    }
-                }
-
-            }
-        }
-    }
-
     override fun afterEdit(obj: TimesheetDO, dto: TimesheetDO): ResponseAction {
         return ResponseAction("/calendar")
                 .addVariable("date", obj.startTime)
