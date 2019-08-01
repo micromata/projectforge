@@ -2,10 +2,11 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import BookLendOut from './components/BookLendOut';
 import CustomizedAddressImage from './components/CustomizedAddressImage';
-import DayRange from './components/DayRange';
-import CustomizedImageDataPreview from './components/ImageDataPreview';
-import TimesheetEditTaskAndKost2 from './components/TimesheetEditTaskAndKost2';
 import CustomizedConsumptionBar from './components/CustomizedConsumptionBar';
+import CustomizedImageDataPreview from './components/ImageDataPreview';
+import DayRange from './components/DayRange';
+import TimesheetEditTaskAndKost2 from './components/TimesheetEditTaskAndKost2';
+import TimesheetTemplatesAndRecents from './components/TimesheetTemplatesAndRecents';
 
 function DynamicCustomized({ id, ...props }) {
     let Tag;
@@ -23,11 +24,14 @@ function DynamicCustomized({ id, ...props }) {
         case 'dayRange':
             Tag = DayRange;
             break;
+        case 'task.consumption':
+            Tag = CustomizedConsumptionBar;
+            break;
         case 'timesheet.edit.taskAndKost2':
             Tag = TimesheetEditTaskAndKost2;
             break;
-        case 'task.consumption':
-            Tag = CustomizedConsumptionBar;
+        case 'timesheet.edit.templatesAndRecents':
+            Tag = TimesheetTemplatesAndRecents;
             break;
         default:
             return <span>{`Customized field '${id}' not found!`}</span>;

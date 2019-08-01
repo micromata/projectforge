@@ -4,26 +4,25 @@ import { connect } from 'react-redux';
 import { DynamicLayoutContext } from '../../../context';
 import ConsumptionBar from '../../../../../../containers/panel/task/ConsumptionBar';
 
-function CustomizedConsumptionBar() {
+function TimesheetTemplatesAndRecents() {
     const { variables } = React.useContext(DynamicLayoutContext);
 
     return React.useMemo(
         () => {
-            const { consumption } = variables.task;
             // Ignore task id to prevent clickable consumption bar.
             return (
-                <ConsumptionBar
-                    progress={consumption}
-                />
+                <React.Fragment>
+                    Templates | Recents
+                </React.Fragment>
             );
         },
         [variables.task.consumption],
     );
 }
 
-CustomizedConsumptionBar.propTypes = {
+TimesheetTemplatesAndRecents.propTypes = {
 };
 
-CustomizedConsumptionBar.defaultProps = {};
+TimesheetTemplatesAndRecents.defaultProps = {};
 
-export default CustomizedConsumptionBar;
+export default TimesheetTemplatesAndRecents;
