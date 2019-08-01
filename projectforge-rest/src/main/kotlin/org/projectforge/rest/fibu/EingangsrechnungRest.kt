@@ -25,8 +25,6 @@ package org.projectforge.rest.fibu
 
 import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDao
-import org.projectforge.business.fibu.RechnungDO
-import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDORest

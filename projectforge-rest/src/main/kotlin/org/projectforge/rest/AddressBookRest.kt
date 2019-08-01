@@ -25,7 +25,6 @@ package org.projectforge.rest
 
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.address.AddressbookDao
-import org.projectforge.business.address.AddressbookFilter
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.rest.config.Rest

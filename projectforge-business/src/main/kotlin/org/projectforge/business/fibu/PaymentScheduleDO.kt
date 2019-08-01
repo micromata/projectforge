@@ -29,10 +29,9 @@ import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-
-import javax.persistence.*
 import java.math.BigDecimal
 import java.sql.Date
+import javax.persistence.*
 
 /**
  * @author Werner Feder (werner.feder@t-online.de)

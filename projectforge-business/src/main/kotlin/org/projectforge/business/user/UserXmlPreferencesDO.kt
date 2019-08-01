@@ -27,10 +27,9 @@ import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist
 import de.micromata.genome.jpa.DbRecord
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.TenantDO
-
-import javax.persistence.*
 import java.io.Serializable
-import java.util.Date
+import java.util.*
+import javax.persistence.*
 
 /**
  * For persistency of UserPreferencesData (stores them serialized).

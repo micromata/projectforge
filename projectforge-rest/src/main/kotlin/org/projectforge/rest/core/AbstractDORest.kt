@@ -24,7 +24,6 @@
 package org.projectforge.rest.core
 
 import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 

@@ -23,18 +23,7 @@
 
 package org.projectforge.framework.persistence.user.entities
 
-import java.util.HashSet
-
-import javax.persistence.CascadeType
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.FetchType
-import javax.persistence.JoinColumn
-import javax.persistence.JoinTable
-import javax.persistence.ManyToMany
-import javax.persistence.Table
-import javax.persistence.Transient
-
+import de.micromata.genome.jpa.impl.ATableTruncater
 import org.hibernate.Hibernate
 import org.hibernate.search.annotations.ContainedIn
 import org.hibernate.search.annotations.Indexed
@@ -42,10 +31,9 @@ import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.business.multitenancy.TenantTableTruncater
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-
-import de.micromata.genome.jpa.impl.ATableTruncater
+import java.util.*
+import javax.persistence.*
 
 /**
  * Represents a single tenant (client) for multi-tenancy.

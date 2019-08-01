@@ -23,38 +23,10 @@
 
 package org.projectforge.rest;
 
-import static org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUserId;
-
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.PredicateUtils;
 import org.apache.commons.lang3.BooleanUtils;
-import org.projectforge.business.address.AddressDO;
-import org.projectforge.business.address.AddressDao;
-import org.projectforge.business.address.AddressFilter;
-import org.projectforge.business.address.AddressStatus;
-import org.projectforge.business.address.AddressbookDO;
-import org.projectforge.business.address.AddressbookDao;
-import org.projectforge.business.address.ContactStatus;
-import org.projectforge.business.address.FormOfAddress;
-import org.projectforge.business.address.PersonalAddressDO;
-import org.projectforge.business.address.PersonalAddressDao;
+import org.projectforge.business.address.*;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
@@ -63,6 +35,13 @@ import org.projectforge.model.rest.RestPaths;
 import org.projectforge.rest.converter.AddressDOConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.*;
+
+import static org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUserId;
 
 /**
  * REST-Schnittstelle für {@link AddressDao}

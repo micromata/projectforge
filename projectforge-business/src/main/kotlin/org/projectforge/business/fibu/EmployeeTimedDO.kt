@@ -32,9 +32,8 @@ import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.IdObject
-
-import javax.persistence.*
 import java.io.Serializable
+import javax.persistence.*
 
 /**
  *

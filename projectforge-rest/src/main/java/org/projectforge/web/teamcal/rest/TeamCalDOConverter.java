@@ -23,7 +23,6 @@
 
 package org.projectforge.web.teamcal.rest;
 
-import java.util.Objects;
 import org.projectforge.business.converter.DOConverter;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
@@ -31,6 +30,8 @@ import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.model.rest.CalendarObject;
+
+import java.util.Objects;
 
 /**
  * For conversion of TeamCalDO to CalendarObject.

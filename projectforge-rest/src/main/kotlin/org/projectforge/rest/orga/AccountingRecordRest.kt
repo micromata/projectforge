@@ -25,8 +25,6 @@ package org.projectforge.rest.orga
 
 import org.projectforge.business.fibu.kost.BuchungssatzDO
 import org.projectforge.business.fibu.kost.BuchungssatzDao
-import org.projectforge.business.scripting.ScriptDO
-import org.projectforge.business.scripting.ScriptDao
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.ui.*
