@@ -97,15 +97,16 @@ UserSelect.propTypes = {
         id: PropTypes.number.isRequired,
         username: PropTypes.string.isRequired,
     }).isRequired,
+    required: PropTypes.bool,
     value: PropTypes.oneOfType([
         PropTypes.shape({}),
         PropTypes.arrayOf(PropTypes.shape({})),
-    ]).isRequired,
-    required: PropTypes.bool,
+    ]),
 };
 
 UserSelect.defaultProps = {
     required: false,
+    value: undefined,
 };
 
 const mapStateToProps = ({ authentication }) => ({

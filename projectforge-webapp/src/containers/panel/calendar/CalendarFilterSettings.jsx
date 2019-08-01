@@ -6,8 +6,7 @@ import { faCog } from '@fortawesome/free-solid-svg-icons';
 import style from '../../../components/design/input/Input.module.scss';
 import ReactSelect from '../../../components/design/ReactSelect';
 import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
-import DynamicUserSelect
-    from '../../../components/base/dynamicLayout/components/select/DynamicUserSelect';
+import UserSelect from '../../../components/base/page/layout/UserSelect';
 
 /**
  * Settings of a calendar view: time sheet user, default calendar for new events, show holidays etc.
@@ -42,9 +41,9 @@ class CalendarFilterSettings extends Component {
             .catch(error => alert(`Internal error: ${error}`));
     }
 
-    onTimesheetUserChange(id, value) {
+    onTimesheetUserChange(user) {
         const { onTimesheetUserChange } = this.props;
-        const userId = value ? value.id : undefined;
+        const userId = user ? user.id : undefined;
         fetch(getServiceURL('calendar/changeTimesheetUser',
             { userId }), {
             method: 'GET',
@@ -54,7 +53,7 @@ class CalendarFilterSettings extends Component {
             },
         })
             .then(handleHTTPErrors)
-            .then(() => onTimesheetUserChange(value))
+            .then(() => onTimesheetUserChange(user))
             .catch(error => alert(`Internal error: ${error}`));
     }
 
@@ -65,10 +64,10 @@ class CalendarFilterSettings extends Component {
     }
 
     render() {
-        console.log(this.props)
         const { popoverOpen } = this.state;
         const {
             listOfDefaultCalendars,
+            timesheetUser,
             translations,
         } = this.props;
         const defaultCalendar = CalendarFilterSettings.extractDefaultCalendarValue(this.props);
@@ -114,14 +113,12 @@ class CalendarFilterSettings extends Component {
                             </Row>
                             <Row>
                                 <Col>
-                                    tbd: Userselect
-                                    {/*<!DynamicUserSelect
-                                        changeDataField={this.onTimesheetUserChange}
-                                        id="timesheetUserId"
-                                        data={this.props}
+                                    <UserSelect
+                                        onChange={this.onTimesheetUserChange}
+                                        value={timesheetUser}
                                         label={translations['timesheet.user']}
                                         translations={translations}
-                                    />*/}
+                                    />
                                 </Col>
                             </Row>
                             <Row>
@@ -143,12 +140,14 @@ CalendarFilterSettings.propTypes = {
     onDefaultCalendarChange: PropTypes.func.isRequired,
     /* eslint-disable-next-line react/no-unused-prop-types */
     defaultCalendarId: PropTypes.number,
+    timesheetUser: PropTypes.shape(),
     listOfDefaultCalendars: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
     translations: PropTypes.shape({}).isRequired,
 };
 
 CalendarFilterSettings.defaultProps = {
     defaultCalendarId: undefined,
+    timesheetUser: undefined,
 };
 
 export default (CalendarFilterSettings);

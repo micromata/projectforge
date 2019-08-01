@@ -161,7 +161,8 @@ class CalendarFilterServicesRest {
                 "calendar.view.week",
                 "calendar.view.workWeek",
                 "settings",
-                "timesheet.user")
+                "timesheet.user",
+                "tooltip.selectMe")
         Favorites.addTranslations(translations)
         initial.translations = translations
         return initial
