@@ -40,7 +40,7 @@ class RechnungRest() : AbstractDORest<RechnungDO, RechnungDao>(RechnungDao::clas
      * LAYOUT List page
      */
     override fun createListLayout(): UILayout {
-        // TODO:
+        // TODO: Status refers to positionen
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
                         .add(lc, "nummer", "kunde", "projekt", "account", "betreff", "datum", "faelligkeit",
