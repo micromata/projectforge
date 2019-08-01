@@ -65,6 +65,7 @@ public class TaskFilter extends BaseSearchFilter
 
   public TaskFilter()
   {
+    searchString = "";
   }
 
   public TaskFilter(final BaseSearchFilter filter)
