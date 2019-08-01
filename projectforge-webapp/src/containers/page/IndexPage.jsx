@@ -148,6 +148,9 @@ class IndexPage extends React.Component {
                                 <i>Part of TaskTree refactor</i>
                             </li>
                             <li>
+                                Customized Data Image in List Page not working
+                            </li>
+                            <li>
                                 Design improvements for selection of task tree (e. g. time
                                 sheet editing). Highlighting of current active breadcrumb,
                                 smaller search bar, no table head row. Collapse like Apple Finder.
