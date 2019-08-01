@@ -60,8 +60,8 @@ function EditPage({ match, location }) {
                 },
             ) => {
                 setDataState(responseData);
-                setUI(responseUI);
                 setVariables(responseVariables);
+                setUI(responseUI);
             })
             .catch(setError);
     };
