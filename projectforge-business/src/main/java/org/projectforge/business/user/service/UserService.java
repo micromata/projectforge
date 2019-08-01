@@ -263,6 +263,10 @@ public class UserService implements UserChangedListener {
     return encrypt(ThreadLocalUserContext.getUserId(), data);
   }
 
+  /**
+   * @param userId
+   * @return The user from UserGroupCache.
+   */
   public PFUserDO getUser(Integer userId) {
     return getUserGroupCache().getUser(userId);
   }
@@ -530,6 +534,10 @@ public class UserService implements UserChangedListener {
     return userDao.getInternalByName(username);
   }
 
+  /**
+   * @param id
+   * @return the user from db (UserDao).
+   */
   public PFUserDO getById(Serializable id) {
     return userDao.getById(id);
   }
