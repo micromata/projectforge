@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
 import FavoritesPanel from '../../../../../../containers/panel/favorite/FavoritesPanel';
+import NewTaskTreePanel from '../../../../../../containers/panel/task/NewTaskTreePanel';
 import TaskTreePanel from '../../../../../../containers/panel/task/TaskTreePanel';
 import { getServiceURL, handleHTTPErrors } from '../../../../../../utilities/rest';
 import { Button, Collapse } from '../../../../../design';
@@ -198,13 +199,22 @@ function DynamicTaskSelect(
         };
 
         const treePanel = (
-            <TaskTreePanel
-                highlightTaskId={modalHighlight || (task ? task.id : undefined)}
-                onTaskSelect={setTask}
-                shortForm
-                showRootForAdmins={showRootForAdmins}
-                visible={panelVisible}
-            />
+            <React.Fragment>
+                <NewTaskTreePanel
+                    highlightTaskId={modalHighlight || (task ? task.id : undefined)}
+                    onTaskSelect={setTask}
+                    shortForm
+                    showRootForAdmins={showRootForAdmins}
+                    visible={panelVisible}
+                />
+                <TaskTreePanel
+                    highlightTaskId={modalHighlight || (task ? task.id : undefined)}
+                    onTaskSelect={setTask}
+                    shortForm
+                    showRootForAdmins={showRootForAdmins}
+                    visible={panelVisible}
+                />
+            </React.Fragment>
         );
 
         return (

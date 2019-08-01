@@ -1,0 +1,52 @@
+$transitionTime: .3s;
+
+.searchContainer {
+  float: right;
+  position: relative;
+  width: 50%;
+  transition: width, border;
+  transition-duration: $transitionTime;
+
+  &.isOpen .search {
+    border: 1px solid rgba(0, 0, 0, .125);
+    border-top: 1px solid #fff;
+
+    .advanced {
+      opacity: 1;
+      max-height: 300px;
+      transition: opacity $transitionTime;
+    }
+  }
+
+  .search {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    border: 1px solid transparent;
+    z-index: 99;
+
+    .basic {
+      padding-left: 5px;
+
+      .searchString {
+        margin: 0 0 15px 0;
+        font-size: 1em;
+      }
+    }
+
+    .advanced {
+      background-color: #fff;
+      opacity: 0;
+      overflow: hidden;
+      // Set height to 0 after the transition is done.
+      max-height: 0;
+      transition: opacity $transitionTime, max-height .01s linear $transitionTime;
+      padding-top: 15px;
+      position: relative;
+      left: 15px;
+      right: 15px;
+      width: 100%;
+    }
+  }
+}
