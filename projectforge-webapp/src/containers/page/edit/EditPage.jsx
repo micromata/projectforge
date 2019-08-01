@@ -21,7 +21,7 @@ function EditPage({ match, location }) {
     const [data, setDataState] = React.useState({});
     const [ui, setUI] = React.useState({});
     const [validationErrors, setValidationErrors] = React.useState([]);
-    const [variables, setVariables] = React.useState({});
+    const [variables, setVariablesState] = React.useState({});
 
     const loadPage = () => {
         setLoading(false);
@@ -29,7 +29,7 @@ function EditPage({ match, location }) {
         setUI({});
         setDataState({});
         setValidationErrors([]);
-        setVariables({});
+        setVariablesState({});
 
         const params = {
             ...getObjectFromQuery(location.search || ''),
@@ -60,7 +60,7 @@ function EditPage({ match, location }) {
                 },
             ) => {
                 setDataState(responseData);
-                setVariables(responseVariables);
+                setVariablesState(responseVariables);
                 setUI(responseUI);
             })
             .catch(setError);
@@ -143,6 +143,21 @@ function EditPage({ match, location }) {
         return computedData;
     };
 
+    const setVariables = async (newVariables, callback) => {
+        const computedVariables = {
+            ...variables,
+            ...(typeof newVariables === 'function' ? newVariables(variables) : newVariables),
+        };
+
+        setVariablesState(computedVariables);
+
+        if (callback) {
+            callback(computedVariables);
+        }
+
+        return computedVariables;
+    };
+
     React.useEffect(() => {
         if (location.state && location.state.noReload && Object.entries(data).length !== 0) {
             return;
@@ -222,6 +237,7 @@ function EditPage({ match, location }) {
                                                 showPageMenuTitle: false,
                                             }}
                                             setData={setData}
+                                            setVariables={setVariables}
                                             ui={ui}
                                             validationErrors={validationErrors}
                                             variables={variables}
