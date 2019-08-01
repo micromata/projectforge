@@ -28,7 +28,6 @@ import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.plugintemplate.repository.PluginTemplateDao;
-import org.projectforge.plugins.plugintemplate.rest.PluginTemplateRest;
 import org.projectforge.plugins.plugintemplate.service.PluginTemplateService;
 import org.projectforge.plugins.plugintemplate.wicket.PluginTemplateListPage;
 import org.projectforge.rest.config.RestPrivateConfiguration;
@@ -70,9 +69,6 @@ public class PluginTemplatePlugin extends AbstractPlugin {
 
     // Register the web part:
     pluginWicketRegistrationService.registerWeb(ID);
-
-    //Register the Rest Service
-    jerseyConfiguration.register(PluginTemplateRest.class);
 
     pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC,
             MenuItemDef.create("plugintemplate", "plugins.plugintemplate.submenu.plugintemplate.list"),
