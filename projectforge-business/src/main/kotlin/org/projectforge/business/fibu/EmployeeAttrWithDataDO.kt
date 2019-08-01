@@ -23,14 +23,8 @@
 
 package org.projectforge.business.fibu
 
-import javax.persistence.CascadeType
-import javax.persistence.DiscriminatorValue
-import javax.persistence.Entity
-import javax.persistence.FetchType
-import javax.persistence.OneToMany
-import javax.persistence.OrderColumn
-
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
+import javax.persistence.*
 
 @Entity
 @DiscriminatorValue("1")

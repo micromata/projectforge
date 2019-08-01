@@ -25,7 +25,6 @@ package org.projectforge.rest.config;
 
 import org.glassfish.jersey.server.ResourceConfig;
 import org.projectforge.rest.PFVersionCheckRest;
-import org.projectforge.rest.pub.SimpleLoginRest;
 
 /**
  * Created by blumenstein on 26.01.17.

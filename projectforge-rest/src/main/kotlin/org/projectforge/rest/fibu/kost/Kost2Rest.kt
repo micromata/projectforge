@@ -24,14 +24,10 @@
 package org.projectforge.rest.fibu.kost
 
 import org.projectforge.business.fibu.KostFormatter
-import org.projectforge.business.fibu.kost.Kost1DO
-import org.projectforge.business.fibu.kost.Kost1Dao
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
-import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTORest
-import org.projectforge.rest.dto.Kost1
 import org.projectforge.rest.dto.Kost2
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping

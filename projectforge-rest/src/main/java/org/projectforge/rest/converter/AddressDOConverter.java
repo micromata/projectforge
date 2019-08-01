@@ -23,18 +23,14 @@
 
 package org.projectforge.rest.converter;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
-import org.projectforge.business.address.AddressDO;
-import org.projectforge.business.address.AddressDao;
-import org.projectforge.business.address.AddressStatus;
-import org.projectforge.business.address.ContactStatus;
-import org.projectforge.business.address.FormOfAddress;
+import org.projectforge.business.address.*;
 import org.projectforge.business.converter.DOConverter;
 import org.projectforge.model.rest.AddressObject;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 /**
  * For conversion of TaskDO to task object.

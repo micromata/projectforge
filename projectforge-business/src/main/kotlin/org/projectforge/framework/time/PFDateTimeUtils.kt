@@ -25,7 +25,6 @@ package org.projectforge.framework.time
 
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.time.DayOfWeek
-import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import java.time.temporal.WeekFields

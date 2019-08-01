@@ -23,10 +23,10 @@
 
 package org.projectforge.rest;
 
-import java.util.Locale;
-
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.projectforge.rest.converter.DateTimeFormat;
+
+import java.util.Locale;
 
 /**
  * ConnectionSettings is used for configuring single rest calls. This class also stores a connection settings object in

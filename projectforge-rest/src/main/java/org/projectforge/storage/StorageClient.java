@@ -23,18 +23,18 @@
 
 package org.projectforge.storage;
 
+import org.projectforge.business.configuration.ConfigurationServiceAccessor;
+import org.projectforge.framework.configuration.ConfigXml;
+import org.projectforge.framework.configuration.ConfigurationListener;
+import org.projectforge.shared.storage.StorageConstants;
+import org.springframework.stereotype.Component;
+
 import javax.annotation.PostConstruct;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import org.projectforge.business.configuration.ConfigurationServiceAccessor;
-import org.projectforge.framework.configuration.ConfigXml;
-import org.projectforge.framework.configuration.ConfigurationListener;
-import org.projectforge.shared.storage.StorageConstants;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
