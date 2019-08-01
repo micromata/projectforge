@@ -43,6 +43,7 @@ import org.projectforge.common.task.TimesheetBookingStatus;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
+import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.i18n.MessageParam;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
@@ -110,7 +111,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
     final Object[] minMaxDate = getSession().createNamedQuery(TimesheetDO.SELECT_MIN_MAX_DATE_FOR_USER, Object[].class)
             .setParameter("userId", userId)
             .getSingleResult();
-    return SQLHelper.getYears((java.sql.Date)minMaxDate[0], (java.sql.Date)minMaxDate[1]);
+    return SQLHelper.getYears((java.sql.Date) minMaxDate[0], (java.sql.Date) minMaxDate[1]);
   }
 
   /**
@@ -304,23 +305,50 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
   protected void onSaveOrModify(final TimesheetDO obj) {
     validateTimestamp(obj.getStartTime(), "startTime");
     validateTimestamp(obj.getStopTime(), "stopTime");
-    Validate.isTrue(obj.getDuration() >= 60000, "Duration of time sheet must be at minimum 60s!");
-    Validate.isTrue(obj.getDuration() <= MAXIMUM_DURATION, MAXIMUM_DURATION_EXCEEDED);
+    if (obj.getDuration() < 60000) {
+      throw new UserException("timesheet.error.zeroDuration"); // "Duration of time sheet must be at minimum 60s!
+    }
+    if (obj.getDuration() > MAXIMUM_DURATION) {
+      throw new UserException("timesheet.error.maximumDurationExceeded");
+    }
     Validate.isTrue(obj.getStartTime().before(obj.getStopTime()), "Stop time of time sheet is before start time!");
-    final List<Kost2DO> kost2List = TaskTreeHelper.getTaskTree(obj).getKost2List(obj.getTaskId());
-    final Integer kost2Id = obj.getKost2Id();
-    if (CollectionUtils.isNotEmpty(kost2List)) {
-      Validate.notNull(kost2Id, "Kost2Id must be given for time sheet and given kost2 list!");
-      boolean kost2IdFound = false;
-      for (final Kost2DO kost2 : kost2List) {
-        if (NumberHelper.isEqual(kost2Id, kost2.getId())) {
-          kost2IdFound = true;
-          break;
+    if (Configuration.getInstance().isCostConfigured()) {
+      final List<Kost2DO> kost2List = TaskTreeHelper.getTaskTree(obj).getKost2List(obj.getTaskId());
+      final Integer kost2Id = obj.getKost2Id();
+      if (kost2Id == null) {
+        // Check, if there is any cost definition in any descendant task:
+        TaskTree taskTree = TaskTreeHelper.getTaskTree(obj);
+        TaskNode taskNode = taskTree.getTaskNodeById(obj.getTaskId());
+        if (taskNode != null) {
+          List<Integer> descendents = taskNode.getDescendantIds();
+          for (Integer taskId : descendents) {
+            if (CollectionUtils.isNotEmpty(taskTree.getKost2List(taskId))) {
+              // But Kost2 is available for sub task, so user should book his time sheet
+              // on a sub task with kost2s.
+              throw new UserException("timesheet.error.kost2NeededChooseSubTask");
+            }
+          }
         }
       }
-      Validate.isTrue(kost2IdFound, "Kost2Id of time sheet is not available in the task's kost2 list!");
-    } else {
-      Validate.isTrue(kost2Id == null, "Kost2Id can't be given for task without any kost2 entries!");
+      if (CollectionUtils.isNotEmpty(kost2List)) {
+        if (kost2Id == null) {
+          throw new UserException("timesheet.error.kost2Required");
+        }
+        boolean kost2IdFound = false;
+        for (final Kost2DO kost2 : kost2List) {
+          if (NumberHelper.isEqual(kost2Id, kost2.getId())) {
+            kost2IdFound = true;
+            break;
+          }
+        }
+        if (!kost2IdFound) {
+          throw new UserException("timesheet.error.invalidKost2"); // Kost2Id of time sheet is not available in the task's kost2 list!
+        }
+      } else {
+        if (kost2Id != null) {
+          throw new UserException("timesheet.error.invalidKost2"); // Kost2Id can't be given for task without any kost2 entries!
+        }
+      }
     }
   }
 
@@ -580,8 +608,8 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
    * <li>Does any of the descendant task node has an assigned order position?</li>
    * </ol>
    *
-   * @param timesheet      The time sheet to insert or update.
-   * @param oldTimesheet   The origin time sheet from the data base (could be null, if no update is done).
+   * @param timesheet    The time sheet to insert or update.
+   * @param oldTimesheet The origin time sheet from the data base (could be null, if no update is done).
    * @return True if none of the rules above matches.
    */
   public boolean checkTaskBookable(final TimesheetDO timesheet, final TimesheetDO oldTimesheet,
