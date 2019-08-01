@@ -36,8 +36,6 @@ function DynamicTaskSelect(
 
         document.addEventListener('mousedown', handleClickOutside);
 
-        setStateTask(variables.task);
-
         fetch(
             getServiceURL('task/favorites/list'),
             {
@@ -55,6 +53,12 @@ function DynamicTaskSelect(
 
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    React.useEffect(() => {
+        if (variables.task) {
+            setStateTask(variables.task);
+        }
+    }, [variables]);
 
     return React.useMemo(() => {
         const setTask = (taskId, selectedTask) => {
@@ -205,7 +209,7 @@ function DynamicTaskSelect(
 
         return (
             <div>
-                {task
+                {task && task.path
                     ? (
                         <TaskPath
                             path={[...task.path, task]}
