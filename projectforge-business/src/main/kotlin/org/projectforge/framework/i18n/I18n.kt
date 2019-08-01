@@ -29,10 +29,12 @@ fun translate(i18nKey: String?): String {
 }
 
 fun translateMsg(ex: UserException): String {
-    if (ex.msgParams.isNullOrEmpty()) {
-        return translate(ex.i18nKey)
+    if (!ex.msgParams.isNullOrEmpty()) {
+        return I18nHelper.getLocalizedMessage(ex.i18nKey, *ex.msgParams)
+    } else if (!ex.params.isNullOrEmpty()) {
+        return I18nHelper.getLocalizedMessage(ex.i18nKey, *ex.params)
     }
-    return I18nHelper.getLocalizedMessage(ex.i18nKey, ex.msgParams)
+    return translate(ex.i18nKey)
 }
 
 fun translateMsg(i18nKey: String, vararg params: Any): String {
