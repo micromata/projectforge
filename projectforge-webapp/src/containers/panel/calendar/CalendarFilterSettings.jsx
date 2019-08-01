@@ -5,8 +5,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome/index';
 import { faCog } from '@fortawesome/free-solid-svg-icons';
 import style from '../../../components/design/input/Input.module.scss';
 import ReactSelect from '../../../components/design/ReactSelect';
-import UserSelect from '../../../components/base/page/layout/UserSelect';
 import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
+import DynamicUserSelect
+    from '../../../components/base/dynamicLayout/components/select/DynamicUserSelect';
 
 /**
  * Settings of a calendar view: time sheet user, default calendar for new events, show holidays etc.
@@ -19,9 +20,7 @@ class CalendarFilterSettings extends Component {
 
     constructor(props) {
         super(props);
-        const defaultCalendar = CalendarFilterSettings.extractDefaultCalendarValue(props);
         this.state = {
-            defaultCalendar,
             popoverOpen: false,
         };
 
@@ -33,20 +32,19 @@ class CalendarFilterSettings extends Component {
     onDefaultCalendarChange(value) {
         const { onDefaultCalendarChange } = this.props;
         const id = value ? value.id : '';
-        this.setState({ defaultCalendar: value });
         fetch(getServiceURL('calendar/changeDefaultCalendar',
             { id }), {
             method: 'GET',
             credentials: 'include',
         })
             .then(handleHTTPErrors)
-            .then(() => onDefaultCalendarChange(value))
+            .then(() => onDefaultCalendarChange(id))
             .catch(error => alert(`Internal error: ${error}`));
     }
 
     onTimesheetUserChange(id, value) {
         const { onTimesheetUserChange } = this.props;
-        const userId = value ? value.id : '';
+        const userId = value ? value.id : undefined;
         fetch(getServiceURL('calendar/changeTimesheetUser',
             { userId }), {
             method: 'GET',
@@ -56,7 +54,7 @@ class CalendarFilterSettings extends Component {
             },
         })
             .then(handleHTTPErrors)
-            .then(() => onTimesheetUserChange(userId))
+            .then(() => onTimesheetUserChange(value))
             .catch(error => alert(`Internal error: ${error}`));
     }
 
@@ -67,11 +65,13 @@ class CalendarFilterSettings extends Component {
     }
 
     render() {
-        const { defaultCalendar, popoverOpen } = this.state;
+        console.log(this.props)
+        const { popoverOpen } = this.state;
         const {
             listOfDefaultCalendars,
             translations,
         } = this.props;
+        const defaultCalendar = CalendarFilterSettings.extractDefaultCalendarValue(this.props);
         return (
             <React.Fragment>
                 <Button
@@ -114,13 +114,14 @@ class CalendarFilterSettings extends Component {
                             </Row>
                             <Row>
                                 <Col>
-                                    <UserSelect
+                                    tbd: Userselect
+                                    {/*<!DynamicUserSelect
                                         changeDataField={this.onTimesheetUserChange}
-                                        id="timesheetUser"
+                                        id="timesheetUserId"
                                         data={this.props}
                                         label={translations['timesheet.user']}
                                         translations={translations}
-                                    />
+                                    />*/}
                                 </Col>
                             </Row>
                             <Row>
@@ -147,7 +148,7 @@ CalendarFilterSettings.propTypes = {
 };
 
 CalendarFilterSettings.defaultProps = {
-    defaultCalendarId: -1,
+    defaultCalendarId: undefined,
 };
 
 export default (CalendarFilterSettings);

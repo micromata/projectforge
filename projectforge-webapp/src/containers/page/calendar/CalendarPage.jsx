@@ -22,9 +22,11 @@ class CalendarPage extends React.Component {
             view: 'week',
             teamCalendars: undefined,
             activeCalendars: [],
-            timsheetUserId: undefined,
-            listOfDefaultCalendars: [],
-            defaultCalendar: undefined,
+            filter: {
+                defaultCalendarId: undefined,
+                listOfDefaultCalendars: [],
+            },
+            timesheetUser: undefined,
             filterFavorites: undefined,
             isFilterModified: false,
             translations: undefined,
@@ -55,12 +57,18 @@ class CalendarPage extends React.Component {
         });
     }
 
-    onTimesheetUserChange(timesheetUserId) {
-        this.setState({ timesheetUserId });
+    onTimesheetUserChange(timesheetUser) {
+        console.log(timesheetUser)
+        this.setState({ timesheetUser });
     }
 
-    onDefaultCalendarChange(defaultCalendar) {
-        this.setState({ defaultCalendar });
+    onDefaultCalendarChange(defaultCalendarId) {
+        this.setState(currentState => ({
+            filter: {
+                ...currentState.filter,
+                defaultCalendarId,
+            },
+        }));
     }
 
     onFavoriteCreate(newFilterName) {
@@ -171,12 +179,11 @@ class CalendarPage extends React.Component {
     render() {
         const {
             activeCalendars,
-            timesheetUserId,
             listOfDefaultCalendars,
-            defaultCalendar,
             isFilterModified,
             colors,
             filter,
+            timesheetUser,
             date,
             filterFavorites,
             loading,
@@ -250,11 +257,11 @@ class CalendarPage extends React.Component {
                                         />
                                         <CalendarFilterSettings
                                             listOfDefaultCalendars={listOfDefaultCalendars}
-                                            defaultCalendarId={defaultCalendar ? defaultCalendar.id : undefined}
+                                            defaultCalendarId={filter.defaultCalendarId}
+                                            timesheetUserId={filter.timesheetUserId}
                                             translations={translations}
                                             onTimesheetUserChange={this.onTimesheetUserChange}
                                             onDefaultCalendarChange={this.onDefaultCalendarChange}
-                                            timesheetUserId={timesheetUserId}
                                         />
                                     </Col>
                                 </Row>
@@ -265,7 +272,7 @@ class CalendarPage extends React.Component {
                         defaultDate={date}
                         defaultView={view}
                         activeCalendars={activeCalendars}
-                        timesheetUserId={timesheetUserId}
+                        timesheetUserId={timesheetUser ? timesheetUser.id : undefined}
                         topHeight="225px"
                         translations={translations}
                         match={match}

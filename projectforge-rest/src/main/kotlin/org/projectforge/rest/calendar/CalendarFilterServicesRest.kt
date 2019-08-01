@@ -26,6 +26,7 @@ package org.projectforge.rest.calendar
 import org.projectforge.business.calendar.*
 import org.projectforge.business.teamcal.admin.TeamCalCache
 import org.projectforge.business.user.service.UserPrefService
+import org.projectforge.business.user.service.UserService
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
@@ -33,6 +34,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.dto.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -55,6 +57,7 @@ class CalendarFilterServicesRest {
                         * The current filter.
                         */
                        var filter: CalendarFilter? = null,
+                       var timesheetUser: User? = null,
                        var activeCalendars: MutableList<StyledTeamCalendar>? = null,
                        /**
                         * This is the list of possible default calendars (with full access). The user may choose one which is
@@ -98,6 +101,9 @@ class CalendarFilterServicesRest {
     private lateinit var teamCalCache: TeamCalCache
 
     @Autowired
+    private lateinit var userService: UserService
+
+    @Autowired
     private lateinit var userPrefService: UserPrefService
 
     @GetMapping("initial")
@@ -106,6 +112,12 @@ class CalendarFilterServicesRest {
         val calendars = getCalendars()
         val currentFilter = getCurrentFilter()
         initial.filter = currentFilter
+
+        val user = userService.getUser(currentFilter.timesheetUserId)
+        if (user != null) {
+            initial.timesheetUser = User()
+            initial.timesheetUser!!.copyFromMinimal(user)
+        }
 
         val styleMap = getStyleMap()
         initial.styleMap = styleMap
