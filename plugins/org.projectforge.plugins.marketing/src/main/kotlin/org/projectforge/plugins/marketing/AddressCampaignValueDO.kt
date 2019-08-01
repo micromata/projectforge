@@ -26,6 +26,7 @@ package org.projectforge.plugins.marketing
 import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.business.address.AddressDO
+import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.UserPrefDO
@@ -56,9 +57,11 @@ class AddressCampaignValueDO : DefaultBaseDO() {
     @get:JoinColumn(name = "address_fk", nullable = false)
     var address: AddressDO? = null
 
+    @PropertyInfo(i18nKey = "value")
     @get:Column(length = AddressCampaignDO.MAX_VALUE_LENGTH)
     var value: String? = null
 
+    @PropertyInfo(i18nKey = "comment")
     @get:Column(length = Constants.LENGTH_COMMENT)
     var comment: String? = null
 
