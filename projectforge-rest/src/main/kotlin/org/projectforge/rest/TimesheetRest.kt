@@ -276,6 +276,10 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
         super.onGetItemAndLayout(request, dto, editLayoutData)
     }
 
+    /**
+     * Puts the task information such as path, consumption etc. as additional variable for the client, because the
+     * origin task of the timesheet is of type TaskDO and doesn't contain such data.
+     */
     override fun addVariablesForEditPage(dto: TimesheetDO): Map<String, Any>? {
         val task = TaskServicesRest.createTask(dto.taskId) ?: return null
         return mutableMapOf<String, Any>("task" to task)
