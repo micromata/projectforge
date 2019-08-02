@@ -116,7 +116,26 @@ class CalendarPage extends React.Component {
     }
 
     onFavoriteRename(id, newName) {
-        console.log(id, newName);
+        fetch(
+            getServiceURL(
+                'calendar/renameFilter',
+                {
+                    id,
+                    newName,
+                },
+            ),
+            {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    Accept: 'application/json',
+                },
+            },
+        )
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            .then(this.saveUpdateResponseInState)
+            .catch(error => alert(`Internal error: ${error}`));
     }
 
     onFavoriteUpdate(id) {
