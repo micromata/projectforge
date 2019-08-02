@@ -23,10 +23,6 @@
 
 package org.projectforge.plugins.liquidityplanning.rest
 
-import org.projectforge.business.fibu.kost.BuchungssatzDO
-import org.projectforge.business.fibu.kost.BuchungssatzDao
-import org.projectforge.business.scripting.ScriptDO
-import org.projectforge.business.scripting.ScriptDao
 import org.projectforge.plugins.liquidityplanning.LiquidityEntryDO
 import org.projectforge.plugins.liquidityplanning.LiquidityEntryDao
 import org.projectforge.rest.config.Rest
