@@ -48,8 +48,7 @@ import javax.persistence.Index
  */
 @Entity
 @Indexed
-@ClassBridge(name = "taskpath", index = org.hibernate.search.annotations.Index.YES, store = Store.NO, impl = HibernateSearchTaskPathBridge::class)
-/* TOKENIZED */
+@ClassBridge(name = "taskpath", impl = HibernateSearchTaskPathBridge::class)
 @Table(name = "T_TASK",
         uniqueConstraints = [UniqueConstraint(columnNames = ["parent_task_id", "title"])],
         indexes = [Index(name = "idx_fk_t_task_gantt_predecessor_fk", columnList = "gantt_predecessor_fk"),
