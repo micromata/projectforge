@@ -48,10 +48,12 @@ class FFPDebtDO : DefaultBaseDO() {
     @get:JoinColumn(name = "EVENT_ID")
     var event: FFPEventDO? = null
 
+    @PropertyInfo(i18nKey = "plugins.ffp.from")
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "ATTENDEE_USER_ID_FROM")
     var from: PFUserDO? = null
 
+    @PropertyInfo(i18nKey = "plugins.ffp.to")
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "ATTENDEE_USER_ID_TO")
     var to: PFUserDO? = null
