@@ -84,6 +84,8 @@ class FFPEventDO : DefaultBaseDO() {
     @get:Column(nullable = false)
     var eventDate: Date? = null
 
+    // TODO: Set not supported
+    @PropertyInfo(i18nKey = "plugins.ffp.attendees")
     var attendeeList: MutableSet<PFUserDO>? = null
         @ManyToMany
         @JoinTable(name = "T_PLUGIN_FINANCIALFAIRPLAY_EVENT_ATTENDEE", joinColumns = [JoinColumn(name = "EVENT_PK", referencedColumnName = "PK")], inverseJoinColumns = [JoinColumn(name = "ATTENDEE_USER_PK", referencedColumnName = "PK")])
