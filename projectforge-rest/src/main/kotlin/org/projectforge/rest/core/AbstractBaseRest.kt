@@ -289,7 +289,7 @@ abstract class AbstractBaseRest<
         var favorites: Favorites<MagicFilter>? = null
         try {
             @Suppress("UNCHECKED_CAST", "USELESS_ELVIS")
-            favorites = userPrefService.getEntry(userPrefArea, Favorites.PREF_NAME_LIST, Favorites::class.java) as Favorites<MagicFilter>
+            favorites = userPrefService.getEntry(userPrefArea, Favorites.PREF_NAME_LIST, Favorites::class.java) as? Favorites<MagicFilter>
         } catch (ex: Exception) {
             log.error("Exception while getting user preferred favorites: ${ex.message}. This might be OK for new releases. Ignoring filter.")
         }
