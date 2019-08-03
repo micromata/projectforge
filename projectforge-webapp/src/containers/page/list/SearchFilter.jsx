@@ -64,47 +64,55 @@ function SearchFilter() {
             .then(saveUpdateResponse)
             .catch(error => alert(`Internal error: ${error}`));
     };
-    const handleFavoriteDelete = (id) => {
-        fetch(getServiceURL(`${category}/filter/delete`,
-            { id }), {
-            method: 'GET',
-            credentials: 'include',
-            headers: {
-                Accept: 'application/json',
-            },
-        })
-            .then(handleHTTPErrors)
-            .then(response => response.json())
-            .then(saveUpdateResponse)
-            .catch(error => alert(`Internal error: ${error}`));
-    };
-    const handleFavoriteSelect = (id) => {
-        fetch(getServiceURL(`${category}/filter/select`,
-            { id }), {
-            method: 'GET',
-            credentials: 'include',
-            headers: {
-                Accept: 'application/json',
-            },
-        })
-            .then(handleHTTPErrors)
-            .then(response => response.json())
-            .then(saveUpdateResponse)
-            .catch(error => alert(`Internal error: ${error}`));
-    };
-    const handleFavoriteRename = (id, newName) => console.log({
-        id,
-        newName,
-    });
 
-    const handleFavoriteUpdate = (id) => {
-        fetch(getServiceURL(`${category}/filter/update`,
-            { id }), {
-            method: 'GET',
+    const handleFavoriteDelete = id => fetch(getServiceURL(`${category}/filter/delete`,
+        { id }), {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+            Accept: 'application/json',
+        },
+    })
+        .then(handleHTTPErrors)
+        .then(response => response.json())
+        .then(saveUpdateResponse)
+        .catch(error => alert(`Internal error: ${error}`));
+
+    const handleFavoriteSelect = id => fetch(getServiceURL(`${category}/filter/select`,
+        { id }), {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+            Accept: 'application/json',
+        },
+    })
+        .then(handleHTTPErrors)
+        .then(response => response.json())
+        .then(saveUpdateResponse)
+        .catch(error => alert(`Internal error: ${error}`));
+
+    const handleFavoriteRename = (id, newName) => fetch(getServiceURL(`${category}/filter/rename`,
+        { id, newName }), {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+            Accept: 'application/json',
+        },
+    })
+        .then(handleHTTPErrors)
+        .then(response => response.json())
+        .then(saveUpdateResponse)
+        .catch(error => alert(`Internal error: ${error}`));
+
+    const handleFavoriteUpdate = () => {
+        fetch(getServiceURL(`${category}/filter/update`), {
+            method: 'POST',
             credentials: 'include',
             headers: {
+                'Content-Type': 'application/json',
                 Accept: 'application/json',
             },
+            body: JSON.stringify({ ...filter }),
         })
             .then(handleHTTPErrors)
             .then(response => response.json())

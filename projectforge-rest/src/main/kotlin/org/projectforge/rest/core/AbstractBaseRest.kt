@@ -346,7 +346,7 @@ abstract class AbstractBaseRest<
     /**
      * @return new filterFavorites
      */
-    @RequestMapping("filter/rename")
+    @GetMapping("filter/rename")
     fun renameFavoriteFilter(@RequestParam("id", required = true) id: Int, @RequestParam("newName", required = true) newName: String): Map<String, Any> {
         val favorites = getFilterFavorites()
         val filter = favorites.get(id)
@@ -360,16 +360,16 @@ abstract class AbstractBaseRest<
     }
 
     /**
-     * Updates the named Filter with the values of the current filter.
-     * @return The current filter.
+     * Updates the named Filter with the given values.
      */
-    @GetMapping("filter/update")
-    fun updateFavoriteFilter(@RequestParam("id", required = true) id: Int): Map<String, Any> {
-        val currentFilter = getCurrentFilter()
+    @RequestMapping("filter/update")
+    fun updateFavoriteFilter(@RequestBody magicFilter: MagicFilter): Map<String, Any> {
         val favorites = getFilterFavorites()
+        val id = magicFilter.id ?: return mapOf()
         favorites.remove(id)
-        currentFilter.id = id // Just for the case...
-        favorites.add(currentFilter)
+        favorites.add(magicFilter)
+        val currentFilter = magicFilter.clone() // Need a clone for having different instances
+        saveCurrentFilter(currentFilter)
         return mapOf()
     }
 
