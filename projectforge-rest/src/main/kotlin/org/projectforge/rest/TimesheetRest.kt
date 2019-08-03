@@ -26,10 +26,7 @@ package org.projectforge.rest
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.business.teamcal.event.model.TeamEventDO
-import org.projectforge.business.timesheet.TimesheetDO
-import org.projectforge.business.timesheet.TimesheetDao
-import org.projectforge.business.timesheet.TimesheetFilter
-import org.projectforge.business.timesheet.TimesheetPrefData
+import org.projectforge.business.timesheet.*
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.common.DateFormatType
 import org.projectforge.favorites.Favorites
@@ -75,6 +72,9 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
 
     @Autowired
     private lateinit var teamEventRest: TeamEventRest
+
+    @Autowired
+    private lateinit var timesheetFavoritesService: TimesheetFavoritesService
 
     private val taskTree: TaskTree
         /** Lazy init, because test cases failed due to NPE in TenantRegistryMap. */
@@ -214,7 +214,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
                 title = translate("plugins.teamcal.switchToTeamEventButton"),
                 color = UIColor.SECONDARY,
                 responseAction = ResponseAction(getRestRootPath("switch2CalendarEvent"), targetType = TargetType.POST)))
-
+        layout.addTranslations("templates")
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
@@ -256,7 +256,8 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
      */
     override fun addVariablesForEditPage(dto: TimesheetDO): Map<String, Any>? {
         val task = TaskServicesRest.createTask(dto.taskId) ?: return null
-        return mutableMapOf<String, Any>("task" to task)
+        return mutableMapOf<String, Any>("task" to task,
+                "timesheetFavorites" to timesheetFavoritesService.getList())
     }
 
     private fun getTimesheetPrefData(): TimesheetPrefData {

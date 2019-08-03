@@ -6,13 +6,27 @@ import React from 'react';
 import { Button } from 'reactstrap';
 import style from '../../../components/design/input/Input.module.scss';
 
-function FavoritesButton({ id, isOpen, toggle }) {
+function FavoritesButton(
+    {
+        id,
+        isOpen,
+        toggle,
+        favoriteButtonText,
+    },
+) {
     const [hover, setHover] = React.useState(false);
 
     const handleOpenButtonHover = ({ type }) => setHover(
         type === 'mouseover' || type === 'focus',
     );
 
+    const button = favoriteButtonText || (
+        <FontAwesomeIcon
+            icon={hover || isOpen ? faStarSolid : faStarRegular}
+            className={style.icon}
+            size="lg"
+        />
+    );
     return (
         <Button
             id={id}
@@ -24,11 +38,7 @@ function FavoritesButton({ id, isOpen, toggle }) {
             onMouseOver={handleOpenButtonHover}
             onMouseLeave={handleOpenButtonHover}
         >
-            <FontAwesomeIcon
-                icon={hover || isOpen ? faStarSolid : faStarRegular}
-                className={style.icon}
-                size="lg"
-            />
+            {button}
         </Button>
     );
 }
@@ -36,10 +46,12 @@ function FavoritesButton({ id, isOpen, toggle }) {
 FavoritesButton.propTypes = {
     id: PropTypes.string.isRequired,
     toggle: PropTypes.func.isRequired,
+    favoriteButtonText: PropTypes.string,
     isOpen: PropTypes.bool,
 };
 
 FavoritesButton.defaultProps = {
+    favoriteButtonText: undefined,
     isOpen: false,
 };
 
