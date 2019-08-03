@@ -81,6 +81,16 @@ open class Favorites<T : AbstractFavorite>() {
         set.removeIf { it.id == id }
     }
 
+    fun rename(id: Int, newName: String) {
+        val entry = get(id)
+        if (entry != null) {
+            entry.name = newName
+            fixNamesAndIds()
+        } else {
+            log.warn("Could not rename the user's filter. Filter with id '$id' not found for calendar.")
+        }
+
+    }
     fun createUserPrefLegacyEntry(userPrefDao: UserPrefDao, area: String, newFavorite: T, parameter: String, value: String) {
         add(newFavorite) // If name is already given, a new name is set.
         val userPref = UserPrefDO()
@@ -210,6 +220,9 @@ open class Favorites<T : AbstractFavorite>() {
             }
         }
 
+        /**
+         * Rename the user pref itself, not the name of the favorite. This is only used for backwardcompability (e. g. used by TaskFavorites).
+         */
         fun renameUserPref(userPrefDao: UserPrefDao, area: String, id: Int, newName: String) {
             val userPref = userPrefDao.getUserPref(area, id)
             if (userPref != null) {
