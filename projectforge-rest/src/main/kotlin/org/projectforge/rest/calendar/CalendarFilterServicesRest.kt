@@ -324,7 +324,7 @@ class CalendarFilterServicesRest {
         var favorites: Favorites<CalendarFilter>? = null
         try {
             @Suppress("UNCHECKED_CAST", "USELESS_ELVIS")
-            favorites = userPrefService.getEntry(PREF_AREA, Favorites.PREF_NAME_LIST, Favorites::class.java) as Favorites<CalendarFilter>
+            favorites = userPrefService.getEntry(PREF_AREA, Favorites.PREF_NAME_LIST, Favorites::class.java) as? Favorites<CalendarFilter>
                     ?: migrateFromLegacyFilter(userPrefService)?.list
         } catch (ex: Exception) {
             log.error("Exception while getting user preferred favorites: ${ex.message}. This might be OK for new releases. Ignoring filter.")
