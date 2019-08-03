@@ -13,6 +13,7 @@ function FavoritesPanel(
         htmlId,
         isModified,
         favorites,
+        favoriteButtonText,
         onFavoriteCreate,
         onFavoriteDelete,
         onFavoriteRename,
@@ -56,7 +57,12 @@ function FavoritesPanel(
 
     return (
         <React.Fragment>
-            <FavoritesButton toggle={toggle} id={htmlId} isOpen={open} />
+            <FavoritesButton
+                toggle={toggle}
+                id={htmlId}
+                isOpen={open}
+                favoriteButtonText={favoriteButtonText}
+            />
             <Popover
                 placement="left-start"
                 isOpen={open}
@@ -103,6 +109,7 @@ FavoritesPanel.propTypes = {
     closeOnSelect: PropTypes.bool,
     // The current used favorite (can be saved with modified settings).
     currentFavoriteId: PropTypes.number,
+    favoriteButtonText: PropTypes.string,
     favorites: PropTypes.arrayOf(PropTypes.shape({
         id: PropTypes.any,
         name: PropTypes.string,
@@ -123,6 +130,7 @@ FavoritesPanel.propTypes = {
 FavoritesPanel.defaultProps = {
     closeOnSelect: true,
     currentFavoriteId: 0,
+    favoriteButtonText: undefined,
     favorites: [],
     htmlId: 'favoritesPopover',
     isModified: false,
