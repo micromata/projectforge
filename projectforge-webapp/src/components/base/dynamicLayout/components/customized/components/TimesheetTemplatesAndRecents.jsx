@@ -4,7 +4,7 @@ import FavoritesPanel from '../../../../../../containers/panel/favorite/Favorite
 import { getServiceURL, handleHTTPErrors } from '../../../../../../utilities/rest';
 
 function TimesheetTemplatesAndRecents() {
-    const { ui, variables } = React.useContext(DynamicLayoutContext);
+    const { ui, variables, data } = React.useContext(DynamicLayoutContext);
     const [
         timesheetFavorites,
         setTimesheetFavorites,
@@ -24,9 +24,22 @@ function TimesheetTemplatesAndRecents() {
         .then(setTimesheetFavorites)
         .catch(error => alert(`Internal error: ${error}`));
 
-    // @Fin: Bei Create müsste eigentlich auch das aktuelle Formular zum Server gesendet werden, damit
-    // ein neuer Favorit serverseitig gespeichert werden kann.
-    const handleFavoriteCreate = newFilterName => fetchTimesheetFavorites('timesheet/favorites/create', { newFilterName });
+    const handleFavoriteCreate = (newFilterName) => {
+        fetch(getServiceURL('timesheet/favorites/create'), {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                name: newFilterName,
+                timesheet: data,
+            }),
+        })
+            .then(response => response.json())
+            .then(setTimesheetFavorites)
+            .catch(error => alert(`Internal error: ${error}`));
+    };
 
     // @Fin: Die zurückgebene Liste der Favoriten wird nicht in setTimesheetFavorites aktualisiert. Der gelöschte
     // Eintrag bleibt in der Liste. Erst wenn ich die Seite neu lade, stimmt die Liste wieder.
