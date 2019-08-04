@@ -12,7 +12,7 @@ import { connect } from 'react-redux';
 import { Route } from 'react-router-dom';
 import LoadingContainer from '../../../components/design/loading-container';
 import history from '../../../utilities/history';
-import { getServiceURL } from '../../../utilities/rest';
+import { fetchJsonGet, fetchJsonPost } from '../../../utilities/rest';
 import EditModal from '../../page/edit/EditModal';
 import {
     dayStyle,
@@ -26,6 +26,12 @@ import CalendarToolBar from './CalendarToolBar';
 const localizer = momentLocalizer(moment);
 
 const DragAndDropCalendar = withDragAndDrop(Calendar);
+
+const convertJsonDates = e => Object.assign({}, e, {
+    start: new Date(e.start),
+    end: new Date(e.end),
+});
+
 
 class CalendarPanel extends React.Component {
     constructor(props) {
@@ -63,7 +69,6 @@ class CalendarPanel extends React.Component {
         this.onSelectEvent = this.onSelectEvent.bind(this);
         this.onNavigate = this.onNavigate.bind(this);
         this.onView = this.onView.bind(this);
-        this.convertJsonDates = this.convertJsonDates.bind(this);
     }
 
     componentDidMount() {
@@ -173,32 +178,18 @@ class CalendarPanel extends React.Component {
         const { calendar } = this.state;
         const { match } = this.props;
 
-        fetch(getServiceURL('calendar/action', {
-            action: 'select',
-            start: slotInfo.start ? slotInfo.start.toJSON() : '',
-            end: slotInfo.end ? slotInfo.end.toJSON() : '',
-            calendar,
-        }), {
-            method: 'GET',
-            credentials: 'include',
-            headers: {
-                Accept: 'application/json',
-            },
-        })
-            .then(response => response.json())
-            .then((json) => {
+        fetchJsonGet('calendar/action',
+            (json) => {
                 const { variables } = json;
 
                 history.push(`${match.url}/${variables.category}/edit/?startDate=${variables.startDate}&endDate=${variables.endDate}`);
-            })
-            .catch(error => alert(`Internal error: ${error}`));
-    }
-
-    convertJsonDates(e) {
-        return Object.assign({}, e, {
-            start: new Date(e.start),
-            end: new Date(e.end),
-        });
+            },
+            {
+                action: 'select',
+                start: slotInfo.start ? slotInfo.start.toJSON() : '',
+                end: slotInfo.end ? slotInfo.end.toJSON() : '',
+                calendar,
+            });
     }
 
     eventStyle(event) {
@@ -234,13 +225,18 @@ class CalendarPanel extends React.Component {
         const { activeCalendars, timesheetUserId } = this.props;
         const activeCalendarIds = activeCalendars ? activeCalendars.map(obj => obj.id) : [];
         this.setState({ loading: true });
-        fetch(getServiceURL('calendar/events'), {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
+        fetchJsonPost('calendar/events',
+            (json) => {
+                const { events, specialDays } = json;
+                this.setState(
+                    {
+                        loading: false,
+                        events: events.map(convertJsonDates),
+                        specialDays,
+                    },
+                );
             },
-            body: JSON.stringify({
+            {
                 start,
                 end,
                 view,
@@ -253,19 +249,9 @@ class CalendarPanel extends React.Component {
                 // dates start and end. They will be converted by using the browser's timezone.
                 // With this timeZone, the server is able to detect the correct start-end
                 // interval of the requested events.
-                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            }),
-        })
-            .then(response => response.json())
-            .then((json) => {
-                const { events, specialDays } = json;
-                this.setState({
-                    loading: false,
-                    events: events.map(this.convertJsonDates),
-                    specialDays,
-                });
-            })
-            .catch(error => alert(`Internal error: ${error}`));
+                timeZone: Intl.DateTimeFormat()
+                    .resolvedOptions().timeZone,
+            });
     }
 
     render() {
