@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome/index';
 import { faCog } from '@fortawesome/free-solid-svg-icons';
 import style from '../../../components/design/input/Input.module.scss';
 import ReactSelect from '../../../components/design/ReactSelect';
-import { fetchGet, getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
+import { fetchGet } from '../../../utilities/rest';
 import UserSelect from '../../../components/base/page/layout/UserSelect';
 
 /**
@@ -24,24 +24,16 @@ class CalendarFilterSettings extends Component {
         };
 
         this.handleDefaultCalendarChange = this.handleDefaultCalendarChange.bind(this);
-        this.onTimesheetUserChange = this.onTimesheetUserChange.bind(this);
+        this.handleTimesheetUserChange = this.handleTimesheetUserChange.bind(this);
         this.togglePopover = this.togglePopover.bind(this);
     }
 
-    onTimesheetUserChange(user) {
+    handleTimesheetUserChange(user) {
         const { onTimesheetUserChange } = this.props;
         const userId = user ? user.id : undefined;
-        fetch(getServiceURL('calendar/changeTimesheetUser',
-            { userId }), {
-            method: 'GET',
-            credentials: 'include',
-            headers: {
-                Accept: 'application/json',
-            },
-        })
-            .then(handleHTTPErrors)
-            .then(() => onTimesheetUserChange(user))
-            .catch(error => alert(`Internal error: ${error}`));
+        fetchGet('calendar/changeTimesheetUser',
+            () => onTimesheetUserChange(user),
+            { userId });
     }
 
     handleDefaultCalendarChange(value) {
@@ -109,7 +101,7 @@ class CalendarFilterSettings extends Component {
                             <Row>
                                 <Col>
                                     <UserSelect
-                                        onChange={this.onTimesheetUserChange}
+                                        onChange={this.handleTimesheetUserChange}
                                         value={timesheetUser}
                                         label={translations['timesheet.user']}
                                         translations={translations}
