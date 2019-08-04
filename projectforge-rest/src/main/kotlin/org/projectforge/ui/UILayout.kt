@@ -33,6 +33,10 @@ class UILayout {
     }
 
     var title: String?
+    /**
+     * Should only be true for edit pages, if history entries are supported or given (normally not, if editing new entries).
+     */
+    var showHistory: Boolean? = null
     val layout: MutableList<UIElement> = mutableListOf()
     val namedContainers: MutableList<UINamedContainer> = mutableListOf()
     /**
@@ -51,7 +55,7 @@ class UILayout {
      * @param i18nKey The translation i18n key. The translation for the logged-in-user will be added.
      * @return this for chaining.
      */
-    fun addTranslations(translations : Map<String, String>): UILayout {
+    fun addTranslations(translations: Map<String, String>): UILayout {
         this.translations.putAll(translations)
         return this
     }
