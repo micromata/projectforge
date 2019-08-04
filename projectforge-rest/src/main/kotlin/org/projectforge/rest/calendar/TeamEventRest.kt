@@ -34,8 +34,8 @@ import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.TimesheetRest
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractBaseRest
-import org.projectforge.rest.core.AbstractDORest
+import org.projectforge.rest.core.AbstractDTORest
+import org.projectforge.rest.dto.TeamEvent
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestBody
@@ -45,7 +45,7 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/teamEvent")
-class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao>(
+class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
         TeamEventDao::class.java,
         "plugins.teamcal.event.title") {
 
@@ -60,7 +60,19 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao>(
     @Autowired
     private lateinit var teamEventExternalSubscriptionCache: TeamEventExternalSubscriptionCache
 
-    override fun onGetItemAndLayout(request: HttpServletRequest, dto: TeamEventDO, editLayoutData: AbstractBaseRest.EditLayoutData) {
+    override fun transformForDB(dto: TeamEvent): TeamEventDO {
+        val teamEventDO = TeamEventDO()
+        dto.copyTo(teamEventDO)
+        return teamEventDO
+    }
+
+    override fun transformFromDB(obj: TeamEventDO, editMode: Boolean): TeamEvent {
+        val teamEvent = TeamEvent()
+        teamEvent.copyFrom(obj)
+        return teamEvent
+    }
+
+    override fun onGetItemAndLayout(request: HttpServletRequest, dto: TeamEvent, editLayoutData: EditLayoutData) {
         val recurrentDateString = request.getParameter("recurrentDate")
         println("TeamEventRest: recurrentDate=$recurrentDateString")
         val startDateAsSeconds = NumberHelper.parseLong(request.getParameter("startDate"))
@@ -70,7 +82,7 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao>(
         super.onGetItemAndLayout(request, dto, editLayoutData)
     }
 
-    override fun beforeSaveOrUpdate(request: HttpServletRequest, obj: TeamEventDO, dto: TeamEventDO) {
+    override fun beforeSaveOrUpdate(request: HttpServletRequest, obj: TeamEventDO, dto: TeamEvent) {
         if (obj.calendarId != null) {
             // Calendar from client has only id and title. Get the calendar object from the data base (e. g. owner
             // is needed by the access checker.
@@ -78,20 +90,20 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao>(
         }
     }
 
-    override fun afterEdit(obj: TeamEventDO, dto: TeamEventDO): ResponseAction {
+    override fun afterEdit(obj: TeamEventDO, dto: TeamEvent): ResponseAction {
         return ResponseAction("/calendar")
                 .addVariable("date", obj.startDate)
                 .addVariable("id", obj.id ?: -1)
     }
 
-    override fun getById(idString: String?, editMode: Boolean): TeamEventDO? {
+    override fun getById(idString: String?, editMode: Boolean): TeamEvent? {
         if (idString.isNullOrBlank())
-            return TeamEventDO()
+            return TeamEvent()
         if (idString.contains('-')) { // {calendarId}-{uid}
             val vals = idString.split('-', limit = 2)
             if (vals.size != 2) {
                 log.error("Can't get event of subscribed calendar. id must be of form {calId}-{uid} but is '$idString'.")
-                return TeamEventDO()
+                return TeamEvent()
             }
             try {
                 val calId = vals[0].toInt()
@@ -99,16 +111,18 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao>(
                 val cal = teamCalDao.getById(calId)
                 if (cal == null) {
                     log.error("Can't get calendar with id #$calId.")
-                    return TeamEventDO()
+                    return TeamEvent()
                 }
                 if (!cal.externalSubscription) {
                     log.error("Calendar with id #$calId is not an external subscription, can't get event by uid.")
-                    return TeamEventDO()
+                    return TeamEvent()
                 }
-                return teamEventExternalSubscriptionCache.getEvent(calId, uid)
+                val teamEvent = TeamEvent()
+                teamEvent.copyFrom(teamEventExternalSubscriptionCache.getEvent(calId, uid))
+                return teamEvent
             } catch (ex: NumberFormatException) {
                 log.error("Can't get event of subscribed calendar. id must be of form {calId}-{uid} but is '$idString', a NumberFormatException occured.")
-                return TeamEventDO()
+                return TeamEvent()
             }
         }
         return super.getById(idString, editMode)
@@ -125,7 +139,7 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao>(
     }
 
     fun cloneFromTimesheet(request: HttpServletRequest, timesheet: TimesheetDO): ResponseAction {
-        val teamEvent = TeamEventDO()
+        val teamEvent = TeamEvent()
         teamEvent.startDate = timesheet.startTime
         teamEvent.endDate = timesheet.stopTime
         teamEvent.location = timesheet.location
@@ -147,10 +161,7 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao>(
         return LayoutUtils.processListPage(layout, this)
     }
 
-    /**
-     * LAYOUT Edit page
-     */
-    override fun createEditLayout(dto: TeamEventDO): UILayout {
+    override fun createEditLayout(dto: TeamEvent): UILayout {
         val calendars = teamCalDao.getAllCalendarsWithFullAccess()
         val calendarSelectValues = calendars.map { it ->
             UISelectValue<Int>(it.id, it.title!!)
@@ -159,7 +170,7 @@ class TeamEventRest() : AbstractDORest<TeamEventDO, TeamEventDao>(
         subject.focus = true
         val layout = super.createEditLayout(dto)
         //layout.addAction(UIButton("switchToTimesheet", style = UIStyle.PRIMARY, default = true))
-        if (dto.hasRecurrence()) {
+        if (dto.hasRecurrence) {
             layout.add(UIFieldset(12, title = "plugins.teamcal.event.recurrence.change.text")
                     .add(UIGroup()
                             .add(UIRadioButton("all", "selection", label = "plugins.teamcal.event.recurrence.change.text.all"))
