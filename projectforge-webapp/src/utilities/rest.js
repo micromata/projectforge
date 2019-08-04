@@ -34,7 +34,7 @@ export const fetchJsonGet = (url, callback, params = undefined) => fetch(
 )
     .then(handleHTTPErrors)
     .then(response => response.json())
-    .then(callback)
+    .then(json => callback(json))
     .catch(error => alert(`Internal error: ${error}`));
 
 export const fetchJsonPost = (url, callback, value) => fetch(
@@ -49,7 +49,7 @@ export const fetchJsonPost = (url, callback, value) => fetch(
 )
     .then(handleHTTPErrors)
     .then(response => response.json())
-    .then(callback)
+    .then(json => callback(json))
     .catch(error => alert(`Internal error: ${error}`));
 
 export const getObjectFromQuery = query => (
