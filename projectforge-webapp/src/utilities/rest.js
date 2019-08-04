@@ -52,6 +52,16 @@ export const fetchJsonPost = (url, callback, value) => fetch(
     .then(json => callback(json))
     .catch(error => alert(`Internal error: ${error}`));
 
+export const fetchGet = (url, callback, params = undefined) => fetch(
+    getServiceURL(url, params), {
+        method: 'GET',
+        credentials: 'include',
+    },
+)
+    .then(handleHTTPErrors)
+    .then(() => callback())
+    .catch(error => alert(`Internal error: ${error}`));
+
 export const getObjectFromQuery = query => (
     query
     // get each param in 'key=value' format

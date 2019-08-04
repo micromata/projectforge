@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome/index';
 import { faCog } from '@fortawesome/free-solid-svg-icons';
 import style from '../../../components/design/input/Input.module.scss';
 import ReactSelect from '../../../components/design/ReactSelect';
-import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
+import { fetchGet, getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import UserSelect from '../../../components/base/page/layout/UserSelect';
 
 /**
@@ -23,22 +23,9 @@ class CalendarFilterSettings extends Component {
             popoverOpen: false,
         };
 
-        this.onDefaultCalendarChange = this.onDefaultCalendarChange.bind(this);
+        this.handleDefaultCalendarChange = this.handleDefaultCalendarChange.bind(this);
         this.onTimesheetUserChange = this.onTimesheetUserChange.bind(this);
         this.togglePopover = this.togglePopover.bind(this);
-    }
-
-    onDefaultCalendarChange(value) {
-        const { onDefaultCalendarChange } = this.props;
-        const id = value ? value.id : '';
-        fetch(getServiceURL('calendar/changeDefaultCalendar',
-            { id }), {
-            method: 'GET',
-            credentials: 'include',
-        })
-            .then(handleHTTPErrors)
-            .then(() => onDefaultCalendarChange(id))
-            .catch(error => alert(`Internal error: ${error}`));
     }
 
     onTimesheetUserChange(user) {
@@ -55,6 +42,14 @@ class CalendarFilterSettings extends Component {
             .then(handleHTTPErrors)
             .then(() => onTimesheetUserChange(user))
             .catch(error => alert(`Internal error: ${error}`));
+    }
+
+    handleDefaultCalendarChange(value) {
+        const { onDefaultCalendarChange } = this.props;
+        const id = value ? value.id : '';
+        fetchGet('calendar/changeDefaultCalendar',
+            () => onDefaultCalendarChange(id),
+            { id });
     }
 
     togglePopover() {
@@ -107,7 +102,7 @@ class CalendarFilterSettings extends Component {
                                         translations={translations}
                                         valueProperty="id"
                                         labelProperty="title"
-                                        onChange={this.onDefaultCalendarChange}
+                                        onChange={this.handleDefaultCalendarChange}
                                     />
                                 </Col>
                             </Row>
