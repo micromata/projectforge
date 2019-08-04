@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { connect } from 'react-redux';
 import { DynamicLayoutContext } from '../../../context';
 import ConsumptionBar from '../../../../../../containers/panel/task/ConsumptionBar';
 
@@ -10,10 +9,12 @@ function CustomizedConsumptionBar() {
     return React.useMemo(
         () => {
             const { consumption } = variables.task;
+            const { taskId } = variables;
             // Ignore task id to prevent clickable consumption bar.
             return (
                 <ConsumptionBar
                     progress={consumption}
+                    taskId={taskId}
                 />
             );
         },
@@ -22,8 +23,18 @@ function CustomizedConsumptionBar() {
 }
 
 CustomizedConsumptionBar.propTypes = {
+    progress: PropTypes.shape({
+        title: PropTypes.string,
+        status: PropTypes.string,
+        width: PropTypes.string,
+        id: PropTypes.number,
+    }),
+    taskId: PropTypes.number,
 };
 
-CustomizedConsumptionBar.defaultProps = {};
+CustomizedConsumptionBar.defaultProps = {
+    progress: undefined,
+    taskId: undefined,
+};
 
 export default CustomizedConsumptionBar;
