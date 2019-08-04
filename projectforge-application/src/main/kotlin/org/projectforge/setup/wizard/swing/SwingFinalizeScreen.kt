@@ -36,8 +36,6 @@ import java.io.File
 import java.text.NumberFormat
 import javax.swing.*
 
-
-
 class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(context, "Finishing the directory setup") {
     private val log = org.slf4j.LoggerFactory.getLogger(SwingFinalizeScreen::class.java)
 
@@ -63,17 +61,16 @@ class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(
 
         var y = -1
 
-        val path = context.setupData.applicationHomeDir ?: File(".")
         dirTextField = JTextField("")
         panel.add(JLabel("Directory"), constraints(0, ++y))
         panel.add(dirTextField, constraints(1, y, width = 2, weightx = 1.0, fill = GridBagConstraints.HORIZONTAL))
         dirTextField.addFocusListener(object : FocusListener {
             override fun focusGained(e: FocusEvent?) {
-                dirStateLabel.setText(FinalizeScreenSupport.getDirText(CanonicalFileUtils.absolute(dirTextField.text.trim())))
+                dirStateLabel.text = FinalizeScreenSupport.getDirText(CanonicalFileUtils.absolute(dirTextField.text.trim()))
             }
 
             override fun focusLost(e: FocusEvent?) {
-                dirStateLabel.setText(FinalizeScreenSupport.getDirText(CanonicalFileUtils.absolute(dirTextField.text.trim())))
+                dirStateLabel.text = FinalizeScreenSupport.getDirText(CanonicalFileUtils.absolute(dirTextField.text.trim()))
             }
         })
 
@@ -83,7 +80,7 @@ class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(
         panel.add(JLabel(""), constraints(0, ++y))
 
         val nf = NumberFormat.getInstance()
-        nf.setGroupingUsed(false)
+        nf.isGroupingUsed = false
         portTextField = JFormattedTextField(nf)
         portTextField.columns = 5
         portTextField.text = "8080"
@@ -95,13 +92,13 @@ class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(
         databaseCombobox = JComboBox()
         FinalizeScreenSupport.listOfDatabases.forEach { databaseCombobox.addItem(it.label) }
         databaseCombobox.addItemListener { event ->
-            if (event.stateChange === ItemEvent.SELECTED) {
+            if (event.stateChange == ItemEvent.SELECTED) {
                 if (databaseCombobox.selectedIndex > 0) {
                     jdbcSettingsButton.setEnabled(true)
                     showJdbcSettingsDialog()
                     context.setupData.useEmbeddedDatabase = false
                 } else {
-                    jdbcSettingsButton.setEnabled(false)
+                    jdbcSettingsButton.isEnabled= false
                     context.setupData.useEmbeddedDatabase = true
                 }
             }
@@ -110,7 +107,7 @@ class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(
         jdbcSettingsButton.addActionListener {
             showJdbcSettingsDialog()
         }
-        jdbcSettingsButton.setEnabled(false)
+        jdbcSettingsButton.isEnabled = false
         panel.add(JLabel(Texts.DATABASE), constraints(0, ++y))
         panel.add(databaseCombobox, constraints(1, y))
         panel.add(jdbcSettingsButton, constraints(2, y))
@@ -186,18 +183,27 @@ class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(
 
 
     override fun redraw() {
+        val enabled = !FinalizeScreenSupport.configFileAlreadyExists(context.setupData.applicationHomeDir)
         if (context.setupData.jdbcSettings != null && !context.setupData.useEmbeddedDatabase) {
             // PostgreSQL
             databaseCombobox.selectedIndex = 1
-            jdbcSettingsButton.setEnabled(true)
+            jdbcSettingsButton.isEnabled = enabled
         } else {
             // embedded
             databaseCombobox.selectedIndex = 0
-            jdbcSettingsButton.setEnabled(false)
+            jdbcSettingsButton.isEnabled = false
         }
+        portTextField.isEnabled = enabled
+        databaseCombobox.isEnabled = enabled
+        currencyTextField.isEnabled = enabled
+        defaultLocaleCombobox.isEnabled = enabled
+        defaultTimeNotationCombobox.isEnabled = enabled
+        defaultFirstDayOfWeekCombobox.isEnabled = enabled
+        developmentCheckBox.isEnabled = enabled
+
         val dir = context.setupData.applicationHomeDir ?: File(System.getProperty("user.home"), "ProjectForge")
         dirTextField.text = CanonicalFileUtils.absolutePath(dir)
-        dirStateLabel.setText(FinalizeScreenSupport.getDirText(context.setupData.applicationHomeDir))
+        dirStateLabel.text = FinalizeScreenSupport.getDirText(context.setupData.applicationHomeDir)
         hintLabel.text = SwingUtils.convertToMultilineLabel(FinalizeScreenSupport.getInfoText(portTextField.text, dir))
     }
 
