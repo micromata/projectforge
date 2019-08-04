@@ -255,6 +255,7 @@ function EditPage({ match, location }) {
                                                 category={category}
                                                 id={id}
                                                 translations={ui.translations}
+                                                visible={tabMatch.params.tab === 'history'}
                                             />
                                         </Container>
                                     </TabPane>
