@@ -32,16 +32,16 @@ class CalendarFilterSettings extends Component {
         const { onTimesheetUserChange } = this.props;
         const userId = user ? user.id : undefined;
         fetchGet('calendar/changeTimesheetUser',
-            () => onTimesheetUserChange(user),
-            { userId });
+            { userId },
+            () => onTimesheetUserChange(user));
     }
 
     handleDefaultCalendarChange(value) {
         const { onDefaultCalendarChange } = this.props;
         const id = value ? value.id : '';
         fetchGet('calendar/changeDefaultCalendar',
-            () => onDefaultCalendarChange(id),
-            { id });
+            { id },
+            () => onDefaultCalendarChange(id));
     }
 
     togglePopover() {

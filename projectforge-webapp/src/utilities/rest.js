@@ -23,7 +23,7 @@ export const handleHTTPErrors = (response) => {
     return response;
 };
 
-export const fetchJsonGet = (url, callback, params = undefined) => fetch(
+export const fetchJsonGet = (url, params, callback) => fetch(
     getServiceURL(url, params), {
         method: 'GET',
         credentials: 'include',
@@ -37,7 +37,7 @@ export const fetchJsonGet = (url, callback, params = undefined) => fetch(
     .then(json => callback(json))
     .catch(error => alert(`Internal error: ${error}`));
 
-export const fetchJsonPost = (url, callback, value) => fetch(
+export const fetchJsonPost = (url, value, callback) => fetch(
     getServiceURL(url), {
         method: 'POST',
         credentials: 'include',
@@ -52,7 +52,7 @@ export const fetchJsonPost = (url, callback, value) => fetch(
     .then(json => callback(json))
     .catch(error => alert(`Internal error: ${error}`));
 
-export const fetchGet = (url, callback, params = undefined) => fetch(
+export const fetchGet = (url, params, callback) => fetch(
     getServiceURL(url, params), {
         method: 'GET',
         credentials: 'include',

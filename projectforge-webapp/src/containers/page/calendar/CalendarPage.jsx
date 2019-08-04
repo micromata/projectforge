@@ -72,37 +72,38 @@ class CalendarPage extends React.Component {
 
     onFavoriteCreate(newFilterName) {
         fetchJsonGet('calendar/createNewFilter',
-            this.saveUpdateResponseInState,
-            { newFilterName });
+            { newFilterName },
+            this.saveUpdateResponseInState);
     }
 
     onFavoriteDelete(id) {
         fetchJsonGet('calendar/deleteFilter',
-            this.saveUpdateResponseInState,
-            { id });
+            { id },
+            this.saveUpdateResponseInState);
     }
 
     onFavoriteSelect(id) {
         fetchJsonGet('calendar/selectFilter',
-            this.saveUpdateResponseInState,
-            { id });
+            { id },
+            this.saveUpdateResponseInState);
     }
 
     onFavoriteRename(id, newName) {
         fetchJsonGet('calendar/renameFilter',
-            this.saveUpdateResponseInState,
-            { id, newName });
+            { id, newName },
+            this.saveUpdateResponseInState);
     }
 
     onFavoriteUpdate(id) {
         fetchJsonGet('calendar/updateFilter',
-            this.saveUpdateResponseInState,
-            { id });
+            { id },
+            this.saveUpdateResponseInState);
     }
 
     fetchInitial() {
         this.setState({ loading: true });
         fetchJsonGet('calendar/initial',
+            undefined,
             this.saveUpdateResponseInState);
     }
 
