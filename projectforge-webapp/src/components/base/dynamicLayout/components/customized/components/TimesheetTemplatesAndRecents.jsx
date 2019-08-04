@@ -25,6 +25,7 @@ function TimesheetTemplatesAndRecents() {
         .catch(error => alert(`Internal error: ${error}`));
 
     const handleFavoriteCreate = (newFilterName) => {
+        console.log(data); // @Fin: Leider sind das nicht die aktuellen Daten der Form :-(
         fetch(getServiceURL('timesheet/favorites/create'), {
             method: 'POST',
             credentials: 'include',
@@ -45,31 +46,32 @@ function TimesheetTemplatesAndRecents() {
     // Eintrag bleibt in der Liste. Erst wenn ich die Seite neu lade, stimmt die Liste wieder.
     const handleFavoriteDelete = id => fetchTimesheetFavorites('timesheet/favorites/delete', { id });
 
-    // @Fin: Hier soll das Edit-Page-Model geändert werden, allerdings nur in den Feldern, die auch kommen.
-    // Wenn z. B. Description undefinied ist, soll die vorhandene Description nicht überschrieben werden.
+    // @Fin: Hier soll das Edit-Page-Model geändert werden.
     const saveUpdateResponseInState = (json) => {
+        console.log(json);
         const newState = {
             ...json,
         };
         this.setState(newState);
     };
 
-    // @Fin: hier würde ich am liebsten auch die aktuellen Data-Felder mitsenden, um serverseitig
-    // entscheiden zu können, was ich überschreibe (Kost2, Location etc.)
-    // Kann dieser Call auch fetchTimesheetFavorites aufrufen? Dann müssen ggf. alle Callees
-    // noch ein Callable mitgeben (saveUpdateResponseInState bzw. setTimesheetFavorites).
-    const handleFavoriteSelect = id => fetch(getServiceURL('timesheet/favorites/select',
-        { id }), {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-            Accept: 'application/json',
-        },
-    })
-        .then(handleHTTPErrors)
-        .then(response => response.json())
-        .then(saveUpdateResponseInState)
-        .catch(error => alert(`Internal error: ${error}`));
+    const handleFavoriteSelect = (id) => {
+        console.log(data); // @Fin: Leider sind das nicht die aktuellen Daten der Form :-(
+        fetch(getServiceURL('timesheet/favorites/select'), {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                id,
+                timesheet: data,
+            }),
+        })
+            .then(response => response.json())
+            .then(saveUpdateResponseInState)
+            .catch(error => alert(`Internal error: ${error}`));
+    };
 
     const handleFavoriteRename = (favoriteId, newName) => fetchTimesheetFavorites('timesheet/favorites/rename',
         {
