@@ -104,7 +104,7 @@ function FavoriteEntry(
                             tooltip={translations.delete}
                         />
                     ) : undefined}
-                    {currentFavoriteId === id ? (
+                    {onFavoriteUpdate && currentFavoriteId === id ? (
                         <FavoriteActionButton
                             className={style.syncIcon}
                             icon={isModified ? faSync : faCheck}
