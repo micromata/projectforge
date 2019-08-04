@@ -39,6 +39,11 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("${Rest.URL}/timesheet/favorites")
 class TimesheetFavoritesRest {
+    /**
+     * Only for rest call to create a new timesheet favorite.
+     */
+    class NewTimesheetFavorite(var name: String, var timesheet: TimesheetDO)
+
     @Autowired
     private lateinit var timsheetFavoritesService: TimesheetFavoritesService
 
@@ -58,8 +63,11 @@ class TimesheetFavoritesRest {
      * @return new list of favorites.
      */
     @RequestMapping("create")
-    fun new(@RequestBody newFavorite: TimesheetFavorite): Map<String, Any> {
-        timsheetFavoritesService.createFavorite(newFavorite)
+    fun new(@RequestBody newFavorite: NewTimesheetFavorite): Map<String, Any> {
+        val favorite = TimesheetFavorite()
+        favorite.name = newFavorite.name
+        favorite.fillFromTimesheet(newFavorite.timesheet)
+        timsheetFavoritesService.createFavorite(favorite)
         return mapOf("timesheetFavorites" to getList())
     }
 
