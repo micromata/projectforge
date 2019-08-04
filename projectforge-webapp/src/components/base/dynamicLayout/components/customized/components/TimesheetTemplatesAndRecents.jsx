@@ -1,7 +1,7 @@
 import React from 'react';
 import { DynamicLayoutContext } from '../../../context';
 import FavoritesPanel from '../../../../../../containers/panel/favorite/FavoritesPanel';
-import { getServiceURL, handleHTTPErrors } from '../../../../../../utilities/rest';
+import { fetchJsonGet, fetchJsonPost } from '../../../../../../utilities/rest';
 
 function TimesheetTemplatesAndRecents() {
     const { ui, variables, data } = React.useContext(DynamicLayoutContext);
@@ -10,41 +10,18 @@ function TimesheetTemplatesAndRecents() {
         setTimesheetFavorites,
     ] = React.useState(variables.timesheetFavorites);
 
-    const fetchTimesheetFavorites = (url, params = undefined) => fetch(
-        getServiceURL(url, params), {
-            method: 'GET',
-            credentials: 'include',
-            headers: {
-                Accept: 'application/json',
-            },
-        },
-    )
-        .then(handleHTTPErrors)
-        .then(response => response.json())
-        .then(setTimesheetFavorites)
-        .catch(error => alert(`Internal error: ${error}`));
-
-    const handleFavoriteCreate = (newFilterName) => {
-        console.log(data); // @Fin: Leider sind das nicht die aktuellen Daten der Form :-(
-        fetch(getServiceURL('timesheet/favorites/create'), {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                name: newFilterName,
-                timesheet: data,
-            }),
-        })
-            .then(response => response.json())
-            .then(setTimesheetFavorites)
-            .catch(error => alert(`Internal error: ${error}`));
-    };
+    const handleFavoriteCreate = (newFilterName) => fetchJsonPost('timesheet/favorites/create',
+        setTimesheetFavorites,
+        {
+            name: newFilterName,
+            timesheet: data,
+        });
 
     // @Fin: Die zurückgebene Liste der Favoriten wird nicht in setTimesheetFavorites aktualisiert. Der gelöschte
     // Eintrag bleibt in der Liste. Erst wenn ich die Seite neu lade, stimmt die Liste wieder.
-    const handleFavoriteDelete = id => fetchTimesheetFavorites('timesheet/favorites/delete', { id });
+    const handleFavoriteDelete = id => fetchJsonGet('timesheet/favorites/delete',
+        setTimesheetFavorites,
+        { id });
 
     // @Fin: Hier soll das Edit-Page-Model geändert werden.
     const saveUpdateResponseInState = (json) => {
@@ -55,25 +32,14 @@ function TimesheetTemplatesAndRecents() {
         this.setState(newState);
     };
 
-    const handleFavoriteSelect = (id) => {
-        console.log(data); // @Fin: Leider sind das nicht die aktuellen Daten der Form :-(
-        fetch(getServiceURL('timesheet/favorites/select'), {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                id,
-                timesheet: data,
-            }),
-        })
-            .then(response => response.json())
-            .then(saveUpdateResponseInState)
-            .catch(error => alert(`Internal error: ${error}`));
-    };
+    const handleFavoriteSelect = id => fetchJsonPost('timesheet/favorites/select', saveUpdateResponseInState,
+        {
+            id,
+            timesheet: data,
+        });
 
-    const handleFavoriteRename = (favoriteId, newName) => fetchTimesheetFavorites('timesheet/favorites/rename',
+    const handleFavoriteRename = (favoriteId, newName) => fetchJsonGet('timesheet/favorites/rename',
+        setTimesheetFavorites,
         {
             id: favoriteId,
             newName,

@@ -23,6 +23,35 @@ export const handleHTTPErrors = (response) => {
     return response;
 };
 
+export const fetchJsonGet = (url, callback, params = undefined) => fetch(
+    getServiceURL(url, params), {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+            Accept: 'application/json',
+        },
+    },
+)
+    .then(handleHTTPErrors)
+    .then(response => response.json())
+    .then(callback)
+    .catch(error => alert(`Internal error: ${error}`));
+
+export const fetchJsonPost = (url, callback, value) => fetch(
+    getServiceURL(url), {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(value),
+    },
+)
+    .then(handleHTTPErrors)
+    .then(response => response.json())
+    .then(callback)
+    .catch(error => alert(`Internal error: ${error}`));
+
 export const getObjectFromQuery = query => (
     query
     // get each param in 'key=value' format
