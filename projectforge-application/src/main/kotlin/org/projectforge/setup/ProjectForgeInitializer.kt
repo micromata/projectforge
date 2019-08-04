@@ -88,7 +88,7 @@ object ProjectForgeInitializer {
         counter = ensureConfigFile(applicationHomeDir,
                 AttrSchemaServiceSpringBeanImpl.CLASSPATH_INITIAL_ATTR_SCHEMA_CONFIG_FILE, AttrSchemaServiceSpringBeanImpl.ATTR_SCHEMA_CONFIG_FILE, counter, emphasizedLog)
         emphasizedLog.logEnd()
-        if (setupData.startServer == false) {
+        if (!setupData.startServer) {
             giveUpAndSystemExit("Initialization of ProjectForge's home directory done. Autostart wasn't selected. Please restart the server manually.")
         }
         return setupData.applicationHomeDir

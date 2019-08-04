@@ -27,6 +27,7 @@ import org.projectforge.framework.time.TimeNotation
 import org.projectforge.framework.utils.LabelValueBean
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.setup.SetupData
+import org.projectforge.start.ProjectForgeApplication
 import org.projectforge.start.ProjectForgeHomeFinder
 import java.io.File
 
@@ -58,7 +59,10 @@ object FinalizeScreenSupport {
             "Will be created and configured."
         else if (ProjectForgeHomeFinder.isProjectForgeSourceCodeRepository(dir))
             "This seems to be the source code repository. It's recommended to select another."
-        else "Exists and will be checked for configuration."
+        else if (configFileAlreadyExists(dir))
+            "Exists, existing config files will not be overwritten."
+        else
+            "Exists and will be checked for configuration."
     }
 
     fun getInfoText(portText: String, dir: File): String {
@@ -72,6 +76,10 @@ object FinalizeScreenSupport {
         }
         sb.append("Press 'Finish' for starting the intialization and for starting-up the server.")
         return sb.toString()
+    }
+
+    fun configFileAlreadyExists(baseDir: File?): Boolean {
+        return baseDir != null && File(baseDir, ProjectForgeApplication.PROPERTIES_FILENAME).exists()
     }
 
     val listOfLocales = listOf(
