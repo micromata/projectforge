@@ -44,6 +44,11 @@ class TimesheetFavoritesRest {
      */
     class NewTimesheetFavorite(var name: String, var timesheet: TimesheetDO)
 
+    /**
+     * Only for rest call to select a timesheet favorite.
+     */
+    class SelectTimesheetFavorite(var id: Int, var timesheet: TimesheetDO)
+
     @Autowired
     private lateinit var timsheetFavoritesService: TimesheetFavoritesService
 
@@ -59,7 +64,7 @@ class TimesheetFavoritesRest {
     }
 
     /**
-     * Adds new favorite timesheet with given id under the given name.
+     * Adds new favorite timesheet with given name.
      * @return new list of favorites.
      */
     @RequestMapping("create")
@@ -73,11 +78,10 @@ class TimesheetFavoritesRest {
 
     /**
      * Selects the timesheet favorite and prefills the edit data.
-     * @return taskId referenced by given favorite.
      */
-    @GetMapping("select")
-    fun select(@RequestParam("id", required = true) id: Int): Map<String, Any> {
-        val fav = timsheetFavoritesService.selectTimesheet(id) ?: return mapOf()
+    @RequestMapping("select")
+    fun select(@RequestBody selectFavorite: SelectTimesheetFavorite): Map<String, Any> {
+        val fav = timsheetFavoritesService.selectTimesheet(selectFavorite.id) ?: return mapOf()
         val timesheet = TimesheetDO()
         fav.copyToTimesheet(timesheet)
         if (timesheet.taskId != null) {
