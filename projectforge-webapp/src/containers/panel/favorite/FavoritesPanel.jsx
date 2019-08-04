@@ -129,7 +129,7 @@ FavoritesPanel.propTypes = {
 
 FavoritesPanel.defaultProps = {
     closeOnSelect: true,
-    currentFavoriteId: 0,
+    currentFavoriteId: -1,
     favoriteButtonText: undefined,
     favorites: [],
     htmlId: 'favoritesPopover',
