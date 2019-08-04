@@ -11,17 +11,17 @@ function TimesheetTemplatesAndRecents() {
     ] = React.useState(variables.timesheetFavorites);
 
     const handleFavoriteCreate = (newFilterName) => fetchJsonPost('timesheet/favorites/create',
-        setTimesheetFavorites,
         {
             name: newFilterName,
             timesheet: data,
-        });
+        },
+        setTimesheetFavorites);
 
     // @Fin: Die zurückgebene Liste der Favoriten wird nicht in setTimesheetFavorites aktualisiert. Der gelöschte
     // Eintrag bleibt in der Liste. Erst wenn ich die Seite neu lade, stimmt die Liste wieder.
     const handleFavoriteDelete = id => fetchJsonGet('timesheet/favorites/delete',
-        setTimesheetFavorites,
-        { id });
+        { id },
+        setTimesheetFavorites);
 
     // @Fin: Hier soll das Edit-Page-Model geändert werden.
     const saveUpdateResponseInState = (json) => {
@@ -32,18 +32,19 @@ function TimesheetTemplatesAndRecents() {
         this.setState(newState);
     };
 
-    const handleFavoriteSelect = id => fetchJsonPost('timesheet/favorites/select', saveUpdateResponseInState,
+    const handleFavoriteSelect = id => fetchJsonPost('timesheet/favorites/select',
         {
             id,
             timesheet: data,
-        });
+        },
+        saveUpdateResponseInState);
 
     const handleFavoriteRename = (favoriteId, newName) => fetchJsonGet('timesheet/favorites/rename',
-        setTimesheetFavorites,
         {
             id: favoriteId,
             newName,
-        });
+        },
+        setTimesheetFavorites);
 
     return React.useMemo(
         () => (

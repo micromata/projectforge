@@ -179,16 +179,16 @@ class CalendarPanel extends React.Component {
         const { match } = this.props;
 
         fetchJsonGet('calendar/action',
-            (json) => {
-                const { variables } = json;
-
-                history.push(`${match.url}/${variables.category}/edit/?startDate=${variables.startDate}&endDate=${variables.endDate}`);
-            },
             {
                 action: 'select',
                 start: slotInfo.start ? slotInfo.start.toJSON() : '',
                 end: slotInfo.end ? slotInfo.end.toJSON() : '',
                 calendar,
+            },
+            (json) => {
+                const { variables } = json;
+
+                history.push(`${match.url}/${variables.category}/edit/?startDate=${variables.startDate}&endDate=${variables.endDate}`);
             });
     }
 
@@ -226,16 +226,6 @@ class CalendarPanel extends React.Component {
         const activeCalendarIds = activeCalendars ? activeCalendars.map(obj => obj.id) : [];
         this.setState({ loading: true });
         fetchJsonPost('calendar/events',
-            (json) => {
-                const { events, specialDays } = json;
-                this.setState(
-                    {
-                        loading: false,
-                        events: events.map(convertJsonDates),
-                        specialDays,
-                    },
-                );
-            },
             {
                 start,
                 end,
@@ -251,7 +241,18 @@ class CalendarPanel extends React.Component {
                 // interval of the requested events.
                 timeZone: Intl.DateTimeFormat()
                     .resolvedOptions().timeZone,
-            });
+            },
+            (json) => {
+                const { events, specialDays } = json;
+                this.setState(
+                    {
+                        loading: false,
+                        events: events.map(convertJsonDates),
+                        specialDays,
+                    },
+                );
+            },
+        );
     }
 
     render() {
