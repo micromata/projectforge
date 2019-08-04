@@ -686,6 +686,8 @@ abstract class AbstractBaseRest<
 
     /**
      * Implement on how to transform objects from the data base (of type O, ExtendedBaseDO) to dto objects.
+     * @param obj The object to transform.
+     * @param editMode If true, this object will be prepared for editing by the user. (Used e. g. by [org.projectforge.rest.TeamCalRest].
      */
     abstract fun transformFromDB(obj: O, editMode: Boolean = false): DTO
 
