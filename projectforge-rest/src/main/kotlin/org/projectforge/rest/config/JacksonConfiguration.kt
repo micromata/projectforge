@@ -26,8 +26,12 @@ package org.projectforge.rest.config
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.PropertyAccessor
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.projectforge.business.address.AddressbookDO
@@ -43,6 +47,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.TenantDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.calendar.TeamCalDOSerializer
+import org.projectforge.rest.config.JacksonConfiguration.Companion.registerAllowedUnknownProperties
 import org.projectforge.rest.json.*
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -50,8 +55,35 @@ import java.math.BigDecimal
 import java.sql.Timestamp
 import java.time.LocalDate
 
+/**
+ * Base configuration of all Spring rest calls. Unknown properties not avoidable by the client might be registered through
+ * [registerAllowedUnknownProperties]. For example PFUserDO.fullname is provided as service for the clients, but is
+ * an unknown field by PFUserDO.
+ */
 @Configuration
 open class JacksonConfiguration {
+    companion object {
+        private val allowedUnknownProperties = mutableMapOf<Class<*>, MutableSet<String>>()
+
+        /**
+         * Properties (field) sent by any client and unknown by the server will result in an exception and BAD_REQUEST.
+         * In special cases you may add properties, which should be simply ignored.
+         */
+        fun registerAllowedUnknownProperties(clazz: Class<*>, vararg properties: String) {
+            synchronized(allowedUnknownProperties) {
+                val set = allowedUnknownProperties[clazz]
+                if (set == null) {
+                    allowedUnknownProperties[clazz] =  mutableSetOf(*properties)
+                } else {
+                    set.addAll(properties)
+                }
+            }
+        }
+
+        init {
+            registerAllowedUnknownProperties(PFUserDO::class.java, "fullname")
+        }
+    }
 
     @Bean
     open fun objectMapper(): ObjectMapper {
@@ -59,14 +91,25 @@ open class JacksonConfiguration {
         mapper.registerModule(KotlinModule())
         mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true)
         mapper.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false)
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true)
         //mapper.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, true)
         mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
         mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL)
 
-
-        val module = SimpleModule()
+        val module = object : SimpleModule() {
+            override fun setupModule(context: SetupContext) {
+                super.setupModule(context)
+                context.addDeserializationProblemHandler(object : DeserializationProblemHandler() {
+                    override fun handleUnknownProperty(ctxt: DeserializationContext?, p: JsonParser?, deserializer: JsonDeserializer<*>?, beanOrClass: Any?, propertyName: String?): Boolean {
+                        if (beanOrClass == null)
+                            return false
+                        val clazz = if (beanOrClass is Class<*>) beanOrClass else beanOrClass.javaClass
+                        return allowedUnknownProperties[clazz]?.contains(propertyName) ?: false
+                    }
+                })
+            }
+        }
         module.addSerializer(LocalDate::class.java, LocalDateSerializer())
         module.addDeserializer(LocalDate::class.java, LocalDateDeserializer())
 

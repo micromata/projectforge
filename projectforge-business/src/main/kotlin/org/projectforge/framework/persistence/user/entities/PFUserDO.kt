@@ -361,14 +361,6 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     }
 
     /**
-     * This setter does nothing. It's only a nop method for deserialization (do not fail on PFUserDO.fullname).
-     * @param ignore
-     */
-    @Suppress("unused")
-    fun setFullname(@Suppress("UNUSED_PARAMETER") ignore: String?) {
-    }
-
-    /**
      * @return The JIRA user name or if not given the user name (assuming that the JIRA user name is same as ProjectForge
      * user name).
      */

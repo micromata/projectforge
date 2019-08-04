@@ -23,6 +23,7 @@
 
 package org.projectforge.rest
 
+import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.business.teamcal.event.model.TeamEventDO
@@ -40,6 +41,7 @@ import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.calendar.TeamEventRest
+import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractBaseRest
 import org.projectforge.rest.core.AbstractDORest
@@ -63,6 +65,10 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
     companion object {
         private const val PREF_AREA = "timesheet"
         private const val PREF_EDIT_NAME = "edit.recent"
+
+        init {
+            JacksonConfiguration.registerAllowedUnknownProperties(Kost2DO::class.java, "title")
+        }
     }
 
     private val dateTimeFormatter = DateTimeFormatter.instance()
