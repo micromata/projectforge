@@ -68,7 +68,7 @@ class TimesheetFavoritesService {
         var favorites: Favorites<TimesheetFavorite>? = null
         try {
             @Suppress("UNCHECKED_CAST", "USELESS_ELVIS")
-            favorites = userPrefService.getEntry(PREF_AREA, Favorites.PREF_NAME_LIST, Favorites::class.java) as? Favorites<TimesheetFavorite>
+            favorites = userPrefService.getEntry(PREF_AREA, Favorites.PREF_NAME_LIST, Favorites::class.java) as Favorites<TimesheetFavorite>
                     ?: migrateFromLegacyFavorites()
         } catch (ex: Exception) {
             log.error("Exception while getting user preferred favorites: ${ex.message}. This might be OK for new releases. Ignoring filter.")

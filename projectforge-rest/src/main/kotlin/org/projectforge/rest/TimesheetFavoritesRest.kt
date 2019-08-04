@@ -23,9 +23,12 @@
 
 package org.projectforge.rest
 
+import org.projectforge.business.fibu.kost.Kost2Dao
+import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetFavorite
 import org.projectforge.business.timesheet.TimesheetFavoritesService
+import org.projectforge.business.user.service.UserService
 import org.projectforge.rest.config.Rest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
@@ -39,6 +42,11 @@ class TimesheetFavoritesRest {
     @Autowired
     private lateinit var timsheetFavoritesService: TimesheetFavoritesService
 
+    @Autowired
+    private lateinit var userService: UserService
+
+    @Autowired
+    private lateinit var kost2Dao: Kost2Dao
 
     @GetMapping("list")
     fun getList(): List<TimesheetFavorite> {
@@ -64,6 +72,17 @@ class TimesheetFavoritesRest {
         val fav = timsheetFavoritesService.selectTimesheet(id) ?: return mapOf()
         val timesheet = TimesheetDO()
         fav.copyToTimesheet(timesheet)
+        if (timesheet.taskId != null) {
+            timesheet.task = TaskTreeHelper.getTaskTree().getTaskById(timesheet.taskId)
+        }
+        if (timesheet.userId != null) {
+            timesheet.user = userService.getUser(timesheet.userId)
+        }
+        if (timesheet.kost2Id != null) {
+            // Load without check access. User needs now select access for using kost2.
+            val kost2 = kost2Dao.internalGetById(timesheet.kost2Id)
+            timesheet.kost2?.description = kost2?.description
+        }
         return mapOf("data" to timesheet)
     }
 
