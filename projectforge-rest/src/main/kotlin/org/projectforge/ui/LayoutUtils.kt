@@ -148,6 +148,7 @@ class LayoutUtils {
             if (restService.isHistorizable()) {
                 // 99% of the objects are historizable (undeletable):
                 if (restService.getId(dto) != null) {
+                    layout.showHistory = true
                     if (restService.isDeleted(dto))
                         layout.addAction(UIButton("undelete",
                                 color = UIColor.WARNING,

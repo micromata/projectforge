@@ -202,7 +202,7 @@ function EditPage({ match, location }) {
         },
     ];
 
-    if (id) {
+    if (ui.showHistory === true) {
         tabs.push({
             id: 'history',
             title: getTranslation('label.historyOfChanges', ui.translations),
@@ -247,7 +247,7 @@ function EditPage({ match, location }) {
                                     </form>
                                 </Container>
                             </TabPane>
-                            {id
+                            {ui.showHistory === true
                                 ? (
                                     <TabPane tabId="history">
                                         <Container fluid>
