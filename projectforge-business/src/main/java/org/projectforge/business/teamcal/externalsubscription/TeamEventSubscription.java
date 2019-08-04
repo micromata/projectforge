@@ -42,6 +42,7 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Holds and updates events of a subscribed calendar.
@@ -258,10 +259,21 @@ public class TeamEventSubscription implements Serializable
 
   public TeamEventDO getEvent(final String uid)
   {
-    if (subscription == null) {
+    if (StringUtils.isEmpty(uid)) {
       return null;
     }
-    return subscription.getEvent(uid);
+    if (subscription == null && recurrenceEvents == null) {
+      return null;
+    }
+    TeamEventDO teamEvent = subscription.getEvent(uid);
+    if (teamEvent != null) {
+      return teamEvent;
+    }
+    for (final TeamEventDO teamEventDO : recurrenceEvents) {
+      if (teamEventDO.getUid() != null && Objects.equals(uid, teamEventDO.getUid()))
+        return teamEventDO;
+    }
+    return null;
   }
 
   public List<TeamEventDO> getEvents(final Long startTime, final Long endTime, final boolean minimalAccess)
