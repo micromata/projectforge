@@ -5,7 +5,7 @@ import { Card, CardBody, Col, Row } from 'reactstrap';
 import EditableMultiValueLabel from '../../../components/design/EditableMultiValueLabel';
 import LoadingContainer from '../../../components/design/loading-container';
 import { getTranslation } from '../../../utilities/layout';
-import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
+import { fetchJsonGet } from '../../../utilities/rest';
 import CalendarFilterSettings from '../../panel/calendar/CalendarFilterSettings';
 import CalendarPanel from '../../panel/calendar/CalendarPanel';
 import FavoritesPanel from '../../panel/favorite/FavoritesPanel';
@@ -71,102 +71,39 @@ class CalendarPage extends React.Component {
     }
 
     onFavoriteCreate(newFilterName) {
-        fetch(getServiceURL('calendar/createNewFilter',
-            { newFilterName }), {
-            method: 'GET',
-            credentials: 'include',
-            headers: {
-                Accept: 'application/json',
-            },
-        })
-            .then(handleHTTPErrors)
-            .then(response => response.json())
-            .then(this.saveUpdateResponseInState)
-            .catch(error => alert(`Internal error: ${error}`));
+        fetchJsonGet('calendar/createNewFilter',
+            this.saveUpdateResponseInState,
+            { newFilterName });
     }
 
     onFavoriteDelete(id) {
-        fetch(getServiceURL('calendar/deleteFilter',
-            { id }), {
-            method: 'GET',
-            credentials: 'include',
-            headers: {
-                Accept: 'application/json',
-            },
-        })
-            .then(handleHTTPErrors)
-            .then(response => response.json())
-            .then(this.saveUpdateResponseInState)
-            .catch(error => alert(`Internal error: ${error}`));
+        fetchJsonGet('calendar/deleteFilter',
+            this.saveUpdateResponseInState,
+            { id });
     }
 
     onFavoriteSelect(id) {
-        fetch(getServiceURL('calendar/selectFilter',
-            { id }), {
-            method: 'GET',
-            credentials: 'include',
-            headers: {
-                Accept: 'application/json',
-            },
-        })
-            .then(handleHTTPErrors)
-            .then(response => response.json())
-            .then(this.saveUpdateResponseInState)
-            .catch(error => alert(`Internal error: ${error}`));
+        fetchJsonGet('calendar/selectFilter',
+            this.saveUpdateResponseInState,
+            { id });
     }
 
     onFavoriteRename(id, newName) {
-        fetch(
-            getServiceURL(
-                'calendar/renameFilter',
-                {
-                    id,
-                    newName,
-                },
-            ),
-            {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    Accept: 'application/json',
-                },
-            },
-        )
-            .then(handleHTTPErrors)
-            .then(response => response.json())
-            .then(this.saveUpdateResponseInState)
-            .catch(error => alert(`Internal error: ${error}`));
+        fetchJsonGet('calendar/renameFilter',
+            this.saveUpdateResponseInState,
+            { id, newName });
     }
 
     onFavoriteUpdate(id) {
-        fetch(getServiceURL('calendar/updateFilter',
-            { id }), {
-            method: 'GET',
-            credentials: 'include',
-            headers: {
-                Accept: 'application/json',
-            },
-        })
-            .then(handleHTTPErrors)
-            .then(response => response.json())
-            .then(this.saveUpdateResponseInState)
-            .catch(error => alert(`Internal error: ${error}`));
+        fetchJsonGet('calendar/updateFilter',
+            this.saveUpdateResponseInState,
+            { id });
     }
 
     fetchInitial() {
         this.setState({ loading: true });
-        fetch(getServiceURL('calendar/initial'), {
-            method: 'GET',
-            credentials: 'include',
-            headers: {
-                Accept: 'application/json',
-            },
-        })
-            .then(handleHTTPErrors)
-            .then(response => response.json())
-            .then(this.saveUpdateResponseInState)
-            // TODO: ERROR HANDLING
-            .catch(error => alert(`Internal error: ${error}`));
+        fetchJsonGet('calendar/initial',
+            this.saveUpdateResponseInState);
     }
 
     saveUpdateResponseInState(json) {
