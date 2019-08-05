@@ -1,6 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Table } from '../../../components/design';
+import { Table } from '../../../../components/design';
+import TaskTreeTableEntry from './TaskTreeTableEntry';
+
 
 function TaskTreeTable(
     {
@@ -52,7 +54,14 @@ function TaskTreeTable(
                 </tr>
             </thead>
             <tbody>
-
+                {nodes.map(task => (
+                    <TaskTreeTableEntry
+                        key={`task-tree-table-body-row-${task.id}`}
+                        columnsVisibility={columnsVisibility}
+                        shortForm={shortForm}
+                        task={task}
+                    />
+                ))}
             </tbody>
         </Table>
     );
