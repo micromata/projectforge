@@ -66,7 +66,7 @@ class TeamEvent(
         var reminderDurationUnit: ReminderDurationUnit? = null,
         var reminderActionType: ReminderActionType? = null,
         var attachments: MutableSet<TeamEventAttachmentDO>? = null,
-        var creator: PFUserDO? = null) : BaseDTO<TeamEventDO>() {
+        var creator: PFUserDO? = null) : BaseDTO<CalEventDO>() {
 
     val hasRecurrence: Boolean
         get() = !recurrenceRule.isNullOrBlank()
