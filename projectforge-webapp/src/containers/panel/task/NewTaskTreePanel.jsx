@@ -1,10 +1,9 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Card, CardBody } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
 import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
+import TaskTreeTable from './table/TaskTreeTable';
 import TaskFilter from './TaskFilter';
-import TaskTreeTable from './TaskTreeTable';
 
 function NewTaskTreePanel(
     {
@@ -38,7 +37,7 @@ function NewTaskTreePanel(
                     table: true,
                     initial: initial || '',
                     open: open || '',
-                    highlightTaskId: highlightTaskId || '',
+                    highlightedTaskId: highlightTaskId || '',
                     close: close || '',
                     ...filter,
                     showRootForAdmins,
@@ -94,36 +93,36 @@ function NewTaskTreePanel(
     });
 
     // Reload Tasks when highlight task id changes
-    React.useEffect(() => loadTasks(true), [highlightTaskId]);
+    React.useEffect(() => {
+        if (visible && !loading) {
+            loadTasks(true);
+        }
+    }, [highlightTaskId]);
 
     // Reload Tasks when it is not currently loading, the panel is visible and the translations
     // are missing.
     React.useEffect(() => {
-        if (!loading && visible && !translations) {
+        if (!loading && visible && Object.isEmpty(translations)) {
             loadTasks(true);
         }
     }, [visible, loading, translations]);
 
     return (
         <LoadingContainer loading={loading}>
-            <Card>
-                <CardBody>
-                    <TaskFilter
-                        filter={filter}
-                        onSubmit={() => loadTasks()}
-                        onCheckBoxChange={handleCheckBoxChange}
-                        onChange={handleSearchChange}
-                        translations={translations}
-                    />
-                    <TaskTreeTable
-                        onSelect={selectTask}
-                        translations={translations}
-                        shortForm={shortForm}
-                        nodes={nodes}
-                        columnsVisibility={columnsVisibility}
-                    />
-                </CardBody>
-            </Card>
+            <TaskFilter
+                filter={filter}
+                onSubmit={() => loadTasks()}
+                onCheckBoxChange={handleCheckBoxChange}
+                onChange={handleSearchChange}
+                translations={translations}
+            />
+            <TaskTreeTable
+                onSelect={selectTask}
+                translations={translations}
+                shortForm={shortForm}
+                nodes={nodes}
+                columnsVisibility={columnsVisibility}
+            />
         </LoadingContainer>
     );
 }
