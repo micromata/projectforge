@@ -4,7 +4,13 @@ import { fetchJsonGet, fetchJsonPost } from '../../../../../../utilities/rest';
 import { DynamicLayoutContext } from '../../../context';
 
 function TimesheetTemplatesAndRecents() {
-    const { ui, variables, data } = React.useContext(DynamicLayoutContext);
+    const {
+        data,
+        setData,
+        setVariables,
+        ui,
+        variables,
+    } = React.useContext(DynamicLayoutContext);
     const [
         timesheetFavorites,
         setTimesheetFavorites,
@@ -18,26 +24,29 @@ function TimesheetTemplatesAndRecents() {
                     name: newFilterName,
                     timesheet: data,
                 },
-                setTimesheetFavorites,
+                ({ timesheetFavorites: response }) => setTimesheetFavorites(response),
             );
 
-            // @Fin: Die zurückgebene Liste der Favoriten wird nicht in setTimesheetFavorites aktualisiert. Der gelöschte
-            // Eintrag bleibt in der Liste. Erst wenn ich die Seite neu lade, stimmt die Liste wieder.
-            const handleFavoriteDelete = id => fetchJsonGet('timesheet/favorites/delete',
+            const handleFavoriteDelete = id => fetchJsonGet(
+                'timesheet/favorites/delete',
                 { id },
-                setTimesheetFavorites);
-
-            // @Fin: Hier soll das Edit-Page-Model geändert werden.
-            const saveUpdateResponseInState = (json) => {
-                console.log(json);
-            };
+                ({ timesheetFavorites: response }) => setTimesheetFavorites(response),
+            );
 
             const handleFavoriteSelect = id => fetchJsonPost('timesheet/favorites/select',
                 {
                     id,
                     timesheet: data,
                 },
-                saveUpdateResponseInState);
+                (
+                    {
+                        data: responseData,
+                        variables: responseVariables,
+                    },
+                ) => {
+                    setData(responseData);
+                    setVariables(responseVariables);
+                });
 
             const handleFavoriteRename = (favoriteId, newName) => fetchJsonGet(
                 'timesheet/favorites/rename',
@@ -45,7 +54,7 @@ function TimesheetTemplatesAndRecents() {
                     id: favoriteId,
                     newName,
                 },
-                setTimesheetFavorites,
+                ({ timesheetFavorites: response }) => setTimesheetFavorites(response),
             );
 
             return (
@@ -65,7 +74,7 @@ function TimesheetTemplatesAndRecents() {
                 </React.Fragment>
             );
         },
-        [timesheetFavorites, ui.translations, data, setTimesheetFavorites],
+        [timesheetFavorites, ui.translations, data, setTimesheetFavorites, setData, setVariables],
     );
 }
 
