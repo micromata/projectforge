@@ -1,24 +1,24 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { DynamicLayoutContext } from '../../../context';
 import ConsumptionBar from '../../../../../../containers/panel/task/ConsumptionBar';
+import { DynamicLayoutContext } from '../../../context';
 
 function CustomizedConsumptionBar() {
     const { variables } = React.useContext(DynamicLayoutContext);
 
     return React.useMemo(
         () => {
+            if (!variables.task) {
+                return <React.Fragment />;
+            }
             const { consumption } = variables.task;
-            const { taskId } = variables;
-            // Ignore task id to prevent clickable consumption bar.
             return (
                 <ConsumptionBar
                     progress={consumption}
-                    taskId={taskId}
                 />
             );
         },
-        [variables.task.consumption],
+        [variables.task],
     );
 }
 
