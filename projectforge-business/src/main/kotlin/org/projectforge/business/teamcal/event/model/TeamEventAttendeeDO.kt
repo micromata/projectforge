@@ -72,7 +72,7 @@ class TeamEventAttendeeDO : DefaultBaseDO(), Comparable<TeamEventAttendeeDO> {
 
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 100)
-    var status = TeamEventAttendeeStatus.NEEDS_ACTION
+    var status: TeamEventAttendeeStatus? = TeamEventAttendeeStatus.NEEDS_ACTION
 
     @get:Column(length = 4000)
     var comment: String? = null
