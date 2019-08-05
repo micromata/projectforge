@@ -27,7 +27,7 @@ function TaskTreeTableEntryIcon({ treeStatus }) {
 }
 
 TaskTreeTableEntryIcon.propTypes = {
-    treeStatus: PropTypes.oneOf(['OPEN', 'CLOSED', 'LEAF']).isRequired,
+    treeStatus: PropTypes.oneOf(['OPENED', 'CLOSED', 'LEAF']).isRequired,
 };
 
 TaskTreeTableEntryIcon.defaultProps = {};

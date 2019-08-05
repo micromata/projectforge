@@ -57,14 +57,14 @@ TaskTreeTableEntry.propTypes = {
     task: PropTypes.shape({
         id: PropTypes.number.isRequired,
         indent: PropTypes.number.isRequired,
-        shortDescription: PropTypes.string.isRequired,
         title: PropTypes.string.isRequired,
-        treeStatus: PropTypes.oneOf(['OPEN', 'CLOSED', 'LEAF']).isRequired,
+        treeStatus: PropTypes.oneOf(['OPENED', 'CLOSED', 'LEAF']).isRequired,
         consumption: PropTypes.shape({}),
         protectTimesheetsUntil: PropTypes.string,
         responsibleUser: PropTypes.shape({
             fullname: PropTypes.string,
         }),
+        shortDescription: PropTypes.string,
         status: PropTypes.string,
     }).isRequired,
     columnsVisibility: PropTypes.shape({
