@@ -15,6 +15,7 @@ function CustomizedConsumptionBar() {
             return (
                 <ConsumptionBar
                     progress={consumption}
+                    identifier="customized-consumption-bar"
                 />
             );
         },

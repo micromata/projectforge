@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { UncontrolledTooltip } from 'reactstrap';
 import style from './ConsumptionBar.module.scss';
 
-function ConsumptionBar({ progress, taskId }) {
+function ConsumptionBar({ progress, taskId, identifier }) {
     if (!progress) {
         return <React.Fragment />;
     }
@@ -15,12 +15,12 @@ function ConsumptionBar({ progress, taskId }) {
     } = progress;
     const element = (
         <React.Fragment>
-            <div className={`${style.progress} ${style[status]}`} id={`cb-${id}-${taskId}`}>
+            <div className={`${style.progress} ${style[status]}`} id={`${identifier}-${id}`}>
                 <div style={{ width }}>
                     {' '}
                 </div>
             </div>
-            <UncontrolledTooltip placement="right" target={`cb-${id}-${taskId}`}>
+            <UncontrolledTooltip placement="right" target={`${identifier}-${id}`}>
                 {title}
             </UncontrolledTooltip>
         </React.Fragment>
@@ -44,11 +44,13 @@ ConsumptionBar.propTypes = {
         id: PropTypes.number,
     }),
     taskId: PropTypes.number,
+    identifier: PropTypes.string,
 };
 
 ConsumptionBar.defaultProps = {
     progress: undefined,
     taskId: undefined,
+    identifier: 'consumption-bar',
 };
 
 export default ConsumptionBar;

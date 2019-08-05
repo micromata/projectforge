@@ -15,6 +15,7 @@ function TaskTreeTableEntry({ task, columnsVisibility, shortForm }) {
                 <ConsumptionBar
                     progress={task.consumption}
                     taskId={task.id}
+                    identifier="task-tree-entry-consumption-bar"
                 />
             </td>
 
