@@ -23,8 +23,6 @@
 
 package org.projectforge.plugins.licensemanagement;
 
-import java.util.Collection;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.common.StringHelper;
@@ -33,6 +31,8 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.user.UsersProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+
+import java.util.Collection;
 
 /**
  * 

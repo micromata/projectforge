@@ -30,7 +30,6 @@ import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.UserPrefParameter
-import org.projectforge.framework.persistence.user.entities.UserPrefDO
 import java.sql.Date
 import javax.persistence.*
 

@@ -23,9 +23,6 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import java.util.List;
-import java.util.ListIterator;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -49,6 +46,9 @@ import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.IconPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
+
+import java.util.List;
+import java.util.ListIterator;
 
 /**
  * @author Billy Duong (b.duong@micromata.de)

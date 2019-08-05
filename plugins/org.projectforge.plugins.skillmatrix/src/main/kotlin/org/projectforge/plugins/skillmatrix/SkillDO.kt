@@ -32,7 +32,6 @@ import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.UserPrefParameter
-import org.projectforge.framework.persistence.user.entities.UserPrefDO
 import javax.persistence.*
 
 /**

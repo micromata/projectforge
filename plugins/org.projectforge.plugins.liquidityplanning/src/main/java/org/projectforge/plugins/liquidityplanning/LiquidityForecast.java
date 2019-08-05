@@ -23,29 +23,15 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
-import java.io.Serializable;
-import java.sql.Date;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
-import org.projectforge.business.fibu.EingangsrechnungDO;
-import org.projectforge.business.fibu.KontoCache;
-import org.projectforge.business.fibu.KontoDO;
-import org.projectforge.business.fibu.KundeDO;
-import org.projectforge.business.fibu.KundeFormatter;
-import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.fibu.ProjektFormatter;
-import org.projectforge.business.fibu.RechnungDO;
+import org.projectforge.business.fibu.*;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.statistics.IntAggregatedValues;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.io.Serializable;
+import java.sql.Date;
+import java.util.*;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

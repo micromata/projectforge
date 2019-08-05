@@ -23,9 +23,6 @@
 
 package org.projectforge.plugins.ffp.wicket;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -51,6 +48,9 @@ import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
 import org.projectforge.web.wicket.IListPageColumnsCreator;
 import org.projectforge.web.wicket.flowlayout.ButtonPanel;
 import org.projectforge.web.wicket.flowlayout.ButtonType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class FFPDebtListPage extends AbstractListPage<FFPDebtListForm, FFPDebtDao, FFPDebtDO> implements
     IListPageColumnsCreator<FFPDebtDO>

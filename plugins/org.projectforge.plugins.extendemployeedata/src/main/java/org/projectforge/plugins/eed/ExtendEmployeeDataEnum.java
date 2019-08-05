@@ -23,12 +23,12 @@
 
 package org.projectforge.plugins.eed;
 
+import org.projectforge.export.AttrColumnDescription;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import org.projectforge.export.AttrColumnDescription;
 
 /**
  * If you change enum entries here, you have to change EmployeeBillingExcelRow accordingly.

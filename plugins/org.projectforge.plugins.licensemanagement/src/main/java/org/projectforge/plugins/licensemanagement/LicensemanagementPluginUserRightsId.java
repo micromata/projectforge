@@ -23,11 +23,11 @@
 
 package org.projectforge.plugins.licensemanagement;
 
-import java.util.Arrays;
-import java.util.Collection;
-
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.api.RightRightIdProviderService;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 public enum LicensemanagementPluginUserRightsId implements IUserRightId
 {

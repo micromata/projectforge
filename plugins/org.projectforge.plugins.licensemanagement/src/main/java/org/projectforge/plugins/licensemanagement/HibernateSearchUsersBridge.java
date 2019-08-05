@@ -23,8 +23,6 @@
 
 package org.projectforge.plugins.licensemanagement;
 
-import java.util.Collection;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Document;
 import org.hibernate.search.bridge.FieldBridge;
@@ -32,6 +30,8 @@ import org.hibernate.search.bridge.LuceneOptions;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.user.UsersProvider;
+
+import java.util.Collection;
 
 /**
  * User names bridge for hibernate search to search in the user id's (comma separated values of user id's).

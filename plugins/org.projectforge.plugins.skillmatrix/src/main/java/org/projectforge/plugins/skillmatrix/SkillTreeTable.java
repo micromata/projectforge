@@ -23,15 +23,15 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import java.util.Date;
-import java.util.List;
-
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.web.tree.TreeTable;
 import org.projectforge.web.tree.TreeTableFilter;
 import org.projectforge.web.tree.TreeTableNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Date;
+import java.util.List;
 
 /**
  * The implementation of TreeTable for skills. Used for browsing the skills (tree view).

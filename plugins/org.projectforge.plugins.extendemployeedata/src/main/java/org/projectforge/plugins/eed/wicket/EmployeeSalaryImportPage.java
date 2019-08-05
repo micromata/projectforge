@@ -23,9 +23,6 @@
 
 package org.projectforge.plugins.eed.wicket;
 
-import java.io.InputStream;
-import java.util.Date;
-
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -35,6 +32,9 @@ import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.plugins.eed.service.EmployeeSalaryImportService;
 import org.projectforge.web.core.importstorage.AbstractImportPage;
+
+import java.io.InputStream;
+import java.util.Date;
 
 public class EmployeeSalaryImportPage extends AbstractImportPage<EmployeeSalaryImportForm>
 {

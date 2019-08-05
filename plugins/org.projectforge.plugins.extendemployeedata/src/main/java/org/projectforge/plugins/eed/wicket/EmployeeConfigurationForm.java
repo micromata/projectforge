@@ -23,9 +23,7 @@
 
 package org.projectforge.plugins.eed.wicket;
 
-import java.util.function.Function;
-
-import org.slf4j.Logger;
+import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
@@ -37,8 +35,9 @@ import org.projectforge.plugins.eed.service.EmployeeConfigurationService;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
+import org.slf4j.Logger;
 
-import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
+import java.util.function.Function;
 
 public class EmployeeConfigurationForm extends AbstractEditForm<EmployeeConfigurationDO, EmployeeConfigurationPage>
 {

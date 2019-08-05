@@ -23,15 +23,11 @@
 
 package org.projectforge.plugins.licensemanagement;
 
+import org.projectforge.continuousdb.*;
+import org.projectforge.framework.persistence.database.DatabaseService;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import org.projectforge.continuousdb.SchemaGenerator;
-import org.projectforge.continuousdb.UpdateEntry;
-import org.projectforge.continuousdb.UpdateEntryImpl;
-import org.projectforge.continuousdb.UpdatePreCheckStatus;
-import org.projectforge.continuousdb.UpdateRunningStatus;
-import org.projectforge.framework.persistence.database.DatabaseService;
 
 /**
  * Contains the initial data-base set-up script and later all update scripts if any data-base schema updates are

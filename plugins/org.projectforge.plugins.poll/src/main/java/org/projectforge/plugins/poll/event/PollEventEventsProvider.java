@@ -23,23 +23,22 @@
 
 package org.projectforge.plugins.poll.event;
 
-import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
-import org.projectforge.plugins.poll.PollDO;
-import org.projectforge.web.calendar.MyFullCalendarEventsProvider;
-
 import net.ftlines.wicket.fullcalendar.CalendarResponse;
 import net.ftlines.wicket.fullcalendar.Event;
 import net.ftlines.wicket.fullcalendar.callback.ClickedEvent;
 import net.ftlines.wicket.fullcalendar.callback.DroppedEvent;
 import net.ftlines.wicket.fullcalendar.callback.ResizedEvent;
 import net.ftlines.wicket.fullcalendar.callback.SelectedRange;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+import org.projectforge.plugins.poll.PollDO;
+import org.projectforge.web.calendar.MyFullCalendarEventsProvider;
+
+import java.sql.Timestamp;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 
 /**
  * @author Johannes Unterstein (j.unterstein@micromata.de)

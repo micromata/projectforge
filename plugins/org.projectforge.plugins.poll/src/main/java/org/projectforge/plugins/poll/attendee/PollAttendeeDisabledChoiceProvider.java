@@ -23,11 +23,11 @@
 
 package org.projectforge.plugins.poll.attendee;
 
-import java.util.Collection;
-import java.util.List;
-
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * <b>ATTENTION</b> Just use this for disabled selections!

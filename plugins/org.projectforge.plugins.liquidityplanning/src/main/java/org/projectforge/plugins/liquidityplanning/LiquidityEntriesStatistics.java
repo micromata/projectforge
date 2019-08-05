@@ -23,12 +23,12 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
+import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.utils.NumberHelper;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
-
-import org.projectforge.framework.time.DayHolder;
-import org.projectforge.framework.utils.NumberHelper;
 
 public class LiquidityEntriesStatistics implements Serializable
 {

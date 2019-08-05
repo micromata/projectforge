@@ -23,12 +23,6 @@
 
 package org.projectforge.plugins.poll.attendee;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.PropertyModel;
@@ -41,17 +35,15 @@ import org.projectforge.business.user.UsersComparator;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.plugins.poll.NewPollFrontendModel;
-import org.projectforge.plugins.poll.NewPollOverviewPage;
-import org.projectforge.plugins.poll.NewPollPage;
-import org.projectforge.plugins.poll.PollBasePage;
-import org.projectforge.plugins.poll.PollListPage;
+import org.projectforge.plugins.poll.*;
 import org.projectforge.plugins.poll.event.PollEventEditPage;
 import org.projectforge.web.common.MultiChoiceListHelper;
 import org.projectforge.web.user.GroupsWicketProvider;
 import org.projectforge.web.user.UsersProvider;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.wicketstuff.select2.Select2MultiChoice;
+
+import java.util.*;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)

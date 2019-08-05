@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.todo;
 
-import java.util.Objects;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRightAccessCheck;
@@ -33,6 +32,8 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.util.Objects;
 
 /**
  * Every user has access to own to-do's or to-do's he's assigned to. All other users have access if the to-do is

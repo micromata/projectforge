@@ -23,10 +23,9 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import org.projectforge.framework.persistence.api.BaseSearchFilter;
-
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
 /**
  * @author Billy Duong (b.duong@micromata.de)

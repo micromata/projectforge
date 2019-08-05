@@ -23,12 +23,6 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
-import java.math.BigDecimal;
-import java.sql.Date;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.projectforge.plugins.liquidityplanning.LiquidityEntryDO;
 import org.projectforge.business.fibu.AmountType;
 import org.projectforge.business.fibu.PaymentStatus;
 import org.projectforge.framework.persistence.api.BaseDao;
@@ -36,6 +30,11 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.time.DayHolder;
 import org.springframework.stereotype.Repository;
+
+import java.math.BigDecimal;
+import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 

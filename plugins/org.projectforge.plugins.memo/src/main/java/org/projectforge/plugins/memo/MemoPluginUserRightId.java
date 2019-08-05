@@ -23,9 +23,6 @@
 
 package org.projectforge.plugins.memo;
 
-import java.util.Arrays;
-import java.util.Collection;
-
 import org.hibernate.search.annotations.ClassBridge;
 import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.Indexed;
@@ -33,6 +30,9 @@ import org.hibernate.search.annotations.Store;
 import org.projectforge.business.user.HibernateSearchUserRightIdBridge;
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.api.RightRightIdProviderService;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 @Indexed
 @ClassBridge(index = Index.YES /* TOKENIZED */, store = Store.NO, impl = HibernateSearchUserRightIdBridge.class)

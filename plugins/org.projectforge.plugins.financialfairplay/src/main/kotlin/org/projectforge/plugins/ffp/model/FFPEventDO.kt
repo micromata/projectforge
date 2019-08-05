@@ -23,24 +23,7 @@
 
 package org.projectforge.plugins.ffp.model
 
-import java.math.BigDecimal
-import java.util.Date
-import java.util.HashSet
-
-import javax.persistence.CascadeType
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.FetchType
-import javax.persistence.JoinColumn
-import javax.persistence.JoinTable
-import javax.persistence.ManyToMany
-import javax.persistence.ManyToOne
-import javax.persistence.OneToMany
-import javax.persistence.Table
-import javax.persistence.Temporal
-import javax.persistence.TemporalType
-import javax.persistence.Transient
-
+import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.hibernate.search.annotations.DateBridge
 import org.hibernate.search.annotations.EncodingType
 import org.hibernate.search.annotations.IndexedEmbedded
@@ -51,8 +34,9 @@ import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-
-import de.micromata.genome.db.jpa.history.api.WithHistory
+import java.math.BigDecimal
+import java.util.*
+import javax.persistence.*
 
 @Entity
 @Table(name = "T_PLUGIN_FINANCIALFAIRPLAY_EVENT")

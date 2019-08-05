@@ -23,11 +23,11 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
-import java.io.Serializable;
-
 import org.projectforge.business.fibu.AmountType;
 import org.projectforge.business.fibu.PaymentStatus;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
+
+import java.io.Serializable;
 
 /**
  * 

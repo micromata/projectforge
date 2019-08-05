@@ -23,12 +23,6 @@
 
 package org.projectforge.plugins.poll;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-
-import java.util.Objects;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.PropertyModel;
@@ -48,6 +42,8 @@ import org.projectforge.web.common.MultiChoiceListHelper;
 import org.projectforge.web.user.UsersProvider;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.wicketstuff.select2.Select2MultiChoice;
+
+import java.util.*;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)

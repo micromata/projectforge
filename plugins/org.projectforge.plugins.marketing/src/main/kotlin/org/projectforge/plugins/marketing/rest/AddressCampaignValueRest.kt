@@ -27,7 +27,10 @@ import org.projectforge.plugins.marketing.AddressCampaignValueDO
 import org.projectforge.plugins.marketing.AddressCampaignValueDao
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDORest
-import org.projectforge.ui.*
+import org.projectforge.ui.LayoutUtils
+import org.projectforge.ui.UILabel
+import org.projectforge.ui.UILayout
+import org.projectforge.ui.UITable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 

@@ -23,20 +23,12 @@
 
 package org.projectforge.plugins.ffp.model
 
-import java.math.BigDecimal
-
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.FetchType
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.Table
-
+import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-
-import de.micromata.genome.db.jpa.history.api.WithHistory
+import java.math.BigDecimal
+import javax.persistence.*
 
 @Entity
 @Table(name = "T_PLUGIN_FINANCIALFAIRPLAY_ACCOUNTING")

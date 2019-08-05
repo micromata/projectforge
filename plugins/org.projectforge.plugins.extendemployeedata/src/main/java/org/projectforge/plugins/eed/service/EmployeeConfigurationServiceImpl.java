@@ -23,9 +23,6 @@
 
 package org.projectforge.plugins.eed.service;
 
-import java.io.Serializable;
-import java.util.List;
-
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImpl;
@@ -34,6 +31,9 @@ import org.projectforge.plugins.eed.model.EmployeeConfigurationDO;
 import org.projectforge.plugins.eed.model.EmployeeConfigurationTimedDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.io.Serializable;
+import java.util.List;
 
 @Service
 public class EmployeeConfigurationServiceImpl extends CorePersistenceServiceImpl<Integer, EmployeeConfigurationDO>
