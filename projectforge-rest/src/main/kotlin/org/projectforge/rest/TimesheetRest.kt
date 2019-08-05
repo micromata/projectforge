@@ -39,6 +39,7 @@ import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.RestPaths
+import org.projectforge.rest.calendar.CalEventRest
 import org.projectforge.rest.calendar.TeamEventRest
 import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
@@ -46,13 +47,14 @@ import org.projectforge.rest.core.AbstractBaseRest
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.rest.core.RestHelper
 import org.projectforge.rest.core.ResultSet
-import org.projectforge.rest.dto.CalendarEvent
+import org.projectforge.rest.dto.CalEvent
 import org.projectforge.rest.dto.TeamEvent
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
 import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -72,6 +74,9 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
         }
     }
 
+    @Value("\${calendar.useNewCalendarEvents}")
+    private var useNewCalendarEvents: Boolean = false
+
     private val dateTimeFormatter = DateTimeFormatter.instance()
 
     @Autowired
@@ -79,6 +84,9 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
 
     @Autowired
     private lateinit var teamEventRest: TeamEventRest
+
+    @Autowired
+    private lateinit var calendarEventRest: CalEventRest
 
     @Autowired
     private lateinit var timesheetFavoritesService: TimesheetFavoritesService
@@ -232,7 +240,8 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
     @RequestMapping("switch2CalendarEvent")
     fun switch2CalendarEvent(request: HttpServletRequest, @RequestBody timesheet: TimesheetDO)
             : ResponseAction {
-        return teamEventRest.cloneFromTimesheet(request, timesheet)
+        return if (useNewCalendarEvents) calendarEventRest.cloneFromTimesheet(request, timesheet)
+        else teamEventRest.cloneFromTimesheet(request, timesheet)
     }
 
     @Deprecated("Will be replaced by cloneFromCalendarEvent(request, calendarEvent).")
@@ -249,7 +258,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
                 .addVariable("variables", editLayoutData.variables)
     }
 
-    fun cloneFromCalendarEvent(request: HttpServletRequest, calendarEvent: CalendarEvent): ResponseAction {
+    fun cloneFromCalendarEvent(request: HttpServletRequest, calendarEvent: CalEvent): ResponseAction {
         val timesheet = TimesheetDO()
         timesheet.startTime = calendarEvent.startDate
         timesheet.stopTime = calendarEvent.endDate

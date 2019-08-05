@@ -21,6 +21,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+@file:Suppress("DEPRECATION")
+
 package org.projectforge.rest.calendar
 
 import org.projectforge.business.address.AddressDao
@@ -34,6 +36,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.RestHelper
 import org.projectforge.ui.ResponseAction
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -56,6 +59,9 @@ class CalendarServicesRest {
     private class DateTimeRange(var start: PFDateTime,
                                 var end: PFDateTime? = null)
 
+    @Value("\${calendar.useNewCalendarEvents}")
+    private var useNewCalendarEvents: Boolean = false
+
     @Autowired
     private lateinit var accessChecker: AccessChecker
 
@@ -64,6 +70,9 @@ class CalendarServicesRest {
 
     @Autowired
     private lateinit var teamCalEventsProvider: TeamCalEventsProvider
+
+    @Autowired
+    private lateinit var calendarEventsProvider: CalEventsProvider
 
     @Autowired
     private lateinit var timesheetsProvider: TimesheetEventsProvider
@@ -138,7 +147,11 @@ class CalendarServicesRest {
 
         }
         val visibleTeamCalendarIds = visibleCalendarIds?.filter { it >= 0 } // calendars with id < 0 are pseudo calendars (such as birthdays etc.)
-        teamCalEventsProvider.addEvents(range.start, range.end!!, events, visibleTeamCalendarIds, calendarConfigServicesRest.getStyleMap())
+        if (useNewCalendarEvents) {
+            calendarEventsProvider.addEvents(range.start, range.end!!, events, visibleTeamCalendarIds, calendarConfigServicesRest.getStyleMap())
+        } else {
+            teamCalEventsProvider.addEvents(range.start, range.end!!, events, visibleTeamCalendarIds, calendarConfigServicesRest.getStyleMap())
+        }
 
         val showFavoritesBirthdays = visibleCalendarIds?.contains(TeamCalendar.BIRTHDAYS_FAVS_CAL_ID) ?: false
         val showAllBirthdays = visibleCalendarIds?.contains(TeamCalendar.BIRTHDAYS_ALL_CAL_ID) ?: false
