@@ -82,6 +82,7 @@ open class JacksonConfiguration {
 
         init {
             registerAllowedUnknownProperties(PFUserDO::class.java, "fullname")
+            registerAllowedUnknownProperties(KundeDO::class.java, "id")
         }
     }
 
