@@ -23,10 +23,20 @@
 
 package org.projectforge.business.teamcal.event;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.multitenancy.TenantService;
+import org.projectforge.business.teamcal.TeamCalConfig;
 import org.projectforge.business.teamcal.event.model.CalEventDO;
+import org.projectforge.business.teamcal.event.model.TeamEvent;
+import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.BaseDao;
+import org.projectforge.framework.persistence.api.BaseSearchFilter;
+import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,12 +44,18 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.NoResultException;
 import javax.persistence.NonUniqueResultException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 @Repository
 public class CalEventDao extends BaseDao<CalEventDO>
 {
+
+  private static final long ONE_DAY = 1000 * 60 * 60 * 24;
 
   @Autowired
   private PfEmgrFactory emgrFac;
@@ -49,7 +65,7 @@ public class CalEventDao extends BaseDao<CalEventDO>
 
   public CalEventDao() {
     super(CalEventDO.class);
-    userRightId = UserRightId.PLUGIN_CALENDAR_EVENT;
+    userRightId = UserRightId.CALENDAR_EVENT;
   }
 
   public CalEventDO getByUid(Integer calendarId, final String uid)
@@ -97,4 +113,85 @@ public class CalEventDao extends BaseDao<CalEventDO>
   {
     return null;
   }
+
+  /**
+   * This method also returns recurrence events outside the time period of the given filter but affecting the
+   * time-period (e. g. older recurrence events without end date or end date inside or after the given time period). If
+   * calculateRecurrenceEvents is true, only the recurrence events inside the given time-period are returned, if false
+   * only the origin recurrence event (may-be outside the given time-period) is returned.
+   *
+   * @param filter
+   * @param calculateRecurrenceEvents If true, recurrence events inside the given time-period are calculated.
+   * @return list of team events (same as {@link #getList(BaseSearchFilter)} but with all calculated and matching
+   * recurrence events (if calculateRecurrenceEvents is true). Origin events are of type {@link TeamEventDO},
+   * calculated events of type {@link TeamEvent}.
+   */
+  public List<TeamEvent> getEventList(final TeamEventFilter filter, final boolean calculateRecurrenceEvents)
+  {
+    final List<TeamEvent> result = new ArrayList<>();
+    List<CalEventDO> list = getList(filter);
+    if (CollectionUtils.isNotEmpty(list) == true) {
+      for (final CalEventDO eventDO : list) {
+        result.add(eventDO);
+      }
+    }
+    final TeamEventFilter teamEventFilter = filter.clone().setOnlyRecurrence(true);
+    final QueryFilter qFilter = buildQueryFilter(teamEventFilter);
+    list = getList(qFilter);
+    list = selectUnique(list);
+    final TimeZone timeZone = ThreadLocalUserContext.getTimeZone();
+    if (list != null) {
+      for (final CalEventDO eventDO : list) {
+        if (calculateRecurrenceEvents == false) {
+          result.add(eventDO);
+          continue;
+        }
+      }
+    }
+    return result;
+  }
+
+  @Override
+  protected void onSave(final CalEventDO event)
+  {
+    // create uid if empty
+    if (StringUtils.isBlank(event.getUid())) {
+      event.setUid(TeamCalConfig.get().createEventUid());
+    }
+  }
+
+  private QueryFilter buildQueryFilter(final TeamEventFilter filter)
+  {
+    final QueryFilter queryFilter = new QueryFilter(filter);
+    final Collection<Integer> cals = filter.getTeamCals();
+    if (CollectionUtils.isNotEmpty(cals) == true) {
+      queryFilter.add(Restrictions.in("calendar.id", cals));
+    } else if (filter.getTeamCalId() != null) {
+      queryFilter.add(Restrictions.eq("calendar.id", filter.getTeamCalId()));
+    }
+    // Following period extension is needed due to all day events which are stored in UTC. The additional events in the result list not
+    // matching the time period have to be removed by caller!
+    Date startDate = filter.getStartDate();
+    if (startDate != null) {
+      startDate = new Date(startDate.getTime() - ONE_DAY);
+    }
+    Date endDate = filter.getEndDate();
+    if (endDate != null) {
+      endDate = new Date(endDate.getTime() + ONE_DAY);
+    }
+    // limit events to load to chosen date view.
+    if (startDate != null && endDate != null) {
+        queryFilter.add(Restrictions.or(
+          (Restrictions.or(Restrictions.between("startDate", startDate, endDate),
+            Restrictions.between("endDate", startDate, endDate))),
+          // get events whose duration overlap with chosen duration.
+          (Restrictions.and(Restrictions.le("startDate", startDate), Restrictions.ge("endDate", endDate)))));
+
+    } else if (endDate != null) {
+      queryFilter.add(Restrictions.le("startDate", endDate));
+    }
+    queryFilter.addOrder(Order.desc("startDate"));
+    return queryFilter;
+  }
+
 }
