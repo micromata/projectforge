@@ -52,8 +52,8 @@ class FFPDebtRest : AbstractDORest<FFPDebtDO, FFPDebtDao>(FFPDebtDao::class.java
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: FFPDebtDO): UILayout {
-        val layout = super.createEditLayout(dto)
+    override fun createEditLayout(dto: FFPDebtDO, userAccess: UILayout.UserAccess): UILayout {
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(UILabel("TODO"))
         return LayoutUtils.processEditPage(layout, dto, this)
     }

@@ -100,7 +100,7 @@ class TeamCalRest : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao>(TeamCalDao::
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: TeamCal): UILayout {
+    override fun createEditLayout(dto: TeamCal, userAccess: UILayout.UserAccess): UILayout {
         val allGroups = mutableListOf<UISelectValue<Int>>()
         groupService.sortedGroups?.forEach {
             allGroups.add(UISelectValue(it.id, it.name!!))
@@ -111,7 +111,7 @@ class TeamCalRest : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao>(TeamCalDao::
             allUsers.add(UISelectValue(it.id, it.getFullname()))
         }
 
-        val layout = super.createEditLayout(dto)
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "title")

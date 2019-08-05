@@ -71,8 +71,8 @@ class BookRest() : AbstractDORest<BookDO, BookDao>(BookDao::class.java, "book.ti
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: BookDO): UILayout {
-        val layout = super.createEditLayout(dto)
+    override fun createEditLayout(dto: BookDO, userAccess: UILayout.UserAccess): UILayout {
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(lc, "title", "authors")
                 .add(UIRow()
                         .add(UICol(6)

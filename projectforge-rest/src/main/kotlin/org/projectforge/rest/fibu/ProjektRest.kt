@@ -67,10 +67,10 @@ class ProjektRest
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: Projekt): UILayout {
+    override fun createEditLayout(dto: Projekt, userAccess: UILayout.UserAccess): UILayout {
         val konto = UIInput("konto", lc, tooltip = "fibu.kunde.konto.tooltip")
 
-        val layout = super.createEditLayout(dto)
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "nummer")

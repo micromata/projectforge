@@ -46,7 +46,7 @@ class UILayoutTest : AbstractTestBase() {
         logon(TEST_ADMIN_USER) // Needed for getting address books.
         val gson = GsonBuilder().create()
         val address = Address()
-        val jsonString = gson.toJson(addressRest.createEditLayout(address))
+        val jsonString = gson.toJson(addressRest.createEditLayout(address, UILayout.UserAccess(true, true, true, true)))
         val jsonValidator = JsonValidator(jsonString)
 
         var map = jsonValidator.findParentMap("id", "addressStatus")
@@ -59,16 +59,16 @@ class UILayoutTest : AbstractTestBase() {
     @Test
     fun testEditBookActionButtons() {
         val gson = GsonBuilder().create()
-
+        val userAccess = UILayout.UserAccess(true, true, true, true)
         val book = BookDO()
-        var jsonString = gson.toJson(bookRest.createEditLayout(book))
+        var jsonString = gson.toJson(bookRest.createEditLayout(book, userAccess))
         var jsonValidator = JsonValidator(jsonString)
         assertEquals("cancel", jsonValidator.get("actions[0].id"))
         assertEquals("create", jsonValidator.get("actions[1].id"))
         assertEquals(2, jsonValidator.getList("actions")?.size)
 
         book.pk = 42
-        jsonString = gson.toJson(bookRest.createEditLayout(book))
+        jsonString = gson.toJson(bookRest.createEditLayout(book, userAccess))
         jsonValidator = JsonValidator(jsonString)
         assertEquals("cancel", jsonValidator.get("actions[0].id"))
         assertEquals("markAsDeleted", jsonValidator.get("actions[1].id"))
@@ -76,7 +76,7 @@ class UILayoutTest : AbstractTestBase() {
         assertEquals(3, jsonValidator.getList("actions")?.size)
 
         book.isDeleted = true
-        jsonString = gson.toJson(bookRest.createEditLayout(book))
+        jsonString = gson.toJson(bookRest.createEditLayout(book, userAccess))
         jsonValidator = JsonValidator(jsonString)
         assertEquals("cancel", jsonValidator.get("actions[0].id"))
         assertEquals("undelete", jsonValidator.get("actions[1].id"))
@@ -87,8 +87,9 @@ class UILayoutTest : AbstractTestBase() {
     fun testEditBookLayout() {
         val gson = GsonBuilder().create()
         val book = BookDO()
+        val userAccess = UILayout.UserAccess(true, true, true, true)
         book.id = 42 // So lend-out component will be visible (only in edit mode)
-        val jsonString = gson.toJson(bookRest.createEditLayout(book))
+        val jsonString = gson.toJson(bookRest.createEditLayout(book, userAccess))
         val jsonValidator = JsonValidator(jsonString)
 
         assertEquals("???book.title.edit???", jsonValidator.get("title")) // translations not available in test.

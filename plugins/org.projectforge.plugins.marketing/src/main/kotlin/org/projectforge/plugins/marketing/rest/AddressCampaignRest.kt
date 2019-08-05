@@ -62,8 +62,8 @@ class AddressCampaignRest: AbstractDTORest<AddressCampaignDO, AddressCampaign, A
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: AddressCampaign): UILayout {
-        val layout = super.createEditLayout(dto)
+    override fun createEditLayout(dto: AddressCampaign, userAccess: UILayout.UserAccess): UILayout {
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(lc, "title", "values", "comment")
         return LayoutUtils.processEditPage(layout, dto, this)
     }

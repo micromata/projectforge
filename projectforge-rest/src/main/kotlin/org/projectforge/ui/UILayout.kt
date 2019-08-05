@@ -28,13 +28,39 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.MenuItem
 
 class UILayout {
+    class UserAccess(
+            /**
+             * The user has access to the object's history, if given.
+             */
+            var history: Boolean? = null,
+            /**
+             * The user has access to insert new objects.
+             */
+            var insert: Boolean? = null,
+            var update: Boolean? = null,
+            var delete: Boolean? = null
+    ) {
+        fun copyFrom(userAccess: UserAccess?) {
+            this.history = userAccess?.history
+            this.insert = userAccess?.insert
+            this.update = userAccess?.update
+            this.delete = userAccess?.delete
+        }
+    }
+
     constructor(title: String) {
         this.title = LayoutUtils.getLabelTransformation(title)
     }
 
     var title: String?
     /**
+     * UserAccess only for displaying purposes. The real user access will be definitely checked before persisting any
+     * data.
+     */
+    val userAccess = UserAccess()
+    /**
      * Should only be true for edit pages, if history entries are supported or given (normally not, if editing new entries).
+     * Show history is only true, if userAccess.history is also true.
      */
     var showHistory: Boolean? = null
     val layout: MutableList<UIElement> = mutableListOf()

@@ -53,8 +53,8 @@ class AccountingRecordRest: AbstractDORest<BuchungssatzDO, BuchungssatzDao>(base
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: BuchungssatzDO): UILayout {
-        val layout = super.createEditLayout(dto)
+    override fun createEditLayout(dto: BuchungssatzDO, userAccess: UILayout.UserAccess): UILayout {
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "datum", "year", "month", "satznr", "betrag", "sh", "beleg"))

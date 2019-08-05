@@ -60,8 +60,8 @@ class MemoRest() : AbstractDORest<MemoDO, MemoDao>(MemoDao::class.java, "plugins
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: MemoDO): UILayout {
-        val layout = super.createEditLayout(dto)
+    override fun createEditLayout(dto: MemoDO, userAccess: UILayout.UserAccess): UILayout {
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(lc, "subject", "memo")
         return LayoutUtils.processEditPage(layout, dto, this)
     }

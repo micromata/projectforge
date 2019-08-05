@@ -61,8 +61,8 @@ class RechnungRest() : AbstractDORest<RechnungDO, RechnungDao>(RechnungDao::clas
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: RechnungDO): UILayout {
-        val layout = super.createEditLayout(dto)
+    override fun createEditLayout(dto: RechnungDO, userAccess: UILayout.UserAccess): UILayout {
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(lc, "betreff")
                 .add(UIRow()
                         .add(UICol()

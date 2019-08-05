@@ -49,8 +49,8 @@ class LicenseRest : AbstractDORest<LicenseDO, LicenseDao>(LicenseDao::class.java
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: LicenseDO): UILayout {
-        val layout = super.createEditLayout(dto)
+    override fun createEditLayout(dto: LicenseDO, userAccess: UILayout.UserAccess): UILayout {
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol()
                             .add(lc, "organization", "product", "version", "updateFromVersion", "device",

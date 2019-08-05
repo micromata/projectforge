@@ -48,8 +48,8 @@ class ScriptRest: AbstractDORest<ScriptDO, ScriptDao>(baseDaoClazz = ScriptDao::
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: ScriptDO): UILayout {
-        val layout = super.createEditLayout(dto)
+    override fun createEditLayout(dto: ScriptDO, userAccess: UILayout.UserAccess): UILayout {
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "name"))

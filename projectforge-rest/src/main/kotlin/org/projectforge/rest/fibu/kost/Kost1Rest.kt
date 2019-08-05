@@ -62,9 +62,9 @@ class Kost1Rest : AbstractDTORest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao::class.java
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: Kost1): UILayout {
+    override fun createEditLayout(dto: Kost1, userAccess: UILayout.UserAccess): UILayout {
         // TODO: EditPage needs customized component for the cost 1 id
-        val layout = super.createEditLayout(dto)
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "nummer", "description", "kostentraegerStatus")))

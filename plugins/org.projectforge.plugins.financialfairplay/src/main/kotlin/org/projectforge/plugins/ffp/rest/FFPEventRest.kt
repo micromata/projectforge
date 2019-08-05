@@ -51,8 +51,8 @@ class FFPEventRest : AbstractDORest<FFPEventDO, FFPEventDao>(FFPEventDao::class.
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: FFPEventDO): UILayout {
-        val layout = super.createEditLayout(dto)
+    override fun createEditLayout(dto: FFPEventDO, userAccess: UILayout.UserAccess): UILayout {
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(lc, "organizer", "eventDate", "title", "attendeeList")
                 .add(UILabel("TODO: Weighting Table here"))
         return LayoutUtils.processEditPage(layout, dto, this)

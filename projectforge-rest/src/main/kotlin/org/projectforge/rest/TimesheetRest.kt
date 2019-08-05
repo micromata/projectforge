@@ -201,12 +201,12 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: TimesheetDO): UILayout {
+    override fun createEditLayout(dto: TimesheetDO, userAccess: UILayout.UserAccess): UILayout {
         val dayRange = UICustomized("dayRange")
         dayRange.add("startDateId", "startTime")
         dayRange.add("endDateId", "stopTime")
         dayRange.add("label", translate("timePeriod"))
-        val layout = super.createEditLayout(dto)
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(UICustomized("timesheet.edit.templatesAndRecents"))
                 .add(UICustomized("timesheet.edit.taskAndKost2", values = mutableMapOf("id" to "kost2")))
                 .add(lc, "user")
@@ -240,7 +240,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
         timesheet.stopTime = teamEvent.endDate
         timesheet.location = teamEvent.location
         timesheet.description = "${teamEvent.subject ?: ""} ${teamEvent.note ?: ""}"
-        val editLayoutData = getItemAndLayout(request, timesheet)
+        val editLayoutData = getItemAndLayout(request, timesheet, UILayout.UserAccess(false, true))
         return ResponseAction(url = "/calendar/${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
                 .addVariable("data", editLayoutData.data)
                 .addVariable("ui", editLayoutData.ui)

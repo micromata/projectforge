@@ -194,9 +194,11 @@ abstract class AbstractBaseRest<
         return category!!
     }
 
-    open fun createEditLayout(dto: DTO): UILayout {
+    open fun createEditLayout(dto: DTO, userAccess: UILayout.UserAccess): UILayout {
         val titleKey = if (getId(dto) != null) "$i18nKeyPrefix.edit" else "$i18nKeyPrefix.add"
-        return UILayout(titleKey)
+        val layout = UILayout(titleKey)
+        layout.userAccess.copyFrom(userAccess)
+        return layout
     }
 
     open fun validate(validationErrors: MutableList<ValidationError>, dto: DTO) {
@@ -416,14 +418,28 @@ abstract class AbstractBaseRest<
         return ResponseEntity(item, HttpStatus.OK)
     }
 
-    protected open fun getById(idString: String?, editMode: Boolean = false): DTO? {
+    protected open fun getById(idString: String?, editMode: Boolean = false, userAccess: UILayout.UserAccess? = null): DTO? {
         if (idString == null) return null
-        return getById(idString.toInt(), editMode)
+        return getById(idString.toInt(), editMode, userAccess)
     }
 
-    protected fun getById(id: Int?, editMode: Boolean = false): DTO? {
+    protected fun getById(id: Int?, editMode: Boolean = false, userAccess: UILayout.UserAccess? = null): DTO? {
         val item = baseDao.getById(id) ?: return null
+        checkUserAccess(item, userAccess)
         return transformFromDB(item, editMode)
+    }
+
+    protected fun checkUserAccess(obj: O?, userAccess: UILayout.UserAccess?) {
+        if (userAccess != null) {
+            if (obj != null) {
+                userAccess.history = baseDao.hasLoggedInUserHistoryAccess(obj, false)
+                userAccess.update = baseDao.hasLoggedInUserUpdateAccess(obj, obj, false)
+                userAccess.delete = baseDao.hasLoggedInUserDeleteAccess(obj, obj, false)
+            } else {
+                userAccess.history = baseDao.hasLoggedInUserHistoryAccess(false)
+            }
+            userAccess.insert = baseDao.hasLoggedInUserInsertAccess()
+        }
     }
 
     /**
@@ -435,13 +451,20 @@ abstract class AbstractBaseRest<
     @GetMapping(RestPaths.EDIT)
     fun getItemAndLayout(request: HttpServletRequest, @RequestParam("id") id: String?)
             : ResponseEntity<EditLayoutData> {
-        val item = (if (null != id) getById(id, true) else newBaseDTO(request))
+        val userAccess = UILayout.UserAccess()
+        val item = (if (null != id) {
+            getById(id, true, userAccess)
+        } else {
+            checkUserAccess(null, userAccess)
+            newBaseDTO(request)
+        })
                 ?: return ResponseEntity(HttpStatus.NOT_FOUND)
-        return ResponseEntity(getItemAndLayout(request, item), HttpStatus.OK)
+        val layout = getItemAndLayout(request, item, userAccess)
+        return ResponseEntity(layout, HttpStatus.OK)
     }
 
-    protected fun getItemAndLayout(request: HttpServletRequest, dto: DTO): EditLayoutData {
-        val layout = createEditLayout(dto)
+    protected fun getItemAndLayout(request: HttpServletRequest, dto: DTO, userAccess: UILayout.UserAccess): EditLayoutData {
+        val layout = createEditLayout(dto, userAccess)
         layout.addTranslations("changes", "tooltip.selectMe")
         layout.postProcessPageMenu()
         val result = EditLayoutData(dto, layout)
@@ -528,7 +551,7 @@ abstract class AbstractBaseRest<
     fun clone(request: HttpServletRequest, @RequestBody dto: DTO)
             : ResponseAction {
         val item = prepareClone(dto)
-        val editLayoutData = getItemAndLayout(request, item)
+        val editLayoutData = getItemAndLayout(request, item, UILayout.UserAccess(false, true))
         return ResponseAction(url = getRestRootPath(RestPaths.EDIT), targetType = TargetType.UPDATE)
                 .addVariable("data", editLayoutData.data)
                 .addVariable("ui", editLayoutData.ui)
