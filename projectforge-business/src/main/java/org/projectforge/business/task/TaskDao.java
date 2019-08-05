@@ -184,9 +184,9 @@ public class TaskDao extends BaseDao<TaskDO> {
     log.debug("Calculating duration for all tasks");
     final String intervalInSeconds = DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime");
     if (intervalInSeconds != null) {
-      final List<Long> list = getSession().createQuery("select "
+      final List<Object> list = getSession().createQuery("select "
               + DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime")
-              + " from TimesheetDO where task.id = :taskId and deleted=false", Long.class)
+              + " from TimesheetDO where task.id = :taskId and deleted=false")
               .setParameter("taskId", taskId).list();
       if (list.size() == 0) {
         return new Long(0);
@@ -194,8 +194,13 @@ public class TaskDao extends BaseDao<TaskDO> {
       Validate.isTrue(list.size() == 1);
       if (list.get(0) == null) { // Has happened one time, why (PROJECTFORGE-543)?
         return new Long(0);
+      } else if (list.get(0) instanceof Long) {
+        return (Long)list.get(0);
+      } else if (list.get(0) instanceof Integer) {
+        return new Long((Integer)list.get(0));
       } else {
-        return (Long) list.get(0);
+        log.error("Internal error, unsupported return type " + list.get(0).getClass() + ". Long or Integer expected.");
+        return 0;
       }
     }
     List<Object[]> result = getSession().createNamedQuery(TimesheetDO.FIND_START_STOP_BY_TASKID, Object[].class)
