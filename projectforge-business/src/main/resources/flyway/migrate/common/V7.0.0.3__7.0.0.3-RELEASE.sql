@@ -11,7 +11,7 @@ CREATE TABLE t_calendar_event (
   start_date                  TIMESTAMP WITHOUT TIME ZONE,
   tenant_id                   INTEGER,
   calendar_fk                 INTEGER                  NOT NULL,
-  uid                         CHARACTER VARYING(1000)   ,
+  uid                         CHARACTER VARYING(1000),
   ics                         CHARACTER VARYING(10000),
   subject                     CHARACTER VARYING(1000),
   location                    CHARACTER VARYING(1000),
