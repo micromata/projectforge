@@ -23,16 +23,14 @@
 
 package org.projectforge.plugins.plugintemplate.model
 
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.Table
-
+import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-
-import de.micromata.genome.db.jpa.history.api.WithHistory
+import javax.persistence.Column
+import javax.persistence.Entity
+import javax.persistence.Table
 
 @Entity
 @Indexed

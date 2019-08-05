@@ -23,9 +23,9 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import java.io.Serializable;
-
 import de.micromata.genome.jpa.impl.AbstractParentChildTableTruncater;
+
+import java.io.Serializable;
 
 /**
  * Skill has reference to itself, so order of delete has to be childs first.

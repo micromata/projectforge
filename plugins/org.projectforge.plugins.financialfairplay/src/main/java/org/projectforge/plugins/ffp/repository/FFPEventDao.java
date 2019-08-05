@@ -23,8 +23,6 @@
 
 package org.projectforge.plugins.ffp.repository;
 
-import java.util.List;
-
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseDao;
@@ -36,6 +34,8 @@ import org.projectforge.plugins.ffp.model.FFPEventDO;
 import org.projectforge.plugins.ffp.wicket.FFPEventFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 /**
  * Access to ffp events.

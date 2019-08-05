@@ -23,17 +23,16 @@
 
 package org.projectforge.plugins.eed.service;
 
+import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
+import org.projectforge.business.fibu.EmployeeDao;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import org.projectforge.business.fibu.EmployeeDao;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 
 @Service
 public class EEDHelper

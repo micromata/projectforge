@@ -23,28 +23,6 @@
 
 package org.projectforge.plugins.eed.model;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.MapKey;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.persistence.UniqueConstraint;
-
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
-import org.projectforge.framework.persistence.api.AUserRightId;
-import org.projectforge.framework.persistence.api.BaseDO;
-import org.projectforge.framework.persistence.api.ModificationStatus;
-import org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO;
-import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter;
-
 import de.micromata.genome.db.jpa.history.api.HistoryProperty;
 import de.micromata.genome.db.jpa.history.api.WithHistory;
 import de.micromata.genome.db.jpa.history.impl.TabAttrHistoryPropertyConverter;
@@ -55,6 +33,19 @@ import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO;
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO;
 import de.micromata.genome.jpa.ComplexEntity;
 import de.micromata.genome.jpa.ComplexEntityVisitor;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+import org.projectforge.framework.persistence.api.AUserRightId;
+import org.projectforge.framework.persistence.api.BaseDO;
+import org.projectforge.framework.persistence.api.ModificationStatus;
+import org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO;
+import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter;
+
+import javax.persistence.*;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @Entity
 @Table(name = "T_PLUGIN_EMPLOYEE_CONFIGURATION",

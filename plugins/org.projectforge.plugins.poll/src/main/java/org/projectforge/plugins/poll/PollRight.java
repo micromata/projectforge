@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.poll;
 
-import java.util.Objects;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.user.UserRightAccessCheck;
 import org.projectforge.business.user.UserRightCategory;
@@ -33,6 +32,8 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.plugins.poll.attendee.PollAttendeeDao;
+
+import java.util.Objects;
 
 /**
  * @author Johannes Unterstein (j.unterstein@micromata.de)

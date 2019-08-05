@@ -23,8 +23,6 @@
 
 package org.projectforge.plugins.poll;
 
-import java.util.List;
-
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.flow.RedirectToUrlException;
@@ -35,6 +33,8 @@ import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.MaxLengthTextField;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+
+import java.util.List;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)

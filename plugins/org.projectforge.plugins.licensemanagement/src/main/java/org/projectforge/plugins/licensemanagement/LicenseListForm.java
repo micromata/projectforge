@@ -23,9 +23,9 @@
 
 package org.projectforge.plugins.licensemanagement;
 
-import org.slf4j.Logger;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.web.wicket.AbstractListForm;
+import org.slf4j.Logger;
 
 /**
  * The list formular for the list view (this example has no filter settings). See ToDoListPage for seeing how to use

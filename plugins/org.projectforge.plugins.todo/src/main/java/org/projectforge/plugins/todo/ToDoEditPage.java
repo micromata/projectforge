@@ -24,7 +24,6 @@
 package org.projectforge.plugins.todo;
 
 import org.apache.commons.lang3.BooleanUtils;
-import java.util.Objects;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -35,6 +34,8 @@ import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
 import org.projectforge.web.wicket.WicketUtils;
 import org.slf4j.Logger;
+
+import java.util.Objects;
 
 @EditPage(defaultReturnPage = ToDoListPage.class)
 public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao> implements ISelectCallerPage

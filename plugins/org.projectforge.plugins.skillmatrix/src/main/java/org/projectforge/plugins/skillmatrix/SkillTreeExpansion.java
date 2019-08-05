@@ -23,12 +23,12 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import java.util.Set;
-
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.projectforge.business.user.service.UserPreferencesHelper;
 import org.projectforge.web.wicket.tree.TableTreeExpansion;
+
+import java.util.Set;
 
 /**
  * @author Billy Duong (b.duong@micromata.de)

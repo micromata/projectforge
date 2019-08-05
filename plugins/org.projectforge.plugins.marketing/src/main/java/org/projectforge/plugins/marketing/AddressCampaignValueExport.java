@@ -23,8 +23,6 @@
 
 package org.projectforge.plugins.marketing;
 
-import java.util.Map;
-
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressExport;
 import org.projectforge.business.converter.LanguageConverter;
@@ -34,6 +32,8 @@ import org.projectforge.business.excel.I18nExportColumn;
 import org.projectforge.business.excel.PropertyMapping;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 /**
  * For excel export. export must be called with two params, the first is the AddressCampaignValue map and the second the

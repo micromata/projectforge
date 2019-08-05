@@ -23,21 +23,12 @@
 
 package org.projectforge.plugins.ffp.model
 
-import java.math.BigDecimal
-
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.FetchType
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.Table
-import javax.persistence.UniqueConstraint
-
+import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-
-import de.micromata.genome.db.jpa.history.api.WithHistory
+import java.math.BigDecimal
+import javax.persistence.*
 
 @Entity
 @Table(name = "T_PLUGIN_FINANCIALFAIRPLAY_DEBT", uniqueConstraints = [UniqueConstraint(columnNames = ["EVENT_ID", "ATTENDEE_USER_ID_FROM", "ATTENDEE_USER_ID_TO"])], indexes = [javax.persistence.Index(name = "idx_fk_T_PLUGIN_FINANCIALFAIRPLAY_DEBT_event_id", columnList = "EVENT_ID"), javax.persistence.Index(name = "idx_fk_T_PLUGIN_FINANCIALFAIRPLAY_DEBT_from_id", columnList = "ATTENDEE_USER_ID_FROM"), javax.persistence.Index(name = "idx_fk_T_PLUGIN_FINANCIALFAIRPLAY_DEBT_to_id", columnList = "ATTENDEE_USER_ID_TO")])

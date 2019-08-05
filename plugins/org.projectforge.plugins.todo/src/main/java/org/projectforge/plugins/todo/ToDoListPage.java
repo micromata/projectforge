@@ -23,10 +23,6 @@
 
 package org.projectforge.plugins.todo;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import java.util.Objects;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -48,14 +44,12 @@ import org.projectforge.web.core.PriorityFormatter;
 import org.projectforge.web.task.TaskPropertyColumn;
 import org.projectforge.web.user.UserPrefListPage;
 import org.projectforge.web.user.UserPropertyColumn;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
-import org.projectforge.web.wicket.RowCssClass;
+import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @ListPage(editPage = ToDoEditPage.class)
 public class ToDoListPage extends AbstractListPage<ToDoListForm, ToDoDao, ToDoDO>

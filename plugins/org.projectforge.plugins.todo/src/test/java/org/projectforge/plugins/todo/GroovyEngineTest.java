@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.todo;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.AppVersion;
 import org.projectforge.business.configuration.ConfigurationService;

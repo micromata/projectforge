@@ -23,10 +23,10 @@
 
 package org.projectforge.plugins.skillmatrix;
 
+import org.projectforge.common.i18n.I18nEnum;
+
 import java.util.ArrayList;
 import java.util.Collection;
-
-import org.projectforge.common.i18n.I18nEnum;
 
 /**
  * 

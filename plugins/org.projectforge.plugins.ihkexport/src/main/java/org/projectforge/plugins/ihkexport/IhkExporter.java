@@ -23,12 +23,6 @@
 
 package org.projectforge.plugins.ihkexport;
 
-import static org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUser;
-
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.List;
-
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFRow;
@@ -44,6 +38,12 @@ import org.projectforge.business.excel.ExportSheet;
 import org.projectforge.business.excel.ExportWorkbook;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.springframework.core.io.ClassPathResource;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.List;
+
+import static org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUser;
 
 /**
  * Created by jsiebert on 18.05.16.

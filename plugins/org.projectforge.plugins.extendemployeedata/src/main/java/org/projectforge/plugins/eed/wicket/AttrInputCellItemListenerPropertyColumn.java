@@ -23,9 +23,9 @@
 
 package org.projectforge.plugins.eed.wicket;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-
+import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
+import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
+import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -37,9 +37,8 @@ import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
 import org.projectforge.web.wicket.CellItemListener;
 
-import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
-import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 
 /**
  * Supports CellItemListener.

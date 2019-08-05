@@ -23,15 +23,7 @@
 
 package org.projectforge.plugins.eed.excelimport;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.excel.ExcelImport;
 import org.projectforge.business.fibu.EmployeeDO;
@@ -50,7 +42,9 @@ import org.projectforge.plugins.eed.service.EmployeeConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
 
 public class EmployeeSalaryExcelImporter
 {

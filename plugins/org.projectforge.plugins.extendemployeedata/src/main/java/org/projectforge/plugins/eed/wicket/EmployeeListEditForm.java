@@ -23,10 +23,6 @@
 
 package org.projectforge.plugins.eed.wicket;
 
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.List;
-
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -47,6 +43,10 @@ import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.slf4j.Logger;
+
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.List;
 
 public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, EmployeeListEditPage>
 {

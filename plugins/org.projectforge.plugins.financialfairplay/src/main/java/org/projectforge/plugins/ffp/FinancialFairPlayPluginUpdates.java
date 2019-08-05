@@ -23,18 +23,10 @@
 
 package org.projectforge.plugins.ffp;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.projectforge.business.user.PFUserFilter;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserXmlPreferencesCache;
-import org.projectforge.continuousdb.DatabaseResultRow;
-import org.projectforge.continuousdb.DatabaseResultRowEntry;
-import org.projectforge.continuousdb.UpdateEntry;
-import org.projectforge.continuousdb.UpdateEntryImpl;
-import org.projectforge.continuousdb.UpdatePreCheckStatus;
-import org.projectforge.continuousdb.UpdateRunningStatus;
+import org.projectforge.continuousdb.*;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
@@ -43,6 +35,9 @@ import org.projectforge.plugins.ffp.model.FFPAccountingDO;
 import org.projectforge.plugins.ffp.model.FFPDebtDO;
 import org.projectforge.plugins.ffp.model.FFPEventDO;
 import org.springframework.context.ApplicationContext;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class FinancialFairPlayPluginUpdates
 {

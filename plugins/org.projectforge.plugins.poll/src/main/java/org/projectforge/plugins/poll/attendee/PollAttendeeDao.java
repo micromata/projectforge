@@ -23,8 +23,6 @@
 
 package org.projectforge.plugins.poll.attendee;
 
-import java.util.List;
-
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.QueryFilter;
@@ -32,6 +30,8 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.plugins.poll.PollDO;
 import org.projectforge.plugins.poll.PollPluginUserRightId;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)

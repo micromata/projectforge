@@ -23,9 +23,6 @@
 
 package org.projectforge.plugins.plugintemplate;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.continuousdb.UpdateEntryImpl;
 import org.projectforge.continuousdb.UpdatePreCheckStatus;
@@ -34,6 +31,9 @@ import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.plugins.plugintemplate.model.PluginTemplateDO;
 import org.springframework.context.ApplicationContext;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PluginTemplatePluginUpdates
 {

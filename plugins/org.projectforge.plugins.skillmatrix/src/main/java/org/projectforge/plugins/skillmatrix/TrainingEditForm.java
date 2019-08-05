@@ -23,10 +23,6 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.PropertyModel;
@@ -53,6 +49,10 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wicketstuff.select2.Select2MultiChoice;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
 
 /**
  * This is the edit formular page.

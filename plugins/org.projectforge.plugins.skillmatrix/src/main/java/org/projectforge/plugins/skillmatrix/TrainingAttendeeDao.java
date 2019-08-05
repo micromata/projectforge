@@ -23,8 +23,6 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import java.util.List;
-
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.user.UserDao;
@@ -34,6 +32,8 @@ import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 /**
  * This is the base data access object class. Most functionality such as access checking, select, insert, update, save,

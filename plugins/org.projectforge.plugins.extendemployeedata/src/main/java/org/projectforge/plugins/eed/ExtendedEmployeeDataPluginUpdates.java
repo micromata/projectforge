@@ -23,9 +23,6 @@
 
 package org.projectforge.plugins.eed;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.projectforge.business.fibu.EmployeeTimedAttrDataDO;
 import org.projectforge.business.fibu.EmployeeTimedAttrWithDataDO;
 import org.projectforge.continuousdb.UpdateEntry;
@@ -33,12 +30,10 @@ import org.projectforge.continuousdb.UpdateEntryImpl;
 import org.projectforge.continuousdb.UpdatePreCheckStatus;
 import org.projectforge.continuousdb.UpdateRunningStatus;
 import org.projectforge.framework.persistence.database.DatabaseService;
-import org.projectforge.plugins.eed.model.EmployeeConfigurationAttrDO;
-import org.projectforge.plugins.eed.model.EmployeeConfigurationAttrDataDO;
-import org.projectforge.plugins.eed.model.EmployeeConfigurationDO;
-import org.projectforge.plugins.eed.model.EmployeeConfigurationTimedAttrDO;
-import org.projectforge.plugins.eed.model.EmployeeConfigurationTimedAttrWithDataDO;
-import org.projectforge.plugins.eed.model.EmployeeConfigurationTimedDO;
+import org.projectforge.plugins.eed.model.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ExtendedEmployeeDataPluginUpdates
 {

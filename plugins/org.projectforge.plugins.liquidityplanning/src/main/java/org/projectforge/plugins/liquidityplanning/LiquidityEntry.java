@@ -23,14 +23,14 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.sql.Date;
-
 import org.projectforge.business.fibu.EingangsrechnungDO;
 import org.projectforge.business.fibu.RechnungDO;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.common.props.PropertyType;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.sql.Date;
 
 /**
  * Represents entities of {@link LiquidityEntryDO}, {@link RechnungDO} and {@link EingangsrechnungDO}.

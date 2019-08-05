@@ -25,17 +25,10 @@ package org.projectforge.plugins.banking
 
 import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Index
 import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.Store
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.Table
-import javax.persistence.Transient
-import javax.persistence.UniqueConstraint
+import javax.persistence.*
 
 @Entity
 @Indexed

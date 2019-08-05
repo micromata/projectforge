@@ -23,9 +23,6 @@
 
 package org.projectforge.plugins.marketing;
 
-import java.io.Serializable;
-import java.util.Iterator;
-
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.string.StringValue;
@@ -35,6 +32,9 @@ import org.projectforge.framework.i18n.UserException;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
 import org.slf4j.Logger;
+
+import java.io.Serializable;
+import java.util.Iterator;
 
 /**
  * The controler of the edit formular page. Most functionality such as insert, update, delete etc. is done by the super

@@ -23,10 +23,6 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
-import java.awt.*;
-import java.util.Calendar;
-import java.util.Date;
-
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
@@ -40,6 +36,10 @@ import org.projectforge.business.scripting.I18n;
 import org.projectforge.charting.XYChartBuilder;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DayHolder;
+
+import java.awt.*;
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
