@@ -23,85 +23,70 @@
 
 package org.projectforge.business.teamcal.event.model;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import de.micromata.genome.db.jpa.history.api.WithHistory;
-import org.hibernate.search.annotations.Analyze;
-import org.hibernate.search.annotations.DateBridge;
-import org.hibernate.search.annotations.EncodingType;
-import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Index;
-import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.IndexedEmbedded;
-import org.hibernate.search.annotations.Resolution;
-import org.hibernate.search.annotations.Store;
+import org.hibernate.search.annotations.*;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
+import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.api.AUserRightId;
 import org.projectforge.framework.persistence.api.Constants;
-import org.projectforge.framework.persistence.api.ExtendedBaseDO;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
-import org.projectforge.model.rest.CustomerDateAndTimeDeserialize;
-import org.projectforge.model.rest.CustomerDateAndTimeSerialize;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.persistence.UniqueConstraint;
+import javax.persistence.*;
 import java.sql.Timestamp;
-import java.util.Date;
 
 @Entity
 @Indexed
 @Table(name = "T_CALENDAR_EVENT",
-  uniqueConstraints = { @UniqueConstraint(name = "unique_t_calendar_event_uid_calendar_fk", columnNames = { "uid",
-    "calendar_fk" }) })
-@WithHistory(noHistoryProperties = { "lastUpdate", "created" }, nestedEntities = { TeamEventAttendeeDO.class })
+        uniqueConstraints = {@UniqueConstraint(name = "unique_t_calendar_event_uid_calendar_fk", columnNames = {"uid",
+                "calendar_fk"})})
+@WithHistory(noHistoryProperties = {"lastUpdate", "created"}, nestedEntities = {TeamEventAttendeeDO.class})
 @AUserRightId(value = "PLUGIN_CALENDAR_EVENT")
-public class CalEventDO extends DefaultBaseDO implements TeamEvent
-{
-
+public class CalEventDO extends DefaultBaseDO implements TeamEvent {
   @IndexedEmbedded(depth = 1)
   private TeamCalDO calendar;
 
-  @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
+  @PropertyInfo(i18nKey = "plugins.teamcal.event.beginDate")
+  @Field(index = Index.YES, analyze = Analyze.NO)
   @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
   private Timestamp startDate;
 
-  @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
+  @PropertyInfo(i18nKey = "plugins.teamcal.event.endDate")
+  @Field(index = Index.YES, analyze = Analyze.NO)
   @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
   private Timestamp endDate;
 
   private String uid;
 
-  @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
+  @PropertyInfo(i18nKey = "plugins.teamcal.event.subject")
+  @Field(index = Index.YES, store = Store.NO)
   private String subject;
 
-  @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
+  @PropertyInfo(i18nKey = "plugins.teamcal.event.location")
+  @Field(index = Index.YES, store = Store.NO)
   private String location;
 
-  @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
+  @PropertyInfo(i18nKey = "plugins.teamcal.event.note")
+  @Field(index = Index.YES, store = Store.NO)
   private String note;
 
   private String icsData;
 
+  @PropertyInfo(i18nKey = "plugins.teamcal.event.allDay")
   private boolean allDay;
 
   private boolean recurrence;
 
-  public boolean hasRecurrence(){ return false; }
+  public boolean hasRecurrence() {
+    return false;
+  }
 
   @Override
-  public boolean isAllDay()
-  {
+  public boolean isAllDay() {
     return allDay;
   }
 
-  public void setAllDay(boolean allDay)
-  {
+  public void setAllDay(boolean allDay) {
     this.allDay = allDay;
   }
 
@@ -111,31 +96,27 @@ public class CalEventDO extends DefaultBaseDO implements TeamEvent
    */
   @Override
   @Column(nullable = false)
-  public String getUid()
-  {
+  public String getUid() {
     return uid;
   }
 
   /**
    * @param uid
    */
-  public void setUid(final String uid)
-  {
+  public void setUid(final String uid) {
     this.uid = uid;
   }
 
   @Override
   @Column(length = Constants.LENGTH_SUBJECT)
-  public String getSubject()
-  {
+  public String getSubject() {
     return subject;
   }
 
   /**
    * @param subject
    */
-  public void setSubject(final String subject)
-  {
+  public void setSubject(final String subject) {
     this.subject = subject;
   }
 
@@ -144,18 +125,15 @@ public class CalEventDO extends DefaultBaseDO implements TeamEvent
   /**
    * @return the location
    */
-  public String getLocation()
-  {
+  public String getLocation() {
     return location;
   }
-
 
 
   /**
    * @param location the location to set
    */
-  public void setLocation(final String location)
-  {
+  public void setLocation(final String location) {
     this.location = location;
   }
 
@@ -164,8 +142,7 @@ public class CalEventDO extends DefaultBaseDO implements TeamEvent
   /**
    * @return the calendar
    */
-  public TeamCalDO getCalendar()
-  {
+  public TeamCalDO getCalendar() {
     return calendar;
   }
 
@@ -173,15 +150,13 @@ public class CalEventDO extends DefaultBaseDO implements TeamEvent
    * @param calendar the calendar to set
    * @return this for chaining.
    */
-  public void setCalendar(final TeamCalDO calendar)
-  {
+  public void setCalendar(final TeamCalDO calendar) {
     this.calendar = calendar;
   }
 
   @Override
   @Column(length = 4000)
-  public String getNote()
-  {
+  public String getNote() {
     return note;
   }
 
@@ -189,8 +164,7 @@ public class CalEventDO extends DefaultBaseDO implements TeamEvent
    * @param note the note to set
    * @return this for chaining.
    */
-  public void setNote(final String note)
-  {
+  public void setNote(final String note) {
     this.note = note;
   }
 
@@ -199,16 +173,14 @@ public class CalEventDO extends DefaultBaseDO implements TeamEvent
    */
   @Override
   @Column(name = "start_date")
-  public Timestamp getStartDate()
-  {
+  public Timestamp getStartDate() {
     return startDate;
   }
 
   /**
    * @param startDate the startDate to set
    */
-  public void setStartDate(final Timestamp startDate)
-  {
+  public void setStartDate(final Timestamp startDate) {
     this.startDate = startDate;
   }
 
@@ -217,33 +189,29 @@ public class CalEventDO extends DefaultBaseDO implements TeamEvent
    */
   @Override
   @Column(name = "end_date")
-  public Timestamp getEndDate()
-  {
+  public Timestamp getEndDate() {
     return endDate;
   }
 
   /**
    * @param endDate the endDate to set
    */
-  public void setEndDate(final Timestamp endDate)
-  {
+  public void setEndDate(final Timestamp endDate) {
     this.endDate = endDate;
   }
 
   /**
    * @return the ics
    */
-  @Column(name = "ics")
-  public String getIcsData()
-  {
+  @Column(name = "ics", length = 10000)
+  public String getIcsData() {
     return icsData;
   }
 
   /**
    * @param icsData the icsData to set
    */
-  public void setIcsData(final String icsData)
-  {
+  public void setIcsData(final String icsData) {
     this.icsData = icsData;
   }
 }

@@ -36,7 +36,7 @@ import org.projectforge.rest.TimesheetRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractBaseRest
 import org.projectforge.rest.core.AbstractDTORest
-import org.projectforge.rest.dto.CalendarEvent
+import org.projectforge.rest.dto.CalEvent
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestBody
@@ -45,12 +45,12 @@ import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 
 @RestController
-@RequestMapping("${Rest.URL}/calendarEvent")
-class CalendarEventRest() : AbstractDTORest<CalEventDO, CalendarEvent, CalEventDao>(
+@RequestMapping("${Rest.URL}/calEvent")
+class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
         CalEventDao::class.java,
         "plugins.teamcal.event.title") {
 
-    private val log = org.slf4j.LoggerFactory.getLogger(CalendarEventRest::class.java)
+    private val log = org.slf4j.LoggerFactory.getLogger(CalEventRest::class.java)
 
     @Autowired
     private lateinit var teamCalDao: TeamCalDao
@@ -61,19 +61,19 @@ class CalendarEventRest() : AbstractDTORest<CalEventDO, CalendarEvent, CalEventD
     @Autowired
     private lateinit var CalendarEventExternalSubscriptionCache: TeamEventExternalSubscriptionCache
 
-    override fun transformForDB(dto: CalendarEvent): CalEventDO {
+    override fun transformForDB(dto: CalEvent): CalEventDO {
         val calendarEventDO = CalEventDO()
         dto.copyTo(calendarEventDO)
         return calendarEventDO
     }
 
-    override fun transformFromDB(obj: CalEventDO, editMode: Boolean): CalendarEvent {
-        val calendarEvent = CalendarEvent()
+    override fun transformFromDB(obj: CalEventDO, editMode: Boolean): CalEvent {
+        val calendarEvent = CalEvent()
         calendarEvent.copyFrom(obj)
         return calendarEvent
     }
 
-    override fun onGetItemAndLayout(request: HttpServletRequest, dto: CalendarEvent, editLayoutData: AbstractBaseRest.EditLayoutData) {
+    override fun onGetItemAndLayout(request: HttpServletRequest, dto: CalEvent, editLayoutData: AbstractBaseRest.EditLayoutData) {
 
         val recurrentDateString = request.getParameter("recurrentDate")
         println("CalendarEventRest: recurrentDate=$recurrentDateString")
@@ -84,7 +84,7 @@ class CalendarEventRest() : AbstractDTORest<CalEventDO, CalendarEvent, CalEventD
         super.onGetItemAndLayout(request, dto, editLayoutData)
     }
 
-    override fun beforeSaveOrUpdate(request: HttpServletRequest, obj: CalEventDO, dto: CalendarEvent) {
+    override fun beforeSaveOrUpdate(request: HttpServletRequest, obj: CalEventDO, dto: CalEvent) {
         if (obj.calendar.id != null) {
             // Calendar from client has only id and title. Get the calendar object from the data base (e. g. owner
             // is needed by the access checker.
@@ -93,22 +93,22 @@ class CalendarEventRest() : AbstractDTORest<CalEventDO, CalendarEvent, CalEventD
     }
 
 
-    override fun afterEdit(obj: CalEventDO, dto: CalendarEvent): ResponseAction {
+    override fun afterEdit(obj: CalEventDO, dto: CalEvent): ResponseAction {
 
         return ResponseAction("/calendar")
                 .addVariable("date", obj.startDate)
                 .addVariable("id", obj.id ?: -1)
     }
 
-    override fun getById(idString: String?, editMode: Boolean, userAccess: UILayout.UserAccess?): CalendarEvent? {
+    override fun getById(idString: String?, editMode: Boolean, userAccess: UILayout.UserAccess?): CalEvent? {
         if (idString.isNullOrBlank())
-            return CalendarEvent();
+            return CalEvent();
         if (idString.contains('-')) { // {calendarId}-{uid}
             val vals = idString.split('-', limit = 2)
             if (vals.size != 2) {
                 log.error("Can't get event of subscribed calendar. id must be of form {calId}-{uid} but is '$idString'.")
 
-                return CalendarEvent()
+                return CalEvent()
             }
             try {
                 val calId = vals[0].toInt()
@@ -117,16 +117,16 @@ class CalendarEventRest() : AbstractDTORest<CalEventDO, CalendarEvent, CalEventD
                 if (cal == null) {
                     log.error("Can't get calendar with id #$calId.")
 
-                    return CalendarEvent()
+                    return CalEvent()
                 }
                 if (!cal.externalSubscription) {
                     log.error("Calendar with id #$calId is not an external subscription, can't get event by uid.")
-                    return CalendarEvent()
+                    return CalEvent()
                 }
-                return CalendarEvent()//return CalendarEventExternalSubscriptionCache.getEvent(calId, uid)
+                return CalEvent()//return CalendarEventExternalSubscriptionCache.getEvent(calId, uid)
             } catch (ex: NumberFormatException) {
                 log.error("Can't get event of subscribed calendar. id must be of form {calId}-{uid} but is '$idString', a NumberFormatException occured.")
-                return CalendarEvent()
+                return CalEvent()
             }
         }
         return super.getById(idString, editMode, userAccess)
@@ -137,13 +137,13 @@ class CalendarEventRest() : AbstractDTORest<CalEventDO, CalendarEvent, CalEventD
      * @return ResponseAction with [TargetType.UPDATE] and variable "initial" with all the initial data of [getItemAndLayout] as given for new objects.
      */
     @RequestMapping("switch2Timesheet")
-    fun switch2Timesheet(request: HttpServletRequest, @RequestBody calendarEvent: CalendarEvent)
+    fun switch2Timesheet(request: HttpServletRequest, @RequestBody calendarEvent: CalEvent)
             : ResponseAction {
         return timesheetRest.cloneFromCalendarEvent(request, calendarEvent)
     }
 
     fun cloneFromTimesheet(request: HttpServletRequest, timesheet: TimesheetDO): ResponseAction {
-        val calendarEvent = CalendarEvent()
+        val calendarEvent = CalEvent()
         calendarEvent.startDate = timesheet.startTime
         calendarEvent.endDate = timesheet.stopTime
         calendarEvent.location = timesheet.location
@@ -168,7 +168,7 @@ class CalendarEventRest() : AbstractDTORest<CalEventDO, CalendarEvent, CalEventD
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: CalendarEvent, userAccess: UILayout.UserAccess): UILayout {
+    override fun createEditLayout(dto: CalEvent, userAccess: UILayout.UserAccess): UILayout {
         val calendars = teamCalDao.getAllCalendarsWithFullAccess()
         val calendarSelectValues = calendars.map { it ->
             UISelectValue<Int>(it.id, it.title!!)

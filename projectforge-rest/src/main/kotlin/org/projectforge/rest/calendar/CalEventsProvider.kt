@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component
  * Provides the events of a calendar (team calendar).
  */
 @Component
-class CalendarEventsProvider() {
+class CalEventsProvider() {
 
     @Autowired
     private lateinit var calEventDao: CalEventDao
@@ -85,7 +85,7 @@ class CalendarEventsProvider() {
                     allDay,
                     location = it.location,
                     desc = it.note,
-                    category = "calendarEvent",
+                    category = "calEvent",
                     dbId = dbId,
                     uid = uid,
                     bgColor = style?.bgColor,

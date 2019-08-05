@@ -29,7 +29,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.sql.Timestamp
 import java.util.*
 
-class CalendarEvent(
+class CalEvent(
         /**
          * Modifications should have effect for all entries of this serie.
          */
