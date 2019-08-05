@@ -26,8 +26,8 @@ package org.projectforge.rest
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.tasktree.TaskTreeHelper
-import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.business.timesheet.*
+import org.projectforge.business.teamcal.event.model.CalEventDO
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.common.DateFormatType
 import org.projectforge.favorites.Favorites
@@ -47,6 +47,7 @@ import org.projectforge.rest.core.AbstractBaseRest
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.rest.core.RestHelper
 import org.projectforge.rest.core.ResultSet
+import org.projectforge.rest.dto.TeamEvent
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
@@ -234,7 +235,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
         return teamEventRest.cloneFromTimesheet(request, timesheet)
     }
 
-    fun cloneFromTeamEvent(request: HttpServletRequest, teamEvent: TeamEventDO): ResponseAction {
+    fun cloneFromTeamEvent(request: HttpServletRequest, teamEvent: TeamEvent): ResponseAction {
         val timesheet = TimesheetDO()
         timesheet.startTime = teamEvent.startDate
         timesheet.stopTime = teamEvent.endDate
@@ -246,7 +247,6 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
                 .addVariable("ui", editLayoutData.ui)
                 .addVariable("variables", editLayoutData.variables)
     }
-
 
     override fun onGetItemAndLayout(request: HttpServletRequest, dto: TimesheetDO, editLayoutData: EditLayoutData) {
         val startDateAsSeconds = NumberHelper.parseLong(request.getParameter("startDate"))
