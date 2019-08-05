@@ -154,6 +154,7 @@ class CalendarFilterServicesRest {
                 "calendar.defaultCalendar",
                 "calendar.defaultCalendar.tooltip",
                 "calendar.navigation.today",
+                "calendar.option.timesheeets",
                 "calendar.title",
                 "calendar.view.agenda",
                 "calendar.view.day",
@@ -161,7 +162,6 @@ class CalendarFilterServicesRest {
                 "calendar.view.week",
                 "calendar.view.workWeek",
                 "settings",
-                "timesheet.user",
                 "tooltip.selectMe")
         Favorites.addTranslations(translations)
         initial.translations = translations

@@ -29,8 +29,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.sql.Timestamp
 import java.util.*
 
-@Deprecated("Will be replaced by CalendarEvent.")
-class TeamEvent(
+class CalendarEvent(
         /**
          * Modifications should have effect for all entries of this serie.
          */
@@ -67,7 +66,7 @@ class TeamEvent(
         var reminderDurationUnit: ReminderDurationUnit? = null,
         var reminderActionType: ReminderActionType? = null,
         var attachments: MutableSet<TeamEventAttachmentDO>? = null,
-        var creator: PFUserDO? = null) : BaseDTO<TeamEventDO>() {
+        var creator: PFUserDO? = null) : BaseDTO<CalEventDO>() {
 
     val hasRecurrence: Boolean
         get() = !recurrenceRule.isNullOrBlank()

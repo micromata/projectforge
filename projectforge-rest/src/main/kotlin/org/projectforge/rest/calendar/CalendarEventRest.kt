@@ -24,8 +24,8 @@
 package org.projectforge.rest.calendar
 
 import org.projectforge.business.teamcal.admin.TeamCalDao
-import org.projectforge.business.teamcal.event.TeamEventDao
-import org.projectforge.business.teamcal.event.model.TeamEventDO
+import org.projectforge.business.teamcal.event.CalEventDao
+import org.projectforge.business.teamcal.event.model.CalEventDO
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.framework.i18n.translate
@@ -36,7 +36,7 @@ import org.projectforge.rest.TimesheetRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractBaseRest
 import org.projectforge.rest.core.AbstractDTORest
-import org.projectforge.rest.dto.TeamEvent
+import org.projectforge.rest.dto.CalendarEvent
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestBody
@@ -44,14 +44,13 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 
-@Deprecated("Will be replaced by CalendarEventsRest.")
 @RestController
-@RequestMapping("${Rest.URL}/teamEvent")
-class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
-        TeamEventDao::class.java,
+@RequestMapping("${Rest.URL}/calendarEvent")
+class CalendarEventRest() : AbstractDTORest<CalEventDO, CalendarEvent, CalEventDao>(
+        CalEventDao::class.java,
         "plugins.teamcal.event.title") {
 
-    private val log = org.slf4j.LoggerFactory.getLogger(TeamEventRest::class.java)
+    private val log = org.slf4j.LoggerFactory.getLogger(CalendarEventRest::class.java)
 
     @Autowired
     private lateinit var teamCalDao: TeamCalDao
@@ -60,24 +59,24 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
     private lateinit var timesheetRest: TimesheetRest
 
     @Autowired
-    private lateinit var teamEventExternalSubscriptionCache: TeamEventExternalSubscriptionCache
+    private lateinit var CalendarEventExternalSubscriptionCache: TeamEventExternalSubscriptionCache
 
-    override fun transformForDB(dto: TeamEvent): TeamEventDO {
-        val teamEventDO = TeamEventDO()
-        dto.copyTo(teamEventDO)
-        return teamEventDO
+    override fun transformForDB(dto: CalendarEvent): CalEventDO {
+        val calendarEventDO = CalEventDO()
+        dto.copyTo(calendarEventDO)
+        return calendarEventDO
     }
 
-    override fun transformFromDB(obj: TeamEventDO, editMode: Boolean): TeamEvent {
-        val teamEvent = TeamEvent()
-        teamEvent.copyFrom(obj)
-        return teamEvent
+    override fun transformFromDB(obj: CalEventDO, editMode: Boolean): CalendarEvent {
+        val calendarEvent = CalendarEvent()
+        calendarEvent.copyFrom(obj)
+        return calendarEvent
     }
 
-    override fun onGetItemAndLayout(request: HttpServletRequest, dto: TeamEvent, editLayoutData: AbstractBaseRest.EditLayoutData) {
+    override fun onGetItemAndLayout(request: HttpServletRequest, dto: CalendarEvent, editLayoutData: AbstractBaseRest.EditLayoutData) {
 
         val recurrentDateString = request.getParameter("recurrentDate")
-        println("TeamEventRest: recurrentDate=$recurrentDateString")
+        println("CalendarEventRest: recurrentDate=$recurrentDateString")
         val startDateAsSeconds = NumberHelper.parseLong(request.getParameter("startDate"))
         if (startDateAsSeconds != null) dto.startDate = PFDateTime.from(startDateAsSeconds)!!.sqlTimestamp
         val endDateSeconds = NumberHelper.parseLong(request.getParameter("endDate"))
@@ -85,31 +84,31 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
         super.onGetItemAndLayout(request, dto, editLayoutData)
     }
 
-    override fun beforeSaveOrUpdate(request: HttpServletRequest, obj: TeamEventDO, dto: TeamEvent) {
-        if (obj.calendarId != null) {
+    override fun beforeSaveOrUpdate(request: HttpServletRequest, obj: CalEventDO, dto: CalendarEvent) {
+        if (obj.calendar.id != null) {
             // Calendar from client has only id and title. Get the calendar object from the data base (e. g. owner
             // is needed by the access checker.
-            obj.calendar = teamCalDao.getById(obj.calendarId)
+            obj.calendar = teamCalDao.getById(obj.calendar.id)
         }
     }
 
 
-    override fun afterEdit(obj: TeamEventDO, dto: TeamEvent): ResponseAction {
+    override fun afterEdit(obj: CalEventDO, dto: CalendarEvent): ResponseAction {
 
         return ResponseAction("/calendar")
                 .addVariable("date", obj.startDate)
                 .addVariable("id", obj.id ?: -1)
     }
 
-    override fun getById(idString: String?, editMode: Boolean, userAccess: UILayout.UserAccess?): TeamEvent? {
+    override fun getById(idString: String?, editMode: Boolean, userAccess: UILayout.UserAccess?): CalendarEvent? {
         if (idString.isNullOrBlank())
-            return TeamEvent();
+            return CalendarEvent();
         if (idString.contains('-')) { // {calendarId}-{uid}
             val vals = idString.split('-', limit = 2)
             if (vals.size != 2) {
                 log.error("Can't get event of subscribed calendar. id must be of form {calId}-{uid} but is '$idString'.")
 
-                return TeamEvent()
+                return CalendarEvent()
             }
             try {
                 val calId = vals[0].toInt()
@@ -118,16 +117,16 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
                 if (cal == null) {
                     log.error("Can't get calendar with id #$calId.")
 
-                    return TeamEvent()
+                    return CalendarEvent()
                 }
                 if (!cal.externalSubscription) {
                     log.error("Calendar with id #$calId is not an external subscription, can't get event by uid.")
-                    return TeamEvent()
+                    return CalendarEvent()
                 }
-                return TeamEvent()//return teamEventExternalSubscriptionCache.getEvent(calId, uid)
+                return CalendarEvent()//return CalendarEventExternalSubscriptionCache.getEvent(calId, uid)
             } catch (ex: NumberFormatException) {
                 log.error("Can't get event of subscribed calendar. id must be of form {calId}-{uid} but is '$idString', a NumberFormatException occured.")
-                return TeamEvent()
+                return CalendarEvent()
             }
         }
         return super.getById(idString, editMode, userAccess)
@@ -138,18 +137,18 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
      * @return ResponseAction with [TargetType.UPDATE] and variable "initial" with all the initial data of [getItemAndLayout] as given for new objects.
      */
     @RequestMapping("switch2Timesheet")
-    fun switch2Timesheet(request: HttpServletRequest, @RequestBody teamEvent: TeamEvent)
+    fun switch2Timesheet(request: HttpServletRequest, @RequestBody calendarEvent: CalendarEvent)
             : ResponseAction {
-        return timesheetRest.cloneFromTeamEvent(request, teamEvent)
+        return timesheetRest.cloneFromCalendarEvent(request, calendarEvent)
     }
 
     fun cloneFromTimesheet(request: HttpServletRequest, timesheet: TimesheetDO): ResponseAction {
-        val teamEvent = TeamEvent()
-        teamEvent.startDate = timesheet.startTime
-        teamEvent.endDate = timesheet.stopTime
-        teamEvent.location = timesheet.location
-        teamEvent.note = timesheet.description
-        val editLayoutData = getItemAndLayout(request, teamEvent, UILayout.UserAccess(false, true))
+        val calendarEvent = CalendarEvent()
+        calendarEvent.startDate = timesheet.startTime
+        calendarEvent.endDate = timesheet.stopTime
+        calendarEvent.location = timesheet.location
+        calendarEvent.note = timesheet.description
+        val editLayoutData = getItemAndLayout(request, calendarEvent, UILayout.UserAccess(false, true))
         return ResponseAction(url = "/calendar/${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
                 .addVariable("data", editLayoutData.data)
                 .addVariable("ui", editLayoutData.ui)
@@ -169,7 +168,7 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: TeamEvent, userAccess: UILayout.UserAccess): UILayout {
+    override fun createEditLayout(dto: CalendarEvent, userAccess: UILayout.UserAccess): UILayout {
         val calendars = teamCalDao.getAllCalendarsWithFullAccess()
         val calendarSelectValues = calendars.map { it ->
             UISelectValue<Int>(it.id, it.title!!)
