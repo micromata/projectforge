@@ -5,7 +5,6 @@ import ConsumptionBar from '../ConsumptionBar';
 import TaskTreeTableEntryIcon from './TaskTreeTableEntryIcon';
 
 function TaskTreeTableEntry({ task, columnsVisibility, shortForm }) {
-    console.log(columnsVisibility);
     return (
         <tr>
             <td style={{ paddingLeft: `${task.indent * 1.5 + 0.75}rem` }}>
