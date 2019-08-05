@@ -30,6 +30,7 @@ import org.projectforge.business.timesheet.TimesheetFavorite
 import org.projectforge.business.timesheet.TimesheetFavoritesService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.task.TaskServicesRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
@@ -84,8 +85,11 @@ class TimesheetFavoritesRest {
         val fav = timsheetFavoritesService.selectTimesheet(selectFavorite.id) ?: return mapOf()
         val timesheet = TimesheetDO()
         fav.copyToTimesheet(timesheet)
+        val result = mutableMapOf<String, Any>("data" to timesheet)
         if (timesheet.taskId != null) {
-            timesheet.task = TaskTreeHelper.getTaskTree().getTaskById(timesheet.taskId)
+            val task = TaskTreeHelper.getTaskTree().getTaskById(timesheet.taskId)
+            timesheet.task = task
+            result["variables"] = mapOf("task" to TaskServicesRest.createTask(timesheet.taskId))
         }
         if (timesheet.userId != null) {
             timesheet.user = userService.getUser(timesheet.userId)
@@ -95,7 +99,7 @@ class TimesheetFavoritesRest {
             val kost2 = kost2Dao.internalGetById(timesheet.kost2Id)
             timesheet.kost2?.description = kost2?.description
         }
-        return mapOf("data" to timesheet)
+        return result
     }
 
     /**
