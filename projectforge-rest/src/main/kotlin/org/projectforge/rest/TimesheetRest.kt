@@ -27,7 +27,6 @@ import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.business.timesheet.*
-import org.projectforge.business.teamcal.event.model.CalEventDO
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.common.DateFormatType
 import org.projectforge.favorites.Favorites
@@ -47,6 +46,7 @@ import org.projectforge.rest.core.AbstractBaseRest
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.rest.core.RestHelper
 import org.projectforge.rest.core.ResultSet
+import org.projectforge.rest.dto.CalendarEvent
 import org.projectforge.rest.dto.TeamEvent
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
@@ -235,12 +235,26 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
         return teamEventRest.cloneFromTimesheet(request, timesheet)
     }
 
+    @Deprecated("Will be replaced by cloneFromCalendarEvent(request, calendarEvent).")
     fun cloneFromTeamEvent(request: HttpServletRequest, teamEvent: TeamEvent): ResponseAction {
         val timesheet = TimesheetDO()
         timesheet.startTime = teamEvent.startDate
         timesheet.stopTime = teamEvent.endDate
         timesheet.location = teamEvent.location
         timesheet.description = "${teamEvent.subject ?: ""} ${teamEvent.note ?: ""}"
+        val editLayoutData = getItemAndLayout(request, timesheet, UILayout.UserAccess(false, true))
+        return ResponseAction(url = "/calendar/${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
+                .addVariable("data", editLayoutData.data)
+                .addVariable("ui", editLayoutData.ui)
+                .addVariable("variables", editLayoutData.variables)
+    }
+
+    fun cloneFromCalendarEvent(request: HttpServletRequest, calendarEvent: CalendarEvent): ResponseAction {
+        val timesheet = TimesheetDO()
+        timesheet.startTime = calendarEvent.startDate
+        timesheet.stopTime = calendarEvent.endDate
+        timesheet.location = calendarEvent.location
+        timesheet.description = "${calendarEvent.subject ?: ""} ${calendarEvent.note ?: ""}"
         val editLayoutData = getItemAndLayout(request, timesheet, UILayout.UserAccess(false, true))
         return ResponseAction(url = "/calendar/${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
                 .addVariable("data", editLayoutData.data)

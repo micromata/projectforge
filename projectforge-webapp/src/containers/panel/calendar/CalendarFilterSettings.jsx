@@ -103,7 +103,7 @@ class CalendarFilterSettings extends Component {
                                     <UserSelect
                                         onChange={this.handleTimesheetUserChange}
                                         value={timesheetUser}
-                                        label={translations['timesheet.user']}
+                                        label={translations['calendar.option.timesheeets']}
                                         translations={translations}
                                     />
                                 </Col>

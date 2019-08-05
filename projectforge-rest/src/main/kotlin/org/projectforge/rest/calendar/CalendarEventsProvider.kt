@@ -24,10 +24,9 @@
 package org.projectforge.rest.calendar
 
 import org.projectforge.business.calendar.CalendarStyleMap
-import org.projectforge.business.teamcal.event.TeamEventDao
+import org.projectforge.business.teamcal.event.CalEventDao
 import org.projectforge.business.teamcal.event.TeamEventFilter
-import org.projectforge.business.teamcal.event.TeamRecurrenceEvent
-import org.projectforge.business.teamcal.event.model.TeamEventDO
+import org.projectforge.business.teamcal.event.model.CalEventDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,40 +35,40 @@ import org.springframework.stereotype.Component
 /**
  * Provides the events of a calendar (team calendar).
  */
-@Deprecated("Will be replaced by CalendarEventsProvider.")
 @Component
-class TeamCalEventsProvider() {
+class CalendarEventsProvider() {
 
     @Autowired
-    private lateinit var teamEventDao: TeamEventDao
+    private lateinit var calEventDao: CalEventDao
 
     fun addEvents(start: PFDateTime,
                   end: PFDateTime,
                   events: MutableList<BigCalendarEvent>,
-                  teamCalendarIds: List<Int>?,
+                  calendarIds: List<Int>?,
                   styleMap: CalendarStyleMap) {
-        if (teamCalendarIds.isNullOrEmpty())
+        if (calendarIds.isNullOrEmpty())
             return
         val eventFilter = TeamEventFilter()
-        eventFilter.teamCals = teamCalendarIds
+        eventFilter.teamCals = calendarIds
         eventFilter.startDate = start.utilDate
         eventFilter.endDate = end.utilDate
         eventFilter.user = ThreadLocalUserContext.getUser()
-        val teamEvents = teamEventDao.getEventList(eventFilter, true)
-        teamEvents?.forEach {
-            val eventDO: TeamEventDO
+        val calendarEvents = calEventDao.getEventList(eventFilter, true)
+        calendarEvents?.forEach {
+            val eventDO: CalEventDO
             val recurrentEvent: Boolean
-            if (it is TeamEventDO) {
+            if (it is CalEventDO) {
                 eventDO = it
                 recurrentEvent = false
-            } else {
-                eventDO = (it as TeamRecurrenceEvent).master
+            }
+            else {
+                eventDO = CalEventDO(); //(it as TeamRecurrenceEvent).master
                 recurrentEvent = true
             }
             val recurrentDate = if (recurrentEvent) "?recurrentDate=${it.startDate.time / 1000}" else ""
             //val link = "teamEvent/edit/${eventDO.id}$recurrentDate"
             val allDay = eventDO.isAllDay()
-            val style = styleMap.get(eventDO.calendarId)
+            val style = styleMap.get(eventDO.calendar.id)
             val dbId: Int?
             val uid:String?
             if (eventDO.id > 0){
@@ -77,7 +76,7 @@ class TeamCalEventsProvider() {
                 uid = null
             } else {
                 dbId = null
-                uid = "${eventDO.calendarId}-${eventDO.uid}"
+                uid = "${eventDO.calendar.id}-${eventDO.uid}"
             }
             val event = BigCalendarEvent(
                     it.subject,
@@ -86,7 +85,7 @@ class TeamCalEventsProvider() {
                     allDay,
                     location = it.location,
                     desc = it.note,
-                    category = "teamEvent",
+                    category = "calendarEvent",
                     dbId = dbId,
                     uid = uid,
                     bgColor = style?.bgColor,
