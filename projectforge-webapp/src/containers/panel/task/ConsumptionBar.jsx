@@ -15,12 +15,12 @@ function ConsumptionBar({ progress, taskId }) {
     } = progress;
     const element = (
         <React.Fragment>
-            <div className={`${style.progress} ${style[status]}`} id={`cb-${id}`}>
+            <div className={`${style.progress} ${style[status]}`} id={`cb-${id}-${taskId}`}>
                 <div style={{ width }}>
                     {' '}
                 </div>
             </div>
-            <UncontrolledTooltip placement="right" target={`cb-${id}`}>
+            <UncontrolledTooltip placement="right" target={`cb-${id}-${taskId}`}>
                 {title}
             </UncontrolledTooltip>
         </React.Fragment>
