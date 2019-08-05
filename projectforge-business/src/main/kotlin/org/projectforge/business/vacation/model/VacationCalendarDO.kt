@@ -24,7 +24,7 @@
 package org.projectforge.business.vacation.model
 
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
-import org.projectforge.business.teamcal.event.model.TeamEventDO
+import org.projectforge.business.teamcal.event.model.CalEventDO
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import javax.persistence.*
@@ -47,6 +47,6 @@ class VacationCalendarDO : DefaultBaseDO() {
 
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "event_id")
-    var event: TeamEventDO? = null
+    var event: CalEventDO? = null
 
 }

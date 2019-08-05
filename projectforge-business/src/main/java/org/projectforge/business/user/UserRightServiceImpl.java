@@ -43,6 +43,7 @@ import org.projectforge.business.meb.MebRight;
 import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.business.multitenancy.TenantRight;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
+import org.projectforge.business.teamcal.event.right.CalEventRight;
 import org.projectforge.business.teamcal.event.right.TeamEventRight;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.api.IUserRightId;
@@ -145,6 +146,7 @@ public class UserRightServiceImpl implements UserRightService, Serializable
     addRight(new HRPlanningRight(accessChecker));
     addRight(new TeamCalRight(accessChecker));
     addRight(new TeamEventRight(accessChecker));
+    addRight(new CalEventRight(accessChecker));
     addRight(new AddressbookRight(accessChecker));
 
     addRight(UserRightCategory.ADMIN, UserRightId.ADMIN_CORE, FALSE_READONLY_READWRITE, ProjectForgeGroup.ADMIN_GROUP);

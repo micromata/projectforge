@@ -6,11 +6,11 @@ target
 
 # intellij config
 *.iml
-/.idea/
+.idea/
 # eclipse specific git ignore
 *.pydevproject
-/.project
-/.metadata
+.project
+.metadata
 /bin/
 tmp/
 test-output
@@ -20,9 +20,9 @@ test-output
 *.swp
 *~.nib
 /local.properties
-/.classpath
-/.settings/
-/.loadpath
+.classpath
+.settings/
+.loadpath
 
 /.springBeans
 

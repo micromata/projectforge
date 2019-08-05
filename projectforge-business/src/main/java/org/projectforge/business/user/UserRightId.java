@@ -103,7 +103,10 @@ public enum UserRightId implements IUserRightId
       "plugins.teamcal.calendar"),
 
   PLUGIN_CALENDAR_EVENT("PLUGIN_CALENDAR_EVENT", "plugin15",
-      "plugins.teamcalendar.event");
+      "plugins.teamcalendar.event"),
+
+  CALENDAR_EVENT("CALENDAR_EVENT", "plugin15",
+    "plugins.teamcalendar.event");
 
   public static class ProviderService implements RightRightIdProviderService
   {

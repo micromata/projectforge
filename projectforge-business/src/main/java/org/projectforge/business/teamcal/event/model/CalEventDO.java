@@ -57,7 +57,8 @@ import java.util.Date;
 @Entity
 @Indexed
 @Table(name = "T_CALENDAR_EVENT",
-  uniqueConstraints = { @UniqueConstraint(name = "unique_t_plugin_calendar_event_uid_calendar_fk", columnNames = { "uid", "calendar_fk" }) })
+  uniqueConstraints = { @UniqueConstraint(name = "unique_t_calendar_event_uid_calendar_fk", columnNames = { "uid",
+    "calendar_fk" }) })
 @WithHistory(noHistoryProperties = { "lastUpdate", "created" }, nestedEntities = { TeamEventAttendeeDO.class })
 @AUserRightId(value = "PLUGIN_CALENDAR_EVENT")
 public class CalEventDO extends DefaultBaseDO implements TeamEvent
@@ -89,10 +90,14 @@ public class CalEventDO extends DefaultBaseDO implements TeamEvent
 
   private boolean allDay;
 
+  private boolean recurrence;
+
+  public boolean hasRecurrence(){ return false; }
+
   @Override
   public boolean isAllDay()
   {
-    return false;
+    return allDay;
   }
 
   public void setAllDay(boolean allDay)
