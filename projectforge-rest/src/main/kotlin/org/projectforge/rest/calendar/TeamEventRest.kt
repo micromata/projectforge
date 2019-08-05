@@ -96,7 +96,7 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
                 .addVariable("id", obj.id ?: -1)
     }
 
-    override fun getById(idString: String?, editMode: Boolean): TeamEvent? {
+    override fun getById(idString: String?, editMode: Boolean, userAccess: UILayout.UserAccess?): TeamEvent? {
         if (idString.isNullOrBlank())
             return TeamEvent()
         if (idString.contains('-')) { // {calendarId}-{uid}
@@ -125,7 +125,7 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
                 return TeamEvent()
             }
         }
-        return super.getById(idString, editMode)
+        return super.getById(idString, editMode, userAccess)
     }
 
     /**
@@ -144,7 +144,7 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
         teamEvent.endDate = timesheet.stopTime
         teamEvent.location = timesheet.location
         teamEvent.note = timesheet.description
-        val editLayoutData = getItemAndLayout(request, teamEvent)
+        val editLayoutData = getItemAndLayout(request, teamEvent, UILayout.UserAccess(false, true))
         return ResponseAction(url = "/calendar/${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
                 .addVariable("data", editLayoutData.data)
                 .addVariable("ui", editLayoutData.ui)
@@ -161,14 +161,14 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
         return LayoutUtils.processListPage(layout, this)
     }
 
-    override fun createEditLayout(dto: TeamEvent): UILayout {
+    override fun createEditLayout(dto: TeamEvent, userAccess: UILayout.UserAccess): UILayout {
         val calendars = teamCalDao.getAllCalendarsWithFullAccess()
         val calendarSelectValues = calendars.map { it ->
             UISelectValue<Int>(it.id, it.title!!)
         }
         val subject = UIInput("subject", lc)
         subject.focus = true
-        val layout = super.createEditLayout(dto)
+        val layout = super.createEditLayout(dto, userAccess)
         //layout.addAction(UIButton("switchToTimesheet", style = UIStyle.PRIMARY, default = true))
         if (dto.hasRecurrence) {
             layout.add(UIFieldset(12, title = "plugins.teamcal.event.recurrence.change.text")

@@ -70,7 +70,7 @@ class ContractRest() : AbstractDORest<ContractDO, ContractDao>(ContractDao::clas
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: ContractDO): UILayout {
+    override fun createEditLayout(dto: ContractDO, userAccess: UILayout.UserAccess): UILayout {
         val title = UIInput("title", lc).enableAutoCompletion(this)
         val coContractorA = UIInput("coContractorA", lc).enableAutoCompletion(this)
         val coContractorB = UIInput("coContractorB", lc).enableAutoCompletion(this)
@@ -80,7 +80,7 @@ class ContractRest() : AbstractDORest<ContractDO, ContractDao>(ContractDao::clas
         val signerB = UIInput("signerB", lc).enableAutoCompletion(this)
 
 
-        val layout = super.createEditLayout(dto)
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "number", "date")

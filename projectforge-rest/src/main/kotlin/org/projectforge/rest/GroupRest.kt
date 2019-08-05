@@ -74,8 +74,8 @@ class GroupRest() : AbstractDTORest<GroupDO, Group, GroupDao>(GroupDao::class.ja
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: Group): UILayout {
-        val layout = super.createEditLayout(dto)
+    override fun createEditLayout(dto: Group, userAccess: UILayout.UserAccess): UILayout {
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "name", "organization", "description"))

@@ -70,8 +70,8 @@ class AuftragRest() : AbstractDORest<AuftragDO, AuftragDao>(AuftragDao::class.ja
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: AuftragDO): UILayout {
-        val layout = super.createEditLayout(dto)
+    override fun createEditLayout(dto: AuftragDO, userAccess: UILayout.UserAccess): UILayout {
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "nummer", "nettoSumme")))

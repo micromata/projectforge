@@ -82,8 +82,8 @@ class AddressBookRest : AbstractDTORest<AddressbookDO, Addressbook, AddressbookD
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: Addressbook): UILayout {
-        val layout = super.createEditLayout(dto)
+    override fun createEditLayout(dto: Addressbook, userAccess: UILayout.UserAccess): UILayout {
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "title")

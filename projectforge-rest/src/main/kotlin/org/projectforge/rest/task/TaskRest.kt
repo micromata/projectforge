@@ -76,8 +76,8 @@ class TaskRest
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: Task): UILayout {
-        val layout = super.createEditLayout(dto)
+    override fun createEditLayout(dto: Task, userAccess: UILayout.UserAccess): UILayout {
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(lc, "parentTask", "title", "status", "priority", "responsibleUser", "shortDescription", "reference", "description")
         layout.add(UIRow().add(UICol().add(UIInput("protectTimesheetsUntil", lc, dataType = UIDataType.DATE))))
         Favorites.addTranslations(layout.translations)

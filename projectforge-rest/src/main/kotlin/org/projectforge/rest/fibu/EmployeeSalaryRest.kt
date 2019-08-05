@@ -68,8 +68,8 @@ class EmployeeSalaryRest
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: EmployeeSalary): UILayout {
-        val layout = super.createEditLayout(dto)
+    override fun createEditLayout(dto: EmployeeSalary, userAccess: UILayout.UserAccess): UILayout {
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "fibu.employee.user.lastname", "fibu.employee.user.firstname")

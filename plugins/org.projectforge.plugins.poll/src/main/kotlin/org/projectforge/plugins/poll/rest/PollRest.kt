@@ -70,9 +70,9 @@ class PollRest : AbstractDTORest<PollDO, Poll, PollDao>(PollDao::class.java, "pl
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: Poll): UILayout {
+    override fun createEditLayout(dto: Poll, userAccess: UILayout.UserAccess): UILayout {
         val location = UIInput("location", lc).enableAutoCompletion(this)
-        val layout = super.createEditLayout(dto)
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(lc, "title")
                 .add(location)
                 .add(lc, "description")

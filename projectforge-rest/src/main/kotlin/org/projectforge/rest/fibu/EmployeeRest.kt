@@ -67,8 +67,8 @@ class EmployeeRest : AbstractDTORest<EmployeeDO, Employee, EmployeeDao>(Employee
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: Employee): UILayout {
-        val layout = super.createEditLayout(dto)
+    override fun createEditLayout(dto: Employee, userAccess: UILayout.UserAccess): UILayout {
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "user", "kost1", "abteilung", "position"))

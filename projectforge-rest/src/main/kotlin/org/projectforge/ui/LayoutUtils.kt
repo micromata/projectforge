@@ -139,26 +139,31 @@ class LayoutUtils {
          * Calls also fun [process].
          * @see LayoutUtils.process
          */
-        fun processEditPage(layout: UILayout, dto: Any,
-                            restService: AbstractBaseRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>)
+        fun <O : ExtendedBaseDO<Int>> processEditPage(layout: UILayout, dto: Any, restService: AbstractBaseRest<O, *, out BaseDao<O>>)
                 : UILayout {
             layout.addAction(UIButton("cancel",
                     color = UIColor.DANGER,
                     responseAction = ResponseAction(restService.getRestPath(RestPaths.CANCEL), targetType = TargetType.POST)))
+            val userAccess = layout.userAccess
             if (restService.isHistorizable()) {
                 // 99% of the objects are historizable (undeletable):
                 if (restService.getId(dto) != null) {
-                    layout.showHistory = true
-                    if (restService.isDeleted(dto))
-                        layout.addAction(UIButton("undelete",
-                                color = UIColor.WARNING,
-                                responseAction = ResponseAction(restService.getRestPath(RestPaths.UNDELETE), targetType = TargetType.PUT)))
-                    else
+                    if (userAccess.history == true) {
+                        layout.showHistory = true
+                    }
+                    if (restService.isDeleted(dto)) {
+                        if (userAccess.insert == true) {
+                            layout.addAction(UIButton("undelete",
+                                    color = UIColor.WARNING,
+                                    responseAction = ResponseAction(restService.getRestPath(RestPaths.UNDELETE), targetType = TargetType.PUT)))
+                        }
+                    } else if (userAccess.delete == true) {
                         layout.addAction(UIButton("markAsDeleted",
                                 color = UIColor.WARNING,
                                 responseAction = ResponseAction(restService.getRestPath(RestPaths.MARK_AS_DELETED), targetType = TargetType.DELETE)))
+                    }
                 }
-            } else {
+            } else if (userAccess.delete == true) {
                 // MemoDO for example isn't historizable:
                 layout.addAction(UIButton("deleteIt",
                         color = UIColor.WARNING,
@@ -170,12 +175,15 @@ class LayoutUtils {
                             color = UIColor.SECONDARY,
                             responseAction = ResponseAction(restService.getRestPath(RestPaths.CLONE), targetType = TargetType.POST)))
                 }
-                if (!restService.isDeleted(dto))
-                    layout.addAction(UIButton("update",
-                            color = UIColor.PRIMARY,
-                            default = true,
-                            responseAction = ResponseAction(restService.getRestPath(RestPaths.SAVE_OR_UDATE), targetType = TargetType.PUT)))
-            } else {
+                if (!restService.isDeleted(dto)) {
+                    if (userAccess.insert == true) {
+                        layout.addAction(UIButton("update",
+                                color = UIColor.PRIMARY,
+                                default = true,
+                                responseAction = ResponseAction(restService.getRestPath(RestPaths.SAVE_OR_UDATE), targetType = TargetType.PUT)))
+                    }
+                }
+            } else if (userAccess.insert == true) {
                 layout.addAction(UIButton("create",
                         color = UIColor.PRIMARY,
                         default = true,

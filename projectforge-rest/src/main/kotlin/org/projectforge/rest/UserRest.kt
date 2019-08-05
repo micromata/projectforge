@@ -72,8 +72,8 @@ class UserRest
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: User): UILayout {
-        val layout = super.createEditLayout(dto)
+    override fun createEditLayout(dto: User, userAccess: UILayout.UserAccess): UILayout {
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "username", "firstname", "lastname", "organization", "email",

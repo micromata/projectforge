@@ -72,13 +72,13 @@ class PostausgangRest() : AbstractDORest<PostausgangDO, PostausgangDao>(Postausg
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: PostausgangDO): UILayout {
+    override fun createEditLayout(dto: PostausgangDO, userAccess: UILayout.UserAccess): UILayout {
         val receiver = UIInput("empfaenger", lc) // Input-field instead of text-area (length > 255)
         receiver.focus = true
         receiver.enableAutoCompletion(this)
         val person = UIInput("person", lc).enableAutoCompletion(this)
         val inhalt = UIInput("inhalt", lc).enableAutoCompletion(this)
-        val layout = super.createEditLayout(dto)
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol(length = 2)
                                 .add(lc, "datum"))

@@ -49,8 +49,8 @@ class AddressCampaignValueRest: AbstractDORest<AddressCampaignValueDO, AddressCa
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: AddressCampaignValueDO): UILayout {
-        val layout = super.createEditLayout(dto)
+    override fun createEditLayout(dto: AddressCampaignValueDO, userAccess: UILayout.UserAccess): UILayout {
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(UILabel("TODO"))
         return LayoutUtils.processEditPage(layout, dto, this)
     }

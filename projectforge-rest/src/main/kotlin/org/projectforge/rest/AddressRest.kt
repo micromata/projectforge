@@ -224,7 +224,7 @@ class AddressRest()
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: Address): UILayout {
+    override fun createEditLayout(dto: Address, userAccess: UILayout.UserAccess): UILayout {
         val addressbookDOs = addressbookDao.allAddressbooksWithFullAccess
         val addressbooks = mutableListOf<UISelectValue<Int>>()
         addressbookDOs.forEach {
@@ -235,7 +235,7 @@ class AddressRest()
                 // therefore a part of the values as well and is needed for displaying the current value.
                 values = addressServicesRest.getUsedLanguages().map { UISelectValue(it.value, it.label) },
                 autoCompletion = AutoCompletion<String>(url = "address/acLang"))
-        val layout = super.createEditLayout(dto)
+        val layout = super.createEditLayout(dto, userAccess)
                 //autoCompletion = AutoCompletion(url = "addressBook/ac?search="))))
                 .add(UIRow()
                         .add(UIFieldset(length = 12)

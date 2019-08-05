@@ -64,8 +64,8 @@ class KontoRest
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: Konto): UILayout {
-        val layout = super.createEditLayout(dto)
+    override fun createEditLayout(dto: Konto, userAccess: UILayout.UserAccess): UILayout {
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "nummer", "status", "bezeichnung", "description")))

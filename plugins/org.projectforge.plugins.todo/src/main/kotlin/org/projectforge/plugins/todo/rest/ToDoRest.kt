@@ -58,8 +58,8 @@ class ToDoRest() : AbstractDORest<ToDoDO, ToDoDao>(ToDoDao::class.java, "plugins
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: ToDoDO): UILayout {
-        val layout = super.createEditLayout(dto)
+    override fun createEditLayout(dto: ToDoDO, userAccess: UILayout.UserAccess): UILayout {
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(lc, "subject")
                 .add(UIRow()
                         .add(UICol()

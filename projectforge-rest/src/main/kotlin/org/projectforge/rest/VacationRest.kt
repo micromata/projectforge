@@ -54,8 +54,8 @@ class VacationRest : AbstractDORest<VacationDO, VacationDao>(VacationDao::class.
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: VacationDO): UILayout {
-        val layout = super.createEditLayout(dto)
+    override fun createEditLayout(dto: VacationDO, userAccess: UILayout.UserAccess): UILayout {
+        val layout = super.createEditLayout(dto, userAccess)
                 .add(lc, "TODO")
         return LayoutUtils.processEditPage(layout, dto, this)
     }
