@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/pluginTemplate")
-class PluginTemplateRest: AbstractDORest<PluginTemplateDO, PluginTemplateDao>(baseDaoClazz = PluginTemplateDao::class.java, i18nKeyPrefix = "plugins.marketing.addressCampaignValue.title") {
+class PluginTemplateRest: AbstractDORest<PluginTemplateDO, PluginTemplateDao>(baseDaoClazz = PluginTemplateDao::class.java, i18nKeyPrefix = "plugins.plugintemplate.title") {
 
     /**
      * LAYOUT List page
