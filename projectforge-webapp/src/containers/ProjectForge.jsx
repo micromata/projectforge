@@ -14,7 +14,6 @@ import CalendarPage from './page/calendar/CalendarPage';
 import DynamicPage from './page/DynamicPage';
 import EditPage from './page/edit/EditPage';
 import IndexPage from './page/IndexPage';
-import InputTestPage from './page/InputTest';
 import ListPage from './page/list/ListPage';
 import TaskTreePage from './page/TaskTreePage';
 import { SystemStatusContext, systemStatusContextDefaultValues } from './SystemStatusContext';
@@ -83,10 +82,6 @@ function ProjectForge(
                         <Route
                             path="/taskTree"
                             component={TaskTreePage}
-                        />
-                        <Route
-                            path="/inputTest"
-                            component={InputTestPage}
                         />
                         <Route
                             path="/dynamic/:page"
