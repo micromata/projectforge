@@ -156,6 +156,10 @@ class IndexPage extends React.Component {
                                 smaller search bar, no table head row. Collapse like Apple Finder.
                             </li>
                             <li>
+                                Autocompletion for input fields (see outgoing-mail), worked in older
+                                versions (before dynamic rendering).
+                            </li>
+                            <li>
                                 Open Popover with focus in Inputfield after selecting a new
                                 field in list&apos;s search filter.
                                 Return key closes the popover, another Return click submits the
