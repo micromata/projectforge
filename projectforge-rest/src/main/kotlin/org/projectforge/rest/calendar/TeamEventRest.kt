@@ -200,9 +200,9 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
                         .add(UICol(6)
                                 .add(lc, "startDate", "endDate", "allDay")
                                 .add(UIFieldset(12)
-                                        .add(UICustomized("reminder")))
-                                .add(UIFieldset(12)
-                                        .add(UICustomized("recurrence"))))))
+                                        .add(UICustomized("calendar.reminder")))))
+                .add(UIRow().add(UICol(12).add(UIFieldset(12)
+                                        .add(UICustomized("calendar.recurrency"))))))
         layout.addAction(UIButton("switch",
                 title = translate("plugins.teamcal.switchToTimesheetButton"),
                 color = UIColor.SECONDARY,
