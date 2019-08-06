@@ -15,6 +15,7 @@ function ReactSelect(
         label,
         additionalLabel,
         value,
+        defaultValue,
         values,
         multi,
         required,
@@ -71,6 +72,7 @@ function ReactSelect(
                 // closeMenuOnSelect={false}
                 components={makeAnimated()}
                 value={value}
+                defaultValue={defaultValue}
                 isMulti={multi}
                 options={options}
                 isClearable={!required}
@@ -95,6 +97,10 @@ ReactSelect.propTypes = {
         PropTypes.shape({}),
         PropTypes.arrayOf(PropTypes.shape({})),
     ]),
+    defaultValue: PropTypes.oneOfType([
+        PropTypes.shape({}),
+        PropTypes.arrayOf(PropTypes.shape({})),
+    ]),
     values: PropTypes.arrayOf(PropTypes.object),
     valueProperty: PropTypes.string,
     labelProperty: PropTypes.string,
@@ -111,6 +117,7 @@ ReactSelect.propTypes = {
 ReactSelect.defaultProps = {
     values: undefined,
     value: undefined,
+    defaultValue: undefined,
     additionalLabel: undefined,
     valueProperty: 'value',
     labelProperty: 'label',

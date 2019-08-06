@@ -203,18 +203,13 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
                 title = translate("plugins.teamcal.switchToTimesheetButton"),
                 color = UIColor.SECONDARY,
                 responseAction = ResponseAction(getRestRootPath("switch2Timesheet"), targetType = TargetType.POST)))
-        layout.addTranslations("repeat.label",
-                "repeat.yearly.label", "repeat.yearly.on", "repeat.yearly.on_the", "repeat.yearly.of",
-                "repeat.monthly.label", "repeat.monthly.every", "repeat.monthly.months", "repeat.monthly.on_day", "repeat.monthly.on_the",
-                "repeat.weekly.label", "repeat.weekly.every", "repeat.weekly.weeks",
-                "repeat.daily.label", "repeat.daily.every", "repeat.daily.days",
-                "months.jan", "months.feb", "months.mar", "months.apr", "months.may", "months.jun",
-                "months.jul", "months.aug", "months.sep", "months.oct", "months.nov", "months.dec",
-                "numerals.first", "numerals.second", "numerals.third", "numerals.fourth", "numerals.last",
-                "days.monday", "days.tuesday", "days.wednesday", "days.thursday", "days.friday", "days.saturday", "days.sunday",
-                "days.weekday", "days.weekendday", "days.day",
-                "days_short.mon", "days_short.tue", "days_short.wed", "days_short.thu", "days_short.fri", "days_short.sat", "days_short.sun",
-                "end.never", "end.after", "end.label", "end.on_date", "end.executions")
+        layout.addTranslations("plugins.teamcal.event.recurrence",
+                "plugins.teamcal.event.recurrence.customized",
+                "common.recurrence.frequency.yearly",
+                "common.recurrence.frequency.monthly",
+                "common.recurrence.frequency.weekly",
+                "common.recurrence.frequency.daily",
+                "common.recurrence.frequency.none")
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }
