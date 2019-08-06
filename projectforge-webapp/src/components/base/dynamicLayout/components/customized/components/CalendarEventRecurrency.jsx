@@ -4,21 +4,29 @@ import { DynamicLayoutContext } from '../../../context';
 import 'react-rrule-generator/build/styles.css';
 
 function CalendarEventRecurrency() {
-    const { data, setData } = React.useContext(DynamicLayoutContext);
+    const { data, setData, ui } = React.useContext(DynamicLayoutContext);
 
     const onChange = rrule => setData({ recurrenceRule: rrule });
 
+    const { translations } = ui;
+    translations['days.weekend day'] = translations['days.weekendday']; // none Java format.
+
+
     return React.useMemo(
         () => (
-            <RRuleGenerator
-                onChange={rrule => onChange(rrule)}
-                value={data.recurrenceRule}
-                //translations={ui.translations}
-            />
+            <React.Fragment>
+                <RRuleGenerator
+                    onChange={rrule => onChange(rrule)}
+                    value={data.recurrenceRule}
+                    config={{
+                        repeat: ['Yearly', 'Monthly', 'Weekly', 'Daily'],
+                    }}
+                    translations={translations}
+                />
+            </React.Fragment>
         ),
         [data.recurrencRule],
-    )
-        ;
+    );
 }
 
 CalendarEventRecurrency.propTypes = {};

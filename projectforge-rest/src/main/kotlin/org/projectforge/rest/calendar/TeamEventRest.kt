@@ -75,9 +75,6 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
     }
 
     override fun onGetItemAndLayout(request: HttpServletRequest, dto: TeamEvent, editLayoutData: AbstractBaseRest.EditLayoutData) {
-
-        val recurrentDateString = request.getParameter("recurrentDate")
-        println("TeamEventRest: recurrentDate=$recurrentDateString")
         val startDateAsSeconds = NumberHelper.parseLong(request.getParameter("startDate"))
         if (startDateAsSeconds != null) dto.startDate = PFDateTime.from(startDateAsSeconds)!!.sqlTimestamp
         val endDateSeconds = NumberHelper.parseLong(request.getParameter("endDate"))
@@ -177,7 +174,6 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
         val subject = UIInput("subject", lc)
         subject.focus = true
         val layout = super.createEditLayout(dto, userAccess)
-        //layout.addAction(UIButton("switchToTimesheet", style = UIStyle.PRIMARY, default = true))
         if (dto.hasRecurrence) {
             layout.add(UIFieldset(12, title = "plugins.teamcal.event.recurrence.change.text")
                     .add(UIGroup()
@@ -196,17 +192,29 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
                                         valueProperty = "id"))
                                 .add(subject)
                                 .add(lc, "attendees")
-                                .add(lc, "location", "note"))
+                                .add(lc, "location"))
                         .add(UICol(6)
                                 .add(lc, "startDate", "endDate", "allDay")
                                 .add(UIFieldset(12)
-                                        .add(UICustomized("calendar.reminder")))))
-                .add(UIRow().add(UICol(12).add(UIFieldset(12)
-                                        .add(UICustomized("calendar.recurrency"))))))
+                                        .add(UICustomized("calendar.reminder")))
+                                .add(lc, "note"))))
+                .add(UIRow().add(UICol(12).add(UICustomized("calendar.recurrency"))))
         layout.addAction(UIButton("switch",
                 title = translate("plugins.teamcal.switchToTimesheetButton"),
                 color = UIColor.SECONDARY,
                 responseAction = ResponseAction(getRestRootPath("switch2Timesheet"), targetType = TargetType.POST)))
+        layout.addTranslations("repeat.label",
+                "repeat.yearly.label", "repeat.yearly.on", "repeat.yearly.on_the", "repeat.yearly.of",
+                "repeat.monthly.label", "repeat.monthly.every", "repeat.monthly.months", "repeat.monthly.on_day", "repeat.monthly.on_the",
+                "repeat.weekly.label", "repeat.weekly.every", "repeat.weekly.weeks",
+                "repeat.daily.label", "repeat.daily.every", "repeat.daily.days",
+                "months.jan", "months.feb", "months.mar", "months.apr", "months.may", "months.jun",
+                "months.jul", "months.aug", "months.sep", "months.oct", "months.nov", "months.dec",
+                "numerals.first", "numerals.second", "numerals.third", "numerals.fourth", "numerals.last",
+                "days.monday", "days.tuesday", "days.wednesday", "days.thursday", "days.friday", "days.saturday", "days.sunday",
+                "days.weekday", "days.weekendday", "days.day",
+                "days_short.mon", "days_short.tue", "days_short.wed", "days_short.thu", "days_short.fri", "days_short.sat", "days_short.sun",
+                "end.never", "end.after", "end.label", "end.on_date", "end.executions")
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }
