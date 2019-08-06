@@ -4,20 +4,21 @@ import { DynamicLayoutContext } from '../../../context';
 import 'react-rrule-generator/build/styles.css';
 
 function CalendarEventRecurrency() {
-    const { data, ui } = React.useContext(DynamicLayoutContext);
+    const { data, setData } = React.useContext(DynamicLayoutContext);
+
+    const onChange = rrule => setData({ recurrenceRule: rrule });
 
     return React.useMemo(
-        () => {
-            return (
-                <RRuleGenerator
-                    onChange={(rrule) => console.log(`RRule changed, now it's ${rrule}`)}
-                    value={data.recurrenceRule}
-                    //translations={ui.translations}
-                />
-            );
-        },
+        () => (
+            <RRuleGenerator
+                onChange={rrule => onChange(rrule)}
+                value={data.recurrenceRule}
+                //translations={ui.translations}
+            />
+        ),
         [data.recurrencRule],
-    );
+    )
+        ;
 }
 
 CalendarEventRecurrency.propTypes = {};
