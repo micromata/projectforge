@@ -14,9 +14,11 @@ function Input(
         label,
         type,
         value,
+        autoCompletionUrl,
         ...props
     },
 ) {
+    console.log(autoCompletionUrl)
     // Use new React Hook Feature
     // https://reactjs.org/docs/hooks-intro.html
     const [active, setActive] = React.useState(false);
@@ -55,6 +57,7 @@ Input.propTypes = {
     color: colorPropType,
     type: PropTypes.string,
     value: PropTypes.string,
+    autoCompletionUrl: PropTypes.string,
 };
 
 Input.defaultProps = {
@@ -63,6 +66,7 @@ Input.defaultProps = {
     color: undefined,
     type: 'text',
     value: undefined,
+    autoCompletionUrl: undefined,
 };
 
 export default Input;
