@@ -198,7 +198,8 @@ function DynamicTaskSelect(
             setModalHighlight(taskId); // Highlight selected ancestor task.
         };
 
-        const treePanel = (
+        const useNew = false; // Switch for testing NewTaskTreePanel.
+        const treePanel = useNew ? (
             <React.Fragment>
                 <NewTaskTreePanel
                     highlightTaskId={modalHighlight || (task ? task.id : undefined)}
@@ -207,6 +208,16 @@ function DynamicTaskSelect(
                     showRootForAdmins={showRootForAdmins}
                     visible={panelVisible}
                 />
+                <TaskTreePanel
+                    highlightTaskId={modalHighlight || (task ? task.id : undefined)}
+                    onTaskSelect={setTask}
+                    shortForm
+                    showRootForAdmins={showRootForAdmins}
+                    visible={panelVisible}
+                />
+            </React.Fragment>
+        ) : (
+            <React.Fragment>
                 <TaskTreePanel
                     highlightTaskId={modalHighlight || (task ? task.id : undefined)}
                     onTaskSelect={setTask}
