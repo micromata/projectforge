@@ -76,6 +76,8 @@ import javax.persistence.*
 @WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [TeamEventAttendeeDO::class])
 @AUserRightId(value = "PLUGIN_CALENDAR_EVENT")
 class TeamEventDO : DefaultBaseDO(), TeamEvent, Cloneable {
+    @get:Transient
+    private val log = org.slf4j.LoggerFactory.getLogger(TeamEventDO::class.java)
 
     @PropertyInfo(i18nKey = "plugins.teamcal.event.subject")
     @Field
@@ -121,9 +123,11 @@ class TeamEventDO : DefaultBaseDO(), TeamEvent, Cloneable {
      */
     @get:Column(name = "recurrence_rule", length = 4000)
     var recurrenceRule: String? = null
-        set(recurrenceRule){
+        set(recurrenceRule) {
             this.recurrenceRuleObject = null
-            field = recurrenceRule
+            field = if (StringUtils.startsWith(recurrenceRule, "RRULE:")) {
+                recurrenceRule!!.substring(6)
+            } else recurrenceRule
         }
 
     /**
@@ -133,7 +137,7 @@ class TeamEventDO : DefaultBaseDO(), TeamEvent, Cloneable {
      * Supported date formats are **yyyyMMdd** for all day events and **yyyyMMdd'T'HHmmss** otherwise.
      *
      * **Caution:** all timestamps must be represented in UTC!
-    */
+     */
     @get:Column(name = "recurrence_ex_date", length = 4000)
     var recurrenceExDate: String? = null
 
@@ -157,7 +161,7 @@ class TeamEventDO : DefaultBaseDO(), TeamEvent, Cloneable {
      * display of calendar events may be incorrect.
      *
      * This field exist only for data-base query purposes.
-    */
+     */
     @get:Column(name = "recurrence_until")
     var recurrenceUntil: Date? = null
 
@@ -705,7 +709,11 @@ class TeamEventDO : DefaultBaseDO(), TeamEvent, Cloneable {
     @Transient
     fun getRecurrenceRuleObject(): RRule? {
         if (recurrenceRuleObject == null) {
-            recurrenceRuleObject = ICal4JUtils.calculateRRule(recurrenceRule)
+            try {
+                recurrenceRuleObject = ICal4JUtils.calculateRRule(recurrenceRule)
+            } catch (ex: IllegalArgumentException) {
+                log.error("RecurrenceRule '$recurrenceRule' not parseable: ${ex.message}.", ex)
+            }
         }
         return recurrenceRuleObject
     }
