@@ -18,6 +18,38 @@ function Input(
         ...props
     },
 ) {
+
+    const fetchAutoCompletion = () => {
+        const { autoCompletionUrl, value } = this.props;
+
+        fetch(
+            getServiceURL(`${autoCompletionUrl}${value}`),
+            {
+                method: 'GET',
+                credentials: 'include',
+            },
+        )
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            .then(autoCompletion => this.setState({ autoCompletion }))
+            .catch(() => this.setState({ autoCompletion: [] }));
+    };
+
+    const handleInputChange = (_, newValue) => {
+        const {
+            id,
+            minChars,
+            onChange,
+            value,
+        } = this.props;
+
+        onChange(id, newValue);
+
+        if (value.length < minChars && newValue.length >= minChars) {
+            fetchAutoCompletion();
+        }
+    };
+
     console.log(autoCompletionUrl)
     // Use new React Hook Feature
     // https://reactjs.org/docs/hooks-intro.html
