@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import BookLendOut from './components/BookLendOut';
+import CalendarEventRecurrency from './components/CalendarEventRecurrency';
 import CustomizedAddressImage from './components/CustomizedAddressImage';
 import CustomizedConsumptionBar from './components/CustomizedConsumptionBar';
 import CustomizedImageDataPreview from './components/ImageDataPreview';
@@ -20,6 +21,9 @@ function DynamicCustomized({ id, ...props }) {
             break;
         case 'book.lendOutComponent':
             Tag = BookLendOut;
+            break;
+        case 'calendar.recurrency':
+            Tag = CalendarEventRecurrency;
             break;
         case 'dayRange':
             Tag = DayRange;
