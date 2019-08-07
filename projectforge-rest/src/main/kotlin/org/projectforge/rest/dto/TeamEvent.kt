@@ -31,18 +31,7 @@ import java.util.*
 
 @Deprecated("Will be replaced by CalendarEvent.")
 class TeamEvent(
-        /**
-         * Modifications should have effect for all entries of this serie.
-         */
-        var all: Boolean? = null,
-        /**
-         * Modifications should have effect only for future entries of this serie.
-         */
-        var future: Boolean? = null,
-        /**
-         * Modifications should have effect only for this single event.
-         */
-        var single: Boolean? = null,
+        var modifySerie: ModifySerie? = null,
         var subject: String? = null,
         var location: String? = null,
         var allDay: Boolean = false,
@@ -68,6 +57,11 @@ class TeamEvent(
         var reminderActionType: ReminderActionType? = null,
         var attachments: MutableSet<TeamEventAttachmentDO>? = null,
         var creator: PFUserDO? = null) : BaseDTO<TeamEventDO>() {
+
+    /**
+     * Which events of the serie should be modified?
+     */
+    enum class ModifySerie { ALL, FUTURE, SINGLE }
 
     val hasRecurrence: Boolean
         get() = !recurrenceRule.isNullOrBlank()
