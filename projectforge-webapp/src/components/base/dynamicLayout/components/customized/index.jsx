@@ -8,6 +8,7 @@ import CustomizedImageDataPreview from './components/ImageDataPreview';
 import DayRange from './components/DayRange';
 import TimesheetEditTaskAndKost2 from './components/TimesheetEditTaskAndKost2';
 import TimesheetTemplatesAndRecents from './components/TimesheetTemplatesAndRecents';
+import CalendarEventReminder from './components/CalendarEventReminder';
 
 function DynamicCustomized({ id, ...props }) {
     let Tag;
@@ -24,6 +25,9 @@ function DynamicCustomized({ id, ...props }) {
             break;
         case 'calendar.recurrency':
             Tag = CalendarEventRecurrency;
+            break;
+        case 'calendar.reminder':
+            Tag = CalendarEventReminder;
             break;
         case 'dayRange':
             Tag = DayRange;

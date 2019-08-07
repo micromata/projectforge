@@ -167,6 +167,7 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
      */
     override fun createEditLayout(dto: CalEvent, userAccess: UILayout.UserAccess): UILayout {
         val calendars = teamCalDao.getAllCalendarsWithFullAccess()
+        calendars.removeIf { it.externalSubscription } // Remove full access calendars, but subscribed.
         val calendarSelectValues = calendars.map { it ->
             UISelectValue<Int>(it.id, it.title!!)
         }
@@ -194,9 +195,8 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
                                 .add(lc, "location"))
                         .add(UICol(6)
                                 .add(lc, "startDate", "endDate", "allDay")
-                                .add(UIFieldset(12)
-                                        .add(UICustomized("calendar.reminder")))
                                 .add(lc, "note"))))
+                .add(UICustomized("calendar.reminder"))
                 .add(UIRow().add(UICol(12).add(UICustomized("calendar.recurrency"))))
         layout.addAction(UIButton("switch",
                 title = translate("plugins.teamcal.switchToTimesheetButton"),
@@ -208,7 +208,14 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
                 "common.recurrence.frequency.monthly",
                 "common.recurrence.frequency.weekly",
                 "common.recurrence.frequency.daily",
-                "common.recurrence.frequency.none")
+                "common.recurrence.frequency.none",
+                "plugins.teamcal.event.reminder",
+                "plugins.teamcal.event.reminder.NONE",
+                "plugins.teamcal.event.reminder.MESSAGE",
+                "plugins.teamcal.event.reminder.MESSAGE_SOUND",
+                "plugins.teamcal.event.reminder.MINUTES_BEFORE",
+                "plugins.teamcal.event.reminder.HOURS_BEFORE",
+                "plugins.teamcal.event.reminder.DAYS_BEFORE")
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }
