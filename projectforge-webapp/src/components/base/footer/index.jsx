@@ -11,7 +11,7 @@ function Footer() {
     } = React.useContext(SystemStatusContext);
 
     return (
-        <div className={classNames(style.footer, 'footer')}>
+        <div className={style.footer}>
             <ul className={classNames(style.list, style.copyHint)}>
                 <li>
                     <a

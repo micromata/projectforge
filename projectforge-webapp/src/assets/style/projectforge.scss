@@ -1,5 +1,13 @@
 @import '../fonts/roboto/index.css';
 
+$theme-colors: (
+        "primary": #32912E,
+        "warning": #fff,
+        "danger": #fff,
+);
+
+@import "~bootstrap/scss/bootstrap.scss";
+
 html {
   font-size: 62.5%;
   -webkit-tap-highlight-color: transparent;
@@ -33,19 +41,11 @@ div[class*="TopBar_"] {
 }
 
 nav.bg-light {
-  background: #F8F9FA !important;
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.50);
 
   ul li a {
-    color: #4D4D4D !important;
+    color: #4D4D4D;
     font-size: 14px;
-    //margin-left: 15px; // Zu viel Platzverbrauch bei vielen Menüeinträgen.
-  }
-
-  ul li a.btn.btn-secondary {
-    color: #fff !important;
-    background: #009BA3;
-    font-weight: bolder;
   }
 }
 
@@ -152,16 +152,6 @@ body {
   padding-bottom: 20px;
 }
 
-.footer {
-  position: absolute;
-  margin-top: -20px;
-
-  a {
-    font-size: 13px !important;
-    padding: 5px;
-  }
-}
-
 .form-group {
   margin-bottom: 2.3rem;
 }
@@ -194,24 +184,16 @@ fieldset {
   border-radius: 3px;
 
   &.btn-primary {
-    background: #32912E !important;
-    border: 1px solid #32912E !important;
     max-height: 33px;
-
-    &:hover {
-      border: 1px solid #32912E !important;
-    }
   }
 
-  &.btn-danger,
-  &.btn-warning {
-    background: #fff !important;
-    color: #a4a4a4 !important;
-    border: 1px solid #E6E6E6 !important;
+  &.btn-danger, &.btn-warning {
+    color: #a4a4a4;
+    border-color: #E6E6E6;
   }
 
   &.btn-warning {
-    color: #DC3545 !important;
+    color: #DC3545;
   }
 }
 
@@ -227,31 +209,6 @@ fieldset {
 
 .nav-tabs {
   border: none;
-
-  a[class*="_navTab_"] {
-    background: #ededed;
-    color: #676767;
-    font-size: 14px;
-    padding-left: 20px;
-    padding-right: 20px;
-    margin-right: 10px;
-    border-top: 1px solid #a4a4a4;
-
-    &:hover {
-      border-top: 1px solid #007480 !important;
-      border-bottom: 1px solid #fff;
-    }
-  }
-
-  a[class*="Page_active_"] {
-    background: #fff;
-    color: #009BA3 !important;
-    font-weight: 500;
-    font-size: 14px;
-    border: none !important;
-    border-bottom: 1px solid #fff !important;
-    border-top: 1px solid #007480 !important;
-  }
 }
 
 // SVG
@@ -269,9 +226,8 @@ svg.fa-chevron-down {
 
 .rbc-event {
   color: #222222;
-  borderRadius: 3px;
-  //opacity: 0.8;
-  border: 0px;
+  border-radius: 3px;
+  border: 0;
   display: block;
 }
 
@@ -315,7 +271,7 @@ div.tree-icon {
 
 // FontAwesome buttons in TaskSelect etc.
 .selectPanelIconLinks {
-  padding: 0px 5px 0px 5px;
+  padding: 0 5px 0 5px;
   z-index: 10;
 }
 
@@ -355,30 +311,12 @@ div.DayPickerInput input {
 }
 
 
-div[class^="Popper-"] {
-  border-color: #dfdfdf !important;
-}
-
-div[class^="Popper_popper__"] {
-  border: 1px solid #dfdfdf !important;
-  padding: 10px;
-}
-
 .rbc-addons-dnd.rbc-calendar {
   margin-top: 40px !important;
 
   .rbc-btn-group {
     background: #FFF;
   }
-}
-
-span[class^="Input_text__"] {
-  top: -6px !important;
-}
-
-label[class^="Input_textAreaLabel__"] {
-  display: block;
-  margin: 20px 0;
 }
 
 .DayPickerInput {
@@ -391,27 +329,8 @@ label[class^="Input_textAreaLabel__"] {
   }
 }
 
-div[class^="Input_formGroup__"] {
-  height: auto !important;
-}
-
 nav[class^="Navigation_globalNavigation__"] .ml-auto.nav .nav-item {
   background: transparent !important;
-}
-
-div[class^="LoadingContainer_loadingContainer__"] {
-  margin-top: 20px;
-}
-
-div.Customized_addressImageContainer__9T_GE * {
-  margin: 0 !important;
-}
-
-span[class^="DropArea_info__"] {
-  margin-top: 20px !important;
-  svg {
-    margin-right: 10px !important;
-  }
 }
 
 .popover {
@@ -424,16 +343,6 @@ span[class^="DropArea_info__"] {
 
 .popover-body {
   font-size: 12px;
-}
-
-div[class^="LoadingContainer_loadingContainer__"] {
-  img {
-    margin-bottom: 20px !important;
-  }
-
-  .btn.btn-danger {
-    //margin-bottom: 20px !important;
-  }
 }
 
 .col > span[class^="Input_text__"] {
@@ -456,17 +365,11 @@ fieldset label[for*="favorite"] {
 }
 
 img + .btn.btn-danger {
-  margin-bottom: 20px !important;
+  margin-bottom: 20px;
 }
 
 div[class^="DayPicker"] {
   font-size: 13px;
-}
-
-ul[class^="Input_options_"] {
-  li:first-child {
-    border-top: 1px solid #ddd !important;
-  }
 }
 
 button.dropdown-item a.nav-link {
@@ -482,20 +385,6 @@ span.mm-select {
   margin-left: 18px;
   font-size: 11px;
   color: #a5a2a5;
-}
-
-div[class^="History_entry_"] {
-  span[class^="History_username_"] {
-    font-size: 15px !important;
-  }
-
-  h5 {
-    font-size: 15px;
-  }
-
-  span {
-    font-size: 14px;
-  }
 }
 
 // Table
