@@ -5,87 +5,82 @@ import RRuleGenerator, { translations } from 'react-rrule-generator';
 import { DynamicLayoutContext } from '../../../context';
 import 'react-rrule-generator/build/styles.css';
 import ReactSelect from '../../../../../design/ReactSelect';
+import './CalendarEventRecurrency.module.css';
 
 function CalendarEventRecurrency({ locale }) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
 
+    const options = [
+        {
+            value: 'NONE',
+            label: ui.translations['common.recurrence.frequency.none'],
+        },
+        {
+            value: 'YEARLY',
+            label: ui.translations['common.recurrence.frequency.yearly'],
+        },
+        {
+            value: 'MONTHLY',
+            label: ui.translations['common.recurrence.frequency.monthly'],
+        },
+        {
+            value: 'WEEKLY',
+            label: ui.translations['common.recurrence.frequency.weekly'],
+        },
+        {
+            value: 'DAILY',
+            label: ui.translations['common.recurrence.frequency.daily'],
+        },
+        {
+            value: 'CUSTOMIZED',
+            label: ui.translations['plugins.teamcal.event.recurrence.customized'],
+        },
+    ];
+
     const onChange = rrule => setData({ recurrenceRule: rrule });
 
-    const extractRRule = () => {
-        const rrule = data.recurrenceRule != null ? data.recurrenceRule.toLowerCase() : undefined;
-        if (rrule && rrule.indexOf('freq') >= 0) {
-            if (rrule.indexOf('interval') > 0 && rrule.indexOf('interval=1') < 0) {
-                return 'customized';
+    const initialValue = () => {
+        const rrule = data.recurrenceRule != null ? data.recurrenceRule.toUpperCase() : undefined;
+        if (rrule && rrule.indexOf('FREQ') >= 0) {
+            if (rrule.indexOf('INTERVAL') >= 0 && rrule.indexOf('INTERVAL=1') < 0) {
+                return 'CUSTOMIZED';
             }
-            if (rrule.indexOf('by') > 0) {
-                return 'customized';
+            if (rrule.indexOf('BY') >= 0 || rrule.indexOf('UNTIL') >= 0 || rrule.indexOf('COUNT') >= 0) {
+                return 'CUSTOMIZED';
             }
-            if (rrule.indexOf('yearly') > 0) {
-                return 'yearly';
+            // eslint-disable-next-line no-restricted-syntax
+            for (const opt of options) {
+                if (rrule.indexOf(opt.value) > 0) { // NONE and CUSTOMIZED shouldn't occur in rrule.
+                    return opt.value;
+                }
             }
-            if (rrule.indexOf('monthly') > 0) {
-                return 'monthly';
-            }
-            if (rrule.indexOf('weekly') > 0) {
-                return 'weekly';
-            }
-            if (rrule.indexOf('daily') > 0) {
-                return 'daily';
-            }
-            return 'customized';
+            return 'CUSTOMIZED';
         }
-        return 'none';
+        return 'NONE';
     };
 
     const getTranslation = () => ((locale === 'de') ? translations.german : undefined);
 
-    const [value, setValue] = React.useState(extractRRule());
+    const [value, setValue] = React.useState(initialValue());
 
-    const onSelectChange = (valLabel) => {
-        const val = valLabel.value;
+    const onSelectChange = (option) => {
+        const val = option.value;
         setValue(val);
-        if (val === 'yearly') {
-            setData({ recurrenceRule: 'FREQ=YEARLY;INTERVAL=1' });
-        } else if (val === 'monthly') {
-            setData({ recurrenceRule: 'FREQ=MONTHLY;INTERVAL=1' });
-        } else if (val === 'weekly') {
-            setData({ recurrenceRule: 'FREQ=WEEKLY;INTERVAL=1' });
-        } else if (val === 'daily') {
-            setData({ recurrenceRule: 'FREQ=DAILY;INTERVAL=1' });
-        } else if (val === 'monthly') {
-            setData({ recurrenceRule: 'FREQ=MONTHLY;INTERVAL=1' });
-        } else if (val === 'none') {
+        if (val === 'NONE') {
             setData({ recurrenceRule: '' });
+        } else if (val === 'CUSTOMIZED') {
+            // RRule will no be set by RRuleGenerator, nothing to-do.
+        } else {
+            // eslint-disable-next-line no-restricted-syntax
+            for (const opt of options) {
+                if (val === opt.value) {
+                    setData({ recurrenceRule: `FREQ=${opt.value};INTERVAL=1` });
+                    return;
+                }
+            }
         }
     };
 
-    const options = [
-        {
-            value: 'none',
-            label: ui.translations['common.recurrence.frequency.none'],
-        },
-        {
-            value: 'yearly',
-            label: ui.translations['common.recurrence.frequency.yearly'],
-        },
-        {
-            value: 'monthly',
-            label: ui.translations['common.recurrence.frequency.monthly'],
-        },
-        {
-            value: 'weekly',
-            label: ui.translations['common.recurrence.frequency.weekly'],
-        },
-        {
-            value: 'daily',
-            label: ui.translations['common.recurrence.frequency.daily'],
-        },
-        {
-            value: 'customized',
-            label: ui.translations['plugins.teamcal.event.recurrence.customized'],
-        },
-    ];
-    console.log(data.recurrenceRule);
     const defaultValue = options.find(element => element.value === value) || options[0];
     return React.useMemo(
         () => (
@@ -98,20 +93,22 @@ function CalendarEventRecurrency({ locale }) {
                     onChange={onSelectChange}
                     required
                 />
-                {value === 'customized'
+                {value === 'CUSTOMIZED'
                     ? (
-                        <RRuleGenerator
-                            onChange={rrule => onChange(rrule)}
-                            value={data.recurrenceRule}
-                            config={{
-                                repeat: ['Yearly', 'Monthly', 'Weekly', 'Daily'],
-                            }}
-                            translations={getTranslation()}
-                        />
+                        <div className="rrule-generator">
+                            <RRuleGenerator
+                                onChange={rrule => onChange(rrule)}
+                                value={data.recurrenceRule}
+                                config={{
+                                    repeat: ['Yearly', 'Monthly', 'Weekly', 'Daily'],
+                                }}
+                                translations={getTranslation()}
+                            />
+                        </div>
                     ) : undefined}
             </React.Fragment>
         ),
-        [data.recurrencRule, value],
+        [value],
     );
 }
 
