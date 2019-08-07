@@ -76,6 +76,14 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
         return teamEvent
     }
 
+    override fun validate(validationErrors: MutableList<ValidationError>, dto: TeamEvent) {
+        if (dto.hasRecurrence) {
+            validationErrors.add(ValidationError(translate("book.error.signatureAlreadyExists"), fieldId = "modifySerie"))
+        }
+        //Validation.validateInteger(validationErrors, "yearOfPublishing", dto.yearOfPublishing, Const.MINYEAR, Const.MAXYEAR, formatNumber = false)
+        //     validationErrors.add(ValidationError(translate("book.error.signatureAlreadyExists"), fieldId = "signature"))
+    }
+
     override fun onGetItemAndLayout(request: HttpServletRequest, dto: TeamEvent, editLayoutData: AbstractBaseRest.EditLayoutData) {
         val startDateAsSeconds = NumberHelper.parseLong(request.getParameter("startDate"))
         if (startDateAsSeconds != null) dto.startDate = PFDateTime.from(startDateAsSeconds)!!.sqlTimestamp
@@ -93,7 +101,6 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
     }
 
     override fun afterEdit(obj: TeamEventDO, dto: TeamEvent): ResponseAction {
-
         return ResponseAction("/calendar")
                 .addVariable("date", obj.startDate)
                 .addVariable("id", obj.id ?: -1)
@@ -179,9 +186,9 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
         if (dto.hasRecurrence) {
             layout.add(UIFieldset(12, title = "plugins.teamcal.event.recurrence.change.text")
                     .add(UIGroup()
-                            .add(UIRadioButton("all", "selection", label = "plugins.teamcal.event.recurrence.change.text.all"))
-                            .add(UIRadioButton("future", "selection", label = "plugins.teamcal.event.recurrence.change.future"))
-                            .add(UIRadioButton("single", "selection", label = "plugins.teamcal.event.recurrence.change.single"))
+                            .add(UIRadioButton("modifySerie", TeamEvent.ModifySerie.ALL, label = "plugins.teamcal.event.recurrence.change.text.all"))
+                            .add(UIRadioButton("modifySerie", TeamEvent.ModifySerie.FUTURE, label = "plugins.teamcal.event.recurrence.change.future"))
+                            .add(UIRadioButton("modifySerie", TeamEvent.ModifySerie.SINGLE, label = "plugins.teamcal.event.recurrence.change.single"))
                     ))
         }
         layout.add(UIFieldset(12)

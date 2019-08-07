@@ -24,10 +24,11 @@
 package org.projectforge.ui
 
 data class UIRadioButton(val id: String,
+                         val value: Any,
                          /**
                           * Name of the group, this radio button is part of.
                           */
-                         val name: String,
+                         val name: String = id,
                          @Transient
                          override val layoutContext: LayoutContext? = null,
                          override var tooltip: String? = null,
