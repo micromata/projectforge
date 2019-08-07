@@ -3,7 +3,6 @@ import { Col, Row } from 'reactstrap';
 import { DynamicLayoutContext } from '../../../context';
 import 'react-rrule-generator/build/styles.css';
 import ReactSelect from '../../../../../design/ReactSelect';
-import './CalendarEventRecurrency.module.css';
 import { Input } from '../../../../../design';
 
 function CalendarEventReminder() {
