@@ -25,12 +25,16 @@
 
 package org.projectforge.rest.calendar
 
+import org.apache.commons.lang3.Validate
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.event.TeamEventDao
+import org.projectforge.business.teamcal.event.TeamEventService
 import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.RestPaths
@@ -44,6 +48,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.sql.Timestamp
+import java.util.*
 import javax.servlet.http.HttpServletRequest
 
 @Deprecated("Will be replaced by CalendarEventsRest.")
@@ -62,6 +68,9 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
     private lateinit var timesheetRest: TimesheetRest
 
     @Autowired
+    private lateinit var teamEventService: TeamEventService
+
+    @Autowired
     private lateinit var teamEventExternalSubscriptionCache: TeamEventExternalSubscriptionCache
 
     override fun transformForDB(dto: TeamEvent): TeamEventDO {
@@ -77,12 +86,82 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, dto: TeamEvent) {
-        if (dto.hasRecurrence) {
-            validationErrors.add(ValidationError(translate("book.error.signatureAlreadyExists"), fieldId = "modifySerie"))
+        if (dto.hasRecurrence && dto.modifySerie == null) {
+            validationErrors.add(ValidationError.create("plugins.teamcal.event.recurrence.change.content"))
+            validationErrors.add(ValidationError(fieldId = "modifySerie"))
         }
-        //Validation.validateInteger(validationErrors, "yearOfPublishing", dto.yearOfPublishing, Const.MINYEAR, Const.MAXYEAR, formatNumber = false)
-        //     validationErrors.add(ValidationError(translate("book.error.signatureAlreadyExists"), fieldId = "signature"))
     }
+
+    private fun getUntilDate(untilUTC: Timestamp): Date {
+        // move one day to past, the TeamEventDO will post process this value while setting
+        return Date(untilUTC.time - 24 * 60 * 60 * 1000)
+    }
+
+
+    override fun afterDelete(obj: TeamEventDO, dto: TeamEvent): ResponseAction {
+        if (!dto.hasRecurrence || dto.modifySerie == null || dto.modifySerie == TeamEvent.ModifySerie.ALL) {
+            return super.afterDelete(obj, dto)
+        }
+        val masterId = obj.getId() // Store the id of the master entry.
+        val masterEvent = teamEventService.getById(masterId)
+        if (dto.modifySerie == TeamEvent.ModifySerie.FUTURE) {
+            val recurrenceData = obj.getRecurrenceData(ThreadLocalUserContext.getTimeZone())
+            val recurrenceUntil = getUntilDate(dto.selectedSeriesElement!!.startDate!!)
+            recurrenceData.setUntil(recurrenceUntil)
+            masterEvent.setRecurrence(recurrenceData)
+            baseDao.update(masterEvent)
+        } else if (dto.modifySerie == TeamEvent.ModifySerie.SINGLE) { // only current date
+            Validate.notNull(dto.selectedSeriesElement)
+            masterEvent.addRecurrenceExDate(dto.selectedSeriesElement!!.startDate!!)
+            baseDao.update(masterEvent)
+        }
+        return super.afterDelete(obj, dto)
+    }
+
+    /*
+    override fun afterSaveOrUpdate(obj: TeamEventDO, dto: TeamEvent) {
+        if (!dto.hasRecurrence || dto.modifySerie == null || dto.modifySerie == TeamEvent.ModifySerie.ALL) {
+            return
+        }
+        val masterId = obj.id // Store the id of the master entry.
+        obj.id = null // Clone object.
+        val masterEvent = teamEventService.getById(masterId)
+        if (masterEvent == null) {
+            log.error("masterEvent is null?! Do nothing more after saving team event.")
+            return
+        }
+        if (dto.selectedSeriesElement == null) {
+            log.error("Selected series element is null?! Do nothing more after saving team event.")
+            return
+        }
+        if (dto.modifySerie == TeamEvent.ModifySerie.FUTURE) {
+            val newEvent = obj.clone()
+            val recurrenceData = obj.getRecurrenceData(ThreadLocalUserContext.getTimeZone())
+            // Set the end date of the master date one day before current date and save this event.
+            val recurrenceUntil = this.getUntilDate(dto.selectedSeriesElement!!.startDate!!)
+            recurrenceData.setUntil(recurrenceUntil)
+            newEvent.setRecurrence(recurrenceData)
+            if (log.isDebugEnabled == true) {
+                log.debug("Recurrency until date of master entry will be set to: " + DateHelper.formatAsUTC(recurrenceUntil))
+                log.debug("The new event is: $newEvent")
+            }
+            return
+        } else if (recurrencyChangeType == RecurrencyChangeType.ONLY_CURRENT) { // only current date
+            // Add current date to the master date as exclusion date and save this event (without recurrence settings).
+            masterEvent.addRecurrenceExDate(eventOfCaller.getStartDate())
+            newEvent = oldDataObject.clone()
+            newEvent.setRecurrenceDate(eventOfCaller.getStartDate(), ThreadLocalUserContext.getTimeZone())
+            newEvent.setRecurrenceReferenceId(masterEvent.id)
+            if (log.isDebugEnabled == true) {
+                log.debug("Recurrency ex date of master entry is now added: "
+                        + DateHelper.formatAsUTC(eventOfCaller.getStartDate())
+                        + ". The new string is: "
+                        + masterEvent.recurrenceExDate)
+                log.debug("The new event is: $newEvent")
+            }
+            return
+        }
+    }*/
 
     override fun onGetItemAndLayout(request: HttpServletRequest, dto: TeamEvent, editLayoutData: AbstractBaseRest.EditLayoutData) {
         val startDateAsSeconds = NumberHelper.parseLong(request.getParameter("startDate"))

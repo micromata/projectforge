@@ -32,6 +32,10 @@ import java.util.*
 @Deprecated("Will be replaced by CalendarEvent.")
 class TeamEvent(
         var modifySerie: ModifySerie? = null,
+        /**
+         * The selected event of a series (if any).
+         */
+        var selectedSeriesElement: TeamEvent? = null,
         var subject: String? = null,
         var location: String? = null,
         var allDay: Boolean = false,
@@ -59,7 +63,7 @@ class TeamEvent(
         var creator: PFUserDO? = null) : BaseDTO<TeamEventDO>() {
 
     /**
-     * Which events of the serie should be modified?
+     * Which events of the series should be modified?
      */
     enum class ModifySerie { ALL, FUTURE, SINGLE }
 
