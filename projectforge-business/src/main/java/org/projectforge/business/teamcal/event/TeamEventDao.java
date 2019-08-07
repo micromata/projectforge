@@ -23,21 +23,9 @@
 
 package org.projectforge.business.teamcal.event;
 
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.TimeZone;
-
-import javax.persistence.NoResultException;
-import javax.persistence.NonUniqueResultException;
-
+import net.fortuna.ical4j.model.DateList;
+import net.fortuna.ical4j.model.Recur;
+import net.fortuna.ical4j.model.parameter.Value;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -57,6 +45,7 @@ import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalS
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.calendar.CalendarUtils;
 import org.projectforge.framework.calendar.ICal4JUtils;
+import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.ModificationStatus;
@@ -72,9 +61,10 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import net.fortuna.ical4j.model.DateList;
-import net.fortuna.ical4j.model.Recur;
-import net.fortuna.ical4j.model.parameter.Value;
+import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
+import java.sql.Timestamp;
+import java.util.*;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -292,6 +282,11 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
   {
     super.onSaveOrModify(event);
     Validate.notNull(event.getCalendar());
+
+    if (event.getEndDate().getTime() - event.getStartDate().getTime() < 60000) {
+      throw new UserException("plugins.teamcal.event.duration.error"); // "Duration of time sheet must be at minimum 60s!
+      // Or, end date is before start date.
+    }
 
     // If is all day event, set start and stop to midnight
     if (event.isAllDay() == true) {
