@@ -23,7 +23,7 @@ function DynamicRadioButton(
         return (
             <DynamicValidationManager id={id}>
                 <RadioButton
-                    id={id}
+                    id={`${id}-${value}`}
                     name={name}
                     label={label}
                     checked={data[id] === value}
