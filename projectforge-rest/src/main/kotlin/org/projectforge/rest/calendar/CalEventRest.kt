@@ -177,9 +177,9 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
         if (dto.hasRecurrence) {
             layout.add(UIFieldset(12, title = "plugins.teamcal.event.recurrence.change.text")
                     .add(UIGroup()
-                            .add(UIRadioButton("all", "selection", label = "plugins.teamcal.event.recurrence.change.text.all"))
-                            .add(UIRadioButton("future", "selection", label = "plugins.teamcal.event.recurrence.change.future"))
-                            .add(UIRadioButton("single", "selection", label = "plugins.teamcal.event.recurrence.change.single"))
+                            .add(UIRadioButton("modifySerie", CalEvent.ModifySerie.ALL, label = "plugins.teamcal.event.recurrence.change.text.all"))
+                            .add(UIRadioButton("modifySerie", CalEvent.ModifySerie.FUTURE, label = "plugins.teamcal.event.recurrence.change.future"))
+                            .add(UIRadioButton("modifySerie", CalEvent.ModifySerie.SINGLE, label = "plugins.teamcal.event.recurrence.change.single"))
                     ))
         }
         layout.add(UIFieldset(12)

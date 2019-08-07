@@ -30,18 +30,7 @@ import java.sql.Timestamp
 import java.util.*
 
 class CalEvent(
-        /**
-         * Modifications should have effect for all entries of this serie.
-         */
-        var all: Boolean? = null,
-        /**
-         * Modifications should have effect only for future entries of this serie.
-         */
-        var future: Boolean? = null,
-        /**
-         * Modifications should have effect only for this single event.
-         */
-        var single: Boolean? = null,
+        var modifySerie: ModifySerie? = null,
         var subject: String? = null,
         var location: String? = null,
         var allDay: Boolean = false,
@@ -67,6 +56,11 @@ class CalEvent(
         var reminderActionType: ReminderActionType? = null,
         var attachments: MutableSet<TeamEventAttachmentDO>? = null,
         var creator: PFUserDO? = null) : BaseDTO<CalEventDO>() {
+
+    /**
+     * Which events of the series should be modified?
+     */
+    enum class ModifySerie { ALL, FUTURE, SINGLE }
 
     val hasRecurrence: Boolean
         get() = !recurrenceRule.isNullOrBlank()
