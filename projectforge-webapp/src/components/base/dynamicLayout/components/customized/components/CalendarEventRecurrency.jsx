@@ -6,7 +6,6 @@ import RRuleGenerator, { translations } from 'react-rrule-generator';
 import { DynamicLayoutContext } from '../../../context';
 import 'react-rrule-generator/build/styles.css';
 import ReactSelect from '../../../../../design/ReactSelect';
-import './CalendarEventRecurrency.module.css';
 
 function CalendarEventRecurrency({ locale }) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
