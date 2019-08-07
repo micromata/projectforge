@@ -24,11 +24,19 @@ div.entry {
     @include transition-transform($defaultTransitionTime, rotate(0));
   }
 
+  span {
+    font-size: 14px;
+  }
+
   span.username {
     margin-left: 10px;
     display: inline-block;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 15px;
+  }
+
+  h5 {
+    font-size: 15px;
   }
 
   span.changesAmount {

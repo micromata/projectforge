@@ -12,6 +12,7 @@
   position: relative;
   font-size: 1.5rem;
   letter-spacing: .02em;
+  margin-bottom: 13px;
 
   .label {
     display: block;
@@ -23,9 +24,7 @@
 
     .text {
       position: absolute;
-      top: 0;
       left: 15px;
-      color: #555;
       @include transition-transform-extra(.3s, translate(2px, 1em) scale(1, 1), color .3s);
       transform-origin: top left;
       color: #7a7a7a;
@@ -305,6 +304,10 @@
         position: relative;
         cursor: pointer;
 
+        &:first-child {
+          border-top: 1px solid #ddd;
+        }
+
         &.selected {
           background-color: #eee;
         }
@@ -342,10 +345,11 @@
 
   .textAreaLabel {
     width: 100%;
+    display: block;
+    margin: 20px 0;
 
     .text {
       position: absolute;
-      top: 0;
       left: .6em;
       background-color: #fff;
       font-size: .9em;
@@ -422,28 +426,18 @@
     display: block;
     margin: .5em 0;
     font-size: .85em;
+
+    span {
+      margin-left: 15px;
+    }
   }
 }
 
 .dayPickerLabel {
-
 }
 
 .userSelect {
   width: 30em;
-}
-
-div[class*="Input_formGroup_"] {
-  height: 45px;
-  margin-bottom: 13px;
-
-  span[class*="Input_text_"] {
-    margin-top: 5px;
-  }
-}
-
-div[class*="Input_additionalLabel_"] span {
-  margin-left: 15px !important;
 }
 
 [class^="css-"][class$="-control"] {

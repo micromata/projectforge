@@ -14,15 +14,24 @@
 }
 
 .navTab {
-  padding: 1rem;
+  padding: 1rem 20px 1rem 20px;
   @include linear-gradient-background(to bottom, #e6ecef, #d0d6da);
+  background: #ededed;
+  color: #676767;
+  font-size: 14px;
+  margin-right: 10px;
+  border-top: 1px solid #a4a4a4;
+
+  &:hover, &.active {
+    border-top: 1px solid #007480;
+    border-bottom: 1px solid #fff;
+  }
 
   &.active {
-    background-image: none;
-    background-color: #fff;
-    color: #495057;
-    border-color: #dee2e6 #dee2e6 #fff;
-    font-weight: 600;
+    background: #fff;
+    color: #009BA3;
+    font-weight: 500;
+    font-size: 14px;
   }
 }
 
