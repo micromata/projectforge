@@ -1,6 +1,7 @@
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import React from 'react';
+import { Col, Row } from 'reactstrap';
 import RRuleGenerator, { translations } from 'react-rrule-generator';
 import { DynamicLayoutContext } from '../../../context';
 import 'react-rrule-generator/build/styles.css';
@@ -46,7 +47,10 @@ function CalendarEventRecurrency({ locale }) {
                 // value of interval isn't 1:
                 return 'CUSTOMIZED';
             }
-            if (rrule.indexOf('BY') >= 0 || rrule.indexOf('UNTIL') >= 0 || rrule.indexOf('COUNT') >= 0) {
+            if (rrule.indexOf('BY') >= 0
+                || rrule.indexOf('UNTIL') >= 0
+                || rrule.indexOf('COUNT') >= 0
+                || rrule.indexOf('WKST') >= 0) {
                 // customized options chosen:
                 return 'CUSTOMIZED';
             }
@@ -88,26 +92,32 @@ function CalendarEventRecurrency({ locale }) {
     return React.useMemo(
         () => (
             <React.Fragment>
-                <ReactSelect
-                    label={ui.translations['plugins.teamcal.event.recurrence']}
-                    translations={ui.translations}
-                    values={options}
-                    defaultValue={defaultValue}
-                    onChange={onSelectChange}
-                    required
-                />
+                <Row>
+                    <Col sm={4}>
+                        <ReactSelect
+                            label={ui.translations['plugins.teamcal.event.recurrence']}
+                            translations={ui.translations}
+                            values={options}
+                            defaultValue={defaultValue}
+                            onChange={onSelectChange}
+                            required
+                        />
+                    </Col>
+                </Row>
                 {value === 'CUSTOMIZED'
                     ? (
-                        <div className="rrule-generator">
-                            <RRuleGenerator
-                                onChange={rrule => onChange(rrule)}
-                                value={data.recurrenceRule}
-                                config={{
-                                    repeat: ['Yearly', 'Monthly', 'Weekly', 'Daily'],
-                                }}
-                                translations={getTranslation()}
-                            />
-                        </div>
+                        <Row className="rrule-generator">
+                            <Col sm={12}>
+                                <RRuleGenerator
+                                    onChange={rrule => onChange(rrule)}
+                                    value={data.recurrenceRule}
+                                    config={{
+                                        repeat: ['Yearly', 'Monthly', 'Weekly', 'Daily'],
+                                    }}
+                                    translations={getTranslation()}
+                                />
+                            </Col>
+                        </Row>
                     ) : undefined}
             </React.Fragment>
         ),
