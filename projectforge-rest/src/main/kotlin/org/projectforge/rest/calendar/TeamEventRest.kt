@@ -21,6 +21,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+@file:Suppress("DEPRECATION")
+
 package org.projectforge.rest.calendar
 
 import org.projectforge.business.teamcal.admin.TeamCalDao
@@ -89,7 +91,6 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
             obj.calendar = teamCalDao.getById(obj.calendarId)
         }
     }
-
 
     override fun afterEdit(obj: TeamEventDO, dto: TeamEvent): ResponseAction {
 
