@@ -25,7 +25,7 @@ package org.projectforge.business.teamcal.event;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.Validate;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.multitenancy.TenantService;
@@ -34,6 +34,8 @@ import org.projectforge.business.teamcal.event.model.CalEventDO;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.user.UserRightId;
+import org.projectforge.framework.calendar.CalendarUtils;
+import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
@@ -44,12 +46,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.NoResultException;
 import javax.persistence.NonUniqueResultException;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 
 @Repository
 public class CalEventDao extends BaseDao<CalEventDO>
@@ -149,6 +146,33 @@ public class CalEventDao extends BaseDao<CalEventDO>
       }
     }
     return result;
+  }
+
+  /**
+   * Sets midnight (UTC) of all day events.
+   */
+  @Override
+  protected void onSaveOrModify(final CalEventDO event)
+  {
+    super.onSaveOrModify(event);
+    Validate.notNull(event.getCalendar());
+
+    if (event.getEndDate().getTime() - event.getStartDate().getTime() < 60000) {
+      throw new UserException("plugins.teamcal.event.duration.error"); // "Duration of time sheet must be at minimum 60s!
+      // Or, end date is before start date.
+    }
+
+    // If is all day event, set start and stop to midnight
+    if (event.isAllDay() == true) {
+      final Date startDate = event.getStartDate();
+      if (startDate != null) {
+        event.setStartDate(CalendarUtils.getUTCMidnightTimestamp(startDate));
+      }
+      final Date endDate = event.getEndDate();
+      if (endDate != null) {
+        event.setEndDate(CalendarUtils.getUTCMidnightTimestamp(endDate));
+      }
+    }
   }
 
   @Override
