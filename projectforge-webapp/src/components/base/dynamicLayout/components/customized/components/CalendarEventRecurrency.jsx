@@ -43,18 +43,21 @@ function CalendarEventRecurrency({ locale }) {
         const rrule = data.recurrenceRule != null ? data.recurrenceRule.toUpperCase() : undefined;
         if (rrule && rrule.indexOf('FREQ') >= 0) {
             if (rrule.indexOf('INTERVAL') >= 0 && rrule.indexOf('INTERVAL=1') < 0) {
+                // value of interval isn't 1:
                 return 'CUSTOMIZED';
             }
             if (rrule.indexOf('BY') >= 0 || rrule.indexOf('UNTIL') >= 0 || rrule.indexOf('COUNT') >= 0) {
+                // customized options chosen:
                 return 'CUSTOMIZED';
             }
             // eslint-disable-next-line no-restricted-syntax
             for (const opt of options) {
                 if (rrule.indexOf(opt.value) > 0) { // NONE and CUSTOMIZED shouldn't occur in rrule.
+                    // Standard recurrency, e. g. FREQ=WEEKLY,INTERVAL=1
                     return opt.value;
                 }
             }
-            return 'CUSTOMIZED';
+            return 'CUSTOMIZED'; // Shouldn't occur, try then to handle this by RRuleGenerator.
         }
         return 'NONE';
     };
