@@ -42,6 +42,7 @@ import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.multitenancy.TenantRegistryMap
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.tasktree.TaskTreeHelper
+import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.framework.json.TimestampSerializer
 import org.projectforge.framework.json.UtilDateFormat
 import org.projectforge.framework.json.UtilDateSerializer
@@ -90,6 +91,7 @@ class ToStringUtil {
             module.addSerializer(java.sql.Date::class.java, SqlDateSerializer())
             module.addSerializer(TenantDO::class.java, TenantSerializer())
 
+            register(module, TeamCalDO::class.java, CalendarSerializer(), obj, ignoreEmbeddedSerializers)
             register(module, GroupDO::class.java, GroupSerializer(), obj, ignoreEmbeddedSerializers)
             register(module, Kost1DO::class.java, Kost1Serializer(), obj, ignoreEmbeddedSerializers)
             register(module, Kost2DO::class.java, Kost2Serializer(), obj, ignoreEmbeddedSerializers)
@@ -146,6 +148,12 @@ class ToStringUtil {
         override fun writeFields(jgen: JsonGenerator, value: PFUserDO, initialized: Boolean) {
             val username = if(initialized) value.username else TenantRegistryMap.getInstance().tenantRegistry.userGroupCache.getUsername(value.id)
             writeFields(jgen, value.id, "username", username)
+        }
+    }
+
+    class CalendarSerializer : EmbeddedDOSerializer<TeamCalDO>(TeamCalDO::class.java) {
+        override fun writeFields(jgen: JsonGenerator, value: TeamCalDO, initialized: Boolean) {
+            writeFields(jgen, value.id, "title", value.title)
         }
     }
 
