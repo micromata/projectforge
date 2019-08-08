@@ -37,7 +37,6 @@ import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.TimesheetRest
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractBaseRest
 import org.projectforge.rest.core.AbstractDTORest
 import org.projectforge.rest.dto.TeamEvent
 import org.projectforge.ui.*
@@ -82,7 +81,7 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, dto: TeamEvent) {
-        if (dto.hasRecurrence && dto.seriesModificationMode == null) {
+        if (dto.id != null && dto.hasRecurrence && dto.seriesModificationMode == null) {
             validationErrors.add(ValidationError.create("plugins.teamcal.event.recurrence.change.content"))
             validationErrors.add(ValidationError(fieldId = "seriesModificationMode"))
         }
@@ -92,7 +91,7 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
      * Params startDate and endDate for creating new events with preset dates.
      * For events of a series, startDate as param selects the event of the series.
      */
-    override fun onGetItemAndLayout(request: HttpServletRequest, dto: TeamEvent, editLayoutData: AbstractBaseRest.EditLayoutData) {
+    override fun onBeforeGetItemAndLayout(request: HttpServletRequest, dto: TeamEvent, userAccess: UILayout.UserAccess) {
         val startDateAsSeconds = NumberHelper.parseLong(request.getParameter("startDate"))
         val endDateSeconds = NumberHelper.parseLong(request.getParameter("endDate"))
         if (dto.id == null) {
@@ -101,6 +100,7 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
             if (endDateSeconds != null) dto.endDate = PFDateTime.from(endDateSeconds)!!.sqlTimestamp
         } else {
             if (startDateAsSeconds != null && endDateSeconds != null && dto.hasRecurrence) {
+                // TODO: start and end date of new event!
                 // Seems to be a event of a series:
                 dto.selectedSeriesEvent = TeamEvent(startDate = PFDateTime.from(startDateAsSeconds)!!.sqlTimestamp,
                         endDate = PFDateTime.from(endDateSeconds)!!.sqlTimestamp,
@@ -108,7 +108,6 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
                         sequence = dto.sequence)
             }
         }
-        super.onGetItemAndLayout(request, dto, editLayoutData)
     }
 
     override fun beforeSaveOrUpdate(request: HttpServletRequest, obj: TeamEventDO, dto: TeamEvent) {
@@ -203,12 +202,14 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
         subject.focus = true
         val layout = super.createEditLayout(dto, userAccess)
         if (dto.hasRecurrence) {
+            val radioButtonGroup = UIGroup()
+            radioButtonGroup.add(UIRadioButton("seriesModificationMode", SeriesModificationMode.ALL, label = "plugins.teamcal.event.recurrence.change.all"))
+            if (dto.startDate?.before(dto.selectedSeriesEvent?.startDate) ?: true) {
+                radioButtonGroup.add(UIRadioButton("seriesModificationMode", SeriesModificationMode.FUTURE, label = "plugins.teamcal.event.recurrence.change.future"))
+            }
+            radioButtonGroup.add(UIRadioButton("seriesModificationMode", SeriesModificationMode.SINGLE, label = "plugins.teamcal.event.recurrence.change.single"))
             layout.add(UIFieldset(12, title = "plugins.teamcal.event.recurrence.change.text")
-                    .add(UIGroup()
-                            .add(UIRadioButton("seriesModificationMode", SeriesModificationMode.ALL, label = "plugins.teamcal.event.recurrence.change.text.all"))
-                            .add(UIRadioButton("seriesModificationMode", SeriesModificationMode.FUTURE, label = "plugins.teamcal.event.recurrence.change.future"))
-                            .add(UIRadioButton("seriesModificationMode", SeriesModificationMode.SINGLE, label = "plugins.teamcal.event.recurrence.change.single"))
-                    ))
+                    .add(radioButtonGroup))
         }
         layout.add(UIFieldset(12)
                 .add(UIRow()

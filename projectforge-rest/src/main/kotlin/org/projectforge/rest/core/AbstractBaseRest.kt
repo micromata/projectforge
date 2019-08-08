@@ -459,8 +459,16 @@ abstract class AbstractBaseRest<
             newBaseDTO(request)
         })
                 ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+        onBeforeGetItemAndLayout(request, item, userAccess)
         val layout = getItemAndLayout(request, item, userAccess)
         return ResponseEntity(layout, HttpStatus.OK)
+    }
+
+    /**
+     * Will be called after getting the item from the database before calling [onGetItemAndLayout]. No initial layout
+     * is available.
+     */
+    open protected fun onBeforeGetItemAndLayout(request: HttpServletRequest, dto: DTO, userAccess: UILayout.UserAccess) {
     }
 
     protected fun getItemAndLayout(request: HttpServletRequest, dto: DTO, userAccess: UILayout.UserAccess): EditLayoutData {
