@@ -28,7 +28,6 @@ package org.projectforge.rest.calendar
 import org.projectforge.business.calendar.event.model.SeriesModificationMode
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.event.TeamEventDao
-import org.projectforge.business.teamcal.event.TeamEventService
 import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache
 import org.projectforge.business.timesheet.TimesheetDO
@@ -46,8 +45,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.sql.Timestamp
-import java.util.*
 import javax.servlet.http.HttpServletRequest
 
 @Deprecated("Will be replaced by CalendarEventsRest.")
@@ -66,16 +63,13 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
     private lateinit var timesheetRest: TimesheetRest
 
     @Autowired
-    private lateinit var teamEventService: TeamEventService
-
-    @Autowired
     private lateinit var teamEventExternalSubscriptionCache: TeamEventExternalSubscriptionCache
 
     override fun transformForDB(dto: TeamEvent): TeamEventDO {
         val teamEventDO = TeamEventDO()
         dto.copyTo(teamEventDO)
-        if (dto.selectedSeriesElement != null) {
-            teamEventDO.setTransientAttribute(TeamEventDao.ATTR_SELECTED_ELEMENT, dto.selectedSeriesElement);
+        if (dto.selectedSeriesEvent != null) {
+            teamEventDO.setTransientAttribute(TeamEventDao.ATTR_SELECTED_ELEMENT, dto.selectedSeriesEvent);
             teamEventDO.setTransientAttribute(TeamEventDao.ATTR_SERIES_MODIFICATION_MODE, dto.seriesModificationMode);
         }
         return teamEventDO
@@ -90,65 +84,30 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
     override fun validate(validationErrors: MutableList<ValidationError>, dto: TeamEvent) {
         if (dto.hasRecurrence && dto.seriesModificationMode == null) {
             validationErrors.add(ValidationError.create("plugins.teamcal.event.recurrence.change.content"))
-            validationErrors.add(ValidationError(fieldId = "modifySerie"))
+            validationErrors.add(ValidationError(fieldId = "seriesModificationMode"))
         }
     }
 
-    private fun getUntilDate(untilUTC: Timestamp): Date {
-        // move one day to past, the TeamEventDO will post process this value while setting
-        return Date(untilUTC.time - 24 * 60 * 60 * 1000)
-    }
-
-    /*
-    override fun afterSaveOrUpdate(obj: TeamEventDO, dto: TeamEvent) {
-        if (!dto.hasRecurrence || dto.modifySerie == null || dto.modifySerie == TeamEvent.ModifySerie.ALL) {
-            return
-        }
-        val masterId = obj.id // Store the id of the master entry.
-        obj.id = null // Clone object.
-        val masterEvent = teamEventService.getById(masterId)
-        if (masterEvent == null) {
-            log.error("masterEvent is null?! Do nothing more after saving team event.")
-            return
-        }
-        if (dto.selectedSeriesElement == null) {
-            log.error("Selected series element is null?! Do nothing more after saving team event.")
-            return
-        }
-        if (dto.modifySerie == TeamEvent.ModifySerie.FUTURE) {
-            val newEvent = obj.clone()
-            val recurrenceData = obj.getRecurrenceData(ThreadLocalUserContext.getTimeZone())
-            // Set the end date of the master date one day before current date and save this event.
-            val recurrenceUntil = this.getUntilDate(dto.selectedSeriesElement!!.startDate!!)
-            recurrenceData.setUntil(recurrenceUntil)
-            newEvent.setRecurrence(recurrenceData)
-            if (log.isDebugEnabled == true) {
-                log.debug("Recurrency until date of master entry will be set to: " + DateHelper.formatAsUTC(recurrenceUntil))
-                log.debug("The new event is: $newEvent")
-            }
-            return
-        } else if (recurrencyChangeType == RecurrencyChangeType.ONLY_CURRENT) { // only current date
-            // Add current date to the master date as exclusion date and save this event (without recurrence settings).
-            masterEvent.addRecurrenceExDate(eventOfCaller.getStartDate())
-            newEvent = oldDataObject.clone()
-            newEvent.setRecurrenceDate(eventOfCaller.getStartDate(), ThreadLocalUserContext.getTimeZone())
-            newEvent.setRecurrenceReferenceId(masterEvent.id)
-            if (log.isDebugEnabled == true) {
-                log.debug("Recurrency ex date of master entry is now added: "
-                        + DateHelper.formatAsUTC(eventOfCaller.getStartDate())
-                        + ". The new string is: "
-                        + masterEvent.recurrenceExDate)
-                log.debug("The new event is: $newEvent")
-            }
-            return
-        }
-    }*/
-
+    /**
+     * Params startDate and endDate for creating new events with preset dates.
+     * For events of a series, startDate as param selects the event of the series.
+     */
     override fun onGetItemAndLayout(request: HttpServletRequest, dto: TeamEvent, editLayoutData: AbstractBaseRest.EditLayoutData) {
         val startDateAsSeconds = NumberHelper.parseLong(request.getParameter("startDate"))
-        if (startDateAsSeconds != null) dto.startDate = PFDateTime.from(startDateAsSeconds)!!.sqlTimestamp
         val endDateSeconds = NumberHelper.parseLong(request.getParameter("endDate"))
-        if (endDateSeconds != null) dto.endDate = PFDateTime.from(endDateSeconds)!!.sqlTimestamp
+        if (dto.id == null) {
+            // Preset the start and end date for new events:
+            if (startDateAsSeconds != null) dto.startDate = PFDateTime.from(startDateAsSeconds)!!.sqlTimestamp
+            if (endDateSeconds != null) dto.endDate = PFDateTime.from(endDateSeconds)!!.sqlTimestamp
+        } else {
+            if (startDateAsSeconds != null && endDateSeconds != null && dto.hasRecurrence) {
+                // Seems to be a event of a series:
+                dto.selectedSeriesEvent = TeamEvent(startDate = PFDateTime.from(startDateAsSeconds)!!.sqlTimestamp,
+                        endDate = PFDateTime.from(endDateSeconds)!!.sqlTimestamp,
+                        allDay = dto.allDay,
+                        sequence = dto.sequence)
+            }
+        }
         super.onGetItemAndLayout(request, dto, editLayoutData)
     }
 
@@ -246,9 +205,9 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
         if (dto.hasRecurrence) {
             layout.add(UIFieldset(12, title = "plugins.teamcal.event.recurrence.change.text")
                     .add(UIGroup()
-                            .add(UIRadioButton("modifySerie", SeriesModificationMode.ALL, label = "plugins.teamcal.event.recurrence.change.text.all"))
-                            .add(UIRadioButton("modifySerie", SeriesModificationMode.FUTURE, label = "plugins.teamcal.event.recurrence.change.future"))
-                            .add(UIRadioButton("modifySerie", SeriesModificationMode.SINGLE, label = "plugins.teamcal.event.recurrence.change.single"))
+                            .add(UIRadioButton("seriesModificationMode", SeriesModificationMode.ALL, label = "plugins.teamcal.event.recurrence.change.text.all"))
+                            .add(UIRadioButton("seriesModificationMode", SeriesModificationMode.FUTURE, label = "plugins.teamcal.event.recurrence.change.future"))
+                            .add(UIRadioButton("seriesModificationMode", SeriesModificationMode.SINGLE, label = "plugins.teamcal.event.recurrence.change.single"))
                     ))
         }
         layout.add(UIFieldset(12)

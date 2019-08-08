@@ -169,8 +169,9 @@ class CalendarPanel extends React.Component {
     // Callback fired when a calendar event is selected.
     onSelectEvent(event) {
         const { match } = this.props;
-
-        history.push(`${match.url}/${event.category}/edit/${event.uid || event.dbId}`);
+        // start date is send to the server and is needed for series events to detect the current
+        // selected event of a series.
+        history.push(`${match.url}/${event.category}/edit/${event.uid || event.dbId}?startDate=${event.start.getTime() / 1000}&endDate=${event.end.getTime() / 1000}`);
     }
 
     // A callback fired when a date selection is made. Only fires when selectable is true.

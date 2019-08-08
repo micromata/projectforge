@@ -74,11 +74,27 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
         return calendarEvent
     }
 
+    override fun validate(validationErrors: MutableList<ValidationError>, dto: CalEvent) {
+        if (dto.hasRecurrence && dto.seriesModificationMode == null) {
+            validationErrors.add(ValidationError.create("plugins.teamcal.event.recurrence.change.content"))
+            validationErrors.add(ValidationError(fieldId = "seriesModificationMode"))
+        }
+    }
+
     override fun onGetItemAndLayout(request: HttpServletRequest, dto: CalEvent, editLayoutData: AbstractBaseRest.EditLayoutData) {
         val startDateAsSeconds = NumberHelper.parseLong(request.getParameter("startDate"))
-        if (startDateAsSeconds != null) dto.startDate = PFDateTime.from(startDateAsSeconds)!!.sqlTimestamp
         val endDateSeconds = NumberHelper.parseLong(request.getParameter("endDate"))
-        if (endDateSeconds != null) dto.endDate = PFDateTime.from(endDateSeconds)!!.sqlTimestamp
+        if (dto.id == null) {
+            // Preset the start and end date for new events:
+            if (startDateAsSeconds != null) dto.startDate = PFDateTime.from(startDateAsSeconds)!!.sqlTimestamp
+            if (endDateSeconds != null) dto.endDate = PFDateTime.from(endDateSeconds)!!.sqlTimestamp
+        } else {
+            if (startDateAsSeconds != null && endDateSeconds != null && dto.hasRecurrence) {
+                // Seems to be a event of a series:
+                dto.selectedSeriesEvent = CalEvent(startDate = PFDateTime.from(startDateAsSeconds)!!.sqlTimestamp,
+                        endDate = PFDateTime.from(endDateSeconds)!!.sqlTimestamp)
+            }
+        }
         super.onGetItemAndLayout(request, dto, editLayoutData)
     }
 
@@ -178,9 +194,9 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
         if (dto.hasRecurrence) {
             layout.add(UIFieldset(12, title = "plugins.teamcal.event.recurrence.change.text")
                     .add(UIGroup()
-                            .add(UIRadioButton("modifySerie", SeriesModificationMode.ALL, label = "plugins.teamcal.event.recurrence.change.text.all"))
-                            .add(UIRadioButton("modifySerie", SeriesModificationMode.FUTURE, label = "plugins.teamcal.event.recurrence.change.future"))
-                            .add(UIRadioButton("modifySerie", SeriesModificationMode.SINGLE, label = "plugins.teamcal.event.recurrence.change.single"))
+                            .add(UIRadioButton("seriesModificationMode", SeriesModificationMode.ALL, label = "plugins.teamcal.event.recurrence.change.text.all"))
+                            .add(UIRadioButton("seriesModificationMode", SeriesModificationMode.FUTURE, label = "plugins.teamcal.event.recurrence.change.future"))
+                            .add(UIRadioButton("seriesModificationMode", SeriesModificationMode.SINGLE, label = "plugins.teamcal.event.recurrence.change.single"))
                     ))
         }
         layout.add(UIFieldset(12)

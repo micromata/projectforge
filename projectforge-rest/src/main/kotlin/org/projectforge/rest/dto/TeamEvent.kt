@@ -37,7 +37,7 @@ class TeamEvent(
         /**
          * The selected event of a series (if any).
          */
-        var selectedSeriesElement: TeamEvent? = null,
+        var selectedSeriesEvent: ICalendarEvent? = null,
         override var subject: String? = null,
         override var location: String? = null,
         override var allDay: Boolean = false,
