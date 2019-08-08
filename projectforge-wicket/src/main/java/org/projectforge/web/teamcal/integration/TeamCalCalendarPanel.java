@@ -23,8 +23,13 @@
 
 package org.projectforge.web.teamcal.integration;
 
-import java.sql.Timestamp;
-
+import net.ftlines.wicket.fullcalendar.CalendarResponse;
+import net.ftlines.wicket.fullcalendar.Event;
+import net.ftlines.wicket.fullcalendar.EventSource;
+import net.ftlines.wicket.fullcalendar.callback.CalendarDropMode;
+import net.ftlines.wicket.fullcalendar.callback.ClickedEvent;
+import net.ftlines.wicket.fullcalendar.callback.SelectedRange;
+import net.ftlines.wicket.fullcalendar.callback.View;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -38,17 +43,17 @@ import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
+import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.event.model.TeamCalEventId;
-import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.event.right.TeamEventRight;
+import org.projectforge.business.teamcal.filter.CalendarFilter;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter;
 import org.projectforge.business.teamcal.filter.TemplateEntry;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.business.teamcal.filter.CalendarFilter;
 import org.projectforge.web.calendar.CalendarPanel;
 import org.projectforge.web.calendar.MyFullCalendarConfig;
 import org.projectforge.web.teamcal.dialog.RecurrenceChangeDialog;
@@ -60,13 +65,7 @@ import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.WicketRenderHeadUtils;
 import org.projectforge.web.wicket.components.JodaDatePanel;
 
-import net.ftlines.wicket.fullcalendar.CalendarResponse;
-import net.ftlines.wicket.fullcalendar.Event;
-import net.ftlines.wicket.fullcalendar.EventSource;
-import net.ftlines.wicket.fullcalendar.callback.CalendarDropMode;
-import net.ftlines.wicket.fullcalendar.callback.ClickedEvent;
-import net.ftlines.wicket.fullcalendar.callback.SelectedRange;
-import net.ftlines.wicket.fullcalendar.callback.View;
+import java.sql.Timestamp;
 
 /**
  * @author Johannes Unterstein (j.unterstein@micromata.de)
@@ -142,8 +141,8 @@ public class TeamCalCalendarPanel extends CalendarPanel
       final TeamEventDO event = new TeamEventDO();
       event.setAllDay(range.isAllDay());
       event.setOwnership(true);
-      event.setStartDate(new Timestamp(DateHelper.getDateTimeAsMillis(range.getStart()))).setEndDate(
-          new Timestamp(DateHelper.getDateTimeAsMillis(range.getEnd())));
+      event.setStartDate(new Timestamp(DateHelper.getDateTimeAsMillis(range.getStart())));
+      event.setEndDate(new Timestamp(DateHelper.getDateTimeAsMillis(range.getEnd())));
       event.setCalendar(calendar);
       final TeamEventEditPage page = new TeamEventEditPage(new PageParameters(), event);
       page.setReturnToPage(new TeamCalCalendarPage(returnPage.getPageParameters()));
@@ -167,7 +166,7 @@ public class TeamCalCalendarPanel extends CalendarPanel
     // User clicked on teamEvent
     final TeamCalEventId id = new TeamCalEventId(event.getId(), ThreadLocalUserContext.getTimeZone());
     final TeamEventDO teamEventDO = teamEventDao.getById(id.getDataBaseId());
-    final TeamEvent teamEvent = eventProvider.getTeamEvent(id.toString());
+    final ICalendarEvent teamEvent = eventProvider.getTeamEvent(id.toString());
     if (new TeamEventRight(accessChecker).hasUpdateAccess(ThreadLocalUserContext.getUser(), teamEventDO,
         null)) {
       if (teamEventDO.hasRecurrence() == true) {
@@ -263,7 +262,7 @@ public class TeamCalCalendarPanel extends CalendarPanel
       return;
     }
     final TeamCalEventId id = new TeamCalEventId(event.getId(), ThreadLocalUserContext.getTimeZone());
-    final TeamEvent teamEvent = eventProvider.getTeamEvent(id.toString());
+    final ICalendarEvent teamEvent = eventProvider.getTeamEvent(id.toString());
     if (teamEvent == null) {
       return;
     }

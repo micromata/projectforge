@@ -30,7 +30,7 @@ import java.util.Set;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
 import org.projectforge.business.teamcal.event.ical.ICalHandler;
-import org.projectforge.business.teamcal.event.model.TeamEvent;
+import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 
@@ -61,7 +61,7 @@ public interface TeamEventService
 
   void update(TeamEventDO event, boolean checkAccess);
 
-  List<TeamEvent> getEventList(TeamEventFilter filter, boolean calculateRecurrenceEvents);
+  List<ICalendarEvent> getEventList(TeamEventFilter filter, boolean calculateRecurrenceEvents);
 
   List<TeamEventDO> getTeamEventDOList(TeamEventFilter filter);
 

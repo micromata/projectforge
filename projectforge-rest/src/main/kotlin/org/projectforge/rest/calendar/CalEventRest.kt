@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.calendar
 
+import org.projectforge.business.calendar.event.model.SeriesModificationMode
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.event.CalEventDao
 import org.projectforge.business.teamcal.event.model.CalEventDO
@@ -177,9 +178,9 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
         if (dto.hasRecurrence) {
             layout.add(UIFieldset(12, title = "plugins.teamcal.event.recurrence.change.text")
                     .add(UIGroup()
-                            .add(UIRadioButton("modifySerie", CalEvent.ModifySerie.ALL, label = "plugins.teamcal.event.recurrence.change.text.all"))
-                            .add(UIRadioButton("modifySerie", CalEvent.ModifySerie.FUTURE, label = "plugins.teamcal.event.recurrence.change.future"))
-                            .add(UIRadioButton("modifySerie", CalEvent.ModifySerie.SINGLE, label = "plugins.teamcal.event.recurrence.change.single"))
+                            .add(UIRadioButton("modifySerie", SeriesModificationMode.ALL, label = "plugins.teamcal.event.recurrence.change.text.all"))
+                            .add(UIRadioButton("modifySerie", SeriesModificationMode.FUTURE, label = "plugins.teamcal.event.recurrence.change.future"))
+                            .add(UIRadioButton("modifySerie", SeriesModificationMode.SINGLE, label = "plugins.teamcal.event.recurrence.change.single"))
                     ))
         }
         layout.add(UIFieldset(12)

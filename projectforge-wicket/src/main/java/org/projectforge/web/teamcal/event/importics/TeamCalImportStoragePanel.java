@@ -33,7 +33,7 @@ import org.projectforge.web.core.importstorage.ImportFilter;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class TeamCalImportStoragePanel extends AbstractImportStoragePanel<TeamCalImportPage>
 {
@@ -73,7 +73,7 @@ public class TeamCalImportStoragePanel extends AbstractImportStoragePanel<TeamCa
     final TeamEventDO event = (TeamEventDO) element.getValue();
     addCell(cellRepeater, event.getSubject(), style);
     addCell(cellRepeater, event.getLocation(), style);
-    addCell(cellRepeater, String.valueOf(event.isAllDay()), style);
+    addCell(cellRepeater, String.valueOf(event.getAllDay()), style);
     addCell(cellRepeater, DateTimeFormatter.instance().getFormattedDateTime(event.getStartDate()), style);
     addCell(cellRepeater, DateTimeFormatter.instance().getFormattedDateTime(event.getEndDate()), style);
     addCell(cellRepeater, event.getNote(), style);

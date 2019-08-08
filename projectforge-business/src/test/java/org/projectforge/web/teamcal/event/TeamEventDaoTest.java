@@ -25,14 +25,13 @@ package org.projectforge.web.teamcal.event;
 
 import net.fortuna.ical4j.model.Recur;
 import net.fortuna.ical4j.model.property.RRule;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
-import org.projectforge.business.teamcal.event.model.TeamEvent;
+import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.configuration.Configuration;
@@ -54,14 +53,12 @@ import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TeamEventDaoTest extends AbstractTestBase
-{
+public class TeamEventDaoTest extends AbstractTestBase {
   @Autowired
   private TeamEventDao teamEventDao;
 
   @BeforeEach
-  public void setUp()
-  {
+  public void setUp() {
     final String domain = "projectforge.org";
     final Configuration config = Configuration.getInstance();
     config.forceReload();
@@ -69,86 +66,82 @@ public class TeamEventDaoTest extends AbstractTestBase
   }
 
   @Test
-  public void testRRule()
-  {
+  public void testRRule() {
     testRRule(DateHelper.EUROPE_BERLIN);
     testRRule(DateHelper.UTC);
     testRRule(TimeZone.getTimeZone("America/Los_Angeles"));
   }
 
   @Test
-  public void recurrenceEvents()
-  {
+  public void recurrenceEvents() {
     final TimeZone timeZone = DateHelper.EUROPE_BERLIN;
     {
       final TeamEventDO event = createEvent(timeZone, "2011-06-06 11:00", "2011-06-06 12:00",
-          RecurrenceFrequency.WEEKLY, 1, "2013-12-31", "2013-12-31");
-      final Collection<TeamEvent> col = teamEventDao.rollOutRecurrenceEvents(getDate("2013-10-20", timeZone),
-          getDate("2013-10-29", timeZone), event, timeZone);
+              RecurrenceFrequency.WEEKLY, 1, "2013-12-31", "2013-12-31");
+      final Collection<ICalendarEvent> col = teamEventDao.rollOutRecurrenceEvents(getDate("2013-10-20", timeZone),
+              getDate("2013-10-29", timeZone), event, timeZone);
       assertEquals(2, col.size());
-      final Iterator<TeamEvent> it = col.iterator();
+      final Iterator<ICalendarEvent> it = col.iterator();
       assertEquals(DateHelper.formatAsUTC(DateHelper.parseIsoTimestamp("2013-10-21 11:00:00.0", timeZone)),
-          DateHelper.formatAsUTC(it.next().getStartDate()));
+              DateHelper.formatAsUTC(it.next().getStartDate()));
       assertEquals(DateHelper.formatAsUTC(DateHelper.parseIsoTimestamp("2013-10-28 11:00:00.0", timeZone)),
-          DateHelper.formatAsUTC(it.next().getStartDate()));
+              DateHelper.formatAsUTC(it.next().getStartDate()));
     }
     {
       final TeamEventDO event = createEvent(timeZone, "2011-03-03 00:00", "2011-03-03 00:00",
-          RecurrenceFrequency.WEEKLY, 2, "2011-04-30", "2011-04-30")
-          .setAllDay(true);
-      final Collection<TeamEvent> col = teamEventDao.rollOutRecurrenceEvents(getDate("2011-03-01", timeZone),
-          getDate("2011-03-31", timeZone), event, timeZone);
+              RecurrenceFrequency.WEEKLY, 2, "2011-04-30", "2011-04-30");
+      event.setAllDay(true);
+      final Collection<ICalendarEvent> col = teamEventDao.rollOutRecurrenceEvents(getDate("2011-03-01", timeZone),
+              getDate("2011-03-31", timeZone), event, timeZone);
       assertEquals(2, col.size());
-      final Iterator<TeamEvent> it = col.iterator();
+      final Iterator<ICalendarEvent> it = col.iterator();
       assertEquals(DateHelper.formatAsUTC(DateHelper.parseIsoTimestamp("2011-03-03 00:00:00.0", timeZone)),
-          DateHelper.formatAsUTC(it.next().getStartDate()));
+              DateHelper.formatAsUTC(it.next().getStartDate()));
       assertEquals(DateHelper.formatAsUTC(DateHelper.parseIsoTimestamp("2011-03-17 00:00:00.0", timeZone)),
-          DateHelper.formatAsUTC(it.next().getStartDate()));
+              DateHelper.formatAsUTC(it.next().getStartDate()));
     }
   }
 
   @Test
   @Disabled
-  public void exDates()
-  {
+  public void exDates() {
     testExDates(DateHelper.EUROPE_BERLIN);
     testExDates(TimeZone.getTimeZone("Europe/London"));
     testExDates(TimeZone.getTimeZone("America/Los_Angeles"));
   }
 
-  private void testExDates(final TimeZone timeZone)
-  {
+  private void testExDates(final TimeZone timeZone) {
     {
       final TeamEventDO event = createEvent(timeZone, "2013-03-21 20:00", "2013-03-21 21:30",
-          RecurrenceFrequency.WEEKLY, 1, null, null);
+              RecurrenceFrequency.WEEKLY, 1, null, null);
       event.addRecurrenceExDate(parseDateTime("2013-03-28 20:00", DateHelper.UTC));
-      final Collection<TeamEvent> col = teamEventDao.rollOutRecurrenceEvents(getDate("2013-03-01", timeZone),
-          getDate("2013-04-05", timeZone), event, timeZone);
+      final Collection<ICalendarEvent> col = teamEventDao.rollOutRecurrenceEvents(getDate("2013-03-01", timeZone),
+              getDate("2013-04-05", timeZone), event, timeZone);
       assertEquals(2, col.size());
-      final Iterator<TeamEvent> it = col.iterator();
+      final Iterator<ICalendarEvent> it = col.iterator();
       assertEquals(DateHelper.formatAsUTC(DateHelper.parseIsoTimestamp("2013-03-21 20:00:00.0", timeZone)),
-          DateHelper.formatAsUTC(it.next().getStartDate()));
+              DateHelper.formatAsUTC(it.next().getStartDate()));
       assertEquals(DateHelper.formatAsUTC(DateHelper.parseIsoTimestamp("2013-04-04 20:00:00.0", timeZone)),
-          DateHelper.formatAsUTC(it.next().getStartDate()));
+              DateHelper.formatAsUTC(it.next().getStartDate()));
     }
     {
       final TeamEventDO event = createEvent(timeZone, "2013-03-21 00:00", "2013-03-21 00:00",
-          RecurrenceFrequency.WEEKLY, 1, null, null)
-          .setAllDay(true);
+              RecurrenceFrequency.WEEKLY, 1, null, null);
+      event.setAllDay(true);
 
       // check count of events without ex date
-      final Collection<TeamEvent> colWithoutExDate = teamEventDao.rollOutRecurrenceEvents(getDate("2013-03-01", timeZone),
-          getDate("2013-04-05", timeZone), event, timeZone);
+      final Collection<ICalendarEvent> colWithoutExDate = teamEventDao.rollOutRecurrenceEvents(getDate("2013-03-01", timeZone),
+              getDate("2013-04-05", timeZone), event, timeZone);
       assertEquals(3, colWithoutExDate.size());
 
       // check cout of events with ex date
       event.addRecurrenceExDate(DateHelper.parseIsoDate("2013-03-28", DateHelper.UTC));
-      final Collection<TeamEvent> col = teamEventDao.rollOutRecurrenceEvents(getDate("2013-03-01", timeZone),
-          getDate("2013-04-05", timeZone), event, timeZone);
+      final Collection<ICalendarEvent> col = teamEventDao.rollOutRecurrenceEvents(getDate("2013-03-01", timeZone),
+              getDate("2013-04-05", timeZone), event, timeZone);
       assertEquals(2, col.size());
 
-      final Iterator<TeamEvent> it = col.iterator();
-      TeamEvent e = it.next();
+      final Iterator<ICalendarEvent> it = col.iterator();
+      ICalendarEvent e = it.next();
       assertEquals("2013-03-21 00:00:00.000", DateHelper.formatIsoTimestamp(e.getStartDate(), timeZone));
       assertTrue(e instanceof TeamEventDO);
       e = it.next();
@@ -157,16 +150,15 @@ public class TeamEventDaoTest extends AbstractTestBase
     }
   }
 
-  private void testRRule(final TimeZone timeZone)
-  {
+  private void testRRule(final TimeZone timeZone) {
     TeamEventDO event = createEvent(timeZone, "2012-12-21 8:30", "2012-12-21 9:00", null, 1, null, null);
     assertNull(event.getRecurrenceObject());
 
     event = createEvent(timeZone, "2012-12-21 8:30", "2012-12-21 9:00", RecurrenceFrequency.WEEKLY, 1, null, null);
     assertEquals("FREQ=WEEKLY;INTERVAL=1", event.getRecurrenceRule());
-    Collection<TeamEvent> events = getRecurrenceEvents("2012-12-01", "2013-01-31", timeZone, event);
+    Collection<ICalendarEvent> events = getRecurrenceEvents("2012-12-01", "2013-01-31", timeZone, event);
     assertEvents(events, timeZone, "2012-12-21 08:30", "2012-12-28 08:30", "2013-01-04 08:30", "2013-01-11 08:30",
-        "2013-01-18 08:30", "2013-01-25 08:30");
+            "2013-01-18 08:30", "2013-01-25 08:30");
 
     String untilInTimeZone = "2013-01-31";
     if (timeZone.getRawOffset() < 0) {
@@ -174,7 +166,7 @@ public class TeamEventDaoTest extends AbstractTestBase
     }
 
     event = createEvent(timeZone, "2012-12-21 18:30", "2012-12-22 9:00", RecurrenceFrequency.WEEKLY, 2,
-        "2013-01-31", untilInTimeZone);
+            "2013-01-31", untilInTimeZone);
     RRule rRule = event.getRecurrenceRuleObject();
 
     final String utcString = DateHelper.formatIsoDate(rRule.getRecur().getUntil(), DateHelper.UTC);
@@ -189,12 +181,12 @@ public class TeamEventDaoTest extends AbstractTestBase
   }
 
   private TeamEventDO createEvent(final TimeZone timeZone, final String startDate, final String endDate,
-      final RecurrenceFrequency frequency, final int interval, final String recurrenceUntil, final String recurrenceUntilInTimeZone)
-  {
+                                  final RecurrenceFrequency frequency, final int interval, final String recurrenceUntil, final String recurrenceUntilInTimeZone) {
     final Timestamp startTimestamp = new Timestamp(parseDateTime(startDate, timeZone).getTime());
     final Timestamp endTimestamp = new Timestamp(parseDateTime(endDate, timeZone).getTime());
     final TeamEventDO event = new TeamEventDO();
-    event.setStartDate(startTimestamp).setEndDate(endTimestamp);
+    event.setStartDate(startTimestamp);
+    event.setEndDate(endTimestamp);
     final TeamEventRecurrenceData recurData = new TeamEventRecurrenceData(timeZone);
     recurData.setFrequency(frequency);
     recurData.setInterval(interval);
@@ -208,9 +200,8 @@ public class TeamEventDaoTest extends AbstractTestBase
   }
 
   private void assertRecurrence(final TeamEventDO event, final TimeZone timeZone, final RecurrenceFrequency frequency,
-      final int interval,
-      final String utcRecurrenceUntil)
-  {
+                                final int interval,
+                                final String utcRecurrenceUntil) {
     final Recur recur = event.getRecurrenceObject();
     if (frequency == null) {
       assertNull(recur);
@@ -228,17 +219,15 @@ public class TeamEventDaoTest extends AbstractTestBase
     }
   }
 
-  private Collection<TeamEvent> getRecurrenceEvents(final String startDateString, final String endDateString,
-      final TimeZone timeZone,
-      final TeamEventDO event)
-  {
+  private Collection<ICalendarEvent> getRecurrenceEvents(final String startDateString, final String endDateString,
+                                                         final TimeZone timeZone,
+                                                         final TeamEventDO event) {
     final java.util.Date startDate = DateHelper.parseIsoDate(startDateString, timeZone);
     final java.util.Date endDate = DateHelper.parseIsoDate(endDateString, timeZone);
     return teamEventDao.rollOutRecurrenceEvents(startDate, endDate, event, timeZone);
   }
 
-  private java.util.Date parseDateTime(final String dateString, final TimeZone timeZone)
-  {
+  private java.util.Date parseDateTime(final String dateString, final TimeZone timeZone) {
     final DateFormat df = new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_MINUTES);
     df.setTimeZone(timeZone);
     try {
@@ -249,13 +238,12 @@ public class TeamEventDaoTest extends AbstractTestBase
     }
   }
 
-  private void assertEvents(final Collection<TeamEvent> events, final TimeZone timeZone, final String... startDates)
-  {
+  private void assertEvents(final Collection<ICalendarEvent> events, final TimeZone timeZone, final String... startDates) {
     assertEquals(startDates.length, events.size());
     int i = 0;
     final DateFormat df = new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_MINUTES);
     df.setTimeZone(timeZone);
-    for (final TeamEvent event : events) {
+    for (final ICalendarEvent event : events) {
       if (event instanceof TeamRecurrenceEvent) {
         final long duration = ((TeamRecurrenceEvent) event).getMaster().getDuration();
         assertEquals(duration, event.getEndDate().getTime() - event.getStartDate().getTime());
@@ -266,8 +254,7 @@ public class TeamEventDaoTest extends AbstractTestBase
     }
   }
 
-  net.fortuna.ical4j.model.Date getDate(final String dateString, final TimeZone timeZone)
-  {
+  net.fortuna.ical4j.model.Date getDate(final String dateString, final TimeZone timeZone) {
     final java.util.Date date = DateHelper.parseIsoDate(dateString, timeZone);
     return ICal4JUtils.getICal4jDate(date, timeZone);
   }

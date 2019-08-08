@@ -31,6 +31,7 @@ import net.fortuna.ical4j.model.WeekDay
 import net.fortuna.ical4j.model.property.RRule
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.annotations.*
+import org.projectforge.business.calendar.event.model.ICalendarEvent
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.teamcal.event.RecurrenceMonthMode
 import org.projectforge.business.teamcal.event.TeamEventRecurrenceData
@@ -75,30 +76,35 @@ import javax.persistence.*
 @Table(name = "T_PLUGIN_CALENDAR_EVENT", uniqueConstraints = [UniqueConstraint(name = "unique_t_plugin_calendar_event_uid_calendar_fk", columnNames = ["uid", "calendar_fk"])], indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_calendar_fk", columnList = "calendar_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_tenant_id", columnList = "tenant_id"), javax.persistence.Index(name = "idx_plugin_team_cal_end_date", columnList = "calendar_fk, end_date"), javax.persistence.Index(name = "idx_plugin_team_cal_start_date", columnList = "calendar_fk, start_date"), javax.persistence.Index(name = "idx_plugin_team_cal_time", columnList = "calendar_fk, start_date, end_date")])
 @WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [TeamEventAttendeeDO::class])
 @AUserRightId(value = "PLUGIN_CALENDAR_EVENT")
-class TeamEventDO : DefaultBaseDO(), TeamEvent, Cloneable {
+class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
     @get:Transient
     private val log = org.slf4j.LoggerFactory.getLogger(TeamEventDO::class.java)
 
     @PropertyInfo(i18nKey = "plugins.teamcal.event.subject")
     @Field
-    private var subject: String? = null
+    @get:Column(length = Constants.LENGTH_SUBJECT)
+    override var subject: String? = null
 
     @PropertyInfo(i18nKey = "plugins.teamcal.event.location")
     @Field
-    private var location: String? = null
+    @get:Column(length = Constants.LENGTH_SUBJECT)
+    override var location: String? = null
 
     @PropertyInfo(i18nKey = "plugins.teamcal.event.allDay")
-    private var allDay: Boolean = false
+    @get:Column(name = "all_day")
+    override var allDay: Boolean = false
 
     @PropertyInfo(i18nKey = "plugins.teamcal.event.beginDate")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
-    private var startDate: Timestamp? = null
+    @get:Column(name = "start_date")
+    override var startDate: Timestamp? = null
 
     @PropertyInfo(i18nKey = "plugins.teamcal.event.endDate")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
-    private var endDate: Timestamp? = null
+    @get:Column(name = "end_date")
+    override var endDate: Timestamp? = null
 
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.SECOND, encoding = EncodingType.STRING)
@@ -167,7 +173,8 @@ class TeamEventDO : DefaultBaseDO(), TeamEvent, Cloneable {
 
     @PropertyInfo(i18nKey = "plugins.teamcal.event.note")
     @Field
-    private var note: String? = null
+    @get:Column(length = 4000)
+    override var note: String? = null
 
     var attendees: MutableSet<TeamEventAttendeeDO>? = null
         @OneToMany(fetch = FetchType.EAGER)
@@ -192,7 +199,12 @@ class TeamEventDO : DefaultBaseDO(), TeamEvent, Cloneable {
     @get:Column
     var sequence: Int? = 0
 
-    private var uid: String? = null
+    /**
+     * Loads or creates the team event uid. Its very important that the uid is always the same in every ics file, which is
+     * created. So only one time creation.
+     */
+    @get:Column(nullable = false)
+    override var uid: String? = null
 
     @get:Column(name = "reminder_duration")
     var reminderDuration: Int? = null
@@ -290,118 +302,6 @@ class TeamEventDO : DefaultBaseDO(), TeamEvent, Cloneable {
         }
         uid = null
 
-        return this
-    }
-
-    /**
-     * Loads or creates the team event uid. Its very important that the uid is always the same in every ics file, which is
-     * created. So only one time creation.
-     */
-    @Column(nullable = false)
-    override fun getUid(): String? {
-        return uid
-    }
-
-    /**
-     * @param uid
-     */
-    fun setUid(uid: String?) {
-        this.uid = uid
-    }
-
-    @Column(length = Constants.LENGTH_SUBJECT)
-    override fun getSubject(): String? {
-        return subject
-    }
-
-    /**
-     * @param subject
-     * @return this for chaining.
-     */
-    fun setSubject(subject: String?): TeamEventDO {
-        this.subject = subject
-        return this
-    }
-
-    @Column(length = Constants.LENGTH_SUBJECT)
-    override fun getLocation(): String? {
-        return location
-    }
-
-    /**
-     * @param location the location to set
-     * @return this for chaining.
-     */
-    fun setLocation(location: String?): TeamEventDO {
-        this.location = location
-        return this
-    }
-
-    /**
-     * @return the allDay
-     */
-    @Column(name = "all_day")
-    override fun isAllDay(): Boolean {
-        return allDay
-    }
-
-    /**
-     * @param allDay the allDay to set
-     * @return this for chaining.
-     */
-    fun setAllDay(allDay: Boolean): TeamEventDO {
-        this.allDay = allDay
-        return this
-    }
-
-    /**
-     * @return the startDate
-     */
-    @Column(name = "start_date")
-    override fun getStartDate(): Timestamp? {
-        return startDate
-    }
-
-    /**
-     * @param startDate the startDate to set
-     * @return this for chaining.
-     */
-    fun setStartDate(startDate: Timestamp?): TeamEventDO {
-        this.startDate = startDate
-        return this
-    }
-
-    /**
-     * @return the endDate
-     */
-    @Column(name = "end_date")
-    override fun getEndDate(): Timestamp? {
-        return endDate
-    }
-
-    /**
-     * @param endDate the endDate to set
-     * @return this for chaining.
-     */
-    fun setEndDate(endDate: Timestamp?): TeamEventDO {
-        this.endDate = endDate
-        return this
-    }
-
-    /**
-     * @return the note
-     */
-    @Column(length = 4000)
-    override fun getNote(): String? {
-        return note
-    }
-
-    /**
-     * @param note the note to set
-     * @return this for chaining.
-     */
-    fun setNote(note: String?): TeamEventDO {
-        this.note = note
         return this
     }
 
@@ -602,7 +502,7 @@ class TeamEventDO : DefaultBaseDO(), TeamEvent, Cloneable {
 
         if (this.recurrenceUntil != null) {
             // transform until to timezone
-            if (this.isAllDay) {
+            if (this.allDay) {
                 recurrenceData.until = this.recurrenceUntil
             } else {
                 // determine last possible event in event time zone (owner time zone)
@@ -728,7 +628,7 @@ class TeamEventDO : DefaultBaseDO(), TeamEvent, Cloneable {
         if (date == null) {
             return this
         }
-        val exDate: String = ICal4JUtils.asICalDateString(date, DateHelper.UTC, isAllDay)
+        val exDate: String = ICal4JUtils.asICalDateString(date, DateHelper.UTC, allDay)
         if (recurrenceExDate == null || recurrenceExDate!!.isEmpty()) {
             recurrenceExDate = exDate
         } else if (!recurrenceExDate!!.contains(exDate)) {

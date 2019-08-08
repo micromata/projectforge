@@ -38,7 +38,7 @@ import org.projectforge.business.teamcal.TeamCalConfig;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
-import org.projectforge.business.teamcal.event.model.TeamEvent;
+import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache;
@@ -77,6 +77,17 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
   public static final long MIN_DATE_1800 = -5364662400000L;
 
   public static final long MAX_DATE_3000 = 32535216000000L;
+
+  /**
+   * For storing the selected element of the series in the transient attribute map for correct handling in {@link #onDelete(TeamEventDO)}
+   * and {@link #onSaveOrModify(TeamEventDO)} of series (all, future, selected).
+   */
+  public static final String ATTR_SELECTED_ELEMENT = "selectedSeriesElement";
+
+  /**
+   * For series elements: what to modify in {@link #onDelete(TeamEventDO)} and {@link #onSaveOrModify(TeamEventDO)} of series (all, future, selected)?
+   */
+  public static final String ATTR_SERIES_MODIFICATION_MODE = "seriesModificationMode";
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamEventDao.class);
 
@@ -289,7 +300,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
     }
 
     // If is all day event, set start and stop to midnight
-    if (event.isAllDay() == true) {
+    if (event.getAllDay() == true) {
       final Date startDate = event.getStartDate();
       if (startDate != null) {
         event.setStartDate(CalendarUtils.getUTCMidnightTimestamp(startDate));
@@ -299,6 +310,27 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
         event.setEndDate(CalendarUtils.getUTCMidnightTimestamp(endDate));
       }
     }
+  }
+
+  @Override
+  protected void onDelete(TeamEventDO obj) {
+/*    obj.getTransientAttribute()
+    if (!dto.hasRecurrence || dto.modifySerie == null || dto.modifySerie == ITeamEvent.ModifySerie.ALL) {
+      return super.afterDelete(obj, dto)
+    }
+    val masterId = obj.getId() // Store the id of the master entry.
+    val masterEvent = teamEventService.getById(masterId)
+    if (dto.modifySerie == ITeamEvent.ModifySerie.FUTURE) {
+      val recurrenceData = obj.getRecurrenceData(ThreadLocalUserContext.getTimeZone())
+      val recurrenceUntil = getUntilDate(dto.selectedSeriesElement!!.startDate!!)
+      recurrenceData.setUntil(recurrenceUntil)
+      masterEvent.setRecurrence(recurrenceData)
+      baseDao.update(masterEvent)
+    } else if (dto.modifySerie == ITeamEvent.ModifySerie.SINGLE) { // only current date
+      Validate.notNull(dto.selectedSeriesElement)
+      masterEvent.addRecurrenceExDate(dto.selectedSeriesElement!!.startDate!!)
+      baseDao.update(masterEvent)
+    }*/
   }
 
   /**
@@ -311,11 +343,11 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
    * @param calculateRecurrenceEvents If true, recurrence events inside the given time-period are calculated.
    * @return list of team events (same as {@link #getList(BaseSearchFilter)} but with all calculated and matching
    * recurrence events (if calculateRecurrenceEvents is true). Origin events are of type {@link TeamEventDO},
-   * calculated events of type {@link TeamEvent}.
+   * calculated events of type {@link ICalendarEvent}.
    */
-  public List<TeamEvent> getEventList(final TeamEventFilter filter, final boolean calculateRecurrenceEvents)
+  public List<ICalendarEvent> getEventList(final TeamEventFilter filter, final boolean calculateRecurrenceEvents)
   {
-    final List<TeamEvent> result = new ArrayList<>();
+    final List<ICalendarEvent> result = new ArrayList<>();
     List<TeamEventDO> list = getList(filter);
     if (CollectionUtils.isNotEmpty(list) == true) {
       for (final TeamEventDO eventDO : list) {
@@ -349,12 +381,12 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
           result.add(eventDO);
           continue;
         }
-        final Collection<TeamEvent> events = this.rollOutRecurrenceEvents(teamEventFilter.getStartDate(), teamEventFilter.getEndDate(), eventDO, timeZone);
+        final Collection<ICalendarEvent> events = this.rollOutRecurrenceEvents(teamEventFilter.getStartDate(), teamEventFilter.getEndDate(), eventDO, timeZone);
         if (events == null) {
           continue;
         }
-        for (final TeamEvent event : events) {
-          if (matches(event.getStartDate(), event.getEndDate(), event.isAllDay(), teamEventFilter) == false) {
+        for (final ICalendarEvent event : events) {
+          if (matches(event.getStartDate(), event.getEndDate(), event.getAllDay(), teamEventFilter) == false) {
             continue;
           }
           result.add(event);
@@ -401,7 +433,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
     final List<TeamEventDO> result = new ArrayList<TeamEventDO>();
     if (list != null) {
       for (final TeamEventDO event : list) {
-        if (matches(event.getStartDate(), event.getEndDate(), event.isAllDay(), teamEventFilter) == true) {
+        if (matches(event.getStartDate(), event.getEndDate(), event.getAllDay(), teamEventFilter) == true) {
           result.add(event);
         }
       }
@@ -663,8 +695,8 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
     this.teamCalDao = teamCalDao;
   }
 
-  public Collection<TeamEvent> rollOutRecurrenceEvents(final java.util.Date startDate, final java.util.Date endDate,
-      final TeamEventDO event, final java.util.TimeZone timeZone)
+  public Collection<ICalendarEvent> rollOutRecurrenceEvents(final java.util.Date startDate, final java.util.Date endDate,
+                                                            final TeamEventDO event, final java.util.TimeZone timeZone)
   {
     if (event.hasRecurrence() == false) {
       return null;
@@ -676,7 +708,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
       return null;
     }
     final java.util.TimeZone timeZone4Calc = timeZone;
-    final String eventStartDateString = event.isAllDay() == true
+    final String eventStartDateString = event.getAllDay() == true
         ? DateHelper.formatIsoDate(event.getStartDate(), timeZone) : DateHelper
         .formatIsoTimestamp(event.getStartDate(), DateHelper.UTC);
     java.util.Date eventStartDate = event.getStartDate();
@@ -706,16 +738,16 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
     final DateList dateList = recur.getDates(seedDate, ical4jStartDate, ical4jEndDate, Value.DATE_TIME);
 
     // remove ex range values
-    final Collection<TeamEvent> col = new ArrayList<>();
+    final Collection<ICalendarEvent> col = new ArrayList<>();
     if (dateList != null) {
       OuterLoop:
       for (final Object obj : dateList) {
         final net.fortuna.ical4j.model.DateTime dateTime = (net.fortuna.ical4j.model.DateTime) obj;
-        final String isoDateString = event.isAllDay() == true ? DateHelper.formatIsoDate(dateTime, timeZone)
+        final String isoDateString = event.getAllDay() == true ? DateHelper.formatIsoDate(dateTime, timeZone)
             : DateHelper.formatIsoTimestamp(dateTime, DateHelper.UTC);
         if (exDates != null && exDates.size() > 0) {
           for (Date exDate : exDates) {
-            if (event.isAllDay() == false) {
+            if (event.getAllDay() == false) {
               Date recurDateJavaUtil = new Date(dateTime.getTime());
               if (recurDateJavaUtil.equals(exDate)) {
                 if (log.isDebugEnabled() == true) {
@@ -753,7 +785,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
       }
     }
     if (log.isDebugEnabled() == true) {
-      for (final TeamEvent ev : col) {
+      for (final ICalendarEvent ev : col) {
         log.debug("startDate="
             + DateHelper.formatIsoTimestamp(ev.getStartDate(), timeZone)
             + "; "

@@ -96,7 +96,7 @@ public class TeamEventDiff
     diff.creator = computeFieldDiff(diff, TeamEventField.CREATOR, fieldFilter, eventNewState.getCreator(), eventOldState.getCreator());
     diff.startDate = computeFieldDiff(diff, TeamEventField.START_DATE, fieldFilter, eventNewState.getStartDate(), eventOldState.getStartDate());
     diff.endDate = computeFieldDiff(diff, TeamEventField.END_DATE, fieldFilter, eventNewState.getEndDate(), eventOldState.getEndDate());
-    diff.allDay = computeFieldDiff(diff, TeamEventField.ALL_DAY, fieldFilter, eventNewState.isAllDay(), eventOldState.isAllDay());
+    diff.allDay = computeFieldDiff(diff, TeamEventField.ALL_DAY, fieldFilter, eventNewState.getAllDay(), eventOldState.getAllDay());
     diff.subject = computeFieldDiff(diff, TeamEventField.SUBJECT, fieldFilter, eventNewState.getSubject(), eventOldState.getSubject());
     diff.location = computeFieldDiff(diff, TeamEventField.LOCATION, fieldFilter, eventNewState.getLocation(), eventOldState.getLocation());
 
