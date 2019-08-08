@@ -195,10 +195,8 @@ public abstract class AbstractBaseDO<I extends Serializable> implements Extended
   @Override
   public void setTransientAttribute(final String key, final Object value)
   {
-    synchronized (attributeMap) {
-      if (attributeMap == null) {
-        attributeMap = new HashMap<String, Object>();
-      }
+    if (attributeMap == null) {
+      attributeMap = new HashMap<String, Object>();
     }
     attributeMap.put(key, value);
   }
