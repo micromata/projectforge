@@ -33,6 +33,10 @@ import java.util.*
 
 class CalEvent(
         var seriesModificationMode: SeriesModificationMode? = null,
+        /**
+         * The selected event of a series (if any).
+         */
+        var selectedSeriesEvent: ICalendarEvent? = null,
         override var subject: String? = null,
         override var location: String? = null,
         override var allDay: Boolean = false,

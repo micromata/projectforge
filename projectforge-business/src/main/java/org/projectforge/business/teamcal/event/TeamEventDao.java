@@ -33,12 +33,13 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.hibernate.Query;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
+import org.projectforge.business.calendar.event.model.ICalendarEvent;
+import org.projectforge.business.calendar.event.model.SeriesModificationMode;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.teamcal.TeamCalConfig;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
-import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache;
@@ -72,8 +73,7 @@ import java.util.*;
  */
 @Repository
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-public class TeamEventDao extends BaseDao<TeamEventDO>
-{
+public class TeamEventDao extends BaseDao<TeamEventDO> {
   public static final long MIN_DATE_1800 = -5364662400000L;
 
   public static final long MAX_DATE_3000 = 32535216000000L;
@@ -93,11 +93,11 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
 
   private static final long ONE_DAY = 1000 * 60 * 60 * 24;
 
-  private static final Class<?>[] ADDITIONAL_HISTORY_SEARCH_DOS = new Class[] { TeamEventAttendeeDO.class };
+  private static final Class<?>[] ADDITIONAL_HISTORY_SEARCH_DOS = new Class[]{TeamEventAttendeeDO.class};
 
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "subject", "location", "calendar.id",
-      "calendar.title", "note",
-      "attendees" };
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"subject", "location", "calendar.id",
+          "calendar.title", "note",
+          "attendees"};
 
   private final static String META_SQL_WITH_SPECIAL = " AND e.deleted = :deleted AND e.tenant = :tenant";
 
@@ -116,28 +116,25 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
   @Autowired
   private TenantService tenantService;
 
-  public TeamEventDao()
-  {
+  public TeamEventDao() {
     super(TeamEventDO.class);
     userRightId = UserRightId.PLUGIN_CALENDAR_EVENT;
   }
 
   @Override
   @Transactional(readOnly = false, propagation = Propagation.SUPPORTS)
-  public ModificationStatus internalUpdate(final TeamEventDO obj, final boolean checkAccess)
-  {
+  public ModificationStatus internalUpdate(final TeamEventDO obj, final boolean checkAccess) {
     logReminderChange(obj);
     return super.internalUpdate(obj, checkAccess);
   }
 
-  private void logReminderChange(final TeamEventDO newObj)
-  {
+  private void logReminderChange(final TeamEventDO newObj) {
     boolean reminderHasChanged = false;
     StringBuilder message = new StringBuilder();
     final TeamEventDO dbObj = emgrFac.runRoTrans(emgr -> emgr.selectByPk(TeamEventDO.class, newObj.getId()));
     if ((dbObj.getReminderActionType() == null && newObj.getReminderActionType() != null)
-        || (dbObj.getReminderDuration() == null && newObj.getReminderDuration() != null)
-        || (dbObj.getReminderDurationUnit() == null && newObj.getReminderDurationUnit() != null)) {
+            || (dbObj.getReminderDuration() == null && newObj.getReminderDuration() != null)
+            || (dbObj.getReminderDurationUnit() == null && newObj.getReminderDurationUnit() != null)) {
       reminderHasChanged = true;
       message.append("DBObj was null -> new values were set; ");
     }
@@ -145,36 +142,35 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
       if (dbObj.getReminderActionType().equals(newObj.getReminderActionType()) == false) {
         reminderHasChanged = true;
         message.append(
-            "DBObj.getReminderActionType() was " + dbObj.getReminderActionType() + " NewObj.getReminderActionType() is " + newObj.getReminderActionType()
-                + "; ");
+                "DBObj.getReminderActionType() was " + dbObj.getReminderActionType() + " NewObj.getReminderActionType() is " + newObj.getReminderActionType()
+                        + "; ");
       }
     }
     if (dbObj.getReminderDuration() != null) {
       if (dbObj.getReminderDuration().equals(newObj.getReminderDuration()) == false) {
         reminderHasChanged = true;
         message.append(
-            "DBObj.getReminderDuration() was " + dbObj.getReminderActionType() + " NewObj.getReminderDuration() is " + newObj.getReminderActionType() + "; ");
+                "DBObj.getReminderDuration() was " + dbObj.getReminderActionType() + " NewObj.getReminderDuration() is " + newObj.getReminderActionType() + "; ");
       }
     }
     if (dbObj.getReminderDurationUnit() != null) {
       if (dbObj.getReminderDurationUnit().equals(newObj.getReminderDurationUnit()) == false) {
         reminderHasChanged = true;
         message.append(
-            "DBObj.getReminderDurationUnit() was " + dbObj.getReminderActionType() + " NewObj.getReminderDurationUnit() is " + newObj.getReminderActionType()
-                + "; ");
+                "DBObj.getReminderDurationUnit() was " + dbObj.getReminderActionType() + " NewObj.getReminderDurationUnit() is " + newObj.getReminderActionType()
+                        + "; ");
       }
     }
     if (reminderHasChanged) {
       StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
       boolean changedByWebView =
-          Arrays.stream(stackTrace).filter(ste -> ste.getClassName().contains("org.projectforge.web.wicket.EditPageSupport")).count() > 0;
+              Arrays.stream(stackTrace).filter(ste -> ste.getClassName().contains("org.projectforge.web.wicket.EditPageSupport")).count() > 0;
       log.info("TeamEventDao.internalUpdate -> Changed reminder of team event. Changed by: " + (changedByWebView ? "WebView" : "REST") + " Message: " + message
-          .toString());
+              .toString());
     }
   }
 
-  public List<Integer> getCalIdList(final Collection<TeamCalDO> teamCals)
-  {
+  public List<Integer> getCalIdList(final Collection<TeamCalDO> teamCals) {
     final List<Integer> list = new ArrayList<>();
     if (teamCals != null) {
       for (final TeamCalDO cal : teamCals) {
@@ -185,8 +181,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
   }
 
   @Override
-  protected String[] getAdditionalSearchFields()
-  {
+  protected String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
@@ -195,19 +190,16 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
    * @param teamCalendarId If null, then team calendar will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
-  public void setCalendar(final TeamEventDO teamEvent, final Integer teamCalendarId)
-  {
+  public void setCalendar(final TeamEventDO teamEvent, final Integer teamCalendarId) {
     final TeamCalDO teamCal = teamCalDao.getOrLoad(teamCalendarId);
     teamEvent.setCalendar(teamCal);
   }
 
-  public TeamEventDO getByUid(Integer calendarId, final String uid)
-  {
+  public TeamEventDO getByUid(Integer calendarId, final String uid) {
     return this.getByUid(calendarId, uid, true);
   }
 
-  public TeamEventDO getByUid(Integer calendarId, final String uid, final boolean excludeDeleted)
-  {
+  public TeamEventDO getByUid(Integer calendarId, final String uid, final boolean excludeDeleted) {
     if (uid == null) {
       return null;
     }
@@ -243,8 +235,8 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
   }
 
   @Override
-  protected void onChange(final TeamEventDO obj, final TeamEventDO dbObj)
-  {
+  protected void onChange(final TeamEventDO obj, final TeamEventDO dbObj) {
+    handleSeriesUpdates(obj);
     // only increment sequence if PF has ownership!
     if (obj.getOwnership() != null && obj.getOwnership() == false) {
       return;
@@ -264,9 +256,89 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
     }
   }
 
+  private Date getUntilDate(Date untilUTC) {
+    // move one day to past, the TeamEventDO will post process this value while setting
+    return new Date(untilUTC.getTime() - 24 * 60 * 60 * 1000);
+  }
+
+  /**
+   * Handles updates of series element (if any) for future and single events of a series.
+   * @param event
+   */
+  private void handleSeriesUpdates(final TeamEventDO event) {
+    ICalendarEvent selectedEvent = (ICalendarEvent) event.getTransientAttribute(ATTR_SELECTED_ELEMENT);
+    SeriesModificationMode mode = (SeriesModificationMode) event.getTransientAttribute(ATTR_SERIES_MODIFICATION_MODE);
+    if (selectedEvent == null || mode == null || mode == SeriesModificationMode.ALL) {
+      // Nothing to do.
+      return;
+    }
+    Integer masterId = event.getId(); // Store the id of the master entry.
+    event.setId(null); // Clone object.
+    TeamEventDO masterEvent = getById(masterId);
+    if (masterEvent == null) {
+      log.error("masterEvent is null?! Do nothing more after saving team event.");
+      return;
+    }
+    if (selectedEvent == null) {
+      log.error("Selected series element is null?! Do nothing more after saving team event.");
+      return;
+    }
+    if (mode == SeriesModificationMode.FUTURE) {
+      TeamEventDO newEvent = event.clone();
+      TeamEventRecurrenceData recurrenceData = event.getRecurrenceData(ThreadLocalUserContext.getTimeZone());
+      // Set the end date of the master date one day before current date and save this event.
+      Date recurrenceUntil = getUntilDate(selectedEvent.getStartDate());
+      recurrenceData.setUntil(recurrenceUntil);
+      newEvent.setRecurrence(recurrenceData);
+      if (log.isDebugEnabled() == true) {
+        log.debug("Recurrency until date of master entry will be set to: " + DateHelper.formatAsUTC(recurrenceUntil));
+        log.debug("The new event is: " + newEvent);
+      }
+      return;
+    } else if (mode == SeriesModificationMode.SINGLE) { // only current date
+      // Add current date to the master date as exclusion date and save this event (without recurrence settings).
+      masterEvent.addRecurrenceExDate(selectedEvent.getStartDate());
+      TeamEventDO newEvent = event.clone();
+      newEvent.setRecurrenceDate(selectedEvent.getStartDate(), ThreadLocalUserContext.getTimeZone());
+      newEvent.setRecurrenceReferenceId(masterEvent.getId());
+      if (log.isDebugEnabled() == true) {
+        log.debug("Recurrency ex date of master entry is now added: "
+                + DateHelper.formatAsUTC(selectedEvent.getStartDate())
+                + ". The new string is: "
+                + masterEvent.getRecurrenceExDate());
+        log.debug("The new event is: " + newEvent);
+      }
+    }
+  }
+
+  /**
+   * Handles deletion of series element (if any) for future and single events of a series.
+   */
   @Override
-  protected void onSave(final TeamEventDO event)
-  {
+  protected void onDelete(TeamEventDO obj) {
+    ICalendarEvent selectedEvent = (ICalendarEvent) obj.getTransientAttribute(ATTR_SELECTED_ELEMENT);
+    SeriesModificationMode mode = (SeriesModificationMode) obj.getTransientAttribute(ATTR_SERIES_MODIFICATION_MODE);
+    if (selectedEvent == null || mode == null || mode == SeriesModificationMode.ALL) {
+      // Nothing to do.
+      return;
+    }
+    Integer masterId = obj.getId(); // Store the id of the master entry.
+    TeamEventDO masterEvent = getById(masterId);
+    if (mode == SeriesModificationMode.FUTURE) {
+      TeamEventRecurrenceData recurrenceData = obj.getRecurrenceData(ThreadLocalUserContext.getTimeZone());
+      Date recurrenceUntil = getUntilDate(selectedEvent.getStartDate());
+      recurrenceData.setUntil(recurrenceUntil);
+      masterEvent.setRecurrence(recurrenceData);
+      update(masterEvent);
+    } else if (mode == SeriesModificationMode.SINGLE) { // only current date
+      Validate.notNull(selectedEvent);
+      masterEvent.addRecurrenceExDate(selectedEvent.getStartDate());
+      update(masterEvent);
+    }
+  }
+
+  @Override
+  protected void onSave(final TeamEventDO event) {
     // set ownership if empty
     if (event.getOwnership() == null) {
       event.setOwnership(true);
@@ -289,8 +361,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#onSaveOrModify(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
-  protected void onSaveOrModify(final TeamEventDO event)
-  {
+  protected void onSaveOrModify(final TeamEventDO event) {
     super.onSaveOrModify(event);
     Validate.notNull(event.getCalendar());
 
@@ -312,26 +383,6 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
     }
   }
 
-  @Override
-  protected void onDelete(TeamEventDO obj) {
-/*    obj.getTransientAttribute()
-    if (!dto.hasRecurrence || dto.modifySerie == null || dto.modifySerie == ITeamEvent.ModifySerie.ALL) {
-      return super.afterDelete(obj, dto)
-    }
-    val masterId = obj.getId() // Store the id of the master entry.
-    val masterEvent = teamEventService.getById(masterId)
-    if (dto.modifySerie == ITeamEvent.ModifySerie.FUTURE) {
-      val recurrenceData = obj.getRecurrenceData(ThreadLocalUserContext.getTimeZone())
-      val recurrenceUntil = getUntilDate(dto.selectedSeriesElement!!.startDate!!)
-      recurrenceData.setUntil(recurrenceUntil)
-      masterEvent.setRecurrence(recurrenceData)
-      baseDao.update(masterEvent)
-    } else if (dto.modifySerie == ITeamEvent.ModifySerie.SINGLE) { // only current date
-      Validate.notNull(dto.selectedSeriesElement)
-      masterEvent.addRecurrenceExDate(dto.selectedSeriesElement!!.startDate!!)
-      baseDao.update(masterEvent)
-    }*/
-  }
 
   /**
    * This method also returns recurrence events outside the time period of the given filter but affecting the
@@ -345,8 +396,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
    * recurrence events (if calculateRecurrenceEvents is true). Origin events are of type {@link TeamEventDO},
    * calculated events of type {@link ICalendarEvent}.
    */
-  public List<ICalendarEvent> getEventList(final TeamEventFilter filter, final boolean calculateRecurrenceEvents)
-  {
+  public List<ICalendarEvent> getEventList(final TeamEventFilter filter, final boolean calculateRecurrenceEvents) {
     final List<ICalendarEvent> result = new ArrayList<>();
     List<TeamEventDO> list = getList(filter);
     if (CollectionUtils.isNotEmpty(list) == true) {
@@ -365,7 +415,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
     list = selectUnique(list);
     // add all abo events
     final List<TeamEventDO> recurrenceEvents = teamEventExternalSubscriptionCache
-        .getRecurrenceEvents(teamEventFilter);
+            .getRecurrenceEvents(teamEventFilter);
     if (recurrenceEvents != null && recurrenceEvents.size() > 0) {
       list.addAll(recurrenceEvents);
     }
@@ -400,8 +450,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#getListForSearchDao(org.projectforge.framework.persistence.api.BaseSearchFilter)
    */
   @Override
-  public List<TeamEventDO> getListForSearchDao(final BaseSearchFilter filter)
-  {
+  public List<TeamEventDO> getListForSearchDao(final BaseSearchFilter filter) {
     final TeamEventFilter teamEventFilter = new TeamEventFilter(filter); // May-be called by SeachPage
     final Collection<TeamCalDO> allAccessibleCalendars = teamCalCache.getAllAccessibleCalendars();
     if (CollectionUtils.isEmpty(allAccessibleCalendars) == true) {
@@ -417,8 +466,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
    */
   @Override
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public List<TeamEventDO> getList(final BaseSearchFilter filter)
-  {
+  public List<TeamEventDO> getList(final BaseSearchFilter filter) {
     final TeamEventFilter teamEventFilter;
     if (filter instanceof TeamEventFilter) {
       teamEventFilter = ((TeamEventFilter) filter).clone();
@@ -465,8 +513,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
    * @param searchString
    */
   @SuppressWarnings("unchecked")
-  public List<String> getLocationAutocompletion(final String searchString, final TeamCalDO[] calendars)
-  {
+  public List<String> getLocationAutocompletion(final String searchString, final TeamCalDO[] calendars) {
     if (calendars == null || calendars.length == 0) {
       return null;
     }
@@ -475,8 +522,8 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
     }
     checkLoggedInUserSelectAccess();
     final String s = "select distinct location from "
-        + clazz.getSimpleName()
-        + " t where deleted=false and t.calendar in :cals and lastUpdate > :lastUpdate and lower(t.location) like :location) order by t.location";
+            + clazz.getSimpleName()
+            + " t where deleted=false and t.calendar in :cals and lastUpdate > :lastUpdate and lower(t.location) like :location) order by t.location";
     final Query query = getSession().createQuery(s);
     query.setParameterList("cals", calendars);
     final DateHolder dh = new DateHolder();
@@ -488,8 +535,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
   }
 
   private void addEventsToList(final TeamEventFilter teamEventFilter, final List<TeamEventDO> result,
-      final TeamEventExternalSubscriptionCache aboCache, final Integer calendarId)
-  {
+                               final TeamEventExternalSubscriptionCache aboCache, final Integer calendarId) {
     final Date startDate = teamEventFilter.getStartDate();
     final Date endDate = teamEventFilter.getEndDate();
     final Long startTime = startDate == null ? 0 : startDate.getTime();
@@ -501,8 +547,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
   }
 
   private boolean matches(final Date eventStartDate, final Date eventEndDate, final boolean allDay,
-      final TeamEventFilter teamEventFilter)
-  {
+                          final TeamEventFilter teamEventFilter) {
     final Date startDate = teamEventFilter.getStartDate();
     final Date endDate = teamEventFilter.getEndDate();
     if (allDay == true) {
@@ -547,8 +592,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
    * @param filter
    * @return
    */
-  private QueryFilter buildQueryFilter(final TeamEventFilter filter)
-  {
+  private QueryFilter buildQueryFilter(final TeamEventFilter filter) {
     final QueryFilter queryFilter = new QueryFilter(filter);
     final Collection<Integer> cals = filter.getTeamCals();
     if (CollectionUtils.isNotEmpty(cals) == true) {
@@ -570,16 +614,16 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
     if (startDate != null && endDate != null) {
       if (filter.isOnlyRecurrence() == false) {
         queryFilter.add(Restrictions.or(
-            (Restrictions.or(Restrictions.between("startDate", startDate, endDate),
-                Restrictions.between("endDate", startDate, endDate))),
-            // get events whose duration overlap with chosen duration.
-            (Restrictions.and(Restrictions.le("startDate", startDate), Restrictions.ge("endDate", endDate)))));
+                (Restrictions.or(Restrictions.between("startDate", startDate, endDate),
+                        Restrictions.between("endDate", startDate, endDate))),
+                // get events whose duration overlap with chosen duration.
+                (Restrictions.and(Restrictions.le("startDate", startDate), Restrictions.ge("endDate", endDate)))));
       } else {
         queryFilter.add(
-            // "startDate" < endDate && ("recurrenceUntil" == null || "recurrenceUntil" > startDate)
-            (Restrictions.and(Restrictions.lt("startDate", endDate),
-                Restrictions.or(Restrictions.isNull("recurrenceUntil"),
-                    Restrictions.gt("recurrenceUntil", startDate)))));
+                // "startDate" < endDate && ("recurrenceUntil" == null || "recurrenceUntil" > startDate)
+                (Restrictions.and(Restrictions.lt("startDate", endDate),
+                        Restrictions.or(Restrictions.isNull("recurrenceUntil"),
+                                Restrictions.gt("recurrenceUntil", startDate)))));
       }
     } else if (startDate != null) {
       if (filter.isOnlyRecurrence() == false) {
@@ -587,8 +631,8 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
       } else {
         // This branch is reached for subscriptions and calendar downloads.
         queryFilter.add(
-            // "recurrenceUntil" == null || "recurrenceUntil" > startDate
-            Restrictions.or(Restrictions.isNull("recurrenceUntil"), Restrictions.gt("recurrenceUntil", startDate)));
+                // "recurrenceUntil" == null || "recurrenceUntil" > startDate
+                Restrictions.or(Restrictions.isNull("recurrenceUntil"), Restrictions.gt("recurrenceUntil", startDate)));
       }
     } else if (endDate != null) {
       queryFilter.add(Restrictions.le("startDate", endDate));
@@ -606,8 +650,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#getDisplayHistoryEntries(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
-  public List<DisplayHistoryEntry> getDisplayHistoryEntries(final TeamEventDO obj)
-  {
+  public List<DisplayHistoryEntry> getDisplayHistoryEntries(final TeamEventDO obj) {
     final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(obj);
     if (hasLoggedInUserHistoryAccess(obj, false) == false) {
       return list;
@@ -619,7 +662,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
           final String propertyName = entry.getPropertyName();
           if (propertyName != null) {
             entry.setPropertyName(
-                attendee.toString() + ":" + entry.getPropertyName()); // Prepend user name or url to identify.
+                    attendee.toString() + ":" + entry.getPropertyName()); // Prepend user name or url to identify.
           } else {
             entry.setPropertyName(attendee.toString());
           }
@@ -627,11 +670,9 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
         list.addAll(entries);
       }
     }
-    Collections.sort(list, new Comparator<DisplayHistoryEntry>()
-    {
+    Collections.sort(list, new Comparator<DisplayHistoryEntry>() {
       @Override
-      public int compare(final DisplayHistoryEntry o1, final DisplayHistoryEntry o2)
-      {
+      public int compare(final DisplayHistoryEntry o1, final DisplayHistoryEntry o2) {
         return (o2.getTimestamp().compareTo(o1.getTimestamp()));
       }
     });
@@ -639,8 +680,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
   }
 
   @Override
-  protected Class<?>[] getAdditionalHistorySearchDOs()
-  {
+  protected Class<?>[] getAdditionalHistorySearchDOs() {
     return ADDITIONAL_HISTORY_SEARCH_DOS;
   }
 
@@ -651,8 +691,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
    * org.projectforge.core.ExtendedBaseDO)
    */
   @Override
-  protected boolean contains(final Set<Integer> idSet, final TeamEventDO entry)
-  {
+  protected boolean contains(final Set<Integer> idSet, final TeamEventDO entry) {
     if (super.contains(idSet, entry) == true) {
       return true;
     }
@@ -665,16 +704,14 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
   }
 
   @Override
-  public TeamEventDO newInstance()
-  {
+  public TeamEventDO newInstance() {
     return new TeamEventDO();
   }
 
   /**
    * @return the log
    */
-  public Logger getLog()
-  {
+  public Logger getLog() {
     return log;
   }
 
@@ -682,22 +719,19 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#useOwnCriteriaCacheRegion()
    */
   @Override
-  protected boolean useOwnCriteriaCacheRegion()
-  {
+  protected boolean useOwnCriteriaCacheRegion() {
     return true;
   }
 
   /**
    * @param teamCalDao the teamCalDao to set
    */
-  public void setTeamCalDao(final TeamCalDao teamCalDao)
-  {
+  public void setTeamCalDao(final TeamCalDao teamCalDao) {
     this.teamCalDao = teamCalDao;
   }
 
   public Collection<ICalendarEvent> rollOutRecurrenceEvents(final java.util.Date startDate, final java.util.Date endDate,
-                                                            final TeamEventDO event, final java.util.TimeZone timeZone)
-  {
+                                                            final TeamEventDO event, final java.util.TimeZone timeZone) {
     if (event.hasRecurrence() == false) {
       return null;
     }
@@ -709,12 +743,12 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
     }
     final java.util.TimeZone timeZone4Calc = timeZone;
     final String eventStartDateString = event.getAllDay() == true
-        ? DateHelper.formatIsoDate(event.getStartDate(), timeZone) : DateHelper
-        .formatIsoTimestamp(event.getStartDate(), DateHelper.UTC);
+            ? DateHelper.formatIsoDate(event.getStartDate(), timeZone) : DateHelper
+            .formatIsoTimestamp(event.getStartDate(), DateHelper.UTC);
     java.util.Date eventStartDate = event.getStartDate();
     if (log.isDebugEnabled() == true) {
       log.debug("---------- startDate=" + DateHelper.formatIsoTimestamp(eventStartDate, timeZone) + ", timeZone="
-          + timeZone.getID());
+              + timeZone.getID());
     }
     net.fortuna.ical4j.model.TimeZone ical4jTimeZone = null;
     try {
@@ -744,7 +778,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
       for (final Object obj : dateList) {
         final net.fortuna.ical4j.model.DateTime dateTime = (net.fortuna.ical4j.model.DateTime) obj;
         final String isoDateString = event.getAllDay() == true ? DateHelper.formatIsoDate(dateTime, timeZone)
-            : DateHelper.formatIsoTimestamp(dateTime, DateHelper.UTC);
+                : DateHelper.formatIsoTimestamp(dateTime, DateHelper.UTC);
         if (exDates != null && exDates.size() > 0) {
           for (Date exDate : exDates) {
             if (event.getAllDay() == false) {
@@ -787,13 +821,13 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
     if (log.isDebugEnabled() == true) {
       for (final ICalendarEvent ev : col) {
         log.debug("startDate="
-            + DateHelper.formatIsoTimestamp(ev.getStartDate(), timeZone)
-            + "; "
-            + DateHelper.formatAsUTC(ev.getStartDate())
-            + ", endDate="
-            + DateHelper.formatIsoTimestamp(ev.getStartDate(), timeZone)
-            + "; "
-            + DateHelper.formatAsUTC(ev.getEndDate()));
+                + DateHelper.formatIsoTimestamp(ev.getStartDate(), timeZone)
+                + "; "
+                + DateHelper.formatAsUTC(ev.getStartDate())
+                + ", endDate="
+                + DateHelper.formatIsoTimestamp(ev.getStartDate(), timeZone)
+                + "; "
+                + DateHelper.formatAsUTC(ev.getEndDate()));
       }
     }
     return col;

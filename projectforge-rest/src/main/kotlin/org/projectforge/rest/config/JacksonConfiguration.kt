@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.projectforge.business.address.AddressbookDO
+import org.projectforge.business.calendar.event.model.ICalendarEvent
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.kost.Kost1DO
@@ -46,6 +47,7 @@ import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.TenantDO
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.rest.calendar.ICalendarEventDeserializer
 import org.projectforge.rest.calendar.TeamCalDOSerializer
 import org.projectforge.rest.config.JacksonConfiguration.Companion.registerAllowedUnknownProperties
 import org.projectforge.rest.json.*
@@ -145,6 +147,8 @@ open class JacksonConfiguration {
 
         // Calendar serializers
         module.addSerializer(TeamCalDO::class.java, TeamCalDOSerializer())
+        module.addDeserializer(ICalendarEvent::class.java, ICalendarEventDeserializer())
+
 
         mapper.registerModule(module)
         return mapper
