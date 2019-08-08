@@ -29,6 +29,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
+import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.utils.NumberHelper;
@@ -37,9 +38,9 @@ import org.projectforge.framework.utils.NumberHelper;
  * Used by {@link TeamCalEventProvider} for handling event id's. The id of {@link TeamEventDO} objects is the data-base
  * id (pk). The id of recurrence events is the data-base id of the master {@link TeamEventDO} followed by the date, e.
  * g. "42-20121222".
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class TeamCalEventId
 {
@@ -81,7 +82,7 @@ public class TeamCalEventId
     }
   }
 
-  public TeamCalEventId(final TeamEvent event, final TimeZone timeZone)
+  public TeamCalEventId(final ICalendarEvent event, final TimeZone timeZone)
   {
     this.timeZone = timeZone;
     if (event instanceof TeamEventDO) {

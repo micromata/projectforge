@@ -25,7 +25,7 @@
 
 package org.projectforge.rest.calendar
 
-import org.apache.commons.lang3.Validate
+import org.projectforge.business.calendar.event.model.SeriesModificationMode
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.event.TeamEventDao
 import org.projectforge.business.teamcal.event.TeamEventService
@@ -33,8 +33,6 @@ import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.RestPaths
@@ -76,6 +74,10 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
     override fun transformForDB(dto: TeamEvent): TeamEventDO {
         val teamEventDO = TeamEventDO()
         dto.copyTo(teamEventDO)
+        if (dto.selectedSeriesElement != null) {
+            teamEventDO.setTransientAttribute(TeamEventDao.ATTR_SELECTED_ELEMENT, dto.selectedSeriesElement);
+            teamEventDO.setTransientAttribute(TeamEventDao.ATTR_SERIES_MODIFICATION_MODE, dto.seriesModificationMode);
+        }
         return teamEventDO
     }
 
@@ -86,7 +88,7 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, dto: TeamEvent) {
-        if (dto.hasRecurrence && dto.modifySerie == null) {
+        if (dto.hasRecurrence && dto.seriesModificationMode == null) {
             validationErrors.add(ValidationError.create("plugins.teamcal.event.recurrence.change.content"))
             validationErrors.add(ValidationError(fieldId = "modifySerie"))
         }
@@ -95,27 +97,6 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
     private fun getUntilDate(untilUTC: Timestamp): Date {
         // move one day to past, the TeamEventDO will post process this value while setting
         return Date(untilUTC.time - 24 * 60 * 60 * 1000)
-    }
-
-
-    override fun afterDelete(obj: TeamEventDO, dto: TeamEvent): ResponseAction {
-        if (!dto.hasRecurrence || dto.modifySerie == null || dto.modifySerie == TeamEvent.ModifySerie.ALL) {
-            return super.afterDelete(obj, dto)
-        }
-        val masterId = obj.getId() // Store the id of the master entry.
-        val masterEvent = teamEventService.getById(masterId)
-        if (dto.modifySerie == TeamEvent.ModifySerie.FUTURE) {
-            val recurrenceData = obj.getRecurrenceData(ThreadLocalUserContext.getTimeZone())
-            val recurrenceUntil = getUntilDate(dto.selectedSeriesElement!!.startDate!!)
-            recurrenceData.setUntil(recurrenceUntil)
-            masterEvent.setRecurrence(recurrenceData)
-            baseDao.update(masterEvent)
-        } else if (dto.modifySerie == TeamEvent.ModifySerie.SINGLE) { // only current date
-            Validate.notNull(dto.selectedSeriesElement)
-            masterEvent.addRecurrenceExDate(dto.selectedSeriesElement!!.startDate!!)
-            baseDao.update(masterEvent)
-        }
-        return super.afterDelete(obj, dto)
     }
 
     /*
@@ -265,9 +246,9 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
         if (dto.hasRecurrence) {
             layout.add(UIFieldset(12, title = "plugins.teamcal.event.recurrence.change.text")
                     .add(UIGroup()
-                            .add(UIRadioButton("modifySerie", TeamEvent.ModifySerie.ALL, label = "plugins.teamcal.event.recurrence.change.text.all"))
-                            .add(UIRadioButton("modifySerie", TeamEvent.ModifySerie.FUTURE, label = "plugins.teamcal.event.recurrence.change.future"))
-                            .add(UIRadioButton("modifySerie", TeamEvent.ModifySerie.SINGLE, label = "plugins.teamcal.event.recurrence.change.single"))
+                            .add(UIRadioButton("modifySerie", SeriesModificationMode.ALL, label = "plugins.teamcal.event.recurrence.change.text.all"))
+                            .add(UIRadioButton("modifySerie", SeriesModificationMode.FUTURE, label = "plugins.teamcal.event.recurrence.change.future"))
+                            .add(UIRadioButton("modifySerie", SeriesModificationMode.SINGLE, label = "plugins.teamcal.event.recurrence.change.single"))
                     ))
         }
         layout.add(UIFieldset(12)

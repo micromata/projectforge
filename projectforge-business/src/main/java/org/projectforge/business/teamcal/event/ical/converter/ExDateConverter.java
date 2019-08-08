@@ -51,7 +51,7 @@ public class ExDateConverter extends PropertyConverter
       return false;
     }
 
-    final List<Date> exDates = ICal4JUtils.parseCSVDatesAsICal4jDates(event.getRecurrenceExDate(), (false == event.isAllDay()), ICal4JUtils.getUTCTimeZone());
+    final List<Date> exDates = ICal4JUtils.parseCSVDatesAsICal4jDates(event.getRecurrenceExDate(), (false == event.getAllDay()), ICal4JUtils.getUTCTimeZone());
 
     if (CollectionUtils.isEmpty(exDates)) {
       return false;
@@ -59,7 +59,7 @@ public class ExDateConverter extends PropertyConverter
 
     for (final Date date : exDates) {
       final DateList dateList;
-      if (event.isAllDay() == true) {
+      if (event.getAllDay() == true) {
         dateList = new DateList(Value.DATE);
       } else {
         dateList = new DateList();

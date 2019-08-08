@@ -26,6 +26,7 @@ package org.projectforge.business.teamcal.event.model;
 import de.micromata.genome.db.jpa.history.api.WithHistory;
 import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.*;
+import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.api.AUserRightId;
@@ -42,7 +43,7 @@ import java.sql.Timestamp;
                 "calendar_fk"})})
 @WithHistory(noHistoryProperties = {"lastUpdate", "created"}, nestedEntities = {TeamEventAttendeeDO.class})
 @AUserRightId(value = "PLUGIN_CALENDAR_EVENT")
-public class CalEventDO extends DefaultBaseDO implements TeamEvent {
+public class CalEventDO extends DefaultBaseDO implements ICalendarEvent {
   @IndexedEmbedded(depth = 1)
   private TeamCalDO calendar;
 
@@ -82,7 +83,7 @@ public class CalEventDO extends DefaultBaseDO implements TeamEvent {
   }
 
   @Override
-  public boolean isAllDay() {
+  public boolean getAllDay() {
     return allDay;
   }
 

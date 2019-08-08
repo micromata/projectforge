@@ -21,26 +21,25 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.teamcal.event.model;
+package org.projectforge.business.calendar.event.model
 
-import java.util.Date;
+import java.util.*
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public interface TeamEvent
-{
-  public String getUid();
+interface ICalendarEvent {
+    val uid: String?
 
-  public String getSubject();
+    val subject: String?
 
-  public String getLocation();
+    val location: String?
 
-  public boolean isAllDay();
+    val allDay: Boolean
 
-  public Date getStartDate();
+    val startDate: Date?
 
-  public Date getEndDate();
+    val endDate: Date?
 
-  public String getNote();
+    val note: String?
 }

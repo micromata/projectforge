@@ -31,7 +31,7 @@ import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.teamcal.TeamCalConfig;
 import org.projectforge.business.teamcal.event.model.CalEventDO;
-import org.projectforge.business.teamcal.event.model.TeamEvent;
+import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.calendar.CalendarUtils;
@@ -51,7 +51,6 @@ import java.util.*;
 @Repository
 public class CalEventDao extends BaseDao<CalEventDO>
 {
-
   private static final long ONE_DAY = 1000 * 60 * 60 * 24;
 
   @Autowired
@@ -121,11 +120,11 @@ public class CalEventDao extends BaseDao<CalEventDO>
    * @param calculateRecurrenceEvents If true, recurrence events inside the given time-period are calculated.
    * @return list of team events (same as {@link #getList(BaseSearchFilter)} but with all calculated and matching
    * recurrence events (if calculateRecurrenceEvents is true). Origin events are of type {@link TeamEventDO},
-   * calculated events of type {@link TeamEvent}.
+   * calculated events of type {@link ICalendarEvent}.
    */
-  public List<TeamEvent> getEventList(final TeamEventFilter filter, final boolean calculateRecurrenceEvents)
+  public List<ICalendarEvent> getEventList(final TeamEventFilter filter, final boolean calculateRecurrenceEvents)
   {
-    final List<TeamEvent> result = new ArrayList<>();
+    final List<ICalendarEvent> result = new ArrayList<>();
     List<CalEventDO> list = getList(filter);
     if (CollectionUtils.isNotEmpty(list) == true) {
       for (final CalEventDO eventDO : list) {
@@ -163,7 +162,7 @@ public class CalEventDao extends BaseDao<CalEventDO>
     }
 
     // If is all day event, set start and stop to midnight
-    if (event.isAllDay() == true) {
+    if (event.getAllDay() == true) {
       final Date startDate = event.getStartDate();
       if (startDate != null) {
         event.setStartDate(CalendarUtils.getUTCMidnightTimestamp(startDate));

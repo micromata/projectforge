@@ -27,17 +27,17 @@ import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.projectforge.business.teamcal.event.model.TeamEvent;
+import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.persistence.utils.ReflectionToString;
 
 /**
  * Represents a recurrence event (created by a master TeamEventDO with recurrence rules).
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
-public class TeamRecurrenceEvent implements TeamEvent, Serializable
+public class TeamRecurrenceEvent implements ICalendarEvent, Serializable
 {
   private static final long serialVersionUID = -7523583666714303142L;
 
@@ -68,7 +68,7 @@ public class TeamRecurrenceEvent implements TeamEvent, Serializable
   }
 
   /**
-   * @see org.projectforge.business.teamcal.event.model.TeamEvent#getUid()
+   * @see ICalendarEvent#getUid()
    */
   @Override
   public String getUid()
@@ -77,7 +77,7 @@ public class TeamRecurrenceEvent implements TeamEvent, Serializable
   }
 
   /**
-   * @see org.projectforge.business.teamcal.event.model.TeamEvent#getSubject()
+   * @see ICalendarEvent#getSubject()
    */
   @Override
   public String getSubject()
@@ -86,7 +86,7 @@ public class TeamRecurrenceEvent implements TeamEvent, Serializable
   }
 
   /**
-   * @see org.projectforge.business.teamcal.event.model.TeamEvent#getLocation()
+   * @see ICalendarEvent#getLocation()
    */
   @Override
   public String getLocation()
@@ -95,16 +95,16 @@ public class TeamRecurrenceEvent implements TeamEvent, Serializable
   }
 
   /**
-   * @see org.projectforge.business.teamcal.event.model.TeamEvent#isAllDay()
+   * @see ICalendarEvent#getAllDay()
    */
   @Override
-  public boolean isAllDay()
+  public boolean getAllDay()
   {
-    return master.isAllDay();
+    return master.getAllDay();
   }
 
   /**
-   * @see org.projectforge.business.teamcal.event.model.TeamEvent#getStartDate()
+   * @see ICalendarEvent#getStartDate()
    */
   @Override
   public Date getStartDate()
@@ -113,7 +113,7 @@ public class TeamRecurrenceEvent implements TeamEvent, Serializable
   }
 
   /**
-   * @see org.projectforge.business.teamcal.event.model.TeamEvent#getEndDate()
+   * @see ICalendarEvent#getEndDate()
    */
   @Override
   public Date getEndDate()
@@ -122,7 +122,7 @@ public class TeamRecurrenceEvent implements TeamEvent, Serializable
   }
 
   /**
-   * @see org.projectforge.business.teamcal.event.model.TeamEvent#getNote()
+   * @see ICalendarEvent#getNote()
    */
   @Override
   public String getNote()

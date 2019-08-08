@@ -54,7 +54,7 @@ import org.projectforge.web.wicket.WicketUtils;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @ListPage(editPage = TeamEventEditPage.class)
 public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamEventDao, TeamEventDO> implements
@@ -73,7 +73,7 @@ public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamE
   TeamCalCache teamCalCache;
 
   /**
-   * 
+   *
    */
   public TeamEventListPage(final PageParameters parameters)
   {
@@ -159,7 +159,7 @@ public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamE
           final IModel<TeamEventDO> rowModel)
       {
         final TeamEventDO event = rowModel.getObject();
-        item.add(WicketUtils.createBooleanLabel(getRequestCycle(), componentId, event.isAllDay() == true));
+        item.add(WicketUtils.createBooleanLabel(getRequestCycle(), componentId, event.getAllDay() == true));
         cellItemListener.populateItem(item, componentId, rowModel);
       }
     });

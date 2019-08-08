@@ -53,7 +53,7 @@ import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
 import org.projectforge.business.teamcal.event.diff.TeamEventField;
 import org.projectforge.business.teamcal.event.ical.ICalGenerator;
 import org.projectforge.business.teamcal.event.ical.ICalHandler;
-import org.projectforge.business.teamcal.event.model.TeamEvent;
+import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDao;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
@@ -496,7 +496,7 @@ public class TeamEventServiceImpl implements TeamEventService
     {
       fromToHeader = beginDateTime;
     }
-    if (event.isAllDay()) {
+    if (event.getAllDay()) {
       formatter = new SimpleDateFormat("dd. MMMMM YYYY", locale);
       formatter.setTimeZone(timezone);
       fromToHeader = formatter.format(startDate.getTime());
@@ -657,7 +657,7 @@ public class TeamEventServiceImpl implements TeamEventService
   }
 
   @Override
-  public List<TeamEvent> getEventList(TeamEventFilter filter, boolean calculateRecurrenceEvents)
+  public List<ICalendarEvent> getEventList(TeamEventFilter filter, boolean calculateRecurrenceEvents)
   {
     return teamEventDao.getEventList(filter, calculateRecurrenceEvents);
   }

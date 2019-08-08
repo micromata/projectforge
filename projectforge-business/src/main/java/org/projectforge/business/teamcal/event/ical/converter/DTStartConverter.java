@@ -41,7 +41,7 @@ public class DTStartConverter extends PropertyConverter
   @Override
   public Property toVEvent(final TeamEventDO event)
   {
-    if (event.isAllDay() == true) {
+    if (event.getAllDay() == true) {
       final Date startUtc = CalendarUtils.getUTCMidnightDate(event.getStartDate());
       net.fortuna.ical4j.model.Date date = new net.fortuna.ical4j.model.Date(startUtc);
       return new DtStart(date);

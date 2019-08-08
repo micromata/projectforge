@@ -36,7 +36,7 @@ import org.projectforge.business.teamcal.event.ical.HandleMethod;
 import org.projectforge.business.teamcal.event.ical.ICalGenerator;
 import org.projectforge.business.teamcal.event.ical.ICalHandler;
 import org.projectforge.business.teamcal.event.model.ReminderDurationUnit;
-import org.projectforge.business.teamcal.event.model.TeamEvent;
+import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -142,9 +142,9 @@ public class TeamEventDaoRest
     if (cals.size() > 0) {
       final Date now = new Date();
       final TeamEventFilter filter = new TeamEventFilter().setStartDate(now).setEndDate(day.getDate()).setTeamCals(cals);
-      final List<TeamEvent> list = teamEventService.getEventList(filter, true);
+      final List<ICalendarEvent> list = teamEventService.getEventList(filter, true);
       if (list != null && list.size() > 0) {
-        for (final TeamEvent event : list) {
+        for (final ICalendarEvent event : list) {
           if (event.getStartDate().after(now) == true) {
             result.add(this.getEventObject(event));
           } else {
@@ -235,7 +235,7 @@ public class TeamEventDaoRest
     return Response.ok().build();
   }
 
-  private CalendarEventObject getEventObject(final TeamEvent src)
+  private CalendarEventObject getEventObject(final ICalendarEvent src)
   {
     if (src == null) {
       return null;
@@ -275,7 +275,7 @@ public class TeamEventDaoRest
     eventDO.setStartDate(new Timestamp(src.getStartDate().getTime()));
     eventDO.setSubject(src.getSubject());
     eventDO.setUid(src.getUid());
-    eventDO.setAllDay(src.isAllDay());
+    eventDO.setAllDay(src.getAllDay());
 
     generator.addEvent(eventDO);
 

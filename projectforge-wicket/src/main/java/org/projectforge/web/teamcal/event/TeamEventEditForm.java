@@ -273,7 +273,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
         @Override
         protected void onUpdate(final AjaxRequestTarget target)
         {
-          if (data.isAllDay() == false) {
+          if (data.getAllDay() == false) {
             setDateDropChoiceVisible(true);
           } else {
             setDateDropChoiceVisible(false);
@@ -281,7 +281,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
           target.add(startDateTimePanel.getTimeContainer(), endDateTimePanel.getTimeContainer());
         }
       });
-      setDateDropChoiceVisible(data.isAllDay() == false);
+      setDateDropChoiceVisible(data.getAllDay() == false);
       divPanel.add(checkBox);
       fieldSet.add(divPanel);
       if (access == false)

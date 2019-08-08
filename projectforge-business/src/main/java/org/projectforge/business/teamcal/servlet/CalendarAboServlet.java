@@ -38,7 +38,7 @@ import org.projectforge.business.teamcal.common.CalendarHelper;
 import org.projectforge.business.teamcal.event.TeamEventFilter;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.ical.ICalGenerator;
-import org.projectforge.business.teamcal.event.model.TeamEvent;
+import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.model.CalendarFeedConst;
 import org.projectforge.business.timesheet.TimesheetDO;
@@ -270,13 +270,13 @@ public class CalendarAboServlet extends HttpServlet
     for (final String teamCalId : teamCalIds) {
       final Integer id = Integer.valueOf(teamCalId);
       eventFilter.setTeamCalId(id);
-      final List<TeamEvent> teamEvents = teamEventService.getEventList(eventFilter, false);
+      final List<ICalendarEvent> teamEvents = teamEventService.getEventList(eventFilter, false);
 
       if (teamEvents == null || teamEvents.isEmpty()) {
         continue;
       }
 
-      for (final TeamEvent teamEventObject : teamEvents) {
+      for (final ICalendarEvent teamEventObject : teamEvents) {
         if (teamEventObject instanceof TeamEventDO == false) {
           log.warn("Oups, shouldn't occur, please contact the developer: teamEvent isn't of type TeamEventDO: " + teamEventObject);
           continue;

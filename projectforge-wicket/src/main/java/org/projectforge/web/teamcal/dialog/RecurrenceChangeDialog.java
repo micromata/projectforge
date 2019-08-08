@@ -29,7 +29,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.projectforge.business.teamcal.event.model.TeamEvent;
+import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.teamcal.event.RecurrencyChangeType;
@@ -42,11 +42,11 @@ import de.micromata.wicket.ajax.AjaxCallback;
 
 /**
  * Dialog which appears, when a user tries to modify an recurrent event
- * 
+ *
  * @author Johannes Unterstein (j.unterstein@micromata.de)
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class RecurrenceChangeDialog extends ModalDialog
 {
@@ -54,7 +54,7 @@ public class RecurrenceChangeDialog extends ModalDialog
 
   private static final long serialVersionUID = 7266725860088619248L;
 
-  private TeamEvent event;
+  private ICalendarEvent event;
 
   private Timestamp newStartDate, newEndDate;
 
@@ -128,7 +128,7 @@ public class RecurrenceChangeDialog extends ModalDialog
     throw new UnsupportedOperationException();
   }
 
-  public void open(final AjaxRequestTarget target, final TeamEvent event, final Timestamp newStartDate, final Timestamp newEndDate)
+  public void open(final AjaxRequestTarget target, final ICalendarEvent event, final Timestamp newStartDate, final Timestamp newEndDate)
   {
     this.event = event;
     this.newStartDate = newStartDate;
@@ -143,22 +143,22 @@ public class RecurrenceChangeDialog extends ModalDialog
     super.open(target);
   }
 
-  protected void onChangeAllEventsSelected(final AjaxRequestTarget target, final TeamEvent event)
+  protected void onChangeAllEventsSelected(final AjaxRequestTarget target, final ICalendarEvent event)
   {
     onChangeEvents(target, event, RecurrencyChangeType.ALL);
   }
 
-  protected void onChangeFutureOnlyEventsSelected(final AjaxRequestTarget target, final TeamEvent event)
+  protected void onChangeFutureOnlyEventsSelected(final AjaxRequestTarget target, final ICalendarEvent event)
   {
     onChangeEvents(target, event, RecurrencyChangeType.ALL_FUTURE);
   }
 
-  protected void onChangeSingleEventSelected(final AjaxRequestTarget target, final TeamEvent event)
+  protected void onChangeSingleEventSelected(final AjaxRequestTarget target, final ICalendarEvent event)
   {
     onChangeEvents(target, event, RecurrencyChangeType.ONLY_CURRENT);
   }
 
-  private void onChangeEvents(final AjaxRequestTarget target, final TeamEvent event, final RecurrencyChangeType recurrencyChangeType) {
+  private void onChangeEvents(final AjaxRequestTarget target, final ICalendarEvent event, final RecurrencyChangeType recurrencyChangeType) {
     final TeamEventEditPage teamEventEditPage = new TeamEventEditPage(new PageParameters(), event, newStartDate, newEndDate, recurrencyChangeType);
     teamEventEditPage.setReturnToPage(getWebPage());
     setResponsePage(teamEventEditPage);

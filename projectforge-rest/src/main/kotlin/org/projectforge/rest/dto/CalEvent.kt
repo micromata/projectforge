@@ -23,6 +23,8 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.business.calendar.event.model.ICalendarEvent
+import org.projectforge.business.calendar.event.model.SeriesModificationMode
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.teamcal.event.model.*
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -30,12 +32,12 @@ import java.sql.Timestamp
 import java.util.*
 
 class CalEvent(
-        var modifySerie: ModifySerie? = null,
-        var subject: String? = null,
-        var location: String? = null,
-        var allDay: Boolean = false,
-        var startDate: Timestamp? = null,
-        var endDate: Timestamp? = null,
+        var seriesModificationMode: SeriesModificationMode? = null,
+        override var subject: String? = null,
+        override var location: String? = null,
+        override var allDay: Boolean = false,
+        override var startDate: Timestamp? = null,
+        override var endDate: Timestamp? = null,
         var lastEmail: Timestamp? = null,
         var dtStamp: Timestamp? = null,
         var calendar: TeamCalDO? = null,
@@ -44,23 +46,18 @@ class CalEvent(
         var recurrenceReferenceDate: String? = null,
         var recurrenceReferenceId: String? = null,
         var recurrenceUntil: Date? = null,
-        var note: String? = null,
+        override var note: String? = null,
         var attendees: MutableSet<TeamEventAttendeeDO>? = null,
         var ownership: Boolean? = null,
         var organizer: String? = null,
         var organizerAdditionalParams: String? = null,
         var sequence: Int? = 0,
-        var uid: String? = null,
+        override var uid: String? = null,
         var reminderDuration: Int? = null,
         var reminderDurationUnit: ReminderDurationUnit? = null,
         var reminderActionType: ReminderActionType? = null,
         var attachments: MutableSet<TeamEventAttachmentDO>? = null,
-        var creator: PFUserDO? = null) : BaseDTO<CalEventDO>() {
-
-    /**
-     * Which events of the series should be modified?
-     */
-    enum class ModifySerie { ALL, FUTURE, SINGLE }
+        var creator: PFUserDO? = null) : BaseDTO<CalEventDO>(), ICalendarEvent {
 
     val hasRecurrence: Boolean
         get() = !recurrenceRule.isNullOrBlank()
