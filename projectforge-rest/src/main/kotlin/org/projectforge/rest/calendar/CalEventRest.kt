@@ -92,7 +92,9 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
             if (startDateAsSeconds != null && endDateSeconds != null && dto.hasRecurrence) {
                 // Seems to be a event of a series:
                 dto.selectedSeriesEvent = CalEvent(startDate = PFDateTime.from(startDateAsSeconds)!!.sqlTimestamp,
-                        endDate = PFDateTime.from(endDateSeconds)!!.sqlTimestamp)
+                        endDate = PFDateTime.from(endDateSeconds)!!.sqlTimestamp,
+                        allDay = dto.allDay,
+                        sequence = dto.sequence)
             }
         }
         super.onGetItemAndLayout(request, dto, editLayoutData)

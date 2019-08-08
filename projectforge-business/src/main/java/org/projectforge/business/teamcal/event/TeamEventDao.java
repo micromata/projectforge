@@ -59,6 +59,7 @@ import org.projectforge.framework.time.DateHolder;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -263,6 +264,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
 
   /**
    * Handles updates of series element (if any) for future and single events of a series.
+   *
    * @param event
    */
   private void handleSeriesUpdates(final TeamEventDO event) {
@@ -272,24 +274,24 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
       // Nothing to do.
       return;
     }
-    Integer masterId = event.getId(); // Store the id of the master entry.
-    event.setId(null); // Clone object.
-    TeamEventDO masterEvent = getById(masterId);
-    if (masterEvent == null) {
-      log.error("masterEvent is null?! Do nothing more after saving team event.");
-      return;
-    }
     if (selectedEvent == null) {
       log.error("Selected series element is null?! Do nothing more after saving team event.");
       return;
     }
+    TeamEventDO newEvent = event.clone();
+    newEvent.setSequence(0);
+    // TODO: start and end date of new event!
+    TeamEventDO masterEvent = getById(event.getId());
+    event.copyValuesFrom(masterEvent); // Restore db fields of master event. Do only modify single or future events.
     if (mode == SeriesModificationMode.FUTURE) {
-      TeamEventDO newEvent = event.clone();
       TeamEventRecurrenceData recurrenceData = event.getRecurrenceData(ThreadLocalUserContext.getTimeZone());
       // Set the end date of the master date one day before current date and save this event.
       Date recurrenceUntil = getUntilDate(selectedEvent.getStartDate());
       recurrenceData.setUntil(recurrenceUntil);
+      event.setRecurrence(recurrenceData);
+      recurrenceData = event.getRecurrenceData(ThreadLocalUserContext.getTimeZone());
       newEvent.setRecurrence(recurrenceData);
+      save(newEvent);
       if (log.isDebugEnabled() == true) {
         log.debug("Recurrency until date of master entry will be set to: " + DateHelper.formatAsUTC(recurrenceUntil));
         log.debug("The new event is: " + newEvent);
@@ -297,15 +299,15 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
       return;
     } else if (mode == SeriesModificationMode.SINGLE) { // only current date
       // Add current date to the master date as exclusion date and save this event (without recurrence settings).
-      masterEvent.addRecurrenceExDate(selectedEvent.getStartDate());
-      TeamEventDO newEvent = event.clone();
+      event.addRecurrenceExDate(selectedEvent.getStartDate());
       newEvent.setRecurrenceDate(selectedEvent.getStartDate(), ThreadLocalUserContext.getTimeZone());
-      newEvent.setRecurrenceReferenceId(masterEvent.getId());
+      newEvent.setRecurrenceReferenceId(event.getId());
+      save(newEvent);
       if (log.isDebugEnabled() == true) {
         log.debug("Recurrency ex date of master entry is now added: "
                 + DateHelper.formatAsUTC(selectedEvent.getStartDate())
                 + ". The new string is: "
-                + masterEvent.getRecurrenceExDate());
+                + event.getRecurrenceExDate());
         log.debug("The new event is: " + newEvent);
       }
     }
@@ -315,25 +317,25 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
    * Handles deletion of series element (if any) for future and single events of a series.
    */
   @Override
-  protected void onDelete(TeamEventDO obj) {
+  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
+  public void internalMarkAsDeleted(final TeamEventDO obj) {
     ICalendarEvent selectedEvent = (ICalendarEvent) obj.getTransientAttribute(ATTR_SELECTED_ELEMENT);
     SeriesModificationMode mode = (SeriesModificationMode) obj.getTransientAttribute(ATTR_SERIES_MODIFICATION_MODE);
     if (selectedEvent == null || mode == null || mode == SeriesModificationMode.ALL) {
-      // Nothing to do.
+      // Nothing to do special:
+      super.internalMarkAsDeleted(obj);
       return;
     }
-    Integer masterId = obj.getId(); // Store the id of the master entry.
-    TeamEventDO masterEvent = getById(masterId);
     if (mode == SeriesModificationMode.FUTURE) {
       TeamEventRecurrenceData recurrenceData = obj.getRecurrenceData(ThreadLocalUserContext.getTimeZone());
       Date recurrenceUntil = getUntilDate(selectedEvent.getStartDate());
       recurrenceData.setUntil(recurrenceUntil);
-      masterEvent.setRecurrence(recurrenceData);
-      update(masterEvent);
+      obj.setRecurrence(recurrenceData);
+      update(obj);
     } else if (mode == SeriesModificationMode.SINGLE) { // only current date
       Validate.notNull(selectedEvent);
-      masterEvent.addRecurrenceExDate(selectedEvent.getStartDate());
-      update(masterEvent);
+      obj.addRecurrenceExDate(selectedEvent.getStartDate());
+      update(obj);
     }
   }
 
