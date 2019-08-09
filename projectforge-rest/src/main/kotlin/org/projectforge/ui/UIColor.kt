@@ -28,6 +28,8 @@ import com.fasterxml.jackson.annotation.JsonProperty
 enum class UIColor {
     @JsonProperty("danger")
     DANGER,
+    @JsonProperty("dark")
+    DARK,
     @JsonProperty("info")
     INFO,
     @JsonProperty("link")

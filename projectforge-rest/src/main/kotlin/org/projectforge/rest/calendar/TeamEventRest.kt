@@ -233,7 +233,7 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
                 .add(UIRow().add(UICol(12).add(UICustomized("calendar.recurrency"))))
         layout.addAction(UIButton("switch",
                 title = translate("plugins.teamcal.switchToTimesheetButton"),
-                color = UIColor.SECONDARY,
+                color = UIColor.DARK,
                 responseAction = ResponseAction(getRestRootPath("switch2Timesheet"), targetType = TargetType.POST)))
         layout.addTranslations("plugins.teamcal.event.recurrence",
                 "plugins.teamcal.event.recurrence.customized",

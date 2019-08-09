@@ -77,7 +77,8 @@ class LayoutUtils {
             }
             layout
                     .addAction(UIButton("reset",
-                            color = UIColor.DANGER,
+                            color = UIColor.SECONDARY,
+                            outline = true,
                             responseAction = ResponseAction(restService.getRestPath(RestPaths.FILTER_RESET), targetType = TargetType.GET)))
                     .addAction(UIButton("search",
                             color = UIColor.PRIMARY,
@@ -142,7 +143,8 @@ class LayoutUtils {
         fun <O : ExtendedBaseDO<Int>> processEditPage(layout: UILayout, dto: Any, restService: AbstractBaseRest<O, *, out BaseDao<O>>)
                 : UILayout {
             layout.addAction(UIButton("cancel",
-                    color = UIColor.DANGER,
+                    color = UIColor.SECONDARY,
+                    outline = true,
                     responseAction = ResponseAction(restService.getRestPath(RestPaths.CANCEL), targetType = TargetType.POST)))
             val userAccess = layout.userAccess
             if (restService.isHistorizable()) {
@@ -154,25 +156,28 @@ class LayoutUtils {
                     if (restService.isDeleted(dto)) {
                         if (userAccess.insert == true) {
                             layout.addAction(UIButton("undelete",
-                                    color = UIColor.WARNING,
+                                    color = UIColor.PRIMARY,
                                     responseAction = ResponseAction(restService.getRestPath(RestPaths.UNDELETE), targetType = TargetType.PUT)))
                         }
                     } else if (userAccess.delete == true) {
                         layout.addAction(UIButton("markAsDeleted",
-                                color = UIColor.WARNING,
+                                color = UIColor.DANGER,
+                                outline = true,
                                 responseAction = ResponseAction(restService.getRestPath(RestPaths.MARK_AS_DELETED), targetType = TargetType.DELETE)))
                     }
                 }
             } else if (userAccess.delete == true) {
                 // MemoDO for example isn't historizable:
                 layout.addAction(UIButton("deleteIt",
-                        color = UIColor.WARNING,
+                        color = UIColor.DANGER,
+                        outline = true,
                         responseAction = ResponseAction(restService.getRestPath(RestPaths.DELETE), targetType = TargetType.DELETE)))
             }
             if (restService.getId(dto) != null) {
                 if (restService.cloneSupported) {
                     layout.addAction(UIButton("clone",
                             color = UIColor.SECONDARY,
+                            outline = true,
                             responseAction = ResponseAction(restService.getRestPath(RestPaths.CLONE), targetType = TargetType.POST)))
                 }
                 if (!restService.isDeleted(dto)) {

@@ -2,8 +2,6 @@
 
 $theme-colors: (
         "success": #32912E,
-        "warning": #fff,
-        "danger": #fff,
 );
 
 @import "~bootstrap/scss/bootstrap.scss";
@@ -185,15 +183,6 @@ fieldset {
 
   &.btn-primary {
     max-height: 33px;
-  }
-
-  &.btn-danger, &.btn-warning {
-    color: #a4a4a4;
-    border-color: #E6E6E6;
-  }
-
-  &.btn-warning {
-    color: #DC3545;
   }
 }
 
