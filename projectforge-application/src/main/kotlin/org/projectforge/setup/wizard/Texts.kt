@@ -43,6 +43,8 @@ object Texts {
     val ERROR_DIR_IS_SOURCE_REPO = "This directory seems to be ProjectForge's source code repository."
     val FS_JDBC_SETTINGS = "Jdbc setting"
     val FS_CURRENCY = "Currency"
+    val FS_DIRECTORY = "Directory"
+    val FS_DOMAIN = "Domain"
     val FS_LOCALE = "Locale"
     val FS_LOCALE_DESC = "Default locale for new users."
     val FS_FIRST_DAY = "First day"
