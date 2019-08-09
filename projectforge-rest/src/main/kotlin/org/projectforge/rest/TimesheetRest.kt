@@ -227,7 +227,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
         Favorites.addTranslations(layout.translations)
         layout.addAction(UIButton("switch",
                 title = translate("plugins.teamcal.switchToTeamEventButton"),
-                color = UIColor.SECONDARY,
+                color = UIColor.DARK,
                 responseAction = ResponseAction(getRestRootPath("switch2CalendarEvent"), targetType = TargetType.POST)))
         layout.addTranslations("templates")
         return LayoutUtils.processEditPage(layout, dto, this)
