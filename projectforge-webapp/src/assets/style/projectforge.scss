@@ -1,10 +1,6 @@
 @import '../fonts/roboto/index.css';
-
-$theme-colors: (
-        "success": #32912E,
-);
-
-@import "~bootstrap/scss/bootstrap.scss";
+@import './theming.scss';
+@import '~bootstrap/scss/bootstrap';
 
 html {
   font-size: 62.5%;

@@ -1,4 +1,5 @@
 @import '../../../assets/style/mixins';
+@import "../../../assets/style/theming";
 
 .checkboxGroup {
 
@@ -68,28 +69,30 @@
       }
     }
 
+    @include color(map_get($theme-colors, dark));
+
     &.primary {
-      @include color(#007bff);
+      @include color(map_get($theme-colors, primary));
     }
 
     &.secondary {
-      @include color(#6c757d);
+      @include color(map_get($theme-colors, secondary));
     }
 
     &.success {
-      @include color(#28a745);
+      @include color(map_get($theme-colors, success));
     }
 
     &.danger {
-      @include color(#dc3545);
+      @include color(map_get($theme-colors, danger));
     }
 
     &.warning {
-      @include color(#ffc107);
+      @include color(map_get($theme-colors, warning));
     }
 
     &.info {
-      @include color(#17a2b8);
+      @include color(map_get($theme-colors, info));
     }
 
   }
@@ -122,6 +125,7 @@
         -moz-user-select: none;
         -ms-user-select: none;
         user-select: none;
+        cursor: pointer;
 
         @mixin color($color) {
           &::before {
@@ -147,30 +151,30 @@
           }
         }
 
-        @include color(#333);
+        @include color(map_get($theme-colors, dark));
 
         &.primary {
-          @include color(#007bff);
+          @include color(map_get($theme-colors, primary));
         }
 
         &.secondary {
-          @include color(#6c757d);
+          @include color(map_get($theme-colors, secondary));
         }
 
         &.success {
-          @include color(#28a745);
+          @include color(map_get($theme-colors, success));
         }
 
         &.danger {
-          @include color(#dc3545);
+          @include color(map_get($theme-colors, danger));
         }
 
         &.warning {
-          @include color(#ffc107);
+          @include color(map_get($theme-colors, warning));
         }
 
         &.info {
-          @include color(#17a2b8);
+          @include color(map_get($theme-colors, info));
         }
       }
 
@@ -225,28 +229,30 @@
           color: $color;
         }
 
+        @include color(map_get($theme-colors, dark));
+
         &.primary {
-          @include color(#007bff);
+          @include color(map_get($theme-colors, primary));
         }
 
         &.secondary {
-          @include color(#6c757d);
+          @include color(map_get($theme-colors, secondary));
         }
 
         &.success {
-          @include color(#28a745);
+          @include color(map_get($theme-colors, success));
         }
 
         &.danger {
-          @include color(#dc3545);
+          @include color(map_get($theme-colors, danger));
         }
 
         &.warning {
-          @include color(#ffc107);
+          @include color(map_get($theme-colors, warning));
         }
 
         &.info {
-          @include color(#17a2b8);
+          @include color(map_get($theme-colors, info));
         }
       }
 
@@ -415,28 +421,30 @@
       }
     }
 
+    @include color(map_get($theme-colors, dark));
+
     &.primary {
-      @include color(#007bff);
+      @include color(map_get($theme-colors, primary));
     }
 
     &.secondary {
-      @include color(#6c757d);
+      @include color(map_get($theme-colors, secondary));
     }
 
     &.success {
-      @include color(#28a745);
+      @include color(map_get($theme-colors, success));
     }
 
     &.danger {
-      @include color(#dc3545);
+      @include color(map_get($theme-colors, danger));
     }
 
     &.warning {
-      @include color(#ffc107);
+      @include color(map_get($theme-colors, warning));
     }
 
     &.info {
-      @include color(#17a2b8);
+      @include color(map_get($theme-colors, info));
     }
   }
 
