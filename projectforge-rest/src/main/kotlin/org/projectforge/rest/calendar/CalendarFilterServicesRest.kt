@@ -252,9 +252,10 @@ class CalendarFilterServicesRest {
     }
 
     @GetMapping("changeDefaultCalendar")
-    fun changeDefaultCalendar(@RequestParam("id", required = true) id: String) {
+    fun changeDefaultCalendar(@RequestParam("id", required = true) id: String) : Map<String, Any>{
         val currentFilter = getCurrentFilter()
         currentFilter.defaultCalendarId = NumberHelper.parseInteger(id)
+        return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
     }
 
     @GetMapping("changeTimesheetUser")
@@ -271,7 +272,6 @@ class CalendarFilterServicesRest {
             }
         }
         return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
-
     }
 
     /**
