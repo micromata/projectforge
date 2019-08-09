@@ -193,6 +193,15 @@ public abstract class AbstractBaseDO<I extends Serializable> implements Extended
   }
 
   @Override
+  public Object removeTransientAttribute(String key) {
+    Object obj = getTransientAttribute(key);
+    if (obj != null) {
+      attributeMap.remove(key);
+    }
+    return obj;
+  }
+
+  @Override
   public void setTransientAttribute(final String key, final Object value)
   {
     if (attributeMap == null) {
