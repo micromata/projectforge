@@ -25,6 +25,7 @@ package org.projectforge.rest.calendar
 
 import org.projectforge.business.calendar.*
 import org.projectforge.business.teamcal.admin.TeamCalCache
+import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.favorites.Favorites
@@ -98,13 +99,16 @@ class CalendarFilterServicesRest {
     }
 
     @Autowired
-    private lateinit var teamCalCache: TeamCalCache
-
-    @Autowired
     private lateinit var userService: UserService
 
     @Autowired
     private lateinit var userPrefService: UserPrefService
+
+    @Autowired
+    private lateinit var teamCalCache: TeamCalCache
+
+    @Autowired
+    private lateinit var timesheetDao: TimesheetDao
 
     @GetMapping("initial")
     fun getInitialCalendar(): CalendarInit {
@@ -113,6 +117,7 @@ class CalendarFilterServicesRest {
         val currentFilter = getCurrentFilter()
         initial.filter = currentFilter
 
+        currentFilter.otherTimesheetUsersEnabled = timesheetDao.showTimesheetsOfOtherUsers()
         val user = userService.getUser(currentFilter.timesheetUserId)
         if (user != null) {
             initial.timesheetUser = User()
@@ -138,11 +143,13 @@ class CalendarFilterServicesRest {
         val listOfDefaultCalendars = mutableListOf<TeamCalendar>()
         initial.activeCalendars?.forEach { activeCal ->
             val cal = calendars.find { it.id == activeCal.id }
-            if (cal != null && (cal.access == TeamCalendar.ACCESS.OWNER || cal.access == TeamCalendar.ACCESS.FULL)) {
+            if (cal != null && (cal.access == TeamCalendar.ACCESS.OWNER || cal.access == TeamCalendar.ACCESS.FULL)
+                    && !cal.externalSubscription) {
                 // Calendar with full access:
                 listOfDefaultCalendars.add(TeamCalendar(id = cal.id, title = cal.title))
             }
         }
+
         listOfDefaultCalendars.sortBy { it.title?.toLowerCase() }
         listOfDefaultCalendars.add(0, TeamCalendar(id = -1, title = translate("calendar.option.timesheeets"))) // prepend time sheet pseudo calendar
         initial.listOfDefaultCalendars = listOfDefaultCalendars
@@ -251,9 +258,20 @@ class CalendarFilterServicesRest {
     }
 
     @GetMapping("changeTimesheetUser")
-    fun changeTimesheetUser(@RequestParam("userId", required = true) userId: String) {
+    fun changeTimesheetUser(@RequestParam("userId", required = true) userIdString: String) : Map<String, Any> {
         val currentFilter = getCurrentFilter()
-        currentFilter.timesheetUserId = NumberHelper.parseInteger(userId)
+        val userId = NumberHelper.parseInteger(userIdString)
+        if (timesheetDao.showTimesheetsOfOtherUsers()) {
+            currentFilter.timesheetUserId = userId
+        } else {
+            currentFilter.timesheetUserId = if (userId != null && userId >= 0) {
+                ThreadLocalUserContext.getUserId()
+            } else {
+                null
+            }
+        }
+        return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
+
     }
 
     /**
@@ -316,7 +334,6 @@ class CalendarFilterServicesRest {
         favorites.rename(id, newName)
         return mapOf("filterFavorites" to favorites.idTitleList)
     }
-
 
 
     // Ensures filter list (stored one, restored from legacy filter or a empty new one).

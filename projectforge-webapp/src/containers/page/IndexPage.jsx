@@ -252,6 +252,7 @@ class IndexPage extends React.Component {
                     <Col>
                         <h1>ToDo&apos;s (Kai)</h1>
                         <ol>
+                            <li>Drag&Drop/resize of calendar events</li>
                             <li>Finishing time sheet editing</li>
                             <li>List pages: addresses, tasks etc.</li>
                             <li>Search filter</li>

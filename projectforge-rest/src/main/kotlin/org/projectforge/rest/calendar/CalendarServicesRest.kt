@@ -115,7 +115,7 @@ class CalendarServicesRest {
                 .addVariable("category", category)
                 .addVariable("startDate", startDate)
                 .addVariable("endDate", endDate)
-            if (defaultCalendarId != null && defaultCalendarId > 0) {
+        if (defaultCalendarId != null && defaultCalendarId > 0) {
             responseAction.addVariable("calendar", defaultCalendarId)
         }
         return ResponseEntity(responseAction, HttpStatus.OK)
@@ -133,10 +133,7 @@ class CalendarServicesRest {
         val range = DateTimeRange(PFDateTime.from(filter.start, timeZone = timeZone)!!,
                 PFDateTime.from(filter.end, timeZone = timeZone))
         adjustRange(range, view)
-        val timesheetUserId = filter.timesheetUserId
-        if (timesheetUserId != null) {
-            timesheetsProvider.addTimesheetEvents(range.start, range.end!!, timesheetUserId, events)
-        }
+        timesheetsProvider.addTimesheetEvents(range.start, range.end!!, filter.timesheetUserId, events)
         var visibleCalendarIds = filter.activeCalendarIds
         if (filter.useVisibilityState == true && !visibleCalendarIds.isNullOrEmpty()) {
             val currentFilter = CalendarFilterServicesRest.getCurrentFilter(userPrefService)

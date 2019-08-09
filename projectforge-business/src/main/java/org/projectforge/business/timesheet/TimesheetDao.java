@@ -88,6 +88,16 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
 
   public static final String HIDDEN_FIELD_MARKER = "[...]";
 
+  public boolean showTimesheetsOfOtherUsers() {
+    return accessChecker.isLoggedInUserMemberOfGroup(
+            ProjectForgeGroup.CONTROLLING_GROUP,
+            ProjectForgeGroup.FINANCE_GROUP,
+            ProjectForgeGroup.HR_GROUP,
+            ProjectForgeGroup.ORGA_TEAM,
+            ProjectForgeGroup.PROJECT_MANAGER,
+            ProjectForgeGroup.PROJECT_ASSISTANT);
+  }
+
   private static final Logger log = LoggerFactory.getLogger(TimesheetDao.class);
 
   @Autowired
