@@ -41,6 +41,7 @@ class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(
 
     private lateinit var dirStateLabel: JLabel
     private lateinit var dirTextField: JTextField
+    private lateinit var domainTextField: JTextField
     private lateinit var portTextField: JTextField
 
     private lateinit var databaseCombobox: JComboBox<String>
@@ -62,7 +63,7 @@ class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(
         var y = -1
 
         dirTextField = JTextField("")
-        panel.add(JLabel("Directory"), constraints(0, ++y))
+        panel.add(JLabel(Texts.FS_DIRECTORY), constraints(0, ++y))
         panel.add(dirTextField, constraints(1, y, width = 2, weightx = 1.0, fill = GridBagConstraints.HORIZONTAL))
         dirTextField.addFocusListener(object : FocusListener {
             override fun focusGained(e: FocusEvent?) {
@@ -78,6 +79,10 @@ class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(
         panel.add(dirStateLabel, constraints(1, ++y, width = 2))
 
         panel.add(JLabel(""), constraints(0, ++y))
+
+        domainTextField = JTextField("http://localhost:8080")
+        panel.add(JLabel(Texts.FS_DOMAIN), constraints(0, ++y))
+        panel.add(domainTextField, constraints(1, y, width = 2, weightx = 1.0, fill = GridBagConstraints.HORIZONTAL))
 
         val nf = NumberFormat.getInstance()
         nf.isGroupingUsed = false
@@ -172,6 +177,7 @@ class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(
     private fun saveValues() {
         context.setupData.applicationHomeDir = CanonicalFileUtils.absolute(dirTextField.text.trim())
         FinalizeScreenSupport.saveValues(context.setupData,
+                domain = domainTextField.text,
                 portText = portTextField.text,
                 currencySymbol = currencyTextField.text,
                 defaultLocaleSelectedIndex = defaultLocaleCombobox.selectedIndex,
@@ -193,6 +199,7 @@ class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(
             databaseCombobox.selectedIndex = 0
             jdbcSettingsButton.isEnabled = false
         }
+        domainTextField.isEnabled = enabled
         portTextField.isEnabled = enabled
         databaseCombobox.isEnabled = enabled
         currencyTextField.isEnabled = enabled

@@ -40,6 +40,7 @@ class LantFinalizeScreen(context: LantGUIContext) : LantAbstractWizardWindow(con
     private val log = org.slf4j.LoggerFactory.getLogger(LantFinalizeScreen::class.java)
 
     private lateinit var dirLabel: Label
+    private lateinit var domainTextBox: TextBox
     private lateinit var portTextBox: TextBox
 
     private lateinit var databaseCombobox: ComboBox<String>
@@ -60,10 +61,15 @@ class LantFinalizeScreen(context: LantGUIContext) : LantAbstractWizardWindow(con
         panel.layoutManager = GridLayout(3)
 
         dirLabel = Label("")
-        panel.addComponent(Label("Directory").setSize(TerminalSize(10, 1)))
+        panel.addComponent(Label(Texts.FS_DIRECTORY).setSize(TerminalSize(10, 1)))
                 .addComponent(dirLabel.setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
 
         panel.addComponent(EmptySpace().setLayoutData(GridLayout.createHorizontallyFilledLayoutData(3)))
+
+        domainTextBox = TextBox("http://localhost:8080")
+        panel.addComponent(Label(Texts.FS_DOMAIN))
+                .addComponent(domainTextBox)
+                .addComponent(EmptySpace())
 
         portTextBox = TextBox("8080")
                 .setValidationPattern(Pattern.compile("[0-9]{1,5}?"))
@@ -167,6 +173,7 @@ class LantFinalizeScreen(context: LantGUIContext) : LantAbstractWizardWindow(con
 
     private fun saveValues() {
         FinalizeScreenSupport.saveValues(context.setupData,
+                domain = domainTextBox.text,
                 portText = portTextBox.text,
                 currencySymbol = currencyTextBox.text,
                 defaultLocaleSelectedIndex = defaultLocaleCombobox.selectedIndex,

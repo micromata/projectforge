@@ -66,6 +66,7 @@ object ProjectForgeInitializer {
                 ProjectForgeApplication.CLASSPATH_INITIAL_PROPERTIES_FILENAME, ProjectForgeApplication.PROPERTIES_FILENAME, counter, emphasizedLog,
                 StringModifier {
                     var result = replace(it, "server.port", "$serverPort")
+                    result = replace(result, "projectforge.domain", setupData.domain)
                     result = replace(result, "projectforge.currencySymbol", setupData.currencySymbol)
                     result = replace(result, "projectforge.defaultLocale", setupData.defaultLocale)
                     result = replace(result, "projectforge.defaultTimeNotation", setupData.defaultTimeNotation)
