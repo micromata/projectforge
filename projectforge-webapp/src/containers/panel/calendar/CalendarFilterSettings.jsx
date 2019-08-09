@@ -7,7 +7,7 @@ import UserSelect from '../../../components/base/page/layout/UserSelect';
 import CheckBox from '../../../components/design/input/CheckBox';
 import style from '../../../components/design/input/Input.module.scss';
 import ReactSelect from '../../../components/design/ReactSelect';
-import { fetchGet, fetchJsonGet } from '../../../utilities/rest';
+import { fetchJsonGet } from '../../../utilities/rest';
 import { CalendarContext } from '../../page/calendar/CalendarContext';
 
 /**
@@ -57,10 +57,14 @@ class CalendarFilterSettings extends Component {
 
     handleDefaultCalendarChange(value) {
         const { onDefaultCalendarChange } = this.props;
+        const { saveUpdateResponseInState } = this.context;
         const id = value ? value.id : '';
-        fetchGet('calendar/changeDefaultCalendar',
+        fetchJsonGet('calendar/changeDefaultCalendar',
             { id },
-            () => onDefaultCalendarChange(id));
+            (json) => {
+                onDefaultCalendarChange(id);
+                saveUpdateResponseInState(json);
+            });
     }
 
     togglePopover() {
