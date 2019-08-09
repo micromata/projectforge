@@ -28,6 +28,7 @@ import org.apache.commons.beanutils.PropertyUtils
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -601,9 +602,9 @@ abstract class AbstractBaseRest<
      * The given object (marked as deleted before) will be undeleted.
      */
     @PutMapping(RestPaths.UNDELETE)
-    fun undelete(@RequestBody dto: DTO): ResponseEntity<ResponseAction> {
+    fun undelete(request: HttpServletRequest, @Valid @RequestBody dto: DTO): ResponseEntity<ResponseAction> {
         val dbObj = transformForDB(dto)
-        return undelete(baseDao, dbObj, dto, this, validate(dbObj, dto))
+        return undelete(request, baseDao, dbObj, dto, this, validate(dbObj, dto))
     }
 
     /**
@@ -611,9 +612,9 @@ abstract class AbstractBaseRest<
      * Please note, if you try to delete a historizable data base object, an exception will be thrown.
      */
     @DeleteMapping(RestPaths.MARK_AS_DELETED)
-    fun markAsDeleted(@RequestBody dto: DTO): ResponseEntity<ResponseAction> {
+    fun markAsDeleted(request: HttpServletRequest, @Valid @RequestBody dto: DTO): ResponseEntity<ResponseAction> {
         val dbObj = transformForDB(dto)
-        return markAsDeleted(baseDao, dbObj, dto, this, validate(dbObj, dto))
+        return markAsDeleted(request, baseDao, dbObj, dto, this, validate(dbObj, dto))
     }
 
     /**
@@ -621,9 +622,9 @@ abstract class AbstractBaseRest<
      * Please note, if you try to mark a non-historizable data base object, an exception will be thrown.
      */
     @DeleteMapping(RestPaths.DELETE)
-    fun delete(@RequestBody dto: DTO): ResponseEntity<ResponseAction> {
+    fun delete(request: HttpServletRequest, @Valid @RequestBody dto: DTO): ResponseEntity<ResponseAction> {
         val dbObj = transformForDB(dto)
-        return delete(baseDao, dbObj, dto, this, validate(dbObj, dto))
+        return delete(request, baseDao, dbObj, dto, this, validate(dbObj, dto))
     }
 
     /**
@@ -647,9 +648,21 @@ abstract class AbstractBaseRest<
         return filter
     }
 
+    /**
+     * Called before save, update, delete, markAsDeleted and undelete.
+     */
+    internal open fun beforeDatabaseAction(request: HttpServletRequest, obj: O, dto: DTO, operation: OperationType) {
+    }
+
+    /**
+     * Called before save and update.
+     */
     internal open fun beforeSaveOrUpdate(request: HttpServletRequest, obj: O, dto: DTO) {
     }
 
+    /**
+     * Called after save and update.
+     */
     internal open fun afterSaveOrUpdate(obj: O, dto: DTO) {
     }
 
@@ -668,6 +681,12 @@ abstract class AbstractBaseRest<
     }
 
     /**
+     * Called before delete (not markAsDeleted!).
+     */
+    internal open fun beforeDelete(request: HttpServletRequest, obj: O, dto: DTO) {
+    }
+
+    /**
      * Will only be called on success. Simply call [afterEdit].
      */
     internal open fun afterDelete(obj: O, dto: DTO): ResponseAction {
@@ -675,10 +694,22 @@ abstract class AbstractBaseRest<
     }
 
     /**
+     * Called before markAsDeleted.
+     */
+    internal open fun beforeMarkAsDeleted(request: HttpServletRequest, obj: O, dto: DTO) {
+    }
+
+    /**
      * Will only be called on success. Simply call [afterEdit].
      */
     internal open fun afterMarkAsDeleted(obj: O, dto: DTO): ResponseAction {
         return afterEdit(obj, dto)
+    }
+
+    /**
+     * Called before undelete.
+     */
+    internal open fun beforeUndelete(request: HttpServletRequest, obj: O, dto: DTO) {
     }
 
     /**
