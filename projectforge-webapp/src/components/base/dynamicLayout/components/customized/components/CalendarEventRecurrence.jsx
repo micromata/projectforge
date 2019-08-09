@@ -7,7 +7,7 @@ import { DynamicLayoutContext } from '../../../context';
 import 'react-rrule-generator/build/styles.css';
 import ReactSelect from '../../../../../design/ReactSelect';
 
-function CalendarEventRecurrency({ locale }) {
+function CalendarEventRecurrence({ locale }) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
 
     const options = [
@@ -124,11 +124,11 @@ function CalendarEventRecurrency({ locale }) {
     );
 }
 
-CalendarEventRecurrency.propTypes = {
+CalendarEventRecurrence.propTypes = {
     locale: PropTypes.string,
 };
 
-CalendarEventRecurrency.defaultProps = {
+CalendarEventRecurrence.defaultProps = {
     locale: undefined,
 };
 
@@ -136,4 +136,4 @@ const mapStateToProps = ({ authentication }) => ({
     locale: authentication.user.locale,
 });
 
-export default connect(mapStateToProps)(CalendarEventRecurrency);
+export default connect(mapStateToProps)(CalendarEventRecurrence);
