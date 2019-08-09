@@ -60,10 +60,10 @@ import javax.servlet.http.HttpServletResponse
  */
 @RestController
 @RequestMapping("${Rest.PUBLIC_URL}/login")
-open class SimpleLoginRest {
+open class LoginRest {
     data class LoginData(var username: String? = null, var password: String? = null, var stayLoggedIn: Boolean? = null)
 
-    private val log = org.slf4j.LoggerFactory.getLogger(SimpleLoginRest::class.java)
+    private val log = org.slf4j.LoggerFactory.getLogger(LoginRest::class.java)
 
     @Autowired
     private lateinit var applicationContext: ApplicationContext
@@ -95,11 +95,6 @@ open class SimpleLoginRest {
     }
 
     private fun _login(request: HttpServletRequest, response: HttpServletResponse, loginData: LoginData): LoginResultStatus {
-        if (getClientIp(request) != "127.0.0.1") {
-            log.warn("****** This simple login service is only available for localhost authentication for development purposes due to security reasons. It's under construction.")
-            return LoginResultStatus.FAILED
-        }
-        log.warn("******* Please use SimpleLogin only for development purposes. It doesn't yet support the full login functionality (such as LDAP and support of Wicket).")
         val loginResult = checkLogin(request, loginData)
         val user = loginResult.user
         if (user == null || loginResult.loginResultStatus != LoginResultStatus.SUCCESS) {
