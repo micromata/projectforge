@@ -31,7 +31,7 @@ import org.projectforge.common.i18n.I18nEnum;
  */
 public enum OperationType implements I18nEnum
 {
-  SELECT("select"), INSERT("insert"), UPDATE("update"), DELETE("delete");
+  SELECT("select"), INSERT("insert"), UPDATE("update"), DELETE("delete"), UNDELETE("undelete");
 
   private String key;
 
