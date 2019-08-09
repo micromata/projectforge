@@ -129,7 +129,25 @@
           }
 
           color: $color;
+
+          &:hover {
+            $hoverColor: 0;
+
+            @if lightness($color) > 50% {
+              $hoverColor: darken($color, 20%);
+            } @else {
+              $hoverColor: lighten($color, 20%);
+            }
+
+            &::before {
+              border-color: $hoverColor;
+            }
+
+            color: $hoverColor;
+          }
         }
+
+        @include color(#333);
 
         &.primary {
           @include color(#007bff);
