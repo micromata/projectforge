@@ -208,6 +208,8 @@ public class CalEventDao extends BaseDao<CalEventDO>
       super.internalMarkAsDeleted(obj);
       return;
     }
+    CalEventDO masterEvent = getById(obj.getId());
+    obj.copyValuesFrom(masterEvent); // Restore db fields of master event. Do only modify single or future events.
     if (mode == SeriesModificationMode.FUTURE) {
       // TODO
       /*
