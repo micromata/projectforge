@@ -321,6 +321,8 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
       super.internalMarkAsDeleted(obj);
       return;
     }
+    TeamEventDO masterEvent = getById(obj.getId());
+    obj.copyValuesFrom(masterEvent); // Restore db fields of master event. Do only modify single or future events.
     if (mode == SeriesModificationMode.FUTURE) {
       TeamEventRecurrenceData recurrenceData = obj.getRecurrenceData(ThreadLocalUserContext.getTimeZone());
       Date recurrenceUntil = getUntilDate(selectedEvent.getStartDate());
