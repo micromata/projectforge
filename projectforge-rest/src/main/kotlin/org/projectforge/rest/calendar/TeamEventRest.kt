@@ -118,7 +118,7 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
 
     override fun afterEdit(obj: TeamEventDO, dto: TeamEvent): ResponseAction {
         return ResponseAction("/calendar")
-                .addVariable("date", obj.startDate)
+                .addVariable("date", dto.startDate)
                 .addVariable("id", obj.id ?: -1)
     }
 
@@ -201,9 +201,10 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
         if (dto.hasRecurrence) {
             val masterEvent = baseDao.getById(dto.id)
             val radioButtonGroup = UIGroup()
-            radioButtonGroup.add(UIRadioButton("seriesModificationMode", SeriesModificationMode.ALL, label = "plugins.teamcal.event.recurrence.change.all"))
             if (masterEvent?.startDate?.before(dto.selectedSeriesEvent?.startDate) ?: true) {
                 radioButtonGroup.add(UIRadioButton("seriesModificationMode", SeriesModificationMode.FUTURE, label = "plugins.teamcal.event.recurrence.change.future"))
+            } else {
+                radioButtonGroup.add(UIRadioButton("seriesModificationMode", SeriesModificationMode.ALL, label = "plugins.teamcal.event.recurrence.change.all"))
             }
             radioButtonGroup.add(UIRadioButton("seriesModificationMode", SeriesModificationMode.SINGLE, label = "plugins.teamcal.event.recurrence.change.single"))
             layout.add(UIFieldset(12, title = "plugins.teamcal.event.recurrence.change.text")
