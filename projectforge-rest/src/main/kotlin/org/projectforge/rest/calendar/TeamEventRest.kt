@@ -27,7 +27,6 @@ package org.projectforge.rest.calendar
 
 import org.projectforge.business.calendar.event.model.SeriesModificationMode
 import org.projectforge.business.teamcal.admin.TeamCalDao
-import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.teamcal.event.TeamEventDao
 import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache
@@ -107,8 +106,7 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
         } else {
             val calendarId = NumberHelper.parseInteger(request.getParameter("calendar"))
             if (calendarId != null && calendarId > 0) {
-                dto.calendar = TeamCalDO()
-                dto.calendar?.id = calendarId
+                dto.calendar = teamCalDao.getById(calendarId)
             }
         }
         if (startDateAsSeconds != null) dto.startDate = PFDateTime.from(startDateAsSeconds)!!.sqlTimestamp

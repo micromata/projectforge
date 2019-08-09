@@ -47,16 +47,23 @@ class TimesheetEventsProvider() {
 
     fun addTimesheetEvents(start: PFDateTime,
                            end: PFDateTime,
-                           userId: Int,
+                           userId: Int?,
                            events: MutableList<BigCalendarEvent>,
                            showBreaks: Boolean = false,
                            showStatistics: Boolean = true) {
+        if (userId == null || userId < 0) {
+            return
+        }
         val ctx = Context()
         val tsFilter = TimesheetFilter()
-        tsFilter.userId = userId
         tsFilter.startTime = start.utilDate
         tsFilter.stopTime = end.utilDate
         tsFilter.orderType = OrderDirection.ASC
+        if (timesheetDao.showTimesheetsOfOtherUsers()) {
+            tsFilter.userId = userId
+        } else {
+            tsFilter.userId = ThreadLocalUserContext.getUserId()
+        }
         val timesheets = timesheetDao.getList(tsFilter)
 
         ctx.days = start.daysBetween(end)

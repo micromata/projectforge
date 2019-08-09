@@ -30,7 +30,8 @@ import org.projectforge.framework.i18n.translate
 
 open class TeamCalendar(val id: Int?,
                         val title: String?,
-                        var access: ACCESS? = null) {
+                        var access: ACCESS? = null,
+                        var externalSubscription: Boolean = false) {
     enum class ACCESS { OWNER, FULL, READ, MINIMAL, NONE }
 
     constructor(teamCalDO: TeamCalDO, userId: Int, teamCalCache: TeamCalCache) : this(teamCalDO.id, teamCalDO.title) {
@@ -43,6 +44,7 @@ open class TeamCalendar(val id: Int?,
                     DataobjectAccessType.MINIMAL -> ACCESS.MINIMAL
                     else -> ACCESS.NONE // Only admins get calendarIds with none access.
                 }
+        externalSubscription = teamCalDO.externalSubscription
     }
 
     companion object {

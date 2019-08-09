@@ -5,8 +5,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome/index';
 import { faCog } from '@fortawesome/free-solid-svg-icons';
 import style from '../../../components/design/input/Input.module.scss';
 import ReactSelect from '../../../components/design/ReactSelect';
-import { fetchGet } from '../../../utilities/rest';
+import { fetchGet, fetchJsonGet } from '../../../utilities/rest';
 import UserSelect from '../../../components/base/page/layout/UserSelect';
+import CheckBox from '../../../components/design/input/CheckBox';
+import { CalendarContext } from '../../page/calendar/CalendarContext';
 
 /**
  * Settings of a calendar view: time sheet user, default calendar for new events, show holidays etc.
@@ -26,14 +28,29 @@ class CalendarFilterSettings extends Component {
         this.handleDefaultCalendarChange = this.handleDefaultCalendarChange.bind(this);
         this.handleTimesheetUserChange = this.handleTimesheetUserChange.bind(this);
         this.togglePopover = this.togglePopover.bind(this);
+        this.handleCheckBoxChange = this.handleCheckBoxChange.bind(this);
+    }
+
+    handleCheckBoxChange(event) {
+        const { onTimesheetUserChange } = this.props;
+        const user = { id: event.target.checked ? 1 : -1 };
+        fetchJsonGet('calendar/changeTimesheetUser',
+            { userId: user.id },
+            (json) => {
+                onTimesheetUserChange(user);
+                //saveUpdateResponseInState(json);
+            });
     }
 
     handleTimesheetUserChange(user) {
         const { onTimesheetUserChange } = this.props;
         const userId = user ? user.id : undefined;
-        fetchGet('calendar/changeTimesheetUser',
+        fetchJsonGet('calendar/changeTimesheetUser',
             { userId },
-            () => onTimesheetUserChange(user));
+            (json) => {
+                onTimesheetUserChange(user);
+                //saveUpdateResponseInState(json);
+            });
     }
 
     handleDefaultCalendarChange(value) {
@@ -54,6 +71,7 @@ class CalendarFilterSettings extends Component {
         const { popoverOpen } = this.state;
         const {
             listOfDefaultCalendars,
+            otherTimesheetUsersEnabled,
             timesheetUser,
             translations,
         } = this.props;
@@ -100,12 +118,20 @@ class CalendarFilterSettings extends Component {
                             </Row>
                             <Row>
                                 <Col>
-                                    <UserSelect
-                                        onChange={this.handleTimesheetUserChange}
-                                        value={timesheetUser}
-                                        label={translations['calendar.option.timesheeets']}
-                                        translations={translations}
-                                    />
+                                    {otherTimesheetUsersEnabled ? (
+                                        <UserSelect
+                                            onChange={this.handleTimesheetUserChange}
+                                            value={timesheetUser}
+                                            label={translations['calendar.option.timesheeets']}
+                                            translations={translations}
+                                        />) : (
+                                        <CheckBox
+                                            label={translations['calendar.option.timesheeets']}
+                                            id="showTimesheets"
+                                            onChange={this.handleCheckBoxChange}
+                                            checked={timesheetUser && timesheetUser.id > 0}
+                                        />
+                                    )}
                                 </Col>
                             </Row>
                             <Row>
@@ -128,6 +154,7 @@ CalendarFilterSettings.propTypes = {
     /* eslint-disable-next-line react/no-unused-prop-types */
     defaultCalendarId: PropTypes.number,
     timesheetUser: PropTypes.shape(),
+    otherTimesheetUsersEnabled: PropTypes.bool.isRequired,
     listOfDefaultCalendars: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
     translations: PropTypes.shape({}).isRequired,
 };

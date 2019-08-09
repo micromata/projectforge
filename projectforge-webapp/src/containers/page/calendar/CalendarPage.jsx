@@ -90,7 +90,10 @@ class CalendarPage extends React.Component {
 
     onFavoriteRename(id, newName) {
         fetchJsonGet('calendar/renameFilter',
-            { id, newName },
+            {
+                id,
+                newName
+            },
             this.saveUpdateResponseInState);
     }
 
@@ -214,6 +217,9 @@ class CalendarPage extends React.Component {
                                         <CalendarFilterSettings
                                             listOfDefaultCalendars={listOfDefaultCalendars}
                                             defaultCalendarId={filter.defaultCalendarId}
+                                            otherTimesheetUsersEnabled={
+                                                filter.otherTimesheetUsersEnabled
+                                            }
                                             timesheetUser={timesheetUser}
                                             translations={translations}
                                             onTimesheetUserChange={this.onTimesheetUserChange}

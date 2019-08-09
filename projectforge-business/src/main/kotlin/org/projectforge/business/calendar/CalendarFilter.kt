@@ -25,6 +25,7 @@ package org.projectforge.business.calendar
 
 import org.projectforge.business.teamcal.filter.TemplateEntry
 import org.projectforge.favorites.AbstractFavorite
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.util.*
 
 /**
@@ -46,15 +47,11 @@ class CalendarFilter(name: String? = null,
 
                      var showStatistics: Boolean? = null,
 
+                     var otherTimesheetUsersEnabled: Boolean = false,
                      /**
                       * Display the time sheets of the user with this id. If null, no time sheets are displayed.
                       */
                      var timesheetUserId: Int? = null,
-
-                     /**
-                      * If true, own time sheets are displayed. It depends on the user rights if [showTimesheets] or [timesheetUserId] is used.
-                      */
-                     var showTimesheets: Boolean? = null,
 
                      var showBreaks: Boolean? = true,
 
@@ -76,7 +73,6 @@ class CalendarFilter(name: String? = null,
         this.showBirthdays = src.showBirthdays
         this.showStatistics = src.showStatistics
         this.timesheetUserId = src.timesheetUserId
-        this.showTimesheets = src.showTimesheets
         this.showBreaks = src.showBreaks
         this.showPlanning = src.showPlanning
         this.calendarIds = mutableSetOf()
@@ -145,7 +141,6 @@ class CalendarFilter(name: String? = null,
         if (this.showBirthdays != other.showBirthdays) return true
         if (this.showStatistics != other.showStatistics) return true
         if (this.timesheetUserId != other.timesheetUserId) return true
-        if (this.showTimesheets != other.showTimesheets) return true
         if (this.showBreaks != other.showBreaks) return true
         if (this.showPlanning != other.showPlanning) return true
         if (isModified(this.calendarIds, other.calendarIds)) return true
@@ -181,7 +176,8 @@ class CalendarFilter(name: String? = null,
                 filter.showPlanning = templateEntry.isShowPlanning
                 filter.showStatistics = templateEntry.isShowStatistics
                 filter.timesheetUserId = templateEntry.timesheetUserId
-                filter.showTimesheets = templateEntry.isShowTimesheets
+                if (templateEntry.isShowTimesheets)
+                    filter.timesheetUserId = ThreadLocalUserContext.getUserId()
                 templateEntry.calendarProperties?.forEach {
                     filter.addCalendarId(it.calId)
                 }
