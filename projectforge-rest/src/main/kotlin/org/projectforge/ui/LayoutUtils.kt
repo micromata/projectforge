@@ -178,14 +178,14 @@ class LayoutUtils {
                 if (!restService.isDeleted(dto)) {
                     if (userAccess.insert == true) {
                         layout.addAction(UIButton("update",
-                                color = UIColor.PRIMARY,
+                                color = UIColor.SUCCESS,
                                 default = true,
                                 responseAction = ResponseAction(restService.getRestPath(RestPaths.SAVE_OR_UDATE), targetType = TargetType.PUT)))
                     }
                 }
             } else if (userAccess.insert == true) {
                 layout.addAction(UIButton("create",
-                        color = UIColor.PRIMARY,
+                        color = UIColor.SUCCESS,
                         default = true,
                         responseAction = ResponseAction(restService.getRestPath(RestPaths.SAVE_OR_UDATE), targetType = TargetType.PUT)))
             }
