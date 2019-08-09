@@ -337,7 +337,7 @@ class CalendarFilterServicesRest {
         return favorites
     }
 
-    private fun getCurrentFilter(): CalendarFilter {
+    internal fun getCurrentFilter(): CalendarFilter {
         var currentFilter = Companion.getCurrentFilter(userPrefService)
         if (currentFilter == null) {
             // Creating empty filter (user has no filter list yet):
