@@ -47,7 +47,7 @@ import org.projectforge.framework.utils.NumberHelper;
 
 /**
  * Represents a single generic user preference entry.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
@@ -185,7 +185,7 @@ public class UserPrefEntryDO implements BaseDO<Integer>, Serializable
 
   /**
    * For displaying paramter's localized label (if given). This field is not persisted.
-   * 
+   *
    * @see UserPrefParameter#i18nKey()
    */
   @Transient
@@ -208,7 +208,7 @@ public class UserPrefEntryDO implements BaseDO<Integer>, Serializable
 
   /**
    * This field is not persisted.
-   * 
+   *
    * @see UserPrefParameter#required()
    */
   @Transient
@@ -219,7 +219,7 @@ public class UserPrefEntryDO implements BaseDO<Integer>, Serializable
 
   /**
    * This field is not persisted.
-   * 
+   *
    * @see UserPrefParameter#multiline()
    */
   @Transient
@@ -259,7 +259,7 @@ public class UserPrefEntryDO implements BaseDO<Integer>, Serializable
 
   /**
    * Throws UnsupportedOperationException.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDO#setMinorChange(boolean)
    */
   @Override
@@ -320,6 +320,11 @@ public class UserPrefEntryDO implements BaseDO<Integer>, Serializable
   @Override
   public Object getTransientAttribute(final String key)
   {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Object removeTransientAttribute(String key) {
     throw new UnsupportedOperationException();
   }
 

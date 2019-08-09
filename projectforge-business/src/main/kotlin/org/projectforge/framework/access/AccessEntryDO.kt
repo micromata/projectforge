@@ -203,6 +203,10 @@ class AccessEntryDO : Comparable<AccessEntryDO>, Serializable, BaseDO<Int> {
         throw UnsupportedOperationException()
     }
 
+    override fun removeTransientAttribute(key: String?): Any {
+        throw UnsupportedOperationException()
+    }
+
     override fun setTransientAttribute(key: String, value: Any) {
         throw UnsupportedOperationException()
     }

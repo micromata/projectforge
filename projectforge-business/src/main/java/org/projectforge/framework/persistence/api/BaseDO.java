@@ -92,6 +92,8 @@ public interface BaseDO<I extends Serializable>
    */
   public Object getTransientAttribute(String key);
 
+  public Object removeTransientAttribute(String key);
+
   public void setTransientAttribute(String key, Object value);
 
   /**
