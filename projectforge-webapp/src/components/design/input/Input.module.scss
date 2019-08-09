@@ -134,9 +134,9 @@
             $hoverColor: 0;
 
             @if lightness($color) > 50% {
-              $hoverColor: darken($color, 20%);
+              $hoverColor: scale_color($color, $lightness: -30%);
             } @else {
-              $hoverColor: lighten($color, 20%);
+              $hoverColor: scale_color($color, $lightness: 20%);
             }
 
             &::before {
