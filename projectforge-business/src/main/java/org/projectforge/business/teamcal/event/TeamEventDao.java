@@ -26,6 +26,7 @@ package org.projectforge.business.teamcal.event;
 import net.fortuna.ical4j.model.DateList;
 import net.fortuna.ical4j.model.Recur;
 import net.fortuna.ical4j.model.parameter.Value;
+import net.fortuna.ical4j.model.property.RRule;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -268,40 +269,34 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
    * @param event
    */
   private void handleSeriesUpdates(final TeamEventDO event) {
-    ICalendarEvent selectedEvent = (ICalendarEvent) event.getTransientAttribute(ATTR_SELECTED_ELEMENT);
-    SeriesModificationMode mode = (SeriesModificationMode) event.getTransientAttribute(ATTR_SERIES_MODIFICATION_MODE);
+    ICalendarEvent selectedEvent = (ICalendarEvent) event.removeTransientAttribute(ATTR_SELECTED_ELEMENT); // Must be removed, otherwise save below will handle this attrs again.
+    SeriesModificationMode mode = (SeriesModificationMode) event.removeTransientAttribute(ATTR_SERIES_MODIFICATION_MODE);
     if (selectedEvent == null || mode == null || mode == SeriesModificationMode.ALL) {
       // Nothing to do.
       return;
     }
-    if (selectedEvent == null) {
-      log.error("Selected series element is null?! Do nothing more after saving team event.");
-      return;
-    }
     TeamEventDO newEvent = event.clone();
     newEvent.setSequence(0);
-    // TODO: start and end date of new event!
     TeamEventDO masterEvent = getById(event.getId());
     event.copyValuesFrom(masterEvent); // Restore db fields of master event. Do only modify single or future events.
     if (mode == SeriesModificationMode.FUTURE) {
-      TeamEventRecurrenceData recurrenceData = event.getRecurrenceData(ThreadLocalUserContext.getTimeZone());
+      TeamEventRecurrenceData recurrenceData = masterEvent.getRecurrenceData(ThreadLocalUserContext.getTimeZone());
       // Set the end date of the master date one day before current date and save this event.
-      Date recurrenceUntil = getUntilDate(selectedEvent.getStartDate());
-      recurrenceData.setUntil(recurrenceUntil);
+      recurrenceData.setUntil(getUntilDate(selectedEvent.getStartDate()));
       event.setRecurrence(recurrenceData);
-      recurrenceData = event.getRecurrenceData(ThreadLocalUserContext.getTimeZone());
-      newEvent.setRecurrence(recurrenceData);
       save(newEvent);
       if (log.isDebugEnabled() == true) {
-        log.debug("Recurrency until date of master entry will be set to: " + DateHelper.formatAsUTC(recurrenceUntil));
+        log.debug("Recurrence until date of master entry will be set to: " + DateHelper.formatAsUTC(recurrenceData.getUntil()));
         log.debug("The new event is: " + newEvent);
       }
       return;
     } else if (mode == SeriesModificationMode.SINGLE) { // only current date
       // Add current date to the master date as exclusion date and save this event (without recurrence settings).
       event.addRecurrenceExDate(selectedEvent.getStartDate());
-      newEvent.setRecurrenceDate(selectedEvent.getStartDate(), ThreadLocalUserContext.getTimeZone());
-      newEvent.setRecurrenceReferenceId(event.getId());
+      if (newEvent.hasRecurrence()) {
+        log.warn("User tries to modifiy single event of a series, the given recurrence is ignored.");
+      }
+      newEvent.setRecurrence((RRule) null); // User only wants to modify single event, ignore recurrence.
       save(newEvent);
       if (log.isDebugEnabled() == true) {
         log.debug("Recurrency ex date of master entry is now added: "
@@ -319,8 +314,8 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
   @Override
   @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
   public void internalMarkAsDeleted(final TeamEventDO obj) {
-    ICalendarEvent selectedEvent = (ICalendarEvent) obj.getTransientAttribute(ATTR_SELECTED_ELEMENT);
-    SeriesModificationMode mode = (SeriesModificationMode) obj.getTransientAttribute(ATTR_SERIES_MODIFICATION_MODE);
+    ICalendarEvent selectedEvent = (ICalendarEvent) obj.removeTransientAttribute(ATTR_SELECTED_ELEMENT); // Must be removed, otherwise update below will handle this attrs again.
+    SeriesModificationMode mode = (SeriesModificationMode) obj.removeTransientAttribute(ATTR_SERIES_MODIFICATION_MODE);
     if (selectedEvent == null || mode == null || mode == SeriesModificationMode.ALL) {
       // Nothing to do special:
       super.internalMarkAsDeleted(obj);

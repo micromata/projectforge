@@ -28,10 +28,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
+import org.projectforge.business.calendar.event.model.ICalendarEvent;
+import org.projectforge.business.calendar.event.model.SeriesModificationMode;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.teamcal.TeamCalConfig;
 import org.projectforge.business.teamcal.event.model.CalEventDO;
-import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.calendar.CalendarUtils;
@@ -43,6 +44,9 @@ import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.NoResultException;
 import javax.persistence.NonUniqueResultException;
@@ -51,6 +55,19 @@ import java.util.*;
 @Repository
 public class CalEventDao extends BaseDao<CalEventDO>
 {
+  /**
+   * For storing the selected element of the series in the transient attribute map for correct handling in {@link #onDelete(CalEventDO)}
+   * and {@link #onSaveOrModify(CalEventDO)} of series (all, future, selected).
+   */
+  public static final String ATTR_SELECTED_ELEMENT = "selectedSeriesElement";
+
+  /**
+   * For series elements: what to modify in {@link #onDelete(CalEventDO)} and {@link #onSaveOrModify(CalEventDO)} of series (all, future, selected)?
+   */
+  public static final String ATTR_SERIES_MODIFICATION_MODE = "seriesModificationMode";
+
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CalEventDao.class);
+
   private static final long ONE_DAY = 1000 * 60 * 60 * 24;
 
   @Autowired
@@ -101,6 +118,110 @@ public class CalEventDao extends BaseDao<CalEventDO>
       return emgrFac.runRoTrans(emgr -> emgr.selectSingleAttached(CalEventDO.class, sqlQuery.toString(), params.toArray()));
     } catch (NoResultException | NonUniqueResultException e) {
       return null;
+    }
+  }
+
+  @Override
+  protected void onChange(final CalEventDO obj, final CalEventDO dbObj) {
+    handleSeriesUpdates(obj);
+    // only increment sequence if PF has ownership!
+    /*if (obj.getOwnership() != null && obj.getOwnership() == false) {
+      return;
+    }
+
+    // compute diff
+    if (obj.mustIncSequence(dbObj)) {
+      if (obj.getSequence() == null) {
+        obj.setSequence(0);
+      } else {
+        obj.setSequence(obj.getSequence() + 1);
+      }
+
+      if (obj.getDtStamp() == null || obj.getDtStamp().equals(dbObj.getDtStamp())) {
+        obj.setDtStamp(new Timestamp(System.currentTimeMillis()));
+      }
+    }*/
+  }
+
+  private Date getUntilDate(Date untilUTC) {
+    // move one day to past, the TeamEventDO will post process this value while setting
+    return new Date(untilUTC.getTime() - 24 * 60 * 60 * 1000);
+  }
+
+  /**
+   * Handles updates of series element (if any) for future and single events of a series.
+   *
+   * @param event
+   */
+  private void handleSeriesUpdates(final CalEventDO event) {
+    ICalendarEvent selectedEvent = (ICalendarEvent) event.removeTransientAttribute(ATTR_SELECTED_ELEMENT); // Must be removed, otherwise save below will handle this attrs again.
+    SeriesModificationMode mode = (SeriesModificationMode) event.removeTransientAttribute(ATTR_SERIES_MODIFICATION_MODE);
+    if (selectedEvent == null || mode == null || mode == SeriesModificationMode.ALL) {
+      // Nothing to do.
+      return;
+    }
+    // TODO
+    /*
+    CalEventDO newEvent = event.clone();
+    newEvent.setSequence(0);
+    CalEventDO masterEvent = getById(event.getId());
+    event.copyValuesFrom(masterEvent); // Restore db fields of master event. Do only modify single or future events.
+    if (mode == SeriesModificationMode.FUTURE) {
+      TeamEventRecurrenceData recurrenceData = masterEvent.getRecurrenceData(ThreadLocalUserContext.getTimeZone());
+      // Set the end date of the master date one day before current date and save this event.
+      recurrenceData.setUntil(getUntilDate(selectedEvent.getStartDate()));
+      event.setRecurrence(recurrenceData);
+      save(newEvent);
+      if (log.isDebugEnabled() == true) {
+        log.debug("Recurrence until date of master entry will be set to: " + DateHelper.formatAsUTC(recurrenceData.getUntil()));
+        log.debug("The new event is: " + newEvent);
+      }
+      return;
+    } else if (mode == SeriesModificationMode.SINGLE) { // only current date
+      // Add current date to the master date as exclusion date and save this event (without recurrence settings).
+      event.addRecurrenceExDate(selectedEvent.getStartDate());
+      if (newEvent.hasRecurrence()) {
+        log.warn("User tries to modifiy single event of a series, the given recurrence is ignored.");
+      }
+      newEvent.setRecurrence((RRule) null); // User only wants to modify single event, ignore recurrence.
+      save(newEvent);
+      if (log.isDebugEnabled() == true) {
+        log.debug("Recurrency ex date of master entry is now added: "
+                + DateHelper.formatAsUTC(selectedEvent.getStartDate())
+                + ". The new string is: "
+                + event.getRecurrenceExDate());
+        log.debug("The new event is: " + newEvent);
+      }
+    }*/
+  }
+
+  /**
+   * Handles deletion of series element (if any) for future and single events of a series.
+   */
+  @Override
+  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
+  public void internalMarkAsDeleted(final CalEventDO obj) {
+    ICalendarEvent selectedEvent = (ICalendarEvent) obj.removeTransientAttribute(ATTR_SELECTED_ELEMENT); // Must be removed, otherwise update below will handle this attrs again.
+    SeriesModificationMode mode = (SeriesModificationMode) obj.removeTransientAttribute(ATTR_SERIES_MODIFICATION_MODE);
+    if (selectedEvent == null || mode == null || mode == SeriesModificationMode.ALL) {
+      // Nothing to do special:
+      super.internalMarkAsDeleted(obj);
+      return;
+    }
+    if (mode == SeriesModificationMode.FUTURE) {
+      // TODO
+      /*
+      TeamEventRecurrenceData recurrenceData = obj.getRecurrenceData(ThreadLocalUserContext.getTimeZone());
+      Date recurrenceUntil = getUntilDate(selectedEvent.getStartDate());
+      recurrenceData.setUntil(recurrenceUntil);
+      obj.setRecurrence(recurrenceData);
+      update(obj);*/
+    } else if (mode == SeriesModificationMode.SINGLE) { // only current date
+      // TODO
+      /*
+      Validate.notNull(selectedEvent);
+      obj.addRecurrenceExDate(selectedEvent.getStartDate());
+      update(obj);*/
     }
   }
 

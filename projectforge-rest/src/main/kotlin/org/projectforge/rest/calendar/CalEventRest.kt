@@ -29,13 +29,13 @@ import org.projectforge.business.teamcal.event.CalEventDao
 import org.projectforge.business.teamcal.event.model.CalEventDO
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache
 import org.projectforge.business.timesheet.TimesheetDO
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.TimesheetRest
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractBaseRest
 import org.projectforge.rest.core.AbstractDTORest
 import org.projectforge.rest.dto.CalEvent
 import org.projectforge.ui.*
@@ -75,20 +75,20 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, dto: CalEvent) {
-        if (dto.hasRecurrence && dto.seriesModificationMode == null) {
+        if (dto.id != null && dto.hasRecurrence && dto.seriesModificationMode == null) {
             validationErrors.add(ValidationError.create("plugins.teamcal.event.recurrence.change.content"))
             validationErrors.add(ValidationError(fieldId = "seriesModificationMode"))
         }
     }
 
-    override fun onGetItemAndLayout(request: HttpServletRequest, dto: CalEvent, editLayoutData: AbstractBaseRest.EditLayoutData) {
+    /**
+     * Params startDate and endDate for creating new events with preset dates.
+     * For events of a series, startDate as param selects the event of the series.
+     */
+    override fun onBeforeGetItemAndLayout(request: HttpServletRequest, dto: CalEvent, userAccess: UILayout.UserAccess) {
         val startDateAsSeconds = NumberHelper.parseLong(request.getParameter("startDate"))
         val endDateSeconds = NumberHelper.parseLong(request.getParameter("endDate"))
-        if (dto.id == null) {
-            // Preset the start and end date for new events:
-            if (startDateAsSeconds != null) dto.startDate = PFDateTime.from(startDateAsSeconds)!!.sqlTimestamp
-            if (endDateSeconds != null) dto.endDate = PFDateTime.from(endDateSeconds)!!.sqlTimestamp
-        } else {
+        if (dto.id != null) {
             if (startDateAsSeconds != null && endDateSeconds != null && dto.hasRecurrence) {
                 // Seems to be a event of a series:
                 dto.selectedSeriesEvent = CalEvent(startDate = PFDateTime.from(startDateAsSeconds)!!.sqlTimestamp,
@@ -97,17 +97,17 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
                         sequence = dto.sequence)
             }
         }
-        super.onGetItemAndLayout(request, dto, editLayoutData)
+        if (startDateAsSeconds != null) dto.startDate = PFDateTime.from(startDateAsSeconds)!!.sqlTimestamp
+        if (endDateSeconds != null) dto.endDate = PFDateTime.from(endDateSeconds)!!.sqlTimestamp
     }
 
-    override fun beforeSaveOrUpdate(request: HttpServletRequest, obj: CalEventDO, dto: CalEvent) {
-        if (obj.calendar.id != null) {
+    override fun beforeDatabaseAction(request: HttpServletRequest, obj: CalEventDO, dto: CalEvent, operation: OperationType) {
+        if (obj.calendar?.id != null) {
             // Calendar from client has only id and title. Get the calendar object from the data base (e. g. owner
             // is needed by the access checker.
             obj.calendar = teamCalDao.getById(obj.calendar.id)
         }
     }
-
 
     override fun afterEdit(obj: CalEventDO, dto: CalEvent): ResponseAction {
 
@@ -194,12 +194,15 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
         subject.focus = true
         val layout = super.createEditLayout(dto, userAccess)
         if (dto.hasRecurrence) {
+            val masterEvent = baseDao.getById(dto.id)
+            val radioButtonGroup = UIGroup()
+            radioButtonGroup.add(UIRadioButton("seriesModificationMode", SeriesModificationMode.ALL, label = "plugins.teamcal.event.recurrence.change.all"))
+            if (masterEvent?.startDate?.before(dto.selectedSeriesEvent?.startDate) ?: true) {
+                radioButtonGroup.add(UIRadioButton("seriesModificationMode", SeriesModificationMode.FUTURE, label = "plugins.teamcal.event.recurrence.change.future"))
+            }
+            radioButtonGroup.add(UIRadioButton("seriesModificationMode", SeriesModificationMode.SINGLE, label = "plugins.teamcal.event.recurrence.change.single"))
             layout.add(UIFieldset(12, title = "plugins.teamcal.event.recurrence.change.text")
-                    .add(UIGroup()
-                            .add(UIRadioButton("seriesModificationMode", SeriesModificationMode.ALL, label = "plugins.teamcal.event.recurrence.change.text.all"))
-                            .add(UIRadioButton("seriesModificationMode", SeriesModificationMode.FUTURE, label = "plugins.teamcal.event.recurrence.change.future"))
-                            .add(UIRadioButton("seriesModificationMode", SeriesModificationMode.SINGLE, label = "plugins.teamcal.event.recurrence.change.single"))
-                    ))
+                    .add(radioButtonGroup))
         }
         layout.add(UIFieldset(12)
                 .add(UIRow()

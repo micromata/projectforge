@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.core
 
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDao
@@ -66,6 +67,7 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
     val isNew = obj.id == null || obj.created == null // obj.created is needed for KundeDO (id isn't null for inserting new customers).
     dataObjectRest.beforeSaveOrUpdate(request, obj, dto)
     try {
+        dataObjectRest.beforeDatabaseAction(request, obj, dto, if (obj.id != null) OperationType.UPDATE else OperationType.INSERT)
         baseDao.saveOrUpdate(obj) ?: obj.id
     } catch (ex: UserException) {
         log.error("Error while trying to save/update object '${obj::class.java}' with id #${obj.id}: message=${ex.i18nKey}, params='${ex.msgParams?.joinToString() { it.toString() }}'")
@@ -83,13 +85,16 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
 }
 
 fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
-        undelete(baseDao: BaseDao<O>,
+        undelete(request: HttpServletRequest,
+                 baseDao: BaseDao<O>,
                  obj: O,
                  dto: DTO,
                  dataObjectRest: AbstractBaseRest<O, DTO, B>,
                  validationErrorsList: List<ValidationError>?)
         : ResponseEntity<ResponseAction> {
     if (validationErrorsList.isNullOrEmpty()) {
+        dataObjectRest.beforeDatabaseAction(request, obj, dto, OperationType.UNDELETE)
+        dataObjectRest.beforeUndelete(request, obj, dto)
         baseDao.undelete(obj)
         return ResponseEntity(dataObjectRest.afterUndelete(obj, dto), HttpStatus.OK)
     }
@@ -98,13 +103,16 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
 }
 
 fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
-        markAsDeleted(baseDao: BaseDao<O>,
+        markAsDeleted(request: HttpServletRequest,
+                      baseDao: BaseDao<O>,
                       obj: O,
                       dto: DTO,
                       dataObjectRest: AbstractBaseRest<O, DTO, B>,
                       validationErrorsList: List<ValidationError>?)
         : ResponseEntity<ResponseAction> {
     if (validationErrorsList.isNullOrEmpty()) {
+        dataObjectRest.beforeDatabaseAction(request, obj, dto, OperationType.DELETE)
+        dataObjectRest.beforeMarkAsDeleted(request, obj, dto)
         baseDao.markAsDeleted(obj)
         return ResponseEntity(dataObjectRest.afterMarkAsDeleted(obj, dto), HttpStatus.OK)
     }
@@ -113,13 +121,16 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
 }
 
 fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
-        delete(baseDao: BaseDao<O>,
+        delete(request: HttpServletRequest,
+               baseDao: BaseDao<O>,
                obj: O,
                dto: DTO,
                dataObjectRest: AbstractBaseRest<O, DTO, B>,
                validationErrorsList: List<ValidationError>?)
         : ResponseEntity<ResponseAction> {
     if (validationErrorsList.isNullOrEmpty()) {
+        dataObjectRest.beforeDatabaseAction(request, obj, dto, OperationType.DELETE)
+        dataObjectRest.beforeDelete(request, obj, dto)
         baseDao.delete(obj)
         return ResponseEntity(dataObjectRest.afterDelete(obj, dto), HttpStatus.OK)
     }
