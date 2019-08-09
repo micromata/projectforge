@@ -78,7 +78,7 @@ class CalendarServicesRest {
     private lateinit var timesheetsProvider: TimesheetEventsProvider
 
     @Autowired
-    private lateinit var calendarConfigServicesRest: CalendarFilterServicesRest
+    private lateinit var calendarFilterServicesRest: CalendarFilterServicesRest
 
     @Autowired
     private lateinit var userPrefService: UserPrefService
@@ -98,22 +98,26 @@ class CalendarServicesRest {
     @GetMapping("action")
     fun action(@RequestParam("action") action: String?,
                @RequestParam("start") start: String?,
-               @RequestParam("end") end: String?,
-               /**
-                * The default calendar name or null (default) for creating time sheets.
-                */
-               @RequestParam("calendar") calendar: String?)
+               @RequestParam("end") end: String?)
             : ResponseEntity<Any> {
         if (action != null && action != "select")
             return ResponseEntity("Action '$action' not supported. Supported action is only 'select'.", HttpStatus.BAD_REQUEST)
         val startDate = if (start != null) RestHelper.parseJSDateTime(start)?.epochSeconds else null
         val endDate = if (end != null) RestHelper.parseJSDateTime(end)?.epochSeconds else null
 
-        val category = if (calendar.isNullOrBlank()) "timesheet" else "teamEvent"
+        val defaultCalendarId = calendarFilterServicesRest.getCurrentFilter().defaultCalendarId
+        val category = if (defaultCalendarId != null && defaultCalendarId > 0) {
+            if (useNewCalendarEvents) "calEvent" else "teamEvent"
+        } else {
+            "timesheet"
+        }
         val responseAction = ResponseAction("$category/edit?start=$startDate&end=$endDate")
                 .addVariable("category", category)
                 .addVariable("startDate", startDate)
                 .addVariable("endDate", endDate)
+            if (defaultCalendarId != null && defaultCalendarId > 0) {
+            responseAction.addVariable("calendar", defaultCalendarId)
+        }
         return ResponseEntity(responseAction, HttpStatus.OK)
     }
 
@@ -124,7 +128,7 @@ class CalendarServicesRest {
         // ZoneInfo.getTimeZone returns null, if timeZone not known. TimeZone.getTimeZone returns GMT on failure!
         val timeZone = if (filter.timeZone != null) ZoneInfo.getTimeZone(filter.timeZone) else null
         if (filter.updateState == true) {
-            calendarConfigServicesRest.updateCalendarFilter(filter.start, view, filter.activeCalendarIds)
+            calendarFilterServicesRest.updateCalendarFilter(filter.start, view, filter.activeCalendarIds)
         }
         val range = DateTimeRange(PFDateTime.from(filter.start, timeZone = timeZone)!!,
                 PFDateTime.from(filter.end, timeZone = timeZone))
@@ -148,15 +152,15 @@ class CalendarServicesRest {
         }
         val visibleTeamCalendarIds = visibleCalendarIds?.filter { it >= 0 } // calendars with id < 0 are pseudo calendars (such as birthdays etc.)
         if (useNewCalendarEvents) {
-            calendarEventsProvider.addEvents(range.start, range.end!!, events, visibleTeamCalendarIds, calendarConfigServicesRest.getStyleMap())
+            calendarEventsProvider.addEvents(range.start, range.end!!, events, visibleTeamCalendarIds, calendarFilterServicesRest.getStyleMap())
         } else {
-            teamCalEventsProvider.addEvents(range.start, range.end!!, events, visibleTeamCalendarIds, calendarConfigServicesRest.getStyleMap())
+            teamCalEventsProvider.addEvents(range.start, range.end!!, events, visibleTeamCalendarIds, calendarFilterServicesRest.getStyleMap())
         }
 
         val showFavoritesBirthdays = visibleCalendarIds?.contains(TeamCalendar.BIRTHDAYS_FAVS_CAL_ID) ?: false
         val showAllBirthdays = visibleCalendarIds?.contains(TeamCalendar.BIRTHDAYS_ALL_CAL_ID) ?: false
         if (showAllBirthdays || showFavoritesBirthdays) {
-            BirthdaysProvider.addEvents(addressDao, range.start, range.end!!, events, calendarConfigServicesRest.getStyleMap(),
+            BirthdaysProvider.addEvents(addressDao, range.start, range.end!!, events, calendarFilterServicesRest.getStyleMap(),
                     showFavoritesBirthdays,
                     showAllBirthdays,
                     !accessChecker.isLoggedInUserMemberOfGroup(

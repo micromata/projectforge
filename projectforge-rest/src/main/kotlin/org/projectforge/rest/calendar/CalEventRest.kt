@@ -25,6 +25,7 @@ package org.projectforge.rest.calendar
 
 import org.projectforge.business.calendar.event.model.SeriesModificationMode
 import org.projectforge.business.teamcal.admin.TeamCalDao
+import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.teamcal.event.CalEventDao
 import org.projectforge.business.teamcal.event.model.CalEventDO
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache
@@ -65,6 +66,10 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
     override fun transformForDB(dto: CalEvent): CalEventDO {
         val calendarEventDO = CalEventDO()
         dto.copyTo(calendarEventDO)
+        if (dto.selectedSeriesEvent != null) {
+            calendarEventDO.setTransientAttribute(CalEventDao.ATTR_SELECTED_ELEMENT, dto.selectedSeriesEvent);
+            calendarEventDO.setTransientAttribute(CalEventDao.ATTR_SERIES_MODIFICATION_MODE, dto.seriesModificationMode);
+        }
         return calendarEventDO
     }
 
@@ -95,6 +100,12 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
                         endDate = PFDateTime.from(endDateSeconds)!!.sqlTimestamp,
                         allDay = dto.allDay,
                         sequence = dto.sequence)
+            }
+        } else {
+            val calendarId = NumberHelper.parseInteger(request.getParameter("calendar"))
+            if (calendarId != null && calendarId > 0) {
+                dto.calendar = TeamCalDO()
+                dto.calendar?.id = calendarId
             }
         }
         if (startDateAsSeconds != null) dto.startDate = PFDateTime.from(startDateAsSeconds)!!.sqlTimestamp
