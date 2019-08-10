@@ -23,37 +23,20 @@
 
 package org.projectforge.business.teamcal.event;
 
-import java.io.ByteArrayOutputStream;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimeZone;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import net.fortuna.ical4j.model.property.Method;
+import net.fortuna.ical4j.model.property.RRule;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
+import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.configuration.DomainService;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.diff.TeamEventDiff;
 import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
 import org.projectforge.business.teamcal.event.diff.TeamEventField;
 import org.projectforge.business.teamcal.event.ical.ICalGenerator;
 import org.projectforge.business.teamcal.event.ical.ICalHandler;
-import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDao;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
@@ -70,8 +53,15 @@ import org.projectforge.mail.SendMail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import net.fortuna.ical4j.model.property.Method;
-import net.fortuna.ical4j.model.property.RRule;
+import java.io.ByteArrayOutputStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class TeamEventServiceImpl implements TeamEventService
@@ -103,6 +93,9 @@ public class TeamEventServiceImpl implements TeamEventService
 
   @Autowired
   private ConfigurationService configService;
+
+  @Autowired
+  private DomainService domainService;
 
   // Set TeamCalEvent fields used for computing a diff in order to send notification mails
   private static final Set<TeamEventField> TEAM_EVENT_FIELD_FILTER = Stream.of(
@@ -554,7 +547,7 @@ public class TeamEventServiceImpl implements TeamEventService
   {
     final String messageParamBegin = "calendar=" + event.getCalendarId() + "&uid=" + event.getUid() + "&attendee=" + attendee.getId();
     final String acceptParams = cryptService.encryptParameterMessage(messageParamBegin + "&status=" + status.name());
-    return configService.getDomain() + TeamCalResponseServlet.PFCALENDAR + "?" + acceptParams;
+    return domainService.getDomain() + TeamCalResponseServlet.PFCALENDAR + "?" + acceptParams;
   }
 
   private String getRepeatText(RRule rRule)

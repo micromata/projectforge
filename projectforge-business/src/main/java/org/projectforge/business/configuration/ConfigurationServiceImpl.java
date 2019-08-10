@@ -117,17 +117,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
   @Autowired
   private SecurityConfig securityConfig;
 
-  @Value("${projectforge.servletContextPath}")
-  private String servletContextPath;
-
   @Value("${projectforge.logoFile}")
   private String logoFile;
 
   @Value("${projectforge.currencySymbol}")
   private String currencySymbol;
-
-  @Value("${projectforge.domain}")
-  private String domain;
 
   @Value("${projectforge.defaultLocale}")
   private Locale defaultLocale;
@@ -353,19 +347,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   /**
-   * The servlet's context path, "/ProjectForge" at default. You should configure another context path such as "/" if
-   * the ProjectForge app runs in another context, such as root context.
-   */
-  @Override
-  public String getServletContextPath() {
-    if (StringUtils.isBlank(servletContextPath) == false) {
-      return servletContextPath;
-    } else {
-      return "";
-    }
-  }
-
-  /**
    * If configured then this logo file is used for displaying at the top of the navigation menu.
    *
    * @return The path of the configured logo (relative to the image dir of the application's resource path, at default:
@@ -382,26 +363,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
   @Override
   public String getCurrencySymbol() {
     return currencySymbol;
-  }
-
-  /**
-   * Only given, if the administrator have configured this domain. Otherwise e. g. the ImageCropper uses
-   * req.getHttpServletRequest().getScheme() + "://" + req.getHttpServletRequest().getLocalName() + ":" +
-   * req.getHttpServletRequest().getLocalPort()
-   *
-   * @return domain (host) in form https://www.acme.de:8443/
-   */
-  @Override
-  public String getDomain() {
-    return domain;
-  }
-
-  /**
-   * @return The domain + context path, e.g. https://www.projectforge.org/demo or https://www.acme.com/ProjectForge.
-   */
-  @Override
-  public String getPfBaseUrl() {
-    return getDomain() + getServletContextPath();
   }
 
   /**

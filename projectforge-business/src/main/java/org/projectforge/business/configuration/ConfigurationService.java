@@ -63,15 +63,9 @@ public interface ConfigurationService {
 
   SecurityConfig getSecurityConfig();
 
-  String getServletContextPath();
-
   String getLogoFile();
 
   String getCurrencySymbol();
-
-  String getDomain();
-
-  String getPfBaseUrl();
 
   String getTelephoneSystemNumber();
 

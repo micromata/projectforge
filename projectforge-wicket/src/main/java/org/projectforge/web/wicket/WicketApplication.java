@@ -48,6 +48,7 @@ import org.projectforge.Const;
 import org.projectforge.ProjectForgeApp;
 import org.projectforge.SystemStatus;
 import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.configuration.DomainService;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.multitenancy.TenantsCache;
@@ -117,6 +118,9 @@ public class WicketApplication extends WebApplication implements WicketApplicati
 
   @Autowired
   private ConfigurationService configurationService;
+
+  @Autowired
+  private DomainService domainService;
 
   @Autowired
   private SystemStatus systemStatus;
@@ -356,7 +360,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
     getJavaScriptLibrarySettings()
         .setJQueryReference(new PackageResourceReference(WicketApplication.class, "scripts/jquery.js"));
 
-    final String configContextPath = configurationService.getServletContextPath();
+    final String configContextPath = domainService.getContextPath();
     WicketUtils.setContextPath(configContextPath);
 
     for (final Map.Entry<String, Class<? extends WebPage>> mountPage : WebRegistry.getInstance().getMountPages()

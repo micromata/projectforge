@@ -25,6 +25,7 @@ package org.projectforge.business.vacation.service;
 
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.configuration.DomainService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.MonthlyEmployeeReport;
@@ -33,8 +34,6 @@ import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.CalEventDao;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.model.CalEventDO;
-import org.projectforge.business.teamcal.event.model.TeamEventDO;
-import org.projectforge.business.user.UserPrefDao;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationCalendarDO;
 import org.projectforge.business.vacation.model.VacationDO;
@@ -86,6 +85,9 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   private ConfigurationService configService;
 
   @Autowired
+  private DomainService domainService;
+
+  @Autowired
   private EmployeeDao employeeDao;
 
   @Autowired
@@ -114,7 +116,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   @Override
   public void sendMailToVacationInvolved(final VacationDO vacationData, final boolean isNew, final boolean isDeleted)
   {
-    final String urlOfVacationEditPage = configService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId();
+    final String urlOfVacationEditPage = domainService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId();
     final String employeeFullName = vacationData.getEmployee().getUser().getFullname();
     final String managerFirstName = vacationData.getManager().getUser().getFirstname();
 
@@ -175,7 +177,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   @Override
   public void sendMailToEmployeeAndHR(final VacationDO vacationData, final boolean approved)
   {
-    final String urlOfVacationEditPage = configService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId();
+    final String urlOfVacationEditPage = domainService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId();
     final String employeeFullName = vacationData.getEmployee().getUser().getFullname();
     final String managerFullName = vacationData.getManager().getUser().getFullname();
     final String substitutionFullNames = vacationData.getSubstitutions().stream()
