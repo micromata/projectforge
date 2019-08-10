@@ -45,6 +45,7 @@ object Texts {
     val FS_CURRENCY = "Currency"
     val FS_DIRECTORY = "Directory"
     val FS_DOMAIN = "Domain"
+    val FS_DOMAIN_DESC = "e.g. https://acme.com/pf (with servlet context, if any)"
     val FS_LOCALE = "Locale"
     val FS_LOCALE_DESC = "Default locale for new users."
     val FS_FIRST_DAY = "First day"

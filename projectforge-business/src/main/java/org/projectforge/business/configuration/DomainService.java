@@ -60,8 +60,7 @@ public class DomainService {
   }
 
   /**
-   * The servlet's context path, "/ProjectForge" at default. You should configure another context path such as "/" if
-   * the ProjectForge app runs in another context, such as root context.
+   * The servlet's context path, if any.
    */
   public String getContextPath() {
     return StringUtils.isBlank(contextPath) ? "" : contextPath;
@@ -90,6 +89,10 @@ public class DomainService {
         if (ds.contextPath.endsWith("/")) {
           // Remove trailing end from context.
           ds.contextPath = ds.contextPath.substring(0, ds.contextPath.length() - 1);
+        }
+        if (ds.contextPath.startsWith("/")) {
+          // Remove trailing end from context.
+          ds.contextPath = ds.contextPath.substring(1);
         }
       }
     } else {

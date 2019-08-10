@@ -24,6 +24,7 @@
 package org.projectforge.setup
 
 import org.projectforge.ProjectForgeApp
+import org.projectforge.business.configuration.DomainService
 import org.projectforge.common.CanonicalFileUtils
 import org.projectforge.common.EmphasizedLogSupport
 import org.projectforge.common.StringModifier
@@ -62,11 +63,13 @@ object ProjectForgeInitializer {
 
         val serverPort = if (setupData.serverPort in 1..65535) setupData.serverPort else 8080
 
+        val domainService = DomainService.internalCreate(setupData.domain)
         counter = ensureConfigFile(applicationHomeDir,
                 ProjectForgeApplication.CLASSPATH_INITIAL_PROPERTIES_FILENAME, ProjectForgeApplication.PROPERTIES_FILENAME, counter, emphasizedLog,
                 StringModifier {
                     var result = replace(it, "server.port", "$serverPort")
-                    result = replace(result, "projectforge.domain", setupData.domain)
+                    result = replace(result, "projectforge.domain", domainService.domain)
+                    result = replace(result, "projectforge.servletContextPath", domainService.contextPath)
                     result = replace(result, "projectforge.currencySymbol", setupData.currencySymbol)
                     result = replace(result, "projectforge.defaultLocale", setupData.defaultLocale)
                     result = replace(result, "projectforge.defaultTimeNotation", setupData.defaultTimeNotation)
