@@ -5,11 +5,11 @@ controlling and managing work-break-down-structures (e. g. together with JIRA as
 
 == Documentation
 
-=== www.projectforge.org
+=== projectforge.org
 Full documentation on: https://www.projectforge.org/documentation.html
 Please visit: https://www.projectforge.org/documentation/developer-guide.html
 
-=== Github
+=== GitHub
 Further documentation for developers and adminstrators (for a first start), please refer
 https://github.com/micromata/projectforge/tree/develop/doc
 
