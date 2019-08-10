@@ -29,7 +29,7 @@ import java.util.*
 
 class SetupData(
         var applicationHomeDir: File? = null,
-        //var domain: String? = "http://localhost:8080",
+        var domain: String? = "http://localhost:8080",
         var serverPort: Int = 8080,
         var startServer: Boolean = true,
         var developmentMode: Boolean = false,
