@@ -43,7 +43,6 @@ import org.projectforge.rest.calendar.CalEventRest
 import org.projectforge.rest.calendar.TeamEventRest
 import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractBaseRest
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.rest.core.RestHelper
 import org.projectforge.rest.core.ResultSet
@@ -105,7 +104,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
                             val timePeriod: String,
                             val duration: String)
 
-    override fun getInitialList(request: HttpServletRequest): AbstractBaseRest.InitialListData {
+    override fun getInitialList(request: HttpServletRequest): InitialListData {
         val taskId = NumberHelper.parseInteger(request.getParameter("taskId")) ?: return super.getInitialList(request)
         val filter = MagicFilter()
         filter.entries.add(MagicFilterEntry("task", value = "$taskId"))
@@ -246,24 +245,22 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
 
     @Deprecated("Will be replaced by cloneFromCalendarEvent(request, calendarEvent).")
     fun cloneFromTeamEvent(request: HttpServletRequest, teamEvent: TeamEvent): ResponseAction {
-        val timesheet = TimesheetDO()
-        timesheet.startTime = teamEvent.startDate
-        timesheet.stopTime = teamEvent.endDate
-        timesheet.location = teamEvent.location
-        timesheet.description = "${teamEvent.subject ?: ""} ${teamEvent.note ?: ""}"
-        val editLayoutData = getItemAndLayout(request, timesheet, UILayout.UserAccess(false, true))
-        return ResponseAction(url = "/calendar/${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
-                .addVariable("data", editLayoutData.data)
-                .addVariable("ui", editLayoutData.ui)
-                .addVariable("variables", editLayoutData.variables)
+        val calendarEvent = CalEvent(
+                startDate = teamEvent.startDate,
+                endDate = teamEvent.endDate,
+                location = teamEvent.location,
+                subject = teamEvent.subject)
+        return cloneFromCalendarEvent(request, calendarEvent)
     }
 
     fun cloneFromCalendarEvent(request: HttpServletRequest, calendarEvent: CalEvent): ResponseAction {
-        val timesheet = TimesheetDO()
+        val timesheet = newBaseDO(request)
         timesheet.startTime = calendarEvent.startDate
         timesheet.stopTime = calendarEvent.endDate
-        timesheet.location = calendarEvent.location
-        timesheet.description = "${calendarEvent.subject ?: ""} ${calendarEvent.note ?: ""}"
+        if (!calendarEvent.location.isNullOrBlank())
+            timesheet.location = calendarEvent.location
+        if (!calendarEvent.subject.isNullOrBlank() || !calendarEvent.note.isNullOrBlank())
+            timesheet.description = "${calendarEvent.subject ?: ""} ${calendarEvent.note ?: ""}"
         val editLayoutData = getItemAndLayout(request, timesheet, UILayout.UserAccess(false, true))
         return ResponseAction(url = "/calendar/${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
                 .addVariable("data", editLayoutData.data)
@@ -285,7 +282,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
      */
     override fun addVariablesForEditPage(dto: TimesheetDO): Map<String, Any>? {
         val task = TaskServicesRest.createTask(dto.taskId) ?: return null
-        return mutableMapOf<String, Any>("task" to task,
+        return mutableMapOf("task" to task,
                 "timesheetFavorites" to timesheetFavoritesService.getList())
     }
 

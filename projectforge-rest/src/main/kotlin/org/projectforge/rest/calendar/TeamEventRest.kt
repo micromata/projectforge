@@ -86,6 +86,10 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, dto: TeamEvent) {
+        if (dto.calendar == null)
+            validationErrors.add(ValidationError.createFieldRequired(baseDao.doClass, fieldId = "calendar"))
+        if (dto.subject.isNullOrBlank())
+            validationErrors.add(ValidationError.createFieldRequired(baseDao.doClass, fieldId = "subject"))
         if (dto.id != null && dto.hasRecurrence && dto.seriesModificationMode == null) {
             validationErrors.add(ValidationError.create("plugins.teamcal.event.recurrence.change.content"))
             validationErrors.add(ValidationError(fieldId = "seriesModificationMode"))
@@ -178,7 +182,7 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
         teamEvent.endDate = timesheet.stopTime
         teamEvent.location = timesheet.location
         teamEvent.note = timesheet.description
-        val calendarId =  calendarFilterServicesRest.getCurrentFilter().defaultCalendarId
+        val calendarId = calendarFilterServicesRest.getCurrentFilter().defaultCalendarId
         if (calendarId != null && calendarId > 0) {
             teamEvent.calendar = TeamCalDO()
             teamEvent.calendar?.id = calendarId

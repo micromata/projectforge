@@ -55,6 +55,9 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
     private val log = org.slf4j.LoggerFactory.getLogger(CalEventRest::class.java)
 
     @Autowired
+    private lateinit var calendarFilterServicesRest: CalendarFilterServicesRest
+
+    @Autowired
     private lateinit var teamCalDao: TeamCalDao
 
     @Autowired
@@ -80,6 +83,10 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, dto: CalEvent) {
+        if (dto.calendar == null)
+            validationErrors.add(ValidationError.createFieldRequired(baseDao.doClass, fieldId = "calendar"))
+        if (dto.subject.isNullOrBlank())
+            validationErrors.add(ValidationError.createFieldRequired(baseDao.doClass, fieldId = "subject"))
         if (dto.id != null && dto.hasRecurrence && dto.seriesModificationMode == null) {
             validationErrors.add(ValidationError.create("plugins.teamcal.event.recurrence.change.content"))
             validationErrors.add(ValidationError(fieldId = "seriesModificationMode"))
@@ -104,8 +111,7 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
         } else {
             val calendarId = NumberHelper.parseInteger(request.getParameter("calendar"))
             if (calendarId != null && calendarId > 0) {
-                dto.calendar = TeamCalDO()
-                dto.calendar?.id = calendarId
+                dto.calendar = teamCalDao.getById(calendarId)
             }
         }
         if (startDateAsSeconds != null) dto.startDate = PFDateTime.from(startDateAsSeconds)!!.sqlTimestamp
@@ -174,6 +180,11 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
         calendarEvent.endDate = timesheet.stopTime
         calendarEvent.location = timesheet.location
         calendarEvent.note = timesheet.description
+        val calendarId = calendarFilterServicesRest.getCurrentFilter().defaultCalendarId
+        if (calendarId != null && calendarId > 0) {
+            calendarEvent.calendar = TeamCalDO()
+            calendarEvent.calendar?.id = calendarId
+        }
         val editLayoutData = getItemAndLayout(request, calendarEvent, UILayout.UserAccess(false, true))
         return ResponseAction(url = "/calendar/${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
                 .addVariable("data", editLayoutData.data)
