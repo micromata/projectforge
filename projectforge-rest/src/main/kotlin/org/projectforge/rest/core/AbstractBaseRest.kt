@@ -207,7 +207,11 @@ abstract class AbstractBaseRest<
 
     fun validate(dbObj: O): MutableList<ValidationError> {
         val validationErrors = mutableListOf<ValidationError>()
-        val propertiesMap = ElementsRegistry.getProperties(dbObj::class.java)!!
+        val propertiesMap = ElementsRegistry.getProperties(dbObj::class.java)
+        if (propertiesMap.isNullOrEmpty()) {
+            log.error("Internal error, can't find propertiesMap for '${dbObj::class.java}' in ElementsRegistry. No validation errors will be built automatically.")
+            return validationErrors
+        }
         propertiesMap.forEach {
             val property = it.key
             val elementInfo = it.value
