@@ -24,16 +24,28 @@
 package org.projectforge.ui
 
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 
 data class ValidationError(var message: String? = null,
                            var fieldId: String? = null,
                            var messageId: String? = null) {
     companion object {
-        fun create(i18nKey : String, fieldId : String? = null) : ValidationError {
+        fun create(i18nKey: String, fieldId: String? = null): ValidationError {
             val validationError = ValidationError()
             validationError.fieldId = fieldId
             validationError.messageId = i18nKey
             validationError.message = translate(i18nKey)
+            return validationError
+        }
+
+        fun createFieldRequired(clazz: Class<*>, fieldId: String): ValidationError {
+            val i18nKey = "validation.error.fieldRequired"
+            val fieldI18nKey = ElementsRegistry.getElementInfo(clazz, fieldId)?.i18nKey
+            val fieldName = if (fieldI18nKey != null) translate(fieldI18nKey) else fieldId
+            val validationError = ValidationError()
+            validationError.fieldId = fieldId
+            validationError.messageId = i18nKey
+            validationError.message = translateMsg(i18nKey, fieldName)
             return validationError
         }
     }
