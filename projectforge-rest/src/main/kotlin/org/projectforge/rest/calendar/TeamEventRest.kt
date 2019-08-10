@@ -27,6 +27,7 @@ package org.projectforge.rest.calendar
 
 import org.projectforge.business.calendar.event.model.SeriesModificationMode
 import org.projectforge.business.teamcal.admin.TeamCalDao
+import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.teamcal.event.TeamEventDao
 import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache
@@ -55,6 +56,9 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
         "plugins.teamcal.event.title") {
 
     private val log = org.slf4j.LoggerFactory.getLogger(TeamEventRest::class.java)
+
+    @Autowired
+    private lateinit var calendarFilterServicesRest: CalendarFilterServicesRest
 
     @Autowired
     private lateinit var teamCalDao: TeamCalDao
@@ -174,6 +178,11 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
         teamEvent.endDate = timesheet.stopTime
         teamEvent.location = timesheet.location
         teamEvent.note = timesheet.description
+        val calendarId =  calendarFilterServicesRest.getCurrentFilter().defaultCalendarId
+        if (calendarId != null && calendarId > 0) {
+            teamEvent.calendar = TeamCalDO()
+            teamEvent.calendar?.id = calendarId
+        }
         val editLayoutData = getItemAndLayout(request, teamEvent, UILayout.UserAccess(false, true))
         return ResponseAction(url = "/calendar/${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
                 .addVariable("data", editLayoutData.data)
