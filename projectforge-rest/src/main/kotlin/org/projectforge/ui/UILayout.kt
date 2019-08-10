@@ -46,6 +46,9 @@ class UILayout {
             this.update = userAccess?.update
             this.delete = userAccess?.delete
         }
+        fun onlySelectAccess(): Boolean {
+            return (insert != true && update != true && delete != true)
+        }
     }
 
     constructor(title: String) {
