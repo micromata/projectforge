@@ -3,8 +3,15 @@
 ProjectForge is a web-based solution for project management including time tracking, team calendar, gantt-charting, financial administration, issue management,
 controlling and managing work-break-down-structures (e. g. together with JIRA as issue management system).
 
+== Documentation
+
+=== www.projectforge.org
 Full documentation on: https://www.projectforge.org/documentation.html
 Please visit: https://www.projectforge.org/documentation/developer-guide.html
+
+=== Github
+Further documentation for developers and adminstrators (for a first start), please refer
+https://github.com/micromata/projectforge/tree/develop/doc
 
 == Version 7.0 will be released soon...
 
@@ -35,7 +42,8 @@ and simply start it `java -jar projectforge-application-X.X.X.jar`.
 
 === Configuration of ProjectForge
 
-No configuration needed. ProjectForge creates a new installation by creating a new directory `ProjectForge` in the current working directory.
+No configuration needed. After starting ProjectForge a first time, a console or desktop based wizard is provided for doing
+a quick setup (choose directory and configure optionally some parameters).
 
 To configure a different directory you have several options (*choose Your favorite*):
 

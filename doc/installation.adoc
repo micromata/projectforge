@@ -1,4 +1,4 @@
-ProjectForge development documentation
+ProjectForge installation documentation
 =======================================
 Micromata GmbH, Version {version}
 :toc:
