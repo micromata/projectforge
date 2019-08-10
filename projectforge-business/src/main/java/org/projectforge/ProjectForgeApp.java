@@ -26,6 +26,7 @@ package org.projectforge;
 import net.fortuna.ical4j.util.CompatibilityHints;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.projectforge.business.configuration.DomainService;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.systeminfo.SystemInfoCache;
@@ -85,6 +86,8 @@ public class ProjectForgeApp {
 
   private DatabaseService databaseUpdater;
 
+  private DomainService domainService;
+
   private Environment environment;
 
   private UserXmlPreferencesCache userXmlPreferencesCache;
@@ -94,11 +97,13 @@ public class ProjectForgeApp {
   @Autowired
   ProjectForgeApp(ApplicationContext applicationContext,
                   DatabaseService databaseUpdater,
+                  DomainService domainService,
                   Environment environment,
                   UserXmlPreferencesCache userXmlPreferencesCache,
                   SystemInfoCache systemInfoCache) {
     this.applicationContext = applicationContext;
     this.databaseUpdater = databaseUpdater;
+    this.domainService = domainService;
     this.environment = environment;
     this.userXmlPreferencesCache = userXmlPreferencesCache;
     this.systemInfoCache = systemInfoCache;
@@ -134,6 +139,7 @@ public class ProjectForgeApp {
     this.upAndRunning = true;
     new EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.NORMAL)
             .log("ProjectForge is now available (up and running): localhost:" + environment.getProperty("server.port"))
+            .log("Configured domain: " + domainService.getDomainWithContextPath())
             .logEnd();
   }
 
