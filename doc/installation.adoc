@@ -1,0 +1,61 @@
+ProjectForge development documentation
+=======================================
+Micromata GmbH, Version {version}
+:toc:
+:toclevels: 4
+
+:last-update-label: Copyright (C) 2019, Last updated
+
+ifdef::env-github,env-browser[:outfilesuffix: .adoc]
+link:index{outfilesuffix}[Top]
+
+:sectnums:
+
+== Use SSL
+=== Nginx
+==== Prepare
+1. Install Nginx: `apt-get install nginx`
+2. Create certificate: `openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/projectforge.key -out /etc/ssl/projectforge.crt`
+
+==== Optional (secure domain for setup through htpasswd)
+1. `apt-get install apache2-utils`
+2. `htpasswd -c /etc/nginx/.htpasswd projectforge`
+
+==== Configure Nginx
+
+./etc/nginx/sites-enabled/projectforge
+[source]
+----
+server {
+  listen 80;
+  return 301 https://$host$request_uri;
+}
+
+server {
+  listen              443;
+  server_name         projectforge.acme.com;
+  ssl_certificate     /etc/ssl/projectforge.crt;
+  ssl_certificate_key /etc/ssl/projectforge.key;
+  ssl on;
+
+  location / {
+    proxy_set_header        Host $host;
+    proxy_set_header        X-Real-IP $remote_addr;
+    proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header        X-Forwarded-Proto $scheme;
+
+    proxy_pass              http://localhost:8080;
+    proxy_read_timeout      90;
+    proxy_redirect          http://localhost:8080 https://projectforge.acme.com;
+
+    # auth_basic            "Username and Password Required";
+    # auth_basic_user_file  /etc/nginx/.htpasswd;
+  }
+}
+----
+
+==== Start
+1. Start ProjectForge server (e. g. on `http://localhost:8080`).
+2. Follow the configuration instruction (setup wizard in console ui or as Desktop app).
+3. (Re-)start Nginx: `/etc/init.d/nginx restart`
+4. Use ProjectForge with your browser and finalize the setup.
