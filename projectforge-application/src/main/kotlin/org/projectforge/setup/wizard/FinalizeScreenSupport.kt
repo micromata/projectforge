@@ -34,7 +34,7 @@ import java.io.File
 
 object FinalizeScreenSupport {
     fun saveValues(setupData: SetupData,
-                   domain: String,
+                   //domain: String,
                    portText: String,
                    currencySymbol: String,
                    defaultLocaleSelectedIndex: Int,
@@ -44,7 +44,7 @@ object FinalizeScreenSupport {
                    developmentMode: Boolean
     ) {
         var port = NumberHelper.parseInteger(portText)
-        setupData.domain = domain
+        //setupData.domain = domain
         setupData.serverPort = if (port in 1..65535) port else 8080
         setupData.currencySymbol = currencySymbol
         setupData.defaultLocale = listOfLocales.get(defaultLocaleSelectedIndex).value
