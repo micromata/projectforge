@@ -24,6 +24,7 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.common.BeanHelper
+import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 import org.projectforge.framework.persistence.user.entities.TenantDO
@@ -47,6 +48,16 @@ open class BaseDTO<T : ExtendedBaseDO<Int>>(var id: Int? = null,
     open fun copyFrom(src: T) {
         copy(src, this)
         this.tenantId = src.tenantId
+    }
+
+    /**
+     * Full and deep copy of any other object, if needed.
+     */
+    open fun copyFromAny(src: Any) {
+        copy(src, this)
+        if (src is BaseDO<*>) {
+            this.tenantId = src.tenantId
+        }
     }
 
     /**

@@ -311,6 +311,7 @@ class IndexPage extends React.Component {
                     <Col>
                         <h1>ToDo&apos;s (both)</h1>
                         <ol>
+                            <li>Clone button of timesheets and calendar events</li>
                             <li>Magic filter in list pages</li>
                             <li>
                                 Markdown (AsciiDoc) View component for displaying dynamic content.

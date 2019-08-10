@@ -62,7 +62,8 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/timesheet")
-class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::class.java, "timesheet.title") {
+class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::class.java, "timesheet.title",
+        cloneSupported = true) {
 
     companion object {
         private const val PREF_AREA = "timesheet"

@@ -28,6 +28,7 @@ import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.teamcal.event.CalEventDao
 import org.projectforge.business.teamcal.event.model.CalEventDO
+import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.framework.access.OperationType
@@ -50,7 +51,8 @@ import javax.servlet.http.HttpServletRequest
 @RequestMapping("${Rest.URL}/calEvent")
 class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
         CalEventDao::class.java,
-        "plugins.teamcal.event.title") {
+        "plugins.teamcal.event.title",
+        cloneSupported = true) {
 
     private val log = org.slf4j.LoggerFactory.getLogger(CalEventRest::class.java)
 
@@ -59,6 +61,9 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
 
     @Autowired
     private lateinit var teamCalDao: TeamCalDao
+
+    @Autowired
+    private lateinit var teamEventExternalSubscriptionCache: TeamEventExternalSubscriptionCache
 
     @Autowired
     private lateinit var timesheetRest: TimesheetRest
@@ -79,6 +84,12 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
     override fun transformFromDB(obj: CalEventDO, editMode: Boolean): CalEvent {
         val calendarEvent = CalEvent()
         calendarEvent.copyFrom(obj)
+        return calendarEvent
+    }
+
+    fun transformFromDB(obj: TeamEventDO, editMode: Boolean): CalEvent {
+        val calendarEvent = CalEvent()
+        calendarEvent.copyFromAny(obj)
         return calendarEvent
     }
 
@@ -145,17 +156,19 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
             try {
                 val calId = vals[0].toInt()
                 val uid = vals[1]
-                val cal = teamCalDao.getById(calId)
-                if (cal == null) {
-                    log.error("Can't get calendar with id #$calId.")
-
+                val eventDO = teamEventExternalSubscriptionCache.getEvent(calId, uid)
+                if (eventDO == null) {
+                    val cal = teamCalDao.getById(calId)
+                    if (cal == null) {
+                        log.error("Can't get calendar with id #$calId.")
+                    } else if (!cal.externalSubscription) {
+                        log.error("Calendar with id #$calId is not an external subscription, can't get event by uid.")
+                    } else {
+                        log.error("Can't find event with uid '$uid' in subscribed calendar with id #$calId.")
+                    }
                     return CalEvent()
                 }
-                if (!cal.externalSubscription) {
-                    log.error("Calendar with id #$calId is not an external subscription, can't get event by uid.")
-                    return CalEvent()
-                }
-                return CalEvent()//return CalendarEventExternalSubscriptionCache.getEvent(calId, uid)
+                return transformFromDB(eventDO, editMode)
             } catch (ex: NumberFormatException) {
                 log.error("Can't get event of subscribed calendar. id must be of form {calId}-{uid} but is '$idString', a NumberFormatException occured.")
                 return CalEvent()
@@ -208,13 +221,18 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
     override fun createEditLayout(dto: CalEvent, userAccess: UILayout.UserAccess): UILayout {
         val calendars = teamCalDao.getAllCalendarsWithFullAccess()
         calendars.removeIf { it.externalSubscription } // Remove full access calendars, but subscribed.
-        val calendarSelectValues = calendars.map { it ->
+        if (dto.calendar != null && calendars.find { it.id == dto.calendar?.id } == null) {
+            // Calendar of event is not in the list of editable calendars. Add this non-editable calendar to show
+            // the calendar of the event.
+            calendars.add(0, dto.calendar)
+        }
+        val calendarSelectValues = calendars.map {
             UISelectValue<Int>(it.id, it.title!!)
         }
         val subject = UIInput("subject", lc)
         subject.focus = true
         val layout = super.createEditLayout(dto, userAccess)
-        if (dto.hasRecurrence) {
+        if (dto.hasRecurrence && !userAccess.onlySelectAccess()) {
             val masterEvent = baseDao.getById(dto.id)
             val radioButtonGroup = UIGroup()
             if (masterEvent?.startDate?.before(dto.selectedSeriesEvent?.startDate) ?: true) {
@@ -235,7 +253,6 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
                                         labelProperty = "title",
                                         valueProperty = "id"))
                                 .add(subject)
-                                .add(lc, "attendees")
                                 .add(lc, "location"))
                         .add(UICol(6)
                                 .add(lc, "startDate", "endDate", "allDay")

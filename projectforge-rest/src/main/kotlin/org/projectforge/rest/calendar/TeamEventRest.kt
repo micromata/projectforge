@@ -53,7 +53,8 @@ import javax.servlet.http.HttpServletRequest
 @RequestMapping("${Rest.URL}/teamEvent")
 class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
         TeamEventDao::class.java,
-        "plugins.teamcal.event.title") {
+        "plugins.teamcal.event.title",
+        cloneSupported = true) {
 
     private val log = org.slf4j.LoggerFactory.getLogger(TeamEventRest::class.java)
 
@@ -64,10 +65,10 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
     private lateinit var teamCalDao: TeamCalDao
 
     @Autowired
-    private lateinit var timesheetRest: TimesheetRest
+    private lateinit var teamEventExternalSubscriptionCache: TeamEventExternalSubscriptionCache
 
     @Autowired
-    private lateinit var teamEventExternalSubscriptionCache: TeamEventExternalSubscriptionCache
+    private lateinit var timesheetRest: TimesheetRest
 
     override fun transformForDB(dto: TeamEvent): TeamEventDO {
         val teamEventDO = TeamEventDO()
@@ -147,17 +148,20 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
             }
             try {
                 val calId = vals[0].toInt()
-                val cal = teamCalDao.getById(calId)
-                if (cal == null) {
-                    log.error("Can't get calendar with id #$calId.")
-
+                val uid = vals[1]
+                val eventDO = teamEventExternalSubscriptionCache.getEvent(calId, uid)
+                if (eventDO == null) {
+                    val cal = teamCalDao.getById(calId)
+                    if (cal == null) {
+                        log.error("Can't get calendar with id #$calId.")
+                    } else if (!cal.externalSubscription) {
+                        log.error("Calendar with id #$calId is not an external subscription, can't get event by uid.")
+                    } else {
+                        log.error("Can't find event with uid '$uid' in subscribed calendar with id #$calId.")
+                    }
                     return TeamEvent()
                 }
-                if (!cal.externalSubscription) {
-                    log.error("Calendar with id #$calId is not an external subscription, can't get event by uid.")
-                    return TeamEvent()
-                }
-                return TeamEvent()//return teamEventExternalSubscriptionCache.getEvent(calId, uid)
+                return transformFromDB(eventDO, editMode)
             } catch (ex: NumberFormatException) {
                 log.error("Can't get event of subscribed calendar. id must be of form {calId}-{uid} but is '$idString', a NumberFormatException occured.")
                 return TeamEvent()
@@ -210,13 +214,18 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
     override fun createEditLayout(dto: TeamEvent, userAccess: UILayout.UserAccess): UILayout {
         val calendars = teamCalDao.getAllCalendarsWithFullAccess()
         calendars.removeIf { it.externalSubscription } // Remove full access calendars, but subscribed.
-        val calendarSelectValues = calendars.map { it ->
+        if (dto.calendar != null && calendars.find { it.id == dto.calendar?.id } == null) {
+            // Calendar of event is not in the list of editable calendars. Add this non-editable calendar to show
+            // the calendar of the event.
+            calendars.add(0, dto.calendar)
+        }
+        val calendarSelectValues = calendars.map {
             UISelectValue<Int>(it.id, it.title!!)
         }
         val subject = UIInput("subject", lc)
         subject.focus = true
         val layout = super.createEditLayout(dto, userAccess)
-        if (dto.hasRecurrence) {
+        if (dto.hasRecurrence && !userAccess.onlySelectAccess()) {
             val masterEvent = baseDao.getById(dto.id)
             val radioButtonGroup = UIGroup()
             if (masterEvent?.startDate?.before(dto.selectedSeriesEvent?.startDate) ?: true) {
@@ -237,7 +246,6 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
                                         labelProperty = "title",
                                         valueProperty = "id"))
                                 .add(subject)
-                                .add(lc, "attendees")
                                 .add(lc, "location"))
                         .add(UICol(6)
                                 .add(lc, "startDate", "endDate", "allDay")
