@@ -23,6 +23,22 @@
 
 package org.projectforge.business.fibu;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.xwpf.usermodel.*;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRPr;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRow;
+import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.configuration.DomainService;
+import org.projectforge.framework.i18n.I18nHelper;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.time.DateTimeFormatter;
+import org.projectforge.web.session.UserAgentBrowser;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Service;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,26 +49,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFParagraph;
-import org.apache.poi.xwpf.usermodel.XWPFRun;
-import org.apache.poi.xwpf.usermodel.XWPFTable;
-import org.apache.poi.xwpf.usermodel.XWPFTableCell;
-import org.apache.poi.xwpf.usermodel.XWPFTableRow;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRPr;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRow;
-import org.projectforge.business.configuration.ConfigurationService;
-import org.projectforge.framework.i18n.I18nHelper;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.time.DateTimeFormatter;
-import org.projectforge.web.session.UserAgentBrowser;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Service;
 
 /**
  * Created by blumenstein on 08.05.17.
@@ -71,13 +67,13 @@ public class InvoiceService
   private static final int DOWNLOAD_MAXLENGTH_OTHER = 255;
 
   @Autowired
+  private ApplicationContext applicationContext;
+
+  @Autowired
   private ConfigurationService configurationService;
 
   @Autowired
-  private ApplicationContext applicationContext;
-
-  @Value("${projectforge.domain}")
-  private String domain;
+  private DomainService domainService;
 
   @Value("${projectforge.invoiceTemplate}")
   private String customInvoiceTemplateName;
@@ -389,7 +385,7 @@ public class InvoiceService
     final String invoiceDate = DateTimeFormatter.instance().getFormattedDate(invoice.getDatum()).replaceAll("\\W+", "_");
     String filename =
         number + sanitizedCustomer + sanitizedProject + sanitizedBetreff + invoiceDate;
-    final int downloadCompleteLength = domain.length() + CONTEXTPATH_LENGTH + filename.length() + suffix.length();
+    final int downloadCompleteLength = domainService.getDomain().length() + CONTEXTPATH_LENGTH + filename.length() + suffix.length();
     if (downloadCompleteLength > DOWNLOAD_MAX_LENGTH) {
       int diff = downloadCompleteLength - DOWNLOAD_MAX_LENGTH;
       String more = "[more]";

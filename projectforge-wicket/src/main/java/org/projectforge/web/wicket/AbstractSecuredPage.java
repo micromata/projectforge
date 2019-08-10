@@ -23,8 +23,6 @@
 
 package org.projectforge.web.wicket;
 
-import java.util.Random;
-
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
@@ -36,6 +34,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.Const;
 import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.configuration.DomainService;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.core.MenuBarPanel;
@@ -45,6 +44,8 @@ import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 
+import java.util.Random;
+
 /**
  * All pages with required login should be derived from this page.
  */
@@ -52,6 +53,9 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
 {
   @SpringBean
   private ConfigurationService configurationService;
+
+  @SpringBean
+  private DomainService domainService;
 
   private static final long serialVersionUID = -8721451198050398835L;
 
@@ -220,7 +224,7 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
       relativeUrl = relativeUrl.replace("../", "");
     }
 
-    String baseUrl = configurationService.getPfBaseUrl() + "/" + Const.WICKET_APPLICATION_PATH;
+    String baseUrl = domainService.getDomainWithContextPath() + "/" + Const.WICKET_APPLICATION_PATH;
 
     return WicketUtils.toAbsolutePath(baseUrl, relativeUrl);
   }

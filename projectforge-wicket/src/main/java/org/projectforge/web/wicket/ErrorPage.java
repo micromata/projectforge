@@ -23,12 +23,6 @@
 
 package org.projectforge.web.wicket;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-
-import javax.servlet.ServletException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
@@ -36,6 +30,7 @@ import org.apache.wicket.protocol.http.PageExpiredException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.configuration.DomainService;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.api.ProjectForgeException;
 import org.projectforge.framework.configuration.Configuration;
@@ -46,6 +41,11 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.ExceptionHelper;
 import org.projectforge.web.SendFeedback;
 import org.projectforge.web.SendFeedbackData;
+
+import javax.servlet.ServletException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  * Standard error page should be shown in production mode.
@@ -69,6 +69,9 @@ public class ErrorPage extends AbstractSecuredPage
 
   @SpringBean
   private ConfigurationService configService;
+
+  @SpringBean
+  private DomainService domainService;
 
   private final ErrorForm form;
 
@@ -192,7 +195,7 @@ public class ErrorPage extends AbstractSecuredPage
       SendFeedbackData errorData = new SendFeedbackData();
       errorData.setSender(configService.getSendMailConfiguration().getDefaultSendMailAddress());
       errorData.setReceiver(configService.getPfSupportMailAddress());
-      errorData.setSubject("Error occured: #" + form.data.getMessageNumber() + " on " + configService.getDomain());
+      errorData.setSubject("Error occured: #" + form.data.getMessageNumber() + " on " + domainService.getDomain());
       errorData.setDescription("Error occured at: " + dateString + "(" + cal.getTimeZone().getID()
           + ") with number: #" + form.data.getMessageNumber()
           + " from user: " + form.data.getSender() + " \n "
