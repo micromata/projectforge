@@ -182,29 +182,31 @@ class CalendarPanel extends React.Component {
     }
 
     onEventResize(info) {
-        this.fetchAction('resize', info.start, info.end, undefined, info.allDay, info.event.category, info.event.dbId, info.event.uid);
+        this.fetchAction('resize', info.start, info.end, undefined, info.allDay, info.event);
     }
 
     onEventDrop(info) {
-        this.fetchAction('dragAndDrop', info.start, info.end, undefined, info.allDay, info.event.category, info.event.dbId, info.event.uid);
+        this.fetchAction('dragAndDrop', info.start, info.end, undefined, info.allDay, info.event);
     }
 
-    fetchAction(action, start, end, calendar, allDay, category, dbId, uid) {
+    fetchAction(action, startDate, endDate, calendar, allDay, event) {
         const { match } = this.props;
 
         fetchJsonGet('calendar/action',
             {
                 action,
-                start: start ? start.toJSON() : '',
-                end: end ? end.toJSON() : '',
+                startDate: startDate ? startDate.toJSON() : '',
+                endDate: endDate ? endDate.toJSON() : '',
                 allDay,
-                category: category || '',
-                dbId: dbId || '',
-                uid: uid || '',
+                category: event ? event.category || '' : '',
+                dbId: event ? event.dbId || '' : '',
+                uid: event ? event.uid || '' : '',
+                origStartDate: event ? event.start.toJSON() : '',
+                origEndDate: event ? event.end.toJSON() : '',
             },
             (json) => {
-                const { variables } = json;
-                history.push(`${match.url}/${variables.url}`);
+                const { url } = json;
+                history.push(`${match.url}/${url}`);
             });
     }
 
