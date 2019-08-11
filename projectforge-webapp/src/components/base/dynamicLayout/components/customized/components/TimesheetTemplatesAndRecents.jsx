@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from 'reactstrap';
+import { Button, Card, CardBody, Table } from 'reactstrap';
 import FavoritesPanel from '../../../../../../containers/panel/favorite/FavoritesPanel';
 import { fetchJsonGet, fetchJsonPost } from '../../../../../../utilities/rest';
 import { DynamicLayoutContext } from '../../../context';
@@ -10,6 +10,7 @@ function TimesheetTemplatesAndRecents() {
         data,
         setData,
         setVariables,
+        translations,
         ui,
         variables,
     } = React.useContext(DynamicLayoutContext);
@@ -19,6 +20,7 @@ function TimesheetTemplatesAndRecents() {
     ] = React.useState(variables.timesheetFavorites);
 
     const [recentsVisible, setRecentsVisible] = React.useState(false);
+    const [columnsVisibility, setColumnsVisibility] = React.useState([]);
     const recentsRef = React.useRef(null);
 
     // Handle mouse events
@@ -77,6 +79,7 @@ function TimesheetTemplatesAndRecents() {
                 setRecentsVisible(!recentsVisible);
             };
 
+            /* eslint-disable indent, react/jsx-indent, react/jsx-tag-spacing */
             return (
                 <React.Fragment>
                     <FavoritesPanel
@@ -104,7 +107,27 @@ function TimesheetTemplatesAndRecents() {
                             scroll: 'auto',
                         }}
                     >
-                        Kost2 Kunde Projekt Strukturelement Ort Tätigkeitsbericht
+                        <div ref={recentsRef}>
+                            <Card>
+                                <CardBody>
+                                    <Table striped hover responsive>
+                                        <thead>
+                                        <tr>
+                                            {columnsVisibility.kost2
+                                                ? <th>{translations['fibu.kost2']}</th> : undefined}
+                                            <th>Kunde</th>
+                                            <th>Projekt</th>
+                                            <th>Strukturelement</th>
+                                            <th>Ort</th>
+                                            <th>Tätigkeitsbericht</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                    </Table>
+                                </CardBody>
+                            </Card>
+                        </div>
                     </Collapse>
                 </React.Fragment>
             );
