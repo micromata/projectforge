@@ -221,8 +221,8 @@ class TaskTreePanel extends React.Component {
                                 <tr>
                                     <th>{translations.task}</th>
                                     <th>{translations['task.consumption']}</th>
-                                    {columnsVisibility.kost2 ?
-                                        <th>{translations['fibu.kost2']}</th> : undefined}
+                                    {columnsVisibility.kost2
+                                        ? <th>{translations['fibu.kost2']}</th> : undefined}
                                     {!shortForm && columnsVisibility.orders
                                         ? <th>{translations['fibu.auftrag.auftraege']}</th> : undefined}
                                     <th>{translations.shortDescription}</th>
