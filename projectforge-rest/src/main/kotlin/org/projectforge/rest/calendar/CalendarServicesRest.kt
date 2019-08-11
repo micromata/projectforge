@@ -97,28 +97,31 @@ class CalendarServicesRest {
     /**
      * The users selected a slot in the calendar.
      * @param action slotSelected, resize, drop
-     * @param start start timestamp of event (after resize or drag&drop)
-     * @param end end timestamp of event (after resize or drag&drop)
+     * @param startDate startDate timestamp of event (after resize or drag&drop)
+     * @param endDate endDate timestamp of event (after resize or drag&drop)
      * @param allDay
      * @param category calEvent, teamEvent or timesheet.
      * @param dbId Data base id of timesheet or team event.
      * @param uid Uid of event, if given.
+     * @param origStartDate For resizing or moving events of series, the origin startDate date is required.
+     * @param origEndDate For resizing or moving events of series, the origin endDate date is required.
      */
     @GetMapping("action")
     fun action(@RequestParam("action") action: String?,
-               @RequestParam("start") start: String?,
-               @RequestParam("end") end: String?,
+               @RequestParam("startDate") startDateParam: String?,
+               @RequestParam("endDate") endDateParam: String?,
                @RequestParam("allDay") allDay: String?,
                @RequestParam("category") categoryParam: String?,
                @RequestParam("dbId") dbIdParam: String?,
-               @RequestParam("uid") uidParam: String?)
+               @RequestParam("uid") uidParam: String?,
+               @RequestParam("origStartDate") origStartDateParam: String?,
+               @RequestParam("origEndDate") origEndDateParam: String?)
             : ResponseEntity<Any> {
         if (action.isNullOrBlank()) {
             return ResponseEntity("Action not given, 'slotSelected', 'resize' or 'dragAndDrop' expected.", HttpStatus.BAD_REQUEST)
         }
-        val startDate = if (start != null) RestHelper.parseJSDateTime(start)?.epochSeconds else null
-        val endDate = if (end != null) RestHelper.parseJSDateTime(end)?.epochSeconds else null
-        val variables = mutableMapOf<String, Any?>()
+        val startDate = if (startDateParam != null) RestHelper.parseJSDateTime(startDateParam)?.epochSeconds else null
+        val endDate = if (endDateParam != null) RestHelper.parseJSDateTime(endDateParam)?.epochSeconds else null
         var url: String
         var category: String? = categoryParam
         if (action == "slotSelected") {
@@ -130,25 +133,22 @@ class CalendarServicesRest {
             }
             url = "$category/edit?startDate=$startDate&endDate=$endDate"
             if (defaultCalendarId != null && defaultCalendarId > 0) {
-                variables["calendar"] = defaultCalendarId
                 url = "$url&calendar=$defaultCalendarId"
             }
         } else if (action == "resize" || action == "dragAndDrop") {
+            val origStartDate = if (startDate != null) RestHelper.parseJSDateTime(origStartDateParam)?.epochSeconds else null
+            val origEndDate = if (endDate != null) RestHelper.parseJSDateTime(origEndDateParam)?.epochSeconds else null
             val dbId = NumberHelper.parseInteger(dbIdParam)
-            val dbIdString = if(dbId != null && dbId >= 0) "$dbId" else "";
+            val dbIdString = if (dbId != null && dbId >= 0) "$dbId" else "";
             val uidString = if (uidParam.isNullOrBlank()) "" else URLEncoder.encode(uidParam, "UTF-8")
             url = "$category/edit/$dbIdString$uidString?startDate=$startDate&endDate=$endDate"
+            if (category != "timesheet" && origStartDate != null) {
+                url = "$url&origStartDate=$origStartDate&origEndDate=$origEndDate"
+            }
         } else {
             return ResponseEntity("Action '$action' not supported. Supported actions are: 'slotSelected', 'resize' and 'dragAndDrop'.", HttpStatus.BAD_REQUEST)
         }
         val responseAction = ResponseAction(url)
-                .addVariable("category", category)
-                .addVariable("startDate", startDate)
-                .addVariable("endDate", endDate)
-                .addVariable("url", url)
-        variables.forEach {
-            responseAction.addVariable(it.key, it.value)
-        }
         return ResponseEntity(responseAction, HttpStatus.OK)
     }
 

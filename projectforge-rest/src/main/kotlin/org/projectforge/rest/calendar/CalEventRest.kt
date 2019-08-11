@@ -109,13 +109,19 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
      * For events of a series, startDate as param selects the event of the series.
      */
     override fun onBeforeGetItemAndLayout(request: HttpServletRequest, dto: CalEvent, userAccess: UILayout.UserAccess) {
-        val startDateAsSeconds = NumberHelper.parseLong(request.getParameter("startDate"))
+        val startDateSeconds = NumberHelper.parseLong(request.getParameter("startDate"))
         val endDateSeconds = NumberHelper.parseLong(request.getParameter("endDate"))
+        var origStartDateSeconds = NumberHelper.parseLong(request.getParameter("origStartDate"))
+        var origEndDateSeconds = NumberHelper.parseLong(request.getParameter("origEndDate"))
+        if (origStartDateSeconds == null)
+            origStartDateSeconds = startDateSeconds
+        if (origEndDateSeconds == null)
+            origEndDateSeconds = endDateSeconds
         if (dto.id != null) {
-            if (startDateAsSeconds != null && endDateSeconds != null && dto.hasRecurrence) {
+            if (origStartDateSeconds != null && origEndDateSeconds != null && dto.hasRecurrence) {
                 // Seems to be a event of a series:
-                dto.selectedSeriesEvent = CalEvent(startDate = PFDateTime.from(startDateAsSeconds)!!.sqlTimestamp,
-                        endDate = PFDateTime.from(endDateSeconds)!!.sqlTimestamp,
+                dto.selectedSeriesEvent = CalEvent(startDate = PFDateTime.from(origStartDateSeconds)!!.sqlTimestamp,
+                        endDate = PFDateTime.from(origEndDateSeconds)!!.sqlTimestamp,
                         allDay = dto.allDay,
                         sequence = dto.sequence)
             }
@@ -125,7 +131,7 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
                 dto.calendar = teamCalDao.getById(calendarId)
             }
         }
-        if (startDateAsSeconds != null) dto.startDate = PFDateTime.from(startDateAsSeconds)!!.sqlTimestamp
+        if (startDateSeconds != null) dto.startDate = PFDateTime.from(startDateSeconds)!!.sqlTimestamp
         if (endDateSeconds != null) dto.endDate = PFDateTime.from(endDateSeconds)!!.sqlTimestamp
     }
 
