@@ -188,8 +188,9 @@ class CalendarPanel extends React.Component {
             },
             (json) => {
                 const { variables } = json;
+                const calParam = variables.calendar ? `&calendar=${variables.calendar}` : '';
 
-                history.push(`${match.url}/${variables.category}/edit/?startDate=${variables.startDate}&endDate=${variables.endDate}&calendar=${variables.calendar}`);
+                history.push(`${match.url}/${variables.category}/edit/?startDate=${variables.startDate}&endDate=${variables.endDate}${calParam}`);
             });
     }
 
