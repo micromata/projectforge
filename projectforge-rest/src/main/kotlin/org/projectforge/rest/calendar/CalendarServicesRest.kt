@@ -32,6 +32,7 @@ import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.RestHelper
 import org.projectforge.ui.ResponseAction
@@ -41,6 +42,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import sun.util.calendar.ZoneInfo
+import java.net.URLEncoder
 import java.time.LocalDate
 import javax.ws.rs.BadRequestException
 
@@ -94,29 +96,58 @@ class CalendarServicesRest {
 
     /**
      * The users selected a slot in the calendar.
+     * @param action slotSelected, resize, drop
+     * @param start start timestamp of event (after resize or drag&drop)
+     * @param end end timestamp of event (after resize or drag&drop)
+     * @param allDay
+     * @param category calEvent, teamEvent or timesheet.
+     * @param dbId Data base id of timesheet or team event.
+     * @param uid Uid of event, if given.
      */
     @GetMapping("action")
     fun action(@RequestParam("action") action: String?,
                @RequestParam("start") start: String?,
-               @RequestParam("end") end: String?)
+               @RequestParam("end") end: String?,
+               @RequestParam("allDay") allDay: String?,
+               @RequestParam("category") categoryParam: String?,
+               @RequestParam("dbId") dbIdParam: String?,
+               @RequestParam("uid") uidParam: String?)
             : ResponseEntity<Any> {
-        if (action != null && action != "select")
-            return ResponseEntity("Action '$action' not supported. Supported action is only 'select'.", HttpStatus.BAD_REQUEST)
+        if (action.isNullOrBlank()) {
+            return ResponseEntity("Action not given, 'slotSelected', 'resize' or 'dragAndDrop' expected.", HttpStatus.BAD_REQUEST)
+        }
         val startDate = if (start != null) RestHelper.parseJSDateTime(start)?.epochSeconds else null
         val endDate = if (end != null) RestHelper.parseJSDateTime(end)?.epochSeconds else null
-
-        val defaultCalendarId = calendarFilterServicesRest.getCurrentFilter().defaultCalendarId
-        val category = if (defaultCalendarId != null && defaultCalendarId > 0) {
-            if (useNewCalendarEvents) "calEvent" else "teamEvent"
+        val variables = mutableMapOf<String, Any?>()
+        var url: String
+        var category: String? = categoryParam
+        if (action == "slotSelected") {
+            val defaultCalendarId = calendarFilterServicesRest.getCurrentFilter().defaultCalendarId
+            category = if (defaultCalendarId != null && defaultCalendarId > 0) {
+                if (useNewCalendarEvents) "calEvent" else "teamEvent"
+            } else {
+                "timesheet"
+            }
+            url = "$category/edit?startDate=$startDate&endDate=$endDate"
+            if (defaultCalendarId != null && defaultCalendarId > 0) {
+                variables["calendar"] = defaultCalendarId
+                url = "$url&calendar=$defaultCalendarId"
+            }
+        } else if (action == "resize" || action == "dragAndDrop") {
+            val dbId = NumberHelper.parseInteger(dbIdParam)
+            val dbIdString = if(dbId != null && dbId >= 0) "$dbId" else "";
+            val uidString = if (uidParam.isNullOrBlank()) "" else URLEncoder.encode(uidParam, "UTF-8")
+            url = "$category/edit/$dbIdString$uidString?startDate=$startDate&endDate=$endDate"
         } else {
-            "timesheet"
+            return ResponseEntity("Action '$action' not supported. Supported actions are: 'slotSelected', 'resize' and 'dragAndDrop'.", HttpStatus.BAD_REQUEST)
         }
-        val responseAction = ResponseAction("$category/edit?start=$startDate&end=$endDate")
+        val responseAction = ResponseAction(url)
                 .addVariable("category", category)
                 .addVariable("startDate", startDate)
                 .addVariable("endDate", endDate)
-        if (defaultCalendarId != null && defaultCalendarId > 0) {
-            responseAction.addVariable("calendar", defaultCalendarId)
+                .addVariable("url", url)
+        variables.forEach {
+            responseAction.addVariable(it.key, it.value)
         }
         return ResponseEntity(responseAction, HttpStatus.OK)
     }

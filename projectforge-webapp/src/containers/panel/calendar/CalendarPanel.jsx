@@ -69,6 +69,8 @@ class CalendarPanel extends React.Component {
         this.onSelectEvent = this.onSelectEvent.bind(this);
         this.onNavigate = this.onNavigate.bind(this);
         this.onView = this.onView.bind(this);
+        this.onEventResize = this.onEventResize.bind(this);
+        this.onEventDrop = this.onEventDrop.bind(this);
     }
 
     componentDidMount() {
@@ -163,7 +165,6 @@ class CalendarPanel extends React.Component {
             end: newEnd,
             view: useView,
         }, () => this.fetchEvents());
-        // console.log("start:", myStart, "end", myEnd, useView)
     }
 
     // Callback fired when a calendar event is selected.
@@ -175,22 +176,35 @@ class CalendarPanel extends React.Component {
     }
 
     // A callback fired when a date selection is made. Only fires when selectable is true.
-    onSelectSlot(slotInfo) {
+    onSelectSlot(info) {
         const { calendar } = this.state;
+        this.fetchAction('slotSelected', info.start, info.end, calendar);
+    }
+
+    onEventResize(info) {
+        this.fetchAction('resize', info.start, info.end, undefined, info.allDay, info.event.category, info.event.dbId, info.event.uid);
+    }
+
+    onEventDrop(info) {
+        this.fetchAction('dragAndDrop', info.start, info.end, undefined, info.allDay, info.event.category, info.event.dbId, info.event.uid);
+    }
+
+    fetchAction(action, start, end, calendar, allDay, category, dbId, uid) {
         const { match } = this.props;
 
         fetchJsonGet('calendar/action',
             {
-                action: 'select',
-                start: slotInfo.start ? slotInfo.start.toJSON() : '',
-                end: slotInfo.end ? slotInfo.end.toJSON() : '',
-                calendar,
+                action,
+                start: start ? start.toJSON() : '',
+                end: end ? end.toJSON() : '',
+                allDay,
+                category: category || '',
+                dbId: dbId || '',
+                uid: uid || '',
             },
             (json) => {
                 const { variables } = json;
-                const calParam = variables.calendar ? `&calendar=${variables.calendar}` : '';
-
-                history.push(`${match.url}/${variables.category}/edit/?startDate=${variables.startDate}&endDate=${variables.endDate}${calParam}`);
+                history.push(`${match.url}/${variables.url}`);
             });
     }
 
@@ -296,6 +310,8 @@ class CalendarPanel extends React.Component {
                     onRangeChange={this.onRangeChange}
                     onSelectEvent={this.onSelectEvent}
                     onSelectSlot={this.onSelectSlot}
+                    onEventResize={this.onEventResize}
+                    onEventDrop={this.onEventDrop}
                     selectable
                     eventPropGetter={this.eventStyle}
                     dayPropGetter={day => dayStyle(day, specialDays)}
