@@ -200,7 +200,7 @@ function DynamicTaskSelect(
 
         const useNew = false; // Switch for testing NewTaskTreePanel.
         const treePanel = useNew ? (
-            <React.Fragment>
+            <div ref={panelRef}>
                 <NewTaskTreePanel
                     highlightTaskId={modalHighlight || (task ? task.id : undefined)}
                     onTaskSelect={setTask}
@@ -215,9 +215,9 @@ function DynamicTaskSelect(
                     showRootForAdmins={showRootForAdmins}
                     visible={panelVisible}
                 />
-            </React.Fragment>
+            </div>
         ) : (
-            <React.Fragment>
+            <div ref={panelRef}>
                 <TaskTreePanel
                     highlightTaskId={modalHighlight || (task ? task.id : undefined)}
                     onTaskSelect={setTask}
@@ -225,7 +225,7 @@ function DynamicTaskSelect(
                     showRootForAdmins={showRootForAdmins}
                     visible={panelVisible}
                 />
-            </React.Fragment>
+            </div>
         );
 
         return (
