@@ -144,10 +144,9 @@ class AuftragRest() : AbstractDORest<AuftragDO, AuftragDao>(AuftragDao::class.ja
                                         .add(lc, "nettoSumme"))
                                 .add(UICol()
                                         .add(lc, "status")))
-                        .add(UILabel("TODO: Strukturelement"))
                         .add(UIRow()
                                 .add(UICol()
-                                        .add(lc, "periodOfPerformanceType", "bemerkung"))))
+                                        .add(lc, "task", "periodOfPerformanceType", "bemerkung"))))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }
