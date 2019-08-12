@@ -113,6 +113,7 @@ class AuftragDO : DefaultBaseDO() {
     /**
      * Freitextfeld, falls Kunde nicht aus Liste gewählt werden kann bzw. für Rückwärtskompatibilität mit alten Kunden.
      */
+    @PropertyInfo(i18nKey = "fibu.kunde.text")
     @Field
     @get:Column(name = "kunde_text", length = 1000)
     var kundeText: String? = null
@@ -216,6 +217,7 @@ class AuftragDO : DefaultBaseDO() {
     /**
      * Get the payment schedule entries for this object.
      */
+    @PropertyInfo(i18nKey = "fibu.auftrag.paymentschedule")
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
     @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true, mappedBy = "auftrag")
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
