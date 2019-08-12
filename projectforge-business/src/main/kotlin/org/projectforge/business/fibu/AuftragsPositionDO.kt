@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.search.annotations.*
 import org.projectforge.business.task.TaskDO
+import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
@@ -59,24 +60,30 @@ class AuftragsPositionDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @get:JoinColumn(name = "task_fk", nullable = true)
     var task: TaskDO? = null
 
+    @PropertyInfo(i18nKey = "fibu.auftrag.position.art")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "art", length = 30)
     var art: AuftragsPositionsArt? = null
 
+    @PropertyInfo(i18nKey = "fibu.auftrag.position.paymenttype")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "paymentType", length = 30)
     var paymentType: AuftragsPositionsPaymentType? = null
 
+    @PropertyInfo(i18nKey = "fibu.auftrag.position.status")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "status", length = 30)
     var status: AuftragsPositionsStatus? = null
 
+    @PropertyInfo(i18nKey = "fibu.auftrag.titel")
     @get:Column(name = "titel", length = 255)
     var titel: String? = null
 
+    @PropertyInfo(i18nKey = "comment")
     @get:Column(length = 4000)
     var bemerkung: String? = null
 
+    @PropertyInfo(i18nKey = "fibu.auftrag.nettoSumme")
     @get:Column(name = "netto_summe", scale = 2, precision = 12)
     var nettoSumme: BigDecimal? = null
 

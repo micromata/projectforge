@@ -23,22 +23,9 @@
 
 package org.projectforge.ui
 
-enum class UIElementType {
-    BUTTON,
-    CHECKBOX,
-    COL,
-    CUSTOMIZED,
-    FIELDSET,
-    FILTER_ELEMENT,
-    GROUP,
-    INPUT,
-    LABEL,
-    LIST,
-    NAMED_CONTAINER,
-    RADIOBUTTON,
-    ROW,
-    SELECT,
-    TABLE,
-    TABLE_COLUMN,
-    TEXTAREA
+data class UIList(val content: MutableList<UIElement> = mutableListOf()) : UIElement(UIElementType.LIST) {
+    fun add(listEntry: UIElement): UIList {
+        content.add(listEntry)
+        return this
+    }
 }
