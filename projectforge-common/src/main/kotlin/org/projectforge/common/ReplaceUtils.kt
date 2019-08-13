@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.core
+package org.projectforge.common
 
 import org.apache.commons.lang3.StringUtils
 import java.util.*

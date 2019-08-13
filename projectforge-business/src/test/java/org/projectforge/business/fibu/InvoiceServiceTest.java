@@ -43,7 +43,7 @@ public class InvoiceServiceTest extends AbstractTestBase {
     String filename = invoiceService.getInvoiceFilename(data, UserAgentBrowser.UNKNOWN);
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
-    assertEquals(".docx", filename);
+    assertEquals("_.docx", filename);
   }
 
   @Test
@@ -83,7 +83,7 @@ public class InvoiceServiceTest extends AbstractTestBase {
     String filename = invoiceService.getInvoiceFilename(data, UserAgentBrowser.UNKNOWN);
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
-    assertEquals("12345_Kunde_Kunde_Projekt_Titel_Betreff_nderung__08_04_2017.docx", filename);
+    assertEquals("12345_Kunde___Kunde_Projekt-Titel_Betreff_Aenderung__08_04_2017.docx", filename);
   }
 
   @Test
@@ -91,10 +91,10 @@ public class InvoiceServiceTest extends AbstractTestBase {
     RechnungDO data = new RechnungDO();
     data.setNummer(12345);
     KundeDO kunde = new KundeDO();
-    kunde.setName("Kunde");
+    kunde.setName("Kunde König");
     data.setKunde(kunde);
     ProjektDO projekt = new ProjektDO();
-    projekt.setName("Projekt");
+    projekt.setName("Projekt: $§webapp");
     data.setProjekt(projekt);
     String character = "abc";
     for (int i = 1; i < 85; i++) {
@@ -103,8 +103,7 @@ public class InvoiceServiceTest extends AbstractTestBase {
     String filename = invoiceService.getInvoiceFilename(data, UserAgentBrowser.UNKNOWN);
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
-    assertEquals("12345_Kunde_Projekt_abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabca[more].docx",
+    assertEquals("12345_Kunde_Koenig_Projekt____webapp_abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcab[more].docx",
             filename, "Assertions.equals is dependent from property projectforge.domain!");
   }
-
 }
