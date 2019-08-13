@@ -29,6 +29,7 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRPr;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRow;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.configuration.DomainService;
+import org.projectforge.common.ReplaceUtils;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateTimeFormatter;
@@ -56,15 +57,10 @@ import java.util.stream.Collectors;
  * Copy some code from https://stackoverflow.com/questions/22268898/replacing-a-text-in-apache-poi-xwpf
  */
 @Service
-public class InvoiceService
-{
+public class InvoiceService {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(InvoiceService.class);
 
-  private static final int CONTEXTPATH_LENGTH = 50;
-
-  private static final int DOWNLOAD_MAXLENGTH_SAFARI = 170;
-
-  private static final int DOWNLOAD_MAXLENGTH_OTHER = 255;
+  private static final int FILENAME_MAXLENGTH = 150;
 
   @Autowired
   private ApplicationContext applicationContext;
@@ -78,8 +74,7 @@ public class InvoiceService
   @Value("${projectforge.invoiceTemplate}")
   private String customInvoiceTemplateName;
 
-  public ByteArrayOutputStream getInvoiceWordDocument(final RechnungDO data)
-  {
+  public ByteArrayOutputStream getInvoiceWordDocument(final RechnungDO data) {
     ByteArrayOutputStream result = null;
     try {
       Resource invoiceTemplate = null;
@@ -87,7 +82,7 @@ public class InvoiceService
       if (customInvoiceTemplateName.isEmpty() == false) {
         String resourceDir = configurationService.getResourceDir();
         invoiceTemplate = applicationContext
-            .getResource("file://" + resourceDir + "/officeTemplates/" + customInvoiceTemplateName + (isSkonto ? "_Skonto" : "") + ".docx");
+                .getResource("file://" + resourceDir + "/officeTemplates/" + customInvoiceTemplateName + (isSkonto ? "_Skonto" : "") + ".docx");
       }
       if (invoiceTemplate == null || invoiceTemplate.exists() == false) {
         invoiceTemplate = applicationContext.getResource("classpath:officeTemplates/InvoiceTemplate" + (isSkonto ? "_Skonto" : "") + ".docx");
@@ -98,13 +93,13 @@ public class InvoiceService
       replacementMap.put("Typ", data.getTyp() != null ? I18nHelper.getLocalizedMessage(data.getTyp().getI18nKey()) : "");
       replacementMap.put("Kundenreferenz", data.getCustomerref1());
       replacementMap.put("Auftragsnummer", data.getPositionen().stream()
-          .filter(pos -> pos.getAuftragsPosition() != null && pos.getAuftragsPosition().getAuftrag() != null)
-          .map(pos -> String.valueOf(pos.getAuftragsPosition().getAuftrag().getNummer()))
-          .distinct()
-          .collect(Collectors.joining(", ")));
+              .filter(pos -> pos.getAuftragsPosition() != null && pos.getAuftragsPosition().getAuftrag() != null)
+              .map(pos -> String.valueOf(pos.getAuftragsPosition().getAuftrag().getNummer()))
+              .distinct()
+              .collect(Collectors.joining(", ")));
       replacementMap.put("VORNAME_NACHNAME", ThreadLocalUserContext.getUser() != null && ThreadLocalUserContext.getUser().getFullname() != null ?
-          ThreadLocalUserContext.getUser().getFullname().toUpperCase() :
-          "");
+              ThreadLocalUserContext.getUser().getFullname().toUpperCase() :
+              "");
       replacementMap.put("Rechnungsnummer", data.getNummer() != null ? data.getNummer().toString() : "");
       replacementMap.put("Rechnungsdatum", DateTimeFormatter.instance().getFormattedDate(data.getDatum()));
       replacementMap.put("Faelligkeit", DateTimeFormatter.instance().getFormattedDate(data.getFaelligkeit()));
@@ -130,8 +125,7 @@ public class InvoiceService
     return result;
   }
 
-  private String getReplacementForAttachment(final RechnungDO data)
-  {
+  private String getReplacementForAttachment(final RechnungDO data) {
     if (StringUtils.isEmpty(data.getAttachment()) == false) {
       return I18nHelper.getLocalizedMessage("fibu.attachment") + ":\r\n" + data.getAttachment();
     } else {
@@ -139,8 +133,7 @@ public class InvoiceService
     }
   }
 
-  private void replaceInWholeDocument(XWPFDocument document, Map<String, String> map)
-  {
+  private void replaceInWholeDocument(XWPFDocument document, Map<String, String> map) {
     List<XWPFParagraph> paragraphs = document.getParagraphs();
     for (XWPFParagraph paragraph : paragraphs) {
       if (StringUtils.isEmpty(paragraph.getText()) == false) {
@@ -149,8 +142,7 @@ public class InvoiceService
     }
   }
 
-  private void replaceInParagraph(XWPFParagraph paragraph, Map<String, String> map)
-  {
+  private void replaceInParagraph(XWPFParagraph paragraph, Map<String, String> map) {
     for (Map.Entry<String, String> entry : map.entrySet()) {
       String searchText = "{" + entry.getKey() + "}";
       if (StringUtils.isEmpty(paragraph.getText()) == false && StringUtils.contains(paragraph.getText(), searchText)) {
@@ -159,8 +151,7 @@ public class InvoiceService
     }
   }
 
-  private void replaceInParagraph(XWPFParagraph paragraph, String searchText, String replacement)
-  {
+  private void replaceInParagraph(XWPFParagraph paragraph, String searchText, String replacement) {
     boolean found = true;
     while (found) {
       found = false;
@@ -216,16 +207,14 @@ public class InvoiceService
     }
   }
 
-  private void replaceInTable(XWPFDocument document, Map<String, String> map)
-  {
+  private void replaceInTable(XWPFDocument document, Map<String, String> map) {
     for (Map.Entry<String, String> entry : map.entrySet()) {
       String searchText = "{" + entry.getKey() + "}";
       replaceInTable(document, searchText, entry.getValue() != null ? entry.getValue() : "");
     }
   }
 
-  private void replaceInTable(XWPFDocument document, String searchText, String replacement)
-  {
+  private void replaceInTable(XWPFDocument document, String searchText, String replacement) {
     for (XWPFTable tbl : document.getTables()) {
       for (XWPFTableRow row : tbl.getRows()) {
         for (XWPFTableCell cell : row.getTableCells()) {
@@ -237,8 +226,7 @@ public class InvoiceService
     }
   }
 
-  private Map<Integer, XWPFRun> getPosToRuns(XWPFParagraph paragraph)
-  {
+  private Map<Integer, XWPFRun> getPosToRuns(XWPFParagraph paragraph) {
     int pos = 0;
     Map<Integer, XWPFRun> map = new HashMap<>(10);
     for (XWPFRun run : paragraph.getRuns()) {
@@ -253,15 +241,13 @@ public class InvoiceService
     return map;
   }
 
-  private void replaceInPosTable(final XWPFDocument templateDocument, final RechnungDO invoice)
-  {
+  private void replaceInPosTable(final XWPFDocument templateDocument, final RechnungDO invoice) {
     XWPFTable posTbl = generatePosTableRows(templateDocument, invoice.getPositionen());
     replacePosDataInTable(posTbl, invoice);
     replaceSumDataInTable(posTbl, invoice);
   }
 
-  private void replaceSumDataInTable(final XWPFTable posTbl, final RechnungDO invoice)
-  {
+  private void replaceSumDataInTable(final XWPFTable posTbl, final RechnungDO invoice) {
     Map<String, String> map = new HashMap<>();
     map.put("Zwischensumme", formatBigDecimal(invoice.getNetSum()));
     map.put("MwSt", formatBigDecimal(invoice.getVatAmountSum()));
@@ -276,8 +262,7 @@ public class InvoiceService
     }
   }
 
-  private String formatBigDecimal(final BigDecimal value)
-  {
+  private String formatBigDecimal(final BigDecimal value) {
     if (value == null) {
       return "";
     }
@@ -285,8 +270,7 @@ public class InvoiceService
     return df.format(value.setScale(2, BigDecimal.ROUND_HALF_DOWN));
   }
 
-  private void replacePosDataInTable(final XWPFTable posTbl, final RechnungDO invoice)
-  {
+  private void replacePosDataInTable(final XWPFTable posTbl, final RechnungDO invoice) {
     int rowCount = 1;
     for (RechnungsPositionDO position : invoice.getPositionen()) {
       String identifier = "{" + position.getNumber() + "}";
@@ -306,8 +290,7 @@ public class InvoiceService
     }
   }
 
-  private String getPeriodOfPerformance(final RechnungsPositionDO position, final RechnungDO invoice)
-  {
+  private String getPeriodOfPerformance(final RechnungsPositionDO position, final RechnungDO invoice) {
     final Date begin;
     final Date end;
 
@@ -322,8 +305,7 @@ public class InvoiceService
     return DateTimeFormatter.instance().getFormattedDate(begin) + " - " + DateTimeFormatter.instance().getFormattedDate(end);
   }
 
-  private XWPFTable generatePosTableRows(final XWPFDocument templateDocument, final List<RechnungsPositionDO> positionen)
-  {
+  private XWPFTable generatePosTableRows(final XWPFDocument templateDocument, final List<RechnungsPositionDO> positionen) {
     XWPFTable posTbl = null;
     for (XWPFTable tbl : templateDocument.getTables()) {
       if (tbl.getRow(0).getCell(0).getText().contains("Beschreibung")) {
@@ -345,8 +327,7 @@ public class InvoiceService
     return posTbl;
   }
 
-  private void copyTableRow(final XWPFTable posTbl, final int rowCounter)
-  {
+  private void copyTableRow(final XWPFTable posTbl, final int rowCounter) {
     XWPFTableRow rowToCopy = posTbl.getRow(1);
     CTRow row = posTbl.getCTTbl().insertNewTr(rowCounter);
     row.set(rowToCopy.getCtRow());
@@ -354,8 +335,7 @@ public class InvoiceService
     posTbl.getRows().add(rowCounter, copyRow);
   }
 
-  private XWPFDocument readWordFile(InputStream is)
-  {
+  private XWPFDocument readWordFile(InputStream is) {
     try {
       return new XWPFDocument(is);
     } catch (IOException e) {
@@ -364,38 +344,23 @@ public class InvoiceService
     return null;
   }
 
-  public String getInvoiceFilename(RechnungDO invoice, final UserAgentBrowser browser)
-  {
-    int DOWNLOAD_MAX_LENGTH = DOWNLOAD_MAXLENGTH_OTHER;
-    if (UserAgentBrowser.SAFARI.equals(browser)) {
-      DOWNLOAD_MAX_LENGTH = DOWNLOAD_MAXLENGTH_SAFARI;
-    }
+  public String getInvoiceFilename(RechnungDO invoice, final UserAgentBrowser browser) {
     final String suffix = ".docx";
     if (invoice == null) {
       return suffix;
     }
     //Rechnungsnummer_Kunde_Projekt_Betreff(mit Unterstrichen statt Leerzeichen)_Datum(2017-07-04)
-    final String number = invoice.getNummer() != null ? invoice.getNummer().toString() + "_" : "";
-    String sanitizedCustomer = invoice.getKunde() != null ? invoice.getKunde().getName().replaceAll("\\W+", "_") + "_" : "";
-    if (StringUtils.isEmpty(sanitizedCustomer)) {
-      sanitizedCustomer = invoice.getKundeText() != null ? invoice.getKundeText().replaceAll("\\W+", "_") + "_" : "";
+    final String number = invoice.getNummer() != null ? invoice.getNummer().toString() : "";
+    String customer = invoice.getKunde() != null ? "_" + invoice.getKunde().getName() : "";
+    if (StringUtils.isEmpty(customer)) {
+      customer = invoice.getKundeText() != null ? "_" + invoice.getKundeText() : "";
     }
-    final String sanitizedProject = invoice.getProjekt() != null ? invoice.getProjekt().getName().replaceAll("\\W+", "_") + "_" : "";
-    final String sanitizedBetreff = invoice.getBetreff() != null ? invoice.getBetreff().replaceAll("\\W+", "_") + "_" : "";
-    final String invoiceDate = DateTimeFormatter.instance().getFormattedDate(invoice.getDatum()).replaceAll("\\W+", "_");
-    String filename =
-        number + sanitizedCustomer + sanitizedProject + sanitizedBetreff + invoiceDate;
-    final int downloadCompleteLength = domainService.getDomain().length() + CONTEXTPATH_LENGTH + filename.length() + suffix.length();
-    if (downloadCompleteLength > DOWNLOAD_MAX_LENGTH) {
-      int diff = downloadCompleteLength - DOWNLOAD_MAX_LENGTH;
-      String more = "[more]";
-      filename = filename.substring(0, filename.length() - diff - more.length());
-      filename = filename + more + suffix;
-    } else if (StringUtils.isEmpty(filename)) {
-      filename = suffix;
-    } else {
-      filename = filename + suffix;
-    }
+    final String project = invoice.getProjekt() != null ? "_" + invoice.getProjekt().getName() : "";
+    final String subject = invoice.getBetreff() != null ? "_" + invoice.getBetreff() : "";
+    final String invoiceDate = "_" + DateTimeFormatter.instance().getFormattedDate(invoice.getDatum());
+    String filename = StringUtils.abbreviate(
+            ReplaceUtils.INSTANCE.encodeFilename(number + customer + project + subject + invoiceDate, true),
+            "[more]", FILENAME_MAXLENGTH) + suffix;
     return filename;
   }
 }

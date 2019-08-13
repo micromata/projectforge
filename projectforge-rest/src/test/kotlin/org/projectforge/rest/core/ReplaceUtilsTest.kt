@@ -25,6 +25,7 @@ package org.projectforge.rest.core
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.projectforge.common.ReplaceUtils
 
 class ReplaceUtilsTest {
     @Test
