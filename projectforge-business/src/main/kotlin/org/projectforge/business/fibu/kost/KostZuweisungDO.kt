@@ -30,6 +30,7 @@ import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO
 import org.projectforge.business.fibu.EmployeeSalaryDO
 import org.projectforge.business.fibu.RechnungsPositionDO
+import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.utils.Constants
@@ -46,7 +47,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_FIBU_KOST_ZUWEISUNG", uniqueConstraints = [UniqueConstraint(columnNames = ["index", "rechnungs_pos_fk", "kost1_fk", "kost2_fk"]), UniqueConstraint(columnNames = ["index", "eingangsrechnungs_pos_fk", "kost1_fk", "kost2_fk"]), UniqueConstraint(columnNames = ["index", "employee_salary_fk", "kost1_fk", "kost2_fk"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_kost_zuweisung_eingangsrechnungs_pos_fk", columnList = "eingangsrechnungs_pos_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_kost_zuweisung_employee_salary_fk", columnList = "employee_salary_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_kost_zuweisung_kost1_fk", columnList = "kost1_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_kost_zuweisung_kost2_fk", columnList = "kost2_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_kost_zuweisung_rechnungs_pos_fk", columnList = "rechnungs_pos_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_kost_zuweisung_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_FIBU_KOST_ZUWEISUNG", uniqueConstraints = [UniqueConstraint(columnNames = ["index", "rechnungs_pos_fk", "kost1_fk", "kost2_fk"]), UniqueConstraint(columnNames = ["index", "eingangsrechnungs_pos_fk", "kost1_fk", "kost2_fk"]), UniqueConstraint(columnNames = ["index", "employee_salary_fk", "kost1_fk", "kost2_fk"])], indexes = [Index(name = "idx_fk_t_fibu_kost_zuweisung_eingangsrechnungs_pos_fk", columnList = "eingangsrechnungs_pos_fk"), Index(name = "idx_fk_t_fibu_kost_zuweisung_employee_salary_fk", columnList = "employee_salary_fk"), Index(name = "idx_fk_t_fibu_kost_zuweisung_kost1_fk", columnList = "kost1_fk"), Index(name = "idx_fk_t_fibu_kost_zuweisung_kost2_fk", columnList = "kost2_fk"), Index(name = "idx_fk_t_fibu_kost_zuweisung_rechnungs_pos_fk", columnList = "rechnungs_pos_fk"), Index(name = "idx_fk_t_fibu_kost_zuweisung_tenant_id", columnList = "tenant_id")])
 class KostZuweisungDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     /**
@@ -61,11 +62,13 @@ class KostZuweisungDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @get:Column(scale = 2, precision = 12)
     var netto: BigDecimal? = null
 
+    @PropertyInfo(i18nKey = "fibu.kost1")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "kost1_fk", nullable = false)
     var kost1: Kost1DO? = null
 
+    @PropertyInfo(i18nKey = "fibu.kost2")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "kost2_fk", nullable = false)

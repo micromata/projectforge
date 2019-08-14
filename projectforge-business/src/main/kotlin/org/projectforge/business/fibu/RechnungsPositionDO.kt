@@ -26,6 +26,7 @@ package org.projectforge.business.fibu
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import org.hibernate.search.annotations.*
 import org.projectforge.business.fibu.kost.KostZuweisungDO
+import org.projectforge.common.anots.PropertyInfo
 import java.sql.Date
 import javax.persistence.*
 
@@ -44,19 +45,23 @@ class RechnungsPositionDO : AbstractRechnungsPositionDO() {
     @get:JoinColumn(name = "rechnung_fk", nullable = false)
     var rechnung : RechnungDO? = null
 
+    @PropertyInfo(i18nKey = "fibu.auftrag.position")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "auftrags_position_fk")
     var auftragsPosition: AuftragsPositionDO? = null
 
+    @PropertyInfo(i18nKey = "fibu.periodOfPerformance.type")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "period_of_performance_type", length = 10)
     var periodOfPerformanceType: PeriodOfPerformanceType? = PeriodOfPerformanceType.SEEABOVE
 
+    @PropertyInfo(i18nKey = "fibu.periodOfPerformance.from")
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_begin")
     var periodOfPerformanceBegin: Date? = null
 
+    @PropertyInfo(i18nKey = "fibu.periodOfPerformance.to")
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_end")
     var periodOfPerformanceEnd: Date? = null
