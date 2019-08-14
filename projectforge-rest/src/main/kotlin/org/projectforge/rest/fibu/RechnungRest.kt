@@ -34,13 +34,12 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/invoice")
-class RechnungRest() : AbstractDORest<RechnungDO, RechnungDao>(RechnungDao::class.java, "fibu.rechnung.title") {
+class RechnungRest: AbstractDORest<RechnungDO, RechnungDao>(RechnungDao::class.java, "fibu.rechnung.title") {
 
     /**
      * LAYOUT List page
      */
     override fun createListLayout(): UILayout {
-        // TODO: Status refers to positionen
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
                         .add(lc, "nummer", "kunde", "projekt", "account", "betreff", "datum", "faelligkeit",
@@ -72,16 +71,41 @@ class RechnungRest() : AbstractDORest<RechnungDO, RechnungDao>(RechnungDao::clas
                         .add(UICol()
                                 .add(lc, "datum", "vatAmountSum", "bezahlDatum", "faelligkeit"))
                         .add(UICol()
-                                .add(lc, "netSum", "grossSum")))
+                                .add(lc, "netSum", "grossSum", "zahlBetrag", "discountMaturity", "discountPercent")))
                 .add(UIRow()
                         .add(UICol()
-                                .add(lc, "projekt", "kunde", "customerAddress", "customerref1", "attachment")))
+                                .add(lc, "projekt", "kunde", "kundeText", "customerAddress", "customerref1", "attachment",
+                                        "periodOfPerformanceBegin", "periodOfPerformanceEnd")))
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "bemerkung"))
                         .add(UICol()
                                 .add(lc, "besonderheiten")))
-                .add(UILabel("TODO: Customized element for Pos"))
+                // Positionen
+                .add(UIList()
+                        .add(UIRow()
+                                .add(UICol()
+                                        .add(lc, "positionen.auftragsposition.auftrag"))
+                                .add(UICol()
+                                        .add(lc, "positionen.menge"))
+                                .add(UICol()
+                                        .add(lc, "positionen.einzelnetto"))
+                                .add(UICol()
+                                        .add(lc, "positionen.vat"))
+                                .add(UICol()
+                                        .add(lc, "positionen.netSum"))
+                                .add(UICol()
+                                        .add(lc, "positionen.vatAmount"))
+                                .add(UICol()
+                                        .add(lc, "positionen.bruttoSum")))
+                        .add(UIRow()
+                                .add(UICol()
+                                        .add(lc, "text"))
+                                .add(UICol()
+                                        .add(UILabel("TODO: Kostzuweisungen: kost1, kost2, netto, prozent?"))))
+                        .add(UIRow()
+                                .add(UICol()
+                                        .add(lc, "positionen.periodOfPerformanceType"))))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }
