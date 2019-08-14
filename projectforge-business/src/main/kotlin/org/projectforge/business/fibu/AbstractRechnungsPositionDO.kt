@@ -27,6 +27,7 @@ import org.apache.commons.collections.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.projectforge.business.fibu.kost.KostZuweisungDO
+import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.utils.CurrencyHelper
@@ -47,18 +48,23 @@ abstract class AbstractRechnungsPositionDO: DefaultBaseDO(), ShortDisplayNameCap
     private val log = org.slf4j.LoggerFactory
             .getLogger(AbstractRechnungsPositionDO::class.java)
 
+    @PropertyInfo(i18nKey = "fibu.rechnung.nummer")
     @get:Column
     var number: Short = 0
 
+    @PropertyInfo(i18nKey = "fibu.rechnung.text")
     @get:Column(name = "s_text", length = 1000)
     var text: String? = null
 
+    @PropertyInfo(i18nKey = "fibu.rechnung.menge")
     @get:Column(scale = 5, precision = 18)
     var menge: BigDecimal? = null
 
+    @PropertyInfo(i18nKey = "fibu.rechnung.position.einzelNetto")
     @get:Column(name = "einzel_netto", scale = 2, precision = 18)
     var einzelNetto: BigDecimal? = null
 
+    @PropertyInfo(i18nKey = "fibu.rechnung.mehrwertSteuerSatz")
     @get:Column(scale = 5, precision = 10)
     var vat: BigDecimal? = null
 
