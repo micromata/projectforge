@@ -35,31 +35,31 @@ open class SmsSenderConfig {
     }
 
     @Value("\${projectforge.sms.httpMethod}")
-    open var httpMethodType: HttpMethodType? = null
+    var httpMethodType: HttpMethodType? = null
 
     @Value("\${projectforge.sms.url}")
-    open var url: String? = null
+    var url: String? = null
 
     @Value("#{\${projectforge.sms.httpParameters}}")
-    open var httpParams: Map<String, String>? = null
+    var httpParams: Map<String, String>? = null
 
     @Value("\${projectforge.sms.returnCodePattern.success}")
-    open var smsReturnPatternSuccess: String? = null
+    var smsReturnPatternSuccess: String? = null
 
     @Value("\${projectforge.sms.returnCodePattern.numberError}")
-    open var smsReturnPatternNumberError: String? = null
+    var smsReturnPatternNumberError: String? = null
 
     @Value("\${projectforge.sms.returnCodePattern.messageToLargeError}")
-    open var smsReturnPatternMessageToLargeError: String? = null
+    var smsReturnPatternMessageToLargeError: String? = null
 
     @Value("\${projectforge.sms.returnCodePattern.messageError}")
-    open var smsReturnPatternMessageError: String? = null
+    var smsReturnPatternMessageError: String? = null
 
     @Value("\${projectforge.sms.returnCodePattern.error}")
-    open var smsReturnPatternError: String? = null
+    var smsReturnPatternError: String? = null
 
     @Value("\${projectforge.sms.smsMaxMessageLength}")
-    open var smsMaxMessageLength = 160
+    var smsMaxMessageLength = 160
 
     fun isSmsConfigured(): Boolean {
         return StringUtils.isNotBlank(url)
