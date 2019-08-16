@@ -180,6 +180,9 @@ class IndexPage extends React.Component {
                                 Prepare nested, indexed properties, such as{' '}
                                 <code>invoice.positions[2].amount</code>
                             </li>
+                            <li>
+                                Handle Click Hook TimesheetTemplatesAndRecents.jsx
+                            </li>
                         </ol>
                         <h1>Done</h1>
                         <ol style={todoDone}>
