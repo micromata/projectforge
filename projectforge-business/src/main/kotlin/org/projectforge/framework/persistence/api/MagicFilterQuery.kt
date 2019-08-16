@@ -224,7 +224,7 @@ class MagicFilterQuery {
                 if (--maxOrder <= 0)
                     break // Add only 3 orders.
             }
-            //criteria.setMaxResults(1000)
+            criteria.setMaxResults(50) // TODO!!!!!!!!
             setCacheRegion(baseDao, criteria)
             @Suppress("UNCHECKED_CAST")
             var list = criteria.list() as List<O>
