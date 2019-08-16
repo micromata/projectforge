@@ -38,17 +38,17 @@ data class UITable(val id : String, val columns : MutableList<UITableColumn> = m
     /**
      * For adding columns with the given ids
      */
-    fun add(layoutSettings: LayoutContext, vararg columnIds: String): UITable {
+    fun add(lc: LayoutContext, vararg columnIds: String): UITable {
         columnIds.forEach {
             val col = UITableColumn(it)
             col.protectTitle = true
-            val elementInfo = ElementsRegistry.getElementInfo(layoutSettings.dataObjectClazz, it)
+            val elementInfo = ElementsRegistry.getElementInfo(lc, it)
             if (elementInfo != null) {
                 col.title = elementInfo.i18nKey
                 col.dataType = UIDataTypeUtils.getDataType(elementInfo)
             }
-            if (!layoutSettings.idPrefix.isNullOrBlank())
-                col.id = "${layoutSettings.idPrefix}${col.id}"
+            if (!lc.idPrefix.isNullOrBlank())
+                col.id = "${lc.idPrefix}${col.id}"
             add(col)
         }
         return this

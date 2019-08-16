@@ -30,7 +30,17 @@ data class LayoutContext(
         val dataObjectClazz: Class<*>?,
         var idPrefix: String? = null) {
 
+    private val listElements = mutableMapOf<String, String>()
+
     constructor(layoutContext: LayoutContext) : this(layoutContext.dataObjectClazz) {
         idPrefix = layoutContext.idPrefix
+    }
+
+    fun registerListElement(varName: String, idPath: String) {
+        listElements[varName] = idPath
+    }
+
+    fun getListElementPath(varName: String): String? {
+        return listElements[varName]
     }
 }

@@ -75,6 +75,7 @@ public class PropUtils {
         if (nestedProp.equals(declaredField.getName()) == true) {
           field = declaredField;
           cls = field.getType();
+          break;
         }
       }
     }

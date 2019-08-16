@@ -30,6 +30,8 @@ import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import java.lang.reflect.Field
+import java.lang.reflect.ParameterizedType
 import java.math.BigDecimal
 import java.util.*
 import javax.persistence.Basic
@@ -45,7 +47,7 @@ object ElementsRegistry {
     private val log = org.slf4j.LoggerFactory.getLogger(ElementsRegistry::class.java)
 
     class ElementInfo(val propertyName: String,
-                      var propertyType: Class<*> = String::class.java,
+                      var propertyField: Field? = null,
                       var maxLength: Int? = null,
                       var required: Boolean? = null,
                       var i18nKey: String? = null,
@@ -59,6 +61,10 @@ object ElementsRegistry {
          */
         val simplePropertyName
             get() = if (propertyName.contains('.')) propertyName.substring(propertyName.lastIndexOf('.') + 1) else propertyName
+
+        val propertyType
+            get() = propertyField?.type ?: String::class.java
+
     }
 
     fun getProperties(clazz: Class<*>): Map<String, ElementInfo>? {
@@ -74,12 +80,12 @@ object ElementsRegistry {
      */
     private val unavailableElementsSet = mutableSetOf<String>()
 
-    internal fun buildElement(layoutSettings: LayoutContext, property: String): UIElement {
-        val mapKey = getMapKey(layoutSettings.dataObjectClazz, property) ?: return UILabel(property)
-        val elementInfo = getElementInfo(layoutSettings.dataObjectClazz, property)
+    internal fun buildElement(lc: LayoutContext, property: String): UIElement {
+        val mapKey = getMapKey(lc.dataObjectClazz, property) ?: return UILabel(property)
+        val elementInfo = getElementInfo(lc, property)
         if (elementInfo == null) {
-            log.info("Can't build UIElement from ${mapKey}.")
-            return UILabel("??? ${mapKey} ???")
+            log.info("Can't build UIElement from $mapKey.")
+            return UILabel("??? $mapKey ???")
         }
 
         var element: UIElement? =
@@ -87,27 +93,27 @@ object ElementsRegistry {
                     String::class.java -> {
                         val maxLength = elementInfo.maxLength
                         if (maxLength != null && maxLength > 255) {
-                            UITextArea(property, maxLength = elementInfo.maxLength, layoutContext = layoutSettings)
+                            UITextArea(property, maxLength = elementInfo.maxLength, layoutContext = lc)
                         } else {
-                            UIInput(property, maxLength = elementInfo.maxLength, required = elementInfo.required, layoutContext = layoutSettings)
+                            UIInput(property, maxLength = elementInfo.maxLength, required = elementInfo.required, layoutContext = lc)
                         }
                     }
                     Boolean::class.java -> UICheckbox(property)
-                    Date::class.java -> UIInput(property, required = elementInfo.required, layoutContext = layoutSettings, dataType = UIDataType.TIMESTAMP)
-                    java.sql.Date::class.java -> UIInput(property, required = elementInfo.required, layoutContext = layoutSettings, dataType = UIDataType.DATE)
-                    java.sql.Timestamp::class.java -> UIInput(property, required = elementInfo.required, layoutContext = layoutSettings, dataType = UIDataType.TIMESTAMP)
-                    PFUserDO::class.java -> UIInput(property, required = elementInfo.required, layoutContext = layoutSettings, dataType = UIDataType.USER)
-                    Integer::class.java -> UIInput(property, required = elementInfo.required, layoutContext = layoutSettings, dataType = UIDataType.INT)
-                    BigDecimal::class.java -> UIInput(property, required = elementInfo.required, layoutContext = layoutSettings, dataType = UIDataType.DECIMAL)
-                    TaskDO::class.java -> UIInput(property, required = elementInfo.required, layoutContext = layoutSettings, dataType = UIDataType.TASK)
-                    Locale::class.java -> UIInput(property, required = elementInfo.required, layoutContext = layoutSettings, dataType = UIDataType.LOCALE)
+                    Date::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = UIDataType.TIMESTAMP)
+                    java.sql.Date::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = UIDataType.DATE)
+                    java.sql.Timestamp::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = UIDataType.TIMESTAMP)
+                    PFUserDO::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = UIDataType.USER)
+                    Integer::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = UIDataType.INT)
+                    BigDecimal::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = UIDataType.DECIMAL)
+                    TaskDO::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = UIDataType.TASK)
+                    Locale::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = UIDataType.LOCALE)
                     else -> null
                 }
         if (element == null) {
             if (elementInfo.propertyType.isEnum) {
                 if (I18nEnum::class.java.isAssignableFrom(elementInfo.propertyType)) {
                     @Suppress("UNCHECKED_CAST")
-                    element = UISelect<String>(property, required = elementInfo.required, layoutContext = layoutSettings)
+                    element = UISelect<String>(property, required = elementInfo.required, layoutContext = lc)
                             .buildValues(i18nEnum = elementInfo.propertyType as Class<out Enum<*>>)
                 } else {
                     log.warn("Properties of enum not implementing I18nEnum not yet supported: $mapKey.")
@@ -124,11 +130,31 @@ object ElementsRegistry {
         return element ?: UILabel(property)
     }
 
-    internal fun getElementInfo(layoutSettings: LayoutContext, property: String): ElementInfo? {
-        return getElementInfo(layoutSettings.dataObjectClazz, property)
+    internal fun getElementInfo(lc: LayoutContext, property: String): ElementInfo? {
+        val parts = property.split('.')
+        if (!parts.isNullOrEmpty()) {
+            val path = lc.getListElementPath(parts[0])
+            if (path != null) {
+                // property starts with list element name, therefore try to find the property of this list element
+                // instead of the data object class:
+                val listElementInfo = getElementInfo(lc.dataObjectClazz, path)
+                if (listElementInfo?.propertyField == null) {
+                    return null
+                }
+                val type = listElementInfo.propertyField?.genericType
+                if (type is ParameterizedType) {
+                    val typeArg = type.actualTypeArguments[0]
+                    if (typeArg is Class<*>) {
+                        return getElementInfo(typeArg, property.substring(parts[0].length + 1))
+                    }
+                }
+            }
+        }
+        return getElementInfo(lc.dataObjectClazz, property)
     }
 
     /**
+     * If possible, use [getElementInfo] with layoutContext instead for supporting list elements.
      * @param property name of property (nested properties are supported, like timesheet.task.id.
      */
     internal fun getElementInfo(clazz: Class<*>?, property: String): ElementInfo? {
@@ -142,13 +168,14 @@ object ElementsRegistry {
         if (unavailableElementsSet.contains(mapKey)) {
             return null // Element can't be determined (a previous try failed)
         }
-        val propertyType = getPropertyType(clazz, property)
+        val propertyField = getPropertyField(clazz, property)
+        val propertyType = propertyField?.type
         if (propertyType == null) {
             log.info("Property $clazz.$property not found. Can't autodetect layout.")
             unavailableElementsSet.add(mapKey)
             return null
         }
-        elementInfo = ElementInfo(property, propertyType)
+        elementInfo = ElementInfo(property, propertyField)
         if (property.contains('.')) { // Nested property, like timesheet.task.id?
             val parentProperty = property.substring(0, property.lastIndexOf('.'))
             val parentInfo = getElementInfo(clazz, parentProperty)
@@ -172,10 +199,10 @@ object ElementsRegistry {
         return elementInfo
     }
 
-    private fun getPropertyType(clazz: Class<*>?, property: String): Class<*>? {
+    private fun getPropertyField(clazz: Class<*>?, property: String): Field? {
         if (clazz == null)
             return null
-        return PropUtils.getField(clazz, property)?.type
+        return PropUtils.getField(clazz, property)
     }
 
     private fun ensureClassMap(clazz: Class<*>): MutableMap<String, ElementInfo> {
