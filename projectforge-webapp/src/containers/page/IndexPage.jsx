@@ -177,8 +177,11 @@ class IndexPage extends React.Component {
                                 and date-range picker.
                             </li>
                             <li>
-                                Prepare nested, indexed properties, such as{' '}
+                                Prepare nested, indexed properties, such as
+                                {' '}
                                 <code>invoice.positions[2].amount</code>
+                                <br />
+                                See /incomingInvoice
                             </li>
                             <li>
                                 Handle Click Hook TimesheetTemplatesAndRecents.jsx

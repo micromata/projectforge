@@ -23,7 +23,28 @@
 
 package org.projectforge.ui
 
-data class UIList(val content: MutableList<UIElement> = mutableListOf()) : UIElement(UIElementType.LIST) {
+import com.fasterxml.jackson.annotation.JsonIgnore
+
+data class UIList(
+        /**
+         * Needed to register elementVar during layout processing.
+         */
+        @JsonIgnore
+        val lc: LayoutContext,
+        /**
+         * The path of the list in the data object.
+         */
+        val listId: String,
+        /**
+         * The name of an item of the list, usable by the child elements as prefix of id.
+         */
+        val elementVar: String,
+        val content: MutableList<UIElement> = mutableListOf())
+    : UIElement(UIElementType.LIST) {
+    init {
+        lc.registerListElement(elementVar, listId)
+    }
+
     fun add(listEntry: UIElement): UIList {
         content.add(listEntry)
         return this
