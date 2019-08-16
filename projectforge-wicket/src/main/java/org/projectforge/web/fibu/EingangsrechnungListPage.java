@@ -23,12 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.lang.reflect.Field;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -42,17 +36,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.excel.ContentProvider;
-import org.projectforge.business.excel.ExcelExporter;
-import org.projectforge.business.excel.ExportColumn;
-import org.projectforge.business.excel.I18nExportColumn;
-import org.projectforge.business.excel.PropertyMapping;
-import org.projectforge.business.fibu.EingangsrechnungDO;
-import org.projectforge.business.fibu.EingangsrechnungDao;
-import org.projectforge.business.fibu.EingangsrechnungsStatistik;
-import org.projectforge.business.fibu.KontoCache;
-import org.projectforge.business.fibu.KontoDO;
-import org.projectforge.business.fibu.RechnungFilter;
+import org.projectforge.business.excel.*;
+import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.KostZuweisungExport;
 import org.projectforge.business.fibu.kost.reporting.SEPATransferGenerator;
 import org.projectforge.business.fibu.kost.reporting.SEPATransferResult;
@@ -64,17 +49,15 @@ import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.CurrencyPropertyColumn;
-import org.projectforge.web.wicket.DownloadUtils;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
-import org.projectforge.web.wicket.RowCssClass;
+import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
+
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 @ListPage(editPage = EingangsrechnungEditPage.class)
 public class EingangsrechnungListPage
@@ -353,7 +336,9 @@ public class EingangsrechnungListPage
   {
     super.setMassUpdateMode(mode);
     exportExcelButton.setVisible(!mode);
-    exportKostzuweisungButton.setVisible(!mode);
+    if (exportKostzuweisungButton != null) {
+      exportKostzuweisungButton.setVisible(!mode);
+    }
   }
 
   @Override

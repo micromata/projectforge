@@ -500,7 +500,9 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     massUpdateMenuEntry.setVisible(!mode);
     selectAllMenuEntry.setVisible(mode);
     deselectAllMenuEntry.setVisible(mode);
-    newItemMenuEntry.setVisible(!mode);
+    if (newItemMenuEntry != null) {
+      newItemMenuEntry.setVisible(!mode);
+    }
     this.massUpdateMode = mode;
     form.remove(dataTable);
     createDataTable();
