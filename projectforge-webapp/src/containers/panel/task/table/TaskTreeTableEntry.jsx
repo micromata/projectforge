@@ -2,9 +2,12 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import Formatter from '../../../../components/base/Formatter';
 import ConsumptionBar from '../ConsumptionBar';
+import TaskTreeContext from '../TaskTreeContext';
 import TaskTreeTableEntryIcon from './TaskTreeTableEntryIcon';
 
-function TaskTreeTableEntry({ task, columnsVisibility, shortForm }) {
+function TaskTreeTableEntry({ task }) {
+    const { columnsVisibility, shortForm } = React.useContext(TaskTreeContext);
+
     return (
         <tr>
             <td style={{ paddingLeft: `${task.indent * 1.5 + 0.75}rem` }}>
@@ -68,20 +71,6 @@ TaskTreeTableEntry.propTypes = {
         shortDescription: PropTypes.string,
         status: PropTypes.string,
     }).isRequired,
-    columnsVisibility: PropTypes.shape({
-        assignedUser: PropTypes.bool,
-        kost2: PropTypes.bool,
-        orders: PropTypes.bool,
-        priority: PropTypes.bool,
-        protectionUntil: PropTypes.bool,
-        reference: PropTypes.bool,
-    }),
-    shortForm: PropTypes.bool,
-};
-
-TaskTreeTableEntry.defaultProps = {
-    columnsVisibility: {},
-    shortForm: false,
 };
 
 export default TaskTreeTableEntry;
