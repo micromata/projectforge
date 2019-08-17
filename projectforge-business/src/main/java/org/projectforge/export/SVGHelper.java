@@ -23,15 +23,15 @@
 
 package org.projectforge.export;
 
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-
-import org.apache.batik.dom.svg.SVGDOMImplementation;
+import org.apache.batik.anim.dom.SVGDOMImplementation;
 import org.projectforge.business.gantt.GanttRelationType;
 import org.projectforge.common.StringHelper;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 
 public class SVGHelper
 {

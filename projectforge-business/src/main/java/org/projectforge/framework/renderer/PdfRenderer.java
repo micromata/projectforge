@@ -23,30 +23,9 @@
 
 package org.projectforge.framework.renderer;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
-import java.net.MalformedURLException;
-import java.util.Map;
-
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.sax.SAXResult;
-import javax.xml.transform.stream.StreamSource;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.fop.apps.FOPException;
-import org.apache.fop.apps.FOUserAgent;
-import org.apache.fop.apps.Fop;
-import org.apache.fop.apps.FopFactory;
-import org.apache.fop.apps.MimeConstants;
+import org.apache.fop.apps.*;
 import org.projectforge.AppVersion;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.scripting.GroovyEngine;
@@ -60,6 +39,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import javax.xml.transform.*;
+import javax.xml.transform.sax.SAXResult;
+import javax.xml.transform.stream.StreamSource;
+import java.io.*;
+import java.util.Map;
 
 /**
  * This class provides the functionality for rendering pdf files. The underlaying technology is XSL-FO. The dynamic data
@@ -119,20 +104,20 @@ public class PdfRenderer
         + getFontResourcePath());
 
     // configure fopFactory as desired
-    final FopFactory fopFactory = FopFactory.newInstance();
+    final FopFactory fopFactory = FopFactory.newInstance(new File(getFontResourcePath()).toURI());
 
-    try {
+    /*try {
       fopFactory.getFontManager().setFontBaseURL(getFontResourcePath());
     } catch (final MalformedURLException ex) {
       log.error(ex.getMessage(), ex);
-    }
+    }*/
 
     final FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
-    try {
+    /*try {
       foUserAgent.getFactory().getFontManager().setFontBaseURL(getFontResourcePath());
     } catch (final MalformedURLException ex) {
       log.error(ex.getMessage(), ex);
-    }
+    }*/
     // configure foUserAgent as desired
 
     InputStream xsltInputStream = null;
