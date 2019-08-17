@@ -28,8 +28,13 @@ import java.lang.reflect.ParameterizedType
 
 class ElementInfo(val propertyName: String,
                   propertyField: Field? = null,
+                  propertyType: Class<*>? = null,
                   var maxLength: Int? = null,
                   var required: Boolean? = null,
+                  /**
+                   * Getter methods without fields are normally read-only fields.
+                   */
+                  var readOnly: Boolean = false,
                   var i18nKey: String? = null,
                   var additionalI18nKey: String? = null,
                   /**
@@ -37,12 +42,15 @@ class ElementInfo(val propertyName: String,
                    */
                   var parent: ElementInfo? = null) {
 
-    var propertyField: Field? = null
+    var propertyType: Class<*> = String::class.java
+
+    private var propertyField: Field? = null
         set(value) {
             field = value
             genericType = null
             if (value != null) {
-                val type = propertyField?.genericType
+                propertyType = value.type
+                val type = value.genericType
                 if (type is ParameterizedType) {
                     val typeArg = type.actualTypeArguments[0]
                     if (typeArg is Class<*>) {
@@ -54,6 +62,8 @@ class ElementInfo(val propertyName: String,
 
     init {
         this.propertyField = propertyField
+        if (propertyType != null)
+            this.propertyType = propertyType
     }
 
     /**
@@ -61,9 +71,6 @@ class ElementInfo(val propertyName: String,
      */
     val simplePropertyName
         get() = if (propertyName.contains('.')) propertyName.substring(propertyName.lastIndexOf('.') + 1) else propertyName
-
-    val propertyType
-        get() = propertyField?.type ?: String::class.java
 
     var genericType: Class<*>? = null
         private set

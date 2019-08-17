@@ -31,6 +31,7 @@ import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.springframework.beans.BeanUtils
 import java.lang.reflect.Field
 import java.math.BigDecimal
 import java.util.*
@@ -66,28 +67,33 @@ object ElementsRegistry {
             log.info("Can't build UIElement from $mapKey.")
             return UILabel("??? $mapKey ???")
         }
-
-        var element: UIElement? =
-                when (elementInfo.propertyType) {
-                    String::class.java -> {
-                        val maxLength = elementInfo.maxLength
-                        if (maxLength != null && maxLength > 255) {
-                            UITextArea(property, maxLength = elementInfo.maxLength, layoutContext = lc)
-                        } else {
-                            UIInput(property, maxLength = elementInfo.maxLength, required = elementInfo.required, layoutContext = lc)
+        var element: UIElement?
+        if (elementInfo.readOnly) {
+            element = UILabel(property, dataType = getDataType(elementInfo))
+        } else {
+            val dataType = getDataType(elementInfo)
+            element =
+                    when (elementInfo.propertyType) {
+                        String::class.java -> {
+                            val maxLength = elementInfo.maxLength
+                            if (maxLength != null && maxLength > 255) {
+                                UITextArea(property, maxLength = elementInfo.maxLength, layoutContext = lc)
+                            } else {
+                                UIInput(property, maxLength = elementInfo.maxLength, required = elementInfo.required, layoutContext = lc)
+                            }
                         }
+                        Boolean::class.java -> UICheckbox(property)
+                        Date::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
+                        java.sql.Date::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
+                        java.sql.Timestamp::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
+                        PFUserDO::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
+                        Integer::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
+                        BigDecimal::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
+                        TaskDO::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
+                        Locale::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
+                        else -> null
                     }
-                    Boolean::class.java -> UICheckbox(property)
-                    Date::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = UIDataType.TIMESTAMP)
-                    java.sql.Date::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = UIDataType.DATE)
-                    java.sql.Timestamp::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = UIDataType.TIMESTAMP)
-                    PFUserDO::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = UIDataType.USER)
-                    Integer::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = UIDataType.INT)
-                    BigDecimal::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = UIDataType.DECIMAL)
-                    TaskDO::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = UIDataType.TASK)
-                    Locale::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = UIDataType.LOCALE)
-                    else -> null
-                }
+        }
         if (element == null) {
             if (elementInfo.propertyType.isEnum) {
                 if (I18nEnum::class.java.isAssignableFrom(elementInfo.propertyType)) {
@@ -107,6 +113,22 @@ object ElementsRegistry {
             LayoutUtils.setLabels(elementInfo, element)
         }
         return element ?: UILabel(property)
+    }
+
+    private fun getDataType(elementInfo: ElementInfo): UIDataType? {
+        return when (elementInfo.propertyType) {
+            String::class.java -> UIDataType.STRING
+            Boolean::class.java -> UIDataType.BOOLEAN
+            Date::class.java -> UIDataType.TIMESTAMP
+            java.sql.Date::class.java -> UIDataType.DATE
+            java.sql.Timestamp::class.java -> UIDataType.TIMESTAMP
+            PFUserDO::class.java -> UIDataType.USER
+            Integer::class.java -> UIDataType.INT
+            BigDecimal::class.java -> UIDataType.DECIMAL
+            TaskDO::class.java -> UIDataType.TASK
+            Locale::class.java -> UIDataType.LOCALE
+            else -> null
+        }
     }
 
     internal fun getElementInfo(lc: LayoutContext, property: String): ElementInfo? {
@@ -141,32 +163,36 @@ object ElementsRegistry {
             return null // Element can't be determined (a previous try failed)
         }
         val propertyField = getPropertyField(clazz, property)
-        val propertyType = propertyField?.type
-        if (propertyType == null) {
-            log.info("Property $clazz.$property not found. Can't autodetect layout.")
-            unavailableElementsSet.add(mapKey)
-            return null
+        if (propertyField != null) {
+            elementInfo = ElementInfo(property, propertyField)
+        } else {
+            elementInfo = getPropertyInfo(clazz, property)
+            if (elementInfo == null) {
+                log.info("Property $clazz.$property not found. Can't autodetect layout.")
+                unavailableElementsSet.add(mapKey)
+                return null
+            }
         }
-        elementInfo = ElementInfo(property, propertyField)
         if (property.contains('.')) { // Nested property, like timesheet.task.id?
             val parentProperty = property.substring(0, property.lastIndexOf('.'))
             val parentInfo = getElementInfo(clazz, parentProperty)
             elementInfo.parent = parentInfo
         }
-        val propertyInfo = PropUtils.get(clazz, property)
-        if (propertyInfo == null) {
-            log.warn("@PropertyInfo '$clazz:$property' not found.")
-            return elementInfo
+        if (propertyField != null) { // Property info is only available for fields (getter method not yet supported).
+            val propertyInfo = PropUtils.get(clazz, property)
+            if (propertyInfo == null) {
+                log.warn("@PropertyInfo '$clazz:$property' not found.")
+                return elementInfo
+            }
+            val colinfo = getColumnMetadata(clazz, property)
+            if (colinfo != null) {
+                elementInfo.maxLength = colinfo.maxLength
+                if (!(colinfo.isNullable) || propertyInfo.required)
+                    elementInfo.required = true
+            }
+            elementInfo.i18nKey = getNullIfEmpty(propertyInfo.i18nKey)
+            elementInfo.additionalI18nKey = getNullIfEmpty(propertyInfo.additionalI18nKey)
         }
-        val colinfo = getColumnMetadata(clazz, property)
-        if (colinfo != null) {
-            elementInfo.maxLength = colinfo.maxLength
-            if (!(colinfo.isNullable) || propertyInfo.required)
-                elementInfo.required = true
-        }
-        elementInfo.i18nKey = getNullIfEmpty(propertyInfo.i18nKey)
-        elementInfo.additionalI18nKey = getNullIfEmpty(propertyInfo.additionalI18nKey)
-
         ensureClassMap(clazz)[property] = elementInfo
         return elementInfo
     }
@@ -174,7 +200,14 @@ object ElementsRegistry {
     private fun getPropertyField(clazz: Class<*>?, property: String): Field? {
         if (clazz == null)
             return null
-        return PropUtils.getField(clazz, property)
+        return PropUtils.getField(clazz, property, true)
+    }
+
+    private fun getPropertyInfo(clazz: Class<*>?, property: String): ElementInfo? {
+        if (clazz == null)
+            return null
+        val desc = BeanUtils.getPropertyDescriptor(clazz, property) ?: return null
+        return ElementInfo(property, propertyType = desc.propertyType, readOnly = (desc.writeMethod == null))
     }
 
     private fun ensureClassMap(clazz: Class<*>): MutableMap<String, ElementInfo> {

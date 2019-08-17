@@ -25,6 +25,7 @@ package org.projectforge.ui
 
 enum class UIDataType {
     AMOUNT,
+    BOOLEAN,
     CUSTOMIZED,
     DATE,
     DECIMAL,
