@@ -1,4 +1,3 @@
-import { faFile } from '@fortawesome/free-regular-svg-icons';
 import { faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
@@ -15,14 +14,13 @@ function TaskTreeTableEntryIcon({ treeStatus }) {
         case 'CLOSED':
             icon = faChevronRight;
             break;
-        case 'LEAF':
-            icon = faFile;
-            break;
         default:
     }
 
     return (
-        <FontAwesomeIcon icon={icon} className={style.entryIcon} />
+        <div className={style.entryIcon}>
+            <FontAwesomeIcon icon={icon} />
+        </div>
     );
 }
 
