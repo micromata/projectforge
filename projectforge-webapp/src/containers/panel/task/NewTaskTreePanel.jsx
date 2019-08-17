@@ -4,6 +4,7 @@ import LoadingContainer from '../../../components/design/loading-container';
 import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import TaskTreeTable from './table/TaskTreeTable';
 import TaskFilter from './TaskFilter';
+import TaskTreeContext, { taskTreeContextDefaultValues } from './TaskTreeContext';
 
 function NewTaskTreePanel(
     {
@@ -109,20 +110,25 @@ function NewTaskTreePanel(
 
     return (
         <LoadingContainer loading={loading}>
-            <TaskFilter
-                filter={filter}
-                onSubmit={() => loadTasks()}
-                onCheckBoxChange={handleCheckBoxChange}
-                onChange={handleSearchChange}
-                translations={translations}
-            />
-            <TaskTreeTable
-                onSelect={selectTask}
-                translations={translations}
-                shortForm={shortForm}
-                nodes={nodes}
-                columnsVisibility={columnsVisibility}
-            />
+            <TaskTreeContext.Provider
+                value={{
+                    ...taskTreeContextDefaultValues,
+                    columnsVisibility,
+                    selectTask,
+                    shortForm,
+                    translations,
+                }}
+            >
+                <TaskFilter
+                    filter={filter}
+                    onSubmit={() => loadTasks()}
+                    onCheckBoxChange={handleCheckBoxChange}
+                    onChange={handleSearchChange}
+                />
+                <TaskTreeTable
+                    nodes={nodes}
+                />
+            </TaskTreeContext.Provider>
         </LoadingContainer>
     );
 }

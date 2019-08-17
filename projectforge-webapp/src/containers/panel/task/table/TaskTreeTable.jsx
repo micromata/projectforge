@@ -1,18 +1,17 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Table } from '../../../../components/design';
+import TaskTreeContext from '../TaskTreeContext';
 import TaskTreeTableEntry from './TaskTreeTableEntry';
 
 
-function TaskTreeTable(
-    {
+function TaskTreeTable({ nodes }) {
+    const {
         columnsVisibility,
-        nodes,
-        onSelect,
         shortForm,
         translations,
-    },
-) {
+    } = React.useContext(TaskTreeContext);
+
     return (
         <Table striped hover responsive>
             <thead>
@@ -57,8 +56,6 @@ function TaskTreeTable(
                 {nodes.map(task => (
                     <TaskTreeTableEntry
                         key={`task-tree-table-body-row-${task.id}`}
-                        columnsVisibility={columnsVisibility}
-                        shortForm={shortForm}
                         task={task}
                     />
                 ))}
@@ -69,34 +66,6 @@ function TaskTreeTable(
 
 TaskTreeTable.propTypes = {
     nodes: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
-    onSelect: PropTypes.func.isRequired,
-    columnsVisibility: PropTypes.shape({
-        assignedUser: PropTypes.bool,
-        kost2: PropTypes.bool,
-        orders: PropTypes.bool,
-        priority: PropTypes.bool,
-        protectionUntil: PropTypes.bool,
-        reference: PropTypes.bool,
-    }),
-    shortForm: PropTypes.bool,
-    translations: PropTypes.shape({
-        'fibu.auftrag.auftraege': PropTypes.string,
-        'fibu.kost2': PropTypes.string,
-        priority: PropTypes.string,
-        shortDescription: PropTypes.string,
-        status: PropTypes.string,
-        task: PropTypes.string,
-        'task.assignedUser': PropTypes.string,
-        'task.consumption': PropTypes.string,
-        'task.protectTimesheetsUntil.short': PropTypes.string,
-        'task.referece': PropTypes.string,
-    }),
-};
-
-TaskTreeTable.defaultProps = {
-    columnsVisibility: {},
-    shortForm: false,
-    translations: {},
 };
 
 export default TaskTreeTable;

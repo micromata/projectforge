@@ -4,6 +4,7 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Button, CheckBox, Col, Input, Row } from '../../../components/design';
+import TaskTreeContext from './TaskTreeContext';
 import style from './TaskTreePanel.module.scss';
 
 function TaskFilter(
@@ -12,9 +13,9 @@ function TaskFilter(
         onCheckBoxChange: handleCheckBoxChange,
         onSubmit: handleSubmitButton,
         filter,
-        translations,
     },
 ) {
+    const { translations } = React.useContext(TaskTreeContext);
     const [isOpen, setIsOpen] = React.useState(false);
     const reference = React.useRef(undefined);
     const basicReference = React.useRef(undefined);
