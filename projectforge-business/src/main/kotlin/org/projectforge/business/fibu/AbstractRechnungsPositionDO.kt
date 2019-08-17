@@ -74,6 +74,7 @@ abstract class AbstractRechnungsPositionDO: DefaultBaseDO(), ShortDisplayNameCap
     @get:Transient
     abstract val rechnungId: Int?
 
+    @get:PropertyInfo(i18nKey = "fibu.common.netto")
     val netSum: BigDecimal
         @Transient
         get() = if (this.menge != null) {

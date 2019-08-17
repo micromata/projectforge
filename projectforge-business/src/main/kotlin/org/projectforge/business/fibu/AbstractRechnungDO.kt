@@ -158,6 +158,7 @@ abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBase
             return field
         }
 
+    @get:PropertyInfo(i18nKey = "fibu.common.brutto")
     val grossSum: BigDecimal
         @Transient
         get() {
@@ -170,6 +171,7 @@ abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBase
             return brutto
         }
 
+    @get:PropertyInfo(i18nKey = "fibu.common.netto")
     val netSum: BigDecimal
         @Transient
         get() {
