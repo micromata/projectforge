@@ -27,7 +27,7 @@ function DynamicTaskSelect(
     const [favorites, setFavorites] = React.useState(undefined);
     const panelRef = React.useRef(null);
 
-    // Handle mouse events
+    // Handling Mouse Events
     React.useEffect(() => {
         const handleClickOutside = ({ target }) => {
             if (panelRef.current && !panelRef.current.contains(target)) {
@@ -35,8 +35,17 @@ function DynamicTaskSelect(
             }
         };
 
-        document.addEventListener('mousedown', handleClickOutside);
+        if (panelVisible) {
+            document.addEventListener('mousedown', handleClickOutside);
 
+            return () => document.removeEventListener('mousedown', handleClickOutside);
+        }
+
+        return undefined;
+    }, [panelVisible]);
+
+    // Initial Fetch
+    React.useEffect(() => {
         fetch(
             getServiceURL('task/favorites/list'),
             {
@@ -51,8 +60,6 @@ function DynamicTaskSelect(
             .then(response => response.json())
             .then(json => setFavorites(json))
             .catch(error => alert(`Internal error: ${error}`));
-
-        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
     React.useEffect(() => {
@@ -200,7 +207,7 @@ function DynamicTaskSelect(
 
         const useNew = false; // Switch for testing NewTaskTreePanel.
         const treePanel = useNew ? (
-            <div ref={panelRef}>
+            <React.Fragment>
                 <NewTaskTreePanel
                     highlightTaskId={modalHighlight || (task ? task.id : undefined)}
                     onTaskSelect={setTask}
@@ -215,21 +222,19 @@ function DynamicTaskSelect(
                     showRootForAdmins={showRootForAdmins}
                     visible={panelVisible}
                 />
-            </div>
+            </React.Fragment>
         ) : (
-            <div ref={panelRef}>
-                <TaskTreePanel
-                    highlightTaskId={modalHighlight || (task ? task.id : undefined)}
-                    onTaskSelect={setTask}
-                    shortForm
-                    showRootForAdmins={showRootForAdmins}
-                    visible={panelVisible}
-                />
-            </div>
+            <TaskTreePanel
+                highlightTaskId={modalHighlight || (task ? task.id : undefined)}
+                onTaskSelect={setTask}
+                shortForm
+                showRootForAdmins={showRootForAdmins}
+                visible={panelVisible}
+            />
         );
 
         return (
-            <div>
+            <div ref={panelRef}>
                 {task && task.path
                     ? (
                         <TaskPath
