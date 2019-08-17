@@ -23,19 +23,20 @@
 
 package org.projectforge.common.anots;
 
-import static java.lang.annotation.ElementType.FIELD;
+import org.projectforge.common.props.PropertyType;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.projectforge.common.props.PropertyType;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
 
 /**
  * Annotation for properties of DO classes for handling i18n keys and Excel-Exports.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Target({ FIELD})
+@Target({ FIELD, METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PropertyInfo {
   /**

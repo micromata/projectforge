@@ -59,6 +59,7 @@ class KostZuweisungDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @get:Column
     var index: Short = 0
 
+    @PropertyInfo(i18nKey = "fibu.common.netto")
     @get:Column(scale = 2, precision = 12)
     var netto: BigDecimal? = null
 

@@ -27,6 +27,7 @@ import de.micromata.genome.jpa.metainf.ColumnMetadata
 import de.micromata.genome.jpa.metainf.ColumnMetadataBean
 import org.aspectj.weaver.tools.cache.SimpleCacheFactory.path
 import org.projectforge.business.task.TaskDO
+import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
@@ -178,21 +179,28 @@ object ElementsRegistry {
             val parentInfo = getElementInfo(clazz, parentProperty)
             elementInfo.parent = parentInfo
         }
-        if (propertyField != null) { // Property info is only available for fields (getter method not yet supported).
-            val propertyInfo = PropUtils.get(clazz, property)
-            if (propertyInfo == null) {
-                log.warn("@PropertyInfo '$clazz:$property' not found.")
-                return elementInfo
-            }
-            val colinfo = getColumnMetadata(clazz, property)
-            if (colinfo != null) {
-                elementInfo.maxLength = colinfo.maxLength
-                if (!(colinfo.isNullable) || propertyInfo.required)
-                    elementInfo.required = true
-            }
-            elementInfo.i18nKey = getNullIfEmpty(propertyInfo.i18nKey)
-            elementInfo.additionalI18nKey = getNullIfEmpty(propertyInfo.additionalI18nKey)
+        var propertyInfo: PropertyInfo? = null
+        if (propertyField != null) {
+            propertyInfo = PropUtils.get(clazz, property)
         }
+        if (propertyInfo == null) {
+            // Try to get the annotation of the getter method.
+            val test = BeanUtils.getPropertyDescriptor(clazz, property)
+            val readMethod = test?.readMethod
+            propertyInfo = BeanUtils.getPropertyDescriptor(clazz, property)?.readMethod?.getAnnotation(PropertyInfo::class.java)
+        }
+        if (propertyInfo == null) {
+            log.warn("@PropertyInfo '$clazz:$property' not found.")
+            return elementInfo
+        }
+        val colinfo = getColumnMetadata(clazz, property)
+        if (colinfo != null) {
+            elementInfo.maxLength = colinfo.maxLength
+            if (!(colinfo.isNullable) || propertyInfo.required)
+                elementInfo.required = true
+        }
+        elementInfo.i18nKey = getNullIfEmpty(propertyInfo.i18nKey)
+        elementInfo.additionalI18nKey = getNullIfEmpty(propertyInfo.additionalI18nKey)
         ensureClassMap(clazz)[property] = elementInfo
         return elementInfo
     }
