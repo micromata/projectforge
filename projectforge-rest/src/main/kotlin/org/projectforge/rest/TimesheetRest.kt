@@ -303,9 +303,9 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
         val element = UIFilterElement("kost2.nummer")
         element.label = element.id // Default label if no translation will be found below.
-        element.label = LayoutListFilterUtils.getLabel(ElementsRegistry.ElementInfo("nummer",
+        element.label = LayoutListFilterUtils.getLabel(ElementInfo("nummer",
                 i18nKey = "fibu.kost2.nummer",
-                parent = ElementsRegistry.ElementInfo("kost2", i18nKey = "fibu.kost2")))
+                parent = ElementInfo("kost2", i18nKey = "fibu.kost2")))
         elements.add(element)
     }
 }

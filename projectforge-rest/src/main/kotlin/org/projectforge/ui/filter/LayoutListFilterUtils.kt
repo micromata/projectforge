@@ -89,13 +89,13 @@ class LayoutListFilterUtils {
             return container
         }
 
-        fun getLabel(elInfo: ElementsRegistry.ElementInfo): String {
+        fun getLabel(elInfo: ElementInfo): String {
             val sb = StringBuilder()
             addLabel(sb, elInfo)
             return sb.toString()
         }
 
-        private fun addLabel(sb: StringBuilder, elInfo: ElementsRegistry.ElementInfo?) {
+        private fun addLabel(sb: StringBuilder, elInfo: ElementInfo?) {
             if (elInfo == null) return
             if (sb.length > 1000) { // Paranoia test for endless loops
                 log.error("Oups, paranoia test detects endless loop in ElementInfo.parent '$sb'!")

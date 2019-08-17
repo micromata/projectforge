@@ -27,7 +27,7 @@ import java.util.*
 
 class UIDataTypeUtils {
     companion object {
-        internal fun getDataType(elementInfo: ElementsRegistry.ElementInfo?): UIDataType {
+        internal fun getDataType(elementInfo: ElementInfo?): UIDataType {
             if (elementInfo == null)
                 return UIDataType.STRING
             return when (elementInfo.propertyType) {

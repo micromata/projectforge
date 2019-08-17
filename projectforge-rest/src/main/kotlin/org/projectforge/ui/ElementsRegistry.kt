@@ -25,13 +25,13 @@ package org.projectforge.ui
 
 import de.micromata.genome.jpa.metainf.ColumnMetadata
 import de.micromata.genome.jpa.metainf.ColumnMetadataBean
+import org.aspectj.weaver.tools.cache.SimpleCacheFactory.path
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.lang.reflect.Field
-import java.lang.reflect.ParameterizedType
 import java.math.BigDecimal
 import java.util.*
 import javax.persistence.Basic
@@ -45,27 +45,6 @@ import javax.persistence.JoinColumn
  */
 object ElementsRegistry {
     private val log = org.slf4j.LoggerFactory.getLogger(ElementsRegistry::class.java)
-
-    class ElementInfo(val propertyName: String,
-                      var propertyField: Field? = null,
-                      var maxLength: Int? = null,
-                      var required: Boolean? = null,
-                      var i18nKey: String? = null,
-                      var additionalI18nKey: String? = null,
-                      /**
-                       * For nested properties, the property where this is nested in.
-                       */
-                      var parent: ElementInfo? = null) {
-        /**
-         * Property name without parent names if nested, otherwise equals to [propertyName]
-         */
-        val simplePropertyName
-            get() = if (propertyName.contains('.')) propertyName.substring(propertyName.lastIndexOf('.') + 1) else propertyName
-
-        val propertyType
-            get() = propertyField?.type ?: String::class.java
-
-    }
 
     fun getProperties(clazz: Class<*>): Map<String, ElementInfo>? {
         return registryMap[clazz]
@@ -133,21 +112,14 @@ object ElementsRegistry {
     internal fun getElementInfo(lc: LayoutContext, property: String): ElementInfo? {
         val parts = property.split('.')
         if (!parts.isNullOrEmpty()) {
-            val path = lc.getListElementPath(parts[0])
-            if (path != null) {
+            val listElementInfo = lc.getListElementInfo(parts[0])
+            if (listElementInfo != null) {
                 // property starts with list element name, therefore try to find the property of this list element
                 // instead of the data object class:
-                val listElementInfo = getElementInfo(lc.dataObjectClazz, path)
-                if (listElementInfo?.propertyField == null) {
-                    return null
+                if (listElementInfo.genericType != null) {
+                    return getElementInfo(listElementInfo.genericType, property.substring(parts[0].length + 1))
                 }
-                val type = listElementInfo.propertyField?.genericType
-                if (type is ParameterizedType) {
-                    val typeArg = type.actualTypeArguments[0]
-                    if (typeArg is Class<*>) {
-                        return getElementInfo(typeArg, property.substring(parts[0].length + 1))
-                    }
-                }
+                log.warn("Can't detect generic type of list element '$path' for property '$property'")
             }
         }
         return getElementInfo(lc.dataObjectClazz, property)

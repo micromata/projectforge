@@ -29,18 +29,24 @@ data class LayoutContext(
          */
         val dataObjectClazz: Class<*>?,
         var idPrefix: String? = null) {
+    private val log = org.slf4j.LoggerFactory.getLogger(ElementsRegistry::class.java)
 
-    private val listElements = mutableMapOf<String, String>()
+    private val listElements = mutableMapOf<String, ElementInfo>()
 
     constructor(layoutContext: LayoutContext) : this(layoutContext.dataObjectClazz) {
         idPrefix = layoutContext.idPrefix
     }
 
     fun registerListElement(varName: String, idPath: String) {
-        listElements[varName] = idPath
+        val elInfo = ElementsRegistry.getElementInfo(this, idPath)
+        if (elInfo == null) {
+            log.warn("Can't register list element '$idPath'. It won't be available under varname '$varName'")
+        } else {
+            listElements[varName] = elInfo
+        }
     }
 
-    fun getListElementPath(varName: String): String? {
+    fun getListElementInfo(varName: String): ElementInfo? {
         return listElements[varName]
     }
 }
