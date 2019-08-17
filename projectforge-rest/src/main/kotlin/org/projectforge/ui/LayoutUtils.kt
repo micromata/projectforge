@@ -228,7 +228,7 @@ class LayoutUtils {
             }
         }
 
-        internal fun setLabels(elementInfo: ElementsRegistry.ElementInfo?, element: UILabelledElement) {
+        internal fun setLabels(elementInfo: ElementInfo?, element: UILabelledElement) {
             if (elementInfo == null)
                 return
             if (!elementInfo.i18nKey.isNullOrEmpty())
