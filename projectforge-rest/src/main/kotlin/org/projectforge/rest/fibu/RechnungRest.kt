@@ -89,7 +89,7 @@ class RechnungRest: AbstractDORest<RechnungDO, RechnungDao>(RechnungDao::class.j
                                 .add(UICol()
                                         .add(lc, "position.menge"))
                                 .add(UICol()
-                                        .add(lc, "position.einzelnetto"))
+                                        .add(lc, "position.einzelNetto"))
                                 .add(UICol()
                                         .add(lc, "position.vat"))
                                 .add(UICol()
