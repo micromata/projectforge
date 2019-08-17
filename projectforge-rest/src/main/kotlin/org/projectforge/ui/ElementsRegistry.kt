@@ -70,7 +70,7 @@ object ElementsRegistry {
         }
         var element: UIElement?
         if (elementInfo.readOnly) {
-            element = UILabel(property, dataType = getDataType(elementInfo))
+            element = UIReadOnlyField(property, dataType = getDataType(elementInfo) ?: UIDataType.STRING)
         } else {
             val dataType = getDataType(elementInfo)
             element =
