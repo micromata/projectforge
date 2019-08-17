@@ -23,23 +23,13 @@
 
 package org.projectforge.ui
 
-enum class UIElementType {
-    BUTTON,
-    CHECKBOX,
-    COL,
-    CUSTOMIZED,
-    FIELDSET,
-    FILTER_ELEMENT,
-    GROUP,
-    INPUT,
-    LABEL,
-    LIST,
-    NAMED_CONTAINER,
-    RADIOBUTTON,
-    READONLY_FIELD,
-    ROW,
-    SELECT,
-    TABLE,
-    TABLE_COLUMN,
-    TEXTAREA
-}
+data class UIReadOnlyField(val id: String,
+                           @Transient
+                           override val layoutContext: LayoutContext? = null,
+                           var dataType: UIDataType = UIDataType.STRING,
+                           override var label: String? = null,
+                           override var additionalLabel: String? = null,
+                           override var tooltip: String? = null,
+                           @Transient
+                           override val ignoreAdditionalLabel: Boolean = false)
+    : UIElement(UIElementType.READONLY_FIELD), UILabelledElement
