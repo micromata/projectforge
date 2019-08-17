@@ -112,6 +112,7 @@ public class SourceFileHeadersMain {
               || file.getAbsolutePath().contains("edu/stanford")
               || file.getAbsolutePath().contains("java/net")
               || file.getAbsolutePath().contains("name/fraser/neil/plaintext")
+              || file.getAbsolutePath().contains("org/apache")
               || file.getAbsolutePath().contains("org/lesscss")
               || file.getAbsolutePath().contains("org/parosproxy")
               || file.getAbsolutePath().contains("org/projectforge/lucene/Classic") // ClassicAnalyzer, ClassicFilter, ...
@@ -130,7 +131,7 @@ public class SourceFileHeadersMain {
         continue;
       }
       if (!autoFixFiles) {
-        Assertions.fail("Source code file '" + file.getName() + "' without valid copy right header. As a maintainer you should fix it by simply calling Java main: "
+        Assertions.fail("Source code file '" + file.getPath() + "' without valid copy right header. As a maintainer you should fix it by simply calling Java main: "
                 + mainJavaFile.getAbsolutePath());
       }
       System.out.println("****** Source code file without valid copy right header (will be fixed right now automatically): " + file.getAbsolutePath());
