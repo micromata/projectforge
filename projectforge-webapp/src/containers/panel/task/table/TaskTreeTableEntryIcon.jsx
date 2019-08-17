@@ -19,7 +19,7 @@ function TaskTreeTableEntryIcon({ treeStatus }) {
 
     return (
         <div className={style.entryIcon}>
-            <FontAwesomeIcon icon={icon} />
+            {icon ? <FontAwesomeIcon icon={icon} /> : undefined}
         </div>
     );
 }
