@@ -61,6 +61,7 @@ public class PropUtilsTest
   public void getNestedField()
   {
     Assertions.assertNotNull(PropUtils.getField(Timesheet.class, "task.id"));
+    Assertions.assertNull(PropUtils.getField(Timesheet.class, "task.notThere"));
   }
 
   @Test
