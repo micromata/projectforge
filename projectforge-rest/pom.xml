@@ -112,6 +112,12 @@
       <artifactId>gson</artifactId>
       <scope>test</scope>
     </dependency>
+
+    <dependency>
+      <groupId>org.aspectj</groupId>
+      <artifactId>aspectjtools</artifactId>
+      <version>${aspectjtools.version}</version>
+    </dependency>
   </dependencies>
 
 </project>
