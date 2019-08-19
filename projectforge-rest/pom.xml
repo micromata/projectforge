@@ -99,30 +99,6 @@
       <artifactId>kotlin-stdlib</artifactId>
       <version>${kotlin.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.jetbrains.kotlin</groupId>
-      <artifactId>kotlin-reflect</artifactId>
-      <version>${kotlin.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-jersey</artifactId>
-    </dependency>
-
-    <!-- https://mvnrepository.com/artifact/org.springframework/spring-webmvc -->
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-webmvc</artifactId>
-      <version>${spring.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.springframework</groupId>
-          <artifactId>spring-jcl</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
 
     <!-- https://mvnrepository.com/artifact/org.glassfish.jersey.media/jersey-media-multipart -->
     <dependency>
@@ -131,20 +107,11 @@
       <version>${jersey.version}</version>
     </dependency>
 
-    <!-- Is needed because of ClassNotFound exception: -->
-    <!-- java.lang.ClassNotFoundException: com.sun.el.ExpressionFactoryImpl -->
-    <dependency>
-      <groupId>com.sun.el</groupId>
-      <artifactId>el-ri</artifactId>
-      <version>1.0</version>
-    </dependency>
-
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
       <scope>test</scope>
     </dependency>
-
   </dependencies>
 
 </project>
