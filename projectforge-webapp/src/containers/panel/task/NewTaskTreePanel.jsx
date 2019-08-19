@@ -83,6 +83,12 @@ function NewTaskTreePanel(
             .catch(() => setLoading(false));
     };
 
+    const toggleTask = (taskId, to) => loadTasks(
+        false,
+        to === 'OPEN' ? taskId : undefined,
+        to === 'CLOSE' ? taskId : undefined,
+    );
+
     const handleCheckBoxChange = ({ target }) => setFilter({
         ...filter,
         [target.id]: target.checked,
@@ -116,6 +122,7 @@ function NewTaskTreePanel(
                     columnsVisibility,
                     selectTask,
                     shortForm,
+                    toggleTask,
                     translations,
                 }}
             >
