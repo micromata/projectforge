@@ -29,6 +29,13 @@ export const taskTreeContextDefaultValues = {
      */
     shortForm: false,
     /**
+     * Open/Close a task folder.
+     *
+     * @param taskId The id of the task to toggle.
+     * @param to The state it should switch to. "OPEN" or "CLOSE".
+     */
+    toggleTask: (taskId, to) => notImplementedFunction(taskId, to),
+    /**
      * @type {Object} Translations that are shown in the TaskTree
      */
     translations: {
