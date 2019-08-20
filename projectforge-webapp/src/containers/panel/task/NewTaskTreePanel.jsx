@@ -83,10 +83,10 @@ function NewTaskTreePanel(
             .catch(() => setLoading(false));
     };
 
-    const toggleTask = (taskId, to) => loadTasks(
+    const toggleTask = (taskId, from) => loadTasks(
         false,
-        to === 'OPEN' ? taskId : undefined,
-        to === 'CLOSE' ? taskId : undefined,
+        from === 'CLOSED' ? taskId : undefined,
+        from === 'OPENED' ? taskId : undefined,
     );
 
     const handleCheckBoxChange = ({ target }) => setFilter({

@@ -11,7 +11,10 @@ function TaskTreeTableEntry({ task }) {
     return (
         <tr>
             <td style={{ paddingLeft: `${task.indent * 1.5 + 0.75}rem` }}>
-                <TaskTreeTableEntryIcon treeStatus={task.treeStatus} />
+                <TaskTreeTableEntryIcon
+                    treeStatus={task.treeStatus}
+                    taskId={task.id}
+                />
                 {task.title}
             </td>
             <td>
