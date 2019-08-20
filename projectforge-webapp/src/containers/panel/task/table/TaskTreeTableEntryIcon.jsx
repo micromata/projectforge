@@ -38,7 +38,7 @@ function TaskTreeTableEntryIcon({ taskId, treeStatus }) {
     const icon = TreeStatus.getIcon(treeStatus);
 
     return (
-        <div className={style.entryIcon}>
+        <div className={style.taskIcon}>
             {icon ? <FontAwesomeIcon icon={icon} onClick={handleClick} /> : undefined}
         </div>
     );
