@@ -59,6 +59,24 @@
       }
     }
 
+    &.noLabel {
+      height: 1.1em;
+
+      .input {
+        top: 0;
+      }
+
+      .text {
+        @include transform(none);
+      }
+
+      &.active {
+        .text {
+          opacity: 0;
+        }
+      }
+    }
+
     @mixin color($color) {
       .text {
         color: $color;
@@ -456,6 +474,11 @@
     span {
       margin-left: 15px;
     }
+  }
+
+  &.small {
+    margin-bottom: 6px;
+    font-size: 1em;
   }
 }
 

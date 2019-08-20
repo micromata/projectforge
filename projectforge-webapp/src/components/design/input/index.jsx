@@ -12,6 +12,8 @@ function Input(
         color,
         id,
         label,
+        placeholder,
+        small,
         type,
         value,
         ...props
@@ -22,11 +24,21 @@ function Input(
     const [active, setActive] = React.useState(false);
 
     return (
-        <div className={classNames(style.formGroup, 'form-group', className)}>
+        <div
+            className={classNames(
+                style.formGroup,
+                'form-group',
+                { [style.small]: small },
+                className,
+            )}
+        >
             <label
                 className={classNames(
                     style.label,
-                    { [style.active]: value || active },
+                    {
+                        [style.active]: value || active,
+                        [style.noLabel]: label === undefined,
+                    },
                     style[color],
                 )}
                 htmlFor={id}
@@ -40,7 +52,7 @@ function Input(
                     onBlur={event => setActive(event.target.value !== '')}
                     value={value}
                 />
-                <span className={style.text}>{label}</span>
+                <span className={style.text}>{placeholder || label}</span>
             </label>
             <AdditionalLabel title={additionalLabel} />
         </div>
@@ -49,10 +61,12 @@ function Input(
 
 Input.propTypes = {
     id: PropTypes.string.isRequired,
-    label: PropTypes.string.isRequired,
     additionalLabel: PropTypes.string,
     className: PropTypes.string,
     color: colorPropType,
+    label: PropTypes.string,
+    placeholder: PropTypes.string,
+    small: PropTypes.bool,
     type: PropTypes.string,
     value: PropTypes.string,
 };
@@ -61,6 +75,9 @@ Input.defaultProps = {
     additionalLabel: undefined,
     className: undefined,
     color: undefined,
+    label: undefined,
+    placeholder: undefined,
+    small: false,
     type: 'text',
     value: undefined,
 };
