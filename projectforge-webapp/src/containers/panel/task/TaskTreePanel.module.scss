@@ -51,10 +51,22 @@ $transitionTime: .3s;
   }
 }
 
-.entryIcon {
-  display: inline-block;
-  cursor: pointer;
-  margin: 0 5px;
-  min-width: 10px;
-  color: #009BA3;
+.tasks {
+  .task {
+    &.highlighted {
+      background-color: #f4d5cb;
+
+      &:hover {
+        background-color: #e5c5bb;
+      }
+    }
+
+    .taskIcon {
+      display: inline-block;
+      cursor: pointer;
+      margin: 0 5px;
+      min-width: 10px;
+      color: #009BA3;
+    }
+  }
 }

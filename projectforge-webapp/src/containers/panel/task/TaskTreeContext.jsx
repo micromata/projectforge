@@ -17,6 +17,10 @@ export const taskTreeContextDefaultValues = {
         reference: false,
     },
     /**
+     * type {Number} Id of the task that should be highlighted.
+     */
+    highlightTaskId: undefined,
+    /**
      * Handle the task selection.
      *
      * @param {Number} taskId The id of the selected Task

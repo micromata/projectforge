@@ -1,30 +1,40 @@
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import Formatter from '../../../../components/base/Formatter';
 import ConsumptionBar from '../ConsumptionBar';
 import TaskTreeContext from '../TaskTreeContext';
+import styles from '../TaskTreePanel.module.scss';
 import TaskTreeTableEntryIcon from './TaskTreeTableEntryIcon';
 
 function TaskTreeTableEntry({ task }) {
-    const { columnsVisibility, shortForm, selectTask } = React.useContext(TaskTreeContext);
+    const {
+        columnsVisibility,
+        highlightTaskId,
+        shortForm,
+        selectTask,
+    } = React.useContext(TaskTreeContext);
 
-    const handleRowClick = () => selectTask(task.id, task);
+    const { id } = task;
 
-    console.log(task);
+    const handleRowClick = () => selectTask(id, task);
 
     return (
-        <tr onClick={handleRowClick}>
+        <tr
+            onClick={handleRowClick}
+            className={classNames(styles.task, { [styles.highlighted]: highlightTaskId === id })}
+        >
             <td style={{ paddingLeft: `${task.indent * 1.5 + 0.75}rem` }}>
                 <TaskTreeTableEntryIcon
                     treeStatus={task.treeStatus}
-                    taskId={task.id}
+                    taskId={id}
                 />
                 {task.title}
             </td>
             <td>
                 <ConsumptionBar
                     progress={task.consumption}
-                    taskId={task.id}
+                    taskId={id}
                     identifier="task-tree-entry-consumption-bar"
                 />
             </td>
