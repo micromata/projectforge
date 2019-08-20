@@ -104,7 +104,6 @@ function TaskFilter(
                                 value={searchValue}
                                 onChange={handleSearchChange}
                                 autoComplete="off"
-                                className={style.searchString}
                                 onKeyPress={handleInputKeyPress}
                                 small
                             />
