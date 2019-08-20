@@ -6,10 +6,14 @@ import TaskTreeContext from '../TaskTreeContext';
 import TaskTreeTableEntryIcon from './TaskTreeTableEntryIcon';
 
 function TaskTreeTableEntry({ task }) {
-    const { columnsVisibility, shortForm } = React.useContext(TaskTreeContext);
+    const { columnsVisibility, shortForm, selectTask } = React.useContext(TaskTreeContext);
+
+    const handleRowClick = () => selectTask(task.id, task);
+
+    console.log(task);
 
     return (
-        <tr>
+        <tr onClick={handleRowClick}>
             <td style={{ paddingLeft: `${task.indent * 1.5 + 0.75}rem` }}>
                 <TaskTreeTableEntryIcon
                     treeStatus={task.treeStatus}
