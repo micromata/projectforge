@@ -29,7 +29,7 @@ function NewTaskTreePanel(
     const scrollToRef = React.useRef(undefined);
 
     const loadTasks = (initial, open, close) => {
-        setLoading(true);
+        setLoading(loading || initial);
 
         fetch(
             getServiceURL(
