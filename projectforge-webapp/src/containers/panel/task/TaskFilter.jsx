@@ -99,13 +99,13 @@ function TaskFilter(
                     <Row>
                         <Col sm={10}>
                             <Input
-                                label={translations.searchFilter || ''}
+                                placeholder={translations.searchFilter || ''}
                                 id="taskSearchString"
                                 value={searchValue}
                                 onChange={handleSearchChange}
                                 autoComplete="off"
-                                className={style.searchString}
                                 onKeyPress={handleInputKeyPress}
+                                small
                             />
                         </Col>
                         <Col sm={2}>
