@@ -6,7 +6,7 @@ import TaskTreeTable from './table/TaskTreeTable';
 import TaskFilter from './TaskFilter';
 import TaskTreeContext, { taskTreeContextDefaultValues } from './TaskTreeContext';
 
-function NewTaskTreePanel(
+function TaskTreePanel(
     {
         highlightTaskId,
         onTaskSelect: selectTask,
@@ -141,7 +141,7 @@ function NewTaskTreePanel(
     );
 }
 
-NewTaskTreePanel.propTypes = {
+TaskTreePanel.propTypes = {
     visible: PropTypes.bool.isRequired,
     highlightTaskId: PropTypes.number,
     onTaskSelect: PropTypes.func,
@@ -149,11 +149,11 @@ NewTaskTreePanel.propTypes = {
     showRootForAdmins: PropTypes.bool,
 };
 
-NewTaskTreePanel.defaultProps = {
+TaskTreePanel.defaultProps = {
     highlightTaskId: undefined,
     onTaskSelect: () => undefined,
     shortForm: false,
     showRootForAdmins: false,
 };
 
-export default NewTaskTreePanel;
+export default TaskTreePanel;
