@@ -17,6 +17,10 @@ export const taskTreeContextDefaultValues = {
         reference: false,
     },
     /**
+     * type {Number} Id of the task that should be highlighted.
+     */
+    highlightTaskId: undefined,
+    /**
      * Handle the task selection.
      *
      * @param {Number} taskId The id of the selected Task
@@ -28,6 +32,13 @@ export const taskTreeContextDefaultValues = {
      * @type {Boolean} Should the table be shown in a shorter form. Not all fields will be visible.
      */
     shortForm: false,
+    /**
+     * Open/Close a task folder.
+     *
+     * @param taskId The id of the task to toggle.
+     * @param from The state it should switch from. "OPENED" or "CLOSED".
+     */
+    toggleTask: (taskId, from) => notImplementedFunction(taskId, from),
     /**
      * @type {Object} Translations that are shown in the TaskTree
      */

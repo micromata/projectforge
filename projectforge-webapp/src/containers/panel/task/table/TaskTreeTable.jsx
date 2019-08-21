@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { Table } from '../../../../components/design';
 import TaskTreeContext from '../TaskTreeContext';
+import styles from '../TaskTreePanel.module.scss';
 import TaskTreeTableEntry from './TaskTreeTableEntry';
 
 
@@ -13,7 +14,7 @@ function TaskTreeTable({ nodes }) {
     } = React.useContext(TaskTreeContext);
 
     return (
-        <Table striped hover responsive>
+        <Table striped hover responsive className={styles.tasks}>
             <thead>
                 <tr>
                     <th>{translations.task}</th>
