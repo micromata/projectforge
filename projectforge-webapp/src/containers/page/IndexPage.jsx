@@ -3,7 +3,6 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Card, CardBody, CardHeader, CardText, CardTitle, Col, Container, Row } from 'reactstrap';
 import { loadUserStatus } from '../../actions';
-import Input from '../../components/design/input';
 import { getServiceURL } from '../../utilities/rest';
 
 class IndexPage extends React.Component {
