@@ -25,7 +25,6 @@ package org.projectforge.ui
 
 import de.micromata.genome.jpa.metainf.ColumnMetadata
 import de.micromata.genome.jpa.metainf.ColumnMetadataBean
-import org.aspectj.weaver.tools.cache.SimpleCacheFactory.path
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.i18n.I18nEnum
@@ -142,7 +141,7 @@ object ElementsRegistry {
                 if (listElementInfo.genericType != null) {
                     return getElementInfo(listElementInfo.genericType, property.substring(parts[0].length + 1))
                 }
-                log.warn("Can't detect generic type of list element '$path' for property '$property'")
+                log.warn("Can't detect generic type of list element '$parts[0]' for property '$property'")
             }
         }
         return getElementInfo(lc.dataObjectClazz, property)
@@ -185,8 +184,6 @@ object ElementsRegistry {
         }
         if (propertyInfo == null) {
             // Try to get the annotation of the getter method.
-            val test = BeanUtils.getPropertyDescriptor(clazz, property)
-            val readMethod = test?.readMethod
             propertyInfo = BeanUtils.getPropertyDescriptor(clazz, property)?.readMethod?.getAnnotation(PropertyInfo::class.java)
         }
         if (propertyInfo == null) {

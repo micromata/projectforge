@@ -24,7 +24,6 @@
 package org.projectforge.rest.pub
 
 import org.apache.commons.io.FileUtils
-import org.aspectj.weaver.tools.cache.SimpleCacheFactory.path
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.common.CanonicalFileUtils
 import org.projectforge.framework.configuration.ApplicationContextProvider
@@ -129,7 +128,7 @@ class LogoServiceRest {
                 null
             } else if (logoPath.endsWith(".png")) {
                 "logo.png"
-            } else if (logoPath.endsWith(".jpg") || path.endsWith(".jpeg")) {
+            } else if (logoPath.endsWith(".jpg") || logoPath.endsWith(".jpeg")) {
                 "logo.jpg"
             } else {
                 "logo.gif"
