@@ -1,9 +1,8 @@
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Button, CheckBox, Col, Input, Row } from '../../../components/design';
+import { CheckBox, Col, Input, Row } from '../../../components/design';
 import TaskTreeContext from './TaskTreeContext';
 import style from './TaskTreePanel.module.scss';
 
@@ -96,29 +95,16 @@ function TaskFilter(
                 className={classNames(style.search, { [style.isOpen]: isOpen })}
             >
                 <div className={style.basic} ref={basicReference} onFocus={() => setIsOpen(true)}>
-                    <Row>
-                        <Col sm={10}>
-                            <Input
-                                placeholder={translations.searchFilter || ''}
-                                id="taskSearchString"
-                                value={searchValue}
-                                onChange={handleSearchChange}
-                                autoComplete="off"
-                                onKeyPress={handleInputKeyPress}
-                                small
-                            />
-                        </Col>
-                        <Col sm={2}>
-                            <Button
-                                color="primary"
-                                onClick={handleSubmitButtonClick}
-                                type="button"
-                                size="sm"
-                            >
-                                <FontAwesomeIcon icon={faSearch} />
-                            </Button>
-                        </Col>
-                    </Row>
+                    <Input
+                        placeholder={translations.searchFilter || ''}
+                        icon={faSearch}
+                        id="taskSearchString"
+                        value={searchValue}
+                        onChange={handleSearchChange}
+                        autoComplete="off"
+                        onKeyPress={handleInputKeyPress}
+                        small
+                    />
                 </div>
                 <Row className={style.advanced}>
                     <Col sm={6}>
