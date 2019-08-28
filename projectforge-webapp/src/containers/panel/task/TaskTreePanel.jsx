@@ -108,7 +108,7 @@ function TaskTreePanel(
     ) => {
         let loadFunction = loadTasksDebounced;
 
-        if (initial) {
+        if (initial || open || close) {
             loadFunction = loadTasksBounced;
         }
 
