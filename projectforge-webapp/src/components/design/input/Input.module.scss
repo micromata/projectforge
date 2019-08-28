@@ -23,6 +23,22 @@
     cursor: text;
     position: relative;
 
+    &.withIcon {
+      .icon {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+      }
+
+      .input {
+        padding-left: 20px;
+      }
+
+      .text {
+        left: 20px;
+      }
+    }
+
     .text {
       position: absolute;
       left: 15px;
