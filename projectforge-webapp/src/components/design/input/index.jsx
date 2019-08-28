@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -10,6 +11,7 @@ function Input(
         additionalLabel,
         className,
         color,
+        icon,
         id,
         label,
         placeholder,
@@ -38,11 +40,13 @@ function Input(
                     {
                         [style.active]: value || active,
                         [style.noLabel]: label === undefined,
+                        [style.withIcon]: icon !== undefined,
                     },
                     style[color],
                 )}
                 htmlFor={id}
             >
+                {icon ? <FontAwesomeIcon icon={icon} className={style.icon} /> : undefined}
                 <input
                     className={style.input}
                     type={type}
@@ -64,6 +68,7 @@ Input.propTypes = {
     additionalLabel: PropTypes.string,
     className: PropTypes.string,
     color: colorPropType,
+    icon: PropTypes.shape({}),
     label: PropTypes.string,
     placeholder: PropTypes.string,
     small: PropTypes.bool,
@@ -75,6 +80,7 @@ Input.defaultProps = {
     additionalLabel: undefined,
     className: undefined,
     color: undefined,
+    icon: undefined,
     label: undefined,
     placeholder: undefined,
     small: false,
