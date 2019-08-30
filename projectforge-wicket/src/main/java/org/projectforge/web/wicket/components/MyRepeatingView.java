@@ -34,7 +34,7 @@ public class MyRepeatingView extends RepeatingView
 {
   private static final long serialVersionUID = 1534625043282794990L;
 
-  protected boolean hasChilds = false;
+  protected boolean hasChildren = false;
 
   public MyRepeatingView(final String id)
   {
@@ -44,13 +44,13 @@ public class MyRepeatingView extends RepeatingView
   @Override
   public String newChildId()
   {
-    hasChilds = true;
+    hasChildren = true;
     return super.newChildId();
   }
 
   @Override
   public boolean isVisible()
   {
-    return hasChilds;
+    return hasChildren;
   }
 }

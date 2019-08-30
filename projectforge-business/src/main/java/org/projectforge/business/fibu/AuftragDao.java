@@ -681,7 +681,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
   }
 
   /**
-   * Gets history entries of super and adds all history entries of the AuftragsPositionDO childs.
+   * Gets history entries of super and adds all history entries of the AuftragsPositionDO children.
    *
    * @see org.projectforge.framework.persistence.api.BaseDao#getDisplayHistoryEntries(ExtendedBaseDO)
    */

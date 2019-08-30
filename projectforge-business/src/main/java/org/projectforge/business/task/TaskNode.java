@@ -23,7 +23,6 @@
 
 package org.projectforge.business.task;
 
-import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -44,6 +43,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents a single task as part of the TaskTree. The data of a task node is stored in the database.
@@ -79,7 +79,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
   /**
    * References to all child nodes in an ArrayList from element typ TaskNode.
    */
-  List<TaskNode> childs = null;
+  List<TaskNode> children = null;
 
   /**
    * The data of this TaskNode.
@@ -221,8 +221,8 @@ public class TaskNode implements IdObject<Integer>, Serializable {
   }
 
   private void getDescendantIds(final List<Integer> descendants) {
-    if (this.childs != null) {
-      for (final TaskNode node : this.childs) {
+    if (this.children != null) {
+      for (final TaskNode node : this.children) {
         if (descendants.contains(node.getId()) == false) {
           // Paranoia setting for cyclic references.
           descendants.add(node.getId());
@@ -249,30 +249,44 @@ public class TaskNode implements IdObject<Integer>, Serializable {
   }
 
   /**
-   * Returns all childs of this task in an ArrayList with elements from type TaskNode.
+   * @deprecated
    */
   public List<TaskNode> getChilds() {
-    if (this.childs == null) {
-      this.childs = new ArrayList<TaskNode>();
-    }
-    return this.childs;
+    return getChildren();
   }
 
   /**
-   * Has this task any childs?
+   * Returns all children of this task in an ArrayList with elements from type TaskNode.
+   */
+  public List<TaskNode> getChildren() {
+    if (this.children == null) {
+      this.children = new ArrayList<TaskNode>();
+    }
+    return this.children;
+  }
+
+  /**
+   * @deprecated
    */
   public boolean hasChilds() {
-    return this.childs != null && this.childs.size() > 0 ? true : false;
+    return hasChildren();
+  }
+
+  /**
+   * Has this task any children?
+   */
+  public boolean hasChildren() {
+    return this.children != null && this.children.size() > 0 ? true : false;
   }
 
   /**
    * Checks if the given node is a child / descendant of this node.
    */
   public boolean isParentOf(final TaskNode node) {
-    if (this.childs == null) {
+    if (this.children == null) {
       return false;
     }
-    for (final TaskNode child : this.childs) {
+    for (final TaskNode child : this.children) {
       if (child.equals(node) == true) {
         return true;
       } else if (child.isParentOf(node) == true) {
@@ -340,10 +354,10 @@ public class TaskNode implements IdObject<Integer>, Serializable {
         log.error("Oups, cyclic reference detection: taskId = " + getId() + ", parentTaskId = " + parent.getId());
         return;
       }
-      if (this.childs == null) {
-        this.childs = new ArrayList<TaskNode>();
+      if (this.children == null) {
+        this.children = new ArrayList<TaskNode>();
       }
-      this.childs.add(child);
+      this.children.add(child);
     }
   }
 
@@ -353,13 +367,13 @@ public class TaskNode implements IdObject<Integer>, Serializable {
   void removeChild(final TaskNode child) {
     if (child == null) {
       log.error("Oups, child is null, can't remove it from parent.");
-    } else if (this.childs == null) {
-      log.error("Oups, this node has no childs to remove.");
-    } else if (this.childs.contains(child) == false) {
+    } else if (this.children == null) {
+      log.error("Oups, this node has no children to remove.");
+    } else if (this.children.contains(child) == false) {
       log.error("Oups, this node doesn't contain given child.");
     } else {
       log.debug("Removing child " + child.getTaskId() + " from parent " + this.getTaskId());
-      this.childs.remove(child);
+      this.children.remove(child);
     }
   }
 
@@ -457,11 +471,11 @@ public class TaskNode implements IdObject<Integer>, Serializable {
     if (totalDuration < 0) {
       taskTree.readTotalDuration(this.getId());
     }
-    if (recursive == false || childs == null) {
+    if (recursive == false || children == null) {
       return totalDuration;
     }
     long duration = totalDuration;
-    for (final TaskNode child : childs) {
+    for (final TaskNode child : children) {
       duration += child.getDuration(taskTree, true);
     }
     return duration;
@@ -495,15 +509,15 @@ public class TaskNode implements IdObject<Integer>, Serializable {
     log.debug("id: " + this.getId() + ", parentId: " + parentId);
     sb.append("parent", parentId);
     sb.append("title", task.getTitle());
-    sb.append("childs", this.childs);
+    sb.append("children", this.children);
     return sb.toString();
   }
 
   Element addXMLElement(final Element parent) {
     final Element el = parent.addElement("task").addAttribute("id", String.valueOf(this.getId()))
             .addAttribute("name", this.task.getTitle());
-    if (this.childs != null) {
-      for (final TaskNode node : this.childs) {
+    if (this.children != null) {
+      for (final TaskNode node : this.children) {
         node.addXMLElement(el);
       }
     }

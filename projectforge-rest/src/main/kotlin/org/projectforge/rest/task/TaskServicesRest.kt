@@ -70,7 +70,7 @@ class TaskServicesRest {
                /**
                 * All (opened) sub notes for table view or direct child notes for tree view
                 */
-               var childs: MutableList<Task>? = null,
+               var children: MutableList<Task>? = null,
                var treeStatus: TreeStatus? = null,
                val title: String? = null,
                val shortDescription: String? = null,
@@ -193,7 +193,7 @@ class TaskServicesRest {
         val rootNode = taskTree.rootTaskNode
         val root = Task(rootNode)
         addKost2List(root)
-        root.childs = mutableListOf()
+        root.children = mutableListOf()
         val ctx = BuildContext(ThreadLocalUserContext.getUser(), filter, root, openNodes)
         if (highlightedTaskId != null) {
             ctx.highlightedTaskNode = taskTree.getTaskNodeById(highlightedTaskId)
@@ -209,7 +209,7 @@ class TaskServicesRest {
         if (showRootForAdmins == true && table == true && (accessChecker.isLoggedInUserMemberOfAdminGroup() ||
                         accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP))) {
             // Append root node for admins and financial staff only in table view for displaying purposes.
-            root.childs?.add(Task(rootNode))
+            root.children?.add(Task(rootNode))
         }
         val result = Result(root)
         if (table == true) {
@@ -217,7 +217,7 @@ class TaskServicesRest {
             columnsVisibility["consumption"] = true
             columnsVisibility["shortDescription"] = true
             columnsVisibility["status"] = true
-            root.childs?.forEach { task ->
+            root.children?.forEach { task ->
                 registerVisibleColumn(columnsVisibility, "kost2", !task.kost2List.isNullOrEmpty())
                 registerVisibleColumn(columnsVisibility, "orders", !task.orderList.isNullOrEmpty())
                 registerVisibleColumn(columnsVisibility, "protectionUntil", task.protectTimesheetsUntil != null)
@@ -275,15 +275,15 @@ class TaskServicesRest {
      * @param indent null for tree view, int for table view.
      */
     private fun buildTree(ctx: BuildContext, task: Task, taskNode: TaskNode, indent: Int? = null) {
-        if (!taskNode.hasChilds()) {
+        if (!taskNode.hasChildren()) {
             task.treeStatus = TreeStatus.LEAF
             return
         }
         if (taskNode.isRootNode || ctx.openedNodes.contains(taskNode.taskId)) {
             task.treeStatus = TreeStatus.OPENED
-            val childs = taskNode.childs.toMutableList()
-            childs.sortBy({ it.task.title })
-            childs.forEach { node ->
+            val children = taskNode.children.toMutableList()
+            children.sortBy({ it.task.title })
+            children.forEach { node ->
                 if (ctx.taskFilter.match(node, taskDao, ctx.user)) {
                     val child = Task(node)
                     addKost2List(child)
@@ -301,8 +301,8 @@ class TaskServicesRest {
                                 // Don't show ancestor nodes:
                                 hidden = true
                                 // But proceed with child nodes:
-                                buildTree(ctx, child, node, indent) // Build as table (all childs are direct childs of root node.
-                            } else if (!highlightedTaskNode.hasChilds()) {
+                                buildTree(ctx, child, node, indent) // Build as table (all children are direct children of root node.
+                            } else if (!highlightedTaskNode.hasChildren()) {
                                 // Node is a leaf node, so show also all siblings:
                                 hidden = !node.ancestorIds.contains(highlightedTaskNode.parent.id)
                                 log.debug("Current node ${node.task.title} is sibling of highlighted node: ${!hidden}")
@@ -313,15 +313,15 @@ class TaskServicesRest {
                             }
                         }
                         if (!hidden) {
-                            ctx.rootTask.childs!!.add(child) // All childs are added to root task (table view!)
+                            ctx.rootTask.children!!.add(child) // All children are added to root task (table view!)
                             child.indent = indent
-                            buildTree(ctx, child, node, indent + 1) // Build as table (all childs are direct childs of root node.
+                            buildTree(ctx, child, node, indent + 1) // Build as table (all children are direct children of root node.
                         }
                     } else {
-                        // TaskNode has childs and is opened:
-                        if (task.childs == null)
-                            task.childs = mutableListOf()
-                        task.childs!!.add(child)
+                        // TaskNode has children and is opened:
+                        if (task.children == null)
+                            task.children = mutableListOf()
+                        task.children!!.add(child)
                         buildTree(ctx, child, node, null) // Build as tree
                     }
                 }

@@ -297,7 +297,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
   }
 
   /**
-   * Gets history entries of super and adds all history entries of the HRPlanningEntryDO childs.
+   * Gets history entries of super and adds all history entries of the HRPlanningEntryDO children.
    *
    * @see org.projectforge.framework.persistence.api.BaseDao#getDisplayHistoryEntries(org.projectforge.core.ExtendedBaseDO)
    */

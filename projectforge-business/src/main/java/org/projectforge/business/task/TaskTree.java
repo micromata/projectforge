@@ -617,8 +617,8 @@ public class TaskTree extends AbstractCache implements Serializable
   private void resetOrderPersonDays(final TaskNode node)
   {
     node.orderedPersonDays = null;
-    if (node.hasChilds() == true) {
-      for (final TaskNode child : node.getChilds()) {
+    if (node.hasChildren() == true) {
+      for (final TaskNode child : node.getChildren()) {
         resetOrderPersonDays(child);
       }
     }
@@ -672,8 +672,8 @@ public class TaskTree extends AbstractCache implements Serializable
     }
     if (recursive == true) {
       final TaskNode node = getTaskNodeById(taskId);
-      if (node != null && node.hasChilds() == true) {
-        for (final TaskNode child : node.getChilds()) {
+      if (node != null && node.hasChildren() == true) {
+        for (final TaskNode child : node.getChildren()) {
           if (hasOrderPositions(child.getId(), recursive) == true) {
             return true;
           }
@@ -729,11 +729,11 @@ public class TaskTree extends AbstractCache implements Serializable
     if (maxHours != null) {
       return new BigDecimal(maxHours).divide(DateHelper.HOURS_PER_WORKING_DAY, 2, BigDecimal.ROUND_HALF_UP);
     }
-    if (node.hasChilds() == false) {
+    if (node.hasChildren() == false) {
       return null;
     }
     BigDecimal result = null;
-    for (final TaskNode child : node.getChilds()) {
+    for (final TaskNode child : node.getChildren()) {
       final BigDecimal childPersonDays = getPersonDays(child);
       if (childPersonDays != null) {
         if (result == null) {
@@ -755,8 +755,8 @@ public class TaskTree extends AbstractCache implements Serializable
     if (node.orderedPersonDays != null) {
       personDays = node.orderedPersonDays;
     }
-    if (node.hasChilds() == true) {
-      for (final TaskNode child : node.getChilds()) {
+    if (node.hasChildren() == true) {
+      for (final TaskNode child : node.getChildren()) {
         final BigDecimal childPersonDays = getOrderedPersonDaysSum(child);
         if (childPersonDays != null) {
           if (personDays == null) {

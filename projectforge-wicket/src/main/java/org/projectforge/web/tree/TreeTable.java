@@ -63,7 +63,7 @@ public abstract class TreeTable<T extends TreeTableNode> implements Serializable
   }
 
   /**
-   * Gets nodes as list. For the first time, only the top level childs will be shown. After the user is able to open and close some entries
+   * Gets nodes as list. For the first time, only the top level children will be shown. After the user is able to open and close some entries
    * like in an file manager tree view.
    */
   @SuppressWarnings("unchecked")
@@ -73,9 +73,9 @@ public abstract class TreeTable<T extends TreeTableNode> implements Serializable
     if (root == null) {
       return null;
     }
-    SortedSet<T> childs = (SortedSet<T>) root.getChilds();
-    if (childs != null) {
-      for (T node : childs) {
+    SortedSet<T> children = (SortedSet<T>) root.getChildren();
+    if (children != null) {
+      for (T node : children) {
         node.buildNodeList((List<TreeTableNode>) nodes, 0, filter);
       }
     }
@@ -128,7 +128,7 @@ public abstract class TreeTable<T extends TreeTableNode> implements Serializable
         openFoldersRecursive(node);
       }
     } else if (event == TreeTableEvent.IMPLORE) {
-      if (node.hasChilds() == true)
+      if (node.hasChildren() == true)
         closeFoldersRecursive(node);
     } else if (event == TreeTableEvent.OPEN) {
       node.setOpened(true);
@@ -199,9 +199,9 @@ public abstract class TreeTable<T extends TreeTableNode> implements Serializable
   {
     node.setOpened(true);
     openedNodes.add(node.hashId);
-    if (node.hasChilds() == true) {
-      node.getChilds();
-      for (TreeTableNode n : node.getChilds()) {
+    if (node.hasChildren() == true) {
+      node.getChildren();
+      for (TreeTableNode n : node.getChildren()) {
         openFoldersRecursive(n);
       }
     }
@@ -211,8 +211,8 @@ public abstract class TreeTable<T extends TreeTableNode> implements Serializable
   {
     node.setOpened(false);
     openedNodes.remove(node.hashId);
-    if (node.hasChilds() == true) {
-      for (TreeTableNode n : node.getChilds()) {
+    if (node.hasChildren() == true) {
+      for (TreeTableNode n : node.getChildren()) {
         closeFoldersRecursive(n);
       }
     }

@@ -51,7 +51,7 @@ public class TreeTableNode implements Comparable<TreeTableNode>, Serializable
   /**
    * References to all child nodes in an ArrayList from element type TreeTableNode.
    */
-  SortedSet<TreeTableNode> childs = null;
+  SortedSet<TreeTableNode> children = null;
 
   /** Returns the parent node. */
   public TreeTableNode getParent()
@@ -65,11 +65,11 @@ public class TreeTableNode implements Comparable<TreeTableNode>, Serializable
   }
 
   /**
-   * Returns all childs of this node.
+   * Returns all children of this node.
    */
-  public SortedSet<TreeTableNode> getChilds()
+  public SortedSet<TreeTableNode> getChildren()
   {
-    return childs;
+    return children;
   }
 
   /** Returns the hashId of this node. */
@@ -103,15 +103,15 @@ public class TreeTableNode implements Comparable<TreeTableNode>, Serializable
   }
 
   /** Needed by jsp. */
-  public boolean getHasChilds()
+  public boolean getHasChildren()
   {
-    return hasChilds();
+    return hasChildren();
   }
 
-  /** Has this node any childs? */
-  public boolean hasChilds()
+  /** Has this node any children? */
+  public boolean hasChildren()
   {
-    if (childs == null || childs.size() == 0) {
+    if (children == null || children.size() == 0) {
       return false;
     }
     return true;
@@ -120,10 +120,10 @@ public class TreeTableNode implements Comparable<TreeTableNode>, Serializable
   /** Checks if the given node is a child / descendant of this node. */
   public boolean isParentOf(final TreeTableNode node)
   {
-    if (this.childs == null) {
+    if (this.children == null) {
       return false;
     }
-    for (final TreeTableNode child : this.childs) {
+    for (final TreeTableNode child : this.children) {
       if (child.equals(node) == true) {
         return true;
       } else if (child.isParentOf(node) == true) {
@@ -134,20 +134,20 @@ public class TreeTableNode implements Comparable<TreeTableNode>, Serializable
   }
 
   /**
-   * Are all childs already opened? This will be used for handling event explore. If the user clicks on explore event twice, all childs will
+   * Are all children already opened? This will be used for handling event explore. If the user clicks on explore event twice, all children will
    * be recursively closed (implored).
-   * @return If all childs are recursively open.
+   * @return If all children are recursively open.
    */
-  protected boolean allChildsOpened()
+  protected boolean allChildrenOpened()
   {
-    if (hasChilds() == false) {
+    if (hasChildren() == false) {
       return true;
     }
     if (nodeStatus == NodeStatus.FOLDER) {
       return false; // Folder is closed.
     }
-    for (TreeTableNode child : childs) {
-      if (child.allChildsOpened() == false) {
+    for (TreeTableNode child : children) {
+      if (child.allChildrenOpened() == false) {
         return false;
       }
     }
@@ -196,7 +196,7 @@ public class TreeTableNode implements Comparable<TreeTableNode>, Serializable
       return;
     }
     this.indent = indent;
-    if (hasChilds() == false) {
+    if (hasChildren() == false) {
       nodeStatus = NodeStatus.LEAF;
       nodes.add(this);
       return;
@@ -204,8 +204,8 @@ public class TreeTableNode implements Comparable<TreeTableNode>, Serializable
     nodes.add(this);
     if (isOpened() == true) {
       indent++;
-      if (childs != null) {
-        for (TreeTableNode node : childs) {
+      if (children != null) {
+        for (TreeTableNode node : children) {
           node.buildNodeList(nodes, indent, filter);
         }
       }
@@ -232,12 +232,12 @@ public class TreeTableNode implements Comparable<TreeTableNode>, Serializable
    */
   public int compareTo(TreeTableNode node)
   {
-    if (hasChilds() == true) {
-      if (node.hasChilds() == false)
+    if (hasChildren() == true) {
+      if (node.hasChildren() == false)
         return -1; // Folders before leafs.
       return compareTo(node);
     }
-    if (node.hasChilds() == false)
+    if (node.hasChildren() == false)
       return compareTo(node);
     return 1;
   }
@@ -247,10 +247,10 @@ public class TreeTableNode implements Comparable<TreeTableNode>, Serializable
    */
   protected void addChild(TreeTableNode child)
   {
-    if (childs == null) {
-      childs = new TreeSet<TreeTableNode>();
+    if (children == null) {
+      children = new TreeSet<TreeTableNode>();
       nodeStatus = NodeStatus.FOLDER;
     }
-    childs.add(child);
+    children.add(child);
   }
 }

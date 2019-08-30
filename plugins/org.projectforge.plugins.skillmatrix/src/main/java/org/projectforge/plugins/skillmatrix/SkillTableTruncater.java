@@ -28,7 +28,7 @@ import de.micromata.genome.jpa.impl.AbstractParentChildTableTruncater;
 import java.io.Serializable;
 
 /**
- * Skill has reference to itself, so order of delete has to be childs first.
+ * Skill has reference to itself, so order of delete has to be children first.
  * 
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *

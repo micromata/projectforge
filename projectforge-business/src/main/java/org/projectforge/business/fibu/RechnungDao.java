@@ -382,7 +382,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
   }
 
   /**
-   * Gets history entries of super and adds all history entries of the RechnungsPositionDO childs.
+   * Gets history entries of super and adds all history entries of the RechnungsPositionDO children.
    */
   @Override
   public List<DisplayHistoryEntry> getDisplayHistoryEntries(final RechnungDO obj)

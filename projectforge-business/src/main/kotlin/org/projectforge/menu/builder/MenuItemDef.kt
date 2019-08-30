@@ -53,7 +53,7 @@ class MenuItemDef(
 
     var requiredGroups: Array<ProjectForgeGroup>? = null
 
-    internal var childs: MutableList<MenuItemDef>? = null
+    internal var children: MutableList<MenuItemDef>? = null
 
     init {
         this.requiredGroups = arrayOf(*requiredGroups)
@@ -90,9 +90,9 @@ class MenuItemDef(
 
     @Synchronized
     internal fun add(item: MenuItemDef): MenuItemDef {
-        if (childs == null)
-            childs = mutableListOf()
-        childs!!.add(item)
+        if (children == null)
+            children = mutableListOf()
+        children!!.add(item)
         return this
     }
 
@@ -100,10 +100,10 @@ class MenuItemDef(
         if (this.id == id.id) {
             return this
         }
-        if (childs == null) {
+        if (children == null) {
             return null
         }
-        childs!!.forEach {
+        children!!.forEach {
             if (it.id == id.id)
                 return it
         }

@@ -38,12 +38,12 @@ public class FooDO extends DefaultBaseDO
   private String testString;
   
   @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
-  private Collection<BarDO> managedChilds;
+  private Collection<BarDO> managedChildren;
 
-  private Collection<BarDO> unmanagedChilds1;
+  private Collection<BarDO> unmanagedChildren1;
 
   @PFPersistancyBehavior(autoUpdateCollectionEntries = false)
-  private Collection<BarDO> unmanagedChilds2;
+  private Collection<BarDO> unmanagedChildren2;
 
   public boolean isTestBoolean()
   {
@@ -65,33 +65,33 @@ public class FooDO extends DefaultBaseDO
     this.testString = testString;
   }
 
-  public Collection<BarDO> getManagedChilds()
+  public Collection<BarDO> getManagedChildren()
   {
-    return managedChilds;
+    return managedChildren;
   }
 
-  public void setManagedChilds(Collection<BarDO> managedChilds)
+  public void setManagedChildren(Collection<BarDO> managedChildren)
   {
-    this.managedChilds = managedChilds;
+    this.managedChildren = managedChildren;
   }
 
-  public Collection<BarDO> getUnmanagedChilds1()
+  public Collection<BarDO> getUnmanagedChildren1()
   {
-    return unmanagedChilds1;
+    return unmanagedChildren1;
   }
 
-  public void setUnmanagedChilds1(Collection<BarDO> unmanagedChilds1)
+  public void setUnmanagedChildren1(Collection<BarDO> unmanagedChildren1)
   {
-    this.unmanagedChilds1 = unmanagedChilds1;
+    this.unmanagedChildren1 = unmanagedChildren1;
   }
 
-  public Collection<BarDO> getUnmanagedChilds2()
+  public Collection<BarDO> getUnmanagedChildren2()
   {
-    return unmanagedChilds2;
+    return unmanagedChildren2;
   }
 
-  public void setUnmanagedChilds2(Collection<BarDO> unmanagedChilds2)
+  public void setUnmanagedChildren2(Collection<BarDO> unmanagedChildren2)
   {
-    this.unmanagedChilds2 = unmanagedChilds2;
+    this.unmanagedChildren2 = unmanagedChildren2;
   }
 }

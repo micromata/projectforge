@@ -81,7 +81,7 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
   public Iterator<TaskNode> getRoots()
   {
     ensureTaskTree();
-    return iterator(taskTree.getRootTaskNode().getChilds(), showRootNode);
+    return iterator(taskTree.getRootTaskNode().getChildren(), showRootNode);
   }
 
   @Override
@@ -91,7 +91,7 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
       // Don't show children of root node again.
       return false;
     }
-    return taskNode.hasChilds();
+    return taskNode.hasChildren();
   }
 
   @Override
@@ -101,7 +101,7 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
       // Don't show children of root node again.
       return new LinkedList<TaskNode>().iterator();
     }
-    return iterator(taskNode.getChilds());
+    return iterator(taskNode.getChildren());
   }
 
   /**

@@ -23,14 +23,13 @@
 
 package org.projectforge.business.fibu.kost.reporting;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.collections.CollectionUtils;
-
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
+import org.apache.commons.collections.CollectionUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Ein Reportobjective, dessen Properties aus einem XML-File geparst werden können. Die Beschreibung des Formats ist im Handbuch zu finden.
@@ -39,7 +38,7 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
  * immer eine Untermenge!
  * @author Thomas Landgraf (tl@micromata.de)
  * @author Kai Reinhard
- * 
+ *
  */
 @XStreamAlias("ReportObjective")
 public class ReportObjective
@@ -70,7 +69,7 @@ public class ReportObjective
 
   @XStreamImplicit(itemFieldName = "ReportObjective")
   private List<ReportObjective> childReportObjectives;
-  
+
   private transient ReportObjective parent;
 
   public ReportObjective()
@@ -105,8 +104,8 @@ public class ReportObjective
 
   /**
    * @return False (default), wenn die sonstigen Buchungssätze als eigenes Child-ReportObjective berücksichtigt werden sollen. Es werden die
-   *         Child-ReportObjectives untersucht und von den Childs nicht verwendete Buchungssätze dieses ReportObjectives zusammengestellt.
-   *         Die Summe aller Buchungssätze / BWAs der Childs sollte somit dieser ReportObjective entsprechen (falls keine Duplikate
+   *         Child-ReportObjectives untersucht und von den Children nicht verwendete Buchungssätze dieses ReportObjectives zusammengestellt.
+   *         Die Summe aller Buchungssätze / BWAs der Children sollte somit dieser ReportObjective entsprechen (falls keine Duplikate
    *         vorkommen).
    * @see #isSupressDuplicates()
    */
@@ -139,9 +138,17 @@ public class ReportObjective
   /**
    * @return True, wenn Child-ReportObjectives existieren, sonst false.
    */
-  public boolean getHasChilds()
+  public boolean getHasChildren()
   {
     return CollectionUtils.isNotEmpty(this.childReportObjectives);
+  }
+
+  /**
+   * @deprecated
+   */
+  public boolean getHasChilds()
+  {
+    return getHasChildren();
   }
 
   /**
@@ -157,7 +164,7 @@ public class ReportObjective
   }
 
   /**
-   * 
+   *
    * @return Liste der Childreports, die einen Drilldown dieses Reports darstellen... oder null, wenn der Report keine Childreports besitzt.
    */
   public List<ReportObjective> getChildReportObjectives()
@@ -232,7 +239,7 @@ public class ReportObjective
   {
     this.kost2ExcludeRegExpList = addRegExp(this.kost2ExcludeRegExpList, regExp);
   }
-  
+
   public ReportObjective getParent()
   {
     return parent;

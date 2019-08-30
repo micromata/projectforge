@@ -309,7 +309,7 @@ public class DisplayHistoryEntry implements Serializable
   }
 
   /**
-   * Use-full for prepending id of childs (e. g. entries in a collection displayed in the history table of the parent
+   * Use-full for prepending id of children (e. g. entries in a collection displayed in the history table of the parent
    * object). Example: AuftragDO -> AuftragsPositionDO.
    *
    * @param propertyName
