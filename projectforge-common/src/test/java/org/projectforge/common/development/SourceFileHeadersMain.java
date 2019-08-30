@@ -106,19 +106,11 @@ public class SourceFileHeadersMain {
       return;
     final Collection<File> files = FileUtils.listFiles(dir, new String[]{"java", "kt"}, true);
     for (final File file : files) {
-      if (file.getAbsolutePath().contains("org/projectforge/lucene/PF")
-              || file.getAbsolutePath().contains("arlut/csd/crypto")
-              || file.getAbsolutePath().contains("at/jta")
-              || file.getAbsolutePath().contains("edu/stanford")
-              || file.getAbsolutePath().contains("java/net")
+      if (file.getAbsolutePath().contains("arlut/csd/crypto")
+              || file.getAbsolutePath().contains("java/net/ftlines.wicket.fullcalendar")
               || file.getAbsolutePath().contains("name/fraser/neil/plaintext")
               || file.getAbsolutePath().contains("org/apache")
-              || file.getAbsolutePath().contains("org/lesscss")
-              || file.getAbsolutePath().contains("org/parosproxy")
-              || file.getAbsolutePath().contains("org/projectforge/lucene/Classic") // ClassicAnalyzer, ClassicFilter, ...
-              || file.getAbsolutePath().contains("org/projectforge/lucene/Standard")  // StandardAnalyzer, ...
-              || file.getAbsolutePath().contains("org/projectforge/lucene/UAX29")
-              || file.getAbsolutePath().contains("org/zaproxy")) {
+              || file.getAbsolutePath().contains("org/lesscss")) {
         continue;
       }
       String content = FileUtils.readFileToString(file, "UTF-8");
