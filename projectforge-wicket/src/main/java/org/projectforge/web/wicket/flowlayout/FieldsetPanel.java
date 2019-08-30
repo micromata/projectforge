@@ -543,9 +543,9 @@ public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
    * @see org.projectforge.web.wicket.flowlayout.AbstractFieldsetPanel#addChild(org.apache.wicket.Component[])
    */
   @Override
-  protected MarkupContainer addChild(final Component... childs)
+  protected MarkupContainer addChild(final Component... children)
   {
-    return controls.add(childs);
+    return controls.add(children);
   }
 
   public WebMarkupContainer getControlsDiv()
@@ -562,7 +562,7 @@ public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
     return this;
   }
 
-  public boolean hasChilds()
+  public boolean hasChildren()
   {
     return childCounter > 0;
   }

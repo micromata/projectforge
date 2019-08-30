@@ -126,8 +126,8 @@ public class SkillFilter extends BaseSearchFilter
       skillVisibility.put(skill.getId(), true);
       skillsMatched.add(skill.getId());
       return true;
-    } else if (node.hasChilds() == true && node.isRootNode() == false) {
-      for (final SkillNode childNode : node.getChilds()) {
+    } else if (node.hasChildren() == true && node.isRootNode() == false) {
+      for (final SkillNode childNode : node.getChildren()) {
         final SkillDO childSkill = childNode.getSkill();
         if (isVisibleBySearchString(childNode, childSkill, skillDao, user) == true) {
           skillVisibility.put(childSkill.getId(), true);

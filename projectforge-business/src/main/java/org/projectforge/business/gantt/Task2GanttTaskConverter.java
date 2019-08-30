@@ -95,8 +95,8 @@ public class Task2GanttTaskConverter
       ganttChartData.setRootObject(ganttObject);
     }
     final TaskNode taskNode = taskTree.getTaskNodeById(task.getId());
-    if (taskNode.hasChilds() == true) {
-      for (final TaskNode childNode : taskNode.getChilds()) {
+    if (taskNode.hasChildren() == true) {
+      for (final TaskNode childNode : taskNode.getChildren()) {
         if (childNode.isDeleted() == false) {
           ganttObject.addChild(convertToGanttObject(ganttChartData, taskTree, childNode.getTask()));
         }

@@ -202,8 +202,8 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
         protected void onSelectionChanged(final UserPrefArea newSelection)
         {
           if (newSelection != null && parameterCreated == false) {
-            // create repeater childs:
-            createParameterRepeaterChilds();
+            // create repeater children:
+            createParameterRepeaterChildren();
           }
         }
       };
@@ -211,12 +211,12 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
       areaDropDownChoice.setRequired(true);
       fieldset.add(areaDropDownChoice);
     } else {
-      createParameterRepeaterChilds();
+      createParameterRepeaterChildren();
     }
   }
 
   @SuppressWarnings("serial")
-  void createParameterRepeaterChilds()
+  void createParameterRepeaterChildren()
   {
     if (parameterCreated == true) {
       log.error("Could not add parameters twice. Internal error. Double submit of DropDownChoice?");

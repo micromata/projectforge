@@ -151,7 +151,7 @@ class MenuCreator {
     }
 
     private fun findById(parent: MenuItemDef, id: String): MenuItemDef? {
-        parent.childs?.forEach {
+        parent.children?.forEach {
             if (it.id == id)
                 return it
             val menuItemDef = findById(it, id)
@@ -387,7 +387,7 @@ class MenuCreator {
         val menuItem = menuItemDef.createMenu(parent, menuCreatorContext)
 
         parent?.add(menuItem)
-        menuItemDef.childs?.forEach { childMenuItemDef ->
+        menuItemDef.children?.forEach { childMenuItemDef ->
             build(menuItem, childMenuItemDef, menuCreatorContext)
         }
         return menuItem

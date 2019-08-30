@@ -228,7 +228,7 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
             autoRefreshOnFilterChange
         ));
       }
-      if (optionsCheckBoxesPanel.hasChilds() == true) {
+      if (optionsCheckBoxesPanel.hasChildren() == true) {
         optionsFieldsetPanel.add(optionsCheckBoxesPanel);
       }
       gridBuilder.newSplitPanel(GridSize.COL33);

@@ -673,7 +673,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
       }
       return false;
     }
-    if (taskNode.hasChilds()) {
+    if (taskNode.hasChildren()) {
       // 3. Is the task not a leaf node and has this task or ancestor task the booking status ONLY_LEAFS?
       node = taskNode;
       do {
@@ -691,7 +691,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
         node = node.getParent();
       } while (node != null);
       // 4. Does any of the descendant task node has an assigned order position?
-      for (final TaskNode child : taskNode.getChilds()) {
+      for (final TaskNode child : taskNode.getChildren()) {
         if (TaskTreeHelper.getTaskTree(timesheet).hasOrderPositions(child.getId(), true)) {
           if (throwException) {
             throw new AccessException("timesheet.error.taskNotBookable.orderPositionsFoundInSubTasks",

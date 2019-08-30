@@ -134,23 +134,23 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel<?>> 
     return getThis();
   }
 
-  public Component superAdd(final Component... childs)
+  public Component superAdd(final Component... children)
   {
-    return super.add(childs);
+    return super.add(children);
   }
 
   /**
    * @see org.apache.wicket.MarkupContainer#add(org.apache.wicket.Component[])
    */
   @Override
-  public MarkupContainer add(final Component... childs)
+  public MarkupContainer add(final Component... children)
   {
-    checkLabelFor(childs);
-    for (final Component component : childs) {
+    checkLabelFor(children);
+    for (final Component component : children) {
       modifyAddedChild(component);
       addFormComponent(component);
     }
-    return fieldsRepeater.add(childs);
+    return fieldsRepeater.add(children);
   }
 
   private void addFormComponent(final Component component)
@@ -168,7 +168,7 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel<?>> 
   /**
    * Checks all child form components and calls {@link FormComponent#isValid()}.
    *
-   * @return true if all childs are valid, otherwise false (if any child is invalid);
+   * @return true if all children are valid, otherwise false (if any child is invalid);
    */
   public boolean isValid()
   {
@@ -184,7 +184,7 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel<?>> 
    * @return true if any form child has a feedback message.
    * @see org.apache.wicket.Component#hasFeedbackMessage()
    */
-  public boolean hasFormChildsFeedbackMessage()
+  public boolean hasFormChildrenFeedbackMessage()
   {
     for (final FormComponent<?> formComponent : allFormComponents) {
       if (formComponent.hasFeedbackMessage() == true) {
@@ -194,9 +194,9 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel<?>> 
     return false;
   }
 
-  public String getFormChildsFeedbackMessages(final boolean markAsRendered)
+  public String getFormChildrenFeedbackMessages(final boolean markAsRendered)
   {
-    if (hasFormChildsFeedbackMessage() == false) {
+    if (hasFormChildrenFeedbackMessage() == false) {
       return null;
     }
     final StringBuffer buf = new StringBuffer();
@@ -429,7 +429,7 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel<?>> 
 
   }
 
-  protected abstract MarkupContainer addChild(Component... childs);
+  protected abstract MarkupContainer addChild(Component... children);
 
   private void checkLabelFor(final Component... components)
   {

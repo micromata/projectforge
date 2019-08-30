@@ -49,7 +49,7 @@ public class SkillNode implements IdObject<Integer>, Serializable
   /**
    * References to all child nodes.
    */
-  List<SkillNode> childs = null;
+  List<SkillNode> children = null;
 
   /** The data of this SkillNode. */
   SkillDO skill = null;
@@ -106,26 +106,26 @@ public class SkillNode implements IdObject<Integer>, Serializable
 
 
   /**
-   * Returns all childs of this skill.
+   * Returns all children of this skill.
    */
-  public List<SkillNode> getChilds()
+  public List<SkillNode> getChildren()
   {
-    return this.childs;
+    return this.children;
   }
 
-  /** Does this skill has any childs? */
-  public boolean hasChilds()
+  /** Does this skill has any children? */
+  public boolean hasChildren()
   {
-    return this.childs != null && this.childs.size() > 0 ? true : false;
+    return this.children != null && this.children.size() > 0 ? true : false;
   }
 
   /** Checks if the given node is a child / descendant of this node. */
   public boolean isParentOf(final SkillNode node)
   {
-    if (this.childs == null) {
+    if (this.children == null) {
       return false;
     }
-    for (final SkillNode child : this.childs) {
+    for (final SkillNode child : this.children) {
       if (child.equals(node) == true) {
         return true;
       } else if (child.isParentOf(node) == true) {
@@ -182,10 +182,10 @@ public class SkillNode implements IdObject<Integer>, Serializable
         log.error("Oups, cyclic reference detection: skillId = " + getId() + ", parentSkillId = " + parent.getId());
         return;
       }
-      if (this.childs == null) {
-        this.childs = new ArrayList<SkillNode>();
+      if (this.children == null) {
+        this.children = new ArrayList<SkillNode>();
       }
-      this.childs.add(child);
+      this.children.add(child);
     }
   }
 
@@ -196,13 +196,13 @@ public class SkillNode implements IdObject<Integer>, Serializable
   {
     if (child == null) {
       log.error("Oups, child is null, can't remove it from parent.");
-    } else if (this.childs == null) {
-      log.error("Oups, this node has no childs to remove.");
-    } else if (this.childs.contains(child) == false) {
+    } else if (this.children == null) {
+      log.error("Oups, this node has no children to remove.");
+    } else if (this.children.contains(child) == false) {
       log.error("Oups, this node doesn't contain given child.");
     } else {
       log.debug("Removing child " + child.getId() + " from parent " + this.getId());
-      this.childs.remove(child);
+      this.children.remove(child);
     }
   }
 
@@ -218,7 +218,7 @@ public class SkillNode implements IdObject<Integer>, Serializable
     log.debug("id: " + this.getId() + ", parentId: " + parentId);
     sb.append("parent", parentId);
     sb.append("title", skill.getTitle());
-    sb.append("childs", this.childs);
+    sb.append("children", this.children);
     return sb.toString();
   }
 

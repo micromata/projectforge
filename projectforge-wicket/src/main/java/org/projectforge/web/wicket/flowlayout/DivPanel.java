@@ -160,10 +160,10 @@ public class DivPanel extends Panel
    * @see org.apache.wicket.MarkupContainer#add(org.apache.wicket.Component[])
    */
   @Override
-  public DivPanel add(final Component... childs)
+  public DivPanel add(final Component... children)
   {
     if (WebConfiguration.isDevelopmentMode() == true) {
-      for (final Component child : childs) {
+      for (final Component child : children) {
         if (child instanceof CheckBoxButton) {
           if (buttonGroup == false) {
             log.warn("*** Dear developer: this DivPanel should be use css class "
@@ -180,7 +180,7 @@ public class DivPanel extends Panel
         }
       }
     }
-    repeater.add(childs);
+    repeater.add(children);
     return this;
 
   }
@@ -261,7 +261,7 @@ public class DivPanel extends Panel
     }
   }
 
-  public boolean hasChilds()
+  public boolean hasChildren()
   {
     return childCounter > 0;
   }

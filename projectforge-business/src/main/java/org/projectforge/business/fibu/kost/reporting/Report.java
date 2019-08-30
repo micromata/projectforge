@@ -23,16 +23,8 @@
 
 package org.projectforge.business.fibu.kost.reporting;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Pattern;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
-import java.util.Objects;
 import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.business.fibu.kost.BuchungssatzDO;
@@ -40,10 +32,14 @@ import org.projectforge.business.fibu.kost.BusinessAssessment;
 import org.projectforge.business.fibu.kost.BusinessAssessmentTable;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
+import java.io.Serializable;
+import java.util.*;
+import java.util.regex.Pattern;
+
 /**
  * Ein Report enthält unterliegende Buchungssätze, die gemäß Zeitraum und zugehörigem ReportObjective selektiert werden.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class Report implements Serializable
 {
@@ -61,7 +57,7 @@ public class Report implements Serializable
 
   private transient List<BuchungssatzDO> duplicates;
 
-  private boolean showChilds;
+  private boolean showChildren;
 
   private transient BusinessAssessment businessAssessment;
 
@@ -179,15 +175,15 @@ public class Report implements Serializable
   public BusinessAssessmentTable getChildBusinessAssessmentTable(final boolean prependThisReport)
   {
     if (businessAssessmentTable == null) {
-      if (prependThisReport == false && hasChilds() == false) {
+      if (prependThisReport == false && hasChildren() == false) {
         return null;
       }
       businessAssessmentTable = new BusinessAssessmentTable();
       if (prependThisReport == true) {
         businessAssessmentTable.addBusinessAssessment(this.getId(), this.getBusinessAssessment());
       }
-      if (hasChilds() == true) {
-        for (final Report child : getChilds()) {
+      if (hasChildren() == true) {
+        for (final Report child : getChildren()) {
           businessAssessmentTable.addBusinessAssessment(child.getId(), child.getBusinessAssessment());
         }
       }
@@ -204,22 +200,38 @@ public class Report implements Serializable
     return this.buchungssaetze != null;
   }
 
+  /**
+   * @deprecated
+   */
   public boolean isShowChilds()
   {
-    return showChilds;
+    return isShowChildren();
   }
 
-  public void setShowChilds(final boolean showChilds)
+  public boolean isShowChildren()
   {
-    this.showChilds = showChilds;
+    return showChildren;
+  }
+
+  public void setShowChildren(final boolean showChildren)
+  {
+    this.showChildren = showChildren;
   }
 
   /**
-   * @see ReportObjective#hasChilds()
+   * @see ReportObjective#getHasChildren()
+   */
+  public boolean hasChildren()
+  {
+    return reportObjective.getHasChildren();
+  }
+
+  /**
+   * @deprecated
    */
   public boolean hasChilds()
   {
-    return reportObjective.getHasChilds();
+    return hasChildren();
   }
 
   /**
@@ -243,15 +255,15 @@ public class Report implements Serializable
     if (Objects.equals(this.reportObjective.getId(), id) == true) {
       return this;
     }
-    if (hasChilds() == false) {
+    if (hasChildren() == false) {
       return null;
     }
-    for (final Report report : getChilds()) {
+    for (final Report report : getChildren()) {
       if (Objects.equals(report.reportObjective.getId(), id) == true) {
         return report;
       }
     }
-    for (final Report report : getChilds()) {
+    for (final Report report : getChildren()) {
       final Report result = report.findById(id);
       if (result != null) {
         return result;
@@ -261,14 +273,14 @@ public class Report implements Serializable
   }
 
   /**
-   * Creates and get the childs if the ReportObjective has childs. Iteriert über alle ChildReportObjectives und legt jeweils einen Report an
-   * und selektiert gemäß Filter des ReportObjectives die Buchungssätze. Wenn Childs nicht implizit erzeugt werden sollen, so sollte die
-   * Funktion hasChilds zur Abfrage genutzt werden.
+   * Creates and get the children if the ReportObjective has children. Iteriert über alle ChildReportObjectives und legt jeweils einen Report an
+   * und selektiert gemäß Filter des ReportObjectives die Buchungssätze. Wenn Children nicht implizit erzeugt werden sollen, so sollte die
+   * Funktion hasChildren zur Abfrage genutzt werden.
    * @see #select(List)
    */
-  public List<Report> getChilds()
+  public List<Report> getChildren()
   {
-    if (childReports == null && hasChilds() == true) {
+    if (childReports == null && hasChildren() == true) {
       childReports = new ArrayList<Report>();
       for (final ReportObjective child : reportObjective.getChildReportObjectives()) {
         final Report report = new Report(child, this);
@@ -278,7 +290,7 @@ public class Report implements Serializable
       if (this.buchungssaetze != null && (reportObjective.isSuppressOther() == false || reportObjective.isSuppressDuplicates() == false)) {
         for (final BuchungssatzDO satz : this.buchungssaetze) {
           int n = 0;
-          for (final Report child : getChilds()) {
+          for (final Report child : getChildren()) {
             if (child.contains(satz) == true) {
               n++;
             }
@@ -290,7 +302,7 @@ public class Report implements Serializable
             }
             other.add(satz);
           } else if (reportObjective.isSuppressDuplicates() == false && n > 1) {
-            // Kommt bei mehreren Childs vor:
+            // Kommt bei mehreren Children vor:
             if (duplicates == null) {
               duplicates = new ArrayList<BuchungssatzDO>();
             }

@@ -197,8 +197,8 @@ public class TaskFilter extends BaseSearchFilter
       taskVisibility.put(task.getId(), true);
       tasksMatched.add(task.getId());
       return true;
-    } else if (node.hasChilds() == true && node.isRootNode() == false) {
-      for (final TaskNode childNode : node.getChilds()) {
+    } else if (node.hasChildren() == true && node.isRootNode() == false) {
+      for (final TaskNode childNode : node.getChildren()) {
         final TaskDO childTask = childNode.getTask();
         if (isVisibleBySearchString(childNode, childTask, taskDao, user) == true) {
           taskVisibility.put(childTask.getId(), true);

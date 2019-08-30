@@ -79,8 +79,8 @@ public class TaskTreeTable extends TreeTable<TaskTreeTableNode>
   protected void addDescendantNodes(TaskTreeTableNode parent)
   {
     TaskNode task = parent.getTaskNode();
-    if (task.getChilds() != null) {
-      for (TaskNode node : task.getChilds()) {
+    if (task.getChildren() != null) {
+      for (TaskNode node : task.getChildren()) {
         if (taskTree.hasSelectAccess(node) == true) {
           // The logged in user has select access, so add this task node
           // to this tree table:

@@ -644,7 +644,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
   }
 
   /**
-   * Gets history entries of super and adds all history entries of the TeamEventAttendeeDO childs.
+   * Gets history entries of super and adds all history entries of the TeamEventAttendeeDO children.
    *
    * @see org.projectforge.framework.persistence.api.BaseDao#getDisplayHistoryEntries(org.projectforge.core.ExtendedBaseDO)
    */

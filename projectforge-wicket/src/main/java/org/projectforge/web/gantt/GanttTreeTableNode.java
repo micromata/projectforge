@@ -75,8 +75,8 @@ public class GanttTreeTableNode extends TreeTableNode implements Serializable
     final ToStringBuilder tos = new ToStringBuilder(this);
     tos.append("id", ganttObject.getId());
     tos.append("title", ganttObject.getTitle());
-    if (getChilds() != null) {
-      tos.append("children", getChilds());
+    if (getChildren() != null) {
+      tos.append("children", getChildren());
     }
     return tos.toString();
   }

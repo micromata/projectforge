@@ -75,7 +75,7 @@ public class SkillTreeProvider implements ITreeProvider<SkillNode>
       // Force a refresh to load the root skill node
       getSkillTree().refresh();
     }
-    return iterator(getSkillTree().getRootSkillNode().getChilds(), showRootNode);
+    return iterator(getSkillTree().getRootSkillNode().getChildren(), showRootNode);
   }
 
   /**
@@ -88,7 +88,7 @@ public class SkillTreeProvider implements ITreeProvider<SkillNode>
       // Don't show children of root node again.
       return false;
     }
-    return node.hasChilds();
+    return node.hasChildren();
   }
 
   /**
@@ -101,7 +101,7 @@ public class SkillTreeProvider implements ITreeProvider<SkillNode>
       // Don't show children of root node again.
       return new LinkedList<SkillNode>().iterator();
     }
-    return iterator(node.getChilds());
+    return iterator(node.getChildren());
   }
 
   /**

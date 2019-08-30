@@ -58,8 +58,7 @@ const loadTasksBounced = (
                 setTranslations(responseTranslations);
             }
 
-            // TODO: RENAME CHILDS TO CHILDREN
-            setNodes(root.childs);
+            setNodes(root.children);
             setColumnsVisibility(responseColumnsVisibility);
 
             // TODO: SCROLL TO HIGHLIGHTED TASK

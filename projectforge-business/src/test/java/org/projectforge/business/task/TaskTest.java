@@ -91,15 +91,15 @@ public class TaskTest extends AbstractTestBase {
     final TaskNode root = taskTree.getRootTaskNode();
     assertNull(root.getParent());
     assertEquals("root", root.getTask().getTitle());
-    assertNotNull(root.getChilds(), "root node must have childs");
-    assertTrue(root.getChilds().size() > 0, "root node must have childs");
+    assertNotNull(root.getChildren(), "root node must have children");
+    assertTrue(root.getChildren().size() > 0, "root node must have children");
 
     final TaskNode node1_1 = taskTree.getTaskNodeById(getTask("1.1").getId());
     assertEquals(getTask("1.1").getTitle(), node1_1.getTask().getTitle());
     assertEquals(getTask("1.1").getParentTaskId(), node1_1.getParent().getId());
     final TaskNode node1 = taskTree.getTaskNodeById(getTask("1").getId());
-    final List<TaskNode> list = node1.getChilds();
-    assertEquals(2, list.size(), "Childs of 1 are 1.1 and 1.2");
+    final List<TaskNode> list = node1.getChildren();
+    assertEquals(2, list.size(), "Children of 1 are 1.1 and 1.2");
     final TaskNode task1_1_1 = taskTree.getTaskNodeById(getTask("1.1.1").getId());
     final List<TaskNode> path = task1_1_1.getPathToRoot();
     assertEquals(3, path.size(), "Node has 2 ancestors plus itself.");
@@ -168,27 +168,27 @@ public class TaskTest extends AbstractTestBase {
     initTestDB.addTask("u", "taskTreeUpdateTest");
     final TaskNode u = tree.getTaskNodeById(getTask("u").getId());
     final TaskNode parent = tree.getTaskNodeById(getTask("taskTreeUpdateTest").getId());
-    assertEquals(false, u.hasChilds(), "Should have no childs");
+    assertEquals(false, u.hasChildren(), "Should have no children");
     assertEquals(u.getParent().getId(), parent.getId());
     initTestDB.addTask("u.1", "u");
-    assertEquals(true, u.hasChilds(), "Should have childs");
-    assertEquals(1, u.getChilds().size(), "Should have exact 1 child");
+    assertEquals(true, u.hasChildren(), "Should have children");
+    assertEquals(1, u.getChildren().size(), "Should have exact 1 child");
     initTestDB.addTask("u.2", "u");
-    assertEquals(2, u.getChilds().size(), "Should have exact 2 childs");
+    assertEquals(2, u.getChildren().size(), "Should have exact 2 children");
     initTestDB.addTask("u.2.1", "u.2");
     initTestDB.addTask("u.2.2", "u.2");
     initTestDB.addTask("u.2.3", "u.2");
     final TaskNode u1 = tree.getTaskNodeById(getTask("u.1").getId());
     final TaskNode u2 = tree.getTaskNodeById(getTask("u.2").getId());
-    assertEquals(3, u2.getChilds().size(), "Should have exact 3 childs");
+    assertEquals(3, u2.getChildren().size(), "Should have exact 3 children");
     // Now we move u.2.3 to u.1.1:
     final TaskDO tu_2_3 = taskDao.internalGetById(getTask("u.2.3").getId());
     tu_2_3.setTitle("u.1.1");
     logon(AbstractTestBase.ADMIN);
     taskDao.setParentTask(tu_2_3, getTask("u.1").getId());
     taskDao.internalUpdate(tu_2_3);
-    assertEquals(2, u2.getChilds().size(), "Should have exact 2 childs");
-    assertEquals(1, u1.getChilds().size(), "Should have exact 1 child");
+    assertEquals(2, u2.getChildren().size(), "Should have exact 2 children");
+    assertEquals(1, u1.getChildren().size(), "Should have exact 1 child");
     final TaskDO tu_1_1 = taskDao.internalGetById(getTask("u.2.3").getId());
     assertEquals("u.1.1", tu_1_1.getTitle());
     assertEquals(getTask("u.1").getId(), tu_1_1.getParentTaskId());
@@ -521,9 +521,9 @@ public class TaskTest extends AbstractTestBase {
 
   private void traverseTaskTree(final TaskNode node) {
     logDot();
-    final List<TaskNode> childs = node.getChilds();
-    if (childs != null) {
-      for (final TaskNode child : childs) {
+    final List<TaskNode> children = node.getChildren();
+    if (children != null) {
+      for (final TaskNode child : children) {
         assertEquals(node.getId(), child.getParentId(), "Child should have parent id of current node.");
         traverseTaskTree(child);
       }

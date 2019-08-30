@@ -158,7 +158,7 @@ public class TreeIconsActionPanel<T extends Serializable> extends Panel
   {
     this.treeNode = treeNode;
     final ContextImage spacerImage = new PresizedImage("spacer", WebConstants.IMAGE_SPACER);
-    final boolean showExploreIcon = treeNode.hasChilds();
+    final boolean showExploreIcon = treeNode.hasChildren();
     int spacerWidth;
     if (showExploreIcon == true)
       spacerWidth = treeNode.getIndent() * WebConstants.IMAGE_TREE_ICON_WIDTH + 1;
@@ -273,7 +273,7 @@ public class TreeIconsActionPanel<T extends Serializable> extends Panel
           };
         };
       }
-      folderLink.setVisible(treeNode.hasChilds() == true);
+      folderLink.setVisible(treeNode.hasChildren() == true);
       iconSpan.add(folderLink);
       folderImage = new PresizedImage("folderImage", WebConstants.IMAGE_TREE_ICON_FOLDER);
       folderImage.setOutputMarkupId(true);
