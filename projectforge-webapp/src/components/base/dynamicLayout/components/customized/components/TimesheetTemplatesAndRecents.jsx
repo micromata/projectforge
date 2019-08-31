@@ -23,6 +23,8 @@ function TimesheetTemplatesAndRecents() {
     const [columnsVisibility, setColumnsVisibility] = React.useState([]);
     const recentsRef = React.useRef(null);
 
+    // TODO: fetch rs/timesheet/recents
+
     // Handle mouse events
     React.useEffect(() => {
         const handleClickOutside = ({ target }) => {
