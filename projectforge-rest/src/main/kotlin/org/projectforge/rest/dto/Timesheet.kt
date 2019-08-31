@@ -23,32 +23,11 @@
 
 package org.projectforge.rest.dto
 
-import org.projectforge.business.fibu.kost.Kost2DO
-import org.projectforge.business.fibu.kost.KostentraegerStatus
+import org.projectforge.business.timesheet.TimesheetDO
 
-class Kost2(
-        id: Int? = null,
-        var nummernkreis: Int = 0,
-        var bereich: Int = 0,
-        var teilbereich: Int = 0,
-        var endziffer: Int = 0,
-        var kostentraegerStatus: KostentraegerStatus? = null,
-        var description: String? = null,
-        var formattedNumber: String? = null
-) : BaseDTO<Kost2DO>(id) {
-    override fun copyFromMinimal(src: Kost2DO) {
-        super.copyFromMinimal(src)
-        nummernkreis = src.nummernkreis
-        bereich = src.bereich
-        teilbereich = src.teilbereich
-        endziffer = src.kost2Art?.id ?: 0
-        description = src.description
-        formattedNumber = src.formattedNumber
-    }
-
-    override fun copyFrom(src: Kost2DO) {
-        super.copyFrom(src)
-        endziffer = src.kost2Art?.id ?: 0
-        formattedNumber = src.formattedNumber
-    }
-}
+class Timesheet(var task: Task? = null,
+                var location: String? = null,
+                var description: String? = null,
+                var user: User? = null,
+                var kost2: Kost2? = null
+) : BaseDTO<TimesheetDO>()

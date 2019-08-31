@@ -24,10 +24,12 @@
 package org.projectforge.rest
 
 import org.projectforge.business.fibu.kost.Kost2DO
+import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.business.timesheet.*
 import org.projectforge.business.user.service.UserPrefService
+import org.projectforge.business.user.service.UserService
 import org.projectforge.common.DateFormatType
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.i18n.translate
@@ -46,18 +48,14 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.rest.core.RestHelper
 import org.projectforge.rest.core.ResultSet
-import org.projectforge.rest.dto.CalEvent
-import org.projectforge.rest.dto.TeamEvent
+import org.projectforge.rest.dto.*
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
 import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
 
 @RestController
@@ -83,6 +81,12 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
     private lateinit var userPrefService: UserPrefService
 
     @Autowired
+    private lateinit var userService: UserService
+
+    @Autowired
+    private lateinit var kost2Dao: Kost2Dao
+
+    @Autowired
     private lateinit var teamEventRest: TeamEventRest
 
     @Autowired
@@ -98,12 +102,12 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
     /**
      * For exporting list of timesheets.
      */
-    private class Timesheet(val timesheet: TimesheetDO,
-                            val id: Int, // Needed for history Service
-                            val weekOfYear: String,
-                            val dayName: String,
-                            val timePeriod: String,
-                            val duration: String)
+    private class Timesheet4ListExport(val timesheet: TimesheetDO,
+                                       val id: Int, // Needed for history Service
+                                       val weekOfYear: String,
+                                       val dayName: String,
+                                       val timePeriod: String,
+                                       val duration: String)
 
     override fun getInitialList(request: HttpServletRequest): InitialListData {
         val taskId = NumberHelper.parseInteger(request.getParameter("taskId")) ?: return super.getInitialList(request)
@@ -158,8 +162,8 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
     }
 
     override fun processResultSetBeforeExport(resultSet: ResultSet<TimesheetDO>): ResultSet<*> {
-        val list: List<Timesheet> = resultSet.resultSet.map {
-            Timesheet(it,
+        val list: List<Timesheet4ListExport> = resultSet.resultSet.map {
+            Timesheet4ListExport(it,
                     id = it.id,
                     weekOfYear = DateTimeFormatter.formatWeekOfYear(it.startTime),
                     dayName = dateTimeFormatter.getFormattedDate(it.startTime,
@@ -231,6 +235,37 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
                 responseAction = ResponseAction(getRestRootPath("switch2CalendarEvent"), targetType = TargetType.POST)))
         layout.addTranslations("templates")
         return LayoutUtils.processEditPage(layout, dto, this)
+    }
+
+    /**
+     * @return The list fo recent edited time sheets of the current logged in user.
+     */
+    @GetMapping("recents")
+    fun getRecents(): List<Timesheet> {
+        val pref = getTimesheetPrefData()
+        return pref.recents.map {
+            val ts = Timesheet()
+            ts.location = it.location
+            ts.description = it.description
+            val task = taskTree.getTaskById(it.taskId)
+            if (task != null) {
+                ts.task = Task()
+                ts.task!!.copyFromMinimal(task)
+            }
+            val user =userService.getUser(it.userId)
+            if (user != null) {
+                ts.user = User()
+                ts.user!!.copyFromMinimal(user)
+            }
+            if (it.kost2Id != null) {
+                val kost2 = kost2Dao.getById(it.kost2Id)
+                if (kost2 != null) {
+                    ts.kost2 = Kost2()
+                    ts.kost2!!.copyFromMinimal(kost2)
+                }
+            }
+            ts
+        }
     }
 
     /**
