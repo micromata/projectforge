@@ -76,6 +76,7 @@ open class BaseDTO<T : ExtendedBaseDO<Int>>(var id: Int? = null,
      */
     open fun copyFromMinimal(src: T) {
         id = src.id
+        deleted = src.isDeleted
     }
 
     private fun _copyFromMinimal(src: Any?) {
