@@ -147,11 +147,6 @@ class IndexPage extends React.Component {
                                 Customized Data Image in List Page not working
                             </li>
                             <li>
-                                Design improvements for selection of task tree (e. g. time
-                                sheet editing). Highlighting of current active breadcrumb,
-                                smaller search bar, no table head row. Collapse like Apple Finder.
-                            </li>
-                            <li>
                                 Autocompletion for input fields (see outgoing-mail), worked in older
                                 versions (before dynamic rendering).
                             </li>
@@ -160,9 +155,6 @@ class IndexPage extends React.Component {
                                 field in list&apos;s search filter.
                                 Return key closes the popover, another Return click submits the
                                 filter and requests a new list?
-                            </li>
-                            <li>
-                                Set date of calendar view after editing timesheet or event.
                             </li>
                             <li>
                                 main.chunk.js with hash sum / version id, use service worker for
@@ -179,6 +171,7 @@ class IndexPage extends React.Component {
                                 <br />
                                 See /incomingInvoice
                             </li>
+                            <li>Calendar refetch events after deletion/creation etc.</li>
                         </ol>
                         <h1>Done</h1>
                         <ol style={todoDone}>
@@ -254,6 +247,14 @@ class IndexPage extends React.Component {
                                 TimesheetEditTaskAndKost2.jsx: set kost2list on initial call and
                                 update of kost2list after task selections. See classic version.
                                 <i>Part of TaskTree refactor</i>
+                            </li>
+                            <li>
+                                Design improvements for selection of task tree (e. g. time
+                                sheet editing). Highlighting of current active breadcrumb,
+                                smaller search bar, no table head row. Collapse like Apple Finder.
+                            </li>
+                            <li>
+                                Set date of calendar view after editing timesheet or event.
                             </li>
                         </ol>
                     </Col>
