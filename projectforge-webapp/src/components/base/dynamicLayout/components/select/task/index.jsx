@@ -114,84 +114,35 @@ function DynamicTaskSelect(
                 });
         };
 
+        const fetchFavorites = (action, params, callback = setFavorites) => fetch(
+            getServiceURL(`task/favorites/${action}`, params),
+            {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    Accept: 'application/json',
+                },
+            },
+        )
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            .then(callback)
+            .catch(error => alert(`Internal error: ${error}`));
+
         const handleFavoriteCreate = (name) => {
-            if (!task) {
-                // Do nothing: can't set none existing task as favorite.
-                return;
+            if (task) {
+                fetchFavorites('create', {
+                    name,
+                    taskId: task.id,
+                });
             }
-
-            fetch(
-                getServiceURL(
-                    'task/favorites/create',
-                    {
-                        name,
-                        taskId: task.id,
-                    },
-                ),
-                {
-                    method: 'GET',
-                    credentials: 'include',
-                    headers: {
-                        Accept: 'application/json',
-                    },
-                },
-            )
-                .then(handleHTTPErrors)
-                .then(response => response.json())
-                .then(setFavorites)
-                .catch(error => alert(`Internal error: ${error}`));
         };
-
-        const handleFavoriteDelete = favoriteId => fetch(
-            getServiceURL('task/favorites/delete', { id: favoriteId }),
-            {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    Accept: 'application/json',
-                },
-            },
-        )
-            .then(handleHTTPErrors)
-            .then(response => response.json())
-            .then(setFavorites)
-            .catch(error => alert(`Internal error: ${error}`));
-
-        const handleFavoriteSelect = favoriteId => fetch(
-            getServiceURL('task/favorites/select', { id: favoriteId }),
-            {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    Accept: 'application/json',
-                },
-            },
-        )
-            .then(handleHTTPErrors)
-            .then(response => response.json())
-            .then(setTask)
-            .catch(error => alert(`Internal error: ${error}`));
-
-        const handleFavoriteRename = (favoriteId, newName) => fetch(
-            getServiceURL(
-                'task/favorites/rename',
-                {
-                    id: favoriteId,
-                    newName,
-                },
-            ),
-            {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    Accept: 'application/json',
-                },
-            },
-        )
-            .then(handleHTTPErrors)
-            .then(response => response.json())
-            .then(setFavorites)
-            .catch(error => alert(`Internal error: ${error}`));
+        const handleFavoriteDelete = favoriteId => fetchFavorites('delete', { id: favoriteId });
+        const handleFavoriteSelect = favoriteId => fetchFavorites('select', { id: favoriteId }, setTask);
+        const handleFavoriteRename = (favoriteId, newName) => fetchFavorites('rename', {
+            id: favoriteId,
+            newName,
+        });
 
         const toggleModal = () => {
             setPanelVisible(!panelVisible);
