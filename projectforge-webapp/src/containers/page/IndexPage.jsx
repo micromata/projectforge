@@ -142,6 +142,7 @@ class IndexPage extends React.Component {
                     <Col>
                         <h1>ToDo&apos;s (Fin)</h1>
                         <ol>
+                            <li>Finishing time sheet editing (recents)</li>
                             <li>
                                 TimesheetEditTaskAndKost2.jsx: set kost2list on initial call and
                                 update of kost2list after task selections. See classic version.
@@ -189,6 +190,10 @@ class IndexPage extends React.Component {
                         </ol>
                         <h1>Done</h1>
                         <ol style={todoDone}>
+                            <li>
+                                TaskSelect panel: collapse search fields to have more a feeling
+                                of a bread crumb...
+                            </li>
                             <li>Translations in SearchFilter.jsx</li>
                             <li>MagicFilter: send filter settings to server on search action</li>
                             <li>
@@ -258,22 +263,16 @@ class IndexPage extends React.Component {
                     <Col>
                         <h1>ToDo&apos;s (Kai)</h1>
                         <ol>
-                            <li>Drag&Drop/resize of calendar events</li>
-                            <li>Finishing time sheet editing</li>
                             <li>List pages: addresses, tasks etc.</li>
                             <li>Search filter</li>
                             <li>Setup page</li>
                             <li>Message of the day</li>
                             <li>System alert message</li>
-                            <li>
-                                TaskSelect panel: collapse search fields to have more a feeling
-                                of a bread crumb...
-                            </li>
-
                             <li>CSRF</li>
                         </ol>
                         <h1>Done</h1>
                         <ol style={todoDone}>
+                            <li>Drag&Drop/resize of calendar events</li>
                             <li>Calendar events (especially recurrences)</li>
                             <li>updateFilter-Rest call for favorites</li>
                             <li>
