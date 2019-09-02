@@ -144,11 +144,6 @@ class IndexPage extends React.Component {
                         <ol>
                             <li>Finishing time sheet editing (recents)</li>
                             <li>
-                                TimesheetEditTaskAndKost2.jsx: set kost2list on initial call and
-                                update of kost2list after task selections. See classic version.
-                                <i>Part of TaskTree refactor</i>
-                            </li>
-                            <li>
                                 Customized Data Image in List Page not working
                             </li>
                             <li>
@@ -258,6 +253,11 @@ class IndexPage extends React.Component {
                                 Bug: States of Inputfields!
                             </li>
                             <li>Change time of day in calendar events.</li>
+                            <li>
+                                TimesheetEditTaskAndKost2.jsx: set kost2list on initial call and
+                                update of kost2list after task selections. See classic version.
+                                <i>Part of TaskTree refactor</i>
+                            </li>
                         </ol>
                     </Col>
                     <Col>
