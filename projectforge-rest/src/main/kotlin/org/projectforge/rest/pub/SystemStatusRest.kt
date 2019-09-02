@@ -55,26 +55,29 @@ class SystemStatusRest {
     private var _systemData: SystemData? = null
 
     val systemData: SystemData
-        get() = _systemData!!
+        get() =
+            if (_systemData == null) {
+                // Must be initialized on demand, LogServiceRest is not available on @PostConstruct in test cases.
+                _systemData = SystemData(appname = systemStatus.appname,
+                        version = systemStatus.version,
+                        releaseTimestamp = systemStatus.releaseTimestamp,
+                        releaseDate = systemStatus.releaseDate,
+                        releaseYear = systemStatus.releaseYear,
+                        messageOfTheDay = systemStatus.messageOfTheDay,
+                        copyRightYears = systemStatus.copyRightYears,
+                        logoUrl = LogoServiceRest.logoUrl,
+                        setupRedirectUrl = if (systemStatus.setupRequiredFirst == true) "/wa/setup" else null,
+                        startTimeUTC = Date(systemStatus.startTimeMillis))
+                _systemData!!
+            } else {
+                _systemData!!
+            }
 
     @Autowired
     private lateinit var systemStatus: SystemStatus
 
     @GetMapping("systemStatus")
-    fun getSystemStatus(): SystemData {
-        if (_systemData == null) {
-            // Must be initialized on demand, LogServiceRest is not available on @PostConstruct in test cases.
-            _systemData = SystemData(appname = systemStatus.appname,
-                    version = systemStatus.version,
-                    releaseTimestamp = systemStatus.releaseTimestamp,
-                    releaseDate = systemStatus.releaseDate,
-                    releaseYear = systemStatus.releaseYear,
-                    messageOfTheDay = systemStatus.messageOfTheDay,
-                    copyRightYears = systemStatus.copyRightYears,
-                    logoUrl = LogoServiceRest.logoUrl,
-                    setupRedirectUrl = if (systemStatus.setupRequiredFirst == true) "/wa/setup" else null,
-                    startTimeUTC = Date(systemStatus.startTimeMillis))
-        }
+    fun getSystemStatus(): SystemStatusRest.SystemData {
         if (systemData.setupRedirectUrl != null
                 && systemStatus.setupRequiredFirst != true
                 && systemStatus.updateRequiredFirst != true) {

@@ -29,6 +29,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.SystemAlertMessage;
 import org.projectforge.business.book.BookDO;
 import org.projectforge.business.book.BookDao;
 import org.projectforge.business.book.BookStatus;
@@ -540,14 +541,14 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   protected void setAlertMessage() {
     log.info("Admin user has set the alert message: \"" + form.alertMessage + "\"");
     checkAccess();
-    WicketApplication.setAlertMessage(form.alertMessage);
+    SystemAlertMessage.INSTANCE.setAlertMessage(form.alertMessage);
   }
 
   protected void clearAlertMessage() {
     log.info("Admin user has cleared the alert message.");
     checkAccess();
     form.alertMessage = null;
-    WicketApplication.setAlertMessage(form.alertMessage);
+    SystemAlertMessage.INSTANCE.setAlertMessage(null);
   }
 
   protected void updateUserPrefs() {

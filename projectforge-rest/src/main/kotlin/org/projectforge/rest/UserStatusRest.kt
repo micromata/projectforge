@@ -23,6 +23,7 @@
 
 package org.projectforge.rest
 
+import org.projectforge.SystemAlertMessage
 import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.common.DateFormatType
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -74,7 +75,8 @@ open class UserStatusRest {
                         var timeNotation: TimeNotation? = null)
 
     data class Result(val userData: UserData,
-                      val systemData: SystemStatusRest.SystemData)
+                      val systemData: SystemStatusRest.SystemData,
+                      val alertMessage: String? = null)
 
     private val log = org.slf4j.LoggerFactory.getLogger(UserStatusRest::class.java)
 
@@ -107,7 +109,7 @@ open class UserStatusRest {
         userData.jsTimestampFormatSeconds = convertToJavascriptFormat(userData.timestampFormatSeconds)
 
         val systemData = systemStatusRest.systemData
-        return ResponseEntity<Result>(Result(userData, systemData), HttpStatus.OK)
+        return ResponseEntity<Result>(Result(userData, systemData, SystemAlertMessage.alertMessage), HttpStatus.OK)
     }
 
     /**

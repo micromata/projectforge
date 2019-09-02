@@ -23,30 +23,26 @@
 
 package org.projectforge.web.admin;
 
-import java.io.Serializable;
-import java.util.Date;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.AppVersion;
+import org.projectforge.SystemAlertMessage;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.web.wicket.AbstractStandardForm;
-import org.projectforge.web.wicket.WicketApplication;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.DatePanel;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.MinMaxNumberField;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
-import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.projectforge.web.wicket.flowlayout.*;
+
+import java.io.Serializable;
+import java.util.Date;
 
 public class AdminForm extends AbstractStandardForm<AdminForm, AdminPage>
 {
@@ -78,7 +74,7 @@ public class AdminForm extends AbstractStandardForm<AdminForm, AdminPage>
     gridBuilder.newFormHeading(getString("system.admin.group.title.alertMessage"));
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("system.admin.group.title.alertMessage"));
-      alertMessage = WicketApplication.getAlertMessage();
+      alertMessage = SystemAlertMessage.INSTANCE.getAlertMessage();
 
       fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<String>(this, "alertMessage"), 1000))
           .setAutogrow();
