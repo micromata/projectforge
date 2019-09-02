@@ -9,6 +9,7 @@ import { Button, Collapse } from '../../../../../design';
 import inputStyle from '../../../../../design/input/Input.module.scss';
 import { DynamicLayoutContext } from '../../../context';
 import TaskPath from './TaskPath';
+import taskStyle from './TaskSelect.module.scss';
 
 function DynamicTaskSelect(
     {
@@ -190,11 +191,7 @@ function DynamicTaskSelect(
                 />
                 <Collapse
                     isOpen={panelVisible}
-                    style={{
-                        maxHeight: '600px',
-                        overflow: 'scroll',
-                        scroll: 'auto',
-                    }}
+                    className={taskStyle.taskCollapse}
                 >
                     <TaskTreePanel
                         highlightTaskId={modalHighlight || (task ? task.id : undefined)}
