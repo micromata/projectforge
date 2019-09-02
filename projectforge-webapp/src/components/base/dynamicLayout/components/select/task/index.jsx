@@ -44,22 +44,24 @@ function DynamicTaskSelect(
         return undefined;
     }, [panelVisible]);
 
+    const fetchFavorites = (action, params = {}, callback = setFavorites) => fetch(
+        getServiceURL(`task/favorites/${action}`, params),
+        {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                Accept: 'application/json',
+            },
+        },
+    )
+        .then(handleHTTPErrors)
+        .then(response => response.json())
+        .then(callback)
+        .catch(error => alert(`Internal error: ${error}`));
+
     // Initial Fetch
     React.useEffect(() => {
-        fetch(
-            getServiceURL('task/favorites/list'),
-            {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    Accept: 'application/json',
-                },
-            },
-        )
-            .then(handleHTTPErrors)
-            .then(response => response.json())
-            .then(json => setFavorites(json))
-            .catch(error => alert(`Internal error: ${error}`));
+        fetchFavorites('list');
     }, []);
 
     React.useEffect(() => {
@@ -114,21 +116,6 @@ function DynamicTaskSelect(
                     }
                 });
         };
-
-        const fetchFavorites = (action, params, callback = setFavorites) => fetch(
-            getServiceURL(`task/favorites/${action}`, params),
-            {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    Accept: 'application/json',
-                },
-            },
-        )
-            .then(handleHTTPErrors)
-            .then(response => response.json())
-            .then(callback)
-            .catch(error => alert(`Internal error: ${error}`));
 
         const handleFavoriteCreate = (name) => {
             if (task) {
