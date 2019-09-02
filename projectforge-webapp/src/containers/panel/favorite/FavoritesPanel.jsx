@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { Popover, PopoverBody } from '../../../components/design';
 import style from '../../../components/design/input/Input.module.scss';
+import { useClickOutsideHandler } from '../../../utilities/hooks';
 import FavoriteEntry from './FavoriteEntry';
 import FavoriteNameInput from './FavoriteNameInput';
 import FavoritesButton from './FavoritesButton';
@@ -36,24 +37,7 @@ function FavoritesPanel(
         }
     };
 
-    const handleMouseClickEvent = ({ target }) => {
-        if (!popperRef.current || popperRef.current.parentElement.contains(target)) {
-            return;
-        }
-
-        setOpen(false);
-    };
-
-    React.useEffect(() => {
-        if (open) {
-            document.addEventListener('click', handleMouseClickEvent);
-
-            return () => document.removeEventListener('click', handleMouseClickEvent);
-        }
-
-        return () => {
-        };
-    }, [open]);
+    useClickOutsideHandler(popperRef, setOpen, open);
 
     return (
         <React.Fragment>

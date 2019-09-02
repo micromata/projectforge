@@ -3,6 +3,7 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import style from '../../../components/design/input/Input.module.scss';
+import { useClickOutsideHandler } from '../../../utilities/hooks';
 import FavoriteActionButton from './FavoriteActionButton';
 import FavoriteNameInput from './FavoriteNameInput';
 
@@ -22,24 +23,7 @@ function FavoriteEntry(
     const [inEditMode, setInEditMode] = React.useState(false);
     const entryRef = React.useRef(null);
 
-    const handleMouseClickEvent = ({ target }) => {
-        if (!entryRef.current || entryRef.current.contains(target)) {
-            return;
-        }
-
-        setInEditMode(false);
-    };
-
-    React.useEffect(() => {
-        if (inEditMode) {
-            document.addEventListener('click', handleMouseClickEvent);
-
-            return () => document.removeEventListener('click', handleMouseClickEvent);
-        }
-
-        return () => {
-        };
-    }, [inEditMode]);
+    useClickOutsideHandler(entryRef, setInEditMode, inEditMode);
 
     const handleItemClick = () => {
         if (inEditMode) {
