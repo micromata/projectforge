@@ -46,7 +46,6 @@ import org.apache.wicket.util.lang.Bytes;
 import org.apache.wicket.util.time.Duration;
 import org.projectforge.Const;
 import org.projectforge.ProjectForgeApp;
-import org.projectforge.SystemStatus;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.configuration.DomainService;
 import org.projectforge.business.multitenancy.TenantRegistry;
@@ -97,8 +96,6 @@ public class WicketApplication extends WebApplication implements WicketApplicati
 
   private static Boolean stripWicketTags;
 
-  private static String alertMessage;
-
   private static Boolean developmentMode;
 
   private static Boolean testsystemMode;
@@ -121,9 +118,6 @@ public class WicketApplication extends WebApplication implements WicketApplicati
 
   @Autowired
   private DomainService domainService;
-
-  @Autowired
-  private SystemStatus systemStatus;
 
   @Autowired
   private ProjectForgeApp projectForgeApp; // Needed to be constructed first.
@@ -194,29 +188,6 @@ public class WicketApplication extends WebApplication implements WicketApplicati
   public static String getBookmarkableMountPath(final Class<? extends Page> pageClass)
   {
     return mountedPages.get(pageClass);
-  }
-
-  /**
-   * Returns the alert message, if exists. The alert message will be displayed on every screen (red on top) and is
-   * edit-able via Administration -> System.
-   */
-  public static String getAlertMessage()
-  {
-    if (UserFilter.isUpdateRequiredFirst() == true) {
-      return "Maintenance mode: Please restart ProjectForge after finishing."
-          + (alertMessage != null ? " " + alertMessage : "");
-    } else {
-      return alertMessage;
-    }
-  }
-
-  /**
-   * @param alertMessage
-   * @see #getAlertMessage()
-   */
-  public static void setAlertMessage(final String alertMessage)
-  {
-    WicketApplication.alertMessage = alertMessage;
   }
 
   @Deprecated

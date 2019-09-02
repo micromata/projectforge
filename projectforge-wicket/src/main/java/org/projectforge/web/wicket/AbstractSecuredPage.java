@@ -33,6 +33,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.Const;
+import org.projectforge.SystemAlertMessage;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.configuration.DomainService;
 import org.projectforge.business.user.filter.UserFilter;
@@ -88,10 +89,10 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
       @Override
       public String getObject()
       {
-        if (WicketApplication.getAlertMessage() == null) {
+        if (SystemAlertMessage.INSTANCE.getAlertMessage() == null) {
           return "neverDisplayed";
         }
-        return WicketApplication.getAlertMessage();
+        return SystemAlertMessage.INSTANCE.getAlertMessage();
       }
     };
     final WebMarkupContainer alertMessageContainer = new WebMarkupContainer("alertMessageContainer")
@@ -99,7 +100,7 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
       @Override
       public boolean isVisible()
       {
-        return (WicketApplication.getAlertMessage() != null);
+        return (SystemAlertMessage.INSTANCE.getAlertMessage() != null);
       }
     };
     body.add(alertMessageContainer);
