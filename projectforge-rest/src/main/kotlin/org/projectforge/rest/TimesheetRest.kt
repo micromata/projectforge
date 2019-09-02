@@ -279,6 +279,10 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
         else teamEventRest.cloneFromTimesheet(request, timesheet)
     }
 
+    override fun getRestEditPath(): String {
+        return "calendar/${super.getRestEditPath()}"
+    }
+
     @Deprecated("Will be replaced by cloneFromCalendarEvent(request, calendarEvent).")
     fun cloneFromTeamEvent(request: HttpServletRequest, teamEvent: TeamEvent): ResponseAction {
         val calendarEvent = CalEvent(
