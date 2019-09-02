@@ -20,7 +20,7 @@ class IndexPage extends React.Component {
         this.fetchInitial();
     }
 
-    componentWillUpdate({ location: nextLocation }) {
+    componentDidUpdate({ location: nextLocation }) {
         const { location, loadUserStatus: checkAuthentication } = this.props;
 
         if (location.key === nextLocation.key) {
