@@ -10,7 +10,7 @@ export const useConstant = (calculateInitialValue, inputs) => {
     return constant;
 };
 
-export const useMouseUpkHandler = (handler, inputs, active = true) => {
+export const useMouseUpHandler = (handler, inputs, active = true) => {
     React.useEffect(() => {
         if (active) {
             document.addEventListener('mouseup', handler);
@@ -22,7 +22,7 @@ export const useMouseUpkHandler = (handler, inputs, active = true) => {
     }, inputs);
 };
 
-export const useClickOutsideHandler = (reference, callback, active) => useMouseUpkHandler(
+export const useClickOutsideHandler = (reference, callback, active) => useMouseUpHandler(
     ({ target }) => {
         if (reference.current && !reference.current.contains(target)) {
             callback(false);
