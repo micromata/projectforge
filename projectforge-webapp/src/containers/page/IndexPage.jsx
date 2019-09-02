@@ -156,6 +156,7 @@ class IndexPage extends React.Component {
                                 Return key closes the popover, another Return click submits the
                                 filter and requests a new list?
                             </li>
+                            <li>System alert message (front end side)</li>
                             <li>
                                 main.chunk.js with hash sum / version id, use service worker for
                                 caching app
@@ -265,11 +266,11 @@ class IndexPage extends React.Component {
                             <li>Search filter</li>
                             <li>Setup page</li>
                             <li>Message of the day</li>
-                            <li>System alert message</li>
                             <li>CSRF</li>
                         </ol>
                         <h1>Done</h1>
                         <ol style={todoDone}>
+                            <li>System alert message (server side)</li>
                             <li>Drag&Drop/resize of calendar events</li>
                             <li>Calendar events (especially recurrences)</li>
                             <li>updateFilter-Rest call for favorites</li>
