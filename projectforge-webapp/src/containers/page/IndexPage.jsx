@@ -179,9 +179,6 @@ class IndexPage extends React.Component {
                                 <br />
                                 See /incomingInvoice
                             </li>
-                            <li>
-                                Handle Click Hook TimesheetTemplatesAndRecents.jsx
-                            </li>
                         </ol>
                         <h1>Done</h1>
                         <ol style={todoDone}>
