@@ -20,6 +20,7 @@ function ReactSelect(
         required,
         tooltip,
         translations,
+        value,
         valueProperty,
         values,
         ...props
@@ -75,6 +76,7 @@ function ReactSelect(
                 defaultOptions={defaultOptions}
                 placeholder={translations['select.placeholder']}
                 cache={{}}
+                value={value || null}
                 {...props}
             />
             <AdditionalLabel title={additionalLabel} />

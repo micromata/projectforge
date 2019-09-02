@@ -33,12 +33,13 @@ function DynamicReactSelect(props) {
         autoCompletion,
         labelProperty,
         valueProperty,
+        values,
     } = props;
-    const [value, setValue] = React.useState(extractDataValue({ data, ...props }));
+
+    const value = extractDataValue({ data, ...props });
 
     return React.useMemo(() => {
         const onChange = (newValue) => {
-            setValue(newValue);
             setData({ [id]: newValue });
         };
 
@@ -93,7 +94,7 @@ function DynamicReactSelect(props) {
                 </DynamicValidationManager>
             </React.Fragment>
         );
-    }, [data[id], value, setData]);
+    }, [data[id], value, setData, values]);
 }
 
 DynamicReactSelect.propTypes = {

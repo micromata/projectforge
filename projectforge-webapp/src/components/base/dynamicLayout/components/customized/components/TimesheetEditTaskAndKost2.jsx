@@ -14,7 +14,7 @@ import DynamicTaskSelect from '../../select/task';
 function TimesheetEditTaskAndKost2({ values }) {
     const { ui, variables } = React.useContext(DynamicLayoutContext);
 
-    const [kost2List, setKost2List] = React.useState(undefined);
+    const [kost2List, setKost2List] = React.useState([]);
 
     // Only set the kost2list when there is a new value for the variables prop.
     React.useEffect(() => {
