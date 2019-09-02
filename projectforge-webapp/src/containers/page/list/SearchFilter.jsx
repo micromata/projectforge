@@ -1,5 +1,5 @@
 import React from 'react';
-import CreatableSelect from 'react-select/lib/Creatable';
+import CreatableSelect from 'react-select/creatable';
 import DynamicActionGroup from '../../../components/base/dynamicLayout/action/DynamicActionGroup';
 import { DynamicLayoutContext } from '../../../components/base/dynamicLayout/context';
 import { Card, CardBody, Col, FormGroup, Label, Row } from '../../../components/design';
