@@ -1,9 +1,10 @@
 import React from 'react';
 import { Button, Card, CardBody, Table } from 'reactstrap';
 import FavoritesPanel from '../../../../../../containers/panel/favorite/FavoritesPanel';
+import { useClickOutsideHandler } from '../../../../../../utilities/hooks';
 import { fetchJsonGet, fetchJsonPost } from '../../../../../../utilities/rest';
-import { DynamicLayoutContext } from '../../../context';
 import { Collapse } from '../../../../../design';
+import { DynamicLayoutContext } from '../../../context';
 
 function TimesheetTemplatesAndRecents() {
     const {
@@ -26,15 +27,7 @@ function TimesheetTemplatesAndRecents() {
     // TODO: fetch rs/timesheet/recents
 
     // Handle mouse events
-    React.useEffect(() => {
-        const handleClickOutside = ({ target }) => {
-            if (recentsRef.current && !recentsRef.current.contains(target)) {
-                setRecentsVisible(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+    useClickOutsideHandler(recentsRef, () => setRecentsVisible(false), recentsVisible);
 
     return React.useMemo(
         () => {

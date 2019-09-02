@@ -5,6 +5,7 @@ import React from 'react';
 import { components } from 'react-select';
 import { CalendarContext } from '../../containers/page/calendar/CalendarContext';
 import CalendarStyler from '../../containers/panel/calendar/CalendarStyler';
+import { useClickOutsideHandler } from '../../utilities/hooks';
 import { getServiceURL, handleHTTPErrors } from '../../utilities/rest';
 import { Button } from './index';
 import Input from './input';
@@ -21,17 +22,7 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
     const popperRef = React.useRef(null);
 
     // Close Popper when clicking outside
-    React.useEffect(() => {
-        const handleMouseClick = (event) => {
-            if (popperRef.current && !popperRef.current.parentElement.contains(event.target)) {
-                setIsOpen(false);
-            }
-        };
-
-        document.addEventListener('click', handleMouseClick);
-
-        return () => document.removeEventListener('click', handleMouseClick);
-    });
+    useClickOutsideHandler(popperRef, setIsOpen, isOpen);
 
     let input;
     let { label } = data;
@@ -135,10 +126,10 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                 </div>
             )}
         >
-            <div ref={popperRef}>
+            <div ref={popperRef} style={{ backgroundColor: 'red' }}>
                 {input}
                 <Button color="success" block onClick={submitValue}>
-                    <FontAwesomeIcon icon={faCheck}/>
+                    <FontAwesomeIcon icon={faCheck} />
                 </Button>
             </div>
         </Popper>

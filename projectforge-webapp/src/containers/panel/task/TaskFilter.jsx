@@ -3,6 +3,7 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { CheckBox, Col, Input, Row } from '../../../components/design';
+import { useClickOutsideHandler } from '../../../utilities/hooks';
 import TaskTreeContext from './TaskTreeContext';
 import style from './TaskTreePanel.module.scss';
 
@@ -19,12 +20,6 @@ function TaskFilter(
     const reference = React.useRef(undefined);
     const basicReference = React.useRef(undefined);
 
-    const handleMouseClick = (event) => {
-        if (reference.current && !reference.current.contains(event.target)) {
-            setIsOpen(false);
-        }
-    };
-
     const handleSubmitButtonClick = (event) => {
         setIsOpen(false);
         handleSubmitButton(event);
@@ -37,15 +32,7 @@ function TaskFilter(
         }
     };
 
-    React.useEffect(() => {
-        // Register accessibility listeners when search is open.
-        if (isOpen) {
-            document.addEventListener('click', handleMouseClick);
-        }
-
-        // Remove accessibility listeners when search is closed.
-        return () => document.removeEventListener('click', handleMouseClick);
-    }, [isOpen]);
+    useClickOutsideHandler(reference, setIsOpen, isOpen);
 
     const {
         searchString,

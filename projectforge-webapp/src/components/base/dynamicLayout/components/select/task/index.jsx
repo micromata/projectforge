@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import FavoritesPanel from '../../../../../../containers/panel/favorite/FavoritesPanel';
 import TaskTreePanel from '../../../../../../containers/panel/task/TaskTreePanel';
+import { useClickOutsideHandler } from '../../../../../../utilities/hooks';
 import { getServiceURL, handleHTTPErrors } from '../../../../../../utilities/rest';
 import { Button, Collapse } from '../../../../../design';
 import inputStyle from '../../../../../design/input/Input.module.scss';
@@ -28,21 +29,7 @@ function DynamicTaskSelect(
     const panelRef = React.useRef(null);
 
     // Handling Mouse Events
-    React.useEffect(() => {
-        const handleClickOutside = ({ target }) => {
-            if (panelRef.current && !panelRef.current.contains(target)) {
-                setPanelVisible(false);
-            }
-        };
-
-        if (panelVisible) {
-            document.addEventListener('mousedown', handleClickOutside);
-
-            return () => document.removeEventListener('mousedown', handleClickOutside);
-        }
-
-        return undefined;
-    }, [panelVisible]);
+    useClickOutsideHandler(panelRef, () => setPanelVisible(false), panelVisible);
 
     const fetchFavorites = (action, params = {}, callback = setFavorites) => fetch(
         getServiceURL(`task/favorites/${action}`, params),
