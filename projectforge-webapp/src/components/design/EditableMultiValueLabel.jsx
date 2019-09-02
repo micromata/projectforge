@@ -126,7 +126,7 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                 </div>
             )}
         >
-            <div ref={popperRef} style={{ backgroundColor: 'red' }}>
+            <div ref={popperRef}>
                 {input}
                 <Button color="success" block onClick={submitValue}>
                     <FontAwesomeIcon icon={faCheck} />
