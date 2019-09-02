@@ -12,21 +12,17 @@ import style from './input/Input.module.scss';
 
 function ReactSelect(
     {
-        label,
         additionalLabel,
-        value,
-        defaultValue,
-        values,
-        multi,
-        required,
-        valueProperty,
-        labelProperty,
-        translations,
-        loadOptions,
         getOptionLabel,
-        onChange,
-        className,
+        label,
+        labelProperty,
+        loadOptions,
+        required,
         tooltip,
+        translations,
+        valueProperty,
+        values,
+        ...props
     },
 ) {
     let Tag = Select;
@@ -66,24 +62,20 @@ function ReactSelect(
     }
     return (
         <React.Fragment>
-            <span className={`mm-select ${style.text}` }>{label}</span>
+            <span className={`mm-select ${style.text}`}>{label}</span>
             {tooltipElement}
             <Tag
                 // closeMenuOnSelect={false}
                 components={makeAnimated()}
-                value={value}
-                defaultValue={defaultValue}
-                isMulti={multi}
                 options={options}
                 isClearable={!required}
                 getOptionValue={option => (option[valueProperty])}
                 getOptionLabel={getOptionLabel || (option => (option[labelProperty]))}
-                onChange={onChange}
                 loadOptions={loadOptions}
                 defaultOptions={defaultOptions}
                 placeholder={translations['select.placeholder']}
-                className={className}
                 cache={{}}
+                {...props}
             />
             <AdditionalLabel title={additionalLabel} />
         </React.Fragment>
