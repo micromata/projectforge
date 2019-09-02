@@ -53,10 +53,15 @@ class CalendarPanel extends React.Component {
     constructor(props) {
         super(props);
 
-        const { firstDayOfWeek, timeZone, locale } = this.props;
-        const useLocale = locale || 'en';
+        const {
+            firstDayOfWeek,
+            locale,
+            location,
+            timeZone,
+        } = this.props;
+
         moment.tz.setDefault(timeZone);
-        moment.updateLocale(useLocale,
+        moment.updateLocale(locale || 'en',
             {
                 week: {
                     dow: firstDayOfWeek, // First day of week (got from UserStatus).
@@ -275,8 +280,7 @@ class CalendarPanel extends React.Component {
                         specialDays,
                     },
                 );
-            },
-        );
+            });
     }
 
     render() {
@@ -372,7 +376,7 @@ CalendarPanel.propTypes = {
 CalendarPanel.defaultProps = {
     activeCalendars: [],
     timesheetUserId: undefined,
-    locale: undefined,
+    locale: 'en',
     topHeight: '164px',
     defaultDate: new Date(),
     defaultView: 'month',
