@@ -177,6 +177,19 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
     }
 
     /**
+     * Sets uid to null to Force a new creation of an uid.
+     */
+    override fun prepareClone(dto: TeamEvent): TeamEvent {
+        val event = super.prepareClone(dto)
+        event.uid = null // Force newly created uid
+        return event
+    }
+
+    override fun getRestEditPath(): String {
+        return "calendar/${super.getRestEditPath()}"
+    }
+
+    /**
      * Will be called by clone button. Sets the id of the form data object to null and deleted to false.
      * @return ResponseAction with [TargetType.UPDATE] and variable "initial" with all the initial data of [getItemAndLayout] as given for new objects.
      */

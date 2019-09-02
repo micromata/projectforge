@@ -315,7 +315,6 @@ class IndexPage extends React.Component {
                     <Col>
                         <h1>ToDo&apos;s (both)</h1>
                         <ol>
-                            <li>Clone button of timesheets and calendar events</li>
                             <li>Magic filter in list pages</li>
                             <li>
                                 Markdown (AsciiDoc) View component for displaying dynamic content.
@@ -325,6 +324,10 @@ class IndexPage extends React.Component {
                             <li>
                                 Registration of customized containers (e. g. for external plugins)
                             </li>
+                        </ol>
+                        <h1>Done</h1>
+                        <ol style={todoDone}>
+                            <li>Clone button of timesheets and calendar events</li>
                         </ol>
                     </Col>
                 </Row>
