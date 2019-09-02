@@ -34,6 +34,22 @@ const convertJsonDates = e => Object.assign({}, e, {
 
 
 class CalendarPanel extends React.Component {
+    static getDerivedStateFromProps({ location }, { prevLocation }) {
+        const newState = {
+            prevLocation: location,
+        };
+
+        if (
+            location.state !== prevLocation.state
+            && location.state
+            && location.state.date
+        ) {
+            newState.date = new Date(location.state.date);
+        }
+
+        return newState;
+    }
+
     constructor(props) {
         super(props);
 
@@ -51,14 +67,18 @@ class CalendarPanel extends React.Component {
         const { defaultDate, defaultView } = props;
 
         this.state = {
-            loading: false,
-            events: undefined,
-            specialDays: undefined,
-            date: defaultDate,
-            view: defaultView,
-            start: defaultDate,
-            end: undefined,
             calendar: '',
+            date: defaultDate,
+            end: undefined,
+            events: undefined,
+            loading: false,
+            // eslint doesn't recognize the usage in the new 'static getDerivedStateFromProps'
+            // function.
+            // eslint-disable-next-line react/no-unused-state
+            prevLocation: location,
+            specialDays: undefined,
+            start: defaultDate,
+            view: defaultView,
         };
 
         this.eventStyle = this.eventStyle.bind(this);
@@ -75,20 +95,6 @@ class CalendarPanel extends React.Component {
 
     componentDidMount() {
         this.fetchEvents();
-    }
-
-    componentWillReceiveProps({ location: nextLocation }) {
-        const { location } = this.props;
-
-        if (
-            nextLocation.state !== location.state
-            && nextLocation.state
-            && nextLocation.state.date
-        ) {
-            this.setState({
-                date: new Date(nextLocation.state.date),
-            });
-        }
     }
 
     componentDidUpdate(
