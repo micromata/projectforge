@@ -47,14 +47,12 @@ function TimesheetEditTaskAndKost2({ values }) {
             <React.Fragment>
                 <Row>
                     <Col>
-                        <FormGroup>
-                            <DynamicTaskSelect
-                                label={ui.translations.task}
-                                onKost2Changed={setKost2List}
-                                id="task"
-                                variables={variables}
-                            />
-                        </FormGroup>
+                        <DynamicTaskSelect
+                            label={ui.translations.task}
+                            onKost2Changed={setKost2List}
+                            id="task"
+                            variables={variables}
+                        />
                     </Col>
                 </Row>
                 {kost2Row}
