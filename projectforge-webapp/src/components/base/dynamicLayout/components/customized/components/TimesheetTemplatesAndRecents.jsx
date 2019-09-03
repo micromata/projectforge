@@ -1,3 +1,4 @@
+import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import React from 'react';
 import { Button, Card, CardBody, Table } from 'reactstrap';
 import FavoritesPanel from '../../../../../../containers/panel/favorite/FavoritesPanel';
@@ -9,6 +10,7 @@ import {
     handleHTTPErrors,
 } from '../../../../../../utilities/rest';
 import { Collapse } from '../../../../../design';
+import Input from '../../../../../design/input';
 import { DynamicLayoutContext } from '../../../context';
 
 function TimesheetTemplatesAndRecents() {
@@ -27,6 +29,7 @@ function TimesheetTemplatesAndRecents() {
     const [recentsVisible, setRecentsVisible] = React.useState(false);
     const recentsRef = React.useRef(null);
     const [recents, setRecents] = React.useState([]);
+    const [search, setSearch] = React.useState('');
 
     React.useEffect(
         () => {
@@ -44,6 +47,8 @@ function TimesheetTemplatesAndRecents() {
 
     // Handle mouse events
     useClickOutsideHandler(recentsRef, () => setRecentsVisible(false), recentsVisible);
+
+    const handleSearchChange = ({ target }) => setSearch(target.value);
 
     return React.useMemo(
         () => {
@@ -90,7 +95,6 @@ function TimesheetTemplatesAndRecents() {
                 setRecentsVisible(!recentsVisible);
             };
 
-            /* eslint-disable indent, react/jsx-indent, react/jsx-tag-spacing */
             return (
                 <React.Fragment>
                     <FavoritesPanel
@@ -121,7 +125,14 @@ function TimesheetTemplatesAndRecents() {
                         <div ref={recentsRef}>
                             <Card>
                                 <CardBody>
-                                    TODO TRANSLATIONS & SHOW KUNDE/PROJKET & SEARCH
+                                    TODO TRANSLATIONS & SHOW KUNDE/PROJEKT
+                                    <Input
+                                        id="taskRecentSearch"
+                                        label="[Suche]"
+                                        value={search}
+                                        onChange={handleSearchChange}
+                                        icon={faSearch}
+                                    />
                                     <Table striped hover responsive>
                                         <thead>
                                             <tr>
@@ -133,17 +144,26 @@ function TimesheetTemplatesAndRecents() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {recents.map(recent => (
-                                                <tr
-                                                    key={`recent-${recent.task.id}-${recent.description}-${recent.location}`}
-                                                >
-                                                    <td>???</td>
-                                                    <td>???</td>
-                                                    <td>{recent.task.title}</td>
-                                                    <td>{recent.location}</td>
-                                                    <td>{recent.description}</td>
-                                                </tr>
-                                            ))}
+                                            {recents
+                                                .filter(recent => (
+                                                    recent.task.title.toLowerCase()
+                                                        .includes(search.toLowerCase())
+                                                    || recent.location.toLowerCase()
+                                                        .includes(search.toLowerCase())
+                                                    || recent.description.toLowerCase()
+                                                        .includes(search.toLowerCase())
+                                                ))
+                                                .map(recent => (
+                                                    <tr
+                                                        key={`recent-${recent.task.id}-${recent.description}-${recent.location}`}
+                                                    >
+                                                        <td>???</td>
+                                                        <td>???</td>
+                                                        <td>{recent.task.title}</td>
+                                                        <td>{recent.location}</td>
+                                                        <td>{recent.description}</td>
+                                                    </tr>
+                                                ))}
                                         </tbody>
                                     </Table>
                                 </CardBody>
@@ -158,6 +178,7 @@ function TimesheetTemplatesAndRecents() {
             recents,
             recentsRef,
             recentsVisible,
+            search,
             setData,
             setTimesheetFavorites,
             setVariables,
