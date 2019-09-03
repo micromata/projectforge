@@ -194,7 +194,7 @@ class IndexPage extends React.Component {
                                 Display Logo
                                 <ol>
                                     <li>
-                                        Configureation: projectforge.properties:
+                                        Configuration: projectforge.properties:
                                         projectforge.logoFile=Micromata.png
                                     </li>
                                     <li>Logo url in rsPublic/systemStatus (e. g. logo.png)</li>
