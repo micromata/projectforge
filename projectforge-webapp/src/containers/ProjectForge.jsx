@@ -7,7 +7,7 @@ import LoginView from '../components/authentication/LoginView';
 import Footer from '../components/base/footer';
 import GlobalNavigation from '../components/base/navigation/GlobalNavigation';
 import TopBar from '../components/base/topbar';
-import { Container } from '../components/design';
+import { Alert, Container } from '../components/design';
 import history from '../utilities/history';
 import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
 import CalendarPage from './page/calendar/CalendarPage';
@@ -20,6 +20,7 @@ import { SystemStatusContext, systemStatusContextDefaultValues } from './SystemS
 
 function ProjectForge(
     {
+        alertMessage,
         user,
         loginUser: login,
         loginInProgress,
@@ -64,10 +65,17 @@ function ProjectForge(
     let content;
 
     if (user) {
+
+        console.log(alertMessage);
         content = (
             <React.Fragment>
                 <GlobalNavigation />
                 <Container fluid>
+                    {alertMessage ? (
+                        <Alert color="danger">
+                            {alertMessage}
+                        </Alert>
+                    ) : undefined}
                     <Switch>
                         {wicketRoute}
                         <Route
@@ -144,11 +152,13 @@ ProjectForge.propTypes = {
     loginUser: PropTypes.func.isRequired,
     loadUserStatus: PropTypes.func.isRequired,
     loginInProgress: PropTypes.bool.isRequired,
+    alertMessage: PropTypes.string,
     loginError: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
     user: PropTypes.shape({}),
 };
 
 ProjectForge.defaultProps = {
+    alertMessage: undefined,
     loginError: undefined,
     user: undefined,
 };
@@ -157,6 +167,7 @@ const mapStateToProps = state => ({
     loginInProgress: state.authentication.loading,
     loginError: state.authentication.error,
     user: state.authentication.user,
+    alertMessage: state.authentication.alertMessage,
 });
 
 const actions = {

@@ -8,12 +8,13 @@ export const userLoginBegin = () => ({
     type: USER_LOGIN_BEGIN,
 });
 
-export const userLoginSuccess = (user, version, releaseTimestamp) => ({
+export const userLoginSuccess = (user, version, releaseTimestamp, alertMessage) => ({
     type: USER_LOGIN_SUCCESS,
     payload: {
         user,
         version,
         releaseTimestamp,
+        alertMessage,
     },
 });
 
@@ -38,8 +39,13 @@ export const loadUserStatus = () => (dispatch) => {
     )
         .then(handleHTTPErrors)
         .then(response => response.json())
-        .then(({ userData, systemData }) => {
-            dispatch(userLoginSuccess(userData, systemData.version, systemData.releaseTimestamp));
+        .then(({ userData, systemData, alertMessage }) => {
+            dispatch(userLoginSuccess(
+                userData,
+                systemData.version,
+                systemData.releaseTimestamp,
+                alertMessage,
+            ));
         })
         .catch(() => catchError(dispatch)({ message: undefined }));
 };
