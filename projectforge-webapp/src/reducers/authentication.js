@@ -23,6 +23,7 @@ const reducer = (state = initialState, { type, payload }) => {
                 user: payload.user,
                 version: payload.version,
                 releaseTimestamp: payload.releaseTimestamp,
+                alertMessage: payload.alertMessage,
             };
         case USER_LOGIN_FAILURE:
             return {
