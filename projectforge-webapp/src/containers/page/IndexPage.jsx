@@ -144,9 +144,6 @@ class IndexPage extends React.Component {
                         <ol>
                             <li>Finishing time sheet editing (recents)</li>
                             <li>
-                                Customized Data Image in List Page not working
-                            </li>
-                            <li>
                                 Autocompletion for input fields (see outgoing-mail), worked in older
                                 versions (before dynamic rendering).
                             </li>
@@ -257,6 +254,9 @@ class IndexPage extends React.Component {
                             </li>
                             <li>Calendar refetch events after deletion/creation etc.</li>
                             <li>System alert message (front end side)</li>
+                            <li>
+                                Customized Data Image in List Page not working
+                            </li>
                         </ol>
                     </Col>
                     <Col>

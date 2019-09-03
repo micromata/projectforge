@@ -5,8 +5,8 @@ import { ListPageContext } from '../../../../../containers/page/list/ListPageCon
 import history from '../../../../../utilities/history';
 import { tableColumnsPropType } from '../../../../../utilities/propTypes';
 import Formatter from '../../../Formatter';
-import style from './DynamicTable.module.scss';
 import DynamicCustomized from '../customized';
+import style from './DynamicTable.module.scss';
 
 function DynamicTableRow({ columns, row }) {
     const { category, highlightRow } = React.useContext(ListPageContext);
@@ -31,7 +31,7 @@ function DynamicTableRow({ columns, row }) {
                 ) => (
                     <td key={`table-body-row-${row.id}-column-${id}`}>
                         {dataType === 'CUSTOMIZED'
-                            ? <DynamicCustomized id={id} />
+                            ? <DynamicCustomized id={id} data={row} />
                             : (
                                 <Formatter
                                     formatter={formatter}
