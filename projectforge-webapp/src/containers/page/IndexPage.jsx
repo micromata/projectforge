@@ -144,10 +144,6 @@ class IndexPage extends React.Component {
                         <ol>
                             <li>Finishing time sheet editing (recents)</li>
                             <li>
-                                Autocompletion for input fields (see outgoing-mail), worked in older
-                                versions (before dynamic rendering).
-                            </li>
-                            <li>
                                 Open Popover with focus in Inputfield after selecting a new
                                 field in list&apos;s search filter.
                                 Return key closes the popover, another Return click submits the
@@ -256,6 +252,10 @@ class IndexPage extends React.Component {
                             <li>System alert message (front end side)</li>
                             <li>
                                 Customized Data Image in List Page not working
+                            </li>
+                            <li>
+                                Autocompletion for input fields (see outgoing-mail), worked in older
+                                versions (before dynamic rendering).
                             </li>
                         </ol>
                     </Col>

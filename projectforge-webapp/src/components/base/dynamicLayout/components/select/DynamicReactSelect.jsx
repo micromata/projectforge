@@ -52,7 +52,7 @@ function DynamicReactSelect(props) {
         };
 
         const loadOptions = (search, callback) => fetch(
-            getServiceURL(autoCompletion.url, { search }),
+            getServiceURL(`${autoCompletion.url}${search}`),
             {
                 method: 'GET',
                 credentials: 'include',
