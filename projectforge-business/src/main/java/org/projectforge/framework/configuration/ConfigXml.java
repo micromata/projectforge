@@ -86,6 +86,8 @@ public class ConfigXml {
 
   private String databaseDirectory;
 
+  private String ehcacheDirectory;
+
   private String loggingDirectory;
 
   private String workingDirectory;
@@ -129,6 +131,7 @@ public class ConfigXml {
     telephoneSystemOperatorPanelUrl = null;
     holidays = null;
     databaseDirectory = "database";
+    ehcacheDirectory = "ehcache";
     loggingDirectory = "logs";
     workingDirectory = "work";
     tempDirectory = "tmp";
@@ -167,7 +170,10 @@ public class ConfigXml {
       readConfiguration();
       this.databaseDirectory = FileHelper.getAbsolutePath(applicationHomeDir, this.databaseDirectory);
       ensureDir(new File(databaseDirectory));
+      this.ehcacheDirectory = FileHelper.getAbsolutePath(applicationHomeDir, this.ehcacheDirectory);
+      ensureDir(new File(ehcacheDirectory));
       this.loggingDirectory = FileHelper.getAbsolutePath(applicationHomeDir, this.loggingDirectory);
+      System.setProperty("projectforge.ehcache.dir", ehcacheDirectory);
       ensureDir(new File(loggingDirectory));
       this.workingDirectory = FileHelper.getAbsolutePath(applicationHomeDir, this.workingDirectory);
       ensureDir(new File(workingDirectory));

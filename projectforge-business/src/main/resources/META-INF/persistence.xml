@@ -1,32 +1,41 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <persistence xmlns='http://java.sun.com/xml/ns/persistence'
-	xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-	xsi:schemaLocation='http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd'
-	version='1.0'>
+             xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+             xsi:schemaLocation='http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd'
+             version='1.0'>
 
-	<persistence-unit name="org.projectforge.webapp"
-		transaction-type="RESOURCE_LOCAL">
-		<provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
-		<class>de.micromata.genome.db.jpa.history.entities.HistoryAttrDataDO</class>
-		<class>de.micromata.genome.db.jpa.history.entities.HistoryAttrDO</class>
-		<class>de.micromata.genome.db.jpa.history.entities.HistoryAttrWithDataDO</class>
-		<class>de.micromata.genome.db.jpa.history.entities.HistoryMasterDO</class>
-		<exclude-unlisted-classes>false</exclude-unlisted-classes>
-		<properties>
-			<property name="hibernate.current_session_context_class"
-				value="org.springframework.orm.hibernate5.SpringSessionContext" />
-			<!-- To disable logoutput: https://hibernate.atlassian.net/browse/HHH-12368 -->
-			<property name="hibernate.jdbc.lob.non_contextual_creation" value="true"/>
+    <persistence-unit name="org.projectforge.webapp"
+                      transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+        <class>de.micromata.genome.db.jpa.history.entities.HistoryAttrDataDO</class>
+        <class>de.micromata.genome.db.jpa.history.entities.HistoryAttrDO</class>
+        <class>de.micromata.genome.db.jpa.history.entities.HistoryAttrWithDataDO</class>
+        <class>de.micromata.genome.db.jpa.history.entities.HistoryMasterDO</class>
+        <exclude-unlisted-classes>false</exclude-unlisted-classes>
+        <properties>
+            <property name="hibernate.current_session_context_class"
+                      value="org.springframework.orm.hibernate5.SpringSessionContext"/>
+            <!-- To disable logoutput: https://hibernate.atlassian.net/browse/HHH-12368 -->
+            <property name="hibernate.jdbc.lob.non_contextual_creation" value="true"/>
 
-			<!-- Needed since upgrade from Hibernate 5.0 to 5.5: -->
-			<property name="hibernate.connection.release_mode" value="ON_CLOSE" />
+            <!-- Needed since upgrade from Hibernate 5.0 to 5.5: -->
+            <property name="hibernate.connection.release_mode" value="ON_CLOSE"/>
 
-			<property name="hibernate.archive.scanner"
-					  value="de.micromata.genome.jpa.impl.JpaWithExtLibrariesScanner" />
-			<property name="de.micromata.genome.jpa.extlibrary.urlprovider"
-				value="org.projectforge.framework.persistence.jpa.impl.JpaPfJpaPluginScannerUrlProvider" />
-			<property name="de.micromata.genome.jpa.extlibrary.urlmatcher"
-				value="-*,+/target/*,+*org.projectforge*" />
-		</properties>
-	</persistence-unit>
+            <property name="hibernate.archive.scanner"
+                      value="de.micromata.genome.jpa.impl.JpaWithExtLibrariesScanner"/>
+            <property name="de.micromata.genome.jpa.extlibrary.urlprovider"
+                      value="org.projectforge.framework.persistence.jpa.impl.JpaPfJpaPluginScannerUrlProvider"/>
+            <property name="de.micromata.genome.jpa.extlibrary.urlmatcher"
+                      value="-*,+/target/*,+*org.projectforge*"/>
+
+            <property name="hibernate.cache.use_second_level_cache" value="true"/>
+            <property name="hibernate.cache.use_query_cache" value="true"/>
+            <property name="hibernate.cache.region.factory_class"
+                      value="org.hibernate.cache.jcache.JCacheRegionFactory"/>
+            <property name="hibernate.javax.cache.provider"
+                      value="org.ehcache.jsr107.EhcacheCachingProvider"/>
+            <property name="hibernate.javax.cache.missing_cache_strategy"
+                      value="create"/>
+        </properties>
+    </persistence-unit>
 </persistence>

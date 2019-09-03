@@ -26,6 +26,8 @@ package org.projectforge.business.fibu
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.apache.commons.lang3.StringUtils
+import org.hibernate.annotations.Cache
+import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.annotations.ListIndexBase
 import org.hibernate.search.annotations.*
 import org.projectforge.common.anots.PropertyInfo
@@ -50,6 +52,8 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
+@Cacheable
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Table(name = "t_fibu_auftrag",
         uniqueConstraints = [UniqueConstraint(columnNames = ["nummer", "tenant_id"])],
         indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_contact_person_fk", columnList = "contact_person_fk"),
