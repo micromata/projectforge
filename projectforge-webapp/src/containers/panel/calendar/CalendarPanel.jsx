@@ -106,11 +106,20 @@ class CalendarPanel extends React.Component {
         {
             activeCalendars: prevActiveCalendars,
             timesheetUserId: prevTimesheetUserId,
+            location: prevLocation,
         },
     ) {
-        const { activeCalendars, timesheetUserId } = this.props;
+        const {
+            activeCalendars,
+            timesheetUserId,
+            location,
+            match,
+        } = this.props;
 
-        if (timesheetUserId !== prevTimesheetUserId) {
+        if (
+            (match.isExact && location.pathname !== prevLocation.pathname)
+            || (timesheetUserId !== prevTimesheetUserId)
+        ) {
             this.fetchEvents();
             return;
         }

@@ -92,7 +92,7 @@ class CalendarPage extends React.Component {
         fetchJsonGet('calendar/renameFilter',
             {
                 id,
-                newName
+                newName,
             },
             this.saveUpdateResponseInState);
     }
