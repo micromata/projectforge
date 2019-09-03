@@ -35,7 +35,8 @@ class ResponseAction(val url: String? = null,
                       */
                      var targetType: TargetType? = null,
                      val validationErrors: List<ValidationError>? = null,
-                     val message: Message? = null) {
+                     val message: Message? = null,
+                     variables: MutableMap<String, Any>? = null) {
     class Message(val i18nKey: String? = null,
                   /**
                    * The message to display for the user.
@@ -55,19 +56,19 @@ class ResponseAction(val url: String? = null,
         }
     }
 
+    /**
+     * Variables sent to the client.
+     */
+    private var variables: MutableMap<String, Any>? = null
 
     init {
+        this.variables = variables
         if (message != null && targetType == null) {
             targetType = TargetType.TOAST
         } else if (!url.isNullOrEmpty() && targetType == null) {
             targetType = TargetType.REDIRECT
         }
     }
-
-    /**
-     * Variables sent to the client.
-     */
-    private var variables: MutableMap<String, Any>? = null
 
     /**
      * Adds a variable sent to the client.
