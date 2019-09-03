@@ -28,7 +28,7 @@ function TimesheetTemplatesAndRecents() {
 
     const [recentsVisible, setRecentsVisible] = React.useState(false);
     const recentsRef = React.useRef(null);
-    const [recents, setRecents] = React.useState([]);
+    const [recents, setRecents] = React.useState({ timesheets: [] });
     const [search, setSearch] = React.useState('');
 
     React.useEffect(
@@ -40,7 +40,7 @@ function TimesheetTemplatesAndRecents() {
                 .then(handleHTTPErrors)
                 .then(body => body.json())
                 .then(setRecents)
-                .catch(() => setRecents([]));
+                .catch(() => setRecents({ timesheets: [] }));
         },
         [],
     );
@@ -136,6 +136,9 @@ function TimesheetTemplatesAndRecents() {
                                     <Table striped hover responsive>
                                         <thead>
                                             <tr>
+                                                {recents.cost2Visible
+                                                    ? <th>[Kost2]</th>
+                                                    : undefined}
                                                 <th>[Kunde]</th>
                                                 <th>[Projekt]</th>
                                                 <th>{ui.translations.task}</th>
@@ -144,9 +147,11 @@ function TimesheetTemplatesAndRecents() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {recents
+                                            {recents.timesheets
                                                 .filter(recent => (
-                                                    recent.task.title.toLowerCase()
+                                                    recent.kost2.formattedNumber
+                                                        .includes(search)
+                                                    || recent.task.title.toLowerCase()
                                                         .includes(search.toLowerCase())
                                                     || recent.location.toLowerCase()
                                                         .includes(search.toLowerCase())
@@ -157,6 +162,13 @@ function TimesheetTemplatesAndRecents() {
                                                     <tr
                                                         key={`recent-${recent.task.id}-${recent.description}-${recent.location}`}
                                                     >
+                                                        {recents.cost2Visible
+                                                            ? (
+                                                                <td>
+                                                                    {recent.kost2.formattedNumber}
+                                                                </td>
+                                                            )
+                                                            : undefined}
                                                         <td>???</td>
                                                         <td>???</td>
                                                         <td>{recent.task.title}</td>
