@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns='http://www.ehcache.org/v3'
+        xsi:schemaLocation="http://www.ehcache.org/v3 http://www.ehcache.org/schema/ehcache-core.xsd">
+
+    <!-- Persistent cache directory -->
+    <persistence directory="${projectforge.ehcache.dir}" />
+
+    <!-- Default cache template -->
+    <cache-template name="default">
+        <expiry>
+            <ttl unit="minutes">30</ttl>
+        </expiry>
+        <resources>
+            <heap>10000</heap>
+            <offheap unit="MB">10</offheap>
+            <disk persistent="true" unit="MB">200</disk>
+        </resources>
+    </cache-template>
+
+    <cache-template name="simple">
+        <expiry>
+            <ttl>2000</ttl>
+        </expiry>
+        <heap>10000</heap>
+    </cache-template>
+
+    <cache alias="org.projectforge.business.fibu.AuftragDO" uses-template="default"/>
+    <cache alias="org.projectforge.business.fibu.AuftragsPositionDO" uses-template="default"/>
+    <cache alias="org.projectforge.business.fibu.RechnungDO" uses-template="default"/>
+    <cache alias="org.projectforge.business.fibu.RechnungsPositionDO" uses-template="default"/>
+</config>
+<!--
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="ehcache.xsd" updateCheck="true" monitoring="autodetect" dynamicConfig="true">
+    <diskStore path="java.io.tmpdir"/>
+
+    <defaultCache maxEntriesLocalHeap="500"
+           eternal="false"
+           timeToIdleSeconds="300"
+           timeToLiveSeconds="600"
+           diskExpiryThreadIntervalSeconds="1"
+           copyOnRead="true"
+           copyOnWrite="true">
+    </defaultCache>
+
+    <cache name="org.projectforge.business.fibu.AuftragDO"
+           maxEntriesLocalHeap="10000"
+           eternal="false"
+           timeToIdleSeconds="3600"
+           timeToLiveSeconds="6000"
+           diskExpiryThreadIntervalSeconds="1"
+           copyOnRead="true"
+           copyOnWrite="true">
+    </cache>
+</ehcache>-->

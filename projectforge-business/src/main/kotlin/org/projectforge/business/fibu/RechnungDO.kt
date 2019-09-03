@@ -25,6 +25,8 @@ package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonBackReference
 import de.micromata.genome.db.jpa.history.api.WithHistory
+import org.hibernate.annotations.Cache
+import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.annotations.ListIndexBase
 import org.hibernate.search.annotations.*
 import org.hibernate.search.bridge.builtin.IntegerBridge
@@ -42,6 +44,8 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
+@Cacheable
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Table(name = "t_fibu_rechnung",
         uniqueConstraints = [UniqueConstraint(columnNames = ["nummer", "tenant_id"])],
         indexes = [

@@ -26,6 +26,8 @@ package org.projectforge.business.fibu
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
+import org.hibernate.annotations.Cache
+import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.search.annotations.*
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
@@ -44,6 +46,8 @@ import javax.persistence.*
 @Entity
 @Indexed
 @ClassBridge(name = "position", analyze = Analyze.NO, impl = HibernateSearchAuftragsPositionBridge::class)
+@Cacheable
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Table(name = "t_fibu_auftrag_position", uniqueConstraints = [UniqueConstraint(columnNames = ["auftrag_fk", "number"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_position_auftrag_fk", columnList = "auftrag_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_position_task_fk", columnList = "task_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_position_tenant_id", columnList = "tenant_id")])
 class AuftragsPositionDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
