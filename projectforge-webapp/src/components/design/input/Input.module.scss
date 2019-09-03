@@ -26,16 +26,16 @@
     &.withIcon {
       .icon {
         position: absolute;
-        top: 2px;
+        bottom: .6em;
         left: 2px;
       }
 
       .input {
-        padding-left: 20px;
+        padding-left: 1.5em;
       }
 
       .text {
-        left: 20px;
+        left: 1.5em;
       }
     }
 
@@ -52,7 +52,7 @@
       padding-bottom: 0;
       width: 100%;
       position: relative;
-      top: 1.6em;
+      top: 1em;
       background-color: transparent;
       border: none;
       border-bottom: 1px solid #deddde;
@@ -495,6 +495,10 @@
   &.small {
     margin-bottom: 6px;
     font-size: 1em;
+
+    .withIcon .icon {
+      top: 2px;
+    }
   }
 }
 
