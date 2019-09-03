@@ -2,7 +2,12 @@ import React from 'react';
 import { Button, Card, CardBody, Table } from 'reactstrap';
 import FavoritesPanel from '../../../../../../containers/panel/favorite/FavoritesPanel';
 import { useClickOutsideHandler } from '../../../../../../utilities/hooks';
-import { fetchJsonGet, fetchJsonPost } from '../../../../../../utilities/rest';
+import {
+    fetchJsonGet,
+    fetchJsonPost,
+    getServiceURL,
+    handleHTTPErrors,
+} from '../../../../../../utilities/rest';
 import { Collapse } from '../../../../../design';
 import { DynamicLayoutContext } from '../../../context';
 
@@ -11,7 +16,6 @@ function TimesheetTemplatesAndRecents() {
         data,
         setData,
         setVariables,
-        translations,
         ui,
         variables,
     } = React.useContext(DynamicLayoutContext);
@@ -21,10 +25,22 @@ function TimesheetTemplatesAndRecents() {
     ] = React.useState(variables.timesheetFavorites);
 
     const [recentsVisible, setRecentsVisible] = React.useState(false);
-    const [columnsVisibility, setColumnsVisibility] = React.useState([]);
     const recentsRef = React.useRef(null);
+    const [recents, setRecents] = React.useState([]);
 
-    // TODO: fetch rs/timesheet/recents
+    React.useEffect(
+        () => {
+            fetch(
+                getServiceURL('timesheet/recents'),
+                { credentials: 'include' },
+            )
+                .then(handleHTTPErrors)
+                .then(body => body.json())
+                .then(setRecents)
+                .catch(() => setRecents([]));
+        },
+        [],
+    );
 
     // Handle mouse events
     useClickOutsideHandler(recentsRef, () => setRecentsVisible(false), recentsVisible);
@@ -105,19 +121,29 @@ function TimesheetTemplatesAndRecents() {
                         <div ref={recentsRef}>
                             <Card>
                                 <CardBody>
+                                    TODO TRANSLATIONS & SHOW KUNDE/PROJKET & SEARCH
                                     <Table striped hover responsive>
                                         <thead>
-                                        <tr>
-                                            {columnsVisibility.kost2
-                                                ? <th>{translations['fibu.kost2']}</th> : undefined}
-                                            <th>Kunde</th>
-                                            <th>Projekt</th>
-                                            <th>Strukturelement</th>
-                                            <th>Ort</th>
-                                            <th>Tätigkeitsbericht</th>
-                                        </tr>
+                                            <tr>
+                                                <th>[Kunde]</th>
+                                                <th>[Projekt]</th>
+                                                <th>{ui.translations.task}</th>
+                                                <th>[Ort]</th>
+                                                <th>[Tätigkeitsbericht]</th>
+                                            </tr>
                                         </thead>
                                         <tbody>
+                                            {recents.map(recent => (
+                                                <tr
+                                                    key={`recent-${recent.task.id}-${recent.description}-${recent.location}`}
+                                                >
+                                                    <td>???</td>
+                                                    <td>???</td>
+                                                    <td>{recent.task.title}</td>
+                                                    <td>{recent.location}</td>
+                                                    <td>{recent.description}</td>
+                                                </tr>
+                                            ))}
                                         </tbody>
                                     </Table>
                                 </CardBody>
@@ -127,14 +153,17 @@ function TimesheetTemplatesAndRecents() {
                 </React.Fragment>
             );
         },
-        [timesheetFavorites,
-            ui.translations,
+        [
             data,
-            setTimesheetFavorites,
-            setData,
-            setVariables,
+            recents,
             recentsRef,
-            recentsVisible],
+            recentsVisible,
+            setData,
+            setTimesheetFavorites,
+            setVariables,
+            timesheetFavorites,
+            ui.translations,
+        ],
     );
 }
 
