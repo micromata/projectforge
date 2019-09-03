@@ -259,7 +259,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
                 ts.task = Task()
                 ts.task!!.copyFromMinimal(task)
             }
-            val user =userService.getUser(it.userId)
+            val user = userService.getUser(it.userId)
             if (user != null) {
                 ts.user = User()
                 ts.user!!.copyFromMinimal(user)
@@ -274,6 +274,14 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
             ts
         }
         return RecentTimesheets(timesheets, SystemInfoCache.instance().isCost2EntriesExists())
+    }
+
+    @PostMapping("selectRecent")
+    fun selectRecent(@RequestBody timesheet: TimesheetDO): ResponseAction {
+        val variables = addVariablesForEditPage(timesheet)
+        variables!!["data"] = timesheet
+        return ResponseAction(targetType = TargetType.UPDATE,
+                variables = variables)
     }
 
     /**
@@ -328,7 +336,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
      * Puts the task information such as path, consumption etc. as additional variable for the client, because the
      * origin task of the timesheet is of type TaskDO and doesn't contain such data.
      */
-    override fun addVariablesForEditPage(dto: TimesheetDO): Map<String, Any>? {
+    override fun addVariablesForEditPage(dto: TimesheetDO): MutableMap<String, Any>? {
         val task = TaskServicesRest.createTask(dto.taskId) ?: return null
         return mutableMapOf("task" to task,
                 "timesheetFavorites" to timesheetFavoritesService.getList())
