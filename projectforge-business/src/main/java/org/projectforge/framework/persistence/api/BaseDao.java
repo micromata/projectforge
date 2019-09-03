@@ -33,6 +33,7 @@ import org.apache.commons.lang3.Validate;
 import org.hibernate.*;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.search.Search;
+import org.hibernate.type.DateType;
 import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
@@ -1429,15 +1430,15 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
             + property
             + " from "
             + clazz.getSimpleName()
-            + " t where deleted=false and lastUpdate > ? and lower(t."
+            + " t where deleted=false and lastUpdate > :lastUpdate and lower(t."
             + property
-            + ") like ?) order by t."
+            + ") like :search order by t."
             + property;
     final Query query = getSession().createQuery(hql);
     final DateHolder dh = new DateHolder();
     dh.add(Calendar.YEAR, -2); // Search only for entries of the last 2 years.
-    query.setDate(0, dh.getDate());
-    query.setString(1, "%" + StringUtils.lowerCase(searchString) + "%");
+    query.setParameter("lastUpdate", dh.getDate(), DateType.INSTANCE);
+    query.setParameter("search", "%" + StringUtils.lowerCase(searchString) + "%");
     final List<String> list = query.list();
     return list;
   }
