@@ -65,8 +65,6 @@ function ProjectForge(
     let content;
 
     if (user) {
-
-        console.log(alertMessage);
         content = (
             <React.Fragment>
                 <GlobalNavigation />
