@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import DynamicReactSelect from '../select/DynamicReactSelect';
 import DynamicUserSelect from '../select/DynamicUserSelect';
 import DynamicTaskSelect from '../select/task';
 import DynamicDateInput from './DynamicDateInput';
@@ -7,12 +8,18 @@ import DynamicInput from './DynamicInput';
 import DynamicTimestampInput from './DynamicTimestampInput';
 
 // All types of 'INPUT' will be resolved here.
-function DynamicInputResolver({ dataType, ...props }) {
+function DynamicInputResolver({ dataType, autoCompletionUrl, ...props }) {
     let Tag;
+    const additionalProps = {};
 
     switch (dataType) {
         case 'STRING':
-            Tag = DynamicInput;
+            if (autoCompletionUrl) {
+                Tag = DynamicReactSelect;
+                additionalProps.autoCompletion = { url: autoCompletionUrl };
+            } else {
+                Tag = DynamicInput;
+            }
             break;
         case 'DATE':
             Tag = DynamicDateInput;
@@ -31,7 +38,7 @@ function DynamicInputResolver({ dataType, ...props }) {
     }
 
     return (
-        <Tag {...props} />
+        <Tag {...props} {...additionalProps} />
     );
 }
 
@@ -44,8 +51,11 @@ DynamicInputResolver.propTypes = {
         'TASK',
         'USER',
     ]).isRequired,
+    autoCompletionUrl: PropTypes.string,
 };
 
-DynamicInputResolver.defaultProps = {};
+DynamicInputResolver.defaultProps = {
+    autoCompletionUrl: undefined,
+};
 
 export default DynamicInputResolver;
