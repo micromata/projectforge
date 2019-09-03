@@ -172,7 +172,6 @@ class IndexPage extends React.Component {
                                 <br />
                                 See /incomingInvoice
                             </li>
-                            <li>Calendar refetch events after deletion/creation etc.</li>
                         </ol>
                         <h1>Done</h1>
                         <ol style={todoDone}>
@@ -257,6 +256,7 @@ class IndexPage extends React.Component {
                             <li>
                                 Set date of calendar view after editing timesheet or event.
                             </li>
+                            <li>Calendar refetch events after deletion/creation etc.</li>
                         </ol>
                     </Col>
                     <Col>
