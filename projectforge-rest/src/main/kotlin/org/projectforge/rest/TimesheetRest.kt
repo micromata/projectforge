@@ -25,6 +25,7 @@ package org.projectforge.rest
 
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
+import org.projectforge.business.systeminfo.SystemInfoCache
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.business.timesheet.*
@@ -108,6 +109,12 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
                                        val dayName: String,
                                        val timePeriod: String,
                                        val duration: String)
+
+    /**
+     * For exporting recent timesheets for copying for new time sheets.
+     */
+    class RecentTimesheets(val timesheets: List<Timesheet>,
+                           val cost2Visible: Boolean)
 
     override fun getInitialList(request: HttpServletRequest): InitialListData {
         val taskId = NumberHelper.parseInteger(request.getParameter("taskId")) ?: return super.getInitialList(request)
@@ -233,7 +240,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
                 title = translate("plugins.teamcal.switchToTeamEventButton"),
                 color = UIColor.DARK,
                 responseAction = ResponseAction(getRestRootPath("switch2CalendarEvent"), targetType = TargetType.POST)))
-        layout.addTranslations("templates")
+        layout.addTranslations("templates", "search.search", "fibu.kunde", "fibu.projekt", "timesheet.description", "timesheet.location")
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
@@ -241,9 +248,9 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
      * @return The list fo recent edited time sheets of the current logged in user.
      */
     @GetMapping("recents")
-    fun getRecents(): List<Timesheet> {
+    fun getRecents(): RecentTimesheets {
         val pref = getTimesheetPrefData()
-        return pref.recents.map {
+        val timesheets = pref.recents.map {
             val ts = Timesheet()
             ts.location = it.location
             ts.description = it.description
@@ -266,6 +273,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
             }
             ts
         }
+        return RecentTimesheets(timesheets, SystemInfoCache.instance().isCost2EntriesExists())
     }
 
     /**
