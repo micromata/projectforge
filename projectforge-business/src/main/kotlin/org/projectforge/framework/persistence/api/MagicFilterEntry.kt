@@ -89,6 +89,10 @@ class MagicFilterEntry(
     var toValueInt: Int? = null
         private set
 
+    @JsonIgnore
+    var isNew: Boolean? = false
+        private set
+
     /**
      * Only for documentation
      */
