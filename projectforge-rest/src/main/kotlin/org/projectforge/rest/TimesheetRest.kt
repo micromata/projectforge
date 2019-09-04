@@ -277,11 +277,11 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
     }
 
     @PostMapping("selectRecent")
-    fun selectRecent(@RequestBody timesheet: TimesheetDO): ResponseAction {
-        val variables = addVariablesForEditPage(timesheet)
-        variables!!["data"] = timesheet
-        return ResponseAction(targetType = TargetType.UPDATE,
-                variables = variables)
+    fun selectRecent(@RequestBody timesheet: Timesheet): ResponseAction {
+        val task = TaskServicesRest.createTask(timesheet.task?.id)
+        return ResponseAction(targetType = TargetType.UPDATE)
+                .addVariable("task", task)
+                .addVariable("data", timesheet)
     }
 
     /**
