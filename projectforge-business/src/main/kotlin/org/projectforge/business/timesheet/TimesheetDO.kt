@@ -23,6 +23,7 @@
 
 package org.projectforge.business.timesheet
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.annotations.*
 import org.projectforge.business.fibu.kost.Kost2DO
@@ -114,6 +115,7 @@ class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
      * Marker is used to mark this time sheet e. g. as a time sheet with an time period collision.
      */
     @get:Transient
+    @JsonIgnore
     var marked: Boolean = false
 
     /**
