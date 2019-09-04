@@ -158,24 +158,30 @@ function TimesheetTemplatesAndRecents() {
                                                     || recent.description.toLowerCase()
                                                         .includes(search.toLowerCase())
                                                 ))
-                                                .map(recent => (
-                                                    <tr
-                                                        key={`recent-${recent.task.id}-${recent.description}-${recent.location}`}
-                                                    >
-                                                        {recents.cost2Visible
-                                                            ? (
+                                                .map((recent) => {
+                                                    const handleRowClick = () => setData({
+                                                        ...data,
+                                                        ...recent,
+                                                    });
+
+                                                    return (
+                                                        <tr
+                                                            key={`recent-${recent.task.id}-${recent.description}-${recent.location}`}
+                                                            onClick={handleRowClick}
+                                                        >
+                                                            {recents.cost2Visible ? (
                                                                 <td>
                                                                     {recent.kost2.formattedNumber}
                                                                 </td>
-                                                            )
-                                                            : undefined}
-                                                        <td>???</td>
-                                                        <td>???</td>
-                                                        <td>{recent.task.title}</td>
-                                                        <td>{recent.location}</td>
-                                                        <td>{recent.description}</td>
-                                                    </tr>
-                                                ))}
+                                                            ) : undefined}
+                                                            <td>???</td>
+                                                            <td>???</td>
+                                                            <td>{recent.task.title}</td>
+                                                            <td>{recent.location}</td>
+                                                            <td>{recent.description}</td>
+                                                        </tr>
+                                                    );
+                                                })}
                                         </tbody>
                                     </Table>
                                 </CardBody>
