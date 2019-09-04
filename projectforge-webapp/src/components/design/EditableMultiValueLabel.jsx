@@ -16,7 +16,7 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
 
     const { saveUpdateResponseInState } = React.useContext(CalendarContext);
 
-    const [isOpen, setIsOpen] = React.useState(false);
+    const [isOpen, setIsOpen] = React.useState(data.isNew);
     const [value, setValue] = React.useState(initialValue);
 
     const popperRef = React.useRef(null);
