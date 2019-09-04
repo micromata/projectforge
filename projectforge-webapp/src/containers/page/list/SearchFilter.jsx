@@ -95,6 +95,7 @@ function SearchFilter() {
                 filterHelper.addEntry({
                     field: meta.option.id,
                     value: '',
+                    isNew: true,
                 });
                 break;
             case 'pop-value':
