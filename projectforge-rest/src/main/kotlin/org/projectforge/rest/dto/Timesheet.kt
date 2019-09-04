@@ -24,10 +24,13 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.timesheet.TimesheetDO
+import java.sql.Timestamp
 
 class Timesheet(var task: Task? = null,
                 var location: String? = null,
                 var description: String? = null,
                 var user: User? = null,
-                var kost2: Kost2? = null
+                var kost2: Kost2? = null,
+                var startTime: Timestamp? = null,
+                var stopTime: Timestamp? = null
 ) : BaseDTO<TimesheetDO>()
