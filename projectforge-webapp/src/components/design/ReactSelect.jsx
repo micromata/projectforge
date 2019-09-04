@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import Select from 'react-select';
 import makeAnimated from 'react-select/animated';
-import AsyncSelect from 'react-select/async';
+import AsyncCreatable from 'react-select/async-creatable';
 import { UncontrolledTooltip } from 'reactstrap';
 import revisedRandomId from '../../utilities/revisedRandomId';
 import AdditionalLabel from './input/AdditionalLabel';
@@ -31,7 +31,7 @@ function ReactSelect(
     let options;
 
     if (loadOptions) {
-        Tag = AsyncSelect;
+        Tag = AsyncCreatable;
         if (values && values.length > 0) {
             // values are now the default options for the drop down without autocompletion call.
             defaultOptions = values;

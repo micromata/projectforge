@@ -22,6 +22,14 @@ export const extractDataValue = (
         const valueOfArray = (typeof dataValue === 'object') ? dataValue[valueProperty] : dataValue;
         dataValue = values.find(it => it[valueProperty] === valueOfArray);
     }
+
+    if (typeof dataValue === 'string') {
+        return {
+            label: dataValue,
+            value: dataValue,
+        };
+    }
+
     return dataValue;
 };
 
@@ -40,7 +48,7 @@ function DynamicReactSelect(props) {
 
     return React.useMemo(() => {
         const onChange = (newValue) => {
-            setData({ [id]: newValue });
+            setData({ [id]: newValue.value });
         };
 
         const onFavoriteSelect = (favoriteId, name) => {
@@ -63,7 +71,10 @@ function DynamicReactSelect(props) {
         )
             .then(handleHTTPErrors)
             .then(response => response.json())
-            .then(callback);
+            .then(json => callback(json.map(completion => ({
+                value: completion,
+                label: completion,
+            }))));
 
         const url = autoCompletion ? autoCompletion.url : undefined;
 
