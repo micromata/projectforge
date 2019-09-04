@@ -32,6 +32,5 @@ class Timesheet(var task: Task? = null,
                 var user: User? = null,
                 var kost2: Kost2? = null,
                 var startTime: Timestamp? = null,
-                var stopTime: Timestamp? = null,
-                var marked: Boolean = false // Only for compatibility reasons.
+                var stopTime: Timestamp? = null
 ) : BaseDTO<TimesheetDO>()
