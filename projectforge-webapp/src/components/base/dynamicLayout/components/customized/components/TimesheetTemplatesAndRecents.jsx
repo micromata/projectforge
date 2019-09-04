@@ -169,7 +169,8 @@ function TimesheetTemplatesAndRecents() {
                                                                 Accept: 'application/json',
                                                             },
                                                             body: JSON.stringify({
-                                                                timesheet: recent,
+                                                                ...data,
+                                                                ...recent,
                                                             }),
                                                         },
                                                     )
