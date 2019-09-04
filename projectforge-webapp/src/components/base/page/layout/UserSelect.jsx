@@ -51,7 +51,7 @@ function UserSelect(props) {
     };
 
     return (
-        <div className="form-row">
+        <div className="form-group">
             <ReactSelect
                 value={value}
                 onChange={handleChange}
