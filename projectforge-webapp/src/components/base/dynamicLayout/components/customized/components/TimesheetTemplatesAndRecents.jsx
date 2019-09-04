@@ -159,10 +159,24 @@ function TimesheetTemplatesAndRecents() {
                                                         .includes(search.toLowerCase())
                                                 ))
                                                 .map((recent) => {
-                                                    const handleRowClick = () => setData({
-                                                        ...data,
-                                                        ...recent,
-                                                    });
+                                                    const handleRowClick = () => fetch(
+                                                        getServiceURL('timesheet/selectRecent'),
+                                                        {
+                                                            credentials: 'include',
+                                                            method: 'POST',
+                                                            headers: {
+                                                                'Content-Type': 'application/json',
+                                                                Accept: 'application/json',
+                                                            },
+                                                            body: JSON.stringify({
+                                                                timesheet: recent,
+                                                            }),
+                                                        },
+                                                    )
+                                                        .then(handleHTTPErrors)
+                                                        .then(body => body.json())
+                                                        .then(console.log)
+                                                        .catch(error => alert(`Internal error: ${error}`));
 
                                                     return (
                                                         <tr
