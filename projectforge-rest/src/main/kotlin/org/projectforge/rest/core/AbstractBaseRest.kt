@@ -362,7 +362,12 @@ abstract class AbstractBaseRest<
         } else {
             log.warn("Could not rename the user's filter. Filter with id '$id' not found for category '$category'.")
         }
+        val currentFilter = getCurrentFilter()
+        if (currentFilter.id == filter?.id) {
+            currentFilter.name = newName
+        }
         return mapOf(
+                "filter" to currentFilter, // Just for the case if the current filter was renamed.
                 "filterFavorites" to favorites.idTitleList)
     }
 
