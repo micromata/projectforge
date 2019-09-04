@@ -66,8 +66,7 @@ class LayoutListFilterUtils {
                     val element: UIElement
                     if (elInfo.propertyType.isEnum) {
                         @Suppress("UNCHECKED_CAST")
-                        element = UISelect<String>(it, required = elInfo.required, layoutContext = lc,
-                                multi = true)
+                        element = UIFilterSelectElement(it)
                                 .buildValues(i18nEnum = elInfo.propertyType as Class<out Enum<*>>)
                         element.label = element.id // Default label if no translation will be found below.
                     } else {

@@ -50,7 +50,7 @@ open class UIFilterElement(
         @Transient
         override val layoutContext: LayoutContext? = null
 ) : UIElement(UIElementType.FILTER_ELEMENT), UILabelledElement {
-    enum class FilterType { STRING, DATE, TIME_STAMP, CHOICE, OBJECT }
+    enum class FilterType { STRING, DATE, TIME_STAMP, CHOICE, OBJECT, SELECT }
 
     init {
         key = id
