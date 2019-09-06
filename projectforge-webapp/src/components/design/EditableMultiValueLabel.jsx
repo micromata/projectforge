@@ -3,11 +3,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { components } from 'react-select';
+import { Button, ButtonGroup } from '.';
 import { CalendarContext } from '../../containers/page/calendar/CalendarContext';
 import CalendarStyler from '../../containers/panel/calendar/CalendarStyler';
 import { useClickOutsideHandler } from '../../utilities/hooks';
 import { getServiceURL, handleHTTPErrors } from '../../utilities/rest';
-import { Button } from './index';
 import Input from './input';
 import Popper from './popper';
 
@@ -35,6 +35,8 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
 
     // Function to set value in react-select
     const submitValue = () => {
+        let sValue = value;
+
         switch (data.filterType) {
             case 'COLOR_PICKER':
                 if (data.id && data.bgColor) {
@@ -51,11 +53,14 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                         .catch(error => alert(`Internal error: ${error}`));
                 }
                 break;
+            case 'SELECT':
+                sValue = sValue.join(',');
+                break;
             default:
         }
 
         setIsOpen(false);
-        selectProps.setMultiValue(data.id, value);
+        selectProps.setMultiValue(data.id, sValue);
     };
 
     // Handle Different Types of Filters
@@ -74,6 +79,37 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
         case 'COLOR_PICKER':
             input = (
                 <CalendarStyler calendar={data} submit={submitValue} />
+            );
+            break;
+        case 'SELECT':
+            if (!Array.isArray(value)) {
+                setValue([]);
+            } else if (value.length !== 0) {
+                console.log(value);
+                label = `${data.label}: ${value
+                // Find Labels for selected items by values
+                    .map(v => data.values.find(dv => dv.value === v).label)
+                    .join(', ')}`;
+            }
+
+            input = (
+                <ButtonGroup>
+                    {data.values.map(selectValue => (
+                        <Button
+                            key={`multi-value-${data.key}-${selectValue.value}`}
+                            onClick={() => {
+                                if (value.includes(selectValue.value)) {
+                                    setValue(value.filter(v => v !== selectValue.value));
+                                } else {
+                                    setValue([...value, selectValue.value]);
+                                }
+                            }}
+                            active={value.includes(selectValue.value)}
+                        >
+                            {selectValue.label}
+                        </Button>
+                    ))}
+                </ButtonGroup>
             );
             break;
         // Case for plain searchString without filterType

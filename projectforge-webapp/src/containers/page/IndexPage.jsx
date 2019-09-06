@@ -263,7 +263,18 @@ class IndexPage extends React.Component {
                         <h1>ToDo&apos;s (Kai)</h1>
                         <ol>
                             <li>List pages: addresses, tasks etc.</li>
-                            <li>Search filter</li>
+                            <li>
+                                Search filter
+                                <ol>
+                                    <li>
+                                        <code>
+                                            Querying fields of type &#39;class
+                                            org.projectforge.business.address.AddressStatus&#39; not
+                                            yet implemented.
+                                        </code>
+                                    </li>
+                                </ol>
+                            </li>
                             <li>Setup page</li>
                             <li>Message of the day</li>
                             <li>CSRF</li>
