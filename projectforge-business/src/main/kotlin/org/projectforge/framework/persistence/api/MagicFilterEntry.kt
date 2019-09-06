@@ -163,7 +163,7 @@ class MagicFilterEntry(
                     matchType = MatchType.ENDS_WITH
                 } else {
                     matchType = MatchType.EXACT
-                    dbStr = "$plainStr"
+                    dbStr = plainStr
                 }
             }
             this.plainSearchString = plainStr
