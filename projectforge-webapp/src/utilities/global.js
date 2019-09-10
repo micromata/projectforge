@@ -22,6 +22,8 @@ Object.getByString = (object, multiKey) => {
 
 Object.isEmpty = object => Object.keys(object).length === 0;
 
+Object.isObject = object => typeof object === 'object';
+
 Array.findByField = (array, field, value) => array.reduce((accumulator, currentValue) => {
     if (currentValue[field] === value) {
         return currentValue;
