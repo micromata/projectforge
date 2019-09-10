@@ -9,6 +9,7 @@ import CalendarStyler from '../../containers/panel/calendar/CalendarStyler';
 import { useClickOutsideHandler } from '../../utilities/hooks';
 import { getServiceURL, handleHTTPErrors } from '../../utilities/rest';
 import Input from './input';
+import DateTimeRange from './input/calendar/DateTimeRange';
 import Popper from './popper';
 
 function EditableMultiValueLabel({ data, selectProps, ...props }) {
@@ -82,10 +83,10 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
             );
             break;
         case 'SELECT':
+            // TODO CONVERT STRING TO ARRAY
             if (!Array.isArray(value)) {
                 setValue([]);
             } else if (value.length !== 0) {
-                console.log(value);
                 label = `${data.label}: ${value
                 // Find Labels for selected items by values
                     .map(v => data.values.find(dv => dv.value === v).label)
@@ -110,6 +111,34 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                         </Button>
                     ))}
                 </ButtonGroup>
+            );
+            break;
+        case 'TIME_STAMP':
+            if (!Object.isObject(value)) {
+                setValue({
+                    from: undefined,
+                    to: undefined,
+                });
+            }
+            console.log({
+                data,
+                value,
+            });
+
+            input = (
+                <React.Fragment>
+                    <DateTimeRange
+                        onChange={setValue}
+                        {...value}
+                        selectors={[
+                            'YEAR',
+                            'MONTH',
+                            'WEEK',
+                            'DAY',
+                            'UNTIL_NOW',
+                        ]}
+                    />
+                </React.Fragment>
             );
             break;
         // Case for plain searchString without filterType

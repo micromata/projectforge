@@ -366,3 +366,19 @@ span.mm-select {
 .table th {
   border-top: none;
 }
+
+// Day Picker
+.Range .DayPicker-Day--selected:not(.DayPicker-Day--start):not(.DayPicker-Day--end):not(.DayPicker-Day--outside) {
+  background-color: #dfe9ff !important;
+  color: #4a90e2;
+}
+
+.Range .DayPicker-Day:not(.DayPicker-Day--end) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.Range .DayPicker-Day:not(.DayPicker-Day--start) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
