@@ -60,9 +60,15 @@
                   </includes>
                 </resource>
                 <resource>
-                  <directory>${basedir}/../plugins/org.projectforge.plugins.ihkexport/target</directory>
+                  <directory>${basedir}/../plugins/org.projectforge.plugins.ihkexportold/target</directory>
                   <includes>
-                    <include>org.projectforge.plugins.ihkexport-${project.version}.jar</include>
+                    <include>org.projectforge.plugins.ihkexportold-${project.version}.jar</include>
+                  </includes>
+                </resource>
+                <resource>
+                  <directory>${basedir}/../plugins/org.projectforge.plugins.ihkexportnew/target</directory>
+                  <includes>
+                    <include>org.projectforge.plugins.ihkexportnew-${project.version}.jar</include>
                   </includes>
                 </resource>
                 <resource>
