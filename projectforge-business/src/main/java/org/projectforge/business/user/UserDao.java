@@ -236,8 +236,11 @@ public class UserDao extends BaseDao<PFUserDO> {
   }
 
   public Collection<Integer> getAssignedTenants(final PFUserDO user) {
-    final List<TenantDO> list = (List<TenantDO>) getHibernateTemplate()
-            .find("from TenantDO t where ? member of t.assignedUsers", user);
+    final List<TenantDO> list = getSession()
+            .createNamedQuery(TenantDO.FIND_ASSIGNED_TENANTS, TenantDO.class)
+            .setParameter("user", user)
+            .list();
+
     final Set<Integer> result = new HashSet<Integer>();
     if (list != null) {
       for (final TenantDO tenant : list) {

@@ -44,6 +44,7 @@ import javax.persistence.*
 @Indexed
 @Table(name = "T_TENANT")
 @ATableTruncater(TenantTableTruncater::class)
+@NamedQueries(NamedQuery(name = TenantDO.FIND_ASSIGNED_TENANTS, query = "from TenantDO t where :user member of t.assignedUsers"))
 class TenantDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     private val log = LoggerFactory.getLogger(TenantDO::class.java)
@@ -152,5 +153,9 @@ class TenantDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @Transient
     override fun getShortDisplayName(): String? {
         return name
+    }
+
+    companion object {
+        const val FIND_ASSIGNED_TENANTS = "TenantDO_FindAssignedTenants"
     }
 }
