@@ -18,8 +18,6 @@ function DateTimeRange(
         ...props
     },
 ) {
-    console.log(jsDateFormat);
-
     const handleDayClick = (day) => {
         const newRange = {
             from,
@@ -54,7 +52,7 @@ function DateTimeRange(
                     )}
                 </p>
             </Col>
-            {selectors.includes('UNTIL_NOW') ? (
+            {selectors.includes('UNTIL_NOW') && (
                 <Col sm={3}>
                     <ul className={style.quickSelectors}>
                         <li className={style.quickSelector}>[Letzte Minute]</li>
@@ -68,7 +66,7 @@ function DateTimeRange(
                         <li className={style.quickSelector}>[Letzte 3 Monate]</li>
                     </ul>
                 </Col>
-            ) : undefined}
+            )}
             <Col sm={9}>
                 <DayPicker
                     className="Range"

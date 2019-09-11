@@ -120,10 +120,6 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                     to: undefined,
                 });
             }
-            console.log({
-                data,
-                value,
-            });
 
             input = (
                 <React.Fragment>
