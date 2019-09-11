@@ -10,6 +10,7 @@ import style from './CalendarInput.module.scss';
 
 function DateTimeRange(
     {
+        firstDayOfWeek,
         from,
         jsDateFormat,
         onChange,
@@ -70,18 +71,19 @@ function DateTimeRange(
             <Col sm={9}>
                 <DayPicker
                     className="Range"
-                    onDayClick={handleDayClick}
-                    numberOfMonths={2}
-                    selectedDays={[from, {
-                        from,
-                        to,
-                    }]}
+                    firstDayOfWeek={firstDayOfWeek}
+                    fromMonth={from}
                     modifiers={{
                         start: from,
                         end: to,
                     }}
                     month={from}
-                    fromMonth={from}
+                    numberOfMonths={2}
+                    onDayClick={handleDayClick}
+                    selectedDays={[from, {
+                        from,
+                        to,
+                    }]}
                     {...props}
                 />
             </Col>
@@ -91,8 +93,9 @@ function DateTimeRange(
 
 DateTimeRange.propTypes = {
     onChange: PropTypes.func.isRequired,
-    from: PropTypes.instanceOf(Date),
     jsDateFormat: PropTypes.string.isRequired,
+    firstDayOfWeek: PropTypes.number,
+    from: PropTypes.instanceOf(Date),
     locale: PropTypes.string,
     selectors: PropTypes.arrayOf(PropTypes.string),
     timeNotation: PropTypes.string,
@@ -100,6 +103,7 @@ DateTimeRange.propTypes = {
 };
 
 DateTimeRange.defaultProps = {
+    firstDayOfWeek: 1,
     from: undefined,
     locale: 'en',
     selectors: undefined,
@@ -108,6 +112,7 @@ DateTimeRange.defaultProps = {
 };
 
 const mapStateToProps = ({ authentication }) => ({
+    firstDayOfWeek: authentication.user.firstDayOfWeekNo,
     jsDateFormat: authentication.user.jsDateFormat,
     locale: authentication.user.locale,
     timeNotation: authentication.user.timeNotation,
