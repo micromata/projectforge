@@ -70,7 +70,7 @@ function DateTimeRange(
             )}
             <Col sm={9}>
                 <DayPicker
-                    className="Range"
+                    className="range"
                     firstDayOfWeek={firstDayOfWeek}
                     fromMonth={from}
                     modifiers={{
