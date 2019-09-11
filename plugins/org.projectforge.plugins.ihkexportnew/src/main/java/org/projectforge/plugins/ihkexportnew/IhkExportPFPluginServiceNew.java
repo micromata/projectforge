@@ -1,14 +1,13 @@
-package org.projectforge.plugins.ihkexportold;
+package org.projectforge.plugins.ihkexportnew;
 
 import org.projectforge.plugins.core.AbstractPlugin;
-import org.projectforge.plugins.core.ProjectforgePluginService;
-
+import org.projectforge.plugins.core.PFPluginService;
 /**
  * The Class MemoProjectforgePluginService.
  *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
-public class IhkExportProjectforgePluginServiceOld implements ProjectforgePluginService
+public class IhkExportPFPluginServiceNew implements PFPluginService
 {
 
   /**
@@ -19,7 +18,7 @@ public class IhkExportProjectforgePluginServiceOld implements ProjectforgePlugin
   @Override
   public String getPluginId()
   {
-    return "ihkexportOld";
+    return "ihkexportNew";
   }
 
   /**
@@ -30,7 +29,7 @@ public class IhkExportProjectforgePluginServiceOld implements ProjectforgePlugin
   @Override
   public String getPluginName()
   {
-    return "IHK-Export Old";
+    return "IHK-Export New";
   }
 
   /**
@@ -52,7 +51,7 @@ public class IhkExportProjectforgePluginServiceOld implements ProjectforgePlugin
   @Override
   public AbstractPlugin createPluginInstance()
   {
-    return new IhkExportPluginOld();
+    return new IhkExportPluginNew();
   }
 
 }

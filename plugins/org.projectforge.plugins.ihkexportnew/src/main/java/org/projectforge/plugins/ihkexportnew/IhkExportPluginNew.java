@@ -24,9 +24,9 @@
 package org.projectforge.plugins.ihkexportnew;
 
 import org.projectforge.business.timesheet.TimesheetDao;
+import org.projectforge.menu.builder.MenuItemDef;
+import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
-import org.projectforge.web.MenuItemDef;
-import org.projectforge.web.MenuItemDefId;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -39,7 +39,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class IhkExportPluginNew extends AbstractPlugin
 {
-  public static final String ID = "ihkexportNew";
+  public static final String ID = "ihkexportnew";
 
   public static final String RESOURCE_BUNDLE_NAME = "IhkExportNewI18nResources";
 
@@ -54,15 +54,14 @@ public class IhkExportPluginNew extends AbstractPlugin
   {
 
     // Register it:
-    register(ID, TimesheetDao.class, ihkExportDao, "plugins.ihkexportNew");
+    register(ID, TimesheetDao.class, ihkExportDao, "plugins.ihkexportnew");
 
     // Register the web part:
     pluginWicketRegistrationService.registerWeb(ID);
 
     // Register the menu entry as sub menu entry of the misc menu:
-    final MenuItemDef parentMenu = pluginWicketRegistrationService.getMenuItemDef(MenuItemDefId.MISC);
-    pluginWicketRegistrationService
-        .registerMenuItem(new MenuItemDef(parentMenu, ID, 10, "plugins.ihkexportNew.menu", IhkExportPageNew.class));
+    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, MenuItemDef.create(ID, "plugins.ihkexportNew.menu"),
+            IhkExportPageNew.class);
 
     // Define the access management:
     registerRight(new IhkExportRightNew(accessChecker));
