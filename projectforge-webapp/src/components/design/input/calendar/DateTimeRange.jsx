@@ -8,14 +8,13 @@ import DayPicker from 'react-day-picker';
 import { connect } from 'react-redux';
 import { Col, Row } from '../..';
 import style from './CalendarInput.module.scss';
+import FormattedTimeRange from './FormattedTimeRange';
 
 function DateTimeRange(
     {
         firstDayOfWeek,
         from,
         id,
-        jsDateFormat,
-        jsTimestampFormatMinutes,
         onChange,
         selectors,
         to,
@@ -198,15 +197,13 @@ function DateTimeRange(
                     {!from && !to && '[Bitte wähle das Startdatum aus]'}
                     {from && !to && '[Bitte wähle das Enddatum aus]'}
                     {from && to && (
-                        <React.Fragment>
-                            {`${moment(from)
-                                .format(from.getHours() === 0 && from.getMinutes() === 0 ? jsDateFormat : jsTimestampFormatMinutes)} - ${moment(to)
-                                .format(to.getHours() === 23 && to.getMinutes() === 59 ? jsDateFormat : jsTimestampFormatMinutes)} `}
+                        <FormattedTimeRange to={to} from={from}>
+                            {' '}
                             <FontAwesomeIcon
                                 icon={faTimes}
                                 onClick={() => onChange({})}
                             />
-                        </React.Fragment>
+                        </FormattedTimeRange>
                     )}
                 </p>
                 <DayPicker
@@ -235,8 +232,6 @@ function DateTimeRange(
 DateTimeRange.propTypes = {
     onChange: PropTypes.func.isRequired,
     id: PropTypes.string.isRequired,
-    jsDateFormat: PropTypes.string.isRequired,
-    jsTimestampFormatMinutes: PropTypes.string.isRequired,
     firstDayOfWeek: PropTypes.number,
     from: PropTypes.instanceOf(Date),
     locale: PropTypes.string,
@@ -256,8 +251,6 @@ DateTimeRange.defaultProps = {
 
 const mapStateToProps = ({ authentication }) => ({
     firstDayOfWeek: authentication.user.firstDayOfWeekNo,
-    jsDateFormat: authentication.user.jsDateFormatShort,
-    jsTimestampFormatMinutes: authentication.user.jsTimestampFormatMinutes,
     locale: authentication.user.locale,
     timeNotation: authentication.user.timeNotation,
 });
