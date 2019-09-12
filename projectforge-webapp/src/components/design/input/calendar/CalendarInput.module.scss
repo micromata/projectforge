@@ -12,9 +12,19 @@
 
   .quickSelector {
     padding: 5px;
+    cursor: pointer;
 
     &:hover {
       background-color: #d1deff;
+    }
+
+    &.selected {
+      background-color: #d1deff;
+      color: #003a71;
+
+      &:hover {
+        background-color: #b8c4e1;
+      }
     }
   }
 }
