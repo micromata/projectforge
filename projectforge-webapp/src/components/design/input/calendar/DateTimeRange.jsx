@@ -212,7 +212,6 @@ function DateTimeRange(
                 <DayPicker
                     className="range"
                     firstDayOfWeek={firstDayOfWeek}
-                    fromMonth={from}
                     modifiers={{
                         start: from,
                         end: to,
