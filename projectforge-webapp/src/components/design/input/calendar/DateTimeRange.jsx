@@ -217,7 +217,6 @@ function DateTimeRange(
                         end: to,
                     }}
                     showWeekNumbers={selectors.includes('WEEK')}
-                    month={from}
                     numberOfMonths={2}
                     onCaptionClick={handleMonthClick}
                     onDayClick={handleDayClick}
