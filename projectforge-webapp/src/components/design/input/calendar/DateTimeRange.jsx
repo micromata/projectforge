@@ -13,6 +13,7 @@ function DateTimeRange(
         firstDayOfWeek,
         from,
         jsDateFormat,
+        jsTimestampFormatMinutes,
         onChange,
         selectors,
         to,
@@ -27,36 +28,45 @@ function DateTimeRange(
 
         if (from === undefined || day < from) {
             newRange.from = day;
+            if (from) {
+                newRange.from.setHours(from.getHours());
+                newRange.from.setMinutes(from.getMinutes());
+            } else {
+                newRange.from.setHours(0);
+            }
         } else {
             newRange.to = day;
+            if (to) {
+                newRange.to.setHours(to.getHours());
+                newRange.to.setMinutes(to.getMinutes());
+            } else {
+                newRange.to.setHours(23);
+                newRange.to.setMinutes(59);
+            }
         }
+
+        onChange(newRange);
+    };
+
+    const handleWeekClick = (weekNumber, days) => {
+        const newRange = {
+            from: days[0],
+            to: days[days.length - 1],
+        };
+
+        newRange.from.setHours(0);
+        newRange.from.setMinutes(0);
+        newRange.to.setMinutes(23);
+        newRange.to.setMinutes(59);
 
         onChange(newRange);
     };
 
     return (
         <Row>
-            <Col sm={12}>
-                <p className={style.label}>
-                    {!from && !to && '[Bitte wähle das Startdatum aus]'}
-                    {from && !to && '[Bitte wähle das Enddatum aus]'}
-                    {from && to && (
-                        <React.Fragment>
-                            {`${moment(from)
-                                .format(jsDateFormat)} - ${moment(to)
-                                .format(jsDateFormat)} `}
-                            <FontAwesomeIcon
-                                icon={faTimes}
-                                onClick={() => onChange({})}
-                            />
-                        </React.Fragment>
-                    )}
-                </p>
-            </Col>
             {selectors.includes('UNTIL_NOW') && (
                 <Col sm={3}>
                     <ul className={style.quickSelectors}>
-                        <li className={style.quickSelector}>[Letzte Minute]</li>
                         <li className={style.quickSelector}>[Letzte 30 Minuten]</li>
                         <li className={style.quickSelector}>[Letzte Stunde]</li>
                         <li className={style.quickSelector}>[Heute]</li>
@@ -69,6 +79,21 @@ function DateTimeRange(
                 </Col>
             )}
             <Col sm={9}>
+                <p className={style.label}>
+                    {!from && !to && '[Bitte wähle das Startdatum aus]'}
+                    {from && !to && '[Bitte wähle das Enddatum aus]'}
+                    {from && to && (
+                        <React.Fragment>
+                            {`${moment(from)
+                                .format(from.getHours() === 0 && from.getMinutes() === 0 ? jsDateFormat : jsTimestampFormatMinutes)} - ${moment(to)
+                                .format(to.getHours() === 23 && to.getMinutes() === 59 ? jsDateFormat : jsTimestampFormatMinutes)} `}
+                            <FontAwesomeIcon
+                                icon={faTimes}
+                                onClick={() => onChange({})}
+                            />
+                        </React.Fragment>
+                    )}
+                </p>
                 <DayPicker
                     className="range"
                     firstDayOfWeek={firstDayOfWeek}
@@ -77,6 +102,8 @@ function DateTimeRange(
                         start: from,
                         end: to,
                     }}
+                    showWeekNumbers={selectors.includes('WEEK')}
+                    onWeekClick={handleWeekClick}
                     month={from}
                     numberOfMonths={2}
                     onDayClick={handleDayClick}
@@ -94,6 +121,7 @@ function DateTimeRange(
 DateTimeRange.propTypes = {
     onChange: PropTypes.func.isRequired,
     jsDateFormat: PropTypes.string.isRequired,
+    jsTimestampFormatMinutes: PropTypes.string.isRequired,
     firstDayOfWeek: PropTypes.number,
     from: PropTypes.instanceOf(Date),
     locale: PropTypes.string,
@@ -113,7 +141,8 @@ DateTimeRange.defaultProps = {
 
 const mapStateToProps = ({ authentication }) => ({
     firstDayOfWeek: authentication.user.firstDayOfWeekNo,
-    jsDateFormat: authentication.user.jsDateFormat,
+    jsDateFormat: authentication.user.jsDateFormatShort,
+    jsTimestampFormatMinutes: authentication.user.jsTimestampFormatMinutes,
     locale: authentication.user.locale,
     timeNotation: authentication.user.timeNotation,
 });
