@@ -1,5 +1,6 @@
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import classNames from 'classnames';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -12,6 +13,7 @@ function DateTimeRange(
     {
         firstDayOfWeek,
         from,
+        id,
         jsDateFormat,
         jsTimestampFormatMinutes,
         onChange,
@@ -20,7 +22,59 @@ function DateTimeRange(
         ...props
     },
 ) {
+    const [quickSelector, setQuickSelector] = React.useState(undefined);
+
+    const handleQuickSelectorClick = interval => () => {
+        setQuickSelector(interval);
+
+        let newFrom = new Date();
+
+        switch (interval) {
+            case 'LAST_30_MINUTES':
+                newFrom.setMinutes(newFrom.getMinutes() - 30);
+                break;
+            case 'LAST_HOUR':
+                newFrom.setHours(newFrom.getHours() - 1);
+                break;
+            case 'TODAY':
+                newFrom.setHours(0);
+                newFrom.setMinutes(0);
+                break;
+            case 'SINCE_YESTERDAY':
+                newFrom.setHours(0);
+                newFrom.setMinutes(0);
+                newFrom.setDate(newFrom.getDate() - 1);
+                break;
+            case 'LAST_WEEK':
+                newFrom.setDate(newFrom.getDate() - 7);
+                break;
+            case 'LAST_2_WEEKS':
+                newFrom.setDate(newFrom.getDate() - 14);
+                break;
+            case 'LAST_MONTH':
+                newFrom.setDate(newFrom.getDate() - 31);
+                break;
+            case 'LAST_3_MONTHS':
+                newFrom.setDate(newFrom.getDate() - 92);
+                break;
+            case 'YEAR':
+                newFrom.setMinutes(0);
+                newFrom.setHours(0);
+                newFrom.setDate(1);
+                newFrom.setMonth(0);
+                break;
+            default:
+        }
+
+        onChange({
+            from: newFrom,
+            to: new Date(),
+        });
+    };
+
     const handleDayClick = (day) => {
+        setQuickSelector();
+
         const newRange = {
             from,
             to,
@@ -49,6 +103,8 @@ function DateTimeRange(
     };
 
     const handleWeekClick = (weekNumber, days) => {
+        setQuickSelector();
+
         const newRange = {
             from: days[0],
             to: days[days.length - 1],
@@ -67,6 +123,8 @@ function DateTimeRange(
             return;
         }
 
+        setQuickSelector();
+
         onChange({
             from: firstDayOfMonth,
             to: moment(firstDayOfMonth)
@@ -75,19 +133,63 @@ function DateTimeRange(
         });
     };
 
+    const quickSelectors = [
+        {
+            label: '[Letzte 30 Minuten]',
+            id: 'LAST_30_MINUTES',
+        },
+        {
+            label: '[Letzte Stunde]',
+            id: 'LAST_HOUR',
+        },
+        {
+            label: '[Heute]',
+            id: 'TODAY',
+        },
+        {
+            label: '[Seit gestern]',
+            id: 'SINCE_YESTERDAY',
+        },
+        {
+            label: '[Letzte Woche]',
+            id: 'LAST_WEEK',
+        },
+        {
+            label: '[Letzte 2 Wochen]',
+            id: 'LAST_2_WEEKS',
+        },
+        {
+            label: '[Letzten Monat]',
+            id: 'LAST_MONTH',
+        },
+        {
+            label: '[Letzte 3 Monate]',
+            id: 'LAST_3_MONTHS',
+        },
+        {
+            label: '[Dieses Jahr]',
+            id: 'YEAR',
+        },
+    ];
+
     return (
         <Row>
             {selectors.includes('UNTIL_NOW') && (
                 <Col sm={3}>
                     <ul className={style.quickSelectors}>
-                        <li className={style.quickSelector}>[Letzte 30 Minuten]</li>
-                        <li className={style.quickSelector}>[Letzte Stunde]</li>
-                        <li className={style.quickSelector}>[Heute]</li>
-                        <li className={style.quickSelector}>[Seit gestern]</li>
-                        <li className={style.quickSelector}>[Letzte Woche]</li>
-                        <li className={style.quickSelector}>[Letzte 2 Wochen]</li>
-                        <li className={style.quickSelector}>[Letzten Monat]</li>
-                        <li className={style.quickSelector}>[Letzte 3 Monate]</li>
+                        {quickSelectors.map(selector => (
+                            <li
+                                className={classNames(
+                                    style.quickSelector,
+                                    { [style.selected]: selector.id === quickSelector },
+                                )}
+                                key={`quick-selector-${id}-${selector.id}`}
+                                onClick={handleQuickSelectorClick(selector.id)}
+                                role="presentation"
+                            >
+                                {selector.label}
+                            </li>
+                        ))}
                     </ul>
                 </Col>
             )}
@@ -134,6 +236,7 @@ function DateTimeRange(
 
 DateTimeRange.propTypes = {
     onChange: PropTypes.func.isRequired,
+    id: PropTypes.string.isRequired,
     jsDateFormat: PropTypes.string.isRequired,
     jsTimestampFormatMinutes: PropTypes.string.isRequired,
     firstDayOfWeek: PropTypes.number,
