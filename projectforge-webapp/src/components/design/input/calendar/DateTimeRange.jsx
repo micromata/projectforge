@@ -27,7 +27,7 @@ function DateTimeRange(
     const handleQuickSelectorClick = interval => () => {
         setQuickSelector(interval);
 
-        let newFrom = new Date();
+        const newFrom = new Date();
 
         switch (interval) {
             case 'LAST_30_MINUTES':
