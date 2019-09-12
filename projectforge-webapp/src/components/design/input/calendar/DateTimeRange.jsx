@@ -56,10 +56,23 @@ function DateTimeRange(
 
         newRange.from.setHours(0);
         newRange.from.setMinutes(0);
-        newRange.to.setMinutes(23);
+        newRange.to.setHours(23);
         newRange.to.setMinutes(59);
 
         onChange(newRange);
+    };
+
+    const handleMonthClick = (firstDayOfMonth) => {
+        if (!selectors.includes('MONTH')) {
+            return;
+        }
+
+        onChange({
+            from: firstDayOfMonth,
+            to: moment(firstDayOfMonth)
+                .endOf('month')
+                .toDate(),
+        });
     };
 
     return (
@@ -103,10 +116,11 @@ function DateTimeRange(
                         end: to,
                     }}
                     showWeekNumbers={selectors.includes('WEEK')}
-                    onWeekClick={handleWeekClick}
                     month={from}
                     numberOfMonths={2}
+                    onCaptionClick={handleMonthClick}
                     onDayClick={handleDayClick}
+                    onWeekClick={handleWeekClick}
                     selectedDays={[from, {
                         from,
                         to,
