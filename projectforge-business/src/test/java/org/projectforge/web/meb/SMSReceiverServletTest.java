@@ -60,6 +60,7 @@ public class SMSReceiverServletTest extends AbstractTestBase {
 
   @Test
   public void receiveSMS() throws Exception {
+    clearDatabase();
     final String origKey = (String) TestHelper.getDeclaredFieldValue(configService, "receiveSmsKey");
     TestHelper.setDeclaredField(configService, "receiveSmsKey", "otieZae9Aiphai5o");
     init();
@@ -75,9 +76,6 @@ public class SMSReceiverServletTest extends AbstractTestBase {
     servlet.doGet(request, response);
     verify(loggerSpy, never()).warn(anyString());
     List<MebEntryDO> list = mebDao.internalLoadAll();
-    for (MebEntryDO entry : list) {
-      System.out.println("SMSReceiverServletTest.java MebEntryDO: " + entry);
-    }
     assertEquals(1, list.size());
     assertEquals(user.getId(), list.get(0).getOwnerId());
     servlet.doGet(request, response);
