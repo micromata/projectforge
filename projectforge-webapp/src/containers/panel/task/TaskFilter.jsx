@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { CheckBox, Col, Input, Row } from '../../../components/design';
-import { useClickOutsideHandler } from '../../../utilities/hooks';
+import AdvancedPopper from '../../../components/design/popper/AdvancedPopper';
 import TaskTreeContext from './TaskTreeContext';
 import style from './TaskTreePanel.module.scss';
 
@@ -17,22 +17,14 @@ function TaskFilter(
 ) {
     const { translations } = React.useContext(TaskTreeContext);
     const [isOpen, setIsOpen] = React.useState(false);
-    const reference = React.useRef(undefined);
-    const basicReference = React.useRef(undefined);
-
-    const handleSubmitButtonClick = (event) => {
-        setIsOpen(false);
-        handleSubmitButton(event);
-    };
 
     const handleInputKeyPress = (event) => {
         if (event.key === 'Enter') {
             event.target.blur();
-            handleSubmitButtonClick(event);
+            setIsOpen(false);
+            handleSubmitButton(event);
         }
     };
-
-    useClickOutsideHandler(reference, setIsOpen, isOpen);
 
     const {
         searchString,
@@ -73,62 +65,60 @@ function TaskFilter(
     }
 
     return (
-        <div className={classNames(style.searchContainer, { [style.isOpen]: isOpen })}>
-            <div
-                style={{ height: `${(basicReference.current || {}).clientHeight || 0}px` }}
-            />
-            <div
-                ref={reference}
-                className={classNames(style.search, { [style.isOpen]: isOpen })}
-            >
-                <div className={style.basic} ref={basicReference} onFocus={() => setIsOpen(true)}>
-                    <Input
-                        placeholder={translations.searchFilter || ''}
-                        icon={faSearch}
-                        id="taskSearchString"
-                        value={searchValue}
-                        onChange={handleSearchChange}
-                        autoComplete="off"
-                        onKeyPress={handleInputKeyPress}
-                        small
+        <AdvancedPopper
+            basic={(
+                <Input
+                    autoComplete="off"
+                    className={style.searchInput}
+                    icon={faSearch}
+                    id="taskSearchString"
+                    onChange={handleSearchChange}
+                    onKeyPress={handleInputKeyPress}
+                    placeholder={translations.searchFilter || ''}
+                    small
+                    value={searchValue}
+                />
+            )}
+            className={style.searchContainer}
+            contentClassName={classNames(style.search, { [style.searchIsOpen]: isOpen })}
+            isOpen={isOpen}
+            setIsOpen={setIsOpen}
+        >
+            <Row className={style.additional}>
+                <Col sm={6}>
+                    <CheckBox
+                        id="opened"
+                        label={translations['task.status.opened']}
+                        onChange={handleCheckBoxChange}
+                        checked={opened}
                     />
-                </div>
-                <Row className={style.advanced}>
-                    <Col sm={6}>
-                        <CheckBox
-                            id="opened"
-                            label={translations['task.status.opened']}
-                            onChange={handleCheckBoxChange}
-                            checked={opened}
-                        />
-                    </Col>
-                    <Col sm={6}>
-                        <CheckBox
-                            id="notOpened"
-                            label={translations['task.status.notOpened']}
-                            onChange={handleCheckBoxChange}
-                            checked={notOpened}
-                        />
-                    </Col>
-                    <Col sm={6}>
-                        <CheckBox
-                            id="closed"
-                            label={translations['task.status.closed']}
-                            onChange={handleCheckBoxChange}
-                            checked={closed}
-                        />
-                    </Col>
-                    <Col sm={6}>
-                        <CheckBox
-                            id="deleted"
-                            label={translations.deleted}
-                            onChange={handleCheckBoxChange}
-                            checked={deleted}
-                        />
-                    </Col>
-                </Row>
-            </div>
-        </div>
+                </Col>
+                <Col sm={6}>
+                    <CheckBox
+                        id="notOpened"
+                        label={translations['task.status.notOpened']}
+                        onChange={handleCheckBoxChange}
+                        checked={notOpened}
+                    />
+                </Col>
+                <Col sm={6}>
+                    <CheckBox
+                        id="closed"
+                        label={translations['task.status.closed']}
+                        onChange={handleCheckBoxChange}
+                        checked={closed}
+                    />
+                </Col>
+                <Col sm={6}>
+                    <CheckBox
+                        id="deleted"
+                        label={translations.deleted}
+                        onChange={handleCheckBoxChange}
+                        checked={deleted}
+                    />
+                </Col>
+            </Row>
+        </AdvancedPopper>
     );
 }
 
