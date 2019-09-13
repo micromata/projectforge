@@ -194,7 +194,6 @@ public class MebDao extends BaseDao<MebEntryDO> {
     entry.setStatus(MebEntryStatus.RECENT);
     synchronized (this) {
       final String checkSum = createCheckSum(entry.getMessage());
-      System.err.println("MebDao-Debug: message=" + entry.getMessage() + ", checkSum=" + checkSum);
       // First check weather the entry is already in the data base or not.
       final List<ImportedMebEntryDO> entryList = getSession()
               .createNamedQuery(ImportedMebEntryDO.FIND_BY_SENDER_AND_DATE_AND_CHECKSUM, ImportedMebEntryDO.class)
@@ -236,6 +235,7 @@ public class MebDao extends BaseDao<MebEntryDO> {
       imported.setCreated();
       imported.setLastUpdate();
       imported.setSource(source);
+      System.err.println("MebDao-Debug: imported=" + imported);
       getHibernateTemplate().save(imported);
       return true;
     }
