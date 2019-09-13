@@ -5,3 +5,38 @@
   border-radius: .25em;
   padding: 10px;
 }
+
+.advancedPopperContainer {
+  $transitionTime: .3s;
+
+  position: relative;
+  transition: width, border;
+  transition-duration: $transitionTime;
+
+  &.isOpen .content .additional {
+    opacity: 1;
+    max-height: 300px;
+    transition: opacity $transitionTime;
+  }
+
+  .content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 99;
+
+    .additional {
+      background-color: #fff;
+      opacity: 0;
+      overflow: hidden;
+
+      // Set height to 0 after the transition is done.
+      max-height: 0;
+      transition: opacity $transitionTime, max-height .01s linear $transitionTime;
+
+      position: relative;
+      width: 100%;
+    }
+  }
+}
