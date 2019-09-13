@@ -35,7 +35,10 @@ import org.springframework.boot.web.embedded.tomcat.ConnectorStartFailedExceptio
 import org.springframework.boot.web.servlet.ServletComponentScan;
 
 import java.io.File;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.util.Arrays;
+import java.util.List;
 import java.util.TimeZone;
 
 @SpringBootApplication(
@@ -74,6 +77,11 @@ public class ProjectForgeApplication {
             .log("Using ProjectForge directory: " + CanonicalFileUtils.absolutePath(baseDir))
             .logEnd();
 
+    log.info("Using Java version: " + System.getProperty("java.vendor") + " " + System.getProperty("java.version"));
+    log.info("Using Java home   : " + System.getProperty("java.home"));
+    RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
+    List<String> arguments = runtimeMxBean.getInputArguments();
+    log.info("Using JVM opts    : " + StringUtils.join(arguments, " "));
     args = addDefaultAdditionalLocation(baseDir, args);
     System.setProperty("user.timezone", "UTC");
     TimeZone.setDefault(DateHelper.UTC);
