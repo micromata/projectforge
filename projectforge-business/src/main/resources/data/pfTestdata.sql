@@ -348,17 +348,17 @@ VALUES
                                                                                                                NULL, 'FEST_ANGESTELLTER', NULL, 25, 40.00000,
    NULL, 1, 81, 18);
 
-INSERT INTO t_plugin_calendar (pk, created, deleted, last_update, description, ext_subscription, ext_subscription_calendar_binary, ext_subscription_hash, ext_subscription_update_interval, ext_subscription_url, full_access_group_ids, full_access_user_ids, minimal_access_group_ids, minimal_access_user_ids, readonly_access_group_ids, readonly_access_user_ids, title, tenant_id, owner_fk)
+INSERT INTO t_calendar (pk, created, deleted, last_update, description, ext_subscription, ext_subscription_calendar_binary, ext_subscription_hash, ext_subscription_update_interval, ext_subscription_url, full_access_group_ids, full_access_user_ids, minimal_access_group_ids, minimal_access_user_ids, readonly_access_group_ids, readonly_access_user_ids, title, tenant_id, owner_fk)
 VALUES
   (157, '2013-04-07 16:15:42.141', FALSE, '2017-11-23 12:56:36.083', 'Kai''s business calendar', FALSE, NULL, NULL, NULL, NULL, '', '1,2', '', '', '40', '',
    'kai@work', 1, 19);
-INSERT INTO t_plugin_calendar (pk, created, deleted, last_update, description, ext_subscription, ext_subscription_calendar_binary, ext_subscription_hash, ext_subscription_update_interval, ext_subscription_url, full_access_group_ids, full_access_user_ids, minimal_access_group_ids, minimal_access_user_ids, readonly_access_group_ids, readonly_access_user_ids, title, tenant_id, owner_fk)
+INSERT INTO t_calendar (pk, created, deleted, last_update, description, ext_subscription, ext_subscription_calendar_binary, ext_subscription_hash, ext_subscription_update_interval, ext_subscription_url, full_access_group_ids, full_access_user_ids, minimal_access_group_ids, minimal_access_user_ids, readonly_access_group_ids, readonly_access_user_ids, title, tenant_id, owner_fk)
 VALUES (158, '2013-04-07 16:14:34.257', FALSE, '2017-11-23 12:56:36.159', 'Team calendar', FALSE, NULL, NULL, NULL, NULL, '43', '2', '', '', '40', '',
         'Yellow web portal team', 1, 19);
-INSERT INTO t_plugin_calendar (pk, created, deleted, last_update, description, ext_subscription, ext_subscription_calendar_binary, ext_subscription_hash, ext_subscription_update_interval, ext_subscription_url, full_access_group_ids, full_access_user_ids, minimal_access_group_ids, minimal_access_user_ids, readonly_access_group_ids, readonly_access_user_ids, title, tenant_id, owner_fk)
+INSERT INTO t_calendar (pk, created, deleted, last_update, description, ext_subscription, ext_subscription_calendar_binary, ext_subscription_hash, ext_subscription_update_interval, ext_subscription_url, full_access_group_ids, full_access_user_ids, minimal_access_group_ids, minimal_access_user_ids, readonly_access_group_ids, readonly_access_user_ids, title, tenant_id, owner_fk)
 VALUES (159, '2013-04-07 16:15:17.791', FALSE, '2017-11-23 12:56:36.228', 'Kai''s private calendar', FALSE, NULL, NULL, NULL, NULL, '', '2,1', '40', '', '', '',
         'kai@home', 1, 19);
-INSERT INTO t_plugin_calendar (pk, created, deleted, last_update, description, ext_subscription, ext_subscription_calendar_binary, ext_subscription_hash, ext_subscription_update_interval, ext_subscription_url, full_access_group_ids, full_access_user_ids, minimal_access_group_ids, minimal_access_user_ids, readonly_access_group_ids, readonly_access_user_ids, title, tenant_id, owner_fk)
+INSERT INTO t_calendar (pk, created, deleted, last_update, description, ext_subscription, ext_subscription_calendar_binary, ext_subscription_hash, ext_subscription_update_interval, ext_subscription_url, full_access_group_ids, full_access_user_ids, minimal_access_group_ids, minimal_access_user_ids, readonly_access_group_ids, readonly_access_user_ids, title, tenant_id, owner_fk)
 VALUES
   (160, '2013-04-07 16:14:08.668', FALSE, '2017-11-23 12:56:36.282', 'Events, releases, meetings of the team etc.', FALSE, NULL, NULL, NULL, NULL, '35', '2',
    '', '', '41,40', '', 'ProjectForge team', 1, 19);

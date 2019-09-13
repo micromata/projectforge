@@ -10,6 +10,7 @@ import { useClickOutsideHandler } from '../../utilities/hooks';
 import { getServiceURL, handleHTTPErrors } from '../../utilities/rest';
 import Input from './input';
 import DateTimeRange from './input/calendar/DateTimeRange';
+import FormattedTimeRange from './input/calendar/FormattedTimeRange';
 import Popper from './popper';
 
 function EditableMultiValueLabel({ data, selectProps, ...props }) {
@@ -119,15 +120,18 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                     from: undefined,
                     to: undefined,
                 });
+            } else if (value.from && value.to) {
+                label = (
+                    <FormattedTimeRange to={value.to} from={value.from} childrenAsPrefix>
+                        {`${data.label}: `}
+                    </FormattedTimeRange>
+                );
             }
-            console.log({
-                data,
-                value,
-            });
 
             input = (
                 <React.Fragment>
                     <DateTimeRange
+                        id={data.id}
                         onChange={setValue}
                         {...value}
                         selectors={[

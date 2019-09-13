@@ -23,8 +23,6 @@
 
 package org.projectforge.setup.wizard.swing
 
-import com.apple.eawt.Application
-import com.apple.eawt.QuitStrategy
 import org.projectforge.common.CanonicalFileUtils
 import org.projectforge.common.EmphasizedLogSupport
 import org.projectforge.setup.SetupData
@@ -56,8 +54,21 @@ class SwingSetupWizard(presetAppHomeDir: File? = null) : AbstractSetupWizard() {
         frame.setSize(1024, 600)
         frame.layout = GridBagLayout()
         frame.defaultCloseOperation = JFrame.DO_NOTHING_ON_CLOSE
-        Application.getApplication().setQuitStrategy(QuitStrategy.CLOSE_ALL_WINDOWS)
-        Application.getApplication().disableSuddenTermination()
+        try {
+            // Needs reflection because Apple classes may not be available:
+            val applicationClass = Class.forName("com.apple.eawt.Application")
+            val quitStrategyClass = Class.forName("com.apple.eawt.QuitStrategy")
+            val getApplicationMethod = applicationClass.getDeclaredMethod("getApplication")
+            val setQuitStrategyMethod = applicationClass.getDeclaredMethod("setQuitStrategy", quitStrategyClass)
+            val disableSuddenTerminationMethod = applicationClass.getDeclaredMethod("disableSuddenTermination")
+
+            val application = getApplicationMethod.invoke(null)
+            val quitStrategy = quitStrategyClass.enumConstants.find { it.toString() == "CLOSE_ALL_WINDOWS" }//.QuitStrategy.CLOSE_ALL_WINDOWS
+            setQuitStrategyMethod.invoke(application, quitStrategy)  //Application.getApplication().setQuitStrategy(QuitStrategy.CLOSE_ALL_WINDOWS)
+            disableSuddenTerminationMethod.invoke(application) // Application.getApplication().disableSuddenTermination()
+        } catch (ex: Exception) {
+            log.debug("Not a MacOS system or MacOS JVM doesn't support com.apple.eawt.Application (OK).")
+        }
         frame.addWindowListener(object : WindowAdapter() {
             override fun windowClosing(e: WindowEvent?) {
                 exit()
