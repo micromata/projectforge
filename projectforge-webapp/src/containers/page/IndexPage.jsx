@@ -328,6 +328,11 @@ class IndexPage extends React.Component {
                         <ol>
                             <li>Magic filter in list pages</li>
                             <li>
+                                TaskTree
+                                <mark>Keine Tasks gefunden</mark>
+                                translation. task/tree
+                            </li>
+                            <li>
                                 Markdown (AsciiDoc) View component for displaying dynamic content.
                             </li>
                             <li>List pagination and sorting</li>
