@@ -46,8 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 
-public class SMSReceiverServletTest extends AbstractTestBase
-{
+public class SMSReceiverServletTest extends AbstractTestBase {
   private static Logger loggerSpy;
 
   @Autowired
@@ -60,8 +59,7 @@ public class SMSReceiverServletTest extends AbstractTestBase
   private ConfigurationService configService;
 
   @Test
-  public void receiveSMS() throws Exception
-  {
+  public void receiveSMS() throws Exception {
     final String origKey = (String) TestHelper.getDeclaredFieldValue(configService, "receiveSmsKey");
     TestHelper.setDeclaredField(configService, "receiveSmsKey", "otieZae9Aiphai5o");
     init();
@@ -77,6 +75,9 @@ public class SMSReceiverServletTest extends AbstractTestBase
     servlet.doGet(request, response);
     verify(loggerSpy, never()).warn(anyString());
     List<MebEntryDO> list = mebDao.internalLoadAll();
+    for (MebEntryDO entry : list) {
+      System.out.println("SMSReceiverServletTest.java MebEntryDO: " + entry);
+    }
     assertEquals(1, list.size());
     assertEquals(user.getId(), list.get(0).getOwnerId());
     servlet.doGet(request, response);
@@ -98,8 +99,7 @@ public class SMSReceiverServletTest extends AbstractTestBase
   }
 
   @Test
-  public void receiveSMSWithWrongRequest() throws Exception
-  {
+  public void receiveSMSWithWrongRequest() throws Exception {
     init();
     final String origKey = (String) TestHelper.getDeclaredFieldValue(configService, "receiveSmsKey");
     TestHelper.setDeclaredField(configService, "receiveSmsKey", null);
@@ -126,21 +126,21 @@ public class SMSReceiverServletTest extends AbstractTestBase
     request = mockRequest("otieZae9Aiphai5o", "20sjhj4567", "0170m123456", "Hello");
     servlet.doGet(request, response);
     verify(loggerSpy)
-        .warn("Servlet call for receiving sms ignored because receiveSmsKey is not given in config.xml file.");
+            .warn("Servlet call for receiving sms ignored because receiveSmsKey is not given in config.xml file.");
     verify(loggerSpy)
-        .warn("Servlet call for receiving sms ignored because receiveSmsKey does not match given key: wrongKey");
+            .warn("Servlet call for receiving sms ignored because receiveSmsKey does not match given key: wrongKey");
     verify(loggerSpy).warn("Servlet call for receiving sms ignored because parameter 'date' is not given.");
     verify(loggerSpy).warn("Servlet call for receiving sms ignored because parameter 'sender' is not given.");
     verify(loggerSpy).warn("Servlet call for receiving sms ignored because parameter 'msg' is not given.");
     final String logMsg1 = "Servlet call for receiving sms ignored because date string is not parseable (format '"
-        + MebDao.DATE_FORMAT
-        + "' expected): ";
+            + MebDao.DATE_FORMAT
+            + "' expected): ";
     final String logMsg2 = "Servlet call for receiving sms ignored because date string is not parseable (millis since 01/01/1970 or format '"
-        + MebDao.DATE_FORMAT
-        + "' expected): ";
+            + MebDao.DATE_FORMAT
+            + "' expected): ";
     final String logMsg3 = "Servlet call for receiving sms ignored because date string is not parseable (format '"
-        + MebDao.DATE_FORMAT
-        + "' expected): ";
+            + MebDao.DATE_FORMAT
+            + "' expected): ";
     verify(mebDaoLoggerSpy).warn(logMsg1 + "date");
     verify(mebDaoLoggerSpy).warn(logMsg2 + "1274480915");
     verify(mebDaoLoggerSpy).warn(logMsg2 + "3000000000");
@@ -148,8 +148,7 @@ public class SMSReceiverServletTest extends AbstractTestBase
     TestHelper.setDeclaredField(configService, "receiveSmsKey", origKey);
   }
 
-  private HttpServletRequest mockRequest(final String key, final String date, final String sender, final String msg)
-  {
+  private HttpServletRequest mockRequest(final String key, final String date, final String sender, final String msg) {
     final HttpServletRequest request = mock(HttpServletRequest.class);
     when(request.getParameter("key")).thenReturn(key);
     when(request.getParameter("date")).thenReturn(date);
@@ -158,8 +157,7 @@ public class SMSReceiverServletTest extends AbstractTestBase
     return request;
   }
 
-  private HttpServletResponse mockResponse(final String result)
-  {
+  private HttpServletResponse mockResponse(final String result) {
     final HttpServletResponse response = mock(HttpServletResponse.class);
     try {
       when(response.getWriter()).thenReturn(new PrintWriter(new StringWriter()));
@@ -169,8 +167,7 @@ public class SMSReceiverServletTest extends AbstractTestBase
     return response;
   }
 
-  public void init()
-  {
+  public void init() {
     if (loggerSpy == null) {
       loggerSpy = mock(Logger.class);
       TestHelper.setDeclaredField(configService, "receiveSmsKey", "otieZae9Aiphai5o");
