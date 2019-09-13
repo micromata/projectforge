@@ -60,8 +60,8 @@ class CalendarFilterFavoritesTest {
         val favs = Favorites<CalendarFilter>()
         favs.add(CalendarFilter())
         val prefix = favs.getElementAt(0)!!.name ?: fail("prefix can't be null")
-        assertTrue(prefix.startsWith("???"), "Prefix should start with ???, but it doesn't '$prefix'") // Translations not available
-        assertTrue(prefix.endsWith("???"), "Prefix should end with ???, but it doesn't '$prefix'") // Translations not available
+        assertTrue(prefix.startsWith("???"), "Prefix should start with ???, but it doesn't: '$prefix'") // Translations not available
+        assertTrue(prefix.endsWith("???"), "Prefix should end with ???, but it doesn't: '$prefix'") // Translations not available
         favs.add(CalendarFilter())
         assertEquals("$prefix 1", favs.getElementAt(1)!!.name)
         favs.add(CalendarFilter(name = "My favorite"))
