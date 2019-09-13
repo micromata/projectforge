@@ -111,6 +111,7 @@ public class SmsSender {
         responseCode = HttpResponseCode.UNKNOWN_ERROR;
       }
       if (responseCode != HttpResponseCode.SUCCESS) {
+        System.err.println("SmsSender: phoneNumber=" + phoneNumber + ", message=" + message);
         log.error("Unexpected response from sms gateway: " + responseNumber + ": " + response + " (if this call was successful, did you configured projectforge.sms.returnCodePattern.success?).");
       }
       return responseCode;
