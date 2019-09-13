@@ -75,6 +75,9 @@ public class SMSReceiverServletTest extends AbstractTestBase {
     servlet.doGet(request, response);
     verify(loggerSpy, never()).warn(anyString());
     List<MebEntryDO> list = mebDao.internalLoadAll();
+    for (MebEntryDO entry : list) {
+      System.err.println("SMSReceiverServletTest: entry=" + entry);
+    }
     assertEquals(1, list.size());
     assertEquals(user.getId(), list.get(0).getOwnerId());
     servlet.doGet(request, response);
