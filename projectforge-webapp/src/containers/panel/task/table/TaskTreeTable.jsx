@@ -60,6 +60,8 @@ function TaskTreeTable({ nodes }) {
                         task={task}
                     />
                 ))}
+                {/* TODO TRANSLATION */}
+                {nodes.length === 0 && '[Keine Tasks gefunden]'}
             </tbody>
         </Table>
     );
