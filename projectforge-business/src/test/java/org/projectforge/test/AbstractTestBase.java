@@ -68,6 +68,7 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -237,6 +238,7 @@ public abstract class AbstractTestBase {
   public void recreateDataBase() {
     System.setProperty("user.timezone", "UTC");
     TimeZone.setDefault(DateHelper.UTC);
+    Locale.setDefault(Locale.ENGLISH);
     log.info("user.timezone is: " + System.getProperty("user.timezone"));
     final JdbcTemplate jdbc = new JdbcTemplate(dataSource);
     try {

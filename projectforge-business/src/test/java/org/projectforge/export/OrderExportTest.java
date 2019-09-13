@@ -23,6 +23,16 @@
 
 package org.projectforge.export;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.projectforge.business.excel.ExcelImport;
+import org.projectforge.business.fibu.*;
+import org.projectforge.framework.i18n.I18nHelper;
+import org.projectforge.test.AbstractTestBase;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -32,20 +42,6 @@ import java.time.Month;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.projectforge.business.excel.ExcelImport;
-import org.projectforge.business.fibu.AuftragDO;
-import org.projectforge.business.fibu.AuftragsStatus;
-import org.projectforge.business.fibu.KundeDO;
-import org.projectforge.business.fibu.OrderExport;
-import org.projectforge.business.fibu.PaymentScheduleDO;
-import org.projectforge.framework.i18n.I18nHelper;
-import org.projectforge.test.AbstractTestBase;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
 public class OrderExportTest extends AbstractTestBase
 {
@@ -78,11 +74,11 @@ public class OrderExportTest extends AbstractTestBase
     ExcelImport excelImport = new ExcelImport(new ByteArrayInputStream(export));
     for (Row row : excelImport.getWorkbook().getSheetAt(0)) {
       for (Cell cell : row) {
-        if (cell.toString().equals("02-Okt-2020")) {
+        if (cell.toString().equals("02-Oct-2020")) {
           hasperformaceBegin = true;
         }
 
-        if (cell.toString().equals("02-Okt-2030")) {
+        if (cell.toString().equals("02-Oct-2030")) {
           hasPerformanceEnd = true;
         }
 
@@ -149,11 +145,11 @@ public class OrderExportTest extends AbstractTestBase
     ExcelImport excelImport = new ExcelImport(new ByteArrayInputStream(export));
     for (Row row : excelImport.getWorkbook().getSheetAt(2)) {
       for (Cell cell : row) {
-        if (cell.toString().equals("02-Okt-2020")) {
+        if (cell.toString().equals("02-Oct-2020")) {
           hasFirstScheduleDate = true;
         }
 
-        if (cell.toString().equals("02-Okt-2030")) {
+        if (cell.toString().equals("02-Oct-2030")) {
           hasSecondScheduleDate = true;
         }
 
