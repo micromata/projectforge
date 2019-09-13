@@ -60,7 +60,6 @@ public class SMSReceiverServletTest extends AbstractTestBase {
 
   @Test
   public void receiveSMS() throws Exception {
-    clearDatabase();
     final String origKey = (String) TestHelper.getDeclaredFieldValue(configService, "receiveSmsKey");
     TestHelper.setDeclaredField(configService, "receiveSmsKey", "otieZae9Aiphai5o");
     init();
