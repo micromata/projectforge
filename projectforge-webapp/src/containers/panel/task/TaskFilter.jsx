@@ -74,7 +74,6 @@ function TaskFilter(
                     id="taskSearchString"
                     onChange={handleSearchChange}
                     onKeyPress={handleInputKeyPress}
-                    placeholder={translations.searchFilter || ''}
                     small
                     value={searchValue}
                 />
