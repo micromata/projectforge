@@ -224,6 +224,10 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
   @Override
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<TimesheetDO> getList(final BaseSearchFilter filter) throws AccessException {
+    return internalGetList(filter, true);
+  }
+
+  public List<TimesheetDO> internalGetList(final BaseSearchFilter filter, boolean checkAccess) {
     final TimesheetFilter myFilter;
     if (filter instanceof TimesheetFilter) {
       myFilter = (TimesheetFilter) filter;
@@ -236,7 +240,12 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
       myFilter.setStopTime(date.getDate());
     }
     final QueryFilter queryFilter = buildQueryFilter(myFilter);
-    List<TimesheetDO> result = getList(queryFilter);
+    List<TimesheetDO> result;
+    if (checkAccess) {
+      result = getList(queryFilter);
+    } else {
+      result = internalGetList(queryFilter);
+    }
     if (result == null) {
       return null;
     }
