@@ -23,19 +23,20 @@
 
 package org.projectforge.business.fibu;
 
-import java.util.List;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetFilter;
 import org.projectforge.business.vacation.service.VacationService;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -66,10 +67,11 @@ public class MonthlyEmployeeReportDao
     filter.setStartTime(report.getFromDate());
     filter.setStopTime(report.getToDate());
     filter.setUserId(user.getId());
-    List<TimesheetDO> list = timesheetDao.getList(filter);
+    List<TimesheetDO> list = timesheetDao.internalGetList(filter, false); // Attention: No access checking!!!!
+    PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
     if (CollectionUtils.isNotEmpty(list) == true) {
       for (TimesheetDO sheet : list) {
-        report.addTimesheet(sheet);
+        report.addTimesheet(sheet, timesheetDao.hasSelectAccess(loggedInUser, sheet, false));
       }
     }
     report.calculate();
