@@ -22,7 +22,7 @@ function AdvancedPopper(
 
     React.useLayoutEffect(() => {
         setBasicHeight(basicReference.current.clientHeight);
-    }, [basicReference]);
+    }, [basicReference.current && basicReference.current.clientHeight]);
 
     return (
         <div
