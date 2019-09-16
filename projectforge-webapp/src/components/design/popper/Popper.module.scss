@@ -13,18 +13,23 @@
   transition: width, border;
   transition-duration: $transitionTime;
 
-  &.isOpen .content .additional {
-    opacity: 1;
-    max-height: 300px;
-    transition: opacity $transitionTime;
-  }
+  &.isOpen .content {
+    border: 1px solid rgba(0, 0, 0, .125);
+    border-top: 1px solid transparent;
 
+    .additional {
+      opacity: 1;
+      max-height: 300px;
+      transition: opacity $transitionTime;
+    }
+  }
   .content {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     z-index: 99;
+    border: 1px solid transparent;
 
     .additional {
       background-color: #fff;
