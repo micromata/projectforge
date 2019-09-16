@@ -79,7 +79,6 @@ function TaskFilter(
                 />
             )}
             className={style.searchContainer}
-            contentClassName={classNames(style.search, { [style.searchIsOpen]: isOpen })}
             isOpen={isOpen}
             setIsOpen={setIsOpen}
         >
