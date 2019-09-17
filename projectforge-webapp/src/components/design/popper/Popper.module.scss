@@ -14,7 +14,7 @@
   transition-duration: $transitionTime;
 
   &.isOpen .content {
-    border: 1px solid rgba(0, 0, 0, .125);
+    border: 1px solid #eee;
     border-top: 1px solid transparent;
 
     .additional {
