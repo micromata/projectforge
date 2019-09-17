@@ -27,7 +27,6 @@
     position: absolute;
     top: 0;
     left: 0;
-    right: 0;
     z-index: 99;
     border: 1px solid transparent;
 
@@ -41,7 +40,6 @@
       transition: opacity $transitionTime, max-height .01s linear $transitionTime;
 
       position: relative;
-      width: 100%;
     }
   }
 }
