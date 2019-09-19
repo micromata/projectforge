@@ -50,11 +50,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class AuftragDaoTest extends AbstractTestBase
 {
-  private int dbNumber = AuftragDao.START_NUMBER;
+  private static int dbNumber = 0;
 
   @Override
   protected void beforeAll() {
-    recreateDataBase();
+    dbNumber = auftragDao.getNextNumber();
   }
 
   @Autowired

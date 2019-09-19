@@ -127,7 +127,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
   public int[] getYears() {
     final Object[] minMaxDate = getSession().createNamedQuery(AuftragDO.SELECT_MIN_MAX_DATE, Object[].class)
             .getSingleResult();
-    return SQLHelper.getYears((java.sql.Date)minMaxDate[0], (java.sql.Date)minMaxDate[1]);
+    return SQLHelper.getYears((java.sql.Date) minMaxDate[0], (java.sql.Date) minMaxDate[1]);
   }
 
   /**
@@ -655,6 +655,15 @@ public class AuftragDao extends BaseDao<AuftragDO> {
 
   /**
    * Gets the highest Auftragsnummer.
+   */
+  @SuppressWarnings("unchecked")
+  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+  public Integer getNextNumber() {
+    return getNextNumber(null);
+  }
+
+  /**
+   * Gets the highest Auftragsnummer.
    *
    * @param auftrag wird benötigt, damit geschaut werden kann, ob dieser Auftrag ggf. schon existiert. Wenn er schon
    *                eine Nummer hatte, so kann verhindert werden, dass er eine nächst höhere Nummer bekommt. Ein solcher
@@ -663,7 +672,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
   @SuppressWarnings("unchecked")
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public Integer getNextNumber(final AuftragDO auftrag) {
-    if (auftrag.getId() != null) {
+    if (auftrag != null && auftrag.getId() != null) {
       final AuftragDO orig = internalGetById(auftrag.getId());
       if (orig.getNummer() != null) {
         auftrag.setNummer(orig.getNummer());
