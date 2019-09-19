@@ -235,7 +235,6 @@ public class MebDao extends BaseDao<MebEntryDO> {
       imported.setCreated();
       imported.setLastUpdate();
       imported.setSource(source);
-      System.err.println("MebDao-Debug: imported=" + imported + ", entry=" + entry);
       getHibernateTemplate().save(imported);
       return true;
     }
