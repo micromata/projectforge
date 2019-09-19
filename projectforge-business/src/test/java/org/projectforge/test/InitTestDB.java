@@ -58,10 +58,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Component
 public class InitTestDB
@@ -129,6 +126,8 @@ public class InitTestDB
   {
     final PFUserDO user = new PFUserDO();
     user.setUsername(username);
+    user.setLocale(Locale.ENGLISH);
+    user.setDateFormat("dd/MM/yyyy");
     if (password != null) {
       userService.createEncryptedPassword(user, password);
     }
