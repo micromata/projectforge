@@ -75,11 +75,16 @@ public class SMSReceiverServletTest extends AbstractTestBase {
     servlet.doGet(request, response);
     verify(loggerSpy, never()).warn(anyString());
     List<MebEntryDO> list = mebDao.internalLoadAll();
-    for (MebEntryDO entry : list) {
-      System.err.println("SMSReceiverServletTest: entry=" + entry);
+    int counter = 0;
+    MebEntryDO helloWorldEntry = null;
+    for (MebEntryDO it : list) {
+      if ("Hello world.".equals(it.getMessage())) {
+        helloWorldEntry = it;
+        ++counter;
+      }
     }
-    assertEquals(1, list.size());
-    assertEquals(user.getId(), list.get(0).getOwnerId());
+    assertEquals(1, counter, "Only one 'Hello world.'-message should be imported.");
+    assertEquals(user.getId(), helloWorldEntry.getOwnerId());
     servlet.doGet(request, response);
     assertEquals(1, mebDao.internalLoadAll().size());
     request = mockRequest("otieZae9Aiphai5o", "20100521172833", "0170 987654", "Hello world.");
