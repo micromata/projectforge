@@ -95,7 +95,7 @@ public class SMSReceiverServletTest extends AbstractTestBase {
     list = mebDao.internalLoadAll();
     assertEquals(total + 2, list.size());
     for (final MebEntryDO entry : list) {
-      if (entry.getMessage().equals("Hello world.") == true) {
+      if ("Hello world.".equals(entry.getMessage())) {
         assertEquals(user.getId(), entry.getOwnerId());
       } else {
         assertNull(entry.getOwnerId());
