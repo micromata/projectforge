@@ -41,10 +41,9 @@ public class RechnungDaoTest extends AbstractTestBase {
   @Autowired
   private RechnungDao rechnungDao;
 
-  private static int dbNumber = RechnungDao.START_NUMBER;
-
   @Test
   public void getNextNumber() {
+    int dbNumber = rechnungDao.getNextNumber();
     logon(AbstractTestBase.TEST_FINANCE_USER);
     final RechnungDO rechnung1 = new RechnungDO();
     int number = rechnungDao.getNextNumber(rechnung1);
@@ -99,6 +98,7 @@ public class RechnungDaoTest extends AbstractTestBase {
 
   @Test
   public void checkAccess() {
+    int dbNumber = rechnungDao.getNextNumber(null);
     logon(AbstractTestBase.TEST_FINANCE_USER);
     RechnungDO rechnung = new RechnungDO();
     int number = rechnungDao.getNextNumber(rechnung);
@@ -194,5 +194,4 @@ public class RechnungDaoTest extends AbstractTestBase {
     pos.setText(text);
     return pos;
   }
-
 }

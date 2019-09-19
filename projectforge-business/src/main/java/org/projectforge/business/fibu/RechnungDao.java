@@ -55,20 +55,19 @@ import java.util.*;
 
 @Repository
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-public class RechnungDao extends BaseDao<RechnungDO>
-{
+public class RechnungDao extends BaseDao<RechnungDO> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.FIBU_AUSGANGSRECHNUNGEN;
 
   public final static int START_NUMBER = 1000;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RechnungDao.class);
 
-  private static final Class<?>[] ADDITIONAL_SEARCH_DOS = new Class[] { RechnungsPositionDO.class };
+  private static final Class<?>[] ADDITIONAL_SEARCH_DOS = new Class[]{RechnungsPositionDO.class};
 
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "kunde.name", "projekt.name",
-      "projekt.kunde.name",
-      "positionen.text", "positionen.auftragsPosition.position", "positionen.auftragsPosition.position",
-      "positionen.auftragsPosition.titel", "positionen.auftragsPosition.bemerkung" };
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"kunde.name", "projekt.name",
+          "projekt.kunde.name",
+          "positionen.text", "positionen.auftragsPosition.position", "positionen.auftragsPosition.position",
+          "positionen.auftragsPosition.titel", "positionen.auftragsPosition.bemerkung"};
 
   @Autowired
   private KundeDao kundeDao;
@@ -79,8 +78,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
   @Autowired
   private RechnungCache rechnungCache;
 
-  public static BigDecimal getNettoSumme(final Collection<RechnungsPositionVO> col)
-  {
+  public static BigDecimal getNettoSumme(final Collection<RechnungsPositionVO> col) {
     BigDecimal nettoSumme = BigDecimal.ZERO;
     if (col != null && col.size() > 0) {
       for (final RechnungsPositionVO pos : col) {
@@ -90,8 +88,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
     return nettoSumme;
   }
 
-  static void writeUiStatusToXml(final AbstractRechnungDO<?> rechnung)
-  {
+  static void writeUiStatusToXml(final AbstractRechnungDO<?> rechnung) {
     final String uiStatusAsXml = XmlObjectWriter.writeAsXml(rechnung.getUiStatus());
     rechnung.setUiStatusAsXml(uiStatusAsXml);
   }
@@ -99,13 +96,11 @@ public class RechnungDao extends BaseDao<RechnungDO>
   /**
    * @return the rechnungCache
    */
-  public RechnungCache getRechnungCache()
-  {
+  public RechnungCache getRechnungCache() {
     return rechnungCache;
   }
 
-  public RechnungDao()
-  {
+  public RechnungDao() {
     super(RechnungDO.class);
     userRightId = USER_RIGHT_ID;
   }
@@ -113,15 +108,13 @@ public class RechnungDao extends BaseDao<RechnungDO>
   /**
    * List of all years with invoices: select min(datum), max(datum) from t_fibu_rechnung.
    */
-  public int[] getYears()
-  {
+  public int[] getYears() {
     final Object[] minMaxDate = getSession().createNamedQuery(RechnungDO.SELECT_MIN_MAX_DATE, Object[].class)
             .getSingleResult();
-    return SQLHelper.getYears((java.sql.Date)minMaxDate[0], (java.sql.Date)minMaxDate[1]);
+    return SQLHelper.getYears((java.sql.Date) minMaxDate[0], (java.sql.Date) minMaxDate[1]);
   }
 
-  public RechnungsStatistik buildStatistik(final List<RechnungDO> list)
-  {
+  public RechnungsStatistik buildStatistik(final List<RechnungDO> list) {
     final RechnungsStatistik stats = new RechnungsStatistik();
     if (list == null) {
       return stats;
@@ -137,8 +130,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
    * @param days
    * @see DateHelper#getCalendar()
    */
-  public Date calculateFaelligkeit(final RechnungDO rechnung, final int days)
-  {
+  public Date calculateFaelligkeit(final RechnungDO rechnung, final int days) {
     if (rechnung.getDatum() == null) {
       return null;
     }
@@ -153,8 +145,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
    * @param kundeId  If null, then kunde will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
-  public void setKunde(final RechnungDO rechnung, final Integer kundeId)
-  {
+  public void setKunde(final RechnungDO rechnung, final Integer kundeId) {
     final KundeDO kunde = kundeDao.getOrLoad(kundeId);
     rechnung.setKunde(kunde);
   }
@@ -164,8 +155,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
    * @param projektId If null, then projekt will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
-  public void setProjekt(final RechnungDO rechnung, final Integer projektId)
-  {
+  public void setProjekt(final RechnungDO rechnung, final Integer projektId) {
     final ProjektDO projekt = projektDao.getOrLoad(projektId);
     rechnung.setProjekt(projekt);
   }
@@ -177,8 +167,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
    * wird.
    */
   @Override
-  protected void onSaveOrModify(final RechnungDO rechnung)
-  {
+  protected void onSaveOrModify(final RechnungDO rechnung) {
     if (RechnungTyp.RECHNUNG.equals(rechnung.getTyp()) && rechnung.getId() != null) {
       RechnungDO originValue = internalGetById(rechnung.getId());
       if (RechnungStatus.GEPLANT.equals(originValue.getStatus()) && RechnungStatus.GEPLANT.equals(rechnung.getStatus()) == false) {
@@ -206,7 +195,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
     } else {
       if (RechnungStatus.GEPLANT.equals(rechnung.getStatus()) == false && rechnung.getNummer() == null) {
         throw new UserException("validation.required.valueNotPresent",
-            new MessageParam("fibu.rechnung.nummer", MessageParamType.I18N_KEY));
+                new MessageParam("fibu.rechnung.nummer", MessageParamType.I18N_KEY));
       }
       if (RechnungStatus.GEPLANT.equals(rechnung.getStatus()) == false) {
         if (rechnung.getId() == null) {
@@ -246,8 +235,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
     writeUiStatusToXml(rechnung);
   }
 
-  private void validate(final RechnungDO rechnung)
-  {
+  private void validate(final RechnungDO rechnung) {
     final RechnungStatus status = rechnung.getStatus();
     final BigDecimal zahlBetrag = rechnung.getZahlBetrag();
     final boolean zahlBetragExists = (zahlBetrag != null && zahlBetrag.compareTo(BigDecimal.ZERO) != 0);
@@ -264,20 +252,17 @@ public class RechnungDao extends BaseDao<RechnungDO>
   }
 
   @Override
-  protected void afterSaveOrModify(final RechnungDO obj)
-  {
+  protected void afterSaveOrModify(final RechnungDO obj) {
     getRechnungCache().setExpired(); // Expire the cache because assignments to order position may be changed.
   }
 
   @Override
-  protected void prepareHibernateSearch(final RechnungDO obj, final OperationType operationType)
-  {
+  protected void prepareHibernateSearch(final RechnungDO obj, final OperationType operationType) {
     projektDao.initializeProjektManagerGroup(obj.getProjekt());
   }
 
   @Override
-  protected String[] getAdditionalSearchFields()
-  {
+  protected String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
@@ -288,8 +273,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
    */
   @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
   @Override
-  public RechnungDO getById(final Serializable id) throws AccessException
-  {
+  public RechnungDO getById(final Serializable id) throws AccessException {
     final RechnungDO rechnung = super.getById(id);
     for (final RechnungsPositionDO pos : rechnung.getPositionen()) {
       final List<KostZuweisungDO> list = pos.getKostZuweisungen();
@@ -301,8 +285,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
   }
 
   @Override
-  public List<RechnungDO> getList(final BaseSearchFilter filter)
-  {
+  public List<RechnungDO> getList(final BaseSearchFilter filter) {
     final RechnungListFilter myFilter;
     if (filter instanceof RechnungListFilter) {
       myFilter = (RechnungListFilter) filter;
@@ -347,10 +330,16 @@ public class RechnungDao extends BaseDao<RechnungDO>
   }
 
   @Override
-  public List<RechnungDO> sort(final List<RechnungDO> list)
-  {
+  public List<RechnungDO> sort(final List<RechnungDO> list) {
     Collections.sort(list);
     return list;
+  }
+
+  /**
+   * Gets the highest Rechnungsnummer.
+   */
+  public Integer getNextNumber() {
+    return getNextNumber(null);
   }
 
   /**
@@ -362,9 +351,8 @@ public class RechnungDao extends BaseDao<RechnungDO>
    */
   @SuppressWarnings("unchecked")
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public Integer getNextNumber(final RechnungDO rechnung)
-  {
-    if (rechnung.getId() != null) {
+  public Integer getNextNumber(final RechnungDO rechnung) {
+    if (rechnung != null && rechnung.getId() != null) {
       final RechnungDO orig = internalGetById(rechnung.getId());
       if (orig.getNummer() != null) {
         rechnung.setNummer(orig.getNummer());
@@ -385,8 +373,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
    * Gets history entries of super and adds all history entries of the RechnungsPositionDO children.
    */
   @Override
-  public List<DisplayHistoryEntry> getDisplayHistoryEntries(final RechnungDO obj)
-  {
+  public List<DisplayHistoryEntry> getDisplayHistoryEntries(final RechnungDO obj) {
     final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(obj);
     if (hasLoggedInUserHistoryAccess(obj, false) == false) {
       return list;
@@ -410,7 +397,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
               final String propertyName = entry.getPropertyName();
               if (propertyName != null) {
                 entry.setPropertyName(
-                    "#" + position.getNumber() + ".kost#" + zuweisung.getIndex() + ":" + entry.getPropertyName()); // Prepend
+                        "#" + position.getNumber() + ".kost#" + zuweisung.getIndex() + ":" + entry.getPropertyName()); // Prepend
                 // number of positon and index of zuweisung.
               } else {
                 entry.setPropertyName("#" + position.getNumber() + ".kost#" + zuweisung.getIndex());
@@ -421,11 +408,9 @@ public class RechnungDao extends BaseDao<RechnungDO>
         }
       }
     }
-    Collections.sort(list, new Comparator<DisplayHistoryEntry>()
-    {
+    Collections.sort(list, new Comparator<DisplayHistoryEntry>() {
       @Override
-      public int compare(final DisplayHistoryEntry o1, final DisplayHistoryEntry o2)
-      {
+      public int compare(final DisplayHistoryEntry o1, final DisplayHistoryEntry o2) {
         return (o2.getTimestamp().compareTo(o1.getTimestamp()));
       }
     });
@@ -433,8 +418,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
   }
 
   @Override
-  protected Class<?>[] getAdditionalHistorySearchDOs()
-  {
+  protected Class<?>[] getAdditionalHistorySearchDOs() {
     return ADDITIONAL_SEARCH_DOS;
   }
 
@@ -442,8 +426,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
    * Returns also true, if idSet contains the id of any order position.
    */
   @Override
-  protected boolean contains(final Set<Integer> idSet, final RechnungDO entry)
-  {
+  protected boolean contains(final Set<Integer> idSet, final RechnungDO entry) {
     if (super.contains(idSet, entry)) {
       return true;
     }
@@ -456,8 +439,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
   }
 
   @Override
-  public RechnungDO newInstance()
-  {
+  public RechnungDO newInstance() {
     return new RechnungDO();
   }
 
@@ -465,8 +447,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#useOwnCriteriaCacheRegion()
    */
   @Override
-  protected boolean useOwnCriteriaCacheRegion()
-  {
+  protected boolean useOwnCriteriaCacheRegion() {
     return true;
   }
 }
