@@ -66,10 +66,7 @@ import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import java.io.File;
 import java.math.BigDecimal;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -223,7 +220,9 @@ public abstract class AbstractTestBase {
     }
     if (!initialized) {
       {
-        System.err.println("AbstractTestBase (Jenkins DEBUG): #user=" + userService.internalLoadAll());
+        List<PFUserDO> list = userService.internalLoadAll();
+        System.err.println("****** AbstractTestBase (Jenkins DEBUG): #user=" + list != null ? list.size() : "0");
+        System.err.println("****** AbstractTestBase (Jenkins DEBUG): #admin=" + getUser(ADMIN));
       }
       initialized = true;
       if (getUser(ADMIN) == null) {
@@ -262,7 +261,9 @@ public abstract class AbstractTestBase {
 
     try {
       initDb();
+      System.err.println("****** AbstractTestBase (Jenkins DEBUG): #user after recreate=" + userService.internalLoadAll().size());
     } catch (BeansException e) {
+      System.err.println("******************************** AbstractTestBase Jenkins debug: " + e.getMessage());
       log.error("Something in setUp go wrong: " + e.getMessage(), e);
     }
     return;
