@@ -49,7 +49,7 @@ public class ImportTestDataTest extends AbstractTestBase {
 
   @Override
   protected void afterAll() {
-    recreateDataBase();
+    clearDatabase();
   }
 
   @Override
