@@ -222,6 +222,9 @@ public abstract class AbstractTestBase {
       //System.out.println("******** " + instance.getClass());
     }
     if (!initialized) {
+      {
+        System.err.println("AbstractTestBase (Jenkins DEBUG): #user=" + userService.internalLoadAll());
+      }
       initialized = true;
       if (getUser(ADMIN) == null) {
         recreateDataBase();
