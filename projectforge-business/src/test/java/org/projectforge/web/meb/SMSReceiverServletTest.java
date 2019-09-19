@@ -97,7 +97,7 @@ public class SMSReceiverServletTest extends AbstractTestBase {
     for (final MebEntryDO entry : list) {
       if ("Hello world.".equals(entry.getMessage())) {
         assertEquals(user.getId(), entry.getOwnerId());
-      } else {
+      } else if ("Unknown sender.".equals(entry.getMessage())){
         assertNull(entry.getOwnerId());
       }
     }
