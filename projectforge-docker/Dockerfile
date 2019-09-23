@@ -10,7 +10,8 @@ RUN adduser -D pf
 COPY ./target/extra-resources/projectforge-application-$PF_VERSION.jar /home/pf/projectforge-application.jar
 COPY ./target/extra-resources/org.projectforge.plugins.extendemployeedata-$PF_VERSION.jar /home/pf/plugins/org.projectforge.plugins.extendemployeedata-$PF_VERSION.jar
 COPY ./target/extra-resources/org.projectforge.plugins.financialfairplay-$PF_VERSION.jar /home/pf/plugins/org.projectforge.plugins.financialfairplay-$PF_VERSION.jar
-COPY ./target/extra-resources/org.projectforge.plugins.ihkexport-$PF_VERSION.jar /home/pf/plugins/org.projectforge.plugins.ihkexport-$PF_VERSION.jar
+COPY ./target/extra-resources/org.projectforge.plugins.ihkexportold-$PF_VERSION.jar /home/pf/plugins/org.projectforge.plugins.ihkexportold-$PF_VERSION.jar
+COPY ./target/extra-resources/org.projectforge.plugins.ihkexportnew-$PF_VERSION.jar /home/pf/plugins/org.projectforge.plugins.ihkexportnew-$PF_VERSION.jar
 COPY ./target/extra-resources/org.projectforge.plugins.licensemanagement-$PF_VERSION.jar /home/pf/plugins/org.projectforge.plugins.licensemanagement-$PF_VERSION.jar
 COPY ./target/extra-resources/org.projectforge.plugins.liquidityplanning-$PF_VERSION.jar /home/pf/plugins/org.projectforge.plugins.liquidityplanning-$PF_VERSION.jar
 COPY ./target/extra-resources/org.projectforge.plugins.marketing-$PF_VERSION.jar /home/pf/plugins/org.projectforge.plugins.marketing-$PF_VERSION.jar
