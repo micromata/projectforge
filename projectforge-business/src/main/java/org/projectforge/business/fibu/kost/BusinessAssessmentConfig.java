@@ -68,7 +68,7 @@ public class BusinessAssessmentConfig implements Serializable
       return null;
     }
     for (final BusinessAssessmentRowConfig row : rows) {
-      if (id.equals(row.getId()) == true || id.equals(row.getNo()) == true) {
+      if (id.equals(row.getId()) || id.equals(row.getNo())) {
         return row;
       }
     }

@@ -95,7 +95,7 @@ public class JpaPfPersistenceServiceImpl implements JpaPfGenericPersistenceServi
   public IUserRightId getUserRight(BaseDO<?> baseDo)
   {
     List<AUserRightId> annots = ClassUtils.findClassAnnotations(baseDo.getClass(), AUserRightId.class);
-    if (annots.isEmpty() == true) {
+    if (annots.isEmpty()) {
       LOG.warn("Cannot find anot UserRightAnot on " + baseDo.getClass().getName());
       throw new IllegalArgumentException("Cannot find anot UserRightAnot on " + baseDo.getClass().getName());
     }

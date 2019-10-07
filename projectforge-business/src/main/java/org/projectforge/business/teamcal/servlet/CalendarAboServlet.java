@@ -117,7 +117,7 @@ public class CalendarAboServlet extends HttpServlet
   protected void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException
   {
     // check if PF is running
-    if (systemStatus.getUpAndRunning() == false) {
+    if (!systemStatus.getUpAndRunning()) {
       log.error("System isn't up and running, CalendarFeed call denied. The system is may-be in start-up phase or in maintenance mode.");
       resp.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
       return;
@@ -225,10 +225,10 @@ public class CalendarAboServlet extends HttpServlet
   {
     PFUserDO timesheetUser = null;
 
-    if (StringUtils.isNotBlank(timesheetUserParam) == true) {
+    if (StringUtils.isNotBlank(timesheetUserParam)) {
       final Integer timesheetUserId = NumberHelper.parseInteger(timesheetUserParam);
       if (timesheetUserId != null) {
-        if (timesheetUserId.equals(userId) == false) {
+        if (!timesheetUserId.equals(userId)) {
           log.error("Not yet allowed: all users are only allowed to download their own time-sheets.");
           return null;
         }
@@ -277,7 +277,7 @@ public class CalendarAboServlet extends HttpServlet
       }
 
       for (final ICalendarEvent teamEventObject : teamEvents) {
-        if (teamEventObject instanceof TeamEventDO == false) {
+        if (!(teamEventObject instanceof TeamEventDO)) {
           log.warn("Oups, shouldn't occur, please contact the developer: teamEvent isn't of type TeamEventDO: " + teamEventObject);
           continue;
         }
@@ -313,10 +313,10 @@ public class CalendarAboServlet extends HttpServlet
 
       final VEvent vEvent = generator.convertVEvent(timesheet.getStartTime(), timesheet.getStopTime(), false, uid, summary);
 
-      if (StringUtils.isNotBlank(timesheet.getDescription()) == true) {
+      if (StringUtils.isNotBlank(timesheet.getDescription())) {
         vEvent.getProperties().add(new Description(timesheet.getDescription()));
       }
-      if (StringUtils.isNotBlank(timesheet.getLocation()) == true) {
+      if (StringUtils.isNotBlank(timesheet.getLocation())) {
         vEvent.getProperties().add(new Location(timesheet.getLocation()));
       }
 
@@ -326,7 +326,7 @@ public class CalendarAboServlet extends HttpServlet
 
   private void readHolidays(final ICalGenerator generator, final Map<String, String> params)
   {
-    if ("true".equals(params.get(CalendarFeedConst.PARAM_NAME_HOLIDAYS)) == false) {
+    if (!"true".equals(params.get(CalendarFeedConst.PARAM_NAME_HOLIDAYS))) {
       return;
     }
 
@@ -345,14 +345,14 @@ public class CalendarAboServlet extends HttpServlet
       final Date date = day.toDate();
       final TimeZone timeZone = day.getZone().toTimeZone();
       final DayHolder dh = new DayHolder(date, timeZone, null);
-      if (dh.isHoliday() == false) {
+      if (!dh.isHoliday()) {
         day = day.plusDays(1);
         continue;
       }
 
       final String title;
       final String holidayInfo = dh.getHolidayInfo();
-      if (holidayInfo != null && holidayInfo.startsWith("calendar.holiday.") == true) {
+      if (holidayInfo != null && holidayInfo.startsWith("calendar.holiday.")) {
         title = ThreadLocalUserContext.getLocalizedString(holidayInfo);
       } else {
         title = holidayInfo;
@@ -361,13 +361,13 @@ public class CalendarAboServlet extends HttpServlet
       generator.addEvent(holidaysFrom.toDate(), holidayTo.toDate(), true, title, "pf-holiday" + (++idCounter));
 
       day = day.plusDays(1);
-    } while (day.isAfter(holidayTo) == false);
+    } while (!day.isAfter(holidayTo));
   }
 
   private void readWeeksOfYear(final ICalGenerator generator, final Map<String, String> params)
   {
     final String weeksOfYear = params.get(CalendarFeedConst.PARAM_NAME_WEEK_OF_YEARS);
-    if ("true".equals(weeksOfYear) == false) {
+    if (!"true".equals(weeksOfYear)) {
       return;
     }
 
@@ -386,7 +386,7 @@ public class CalendarAboServlet extends HttpServlet
       if (++paranoiaCounter > 500) {
         log.warn("Dear developer, please have a look here, paranoiaCounter exceeded! Aborting calculation of weeks of year.");
       }
-    } while (current.before(to) == true);
+    } while (current.before(to));
   }
 
   private boolean isOtherUsersAllowed()

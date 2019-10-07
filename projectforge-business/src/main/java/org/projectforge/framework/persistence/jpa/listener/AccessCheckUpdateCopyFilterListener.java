@@ -60,11 +60,11 @@ public class AccessCheckUpdateCopyFilterListener implements EmgrEventHandler<Emg
   public void onEvent(EmgrUpdateCopyFilterEvent event)
   {
     DbRecord<?> obj = event.getTarget();
-    if ((obj instanceof BaseDO) == false) {
+    if (!(obj instanceof BaseDO)) {
       return;
     }
     PfEmgr emgr = (PfEmgr) event.getEmgr();
-    if (emgr.isCheckAccess() == false) {
+    if (!emgr.isCheckAccess()) {
       event.nextFilter();
       return;
     }
@@ -81,7 +81,7 @@ public class AccessCheckUpdateCopyFilterListener implements EmgrEventHandler<Emg
     accessChecker.checkRestrictedOrDemoUser();
     tenantChecker.checkPartOfCurrentTenant(dbObject);
     AUserRightId aUserRightId = dbObject.getClass().getAnnotation(AUserRightId.class);
-    if (aUserRightId != null && aUserRightId.checkAccess() == false) {
+    if (aUserRightId != null && !aUserRightId.checkAccess()) {
       return;
     }
     IUserRightId rightId = genericPersistenceService.getUserRight(dbObject);

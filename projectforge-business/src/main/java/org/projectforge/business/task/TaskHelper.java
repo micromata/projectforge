@@ -82,7 +82,7 @@ public class TaskHelper
       return task.getKost2BlackWhiteList();
     }
     final StringBuffer buf = new StringBuffer();
-    if (StringUtils.isNotBlank(task.getKost2BlackWhiteList()) == true) {
+    if (StringUtils.isNotBlank(task.getKost2BlackWhiteList())) {
       buf.append(task.getKost2BlackWhiteList()).append(",");
     }
     if (task.getId() == null && task.getParentTaskId() != null) {
@@ -94,7 +94,7 @@ public class TaskHelper
       } else {
         final String projektKost2 = projekt.getKost();
         final String kost2 = kost.getFormattedNumber();
-        if (kost2.startsWith(projektKost2) == false) {
+        if (!kost2.startsWith(projektKost2)) {
           buf.append(kost.getFormattedNumber());
         } else {
           buf.append(StringHelper.format2DigitNumber(kost.getKost2ArtId()));

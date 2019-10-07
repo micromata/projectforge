@@ -49,12 +49,12 @@ public class ProjektFormatter extends BaseFormatter
   {
     final StringBuffer buf = new StringBuffer();
     boolean first = true;
-    if (StringUtils.isNotBlank(kundeText) == true) {
+    if (StringUtils.isNotBlank(kundeText)) {
       first = false;
       buf.append(kundeText);
     }
-    if (kunde != null && StringUtils.isNotBlank(kunde.getName()) == true) {
-      if (first == true)
+    if (kunde != null && StringUtils.isNotBlank(kunde.getName())) {
+      if (first)
         first = false;
       else
         buf.append("; ");
@@ -62,15 +62,15 @@ public class ProjektFormatter extends BaseFormatter
     }
     if (projekt != null) {
       // Show kunde name only, if not already given in buffer before.
-      if (projekt.getKunde() != null && StringUtils.contains(buf.toString(), projekt.getKunde().getName()) == false) {
-        if (first == true)
+      if (projekt.getKunde() != null && !StringUtils.contains(buf.toString(), projekt.getKunde().getName())) {
+        if (first)
           first = false;
         else
           buf.append("; ");
         buf.append(projekt.getKunde().getName());
       }
-      if (StringUtils.isNotBlank(projekt.getName()) == true) {
-        if (first == true)
+      if (StringUtils.isNotBlank(projekt.getName())) {
+        if (first)
           first = false;
         else
           buf.append(" - ");
@@ -112,10 +112,10 @@ public class ProjektFormatter extends BaseFormatter
     StringBuffer sb = new StringBuffer();
     // final KundeDO kunde = projekt.getKunde();
     boolean hasAccess = projektDao.hasLoggedInUserSelectAccess(false);
-    if (hasAccess == false) {
+    if (!hasAccess) {
       return null;
     } else if (projekt != null) {
-      if (showOnlyNumber == true) {
+      if (showOnlyNumber) {
         sb.append(KostFormatter.format(projekt));
       } else {
         sb.append(KostFormatter.formatProjekt(projekt));

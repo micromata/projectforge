@@ -130,13 +130,13 @@ public class TeamEventServiceImpl implements TeamEventService
     List<PFUserDO> allUserList = userService.getAllActiveUsers();
     Set<Integer> addedUserIds = new HashSet<>();
     for (AddressDO singleAddress : allAddressList) {
-      if (StringUtils.isBlank(singleAddress.getEmail()) == false) {
+      if (!StringUtils.isBlank(singleAddress.getEmail())) {
         TeamEventAttendeeDO attendee = new TeamEventAttendeeDO();
         attendee.setStatus(TeamEventAttendeeStatus.IN_PROCESS);
         attendee.setAddress(singleAddress);
         PFUserDO userWithSameMail = allUserList.stream()
             .filter(u -> u.getEmail() != null && u.getEmail().toLowerCase().equals(singleAddress.getEmail().toLowerCase())).findFirst().orElse(null);
-        if (userWithSameMail != null && addedUserIds.contains(userWithSameMail.getId()) == false) {
+        if (userWithSameMail != null && !addedUserIds.contains(userWithSameMail.getId())) {
           attendee.setUser(userWithSameMail);
           addedUserIds.add(userWithSameMail.getId());
         }
@@ -144,7 +144,7 @@ public class TeamEventServiceImpl implements TeamEventService
       }
     }
     for (PFUserDO u : allUserList) {
-      if (addedUserIds.contains(u.getId()) == false) {
+      if (!addedUserIds.contains(u.getId())) {
         TeamEventAttendeeDO attendee = new TeamEventAttendeeDO();
         attendee.setStatus(TeamEventAttendeeStatus.IN_PROCESS);
         attendee.setUser(u);
@@ -191,7 +191,7 @@ public class TeamEventServiceImpl implements TeamEventService
 
     // new list is empty -> delete all
     if (attendeesNewState == null || attendeesNewState.isEmpty()) {
-      if (attendeesOldState != null && attendeesOldState.isEmpty() == false) {
+      if (attendeesOldState != null && !attendeesOldState.isEmpty()) {
         for (TeamEventAttendeeDO attendee : attendeesOldState) {
           teamEventAttendeeDao.internalMarkAsDeleted(attendee);
         }
@@ -246,7 +246,7 @@ public class TeamEventServiceImpl implements TeamEventService
         }
       }
 
-      if (found == false) {
+      if (!found) {
         // save new attendee
         attendee.setId(null);
         if (attendee.getStatus() == null) {
@@ -269,7 +269,7 @@ public class TeamEventServiceImpl implements TeamEventService
         }
       }
 
-      if (found == false) {
+      if (!found) {
         // delete attendee
         teamEventAttendeeDao.internalMarkAsDeleted(attendee);
       }
@@ -279,7 +279,7 @@ public class TeamEventServiceImpl implements TeamEventService
   @Override
   public boolean checkAndSendMail(final TeamEventDO event, final TeamEventDiffType diffType)
   {
-    if (this.preCheckSendMail(event) == false) {
+    if (!this.preCheckSendMail(event)) {
       return false;
     }
 
@@ -290,7 +290,7 @@ public class TeamEventServiceImpl implements TeamEventService
   @Override
   public boolean checkAndSendMail(final TeamEventDO eventNew, final TeamEventDO eventOld)
   {
-    if (this.preCheckSendMail(eventNew) == false) {
+    if (!this.preCheckSendMail(eventNew)) {
       return false;
     }
 
@@ -327,7 +327,7 @@ public class TeamEventServiceImpl implements TeamEventService
   private boolean preCheckSendMail(final TeamEventDO event)
   {
     // check event ownership
-    if (event.getOwnership() != null && event.getOwnership() == false) {
+    if (event.getOwnership() != null && !event.getOwnership()) {
       return false;
     }
 
@@ -351,7 +351,7 @@ public class TeamEventServiceImpl implements TeamEventService
       }
 
       final Date untilDate = new Date(until.getTime());
-      return untilDate.before(now) == false;
+      return !untilDate.before(now);
     } catch (ParseException e) {
       return false;
     }
@@ -740,7 +740,7 @@ public class TeamEventServiceImpl implements TeamEventService
         }
       }
 
-      if (found == false) {
+      if (!found) {
         attendeeDO.setId(internalNewAttendeeSequence--);
       }
     }

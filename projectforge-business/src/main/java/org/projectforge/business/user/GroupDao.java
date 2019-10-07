@@ -118,7 +118,7 @@ public class GroupDao extends BaseDao<GroupDO> {
       final Iterator<PFUserDO> it = origAssignedUsers.iterator();
       while (it.hasNext()) {
         final PFUserDO user = it.next();
-        if (assignedUsers.contains(user) == false) {
+        if (!assignedUsers.contains(user)) {
           it.remove();
         }
       }
@@ -131,7 +131,7 @@ public class GroupDao extends BaseDao<GroupDO> {
                 + "' not found. Could not add this unknown user to new group: "
                 + group.getName());
       }
-      if (origAssignedUsers == null || origAssignedUsers.contains(dbUser) == false) {
+      if (origAssignedUsers == null || !origAssignedUsers.contains(dbUser)) {
         group.addUser(dbUser);
       }
     }
@@ -163,12 +163,12 @@ public class GroupDao extends BaseDao<GroupDO> {
       final Collection<PFUserDO> assignedList = new ArrayList<PFUserDO>(); // List of new assigned users.
       final Collection<PFUserDO> unassignedList = new ArrayList<PFUserDO>(); // List of unassigned users.
       for (final PFUserDO user : group.getAssignedUsers()) {
-        if (origAssignedUsers.contains(user) == false) {
+        if (!origAssignedUsers.contains(user)) {
           assignedList.add(user);
         }
       }
       for (final PFUserDO user : dbGroup.getAssignedUsers()) {
-        if (assignedUsers.contains(user) == false) {
+        if (!assignedUsers.contains(user)) {
           unassignedList.add(user);
         }
       }
@@ -207,7 +207,7 @@ public class GroupDao extends BaseDao<GroupDO> {
               assignedUsers = new HashSet<>();
               dbGroup.setAssignedUsers(assignedUsers);
             }
-            if (assignedUsers.contains(dbUser) == false) {
+            if (!assignedUsers.contains(dbUser)) {
               log.info("Assigning user '" + dbUser.getUsername() + "' to group '" + dbGroup.getName() + "'.");
               assignedUsers.add(dbUser);
               assignedGroups.add(dbGroup);
@@ -275,7 +275,7 @@ public class GroupDao extends BaseDao<GroupDO> {
     for (final ProjectForgeGroup group : ProjectForgeGroup.values()) {
       if (group.getName().equals(dbObj.getName())) {
         // A group of ProjectForge will be changed.
-        if (group.getName().equals(obj) == false) {
+        if (!group.getName().equals(obj)) {
           // The group's name must be unmodified!
           log.warn(
                   "Preventing the change of ProjectForge's group '" + group.getName() + "' in '" + obj.getName() + "'.");
@@ -324,7 +324,7 @@ public class GroupDao extends BaseDao<GroupDO> {
             ProjectForgeGroup.CONTROLLING_GROUP)) {
       return true;
     }
-    if (obj.isDeleted() == false) {
+    if (!obj.isDeleted()) {
       Validate.notNull(user);
       result = getUserGroupCache().isUserMemberOfGroup(user.getId(), obj.getId());
     }

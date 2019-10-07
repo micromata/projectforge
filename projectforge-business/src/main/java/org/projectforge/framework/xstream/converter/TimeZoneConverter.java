@@ -41,7 +41,7 @@ public class TimeZoneConverter extends AbstractValueConverter<TimeZone>
   @Override
   public TimeZone fromString(final String str)
   {
-    if (StringUtils.isBlank(str) == true) {
+    if (StringUtils.isBlank(str)) {
       return null;
     }
     return TimeZone.getTimeZone(str);

@@ -189,7 +189,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
             final LdapUser ldapUser = getLdapUser(ldapUsers, user);
             if (ldapUser == null) {
               updatedLdapUser.setOrganizationalUnit(userBase);
-              if (user.isDeleted() == false && user.getLocalUser() == false) {
+              if (!user.isDeleted() && !user.getLocalUser()) {
                 // Do not add deleted or local users.
                 // TODO: if (ldapConfig.isSupportPosixAccounts() == true &&) {
                 // updatedLdapUser.addObjectClass(LdapUserDao.OBJECT_CLASS_POSIX_ACCOUNT);
@@ -203,18 +203,18 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
               updatedLdapUser.setOrganizationalUnit(ldapUser.getOrganizationalUnit());
               // Otherwise the NT password will be deleted in copy function below:
               updatedLdapUser.setSambaNTPassword(ldapUser.getSambaNTPassword());
-              if (user.isDeleted() == true || user.getLocalUser() == true) {
+              if (user.isDeleted() || user.getLocalUser()) {
                 // Deleted and local users shouldn't be synchronized with LDAP:
                 ldapUserDao.delete(ctx, updatedLdapUser);
                 deleted++;
               } else {
                 final boolean modified = pfUserDOConverter.copyUserFields(updatedLdapUser, ldapUser);
-                if (StringUtils.equals(updatedLdapUser.getUid(), ldapUser.getUid()) == false) {
+                if (!StringUtils.equals(updatedLdapUser.getUid(), ldapUser.getUid())) {
                   // uid (dn) changed.
                   ldapUserDao.rename(ctx, updatedLdapUser, ldapUser);
                   renamed++;
                 }
-                if (modified == true) {
+                if (modified) {
                   updatedLdapUser.setObjectClasses(ldapUser.getObjectClasses());
                   ldapUserDao.update(ctx, userBase, updatedLdapUser);
                   updated++;
@@ -222,11 +222,11 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
                   unmodified++;
                 }
                 boolean passwordsGiven = false;
-                if (ldapUser.isPasswordGiven() == true) {
+                if (ldapUser.isPasswordGiven()) {
                   // If the user has a Samba SID then the Samba NT password mustn't be blank:
-                  if (sambaConfigured == false
+                  if (!sambaConfigured
                       || ldapUser.getSambaSIDNumber() == null
-                      || StringUtils.isNotBlank(ldapUser.getSambaNTPassword()) == true) {
+                      || StringUtils.isNotBlank(ldapUser.getSambaNTPassword())) {
                     passwordsGiven = true;
                   }
                 }
@@ -271,7 +271,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
             final LdapGroup ldapGroup = getLdapGroup(ldapGroups, group);
             if (ldapGroup == null) {
               updatedLdapGroup.setOrganizationalUnit(groupBase);
-              if (group.isDeleted() == false && group.getLocalGroup() == false) {
+              if (!group.isDeleted() && !group.getLocalGroup()) {
                 // Do not add deleted or local groups.
                 setMembers(updatedLdapGroup, group.getAssignedUsers(), ldapUserMap);
                 ldapGroupDao.create(ctx, groupBase, updatedLdapGroup);
@@ -279,13 +279,13 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
               }
             } else {
               updatedLdapGroup.setOrganizationalUnit(ldapGroup.getOrganizationalUnit());
-              if (group.isDeleted() == true || group.getLocalGroup() == true) {
+              if (group.isDeleted() || group.getLocalGroup()) {
                 // Deleted and local users shouldn't be synchronized with LDAP:
                 ldapGroupDao.delete(ctx, updatedLdapGroup);
                 deleted++;
               } else {
                 final boolean modified = groupDOConverter.copyGroupFields(updatedLdapGroup, ldapGroup);
-                if (modified == true) {
+                if (modified) {
                   updatedLdapGroup.setObjectClasses(ldapGroup.getObjectClasses());
                   setMembers(updatedLdapGroup, group.getAssignedUsers(), ldapUserMap);
                   ldapGroupDao.update(ctx, groupBase, updatedLdapGroup);
@@ -293,7 +293,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
                 } else {
                   unmodified++;
                 }
-                if (StringUtils.equals(updatedLdapGroup.getCommonName(), ldapGroup.getCommonName()) == false) {
+                if (!StringUtils.equals(updatedLdapGroup.getCommonName(), ldapGroup.getCommonName())) {
                   // CommonName (cn) and therefor dn changed.
                   ldapGroupDao.rename(ctx, updatedLdapGroup, ldapGroup);
                   renamed++;
@@ -331,7 +331,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
   public void passwordChanged(final PFUserDO user, final String newPassword)
   {
     final LdapUser ldapUser = ldapUserDao.findById(user.getId());
-    if (user.isDeleted() == true || user.getLocalUser() == true) {
+    if (user.isDeleted() || user.getLocalUser()) {
       // Don't change passwords of such users.
       return;
     }
@@ -348,7 +348,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
   public void wlanPasswordChanged(final PFUserDO user, final String newPassword)
   {
     final LdapUser ldapUser = ldapUserDao.findById(user.getId());
-    if (user.isDeleted() == true || user.getLocalUser() == true) {
+    if (user.isDeleted() || user.getLocalUser()) {
       // Don't change passwords of such users.
       return;
     }
@@ -394,7 +394,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
       if (ldapUser == null) {
         final PFUserDO cachedUser = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache()
             .getUser(assignedUser.getId());
-        if (cachedUser == null || cachedUser.isDeleted() == false) {
+        if (cachedUser == null || !cachedUser.isDeleted()) {
           log.warn("Can't assign ldap user to group: "
               + updatedLdapGroup.getCommonName()
               + "! Ldap user with id '"
@@ -402,7 +402,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
               + "' not found, skipping user.");
         }
       } else {
-        if (assignedUser.hasSystemAccess() == true) {
+        if (assignedUser.hasSystemAccess()) {
           // Do not add deleted or deactivated users.
           updatedLdapGroup.addMember(ldapUser, baseDN);
         }
@@ -430,8 +430,8 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
   private LdapUser getLdapUser(final List<LdapUser> ldapUsers, final PFUserDO user)
   {
     for (final LdapUser ldapUser : ldapUsers) {
-      if (StringUtils.equals(ldapUser.getUid(), user.getUsername()) == true
-          || StringUtils.equals(ldapUser.getEmployeeNumber(), PFUserDOConverter.buildEmployeeNumber(user)) == true) {
+      if (StringUtils.equals(ldapUser.getUid(), user.getUsername())
+          || StringUtils.equals(ldapUser.getEmployeeNumber(), PFUserDOConverter.buildEmployeeNumber(user))) {
         return ldapUser;
       }
     }
@@ -441,7 +441,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
   private LdapGroup getLdapGroup(final List<LdapGroup> ldapGroups, final GroupDO group)
   {
     for (final LdapGroup ldapGroup : ldapGroups) {
-      if (StringUtils.equals(ldapGroup.getBusinessCategory(), groupDOConverter.buildBusinessCategory(group)) == true) {
+      if (StringUtils.equals(ldapGroup.getBusinessCategory(), groupDOConverter.buildBusinessCategory(group))) {
         return ldapGroup;
       }
     }

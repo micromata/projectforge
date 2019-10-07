@@ -90,10 +90,10 @@ public class MyExcelExporter extends ExcelExporter
       sheetProvider.putFormat(exportColumn, DateFormats.getExcelFormatString(DateFormatType.DATE_TIME_MILLIS));
       exportColumn.setWidth(18);
     } else if (type == PropertyType.UNSPECIFIED) {
-      if (java.sql.Date.class.isAssignableFrom(field.getType()) == true) {
+      if (java.sql.Date.class.isAssignableFrom(field.getType())) {
         sheetProvider.putFormat(exportColumn, DateFormats.getExcelFormatString(DateFormatType.DATE));
         exportColumn.setWidth(10);
-      } else if (java.util.Date.class.isAssignableFrom(field.getType()) == true) {
+      } else if (java.util.Date.class.isAssignableFrom(field.getType())) {
         sheetProvider.putFormat(exportColumn, DateFormats.getExcelFormatString(DateFormatType.DATE_TIME_MINUTES));
         exportColumn.setWidth(16);
       } else {

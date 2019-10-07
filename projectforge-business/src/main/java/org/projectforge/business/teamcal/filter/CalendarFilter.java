@@ -149,7 +149,7 @@ public class CalendarFilter extends AbstractCalendarFilter
   @Override
   public CalendarFilter setShowTimesheets(final boolean showTimesheets)
   {
-    if (showTimesheets == true) {
+    if (showTimesheets) {
       this.timesheetUserId = ThreadLocalUserContext.getUserId();
     } else {
       this.timesheetUserId = null;

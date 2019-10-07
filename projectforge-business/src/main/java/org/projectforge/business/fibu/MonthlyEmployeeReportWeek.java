@@ -80,7 +80,7 @@ public class MonthlyEmployeeReportWeek implements Serializable
     d1.setEndOfMonth();
     DateHolder d2 = new DateHolder(fromDate);
     d2.setEndOfWeek();
-    if (d1.getDate().before(d2.getDate()) == true) {
+    if (d1.getDate().before(d2.getDate())) {
       this.toDate = d1.getDate();
       this.toDayOfMonth = d1.getDayOfMonth();
     } else {
@@ -96,12 +96,12 @@ public class MonthlyEmployeeReportWeek implements Serializable
    */
   public boolean matchWeek(TimesheetDO sheet)
   {
-    return sheet.getStartTime().before(fromDate) == false && sheet.getStartTime().before(toDate) == true;
+    return !sheet.getStartTime().before(fromDate) && sheet.getStartTime().before(toDate);
   }
 
   void addEntry(TimesheetDO sheet, final boolean hasSelectAccess)
   {
-    if (matchWeek(sheet) == false) {
+    if (!matchWeek(sheet)) {
       throw new RuntimeException("Oups, given time sheet is not inside the week represented by this week object.");
     }
     MonthlyEmployeeReportEntry entry;

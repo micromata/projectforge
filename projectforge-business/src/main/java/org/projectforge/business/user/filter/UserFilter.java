@@ -161,7 +161,7 @@ public class UserFilter implements Filter
       throws IOException, ServletException
   {
     HttpServletRequest request = (HttpServletRequest) req;
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug("doFilter " + request.getRequestURI() + ": " + request.getSession().getId());
       final Cookie[] cookies = request.getCookies();
       if (cookies != null) {
@@ -186,9 +186,9 @@ public class UserFilter implements Filter
     try {
       MDC.put("ip", request.getRemoteAddr());
       MDC.put("session", request.getSession().getId());
-      if (ignoreFilterFor(request) == true) {
+      if (ignoreFilterFor(request)) {
         // Ignore the filter for this request:
-        if (log.isDebugEnabled() == true) {
+        if (log.isDebugEnabled()) {
           log.debug("Ignore: " + request.getRequestURI());
         }
         chain.doFilter(request, response);
@@ -196,19 +196,19 @@ public class UserFilter implements Filter
         // final boolean sessionTimeout = request.isRequestedSessionIdValid() == false;
         userContext = (UserContext) request.getSession().getAttribute(SESSION_KEY_USER);
         if (userContext != null) {
-          if (updateRequiredFirst == false) {
+          if (!updateRequiredFirst) {
             // Get the fresh user from the user cache (not in maintenance mode because user group cache is perhaps not initialized correctly
             // if updates of e. g. the user table are necessary.
             userContext.refreshUser();
           }
-          if (log.isDebugEnabled() == true) {
+          if (log.isDebugEnabled()) {
             log.debug("User found in session: " + request.getRequestURI());
           }
-        } else if (updateRequiredFirst == false) {
+        } else if (!updateRequiredFirst) {
           // Ignore stay-logged-in if redirect to update page is required.
           userContext = cookieService.checkStayLoggedIn(request, response);
           if (userContext != null) {
-            if (log.isDebugEnabled() == true) {
+            if (log.isDebugEnabled()) {
               log.debug("User's stay logged-in cookie found: " + request.getRequestURI());
             }
             userContext.setStayLoggedIn(true); // Used by MenuMobilePage.
@@ -222,7 +222,7 @@ public class UserFilter implements Filter
           request = decorateWithLocale(request);
           chain.doFilter(request, response);
         } else {
-          if (((HttpServletRequest) req).getRequestURI().startsWith(WICKET_PAGES_PREFIX) == true) {
+          if (((HttpServletRequest) req).getRequestURI().startsWith(WICKET_PAGES_PREFIX)) {
             // Access-checking is done by Wicket, not by this filter:
             request = decorateWithLocale(request);
             chain.doFilter(request, response);
@@ -239,7 +239,7 @@ public class UserFilter implements Filter
       if (user != null) {
         MDC.remove("user");
       }
-      if (log.isDebugEnabled() == true) {
+      if (log.isDebugEnabled()) {
         StringBuffer sb = new StringBuffer();
         sb.append("doFilter finished for ");
         sb.append(request.getRequestURI());
@@ -285,7 +285,7 @@ public class UserFilter implements Filter
     final String uri = hreq.getRequestURI();
     // If you have an NPE you have probably forgotten to call setServletContext on applications start-up.
     // Paranoia setting. May-be there could be a vulnerability with request parameters:
-    if (uri.contains("?") == false) {
+    if (!uri.contains("?")) {
       // if (uri.startsWith(IGNORE_PREFIX_WICKET) && StringHelper.endsWith(uri, ".js", ".css", ".gif", ".png") == true) {
       // No access checking for Wicket resources.
       // return true;
@@ -294,7 +294,7 @@ public class UserFilter implements Filter
       // No access checking for documentation (including site doc).
       // return true;
       // } else
-      if (StringHelper.startsWith(uri, IGNORE_PREFIX_LOGO, IGNORE_PREFIX_SMS_REVEIVE_SERVLET) == true) {
+      if (StringHelper.startsWith(uri, IGNORE_PREFIX_LOGO, IGNORE_PREFIX_SMS_REVEIVE_SERVLET)) {
         // No access checking for logo and sms receiver servlet.
         // The sms receiver servlet has its own authentification (key).
         return true;

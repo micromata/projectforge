@@ -89,13 +89,13 @@ public class ThreadLocalUserContext
   {
     final PFUserDO oldUser = getUser();
     PFUserDO newUser = userContext != null ? userContext.getUser() : null;
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug("setUserInfo: " + newUser != null ? newUser.getUserDisplayName()
           : "null" + ", was: " + oldUser != null ? oldUser
           .getUserDisplayName() : "null");
     }
     threadLocalUserContext.set(userContext);
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       newUser = getUser();
       log.debug("user is now: " + newUser != null ? newUser.getUserDisplayName() : "null");
     }
@@ -139,7 +139,7 @@ public class ThreadLocalUserContext
       return userLocale;
     }
     Locale clientLocale = user != null ? user.getClientLocale() : null;
-    if (defaultLocale != null && user != null && Objects.equals(clientLocale, defaultLocale) == false) {
+    if (defaultLocale != null && user != null && !Objects.equals(clientLocale, defaultLocale)) {
       user.setClientLocale(defaultLocale);
       clientLocale = defaultLocale;
     }

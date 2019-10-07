@@ -96,8 +96,8 @@ public class UserDao extends BaseDao<PFUserDO> {
    */
   @Override
   protected QueryFilter createQueryFilter(final BaseSearchFilter filter) {
-    final boolean superAdmin = TenantChecker.isSuperAdmin(ThreadLocalUserContext.getUser()) == true;
-    if (superAdmin == false) {
+    final boolean superAdmin = TenantChecker.isSuperAdmin(ThreadLocalUserContext.getUser());
+    if (!superAdmin) {
       return super.createQueryFilter(filter);
     }
     return new QueryFilter(filter, true);
@@ -116,7 +116,7 @@ public class UserDao extends BaseDao<PFUserDO> {
     if (myFilter.getDeactivatedUser() != null) {
       queryFilter.add(Restrictions.eq("deactivated", myFilter.getDeactivatedUser()));
     }
-    if (Login.getInstance().hasExternalUsermanagementSystem() == true) {
+    if (Login.getInstance().hasExternalUsermanagementSystem()) {
       // Check hasExternalUsermngmntSystem because otherwise the filter is may-be preset for an user and the user can't change the filter
       // (because the fields aren't visible).
       if (myFilter.getRestrictedUser() != null) {
@@ -140,12 +140,12 @@ public class UserDao extends BaseDao<PFUserDO> {
         }
       }
     }
-    if (applicationContext.getBean(TenantService.class).isMultiTenancyAvailable() == true
-            && TenantChecker.isSuperAdmin(ThreadLocalUserContext.getUser()) == false) {
+    if (applicationContext.getBean(TenantService.class).isMultiTenancyAvailable()
+            && !TenantChecker.isSuperAdmin(ThreadLocalUserContext.getUser())) {
       final List<PFUserDO> origList = list;
       list = new LinkedList<PFUserDO>();
       for (final PFUserDO user : origList) {
-        if (tenantChecker.isPartOfTenant(ThreadLocalUserContext.getUserContext().getCurrentTenant(), user) == true) {
+        if (tenantChecker.isPartOfTenant(ThreadLocalUserContext.getUserContext().getCurrentTenant(), user)) {
           list.add(user);
         }
       }
@@ -311,7 +311,7 @@ public class UserDao extends BaseDao<PFUserDO> {
    */
   @Override
   protected void afterSaveOrModify(final PFUserDO obj) {
-    if (obj.isMinorChange() == false) {
+    if (!obj.isMinorChange()) {
       getUserGroupCache().setExpired();
     }
   }
@@ -338,12 +338,12 @@ public class UserDao extends BaseDao<PFUserDO> {
             || accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP,
             ProjectForgeGroup.CONTROLLING_GROUP);
     log.debug("UserDao hasSelectAccess. Check user member of admin, finance or controlling group: " + result);
-    if (result == false && obj.hasSystemAccess() == true) {
+    if (!result && obj.hasSystemAccess()) {
       result = accessChecker.areUsersInSameGroup(user, obj);
       log.debug("UserDao hasSelectAccess. Caller user: " + user.getUsername() + " Check user: " + obj.getUsername()
               + " Check user in same group: " + result);
     }
-    if (throwException == true && result == false) {
+    if (throwException && !result) {
       throw new AccessException(user, AccessType.GROUP, OperationType.SELECT);
     }
     return result;
@@ -401,10 +401,10 @@ public class UserDao extends BaseDao<PFUserDO> {
             .setParameter("stayLoggedInKey", stayLoggedInKey)
             .list();
     PFUserDO user = null;
-    if (list != null && list.isEmpty() == false && list.get(0) != null) {
+    if (list != null && !list.isEmpty() && list.get(0) != null) {
       user = list.get(0);
     }
-    if (user != null && user.hasSystemAccess() == false) {
+    if (user != null && !user.hasSystemAccess()) {
       log.warn("Deleted/deactivated user tried to login (via stay-logged-in): " + user);
       return null;
     }
@@ -436,7 +436,7 @@ public class UserDao extends BaseDao<PFUserDO> {
             .setParameter("id", userId)
             .setParameter("authenticationToken", authKey)
             .uniqueResult();
-    if (user != null && user.hasSystemAccess() == false) {
+    if (user != null && !user.hasSystemAccess()) {
       log.warn("Deleted user tried to login (via authentication token): " + user);
       return null;
     }
@@ -465,7 +465,7 @@ public class UserDao extends BaseDao<PFUserDO> {
    */
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
   public void renewAuthenticationToken(final Integer userId) {
-    if (ThreadLocalUserContext.getUserId().equals(userId) == false) {
+    if (!ThreadLocalUserContext.getUserId().equals(userId)) {
       // Only admin users are able to renew authentication token of other users:
       accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
     }
@@ -499,7 +499,7 @@ public class UserDao extends BaseDao<PFUserDO> {
   public void updateMyAccount(final PFUserDO user) {
     accessChecker.checkRestrictedOrDemoUser();
     final PFUserDO contextUser = ThreadLocalUserContext.getUser();
-    Validate.isTrue(user.getId().equals(contextUser.getId()) == true);
+    Validate.isTrue(user.getId().equals(contextUser.getId()));
     final PFUserDO dbUser = getHibernateTemplate().load(clazz, user.getId(), LockMode.PESSIMISTIC_WRITE);
     final String[] ignoreFields = {"deleted", "password", "lastLogin", "loginFailures", "username", "stayLoggedInKey",
             "authenticationToken", "rights"};
@@ -523,10 +523,10 @@ public class UserDao extends BaseDao<PFUserDO> {
   @Override
   public List<DisplayHistoryEntry> getDisplayHistoryEntries(final PFUserDO obj) {
     final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(obj);
-    if (hasLoggedInUserHistoryAccess(obj, false) == false) {
+    if (!hasLoggedInUserHistoryAccess(obj, false)) {
       return list;
     }
-    if (CollectionUtils.isNotEmpty(obj.getRights()) == true) {
+    if (CollectionUtils.isNotEmpty(obj.getRights())) {
       for (final UserRightDO right : obj.getRights()) {
         final List<DisplayHistoryEntry> entries = internalGetDisplayHistoryEntries(right);
         for (final DisplayHistoryEntry entry : entries) {
@@ -561,12 +561,12 @@ public class UserDao extends BaseDao<PFUserDO> {
    */
   @Override
   protected boolean wantsReindexAllDependentObjects(final PFUserDO obj, final PFUserDO dbObj) {
-    if (super.wantsReindexAllDependentObjects(obj, dbObj) == false) {
+    if (!super.wantsReindexAllDependentObjects(obj, dbObj)) {
       return false;
     }
-    return StringUtils.equals(obj.getUsername(), dbObj.getUsername()) == false
-            || StringUtils.equals(obj.getFirstname(), dbObj.getFirstname()) == false
-            || StringUtils.equals(obj.getLastname(), dbObj.getLastname()) == false;
+    return !StringUtils.equals(obj.getUsername(), dbObj.getUsername())
+            || !StringUtils.equals(obj.getFirstname(), dbObj.getFirstname())
+            || !StringUtils.equals(obj.getLastname(), dbObj.getLastname());
   }
 
   @Override

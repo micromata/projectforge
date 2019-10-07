@@ -139,7 +139,7 @@ public class OrganizerConverter extends PropertyConverter
         event.setOrganizerAdditionalParams(sb.substring(1));
       }
 
-      if ("mailto:null".equals(organizerValue) == false) {
+      if (!"mailto:null".equals(organizerValue)) {
         event.setOrganizer(organizer.getValue());
       }
     } else {

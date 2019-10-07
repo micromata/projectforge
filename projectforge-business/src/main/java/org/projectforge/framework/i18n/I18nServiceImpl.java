@@ -125,9 +125,9 @@ public class I18nServiceImpl implements I18nService
     for (String resourceBundle : resourceBundles) {
       // the pair searched for
       Pair<Locale, String> localeStringPair = new Pair<>(locale, resourceBundle);
-      if (localeResourceBundleMap.keySet().contains(localeStringPair) == false) {
+      if (!localeResourceBundleMap.keySet().contains(localeStringPair)) {
         for (Pair<Locale, String> iterationPair : localeResourceBundleMap.keySet()) {
-          if (iterationPair.getKey().equals(Locale.ROOT) == false && locale.toString().startsWith(iterationPair.getKey().toString())) {
+          if (!iterationPair.getKey().equals(Locale.ROOT) && locale.toString().startsWith(iterationPair.getKey().toString())) {
             // replace searched for with nearest candidate e.g. for de_de use de
             localeStringPair = iterationPair;
             break;

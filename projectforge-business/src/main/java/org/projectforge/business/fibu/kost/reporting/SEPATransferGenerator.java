@@ -253,7 +253,7 @@ public class SEPATransferGenerator
     }
     amount = amount.setScale(2, RoundingMode.HALF_UP);
 
-    if (result.getErrors().isEmpty() == false) {
+    if (!result.getErrors().isEmpty()) {
       return result;
     }
 
@@ -299,12 +299,12 @@ public class SEPATransferGenerator
     if (StringUtils.isNotBlank(iban)) {
       iban = iban.replaceAll("\\s","").toUpperCase();
     }
-    if(iban != null && iban.startsWith("DE") == false) {
-      if (invoice.getBic() == null || this.patternBic.matcher(invoice.getBic().toUpperCase()).matches() == false) {
+    if(iban != null && !iban.startsWith("DE")) {
+      if (invoice.getBic() == null || !this.patternBic.matcher(invoice.getBic().toUpperCase()).matches()) {
         errors.add(SEPATransferError.BIC);
       }
     }
-    if (iban == null || this.patternIBAN.matcher(iban).matches() == false) {
+    if (iban == null || !this.patternIBAN.matcher(iban).matches()) {
       errors.add(SEPATransferError.IBAN);
     }
     if (invoice.getReceiver() == null || invoice.getReceiver().length() < 1 || invoice.getReceiver().length() > 70) {
@@ -314,7 +314,7 @@ public class SEPATransferGenerator
       errors.add(SEPATransferError.REFERENCE);
     }
 
-    if (errors.isEmpty() == false) {
+    if (!errors.isEmpty()) {
       result.getErrors().put(invoice, errors);
       return;
     }
@@ -348,7 +348,7 @@ public class SEPATransferGenerator
     cdtTrfTxInf.setCdtrAcct(cdtrAcct);
 
     // set creditor bic
-    if(iban.startsWith("DE") == false) {
+    if(!iban.startsWith("DE")) {
       BranchAndFinancialInstitutionIdentificationSEPA1 cdtrAgt = factory
         .createBranchAndFinancialInstitutionIdentificationSEPA1();
       FinancialInstitutionIdentificationSEPA1 finInstId = factory.createFinancialInstitutionIdentificationSEPA1();

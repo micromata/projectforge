@@ -98,9 +98,9 @@ public class Holidays
     }
     if (xmlConfiguration.getHolidays() != null) {
       for (final ConfigureHoliday cfgHoliday : xmlConfiguration.getHolidays()) {
-        if (cfgHoliday.getId() == null && cfgHoliday.isIgnore() == false) {
+        if (cfgHoliday.getId() == null && !cfgHoliday.isIgnore()) {
           // New Holiday.
-          if (cfgHoliday.getMonth() == null || cfgHoliday.getDayOfMonth() == null || StringUtils.isBlank(cfgHoliday.getLabel()) == true) {
+          if (cfgHoliday.getMonth() == null || cfgHoliday.getDayOfMonth() == null || StringUtils.isBlank(cfgHoliday.getLabel())) {
             log.error("Holiday not full configured (month, dayOfMonth, label, ...) missed: " + cfgHoliday.toString());
             break;
           }
@@ -148,13 +148,13 @@ public class Holidays
     String label = null;
     BigDecimal workingFraction = null;
     boolean isWorkingDay = def.isWorkingDay();
-    if (reconfiguredHolidays.containsKey(def) == true) {
+    if (reconfiguredHolidays.containsKey(def)) {
       final ConfigureHoliday cfgHoliday = reconfiguredHolidays.get(def);
-      if (cfgHoliday.isIgnore() == true) {
+      if (cfgHoliday.isIgnore()) {
         // Ignore holiday.
         return null;
       }
-      if (StringUtils.isNotBlank(cfgHoliday.getLabel()) == true) {
+      if (StringUtils.isNotBlank(cfgHoliday.getLabel())) {
         i18nKey = null;
         label = cfgHoliday.getLabel();
       }
@@ -167,7 +167,7 @@ public class Holidays
 
   private void putHoliday(final Map<Integer, Holiday> holidays, final int dayOfYear, final Holiday holiday)
   {
-    if (holidays.containsKey(dayOfYear) == true) {
+    if (holidays.containsKey(dayOfYear)) {
       log.warn("Holiday does already exist (may-be use ignore in config.xml?): "
           + holidays.get(dayOfYear)
           + "! Overwriting it by new one: "
@@ -199,16 +199,16 @@ public class Holidays
 
   public boolean isHoliday(int year, int dayOfYear)
   {
-    return (getHolidays(year).containsKey(dayOfYear) == true);
+    return (getHolidays(year).containsKey(dayOfYear));
   }
 
   public boolean isWorkingDay(final DayHolder date)
   {
-    if (date.isWeekend() == true) {
+    if (date.isWeekend()) {
       return false;
     }
     final Holiday day = getHolidays(date.getYear()).get(date.getDayOfYear());
-    if (day != null && day.isWorkingDay() == false) {
+    if (day != null && !day.isWorkingDay()) {
       return false;
     }
     return true;
@@ -221,7 +221,7 @@ public class Holidays
       return false;
     }
     final Holiday day = getHolidays(dateTime.getYear()).get(dateTime.getDayOfYear());
-    if (day != null && day.isWorkingDay() == false) {
+    if (day != null && !day.isWorkingDay()) {
       return false;
     }
     return true;
@@ -229,7 +229,7 @@ public class Holidays
 
   public BigDecimal getWorkFraction(final DayHolder date)
   {
-    if (date.isWeekend() == true) {
+    if (date.isWeekend()) {
       return null;
     }
     final Holiday day = getHolidays(date.getYear()).get(date.getDayOfYear());
@@ -245,6 +245,6 @@ public class Holidays
     if (day == null) {
       return "";
     }
-    return StringUtils.isNotBlank(day.getLabel()) == true ? day.getLabel() : day.getI18nKey();
+    return StringUtils.isNotBlank(day.getLabel()) ? day.getLabel() : day.getI18nKey();
   }
 }

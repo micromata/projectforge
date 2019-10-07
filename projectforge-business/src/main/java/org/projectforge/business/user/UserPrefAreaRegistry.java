@@ -60,7 +60,7 @@ public class UserPrefAreaRegistry
   public UserPrefArea getEntry(final String id)
   {
     for (final UserPrefArea area : set) {
-      if (id.equals(area.getId()) == true) {
+      if (id.equals(area.getId())) {
         return area;
       }
     }

@@ -99,7 +99,7 @@ public class HibernateUtils {
    * @return
    */
   public static Serializable getIdentifier(final BaseDO<?> obj) {
-    if (Hibernate.isInitialized(obj) == true) {
+    if (Hibernate.isInitialized(obj)) {
       return ((BaseDO<?>) obj).getId();
     } else if (obj instanceof DefaultBaseDO) {
       return ((DefaultBaseDO) obj).getId();
@@ -123,7 +123,7 @@ public class HibernateUtils {
    * @return
    */
   public static <T extends Serializable> void setIdentifier(final BaseDO<T> obj, final T value) {
-    if (Hibernate.isInitialized(obj) == true) {
+    if (Hibernate.isInitialized(obj)) {
       obj.setId(value);
     } else if (obj instanceof DefaultBaseDO) {
       ((DefaultBaseDO) obj).setId((Integer) value);
@@ -145,13 +145,13 @@ public class HibernateUtils {
       return getIdentifier((BaseDO<?>) obj);
     }
     for (final Field field : obj.getClass().getDeclaredFields()) {
-      if (field.isAnnotationPresent(Id.class) == true && field.isAnnotationPresent(GeneratedValue.class) == true) {
+      if (field.isAnnotationPresent(Id.class) && field.isAnnotationPresent(GeneratedValue.class)) {
         final boolean isAccessible = field.isAccessible();
         try {
           field.setAccessible(true);
           final Object idObject = field.get(obj);
           field.setAccessible(isAccessible);
-          if (idObject != null && Serializable.class.isAssignableFrom(idObject.getClass()) == true) {
+          if (idObject != null && Serializable.class.isAssignableFrom(idObject.getClass())) {
             return (Serializable) idObject;
           }
         } catch (final IllegalArgumentException e) {
@@ -170,7 +170,7 @@ public class HibernateUtils {
       setIdentifier((BaseDO<T>) obj, value);
     }
     for (final Field field : obj.getClass().getDeclaredFields()) {
-      if (field.isAnnotationPresent(Id.class) == true && field.isAnnotationPresent(GeneratedValue.class) == true) {
+      if (field.isAnnotationPresent(Id.class) && field.isAnnotationPresent(GeneratedValue.class)) {
         final boolean isAccessible = field.isAccessible();
         try {
           field.setAccessible(true);
@@ -235,7 +235,7 @@ public class HibernateUtils {
   public static boolean shortenProperties(final Class<?> clazz, final Object object, final String... propertyNames) {
     boolean result = false;
     for (final String propertyName : propertyNames) {
-      if (shortenProperty(clazz, object, propertyName) == true) {
+      if (shortenProperty(clazz, object, propertyName)) {
         result = true;
       }
     }
@@ -308,7 +308,7 @@ public class HibernateUtils {
     if (persistentClass == null) {
       String msg = "Could not find persistent class for entityName '" + entity.getName()
               + "' (OK for non hibernate objects).";
-      if (entity.getName().endsWith("DO") == true) {
+      if (entity.getName().endsWith("DO")) {
         log.error(msg);
       } else {
         log.info(msg);
@@ -323,7 +323,7 @@ public class HibernateUtils {
     if (length != null) {
       return length;
     }
-    if (columnLengthFailedSet.contains(getKey(entityName, propertyName)) == true) {
+    if (columnLengthFailedSet.contains(getKey(entityName, propertyName))) {
       return null;
     }
     EntityMetadata persistentClass = PfEmgrFactory.get().getMetadataRepository().findEntityMetadata(entityName);
@@ -331,7 +331,7 @@ public class HibernateUtils {
     if (persistentClass == null) {
       final String msg = "Could not find persistent class for entityName '" + entityName
               + "' (OK for non hibernate objects).";
-      if (entityName.endsWith("DO") == true) {
+      if (entityName.endsWith("DO")) {
         log.error(msg);
       } else {
         log.info(msg);

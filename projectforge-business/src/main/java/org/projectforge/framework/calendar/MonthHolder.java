@@ -148,7 +148,7 @@ public class MonthHolder
     final List<DayHolder> list = new LinkedList<DayHolder>();
     DayHolder dh = new DayHolder(begin);
     int paranoiaCounter = 40;
-    while (dh.after(end) == false && --paranoiaCounter > 0) {
+    while (!dh.after(end) && --paranoiaCounter > 0) {
       list.add(dh);
       dh = dh.clone();
       dh.add(Calendar.DAY_OF_MONTH, 1);
@@ -204,7 +204,7 @@ public class MonthHolder
    */
   public boolean containsDay(final DayHolder day)
   {
-    return (day.getDate().before(begin) == false && day.getDate().after(end) == false);
+    return (!day.getDate().before(begin) && !day.getDate().after(end));
   }
 
   public BigDecimal getNumberOfWorkingDays()

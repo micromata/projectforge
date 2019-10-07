@@ -120,15 +120,15 @@ public class ExportMSProject
     final DayHolder dh = new DayHolder(ganttChart.getCalculatedStartDate());
     for (int i = 0; i < 3000; i++) { // Endless loop protection (paranoia)
       dh.add(Calendar.DAY_OF_MONTH, 1);
-      if (dh.isWorkingDay() == false && dh.isHoliday() == true && dh.isWeekend() == false) {
+      if (!dh.isWorkingDay() && dh.isHoliday() && !dh.isWeekend()) {
         // Add this holiday to the calendar:
         final Date date = dh.getSQLDate();
         calendar.addCalendarException(date, date);
-        if (log.isDebugEnabled() == true) {
+        if (log.isDebugEnabled()) {
           log.debug("Add holiday: " + date);
         }
       }
-      if (dh.before(ganttChart.getCalculatedEndDate()) == false) {
+      if (!dh.before(ganttChart.getCalculatedEndDate())) {
         break;
       }
     }

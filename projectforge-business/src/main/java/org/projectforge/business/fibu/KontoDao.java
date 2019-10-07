@@ -81,7 +81,7 @@ public class KontoDao extends BaseDao<KontoDO>
     if (obj.getNummer() != null && obj.getNummer() > 0) {
       KontoDO existingAccount = getKonto(obj.getNummer());
       //Insert case
-      if (existingAccount != null && (obj.getId() == null || obj.getId().equals(existingAccount.getId()) == false)) {
+      if (existingAccount != null && (obj.getId() == null || !obj.getId().equals(existingAccount.getId()))) {
         throw new UserException("fibu.konto.validate.duplicate");
       }
     }

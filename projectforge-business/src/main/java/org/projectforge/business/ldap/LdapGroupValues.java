@@ -42,7 +42,7 @@ public class LdapGroupValues implements Serializable
 
   public boolean isValuesEmpty()
   {
-    return isPosixValuesEmpty() == true;
+    return isPosixValuesEmpty();
   }
 
   public boolean isPosixValuesEmpty()

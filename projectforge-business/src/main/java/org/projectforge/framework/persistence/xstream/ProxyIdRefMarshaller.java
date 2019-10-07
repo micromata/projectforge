@@ -62,7 +62,7 @@ public class ProxyIdRefMarshaller extends ReferenceByIdMarshaller
   public void convertAnother(Object item)
   {
     Class<?> targetClass = item.getClass();
-    while (Enhancer.isEnhanced(targetClass) == true) {
+    while (Enhancer.isEnhanced(targetClass)) {
       targetClass = targetClass.getSuperclass();
     }
 

@@ -51,7 +51,7 @@ public class InitForInsertEventListener implements EmgrEventHandler<EmgrInitForI
   public void onEvent(EmgrInitForInsertEvent event)
   {
     DbRecord<?> rec = event.getRecord();
-    if ((rec instanceof ExtendedBaseDO) == false) {
+    if (!(rec instanceof ExtendedBaseDO)) {
       return;
     }
     ExtendedBaseDO extb = (ExtendedBaseDO) rec;

@@ -77,7 +77,7 @@ public class UserContext implements Serializable
   {
     Validate.notNull(user);
     this.userGroupCache = userGroupCache;
-    if (user.hasSecretFieldValues() == true) {
+    if (user.hasSecretFieldValues()) {
       log.warn(
           "Should instantiate UserContext with user containing secret values (makes now a copy of the given user).");
       this.user = PFUserDO.Companion.createCopyWithoutSecretFields(user);
@@ -113,7 +113,7 @@ public class UserContext implements Serializable
       log.warn("Couldn't update user from UserCache, should only occur in maintenance mode!");
       return this;
     }
-    if (user.hasSecretFieldValues() == true) {
+    if (user.hasSecretFieldValues()) {
       log.warn(
           "Oups, userCache contains user (id=" + user.getId() + ") with secret values, please contact developers.");
       this.user = PFUserDO.Companion.createCopyWithoutSecretFields(updatedUser);

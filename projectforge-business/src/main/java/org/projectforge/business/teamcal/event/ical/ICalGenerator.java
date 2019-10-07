@@ -221,7 +221,7 @@ public class ICalGenerator
     final net.fortuna.ical4j.model.TimeZone timezone = TIMEZONE_REGISTRY.getTimeZone(timeZone.getID());
     final net.fortuna.ical4j.model.Date fortunaStartDate, fortunaEndDate;
 
-    if (allDay == true) {
+    if (allDay) {
       final Date startUtc = CalendarUtils.getUTCMidnightDate(startDate);
       final Date endUtc = CalendarUtils.getUTCMidnightDate(endDate);
       fortunaStartDate = new net.fortuna.ical4j.model.Date(startUtc);
@@ -276,7 +276,7 @@ public class ICalGenerator
   public ICalGenerator exportVEventProperty(String value, boolean export)
   {
     if (export) {
-      if (this.exportsVEvent.contains(value) == false) {
+      if (!this.exportsVEvent.contains(value)) {
         this.exportsVEvent.add(value);
       }
     } else {

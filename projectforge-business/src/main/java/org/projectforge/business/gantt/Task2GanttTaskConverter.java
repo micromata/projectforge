@@ -95,9 +95,9 @@ public class Task2GanttTaskConverter
       ganttChartData.setRootObject(ganttObject);
     }
     final TaskNode taskNode = taskTree.getTaskNodeById(task.getId());
-    if (taskNode.hasChildren() == true) {
+    if (taskNode.hasChildren()) {
       for (final TaskNode childNode : taskNode.getChildren()) {
-        if (childNode.isDeleted() == false) {
+        if (!childNode.isDeleted()) {
           ganttObject.addChild(convertToGanttObject(ganttChartData, taskTree, childNode.getTask()));
         }
       }
@@ -111,7 +111,7 @@ public class Task2GanttTaskConverter
       log.warn("Oups, Gantt task shouldn't be null.");
       return;
     }
-    if (ganttTask.equals(ganttChartData.getRootObject()) == false) {
+    if (!ganttTask.equals(ganttChartData.getRootObject())) {
       final TaskDO task = taskTree.getTaskById((Integer) ganttTask.getId());
       final Integer predecessorId = task.getGanttPredecessorId();
       if (predecessorId != null) {

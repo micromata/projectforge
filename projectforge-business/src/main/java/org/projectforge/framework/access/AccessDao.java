@@ -138,10 +138,10 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
       List<Integer> ancestors = null;
       taskTree = TaskTreeHelper.getTaskTree();
       final TaskNode node = taskTree.getTaskNodeById(myFilter.getTaskId());
-      if (myFilter.isIncludeDescendentTasks() == true) {
+      if (myFilter.isIncludeDescendentTasks()) {
         descendants = node.getDescendantIds();
       }
-      if (myFilter.isInherit() == true || myFilter.isIncludeAncestorTasks() == true) {
+      if (myFilter.isInherit() || myFilter.isIncludeAncestorTasks()) {
         ancestors = node.getAncestorIds();
       }
       if (descendants != null || ancestors != null) {
@@ -165,7 +165,7 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
     }
     final List<GroupTaskAccessDO> qlist = getList(queryFilter);
     List<GroupTaskAccessDO> list;
-    if (myFilter.getTaskId() != null && myFilter.isInherit() == true && myFilter.isIncludeAncestorTasks() == false) {
+    if (myFilter.getTaskId() != null && myFilter.isInherit() && !myFilter.isIncludeAncestorTasks()) {
       // Now we have to remove all inherited entries of ancestor nodes which are not declared as recursive.
       list = new ArrayList<GroupTaskAccessDO>();
       final TaskNode taskNode = taskTree.getTaskNodeById(myFilter.getTaskId());
@@ -173,10 +173,10 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
         list = qlist;
       } else {
         for (final GroupTaskAccessDO access : qlist) {
-          if (access.isRecursive() == false) {
+          if (!access.isRecursive()) {
             final TaskNode accessNode = taskTree.getTaskNodeById(access.getTaskId());
             // && myFilter.getTaskId().equals(access.getTaskId()) == false) {
-            if (accessNode.isParentOf(taskNode) == true) {
+            if (accessNode.isParentOf(taskNode)) {
               // This entry is not recursive and inherited, therefore this entry will be ignored.
               continue;
             }
@@ -217,11 +217,11 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
   public boolean hasSelectAccess(final PFUserDO user, final GroupTaskAccessDO obj, final boolean throwException) {
     Validate.notNull(obj);
     boolean result = accessChecker.isUserMemberOfAdminGroup(user);
-    if (result == false && obj.isDeleted() == false) {
+    if (!result && !obj.isDeleted()) {
       Validate.notNull(user);
       result = getUserGroupCache().isUserMemberOfGroup(user.getId(), obj.getGroupId());
     }
-    if (throwException == true && result == false) {
+    if (throwException && !result) {
       throw new AccessException(AccessType.GROUP, OperationType.SELECT);
     }
     return result;
@@ -247,19 +247,16 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
     Validate.notNull(obj);
     Validate.notNull(dbObj.getTaskId());
     Validate.notNull(obj.getTaskId());
-    if (accessChecker.hasPermission(user, obj.getTaskId(), AccessType.TASK_ACCESS_MANAGEMENT, OperationType.UPDATE,
-            throwException) == false) {
+    if (!accessChecker.hasPermission(user, obj.getTaskId(), AccessType.TASK_ACCESS_MANAGEMENT, OperationType.UPDATE, throwException)) {
       return false;
     }
-    if (dbObj.getTaskId().equals(obj.getTaskId()) == false) {
+    if (!dbObj.getTaskId().equals(obj.getTaskId())) {
       // User moves the object to another task:
-      if (accessChecker.hasPermission(user, obj.getTaskId(), AccessType.TASK_ACCESS_MANAGEMENT, OperationType.INSERT,
-              throwException) == false) {
+      if (!accessChecker.hasPermission(user, obj.getTaskId(), AccessType.TASK_ACCESS_MANAGEMENT, OperationType.INSERT, throwException)) {
         // Inserting of object under new task not allowed.
         return false;
       }
-      if (accessChecker.hasPermission(user, dbObj.getTaskId(), AccessType.TASK_ACCESS_MANAGEMENT, OperationType.DELETE,
-              throwException) == false) {
+      if (!accessChecker.hasPermission(user, dbObj.getTaskId(), AccessType.TASK_ACCESS_MANAGEMENT, OperationType.DELETE, throwException)) {
         // Deleting of object under old task not allowed.
         return false;
       }
@@ -274,12 +271,12 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
   @Override
   protected void prepareHibernateSearch(final GroupTaskAccessDO obj, final OperationType operationType) {
     final TaskDO task = obj.getTask();
-    if (task != null && Hibernate.isInitialized(task) == false) {
+    if (task != null && !Hibernate.isInitialized(task)) {
       Hibernate.initialize(obj.getTask());
       obj.setTask(TaskTreeHelper.getTaskTree(task).getTaskById(task.getId()));
     }
     final GroupDO group = obj.getGroup();
-    if (group != null && Hibernate.isInitialized(group) == false) {
+    if (group != null && !Hibernate.isInitialized(group)) {
       obj.setGroup(groupDao.getOrLoad(obj.getGroupId()));
     }
   }
@@ -307,7 +304,7 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
         // Nothing changed.
         continue;
       }
-      if (firstNew == true) {
+      if (firstNew) {
         firstNew = false;
       } else {
         bufNew.append(";");
@@ -316,7 +313,7 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
               .append(entry.getAccessInsert())
               .append(",").append(entry.getAccessUpdate()).append(",").append(entry.getAccessDelete()).append("}");
       if (dbEntry != null) {
-        if (firstOld == true) {
+        if (firstOld) {
           firstOld = false;
         } else {
           bufOld.append(";");
@@ -326,7 +323,7 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
                 .append(",").append(dbEntry.getAccessUpdate()).append(",").append(dbEntry.getAccessDelete()).append("}");
       }
     }
-    if (firstNew == false || firstOld == false) {
+    if (!firstOld || !firstNew) {
       createHistoryEntry(obj, obj.getId(), "entries", String.class, bufOld.toString(), bufNew.toString());
     }
   }

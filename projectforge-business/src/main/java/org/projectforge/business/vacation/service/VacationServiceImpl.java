@@ -128,11 +128,11 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     final String i18nSubject;
     final String i18nPMContent;
 
-    if (isNew == true && isDeleted == false) {
+    if (isNew && !isDeleted) {
       i18nSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject", employeeFullName);
       i18nPMContent = I18nHelper
           .getLocalizedMessage("vacation.mail.pm.application", managerFirstName, employeeFullName, periodText, urlOfVacationEditPage);
-    } else if (isNew == false && isDeleted == false) {
+    } else if (!isNew && !isDeleted) {
       i18nSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject.edit", employeeFullName);
       i18nPMContent = I18nHelper
           .getLocalizedMessage("vacation.mail.pm.application.edit", managerFirstName, employeeFullName, periodText, urlOfVacationEditPage);
@@ -155,10 +155,10 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
       final String substitutionFirstName = substitutionUser.getFirstname();
       final String i18nSubContent;
 
-      if (isNew == true && isDeleted == false) {
+      if (isNew && !isDeleted) {
         i18nSubContent = I18nHelper
             .getLocalizedMessage("vacation.mail.sub.application", substitutionFirstName, employeeFullName, periodText, urlOfVacationEditPage);
-      } else if (isNew == false && isDeleted == false) {
+      } else if (!isNew && !isDeleted) {
         i18nSubContent = I18nHelper
             .getLocalizedMessage("vacation.mail.sub.application.edit", substitutionFirstName, employeeFullName, periodText, urlOfVacationEditPage);
       } else {
@@ -247,17 +247,17 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     final Calendar now = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
     final Calendar startDate = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
     final Calendar endDateVacationFromLastYear = getEndDateVacationFromLastYear();
-    if (vacationData.getSpecial() == true) {
+    if (vacationData.getSpecial()) {
       if (vacationData.getId() != null) {
         final VacationDO vacation = vacationDao.getById(vacationData.getId());
-        if (vacation.getSpecial() == false) {
+        if (!vacation.getSpecial()) {
           return deleteUsedVacationDaysFromLastYear(vacation);
         }
       }
       return BigDecimal.ZERO;
     }
     startDate.setTime(vacationData.getStartDate());
-    if (startDate.get(Calendar.YEAR) > now.get(Calendar.YEAR) && vacationData.getStartDate().before(endDateVacationFromLastYear.getTime()) == false) {
+    if (startDate.get(Calendar.YEAR) > now.get(Calendar.YEAR) && !vacationData.getStartDate().before(endDateVacationFromLastYear.getTime())) {
       return BigDecimal.ZERO;
     }
 
@@ -343,7 +343,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   @Override
   public BigDecimal deleteUsedVacationDaysFromLastYear(final VacationDO vacationData)
   {
-    if (vacationData == null || vacationData.getSpecial() == true || vacationData.getEmployee() == null || vacationData.getStartDate() == null
+    if (vacationData == null || vacationData.getSpecial() || vacationData.getEmployee() == null || vacationData.getStartDate() == null
         || vacationData.getEndDate() == null) {
       return BigDecimal.ZERO;
     }
@@ -454,7 +454,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     final BigDecimal vacationFromPreviousYear;
     if (year != now.get(Calendar.YEAR)) {
       vacationFromPreviousYear = BigDecimal.ZERO;
-    } else if (checkLastYear == false || now.after(endDateVacationFromLastYear)) {
+    } else if (!checkLastYear || now.after(endDateVacationFromLastYear)) {
       vacationFromPreviousYear = getVacationFromPreviousYearUsed(employee);
     } else {
       // before or same day as endDateVacationFromLastYear
@@ -630,7 +630,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     final BigDecimal numberOfWorkingDays = DayHolder.getNumberOfWorkingDays(from, to);
 
     // don't return HALF_DAY if there is no working day
-    return numberOfWorkingDays.equals(BigDecimal.ZERO) == false && Boolean.TRUE.equals(isHalfDayVacation) // null evaluates to false
+    return !numberOfWorkingDays.equals(BigDecimal.ZERO) && Boolean.TRUE.equals(isHalfDayVacation) // null evaluates to false
         ? HALF_DAY
         : numberOfWorkingDays;
   }
@@ -705,7 +705,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     }
     final List<VacationCalendarDO> vacationCalendars = vacationDao.getVacationCalendarDOs(vacation);
     for (VacationCalendarDO vacationCalendar : vacationCalendars) {
-      if (calendars.contains(vacationCalendar.getCalendar()) == false) {
+      if (!calendars.contains(vacationCalendar.getCalendar())) {
         vacationDao.markAsDeleted(vacationCalendar);
       } else {
         vacationDao.markAsUndeleted(vacationCalendar);
@@ -783,7 +783,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   {
     final List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
     for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
-      if (vacationCalendarDO.isDeleted() == false) {
+      if (!vacationCalendarDO.isDeleted()) {
         vacationCalendarDO.setEvent(getAndUpdateOrCreateTeamEventDO(vacationCalendarDO));
         vacationDao.saveVacationCalendar(vacationCalendarDO);
       }
@@ -817,7 +817,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
           calEventDao.internalUndelete(vacationTeamEvent);
         }
 
-        if (vacationTeamEvent.getStartDate().equals(startTimestamp) == false || vacationTeamEvent.getEndDate().equals(endTimestamp) == false) {
+        if (!vacationTeamEvent.getStartDate().equals(startTimestamp) || !vacationTeamEvent.getEndDate().equals(endTimestamp)) {
           vacationTeamEvent.setStartDate(startTimestamp);
           vacationTeamEvent.setEndDate(endTimestamp);
           calEventDao.internalSaveOrUpdate(vacationTeamEvent);

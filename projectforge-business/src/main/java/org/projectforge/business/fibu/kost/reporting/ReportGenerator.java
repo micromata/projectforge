@@ -123,12 +123,12 @@ public class ReportGenerator
    */
   public void setBeanCollection(final Collection< ? > beanCollection)
   {
-    if (CollectionUtils.isEmpty(beanCollection) == true) {
+    if (CollectionUtils.isEmpty(beanCollection)) {
       this.beanCollection = beanCollection;
       return;
     }
     final Iterator< ? > it = beanCollection.iterator();
-    if (it.next() instanceof BuchungssatzDO == true) {
+    if (it.next() instanceof BuchungssatzDO) {
       final List<Buchungssatz> list = new ArrayList<Buchungssatz>();
       @SuppressWarnings("unchecked")
       final

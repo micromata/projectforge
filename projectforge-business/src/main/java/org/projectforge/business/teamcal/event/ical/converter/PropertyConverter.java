@@ -58,7 +58,7 @@ public abstract class PropertyConverter implements VEventComponentConverter
   protected boolean isAllDay(final VEvent vEvent)
   {
     final DtStart dtStart = vEvent.getStartDate();
-    return dtStart != null && dtStart.getDate() instanceof net.fortuna.ical4j.model.DateTime == false;
+    return dtStart != null && !(dtStart.getDate() instanceof net.fortuna.ical4j.model.DateTime);
   }
 
   protected void parseAdditionalParameters(final ParameterList list, final String additonalParams)
@@ -76,7 +76,7 @@ public abstract class PropertyConverter implements VEventComponentConverter
     for (char c : chars) {
       switch (c) {
         case ';':
-          if (escaped == false && name != null && sb.length() > 0) {
+          if (!escaped && name != null && sb.length() > 0) {
             try {
               list.add(parameterFactory.createParameter(name, sb.toString().replaceAll("\"", "")));
             } catch (URISyntaxException e) {
@@ -88,10 +88,10 @@ public abstract class PropertyConverter implements VEventComponentConverter
           }
           break;
         case '"':
-          escaped = (escaped == false);
+          escaped = (!escaped);
           break;
         case '=':
-          if (escaped == false && sb.length() > 0) {
+          if (!escaped && sb.length() > 0) {
             name = sb.toString();
             sb.setLength(0);
           }
@@ -102,7 +102,7 @@ public abstract class PropertyConverter implements VEventComponentConverter
       }
     }
 
-    if (escaped == false && name != null && sb.length() > 0) {
+    if (!escaped && name != null && sb.length() > 0) {
       try {
         list.add(parameterFactory.createParameter(name, sb.toString().replaceAll("\"", "")));
       } catch (URISyntaxException e) {

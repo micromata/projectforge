@@ -156,7 +156,7 @@ public abstract class AbstractConfiguration extends AbstractCache
       }
       ConfigurationDO configuration = null;
       for (final ConfigurationDO entry : list) {
-        if (StringUtils.equals(param.getKey(), entry.getParameter()) == true) {
+        if (StringUtils.equals(param.getKey(), entry.getParameter())) {
           configuration = entry;
           break;
         }

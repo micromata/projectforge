@@ -170,7 +170,7 @@ public class CalendarUtils
       }
     }
     result += to.get(Calendar.DAY_OF_YEAR) - cal.get(Calendar.DAY_OF_YEAR);
-    if (positive == true) {
+    if (positive) {
       return result;
     } else {
       return -result;

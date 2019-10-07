@@ -94,7 +94,7 @@ public class SystemUpdater
     log.info("Checking for database updates...");
     final Set<String> checkedRegions = new HashSet<String>();
     for (final UpdateEntry updateEntry : getUpdateEntries()) {
-      if (updateEntry.isInitial() == false && checkedRegions.contains(updateEntry.getRegionId()) == true) {
+      if (!updateEntry.isInitial() && checkedRegions.contains(updateEntry.getRegionId())) {
         // Check only the newest update entry.
         continue;
       }

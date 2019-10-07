@@ -223,12 +223,12 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
       if (to == null) {
         return false;
       }
-      return date.after(to) == false;
+      return !date.after(to);
     }
     if (to == null) {
-      return date.before(from) == false;
+      return !date.before(from);
     }
-    return !(date.after(to) == true || date.before(from) == true);
+    return !(date.after(to) || date.before(from));
   }
 
   public boolean isBetween(final DateHolder from, final DateHolder to)
@@ -731,7 +731,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
       }
       do {
         calendar.add(Calendar.DAY_OF_MONTH, sign);
-      } while (new DayHolder(this).isWorkingDay() == false);
+      } while (!new DayHolder(this).isWorkingDay());
       counter += sign;
     }
     return this;

@@ -59,7 +59,7 @@ public class CalendarTestUtils
     } else if (colonsCount == 1) {
       // yyyy-MM-dd HH:mm
       df = new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_MINUTES);
-    } else if (isoDateString.contains(".") == false) {
+    } else if (!isoDateString.contains(".")) {
       // yyyy-MM-dd HH:mm:ss
       df = new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_SECONDS);
     } else {

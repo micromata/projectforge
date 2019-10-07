@@ -252,7 +252,7 @@ public class DateTimeFormatter extends AbstractFormatter
     final String str1 = getFormattedDuration(millis, hoursOfDay, minHours4DaySeparation);
     final String str2 = getFormattedDuration(millis, hoursOfDay, -1);
     buf.append(str1);
-    if (str1.equals(str2) == false) {
+    if (!str1.equals(str2)) {
       buf.append(" (").append(str2).append(")");
     }
     return buf.toString();

@@ -34,7 +34,7 @@ public class PropertyMapping
   {
     // Convert boolean results to a number 1 or blank
     if (obj instanceof Boolean) {
-      if ((Boolean) obj == true) {
+      if ((Boolean) obj) {
         obj = 1;
       } else {
         obj = null;

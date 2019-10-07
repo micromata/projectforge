@@ -108,10 +108,10 @@ public class MyXlsContentProvider extends XlsContentProvider
   @Override
   protected CellFormat getCustomizedCellFormat(final CellFormat format, final Object value)
   {
-    if (value == null || DateHolder.class.isAssignableFrom(value.getClass()) == false) {
+    if (value == null || !DateHolder.class.isAssignableFrom(value.getClass())) {
       return null;
     }
-    if (format != null && BooleanUtils.isTrue(format.getAutoDatePrecision()) == false) {
+    if (format != null && !BooleanUtils.isTrue(format.getAutoDatePrecision())) {
       return null;
     }
     // Find a format dependent on the precision:

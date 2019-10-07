@@ -46,11 +46,11 @@ public enum ReportOutputType
    */
   public static ReportOutputType getType(String s)
   {
-    if (StringUtils.isEmpty(s) == true) {
+    if (StringUtils.isEmpty(s)) {
       return null;
     }
     for (ReportOutputType type : ReportOutputType.values()) {
-      if (s.equals(type.toString()) == true || s.equals(type.getKey()) == true) {
+      if (s.equals(type.toString()) || s.equals(type.getKey())) {
         return type;
       }
     }

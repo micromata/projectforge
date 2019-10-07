@@ -106,7 +106,7 @@ public class XYChartBuilder
   public XYChartBuilder setYAxis(final boolean showAxisValues, final String valueAxisUnitKey)
   {
     final NumberAxis yAxis;
-    if (showAxisValues == true && valueAxisUnitKey != null) {
+    if (showAxisValues && valueAxisUnitKey != null) {
       yAxis = new NumberAxis(ThreadLocalUserContext.getLocalizedString(valueAxisUnitKey));
     } else {
       yAxis = new NumberAxis();

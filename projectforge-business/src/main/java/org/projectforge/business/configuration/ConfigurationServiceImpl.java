@@ -247,9 +247,9 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     InputStream is = null;
     String path = null;
     final File base = new File(getResourceDir());
-    if (base.isDirectory() == true) {
+    if (base.isDirectory()) {
       final File file = new File(base, filename);
-      if (file.exists() == false) {
+      if (!file.exists()) {
         showNonExistingMessage(file, false);
       } else {
         try {
@@ -418,13 +418,13 @@ public class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   private void setupKeyStores() {
-    if (StringUtils.isBlank(getKeystoreFile()) == false) {
+    if (!StringUtils.isBlank(getKeystoreFile())) {
       try {
         File keystoreFile = new File(getKeystoreFile());
-        if (keystoreFile.canRead() == false) {
+        if (!keystoreFile.canRead()) {
           keystoreFile = new File(applicationHomeDir, getKeystoreFile());
         }
-        if (keystoreFile.canRead() == false) {
+        if (!keystoreFile.canRead()) {
           log.warn("Can't read keystore file: " + getKeystoreFile());
           return;
         }
@@ -452,10 +452,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
   private static void showNonExistingMessage(final File file, final boolean directory) {
     // Synchronized not needed, for concurrent calls, output entries exist twice in the worst case.
-    if (nonExistingResources.contains(file.getAbsolutePath()) == false) {
+    if (!nonExistingResources.contains(file.getAbsolutePath())) {
       nonExistingResources.add(file.getAbsolutePath());
       existingResources.remove(file.getAbsolutePath()); // If changed by administrator during application running.
-      final String type = directory == true ? "directory" : "file";
+      final String type = directory ? "directory" : "file";
       log.info("Using default " + type + " of ProjectForge, because " + type + "'" + file.getAbsolutePath()
               + "' does not exist (OK)");
     }
@@ -463,20 +463,20 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
   private static void showExistingMessage(final File file, final boolean directory) {
     // Synchronized not needed, for concurrent calls, output entries exist twice in the worst case.
-    if (existingResources.contains(file.getAbsolutePath()) == false) {
+    if (!existingResources.contains(file.getAbsolutePath())) {
       existingResources.add(file.getAbsolutePath());
       nonExistingResources.remove(file.getAbsolutePath()); // If changed by administrator during application running.
-      final String type = directory == true ? "directory" : "file";
+      final String type = directory ? "directory" : "file";
       log.info("Using existing " + type + ":" + file.getAbsolutePath());
     }
   }
 
   private boolean ensureDir(final File dir) {
-    if (dir.exists() == false) {
+    if (!dir.exists()) {
       log.info("Creating directory " + dir);
       dir.mkdir();
     }
-    if (dir.canRead() == false) {
+    if (!dir.canRead()) {
       log.error("Can't create directory: " + dir);
       return false;
     }

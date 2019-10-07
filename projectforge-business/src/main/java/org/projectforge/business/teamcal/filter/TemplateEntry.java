@@ -142,7 +142,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
       return null;
     }
     for (final TemplateCalendarProperties props : calendarProperties) {
-      if (calendarId.equals(props.getCalId()) == true) {
+      if (calendarId.equals(props.getCalId())) {
         return props;
       }
     }
@@ -168,7 +168,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
     if (this.visibleCalendarIds == null) {
       this.visibleCalendarIds = new HashSet<Integer>();
       for (final TemplateCalendarProperties props : this.calendarProperties) {
-        if (props.isVisible() == true) {
+        if (props.isVisible()) {
           this.visibleCalendarIds.add(props.getCalId());
         }
       }
@@ -294,26 +294,26 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
    */
   public boolean isModified(final TemplateEntry other)
   {
-    if (StringUtils.equals(this.name, other.name) == false) {
+    if (!StringUtils.equals(this.name, other.name)) {
       return true;
     }
     if (calendarProperties.size() != other.calendarProperties.size()) {
       return true;
     }
-    if (Objects.equals(defaultCalendarId, other.defaultCalendarId) == false //
-        || Objects.equals(showBirthdays, other.showBirthdays) == false //
-        || Objects.equals(showBreaks, other.showBreaks) == false
-        || Objects.equals(showPlanning, other.showPlanning) == false
-        || Objects.equals(showStatistics, other.showStatistics) == false
-        || Objects.equals(timesheetUserId, other.timesheetUserId) == false) {
+    if (!Objects.equals(defaultCalendarId, other.defaultCalendarId) //
+        || !Objects.equals(showBirthdays, other.showBirthdays) //
+        || !Objects.equals(showBreaks, other.showBreaks)
+        || !Objects.equals(showPlanning, other.showPlanning)
+        || !Objects.equals(showStatistics, other.showStatistics)
+        || !Objects.equals(timesheetUserId, other.timesheetUserId)) {
       return true;
     }
     final Iterator<TemplateCalendarProperties> it1 = this.calendarProperties.iterator();
     final Iterator<TemplateCalendarProperties> it2 = other.calendarProperties.iterator();
-    while (it1.hasNext() == true) {
+    while (it1.hasNext()) {
       final TemplateCalendarProperties entry1 = it1.next();
       final TemplateCalendarProperties entry2 = it2.next();
-      if (entry1.isModified(entry2) == true) {
+      if (entry1.isModified(entry2)) {
         return true;
       }
     }

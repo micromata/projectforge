@@ -148,14 +148,14 @@ public class EmployeeDao extends BaseDao<EmployeeDO> {
     final QueryFilter queryFilter = new QueryFilter(myFilter);
     final List<EmployeeDO> list = getList(queryFilter);
     final Date now = new Date();
-    if (myFilter.isShowOnlyActiveEntries() == true) {
+    if (myFilter.isShowOnlyActiveEntries()) {
       CollectionUtils.filter(list, new Predicate() {
         @Override
         public boolean evaluate(final Object object) {
           final EmployeeDO employee = (EmployeeDO) object;
-          if (employee.getEintrittsDatum() != null && now.before(employee.getEintrittsDatum()) == true) {
+          if (employee.getEintrittsDatum() != null && now.before(employee.getEintrittsDatum())) {
             return false;
-          } else if (employee.getAustrittsDatum() != null && now.after(employee.getAustrittsDatum()) == true) {
+          } else if (employee.getAustrittsDatum() != null && now.after(employee.getAustrittsDatum())) {
             return false;
           }
           return true;

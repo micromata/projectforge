@@ -62,7 +62,7 @@ public class TableTest {
 
   private void assertAttribute(final Table table, final String name) {
     for (final TableAttribute attr : table.getAttributes()) {
-      if (attr.getName().equals(name) == true) {
+      if (attr.getName().equals(name)) {
         return;
       }
     }

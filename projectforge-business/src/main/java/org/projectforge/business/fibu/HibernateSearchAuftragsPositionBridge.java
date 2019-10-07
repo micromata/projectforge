@@ -58,7 +58,7 @@ public class HibernateSearchAuftragsPositionBridge implements FieldBridge
       return;
     }
     buf.append(auftrag.getNummer()).append(".").append(position.getNumber());
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug(buf.toString());
     }
     luceneOptions.addFieldToDocument(name, buf.toString(), document);

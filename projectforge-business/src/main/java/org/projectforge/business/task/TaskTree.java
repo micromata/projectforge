@@ -145,7 +145,7 @@ public class TaskTree extends AbstractCache implements Serializable
     } else if (root == null) {
       // this is the root node:
       root = node;
-    } else if (node.getId().equals(root.getId()) == false) {
+    } else if (!node.getId().equals(root.getId())) {
       // This node is not the root node:
       node.setParent(root);
     }
@@ -280,16 +280,16 @@ public class TaskTree extends AbstractCache implements Serializable
   {
     final List<Kost2DO> kost2List = new ArrayList<Kost2DO>();
     final boolean wildcard = blackWhiteList != null && blackWhiteList.length == 1 && "*".equals(blackWhiteList[0]);
-    if (projekt != null && Hibernate.isPropertyInitialized(projekt, "kunde") == false) {
+    if (projekt != null && !Hibernate.isPropertyInitialized(projekt, "kunde")) {
       projekt = projektDao.internalGetById(projekt.getId());
     }
     if (projekt != null) {
       final List<Kost2DO> list = kostCache.getActiveKost2(projekt.getNummernkreis(), projekt.getBereich(),
           projekt.getNummer());
-      if (CollectionUtils.isNotEmpty(list) == true) {
+      if (CollectionUtils.isNotEmpty(list)) {
         for (final Kost2DO kost2 : list) {
-          if (wildcard == true) { // black-white-list is "*".
-            if (kost2IsBlackList == true) {
+          if (wildcard) { // black-white-list is "*".
+            if (kost2IsBlackList) {
               break; // Do not add any entry.
             } else {
               kost2List.add(kost2); // Add all entries.
@@ -301,8 +301,8 @@ public class TaskTree extends AbstractCache implements Serializable
             final String no = kost2.getFormattedNumber();
             boolean add = kost2IsBlackList; // false for white list and true for black list at default.
             for (final String item : blackWhiteList) {
-              if (no.endsWith(item) == true) {
-                if (kost2IsBlackList == true) {
+              if (no.endsWith(item)) {
+                if (kost2IsBlackList) {
                   // Black list entry matches, so do not add entry:
                   add = false;
                   break;
@@ -313,13 +313,13 @@ public class TaskTree extends AbstractCache implements Serializable
                 }
               }
             }
-            if (add == true) {
+            if (add) {
               kost2List.add(kost2);
             }
           }
         }
       }
-    } else if (kost2IsBlackList == false && blackWhiteList != null) {
+    } else if (!kost2IsBlackList && blackWhiteList != null) {
       // Add all given KoSt2DOs.
       boolean infoLogDone = false;
       for (final String item : blackWhiteList) {
@@ -336,7 +336,7 @@ public class TaskTree extends AbstractCache implements Serializable
         }
       }
     }
-    if (CollectionUtils.isNotEmpty(kost2List) == true) {
+    if (CollectionUtils.isNotEmpty(kost2List)) {
       Collections.sort(kost2List);
       return kost2List;
     } else {
@@ -356,7 +356,7 @@ public class TaskTree extends AbstractCache implements Serializable
     final List<Kost2DO> list = getKost2List(projekt, task, blackWhiteList, task.getKost2IsBlackList());
     if (list != null) {
       return list;
-    } else if (node.parent != null && recursive == true) {
+    } else if (node.parent != null && recursive) {
       return getKost2List(node.parent, recursive);
     } else {
       return null;
@@ -393,8 +393,8 @@ public class TaskTree extends AbstractCache implements Serializable
       return addTaskNode(task);
     }
     node.setTask(task);
-    if (task.getParentTaskId() != null && task.getParentTaskId().equals(node.getParent().getId()) == false) {
-      if (log.isDebugEnabled() == true) {
+    if (task.getParentTaskId() != null && !task.getParentTaskId().equals(node.getParent().getId())) {
+      if (log.isDebugEnabled()) {
         log.debug("Task hierarchy was changed for task: " + task);
       }
       final TaskNode oldParent = node.getParent();
@@ -588,14 +588,14 @@ public class TaskTree extends AbstractCache implements Serializable
   private Map<Integer, Set<AuftragsPositionVO>> getOrderPositionEntries()
   {
     synchronized (this) {
-      if (this.orderPositionReferencesDirty == true) {
+      if (this.orderPositionReferencesDirty) {
         this.orderPositionReferences = auftragDao.getTaskReferences();
         if (this.orderPositionReferences != null) {
           resetOrderPersonDays(this.root);
           for (final Map.Entry<Integer, Set<AuftragsPositionVO>> entry : this.orderPositionReferences.entrySet()) {
             final TaskNode node = getTaskNodeById(entry.getKey());
             node.orderedPersonDays = null;
-            if (CollectionUtils.isNotEmpty(entry.getValue()) == true) {
+            if (CollectionUtils.isNotEmpty(entry.getValue())) {
               for (final AuftragsPositionVO pos : entry.getValue()) {
                 if (pos.getPersonDays() == null) {
                   continue;
@@ -617,7 +617,7 @@ public class TaskTree extends AbstractCache implements Serializable
   private void resetOrderPersonDays(final TaskNode node)
   {
     node.orderedPersonDays = null;
-    if (node.hasChildren() == true) {
+    if (node.hasChildren()) {
       for (final TaskNode child : node.getChildren()) {
         resetOrderPersonDays(child);
       }
@@ -648,7 +648,7 @@ public class TaskTree extends AbstractCache implements Serializable
   private void addOrderPositionsUpwards(final Set<AuftragsPositionVO> set, final Integer taskId)
   {
     final Set<AuftragsPositionVO> set2 = getOrderPositionEntries(taskId);
-    if (CollectionUtils.isNotEmpty(set2) == true) {
+    if (CollectionUtils.isNotEmpty(set2)) {
       set.addAll(set2);
     }
     final TaskDO task = getTaskById(taskId);
@@ -667,14 +667,14 @@ public class TaskTree extends AbstractCache implements Serializable
     if (taskId == null) { // For new tasks.
       return false;
     }
-    if (CollectionUtils.isNotEmpty(getOrderPositionEntries(taskId)) == true) {
+    if (CollectionUtils.isNotEmpty(getOrderPositionEntries(taskId))) {
       return true;
     }
-    if (recursive == true) {
+    if (recursive) {
       final TaskNode node = getTaskNodeById(taskId);
-      if (node != null && node.hasChildren() == true) {
+      if (node != null && node.hasChildren()) {
         for (final TaskNode child : node.getChildren()) {
-          if (hasOrderPositions(child.getId(), recursive) == true) {
+          if (hasOrderPositions(child.getId(), recursive)) {
             return true;
           }
         }
@@ -689,7 +689,7 @@ public class TaskTree extends AbstractCache implements Serializable
    */
   public boolean hasOrderPositionsUpwards(final Integer taskId)
   {
-    if (hasOrderPositions(taskId, false) == true) {
+    if (hasOrderPositions(taskId, false)) {
       return true;
     }
     final TaskNode task = getTaskNodeById(taskId);
@@ -719,17 +719,17 @@ public class TaskTree extends AbstractCache implements Serializable
   public BigDecimal getPersonDays(final TaskNode node)
   {
     checkRefresh();
-    if (node == null || node.isDeleted() == true) {
+    if (node == null || node.isDeleted()) {
       return null;
     }
-    if (hasOrderPositions(node.getId(), true) == true) {
+    if (hasOrderPositions(node.getId(), true)) {
       return getOrderedPersonDaysSum(node);
     }
     final Integer maxHours = node.getTask().getMaxHours();
     if (maxHours != null) {
       return new BigDecimal(maxHours).divide(DateHelper.HOURS_PER_WORKING_DAY, 2, BigDecimal.ROUND_HALF_UP);
     }
-    if (node.hasChildren() == false) {
+    if (!node.hasChildren()) {
       return null;
     }
     BigDecimal result = null;
@@ -755,7 +755,7 @@ public class TaskTree extends AbstractCache implements Serializable
     if (node.orderedPersonDays != null) {
       personDays = node.orderedPersonDays;
     }
-    if (node.hasChildren() == true) {
+    if (node.hasChildren()) {
       for (final TaskNode child : node.getChildren()) {
         final BigDecimal childPersonDays = getOrderedPersonDaysSum(child);
         if (childPersonDays != null) {
@@ -778,7 +778,7 @@ public class TaskTree extends AbstractCache implements Serializable
     if (node.orderedPersonDays != null) {
       return node;
     }
-    if (NumberHelper.greaterZero(node.getTask().getMaxHours()) == true) {
+    if (NumberHelper.greaterZero(node.getTask().getMaxHours())) {
       return node;
     }
     return getPersonDaysNode(node.getParent());
@@ -861,12 +861,12 @@ public class TaskTree extends AbstractCache implements Serializable
       node = new TaskNode();
       node.setTask(task);
       taskMap.put(node.getTaskId(), node);
-      if (node.isRootNode() == true) {
+      if (node.isRootNode()) {
         if (newRoot != null) {
           log.error("Duplicate root node found: " + newRoot.getId() + " and " + node.getId());
           node.setParent(newRoot); // Set the second root task as child task of first read root task.
         } else {
-          if (log.isDebugEnabled() == true) {
+          if (log.isDebugEnabled()) {
             log.debug("Root note found: " + node);
           }
           newRoot = node;
@@ -892,7 +892,7 @@ public class TaskTree extends AbstractCache implements Serializable
       taskMap.put(newRoot.getTaskId(), newRoot);
     }
     this.root = newRoot;
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug("Creating tree for " + taskList.size() + " tasks ...");
     }
     for (final TaskDO task : taskList) {
@@ -912,7 +912,7 @@ public class TaskTree extends AbstractCache implements Serializable
       }
     }
 
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug(this.root.toString());
     }
 
@@ -921,7 +921,7 @@ public class TaskTree extends AbstractCache implements Serializable
     for (final GroupTaskAccessDO access : accessList) {
       node = taskMap.get(access.getTaskId());
       node.setGroupTaskAccess(access);
-      if (log.isDebugEnabled() == true) {
+      if (log.isDebugEnabled()) {
         log.debug(access.toString());
       }
     }
@@ -929,7 +929,7 @@ public class TaskTree extends AbstractCache implements Serializable
     final List<ProjektDO> projects = projektDao.internalLoadAll();
     if (projects != null) {
       for (final ProjektDO project : projects) {
-        if (project.isDeleted() == true || project.getTaskId() == null) {
+        if (project.isDeleted() || project.getTaskId() == null) {
           continue;
         }
         node = taskMap.get(project.getTaskId());
@@ -940,7 +940,7 @@ public class TaskTree extends AbstractCache implements Serializable
         }
       }
     }
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug(this.toString());
     }
     readTotalDurations();

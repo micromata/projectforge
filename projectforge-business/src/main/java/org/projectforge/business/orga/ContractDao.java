@@ -82,7 +82,7 @@ public class ContractDao extends BaseDao<ContractDO> {
       queryFilter.add(Restrictions.eq("type", myFilter.getType().getValue()));
     }
     queryFilter.setYearAndMonth("date", myFilter.getYear(), -1);
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug(myFilter.toString());
     }
     return getList(queryFilter);

@@ -48,10 +48,10 @@ public class SetOfAllLdapObjects
 
   public boolean contains(final LdapObject< ? > obj, final String dn)
   {
-    if (obj.getId() != null && setOfIds.contains(obj.getId()) == true) {
+    if (obj.getId() != null && setOfIds.contains(obj.getId())) {
       return true;
     }
-    if (setOfDNs.contains(dn) == true) {
+    if (setOfDNs.contains(dn)) {
       return true;
     }
     return false;

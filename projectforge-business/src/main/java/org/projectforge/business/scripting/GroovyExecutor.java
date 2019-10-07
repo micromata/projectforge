@@ -100,7 +100,7 @@ public class GroovyExecutor
       final StringWriter writer = new StringWriter();
       writable.writeTo(writer);
       writer.flush();
-      if (log.isDebugEnabled() == true) {
+      if (log.isDebugEnabled()) {
         log.debug(writer.toString());
       }
       return writer.toString();
@@ -188,7 +188,7 @@ public class GroovyExecutor
       }
       return null;
     }
-    if (bindScriptResult == true) {
+    if (bindScriptResult) {
       final Binding binding = groovyObject.getBinding();
       final GroovyResult scriptResult = new GroovyResult();
       binding.setVariable("scriptResult", scriptResult);
@@ -237,7 +237,7 @@ public class GroovyExecutor
   {
     final String[] forbiddenKeyWords = { "__baseDao", "__baseObject", "System.ex" };
     for (final String forbiddenKeyWord : forbiddenKeyWords) {
-      if (StringUtils.contains(script, forbiddenKeyWord) == true) {
+      if (StringUtils.contains(script, forbiddenKeyWord)) {
         throw new AccessException("access.exception.violation", forbiddenKeyWord);
       }
     }

@@ -76,7 +76,7 @@ public class EmployeeAttrTest extends AbstractTestBase
 
     EmployeeDO luser = employeeDao.getById(e.getId());
     final String comment = luser.getComment();
-    Assertions.assertTrue(luser.getTimeableAttributes().isEmpty() == false);
+    Assertions.assertTrue(!luser.getTimeableAttributes().isEmpty());
     Assertions.assertTrue(luser.getTimeableAttributes().size() == 1);
 
     EmployeeTimedDO row = luser.getTimeableAttributes().get(0);

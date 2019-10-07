@@ -140,10 +140,10 @@ public class AuftragAndRechnungDaoHelper
     final BigDecimal zahlBetrag = rechnung.getZahlBetrag();
     final boolean zahlBetragExists = (zahlBetrag != null && zahlBetrag.compareTo(BigDecimal.ZERO) != 0);
 
-    if (bezahlDatum != null && zahlBetragExists == false) {
+    if (bezahlDatum != null && !zahlBetragExists) {
       throw new UserException("fibu.rechnung.error.zahlbetragRequired");
     }
-    if (bezahlDatum == null && zahlBetragExists == true) {
+    if (bezahlDatum == null && zahlBetragExists) {
       throw new UserException("fibu.rechnung.error.bezahlDatumRequired");
     }
   }

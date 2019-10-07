@@ -59,7 +59,7 @@ public class DOListExcelExporter extends MyExcelExporter
       final ExportColumn exportColumn)
   {
     super.putFieldFormat(sheetProvider, field, propInfo, exportColumn);
-    if ("deleted".equals(field.getName()) == true) {
+    if ("deleted".equals(field.getName())) {
       exportColumn.setWidth(8);
     }
   }

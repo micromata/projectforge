@@ -76,7 +76,7 @@ public class MessageParam
    */
   public String getI18nKey()
   {
-    if (isI18nKey() == true) {
+    if (isI18nKey()) {
       return (String) value;
     }
     throw new IllegalArgumentException(

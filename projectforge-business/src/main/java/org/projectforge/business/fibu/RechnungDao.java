@@ -170,7 +170,7 @@ public class RechnungDao extends BaseDao<RechnungDO> {
   protected void onSaveOrModify(final RechnungDO rechnung) {
     if (RechnungTyp.RECHNUNG.equals(rechnung.getTyp()) && rechnung.getId() != null) {
       RechnungDO originValue = internalGetById(rechnung.getId());
-      if (RechnungStatus.GEPLANT.equals(originValue.getStatus()) && RechnungStatus.GEPLANT.equals(rechnung.getStatus()) == false) {
+      if (RechnungStatus.GEPLANT.equals(originValue.getStatus()) && !RechnungStatus.GEPLANT.equals(rechnung.getStatus())) {
         rechnung.setNummer(getNextNumber(rechnung));
 
         final DayHolder day = new DayHolder();
@@ -193,11 +193,11 @@ public class RechnungDao extends BaseDao<RechnungDO> {
         throw new UserException("fibu.rechnung.error.gutschriftsanzeigeDarfKeineRechnungsnummerHaben");
       }
     } else {
-      if (RechnungStatus.GEPLANT.equals(rechnung.getStatus()) == false && rechnung.getNummer() == null) {
+      if (!RechnungStatus.GEPLANT.equals(rechnung.getStatus()) && rechnung.getNummer() == null) {
         throw new UserException("validation.required.valueNotPresent",
                 new MessageParam("fibu.rechnung.nummer", MessageParamType.I18N_KEY));
       }
-      if (RechnungStatus.GEPLANT.equals(rechnung.getStatus()) == false) {
+      if (!RechnungStatus.GEPLANT.equals(rechnung.getStatus())) {
         if (rechnung.getId() == null) {
           // Neue Rechnung
           final Integer next = getNextNumber(rechnung);
@@ -239,7 +239,7 @@ public class RechnungDao extends BaseDao<RechnungDO> {
     final RechnungStatus status = rechnung.getStatus();
     final BigDecimal zahlBetrag = rechnung.getZahlBetrag();
     final boolean zahlBetragExists = (zahlBetrag != null && zahlBetrag.compareTo(BigDecimal.ZERO) != 0);
-    if (status == RechnungStatus.BEZAHLT && zahlBetragExists == false) {
+    if (status == RechnungStatus.BEZAHLT && !zahlBetragExists) {
       throw new UserException("fibu.rechnung.error.statusBezahltErfordertZahlBetrag");
     }
 
@@ -310,7 +310,7 @@ public class RechnungDao extends BaseDao<RechnungDO> {
     final List<RechnungDO> result = new ArrayList<RechnungDO>();
     for (final RechnungDO rechnung : list) {
       if (myFilter.isShowUnbezahlt()) {
-        if (rechnung.isBezahlt() == false) {
+        if (!rechnung.isBezahlt()) {
           result.add(rechnung);
         }
       } else if (myFilter.isShowBezahlt()) {
@@ -375,7 +375,7 @@ public class RechnungDao extends BaseDao<RechnungDO> {
   @Override
   public List<DisplayHistoryEntry> getDisplayHistoryEntries(final RechnungDO obj) {
     final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(obj);
-    if (hasLoggedInUserHistoryAccess(obj, false) == false) {
+    if (!hasLoggedInUserHistoryAccess(obj, false)) {
       return list;
     }
     if (CollectionUtils.isNotEmpty(obj.getPositionen())) {

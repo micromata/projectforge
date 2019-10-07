@@ -92,7 +92,7 @@ public class DisplayHistoryEntry implements Serializable
 
   private PFUserDO getUser(final UserGroupCache userGroupCache, final String userId)
   {
-    if (StringUtils.isBlank(userId) == true) {
+    if (StringUtils.isBlank(userId)) {
       return null;
     }
     final Integer id = NumberHelper.parseInteger(userId);
@@ -165,20 +165,20 @@ public class DisplayHistoryEntry implements Serializable
     if (prop == null) {
       return null;
     }
-    if (StringUtils.isBlank(prop.getValue()) == true) {
+    if (StringUtils.isBlank(prop.getValue())) {
       return prop.getValue();
     }
     String type = prop.getType();
-    if (String.class.getName().equals(type) == true) {
+    if (String.class.getName().equals(type)) {
       return prop.getValue();
     }
-    if (PFUserDO.class.getName().equals(type) == true) {
+    if (PFUserDO.class.getName().equals(type)) {
       PFUserDO user = getUser(userGroupCache, prop.getValue());
       if (user != null) {
         return user;
       }
     }
-    if (EmployeeDO.class.getName().equals(type) == true || AddressbookDO.class.getName().equals(type) == true) {
+    if (EmployeeDO.class.getName().equals(type) || AddressbookDO.class.getName().equals(type)) {
       StringBuffer sb = new StringBuffer();
       getDBObjects(session, prop).forEach(dbObject -> {
         if (dbObject instanceof EmployeeDO) {

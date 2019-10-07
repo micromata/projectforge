@@ -68,7 +68,7 @@ public class LdapUtils
     if (organizationalUnits == null) {
       return "";
     }
-    if (organizationalUnits.length == 1 && organizationalUnits[0] != null && organizationalUnits[0].startsWith("ou=") == true) {
+    if (organizationalUnits.length == 1 && organizationalUnits[0] != null && organizationalUnits[0].startsWith("ou=")) {
       // organizationalUnit is already in the form ou=...,ou=.... Nothing to be done.
       return organizationalUnits[0];
     }
@@ -92,7 +92,7 @@ public class LdapUtils
     boolean first = true;
     if (ou != null) {
       first = false;
-      if (ou.startsWith("ou=") == false) {
+      if (!ou.startsWith("ou=")) {
         buf.append("ou=");
       }
       buf.append(ou);
@@ -101,12 +101,12 @@ public class LdapUtils
       if (unit == null) {
         continue;
       }
-      if (first == true) {
+      if (first) {
         first = false;
       } else {
         buf.append(',');
       }
-      if (unit.startsWith("ou=") == false) {
+      if (!unit.startsWith("ou=")) {
         buf.append("ou=");
       }
       buf.append(unit);
@@ -128,7 +128,7 @@ public class LdapUtils
         continue;
       }
       buf.append(',');
-      if (ou.startsWith("ou=") == false) {
+      if (!ou.startsWith("ou=")) {
         buf.append("ou=");
       }
       buf.append(ou);
@@ -148,10 +148,10 @@ public class LdapUtils
         continue;
       }
       entry = entry.trim();
-      if (entry.startsWith("ou=") == false || entry.length() < 4) {
+      if (!entry.startsWith("ou=") || entry.length() < 4) {
         continue;
       }
-      if (first == true) {
+      if (first) {
         first = false;
       } else {
         buf.append(",");
@@ -163,7 +163,7 @@ public class LdapUtils
 
   public static String getOrganizationalUnit(final String dn, final String ouBase)
   {
-    if (StringUtils.isNotBlank(ouBase) == true) {
+    if (StringUtils.isNotBlank(ouBase)) {
       return getOrganizationalUnit(dn + "," + ouBase);
     } else {
       return getOrganizationalUnit(dn);
@@ -196,7 +196,7 @@ public class LdapUtils
     }
     final NamingEnumeration< ? > enumeration = attr.getAll();
     final List<String> list = new ArrayList<String>();
-    while (enumeration.hasMore() == true) {
+    while (enumeration.hasMore()) {
       final Object attrValue = enumeration.next();
       if (attrValue == null) {
         list.add(null);
@@ -247,7 +247,7 @@ public class LdapUtils
     final StringBuffer buf = new StringBuffer();
     boolean first = true;
     for (final String str : strs) {
-      if (first == true) {
+      if (first) {
         first = false;
       } else {
         buf.append(", ");
@@ -261,13 +261,13 @@ public class LdapUtils
       final String[] objectClasses)
       {
     List<String> list = null;
-    if (expectedObjectClass != null && (objectClasses == null || StringHelper.isIn(expectedObjectClass, objectClasses) == false)) {
+    if (expectedObjectClass != null && (objectClasses == null || !StringHelper.isIn(expectedObjectClass, objectClasses))) {
       list = addEntry(list, expectedObjectClass);
     }
     if (expectedAdditionalObjectClasses != null) {
       for (final String objectClass : expectedAdditionalObjectClasses) {
         // objectClasses of users doesn't match the expected ones.
-        if (objectClasses == null || StringHelper.isIn(objectClass, objectClasses) == false) {
+        if (objectClasses == null || !StringHelper.isIn(objectClass, objectClasses)) {
           list = addEntry(list, objectClass);
         }
       }

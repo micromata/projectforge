@@ -76,7 +76,7 @@ public class ProjectUtils
       projektDao = ApplicationContextProvider.getApplicationContext().getBean(ProjektDao.class);
     }
     final List<ProjektDO> projects = projektDao.getList(filter);
-    if (CollectionUtils.isEmpty(projects) == true) {
+    if (CollectionUtils.isEmpty(projects)) {
       return result;
     }
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
@@ -86,7 +86,7 @@ public class ProjectUtils
         // No manager group defined.
         continue;
       }
-      if (userGroupCache.isUserMemberOfGroup(user, groupId) == false) {
+      if (!userGroupCache.isUserMemberOfGroup(user, groupId)) {
         continue;
       }
       result.add(project);

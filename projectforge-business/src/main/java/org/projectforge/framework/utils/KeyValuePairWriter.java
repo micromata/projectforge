@@ -148,7 +148,7 @@ public class KeyValuePairWriter
 
   private void writeSeparator()
   {
-    if (firstEntry == true) {
+    if (firstEntry) {
       firstEntry = false;
     } else {
       out.print(csvSeparatorChar);

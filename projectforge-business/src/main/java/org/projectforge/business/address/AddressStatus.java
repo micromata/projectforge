@@ -49,14 +49,14 @@ public enum AddressStatus implements I18nEnum
 
   public static AddressStatus get(final String s)
   {
-    if (StringUtils.isEmpty(s) == true) {
+    if (StringUtils.isEmpty(s)) {
       return null;
     }
-    if ("LEAVED".equals(s) == true) {
+    if ("LEAVED".equals(s)) {
       return LEAVED;
-    } else if ("OUTDATED".equals(s) == true) {
+    } else if ("OUTDATED".equals(s)) {
       return OUTDATED;
-    } else if ("UPTODATE".equals(s) == true) {
+    } else if ("UPTODATE".equals(s)) {
       return UPTODATE;
     }
     throw new UnsupportedOperationException("Unknown AddressStatus: '" + s + "'");

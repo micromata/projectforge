@@ -68,7 +68,7 @@ public class SendMailConfig implements ConfigurationData
     MailSessionLocalSettingsConfigModel cf = configService.createMailSessionLocalSettingsConfigModel();
     ValContext ctx = new ValContext();
     cf.validate(ctx);
-    if (ctx.hasErrors() == true) {
+    if (ctx.hasErrors()) {
       GLog.warn(GenomeLogCategory.Configuration, "Mail Sending has errors",
           new ValMessageLogAttribute(ctx.getMessages()));
       mailSendConfigOk = false;

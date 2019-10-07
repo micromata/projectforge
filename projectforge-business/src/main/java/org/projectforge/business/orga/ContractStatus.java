@@ -46,16 +46,16 @@ public enum ContractStatus implements I18nEnum
 
   public static ContractStatus get(final String s)
   {
-    if (StringUtils.isEmpty(s) == true) {
+    if (StringUtils.isEmpty(s)) {
       return null;
     }
-    if ("IN_PROGRESS".equals(s) == true || "IN_PROGRES".equals(s) == true) {
+    if ("IN_PROGRESS".equals(s) || "IN_PROGRES".equals(s)) {
       return IN_PROGRESS;
-    } else if ("COMPLETED".equals(s) == true) {
+    } else if ("COMPLETED".equals(s)) {
       return COMPLETED;
-    } else if ("SUSPENDED".equals(s) == true) {
+    } else if ("SUSPENDED".equals(s)) {
       return SUSPENDED;
-    } else if ("ESCALATED".equals(s) == true) {
+    } else if ("ESCALATED".equals(s)) {
       return ESCALATED;
     } else {
       return UNKNOWN;

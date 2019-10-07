@@ -304,13 +304,13 @@ public class Mail implements Comparable<Mail>
     if (date != null) {
       sb.append("date", getDate());
     }
-    if (deleted == true) {
+    if (deleted) {
       sb.append("deleted", isDeleted());
     }
-    if (recent == true) {
+    if (recent) {
       sb.append("recent", isRecent());
     }
-    if (seen == true) {
+    if (seen) {
       sb.append("seen", isSeen());
     }
     return sb.toString();

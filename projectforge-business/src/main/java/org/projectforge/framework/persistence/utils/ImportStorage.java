@@ -79,11 +79,11 @@ public class ImportStorage<T> implements Serializable
 
   public ImportedSheet<T> getNamedSheet(final String name)
   {
-    if (CollectionUtils.isEmpty(sheets) == true) {
+    if (CollectionUtils.isEmpty(sheets)) {
       return null;
     }
     for (final ImportedSheet<T> sheet : sheets) {
-      if (name.equals(sheet.getName()) == true) {
+      if (name.equals(sheet.getName())) {
         return sheet;
       }
     }

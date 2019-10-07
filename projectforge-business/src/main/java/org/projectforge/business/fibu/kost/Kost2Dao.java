@@ -153,13 +153,13 @@ public class Kost2Dao extends BaseDao<Kost2DO> {
     }
     final QueryFilter queryFilter = new QueryFilter(myFilter);
     queryFilter.createAlias("kost2Art", "art");
-    if (myFilter.isActive() == true) {
+    if (myFilter.isActive()) {
       queryFilter.add(Restrictions.eq("kostentraegerStatus", KostentraegerStatus.ACTIVE));
-    } else if (myFilter.isNonActive() == true) {
+    } else if (myFilter.isNonActive()) {
       queryFilter.add(Restrictions.eq("kostentraegerStatus", KostentraegerStatus.NONACTIVE));
-    } else if (myFilter.isEnded() == true) {
+    } else if (myFilter.isEnded()) {
       queryFilter.add(Restrictions.eq("kostentraegerStatus", KostentraegerStatus.ENDED));
-    } else if (myFilter.isNotEnded() == true) {
+    } else if (myFilter.isNotEnded()) {
       queryFilter.add(Restrictions.or(Restrictions.ne("kostentraegerStatus", ProjektStatus.ENDED),
               Restrictions.isNull("kostentraegerStatus")));
     }

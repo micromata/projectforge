@@ -100,7 +100,7 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO>
     }
     final QueryFilter queryFilter = buildQueryFilter(myFilter);
     myFilter.setIgnoreDeleted(true); // Ignore deleted flag of HRPlanningEntryDOs, use instead:
-    if (myFilter.isDeleted() == true) {
+    if (myFilter.isDeleted()) {
       queryFilter.add(Restrictions.or(Restrictions.eq("deleted", true), Restrictions.eq("p.deleted", true)));
     } else {
       queryFilter.add(Restrictions.and(Restrictions.eq("deleted", false), Restrictions.eq("p.deleted", false)));
@@ -116,13 +116,13 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO>
           PredicateUtils.uniquePredicate());
       entry.getPlanning().setEntries(entries);
     }
-    if (myFilter.isGroupEntries() == false && myFilter.isOnlyMyProjects() == false) {
+    if (!myFilter.isGroupEntries() && !myFilter.isOnlyMyProjects()) {
       return list;
     }
     final List<HRPlanningEntryDO> result = new ArrayList<HRPlanningEntryDO>();
-    final Set<Integer> set = (myFilter.isGroupEntries() == true) ? new HashSet<Integer>() : null;
+    final Set<Integer> set = (myFilter.isGroupEntries()) ? new HashSet<Integer>() : null;
     for (final HRPlanningEntryDO entry : list) {
-      if (myFilter.isOnlyMyProjects() == true) {
+      if (myFilter.isOnlyMyProjects()) {
         if (entry.getProjekt() == null) {
           continue;
         }
@@ -130,12 +130,12 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO>
         if (projekt.getProjektManagerGroup() == null) {
           continue;
         }
-        if (getUserGroupCache().isLoggedInUserMemberOfGroup(projekt.getProjektManagerGroupId()) == false) {
+        if (!getUserGroupCache().isLoggedInUserMemberOfGroup(projekt.getProjektManagerGroupId())) {
           continue;
         }
       }
-      if (myFilter.isGroupEntries() == true) {
-        if (set.contains(entry.getPlanningId()) == true) {
+      if (myFilter.isGroupEntries()) {
+        if (set.contains(entry.getPlanningId())) {
           // Entry is already in result list.
           continue;
         }
@@ -153,8 +153,8 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO>
         boolean first = true;
         for (final HRPlanningEntryDO pos : planning.getEntries()) {
           final String str = pos.getProjektNameOrStatus();
-          if (StringUtils.isNotBlank(str) == true) {
-            if (first == true) {
+          if (StringUtils.isNotBlank(str)) {
+            if (first) {
               first = false;
             } else {
               buf.append("; ");
@@ -192,7 +192,7 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO>
       queryFilter.add(Restrictions.eq("projekt.id", filter.getProjektId()));
     }
     queryFilter.addOrder(Order.desc("p.week")).addOrder(Order.asc("u.firstname"));
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug(ToStringBuilder.reflectionToString(filter));
     }
     return queryFilter;

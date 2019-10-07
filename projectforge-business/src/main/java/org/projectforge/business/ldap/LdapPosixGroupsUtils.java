@@ -78,7 +78,7 @@ public class LdapPosixGroupsUtils
     final Collection<GroupDO> allGroups = userGroupCache.getAllGroups();
     for (final GroupDO group : allGroups) {
       final LdapGroupValues ldapGroupValues = groupDOConverter.readLdapGroupValues(group.getLdapValues());
-      if (Objects.equals(group.getId(), currentGroup.getId()) == true) {
+      if (Objects.equals(group.getId(), currentGroup.getId())) {
         // The current group may have the given gidNumber already, so ignore this entry.
         continue;
       }

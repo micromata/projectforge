@@ -47,7 +47,7 @@ public class ProjectForgeDefaultFieldBridge implements BridgeProvider
         //        Integer.class
     };
     for (Class<?> cls : basicClasses) {
-      if (cls.isAssignableFrom(bridgeProviderContext.getReturnType()) == true) {
+      if (cls.isAssignableFrom(bridgeProviderContext.getReturnType())) {
         return defaultStringBridge;
       }
     }

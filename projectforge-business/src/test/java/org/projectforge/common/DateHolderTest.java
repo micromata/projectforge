@@ -54,7 +54,7 @@ public class DateHolderTest
     assertEquals("2008-03-04 23:00:00.000", DateHelper.FOR_TESTCASE_OUTPUT_FORMATTER.get().format(date.getDate()));
     final java.sql.Date sqlDate = date.getSQLDate();
     assertEquals("2008-03-05 00:00:00.000", DateHelper.FOR_TESTCASE_OUTPUT_FORMATTER.get().format(sqlDate));
-    assertTrue(date.isSameDay(sqlDate) == true);
+    assertTrue(date.isSameDay(sqlDate));
   }
 
   @Test
@@ -233,7 +233,7 @@ public class DateHolderTest
     }
     int result = 0;
     for (int i = 0; i < 5000; i++) {
-      if (dh.isSameDay(date1.getDate()) == true) {
+      if (dh.isSameDay(date1.getDate())) {
         break;
       }
       result += count;

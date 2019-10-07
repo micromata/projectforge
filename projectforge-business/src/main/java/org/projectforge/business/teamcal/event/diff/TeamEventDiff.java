@@ -76,13 +76,13 @@ public class TeamEventDiff
     }
 
     // event is deleted, no further diff
-    if (eventNewState.isDeleted() && eventOldState.isDeleted() == false) {
+    if (eventNewState.isDeleted() && !eventOldState.isDeleted()) {
       diff.type = TeamEventDiffType.DELETED;
       return diff;
     }
 
     // event is restored, no further diff
-    if (eventNewState.isDeleted() == false && eventOldState.isDeleted()) {
+    if (!eventNewState.isDeleted() && eventOldState.isDeleted()) {
       diff.type = TeamEventDiffType.RESTORED;
       return diff;
     }
@@ -131,7 +131,7 @@ public class TeamEventDiff
     final Set<TeamEventAttendeeDO> attendeesNewState = eventNewState.getAttendees();
     final Set<TeamEventAttendeeDO> attendeesOldState = eventOldState.getAttendees();
 
-    if (attendeesNewState != null && attendeesNewState.isEmpty() == false) {
+    if (attendeesNewState != null && !attendeesNewState.isEmpty()) {
       if (attendeesOldState == null || attendeesOldState.isEmpty()) {
         diff.attendeesAdded.addAll(attendeesNewState);
       } else {
@@ -145,12 +145,12 @@ public class TeamEventDiff
       }
     }
 
-    if (attendeesOldState != null && attendeesOldState.isEmpty() == false) {
+    if (attendeesOldState != null && !attendeesOldState.isEmpty()) {
       if (attendeesNewState == null || attendeesNewState.isEmpty()) {
         diff.attendeesRemoved.addAll(attendeesOldState);
       } else {
         for (TeamEventAttendeeDO attendee : attendeesOldState) {
-          if (attendeesNewState.contains(attendee) == false) {
+          if (!attendeesNewState.contains(attendee)) {
             diff.attendeesRemoved.add(attendee);
           }
         }
@@ -168,9 +168,9 @@ public class TeamEventDiff
     //      }
     //    }
 
-    if (diff.fieldDiffs.isEmpty() == false) {
+    if (!diff.fieldDiffs.isEmpty()) {
       diff.type = TeamEventDiffType.UPDATED;
-    } else if (diff.attendeesAdded.isEmpty() == false || diff.attendeesRemoved.isEmpty() == false) {
+    } else if (!diff.attendeesAdded.isEmpty() || !diff.attendeesRemoved.isEmpty()) {
       diff.type = TeamEventDiffType.ATTENDEES;
     } else {
       diff.type = TeamEventDiffType.NONE;
@@ -182,7 +182,7 @@ public class TeamEventDiff
   private static <F> TeamEventFieldDiff<F> computeFieldDiff(final TeamEventDiff diff, final TeamEventField field, final Set<TeamEventField> fieldFilter,
       final F newFieldValue, final F oldFieldValue)
   {
-    if (fieldFilter.isEmpty() == false && fieldFilter.contains(field) == false) {
+    if (!fieldFilter.isEmpty() && !fieldFilter.contains(field)) {
       return null;
     }
 

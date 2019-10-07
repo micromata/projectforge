@@ -53,11 +53,11 @@ public class UserXmlPreferenceXmlBeforePersistListener implements JpaXmlBeforePe
   public Object preparePersist(EntityMetadata entityMetadata, Object entity, XmlDumpRestoreContext ctx)
   {
     final UserXmlPreferencesDO userPrefs = (UserXmlPreferencesDO) entity;
-    if (TaskTree.USER_PREFS_KEY_OPEN_TASKS.equals(userPrefs.getKey()) == false) {
+    if (!TaskTree.USER_PREFS_KEY_OPEN_TASKS.equals(userPrefs.getKey())) {
       return null;
     }
     final Object userPrefsObj = userXmlPreferencesDao.deserialize(null, userPrefs, true);
-    if (userPrefsObj == null || userPrefsObj instanceof Set == false) {
+    if (userPrefsObj == null || !(userPrefsObj instanceof Set)) {
       return null;
     }
     Set<Integer> oldIds = null;

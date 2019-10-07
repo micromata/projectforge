@@ -97,25 +97,25 @@ public class AuftragRight extends UserRightAccessCheck<AuftragDO>
   {
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     if (operationType == OperationType.SELECT) {
-      if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.CONTROLLING_GROUP) == true) {
+      if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.CONTROLLING_GROUP)) {
         return true;
       }
-      if (accessChecker.hasRight(user, getId(), UserRightValue.READONLY, UserRightValue.PARTLYREADWRITE,
-          UserRightValue.READWRITE) == false) {
+      if (!accessChecker.hasRight(user, getId(), UserRightValue.READONLY, UserRightValue.PARTLYREADWRITE,
+          UserRightValue.READWRITE)) {
         return false;
       }
     } else {
-      if (accessChecker.hasRight(user, getId(), UserRightValue.PARTLYREADWRITE, UserRightValue.READWRITE) == false) {
+      if (!accessChecker.hasRight(user, getId(), UserRightValue.PARTLYREADWRITE, UserRightValue.READWRITE)) {
         return false;
       }
     }
     if (obj != null
-        && accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP) == false
-        && CollectionUtils.isNotEmpty(obj.getPositionenIncludingDeleted()) == true) {
+        && !accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)
+        && CollectionUtils.isNotEmpty(obj.getPositionenIncludingDeleted())) {
       // Special field check for non finance administrative staff members:
       if (operationType == OperationType.INSERT) {
         for (final AuftragsPositionDO position : obj.getPositionenExcludingDeleted()) {
-          if (position.getVollstaendigFakturiert() == true) {
+          if (position.getVollstaendigFakturiert()) {
             throw new AccessException("fibu.auftrag.error.vollstaendigFakturiertProtection");
           }
         }
@@ -129,7 +129,7 @@ public class AuftragRight extends UserRightAccessCheck<AuftragDO>
             continue;
 
           if (dbPosition == null) {
-            if (position.getVollstaendigFakturiert() == true) {
+            if (position.getVollstaendigFakturiert()) {
               throw new AccessException("fibu.auftrag.error.vollstaendigFakturiertProtection");
             }
           } else if (position.getVollstaendigFakturiert() != dbPosition.getVollstaendigFakturiert()) {
@@ -138,21 +138,21 @@ public class AuftragRight extends UserRightAccessCheck<AuftragDO>
         }
       }
     }
-    if (accessChecker.isUserMemberOfGroup(user, UserRightServiceImpl.FIBU_ORGA_GROUPS) == true
+    if (accessChecker.isUserMemberOfGroup(user, UserRightServiceImpl.FIBU_ORGA_GROUPS)
         && accessChecker.hasRight(user, getId(), UserRightValue.READONLY, UserRightValue.READWRITE)) {
       // No further access checking (but not for users with right PARTLY_READWRITE.
     } else if (obj != null) {
       // User should be a PROJECT_MANAGER or PROJECT_ASSISTANT or user has PARTLYREADWRITE access:
       boolean hasAccess = false;
-      if (accessChecker.userEquals(user, obj.getContactPerson()) == true) {
+      if (accessChecker.userEquals(user, obj.getContactPerson())) {
         hasAccess = true;
       }
       if (obj.getProjekt() != null
           && userGroupCache.isUserMemberOfGroup(user.getId(), obj.getProjekt().getProjektManagerGroupId())) {
         hasAccess = true;
       }
-      if (hasAccess == true) {
-        if (obj.isVollstaendigFakturiert() == false) {
+      if (hasAccess) {
+        if (!obj.isVollstaendigFakturiert()) {
           return true;
         } else if (obj.getAngebotsDatum() != null) {
           final long millis = (new Date()).getTime() - obj.getAngebotsDatum().getTime();

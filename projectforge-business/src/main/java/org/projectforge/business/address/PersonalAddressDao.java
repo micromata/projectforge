@@ -90,7 +90,7 @@ public class PersonalAddressDao {
    */
   @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
   public Serializable saveOrUpdate(final PersonalAddressDO obj) {
-    if (internalUpdate(obj) == true) {
+    if (internalUpdate(obj)) {
       return obj.getId();
     }
     return internalSave(obj);
@@ -101,7 +101,7 @@ public class PersonalAddressDao {
     Validate.notNull(obj.getOwnerId());
     Validate.notNull(obj.getAddressId());
     final PFUserDO owner = ThreadLocalUserContext.getUser();
-    if (owner == null || owner.getId().equals(obj.getOwnerId()) == false) {
+    if (owner == null || !owner.getId().equals(obj.getOwnerId())) {
       if (throwException) {
         throw new AccessException("address.accessException.userIsNotOwnerOfPersonalAddress");
       }
@@ -132,7 +132,7 @@ public class PersonalAddressDao {
     }
     abIdSet.add(AddressbookDao.GLOBAL_ADDRESSBOOK_ID);
     for (AddressbookDO ab : addressbookDao.internalLoadAll()) {
-      if (ab.isDeleted() == false && addressbookRight.hasSelectAccess(user, ab)) {
+      if (!ab.isDeleted() && addressbookRight.hasSelectAccess(user, ab)) {
         abIdSet.add(ab.getId());
       }
     }
@@ -140,7 +140,7 @@ public class PersonalAddressDao {
   }
 
   private Serializable internalSave(final PersonalAddressDO obj) {
-    if (isEmpty(obj) == true) {
+    if (isEmpty(obj)) {
       // No entry, so we do not need to save this entry.
       return null;
     }
@@ -153,12 +153,12 @@ public class PersonalAddressDao {
   }
 
   private boolean isEmpty(final PersonalAddressDO obj) {
-    return (obj.isFavoriteCard() == false)
-            && (obj.isFavoriteBusinessPhone() == false)
-            && (obj.isFavoriteMobilePhone() == false)
-            && (obj.isFavoriteFax() == false)
-            && (obj.isFavoritePrivatePhone() == false)
-            && (obj.isFavoritePrivateMobilePhone() == false);
+    return (!obj.isFavoriteCard())
+            && (!obj.isFavoriteBusinessPhone())
+            && (!obj.isFavoriteMobilePhone())
+            && (!obj.isFavoriteFax())
+            && (!obj.isFavoritePrivatePhone())
+            && (!obj.isFavoritePrivateMobilePhone());
   }
 
   /**
@@ -219,7 +219,7 @@ public class PersonalAddressDao {
             .setParameter("ownerId", owner.getId())
             .list();
     log.info("PersonalDao.getList took " + (System.currentTimeMillis() - start) + "ms.");
-    list = list.stream().filter(pa -> checkAccess(pa, false) == true).collect(Collectors.toList());
+    list = list.stream().filter(pa -> checkAccess(pa, false)).collect(Collectors.toList());
     return list;
   }
 
@@ -254,7 +254,7 @@ public class PersonalAddressDao {
             .list();
     final Map<Integer, PersonalAddressDO> result = new HashMap<Integer, PersonalAddressDO>();
     for (final PersonalAddressDO entry : list) {
-      if (entry.isFavorite() == true && checkAccess(entry, false)) {
+      if (entry.isFavorite() && checkAccess(entry, false)) {
         result.put(entry.getAddressId(), entry);
       }
     }
@@ -274,7 +274,7 @@ public class PersonalAddressDao {
     final List<PersonalAddressDO> list = getList();
     final List<AddressDO> result = new ArrayList<AddressDO>();
     for (final PersonalAddressDO entry : list) {
-      if (entry.isFavorite() == true && checkAccess(entry, false)) {
+      if (entry.isFavorite() && checkAccess(entry, false)) {
         result.add(entry.getAddress());
       }
     }

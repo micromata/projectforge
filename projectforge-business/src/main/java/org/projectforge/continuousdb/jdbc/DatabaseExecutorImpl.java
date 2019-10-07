@@ -95,7 +95,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor
         ResultSet rs = null;
         try {
           rs = stmt.executeQuery();
-          while (rs.next() == true) {
+          while (rs.next()) {
             final DatabaseResultRow row = new DatabaseResultRowImpl();
             list.add(row);
             final ResultSetMetaData metaData = rs.getMetaData();
@@ -130,7 +130,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor
         ResultSet rs = null;
         try {
           rs = stmt.executeQuery();
-          if (rs.next() == false) {
+          if (!rs.next()) {
             throw new RuntimeException("No result set: " + sql);
           }
           return rs.getInt(1);

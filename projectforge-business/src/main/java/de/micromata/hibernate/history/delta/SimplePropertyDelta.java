@@ -114,13 +114,13 @@ public class SimplePropertyDelta extends PropertyDelta
       return null;
     }
     try {
-      if ("java.sql.Date".equals(propertyType) == true) {
+      if ("java.sql.Date".equals(propertyType)) {
         return new java.sql.Date(SDF_DATE.get().parse(value).getTime());
-      } else if ("java.sql.Time".equals(propertyType) == true) {
+      } else if ("java.sql.Time".equals(propertyType)) {
         return new Time(SDF_TIMEDATE.get().parse(value).getTime());
-      } else if ("java.sql.Timestamp".equals(propertyType) == true) {
+      } else if ("java.sql.Timestamp".equals(propertyType)) {
         return new Timestamp(SDF_TIMEDATE.get().parse(value).getTime());
-      } else if ("java.util.Date".equals(propertyType) == true) {
+      } else if ("java.util.Date".equals(propertyType)) {
         return SDF_TIMEDATE.get().parse(value);
       }
       return ConvertUtils.convert(value, Class.forName(propertyType));

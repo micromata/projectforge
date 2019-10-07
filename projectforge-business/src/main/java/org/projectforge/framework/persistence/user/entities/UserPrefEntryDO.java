@@ -277,10 +277,10 @@ public class UserPrefEntryDO implements BaseDO<Integer>, Serializable
   {
     if (o instanceof UserPrefEntryDO) {
       final UserPrefEntryDO other = (UserPrefEntryDO) o;
-      if (Objects.equals(this.parameter, other.parameter) == false) {
+      if (!Objects.equals(this.parameter, other.parameter)) {
         return false;
       }
-      if (Objects.equals(this.getId(), other.getId()) == false) {
+      if (!Objects.equals(this.getId(), other.getId())) {
         return false;
       }
       return true;

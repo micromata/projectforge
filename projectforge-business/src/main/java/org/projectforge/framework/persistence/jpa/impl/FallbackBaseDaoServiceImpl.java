@@ -76,7 +76,7 @@ public class FallbackBaseDaoServiceImpl implements FallbackBaseDaoService, Seria
     Map<Class<?>, BaseDao> tentToBaseDao = new HashMap<>();
     for (BaseDao bd : bda.values()) {
       Class entclas = bd.getEntityClass();
-      if (tentToBaseDao.containsKey(entclas) == true) {
+      if (tentToBaseDao.containsKey(entclas)) {
         throw new LoggedRuntimeException(LogLevel.Fatal, GenomeLogCategory.Coding, "Multiple BaseDaos for DO: "
             + entclas.getName() + "; " + tentToBaseDao.get(entclas).getClass() + ", " + bd.getClass());
       }

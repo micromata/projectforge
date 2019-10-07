@@ -325,7 +325,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
   {
     if (this.children == null) {
       log.error("Can't remove child object because current Gantt activity has no children: " + this);
-    } else if (this.children.remove(ganttObject) == false) {
+    } else if (!this.children.remove(ganttObject)) {
       log.error("Can't remove child object: " + ganttObject + " because it's not a child of the given activity: " + this);
     }
   }
@@ -338,7 +338,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
   {
     if (getCalculatedStartDate() != null && getCalculatedEndDate() != null) {
       final DateHolder dh = new DateHolder(this.calculatedStartDate);
-      return dh.isSameDay(getCalculatedEndDate()) == false;
+      return !dh.isSameDay(getCalculatedEndDate());
     }
     return !NumberHelper.isZeroOrNull(this.duration);
   }
@@ -349,7 +349,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
   @Override
   public Date getCalculatedStartDate()
   {
-    if (startDateCalculated == false) {
+    if (!startDateCalculated) {
       calculatedStartDate = GanttUtils.getCalculatedStartDate(this);
       startDateCalculated = true;
     }
@@ -373,7 +373,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
   @Override
   public Date getCalculatedEndDate()
   {
-    if (endDateCalculated == false) {
+    if (!endDateCalculated) {
       calculatedEndDate = GanttUtils.getCalculatedEndDate(this);
       endDateCalculated = true;
     }
@@ -396,7 +396,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
   @Override
   public boolean isStartDateCalculated()
   {
-    return this.startDateCalculated == true;
+    return this.startDateCalculated;
   }
 
   /**
@@ -514,7 +514,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
       return true;
     }
     for (final GanttTask child : this.children) {
-      if (((GanttTaskImpl) child).checkCyclicReferences(depth + 1) == false) {
+      if (!((GanttTaskImpl) child).checkCyclicReferences(depth + 1)) {
         return false;
       }
     }
@@ -536,7 +536,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
   @Override
   public GanttTask findBy(final Matcher<GanttTask> matcher, final Object expression)
   {
-    if (matcher.match(this, expression) == true) {
+    if (matcher.match(this, expression)) {
       return this;
     }
     if (this.children != null) {
@@ -557,7 +557,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
       @Override
       public boolean match(GanttTask object, Object expression)
       {
-        return (object.getId() != null && object.getId().equals(expression) == true);
+        return (object.getId() != null && object.getId().equals(expression));
       }
     }, id);
   }
@@ -569,7 +569,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
       @Override
       public boolean match(GanttTask object, Object expression)
       {
-        return (StringUtils.equals(object.getTitle(), (String) expression) == true);
+        return (StringUtils.equals(object.getTitle(), (String) expression));
       }
     }, title);
   }
@@ -581,7 +581,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
       @Override
       public boolean match(GanttTask object, Object expression)
       {
-        return (StringUtils.equals(object.getWorkpackageCode(), (String) expression) == true);
+        return (StringUtils.equals(object.getWorkpackageCode(), (String) expression));
       }
     }, workpackageCode);
   }
@@ -593,11 +593,11 @@ public class GanttTaskImpl implements GanttTask, Serializable
       @Override
       public boolean match(GanttTask object, Object expression)
       {
-        if (CollectionUtils.isEmpty(object.getChildren()) == true) {
+        if (CollectionUtils.isEmpty(object.getChildren())) {
           return false;
         }
         for (final GanttTask child : object.getChildren()) {
-          if (child.getId() != null && child.getId().equals(expression) == true) {
+          if (child.getId() != null && child.getId().equals(expression)) {
             return true;
           }
         }

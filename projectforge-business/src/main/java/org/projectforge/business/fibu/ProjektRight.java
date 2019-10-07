@@ -74,11 +74,11 @@ public class ProjektRight extends UserRightAccessCheck<ProjektDO>
     if (obj == null) {
       return true;
     }
-    if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.CONTROLLING_GROUP) == true) {
+    if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.CONTROLLING_GROUP)) {
       return true;
     }
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.PROJECT_MANAGER,
-        ProjectForgeGroup.PROJECT_ASSISTANT) == true) {
+        ProjectForgeGroup.PROJECT_ASSISTANT)) {
       Integer userId = user.getId();
       Integer headOfBusinessManagerId = obj.getHeadOfBusinessManager() != null ? obj.getHeadOfBusinessManager().getId() : null;
       Integer projectManagerId = obj.getProjectManager() != null ? obj.getProjectManager().getId() : null;
@@ -90,20 +90,20 @@ public class ProjektRight extends UserRightAccessCheck<ProjektDO>
       final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
       if (obj.getProjektManagerGroup() != null
           && userGroupCache.isUserMemberOfGroup(ThreadLocalUserContext.getUserId(),
-          obj.getProjektManagerGroupId()) == true) {
-        if ((obj.getStatus() == null || obj.getStatus().isIn(ProjektStatus.ENDED) == false)
-            && obj.isDeleted() == false) {
+          obj.getProjektManagerGroupId())) {
+        if ((obj.getStatus() == null || !obj.getStatus().isIn(ProjektStatus.ENDED))
+            && !obj.isDeleted()) {
           // Ein Projektleiter sieht keine nicht aktiven oder gelöschten Projekte.
           return true;
         }
       }
       if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.ORGA_TEAM,
-          ProjectForgeGroup.FINANCE_GROUP) == true) {
-        return accessChecker.hasReadAccess(user, getId(), false) == true;
+          ProjectForgeGroup.FINANCE_GROUP)) {
+        return accessChecker.hasReadAccess(user, getId(), false);
       }
       return false;
     } else {
-      return accessChecker.hasReadAccess(user, getId(), false) == true;
+      return accessChecker.hasReadAccess(user, getId(), false);
     }
   }
 
@@ -122,7 +122,7 @@ public class ProjektRight extends UserRightAccessCheck<ProjektDO>
   @Override
   public boolean hasHistoryAccess(final PFUserDO user, final ProjektDO obj)
   {
-    if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.CONTROLLING_GROUP) == true) {
+    if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.CONTROLLING_GROUP)) {
       return true;
     }
     return accessChecker.hasRight(user, getId(), UserRightValue.READWRITE);

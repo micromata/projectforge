@@ -46,7 +46,7 @@ public class SearchDao
       return null;
     }
     log.debug("Searching in " + clazz);
-    if (baseDao.hasLoggedInUserSelectAccess(false) == false || baseDao.hasLoggedInUserHistoryAccess(false) == false) {
+    if (!baseDao.hasLoggedInUserSelectAccess(false) || !baseDao.hasLoggedInUserHistoryAccess(false)) {
       // User has in general no access to history entries of the given object type (clazz).
       return null;
     }

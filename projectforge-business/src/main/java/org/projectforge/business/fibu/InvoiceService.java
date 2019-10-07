@@ -79,12 +79,12 @@ public class InvoiceService {
     try {
       Resource invoiceTemplate = null;
       boolean isSkonto = data.getDiscountMaturity() != null && data.getDiscountPercent() != null && data.getDiscountZahlungsZielInTagen() != null;
-      if (customInvoiceTemplateName.isEmpty() == false) {
+      if (!customInvoiceTemplateName.isEmpty()) {
         String resourceDir = configurationService.getResourceDir();
         invoiceTemplate = applicationContext
                 .getResource("file://" + resourceDir + "/officeTemplates/" + customInvoiceTemplateName + (isSkonto ? "_Skonto" : "") + ".docx");
       }
-      if (invoiceTemplate == null || invoiceTemplate.exists() == false) {
+      if (invoiceTemplate == null || !invoiceTemplate.exists()) {
         invoiceTemplate = applicationContext.getResource("classpath:officeTemplates/InvoiceTemplate" + (isSkonto ? "_Skonto" : "") + ".docx");
       }
 
@@ -126,7 +126,7 @@ public class InvoiceService {
   }
 
   private String getReplacementForAttachment(final RechnungDO data) {
-    if (StringUtils.isEmpty(data.getAttachment()) == false) {
+    if (!StringUtils.isEmpty(data.getAttachment())) {
       return I18nHelper.getLocalizedMessage("fibu.attachment") + ":\r\n" + data.getAttachment();
     } else {
       return "";
@@ -136,7 +136,7 @@ public class InvoiceService {
   private void replaceInWholeDocument(XWPFDocument document, Map<String, String> map) {
     List<XWPFParagraph> paragraphs = document.getParagraphs();
     for (XWPFParagraph paragraph : paragraphs) {
-      if (StringUtils.isEmpty(paragraph.getText()) == false) {
+      if (!StringUtils.isEmpty(paragraph.getText())) {
         replaceInParagraph(paragraph, map);
       }
     }
@@ -145,7 +145,7 @@ public class InvoiceService {
   private void replaceInParagraph(XWPFParagraph paragraph, Map<String, String> map) {
     for (Map.Entry<String, String> entry : map.entrySet()) {
       String searchText = "{" + entry.getKey() + "}";
-      if (StringUtils.isEmpty(paragraph.getText()) == false && StringUtils.contains(paragraph.getText(), searchText)) {
+      if (!StringUtils.isEmpty(paragraph.getText()) && StringUtils.contains(paragraph.getText(), searchText)) {
         replaceInParagraph(paragraph, searchText, entry.getValue() != null ? entry.getValue() : "");
       }
     }

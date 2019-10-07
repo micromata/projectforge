@@ -60,7 +60,7 @@ public class PfHistoryMasterXmlBeforePersistListener implements JpaXmlBeforePers
   private void setRefEntityPk(PfHistoryMasterDO pfm, XmlDumpRestoreContext ctx)
   {
     String entn = pfm.getEntityName();
-    if (StringUtils.isBlank(entn) == true) {
+    if (StringUtils.isBlank(entn)) {
       LOG.warn("History entry has no entityName");
       return;
     }
@@ -96,7 +96,7 @@ public class PfHistoryMasterXmlBeforePersistListener implements JpaXmlBeforePers
   {
 
     String smodby = pfm.getModifiedBy();
-    if (NumberUtils.isDigits(smodby) == false) {
+    if (!NumberUtils.isDigits(smodby)) {
       return;
     }
     Integer olduserpk = Integer.parseInt(smodby);
@@ -121,7 +121,7 @@ public class PfHistoryMasterXmlBeforePersistListener implements JpaXmlBeforePers
   private void setNewCollectionRefPks(PfHistoryMasterDO pfm, XmlDumpRestoreContext ctx)
   {
     for (String key : pfm.getAttributes().keySet()) {
-      if (key.endsWith(":ov") == false && key.endsWith(":nv") == false) {
+      if (!key.endsWith(":ov") && !key.endsWith(":nv")) {
         continue;
       }
       PfHistoryAttrDO row = (PfHistoryAttrDO) pfm.getAttributeRow(key);
@@ -159,7 +159,7 @@ public class PfHistoryMasterXmlBeforePersistListener implements JpaXmlBeforePers
 
   private List<Integer> parseIntList(String value)
   {
-    if (StringUtils.isBlank(value) == true) {
+    if (StringUtils.isBlank(value)) {
       return null;
     }
     String[] values = StringUtils.split(value, ',');

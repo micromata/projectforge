@@ -47,11 +47,11 @@ public class ExDateConverter extends PropertyConverter
   @Override
   public boolean toVEvent(final TeamEventDO event, final VEvent vEvent)
   {
-    if (event.hasRecurrence() == false || event.getRecurrenceExDate() == null) {
+    if (!event.hasRecurrence() || event.getRecurrenceExDate() == null) {
       return false;
     }
 
-    final List<Date> exDates = ICal4JUtils.parseCSVDatesAsICal4jDates(event.getRecurrenceExDate(), (false == event.getAllDay()), ICal4JUtils.getUTCTimeZone());
+    final List<Date> exDates = ICal4JUtils.parseCSVDatesAsICal4jDates(event.getRecurrenceExDate(), (!event.getAllDay()), ICal4JUtils.getUTCTimeZone());
 
     if (CollectionUtils.isEmpty(exDates)) {
       return false;
@@ -59,7 +59,7 @@ public class ExDateConverter extends PropertyConverter
 
     for (final Date date : exDates) {
       final DateList dateList;
-      if (event.getAllDay() == true) {
+      if (event.getAllDay()) {
         dateList = new DateList(Value.DATE);
       } else {
         dateList = new DateList();

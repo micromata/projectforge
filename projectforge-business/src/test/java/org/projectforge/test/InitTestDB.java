@@ -140,7 +140,7 @@ public class InitTestDB {
     tenantsToAssign.add(tenantService.getDefaultTenant());
     tenantDao.internalAssignTenants(user, tenantsToAssign, null, false, false);
     putUser(user);
-    if (user.getUsername().equals(AbstractTestBase.ADMIN) == true) {
+    if (user.getUsername().equals(AbstractTestBase.ADMIN)) {
       AbstractTestBase.ADMIN_USER = user;
     }
     return user;
@@ -371,11 +371,11 @@ public class InitTestDB {
   }
 
   private void initTaskTree() {
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug("Setting taskTree.expired: " + taskDao.getTaskTree());
     }
     taskDao.getTaskTree().clear();
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug("TaskTree after reload: " + taskDao.getTaskTree());
     }
     if (taskDao.getTaskTree().getRootTaskNode() == null) {

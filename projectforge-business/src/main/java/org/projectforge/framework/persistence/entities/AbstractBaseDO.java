@@ -271,17 +271,14 @@ public abstract class AbstractBaseDO<I extends Serializable> implements Extended
       // Reject field from inner class.
       return false;
     }
-    if (Modifier.isTransient(field.getModifiers()) == true) {
+    if (Modifier.isTransient(field.getModifiers())) {
       // transients.
       return false;
     }
-    if (Modifier.isStatic(field.getModifiers()) == true) {
+    if (Modifier.isStatic(field.getModifiers())) {
       // transients.
       return false;
     }
-    if ("created".equals(field.getName()) == true || "lastUpdate".equals(field.getName()) == true) {
-      return false;
-    }
-    return true;
+    return "created".equals(field.getName()) != true && "lastUpdate".equals(field.getName()) != true;
   }
 }

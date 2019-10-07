@@ -48,7 +48,7 @@ public class LdapGroup extends LdapObject<String>
 
   public LdapGroup addMember(final String dn, final String baseDN)
   {
-    if (dn.endsWith(baseDN) == true) {
+    if (dn.endsWith(baseDN)) {
       members.add(dn);
     } else {
       members.add(dn + "," + baseDN);

@@ -94,7 +94,7 @@ public class TenantRegistryMap extends AbstractCache {
 
   public TenantRegistry getTenantRegistry(TenantDO tenant) {
     checkRefresh();
-    if (tenantService.isMultiTenancyAvailable() == false) {
+    if (!tenantService.isMultiTenancyAvailable()) {
       if (tenant != null && !tenant.isDefault()) {
         log.warn("Oups, why call getTenantRegistry with tenant " + tenant.getId()
                 + " if ProjectForge is running in single tenant mode?");
@@ -133,7 +133,7 @@ public class TenantRegistryMap extends AbstractCache {
   }
 
   public TenantRegistry getTenantRegistry() {
-    if (tenantService.isMultiTenancyAvailable() == false) {
+    if (!tenantService.isMultiTenancyAvailable()) {
       return getSingleTenantRegistry();
     }
     final TenantDO tenant = tenantChecker.getCurrentTenant();
@@ -194,10 +194,10 @@ public class TenantRegistryMap extends AbstractCache {
   protected void refresh() {
     log.info("Refreshing " + TenantRegistry.class.getName() + "...");
     final Iterator<Map.Entry<Integer, TenantRegistry>> it = tenantRegistryMap.entrySet().iterator();
-    while (it.hasNext() == true) {
+    while (it.hasNext()) {
       final Map.Entry<Integer, TenantRegistry> entry = it.next();
       final TenantRegistry registry = entry.getValue();
-      if (registry.isOutdated() == true) {
+      if (registry.isOutdated()) {
         final TenantDO tenant = registry.getTenant();
         log.info("Detaching caches of tenant '"
                 + (tenant != null ? tenant.getShortName() : "null")

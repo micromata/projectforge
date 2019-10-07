@@ -57,7 +57,7 @@ public class I18nKeyAndParams
     if (this == o) {
       return true;
     }
-    if ((o instanceof I18nKeyAndParams) == false) {
+    if (!(o instanceof I18nKeyAndParams)) {
       return false;
     }
 

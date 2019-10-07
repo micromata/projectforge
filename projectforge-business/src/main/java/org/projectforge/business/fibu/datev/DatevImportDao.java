@@ -246,7 +246,7 @@ public class DatevImportDao
     log.info("Reconcile Buchungsdaten called");
     for (final ImportedElement<BuchungssatzDO> el : sheet.getElements()) {
       final BuchungssatzDO satz = el.getValue();
-      if (el.isFaulty() == true) {
+      if (el.isFaulty()) {
         String kost = (String) el.getErrorProperty("kost1");
         if (kost != null) {
           final int[] vals = KostFormatter.splitKost(kost);
@@ -284,10 +284,10 @@ public class DatevImportDao
       final KontoDO dbKonto = kontoDao.getKonto(konto.getNummer());
       if (dbKonto != null) {
         konto.setId(dbKonto.getId());
-        if (el.isSelected() == true) {
+        if (el.isSelected()) {
           col.add(konto);
         }
-      } else if (el.isSelected() == true) {
+      } else if (el.isSelected()) {
         col.add(konto);
       }
     }
@@ -313,13 +313,13 @@ public class DatevImportDao
       boolean addSatz = false;
       if (dbSatz != null) {
         satz.setId(dbSatz.getId());
-        if (el.isSelected() == true) {
+        if (el.isSelected()) {
           addSatz = true;
         }
-      } else if (el.isSelected() == true) {
+      } else if (el.isSelected()) {
         addSatz = true;
       }
-      if (addSatz == true) {
+      if (addSatz) {
         final BuchungssatzDO newSatz = new BuchungssatzDO();
         newSatz.copyValuesFrom(satz, "konto", "gegenKonto", "kost1", "kost2");
         newSatz.setKonto((KontoDO) get(KontoDO.class, satz.getKontoId()));

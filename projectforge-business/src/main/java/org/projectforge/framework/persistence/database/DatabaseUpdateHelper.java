@@ -118,12 +118,12 @@ public class DatabaseUpdateHelper
           if (ch == ',' || ch == '[') {
             break;
           }
-          if (Character.isWhitespace(ch) == false) {
+          if (!Character.isWhitespace(ch)) {
             syntax = false;
             break;
           }
         }
-        if (syntax == true) {
+        if (syntax) {
           list.add(pos);
         }
       } else {

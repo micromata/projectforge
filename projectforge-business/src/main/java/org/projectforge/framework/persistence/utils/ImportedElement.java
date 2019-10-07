@@ -156,10 +156,10 @@ public class ImportedElement<T> implements Serializable
   {
     boolean modified = false;
     if (type == BigDecimal.class) {
-      if (NumberHelper.isEqual((BigDecimal) newValue, (BigDecimal) origValue) == false) {
+      if (!NumberHelper.isEqual((BigDecimal) newValue, (BigDecimal) origValue)) {
         modified = true;
       }
-    } else if (Objects.equals(newValue, origValue) == false) {
+    } else if (!Objects.equals(newValue, origValue)) {
       modified = true;
     }
     if (modified) {
@@ -196,7 +196,7 @@ public class ImportedElement<T> implements Serializable
    */
   public boolean isModified()
   {
-    return reconciled == true && oldValue != null && CollectionUtils.isEmpty(getPropertyChanges()) == false;
+    return reconciled && oldValue != null && !CollectionUtils.isEmpty(getPropertyChanges());
   }
 
   /**
@@ -204,7 +204,7 @@ public class ImportedElement<T> implements Serializable
    */
   public boolean isUnmodified()
   {
-    return reconciled == true && oldValue != null && oldValue.equals(value) == true;
+    return reconciled && oldValue != null && oldValue.equals(value);
   }
 
   /**
@@ -212,7 +212,7 @@ public class ImportedElement<T> implements Serializable
    */
   public boolean isNew()
   {
-    return reconciled == true && oldValue == null;
+    return reconciled && oldValue == null;
   }
 
   /**
@@ -241,7 +241,7 @@ public class ImportedElement<T> implements Serializable
    */
   public boolean isSelected()
   {
-    return isFaulty() == false && selected;
+    return !isFaulty() && selected;
   }
 
   /**
@@ -250,7 +250,7 @@ public class ImportedElement<T> implements Serializable
    */
   public void setSelected(boolean selected)
   {
-    if (isFaulty() == false) {
+    if (!isFaulty()) {
       this.selected = selected;
     } else {
       this.selected = false;

@@ -116,7 +116,7 @@ public class HistoryMigrateService
             String comment = rs.getString("user_comment");
             //        Integer modifiedId = rs.getInt("modified_id");
             String userName = rs.getString("username");
-            if (StringUtils.isBlank(userName) == true) {
+            if (StringUtils.isBlank(userName)) {
               userName = "anon";
             }
             int optyp = rs.getInt("type");
@@ -150,7 +150,7 @@ public class HistoryMigrateService
               de.setPropertyOpType(getPropOpTypeFrom(hm.getEntityOpType()));
               HistoryServiceImpl.putHistProp(hm, de);
             });
-            if (hm.getAttributes().isEmpty() == true) {
+            if (hm.getAttributes().isEmpty()) {
               if (opType == EntityOpType.Insert) {
                 attachInsertProperties(emgr, hm);
               } else {
@@ -234,7 +234,7 @@ public class HistoryMigrateService
   private void insertHistory(IEmgr<?> emgr, PfHistoryMasterDO hm)
   {
     boolean exists = checkNonExistant(emgr, hm);
-    if (exists == true) {
+    if (exists) {
       LOG.info("Do not import because already exists: " + hmToString(hm));
       ++notMigratedCount;
       return;
@@ -270,7 +270,7 @@ public class HistoryMigrateService
   {
     List<PfHistoryMasterDO> res;
 
-    if (StringUtils.isNotBlank(hm.getTransactionId()) == true) {
+    if (StringUtils.isNotBlank(hm.getTransactionId())) {
       res = emgr.selectAttached(PfHistoryMasterDO.class,
           "select e from " + PfHistoryMasterDO.class.getName()
               + " e where e.entityId = :entityId and e.entityName = :entityName and e.transactionId = :transactionId",
@@ -282,8 +282,8 @@ public class HistoryMigrateService
               + " e where e.entityId = :entityId and e.entityName = :entityName and e.modifiedAt = :modifiedAt",
           "entityId", hm.getEntityId(), "entityName", hm.getEntityName(), "modifiedAt", hm.getModifiedAt());
     }
-    if (overwrite == false || res.isEmpty() == true) {
-      return res.isEmpty() == false;
+    if (!overwrite || res.isEmpty()) {
+      return !res.isEmpty();
     }
     ++foundExistantCount;
     res.forEach((rec) -> emgr.deleteAttached(rec));

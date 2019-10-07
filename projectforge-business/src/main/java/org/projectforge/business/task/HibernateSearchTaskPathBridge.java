@@ -55,7 +55,7 @@ public class HibernateSearchTaskPathBridge implements FieldBridge
   {
     // DESIGN bug, low level index should not rely on other.
     // did a workoround.
-    if (PfJpaXmlDumpServiceImpl.isTransaction == true) {
+    if (PfJpaXmlDumpServiceImpl.isTransaction) {
       log.warn("PfJpaXmlDumpServiceImpl.isTransaction = true");
       return;
     }
@@ -71,7 +71,7 @@ public class HibernateSearchTaskPathBridge implements FieldBridge
     list.forEach(node -> {
       buf.append(node.getTask().getTitle()).append("|");
     });
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug(buf.toString());
     }
     luceneOptions.addFieldToDocument(name, buf.toString(), document);

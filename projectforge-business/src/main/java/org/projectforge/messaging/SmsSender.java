@@ -97,15 +97,15 @@ public class SmsSender {
       HttpResponseCode responseCode = null;
       if (response == null || responseNumber != 200) {
         responseCode = HttpResponseCode.UNKNOWN_ERROR;
-      } else if (matches(response, config.getSmsReturnPatternNumberError()) == true) {
+      } else if (matches(response, config.getSmsReturnPatternNumberError())) {
         responseCode = HttpResponseCode.NUMBER_ERROR;
-      } else if (matches(response, config.getSmsReturnPatternMessageToLargeError()) == true) {
+      } else if (matches(response, config.getSmsReturnPatternMessageToLargeError())) {
         responseCode = HttpResponseCode.MESSAGE_TO_LARGE;
-      } else if (matches(response, config.getSmsReturnPatternMessageError()) == true) {
+      } else if (matches(response, config.getSmsReturnPatternMessageError())) {
         responseCode = HttpResponseCode.MESSAGE_ERROR;
-      } else if (matches(response, config.getSmsReturnPatternError()) == true) {
+      } else if (matches(response, config.getSmsReturnPatternError())) {
         responseCode = HttpResponseCode.UNKNOWN_ERROR;
-      } else if (matches(response, config.getSmsReturnPatternSuccess()) == true) {
+      } else if (matches(response, config.getSmsReturnPatternSuccess())) {
         responseCode = HttpResponseCode.SUCCESS;
       } else {
         responseCode = HttpResponseCode.UNKNOWN_ERROR;

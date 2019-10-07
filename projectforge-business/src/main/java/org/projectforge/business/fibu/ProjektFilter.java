@@ -78,7 +78,7 @@ public class ProjektFilter extends BaseSearchFilter implements Serializable
 
   public void setListType(String listType)
   {
-    if (listType.equals("deleted") == true) {
+    if (listType.equals("deleted")) {
       deleted = true;
     } else {
       deleted = false;

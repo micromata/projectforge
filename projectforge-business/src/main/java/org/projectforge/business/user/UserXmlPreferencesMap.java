@@ -89,7 +89,7 @@ public class UserXmlPreferencesMap
    */
   public void putEntry(String key, Object value, boolean persistent)
   {
-    if (persistent == true) {
+    if (persistent) {
       setModified(key, true);
       getPersistentData().put(key, value);
     } else {
@@ -144,12 +144,12 @@ public class UserXmlPreferencesMap
 
   public boolean isModified()
   {
-    return getModifiedObjects().isEmpty() == false;
+    return !getModifiedObjects().isEmpty();
   }
 
   protected void setModified(String key, boolean isModified)
   {
-    if (isModified == true) {
+    if (isModified) {
       getModifiedObjects().add(key);
     } else {
       getModifiedObjects().remove(key);

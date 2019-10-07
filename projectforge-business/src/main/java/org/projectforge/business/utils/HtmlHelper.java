@@ -58,10 +58,10 @@ public class HtmlHelper
       return null;
     }
     final String result = StringEscapeUtils.escapeHtml4(str);
-    if (createLineBreaks == false) {
+    if (!createLineBreaks) {
       return result;
     } else {
-      if (result.contains("\r\n") == true) {
+      if (result.contains("\r\n")) {
         return StringUtils.replace(result, "\r\n", "<br/>\r\n");
       } else {
         return StringUtils.replace(result, "\n", "<br/>\n");
@@ -116,11 +116,11 @@ public class HtmlHelper
    */
   public static String formatText(final String str, final boolean escapeChars)
   {
-    if (StringUtils.isEmpty(str) == true) {
+    if (StringUtils.isEmpty(str)) {
       return "";
     }
     String s = str;
-    if (escapeChars == true) {
+    if (escapeChars) {
       s = escapeXml(str);
     }
     final StringBuffer buf = new StringBuffer();
@@ -134,7 +134,7 @@ public class HtmlHelper
       } else if (ch == '\r') {
         // Do nothing
       } else if (ch == ' ') {
-        if (doubleSpace == true) {
+        if (doubleSpace) {
           buf.append("&nbsp;");
         } else {
           buf.append(' ');
@@ -156,7 +156,7 @@ public class HtmlHelper
   public static String formatXSLFOText(final String str, final boolean escapeChars)
   {
     String s = str;
-    if (escapeChars == true) {
+    if (escapeChars) {
       s = escapeXml(str);
     }
     return StringUtils.replace(s, "\n", "<br/>");

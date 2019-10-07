@@ -39,7 +39,7 @@ public class KostHelper
     final String str = kostString.trim();
     if (str.length() == 8) {
       for (int i = 0; i < 8; i++) {
-        if (Character.isDigit(str.charAt(i)) == false) {
+        if (!Character.isDigit(str.charAt(i))) {
           return null;
         }
       }
@@ -49,7 +49,7 @@ public class KostHelper
           if (str.charAt(i) != '.') {
             return null;
           }
-        } else if (Character.isDigit(str.charAt(i)) == false) {
+        } else if (!Character.isDigit(str.charAt(i))) {
           return null;
         }
       }

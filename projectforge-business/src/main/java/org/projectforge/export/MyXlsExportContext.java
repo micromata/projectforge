@@ -42,7 +42,7 @@ public class MyXlsExportContext implements ExportContext
 
   public MyXlsExportContext()
   {
-    if (initialized == false) {
+    if (!initialized) {
       initialized = true;
       ExportConfig.setInstance(new ExportConfig()
       {

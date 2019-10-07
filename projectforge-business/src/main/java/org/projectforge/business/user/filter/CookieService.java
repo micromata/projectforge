@@ -61,7 +61,7 @@ public class CookieService
     final Cookie stayLoggedInCookie = getStayLoggedInCookie(request);
     if (stayLoggedInCookie != null) {
       final String value = stayLoggedInCookie.getValue();
-      if (StringUtils.isBlank(value) == true) {
+      if (StringUtils.isBlank(value)) {
         return null;
       }
       final String[] values = value.split(":");
@@ -75,15 +75,15 @@ public class CookieService
         log.warn("Invalid cookie found (user not found): " + value);
         return null;
       }
-      if (user.getUsername().equals(values[1]) == false) {
+      if (!user.getUsername().equals(values[1])) {
         log.warn("Invalid cookie found (user name wrong, maybe changed): " + value);
         return null;
       }
-      if (values[2] == null || values[2].equals(user.getStayLoggedInKey()) == false) {
+      if (values[2] == null || !values[2].equals(user.getStayLoggedInKey())) {
         log.warn("Invalid cookie found (stay-logged-in key, maybe renewed and/or user password changed): " + value);
         return null;
       }
-      if (Login.getInstance().checkStayLoggedIn(user) == false) {
+      if (!Login.getInstance().checkStayLoggedIn(user)) {
         log.warn("Stay-logged-in wasn't accepted by the login handler: " + user.getUserDisplayName());
         return null;
       }
@@ -118,7 +118,7 @@ public class CookieService
   private Boolean isSecureCookieConfigured()
   {
     final Boolean secure = serverProperties.getServlet().getSession().getCookie().getSecure();
-    return secure != null && secure == true;
+    return secure != null && secure;
   }
 
   public Cookie getStayLoggedInCookie(final HttpServletRequest request)
@@ -131,7 +131,7 @@ public class CookieService
     final Cookie[] cookies = request.getCookies();
     if (cookies != null) {
       for (final Cookie cookie : cookies) {
-        if (name.equals(cookie.getName()) == true) {
+        if (name.equals(cookie.getName())) {
           return cookie;
         }
       }

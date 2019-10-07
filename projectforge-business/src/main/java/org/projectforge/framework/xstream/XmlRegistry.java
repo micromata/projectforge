@@ -155,7 +155,7 @@ public class XmlRegistry
         return converter;
       }
       for (final Class< ? > cls : converterRegistry.keySet()) {
-        if (cls.isAssignableFrom(clazz) == true) {
+        if (cls.isAssignableFrom(clazz)) {
           final IConverter< ? > conv = converterRegistry.get(cls);
           if (conv != null) {
             // Register so every type must only be checked once.
@@ -174,7 +174,7 @@ public class XmlRegistry
   public boolean asAttributeAsDefault(final Class< ? > type)
   {
     if (asAttributeAsDefaultSet != null) {
-      if (asAttributeAsDefaultSet.contains(type) == true) {
+      if (asAttributeAsDefaultSet.contains(type)) {
         return true;
       }
     }

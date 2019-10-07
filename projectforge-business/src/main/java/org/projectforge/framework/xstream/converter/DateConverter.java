@@ -72,7 +72,7 @@ public class DateConverter extends AbstractValueConverter<Date>
   @Override
   public Date fromString(String str)
   {
-    if (StringUtils.isEmpty(str) == true || XmlConstants.NULL_IDENTIFIER.equals(str) == true) {
+    if (StringUtils.isEmpty(str) || XmlConstants.NULL_IDENTIFIER.equals(str)) {
       return null;
     }
     String format = null;

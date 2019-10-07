@@ -64,7 +64,7 @@ public class LdapOrganizationalUnitDao
       protected Object call() throws NameNotFoundException, Exception
       {
         final String path = LdapUtils.getOu(ou, organizationalUnits);
-        if (doesExist(ctx, ou, organizationalUnits) == true) {
+        if (doesExist(ctx, ou, organizationalUnits)) {
           log.info(OBJECT_CLASS + " does already exist (OK): " + path);
           return null;
         }
@@ -89,7 +89,7 @@ public class LdapOrganizationalUnitDao
       protected Object call() throws NameNotFoundException, Exception
       {
         final String path = LdapUtils.getOu(ou, organizationalUnits);
-        if (doesExist(ctx, ou, organizationalUnits) == false) {
+        if (!doesExist(ctx, ou, organizationalUnits)) {
           log.info(OBJECT_CLASS + " doesn't exist and can't delete it (OK): " + path);
           return null;
         }
@@ -107,7 +107,7 @@ public class LdapOrganizationalUnitDao
     controls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
     final String searchBase = LdapUtils.getOu(organizationalUnits);
     results = ctx.search(searchBase, "(&(objectClass=" + OBJECT_CLASS + ")(" + LdapUtils.getOu(ou) + "))", controls);
-    return results.hasMore() == true;
+    return results.hasMore();
   }
 
   public void setLdapConnector(final LdapConnector ldapConnector)

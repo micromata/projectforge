@@ -96,7 +96,7 @@ public class SEPATransferGeneratorTest {
 
     SEPATransferResult result = this.SEPATransferGenerator.format(invoice);
 
-    if (ok == false) {
+    if (!ok) {
       Assertions.assertFalse(result.isSuccessful());
       return;
     }
@@ -118,7 +118,7 @@ public class SEPATransferGeneratorTest {
     // check creditor
     Assertions.assertEquals(creditor, cdtTrfTxInf.getCdtr().getNm());
     Assertions.assertEquals(iban, cdtTrfTxInf.getCdtrAcct().getId().getIBAN());
-    if (iban.toUpperCase().startsWith("DE") == false) {
+    if (!iban.toUpperCase().startsWith("DE")) {
       Assertions.assertEquals(bic.toUpperCase(), cdtTrfTxInf.getCdtrAgt().getFinInstnId().getBIC());
     }
     Assertions.assertEquals(purpose, cdtTrfTxInf.getRmtInf().getUstrd());

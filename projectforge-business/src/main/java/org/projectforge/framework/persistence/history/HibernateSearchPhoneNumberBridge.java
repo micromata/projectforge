@@ -36,7 +36,7 @@ public class HibernateSearchPhoneNumberBridge implements StringBridge
 {
   public String objectToString(final Object object)
   {
-    if (object == null || object instanceof String == false) {
+    if (object == null || !(object instanceof String)) {
       return "";
     }
     final String number = (String) object;

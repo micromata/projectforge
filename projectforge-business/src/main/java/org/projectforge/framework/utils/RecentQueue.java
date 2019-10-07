@@ -57,7 +57,7 @@ public class RecentQueue<T> implements Serializable
    */
   public T get(Integer pos)
   {
-    if (CollectionUtils.isEmpty(recents) == true) {
+    if (CollectionUtils.isEmpty(recents)) {
       return null;
     }
     if (pos == null) {

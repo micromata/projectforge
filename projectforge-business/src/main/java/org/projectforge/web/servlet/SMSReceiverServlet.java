@@ -86,30 +86,30 @@ public class SMSReceiverServlet extends HttpServlet
     req.setCharacterEncoding("UTF-8");
     final String key = req.getParameter("key");
     final String expectedKey = configService.getReceiveSmsKey();
-    if (StringUtils.isBlank(expectedKey) == true) {
+    if (StringUtils.isBlank(expectedKey)) {
       log.warn("Servlet call for receiving sms ignored because receiveSmsKey is not given in config.xml file.");
       response(resp, "NOT YET CONFIGURED");
       return;
     }
-    if (expectedKey.equals(key) == false) {
+    if (!expectedKey.equals(key)) {
       log.warn("Servlet call for receiving sms ignored because receiveSmsKey does not match given key: " + key);
       response(resp, "DENIED");
       return;
     }
     final String dateString = req.getParameter("date");
-    if (StringUtils.isBlank(dateString) == true) {
+    if (StringUtils.isBlank(dateString)) {
       log.warn("Servlet call for receiving sms ignored because parameter 'date' is not given.");
       response(resp, "Missing parameter 'date'.");
       return;
     }
     final String sender = req.getParameter("sender");
-    if (StringUtils.isBlank(sender) == true) {
+    if (StringUtils.isBlank(sender)) {
       log.warn("Servlet call for receiving sms ignored because parameter 'sender' is not given.");
       response(resp, "Missing parameter 'sender'.");
       return;
     }
     final String msg = req.getParameter("msg");
-    if (StringUtils.isBlank(msg) == true) {
+    if (StringUtils.isBlank(msg)) {
       log.warn("Servlet call for receiving sms ignored because parameter 'msg' is not given.");
       response(resp, "Missing parameter 'msg'.");
       return;

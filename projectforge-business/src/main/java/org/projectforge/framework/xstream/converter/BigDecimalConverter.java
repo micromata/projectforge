@@ -36,7 +36,7 @@ public class BigDecimalConverter extends AbstractValueConverter<BigDecimal>
   public BigDecimal fromString(final String str)
   {
     try {
-      if (StringUtils.isEmpty(str) == true || XmlConstants.NULL_IDENTIFIER.equals(str) == true) {
+      if (StringUtils.isEmpty(str) || XmlConstants.NULL_IDENTIFIER.equals(str)) {
         return null;
       }
       return new BigDecimal(str);

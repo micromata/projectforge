@@ -43,7 +43,7 @@ public class ClassConverter implements IConverter<Class< ? >>
   @Override
   public Class< ? > fromString(final String str)
   {
-    if (StringUtils.isBlank(str) == true || XmlConstants.NULL_IDENTIFIER.equals(str) == true) {
+    if (StringUtils.isBlank(str) || XmlConstants.NULL_IDENTIFIER.equals(str)) {
       return null;
     }
     try {

@@ -145,11 +145,11 @@ public class ConfigXml {
   }
 
   private boolean ensureDir(final File dir) {
-    if (dir.exists() == false) {
+    if (!dir.exists()) {
       log.info("Creating directory " + dir);
       dir.mkdir();
     }
-    if (dir.canRead() == false) {
+    if (!dir.canRead()) {
       log.error("Can't create directory: " + dir);
       return false;
     }
@@ -166,7 +166,7 @@ public class ConfigXml {
     //    System.setProperty("base.dir", applicationHomeDir); // Needed by log4j
     final File dir = new File(this.applicationHomeDir);
     final boolean status = ensureDir(dir);
-    if (status == true) {
+    if (status) {
       readConfiguration();
       this.databaseDirectory = FileHelper.getAbsolutePath(applicationHomeDir, this.databaseDirectory);
       ensureDir(new File(databaseDirectory));
@@ -197,7 +197,7 @@ public class ConfigXml {
     reset();
     configFile = new File(applicationHomeDir, CONFIG_XML_FILE);
     String msg = "";
-    if (configFile.canRead() == false) {
+    if (!configFile.canRead()) {
       if (!ProjectForgeApp.ensureInitialConfigFile(CLASSPATH_INITIAL_CONFIG_XML_FILE, CONFIG_XML_FILE)) {
         msg = "Cannot read from config file: '" + getConfigFilePath() + "'. OK, assuming default values.";
         log.info(msg);
@@ -216,7 +216,7 @@ public class ConfigXml {
           final ConfigXml cfg = (ConfigXml) reader.read(xml);
           final String warnings = reader.getWarnings();
           copyDeclaredFields(null, this.getClass(), cfg, this);
-          if (CollectionUtils.isNotEmpty(cfg.plugins) == true) {
+          if (CollectionUtils.isNotEmpty(cfg.plugins)) {
             for (final ConfigurationData srcData : cfg.plugins) {
               final ConfigurationData destData = this.getPluginConfig(srcData.getClass());
               copyDeclaredFields(destData.getClass().getName() + ".", srcData.getClass(), srcData, destData);
@@ -243,8 +243,8 @@ public class ConfigXml {
     final XmlObjectWriter writer = new XmlObjectWriter() {
       @Override
       protected boolean ignoreField(final Object obj, final Field field) {
-        if (field.getDeclaringClass().isAssignableFrom(ConfigXml.class) == true
-                && StringHelper.isIn(field.getName(), "expireTime", "timeOfLastRefresh") == true) {
+        if (field.getDeclaringClass().isAssignableFrom(ConfigXml.class)
+                && StringHelper.isIn(field.getName(), "expireTime", "timeOfLastRefresh")) {
           return true;
         }
         return super.ignoreField(obj, field);
@@ -258,7 +258,7 @@ public class ConfigXml {
       protected void writeField(final Field field, final Object obj, final Object fieldValue, final XmlField annotation,
                                 final Element element) {
         if (field != null) {
-          if (field.isAnnotationPresent(ConfigXmlSecretField.class) == true) {
+          if (field.isAnnotationPresent(ConfigXmlSecretField.class)) {
             super.writeField(field, obj, SECRET_PROPERTY_STRING, annotation, element);
             return;
           }
@@ -303,7 +303,7 @@ public class ConfigXml {
     final Field[] fields = srcClazz.getDeclaredFields();
     AccessibleObject.setAccessible(fields, true);
     for (final Field field : fields) {
-      if (ignoreFields != null && ArrayUtils.contains(ignoreFields, field.getName()) == false && accept(field)) {
+      if (ignoreFields != null && !ArrayUtils.contains(ignoreFields, field.getName()) && accept(field)) {
         try {
           final Object srcFieldValue = field.get(src);
           if (srcFieldValue == null) {
@@ -329,11 +329,11 @@ public class ConfigXml {
             }
             buf.append(".");
             copyDeclaredFields(buf.toString(), srcFieldValue.getClass(), srcFieldValue, destFieldValue, ignoreFields);
-          } else if (PLUGIN_CONFIGS_FIELD_NAME.equals(field.getName()) == true) {
+          } else if (PLUGIN_CONFIGS_FIELD_NAME.equals(field.getName())) {
             // Do nothing.
           } else {
             field.set(dest, srcFieldValue);
-            if (field.isAnnotationPresent(ConfigXmlSecretField.class) == true) {
+            if (field.isAnnotationPresent(ConfigXmlSecretField.class)) {
               log.info(StringUtils.defaultString(prefix) + field.getName() + " = " + SECRET_PROPERTY_STRING);
             } else {
               log.info(StringUtils.defaultString(prefix) + field.getName() + " = " + srcFieldValue);
@@ -366,11 +366,11 @@ public class ConfigXml {
       // Reject field from inner class.
       return false;
     }
-    if (Modifier.isTransient(field.getModifiers()) == true) {
+    if (Modifier.isTransient(field.getModifiers())) {
       // transients.
       return false;
     }
-    if (Modifier.isStatic(field.getModifiers()) == true) {
+    if (Modifier.isStatic(field.getModifiers())) {
       // transients.
       return false;
     }
@@ -525,7 +525,7 @@ public class ConfigXml {
       plugins = new ArrayList<ConfigurationData>();
     } else {
       for (final ConfigurationData configData : plugins) {
-        if (configData != null && configClass.isAssignableFrom(configData.getClass()) == true) {
+        if (configData != null && configClass.isAssignableFrom(configData.getClass())) {
           return configData;
         }
       }
@@ -587,7 +587,7 @@ public class ConfigXml {
     return new ReflectionToStringBuilder(configObject) {
       @Override
       protected Object getValue(final Field field) throws IllegalArgumentException, IllegalAccessException {
-        if (field.isAnnotationPresent(ConfigXmlSecretField.class) == true) {
+        if (field.isAnnotationPresent(ConfigXmlSecretField.class)) {
           return SECRET_PROPERTY_STRING;
         }
         return super.getValue(field);

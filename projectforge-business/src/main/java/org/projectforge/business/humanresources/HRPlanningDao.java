@@ -152,7 +152,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
 
   public HRPlanningDO getEntry(final Integer userId, final Date week) {
     final DateHolder date = new DateHolder(week, DateHelper.UTC, Locale.GERMANY);
-    if (date.isBeginOfWeek() == false) {
+    if (!date.isBeginOfWeek()) {
       log.error("Date is not begin of week, try to change date: " + DateHelper.formatAsUTC(date.getDate()));
       date.setBeginOfWeek();
     }
@@ -163,7 +163,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
     if (planning == null) {
       return null;
     }
-    if (accessChecker.hasLoggedInUserSelectAccess(userRightId, planning, false) == true) {
+    if (accessChecker.hasLoggedInUserSelectAccess(userRightId, planning, false)) {
       return planning;
     } else {
       return null;
@@ -192,8 +192,8 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
     }
     if (existingPlanning != null) {
       for (HRPlanningEntryDO existingEntry : existingPlanning.getEntries()) {
-        if (existingEntry.isDeleted() == false && existingEntry.getId().equals(entry.getId())) {
-          return existingEntry.hasNoFieldChanges(entry) == false;
+        if (!existingEntry.isDeleted() && existingEntry.getId().equals(entry.getId())) {
+          return !existingEntry.hasNoFieldChanges(entry);
         }
       }
     }
@@ -218,7 +218,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
       queryFilter.add(Restrictions.eq("projekt.id", filter.getProjektId()));
     }
     queryFilter.addOrder(Order.desc("week"));
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug(ToStringBuilder.reflectionToString(filter));
     }
     return queryFilter;
@@ -241,7 +241,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
       obj.setFirstDayOfWeek(date.getSQLDate());
     }
 
-    if (accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.HR_GROUP, ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP) == false) {
+    if (!accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.HR_GROUP, ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)) {
       HRPlanningDO existingPlanning = null;
       if (obj.getId() != null) {
         existingPlanning = internalGetById(obj.getId());
@@ -260,10 +260,10 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
 
           final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
           if (projekt.getProjektManagerGroup() != null
-                  && userGroupCache.isUserMemberOfGroup(userId, projekt.getProjektManagerGroupId()) == true) {
+                  && userGroupCache.isUserMemberOfGroup(userId, projekt.getProjektManagerGroupId())) {
             userHasRightForProject = true;
           }
-          if (userHasRightForProject == false) {
+          if (!userHasRightForProject) {
             throw new UserException("hr.planning.entry.error.noRightForProject", projekt.getName());
           }
         }
@@ -304,10 +304,10 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
   @Override
   public List<DisplayHistoryEntry> getDisplayHistoryEntries(final HRPlanningDO obj) {
     final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(obj);
-    if (accessChecker.hasLoggedInUserHistoryAccess(userRightId, obj, false) == false) {
+    if (!accessChecker.hasLoggedInUserHistoryAccess(userRightId, obj, false)) {
       return list;
     }
-    if (CollectionUtils.isNotEmpty(obj.getEntries()) == true) {
+    if (CollectionUtils.isNotEmpty(obj.getEntries())) {
       for (final HRPlanningEntryDO position : obj.getEntries()) {
         final List<DisplayHistoryEntry> entries = internalGetDisplayHistoryEntries(position);
         for (final DisplayHistoryEntry entry : entries) {

@@ -85,7 +85,7 @@ public class RechnungCache extends AbstractCache
       if (pos.getAuftragsPosition() == null || pos.getAuftragsPosition().getAuftrag() == null) {
         log.error("Assigned order position expected: " + pos);
         continue;
-      } else if (pos.isDeleted() == true || rechnung == null || rechnung.isDeleted() == true
+      } else if (pos.isDeleted() || rechnung == null || rechnung.isDeleted()
           || rechnung.getNummer() == null) {
         // Invoice position or invoice is deleted.
         continue;
@@ -103,10 +103,10 @@ public class RechnungCache extends AbstractCache
         mapByAuftragsPositionId.put(auftragsPosition.getId(), setByAuftragsPositionId);
       }
       final RechnungsPositionVO vo = new RechnungsPositionVO(pos);
-      if (setByAuftragId.contains(vo) == false) {
+      if (!setByAuftragId.contains(vo)) {
         setByAuftragId.add(vo);
       }
-      if (setByAuftragsPositionId.contains(vo) == false) {
+      if (!setByAuftragsPositionId.contains(vo)) {
         setByAuftragsPositionId.add(vo);
       }
     }

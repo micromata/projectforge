@@ -292,7 +292,7 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
     final ClassPathResource cpres = new ClassPathResource(path);
     try {
       InputStream in;
-      if (path.endsWith(".gz") == true) {
+      if (path.endsWith(".gz")) {
         in = new GZIPInputStream(cpres.getInputStream());
       } else {
         in = cpres.getInputStream();

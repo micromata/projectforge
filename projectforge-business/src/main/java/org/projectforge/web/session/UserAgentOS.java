@@ -36,11 +36,11 @@ public enum UserAgentOS
       return UNKNOWN;
     }
     final String str = userAgent.toLowerCase();
-    if (str.contains("windows") == true) {
+    if (str.contains("windows")) {
       return WINDOWS;
-    } else if (str.contains("mac") == true) {
+    } else if (str.contains("mac")) {
       return MAC;
-    } else if (str.contains("linux") == true || str.contains("suse") == true || str.contains("ubuntu") == true) {
+    } else if (str.contains("linux") || str.contains("suse") || str.contains("ubuntu")) {
       return LINUX;
     }
     return UNKNOWN;

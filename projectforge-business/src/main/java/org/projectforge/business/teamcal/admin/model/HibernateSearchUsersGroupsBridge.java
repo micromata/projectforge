@@ -94,7 +94,7 @@ public class HibernateSearchUsersGroupsBridge implements FieldBridge
       appendUsers(getSortedUsers(doObject.getMinimalAccessUserIds()), buf);
     }
 
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug(buf.toString());
     }
     luceneOptions.addFieldToDocument(name, buf.toString(), document);
@@ -102,7 +102,7 @@ public class HibernateSearchUsersGroupsBridge implements FieldBridge
 
   private Collection<GroupDO> getSortedGroups(final String groupIds)
   {
-    if (StringUtils.isEmpty(groupIds) == true) {
+    if (StringUtils.isEmpty(groupIds)) {
       return null;
     }
     Collection<GroupDO> sortedGroups = new TreeSet<GroupDO>(groupsComparator);
@@ -120,7 +120,7 @@ public class HibernateSearchUsersGroupsBridge implements FieldBridge
 
   private Collection<PFUserDO> getSortedUsers(final String userIds)
   {
-    if (StringUtils.isEmpty(userIds) == true) {
+    if (StringUtils.isEmpty(userIds)) {
       return null;
     }
     Collection<PFUserDO> sortedUsers = new TreeSet<PFUserDO>(usersComparator);

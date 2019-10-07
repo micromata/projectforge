@@ -86,7 +86,7 @@ public class UserXmlPreferencesBaseDOSingleValueConverter implements SingleValue
   @Override
   public Object fromString(final String str)
   {
-    if (StringUtils.isBlank(str) == true) {
+    if (StringUtils.isBlank(str)) {
       return null;
     }
     final Integer id = Integer.parseInt(str);

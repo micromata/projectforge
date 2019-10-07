@@ -113,7 +113,7 @@ public class SendMail
       throw new UserException("mail.error.missingToAddress");
     }
     MailSessionLocalSettingsConfigModel cf = configurationService.createMailSessionLocalSettingsConfigModel();
-    if (cf == null || cf.isEmailEnabled() == false) {
+    if (cf == null || !cf.isEmailEnabled()) {
       log.error("No e-mail host configured. E-Mail not sent: " + composedMessage.toString());
       return false;
     }
@@ -130,13 +130,13 @@ public class SendMail
   private Session getSession()
   {
     MailSessionLocalSettingsConfigModel cf = configurationService.createMailSessionLocalSettingsConfigModel();
-    if (cf.isEmailEnabled() == false) {
+    if (!cf.isEmailEnabled()) {
       log.error("Sending email is not enabled");
       throw new InternalErrorException("mail.error.exception");
     }
     ValContext ctx = new ValContext();
     cf.validate(ctx);
-    if (ctx.hasErrors() == true) {
+    if (ctx.hasErrors()) {
       log.error("SMPT configuration has validation errors");
       for (ValMessage msg : ctx.getMessages()) {
         log.error(msg.toString());
@@ -170,7 +170,7 @@ public class SendMail
       message.setSubject(subject, sendMailConfig.getCharset());
       message.setSentDate(new Date());
 
-      if (StringUtils.isBlank(icalContent) == true && attachments == null) {
+      if (StringUtils.isBlank(icalContent) && attachments == null) {
         // create message without attachments
         if (composedMessage.getContentType() != null) {
           message.setText(composedMessage.getContent(), composedMessage.getCharset(), composedMessage.getContentType());
@@ -200,7 +200,7 @@ public class SendMail
     // create and fill the first message part
     final MimeBodyPart mbp1 = new MimeBodyPart();
     String type = "text/";
-    if (StringUtils.isNotBlank(composedMessage.getContentType()) == true) {
+    if (StringUtils.isNotBlank(composedMessage.getContentType())) {
       type += composedMessage.getContentType();
       type += "; charset=";
       type += composedMessage.getCharset();
@@ -214,7 +214,7 @@ public class SendMail
     final MimeMultipart mp = new MimeMultipart();
     mp.addBodyPart(mbp1);
 
-    if (StringUtils.isNotBlank(icalContent) == true) {
+    if (StringUtils.isNotBlank(icalContent)) {
       message.addHeaderLine("method=REQUEST");
       message.addHeaderLine("charset=UTF-8");
       message.addHeaderLine("component=VEVENT");
@@ -230,7 +230,7 @@ public class SendMail
       mp.addBodyPart(icalBodyPart);
     }
 
-    if (attachments != null && attachments.isEmpty() == false) {
+    if (attachments != null && !attachments.isEmpty()) {
       // create an Array of message parts for Attachments
       final MimeBodyPart mbp[] = new MimeBodyPart[attachments.size()];
       // remember you can extend this functionality with META-INF/mime.types

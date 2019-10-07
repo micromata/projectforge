@@ -75,11 +75,11 @@ public class SchemaGenerator
     for (final Table table : tables) {
       final Table superTable = table.getSuperTable();
       if (superTable != null) {
-        if (dao.doExist(superTable) == true) {
+        if (dao.doExist(superTable)) {
           continue;
         }
         dao.createTable(superTable);
-      } else if (dao.doExist(table) == false) {
+      } else if (!dao.doExist(table)) {
         dao.createTable(table);
       }
     }
@@ -94,7 +94,7 @@ public class SchemaGenerator
         continue;
       }
       // Add additional attributes:
-      if (CollectionUtils.isEmpty(table.getAttributes()) == true) {
+      if (CollectionUtils.isEmpty(table.getAttributes())) {
         continue;
       }
       for (final TableAttribute attr : table.getAttributes()) {
@@ -112,7 +112,7 @@ public class SchemaGenerator
     for (final Table table : tables) {
       final List<TableAttribute> newAttrs = new LinkedList<TableAttribute>();
       for (final TableAttribute attr : table.getAttributes()) {
-        if (attr.getType().isIn(TableAttributeType.SET, TableAttributeType.LIST) == true) {
+        if (attr.getType().isIn(TableAttributeType.SET, TableAttributeType.LIST)) {
           final OrderColumn orderColumn = attr.getAnnotation(OrderColumn.class);
           if (orderColumn != null) {
             final String name = orderColumn.name().length() > 0 ? orderColumn.name() : attr.getName() + "_ORDER";
@@ -133,7 +133,7 @@ public class SchemaGenerator
             continue;
           }
           Class<?> targetEntity = oneToMany.targetEntity();
-          if (targetEntity.equals(void.class) == true) {
+          if (targetEntity.equals(void.class)) {
             targetEntity = attr.getGenericType();
           }
           if (targetEntity == null) {
@@ -183,7 +183,7 @@ public class SchemaGenerator
     final List<Table> joinTables = new LinkedList<Table>();
     for (final Table table : tables) {
       for (final TableAttribute attr : table.getAttributes()) {
-        if (attr.getType().isIn(TableAttributeType.SET, TableAttributeType.LIST) == true) {
+        if (attr.getType().isIn(TableAttributeType.SET, TableAttributeType.LIST)) {
           final ManyToMany manyToMany = attr.getAnnotation(ManyToMany.class);
           if (manyToMany == null) {
             continue;
@@ -196,7 +196,7 @@ public class SchemaGenerator
             continue;
           }
           Class<?> targetEntity = manyToMany.targetEntity();
-          if (targetEntity.equals(void.class) == true) {
+          if (targetEntity.equals(void.class)) {
             targetEntity = attr.getGenericType();
           }
           if (targetEntity == null) {
@@ -286,7 +286,7 @@ public class SchemaGenerator
   public Table getTable(final Class<?> entityClass)
   {
     for (final Table table : tables) {
-      if (table.getEntityClass().equals(entityClass) == true) {
+      if (table.getEntityClass().equals(entityClass)) {
         return table;
       }
     }
@@ -304,7 +304,7 @@ public class SchemaGenerator
     }
     final String lowercase = name.toLowerCase();
     for (final Table table : tables) {
-      if (lowercase.equals(table.getName().toLowerCase()) == true) {
+      if (lowercase.equals(table.getName().toLowerCase())) {
         return table;
       }
     }

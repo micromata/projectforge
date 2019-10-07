@@ -65,11 +65,11 @@ public abstract class Ranges<T extends Comparable<T>> implements Serializable
     if (value == null) {
       return false;
     }
-    if (CollectionUtils.isEmpty(ranges) == true && CollectionUtils.isEmpty(values) == true) {
+    if (CollectionUtils.isEmpty(ranges) && CollectionUtils.isEmpty(values)) {
       return nullRangeMatchesAlways;
     }
     for (final Range<T> range : ranges) {
-      if (range.doesMatch(value) == true) {
+      if (range.doesMatch(value)) {
         return true;
       }
     }
@@ -91,13 +91,13 @@ public abstract class Ranges<T extends Comparable<T>> implements Serializable
   {
     ranges = new ArrayList<Range<T>>();
     values = new ArrayList<T>();
-    if (StringUtils.isBlank(rangesString) == true) {
+    if (StringUtils.isBlank(rangesString)) {
       // No ranges given.
       return this;
     }
     final String[] rangeStrings = StringUtils.split(rangesString, separatorChars);
     for (final String rangeString : rangeStrings) {
-      if (StringUtils.isBlank(rangeString) == true) {
+      if (StringUtils.isBlank(rangeString)) {
         // No range given.
         continue;
       }

@@ -53,20 +53,20 @@ public class UserPrefXmlBeforePersistListener implements JpaXmlBeforePersistList
       return null;
     }
     for (final UserPrefEntryDO entry : entries) {
-      if ("task".equals(entry.getParameter()) == true) {
+      if ("task".equals(entry.getParameter())) {
         updateEntryValue(ctx, entry, TaskDO.class);
-      } else if ("user".equals(entry.getParameter()) == true || //
-          "reporter".equals(entry.getParameter()) == true // Of ToDo's
-          || "assignee".equals(entry.getParameter()) == true // Of ToDo's
+      } else if ("user".equals(entry.getParameter()) || //
+          "reporter".equals(entry.getParameter()) // Of ToDo's
+          || "assignee".equals(entry.getParameter()) // Of ToDo's
           ) {
         updateEntryValue(ctx, entry, PFUserDO.class);
-      } else if ("group".equals(entry.getParameter()) == true) {
+      } else if ("group".equals(entry.getParameter())) {
         updateEntryValue(ctx, entry, GroupDO.class);
-      } else if ("kost2".equals(entry.getParameter()) == true) {
+      } else if ("kost2".equals(entry.getParameter())) {
         updateEntryValue(ctx, entry, Kost2DO.class);
-      } else if ("kunde".equals(entry.getParameter()) == true) {
+      } else if ("kunde".equals(entry.getParameter())) {
         updateEntryValue(ctx, entry, KundeDO.class);
-      } else if ("projekt".equals(entry.getParameter()) == true) {
+      } else if ("projekt".equals(entry.getParameter())) {
         updateEntryValue(ctx, entry, ProjektDO.class);
       }
     }
@@ -76,7 +76,7 @@ public class UserPrefXmlBeforePersistListener implements JpaXmlBeforePersistList
   private void updateEntryValue(final XmlDumpRestoreContext ctx, final UserPrefEntryDO entry,
       final Class<?> entityClass)
   {
-    if (StringUtils.isEmpty(entry.getValue()) == true || "null".equals(entry.getValue()) == true) {
+    if (StringUtils.isEmpty(entry.getValue()) || "null".equals(entry.getValue())) {
       return;
     }
     final Integer oldId = entry.getValueAsInteger();

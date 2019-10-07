@@ -129,7 +129,7 @@ public class ExportWorkbook
   public void updateStyles()
   {
     for (final ExportSheet sheet : sheets) {
-      if (sheet.isImported() == false) {
+      if (!sheet.isImported()) {
         // Don't update styles from imported files.
         sheet.updateStyles();
       }
@@ -148,7 +148,7 @@ public class ExportWorkbook
     updateStyles();
     try {
       poiWorkbook.write(out);
-      if (log.isDebugEnabled() == true) {
+      if (log.isDebugEnabled()) {
         log.info("Excel sheet exported: number of cell styles="
             + this.numberOfCellStyles
             + ", number of data formats="
@@ -211,7 +211,7 @@ public class ExportWorkbook
   public ExportSheet getSheet(final String name)
   {
     for (final ExportSheet sheet : sheets) {
-      if (StringUtils.equals(sheet.getName(), name) == true) {
+      if (StringUtils.equals(sheet.getName(), name)) {
         return sheet;
       }
     }
@@ -280,7 +280,7 @@ public class ExportWorkbook
 
   public short getDataFormat(final String format)
   {
-    if (dataFormats.containsKey(format) == true) {
+    if (dataFormats.containsKey(format)) {
       return dataFormats.get(format);
     }
     final short value = getCreationHelper().createDataFormat().getFormat(format);

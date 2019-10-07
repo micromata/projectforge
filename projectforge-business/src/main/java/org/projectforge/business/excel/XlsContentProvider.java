@@ -150,10 +150,10 @@ public class XlsContentProvider implements ContentProvider
   @Override
   public XlsContentProvider updateRowStyle(final ExportRow row)
   {
-    if (autoFormatCells == true) {
+    if (autoFormatCells) {
       for (final ExportCell cell : row.getCells()) {
         final CellFormat format = cell.ensureAndGetCellFormat();
-        format.setFillForegroundColor(HSSFColor.WHITE.index);
+        format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.WHITE.getIndex());
         switch (row.getRowNum()) {
           /*
            * case 0: font = FONT_HEADER; break;
@@ -165,7 +165,7 @@ public class XlsContentProvider implements ContentProvider
           default:
             format.setFont(FONT_NORMAL);
             if (row.getRowNum() % 2 == 0) {
-              format.setFillForegroundColor(HSSFColor.GREY_25_PERCENT.index);
+              format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.GREY_25_PERCENT.getIndex());
             }
             break;
         }
@@ -280,7 +280,7 @@ public class XlsContentProvider implements ContentProvider
     }
     if (format == null && columns != null) {
       for (final ExportColumn column : columns) {
-        if (column.getName().equals(property) == true) {
+        if (column.getName().equals(property)) {
           format = map.get(column);
           break;
         }

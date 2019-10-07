@@ -269,9 +269,9 @@ public class GanttChart
     xLabelBarRenderer.draw(doc, g1, grid, getDiagramHeight());
 
     // Show today line, if configured.
-    if (style.isShowToday() == true) {
+    if (style.isShowToday()) {
       final DateHolder today = new DateHolder();
-      if (today.isBetween(fromDate, toDate) == true) {
+      if (today.isBetween(fromDate, toDate)) {
         diagram.appendChild(SVGHelper.createLine(doc, getXValue(today.getDate()), 0, getXValue(today.getDate()), getDiagramHeight(),
             SVGColor.RED, "stroke-width", "2"));
       }
@@ -333,12 +333,12 @@ public class GanttChart
       }
       if (fromDate == null) {
         fromDate = periodStart;
-      } else if (periodStart != null && fromDate.after(periodStart) == true) {
+      } else if (periodStart != null && fromDate.after(periodStart)) {
         fromDate = periodStart;
       }
       if (toDate == null) {
         toDate = periodEnd;
-      } else if (periodEnd != null && toDate.before(periodEnd) == true) {
+      } else if (periodEnd != null && toDate.before(periodEnd)) {
         toDate = periodEnd;
       }
     }
@@ -350,25 +350,25 @@ public class GanttChart
   private void drawGanttObjects(final Document doc, final Element g, final Element diagram, final Element grid,
       final Collection<GanttTask> allVisibleGanttObjects)
   {
-    if (CollectionUtils.isEmpty(rootNode.getChildren()) == true) {
+    if (CollectionUtils.isEmpty(rootNode.getChildren())) {
       return;
     }
     boolean first = true;
     for (final GanttTask node : allVisibleGanttObjects) {
-      if (node.isVisible() == false) {
+      if (!node.isVisible()) {
         continue;
       }
       final ObjectInfo taskInfo = getObjectInfo(node);
       drawLabel(node, doc, g);
       GanttObjectType type = node.getType();
       if (type == null) {
-        if (node.hasDuration() == false) {
+        if (!node.hasDuration()) {
           type = GanttObjectType.MILESTONE;
         } else {
           type = GanttObjectType.ACTIVITY;
           if (node.getChildren() != null) {
             for (final GanttTask child : node.getChildren()) {
-              if (child.isVisible() == true) {
+              if (child.isVisible()) {
                 type = GanttObjectType.SUMMARY;
                 break;
               }
@@ -376,7 +376,7 @@ public class GanttChart
           }
         }
       } else {
-        if (type == GanttObjectType.MILESTONE == true && node.hasDuration() == true) {
+        if (type == GanttObjectType.MILESTONE == true && node.hasDuration()) {
           // Milestones can't have durations. Change it to a normal activity.
           type = GanttObjectType.ACTIVITY;
         }
@@ -391,7 +391,7 @@ public class GanttChart
       } else {
         log.error("Unsupported type: " + node.getType());
       }
-      if (first == true) {
+      if (first) {
         first = false;
       } else {
         grid.appendChild(SVGHelper.createLine(doc, 0, taskInfo.y, getDiagramWidth(), taskInfo.y));
@@ -402,11 +402,11 @@ public class GanttChart
   private Collection<GanttTask> getAllVisibleGanttObjects(final Collection<GanttTask> col, final GanttTask node)
   {
     if (node != rootNode) {
-      if (node.isVisible() == true) {
+      if (node.isVisible()) {
         col.add(node);
       }
     }
-    if (CollectionUtils.isEmpty(node.getChildren()) == true) {
+    if (CollectionUtils.isEmpty(node.getChildren())) {
       return col;
     }
     for (final GanttTask child : node.getChildren()) {
@@ -424,15 +424,15 @@ public class GanttChart
       if (n == rootNode || n == null) {
         break;
       }
-      if (n.isVisible() == true) {
+      if (n.isVisible()) {
         ++indent;
       }
     }
     final ObjectInfo taskInfo = getObjectInfo(node);
-    if (StringUtils.isNotBlank(node.getWorkpackageCode()) == true && style.getWorkPackageLabelWidth() > 0) {
+    if (StringUtils.isNotBlank(node.getWorkpackageCode()) && style.getWorkPackageLabelWidth() > 0) {
       labels.appendChild(SVGHelper.createText(doc, 0 + indent * 5, taskInfo.y, node.getWorkpackageCode()));
     }
-    if (StringUtils.isNotBlank(node.getTitle()) == true) {
+    if (StringUtils.isNotBlank(node.getTitle())) {
       labels.appendChild(SVGHelper.createText(doc, style.getWorkPackageLabelWidth() + indent * 10, taskInfo.y, node.getTitle()));
     }
   }
@@ -440,7 +440,7 @@ public class GanttChart
   private void drawSummary(final GanttTask node, final Document doc, final Element diagram)
   {
     final ObjectInfo taskInfo = getObjectInfo(node);
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug("Task added: fromDate=" + taskInfo.fromDate + " (x=" + taskInfo.x1 + "), toDate=" + taskInfo.toDate + " (x=" + taskInfo.x2);
     }
     double x1 = taskInfo.x1;
@@ -465,10 +465,10 @@ public class GanttChart
     }
     diagram.appendChild(SVGHelper.createRect(doc, x1, taskInfo.y + 0.2 * style.getActivityHeight(), width, 0.8 * style.getActivityHeight(),
         SVGColor.DARK_RED, "stroke", "none"));
-    if (drawLeftArrow == true) {
+    if (drawLeftArrow) {
       diagram.appendChild(SVGHelper.createUse(doc, "#redLeftArrow", taskInfo.x1, taskInfo.y + style.getActivityHeight()));
     }
-    if (drawRightArrow == true) {
+    if (drawRightArrow) {
       diagram.appendChild(SVGHelper.createUse(doc, "#redRightArrow", (taskInfo.x2 - GanttChartStyle.SUMMARY_ARROW_SIZE), taskInfo.y
           + style.getActivityHeight()));
     }
@@ -478,11 +478,11 @@ public class GanttChart
   private void drawActivity(final GanttTask node, final Document doc, final Element diagram)
   {
     final ObjectInfo taskInfo = getObjectInfo(node);
-    if (taskInfo.isNaN() == true) {
+    if (taskInfo.isNaN()) {
       // No start and end date given, do nothing:
       return;
     }
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug("Activity added: fromDate="
           + taskInfo.fromDate
           + " (x="
@@ -515,7 +515,7 @@ public class GanttChart
     }
     final double y = taskInfo.y + style.getActivityHeight() / 2;
     final double height = style.getActivityHeight();
-    if (style.isShowCompletion() == true) {
+    if (style.isShowCompletion()) {
       Integer completion = node.getProgress();
       if (completion == null || completion < 0) {
         completion = 0;
@@ -548,7 +548,7 @@ public class GanttChart
     if (x < 0 || x > getDiagramWidth()) {
       return;
     }
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug("Milestone added: date=" + date + " (x=" + x + ")");
     }
     diagram.appendChild(SVGHelper.createUse(doc, "#diamond", x, taskInfo.y + style.getYScale() / 2));
@@ -566,7 +566,7 @@ public class GanttChart
         dist = 1;
       }
       final ObjectInfo depObjectInfo = getObjectInfo(node.getPredecessor());
-      if (depObjectInfo.isVisible() == true) {
+      if (depObjectInfo.isVisible()) {
         final GanttRelationType type = node.getRelationType() != null ? node.getRelationType() : GanttRelationType.FINISH_START;
         final double depX1;
         final double depX2;
@@ -589,7 +589,7 @@ public class GanttChart
         if (depX1 > 0 && depX1 < diagramWidth && depX2 > 0 && depX2 < diagramWidth) {
           diagram.appendChild(SVGHelper.createPath(doc, SVGColor.NONE, 1, SVGColor.BLACK, SVGHelper.drawHorizontalConnectionLine(type,
               depX1, depY1, depX2, depY2, style.getArrowMinXDist() + dist)));
-          if (type.isIn(GanttRelationType.FINISH_START, GanttRelationType.START_START) == true) {
+          if (type.isIn(GanttRelationType.FINISH_START, GanttRelationType.START_START)) {
             diagram.appendChild(SVGHelper.createPath(doc, SVGColor.BLACK, 1, SVGColor.BLACK, SVGHelper.drawArrow(ArrowDirection.RIGHT,
                 depX2 - dist, depY2, style.getArrowSize())));
           } else {
@@ -598,7 +598,7 @@ public class GanttChart
                 / 2, depY2, style.getArrowSize())));
           }
         }
-      } else if (log.isDebugEnabled() == true) {
+      } else if (log.isDebugEnabled()) {
         log.debug("Depend on task is invisible, so cannot draw dependency.");
       }
     }

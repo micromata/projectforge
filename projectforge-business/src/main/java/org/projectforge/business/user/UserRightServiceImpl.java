@@ -160,7 +160,7 @@ public class UserRightServiceImpl implements UserRightService, Serializable
     for (RightRightIdProviderService service : serviceLoader) {
       String cname = service.getClass().getName();
       for (IUserRightId uid : service.getUserRightIds()) {
-        if (userRightIds.containsKey(uid.getId()) == true) {
+        if (userRightIds.containsKey(uid.getId())) {
           Log.error("Duplicated UserId: " + uid.getId());
         }
         userRightIds.put(uid.getId(), uid);

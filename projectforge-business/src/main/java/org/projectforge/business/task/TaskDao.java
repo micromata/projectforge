@@ -151,7 +151,7 @@ public class TaskDao extends BaseDao<TaskDO> {
     @SuppressWarnings("unchecked") final List<Object[]> result = (List<Object[]>) getHibernateTemplate().find(
             "select startTime, stopTime, task.id from TimesheetDO where deleted=false order by task.id");
     final List<Object[]> list = new ArrayList<Object[]>();
-    if (CollectionUtils.isEmpty(result) == false) {
+    if (!CollectionUtils.isEmpty(result)) {
       Integer currentTaskId = null;
       long totalDuration = 0;
       for (final Object[] oa : result) {
@@ -159,7 +159,7 @@ public class TaskDao extends BaseDao<TaskDO> {
         final Timestamp stopTime = (Timestamp) oa[1];
         final Integer taskId = (Integer) oa[2];
         final long duration = (stopTime.getTime() - startTime.getTime()) / 1000;
-        if (currentTaskId == null || currentTaskId.equals(taskId) == false) {
+        if (currentTaskId == null || !currentTaskId.equals(taskId)) {
           if (currentTaskId != null) {
             list.add(new Object[]{totalDuration, currentTaskId});
           }
@@ -206,7 +206,7 @@ public class TaskDao extends BaseDao<TaskDO> {
     List<Object[]> result = getSession().createNamedQuery(TimesheetDO.FIND_START_STOP_BY_TASKID, Object[].class)
             .setParameter("taskId", taskId)
             .list();
-    if (CollectionUtils.isEmpty(result) == true) {
+    if (CollectionUtils.isEmpty(result)) {
       return new Long(0);
     }
     long totalDuration = 0;
@@ -230,13 +230,13 @@ public class TaskDao extends BaseDao<TaskDO> {
     }
     final QueryFilter queryFilter = new QueryFilter(myFilter);
     final Collection<TaskStatus> col = new ArrayList<TaskStatus>(4);
-    if (myFilter.isNotOpened() == true) {
+    if (myFilter.isNotOpened()) {
       col.add(TaskStatus.N);
     }
-    if (myFilter.isOpened() == true) {
+    if (myFilter.isOpened()) {
       col.add(TaskStatus.O);
     }
-    if (myFilter.isClosed() == true) {
+    if (myFilter.isClosed()) {
       col.add(TaskStatus.C);
     }
     if (col.size() > 0) {
@@ -247,7 +247,7 @@ public class TaskDao extends BaseDao<TaskDO> {
               Restrictions.not(Restrictions.in("status", new TaskStatus[]{TaskStatus.N, TaskStatus.O, TaskStatus.C})));
     }
     queryFilter.addOrder(Order.asc("title"));
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug(myFilter.toString());
     }
     return getList(queryFilter);
@@ -264,7 +264,7 @@ public class TaskDao extends BaseDao<TaskDO> {
     if (task.getParentTaskId() == null) {
       // Root task or task without parent task.
       final TaskTree taskTree = getTaskTree(task);
-      if (taskTree.isRootNode(task) == false) {
+      if (!taskTree.isRootNode(task)) {
         // Task is not root task!
         throw new UserException(I18N_KEY_ERROR_PARENT_TASK_NOT_GIVEN);
       }
@@ -304,7 +304,7 @@ public class TaskDao extends BaseDao<TaskDO> {
   @Override
   public boolean hasSelectAccess(final PFUserDO user, final TaskDO obj, final boolean throwException) {
     if (accessChecker.isUserMemberOfGroup(user, false, ProjectForgeGroup.ADMIN_GROUP, ProjectForgeGroup.FINANCE_GROUP,
-            ProjectForgeGroup.CONTROLLING_GROUP) == true) {
+        ProjectForgeGroup.CONTROLLING_GROUP)) {
       return true;
     }
     return super.hasSelectAccess(user, obj, throwException);
@@ -334,12 +334,12 @@ public class TaskDao extends BaseDao<TaskDO> {
     Validate.notNull(dbObj);
     Validate.notNull(obj);
     final TaskTree taskTree = getTaskTree(obj);
-    if (taskTree.isRootNode(obj) == true) {
+    if (taskTree.isRootNode(obj)) {
       if (obj.getParentTaskId() != null) {
         throw new UserException(TaskDao.I18N_KEY_ERROR_CYCLIC_REFERENCE);
       }
-      if (accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.ADMIN_GROUP,
-              ProjectForgeGroup.FINANCE_GROUP) == false) {
+      if (!accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.ADMIN_GROUP,
+          ProjectForgeGroup.FINANCE_GROUP)) {
         return false;
       }
       return true;
@@ -355,21 +355,21 @@ public class TaskDao extends BaseDao<TaskDO> {
     // Checks cyclic and self reference. The parent task is not allowed to be a self reference.
     checkCyclicReference(obj);
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.ADMIN_GROUP,
-            ProjectForgeGroup.FINANCE_GROUP) == true) {
+        ProjectForgeGroup.FINANCE_GROUP)) {
       return true;
     }
-    if (accessChecker.hasPermission(user, obj.getId(), AccessType.TASKS, OperationType.UPDATE,
-            throwException) == false) {
+    if (!accessChecker.hasPermission(user, obj.getId(), AccessType.TASKS, OperationType.UPDATE,
+        throwException)) {
       return false;
     }
-    if (dbObj.getParentTaskId().equals(obj.getParentTaskId()) == false) {
+    if (!dbObj.getParentTaskId().equals(obj.getParentTaskId())) {
       // User moves the object to another task:
-      if (hasInsertAccess(user, obj, throwException) == false) {
+      if (!hasInsertAccess(user, obj, throwException)) {
         // Inserting of object under new task not allowed.
         return false;
       }
-      if (accessChecker.hasPermission(user, dbObj.getParentTaskId(), AccessType.TASKS, OperationType.DELETE,
-              throwException) == false) {
+      if (!accessChecker.hasPermission(user, dbObj.getParentTaskId(), AccessType.TASKS, OperationType.DELETE,
+          throwException)) {
         // Deleting of object under old task not allowed.
         return false;
       }
@@ -378,7 +378,7 @@ public class TaskDao extends BaseDao<TaskDO> {
   }
 
   public boolean hasAccessForKost2AndTimesheetBookingStatus(final PFUserDO user, final TaskDO obj) {
-    if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP) == true) {
+    if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)) {
       return true;
     }
     if (obj == null) {
@@ -388,7 +388,7 @@ public class TaskDao extends BaseDao<TaskDO> {
     final TaskTree taskTree = getTaskTree(obj);
     final ProjektDO projekt = taskTree.getProjekt(taskId);
     // Parent task because id of current task is null and project can't be found.
-    if (projekt != null && getUserGroupCache().isUserProjectManagerOrAssistantForProject(projekt) == true) {
+    if (projekt != null && getUserGroupCache().isUserProjectManagerOrAssistantForProject(projekt)) {
       return true;
     }
     return false;
@@ -397,17 +397,17 @@ public class TaskDao extends BaseDao<TaskDO> {
   @Override
   protected void checkInsertAccess(final PFUserDO user, final TaskDO obj) throws AccessException {
     super.checkInsertAccess(user, obj);
-    if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP) == false) {
+    if (!accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)) {
       if (obj.getProtectTimesheetsUntil() != null) {
         throw new AccessException("task.error.protectTimesheetsUntilReadonly");
       }
-      if (obj.getProtectionOfPrivacy() == true) {
+      if (obj.getProtectionOfPrivacy()) {
         throw new AccessException("task.error.protectionOfPrivacyReadonly");
       }
     }
-    if (hasAccessForKost2AndTimesheetBookingStatus(user, obj) == false) {
+    if (!hasAccessForKost2AndTimesheetBookingStatus(user, obj)) {
       // Non project managers are not able to manipulate the following fields:
-      if (StringUtils.isNotBlank(obj.getKost2BlackWhiteList()) == true || obj.getKost2IsBlackList() == true) {
+      if (StringUtils.isNotBlank(obj.getKost2BlackWhiteList()) || obj.getKost2IsBlackList()) {
         throw new AccessException("task.error.kost2Readonly");
       }
       if (obj.getTimesheetBookingStatus() != TimesheetBookingStatus.DEFAULT) {
@@ -419,7 +419,7 @@ public class TaskDao extends BaseDao<TaskDO> {
   @Override
   protected void checkUpdateAccess(final PFUserDO user, final TaskDO obj, final TaskDO dbObj) throws AccessException {
     super.checkUpdateAccess(user, obj, dbObj);
-    if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP) == false) {
+    if (!accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)) {
       Long ts1 = null, ts2 = null;
       if (obj.getProtectTimesheetsUntil() != null) {
         ts1 = obj.getProtectTimesheetsUntil().getTime();
@@ -427,16 +427,16 @@ public class TaskDao extends BaseDao<TaskDO> {
       if (dbObj.getProtectTimesheetsUntil() != null) {
         ts2 = dbObj.getProtectTimesheetsUntil().getTime();
       }
-      if (Objects.equals(ts1, ts2) == false) {
+      if (!Objects.equals(ts1, ts2)) {
         throw new AccessException("task.error.protectTimesheetsUntilReadonly");
       }
-      if (Objects.equals(obj.getProtectionOfPrivacy(), dbObj.getProtectionOfPrivacy()) == false) {
+      if (!Objects.equals(obj.getProtectionOfPrivacy(), dbObj.getProtectionOfPrivacy())) {
         throw new AccessException("task.error.protectionOfPrivacyReadonly");
       }
     }
-    if (hasAccessForKost2AndTimesheetBookingStatus(user, obj) == false) {
+    if (!hasAccessForKost2AndTimesheetBookingStatus(user, obj)) {
       // Non project managers are not able to manipulate the following fields:
-      if (Objects.equals(obj.getKost2BlackWhiteList(), dbObj.getKost2BlackWhiteList()) == false
+      if (!Objects.equals(obj.getKost2BlackWhiteList(), dbObj.getKost2BlackWhiteList())
               || obj.getKost2IsBlackList() != dbObj.getKost2IsBlackList()) {
         throw new AccessException("task.error.kost2Readonly");
       }
@@ -453,14 +453,14 @@ public class TaskDao extends BaseDao<TaskDO> {
     final TaskTree taskTree = getTaskTree(obj);
     final TaskNode parent = taskTree.getTaskNodeById(obj.getParentTaskId());
     if (parent == null) {
-      if (taskTree.isRootNode(obj) == true && obj.isDeleted() == true) {
+      if (taskTree.isRootNode(obj) && obj.isDeleted()) {
         // Oups, the user has deleted the root task!
       } else {
         throw new UserException(I18N_KEY_ERROR_PARENT_TASK_NOT_FOUND);
       }
     }
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.ADMIN_GROUP,
-            ProjectForgeGroup.FINANCE_GROUP) == true) {
+        ProjectForgeGroup.FINANCE_GROUP)) {
       return true;
     }
     return accessChecker.hasPermission(user, obj.getParentTaskId(), AccessType.TASKS, OperationType.INSERT,
@@ -471,11 +471,11 @@ public class TaskDao extends BaseDao<TaskDO> {
   public boolean hasDeleteAccess(final PFUserDO user, final TaskDO obj, final TaskDO dbObj,
                                  final boolean throwException) {
     Validate.notNull(obj);
-    if (hasUpdateAccess(user, obj, dbObj, throwException) == true) {
+    if (hasUpdateAccess(user, obj, dbObj, throwException)) {
       return true;
     }
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.ADMIN_GROUP,
-            ProjectForgeGroup.FINANCE_GROUP) == true) {
+        ProjectForgeGroup.FINANCE_GROUP)) {
       return true;
     }
     return accessChecker.hasPermission(user, obj.getParentTaskId(), AccessType.TASKS, OperationType.DELETE,
@@ -486,7 +486,7 @@ public class TaskDao extends BaseDao<TaskDO> {
   protected ModificationStatus copyValues(final TaskDO src, final TaskDO dest, final String... ignoreFields) {
     ModificationStatus modified = super.copyValues(src, dest, ignoreFields);
     // Priority value is null-able (may be was not copied from super.copyValues):
-    if (Objects.equals(dest.getPriority(), src.getPriority()) == false) {
+    if (!Objects.equals(dest.getPriority(), src.getPriority())) {
       dest.setPriority(src.getPriority());
       modified = ModificationStatus.MAJOR;
     }
@@ -501,7 +501,7 @@ public class TaskDao extends BaseDao<TaskDO> {
   }
 
   private void checkCyclicReference(final TaskDO obj) {
-    if (obj.getId().equals(obj.getParentTaskId()) == true) {
+    if (obj.getId().equals(obj.getParentTaskId())) {
       // Self reference
       throw new UserException(I18N_KEY_ERROR_CYCLIC_REFERENCE);
     }
@@ -512,7 +512,7 @@ public class TaskDao extends BaseDao<TaskDO> {
       throw new UserException(I18N_KEY_ERROR_PARENT_TASK_NOT_FOUND);
     }
     final TaskNode node = taskTree.getTaskNodeById(obj.getId());
-    if (node.isParentOf(parent) == true) {
+    if (node.isParentOf(parent)) {
       // Cyclic reference because task is ancestor of itself.
       throw new UserException(TaskDao.I18N_KEY_ERROR_CYCLIC_REFERENCE);
     }
@@ -526,7 +526,7 @@ public class TaskDao extends BaseDao<TaskDO> {
   @Override
   protected void onDelete(final TaskDO obj) {
     final TaskTree taskTree = getTaskTree(obj);
-    if (taskTree.isRootNode(obj) == true) {
+    if (taskTree.isRootNode(obj)) {
       throw new UserException("task.error.couldNotDeleteRootTask");
     }
   }
@@ -548,10 +548,10 @@ public class TaskDao extends BaseDao<TaskDO> {
    */
   @Override
   protected boolean wantsReindexAllDependentObjects(final TaskDO obj, final TaskDO dbObj) {
-    if (super.wantsReindexAllDependentObjects(obj, dbObj) == false) {
+    if (!super.wantsReindexAllDependentObjects(obj, dbObj)) {
       return false;
     }
-    return StringUtils.equals(obj.getTitle(), dbObj.getTitle()) == false;
+    return !StringUtils.equals(obj.getTitle(), dbObj.getTitle());
   }
 
   @Override

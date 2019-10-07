@@ -87,31 +87,31 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
     final TaskNode node = getTaskTree().getTaskNodeById(taskId);
     if (node == null) {
       log.error("Task with " + taskId + " not found.");
-      if (throwException == true) {
+      if (throwException) {
         throw new AccessException(taskId, accessType, operationType);
       }
       return false;
     }
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry(node.getTask())
         .getUserGroupCache();
-    if (userGroupCache.isUserMemberOfAdminGroup(user.getId()) == true) {
+    if (userGroupCache.isUserMemberOfAdminGroup(user.getId())) {
       // A user group "Admin" has always access.
       return true;
     }
     final Collection<Integer> groupIds = userGroupCache.getUserGroups(user);
     if (groupIds == null) {
       // No groups are assigned to this user.
-      if (throwException == true) {
+      if (throwException) {
         throw new AccessException(taskId, accessType, operationType);
       }
       return false;
     }
     for (final Integer groupId : groupIds) {
-      if (node.hasPermission(groupId, accessType, operationType) == true) {
+      if (node.hasPermission(groupId, accessType, operationType)) {
         return true;
       }
     }
-    if (throwException == true) {
+    if (throwException) {
       throw new AccessException(taskId, accessType, operationType);
     }
     return false;
@@ -218,7 +218,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
   @Override
   public void checkIsUserMemberOfGroup(final PFUserDO user, final ProjectForgeGroup... groups)
   {
-    if (isUserMemberOfGroup(user, groups) == false) {
+    if (!isUserMemberOfGroup(user, groups)) {
       throw getLoggedInUserNotMemberOfException(groups);
     }
   }
@@ -261,14 +261,14 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
     Validate.notNull(groups);
     if (user == null) {
       // Before user is logged in.
-      if (throwException == true) {
+      if (throwException) {
         throw getLoggedInUserNotMemberOfException(groups);
       }
       return false;
     }
-    if (throwException == false) {
+    if (!throwException) {
       return isUserMemberOfGroup(user, groups);
-    } else if (isUserMemberOfGroup(user, groups) == true) {
+    } else if (isUserMemberOfGroup(user, groups)) {
       return true;
     } else {
       throw getLoggedInUserNotMemberOfException(groups);
@@ -290,14 +290,14 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
     Validate.notNull(groups);
     if (user == null) {
       // Before user is logged in.
-      if (throwException == true) {
+      if (throwException) {
         throw getLoggedInUserNotMemberOfException(groups);
       }
       return false;
     }
-    if (throwException == false) {
+    if (!throwException) {
       return isUserMemberOfGroup(tenant, user, groups);
-    } else if (isUserMemberOfGroup(tenant, user, groups) == true) {
+    } else if (isUserMemberOfGroup(tenant, user, groups)) {
       return true;
     } else {
       throw getLoggedInUserNotMemberOfException(groups);
@@ -411,7 +411,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
       return false;
     }
     for (final Integer id : currentUserGroups) {
-      if (userGroups.contains(id) == true) {
+      if (userGroups.contains(id)) {
         return true;
       }
     }
@@ -464,7 +464,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
         default:
           throw new UnsupportedOperationException("Oups, value not supported for OperationType: " + operationType);
       }
-      if (result == false && throwException == true) {
+      if (!result && throwException) {
         throw new AccessException(user, "access.exception.userHasNotRight", rightId, operationType);
       }
       return result;
@@ -679,16 +679,16 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
     final UserRightDO rightDO = user.getRight(rightId);
     final UserRight right = userRights.getRight(rightId);
     for (final UserRightValue value : values) {
-      if ((rightDO == null || rightDO.getValue() == null) && right.matches(userGroupCache, user, value) == true) {
+      if ((rightDO == null || rightDO.getValue() == null) && right.matches(userGroupCache, user, value)) {
         return true;
       }
       if (rightDO != null && rightDO.getValue() == value) {
-        if (right != null && right.isAvailable(userGroupCache, user, value) == true) {
+        if (right != null && right.isAvailable(userGroupCache, user, value)) {
           return true;
         }
       }
     }
-    if (throwException == true) {
+    if (throwException) {
       throw new AccessException("access.exception.userHasNotRight", rightId,
           StringHelper.listToString(", ", (Object[]) values));
     }
@@ -775,9 +775,9 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
     if (right instanceof UserRightAccessCheck<?>) {
       Validate.notNull(origUser);
       final PFUserDO user = getUserGroupCache().getUser(origUser.getId());
-      if (((UserRightAccessCheck) right).hasHistoryAccess(user, obj) == true) {
+      if (((UserRightAccessCheck) right).hasHistoryAccess(user, obj)) {
         return true;
-      } else if (throwException == true) {
+      } else if (throwException) {
         throw new AccessException("access.exception.userHasNotRight", rightId, "history");
       } else {
         return false;
@@ -845,7 +845,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
   {
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final UserRight right = userRights.getRight(rightId);
-    return right != null && right.isAvailable(userGroupCache, user) == true;
+    return right != null && right.isAvailable(userGroupCache, user);
   }
 
   @Override
@@ -901,7 +901,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
   @Override
   public void checkRestrictedUser()
   {
-    if (isRestrictedUser() == true) {
+    if (isRestrictedUser()) {
       throw new AccessException("access.exception.restrictedUserHasNoAccess");
     }
   }
@@ -936,10 +936,10 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
   @Override
   public void checkRestrictedOrDemoUser()
   {
-    if (isDemoUser() == true) {
+    if (isDemoUser()) {
       throw new AccessException("access.exception.demoUserHasNoAccess");
     }
-    if (isRestrictedUser() == true) {
+    if (isRestrictedUser()) {
       throw new AccessException("access.exception.restrictedUserHasNoAccess");
     }
   }
@@ -955,10 +955,10 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
     final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
     Validate.notNull(loggedInUser);
     if (isUserMemberOfGroup(loggedInUser, ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP,
-        ProjectForgeGroup.PROJECT_MANAGER) == true) {
+        ProjectForgeGroup.PROJECT_MANAGER)) {
       return true;
     }
-    if (isUserMemberOfGroup(loggedInUser, ProjectForgeGroup.ORGA_TEAM) == true
+    if (isUserMemberOfGroup(loggedInUser, ProjectForgeGroup.ORGA_TEAM)
         && hasRight(loggedInUser, UserRightId.PM_HR_PLANNING, UserRightValue.READONLY, UserRightValue.READWRITE)) {
       return true;
     }

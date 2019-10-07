@@ -127,7 +127,7 @@ public class LuceneServiceImpl
       FullTextEntityManager femg = emgr.getFullTextEntityManager();
       SearchFactory sf = femg.getSearchFactory();
       String[] searchFields;
-      if (StringUtils.isNotBlank(fieldList) == true) {
+      if (StringUtils.isNotBlank(fieldList)) {
         searchFields = splitFieldList(fieldList);
       } else {
         searchFields = getSearchFieldsForEntity(entityClass);

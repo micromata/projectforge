@@ -101,7 +101,7 @@ public class AttendeeConverter extends PropertyConverter
       URI attendeeUri = attendee.getCalAddress();
       final String email = (attendeeUri != null) ? attendeeUri.getSchemeSpecificPart() : null;
 
-      if (email != null && EmailValidator.getInstance().isValid(email) == false) {
+      if (email != null && !EmailValidator.getInstance().isValid(email)) {
         continue; // TODO maybe validation is not necessary, could also be en url? check rfc
       }
 

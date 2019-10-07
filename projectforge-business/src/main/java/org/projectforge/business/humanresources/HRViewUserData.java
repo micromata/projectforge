@@ -176,7 +176,7 @@ public class HRViewUserData implements Comparable<HRViewUserData>, Serializable,
         if (entry.projekt == null && entry.kunde == null) {
           return entry;
         }
-      } else if (entry.projekt != null && entry.projekt.getId().equals(projekt.getId()) == true) {
+      } else if (entry.projekt != null && entry.projekt.getId().equals(projekt.getId())) {
         return entry;
       }
     }
@@ -190,7 +190,7 @@ public class HRViewUserData implements Comparable<HRViewUserData>, Serializable,
         if (entry.kunde == null) {
           return entry;
         }
-      } else if (entry.kunde != null && entry.kunde.getId().equals(kunde.getId()) == true) {
+      } else if (entry.kunde != null && entry.kunde.getId().equals(kunde.getId())) {
         return entry;
       }
     }

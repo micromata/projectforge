@@ -53,11 +53,11 @@ public class UserXmlPreferencesXmlDumpHook implements XmlDumpHook
   {
     if (obj instanceof UserXmlPreferencesDO) {
       final UserXmlPreferencesDO userPrefs = (UserXmlPreferencesDO) obj;
-      if (TaskTree.USER_PREFS_KEY_OPEN_TASKS.equals(userPrefs.getKey()) == false) {
+      if (!TaskTree.USER_PREFS_KEY_OPEN_TASKS.equals(userPrefs.getKey())) {
         return;
       }
       final Object userPrefsObj = userXmlPreferencesDao.deserialize(null, userPrefs, true);
-      if (userPrefsObj == null || userPrefsObj instanceof Set == false) {
+      if (userPrefsObj == null || !(userPrefsObj instanceof Set)) {
         return;
       }
       Set<Integer> oldIds = null;

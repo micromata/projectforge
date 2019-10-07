@@ -119,9 +119,9 @@ public class KostZuweisungExport
     for (final AbstractRechnungDO<?> rechnung : list) {
       if (rechnung.getPositionen() != null) {
         for (final AbstractRechnungsPositionDO position : rechnung.getPositionen()) {
-          if (CollectionUtils.isNotEmpty(position.getKostZuweisungen()) == true) {
+          if (CollectionUtils.isNotEmpty(position.getKostZuweisungen())) {
             for (final KostZuweisungDO zuweisung : position.getKostZuweisungen()) {
-              if (NumberHelper.isZeroOrNull(zuweisung.getBrutto()) == true) {
+              if (NumberHelper.isZeroOrNull(zuweisung.getBrutto())) {
                 // Skip entries with zero amounts.
                 continue;
               }
@@ -196,7 +196,7 @@ public class KostZuweisungExport
       BigDecimal korrektur = null;
       if (grossSum.compareTo(position.getKostZuweisungGrossSum()) != 0) {
         korrektur = CurrencyHelper.getGrossAmount(position.getKostZuweisungNetFehlbetrag(), position.getVat());
-        if (NumberHelper.isZeroOrNull(korrektur) == true) {
+        if (NumberHelper.isZeroOrNull(korrektur)) {
           korrektur = null;
         }
       }
@@ -281,7 +281,7 @@ public class KostZuweisungExport
       mapping.add(AccountsCol.DATE_OF_LAST_MODIFICATION, konto.getLastUpdate());
       mapping.add(AccountsCol.DATE_OF_CREATION, konto.getCreated());
       String status = "";
-      if (konto.isDeleted() == true) {
+      if (konto.isDeleted()) {
         status = ThreadLocalUserContext.getLocalizedString("deleted");
       } else if (konto.getStatus() != null) {
         status = ThreadLocalUserContext.getLocalizedString(konto.getStatus().getI18nKey());

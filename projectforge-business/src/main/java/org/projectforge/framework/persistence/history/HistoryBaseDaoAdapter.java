@@ -103,7 +103,7 @@ public class HistoryBaseDaoAdapter
 
     for (HistoryEntry he : hel) {
       List<DiffEntry> deltas = he.getDiffEntries();
-      if (deltas.isEmpty() == true) {
+      if (deltas.isEmpty()) {
         SimpleHistoryEntry se = new SimpleHistoryEntry(userGroupCache, he);
         ret.add(se);
       } else {
@@ -196,7 +196,7 @@ public class HistoryBaseDaoAdapter
     //long begin = System.currentTimeMillis();
     final HistoryService historyService = HistoryServiceManager.get().getHistoryService();
     final List<WithHistory> whanots = historyService.internalFindWithHistoryEntity(dbo);
-    if (whanots.isEmpty() == true) {
+    if (whanots.isEmpty()) {
       return callback.get();
     }
 

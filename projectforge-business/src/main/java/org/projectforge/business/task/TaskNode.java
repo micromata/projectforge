@@ -152,7 +152,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
    * node has no reference the grand parent task reference will be assumed and so on.
    */
   public String getReference() {
-    if (StringUtils.isNotBlank(task.getReference()) == true) {
+    if (StringUtils.isNotBlank(task.getReference())) {
       return task.getReference();
     } else if (parent != null) {
       return parent.getReference();
@@ -183,7 +183,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
   public ProjektDO getProjekt(final boolean recursive) {
     if (projekt != null) {
       return projekt;
-    } else if (recursive == true && parent != null) {
+    } else if (recursive && parent != null) {
       return parent.getProjekt();
     } else {
       return null;
@@ -223,7 +223,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
   private void getDescendantIds(final List<Integer> descendants) {
     if (this.children != null) {
       for (final TaskNode node : this.children) {
-        if (descendants.contains(node.getId()) == false) {
+        if (!descendants.contains(node.getId())) {
           // Paranoia setting for cyclic references.
           descendants.add(node.getId());
           node.getDescendantIds(descendants);
@@ -240,7 +240,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
 
   private void getAncestorIds(final List<Integer> ancestors) {
     if (this.parent != null) {
-      if (ancestors.contains(this.parent.getId()) == false) {
+      if (!ancestors.contains(this.parent.getId())) {
         // Paranoia setting for cyclic references.
         ancestors.add(this.parent.getId());
         this.parent.getAncestorIds(ancestors);
@@ -287,9 +287,9 @@ public class TaskNode implements IdObject<Integer>, Serializable {
       return false;
     }
     for (final TaskNode child : this.children) {
-      if (child.equals(node) == true) {
+      if (child.equals(node)) {
         return true;
-      } else if (child.isParentOf(node) == true) {
+      } else if (child.isParentOf(node)) {
         return true;
       }
     }
@@ -321,7 +321,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
    * Returns the path to the parent node in an ArrayList.
    */
   public List<TaskNode> getPathToAncestor(final Integer ancestorTaskId) {
-    if (this.parent == null || this.task.getId().equals(ancestorTaskId) == true) {
+    if (this.parent == null || this.task.getId().equals(ancestorTaskId)) {
       return new ArrayList<TaskNode>();
     }
     final List<TaskNode> path = this.parent.getPathToAncestor(ancestorTaskId);
@@ -335,7 +335,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
    */
   void setParent(final TaskNode parent) {
     if (parent != null) {
-      if (parent.getId().equals(getId()) == true || this.isParentOf(parent)) {
+      if (parent.getId().equals(getId()) || this.isParentOf(parent)) {
         log.error("Oups, cyclic reference detection: taskId = " + getId() + ", parentTaskId = " + parent.getId());
         throw new UserException(TaskDao.I18N_KEY_ERROR_CYCLIC_REFERENCE);
       }
@@ -350,7 +350,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
    */
   void addChild(final TaskNode child) {
     if (child != null) {
-      if (child.getId().equals(getId()) == true || child.isParentOf(this)) {
+      if (child.getId().equals(getId()) || child.isParentOf(this)) {
         log.error("Oups, cyclic reference detection: taskId = " + getId() + ", parentTaskId = " + parent.getId());
         return;
       }
@@ -369,7 +369,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
       log.error("Oups, child is null, can't remove it from parent.");
     } else if (this.children == null) {
       log.error("Oups, this node has no children to remove.");
-    } else if (this.children.contains(child) == false) {
+    } else if (!this.children.contains(child)) {
       log.error("Oups, this node doesn't contain given child.");
     } else {
       log.debug("Removing child " + child.getTaskId() + " from parent " + this.getTaskId());
@@ -401,7 +401,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
 
   public boolean isPermissionRecursive(final Integer groupId) {
     final GroupTaskAccessDO groupAccess = getGroupTaskAccess(groupId);
-    return groupAccess == null || groupAccess.isRecursive() == true;
+    return groupAccess == null || groupAccess.isRecursive();
   }
 
   /**
@@ -413,7 +413,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
   GroupTaskAccessDO getGroupTaskAccess(final Integer groupId) {
     Validate.notNull(groupId);
     for (final GroupTaskAccessDO access : groupTaskAccessList) {
-      if (groupId.equals(access.getGroupId()) == true) {
+      if (groupId.equals(access.getGroupId())) {
         return access;
       }
     }
@@ -427,9 +427,9 @@ public class TaskNode implements IdObject<Integer>, Serializable {
    * @param GroupTaskAccessDO
    */
   void setGroupTaskAccess(final GroupTaskAccessDO groupTaskAccess) {
-    Validate.isTrue(Objects.equals(this.getTaskId(), groupTaskAccess.getTaskId()) == true);
+    Validate.isTrue(Objects.equals(this.getTaskId(), groupTaskAccess.getTaskId()));
     // TODO: Should be called after update and insert into database.
-    if (log.isInfoEnabled() == true) {
+    if (log.isInfoEnabled()) {
       log.debug("Set explicit access, taskId = " + getTaskId() + ", groupId = " + groupTaskAccess.getGroupId());
     }
     synchronized (groupTaskAccessList) {
@@ -450,9 +450,9 @@ public class TaskNode implements IdObject<Integer>, Serializable {
     boolean result = false;
     synchronized (groupTaskAccessList) {
       final Iterator<GroupTaskAccessDO> it = groupTaskAccessList.iterator();
-      while (it.hasNext() == true) {
+      while (it.hasNext()) {
         final GroupTaskAccessDO access = it.next();
-        if (groupId.equals(access.getGroupId()) == true) {
+        if (groupId.equals(access.getGroupId())) {
           it.remove();
           result = true;
         }
@@ -471,7 +471,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
     if (totalDuration < 0) {
       taskTree.readTotalDuration(this.getId());
     }
-    if (recursive == false || children == null) {
+    if (!recursive || children == null) {
       return totalDuration;
     }
     long duration = totalDuration;
@@ -485,8 +485,8 @@ public class TaskNode implements IdObject<Integer>, Serializable {
   public boolean equals(final Object o) {
     if (o instanceof TaskNode) {
       final TaskNode other = (TaskNode) o;
-      return Objects.equals(this.getParentId(), other.getParentId()) == true
-              && Objects.equals(this.getTask().getTitle(), other.getTask().getTitle()) == true;
+      return Objects.equals(this.getParentId(), other.getParentId())
+              && Objects.equals(this.getTask().getTitle(), other.getTask().getTitle());
     }
     return false;
   }

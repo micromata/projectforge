@@ -44,7 +44,7 @@ public class DTEndConverter extends PropertyConverter
   {
     net.fortuna.ical4j.model.Date date;
 
-    if (event.getAllDay() == true) {
+    if (event.getAllDay()) {
       final Date endUtc = CalendarUtils.getUTCMidnightDate(event.getEndDate());
       final org.joda.time.DateTime jodaTime = new org.joda.time.DateTime(endUtc);
       // TODO sn should not be done

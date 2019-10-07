@@ -85,7 +85,7 @@ public class BusinessAssessment implements Serializable
     for (final BusinessAssessmentRow row : businessAssessment.rows) {
       final double val = getDouble(row.getAmount());
       map.put("r" + row.getNo(), val);
-      if (StringUtils.isNotBlank(row.getId()) == true) {
+      if (StringUtils.isNotBlank(row.getId())) {
         map.put(row.getId(), val);
       }
     }
@@ -125,14 +125,14 @@ public class BusinessAssessment implements Serializable
 
   public void setAccountRecords(final List<BuchungssatzDO> records)
   {
-    if (CollectionUtils.isEmpty(rows) == true) {
+    if (CollectionUtils.isEmpty(rows)) {
       return;
     }
-    if (CollectionUtils.isNotEmpty(records) == true) {
+    if (CollectionUtils.isNotEmpty(records)) {
       for (final BuchungssatzDO record : records) {
         counter++;
         // Diese Berechnungen werden anhand des Wertenachweises einer Bwa geführt:
-        if (record.isIgnore() == true) {
+        if (record.isIgnore()) {
           continue;
         }
         final KontoDO account = record.getKonto();
@@ -142,13 +142,13 @@ public class BusinessAssessment implements Serializable
         final int accountNumber = account.getNummer();
         boolean found = false;
         for (final BusinessAssessmentRow row : rows) {
-          if (row.doesMatch(accountNumber) == true) {
+          if (row.doesMatch(accountNumber)) {
             row.addAccountRecord(record);
             found = true;
             break;
           }
         }
-        if (found == false) {
+        if (!found) {
           log.warn("Ignoring Satz: " + record);
           record.setIgnore(true);
         }
@@ -242,7 +242,7 @@ public class BusinessAssessment implements Serializable
   public String getHeader(final boolean html)
   {
     final StringBuffer buf = new StringBuffer();
-    if (html == true) {
+    if (html) {
       buf.append("<h3>");
     }
     if (config != null) {
@@ -256,7 +256,7 @@ public class BusinessAssessment implements Serializable
     if (title != null) {
       buf.append(" \"").append(title).append("\"");
     }
-    if (html == true) {
+    if (html) {
       buf.append("</h3>\n");
     } else {
       buf.append(":\n");
@@ -281,29 +281,29 @@ public class BusinessAssessment implements Serializable
       final int indent,
       final int scale, final String unit, final boolean html)
   {
-    if (html == true) {
+    if (html) {
       buf.append("  <tr><td>").append(no).append("</td><td class=\"indent-").append(indent).append("\">");
     } else {
       buf.append(StringUtils.leftPad(no, 4));
     }
     int length = 25;
     for (int i = 0; i < indent; i++) {
-      if (html == false) {
+      if (!html) {
         buf.append(" ");
       }
       length--; // One space lost.
     }
-    if (html == true) {
+    if (html) {
       buf.append(HtmlHelper.escapeHtml(StringUtils.defaultString(title), false)).append("</td>");
     } else {
       buf.append(" ").append(StringUtils.rightPad(StringUtils.defaultString(title), length)).append(" ");
     }
-    if (html == true) {
+    if (html) {
       buf.append("<td style=\"text-align: right;\">");
     }
     if (amount != null && amount.compareTo(BigDecimal.ZERO) != 0) {
       String value;
-      if ("€".equals(unit) == true) {
+      if ("€".equals(unit)) {
         value = CurrencyFormatter.format(amount);
       } else {
         final NumberFormat format = NumberHelper.getNumberFractionFormat(ThreadLocalUserContext.getLocale(), scale);
@@ -311,7 +311,7 @@ public class BusinessAssessment implements Serializable
       }
       buf.append(StringUtils.leftPad(value, 18));
     }
-    if (html == true) {
+    if (html) {
       buf.append("</td></tr>\n");
     } else {
       buf.append("\n");
@@ -333,7 +333,7 @@ public class BusinessAssessment implements Serializable
       return null;
     }
     for (final BusinessAssessmentRow row : rows) {
-      if (id.equals(row.getId()) == true || id.equals(row.getNo()) == true) {
+      if (id.equals(row.getId()) || id.equals(row.getNo())) {
         return row;
       }
     }

@@ -45,7 +45,7 @@ public class UidConverter extends PropertyConverter
   @Override
   public boolean fromVEvent(final TeamEventDO event, final VEvent vEvent)
   {
-    if (vEvent.getUid() != null && StringUtils.isEmpty(vEvent.getUid().getValue()) == false) {
+    if (vEvent.getUid() != null && !StringUtils.isEmpty(vEvent.getUid().getValue())) {
       event.setUid(vEvent.getUid().getValue());
       return true;
     }
