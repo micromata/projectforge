@@ -164,9 +164,9 @@ public class ProjektDao extends BaseDao<ProjektDO> {
       myFilter = new ProjektFilter(filter);
     }
     final QueryFilter queryFilter = new QueryFilter(myFilter);
-    if (myFilter.isEnded() == true) {
+    if (myFilter.isEnded()) {
       queryFilter.add(Restrictions.eq("status", ProjektStatus.ENDED));
-    } else if (myFilter.isNotEnded() == true) {
+    } else if (myFilter.isNotEnded()) {
       queryFilter.add(Restrictions.or(Restrictions.ne("status", ProjektStatus.ENDED), Restrictions.isNull("status")));
     }
     queryFilter.addOrder(Order.asc("internKost2_4")).addOrder(Order.asc("kunde.id")).addOrder(Order.asc("nummer"));

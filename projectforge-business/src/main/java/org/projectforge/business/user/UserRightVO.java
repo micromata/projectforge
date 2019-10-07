@@ -53,7 +53,7 @@ public class UserRightVO implements Serializable
 
   public UserRightVO setBooleanValue(boolean booleanValue)
   {
-    if (booleanValue == true) {
+    if (booleanValue) {
       this.value = UserRightValue.TRUE;
     } else {
       this.value = UserRightValue.FALSE;

@@ -77,7 +77,7 @@ public class LdapPosixAccountsUtils
     final Collection<PFUserDO> allUsers = getUserGroupCache().getAllUsers();
     for (final PFUserDO user : allUsers) {
       final LdapUserValues ldapUserValues = PFUserDOConverter.readLdapUserValues(user.getLdapValues());
-      if (Objects.equals(user.getId(), currentUser.getId()) == true) {
+      if (Objects.equals(user.getId(), currentUser.getId())) {
         // The current user may have the given uidNumber already, so ignore this entry.
         continue;
       }

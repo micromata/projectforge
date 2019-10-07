@@ -41,25 +41,25 @@ public enum UserAgentDevice
       return UNKNOWN;
     }
     final String str = userAgent.toLowerCase();
-    if (str.contains("android") == true) {
+    if (str.contains("android")) {
       return ANDROID;
-    } else if (str.contains("blackberry") == true) {
+    } else if (str.contains("blackberry")) {
       return BLACKBERRY;
-    } else if (str.contains("iphone") == true) {
+    } else if (str.contains("iphone")) {
       return IPHONE;
-    } else if (str.contains("ipad") == true) {
+    } else if (str.contains("ipad")) {
       return IPOD;
-    } else if (str.contains("ipod") == true) {
+    } else if (str.contains("ipod")) {
       return IPOD;
-    } else if (str.contains("smartphone") == true) {
+    } else if (str.contains("smartphone")) {
       return SMARTPHONE;
-    } else if (str.contains("symbian") == true) {
+    } else if (str.contains("symbian")) {
       return SYMBIAN;
-    } else if (str.contains("wap") == true) {
+    } else if (str.contains("wap")) {
       return WAP;
-    } else if (str.contains("phone") == true && str.contains("windows") == true) {
+    } else if (str.contains("phone") && str.contains("windows")) {
       return WINDOWS_MOBILE;
-    } else if (str.contains("windows ce") == true) {
+    } else if (str.contains("windows ce")) {
       return WINDOWS_MOBILE;
     }
     return UNKNOWN;

@@ -64,7 +64,7 @@ public class KostFormatter {
     if (projekt == null) {
       return "?.???.???";
     }
-    final String delimiter = (numberFormat == true) ? "" : ".";
+    final String delimiter = (numberFormat) ? "" : ".";
     final StringBuffer buf = new StringBuffer();
     buf.append(String.valueOf(projekt.getNummernkreis())).append(delimiter);
     if (projekt.getKunde() != null) {
@@ -122,7 +122,7 @@ public class KostFormatter {
     if (kunde != null) {
       buf.append(formatKunde(kunde));
     }
-    if (StringUtils.isNotBlank(kundeText) == true) {
+    if (StringUtils.isNotBlank(kundeText)) {
       if (kunde != null) {
         buf.append(", ");
       }
@@ -180,7 +180,7 @@ public class KostFormatter {
     if (kost2 == null) {
       return "";
     }
-    final String delimiter = (numberFormat == true) ? "" : ".";
+    final String delimiter = (numberFormat) ? "" : ".";
     final StringBuffer buf = new StringBuffer();
     buf.append(kost2.getNummernkreis()).append(delimiter).append(format3Digits(kost2.getBereich())).append(delimiter)
             .append(format2Digits(kost2.getTeilbereich())).append(delimiter);
@@ -208,7 +208,7 @@ public class KostFormatter {
       return "";
     }
     final StringBuffer buf = new StringBuffer();
-    if (StringUtils.isNotBlank(kost2.getDescription()) == true) {
+    if (StringUtils.isNotBlank(kost2.getDescription())) {
       buf.append(kost2.getDescription()).append("; ");
     }
     if (kost2.getProjekt() != null) {
@@ -249,7 +249,7 @@ public class KostFormatter {
     buf.append(format(kost2));
     if (kost2.getProjekt() != null) {
       buf.append(" - ").append(kost2.getKost2Art().getName());
-      if (kost2.getKost2Art().getFakturiert() == false) {
+      if (!kost2.getKost2Art().getFakturiert()) {
         buf.append(" (nf)");
       }
     } else {
@@ -272,7 +272,7 @@ public class KostFormatter {
     if (kost1 == null) {
       return "";
     }
-    final String delimiter = (numberFormat == true) ? "" : ".";
+    final String delimiter = (numberFormat) ? "" : ".";
     final StringBuffer buf = new StringBuffer();
     buf.append(kost1.getNummernkreis()).append(delimiter).append(format3Digits(kost1.getBereich())).append(delimiter)
             .append(format2Digits(kost1.getTeilbereich())).append(delimiter).append(format2Digits(kost1.getEndziffer()));

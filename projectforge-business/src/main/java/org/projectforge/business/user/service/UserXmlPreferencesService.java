@@ -60,7 +60,7 @@ public class UserXmlPreferencesService {
       // Should only occur, if user is not logged in.
       return;
     }
-    if (AccessChecker.isDemoUser(user) == true && value instanceof Serializable) {
+    if (AccessChecker.isDemoUser(user) && value instanceof Serializable) {
       // Store user pref for demo user only in user's session.
       // Do nothing for demo user: MySession.get().setAttribute(key, (Serializable) value);
       return;
@@ -110,7 +110,7 @@ public class UserXmlPreferencesService {
     if (entry == null) {
       return null;
     }
-    if (expectedType.isAssignableFrom(entry.getClass()) == true) {
+    if (expectedType.isAssignableFrom(entry.getClass())) {
       return (T)entry;
     }
     // Probably a new software release results in an incompability of old and new object format.
@@ -134,7 +134,7 @@ public class UserXmlPreferencesService {
       // Should only occur, if user is not logged in.
       return null;
     }
-    if (AccessChecker.isDemoUser(user) == true) {
+    if (AccessChecker.isDemoUser(user)) {
       return key; // Dummy return
     }
     return userXmlPreferencesCache.removeEntry(user.getId(), key);

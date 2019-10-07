@@ -130,9 +130,9 @@ public class BusinessAssessmentRowConfig implements Serializable
    */
   Script getValueScript()
   {
-    if (valueScript == null && StringUtils.isBlank(this.valueConfig) == false) {
+    if (valueScript == null && !StringUtils.isBlank(this.valueConfig)) {
       String scr = this.valueConfig.trim();
-      if (scr.startsWith("=") == true) {
+      if (scr.startsWith("=")) {
         scr = "return " + scr.substring(1);
       }
       this.valueScript = new GroovyExecutor().compileGroovy(scr, false);
@@ -209,7 +209,7 @@ public class BusinessAssessmentRowConfig implements Serializable
    */
   private synchronized void initialize()
   {
-    if (initialized == true) {
+    if (initialized) {
       return;
     }
     try {

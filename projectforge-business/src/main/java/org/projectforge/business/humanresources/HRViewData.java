@@ -114,7 +114,7 @@ public class HRViewData implements Serializable
   {
     if (projekt != null) {
       Hibernate.initialize(projekt);
-      if (projects.containsKey(projekt.getId()) == false) {
+      if (!projects.containsKey(projekt.getId())) {
         projects.put(projekt.getId(), projekt);
         sortedProjects = null;
       }
@@ -125,7 +125,7 @@ public class HRViewData implements Serializable
   {
     if (kunde != null) {
       Hibernate.initialize(kunde);
-      if (customers.containsKey(kunde.getId()) == false) {
+      if (!customers.containsKey(kunde.getId())) {
         customers.put(kunde.getId(), kunde);
         sortedCustomers = null;
       }

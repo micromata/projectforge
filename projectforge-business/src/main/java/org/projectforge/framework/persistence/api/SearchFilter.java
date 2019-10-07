@@ -106,7 +106,7 @@ public class SearchFilter extends BaseSearchFilter
    */
   public boolean isEmpty()
   {
-    return StringUtils.isEmpty(searchString) == true
+    return StringUtils.isEmpty(searchString)
         && modifiedByUserId == null
         && startTimeOfModification == null
         && stopTimeOfModification == null;

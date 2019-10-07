@@ -76,7 +76,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-@Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
+@Transactional(propagation = Propagation.REQUIRES_NEW)
 public class EmployeeSalaryExportDao
 {
   public static final int KONTO = 6000;
@@ -95,7 +95,7 @@ public class EmployeeSalaryExportDao
     {
       for (final ExportCell cell : row.getCells()) {
         final CellFormat format = cell.ensureAndGetCellFormat();
-        format.setFillForegroundColor(HSSFColor.WHITE.index);
+        format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.WHITE.getIndex());
         switch (row.getRowNum()) {
           case 0:
             format.setFont(FONT_NORMAL_BOLD);
@@ -104,7 +104,7 @@ public class EmployeeSalaryExportDao
           default:
             format.setFont(FONT_NORMAL);
             if (row.getRowNum() % 2 == 0) {
-              format.setFillForegroundColor(HSSFColor.GREY_25_PERCENT.index);
+              format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.GREY_25_PERCENT.getIndex());
             }
             break;
         }
@@ -159,7 +159,7 @@ public class EmployeeSalaryExportDao
   /**
    * Exports the filtered list as table with almost all fields.
    */
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public byte[] export(final List<EmployeeSalaryDO> list)
   {
     log.info("Exporting employee salary list.");
@@ -176,28 +176,21 @@ public class EmployeeSalaryExportDao
     filter.setShowOnlyActiveEntries(true);
     filter.setDeleted(false);
     final List<EmployeeDO> employees = employeeDao.getList(filter);
-    final List<EmployeeDO> missedEmployees = new ArrayList<EmployeeDO>();
+    final List<EmployeeDO> missedEmployees = new ArrayList<>();
     for (final EmployeeDO employee : employees) {
       boolean found = false;
       for (final EmployeeSalaryDO salary : list) {
-        if (salary.getEmployeeId().equals(employee.getId()) == true) {
+        if (salary.getEmployeeId().equals(employee.getId())) {
           found = true;
           break;
         }
       }
-      if (found == false) {
+      if (!found) {
         missedEmployees.add(employee);
       }
     }
-    if (CollectionUtils.isNotEmpty(missedEmployees) == true) {
-      Collections.sort(missedEmployees, new Comparator<EmployeeDO>()
-      {
-        @Override
-        public int compare(final EmployeeDO o1, final EmployeeDO o2)
-        {
-          return (o1.getUser().getFullname()).compareTo(o2.getUser().getFullname());
-        }
-      });
+    if (CollectionUtils.isNotEmpty(missedEmployees)) {
+      missedEmployees.sort(Comparator.comparing(o -> (o.getUser().getFullname())));
     }
     final ExportWorkbook xls = new ExportWorkbook();
     final ContentProvider contentProvider = new MyContentProvider(xls);
@@ -300,7 +293,7 @@ public class EmployeeSalaryExportDao
         mapping.add(ExcelColumn.STUNDEN, duration.divide(new BigDecimal(3600), 2, RoundingMode.HALF_UP));
         mapping.add(ExcelColumn.BEZEICHNUNG, kost2.getToolTip());
         final BigDecimal betrag;
-        if (NumberHelper.isNotZero(netDuration) == true) {
+        if (NumberHelper.isNotZero(netDuration)) {
           betrag = CurrencyHelper.multiply(bruttoMitAGAnteil,
               new BigDecimal(entry.getMillis()).divide(netDuration, 8, RoundingMode.HALF_UP));
         } else {
@@ -311,7 +304,7 @@ public class EmployeeSalaryExportDao
           final BigDecimal korrektur = bruttoMitAGAnteil.subtract(sum);
           mapping.add(ExcelColumn.BRUTTO_MIT_AG, betrag.add(korrektur));
           mapping.add(ExcelColumn.KORREKTUR, korrektur);
-          if (NumberHelper.isEqual(sum.add(korrektur), bruttoMitAGAnteil) == true) {
+          if (NumberHelper.isEqual(sum.add(korrektur), bruttoMitAGAnteil)) {
             mapping.add(ExcelColumn.SUMME, bruttoMitAGAnteil);
           } else {
             mapping.add(ExcelColumn.SUMME, "*** " + sum + " != " + bruttoMitAGAnteil);

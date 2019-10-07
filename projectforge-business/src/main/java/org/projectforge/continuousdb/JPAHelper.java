@@ -186,7 +186,7 @@ public class JPAHelper
   private static List<Annotation> handlePersistenceAnnotation(List<Annotation> list, final AccessibleObject object,
       final Class<? extends Annotation> annotation)
   {
-    if (object.isAnnotationPresent(annotation) == false) {
+    if (!object.isAnnotationPresent(annotation)) {
       return list;
     }
     if (list == null) {

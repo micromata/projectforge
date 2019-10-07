@@ -32,7 +32,7 @@ public class LocaleConverter extends AbstractValueConverter<Locale>
   @Override
   public Locale fromString(final String str)
   {
-    if (StringUtils.isBlank(str) == true) {
+    if (StringUtils.isBlank(str)) {
       return null;
     }
     return new Locale(str);

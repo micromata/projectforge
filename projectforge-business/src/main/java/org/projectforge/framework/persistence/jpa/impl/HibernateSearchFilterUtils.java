@@ -106,12 +106,12 @@ public class HibernateSearchFilterUtils
     if (searchString == null) {
       return "";
     }
-    if (searchString.startsWith("'") == true) {
+    if (searchString.startsWith("'")) {
       return searchString.substring(1);
     }
     for (int i = 0; i < searchString.length(); i++) {
       final char ch = searchString.charAt(i);
-      if (Character.isLetterOrDigit(ch) == false && Character.isWhitespace(ch) == false) {
+      if (!Character.isLetterOrDigit(ch) && !Character.isWhitespace(ch)) {
         final String allowed = (i == 0) ? ALLOWED_BEGINNING_CHARS : ALLOWED_CHARS;
         if (allowed.indexOf(ch) < 0) {
           return searchString;
@@ -122,19 +122,19 @@ public class HibernateSearchFilterUtils
     final StringBuffer buf = new StringBuffer();
     boolean first = true;
     for (final String token : tokens) {
-      if (first == true) {
+      if (first) {
         first = false;
       } else {
         buf.append(" ");
       }
-      if (ArrayUtils.contains(luceneReservedWords, token) == false) {
+      if (!ArrayUtils.contains(luceneReservedWords, token)) {
         final String modified = modifySearchToken(token);
-        if (tokens.length > 1 && andSearch == true && StringUtils.containsNone(modified, ESCAPE_CHARS) == true) {
+        if (tokens.length > 1 && andSearch && StringUtils.containsNone(modified, ESCAPE_CHARS)) {
           buf.append("+");
         }
         buf.append(modified);
-        if (modified.endsWith("*") == false && StringUtils.containsNone(modified, ESCAPE_CHARS) == true) {
-          if (andSearch == false || tokens.length > 1) {
+        if (!modified.endsWith("*") && StringUtils.containsNone(modified, ESCAPE_CHARS)) {
+          if (!andSearch || tokens.length > 1) {
             // Don't append '*' if used by SearchForm and only one token is given. It's will be appended automatically by BaseDao before the
             // search is executed.
             buf.append('*');
@@ -297,7 +297,7 @@ public class HibernateSearchFilterUtils
       return ret;
     }
     for (String addf : additionalSearchFields) {
-      if (ret.contains(addf) == false) {
+      if (!ret.contains(addf)) {
         LOG.warn("Searchfield added: " + clazz.getName() + "." + addf);
         ret.add(addf);
       }
@@ -313,7 +313,7 @@ public class HibernateSearchFilterUtils
   public static String[] determineSearchFields(Class<?> clazz, String[] additionalSearchFields)
   {
     boolean useMeta = true;
-    if (useMeta == true) {
+    if (useMeta) {
       Set<String> set = getSearchFields(clazz, additionalSearchFields);
       return set.toArray(new String[] {});
     }
@@ -321,12 +321,12 @@ public class HibernateSearchFilterUtils
     final Field[] fields = BeanHelper.getAllDeclaredFields(clazz);
     final Set<String> fieldNames = new TreeSet<String>();
     for (final Field field : fields) {
-      if (field.isAnnotationPresent(org.hibernate.search.annotations.Field.class) == true) {
+      if (field.isAnnotationPresent(org.hibernate.search.annotations.Field.class)) {
         // @Field(index = Index.YES /*TOKENIZED*/),
         final org.hibernate.search.annotations.Field annotation = field
             .getAnnotation(org.hibernate.search.annotations.Field.class);
         fieldNames.add(getSearchName(field.getName(), annotation));
-      } else if (field.isAnnotationPresent(org.hibernate.search.annotations.Fields.class) == true) {
+      } else if (field.isAnnotationPresent(org.hibernate.search.annotations.Fields.class)) {
         // @Fields( {
         // @Field(index = Index.YES /*TOKENIZED*/),
         // @Field(name = "name_forsort", index = Index.YES, analyze = Analyze.NO /*UN_TOKENIZED*/)
@@ -336,19 +336,19 @@ public class HibernateSearchFilterUtils
         for (final org.hibernate.search.annotations.Field annotation : annFields.value()) {
           fieldNames.add(getSearchName(field.getName(), annotation));
         }
-      } else if (field.isAnnotationPresent(Id.class) == true) {
+      } else if (field.isAnnotationPresent(Id.class)) {
         fieldNames.add(field.getName());
-      } else if (field.isAnnotationPresent(DocumentId.class) == true) {
+      } else if (field.isAnnotationPresent(DocumentId.class)) {
         fieldNames.add(field.getName());
       }
     }
     final Method[] methods = clazz.getMethods();
     for (final Method method : methods) {
-      if (method.isAnnotationPresent(org.hibernate.search.annotations.Field.class) == true) {
+      if (method.isAnnotationPresent(org.hibernate.search.annotations.Field.class)) {
         final org.hibernate.search.annotations.Field annotation = method
             .getAnnotation(org.hibernate.search.annotations.Field.class);
         fieldNames.add(getSearchName(method.getName(), annotation));
-      } else if (method.isAnnotationPresent(DocumentId.class) == true) {
+      } else if (method.isAnnotationPresent(DocumentId.class)) {
         final String prop = BeanHelper.determinePropertyName(method);
         fieldNames.add(prop);
       }
@@ -365,7 +365,7 @@ public class HibernateSearchFilterUtils
 
   private static String getSearchName(final String fieldName, final org.hibernate.search.annotations.Field annotation)
   {
-    if (StringUtils.isNotEmpty(annotation.name()) == true) {
+    if (StringUtils.isNotEmpty(annotation.name())) {
       // Name of field is changed for hibernate-search via annotation:
       return annotation.name();
     } else {

@@ -76,12 +76,12 @@ public class DayHolder extends DateHolder
   {
     Validate.notNull(from);
     Validate.notNull(to);
-    if (to.before(from) == true) {
+    if (to.before(from)) {
       return BigDecimal.ZERO;
     }
-    if (from.isSameDay(to) == true) {
+    if (from.isSameDay(to)) {
       final DayHolder day = new DayHolder(from);
-      if (day.isWorkingDay() == true) {
+      if (day.isWorkingDay()) {
         final BigDecimal workFraction = day.getWorkFraction();
         if (workFraction != null) {
           return day.getWorkFraction();
@@ -96,7 +96,7 @@ public class DayHolder extends DateHolder
     BigDecimal numberOfWorkingDays = BigDecimal.ZERO;
     int numberOfFullWorkingDays = 0;
     int dayCounter = 1;
-    if (day.isWorkingDay() == true) {
+    if (day.isWorkingDay()) {
       final BigDecimal workFraction = day.getWorkFraction();
       if (workFraction != null) {
         numberOfWorkingDays = numberOfWorkingDays.add(day.getWorkFraction());
@@ -110,7 +110,7 @@ public class DayHolder extends DateHolder
         throw new UserException(
             "getNumberOfWorkingDays does not support calculation of working days for a time period greater than two years!");
       }
-      if (day.isWorkingDay() == true) {
+      if (day.isWorkingDay()) {
         final BigDecimal workFraction = day.getWorkFraction();
         if (workFraction != null) {
           numberOfWorkingDays = numberOfWorkingDays.add(day.getWorkFraction());
@@ -118,7 +118,7 @@ public class DayHolder extends DateHolder
           numberOfFullWorkingDays++;
         }
       }
-    } while (day.isSameDay(to) == false);
+    } while (!day.isSameDay(to));
     numberOfWorkingDays = numberOfWorkingDays.add(new BigDecimal(numberOfFullWorkingDays));
     return numberOfWorkingDays;
   }
@@ -194,7 +194,7 @@ public class DayHolder extends DateHolder
 
   public boolean isSunOrHoliday()
   {
-    if (isSunday() == true || isHoliday() == true)
+    if (isSunday() || isHoliday())
       return true;
     else return false;
   }

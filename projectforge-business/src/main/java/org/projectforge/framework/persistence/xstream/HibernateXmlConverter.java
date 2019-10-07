@@ -25,11 +25,7 @@ package org.projectforge.framework.persistence.xstream;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -75,7 +71,7 @@ public class HibernateXmlConverter
   private HibernateTemplate hibernate;
 
   // Ignore these objects listing in the top level list saving because the are saved implicit by their parent objects.
-  private final Set<Class<?>> ignoreFromTopLevelListing = new HashSet<Class<?>>();
+  private final Set<Class<?>> ignoreFromTopLevelListing = new HashSet<>();
 
   public HibernateXmlConverter()
   {
@@ -120,32 +116,20 @@ public class HibernateXmlConverter
   {
     final TransactionTemplate tx = new TransactionTemplate(
         new HibernateTransactionManager(hibernate.getSessionFactory()));
-    tx.execute(new TransactionCallback()
-    {
-      @Override
-      public Object doInTransaction(final TransactionStatus status)
-      {
-        hibernate.execute(new HibernateCallback()
-        {
-          @Override
-          public Object doInHibernate(final Session session) throws HibernateException
-          {
-            writeObjects(writer, includeHistory, session, preserveIds);
-            status.setRollbackOnly();
-            return null;
-          }
-        });
+    tx.execute((TransactionCallback) status -> {
+      hibernate.execute((HibernateCallback) session -> {
+        writeObjects(writer, includeHistory, session, preserveIds);
+        status.setRollbackOnly();
         return null;
-      }
+      });
+      return null;
     });
   }
 
   public HibernateXmlConverter appendIgnoredTopLevelObjects(final Class<?>... types)
   {
     if (types != null) {
-      for (final Class<?> type : types) {
-        this.ignoreFromTopLevelListing.add(type);
-      }
+      this.ignoreFromTopLevelListing.addAll(Arrays.asList(types));
     }
     return this;
   }
@@ -177,8 +161,7 @@ public class HibernateXmlConverter
       final String entitySimpleName = entityClass.getSimpleName();
       final String entityType = entityClass.getName();
 
-      if (includeHistory == false
-          && entityType.startsWith("org.projectforge.framework.persistence.history.entities.") == true) {
+      if (!includeHistory && entityType.startsWith("org.projectforge.framework.persistence.history.entities.")) {
         // Skip history entries.
         continue;
       }
@@ -201,14 +184,14 @@ public class HibernateXmlConverter
         // initalisierung des Objekts...
         defaultXStream.marshal(obj, new CompactWriter(new NullWriter()));
 
-        if (preserveIds == false) {
+        if (!preserveIds) {
           // Nun kann die ID gelöscht werden
           HibernateCompatUtils.setClassMetaDataSetIdentifier(classMetadata, obj, EntityMode.POJO);
         }
         if (log.isDebugEnabled()) {
           log.debug("loading evicted object " + obj);
         }
-        if (this.ignoreFromTopLevelListing.contains(targetClass) == false) {
+        if (!this.ignoreFromTopLevelListing.contains(targetClass)) {
           all.add(obj);
         }
       }

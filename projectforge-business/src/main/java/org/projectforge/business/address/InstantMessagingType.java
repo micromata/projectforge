@@ -38,22 +38,22 @@ public enum InstantMessagingType
 
   public static InstantMessagingType get(final String s)
   {
-    if (StringUtils.isEmpty(s) == true) {
+    if (StringUtils.isEmpty(s)) {
       return null;
     }
-    if ("SKYPE".equals(s) == true) {
+    if ("SKYPE".equals(s)) {
       return SKYPE;
-    } else if ("ICQ".equals(s) == true) {
+    } else if ("ICQ".equals(s)) {
       return ICQ;
-    } else if ("MSN".equals(s) == true) {
+    } else if ("MSN".equals(s)) {
       return MSN;
-    } else if ("YAHOO".equals(s) == true) {
+    } else if ("YAHOO".equals(s)) {
       return YAHOO;
-    } else if ("JABBER".equals(s) == true) {
+    } else if ("JABBER".equals(s)) {
       return JABBER;
-    } else if ("AIM".equals(s) == true) {
+    } else if ("AIM".equals(s)) {
       return AIM;
-    } else if ("GOOGLE_TALK".equals(s) == true) {
+    } else if ("GOOGLE_TALK".equals(s)) {
       return GOOGLE_TALK;
     }
     throw new UnsupportedOperationException("Unknown InstantMessagingType: '" + s + "'");

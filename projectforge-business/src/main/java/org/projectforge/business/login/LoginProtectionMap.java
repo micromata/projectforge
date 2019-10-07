@@ -98,7 +98,7 @@ public class LoginProtectionMap
     final long currentTimeInMillis = System.currentTimeMillis();
     Integer numberOfFailedLogins = this.loginFailedAttemptsMap.get(id);
     if (numberOfFailedLogins == null) {
-      if (increment == false) {
+      if (!increment) {
         return 0;
       }
       numberOfFailedLogins = 0;
@@ -107,13 +107,13 @@ public class LoginProtectionMap
       if (lastFailedLoginInMs != null && currentTimeInMillis - lastFailedLoginInMs > loginOffsetExpiresAfterMs) {
         // Last failed login entry is to old, so we'll ignore and clear it:
         clearLoginTimeOffset(id);
-        if (increment == false) {
+        if (!increment) {
           return 0;
         }
         numberOfFailedLogins = 0;
       }
     }
-    if (increment == true) {
+    if (increment) {
       synchronized (this) {
         this.loginFailedAttemptsMap.put(id, ++numberOfFailedLogins);
         this.lastFailedLoginMap.put(id, currentTimeInMillis);
@@ -142,7 +142,7 @@ public class LoginProtectionMap
     final long currentTimeInMillis = System.currentTimeMillis();
     synchronized (this) {
       final Iterator<String> it = this.lastFailedLoginMap.keySet().iterator();
-      while (it.hasNext() == true) {
+      while (it.hasNext()) {
         final String key = it.next();
         final Long lastFailedLoginInMs = this.lastFailedLoginMap.get(key);
         if (lastFailedLoginInMs != null && currentTimeInMillis - lastFailedLoginInMs > loginOffsetExpiresAfterMs) {

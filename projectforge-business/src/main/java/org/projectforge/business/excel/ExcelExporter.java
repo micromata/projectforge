@@ -137,7 +137,7 @@ public class ExcelExporter
           break;
         }
       }
-      if (found == false) {
+      if (!found) {
         sortedList.add(column);
       }
     }
@@ -174,7 +174,7 @@ public class ExcelExporter
     }
     for (final String name : names) {
       for (final ExportColumn column : columns) {
-        if (name.equals(column.getName()) == true) {
+        if (name.equals(column.getName())) {
           columns.remove(column);
           break;
         }
@@ -253,13 +253,13 @@ public class ExcelExporter
     } else if (type == PropertyType.DATE_TIME_MILLIS) {
       sheetProvider.putFormat(exportColumn, "MM/dd/yyyy HH:mm:ss.fff");
     } else if (type == PropertyType.UNSPECIFIED) {
-      if (java.sql.Date.class.isAssignableFrom(field.getType()) == true) {
+      if (java.sql.Date.class.isAssignableFrom(field.getType())) {
         sheetProvider.putFormat(exportColumn, "MM/dd/yyyy");
-      } else if (java.util.Date.class.isAssignableFrom(field.getType()) == true) {
+      } else if (java.util.Date.class.isAssignableFrom(field.getType())) {
         sheetProvider.putFormat(exportColumn, "MM/dd/yyyy HH:mm");
-      } else if (java.lang.Integer.class.isAssignableFrom(field.getType()) == true) {
+      } else if (Integer.class.isAssignableFrom(field.getType())) {
         exportColumn.setWidth(10);
-      } else if (java.lang.Boolean.class.isAssignableFrom(field.getType()) == true) {
+      } else if (Boolean.class.isAssignableFrom(field.getType())) {
         exportColumn.setWidth(10);
       }
     }

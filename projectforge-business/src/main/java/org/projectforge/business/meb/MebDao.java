@@ -87,7 +87,7 @@ public class MebDao extends BaseDao<MebEntryDO> {
 
   public static Date parseDate(final String dateString) {
     Date date = null;
-    if (dateString.startsWith("20") == true) {
+    if (dateString.startsWith("20")) {
       final DateFormat df = new SimpleDateFormat(DATE_FORMAT);
       try {
         date = df.parse(dateString);
@@ -153,7 +153,7 @@ public class MebDao extends BaseDao<MebEntryDO> {
     try {
       int counter = jdbc.queryForObject(
               "SELECT COUNT(*) FROM t_meb_entry where owner_fk=" + userId + " and status='RECENT'", Integer.class);
-      if (accessChecker.isLoggedInUserMemberOfAdminGroup() == true) {
+      if (accessChecker.isLoggedInUserMemberOfAdminGroup()) {
         counter += jdbc.queryForObject("SELECT COUNT(*) FROM t_meb_entry where owner_fk is null", Integer.class);
       }
       return counter;
@@ -172,7 +172,7 @@ public class MebDao extends BaseDao<MebEntryDO> {
    */
   public void setOwner(final MebEntryDO mebEntry, final Integer userId) {
     final PFUserDO user = userDao.getOrLoad(userId);
-    if (userId.equals(mebEntry.getOwnerId()) == false) {
+    if (!userId.equals(mebEntry.getOwnerId())) {
       // Entry should be recent for new owner.
       mebEntry.setStatus(MebEntryStatus.RECENT);
     }
@@ -215,7 +215,7 @@ public class MebDao extends BaseDao<MebEntryDO> {
         if (personalPhoneIdentifiers.length() == 0) {
           continue;
         }
-        if (personalPhoneIdentifiers.contains(senderNumber) == true) {
+        if (personalPhoneIdentifiers.contains(senderNumber)) {
           if (pk != null) {
             log.warn("Sender string '" + entry.getSender() + "' found twice (user pk's): " + pk + ", " + user[0]);
           } else {

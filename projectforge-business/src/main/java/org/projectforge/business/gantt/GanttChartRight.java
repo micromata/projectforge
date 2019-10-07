@@ -108,7 +108,7 @@ public class GanttChartRight extends UserRightAccessCheck<GanttChartDO>
 
   private boolean hasAccess(final PFUserDO user, final GanttChartDO obj, final GanttAccess access)
   {
-    if (accessChecker.userEqualsToContextUser(obj.getOwner()) == true) {
+    if (accessChecker.userEqualsToContextUser(obj.getOwner())) {
       // Owner has always access:
       return true;
     }
@@ -116,13 +116,13 @@ public class GanttChartRight extends UserRightAccessCheck<GanttChartDO>
       // No access defined, so only owner has access:
       return false;
     }
-    if (access.isIn(GanttAccess.ALL, GanttAccess.PROJECT_MANAGER) == true) {
+    if (access.isIn(GanttAccess.ALL, GanttAccess.PROJECT_MANAGER)) {
       if (obj.getTask() == null) {
         // Task needed for these GanttAccess types, so no access:
         return false;
       }
-      if (accessChecker.hasPermission(user, obj.getTaskId(), AccessType.TASKS, OperationType.SELECT,
-          false) == false) {
+      if (!accessChecker.hasPermission(user, obj.getTaskId(), AccessType.TASKS, OperationType.SELECT,
+          false)) {
         // User has no task access:
         return false;
       }

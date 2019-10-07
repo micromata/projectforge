@@ -185,7 +185,7 @@ public abstract class DefaultBaseWithAttrDO<M extends DefaultBaseWithAttrDO<?>>e
     if (val == null) {
       return null;
     }
-    if (expectedClass.isAssignableFrom(val.getClass()) == false) {
+    if (!expectedClass.isAssignableFrom(val.getClass())) {
       throw new IllegalArgumentException("Attribute does not match type. key: "
           + key
           + "; expected: "
@@ -279,7 +279,7 @@ public abstract class DefaultBaseWithAttrDO<M extends DefaultBaseWithAttrDO<?>>e
         putAttrInternal(srcEntry.getKey(), srcEntry.getValue().getType(), srcEntry.getValue().getStringData());
         modificationStatus = getModificationStatus(modificationStatus, ModificationStatus.MAJOR);
       } else {
-        if (StringUtils.equals(destEntry.getStringData(), srcEntry.getValue().getStringData()) == false) {
+        if (!StringUtils.equals(destEntry.getStringData(), srcEntry.getValue().getStringData())) {
           removeAttribute(srcEntry.getKey());
           modificationStatus = modificationStatus.combine(ModificationStatus.MAJOR);
           putAttrInternal(srcEntry.getKey(), srcEntry.getValue().getType(), srcEntry.getValue().getStringData());
@@ -290,7 +290,7 @@ public abstract class DefaultBaseWithAttrDO<M extends DefaultBaseWithAttrDO<?>>e
     final ArrayList<String> keys = new ArrayList<>();
     keys.addAll(attributes.keySet());
     for (final String key : keys) {
-      if (src.getAttrs().containsKey(key) == false) {
+      if (!src.getAttrs().containsKey(key)) {
         removeAttribute(key);
         modificationStatus = getModificationStatus(modificationStatus, ModificationStatus.MAJOR);
       }

@@ -80,11 +80,11 @@ public class HibernateSearchReindexer
       return;
     }
     final String result = rebuildDatabaseSearchIndices();
-    if (result.contains("*") == true) {
+    if (result.contains("*")) {
       log.error(ERROR_MSG);
       final String recipients = GlobalConfiguration.getInstance()
           .getStringValue(ConfigurationParam.SYSTEM_ADMIN_E_MAIL);
-      if (StringUtils.isNotBlank(recipients) == true) {
+      if (StringUtils.isNotBlank(recipients)) {
         log.info("Try to inform administrator about re-indexing error.");
         final Mail msg = new Mail();
         msg.addTo(recipients);

@@ -249,7 +249,7 @@ public class CalEventDao extends BaseDao<CalEventDO>
   {
     final List<ICalendarEvent> result = new ArrayList<>();
     List<CalEventDO> list = getList(filter);
-    if (CollectionUtils.isNotEmpty(list) == true) {
+    if (CollectionUtils.isNotEmpty(list)) {
       for (final CalEventDO eventDO : list) {
         result.add(eventDO);
       }
@@ -261,7 +261,7 @@ public class CalEventDao extends BaseDao<CalEventDO>
     final TimeZone timeZone = ThreadLocalUserContext.getTimeZone();
     if (list != null) {
       for (final CalEventDO eventDO : list) {
-        if (calculateRecurrenceEvents == false) {
+        if (!calculateRecurrenceEvents) {
           result.add(eventDO);
           continue;
         }
@@ -285,7 +285,7 @@ public class CalEventDao extends BaseDao<CalEventDO>
     }
 
     // If is all day event, set start and stop to midnight
-    if (event.getAllDay() == true) {
+    if (event.getAllDay()) {
       final Date startDate = event.getStartDate();
       if (startDate != null) {
         event.setStartDate(CalendarUtils.getUTCMidnightTimestamp(startDate));
@@ -310,7 +310,7 @@ public class CalEventDao extends BaseDao<CalEventDO>
   {
     final QueryFilter queryFilter = new QueryFilter(filter);
     final Collection<Integer> cals = filter.getTeamCals();
-    if (CollectionUtils.isNotEmpty(cals) == true) {
+    if (CollectionUtils.isNotEmpty(cals)) {
       queryFilter.add(Restrictions.in("calendar.id", cals));
     } else if (filter.getTeamCalId() != null) {
       queryFilter.add(Restrictions.eq("calendar.id", filter.getTeamCalId()));

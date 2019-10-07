@@ -50,11 +50,11 @@ public class TableAttributeHookImpl implements TableAttributeHook
     if (annotatedFieldOrMethod.isAnnotationPresent(org.hibernate.annotations.Type.class)) {
       final org.hibernate.annotations.Type annotation = annotatedFieldOrMethod.getAnnotation(org.hibernate.annotations.Type.class);
       final String typePropertyValue = annotation.type();
-      if ("binary".equals(typePropertyValue) == true) {
+      if ("binary".equals(typePropertyValue)) {
         return TableAttributeType.BINARY;
-      } else if ("org.jadira.usertype.dateandtime.joda.PersistentPeriodAsString".equals(typePropertyValue) == true) {
+      } else if ("org.jadira.usertype.dateandtime.joda.PersistentPeriodAsString".equals(typePropertyValue)) {
         return TableAttributeType.VARCHAR;
-      } else if ("org.jadira.usertype.dateandtime.joda.PersistentDateTime".equals(typePropertyValue) == true) {
+      } else if ("org.jadira.usertype.dateandtime.joda.PersistentDateTime".equals(typePropertyValue)) {
         return TableAttributeType.TIMESTAMP;
       }
     }

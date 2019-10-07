@@ -100,7 +100,7 @@ public class MebRight extends UserRightAccessCheck<MebEntryDO>
   @Override
   public boolean hasUpdateAccess(final PFUserDO user, MebEntryDO obj, MebEntryDO oldObj)
   {
-    if (oldObj != null && accessChecker.isUserMemberOfAdminGroup(user) == true
+    if (oldObj != null && accessChecker.isUserMemberOfAdminGroup(user)
         && oldObj.getOwner() == null) {
       // Otherwise an admin couldn't assign unassigned entries:
       return true;

@@ -65,7 +65,7 @@ public class JpaPfJpaPluginScannerUrlProvider implements JpaExtScannerUrlProvide
         URLClassLoader urlcls = (URLClassLoader) cls;
         URL[] urls = urlcls.getURLs();
         for (URL url : urls) {
-          if (urlMatcher.match(url.toString()) == true) {
+          if (urlMatcher.match(url.toString())) {
             ret.put(url.toString(), url);
           }
         }

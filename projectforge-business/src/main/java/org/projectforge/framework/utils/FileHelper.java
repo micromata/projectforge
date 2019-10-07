@@ -49,7 +49,7 @@ public class FileHelper
   public static String getAbsolutePath(String parent, String path)
   {
     File file = new File(path);
-    if (file.isAbsolute() == true) {
+    if (file.isAbsolute()) {
       return path;
     }
     file = new File(parent, path);
@@ -101,13 +101,13 @@ public class FileHelper
         count += substitution.length();
         escaped = false;
         continue;
-      } else if (escaped == false) {
+      } else if (!escaped) {
         buf.append("_");
         count++;
         escaped = true;
       }
     }
-    if (appendTimestamp == true) {
+    if (appendTimestamp) {
       buf.append('_').append(DateHelper.getDateAsFilenameSuffix(new Date()));
     }
     if (suffix != null) {

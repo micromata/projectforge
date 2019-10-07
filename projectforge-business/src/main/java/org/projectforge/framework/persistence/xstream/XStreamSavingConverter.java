@@ -150,7 +150,7 @@ public class XStreamSavingConverter implements Converter
       save(type);
     }
     for (final Map.Entry<Class<?>, List<Object>> entry : allObjects.entrySet()) {
-      if (entry.getKey().equals(PfHistoryMasterDO.class) == true) {
+      if (entry.getKey().equals(PfHistoryMasterDO.class)) {
         continue;
       }
       final Class<?> type = entry.getKey();
@@ -253,7 +253,7 @@ public class XStreamSavingConverter implements Converter
     }
     final Iterator<Serializable> oldIdListIterator = oldIdList.iterator();
     final Iterator<? extends BaseDO<?>> childIterator = children.iterator();
-    while (oldIdListIterator.hasNext() == true) {
+    while (oldIdListIterator.hasNext()) {
       final BaseDO<?> child = childIterator.next();
       registerEntityMapping(child.getClass(), oldIdListIterator.next(), child.getId());
     }
@@ -292,16 +292,16 @@ public class XStreamSavingConverter implements Converter
 
   private void save(final Class<?> type)
   {
-    if (ignoreFromSaving.contains(type) == true || writtenObjectTypes.contains(type) == true) {
+    if (ignoreFromSaving.contains(type) || writtenObjectTypes.contains(type)) {
       // Already written.
       return;
     }
     writtenObjectTypes.add(type);
     // Persistente Klasse?
-    if (HibernateUtils.isEntity(type) == false) {
+    if (!HibernateUtils.isEntity(type)) {
       return;
     }
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug("Writing objects from type: " + type);
     }
     final List<Object> list = allObjects.get(type);
@@ -309,11 +309,11 @@ public class XStreamSavingConverter implements Converter
       return;
     }
     for (final Object obj : list) {
-      if (obj == null || writtenObjects.contains(obj) == true) {
+      if (obj == null || writtenObjects.contains(obj)) {
         // Object null or already written. Skip this item.
         continue;
       }
-      if (session.contains(obj) == true) {
+      if (session.contains(obj)) {
         continue;
       }
       try {
@@ -325,7 +325,7 @@ public class XStreamSavingConverter implements Converter
           id = save(obj);
         }
         onAfterSave(obj, id);
-        if (log.isDebugEnabled() == true) {
+        if (log.isDebugEnabled()) {
           log.debug("wrote object " + obj + " under id " + id);
         }
       } catch (final HibernateException ex) {
@@ -351,9 +351,9 @@ public class XStreamSavingConverter implements Converter
   {
     final Serializable oldId = getOriginalIdentifierValue(obj);
     final Serializable id;
-    if (session.contains(obj) == false) {
+    if (!session.contains(obj)) {
       if (obj instanceof BaseDO) {
-        if (obj instanceof IManualIndex == false) {
+        if (!(obj instanceof IManualIndex)) {
           ((BaseDO<?>) obj).setId(null);
         }
         id = session.save(obj);
@@ -397,7 +397,7 @@ public class XStreamSavingConverter implements Converter
   protected void registerEntityMapping(final Class<?> entityClass, final Serializable oldId, final Serializable newId)
   {
     final Serializable registeredNewId = getNewId(entityClass, oldId);
-    if (registeredNewId != null && registeredNewId.equals(newId) == false) {
+    if (registeredNewId != null && !registeredNewId.equals(newId)) {
       log.error("Oups, double entity mapping found for entity '"
           + entityClass
           + "' with old id="
@@ -418,7 +418,7 @@ public class XStreamSavingConverter implements Converter
     if (newId == null) {
       log.error("Oups, can't find '" + entityClass + "' id '" + oldId + "'.");
       return null;
-    } else if (newId instanceof Integer == false) {
+    } else if (!(newId instanceof Integer)) {
       log.error("Oups, can't get '" + entityClass + "' id '" + oldId + "' as integer: " + newId);
       return null;
     }
@@ -471,10 +471,10 @@ public class XStreamSavingConverter implements Converter
     if (obj == null) {
       return;
     }
-    if (HibernateUtils.isEntity(obj.getClass()) == false) {
+    if (!HibernateUtils.isEntity(obj.getClass())) {
       return;
     }
-    if (this.ignoreFromSaving.contains(obj.getClass()) == true) {
+    if (this.ignoreFromSaving.contains(obj.getClass())) {
       // Don't need this objects as "top level" objects in list. They're usually encapsulated.
       return;
     }

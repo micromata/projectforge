@@ -29,6 +29,7 @@ import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.sql.JoinType;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
@@ -134,7 +135,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
    * @return Map with all order positions referencing a task. The key of the map is the task id.
    */
   public Map<Integer, Set<AuftragsPositionVO>> getTaskReferences() {
-    final Map<Integer, Set<AuftragsPositionVO>> result = new HashMap<Integer, Set<AuftragsPositionVO>>();
+    final Map<Integer, Set<AuftragsPositionVO>> result = new HashMap<>();
     @SuppressWarnings("unchecked") final List<AuftragsPositionDO> list = (List<AuftragsPositionDO>) getHibernateTemplate()
             .find("from AuftragsPositionDO a where a.task.id is not null and a.deleted = false");
     if (list == null) {
@@ -149,7 +150,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
       final AuftragsPositionVO vo = new AuftragsPositionVO(pos);
       Set<AuftragsPositionVO> set = result.get(pos.getTaskId());
       if (set == null) {
-        set = new TreeSet<AuftragsPositionVO>();
+        set = new TreeSet<>();
         result.put(pos.getTaskId(), set);
       }
       set.add(vo);
@@ -254,8 +255,8 @@ public class AuftragDao extends BaseDao<AuftragDO> {
    */
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public AuftragsPositionDO getAuftragsPosition(final String posString) {
-    Integer auftragsNummer = null;
-    Short positionNummer = null;
+    Integer auftragsNummer;
+    Short positionNummer;
     if (posString == null) {
       return null;
     }
@@ -329,7 +330,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
     queryFilter.addOrder(Order.desc("nummer"));
 
     final List<AuftragDO> list;
-    if (checkAccess == true) {
+    if (checkAccess) {
       list = getList(queryFilter);
     } else {
       list = internalGetList(queryFilter);
@@ -344,7 +345,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
         final AuftragDO auftrag = (AuftragDO) object;
         boolean match = false;
         if (myFilter.getAuftragsPositionsPaymentType() != null) {
-          if (CollectionUtils.isNotEmpty(auftrag.getPositionenExcludingDeleted()) == true) {
+          if (CollectionUtils.isNotEmpty(auftrag.getPositionenExcludingDeleted())) {
             for (final AuftragsPositionDO position : auftrag.getPositionenExcludingDeleted()) {
               if (myFilter.getAuftragsPositionsPaymentType() == position.getPaymentType()) {
                 match = true;
@@ -374,15 +375,15 @@ public class AuftragDao extends BaseDao<AuftragDO> {
     // special case
     if (auftragsStatuses.contains(AuftragsStatus.ABGESCHLOSSEN)) {
       orCriterions.add(Restrictions.eq("paymentSchedule.reached", true));
-      queryFilter.createAlias("paymentSchedules", "paymentSchedule", Criteria.FULL_JOIN);
+      queryFilter.createAlias("paymentSchedules", "paymentSchedule", JoinType.FULL_JOIN.getJoinTypeValue());
     }
 
     queryFilter
-            .createAlias("positionen", "position", Criteria.FULL_JOIN)
+            .createAlias("positionen", "position", JoinType.FULL_JOIN.getJoinTypeValue())
             .add(Restrictions.or(orCriterions.toArray(new Criterion[orCriterions.size()])));
 
     // check deleted
-    if (myFilter.isIgnoreDeleted() == false) {
+    if (!myFilter.isIgnoreDeleted()) {
       queryFilter.add(Restrictions.eq("position.deleted", myFilter.isDeleted()));
     }
   }
@@ -427,10 +428,10 @@ public class AuftragDao extends BaseDao<AuftragDO> {
 
       // special case
       if (HibernateUtils.getDialect() != DatabaseDialect.HSQL &&
-              vollstaendigFakturiert == false && myFilter.getAuftragsStatuses().contains(AuftragsStatus.ABGESCHLOSSEN)) {
+          !vollstaendigFakturiert && myFilter.getAuftragsStatuses().contains(AuftragsStatus.ABGESCHLOSSEN)) {
 
         // if order is completed and not all positions are completely invoiced
-        if (auftrag.getAuftragsStatus() == AuftragsStatus.ABGESCHLOSSEN && orderIsCompletelyInvoiced == false) {
+        if (auftrag.getAuftragsStatus() == AuftragsStatus.ABGESCHLOSSEN && !orderIsCompletelyInvoiced) {
           return true;
         }
 
@@ -445,7 +446,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
 
         if (auftrag.getPaymentSchedules() != null) {
           for (final PaymentScheduleDO schedule : auftrag.getPaymentSchedules()) {
-            if (schedule.getReached() && schedule.getVollstaendigFakturiert() == false) {
+            if (schedule.getReached() && !schedule.getVollstaendigFakturiert()) {
               return true;
             }
           }
@@ -494,20 +495,20 @@ public class AuftragDao extends BaseDao<AuftragDO> {
         throw new UserException("fibu.auftrag.error.nummerBereitsVergeben");
       }
     }
-    if (CollectionUtils.isEmpty(obj.getPositionenIncludingDeleted()) == true) {
+    if (CollectionUtils.isEmpty(obj.getPositionenIncludingDeleted())) {
       throw new UserException("fibu.auftrag.error.auftragHatKeinePositionen");
     }
     final int size = obj.getPositionenIncludingDeleted().size();
     for (int i = size - 1; i > 0; i--) {
       // Don't remove first position, remove only the last empty positions.
       final AuftragsPositionDO position = obj.getPositionenIncludingDeleted().get(i);
-      if (position.getId() == null && position.isEmpty() == true) {
+      if (position.getId() == null && position.isEmpty()) {
         obj.getPositionenIncludingDeleted().remove(i);
       } else {
         break;
       }
     }
-    if (CollectionUtils.isNotEmpty(obj.getPositionenIncludingDeleted()) == true) {
+    if (CollectionUtils.isNotEmpty(obj.getPositionenIncludingDeleted())) {
       for (final AuftragsPositionDO position : obj.getPositionenIncludingDeleted()) {
         position.checkVollstaendigFakturiert();
       }
@@ -521,7 +522,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
       for (int i = pmSize - 1; i > 0; i--) {
         // Don't remove first payment schedule, remove only the last empty payment schedules.
         final PaymentScheduleDO schedule = obj.getPaymentSchedules().get(i);
-        if (schedule.getId() == null && schedule.isEmpty() == true) {
+        if (schedule.getId() == null && schedule.isEmpty()) {
           obj.getPaymentSchedules().remove(i);
         } else {
           break;
@@ -555,7 +556,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
       }
     }
 
-    if (positionsWithDatesNotWithinPop.isEmpty() == false) {
+    if (!positionsWithDatesNotWithinPop.isEmpty()) {
       final String positions = positionsWithDatesNotWithinPop.stream()
               .map(Object::toString)
               .collect(Collectors.joining(", "));
@@ -611,22 +612,22 @@ public class AuftragDao extends BaseDao<AuftragDO> {
 
   public boolean sendNotificationIfRequired(final AuftragDO auftrag, final OperationType operationType,
                                             final String requestUrl) {
-    if (configurationService.isSendMailConfigured() == false) {
+    if (!configurationService.isSendMailConfigured()) {
       return false;
     }
     final PFUserDO contactPerson = auftrag.getContactPerson();
     if (contactPerson == null) {
       return false;
     }
-    if (hasAccess(contactPerson, auftrag, null, OperationType.SELECT, false) == false) {
+    if (!hasAccess(contactPerson, auftrag, null, OperationType.SELECT, false)) {
       return false;
     }
-    final Map<String, Object> data = new HashMap<String, Object>();
+    final Map<String, Object> data = new HashMap<>();
     data.put("contactPerson", contactPerson);
     data.put("auftrag", auftrag);
     data.put("requestUrl", requestUrl);
     final List<DisplayHistoryEntry> history = getDisplayHistoryEntries(auftrag);
-    final List<DisplayHistoryEntry> list = new ArrayList<DisplayHistoryEntry>();
+    final List<DisplayHistoryEntry> list = new ArrayList<>();
     int i = 0;
     for (final DisplayHistoryEntry entry : history) {
       list.add(entry);
@@ -697,10 +698,10 @@ public class AuftragDao extends BaseDao<AuftragDO> {
   @Override
   public List<DisplayHistoryEntry> getDisplayHistoryEntries(final AuftragDO obj) {
     final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(obj);
-    if (hasLoggedInUserHistoryAccess(obj, false) == false) {
+    if (!hasLoggedInUserHistoryAccess(obj, false)) {
       return list;
     }
-    if (CollectionUtils.isNotEmpty(obj.getPositionenIncludingDeleted()) == true) {
+    if (CollectionUtils.isNotEmpty(obj.getPositionenIncludingDeleted())) {
       for (final AuftragsPositionDO position : obj.getPositionenIncludingDeleted()) {
         final List<DisplayHistoryEntry> entries = internalGetDisplayHistoryEntries(position);
         for (final DisplayHistoryEntry entry : entries) {
@@ -714,7 +715,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
         list.addAll(entries);
       }
     }
-    if (CollectionUtils.isNotEmpty(obj.getPaymentSchedules()) == true) {
+    if (CollectionUtils.isNotEmpty(obj.getPaymentSchedules())) {
       for (final PaymentScheduleDO schedule : obj.getPaymentSchedules()) {
         final List<DisplayHistoryEntry> entries = internalGetDisplayHistoryEntries(schedule);
         for (final DisplayHistoryEntry entry : entries) {
@@ -728,12 +729,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
         list.addAll(entries);
       }
     }
-    Collections.sort(list, new Comparator<DisplayHistoryEntry>() {
-      @Override
-      public int compare(final DisplayHistoryEntry o1, final DisplayHistoryEntry o2) {
-        return (o2.getTimestamp().compareTo(o1.getTimestamp()));
-      }
-    });
+    list.sort((o1, o2) -> (o2.getTimestamp().compareTo(o1.getTimestamp())));
     return list;
   }
 
@@ -749,11 +745,11 @@ public class AuftragDao extends BaseDao<AuftragDO> {
    */
   @Override
   protected boolean contains(final Set<Integer> idSet, final AuftragDO entry) {
-    if (super.contains(idSet, entry) == true) {
+    if (super.contains(idSet, entry)) {
       return true;
     }
     for (final AuftragsPositionDO pos : entry.getPositionenIncludingDeleted()) {
-      if (idSet.contains(pos.getId()) == true) {
+      if (idSet.contains(pos.getId())) {
         return true;
       }
     }

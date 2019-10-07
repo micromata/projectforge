@@ -49,7 +49,7 @@ public class FontMap
   {
     @SuppressWarnings("unchecked")
     final Collection<File> files = FileUtils.listFiles(fontDir, new String[] { "afm"}, true); // Read all afm files recursively.
-    if (CollectionUtils.isNotEmpty(files) == true) {
+    if (CollectionUtils.isNotEmpty(files)) {
       for (File file : files) {
         BaseFont font = null;
         try {

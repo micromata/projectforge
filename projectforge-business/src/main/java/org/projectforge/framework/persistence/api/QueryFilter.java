@@ -82,11 +82,11 @@ public class QueryFilter {
       this.filter = filter;
     }
     TenantService tenantService = ApplicationContextProvider.getApplicationContext().getBean(TenantService.class);
-    if (ignoreTenant == false && tenantService.isMultiTenancyAvailable() == true) {
+    if (!ignoreTenant && tenantService.isMultiTenancyAvailable()) {
       final UserContext userContext = ThreadLocalUserContext.getUserContext();
       final TenantDO currentTenant = userContext.getCurrentTenant();
       if (currentTenant != null) {
-        if (currentTenant.isDefault() == true) {
+        if (currentTenant.isDefault()) {
           this.add(Restrictions.or(Restrictions.eq("tenant", userContext.getCurrentTenant()),
                   Restrictions.isNull("tenant")));
         } else {

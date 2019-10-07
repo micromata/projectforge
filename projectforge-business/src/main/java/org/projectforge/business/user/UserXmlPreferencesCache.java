@@ -94,9 +94,9 @@ public class UserXmlPreferencesCache extends AbstractCache
       // Should only occur for the pseudo-first-login-user setting up the system.
       return null;
     }
-    if (data.getPersistentData().containsKey(key) == true) {
+    if (data.getPersistentData().containsKey(key)) {
       userXmlPreferencesDao.remove(userId, key);
-    } else if (data.getVolatileData().containsKey(key) == false) {
+    } else if (!data.getVolatileData().containsKey(key)) {
       log.warn("Oups, user preferences object with key '" + key + "' is wether persistent nor volatile!");
     }
     checkRefresh();
@@ -146,8 +146,8 @@ public class UserXmlPreferencesCache extends AbstractCache
 
   private synchronized void flushToDB(final Integer userId, final boolean checkAccess)
   {
-    if (checkAccess == true) {
-      if (userId.equals(ThreadLocalUserContext.getUserId()) == false) {
+    if (checkAccess) {
+      if (!userId.equals(ThreadLocalUserContext.getUserId())) {
         log.error("User '" + ThreadLocalUserContext.getUserId()
             + "' has no access to write user preferences of other user '" + userId + "'.");
         // No access.
@@ -156,13 +156,13 @@ public class UserXmlPreferencesCache extends AbstractCache
       PFUserDO user = emgrFactory.runInTrans(emgr -> {
         return emgr.selectByPk(PFUserDO.class, userId);
       });
-      if (AccessChecker.isDemoUser(user) == true) {
+      if (AccessChecker.isDemoUser(user)) {
         // Do nothing for demo user.
         return;
       }
     }
     final UserXmlPreferencesMap data = allPreferences.get(userId);
-    if (data == null || data.isModified() == false) {
+    if (data == null || !data.isModified()) {
       return;
     }
     userXmlPreferencesDao.saveOrUpdateUserEntries(userId, data, checkAccess);

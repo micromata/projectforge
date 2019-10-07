@@ -77,7 +77,7 @@ public abstract class AbstractPlugin
   private boolean initialized;
 
   @Deprecated
-  private static Set<Class<?>> initializedPlugins = new HashSet<Class<?>>();
+  private static Set<Class<?>> initializedPlugins = new HashSet<>();
 
   public String getResourceBundleName()
   {
@@ -87,7 +87,7 @@ public abstract class AbstractPlugin
   public final void init()
   {
     synchronized (initializedPlugins) {
-      if (initializedPlugins.contains(this.getClass()) == true || initialized == true) {
+      if (initializedPlugins.contains(this.getClass()) || initialized) {
         log.warn("Ignoring multiple initialization of plugin.");
         return;
       }

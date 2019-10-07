@@ -102,7 +102,7 @@ public class PluginAdminServiceImpl implements PluginAdminService
   {
     String activateds = GlobalConfiguration.getInstance().getStringValue(ConfigurationParam.PLUGIN_ACTIVATED);
     String[] sa = new String[0];
-    if (StringUtils.isBlank(activateds) == false) {
+    if (!StringUtils.isBlank(activateds)) {
       sa = StringUtils.split(activateds, ", ");
     }
     Set<String> activated = new TreeSet<>(Arrays.asList(sa));
@@ -125,7 +125,7 @@ public class PluginAdminServiceImpl implements PluginAdminService
   {
     List<AvailablePlugin> plugins = getAvailablePlugins();
     for (AvailablePlugin plugin : plugins) {
-      if (onlyConfiguredActive != false && plugin.isActivated() == false && plugin.isBuildIn() == false) {
+      if (onlyConfiguredActive && !plugin.isActivated() && !plugin.isBuildIn()) {
         continue;
       }
       activatePlugin(plugin.getProjectForgePluginService());
@@ -152,7 +152,7 @@ public class PluginAdminServiceImpl implements PluginAdminService
   public boolean storePluginToBeActivated(String id, boolean activate)
   {
     Set<String> active = getActivePlugins();
-    if (activate == true) {
+    if (activate) {
       active.add(id);
     } else {
       active.remove(id);
@@ -185,7 +185,7 @@ public class PluginAdminServiceImpl implements PluginAdminService
     SystemUpdater systemUpdater = myDatabaseUpdater.getSystemUpdater();
     final UpdateEntry updateEntry = plugin.getInitializationUpdateEntry();
     if (updateEntry != null) {
-      if (updateEntry.isInitial() == false) {
+      if (!updateEntry.isInitial()) {
         LOG.error(
             "The given UpdateEntry returned by plugin.getInitializationUpdateEntry() is not initial! Please use constructor without parameter version: "
                 + plugin.getClass());
@@ -195,7 +195,7 @@ public class PluginAdminServiceImpl implements PluginAdminService
     final List<UpdateEntry> updateEntries = plugin.getUpdateEntries();
     if (updateEntries != null) {
       for (final UpdateEntry entry : updateEntries) {
-        if (entry.isInitial() == true) {
+        if (entry.isInitial()) {
           LOG.error(
               "The given UpdateEntry returned by plugin.getUpdateEntries() is initial! Please use constructor with parameter version: "
                   + plugin.getClass()

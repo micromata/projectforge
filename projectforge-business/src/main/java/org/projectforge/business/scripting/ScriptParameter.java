@@ -234,7 +234,7 @@ public class ScriptParameter implements Serializable
   {
     final StringBuffer buf = new StringBuffer();
     buf.append("[").append(parameterName).append(',').append(type).append(',');
-    if (type.isIn(ScriptParameterType.TASK, ScriptParameterType.USER) == true) {
+    if (type.isIn(ScriptParameterType.TASK, ScriptParameterType.USER)) {
       buf.append(intValue);
     } else {
       buf.append(getValue());
@@ -249,7 +249,7 @@ public class ScriptParameter implements Serializable
     final ToStringBuilder tos = new ToStringBuilder(this);
     tos.append(parameterName);
     tos.append(type);
-    if (type.isIn(ScriptParameterType.TASK, ScriptParameterType.USER) == true) {
+    if (type.isIn(ScriptParameterType.TASK, ScriptParameterType.USER)) {
       tos.append(intValue);
     } else {
       tos.append(getValue());

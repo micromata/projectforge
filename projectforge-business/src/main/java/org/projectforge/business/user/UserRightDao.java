@@ -82,7 +82,7 @@ public class UserRightDao extends BaseDao<UserRightDO>
         }
       }
       if (rightDO == null) {
-        if ((rightVO.isBooleanValue() == true && rightVO.getValue() == UserRightValue.FALSE)
+        if ((rightVO.isBooleanValue() && rightVO.getValue() == UserRightValue.FALSE)
             || rightVO.getValue() == null) {
           continue;
           // Right has no value and is not yet in data base.
@@ -96,8 +96,8 @@ public class UserRightDao extends BaseDao<UserRightDO>
         copy(rightDO, rightVO);
         IUserRightId rightId = userRightService.getRightId(rightDO.getRightIdString());
         final UserRight right = userRightService.getRight(rightId);
-        if (right.isAvailable(userGroupCache, user) == false
-            || right.isAvailable(userGroupCache, user, rightDO.getValue()) == false) {
+        if (!right.isAvailable(userGroupCache, user)
+            || !right.isAvailable(userGroupCache, user, rightDO.getValue())) {
           rightDO.setValue(null);
         }
         update(rightDO);
@@ -107,8 +107,8 @@ public class UserRightDao extends BaseDao<UserRightDO>
     for (final UserRightDO rightDO : dbList) {
       String rightId = rightDO.getRightIdString();
       UserRight right = userRightService.getRight(rightId);
-      if (right.isAvailable(userGroupCache, user) == false
-          || right.isAvailable(userGroupCache, user, rightDO.getValue()) == false) {
+      if (!right.isAvailable(userGroupCache, user)
+          || !right.isAvailable(userGroupCache, user, rightDO.getValue())) {
         rightDO.setValue(null);
         update(rightDO);
       }
@@ -136,8 +136,8 @@ public class UserRightDao extends BaseDao<UserRightDO>
 
   private void copy(final UserRightDO dest, final UserRightVO src)
   {
-    if (src.getRight().isBooleanType() == true) {
-      if (src.isBooleanValue() == true) {
+    if (src.getRight().isBooleanType()) {
+      if (src.isBooleanValue()) {
         dest.setValue(UserRightValue.TRUE);
       } else {
         dest.setValue(UserRightValue.FALSE);
@@ -156,12 +156,12 @@ public class UserRightDao extends BaseDao<UserRightDO>
     final List<UserRightDO> dbList = getList(user);
     final UserGroupCache userGroupCache = getUserGroupCache();
     for (final UserRight right : userRightService.getOrderedRights()) {
-      if (right.isAvailable(userGroupCache, user) == false) {
+      if (!right.isAvailable(userGroupCache, user)) {
         continue;
       }
       final UserRightVO rightVO = new UserRightVO(right);
       for (final UserRightDO rightDO : dbList) {
-        if (StringUtils.equals(rightDO.getRightIdString(), right.getId().getId()) == true) {
+        if (StringUtils.equals(rightDO.getRightIdString(), right.getId().getId())) {
           rightVO.setValue(rightDO.getValue());
         }
       }

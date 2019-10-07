@@ -86,10 +86,10 @@ public class MyBeanComparator<T> implements Comparator<T>
         if (value2 == null)
           return 0;
         else
-          return (asc == true) ? -1 : 1;
+          return (asc) ? -1 : 1;
       }
       if (value2 == null) {
-        return (asc == true) ? 1 : -1;
+        return (asc) ? 1 : -1;
       }
       if (value1 instanceof String && value2 instanceof String) {
         if (checkAnnotation(BeanHelper.getDeclaredAnnotations(o1.getClass(), prop), StringAlphanumericSort.class)
@@ -104,8 +104,8 @@ public class MyBeanComparator<T> implements Comparator<T>
           return StringComparator.getInstance().compare((String) value1, (String) value2, asc);
         }
       }
-      if (ClassUtils.isAssignable(value2.getClass(), value1.getClass()) == true) {
-        if (asc == true) {
+      if (ClassUtils.isAssignable(value2.getClass(), value1.getClass())) {
+        if (asc) {
           return ((Comparable) value1).compareTo(value2);
         } else {
           return -((Comparable) value1).compareTo(value2);
@@ -113,7 +113,7 @@ public class MyBeanComparator<T> implements Comparator<T>
       } else {
         final String sval1 = String.valueOf(value1);
         final String sval2 = String.valueOf(value2);
-        if (asc == true) {
+        if (asc) {
           return sval1.compareTo(sval2);
         } else {
           return -sval1.compareTo(sval2);

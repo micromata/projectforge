@@ -99,13 +99,13 @@ public class StringComparator
     if (s1 == null) {
       if (s2 == null)
         return 0;
-      else return (asc == true) ? -1 : 1;
+      else return (asc) ? -1 : 1;
     }
     if (s2 == null) {
-      return (asc == true) ? 1 : -1;
+      return (asc) ? 1 : -1;
     }
     final Collator collator = getCollator(locale);
-    if (asc == true) {
+    if (asc) {
       return collator.compare(s1, s2);
     }
     return -collator.compare(s1, s2);
@@ -114,7 +114,7 @@ public class StringComparator
   private Collator getCollator(final Locale locale)
   {
     if (locale != null) {
-      if (german.getLanguage().equals(locale.getLanguage()) == true) {
+      if (german.getLanguage().equals(locale.getLanguage())) {
         return getGermanCollator();
       }
     }

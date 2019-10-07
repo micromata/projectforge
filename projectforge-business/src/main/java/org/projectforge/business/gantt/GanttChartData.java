@@ -106,7 +106,7 @@ public class GanttChartData implements Serializable
       return null;
     }
     for (final GanttTask task : externalObjects) {
-      if (id.equals(task.getId()) == true) {
+      if (id.equals(task.getId())) {
         return task;
       }
     }

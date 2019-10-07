@@ -27,6 +27,7 @@ import java.util.Date;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DateUtil;
 
 public class ExportCell
@@ -101,17 +102,17 @@ public class ExportCell
     if (poiCell == null) {
       return null;
     }
-    switch (poiCell.getCellType()) {
-      case Cell.CELL_TYPE_STRING:
+    switch (poiCell.getCellTypeEnum()) {
+      case STRING:
         return poiCell.getRichStringCellValue().getString();
-      case Cell.CELL_TYPE_NUMERIC:
+      case NUMERIC:
         if (DateUtil.isCellDateFormatted(poiCell)) {
           return poiCell.getDateCellValue();
         }
         return poiCell.getNumericCellValue();
-      case Cell.CELL_TYPE_BOOLEAN:
+      case BOOLEAN:
         return poiCell.getBooleanCellValue();
-      case Cell.CELL_TYPE_FORMULA:
+      case FORMULA:
         return poiCell.getCellFormula();
       default:
         return null;
@@ -123,7 +124,7 @@ public class ExportCell
     if (poiCell == null) {
       return false;
     }
-    return poiCell.getCellType() == Cell.CELL_TYPE_NUMERIC;
+    return poiCell.getCellTypeEnum() == CellType.NUMERIC;
   }
 
   public Date getDateCellValue()

@@ -116,7 +116,7 @@ public class TenantsCache extends AbstractCache
       return null;
     }
     for (final TenantDO tenant : tenants) {
-      if (id.equals(tenant.getId()) == true) {
+      if (id.equals(tenant.getId())) {
         return tenant;
       }
     }
@@ -167,8 +167,8 @@ public class TenantsCache extends AbstractCache
 
   public boolean isMultiTenancyAvailable()
   {
-    return configService.isMultiTenancyConfigured() == true
-        && hasTenants() == true;
+    return configService.isMultiTenancyConfigured()
+        && hasTenants();
   }
 
   /**
@@ -188,7 +188,7 @@ public class TenantsCache extends AbstractCache
       return false;
     }
     for (final TenantDO assignedTenant : assignedTenants) {
-      if (tenant.getId().equals(assignedTenant.getId()) == true) {
+      if (tenant.getId().equals(assignedTenant.getId())) {
         return true;
       }
     }
@@ -210,14 +210,14 @@ public class TenantsCache extends AbstractCache
     final Collection<PFUserDO> users = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache()
         .getAllUsers();
     for (final PFUserDO user : users) {
-      if (user.isDeleted() == true) {
+      if (user.isDeleted()) {
         continue;
       }
       final boolean superAdmin = TenantChecker.isSuperAdmin(user);
       if (list != null) {
         final Set<TenantDO> set = new TreeSet<TenantDO>(new TenantsComparator());
         for (final TenantDO tenant : list) {
-          if (superAdmin == true) {
+          if (superAdmin) {
             set.add(tenant);
           }
           final Collection<PFUserDO> assignedUsers = tenant.getAssignedUsers();
@@ -225,21 +225,21 @@ public class TenantsCache extends AbstractCache
             continue;
           }
           for (final PFUserDO assignedUser : assignedUsers) {
-            if (user.getId().equals(assignedUser.getId()) == true) {
+            if (user.getId().equals(assignedUser.getId())) {
               // User is assigned to the given tenant.
               set.add(tenant);
               continue;
             }
           }
         }
-        if (set.isEmpty() == false) {
+        if (!set.isEmpty()) {
           map.put(user.getId(), set);
         }
       }
     }
     if (list != null) {
       for (final TenantDO tenant : list) {
-        if (tenant.isDefault() == true) {
+        if (tenant.isDefault()) {
           this.defaultTenant = tenant;
         }
       }

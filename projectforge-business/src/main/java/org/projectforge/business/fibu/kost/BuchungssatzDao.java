@@ -123,7 +123,7 @@ public class BuchungssatzDao extends BaseDao<BuchungssatzDO> {
       myFilter = new BuchungssatzFilter(filter);
     }
     final QueryFilter queryFilter = new QueryFilter(filter);
-    if (validateTimeperiod(myFilter) == false) {
+    if (!validateTimeperiod(myFilter)) {
       throw new UserException("fibu.buchungssatz.error.invalidTimeperiod");
     }
     if (myFilter.getFromMonth() < 0) {

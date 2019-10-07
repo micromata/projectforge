@@ -74,7 +74,7 @@ public class AbstractRechnungsStatistik<T extends AbstractRechnungDO<?>> impleme
       }
     } else {
       offenSum = NumberHelper.add(offenSum, brutto);
-      if (rechnung.isUeberfaellig() == true) {
+      if (rechnung.isUeberfaellig()) {
         ueberfaelligSum = NumberHelper.add(ueberfaelligSum, brutto);
       }
     }

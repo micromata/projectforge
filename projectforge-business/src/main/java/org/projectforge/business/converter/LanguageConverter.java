@@ -49,7 +49,7 @@ public class LanguageConverter
   public static final Locale getLanguage(final String language, final Locale locale)
   {
     synchronized (localeMap) {
-      if (localeMap.containsKey(locale) == false) {
+      if (!localeMap.containsKey(locale)) {
         final Map<String, Locale> m = new HashMap<String, Locale>();
         for (final Locale lc : Locale.getAvailableLocales()) {
           m.put(lc.getDisplayName(locale), lc);

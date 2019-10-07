@@ -280,7 +280,7 @@ public class DateHelper implements Serializable
       final long millis = Long.parseLong(str);
       date = new Date(millis);
     } catch (final NumberFormatException ex) {
-      if (logError == true) {
+      if (logError) {
         log.error("Could not parse date string (millis expected): " + str, ex);
       }
     }
@@ -444,7 +444,7 @@ public class DateHelper implements Serializable
    */
   public static long getDuration(final Date startTime, final Date stopTime)
   {
-    if (startTime == null || stopTime == null || stopTime.before(startTime) == true) {
+    if (startTime == null || stopTime == null || stopTime.before(startTime)) {
       return 0;
     }
     final long millis = stopTime.getTime() - startTime.getTime();

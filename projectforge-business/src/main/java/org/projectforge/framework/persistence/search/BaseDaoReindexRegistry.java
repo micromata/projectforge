@@ -55,7 +55,7 @@ public class BaseDaoReindexRegistry
    */
   public void registerDependent(Class< ? extends BaseDO< ? >> clazz, BaseDao< ? > dao)
   {
-    if (Enhancer.isEnhanced(dao.getClass()) == true) {
+    if (Enhancer.isEnhanced(dao.getClass())) {
       return;
     }
     Set<BaseDao< ? >> set = this.registeredDependents.get(clazz);

@@ -69,11 +69,11 @@ public class LogoServlet extends HttpServlet implements ConfigurationListener
   public static String getBaseUrl()
   {
     final String filename = getConfigService().getLogoFile();
-    if (StringUtils.isEmpty(filename) == true) {
+    if (StringUtils.isEmpty(filename)) {
       return null;
-    } else if (filename.endsWith(".png") == true) {
+    } else if (filename.endsWith(".png")) {
       return BASE_URL + ".png";
-    } else if (filename.endsWith(".jpg") == true || filename.endsWith(".jpeg") == true) {
+    } else if (filename.endsWith(".jpg") || filename.endsWith(".jpeg")) {
       return BASE_URL + ".jpg";
     } else {
       return BASE_URL + ".gif";
@@ -85,19 +85,19 @@ public class LogoServlet extends HttpServlet implements ConfigurationListener
       throws ServletException, IOException
   {
     log.debug("Start doPost");
-    if (initialized == false) {
+    if (!initialized) {
       configService = getConfigService();
       // Synchronization not really needed, multiple initialization works.
       final String logo = configService.getLogoFile();
       if (logo != null) {
         final String logoPath;
-        if (new File(logo).isAbsolute() == true) {
+        if (new File(logo).isAbsolute()) {
           logoPath = logo;
         } else {
           logoPath = configService.getResourceDir() + "/images/" + logo;
         }
         final File file = new File(logoPath);
-        if (file.canRead() == true) {
+        if (file.canRead()) {
           logoFile = file;
           log.info("Use configured logo: " + logoPath);
         } else {

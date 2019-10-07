@@ -108,7 +108,7 @@ public class MailAccount
       }
       // Attributes & Flags for all messages ..
       final Message[] msgs;
-      if (filter.isOnlyRecent() == true) {
+      if (filter.isOnlyRecent()) {
         msgs = folder.search(new FlagTerm(new Flags(Flags.Flag.SEEN), false));
       } else {
         msgs = folder.getMessages();
@@ -320,7 +320,7 @@ public class MailAccount
 
   private void getContent(final Part msg, final StringBuffer buf) throws MessagingException, IOException
   {
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug("CONTENT-TYPE: " + msg.getContentType());
     }
     String filename = msg.getFileName();

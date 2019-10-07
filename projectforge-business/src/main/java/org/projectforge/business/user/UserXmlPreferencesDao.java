@@ -138,7 +138,7 @@ public class UserXmlPreferencesDao
   public UserXmlPreferencesDO getUserPreferencesByUserId(final Integer userId, final String key,
       final boolean checkAccess)
   {
-    if (checkAccess == true) {
+    if (checkAccess) {
       checkAccess(userId);
     }
     final List<UserXmlPreferencesDO> list = emgrFactory.runInTrans((emgr) -> {
@@ -184,7 +184,7 @@ public class UserXmlPreferencesDao
   {
     Validate.notNull(userId);
     final PFUserDO user = ThreadLocalUserContext.getUser();
-    if (Objects.equals(userId, user.getId()) == false) {
+    if (!Objects.equals(userId, user.getId())) {
       accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
     }
   }
@@ -205,7 +205,7 @@ public class UserXmlPreferencesDao
       if (xml == null || xml.length() == 0) {
         return null;
       }
-      if (xml.startsWith("!") == true) {
+      if (xml.startsWith("!")) {
         // Uncompress value:
         final String uncompressed = GZIPHelper.uncompress(xml.substring(1));
         xml = uncompressed;
@@ -228,7 +228,7 @@ public class UserXmlPreferencesDao
       }
       return value;
     } catch (final Throwable ex) {
-      if (logError == true) {
+      if (logError) {
         log.warn("Can't deserialize user preferences: "
             + ex.getMessage()
             + " for user: "
@@ -274,7 +274,7 @@ public class UserXmlPreferencesDao
   {
     for (final Map.Entry<String, Object> prefEntry : data.getPersistentData().entrySet()) {
       final String key = prefEntry.getKey();
-      if (data.isModified(key) == true) {
+      if (data.isModified(key)) {
         try {
           saveOrUpdate(userId, key, prefEntry.getValue(), checkAccess);
         } catch (final Throwable ex) {
@@ -299,7 +299,7 @@ public class UserXmlPreferencesDao
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
   public void saveOrUpdate(final Integer userId, final String key, final Object entry, final boolean checkAccess)
   {
-    if (accessChecker.isDemoUser(userId) == true) {
+    if (accessChecker.isDemoUser(userId)) {
       // Do nothing.
       return;
     }
@@ -321,8 +321,8 @@ public class UserXmlPreferencesDao
     userPrefs.setLastUpdate(date);
     userPrefs.setVersion();
     final UserXmlPreferencesDO userPrefsForDB = userPrefs;
-    if (isNew == true) {
-      if (log.isDebugEnabled() == true) {
+    if (isNew) {
+      if (log.isDebugEnabled()) {
         log.debug("Storing new user preference for user '" + userId + "': " + xml);
       }
       emgrFactory.runInTrans(emgr -> {
@@ -330,7 +330,7 @@ public class UserXmlPreferencesDao
         return null;
       });
     } else {
-      if (log.isDebugEnabled() == true) {
+      if (log.isDebugEnabled()) {
         log.debug("Updating user preference for user '" + userPrefs.getUserId() + "': " + xml);
       }
       emgrFactory.runInTrans(emgr -> {
@@ -349,7 +349,7 @@ public class UserXmlPreferencesDao
   @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
   public void remove(final Integer userId, final String key)
   {
-    if (accessChecker.isDemoUser(userId) == true) {
+    if (accessChecker.isDemoUser(userId)) {
       // Do nothing.
       return;
     }

@@ -70,7 +70,7 @@ public class TaskFormatter extends AbstractFormatter
     if (n == null) {
       return null;
     }
-    if (showCurrentTask == false) {
+    if (!showCurrentTask) {
       n = n.getParent();
       if (n == null) {
         return null;
@@ -78,7 +78,7 @@ public class TaskFormatter extends AbstractFormatter
       taskId = n.getTaskId();
     }
     final List<TaskNode> list = taskTree.getPath(taskId, ancestorTaskId);
-    if (CollectionUtils.isEmpty(list) == true) {
+    if (CollectionUtils.isEmpty(list)) {
       return "";
     }
     final StringBuffer buf = new StringBuffer();

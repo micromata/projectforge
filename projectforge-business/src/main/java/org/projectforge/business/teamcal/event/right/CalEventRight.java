@@ -70,15 +70,15 @@ public class CalEventRight  extends UserRightAccessCheck<CalEventDO>
     if (calendar == null) {
       return false;
     }
-    if (Objects.equals(user.getId(), calendar.getOwnerId()) == true) {
+    if (Objects.equals(user.getId(), calendar.getOwnerId())) {
       // User has full access to it's own calendars.
       return true;
     }
     final Integer userId = user.getId();
-    if (teamCalRight.hasFullAccess(calendar, userId) == true
-      || teamCalRight.hasReadonlyAccess(calendar, userId) == true) {
+    if (teamCalRight.hasFullAccess(calendar, userId)
+      || teamCalRight.hasReadonlyAccess(calendar, userId)) {
       return true;
-    } else if (teamCalRight.hasMinimalAccess(calendar, userId) == true) {
+    } else if (teamCalRight.hasMinimalAccess(calendar, userId)) {
       // Clear fields for users with minimal access.
       return true;
     }
@@ -142,15 +142,15 @@ public class CalEventRight  extends UserRightAccessCheck<CalEventDO>
 
   public boolean hasUpdateAccess(final PFUserDO user, final TeamCalDO calendar)
   {
-    if (calendar != null && calendar.getExternalSubscription() == true) {
+    if (calendar != null && calendar.getExternalSubscription()) {
       return false;
     }
-    if (Objects.equals(user.getId(), calendar.getOwnerId()) == true) {
+    if (Objects.equals(user.getId(), calendar.getOwnerId())) {
       // User has full access to it's own calendars.
       return true;
     }
     final Integer userId = user.getId();
-    if (teamCalRight.hasFullAccess(calendar, userId) == true || accessChecker.isDemoUser() == true) {
+    if (teamCalRight.hasFullAccess(calendar, userId) || accessChecker.isDemoUser()) {
       return true;
     }
     return false;
@@ -173,13 +173,13 @@ public class CalEventRight  extends UserRightAccessCheck<CalEventDO>
     if (calendar == null) {
       return false;
     }
-    if (Objects.equals(user.getId(), calendar.getOwnerId()) == true) {
+    if (Objects.equals(user.getId(), calendar.getOwnerId())) {
       // User has full access to it's own calendars.
       return true;
     }
     final Integer userId = user.getId();
-    if (teamCalRight.hasFullAccess(calendar, userId) == true
-      || teamCalRight.hasReadonlyAccess(calendar, userId) == true) {
+    if (teamCalRight.hasFullAccess(calendar, userId)
+      || teamCalRight.hasReadonlyAccess(calendar, userId)) {
       return true;
     }
     return false;

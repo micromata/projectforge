@@ -90,7 +90,7 @@ public class ExportConfig
       return excelDefaultPaperSizeValue;
     }
     String excelDefaultPaperSize = ConfigurationServiceAccessor.get().getExcelPaperSize();
-    if ("LETTER".equals(excelDefaultPaperSize) == true) {
+    if ("LETTER".equals(excelDefaultPaperSize)) {
       excelDefaultPaperSizeValue = PrintSetup.LETTER_PAPERSIZE;
     } else {
       excelDefaultPaperSizeValue = PrintSetup.A4_PAPERSIZE;

@@ -58,13 +58,13 @@ public class TenantRight extends UserRightAccessCheck<TenantDO>
   public boolean hasAccess(final PFUserDO user, final TenantDO obj, final TenantDO oldObj,
       final OperationType operationType)
   {
-    if (GlobalConfiguration.getInstance().isMultiTenancyConfigured() == false) {
+    if (!GlobalConfiguration.getInstance().isMultiTenancyConfigured()) {
       return false;
     }
-    if (user.getSuperAdmin() == true) {
+    if (user.getSuperAdmin()) {
       return true;
     }
-    if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.ADMIN_GROUP) == false) {
+    if (!accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.ADMIN_GROUP)) {
       return false;
     }
     if (operationType == OperationType.SELECT) {

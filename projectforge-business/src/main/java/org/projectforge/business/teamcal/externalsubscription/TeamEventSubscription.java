@@ -142,7 +142,7 @@ public class TeamEventSubscription implements Serializable
       bytes = IOUtils.toByteArray(stream);
 
       final String md5 = calcHexHash(md.digest(bytes));
-      if (StringUtils.equals(md5, teamCalDO.getExternalSubscriptionHash()) == false) {
+      if (!StringUtils.equals(md5, teamCalDO.getExternalSubscriptionHash())) {
         teamCalDO.setExternalSubscriptionHash(md5);
         teamCalDO.setExternalSubscriptionCalendarBinary(bytes);
         teamCalDO.setMinorChange(true); // Don't need to re-index (failed).
@@ -165,7 +165,7 @@ public class TeamEventSubscription implements Serializable
       return;
     }
     if (currentInitializedHash != null
-        && StringUtils.equals(currentInitializedHash, teamCalDO.getExternalSubscriptionHash()) == true) {
+        && StringUtils.equals(currentInitializedHash, teamCalDO.getExternalSubscriptionHash())) {
       // nothing to do here if the hashes are equal
       log.info("No modification of subscribed calendar #" + teamCalDO.getId() + " found from: " + displayUrl
           + " (OK, nothing to be done).");
@@ -189,7 +189,7 @@ public class TeamEventSubscription implements Serializable
         event.setId(startId);
         event.setCalendar(teamCalDO);
 
-        if (event.hasRecurrence() == true) {
+        if (event.hasRecurrence()) {
           // special treatment for recurrence events ..
           newRecurrenceEvents.add(event);
         } else {

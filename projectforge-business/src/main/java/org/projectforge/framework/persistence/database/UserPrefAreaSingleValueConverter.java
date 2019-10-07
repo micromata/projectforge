@@ -54,7 +54,7 @@ public class UserPrefAreaSingleValueConverter implements SingleValueConverter
   @Override
   public Object fromString(final String str)
   {
-    if (StringUtils.isBlank(str) == true) {
+    if (StringUtils.isBlank(str)) {
       return null;
     }
     return UserPrefAreaRegistry.instance().getEntry(str.trim());

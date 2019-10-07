@@ -48,7 +48,7 @@ public class BatikImageRenderer
    */
   public static byte[] getByteArray(final Document document, final int width, final ImageFormat imageFormat)
   {
-    if (imageFormat.isIn(ImageFormat.PNG, ImageFormat.JPEG) == true) {
+    if (imageFormat.isIn(ImageFormat.PNG, ImageFormat.JPEG)) {
       return getRasterImageByteArray(document, width, imageFormat);
     }
     if (imageFormat == ImageFormat.PDF == true) {

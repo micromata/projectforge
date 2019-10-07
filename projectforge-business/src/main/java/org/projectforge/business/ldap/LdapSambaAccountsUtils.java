@@ -82,7 +82,7 @@ public class LdapSambaAccountsUtils
     final Collection<PFUserDO> allUsers = getUserGroupCache().getAllUsers();
     for (final PFUserDO user : allUsers) {
       final LdapUserValues ldapUserValues = PFUserDOConverter.readLdapUserValues(user.getLdapValues());
-      if (Objects.equals(user.getId(), currentUser.getId()) == true) {
+      if (Objects.equals(user.getId(), currentUser.getId())) {
         // The current user may have the given sambaSIDNumber already, so ignore this entry.
         continue;
       }
@@ -110,7 +110,7 @@ public class LdapSambaAccountsUtils
     if (ldapSambaAccountsConfig == null) {
       ldapSambaAccountsConfig = new LdapSambaAccountsConfig();
     }
-    if (ldapUserValues.getUidNumber() != null && isGivenNumberFree(user, ldapUserValues.getUidNumber()) == true) {
+    if (ldapUserValues.getUidNumber() != null && isGivenNumberFree(user, ldapUserValues.getUidNumber())) {
       ldapUserValues.setSambaSIDNumber(ldapUserValues.getUidNumber());
     } else {
       ldapUserValues.setSambaSIDNumber(getNextFreeSambaSIDNumber());

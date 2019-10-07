@@ -67,7 +67,7 @@ public class XmlHelper
 
   public static Element fromString(final String str)
   {
-    if (StringUtils.isBlank(str) == true) {
+    if (StringUtils.isBlank(str)) {
       return null;
     }
     try {
@@ -91,7 +91,7 @@ public class XmlHelper
     }
     final StringWriter out = new StringWriter();
     final OutputFormat format = new OutputFormat();
-    if (prettyFormat == true) {
+    if (prettyFormat) {
       format.setNewlines(true);
       format.setIndentSize(2);
     }
@@ -117,7 +117,7 @@ public class XmlHelper
       log.error("Exception encountered while transcoding org.w3c.dom.Document to a string: " + ex.getMessage(), ex);
       throw new InternalErrorException("Exception encountered while transcoding org.w3c.dom.Document to a string: " + ex.getMessage());
     }
-    if (prettyFormat == true) {
+    if (prettyFormat) {
       transformer.setOutputProperty(OutputKeys.INDENT, "yes");
       transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
     }

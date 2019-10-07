@@ -97,7 +97,7 @@ public class CollectionPropertyDelta extends PropertyDelta
   private List<Object> splitElements(final String keyList, final Session session)
   {
     List<Object> entityList = new ArrayList<Object>();
-    if (StringUtils.isEmpty(keyList) == false) {
+    if (!StringUtils.isEmpty(keyList)) {
       for (String key : keyList.split(",")) {
         if (StringUtils.isEmpty(key)) {
           continue;

@@ -90,7 +90,7 @@ public interface AccessChecker
     if (user == null) {
       return false;
     }
-    if ("demo".equals(user.getUsername()) == false) {
+    if (!"demo".equals(user.getUsername())) {
       return false;
     }
     return true;

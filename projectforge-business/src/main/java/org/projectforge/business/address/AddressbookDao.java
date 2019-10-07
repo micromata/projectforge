@@ -106,36 +106,36 @@ public class AddressbookDao extends BaseDao<AddressbookDO>
     final QueryFilter queryFilter = new QueryFilter(myFilter);
     queryFilter.addOrder(Order.asc("title"));
     final List<AddressbookDO> list = getList(queryFilter);
-    if (myFilter.isDeleted() == true) {
+    if (myFilter.isDeleted()) {
       // No further filtering, show all deleted calendars.
       return list;
     }
     final List<AddressbookDO> result = new ArrayList<>();
     final AddressbookRight right = (AddressbookRight) getUserRight();
     final Integer userId = user.getId();
-    final boolean adminAccessOnly = (myFilter.isAdmin() == true
-        && accessChecker.isUserMemberOfAdminGroup(user) == true);
+    final boolean adminAccessOnly = (myFilter.isAdmin()
+        && accessChecker.isUserMemberOfAdminGroup(user));
     for (final AddressbookDO ab : list) {
       final boolean isOwn = right.isOwner(user, ab);
-      if (isOwn == true) {
+      if (isOwn) {
         // User is owner.
-        if (adminAccessOnly == true) {
+        if (adminAccessOnly) {
           continue;
         }
-        if (myFilter.isAll() == true || myFilter.isOwn() == true) {
+        if (myFilter.isAll() || myFilter.isOwn()) {
           // Calendar matches the filter:
           result.add(ab);
         }
       } else {
         // User is not owner.
-        if (myFilter.isAll() == true || myFilter.isOthers() == true || adminAccessOnly == true) {
-          if ((myFilter.isFullAccess() == true && right.hasFullAccess(ab, userId) == true)
-              || (myFilter.isReadonlyAccess() == true && right.hasReadonlyAccess(ab, userId) == true)) {
+        if (myFilter.isAll() || myFilter.isOthers() || adminAccessOnly) {
+          if ((myFilter.isFullAccess() && right.hasFullAccess(ab, userId))
+              || (myFilter.isReadonlyAccess() && right.hasReadonlyAccess(ab, userId))) {
             // Calendar matches the filter:
-            if (adminAccessOnly == false) {
+            if (!adminAccessOnly) {
               result.add(ab);
             }
-          } else if (adminAccessOnly == true) {
+          } else if (adminAccessOnly) {
             result.add(ab);
           }
         }
@@ -238,31 +238,31 @@ public class AddressbookDao extends BaseDao<AddressbookDO>
   public List<DisplayHistoryEntry> getDisplayHistoryEntries(final AddressbookDO obj)
   {
     final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(obj);
-    if (CollectionUtils.isEmpty(list) == true) {
+    if (CollectionUtils.isEmpty(list)) {
       return list;
     }
     for (final DisplayHistoryEntry entry : list) {
       if (entry.getPropertyName() == null) {
         continue;
-      } else if (entry.getPropertyName().endsWith("GroupIds") == true) {
+      } else if (entry.getPropertyName().endsWith("GroupIds")) {
         final String oldValue = entry.getOldValue();
-        if (StringUtils.isNotBlank(oldValue) == true && "null".equals(oldValue) == false) {
+        if (StringUtils.isNotBlank(oldValue) && !"null".equals(oldValue)) {
           final List<String> oldGroupNames = groupService.getGroupNames(oldValue);
           entry.setOldValue(StringHelper.listToString(oldGroupNames, ", ", true));
         }
         final String newValue = entry.getNewValue();
-        if (StringUtils.isNotBlank(newValue) == true && "null".equals(newValue) == false) {
+        if (StringUtils.isNotBlank(newValue) && !"null".equals(newValue)) {
           final List<String> newGroupNames = groupService.getGroupNames(newValue);
           entry.setNewValue(StringHelper.listToString(newGroupNames, ", ", true));
         }
-      } else if (entry.getPropertyName().endsWith("UserIds") == true) {
+      } else if (entry.getPropertyName().endsWith("UserIds")) {
         final String oldValue = entry.getOldValue();
-        if (StringUtils.isNotBlank(oldValue) == true && "null".equals(oldValue) == false) {
+        if (StringUtils.isNotBlank(oldValue) && !"null".equals(oldValue)) {
           final List<String> oldGroupNames = userService.getUserNames(oldValue);
           entry.setOldValue(StringHelper.listToString(oldGroupNames, ", ", true));
         }
         final String newValue = entry.getNewValue();
-        if (StringUtils.isNotBlank(newValue) == true && "null".equals(newValue) == false) {
+        if (StringUtils.isNotBlank(newValue) && !"null".equals(newValue)) {
           final List<String> newGroupNames = userService.getUserNames(newValue);
           entry.setNewValue(StringHelper.listToString(newGroupNames, ", ", true));
         }

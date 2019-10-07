@@ -50,14 +50,14 @@ public class ExceptionHelper
     boolean ignored = false;
     if (sta != null && sta.length > 0) {
       for (StackTraceElement ste : sta) {
-        if (ignored == true) {
-          if (ignore(ste.getClassName(), only4Namespace) == true) {
+        if (ignored) {
+          if (ignore(ste.getClassName(), only4Namespace)) {
             continue;
           }
         } else {
           ignored = false;
         }
-        if (ignore(ste.getClassName(), only4Namespace) == true) {
+        if (ignore(ste.getClassName(), only4Namespace)) {
           buf.append(" at ...");
           ignored = true;
           continue;
@@ -91,6 +91,6 @@ public class ExceptionHelper
 
   private static boolean ignore(String className, String only4Namespace)
   {
-    return className.startsWith(only4Namespace) == false || StringUtils.contains(className, "CGLIB$$") == true;
+    return !className.startsWith(only4Namespace) || StringUtils.contains(className, "CGLIB$$");
   }
 }

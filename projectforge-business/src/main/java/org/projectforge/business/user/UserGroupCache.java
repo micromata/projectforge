@@ -278,7 +278,7 @@ public class UserGroupCache extends AbstractCache {
       return false;
     }
     final Integer userId = ThreadLocalUserContext.getUserId();
-    if (isUserMemberOfProjectAssistant(userId) == false && isUserMemberOfProjectManagers(userId) == false) {
+    if (!isUserMemberOfProjectAssistant(userId) && !isUserMemberOfProjectManagers(userId)) {
       return false;
     }
     return isUserMemberOfGroup(userId, projekt.getProjektManagerGroupId());

@@ -69,7 +69,7 @@ public class TimesheetStats
     if (earliestStartDate == null) {
       return null;
     }
-    if (earliestStartDate.before(this.period.getFromDate()) == true) {
+    if (earliestStartDate.before(this.period.getFromDate())) {
       return this.period.getFromDate();
     }
     return earliestStartDate;
@@ -101,7 +101,7 @@ public class TimesheetStats
     if (latestStopDate == null) {
       return null;
     }
-    if (latestStopDate.after(this.period.getToDate()) == true) {
+    if (latestStopDate.after(this.period.getToDate())) {
       return this.period.getToDate();
     }
     return latestStopDate;
@@ -167,7 +167,7 @@ public class TimesheetStats
     if (startTime == null || stopTime == null) {
       return this;
     }
-    if (period.getFromDate().before(stopTime) == false || period.getToDate().after(startTime) == false) {
+    if (!period.getFromDate().before(stopTime) || !period.getToDate().after(startTime)) {
       return this;
     }
     if (earliestStartDate == null || earliestStartDate.after(startTime)) {
@@ -194,17 +194,17 @@ public class TimesheetStats
     Date lastStopTime = null;
     for (final TimesheetDO timesheet : timesheets) {
       if (lastStopTime != null) {
-        if (lastStopTime.before(timesheet.getStartTime()) == true) {
+        if (lastStopTime.before(timesheet.getStartTime())) {
           this.totalBreakMillis += timesheet.getStartTime().getTime() - lastStopTime.getTime();
         }
       }
       lastStopTime = timesheet.getStopTime();
       Date startTime = timesheet.getStartTime();
-      if (startTime.before(period.getFromDate()) == true) {
+      if (startTime.before(period.getFromDate())) {
         startTime = period.getFromDate();
       }
       Date stopTime = timesheet.getStopTime();
-      if (stopTime.after(period.getToDate()) == true) {
+      if (stopTime.after(period.getToDate())) {
         stopTime = period.getToDate();
       }
       totalMillis += stopTime.getTime() - startTime.getTime();

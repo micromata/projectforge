@@ -70,7 +70,7 @@ public class HRPlanningRight extends UserRightAccessCheck<HRPlanningDO>
   @Override
   public boolean hasSelectAccess(final PFUserDO user, final HRPlanningDO obj)
   {
-    if (accessChecker.userEquals(user, obj.getUser()) == true) {
+    if (accessChecker.userEquals(user, obj.getUser())) {
       return true;
     }
     return accessChecker.hasRight(user, getId(), UserRightValue.READONLY, UserRightValue.READWRITE);

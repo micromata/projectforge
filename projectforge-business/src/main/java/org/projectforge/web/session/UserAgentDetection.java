@@ -108,7 +108,7 @@ public class UserAgentDetection
       return detection;
     }
     for (final UserAgentDetectionBrowser browser : browsers) {
-      if (userAgentString.contains(browser.identity) == false) {
+      if (!userAgentString.contains(browser.identity)) {
         continue;
       }
       detection.userAgentBrowser = browser.browser;
@@ -124,7 +124,7 @@ public class UserAgentDetection
         int i = pos;
         while (true) {
           final char ch = userAgentString.charAt(i);
-          if (Character.isWhitespace(ch) == true || ch == '/') {
+          if (Character.isWhitespace(ch) || ch == '/') {
             ++i;
           } else {
             break;
@@ -135,7 +135,7 @@ public class UserAgentDetection
             break;
           }
           final char ch = userAgentString.charAt(i++);
-          if (Character.isDigit(ch) == true || ch == '.' || ch == 'b') { // b for 4.0b4
+          if (Character.isDigit(ch) || ch == '.' || ch == 'b') { // b for 4.0b4
             buf.append(ch);
           } else {
             break;

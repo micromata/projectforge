@@ -78,7 +78,7 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
     // intelligent color choose
     for (final TemplateEntry entry : templateEntries) {
       for (final TemplateCalendarProperties props : entry.getCalendarProperties()) {
-        if (calId.equals(props.getCalId()) == true) {
+        if (calId.equals(props.getCalId())) {
           if (props.getMillisOfLastChange() > lastCalendarEntry) {
             lastCalendarEntry = props.getMillisOfLastChange();
             lastCalendarColor = props.getColorCode();
@@ -183,7 +183,7 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
   {
     int i = 0;
     for (final TemplateEntry entry : this.templateEntries) {
-      if (entry.equals(activeTemplateEntry) == true) {
+      if (entry.equals(activeTemplateEntry)) {
         this.activeTemplateEntryIndex = i;
         this.activeTemplateEntry = entry;
         this.activeTemplateEntry.setDirty();
@@ -199,7 +199,7 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
     if (getActiveTemplateEntry() != null) {
       return this.activeTemplateEntry.getVisibleCalendarIds();
     } else {
-      if (EMPTY_INT_SET.isEmpty() == false) {
+      if (!EMPTY_INT_SET.isEmpty()) {
         log.error(
             "************** Oups, dear developers, don't add entries to the empty HashSet returned by this method!!!!");
         EMPTY_INT_SET.clear();
@@ -248,10 +248,10 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
     }
     final Iterator<TemplateEntry> it1 = this.templateEntries.iterator();
     final Iterator<TemplateEntry> it2 = other.templateEntries.iterator();
-    while (it1.hasNext() == true) {
+    while (it1.hasNext()) {
       final TemplateEntry entry1 = it1.next();
       final TemplateEntry entry2 = it2.next();
-      if (entry1.isModified(entry2) == true) {
+      if (entry1.isModified(entry2)) {
         return true;
       }
     }
@@ -266,7 +266,7 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
     String current = prefix;
     for (int i = 1; i <= 10; i++) {
       for (final TemplateEntry entry : templateEntries) {
-        if (current.equals(entry.getName()) == true) {
+        if (current.equals(entry.getName())) {
           if (i == 10) {
             // Don't try to get prefix + " 11", giving up:
             return null;

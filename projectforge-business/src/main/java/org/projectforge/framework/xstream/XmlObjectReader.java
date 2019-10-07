@@ -140,19 +140,19 @@ public class XmlObjectReader
 
   private void initialize(final Set<Class< ? >> processed, final Class< ? > clazz)
   {
-    if (processed.contains(clazz) == true) {
+    if (processed.contains(clazz)) {
       // Already processed, avoid endless loops:
       return;
     }
     processed.add(clazz);
-    if (clazz.isAnnotationPresent(XmlObject.class) == true) {
+    if (clazz.isAnnotationPresent(XmlObject.class)) {
       final XmlObject xmlObject = clazz.getAnnotation(XmlObject.class);
-      if (StringUtils.isNotEmpty(xmlObject.alias()) == true) {
+      if (StringUtils.isNotEmpty(xmlObject.alias())) {
         getAliasMap().put(clazz, xmlObject.alias());
       }
     }
     for (final Field field : BeanHelper.getAllDeclaredFields(clazz)) {
-      if (field.getType().isPrimitive() == false && XmlObjectWriter.ignoreField(field) == false) {
+      if (!field.getType().isPrimitive() && !XmlObjectWriter.ignoreField(field)) {
         initialize(processed, field.getType());
       }
     }
@@ -213,7 +213,7 @@ public class XmlObjectReader
     final StringBuffer buf = new StringBuffer();
     checkForIgnoredElements(buf, el);
     final String warnings = buf.toString();
-    if (StringUtils.isEmpty(warnings) == true) {
+    if (StringUtils.isEmpty(warnings)) {
       return null;
     }
     return warnings;
@@ -221,7 +221,7 @@ public class XmlObjectReader
 
   private void checkForIgnoredElements(final StringBuffer buf, final Element el)
   {
-    if (processedElements.contains(el) == false) {
+    if (!processedElements.contains(el)) {
       buf.append("Ignored xml element: ").append(el.getPath()).append("\n");
     }
     @SuppressWarnings("rawtypes")
@@ -229,7 +229,7 @@ public class XmlObjectReader
     if (attributes != null) {
       final Set<String> attributeSet = processedAttributes.get(el);
       for (final Object attr : attributes) {
-        if (attributeSet == null || attributeSet.contains(((Attribute) attr).getName()) == false) {
+        if (attributeSet == null || !attributeSet.contains(((Attribute) attr).getName())) {
           buf.append("Ignored xml attribute: ").append(((Attribute) attr).getPath()).append("\n");
         }
       }
@@ -246,7 +246,7 @@ public class XmlObjectReader
   protected Class< ? > getClass(final String elelementName)
   {
     Class< ? > clazz = null;
-    if (getAliasMap().containsAlias(elelementName) == true) {
+    if (getAliasMap().containsAlias(elelementName)) {
       clazz = aliasMap.getClassForAlias(elelementName);
     } else {
       clazz = xmlRegistry.getClassForAlias(elelementName);
@@ -300,7 +300,7 @@ public class XmlObjectReader
   {
     final String val = attrValue != null ? attrValue : element.getText();
     Enum enumValue;
-    if (StringUtils.isBlank(val) || "null".equals(val) == true) {
+    if (StringUtils.isBlank(val) || "null".equals(val)) {
       enumValue = null;
     } else {
       try {
@@ -323,7 +323,7 @@ public class XmlObjectReader
     final Attribute refIdAttr = el.attribute(XmlObjectWriter.ATTR_REF_ID);
     if (refIdAttr != null) {
       final String refId = refIdAttr.getText();
-      if (StringUtils.isEmpty(refId) == true) {
+      if (StringUtils.isEmpty(refId)) {
         log.error("Invalid ref-id for element '" + el.getName() + "': " + refId);
         return null;
       }
@@ -344,19 +344,19 @@ public class XmlObjectReader
       if (value == null) {
         value = fromString(converter, el, attrName, attrValue);
       }
-    } else if (Enum.class.isAssignableFrom(clazz) == true) {
+    } else if (Enum.class.isAssignableFrom(clazz)) {
       if (value == null) {
         value = enumFromString(clazz, el, attrName, attrValue);
       }
-    } else if (Collection.class.isAssignableFrom(clazz) == true) {
+    } else if (Collection.class.isAssignableFrom(clazz)) {
       Collection<Object> col = null;
       if (value != null) {
         @SuppressWarnings("unchecked")
         final Collection<Object> c = (Collection<Object>) value;
         col = c;
-      } else if (SortedSet.class.isAssignableFrom(clazz) == true) {
+      } else if (SortedSet.class.isAssignableFrom(clazz)) {
         col = new TreeSet<Object>();
-      } else if (Set.class.isAssignableFrom(clazz) == true) {
+      } else if (Set.class.isAssignableFrom(clazz)) {
         col = new HashSet<Object>();
       } else {
         col = new ArrayList<Object>();
@@ -366,12 +366,12 @@ public class XmlObjectReader
         final Element childElement = (Element) listObject;
         final Object child = read(childElement);
         if (child != null) {
-          if (addCollectionEntry(col, child, childElement) == false) {
+          if (!addCollectionEntry(col, child, childElement)) {
             col.add(child);
           }
         }
       }
-      if (ignoreEmptyCollections == false || CollectionUtils.isNotEmpty(col) == true) {
+      if (!ignoreEmptyCollections || CollectionUtils.isNotEmpty(col)) {
         value = col;
       }
     } else {
@@ -387,7 +387,7 @@ public class XmlObjectReader
         final Attribute idAttr = el.attribute(XmlObjectWriter.ATTR_ID);
         if (idAttr != null) {
           final String id = idAttr.getText();
-          if (StringUtils.isEmpty(id) == true) {
+          if (StringUtils.isEmpty(id)) {
             log.error("Invalid id for element '" + el.getName() + "': " + id);
           } else {
             this.referenceObjects.put(id, value);
@@ -416,7 +416,7 @@ public class XmlObjectReader
     for (final Object listObject : el.attributes()) {
       final Attribute attr = (Attribute) listObject;
       final String key = attr.getName();
-      if (StringHelper.isIn(key, XmlObjectWriter.ATTR_ID, XmlObjectWriter.ATTR_REF_ID) == true) {
+      if (StringHelper.isIn(key, XmlObjectWriter.ATTR_ID, XmlObjectWriter.ATTR_REF_ID)) {
         // Do not try to find fields for o-id and ref-id.
         continue;
       }
@@ -471,11 +471,11 @@ public class XmlObjectReader
   {
     Field foundField = null;
     for (final Field field : fields) {
-      if (XmlObjectWriter.ignoreField(field) == true) {
+      if (XmlObjectWriter.ignoreField(field)) {
         continue;
       }
-      final XmlField ann = field.isAnnotationPresent(XmlField.class) == true ? field.getAnnotation(XmlField.class) : null;
-      if (key.equals(field.getName()) == false && (ann == null || key.equals(ann.alias()) == false)) {
+      final XmlField ann = field.isAnnotationPresent(XmlField.class) ? field.getAnnotation(XmlField.class) : null;
+      if (!key.equals(field.getName()) && (ann == null || !key.equals(ann.alias()))) {
         continue;
       }
       foundField = field;
@@ -486,7 +486,7 @@ public class XmlObjectReader
       final Class< ? > type = foundField.getType();
       final Object value = read(type, el, key, attrValue);
       setField(foundField, obj, value, el, key, attrValue);
-      if (isAttribute == true) {
+      if (isAttribute) {
         putProcessedAttribute(el, key);
       } else {
         putProcessedElement(el);

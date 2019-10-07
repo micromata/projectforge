@@ -254,7 +254,7 @@ public class ForecastExport
     final Calendar beginDistribute;
 
     // handle payment schedule
-    if (paymentSchedules.isEmpty() == false) {
+    if (!paymentSchedules.isEmpty()) {
       BigDecimal sum = BigDecimal.ZERO;
       beginDistribute = Calendar.getInstance();
       beginDistribute.setTime(paymentSchedules.get(0).getScheduleDate());

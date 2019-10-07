@@ -47,7 +47,7 @@ public class CalendarHelper
     final StringBuffer b2 = new StringBuffer();
     final ProjektDO projekt = kost2.getProjekt();
     if (projekt != null) {
-      if (StringUtils.isNotBlank(projekt.getIdentifier()) == true) {
+      if (StringUtils.isNotBlank(projekt.getIdentifier())) {
         b2.append(projekt.getIdentifier());
       } else {
         b2.append(projekt.getName());

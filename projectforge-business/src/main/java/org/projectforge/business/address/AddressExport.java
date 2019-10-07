@@ -71,19 +71,19 @@ public class AddressExport
     {
       for (final ExportCell cell : row.getCells()) {
         final CellFormat format = cell.ensureAndGetCellFormat();
-        format.setFillForegroundColor(HSSFColor.WHITE.index);
+        format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.WHITE.getIndex());
         switch (row.getRowNum()) {
           case 0:
             format.setFont(FONT_HEADER);
             break;
           case 1:
             format.setFont(FONT_NORMAL_BOLD);
-            format.setFillForegroundColor(HSSFColor.YELLOW.index);
+            format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.YELLOW.getIndex());
             break;
           default:
             format.setFont(FONT_NORMAL);
             if (row.getRowNum() % 2 == 0) {
-              format.setFillForegroundColor(HSSFColor.GREY_25_PERCENT.index);
+              format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.GREY_25_PERCENT.getIndex());
             }
             break;
         }
@@ -243,17 +243,16 @@ public class AddressExport
     log.info("Exporting address list.");
     final ExportColumn[] columns = createColumns();
 
-    final List<AddressDO> list = new ArrayList<AddressDO>();
+    final List<AddressDO> list = new ArrayList<>();
     for (final AddressDO address : origList) {
-      if (accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
-          ProjectForgeGroup.MARKETING_GROUP) == true) {
+      if (accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.MARKETING_GROUP)) {
         // Add all addresses for users of finance group:
         list.add(address);
-      } else if (personalAddressMap.containsKey(address.getId()) == true)
+      } else if (personalAddressMap.containsKey(address.getId()))
         // For others only those which are personal:
         list.add(address);
     }
-    if (CollectionUtils.isEmpty(list) == true) {
+    if (CollectionUtils.isEmpty(list)) {
       return null;
     }
     final ExportWorkbook xls = new ExportWorkbook();

@@ -61,9 +61,9 @@ public class TenantServiceImpl implements TenantService
   @Override
   public boolean isMultiTenancyAvailable()
   {
-    return tenantDao.tenantTableExists() == true
-        && GlobalConfiguration.getInstance().isMultiTenancyConfigured() == true
-        && hasTenants() == true;
+    return tenantDao.tenantTableExists()
+        && GlobalConfiguration.getInstance().isMultiTenancyConfigured()
+        && hasTenants();
   }
 
   @Override

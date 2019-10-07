@@ -27,6 +27,7 @@ import java.util.Objects;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
 
 public class CellFormat
 {
@@ -88,7 +89,7 @@ public class CellFormat
   public void copyToCellStyle(final CellStyle cellStyle)
   {
     if (alignment != null) {
-      cellStyle.setAlignment(alignment);
+      cellStyle.setAlignment(HorizontalAlignment.forInt(alignment));
     }
     if (font != null) {
       cellStyle.setFont(font);
@@ -178,24 +179,19 @@ public class CellFormat
   {
     if (obj instanceof CellFormat) {
       final CellFormat other = (CellFormat) obj;
-      if (Objects.equals(this.dataFormat, other.dataFormat) == false)
+      if (!Objects.equals(this.dataFormat, other.dataFormat)
+          || !Objects.equals(this.alignment, other.alignment)
+          || !Objects.equals(this.font, other.font)
+          || !Objects.equals(this.fillForegroundColor, other.fillForegroundColor))
         return false;
-      if (this.alignment != other.alignment)
-        return false;
-      if (Objects.equals(this.font, other.font) == false)
-        return false;
-      if (this.fillForegroundColor != other.fillForegroundColor)
-        return false;
-      if (this.wrapText != other.wrapText)
-        return false;
-      return true;
+      return this.wrapText == other.wrapText;
     }
     return false;
   }
 
   @Override
-  protected CellFormat clone()
-  {
+  protected CellFormat clone() {
+    //final CellFormat clone = (CellFormat) super.clone();
     final CellFormat clone = new CellFormat();
     clone.alignment = this.alignment;
     clone.autoDatePrecision = this.autoDatePrecision;

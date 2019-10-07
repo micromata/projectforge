@@ -48,11 +48,11 @@ public enum ScriptParameterType implements I18nEnum
 
   public static ScriptParameterType get(String s)
   {
-    if (StringUtils.isEmpty(s) == true) {
+    if (StringUtils.isEmpty(s)) {
       return null;
     }
     for (final ScriptParameterType type : ScriptParameterType.values()) {
-      if (s.equals(type.name()) == true) {
+      if (s.equals(type.name())) {
         return type;
       }
     }

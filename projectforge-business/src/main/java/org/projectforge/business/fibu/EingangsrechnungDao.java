@@ -165,7 +165,7 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
     final List<EingangsrechnungDO> result = new ArrayList<EingangsrechnungDO>();
     for (final EingangsrechnungDO rechnung : list) {
       if (myFilter.isShowUnbezahlt()) {
-        if (rechnung.isBezahlt() == false) {
+        if (!rechnung.isBezahlt()) {
           result.add(rechnung);
         }
       } else if (myFilter.isShowBezahlt()) {
@@ -192,7 +192,7 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
   public List<DisplayHistoryEntry> getDisplayHistoryEntries(final EingangsrechnungDO obj)
   {
     final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(obj);
-    if (hasLoggedInUserHistoryAccess(obj, false) == false) {
+    if (!hasLoggedInUserHistoryAccess(obj, false)) {
       return list;
     }
     if (CollectionUtils.isNotEmpty(obj.getPositionen())) {

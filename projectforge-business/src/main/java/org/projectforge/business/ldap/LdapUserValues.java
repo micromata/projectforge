@@ -56,14 +56,14 @@ public class LdapUserValues implements Serializable
 
   public boolean isValuesEmpty()
   {
-    return isPosixValuesEmpty() == true && isSambaValuesEmpty() == true;
+    return isPosixValuesEmpty() && isSambaValuesEmpty();
   }
 
   public boolean isPosixValuesEmpty()
   {
     return getUidNumber() == null
-        && StringUtils.isBlank(getHomeDirectory()) == true
-        && StringUtils.isBlank(getLoginShell()) == true
+        && StringUtils.isBlank(getHomeDirectory())
+        && StringUtils.isBlank(getLoginShell())
         && getGidNumber() == null;
   }
 

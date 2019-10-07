@@ -65,7 +65,7 @@ public class UserRightIdSingleValueConverter implements SingleValueConverter
   @Override
   public Object fromString(final String str)
   {
-    if (StringUtils.isBlank(str) == true) {
+    if (StringUtils.isBlank(str)) {
       return null;
     }
     return userRights.getRightId(str.trim());

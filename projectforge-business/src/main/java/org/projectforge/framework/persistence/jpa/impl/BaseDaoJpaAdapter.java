@@ -131,14 +131,14 @@ public class BaseDaoJpaAdapter
   @SuppressWarnings("unchecked")
   public static ModificationStatus copyValues(final BaseDO src, final BaseDO dest, final String... ignoreFields)
   {
-    if (ClassUtils.isAssignable(src.getClass(), dest.getClass()) == false) {
+    if (!ClassUtils.isAssignable(src.getClass(), dest.getClass())) {
       throw new RuntimeException("Try to copyValues from different BaseDO classes: this from type "
           + dest.getClass().getName()
           + " and src from type"
           + src.getClass().getName()
           + "!");
     }
-    if (src.getId() != null && (ignoreFields == null || ArrayUtils.contains(ignoreFields, "id") == false)) {
+    if (src.getId() != null && (ignoreFields == null || !ArrayUtils.contains(ignoreFields, "id"))) {
       dest.setId(src.getId());
     }
     return copyDeclaredFields(src.getClass(), src, dest, ignoreFields);
@@ -152,7 +152,7 @@ public class BaseDaoJpaAdapter
     String tsd = destEntry.getStringData();
     JpaTabAttrBaseDO<?, ?> src = sourceEntry;
     String ssd = src.getStringData();
-    if (StringUtils.equals(tsd, ssd) == true) {
+    if (StringUtils.equals(tsd, ssd)) {
       return modificationStatus;
     }
     destEntry.getData().clear();
@@ -187,7 +187,7 @@ public class BaseDaoJpaAdapter
 
     // copy rows from source to target
     for (T sourceRow : source.getTimeableAttributes()) {
-      if (sourceRow.getPk() == null || targetRows.containsKey(sourceRow.getPk()) == false) {
+      if (sourceRow.getPk() == null || !targetRows.containsKey(sourceRow.getPk())) {
         mod = mod.combine(ModificationStatus.MAJOR);
         target.addTimeableAttribute(sourceRow);
         continue;
@@ -200,7 +200,7 @@ public class BaseDaoJpaAdapter
     // remove deleted rows from target, these are rows which are not in source but in target
     for (Iterator<T> lis = target.getTimeableAttributes().iterator(); lis.hasNext();) {
       T tagetrow = lis.next();
-      if (sourcePks.contains(tagetrow.getPk()) == false) {
+      if (!sourcePks.contains(tagetrow.getPk())) {
         mod = mod.combine(ModificationStatus.MAJOR);
         lis.remove();
       }
@@ -224,7 +224,7 @@ public class BaseDaoJpaAdapter
           @Override
           public boolean match(Field object)
           {
-            return ArrayUtils.contains(ignoreFields, object.getName()) == false;
+            return !ArrayUtils.contains(ignoreFields, object.getName());
           }
         },
         CommonMatchers.not(
@@ -238,7 +238,7 @@ public class BaseDaoJpaAdapter
     for (Field field : foundFields) {
       Object svalue = PrivateBeanUtils.readField(src, field);
       Object tvalue = PrivateBeanUtils.readField(dest, field);
-      if (Objects.equals(svalue, tvalue) == false) {
+      if (!Objects.equals(svalue, tvalue)) {
         mod = mod.combine(ModificationStatus.MAJOR);
       }
       PrivateBeanUtils.writeField(dest, field, svalue);
@@ -285,7 +285,7 @@ public class BaseDaoJpaAdapter
     for (String update : updateOrgs) {
       Object sval = source.getAttribute(update);
       Object tval = target.getAttribute(update);
-      if (Objects.equals(sval, tval) == true) {
+      if (Objects.equals(sval, tval)) {
         mod = mod.combine(ModificationStatus.MAJOR);
       }
       target.putAttribute(update, source.getAttribute(update));
@@ -307,21 +307,21 @@ public class BaseDaoJpaAdapter
     ModificationStatus modificationStatus = ModificationStatus.NONE;
     for (final Field field : fields) {
       final String fieldName = field.getName();
-      if ((ignoreFields != null && ArrayUtils.contains(ignoreFields, fieldName) == true) || accept(field) == false) {
+      if ((ignoreFields != null && ArrayUtils.contains(ignoreFields, fieldName)) || !accept(field)) {
         continue;
       }
       try {
         final Object srcFieldValue = field.get(src);
         final Object destFieldValue = field.get(dest);
-        if (field.getType().isPrimitive() == true) {
-          if (Objects.equals(destFieldValue, srcFieldValue) == false) {
+        if (field.getType().isPrimitive()) {
+          if (!Objects.equals(destFieldValue, srcFieldValue)) {
             field.set(dest, srcFieldValue);
             modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
           }
           continue;
         } else if (srcFieldValue == null) {
           if (field.getType() == String.class) {
-            if (StringUtils.isNotEmpty((String) destFieldValue) == true) {
+            if (StringUtils.isNotEmpty((String) destFieldValue)) {
               field.set(dest, null);
               modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
             }
@@ -342,7 +342,7 @@ public class BaseDaoJpaAdapter
               destColl = new HashSet<Object>();
             } else if (srcColl instanceof List) {
               destColl = new ArrayList<Object>();
-            } else if (HibernateCompatUtils.isPersistenceSet(srcColl) == true) {
+            } else if (HibernateCompatUtils.isPersistenceSet(srcColl)) {
               destColl = new HashSet<Object>();
             } else {
               log.error("Unsupported collection type: " + srcColl.getClass().getName());
@@ -350,30 +350,30 @@ public class BaseDaoJpaAdapter
             field.set(dest, destColl);
           }
           for (final Object o : destColl) {
-            if (srcColl.contains(o) == false) {
+            if (!srcColl.contains(o)) {
               toRemove.add(o);
             }
           }
           for (final Object o : toRemove) {
-            if (log.isDebugEnabled() == true) {
+            if (log.isDebugEnabled()) {
               log.debug("Removing collection entry: " + o);
             }
             destColl.remove(o);
             modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
           }
           for (final Object srcEntry : srcColl) {
-            if (destColl.contains(srcEntry) == false) {
-              if (log.isDebugEnabled() == true) {
+            if (!destColl.contains(srcEntry)) {
+              if (log.isDebugEnabled()) {
                 log.debug("Adding new collection entry: " + srcEntry);
               }
               destColl.add(srcEntry);
               modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
             } else if (srcEntry instanceof BaseDO) {
               final PFPersistancyBehavior behavior = field.getAnnotation(PFPersistancyBehavior.class);
-              if (behavior != null && behavior.autoUpdateCollectionEntries() == true) {
+              if (behavior != null && behavior.autoUpdateCollectionEntries()) {
                 BaseDO<?> destEntry = null;
                 for (final Object entry : destColl) {
-                  if (entry.equals(srcEntry) == true) {
+                  if (entry.equals(srcEntry)) {
                     destEntry = (BaseDO<?>) entry;
                     break;
                   }
@@ -388,7 +388,7 @@ public class BaseDaoJpaAdapter
           final Serializable srcFieldValueId = HibernateUtils.getIdentifier((BaseDO<?>) srcFieldValue);
           if (srcFieldValueId != null) {
             if (destFieldValue == null
-                || Objects.equals(srcFieldValueId, ((BaseDO<?>) destFieldValue).getId()) == false) {
+                || !Objects.equals(srcFieldValueId, ((BaseDO<?>) destFieldValue).getId())) {
               field.set(dest, srcFieldValue);
               modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
             }
@@ -402,7 +402,7 @@ public class BaseDaoJpaAdapter
           } else {
             final DayHolder srcDay = new DayHolder((Date) srcFieldValue);
             final DayHolder destDay = new DayHolder((Date) destFieldValue);
-            if (srcDay.isSameDay(destDay) == false) {
+            if (!srcDay.isSameDay(destDay)) {
               field.set(dest, srcDay.getSQLDate());
               modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
             }
@@ -417,7 +417,7 @@ public class BaseDaoJpaAdapter
             field.set(dest, srcFieldValue);
             modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
           }
-        } else if (Objects.equals(destFieldValue, srcFieldValue) == false) {
+        } else if (!Objects.equals(destFieldValue, srcFieldValue)) {
           field.set(dest, srcFieldValue);
           modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
         }
@@ -439,9 +439,9 @@ public class BaseDaoJpaAdapter
     HistoryService historyService = HistoryServiceManager.get().getHistoryService();
     PfEmgrFactory emf = ApplicationContextProvider.getApplicationContext().getBean(PfEmgrFactory.class);
     if (currentStatus == ModificationStatus.MAJOR
-        || src instanceof AbstractHistorizableBaseDO == false
-        || historyService.getNoHistoryProperties(emf, src.getClass())
-            .contains(modifiedField) == false) {
+        || !(src instanceof AbstractHistorizableBaseDO)
+        || !historyService.getNoHistoryProperties(emf, src.getClass())
+        .contains(modifiedField)) {
       return ModificationStatus.MAJOR;
     }
     return ModificationStatus.MINOR;
@@ -464,15 +464,15 @@ public class BaseDaoJpaAdapter
       // Reject field from inner class.
       return false;
     }
-    if (Modifier.isTransient(field.getModifiers()) == true) {
+    if (Modifier.isTransient(field.getModifiers())) {
       // transients.
       return false;
     }
-    if (Modifier.isStatic(field.getModifiers()) == true) {
+    if (Modifier.isStatic(field.getModifiers())) {
       // transients.
       return false;
     }
-    if ("created".equals(field.getName()) == true || "lastUpdate".equals(field.getName()) == true) {
+    if ("created".equals(field.getName()) || "lastUpdate".equals(field.getName())) {
       return false;
     }
     return true;

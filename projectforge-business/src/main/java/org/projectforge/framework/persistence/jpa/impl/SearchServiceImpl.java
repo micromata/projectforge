@@ -96,7 +96,7 @@ public class SearchServiceImpl implements SearchService
     BaseDao<ENT> baseDao = fallbackBaseDaoService.getBaseDaoForEntity(entClazz);
 
     baseDao.checkLoggedInUserSelectAccess();
-    if (accessChecker.isRestrictedUser() == true) {
+    if (accessChecker.isRestrictedUser()) {
       return new ArrayList<>();
     }
 
@@ -111,9 +111,9 @@ public class SearchServiceImpl implements SearchService
     final List<ENT> result = new ArrayList<ENT>();
 
     for (final ENT obj : origList) {
-      if ((tenantChecker.isSuperAdmin(ThreadLocalUserContext.getUser()) == true
-          || tenantChecker.isPartOfCurrentTenant(obj) == true)
-          && baseDao.hasLoggedInUserSelectAccess(obj, false) == true) {
+      if ((tenantChecker.isSuperAdmin(ThreadLocalUserContext.getUser())
+          || tenantChecker.isPartOfCurrentTenant(obj))
+          && baseDao.hasLoggedInUserSelectAccess(obj, false)) {
         result.add(obj);
         baseDao.afterLoad(obj);
       }
@@ -134,7 +134,7 @@ public class SearchServiceImpl implements SearchService
   {
     final BaseSearchFilter searchFilter = filter.getFilter();
     filter.clearErrorMessage();
-    if (searchFilter.isIgnoreDeleted() == false) {
+    if (!searchFilter.isIgnoreDeleted()) {
       filter.add(Restrictions.eq("deleted", searchFilter.isDeleted()));
     }
     if (searchFilter.getModifiedSince() != null) {
@@ -146,7 +146,7 @@ public class SearchServiceImpl implements SearchService
     {
       final Criteria criteria = filter.buildCriteria(session, entClazz);
       //      TODO RK setCacheRegion(criteria);
-      if (searchFilter.isSearchNotEmpty() == true) {
+      if (searchFilter.isSearchNotEmpty()) {
         final String searchString = HibernateSearchFilterUtils.modifySearchString(searchFilter.getSearchString());
         String[] searchFields = HibernateSearchFilterUtils.determineSearchFields(entClazz);
         try {
@@ -178,7 +178,7 @@ public class SearchServiceImpl implements SearchService
           Set<Integer> idSet = getHistoryEntries(session, searchFilter, entClazz);
           List<ENT> result = new ArrayList<ENT>();
           for (final ENT entry : list) {
-            if (idSet.contains(entry.getId()) == true) {
+            if (idSet.contains(entry.getId())) {
               result.add(entry);
             }
           }
@@ -186,16 +186,16 @@ public class SearchServiceImpl implements SearchService
         }
       }
     }
-    if (searchFilter.isSearchHistory() == true && searchFilter.isSearchNotEmpty() == true) {
+    if (searchFilter.isSearchHistory() && searchFilter.isSearchNotEmpty()) {
       // Search now all history for the given search string.
       final Set<Integer> idSet = searchHistoryEntries(session, searchFilter, entClazz);
-      if (CollectionUtils.isNotEmpty(idSet) == true) {
+      if (CollectionUtils.isNotEmpty(idSet)) {
         for (final ENT entry : list) {
-          if (idSet.contains(entry.getId()) == true) {
+          if (idSet.contains(entry.getId())) {
             idSet.remove(entry.getId()); // Object does already exist in list.
           }
         }
-        if (idSet.isEmpty() == false) {
+        if (!idSet.isEmpty()) {
           final Criteria criteria = filter.buildCriteria(session, entClazz);
           // TODO RK setCacheRegion(criteria);
           criteria.add(Restrictions.in("id", idSet));
@@ -216,8 +216,8 @@ public class SearchServiceImpl implements SearchService
       Class<? extends BaseDO<?>> entClass)
   {
 
-    if (accessChecker.hasLoggedInUserAccess(entClass, OperationType.SELECT) == false
-        || accessChecker.hasLoggedInUserHistoryAccess(entClass) == false) {
+    if (!accessChecker.hasLoggedInUserAccess(entClass, OperationType.SELECT)
+        || !accessChecker.hasLoggedInUserHistoryAccess(entClass)) {
       // User has in general no access to history entries of the given object type (clazz).
       return Collections.emptySet();
     }
@@ -231,8 +231,8 @@ public class SearchServiceImpl implements SearchService
       Class<? extends BaseDO<?>> entClass)
   {
 
-    if (accessChecker.hasLoggedInUserAccess(entClass, OperationType.SELECT) == false
-        || accessChecker.hasLoggedInUserHistoryAccess(entClass) == false) {
+    if (!accessChecker.hasLoggedInUserAccess(entClass, OperationType.SELECT)
+        || !accessChecker.hasLoggedInUserHistoryAccess(entClass)) {
       // User has in general no access to history entries of the given object type (clazz).
       return Collections.emptySet();
     }

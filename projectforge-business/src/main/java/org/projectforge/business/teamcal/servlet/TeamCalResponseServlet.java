@@ -100,7 +100,7 @@ public class TeamCalResponseServlet extends HttpServlet
     Map<String, String> decryptedParameters = cryptService.decryptParameterMessage(req.getQueryString());
     //Getting request status
     final String reqStatus = decryptedParameters.get("status");
-    if (StringUtils.isBlank(reqStatus) == true) {
+    if (StringUtils.isBlank(reqStatus)) {
       log.warn("Bad request, request parameter 'status' not given.");
       resp.sendError(HttpStatus.SC_BAD_REQUEST);
       return;
@@ -118,7 +118,7 @@ public class TeamCalResponseServlet extends HttpServlet
     // Getting calendar
     final String calendarStr = decryptedParameters.get("calendar");
     final Integer calendarId;
-    if (StringUtils.isBlank(calendarStr) == true) {
+    if (StringUtils.isBlank(calendarStr)) {
       calendarId = null;
       // compatibility, disable later
       //      log.warn("Bad request, request parameter 'calendar' not given.");
@@ -135,7 +135,7 @@ public class TeamCalResponseServlet extends HttpServlet
 
     //Getting request event
     final String reqEventUid = decryptedParameters.get("uid");
-    if (StringUtils.isBlank(reqEventUid) == true) {
+    if (StringUtils.isBlank(reqEventUid)) {
       log.warn("Bad request, request parameter 'uid' not given.");
       resp.sendError(HttpStatus.SC_BAD_REQUEST);
       return;
@@ -149,7 +149,7 @@ public class TeamCalResponseServlet extends HttpServlet
 
     //Getting request attendee
     final String reqEventAttendee = decryptedParameters.get("attendee");
-    if (StringUtils.isBlank(reqEventAttendee) == true) {
+    if (StringUtils.isBlank(reqEventAttendee)) {
       log.warn("Bad request, request parameter 'attendee' not given.");
       resp.sendError(HttpStatus.SC_BAD_REQUEST);
       return;

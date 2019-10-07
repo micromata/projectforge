@@ -83,7 +83,7 @@ public class BusinessAssessmentRow implements Serializable
    */
   public void setStoreAccountRecords(final boolean value)
   {
-    if (value == true) {
+    if (value) {
       this.accountRecords = new ArrayList<BuchungssatzDO>();
     } else {
       this.accountRecords = null;
@@ -202,7 +202,7 @@ public class BusinessAssessmentRow implements Serializable
 
   void recalculate()
   {
-    if (accountRecordsExist == true) {
+    if (accountRecordsExist) {
       // Nothing to do.
       return;
     }

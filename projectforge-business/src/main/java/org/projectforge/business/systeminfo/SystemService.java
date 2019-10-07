@@ -204,7 +204,7 @@ public class SystemService {
     boolean abandonedTasks = false;
     for (final TaskDO task : tasks) {
       if (task.getParentTask() == null) {
-        if (rootTask == true) {
+        if (rootTask) {
           buf.append("\n*** Error: Found another root task:\n " + task + "\n");
         } else {
           buf.append("\nFound root task:\n " + task + "\n");
@@ -224,7 +224,7 @@ public class SystemService {
           }
           ancestor = taskMap.get(ancestor.getParentTaskId());
         }
-        if (rootTaskFound == false) {
+        if (!rootTaskFound) {
           buf.append("\n*** Error: Found abandoned task (cyclic tasks without path to root):\n " + task + "\n");
           abandonedTasks = true;
         } else {
@@ -233,7 +233,7 @@ public class SystemService {
       }
       taskMap.put(task.getId(), task);
     }
-    if (abandonedTasks == false) {
+    if (!abandonedTasks) {
       buf.append("\n\nTest OK, no abandoned tasks detected.");
     } else {
       buf.append("\n\n*** Test FAILED, abandoned tasks detected.");

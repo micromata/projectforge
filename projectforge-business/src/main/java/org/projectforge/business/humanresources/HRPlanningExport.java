@@ -63,7 +63,7 @@ public class HRPlanningExport
     {
       for (final ExportCell cell : row.getCells()) {
         final CellFormat format = cell.ensureAndGetCellFormat();
-        format.setFillForegroundColor(HSSFColor.WHITE.index);
+        format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.WHITE.getIndex());
         switch (row.getRowNum()) {
           case 0:
             format.setFont(FONT_HEADER);
@@ -75,7 +75,7 @@ public class HRPlanningExport
           default:
             format.setFont(FONT_NORMAL);
             if (row.getRowNum() % 2 == 0) {
-              format.setFillForegroundColor(HSSFColor.GREY_25_PERCENT.index);
+              format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.GREY_25_PERCENT.getIndex());
             }
             break;
         }
@@ -348,7 +348,7 @@ public class HRPlanningExport
           exists = true;
         }
       }
-      if (exists == false) {
+      if (!exists) {
         userNames.add(userName);
       }
     }

@@ -73,8 +73,8 @@ public class Configuration extends AbstractConfiguration
 
   public boolean isMebConfigured()
   {
-    if (StringUtils.isNotEmpty(getStringValue(ConfigurationParam.MEB_SMS_RECEIVING_PHONE_NUMBER)) == true
-        || configurationService.isMebMailAccountConfigured() == true) {
+    if (StringUtils.isNotEmpty(getStringValue(ConfigurationParam.MEB_SMS_RECEIVING_PHONE_NUMBER))
+        || configurationService.isMebMailAccountConfigured()) {
       return true;
     }
     return false;
@@ -97,8 +97,8 @@ public class Configuration extends AbstractConfiguration
    */
   public static boolean isDomainValid(final String domain)
   {
-    return StringUtils.isNotBlank(domain) == true
-        && domain.matches("^[a-zA-Z]+[a-zA-Z0-9\\.\\-]*[a-zA-Z0-9]+$") == true;
+    return StringUtils.isNotBlank(domain)
+        && domain.matches("^[a-zA-Z]+[a-zA-Z0-9\\.\\-]*[a-zA-Z0-9]+$");
   }
 
   /**

@@ -111,11 +111,11 @@ public abstract class UserRight implements Serializable, ShortDisplayNameCapable
       if (value == UserRightValue.FALSE) {
         continue; // Should not be configurable.
       }
-      if (matches(userGroupCache, user, value) == false) {
+      if (!matches(userGroupCache, user, value)) {
         final UserRightValue[] includedByValues = value.includedBy();
         if (includedByValues != null) {
           for (final UserRightValue includedByValue : includedByValues) {
-            if (matches(userGroupCache, user, includedByValue) == true) {
+            if (matches(userGroupCache, user, includedByValue)) {
               // This available value is automatically set for the user, so the right seems to be not configurable:
               break;
             }
@@ -144,7 +144,7 @@ public abstract class UserRight implements Serializable, ShortDisplayNameCapable
     }
     final List<UserRightValue> list = new ArrayList<UserRightValue>();
     for (final UserRightValue value : values) {
-      if (isAvailable(userGroupCache, user, value) == true) {
+      if (isAvailable(userGroupCache, user, value)) {
         list.add(value);
       }
     }

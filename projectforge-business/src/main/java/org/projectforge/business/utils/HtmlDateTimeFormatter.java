@@ -48,7 +48,7 @@ public class HtmlDateTimeFormatter extends DateTimeFormatter
       return "";
     }
     final StringBuffer buf = new StringBuffer();
-    if (timePeriod.getMarker() == true) {
+    if (timePeriod.getMarker()) {
       // Time collision is marked!
       buf.append("<span");
       if (renderType == RenderType.FOP) {
@@ -60,7 +60,7 @@ public class HtmlDateTimeFormatter extends DateTimeFormatter
     }
     if (timePeriod.getFromDate() != null) {
       appendCSSDate(buf, timePeriod.getFromDate(), renderType);
-      if (timePeriod.getMarker() == true) {
+      if (timePeriod.getMarker()) {
         buf.append("***</span>");
       }
       buf.append(" ");
@@ -69,8 +69,8 @@ public class HtmlDateTimeFormatter extends DateTimeFormatter
         buf.append("-");
         appendCSSTime(buf, timePeriod.getToDate(), renderType);
         final DayHolder day = new DayHolder(timePeriod.getFromDate());
-        if (day.isSameDay(timePeriod.getToDate()) == false) {
-          if (multiLines == true) {
+        if (!day.isSameDay(timePeriod.getToDate())) {
+          if (multiLines) {
             buf.append("<br/>(");
           } else {
             buf.append(" (");
@@ -82,7 +82,7 @@ public class HtmlDateTimeFormatter extends DateTimeFormatter
       if (timePeriod.getToDate() != null) {
         buf.append(getFormattedDateTime(timePeriod.getFromDate()));
       }
-      if (timePeriod.getMarker() == true) {
+      if (timePeriod.getMarker()) {
         buf.append("***</span>");
       }
     }

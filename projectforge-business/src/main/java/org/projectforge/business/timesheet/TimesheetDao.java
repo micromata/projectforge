@@ -381,11 +381,11 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
   @Override
   protected void prepareHibernateSearch(final TimesheetDO obj, final OperationType operationType) {
     final PFUserDO user = obj.getUser();
-    if (user != null && Hibernate.isInitialized(user) == false) {
+    if (user != null && !Hibernate.isInitialized(user)) {
       obj.setUser(getUserGroupCache().getUser(user.getId()));
     }
     final TaskDO task = obj.getTask();
-    if (task != null && Hibernate.isInitialized(task) == false) {
+    if (task != null && !Hibernate.isInitialized(task)) {
       obj.setTask(TaskTreeHelper.getTaskTree(obj).getTaskById(task.getId()));
     }
   }
@@ -505,8 +505,8 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
                            final boolean throwException) {
     if (accessChecker.userEquals(user, obj.getUser())) {
       // Own time sheet
-      if (accessChecker.hasPermission(user, obj.getTaskId(), AccessType.OWN_TIMESHEETS, operationType,
-              throwException) == false) {
+      if (!accessChecker.hasPermission(user, obj.getTaskId(), AccessType.OWN_TIMESHEETS, operationType,
+          throwException)) {
         return false;
       }
     } else {
@@ -514,8 +514,8 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
       if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)) {
         return true;
       }
-      if (accessChecker.hasPermission(user, obj.getTaskId(), AccessType.TIMESHEETS, operationType,
-              throwException) == false) {
+      if (!accessChecker.hasPermission(user, obj.getTaskId(), AccessType.TIMESHEETS, operationType,
+          throwException)) {
         return false;
       }
     }
@@ -533,11 +533,11 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
    */
   @Override
   public boolean hasSelectAccess(final PFUserDO user, final TimesheetDO obj, final boolean throwException) {
-    if (hasAccess(user, obj, null, OperationType.SELECT, false) == false) {
+    if (!hasAccess(user, obj, null, OperationType.SELECT, false)) {
       // User has no access by definition.
       if (accessChecker.userEquals(user, obj.getUser())
               || accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.PROJECT_MANAGER)) {
-        if (accessChecker.userEquals(user, obj.getUser()) == false) {
+        if (!accessChecker.userEquals(user, obj.getUser())) {
           // Check protection of privacy for foreign time sheets:
           final List<TaskNode> pathToRoot = TaskTreeHelper.getTaskTree(obj).getPathToRoot(obj.getTaskId());
           for (final TaskNode node : pathToRoot) {
@@ -570,23 +570,23 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
     Validate.notNull(obj);
     Validate.notNull(dbObj.getTaskId());
     Validate.notNull(obj.getTaskId());
-    if (hasAccess(user, obj, dbObj, OperationType.UPDATE, throwException) == false) {
+    if (!hasAccess(user, obj, dbObj, OperationType.UPDATE, throwException)) {
       return false;
     }
-    if (dbObj.getUserId().equals(obj.getUserId()) == false) {
+    if (!dbObj.getUserId().equals(obj.getUserId())) {
       // User changes the owner of the time sheet:
-      if (hasAccess(user, dbObj, null, OperationType.DELETE, throwException) == false) {
+      if (!hasAccess(user, dbObj, null, OperationType.DELETE, throwException)) {
         // Deleting of time sheet of another user is not allowed.
         return false;
       }
     }
-    if (dbObj.getTaskId().equals(obj.getTaskId()) == false) {
+    if (!dbObj.getTaskId().equals(obj.getTaskId())) {
       // User moves the object to another task:
-      if (hasAccess(user, obj, null, OperationType.INSERT, throwException) == false) {
+      if (!hasAccess(user, obj, null, OperationType.INSERT, throwException)) {
         // Inserting of object under new task not allowed.
         return false;
       }
-      if (hasAccess(user, dbObj, null, OperationType.DELETE, throwException) == false) {
+      if (!hasAccess(user, dbObj, null, OperationType.DELETE, throwException)) {
         // Deleting of object under old task not allowed.
         return false;
       }
@@ -603,7 +603,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
 
   @Override
   public boolean hasInsertAccess(final PFUserDO user, final TimesheetDO obj, final boolean throwException) {
-    if (hasAccess(user, obj, null, OperationType.INSERT, throwException) == false) {
+    if (!hasAccess(user, obj, null, OperationType.INSERT, throwException)) {
       return false;
     }
     if (hasTimeOverlap(obj, throwException)) {
@@ -652,7 +652,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
       String errorMessage = null;
       if (task.isDeleted()) {
         errorMessage = "timesheet.error.taskNotBookable.taskDeleted";
-      } else if (task.getStatus().isIn(TaskStatus.O, TaskStatus.N) == false) {
+      } else if (!task.getStatus().isIn(TaskStatus.O, TaskStatus.N)) {
         errorMessage = "timesheet.error.taskNotBookable.taskNotOpened";
       } else if (task.getTimesheetBookingStatus() == TimesheetBookingStatus.TREE_CLOSED) {
         errorMessage = "timesheet.error.taskNotBookable.treeClosedForBooking";
@@ -732,7 +732,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
                                           final TimesheetDO oldTimesheet,
                                           final OperationType operationType, final boolean throwException) {
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)
-            && accessChecker.userEquals(user, timesheet.getUser()) == false) {
+            && !accessChecker.userEquals(user, timesheet.getUser())) {
       // Member of financial group are able to book foreign time sheets.
       return true;
     }
@@ -820,13 +820,13 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
     if (store != null) {
       @SuppressWarnings("unchecked") final List<Kost2DO> kost2List = (List<Kost2DO>) store;
       if (master.getKost2Id() != null) {
-        if (contains(kost2List, master.getKost2Id()) == false) {
+        if (!contains(kost2List, master.getKost2Id())) {
           throw new UserException("timesheet.error.massupdate.kost2notsupported");
         }
         setKost2(entry, master.getKost2Id());
       } else if (entry.getKost2Id() == null) {
         throw new UserException("timesheet.error.massupdate.kost2null");
-      } else if (contains(kost2List, entry.getKost2Id()) == false) {
+      } else if (!contains(kost2List, entry.getKost2Id())) {
         // Try to convert kost2 ids from old project to new project.
         boolean success = false;
         for (final Kost2DO kost2 : kost2List) {
@@ -836,7 +836,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
             break;
           }
         }
-        if (success == false) {
+        if (!success) {
           throw new UserException("timesheet.error.massupdate.couldnotconvertkost2");
         }
       }

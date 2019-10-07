@@ -67,7 +67,7 @@ public class ScriptDao extends BaseDao<ScriptDO>
   @Override
   protected void onChange(final ScriptDO obj, final ScriptDO dbObj)
   {
-    if (Arrays.equals(dbObj.getScript(), obj.getScript()) == false) {
+    if (!Arrays.equals(dbObj.getScript(), obj.getScript())) {
       obj.setScriptBackup(dbObj.getScript());
     }
   }

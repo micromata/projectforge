@@ -34,7 +34,7 @@ public class LongConverter extends AbstractValueConverter<Long>
   public Long fromString(String str)
   {
     try {
-      if (StringUtils.isEmpty(str) == true || XmlConstants.NULL_IDENTIFIER.equals(str) == true) {
+      if (StringUtils.isEmpty(str) || XmlConstants.NULL_IDENTIFIER.equals(str)) {
         return null;
       }
       return new Long(str);

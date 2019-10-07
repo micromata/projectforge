@@ -108,7 +108,7 @@ public class UserService implements UserChangedListener {
    * @return
    */
   public List<String> getUserNames(final String userIds) {
-    if (StringUtils.isEmpty(userIds) == true) {
+    if (StringUtils.isEmpty(userIds)) {
       return null;
     }
     final int[] ids = StringHelper.splitToInts(userIds, ",", false);
@@ -129,8 +129,8 @@ public class UserService implements UserChangedListener {
     final Collection<PFUserDO> allusers = getUserGroupCache().getAllUsers();
     final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
     for (final PFUserDO user : allusers) {
-      if (user.isDeleted() == false && user.getDeactivated() == false
-              && userDao.hasSelectAccess(loggedInUser, user, false) == true) {
+      if (!user.isDeleted() && !user.getDeactivated()
+              && userDao.hasSelectAccess(loggedInUser, user, false)) {
         sortedUsers.add(user);
       }
     }
@@ -142,7 +142,7 @@ public class UserService implements UserChangedListener {
    * @return
    */
   public Collection<PFUserDO> getSortedUsers(final String userIds) {
-    if (StringUtils.isEmpty(userIds) == true) {
+    if (StringUtils.isEmpty(userIds)) {
       return null;
     }
     TreeSet<PFUserDO> sortedUsers = new TreeSet<PFUserDO>(usersComparator);
@@ -193,7 +193,7 @@ public class UserService implements UserChangedListener {
   }
 
   public List<PFUserDO> getAllActiveUsers() {
-    return getAllUsers().stream().filter(u -> u.getDeactivated() == false && u.isDeleted() == false).collect(Collectors.toList());
+    return getAllUsers().stream().filter(u -> !u.getDeactivated() && !u.isDeleted()).collect(Collectors.toList());
   }
 
   /**
@@ -310,7 +310,7 @@ public class UserService implements UserChangedListener {
     Validate.notNull(newPassword);
 
     final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(oldPassword, newPassword);
-    if (errorMsgKeys.isEmpty() == false) {
+    if (!errorMsgKeys.isEmpty()) {
       return errorMsgKeys;
     }
 
@@ -342,7 +342,7 @@ public class UserService implements UserChangedListener {
     Validate.notNull(newWlanPassword);
 
     final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(newWlanPassword);
-    if (errorMsgKeys.isEmpty() == false) {
+    if (!errorMsgKeys.isEmpty()) {
       return errorMsgKeys;
     }
 
@@ -395,15 +395,15 @@ public class UserService implements UserChangedListener {
   @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
   protected PFUserDO getUser(final String username, final String password, final boolean updateSaltAndPepperIfNeeded) {
     final List<PFUserDO> list = userDao.findByUsername(username);
-    if (list == null || list.isEmpty() == true || list.get(0) == null) {
+    if (list == null || list.isEmpty() || list.get(0) == null) {
       return null;
     }
     final PFUserDO user = list.get(0);
     final PasswordCheckResult passwordCheckResult = checkPassword(user, password);
-    if (passwordCheckResult.isOK() == false) {
+    if (!passwordCheckResult.isOK()) {
       return null;
     }
-    if (updateSaltAndPepperIfNeeded == true && passwordCheckResult.isPasswordUpdateNeeded() == true) {
+    if (updateSaltAndPepperIfNeeded && passwordCheckResult.isPasswordUpdateNeeded()) {
       log.info("Giving salt and/or pepper to the password of the user " + user.getId() + ".");
       createEncryptedPassword(user, password);
     }
@@ -429,7 +429,7 @@ public class UserService implements UserChangedListener {
       return PasswordCheckResult.FAILED;
     }
     final String userPassword = internalUser.getPassword();
-    if (StringUtils.isBlank(userPassword) == true) {
+    if (StringUtils.isBlank(userPassword)) {
       log.warn("User's password is blank, can't checkPassword(PFUserDO, String) for user with id " + user.getId());
       return PasswordCheckResult.FAILED;
     }
@@ -439,20 +439,20 @@ public class UserService implements UserChangedListener {
     }
     final String pepperString = getPepperString();
     String encryptedPassword = Crypt.digest(pepperString + saltString + password);
-    if (userPassword.equals(encryptedPassword) == true) {
+    if (userPassword.equals(encryptedPassword)) {
       // Passwords match!
-      if (StringUtils.isEmpty(saltString) == true) {
+      if (StringUtils.isEmpty(saltString)) {
         log.info("Password of user " + user.getId() + " with username '" + user.getUsername() + "' is not yet salted!");
         return PasswordCheckResult.OK_WITHOUT_SALT;
       }
       return PasswordCheckResult.OK;
     }
-    if (StringUtils.isNotBlank(pepperString) == true) {
+    if (StringUtils.isNotBlank(pepperString)) {
       // Check password without pepper:
       encryptedPassword = Crypt.digest(saltString + password);
-      if (userPassword.equals(encryptedPassword) == true) {
+      if (userPassword.equals(encryptedPassword)) {
         // Passwords match!
-        if (StringUtils.isEmpty(saltString) == true) {
+        if (StringUtils.isEmpty(saltString)) {
           log.info("Password of user " + user.getId() + " with username '" + user.getUsername()
                   + "' is not yet salted and has no pepper!");
           return PasswordCheckResult.OK_WITHOUT_SALT_AND_PEPPER;
@@ -486,7 +486,7 @@ public class UserService implements UserChangedListener {
    */
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
   public void renewStayLoggedInKey(final Integer userId) {
-    if (ThreadLocalUserContext.getUserId().equals(userId) == false) {
+    if (!ThreadLocalUserContext.getUserId().equals(userId)) {
       // Only admin users are able to renew authentication token of other users:
       accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
     }
@@ -509,7 +509,7 @@ public class UserService implements UserChangedListener {
       final int loginFailures = user.getLoginFailures();
       final Timestamp lastLogin = user.getLastLogin();
       userDao.updateUserAfterLoginSuccess(user);
-      if (user.hasSystemAccess() == false) {
+      if (!user.hasSystemAccess()) {
         log.warn("Deleted/deactivated user tried to login: " + user);
         return null;
       }
@@ -572,13 +572,13 @@ public class UserService implements UserChangedListener {
   }
 
   public String getNormalizedPersonalPhoneIdentifiers(final PFUserDO user) {
-    if (StringUtils.isNotBlank(user.getPersonalPhoneIdentifiers()) == true) {
+    if (StringUtils.isNotBlank(user.getPersonalPhoneIdentifiers())) {
       final String[] ids = getPersonalPhoneIdentifiers(user);
       if (ids != null) {
         final StringBuffer buf = new StringBuffer();
         boolean first = true;
         for (final String id : ids) {
-          if (first == true) {
+          if (first) {
             first = false;
           } else {
             buf.append(",");
@@ -598,7 +598,7 @@ public class UserService implements UserChangedListener {
     }
     int n = 0;
     for (final String token : tokens) {
-      if (StringUtils.isNotBlank(token) == true) {
+      if (StringUtils.isNotBlank(token)) {
         n++;
       }
     }
@@ -608,7 +608,7 @@ public class UserService implements UserChangedListener {
     final String[] result = new String[n];
     n = 0;
     for (final String token : tokens) {
-      if (StringUtils.isNotBlank(token) == true) {
+      if (StringUtils.isNotBlank(token)) {
         result[n] = token.trim();
         n++;
       }

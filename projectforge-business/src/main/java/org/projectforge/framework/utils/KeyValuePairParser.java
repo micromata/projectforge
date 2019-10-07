@@ -153,21 +153,21 @@ public class KeyValuePairParser
     final StringBuffer buf = new StringBuffer();
     while (true) {
       if (type != Type.CHAR) {
-        if (quoted == true) {
+        if (quoted) {
           throw new RuntimeException(createMessage(ERROR_QUOTATIONMARK_MISSED_AT_END_OF_CELL));
         }
         return buf.toString();
       }
       if (cval == '"') {
-        if (quoted == false) {
+        if (!quoted) {
           throw new RuntimeException(createMessage(ERROR_UNEXPECTED_QUOTATIONMARK, buf.toString()));
         }
         nextToken();
         if (type != Type.CHAR || cval == pairsSeparatorChar) { // End of cell
           break;
-        } else if (quoted == true && cval == '"') { // Escaped quotation mark
+        } else if (quoted && cval == '"') { // Escaped quotation mark
           buf.append(cval);
-        } else if (Character.isWhitespace(cval) == true) {
+        } else if (Character.isWhitespace(cval)) {
           skipWhitespaces();
           nextToken();
           if (type != Type.CHAR || cval == pairsSeparatorChar) {
@@ -178,7 +178,7 @@ public class KeyValuePairParser
         } else {
           throw new RuntimeException(createMessage(ERROR_UNEXPECTED_CHARACTER_AFTER_QUOTATION_MARK));
         }
-      } else if (quoted == false && cval == pairsSeparatorChar) {
+      } else if (!quoted && cval == pairsSeparatorChar) {
         break;
       } else {
         buf.append(cval);
@@ -215,7 +215,7 @@ public class KeyValuePairParser
   {
     while (true) {
       nextToken();
-      if (type != Type.CHAR || Character.isWhitespace(cval) == false) {
+      if (type != Type.CHAR || !Character.isWhitespace(cval)) {
         unread();
         break;
       }

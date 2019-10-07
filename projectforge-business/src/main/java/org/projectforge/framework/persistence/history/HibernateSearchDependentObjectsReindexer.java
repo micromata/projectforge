@@ -110,11 +110,11 @@ public class HibernateSearchDependentObjectsReindexer
     @Override
     public boolean equals(final Object obj)
     {
-      if (obj instanceof Entry == false) {
+      if (!(obj instanceof Entry)) {
         return false;
       }
       final Entry o = (Entry) obj;
-      return clazz.equals(o.clazz) == true && fieldName.equals(o.fieldName) == true;
+      return clazz.equals(o.clazz) && fieldName.equals(o.fieldName);
     }
 
     @Override
@@ -154,7 +154,7 @@ public class HibernateSearchDependentObjectsReindexer
   private void reindexDependents(final Session session, final BaseDO<?> obj,
       final List<Entry> entryList, final Set<String> alreadyReindexed)
   {
-    if (CollectionUtils.isEmpty(entryList) == true) {
+    if (CollectionUtils.isEmpty(entryList)) {
       // Nothing to do.
       return;
     }
@@ -181,8 +181,8 @@ public class HibernateSearchDependentObjectsReindexer
   private void reindexDependents(final Session session, final BaseDO<?> obj,
       final Set<String> alreadyReindexed)
   {
-    if (alreadyReindexed.contains(getReindexId(obj)) == true) {
-      if (log.isDebugEnabled() == true) {
+    if (alreadyReindexed.contains(getReindexId(obj))) {
+      if (log.isDebugEnabled()) {
         log.debug("Object already re-indexed (skipping): " + getReindexId(obj));
       }
       return;
@@ -199,7 +199,7 @@ public class HibernateSearchDependentObjectsReindexer
       }
       HibernateCompatUtils.index(fullTextSession, dbObj);
       alreadyReindexed.add(getReindexId(dbObj));
-      if (log.isDebugEnabled() == true) {
+      if (log.isDebugEnabled()) {
         log.debug("Object added to index: " + getReindexId(dbObj));
       }
     } catch (final Exception ex) {
@@ -216,12 +216,12 @@ public class HibernateSearchDependentObjectsReindexer
       final BaseDO<?> obj)
   {
     final String queryString;
-    if (entry.setOrCollection == true) {
+    if (entry.setOrCollection) {
       queryString = "from " + registryEntry.getDOClass().getName() + " o join o." + entry.fieldName + " r where r.id=?";
     } else {
       queryString = "from " + registryEntry.getDOClass().getName() + " o where o." + entry.fieldName + ".id=?";
     }
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug(queryString + ", id=" + obj.getId());
     }
     final List<?> result = applicationContext.getBean(HibernateTemplate.class).find(queryString, obj.getId());
@@ -243,12 +243,12 @@ public class HibernateSearchDependentObjectsReindexer
   {
     final Field[] fields = clazz.getDeclaredFields();
     for (final Field field : fields) {
-      if (field.isAnnotationPresent(IndexedEmbedded.class) == true ||
-          field.isAnnotationPresent(ContainedIn.class) == true) {
+      if (field.isAnnotationPresent(IndexedEmbedded.class) ||
+          field.isAnnotationPresent(ContainedIn.class)) {
         Class<?> embeddedClass = field.getType();
         boolean setOrCollection = false;
-        if (Set.class.isAssignableFrom(embeddedClass) == true
-            || Collection.class.isAssignableFrom(embeddedClass) == true) {
+        if (Set.class.isAssignableFrom(embeddedClass)
+            || Collection.class.isAssignableFrom(embeddedClass)) {
           // Please use @ContainedIn.
           final Type type = field.getGenericType();
           if (type instanceof ParameterizedType) {
@@ -259,7 +259,7 @@ public class HibernateSearchDependentObjectsReindexer
             }
           }
         }
-        if (BaseDO.class.isAssignableFrom(embeddedClass) == false) {
+        if (!BaseDO.class.isAssignableFrom(embeddedClass)) {
           // Only BaseDO objects are supported.
           continue;
         }
@@ -273,7 +273,7 @@ public class HibernateSearchDependentObjectsReindexer
           map.put(embeddedBaseDOClass, list);
         } else {
           for (final Entry e : list) {
-            if (entry.equals(e) == true) {
+            if (entry.equals(e)) {
               log.warn("Entry already registerd: " + entry);
             }
           }

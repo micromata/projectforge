@@ -53,7 +53,7 @@ public class PFUserDOConverter
   public static Integer getId(final LdapUser user)
   {
     final String employeeNumber = user.getEmployeeNumber();
-    if (employeeNumber != null && employeeNumber.startsWith(ID_PREFIX) == true
+    if (employeeNumber != null && employeeNumber.startsWith(ID_PREFIX)
         && employeeNumber.length() > ID_PREFIX.length()) {
       final String id = employeeNumber.substring(ID_PREFIX.length());
       return NumberHelper.parseInteger(id);
@@ -74,22 +74,22 @@ public class PFUserDOConverter
     final String[] mails = ldapUser.getMail();
     if (mails != null) {
       for (final String mail : mails) {
-        if (StringUtils.isNotEmpty(mail) == true) {
+        if (StringUtils.isNotEmpty(mail)) {
           user.setEmail(mail);
           break;
         }
       }
     }
-    if (ldapUser.isDeleted() == true) {
+    if (ldapUser.isDeleted()) {
       user.setDeleted(true);
     }
-    if (ldapUser.isDeactivated() == true || ldapUserDao.isDeactivated(ldapUser) == true) {
+    if (ldapUser.isDeactivated() || ldapUserDao.isDeactivated(ldapUser)) {
       user.setDeactivated(true);
     }
-    if (ldapUser.isRestrictedUser() == true || ldapUserDao.isRestrictedUser(ldapUser) == true) {
+    if (ldapUser.isRestrictedUser() || ldapUserDao.isRestrictedUser(ldapUser)) {
       user.setRestrictedUser(true);
     }
-    if (isPosixAccountValuesEmpty(ldapUser) == false) {
+    if (!isPosixAccountValuesEmpty(ldapUser)) {
       user.setLdapValues(getLdapValuesAsXml(ldapUser));
     }
     return user;
@@ -109,7 +109,7 @@ public class PFUserDOConverter
     ldapUser.setMail(user.getEmail());
     ldapUser.setDeleted(user.isDeleted());
     ldapUser.setDeactivated(user.getDeactivated());
-    if (user.getDeactivated() == true) {
+    if (user.getDeactivated()) {
       ldapUser.setMail(LdapUserDao.DEACTIVATED_MAIL);
     }
     ldapUser.setRestrictedUser(user.getRestrictedUser());
@@ -121,8 +121,8 @@ public class PFUserDOConverter
   public static boolean isPosixAccountValuesEmpty(final LdapUser ldapUser)
   {
     return ldapUser.getUidNumber() == null
-        && StringUtils.isBlank(ldapUser.getHomeDirectory()) == true
-        && StringUtils.isBlank(ldapUser.getLoginShell()) == true
+        && StringUtils.isBlank(ldapUser.getHomeDirectory())
+        && StringUtils.isBlank(ldapUser.getLoginShell())
         && ldapUser.getGidNumber() == null;
   }
 
@@ -139,7 +139,7 @@ public class PFUserDOConverter
    */
   public void setLdapValues(final LdapUser ldapUser, final String ldapValuesAsXml)
   {
-    if (StringUtils.isBlank(ldapValuesAsXml) == true) {
+    if (StringUtils.isBlank(ldapValuesAsXml)) {
       return;
     }
     final LdapConfig ldapConfig = ldapService.getLdapConfig();
@@ -162,12 +162,12 @@ public class PFUserDOConverter
     } else {
       ldapUser.setGidNumber(posixAccountsConfig.getDefaultGidNumber());
     }
-    if (StringUtils.isNotBlank(values.getHomeDirectory()) == true) {
+    if (StringUtils.isNotBlank(values.getHomeDirectory())) {
       ldapUser.setHomeDirectory(values.getHomeDirectory());
     } else {
       ldapUser.setHomeDirectory(posixAccountsConfig.getHomeDirectoryPrefix() + ldapUser.getUid());
     }
-    if (StringUtils.isNotBlank(values.getLoginShell()) == true) {
+    if (StringUtils.isNotBlank(values.getLoginShell())) {
       ldapUser.setLoginShell(values.getLoginShell());
     } else {
       ldapUser.setLoginShell(posixAccountsConfig.getDefaultLoginShell());
@@ -186,7 +186,7 @@ public class PFUserDOConverter
 
   public static LdapUserValues readLdapUserValues(final String ldapValuesAsXml)
   {
-    if (StringUtils.isBlank(ldapValuesAsXml) == true) {
+    if (StringUtils.isBlank(ldapValuesAsXml)) {
       return null;
     }
     final XmlObjectReader reader = new XmlObjectReader();
@@ -281,14 +281,14 @@ public class PFUserDOConverter
     ListHelper.addAll(properties, "commonName", "givenName", "surname", "mail", "description", "organization",
         "deactivated",
         "restrictedUser");
-    if (ldapUserDao.isPosixAccountsConfigured() == true && isPosixAccountValuesEmpty(src) == false) {
+    if (ldapUserDao.isPosixAccountsConfigured() && !isPosixAccountValuesEmpty(src)) {
       ListHelper.addAll(properties, "uidNumber", "gidNumber", "homeDirectory", "loginShell");
     }
-    if (ldapUserDao.isSambaAccountsConfigured() == true && isSambaAccountValuesEmpty(src) == false) {
+    if (ldapUserDao.isSambaAccountsConfigured() && !isSambaAccountValuesEmpty(src)) {
       ListHelper.addAll(properties, "sambaSIDNumber", "sambaPrimaryGroupSIDNumber", "sambaNTPassword");
     }
     modified = BeanHelper.copyProperties(src, dest, true, properties.toArray(new String[0]));
-    if (ldapUserDao.isSambaAccountsConfigured() == true && isSambaAccountValuesEmpty(src) == false) {
+    if (ldapUserDao.isSambaAccountsConfigured() && !isSambaAccountValuesEmpty(src)) {
       final long diffSambaPwdLastSet = dest.getSambaPwdLastSetAsUnixEpochSeconds()
           - src.getSambaPwdLastSetAsUnixEpochSeconds();
       if (diffSambaPwdLastSet > 10 || diffSambaPwdLastSet < -10) {

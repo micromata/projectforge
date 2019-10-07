@@ -129,7 +129,7 @@ public class TimesheetPrefData
 
   public void appendRecentLocation(String location)
   {
-    if (StringUtils.isBlank(location) == true) {
+    if (StringUtils.isBlank(location)) {
       return;
     }
     ensureRecentLocations();
@@ -165,7 +165,7 @@ public class TimesheetPrefData
 
   public void init(List<TimesheetDO> list)
   {
-    if (CollectionUtils.isNotEmpty(list) == true) {
+    if (CollectionUtils.isNotEmpty(list)) {
       ensureRecents();
       ensureRecentTasks();
       for (TimesheetDO timesheet : list) {
@@ -181,10 +181,10 @@ public class TimesheetPrefData
 
   public void initLocations(Collection<String> locations)
   {
-    if (CollectionUtils.isNotEmpty(locations) == true) {
+    if (CollectionUtils.isNotEmpty(locations)) {
       ensureRecentLocations();
       for (String location : locations) {
-        if (StringUtils.isBlank(location) == true) {
+        if (StringUtils.isBlank(location)) {
           return;
         }
         recentLocations.addOnly(location);

@@ -72,7 +72,7 @@ public class TaskTest extends AbstractTestBase {
   public void testTaskDO() {
     final List<TaskDO> list = taskDao.internalLoadAll();
     for (final TaskDO task : list) {
-      if ("root".equals(task.getTitle()) == true) {
+      if ("root".equals(task.getTitle())) {
         assertNull(task.getParentTaskId(), "Only root node has no parent task.");
       } else {
         assertNotNull(task.getParentTaskId(), "Only root node has no parent task.");

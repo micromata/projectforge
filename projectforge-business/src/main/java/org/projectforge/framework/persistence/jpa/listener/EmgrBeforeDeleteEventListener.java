@@ -56,11 +56,11 @@ public class EmgrBeforeDeleteEventListener implements EmgrEventHandler<EmgrBefor
   public void onEvent(EmgrBeforeDeleteEvent event)
   {
     DbRecord<?> obj = event.getRecord();
-    if ((obj instanceof BaseDO) == false) {
+    if (!(obj instanceof BaseDO)) {
       return;
     }
     PfEmgr emgr = (PfEmgr) event.getEmgr();
-    if (emgr.isCheckAccess() == false) {
+    if (!emgr.isCheckAccess()) {
       return;
     }
     BaseDO<?> dbObject = (BaseDO<?>) obj;

@@ -100,7 +100,7 @@ public class ICal4JUtils
       final TimeZone timezone)
   {
     VEvent vEvent;
-    if (allDay == true) {
+    if (allDay) {
       final Date startUtc = CalendarUtils.getUTCMidnightDate(startDate);
       final Date endUtc = CalendarUtils.getUTCMidnightDate(endDate);
       final net.fortuna.ical4j.model.Date fortunaStartDate = new net.fortuna.ical4j.model.Date(startUtc);
@@ -229,7 +229,7 @@ public class ICal4JUtils
    */
   public static RRule calculateRRule(final String rruleString)
   {
-    if (StringUtils.isBlank(rruleString) == true) {
+    if (StringUtils.isBlank(rruleString)) {
       return null;
     }
     try {
@@ -264,13 +264,13 @@ public class ICal4JUtils
       return null;
     }
     final String freq = recur.getFrequency();
-    if (Recur.WEEKLY.equals(freq) == true) {
+    if (Recur.WEEKLY.equals(freq)) {
       return RecurrenceFrequency.WEEKLY;
-    } else if (Recur.MONTHLY.equals(freq) == true) {
+    } else if (Recur.MONTHLY.equals(freq)) {
       return RecurrenceFrequency.MONTHLY;
-    } else if (Recur.DAILY.equals(freq) == true) {
+    } else if (Recur.DAILY.equals(freq)) {
       return RecurrenceFrequency.DAILY;
-    } else if (Recur.YEARLY.equals(freq) == true) {
+    } else if (Recur.YEARLY.equals(freq)) {
       return RecurrenceFrequency.YEARLY;
     }
     return null;
@@ -366,7 +366,7 @@ public class ICal4JUtils
    */
   public static Date parseICalDateString(final String dateString, final java.util.TimeZone timeZone)
   {
-    if (StringUtils.isBlank(dateString) == true) {
+    if (StringUtils.isBlank(dateString)) {
       return null;
     }
     String pattern;
@@ -389,7 +389,7 @@ public class ICal4JUtils
 
   public static Date parseISODateString(final String isoDateString)
   {
-    if (StringUtils.isBlank(isoDateString) == true) {
+    if (StringUtils.isBlank(isoDateString)) {
       return null;
     }
     String pattern;
@@ -454,7 +454,7 @@ public class ICal4JUtils
 
   public static String[] splitExDates(final String csv)
   {
-    if (StringUtils.isBlank(csv) == true) {
+    if (StringUtils.isBlank(csv)) {
       return null;
     }
     final String[] sa = StringHelper.splitAndTrim(csv, ",;|");
@@ -477,7 +477,7 @@ public class ICal4JUtils
         continue;
       }
       Date date = null;
-      if (str.matches("\\d{8}.*") == true) {
+      if (str.matches("\\d{8}.*")) {
         date = parseICalDateString(str, timeZone);
       } else {
         date = parseISODateString(str);
@@ -507,7 +507,7 @@ public class ICal4JUtils
       }
 
       Date date = null;
-      if (str.matches("\\d{8}.*") == true) {
+      if (str.matches("\\d{8}.*")) {
         date = parseICalDateString(str, timeZone);
       } else {
         date = parseISODateString(str);

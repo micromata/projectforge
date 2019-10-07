@@ -63,7 +63,7 @@ public abstract class JdbcExecutor
         result = execute(stmt);
         return result;
       } catch (final SQLException e) {
-        if (ignoreErrors == false) {
+        if (!ignoreErrors) {
           throw new RuntimeException(e);
         }
         log.error("Exception encountered " + e, e);
@@ -87,7 +87,7 @@ public abstract class JdbcExecutor
           log.error("Exception encountered " + e, e);
         }
       }
-      if (hasErrors == true) {
+      if (hasErrors) {
         throw new RuntimeException();
       }
     }

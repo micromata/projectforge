@@ -56,7 +56,7 @@ public class Holiday
     this.label = label;
     this.workingDay = workingDay;
     this.workFraction = workingFraction;
-    if (workingDay == false && workFraction != null) {
+    if (!workingDay && workFraction != null) {
       log.warn("Non-working days should not have a work fraction: " + this);
     }
   }

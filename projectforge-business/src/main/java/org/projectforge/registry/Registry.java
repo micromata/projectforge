@@ -223,7 +223,7 @@ public class Registry
     if (idx < 0) {
       log.error("Registry entry '" + existingEntry.getId() + "' not found. Appending the given entry to the list.");
       orderedList.add(entry);
-    } else if (insertBefore == true) {
+    } else if (insertBefore) {
       orderedList.add(idx, entry);
     } else {
       orderedList.add(idx + 1, entry);

@@ -111,17 +111,17 @@ public class MebMailClient
     if (mgcMailAccount != null) {
       return mgcMailAccount;
     }
-    if (false && mgcMailAccountDisabled == true) {
+    if (false) {
       return null;
     }
     MailReceiverLocalSettingsConfigModel cfg = createMailReceiverLocalSettingsConfigModel();
-    if (cfg.isEnabled() == false) {
+    if (!cfg.isEnabled()) {
       mgcMailAccountDisabled = true;
       return null;
     }
     ValContext ctx = new ValContext();
     cfg.validate(ctx);
-    if (ctx.hasErrors() == true) {
+    if (ctx.hasErrors()) {
       GLog.warn(GenomeLogCategory.Configuration, "Mail Receiver account not valid",
           new ValMessageLogAttribute(ctx.getMessages()));
       return null;
@@ -162,7 +162,7 @@ public class MebMailClient
   {
 
     final MailFilter filter = new MailFilter();
-    if (onlyRecentMails == true) {
+    if (onlyRecentMails) {
       filter.setOnlyRecent(true);
     }
     de.micromata.mgc.email.MailAccount mcacc = getMailAccount();
@@ -187,23 +187,23 @@ public class MebMailClient
         final BufferedReader reader = new BufferedReader(new StringReader(content.trim()));
         try {
           StringBuffer buf = null;
-          while (reader.ready() == true) {
+          while (reader.ready()) {
             final String line = reader.readLine();
             if (line == null) {
               break;
             }
-            if (line.startsWith("date=") == true) {
+            if (line.startsWith("date=")) {
               if (line.length() > 5) {
                 final String dateString = line.substring(5);
                 final Date date = MebDao.parseDate(dateString);
                 entry.setDate(date);
               }
-            } else if (line.startsWith("sender=") == true) {
+            } else if (line.startsWith("sender=")) {
               if (line.length() > 7) {
                 final String sender = line.substring(7);
                 entry.setSender(sender);
               }
-            } else if (line.startsWith("msg=") == true) {
+            } else if (line.startsWith("msg=")) {
               if (line.length() > 4) {
                 final String msg = line.substring(4);
                 buf = new StringBuffer();
@@ -226,10 +226,10 @@ public class MebMailClient
         } catch (IOException ex) {
           log.error("Exception encountered " + ex, ex);
         }
-        if (mebDao.checkAndAddEntry(entry, "MAIL") == true) {
+        if (mebDao.checkAndAddEntry(entry, "MAIL")) {
           counter++;
         }
-        if (markRecentMailsAsSeen == true) {
+        if (markRecentMailsAsSeen) {
           try {
             mail.getMessage().setFlag(Flags.Flag.SEEN, true);
             //mail.getMessage().saveChanges();

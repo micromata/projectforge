@@ -325,7 +325,7 @@ public class XmlStreamTest extends AbstractTestBase {
     final XmlObjectWriter writer = new XmlObjectWriter() {
       @Override
       protected boolean ignoreField(final Object obj, final Field field) {
-        if (obj instanceof TestObject && field.getName().equals("s1") == true) {
+        if (obj instanceof TestObject && field.getName().equals("s1")) {
           return true;
         }
         return super.ignoreField(obj, field);
@@ -418,7 +418,7 @@ public class XmlStreamTest extends AbstractTestBase {
       @Override
       protected Object newInstance(final Class<?> clazz, final Element el, final String attrName,
                                    final String attrValue) {
-        if (MyRootElement.class.isAssignableFrom(clazz) == true) {
+        if (MyRootElement.class.isAssignableFrom(clazz)) {
           return new MyRootElement();
         }
         return null;

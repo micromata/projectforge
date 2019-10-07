@@ -44,16 +44,16 @@ public enum MebEntryStatus implements I18nEnum
 
   public static MebEntryStatus get(String s)
   {
-    if (StringUtils.isEmpty(s) == true) {
+    if (StringUtils.isEmpty(s)) {
       return null;
     }
-    if ("RECENT".equals(s) == true) {
+    if ("RECENT".equals(s)) {
       return RECENT;
-    } else if ("DONE".equals(s) == true) {
+    } else if ("DONE".equals(s)) {
       return DONE;
-    } else if ("OPEN".equals(s) == true) {
+    } else if ("OPEN".equals(s)) {
       return OPEN;
-    } else if ("IMPORTANT".equals(s) == true) {
+    } else if ("IMPORTANT".equals(s)) {
       return IMPORTANT;
     } else {
       return UNKNOWN;

@@ -116,15 +116,15 @@ public class DeltaSetCalculator
     Class<?> propertyType = null;
     for (int i = 0; i < propertyNames.length; i++) {
       String property = propertyNames[i];
-      if (validPropertyNames != null && validPropertyNames.contains(property) == false) {
+      if (validPropertyNames != null && !validPropertyNames.contains(property)) {
         log.debug("ignoring not valid property [" + property + "]");
         continue;
       }
-      if (invalidPropertyNames != null && invalidPropertyNames.contains(property) == true) {
+      if (invalidPropertyNames != null && invalidPropertyNames.contains(property)) {
         log.debug("ignoring invalid property [" + property + "]");
         continue;
       }
-      if (log.isDebugEnabled() == true) {
+      if (log.isDebugEnabled()) {
         log.debug("Starting property [" + property + "]");
       }
       propertyType = null;
@@ -327,10 +327,10 @@ public class DeltaSetCalculator
             .getPropertyType(propertyName);
         returnedClass = propertyType2.getElementType(factory).getReturnedClass();
       } catch (QueryException ex) {
-        if (oldCollectionValue != null && oldCollectionValue.isEmpty() == false) {
+        if (oldCollectionValue != null && !oldCollectionValue.isEmpty()) {
           returnedClass = oldCollectionValue.iterator().next().getClass();
         }
-        if (newCollectionValue != null && newCollectionValue.isEmpty() == false) {
+        if (newCollectionValue != null && !newCollectionValue.isEmpty()) {
           returnedClass = newCollectionValue.iterator().next().getClass();
         }
       }
@@ -363,7 +363,7 @@ public class DeltaSetCalculator
       Date d1 = (Date) obj1;
       Date d2 = (Date) obj2;
       return d1.equals(d2) || d2.equals(d1);
-    } else if (BigDecimal.class.isAssignableFrom(obj1.getClass()) == true) {
+    } else if (BigDecimal.class.isAssignableFrom(obj1.getClass())) {
       // Use compareTo instead of equals (for ignoring the scale):
       return ((BigDecimal) obj1).compareTo((BigDecimal) obj2) == 0;
     } else {
@@ -384,9 +384,9 @@ public class DeltaSetCalculator
       // compare the database identifier
       ClassMetadata clazz = sf.getClassMetadata(obj1.getClass());
       if (clazz != null) {
-        if (clazz.hasIdentifierProperty() == true) {
+        if (clazz.hasIdentifierProperty()) {
           if (clazz.getIdentifier(obj1/* , EntityMode.POJO */)
-              .equals(clazz.getIdentifier(obj2/* , EntityMode.POJO */)) == true) {
+              .equals(clazz.getIdentifier(obj2/* , EntityMode.POJO */))) {
             return true;
           }
         }

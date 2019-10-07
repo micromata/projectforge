@@ -115,8 +115,8 @@ public class TaskFilter extends BaseSearchFilter
 
   public void resetMatch()
   {
-    taskVisibility = new HashMap<Integer, Boolean>();
-    tasksMatched = new HashSet<Integer>();
+    taskVisibility = new HashMap<>();
+    tasksMatched = new HashSet<>();
   }
 
   /**
@@ -136,14 +136,14 @@ public class TaskFilter extends BaseSearchFilter
       resetMatch();
     }
     final TaskDO task = node.getTask();
-    if (StringUtils.isBlank(this.searchString) == true) {
-      return isVisibleByStatus(node, task) || node.isRootNode() == true;
+    if (StringUtils.isBlank(this.searchString)) {
+      return isVisibleByStatus(node, task) || node.isRootNode();
     } else {
-      if (isVisibleBySearchString(node, task, taskDao, user) == true) {
-        return isVisibleByStatus(node, task) || node.isRootNode() == true;
+      if (isVisibleBySearchString(node, task, taskDao, user)) {
+        return isVisibleByStatus(node, task) || node.isRootNode();
       } else {
-        if (node.getParent() != null && node.getParent().isRootNode() == false
-            && isAncestorVisibleBySearchString(node.getParent()) == true) {
+        if (node.getParent() != null && !node.getParent().isRootNode()
+            && isAncestorVisibleBySearchString(node.getParent())) {
           // Otherwise the node is only visible by his status if the parent node is visible:
           return isVisibleByStatus(node, task);
         } else {
@@ -155,7 +155,7 @@ public class TaskFilter extends BaseSearchFilter
 
   private boolean isAncestorVisibleBySearchString(final TaskNode node)
   {
-    if (tasksMatched.contains(node.getId()) == true) {
+    if (tasksMatched.contains(node.getId())) {
       return true;
     } else if (node.getParent() != null) {
       return isAncestorVisibleBySearchString(node.getParent());
@@ -176,31 +176,31 @@ public class TaskFilter extends BaseSearchFilter
     if (cachedVisibility != null) {
       return cachedVisibility;
     }
-    if (isVisibleByStatus(node, task) == false && node.isRootNode() == false) {
+    if (!isVisibleByStatus(node, task) && !node.isRootNode()) {
       taskVisibility.put(task.getId(), false);
       return false;
     }
-    if (taskDao != null && taskDao.hasSelectAccess(user, node.getTask(), false) == false) {
+    if (taskDao != null && !taskDao.hasSelectAccess(user, node.getTask(), false)) {
       return false;
     }
     final PFUserDO responsibleUser = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache()
         .getUser(task.getResponsibleUserId());
     final String username = responsibleUser != null
         ? responsibleUser.getFullname() + " " + responsibleUser.getUsername() : null;
-    if (StringUtils.containsIgnoreCase(task.getTitle(), this.searchString) == true
-        || StringUtils.containsIgnoreCase(task.getReference(), this.searchString) == true
-        || StringUtils.containsIgnoreCase(task.getShortDescription(), this.searchString) == true
-        || StringUtils.containsIgnoreCase(task.getDescription(), this.searchString) == true
-        || StringUtils.containsIgnoreCase(task.getShortDisplayName(), this.searchString) == true
-        || StringUtils.containsIgnoreCase(username, this.searchString) == true
-        || StringUtils.containsIgnoreCase(task.getWorkpackageCode(), this.searchString) == true) {
+    if (StringUtils.containsIgnoreCase(task.getTitle(), this.searchString)
+        || StringUtils.containsIgnoreCase(task.getReference(), this.searchString)
+        || StringUtils.containsIgnoreCase(task.getShortDescription(), this.searchString)
+        || StringUtils.containsIgnoreCase(task.getDescription(), this.searchString)
+        || StringUtils.containsIgnoreCase(task.getShortDisplayName(), this.searchString)
+        || StringUtils.containsIgnoreCase(username, this.searchString)
+        || StringUtils.containsIgnoreCase(task.getWorkpackageCode(), this.searchString)) {
       taskVisibility.put(task.getId(), true);
       tasksMatched.add(task.getId());
       return true;
-    } else if (node.hasChildren() == true && node.isRootNode() == false) {
+    } else if (node.hasChildren() && (!node.isRootNode())) {
       for (final TaskNode childNode : node.getChildren()) {
         final TaskDO childTask = childNode.getTask();
-        if (isVisibleBySearchString(childNode, childTask, taskDao, user) == true) {
+        if (isVisibleBySearchString(childNode, childTask, taskDao, user)) {
           taskVisibility.put(childTask.getId(), true);
           return true;
         }
@@ -212,7 +212,7 @@ public class TaskFilter extends BaseSearchFilter
 
   private boolean isVisibleByStatus(final TaskNode node, final TaskDO task)
   {
-    if (isDeleted() == false && task.isDeleted() == true) {
+    if (!isDeleted() && task.isDeleted()) {
       return false;
     }
     if (task.getStatus() == TaskStatus.N) {

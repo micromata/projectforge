@@ -41,7 +41,7 @@ public class WorkFileHelper
   public static File getWorkFile(final String filename)
   {
     final File workDir = new File(WORK_DIR);
-    if (workDir.exists() == false) {
+    if (!workDir.exists()) {
       log.info("Create working directory: " + workDir.getAbsolutePath());
       workDir.mkdir();
     }

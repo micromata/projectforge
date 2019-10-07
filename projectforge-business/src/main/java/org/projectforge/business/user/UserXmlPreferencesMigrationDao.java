@@ -26,7 +26,7 @@ package org.projectforge.business.user;
 import java.util.List;
 
 import org.apache.commons.lang3.Validate;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -131,7 +131,7 @@ public class UserXmlPreferencesMigrationDao
     final Object data = userXmlPreferencesDao.deserialize(null, userPrefs, true);
     buf.append("version ");
     buf.append(userPrefs.getVersion());
-    if (data != null || "<null/>".equals(userPrefs.getSerializedSettings()) == true) {
+    if (data != null || "<null/>".equals(userPrefs.getSerializedSettings())) {
       buf.append(" OK ");
     } else {
       buf.append(" ***not re-usable*** ");

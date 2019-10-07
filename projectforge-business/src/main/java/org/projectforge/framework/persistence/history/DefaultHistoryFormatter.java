@@ -175,7 +175,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
     ResourceBundle resources = getResourceBundle(locale);
     String s = null;
     String key = changed.getClass().getName() + ".property." + delta.getPropertyName();
-    if (missingKeys.contains(key) == false) {
+    if (!missingKeys.contains(key)) {
       try {
         s = resources.getString(key);
       } catch (MissingResourceException ex) {
@@ -185,7 +185,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
     }
     if (s == null) {
       key = "common.property." + delta.getPropertyName();
-      if (missingKeys.contains(key) == false) {
+      if (!missingKeys.contains(key)) {
         try {
           s = resources.getString(key);
         } catch (MissingResourceException ex) {

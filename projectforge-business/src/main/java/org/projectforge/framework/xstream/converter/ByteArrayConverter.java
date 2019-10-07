@@ -37,7 +37,7 @@ public class ByteArrayConverter implements IConverter<byte[]>
   @Override
   public byte[] fromString(final String str)
   {
-    if (StringUtils.isEmpty(str) == true || XmlConstants.NULL_IDENTIFIER.equals(str) == true) {
+    if (StringUtils.isEmpty(str) || XmlConstants.NULL_IDENTIFIER.equals(str)) {
       return null;
     }
     try {
@@ -58,7 +58,7 @@ public class ByteArrayConverter implements IConverter<byte[]>
   @Override
   public String toString(final Object obj)
   {
-    if (obj == null || obj instanceof byte[] == false) {
+    if (obj == null || !(obj instanceof byte[])) {
       return null;
     }
     final String result = Base64.getEncoder().encodeToString((byte[]) obj);

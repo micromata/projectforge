@@ -237,7 +237,7 @@ public class LdapMasterLoginHandlerTest extends AbstractTestBase
   public void realTest()
   {
 
-    if (ldapRealTestHelper.isAvailable() == false) {
+    if (!ldapRealTestHelper.isAvailable()) {
       log.info("No LDAP server configured for tests. Skipping test.");
       return;
     } /*
@@ -307,14 +307,14 @@ public class LdapMasterLoginHandlerTest extends AbstractTestBase
   private boolean isMembersEmpty(final LdapGroup ldapGroup)
   {
     final Set<String> members = ldapGroup.getMembers();
-    if (CollectionUtils.isEmpty(members) == true) {
+    if (CollectionUtils.isEmpty(members)) {
       return true;
     }
     if (members.size() > 1) {
       return false;
     }
     final String member = members.iterator().next();
-    return member == null || member.startsWith("cn=none") == true;
+    return member == null || member.startsWith("cn=none");
   }
 
   private void assertMembers(final LdapGroup ldapGroup, final String... usernames)
@@ -367,7 +367,7 @@ public class LdapMasterLoginHandlerTest extends AbstractTestBase
         Thread.sleep(200);
       } catch (final InterruptedException ex) {
       }
-      if (userGroupCache.isRefreshInProgress() == false && loginHandler.isRefreshInProgress() == false) {
+      if (!userGroupCache.isRefreshInProgress() && !loginHandler.isRefreshInProgress()) {
         break;
       }
     }

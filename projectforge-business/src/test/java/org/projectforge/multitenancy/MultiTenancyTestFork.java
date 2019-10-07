@@ -59,7 +59,7 @@ public class MultiTenancyTestFork extends AbstractTestBase
 
   private void initialize()
   {
-    if (initialized == true) {
+    if (initialized) {
       return;
     }
     defaultTenant = tenantService.getDefaultTenant();

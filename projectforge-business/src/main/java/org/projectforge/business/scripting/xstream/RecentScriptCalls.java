@@ -49,7 +49,7 @@ public class RecentScriptCalls
       return null;
     }
     for (final ScriptCallData data : recentQueue.getRecents()) {
-      if (scriptName.equals(data.getScriptName()) == true) {
+      if (scriptName.equals(data.getScriptName())) {
         return data;
       }
     }

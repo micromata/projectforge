@@ -124,7 +124,7 @@ public class ProjektImpl implements Projekt
     StringBuffer buf = new StringBuffer();
     boolean first = false;
     for (Kost2Art value : kost2Arts) {
-      if (first == true) {
+      if (first) {
         first = false;
       } else {
         buf.append(", ");
@@ -143,11 +143,11 @@ public class ProjektImpl implements Projekt
     boolean first = true;
     for (Kost2Art art : kost2Arts) {
       boolean suppress = true;
-      if (art.isExistsAlready() == true) {
-        if (first == false) {
+      if (art.isExistsAlready()) {
+        if (!first) {
           buf.append(", ");
         }
-        if (art.isProjektStandard() == true) {
+        if (art.isProjektStandard()) {
           buf.append("<span");
           HtmlHelper.attribute(buf, "style", "color: green;");
           buf.append(">").append(art.getFormattedId()).append("</span>");
@@ -155,8 +155,8 @@ public class ProjektImpl implements Projekt
           buf.append(art.getFormattedId());
         }
         suppress = false;
-      } else if (art.isProjektStandard() == true) {
-        if (first == false) {
+      } else if (art.isProjektStandard()) {
+        if (!first) {
           buf.append(", ");
         }
         buf.append("<span");
@@ -166,7 +166,7 @@ public class ProjektImpl implements Projekt
       } else {
         // Suppress output;
       }
-      if (suppress == false && first == true) {
+      if (!suppress && first) {
         first = false;
       }
     }

@@ -41,6 +41,7 @@ import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.CellType;
 
 /**
  * Convert a given Excel-Sheet into an object-Array.
@@ -213,7 +214,7 @@ public class ExcelImport<T>
     }
     final HSSFSheet sheet = work.getSheetAt(activeSheet);
     final int numberOfRows = sheet.getLastRowNum();
-    final List<T> list = new ArrayList<T>(numberOfRows);
+    final List<T> list = new ArrayList<>(numberOfRows);
     final HSSFRow columnNames = sheet.getRow(columnNameRow);
     for (int i = startAtRow; i <= numberOfRows; i++) {
       try {
@@ -222,7 +223,7 @@ public class ExcelImport<T>
         if (line == null) {
           continue;
         }
-        if (clazz.isInstance(line) == false) {
+        if (!clazz.isInstance(line)) {
           throw new IllegalStateException("returned type "
               + line.getClass()
               + " is not assignable to "
@@ -303,15 +304,12 @@ public class ExcelImport<T>
         log.debug(
             "Setting property=" + propName + " to " + value + " class=" + ClassUtils.getShortClassName(value, "null"));
         PropertyUtils.setProperty(o, propName, value);
-      } catch (final ConversionException e) {
-        log.warn(e.toString());
-        throw new ExcelImportException("Falscher Datentyp beim Excelimport", new Integer(row.getRowNum()), columnName);
       } catch (final Exception e) {
         log.warn(e.toString());
-        throw new ExcelImportException("Falscher Datentyp beim Excelimport", new Integer(row.getRowNum()), columnName);
+        throw new ExcelImportException("Falscher Datentyp beim Excelimport", row.getRowNum(), columnName);
       }
     }
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug("created bean " + o + " for row#" + rowNum);
     }
     return o;
@@ -329,8 +327,8 @@ public class ExcelImport<T>
     if (cell == null) {
       return null;
     }
-    switch (cell.getCellType()) {
-      case HSSFCell.CELL_TYPE_NUMERIC:
+    switch (cell.getCellTypeEnum()) {
+      case NUMERIC:
         log.debug("using numeric");
         if (Date.class.isAssignableFrom(destClazz)) {
           return cell.getDateCellValue();
@@ -338,16 +336,16 @@ public class ExcelImport<T>
         String strVal = String.valueOf(cell.getNumericCellValue());
         strVal = strVal.replaceAll("\\.0*$", "");
         return ConvertUtils.convert(strVal, destClazz);
-      case HSSFCell.CELL_TYPE_BOOLEAN:
+      case BOOLEAN:
         log.debug("using boolean");
-        return Boolean.valueOf(cell.getBooleanCellValue());
-      case HSSFCell.CELL_TYPE_STRING:
+        return cell.getBooleanCellValue();
+      case STRING:
         log.debug("using string");
         strVal = StringUtils.trimToNull(cell.getStringCellValue());
         return ConvertUtils.convert(strVal, destClazz);
-      case HSSFCell.CELL_TYPE_BLANK:
+      case BLANK:
         return null;
-      case HSSFCell.CELL_TYPE_FORMULA:
+      case FORMULA:
         return new Formula(cell.getCellFormula());
       default:
         return StringUtils.trimToNull(cell.getStringCellValue());

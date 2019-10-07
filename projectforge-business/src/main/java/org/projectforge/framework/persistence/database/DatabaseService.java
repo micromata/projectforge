@@ -155,7 +155,7 @@ public class DatabaseService
   public void initializeDefaultData(final PFUserDO adminUser, final TimeZone adminUserTimezone)
   {
     log.info("Init admin user and root task.");
-    if (databaseTablesWithEntriesExists() == true) {
+    if (databaseTablesWithEntriesExists()) {
       databaseNotEmpty();
     }
 
@@ -279,10 +279,10 @@ public class DatabaseService
    */
   public void internalCreateProjectForgeGroups(final TenantDO tenant, final PFUserDO adminUser)
   {
-    final Set<PFUserDO> adminUsers = new HashSet<PFUserDO>();
+    final Set<PFUserDO> adminUsers = new HashSet<>();
     adminUsers.add(adminUser);
     Set<PFUserDO> adminUsersForNewTenants = null;
-    if (tenant.isDefault() == true) {
+    if (tenant.isDefault()) {
       // Assign admin user for almost all groups only for initialization of a new ProjectForge installation. For new tenants the admin user
       // is only assigned to the admin group for the new tenant.
       adminUsersForNewTenants = adminUsers;
@@ -345,16 +345,9 @@ public class DatabaseService
 
   public void afterCreatedTestDb(boolean blocking)
   {
-    Thread rebuildThread = new Thread()
-    {
-      @Override
-      public void run()
-      {
-        hibernateSearchReindexer.rebuildDatabaseSearchIndices();
-      }
-    };
+    Thread rebuildThread = new Thread(() -> hibernateSearchReindexer.rebuildDatabaseSearchIndices());
     rebuildThread.start();
-    if (blocking == true) {
+    if (blocking) {
       try {
         rebuildThread.join();
       } catch (InterruptedException e) {
@@ -424,7 +417,7 @@ public class DatabaseService
       // No access check for the system admin pseudo user.
       return;
     }
-    if (Login.getInstance().isAdminUser(ThreadLocalUserContext.getUser()) == false) {
+    if (!Login.getInstance().isAdminUser(ThreadLocalUserContext.getUser())) {
       throw new AccessException(AccessCheckerImpl.I18N_KEY_VIOLATION_USER_NOT_MEMBER_OF,
           ProjectForgeGroup.ADMIN_GROUP.getKey());
     }
@@ -441,7 +434,7 @@ public class DatabaseService
   {
     accessCheck(false);
     for (final Class<?> entity : entities) {
-      if (internalDoesTableExist(new Table(entity).getName()) == false) {
+      if (!internalDoesTableExist(new Table(entity).getName())) {
         return false;
       }
     }
@@ -452,7 +445,7 @@ public class DatabaseService
   {
     accessCheck(false);
     for (final Table table : tables) {
-      if (internalDoesTableExist(table.getName()) == false) {
+      if (!internalDoesTableExist(table.getName())) {
         return false;
       }
     }
@@ -515,7 +508,7 @@ public class DatabaseService
         // Transient or getter method not found.
         return false;
       }
-      if (doesTableAttributeExist(table.getName(), attr.getName()) == false) {
+      if (!doesTableAttributeExist(table.getName(), attr.getName())) {
         return false;
       }
     }
@@ -550,11 +543,11 @@ public class DatabaseService
   public boolean dropTable(final String table)
   {
     accessCheck(true);
-    if (doesTableExist(table) == false) {
+    if (!doesTableExist(table)) {
       // Table is already dropped or does not exist.
       return true;
     }
-    if (isTableEmpty(table) == false) {
+    if (!isTableEmpty(table)) {
       // Table is not empty.
       log.warn("Could not drop table '" + table + "' because the table is not empty.");
       return false;
@@ -593,11 +586,11 @@ public class DatabaseService
     buf.append("CREATE TABLE " + table.getName() + " (\n");
     boolean first = true;
     for (final TableAttribute attr : table.getAttributes()) {
-      if (attr.getType().isIn(TableAttributeType.LIST, TableAttributeType.SET) == true) {
+      if (attr.getType().isIn(TableAttributeType.LIST, TableAttributeType.SET)) {
         // Nothing to be done here.
         continue;
       }
-      if (first == true) {
+      if (first) {
         first = false;
       } else {
         buf.append(",\n");
@@ -611,7 +604,7 @@ public class DatabaseService
     }
     // Create foreign keys if exist
     for (final TableAttribute attr : table.getAttributes()) {
-      if (StringUtils.isNotEmpty(attr.getForeignTable()) == true) {
+      if (StringUtils.isNotEmpty(attr.getForeignTable())) {
         // foreign key (user_fk) references t_pf_user(pk)
         buf.append(",\n  FOREIGN KEY (").append(attr.getName()).append(") REFERENCES ").append(attr.getForeignTable())
             .append("(")
@@ -634,7 +627,7 @@ public class DatabaseService
       }
     }
     for (final TableAttribute attr : table.getAttributes()) {
-      if (attr.isUnique() == false) {
+      if (!attr.isUnique()) {
         continue;
       }
       buf.append(",\n  UNIQUE (").append(attr.getName()).append(")");
@@ -650,7 +643,7 @@ public class DatabaseService
       return "";
 
     final Column columnAnnotation = attr.getAnnotation(Column.class);
-    if (columnAnnotation != null && StringUtils.isNotEmpty(columnAnnotation.columnDefinition()) == true) {
+    if (columnAnnotation != null && StringUtils.isNotEmpty(columnAnnotation.columnDefinition())) {
       return columnAnnotation.columnDefinition();
     } else {
       return getDatabaseSupport().getType(attr);
@@ -661,20 +654,20 @@ public class DatabaseService
   {
     buf.append(attr.getName()).append(" ");
     final Column columnAnnotation = attr.getAnnotation(Column.class);
-    if (columnAnnotation != null && StringUtils.isNotEmpty(columnAnnotation.columnDefinition()) == true) {
+    if (columnAnnotation != null && StringUtils.isNotEmpty(columnAnnotation.columnDefinition())) {
       buf.append(columnAnnotation.columnDefinition());
     } else {
       buf.append(getDatabaseSupport().getType(attr));
     }
     boolean primaryKeyDefinition = false; // For avoiding double 'not null' definition.
-    if (attr.isPrimaryKey() == true) {
+    if (attr.isPrimaryKey()) {
       final String suffix = getDatabaseSupport().getPrimaryKeyAttributeSuffix(attr);
-      if (StringUtils.isNotEmpty(suffix) == true) {
+      if (StringUtils.isNotEmpty(suffix)) {
         buf.append(suffix);
         primaryKeyDefinition = true;
       }
     }
-    if (primaryKeyDefinition == false) {
+    if (!primaryKeyDefinition) {
       getDatabaseSupport().addDefaultAndNotNull(buf, attr);
     }
   }
@@ -690,7 +683,7 @@ public class DatabaseService
   public boolean createTable(final Table table)
   {
     accessCheck(true);
-    if (doExist(table) == true) {
+    if (doExist(table)) {
       log.info("Table '" + table.getName() + "' does already exist.");
       return false;
     }
@@ -714,7 +707,7 @@ public class DatabaseService
       final TableAttribute... attributes)
   {
     for (final TableAttribute attr : attributes) {
-      if (doesTableAttributeExist(table, attr.getName()) == true) {
+      if (doesTableAttributeExist(table, attr.getName())) {
         buf.append("-- Does already exist: ");
       }
       buf.append("ALTER TABLE ").append(table).append(" ADD COLUMN ");
@@ -723,7 +716,7 @@ public class DatabaseService
     }
     for (final TableAttribute attr : attributes) {
       if (attr.getForeignTable() != null) {
-        if (doesTableAttributeExist(table, attr.getName()) == true) {
+        if (doesTableAttributeExist(table, attr.getName())) {
           buf.append("-- Column does already exist: ");
         }
         buildForeignKeyConstraint(buf, table, attr);
@@ -835,7 +828,7 @@ public class DatabaseService
       }
     }
     for (final TableAttribute attr : table.getAttributes()) {
-      if (attr.isUnique() == false) {
+      if (!attr.isUnique()) {
         continue;
       }
       final String[] columnNames = new String[1];
@@ -869,12 +862,12 @@ public class DatabaseService
       }
       boolean exists = false;
       for (final String existingName : existingConstraintNames) {
-        if (existingName != null && existingName.equals(name) == true) {
+        if (existingName != null && existingName.equals(name)) {
           exists = true;
           break;
         }
       }
-      if (exists == false) {
+      if (!exists) {
         return name;
       }
     }
@@ -932,9 +925,9 @@ public class DatabaseService
       while (reference.next()) {
         final String fkTable = reference.getString("FKTABLE_NAME");
         final String fkCol = reference.getString("FKCOLUMN_NAME");
-        if (fkTable.startsWith("t_") == true) {
+        if (fkTable.startsWith("t_")) {
           // Table of ProjectForge
-          if (createIndex("idx_fk_" + fkTable + "_" + fkCol, fkTable, fkCol) == true) {
+          if (createIndex("idx_fk_" + fkTable + "_" + fkCol, fkTable, fkCol)) {
             counter++;
           }
         }
@@ -1106,7 +1099,7 @@ public class DatabaseService
     final JdbcTemplate jdbc = new JdbcTemplate(dataSource);
     final List<Map<String, Object>> dbResult = jdbc
         .queryForList("SELECT * FROM t_database_update ORDER BY update_date DESC");
-    final List<DatabaseUpdateDO> result = new ArrayList<DatabaseUpdateDO>();
+    final List<DatabaseUpdateDO> result = new ArrayList<>();
     for (final Map<String, Object> map : dbResult) {
       final DatabaseUpdateDO entry = new DatabaseUpdateDO();
       entry.setUpdateDate((Date) map.get("update_date"));
@@ -1127,7 +1120,7 @@ public class DatabaseService
   {
     try {
       final Table userTable = new Table(PFUserDO.class);
-      return internalDoesTableExist(userTable.getName()) == false;
+      return !internalDoesTableExist(userTable.getName());
     } catch (final Exception ex) {
       log.error("Error while checking existing of user table.", ex);
     }
@@ -1139,7 +1132,7 @@ public class DatabaseService
   {
     try {
       final Table userTable = new Table(PFUserDO.class);
-      return internalDoesTableExist(userTable.getName()) && internalIsTableEmpty(userTable.getName()) == false;
+      return internalDoesTableExist(userTable.getName()) && !internalIsTableEmpty(userTable.getName());
     } catch (final Exception ex) {
       log.error("Error while checking existing of user table with entries.", ex);
     }
@@ -1229,8 +1222,8 @@ public class DatabaseService
         continue;
       }
 
-      if (constraints.containsKey(constraint) == false) {
-        constraints.put(constraint, new ArrayList<String>());
+      if (!constraints.containsKey(constraint)) {
+        constraints.put(constraint, new ArrayList<>());
       }
       constraints.get(constraint).add(column.toLowerCase());
     }
@@ -1297,7 +1290,7 @@ public class DatabaseService
       final String tableName = (String) row.getEntry(0).getValue();
       final String foreignKey = (String) row.getEntry(1).getValue();
 
-      if (false == tableName.equals(tableNameLast)) {
+      if (!tableName.equals(tableNameLast)) {
         log.info(String.format("Dropped '%s' foreign keys for table '%s'", countCurrent, tableNameLast));
         log.info(String.format("Check foreign key constraints of table '%s'", tableName));
 

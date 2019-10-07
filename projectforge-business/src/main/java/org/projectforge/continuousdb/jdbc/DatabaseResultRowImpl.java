@@ -57,7 +57,7 @@ public class DatabaseResultRowImpl implements DatabaseResultRow
       if (entry.getName() == null) {
         continue;
       }
-      if (lower.equals(entry.getName().toLowerCase()) == true) {
+      if (lower.equals(entry.getName().toLowerCase())) {
         return entry;
       }
     }

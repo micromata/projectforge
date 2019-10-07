@@ -175,14 +175,14 @@ public class Report implements Serializable
   public BusinessAssessmentTable getChildBusinessAssessmentTable(final boolean prependThisReport)
   {
     if (businessAssessmentTable == null) {
-      if (prependThisReport == false && hasChildren() == false) {
+      if (!prependThisReport && !hasChildren()) {
         return null;
       }
       businessAssessmentTable = new BusinessAssessmentTable();
-      if (prependThisReport == true) {
+      if (prependThisReport) {
         businessAssessmentTable.addBusinessAssessment(this.getId(), this.getBusinessAssessment());
       }
-      if (hasChildren() == true) {
+      if (hasChildren()) {
         for (final Report child : getChildren()) {
           businessAssessmentTable.addBusinessAssessment(child.getId(), child.getBusinessAssessment());
         }
@@ -252,14 +252,14 @@ public class Report implements Serializable
 
   public Report findById(final String id)
   {
-    if (Objects.equals(this.reportObjective.getId(), id) == true) {
+    if (Objects.equals(this.reportObjective.getId(), id)) {
       return this;
     }
-    if (hasChildren() == false) {
+    if (!hasChildren()) {
       return null;
     }
     for (final Report report : getChildren()) {
-      if (Objects.equals(report.reportObjective.getId(), id) == true) {
+      if (Objects.equals(report.reportObjective.getId(), id)) {
         return report;
       }
     }
@@ -280,28 +280,28 @@ public class Report implements Serializable
    */
   public List<Report> getChildren()
   {
-    if (childReports == null && hasChildren() == true) {
+    if (childReports == null && hasChildren()) {
       childReports = new ArrayList<Report>();
       for (final ReportObjective child : reportObjective.getChildReportObjectives()) {
         final Report report = new Report(child, this);
         report.select(this.buchungssaetze);
         childReports.add(report);
       }
-      if (this.buchungssaetze != null && (reportObjective.isSuppressOther() == false || reportObjective.isSuppressDuplicates() == false)) {
+      if (this.buchungssaetze != null && (!reportObjective.isSuppressOther() || !reportObjective.isSuppressDuplicates())) {
         for (final BuchungssatzDO satz : this.buchungssaetze) {
           int n = 0;
           for (final Report child : getChildren()) {
-            if (child.contains(satz) == true) {
+            if (child.contains(satz)) {
               n++;
             }
           }
-          if (reportObjective.isSuppressOther() == false && n == 0) {
+          if (!reportObjective.isSuppressOther() && n == 0) {
             // Kommt bei keinem Childreport vor:
             if (other == null) {
               other = new ArrayList<BuchungssatzDO>();
             }
             other.add(satz);
-          } else if (reportObjective.isSuppressDuplicates() == false && n > 1) {
+          } else if (!reportObjective.isSuppressDuplicates() && n > 1) {
             // Kommt bei mehreren Children vor:
             if (duplicates == null) {
               duplicates = new ArrayList<BuchungssatzDO>();
@@ -310,7 +310,7 @@ public class Report implements Serializable
           }
         }
       }
-      if (reportObjective.isSuppressOther() == false && this.other != null) {
+      if (!reportObjective.isSuppressOther() && this.other != null) {
         final ReportObjective objective = new ReportObjective();
         final String other = ThreadLocalUserContext.getLocalizedString("fibu.reporting.other");
         objective.setId(this.getId() + " - " + other);
@@ -319,7 +319,7 @@ public class Report implements Serializable
         report.setBuchungssaetze(this.other);
         childReports.add(report);
       }
-      if (reportObjective.isSuppressDuplicates() == false && this.duplicates != null) {
+      if (!reportObjective.isSuppressDuplicates() && this.duplicates != null) {
         final ReportObjective objective = new ReportObjective();
         final String duplicates = ThreadLocalUserContext.getLocalizedString("fibu.reporting.duplicates");
         objective.setId(this.getId() + " - " + duplicates);
@@ -385,16 +385,16 @@ public class Report implements Serializable
         final String kost2 = KostFormatter.format(satz.getKost2());
 
         // 1st of all the Blacklists
-        if (match(reportObjective.getKost1ExcludeRegExpList(), kost1, false) == true) {
+        if (match(reportObjective.getKost1ExcludeRegExpList(), kost1, false)) {
           return false;
         }
-        if (match(reportObjective.getKost2ExcludeRegExpList(), kost2, false) == true) {
+        if (match(reportObjective.getKost2ExcludeRegExpList(), kost2, false)) {
           return false;
         }
         // 2nd the whitelists
         final boolean kost1Match = match(reportObjective.getKost1IncludeRegExpList(), kost1, true);
         final boolean kost2Match = match(reportObjective.getKost2IncludeRegExpList(), kost2, true);
-        return kost1Match == true && kost2Match == true;
+        return kost1Match && kost2Match;
       }
     };
     this.buchungssaetze = new ArrayList<BuchungssatzDO>();
@@ -435,10 +435,10 @@ public class Report implements Serializable
    */
   public static boolean match(final List<String> regExpList, final String kost, final boolean emptyListMatches)
   {
-    if (CollectionUtils.isNotEmpty(regExpList) == true) {
+    if (CollectionUtils.isNotEmpty(regExpList)) {
       for (final String str : regExpList) {
         final String regExp = modifyRegExp(str);
-        if (kost.matches(regExp) == true) {
+        if (kost.matches(regExp)) {
           return true;
         }
       }
@@ -459,7 +459,7 @@ public class Report implements Serializable
     if (regExp == null) {
       return null;
     }
-    if (regExp.startsWith("'") == true) {
+    if (regExp.startsWith("'")) {
       return regExp.substring(1);
     }
     final String str = regExp.replace(".", "\\.").replace("*", ".*");

@@ -94,7 +94,7 @@ public class LdapRealTestHelper
       ldapConfig = ldapService.getLdapConfig();
       ldapConnector.ldapService = ldapService;
     }
-    if (isAvailable() == true) {
+    if (isAvailable()) {
       if (ldapOrganizationalUnitDao == null) {
         ldapPersonDao = new LdapPersonDao();
         ldapPersonDao.setLdapConnector(ldapConnector);
@@ -119,7 +119,7 @@ public class LdapRealTestHelper
 
   public void tearDown()
   {
-    if (isAvailable() == true) {
+    if (isAvailable()) {
       ldapOrganizationalUnitDao.deleteIfExists(LdapUserDao.DEACTIVATED_SUB_CONTEXT, getUserPath());
       ldapOrganizationalUnitDao.deleteIfExists(LdapUserDao.RESTRICTED_USER_SUB_CONTEXT, getUserPath());
       ldapOrganizationalUnitDao.deleteIfExists(getUserPath());
@@ -171,7 +171,7 @@ public class LdapRealTestHelper
       return ldapConfig;
     } else {
       final File configFile = new File(CONFIG_FILE);
-      if (configFile.canRead() == false) {
+      if (!configFile.canRead()) {
         return null;
       }
       log.info("Reading LDAP configuration file for test cases: " + configFile.getPath());
@@ -194,7 +194,7 @@ public class LdapRealTestHelper
       try {
         final LdapConfig cfg = (LdapConfig) reader.read(xml);
         final String warnings = reader.getWarnings();
-        if (StringUtils.isNotBlank(warnings) == true) {
+        if (StringUtils.isNotBlank(warnings)) {
           log.error(warnings);
         }
         return cfg;

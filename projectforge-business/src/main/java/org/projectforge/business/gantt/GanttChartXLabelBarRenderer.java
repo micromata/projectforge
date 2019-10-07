@@ -131,7 +131,7 @@ public class GanttChartXLabelBarRenderer
     ticksScale2 = style.getXTicksScale2();
     if (labelUnit == GanttXUnit.QUARTER) {
       if (labelScale < 0) {
-        if (style.isRelativeTimeValues() == true) {
+        if (style.isRelativeTimeValues()) {
           // Numbers doesn't need as much space as quarter labels (03/2010)
           labelScale = getScale(numberOfQuarters, 50, labelUnit);
         } else {
@@ -149,7 +149,7 @@ public class GanttChartXLabelBarRenderer
       }
     } else {
       if (labelScale < 0) {
-        if (style.isRelativeTimeValues() == true) {
+        if (style.isRelativeTimeValues()) {
           // Numbers doesn't need as much space as date labels (03/2010)
           labelScale = getScale(numberOfUnits, 50, labelUnit);
         } else {
@@ -168,11 +168,11 @@ public class GanttChartXLabelBarRenderer
     }
     if (style.getXLabel() != null) {
       label = style.getXLabel();
-    } else if (style.isRelativeTimeValues() == true) {
+    } else if (style.isRelativeTimeValues()) {
       label = ThreadLocalUserContext.getLocalizedString(labelUnit.getI18nKey());
     }
     this.showNonWorkingDays = style.isShowNonWorkingDays();
-    if (this.showNonWorkingDays == true) {
+    if (this.showNonWorkingDays) {
       if (diagramWidth / fromToDays < 2) {
         // Don't show non working days due to the large scale. At minimum 3 pixels per day required.
         this.showNonWorkingDays = false;
@@ -222,12 +222,12 @@ public class GanttChartXLabelBarRenderer
     int quarterCounter = 0;
     int lastDateLabel = 0;
     boolean nonWorkingDayDisplayed = false;
-    while (day.before(toDay) == true) {
+    while (day.before(toDay)) {
       if (dayCounter > 0) {
-        if (showNonWorkingDays == true && xGridHeight > 0) {
-          if (day.isWorkingDay() == true) {
+        if (showNonWorkingDays && xGridHeight > 0) {
+          if (day.isWorkingDay()) {
             nonWorkingDayDisplayed = false;
-          } else if (nonWorkingDayDisplayed == false) {
+          } else if (!nonWorkingDayDisplayed) {
             // Non-working day:
             showNonWorkingDays(doc, grid, day.getDate(), toDay.getDate(), xGridHeight);
             nonWorkingDayDisplayed = true;
@@ -251,7 +251,7 @@ public class GanttChartXLabelBarRenderer
         boolean drawTick = match(ticksScale, ticksUnit, dayCounter, wc, mc, qc);
         boolean drawTick2 = match(ticksScale2, ticksUnit2, dayCounter, wc, mc, qc);
         boolean drawGrid = match(gridScale, gridUnit, dayCounter, wc, mc, qc);
-        if (style.isRelativeTimeValues() == false) {
+        if (!style.isRelativeTimeValues()) {
           if (labelUnit == GanttXUnit.DAY) {
             if (labelScale <= 5) {
               // So draw labels on 1st, 5th, 10th, 15th, 20th, 25th of month.
@@ -279,9 +279,9 @@ public class GanttChartXLabelBarRenderer
             }
           }
         }
-        if (drawLabel == true) {
+        if (drawLabel) {
           String label = null;
-          if (style.isRelativeTimeValues() == false) {
+          if (!style.isRelativeTimeValues()) {
             label = DateTimeFormatter.instance().getFormattedDate(day.getDate());
           } else if (labelUnit == GanttXUnit.DAY) {
             label = String.valueOf(dayCounter);
@@ -294,14 +294,14 @@ public class GanttChartXLabelBarRenderer
           }
           g1.appendChild(SVGHelper.createText(doc, getXValue(day.getDate()), 22, label, "text-anchor", "middle"));
         }
-        if (drawLabel == true) {
+        if (drawLabel) {
           ticks.appendChild(SVGHelper.createLine(doc, getXValue(day.getDate()), 12, getXValue(day.getDate()), 20));
-        } else if (drawTick == true) {
+        } else if (drawTick) {
           ticks.appendChild(SVGHelper.createLine(doc, getXValue(day.getDate()), 15, getXValue(day.getDate()), 20));
-        } else if (drawTick2 == true) {
+        } else if (drawTick2) {
           ticks.appendChild(SVGHelper.createLine(doc, getXValue(day.getDate()), 18, getXValue(day.getDate()), 20));
         }
-        if (grid != null && (drawGrid == true || drawLabel == true)) {
+        if (grid != null && (drawGrid || drawLabel)) {
           grid.appendChild(SVGHelper.createLine(doc, getXValue(day.getDate()), 0, getXValue(day.getDate()), xGridHeight));
         }
       }
@@ -332,7 +332,7 @@ public class GanttChartXLabelBarRenderer
     final double x1 = getXValue(day);
     for (int i = 0; i < 100; i++) { // End-less loop protection.
       dh.add(Calendar.DAY_OF_MONTH, 1);
-      if (dh.isWorkingDay() == true || dh.before(toDate) == false) {
+      if (dh.isWorkingDay() || !dh.before(toDate)) {
         break;
       }
     }

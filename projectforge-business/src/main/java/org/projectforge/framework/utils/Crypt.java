@@ -123,7 +123,7 @@ public class Crypt
   private static void initialize()
   {
     synchronized (log) {
-      if (initialized == false) {
+      if (!initialized) {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
         initialized = true;
       }

@@ -184,10 +184,10 @@ public class TemplateCalendarProperties implements Serializable, Comparable<Temp
    */
   public boolean isModified(final TemplateCalendarProperties other)
   {
-    if (NumberHelper.isEqual(this.calId, other.calId) == false) {
+    if (!NumberHelper.isEqual(this.calId, other.calId)) {
       return true;
     }
-    if (StringUtils.equals(this.colorCode, other.colorCode) == false) {
+    if (!StringUtils.equals(this.colorCode, other.colorCode)) {
       return true;
     }
     if (this.millisOfLastChange != other.millisOfLastChange) {

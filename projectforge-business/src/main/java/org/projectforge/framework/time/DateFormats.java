@@ -123,7 +123,7 @@ public class DateFormats
   {
     // # Date/time formats (important: don't use spaces after separator char, e. g. correct is dd.MMM yyyy instead of dd. MMM yyyy):
     final String[] sa = new String[4];
-    if (defaultDateFormat.contains("yyyy") == true) {
+    if (defaultDateFormat.contains("yyyy")) {
       sa[0] = defaultDateFormat.replace("yyyy", "yy"); // First, try "yy"
       sa[1] = defaultDateFormat;
     } else {
@@ -179,7 +179,7 @@ public class DateFormats
         defaultTimeNotation = ConfigurationServiceAccessor.get().getDefaultTimeNotation();
       } else {
         final Locale locale = ThreadLocalUserContext.getLocale();
-        if (locale != null && locale.toString().toLowerCase().startsWith("de") == true) {
+        if (locale != null && locale.toString().toLowerCase().startsWith("de")) {
           defaultTimeNotation = TimeNotation.H24;
         } else {
           defaultTimeNotation = TimeNotation.H12;
@@ -248,20 +248,20 @@ public class DateFormats
         return "E, " + getFormatString(defaultDateFormat, timeNotation, DateFormatType.DATE);
       case DATE_WITHOUT_YEAR:
         String pattern;
-        if (defaultDateFormat.contains("yyyy") == true) {
+        if (defaultDateFormat.contains("yyyy")) {
           pattern = defaultDateFormat.replace("yyyy", "");
         } else {
           pattern = defaultDateFormat.replace("yy", "");
         }
-        if (pattern.endsWith("/") == true) {
+        if (pattern.endsWith("/")) {
           return pattern.substring(0, pattern.length() - 1);
-        } else if (pattern.startsWith("-") == true) {
+        } else if (pattern.startsWith("-")) {
           return pattern.substring(1);
         } else {
           return pattern;
         }
       case DATE_SHORT:
-        if (defaultDateFormat.contains("yyyy") == false) {
+        if (!defaultDateFormat.contains("yyyy")) {
           return defaultDateFormat;
         }
         return defaultDateFormat.replace("yyyy", "yy");

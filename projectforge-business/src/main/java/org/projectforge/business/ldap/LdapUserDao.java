@@ -89,14 +89,14 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
   {
     return user.isDeactivated()
         || user.getOrganizationalUnit() != null
-        && LdapUtils.getOu(user.getOrganizationalUnit()).contains(DEACTIVATED_SUB_CONTEXT) == true;
+        && LdapUtils.getOu(user.getOrganizationalUnit()).contains(DEACTIVATED_SUB_CONTEXT);
   }
 
   public boolean isRestrictedUser(final LdapUser user)
   {
     return user.isRestrictedUser()
         || user.getOrganizationalUnit() != null
-        && LdapUtils.getOu(user.getOrganizationalUnit()).contains(RESTRICTED_USER_SUB_CONTEXT) == true;
+        && LdapUtils.getOu(user.getOrganizationalUnit()).contains(RESTRICTED_USER_SUB_CONTEXT);
   }
 
   public boolean isPosixAccountsConfigured()
@@ -116,7 +116,7 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
       return false;
     }
     final LdapSambaAccountsConfig sambaAccountsConfig = ldapConfig.getSambaAccountsConfig();
-    return sambaAccountsConfig != null && StringUtils.isNotBlank(sambaAccountsConfig.getSambaSIDPrefix()) == true;
+    return sambaAccountsConfig != null && StringUtils.isNotBlank(sambaAccountsConfig.getSambaSIDPrefix());
   }
 
   /**
@@ -166,20 +166,20 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
   @Override
   protected String[] getAdditionalObjectClasses(final LdapUser obj)
   {
-    final boolean posixAccount = isPosixAccountsConfigured() == true
-        && PFUserDOConverter.isPosixAccountValuesEmpty(obj) == false;
-    final boolean sambaAccount = isSambaAccountsConfigured() == true
-        && PFUserDOConverter.isSambaAccountValuesEmpty(obj) == false;
+    final boolean posixAccount = isPosixAccountsConfigured()
+        && !PFUserDOConverter.isPosixAccountValuesEmpty(obj);
+    final boolean sambaAccount = isSambaAccountsConfigured()
+        && !PFUserDOConverter.isSambaAccountValuesEmpty(obj);
     if (ALL_OBJECT_CLASSES == null) {
       initializeObjectClasses();
     }
-    if (posixAccount == true) {
-      if (sambaAccount == true) {
+    if (posixAccount) {
+      if (sambaAccount) {
         return ALL_OBJECT_CLASSES_WITH_SAMBA_AND_POSIX_ACCOUNT;
       }
       return ALL_OBJECT_CLASSES_WITH_POSIX_ACCOUNT;
     }
-    if (sambaAccount == true) {
+    if (sambaAccount) {
       return ALL_OBJECT_CLASSES_WITH_SAMBA_ACCOUNT;
     }
     return ALL_OBJECT_CLASSES;
@@ -214,17 +214,17 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
     ldapConfig = ldapService.getLdapConfig();
     final boolean posixAccountsConfigured = isPosixAccountsConfigured();
     final boolean sambaAccountsConfigured = isSambaAccountsConfigured();
-    if (posixAccountsConfigured == true || sambaAccountsConfigured == true) {
+    if (posixAccountsConfigured || sambaAccountsConfigured) {
       final String no = LdapUtils.getAttributeStringValue(attributes, "uidNumber");
       user.setUidNumber(NumberHelper.parseInteger(no));
     }
-    if (posixAccountsConfigured == true) {
+    if (posixAccountsConfigured) {
       final String no = LdapUtils.getAttributeStringValue(attributes, "gidNumber");
       user.setGidNumber(NumberHelper.parseInteger(no));
       user.setHomeDirectory(LdapUtils.getAttributeStringValue(attributes, "homeDirectory"));
       user.setLoginShell(LdapUtils.getAttributeStringValue(attributes, "loginShell"));
     }
-    if (sambaAccountsConfigured == true) {
+    if (sambaAccountsConfigured) {
       final String sambaSID = LdapUtils.getAttributeStringValue(attributes, "sambaSID");
       final Integer sambaSIDNumber = ldapConfig.getSambaAccountsConfig().getSambaSIDNumber(sambaSID);
       user.setSambaSIDNumber(sambaSIDNumber);
@@ -242,10 +242,10 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
       }
     }
     if (dn != null) {
-      if (dn.contains(DEACTIVATED_SUB_CONTEXT2) == true) {
+      if (dn.contains(DEACTIVATED_SUB_CONTEXT2)) {
         user.setDeactivated(true);
       }
-      if (dn.contains(RESTRICTED_USER_SUB_CONTEXT2) == true) {
+      if (dn.contains(RESTRICTED_USER_SUB_CONTEXT2)) {
         user.setRestrictedUser(true);
       }
 
@@ -280,7 +280,7 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
     buildDn(null, user);
     modify(ctx, user, modificationItems);
     final String ou = user.getOrganizationalUnit();
-    if (ou.startsWith(DEACTIVATED_SUB_CONTEXT2) == false) {
+    if (!ou.startsWith(DEACTIVATED_SUB_CONTEXT2)) {
       // Move user to the sub-context "deactivated".
       final String newOu = LdapUtils.getOu(DEACTIVATED_SUB_CONTEXT, getOuBase());
       move(ctx, user, newOu);
@@ -317,12 +317,12 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
   {
     log.info("Reactivate deactivated user: " + buildDn(null, user));
     final String ou = LdapUtils.getOu(user.getOrganizationalUnit());
-    if (ou.startsWith(DEACTIVATED_SUB_CONTEXT2) == false) {
+    if (!ou.startsWith(DEACTIVATED_SUB_CONTEXT2)) {
       log.info("Object isn't in a deactivated sub-context, nothing will be done: " + buildDn(null, user));
       return;
     }
     String newPath;
-    if (ou.startsWith(DEACTIVATED_SUB_CONTEXT3) == true) {
+    if (ou.startsWith(DEACTIVATED_SUB_CONTEXT3)) {
       newPath = ou.substring(DEACTIVATED_SUB_CONTEXT3.length());
     } else {
       newPath = ou.substring(DEACTIVATED_SUB_CONTEXT2.length());
@@ -334,15 +334,15 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
   void updateActivatedStatus(final DirContext ctx, final LdapUser user) throws NamingException
   {
     final String ou = LdapUtils.getOu(user.getOrganizationalUnit());
-    if (user.isDeactivated() == true) {
-      if (ou.startsWith(DEACTIVATED_SUB_CONTEXT2) == true) {
+    if (user.isDeactivated()) {
+      if (ou.startsWith(DEACTIVATED_SUB_CONTEXT2)) {
         // User is already stored in deactivated context. Nothing to be done.
         return;
       } else {
         deactivateUser(ctx, user);
       }
     } else {
-      if (ou.startsWith(DEACTIVATED_SUB_CONTEXT2) == false) {
+      if (!ou.startsWith(DEACTIVATED_SUB_CONTEXT2)) {
         // User isn't stored in deactivated context. Nothing to be done.
         return;
       } else {
@@ -354,25 +354,25 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
   void updateRestrictedUserStatus(final DirContext ctx, final LdapUser user) throws NamingException
   {
     final String ou = LdapUtils.getOu(user.getOrganizationalUnit());
-    if (user.isDeactivated() == true) {
+    if (user.isDeactivated()) {
       // User is deactivated, thus the restricted-user-status is ignored.
       return;
     }
-    if (user.isRestrictedUser() == true) {
-      if (ou.startsWith(RESTRICTED_USER_SUB_CONTEXT2) == true) {
+    if (user.isRestrictedUser()) {
+      if (ou.startsWith(RESTRICTED_USER_SUB_CONTEXT2)) {
         // User is already stored in restricted context. Nothing to be done.
         return;
       } else {
         setUserAsRestrictedUser(ctx, user);
       }
     } else {
-      if (ou.startsWith(RESTRICTED_USER_SUB_CONTEXT2) == false) {
+      if (!ou.startsWith(RESTRICTED_USER_SUB_CONTEXT2)) {
         // User isn't stored in restricted context. Nothing to be done.
         return;
       } else {
         log.info("Move user from restricted sub context: " + buildDn(null, user));
         String newPath;
-        if (ou.startsWith(RESTRICTED_USER_SUB_CONTEXT3) == true) {
+        if (ou.startsWith(RESTRICTED_USER_SUB_CONTEXT3)) {
           newPath = ou.substring(RESTRICTED_USER_SUB_CONTEXT3.length());
         } else {
           newPath = ou.substring(RESTRICTED_USER_SUB_CONTEXT2.length());
@@ -386,12 +386,12 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
   private void setUserAsRestrictedUser(final DirContext ctx, final LdapUser user) throws NamingException
   {
     log.info("Move user to restricted sub context: " + buildDn(null, user));
-    if (user.isDeactivated() == true) {
+    if (user.isDeactivated()) {
       log.info("User is deactivated, thus the restricted-user-status is ignored: " + buildDn(null, user));
       return;
     }
     final String ou = user.getOrganizationalUnit();
-    if (ou.startsWith(RESTRICTED_USER_SUB_CONTEXT2) == false) {
+    if (!ou.startsWith(RESTRICTED_USER_SUB_CONTEXT2)) {
       // Move user to the sub-context "restricted".
       final String newOu = LdapUtils.getOu(RESTRICTED_USER_SUB_CONTEXT, user.getOrganizationalUnit());
       move(ctx, user, newOu);
@@ -410,15 +410,15 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
   public void create(final DirContext ctx, final String ouBase, final LdapUser user, final Object... args)
       throws NamingException
   {
-    if (user.isDeleted() == true) {
+    if (user.isDeleted()) {
       log.info(
           "Given LDAP user is deleted, so the user will not be created in the LDAP system (nothing will be done).");
       return;
     }
     super.create(ctx, ouBase, user, args);
-    if (user.isDeactivated() == true) {
+    if (user.isDeactivated()) {
       deactivateUser(ctx, user);
-    } else if (user.isRestrictedUser() == true) {
+    } else if (user.isRestrictedUser()) {
       // Deactivated users shouldn't be moved to restricted ou sub context.
       setUserAsRestrictedUser(ctx, user);
     }
@@ -432,7 +432,7 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
   public void update(final DirContext ctx, final String ouBase, final LdapUser user, final Object... objs)
       throws NamingException
   {
-    if (user.isDeleted() == true) {
+    if (user.isDeleted()) {
       log.info("Given LDAP user is deleted, so the user will be removed from the LDAP system.");
       delete(ctx, user);
       return;
@@ -464,7 +464,7 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
   {
     final String sambaPasswordAttributeId = "sambaNTPassword";
 
-    if (isSambaAccountsConfigured() == false) {
+    if (!isSambaAccountsConfigured()) {
       log.error("Could not change attribute " + sambaPasswordAttributeId + " because the samba accounts are not configured.");
       return;
     }
@@ -493,13 +493,13 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
         controls.setSearchScope(SearchControls.SUBTREE_SCOPE);
         final String searchBase = getSearchBase(organizationalUnits);
         results = ctx.search(searchBase, "(&(objectClass=" + getObjectClass() + ")(uid=" + username + "))", controls);
-        if (results.hasMore() == false) {
+        if (!results.hasMore()) {
           return null;
         }
         final SearchResult searchResult = (SearchResult) results.next();
         final String dn = searchResult.getName();
         final Attributes attributes = searchResult.getAttributes();
-        if (results.hasMore() == true) {
+        if (results.hasMore()) {
           log.error("Oups, found entries with multiple id's: " + getObjectClass() + "." + username);
         }
         return mapToObject(dn, searchBase, attributes);
@@ -512,10 +512,10 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
     String dn;
     LdapUser user = null;
     final String searchBase = getSearchBase(organizationalUnits);
-    if (StringUtils.isNotBlank(ldapConfig.getManagerUser()) == true
-        && StringUtils.isNotBlank(ldapConfig.getManagerPassword()) == true) {
+    if (StringUtils.isNotBlank(ldapConfig.getManagerUser())
+        && StringUtils.isNotBlank(ldapConfig.getManagerPassword())) {
       user = findByUsername(username, searchBase);
-      if (user == null || StringUtils.equals(username, user.getId()) == false) {
+      if (user == null || !StringUtils.equals(username, user.getId())) {
         log.info("User with id '" + username + "' not found.");
         return null;
       }
@@ -541,7 +541,7 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
   protected void createAndAddModificationItems(final List<ModificationItem> list, final String attrId,
       final String... attrValues)
   {
-    if ("uid".equals(attrId) == true) {
+    if ("uid".equals(attrId)) {
       // Don't change uid because it's part of the dn.
       return;
     }
@@ -556,29 +556,29 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
   {
     list = ldapPersonDao.getModificationItems(list, user);
     createAndAddModificationItems(list, "cn", user.getCommonName());
-    final boolean modifyPosixAccount = isPosixAccountsConfigured() == true
-        && PFUserDOConverter.isPosixAccountValuesEmpty(user) == false;
-    final boolean modifySambaAccount = isSambaAccountsConfigured() == true
-        && PFUserDOConverter.isSambaAccountValuesEmpty(user) == false;
-    if (modifyPosixAccount == true || modifySambaAccount == true) {
+    final boolean modifyPosixAccount = isPosixAccountsConfigured()
+        && !PFUserDOConverter.isPosixAccountValuesEmpty(user);
+    final boolean modifySambaAccount = isSambaAccountsConfigured()
+        && !PFUserDOConverter.isSambaAccountValuesEmpty(user);
+    if (modifyPosixAccount || modifySambaAccount) {
       if (user.getObjectClasses() != null) {
         final List<String> missedObjectClasses = LdapUtils.getMissedObjectClasses(getAdditionalObjectClasses(user),
             getObjectClass(),
             user.getObjectClasses());
-        if (CollectionUtils.isNotEmpty(missedObjectClasses) == true) {
+        if (CollectionUtils.isNotEmpty(missedObjectClasses)) {
           for (final String missedObjectClass : missedObjectClasses) {
             list.add(createModificationItem(DirContext.ADD_ATTRIBUTE, "objectClass", missedObjectClass));
           }
         }
       }
     }
-    if (modifyPosixAccount == true) {
+    if (modifyPosixAccount) {
       createAndAddModificationItems(list, "uidNumber", String.valueOf(user.getUidNumber()));
       createAndAddModificationItems(list, "gidNumber", String.valueOf(user.getGidNumber()));
       createAndAddModificationItems(list, "homeDirectory", user.getHomeDirectory());
       createAndAddModificationItems(list, "loginShell", user.getLoginShell());
     }
-    if (modifySambaAccount == true) {
+    if (modifySambaAccount) {
       createAndAddModificationItems(list, "sambaSID",
           ldapConfig.getSambaAccountsConfig().getSambaSID(user.getSambaSIDNumber()));
       createAndAddModificationItems(list, "sambaPrimaryGroupSID",
@@ -598,7 +598,7 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
   @Override
   protected String buildDnIdentifier(final LdapUser obj)
   {
-    if (useUidInDn == true) {
+    if (useUidInDn) {
       return "uid=" + obj.getUid();
     } else {
       return "cn=" + LdapUtils.escapeCommonName(obj.getCommonName());
@@ -614,7 +614,7 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
     if (id == null) {
       return null;
     }
-    if (id instanceof String && ((String) id).startsWith(PFUserDOConverter.ID_PREFIX) == true) {
+    if (id instanceof String && ((String) id).startsWith(PFUserDOConverter.ID_PREFIX)) {
       return String.valueOf(id);
     }
     return PFUserDOConverter.ID_PREFIX + id;

@@ -27,11 +27,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.PrintSetup;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 
 public class ExportSheet
@@ -351,7 +347,7 @@ public class ExportSheet
     //Save the text of any formula before they are altered by row shifting
     String[] formulasArray = new String[sourceRow.getLastCellNum()];
     for (int i = 0; i < sourceRow.getLastCellNum(); i++) {
-      if (sourceRow.getCell(i) != null && sourceRow.getCell(i).getCellType() == Cell.CELL_TYPE_FORMULA)
+      if (sourceRow.getCell(i) != null && sourceRow.getCell(i).getCellTypeEnum() == CellType.FORMULA)
         formulasArray[i] = sourceRow.getCell(i).getCellFormula();
     }
 
@@ -389,25 +385,25 @@ public class ExportSheet
       }
 
       // Set the cell data type
-      newCell.setCellType(oldCell.getCellType());
+      newCell.setCellType(oldCell.getCellTypeEnum());
 
       // Set the cell data value
-      switch (oldCell.getCellType()) {
-        case Cell.CELL_TYPE_BLANK:
+      switch (oldCell.getCellTypeEnum()) {
+        case BLANK:
           break;
-        case Cell.CELL_TYPE_BOOLEAN:
+        case BOOLEAN:
           newCell.setCellValue(oldCell.getBooleanCellValue());
           break;
-        case Cell.CELL_TYPE_ERROR:
+        case ERROR:
           newCell.setCellErrorValue(oldCell.getErrorCellValue());
           break;
-        case Cell.CELL_TYPE_FORMULA:
+        case FORMULA:
           newCell.setCellFormula(formulasArray[i]);
           break;
-        case Cell.CELL_TYPE_NUMERIC:
+        case NUMERIC:
           newCell.setCellValue(oldCell.getNumericCellValue());
           break;
-        case Cell.CELL_TYPE_STRING:
+        case STRING:
           newCell.setCellValue(oldCell.getRichStringCellValue());
           break;
         default:

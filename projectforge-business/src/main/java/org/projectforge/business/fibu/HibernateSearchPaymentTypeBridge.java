@@ -66,7 +66,7 @@ public class HibernateSearchPaymentTypeBridge implements FieldBridge
       buf.append(localized + " ");
     }
 
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug(buf.toString());
     }
 

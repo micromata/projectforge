@@ -276,7 +276,7 @@ public abstract class AbstractTestBase {
     final LoginDefaultHandler loginHandler = applicationContext.getBean(LoginDefaultHandler.class);
     loginHandler.initialize();
     Login.getInstance().setLoginHandler(loginHandler);
-    if (createTestData == true) {
+    if (createTestData) {
       initTestDB.initDatabase();
     }
   }

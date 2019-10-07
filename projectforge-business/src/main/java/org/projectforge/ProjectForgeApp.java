@@ -147,7 +147,7 @@ public class ProjectForgeApp {
     log.info("Initializing...");
     // Time zone
     log.info("Default TimeZone is: " + TimeZone.getDefault());
-    if ("UTC".equals(TimeZone.getDefault().getID()) == false) {
+    if (!"UTC".equals(TimeZone.getDefault().getID())) {
       new EmphasizedLogSupport(log, EmphasizedLogSupport.Alignment.LEFT)
               .log("It's highly recommended to start ProjectForge with TimeZone UTC. This default TimeZone has to be")
               .log("set before any initialization of Hibernate!!!! You may do this through JAVA_OPTS etc.")

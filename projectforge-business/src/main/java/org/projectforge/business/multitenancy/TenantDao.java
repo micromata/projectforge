@@ -84,7 +84,7 @@ public class TenantDao extends BaseDao<TenantDO>
     @SuppressWarnings("unchecked")
     final List<TenantDO> list = (List<TenantDO>) getHibernateTemplate()
         .find("from TenantDO t where t.defaultTenant = true");
-    if (list != null && list.isEmpty() == true) {
+    if (list != null && list.isEmpty()) {
       return null;
     }
     if (list.size() > 1) {
@@ -106,14 +106,14 @@ public class TenantDao extends BaseDao<TenantDO>
   @Override
   protected void onSaveOrModify(final TenantDO obj)
   {
-    if (obj.isDefault() == false) {
+    if (!obj.isDefault()) {
       return;
     }
     final TenantDO defaultTenant = getDefaultTenant();
     if (defaultTenant == null) {
       return;
     }
-    if (obj.getId() == null || Objects.equals(defaultTenant.getId(), obj.getId()) == false) {
+    if (obj.getId() == null || !Objects.equals(defaultTenant.getId(), obj.getId())) {
       throw new UserException("multitenancy.error.maxOnlyOneTenantShouldBeDefault");
     }
   }
@@ -124,8 +124,8 @@ public class TenantDao extends BaseDao<TenantDO>
   @Override
   protected QueryFilter createQueryFilter(final BaseSearchFilter filter)
   {
-    final boolean superAdmin = TenantChecker.isSuperAdmin(ThreadLocalUserContext.getUser()) == true;
-    if (superAdmin == false) {
+    final boolean superAdmin = TenantChecker.isSuperAdmin(ThreadLocalUserContext.getUser());
+    if (!superAdmin) {
       return super.createQueryFilter(filter);
     }
     return new QueryFilter(filter, true);
@@ -143,15 +143,15 @@ public class TenantDao extends BaseDao<TenantDO>
     final Set<PFUserDO> origAssignedUsers = tenant.getAssignedUsers();
     if (origAssignedUsers != null) {
       final Iterator<PFUserDO> it = origAssignedUsers.iterator();
-      while (it.hasNext() == true) {
+      while (it.hasNext()) {
         final PFUserDO user = it.next();
-        if (assignedUsers.contains(user) == false) {
+        if (!assignedUsers.contains(user)) {
           it.remove();
         }
       }
     }
     for (final PFUserDO user : assignedUsers) {
-      if (origAssignedUsers == null || origAssignedUsers.contains(user) == false) {
+      if (origAssignedUsers == null || !origAssignedUsers.contains(user)) {
         tenant.addUser(user);
       }
     }
@@ -168,7 +168,7 @@ public class TenantDao extends BaseDao<TenantDO>
   public void afterSave(final TenantDO tenant)
   {
     final PFUserDO adminUser = ThreadLocalUserContext.getUser();
-    if (tenant.isDefault() == false) {
+    if (!tenant.isDefault()) {
       // The groups do already exist for the default tenant.
       initDatabaseDao.internalCreateProjectForgeGroups(tenant, adminUser);
     } else {
@@ -200,12 +200,12 @@ public class TenantDao extends BaseDao<TenantDO>
     final Collection<PFUserDO> assignedList = new ArrayList<PFUserDO>(); // List of new assigned users.
     final Collection<PFUserDO> unassignedList = new ArrayList<PFUserDO>(); // List of unassigned users.
     for (final PFUserDO user : tenant.getAssignedUsers()) {
-      if (origAssignedUsers.contains(user) == false) {
+      if (!origAssignedUsers.contains(user)) {
         assignedList.add(user);
       }
     }
     for (final PFUserDO user : dbTenant.getAssignedUsers()) {
-      if (assignedUsers.contains(user) == false) {
+      if (!assignedUsers.contains(user)) {
         unassignedList.add(user);
       }
     }
@@ -242,7 +242,7 @@ public class TenantDao extends BaseDao<TenantDO>
       throws AccessException
   {
     if (checkAccess) {
-      if (TenantChecker.isSuperAdmin(ThreadLocalUserContext.getUser()) == false) {
+      if (!TenantChecker.isSuperAdmin(ThreadLocalUserContext.getUser())) {
         log.warn("User has now access right to change assigned users of a tenant! Skipping assignment.");
         return;
       }
@@ -258,7 +258,7 @@ public class TenantDao extends BaseDao<TenantDO>
             assignedUsers = new HashSet<PFUserDO>();
             dbTenant.setAssignedUsers(assignedUsers);
           }
-          if (assignedUsers.contains(dbUser) == false) {
+          if (!assignedUsers.contains(dbUser)) {
             log.info("Assigning user '" + dbUser.getUsername() + "' to tenant '" + dbTenant.getName() + "'.");
             assignedUsers.add(dbUser);
             assignedTenants.add(dbTenant);
@@ -278,7 +278,7 @@ public class TenantDao extends BaseDao<TenantDO>
           final TenantDO dbTenant = emgr.selectByPkAttached(TenantDO.class, tenant.getId());
           final PFUserDO dbUser = emgr.selectByPkAttached(PFUserDO.class, user.getId());
           final Set<PFUserDO> assignedUsers = dbTenant.getAssignedUsers();
-          if (assignedUsers != null && assignedUsers.contains(dbUser) == true) {
+          if (assignedUsers != null && assignedUsers.contains(dbUser)) {
             log.info("Unassigning user '" + user.getUsername() + "' from tenant '" + dbTenant.getName() + "'.");
             assignedUsers.remove(dbUser);
             unassignedTenants.add(dbTenant);

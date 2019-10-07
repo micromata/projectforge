@@ -77,7 +77,7 @@ public class LdapConfig
     if (port != null) {
       buf.append(':').append(port);
     }
-    if (StringUtils.isBlank(this.baseDN) == false) {
+    if (!StringUtils.isBlank(this.baseDN)) {
       buf.append('/').append(this.baseDN);
     }
     return buf.toString();

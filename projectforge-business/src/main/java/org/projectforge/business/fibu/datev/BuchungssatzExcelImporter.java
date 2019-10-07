@@ -222,7 +222,7 @@ public class BuchungssatzExcelImporter
         }
         final String name = cell.getStringCellValue();
         log.debug("Processing column '" + name + "'");
-        if ("SH".equals(cell.getStringCellValue()) == true) {
+        if ("SH".equals(cell.getStringCellValue())) {
           numberOfSH++;
           if (numberOfSH == 2) {
             log.debug("Renaming 2nd column 'SH' to 'SH2' (column no. " + col + ").");
@@ -238,7 +238,7 @@ public class BuchungssatzExcelImporter
 
   private ImportedElement<BuchungssatzDO> convertBuchungssatz(final BuchungssatzImportRow row) throws Exception
   {
-    if (row.isEmpty() == true) {
+    if (row.isEmpty()) {
       return null;
     }
     final ImportedElement<BuchungssatzDO> element = new ImportedElement<BuchungssatzDO>(storage.nextVal(), BuchungssatzDO.class,

@@ -72,17 +72,17 @@ public class BeforeModifyEventHandler implements EmgrEventHandler<EmgrInitForMod
   public void onEvent(EmgrInitForModEvent event)
   {
     DbRecord<?> rec = event.getRecord();
-    if ((rec instanceof BaseDO) == false) {
+    if (!(rec instanceof BaseDO)) {
       return;
     }
     BaseDO baseDo = (BaseDO) rec;
     tenantChecker.isTenantSet(baseDo, true);
     PfEmgr emgr = (PfEmgr) event.getEmgr();
-    if (emgr.isCheckAccess() == false) {
+    if (!emgr.isCheckAccess()) {
       return;
     }
     AUserRightId aUserRightId = rec.getClass().getAnnotation(AUserRightId.class);
-    if (aUserRightId != null && aUserRightId.checkAccess() == false) {
+    if (aUserRightId != null && !aUserRightId.checkAccess()) {
       return; // skip right check
     }
     OperationType operationType;

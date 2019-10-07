@@ -80,7 +80,7 @@ public class LoginDefaultHandler implements LoginHandler
   {
     final LoginResult loginResult = new LoginResult();
     PFUserDO user = null;
-    if (UserFilter.isUpdateRequiredFirst() == true) {
+    if (UserFilter.isUpdateRequiredFirst()) {
       // Only administrator login is allowed. The login is checked without Hibernate because the data-base schema may be out-dated thus
       // Hibernate isn't functioning.
       try {
@@ -90,7 +90,7 @@ public class LoginDefaultHandler implements LoginHandler
               + "' (user/password not found).");
           return loginResult.setLoginResultStatus(LoginResultStatus.FAILED);
         }
-        if (isAdminUser(resUser) == false) {
+        if (!isAdminUser(resUser)) {
           return loginResult.setLoginResultStatus(LoginResultStatus.ADMIN_LOGIN_REQUIRED);
         }
         TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache().internalSetAdminUser(resUser); // User is now marked as admin user.
@@ -103,7 +103,7 @@ public class LoginDefaultHandler implements LoginHandler
     }
     if (user != null) {
       log.info("User with valid username/password: " + username + "/****");
-      if (user.hasSystemAccess() == false) {
+      if (!user.hasSystemAccess()) {
         log.info("User has no system access (is deleted/deactivated): " + user.getUserDisplayName());
         return loginResult.setLoginResultStatus(LoginResultStatus.LOGIN_EXPIRED);
       } else {
@@ -141,7 +141,7 @@ public class LoginDefaultHandler implements LoginHandler
       return null;
     }
     final PasswordCheckResult passwordCheckResult = userService.checkPassword(user, password);
-    if (passwordCheckResult.isOK() == false) {
+    if (!passwordCheckResult.isOK()) {
       log.warn("Login for admin user '" + username + "' in maintenance mode failed, wrong password.");
       return null;
     }
@@ -165,14 +165,14 @@ public class LoginDefaultHandler implements LoginHandler
       @Override
       public Object extractData(final ResultSet rs) throws SQLException, DataAccessException
       {
-        if (rs.next() == true) {
+        if (rs.next()) {
           final PFUserDO user = new PFUserDO();
           user.setUsername(username);
           final String password = rs.getString("password");
           final int pk = rs.getInt("pk");
           final String firstname = rs.getString("firstname");
           final String lastname = rs.getString("lastname");
-          if (withSaltString == true) {
+          if (withSaltString) {
             final String saltString = rs.getString("password_salt");
             user.setPasswordSalt(saltString);
           }
@@ -214,7 +214,7 @@ public class LoginDefaultHandler implements LoginHandler
   public boolean checkStayLoggedIn(final PFUserDO user)
   {
     final PFUserDO dbUser = userService.internalGetById(user.getId());
-    if (dbUser != null && dbUser.hasSystemAccess() == true) {
+    if (dbUser != null && dbUser.hasSystemAccess()) {
       return true;
     }
     log.warn("User is deleted/deactivated, stay-logged-in denied for the given user: " + user);

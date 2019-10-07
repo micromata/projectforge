@@ -107,7 +107,7 @@ public class RegistryEntry implements Serializable
   @SuppressWarnings({ "unchecked", "rawtypes" })
   public ScriptingDao<?> getScriptingDao()
   {
-    if (this.supressScriptingDao == true) {
+    if (this.supressScriptingDao) {
       return null;
     }
     if (this.scriptingDao == null) {

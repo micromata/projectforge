@@ -108,8 +108,8 @@ public class VacationDao extends BaseDao<VacationDO>
       myFilter = new VacationFilter(filter);
     }
     final QueryFilter queryFilter = createQueryFilter(myFilter);
-    if (accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READONLY,
-        UserRightValue.READWRITE) == false) {
+    if (!accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READONLY,
+        UserRightValue.READWRITE)) {
       final Integer employeeId = myFilter.getEmployeeId();
       final EmployeeDO employeeFromFilter = emgrFactory.runRoTrans(emgr -> emgr.selectByPk(EmployeeDO.class, employeeId));
       queryFilter.createAlias("substitutions", "subAlias"); // use alias to create the inner join
@@ -201,7 +201,7 @@ public class VacationDao extends BaseDao<VacationDO>
     final List<VacationCalendarDO> resultList = getVacationCalendarDOs(vacation);
     if (resultList != null && resultList.size() > 0) {
       resultList.forEach(res -> {
-        if (res.isDeleted() == false)
+        if (!res.isDeleted())
           calendarList.add(res.getCalendar());
       });
     }

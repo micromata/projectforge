@@ -129,7 +129,7 @@ public class OrderExport
     mapping.add(OrderCol.NETSUM, netSum);
     addCurrency(mapping, OrderCol.INVOICED, invoicedSum);
     addCurrency(mapping, OrderCol.TO_BE_INVOICED, toBeInvoicedSum);
-    mapping.add(OrderCol.COMPLETELY_INVOICED, order.isVollstaendigFakturiert() == true ? "x" : "");
+    mapping.add(OrderCol.COMPLETELY_INVOICED, order.isVollstaendigFakturiert() ? "x" : "");
     final Set<RechnungsPositionVO> invoicePositions = rechnungCache
         .getRechnungsPositionVOSetByAuftragId(order.getId());
     mapping.add(OrderCol.INVOICES, getInvoices(invoicePositions));
@@ -202,7 +202,7 @@ public class OrderExport
     mapping.add(PosCol.NETSUM, netSum);
     addCurrency(mapping, PosCol.INVOICED, invoicedSum);
     addCurrency(mapping, PosCol.TO_BE_INVOICED, toBeInvoicedSum);
-    mapping.add(PosCol.COMPLETELY_INVOICED, pos.getVollstaendigFakturiert() == true ? "x" : "");
+    mapping.add(PosCol.COMPLETELY_INVOICED, pos.getVollstaendigFakturiert() ? "x" : "");
     final Set<RechnungsPositionVO> invoicePositions = rechnungCache
         .getRechnungsPositionVOSetByAuftragsPositionId(pos.getId());
     mapping.add(PosCol.INVOICES, getInvoices(invoicePositions));
@@ -247,8 +247,8 @@ public class OrderExport
     mapping.add(PaymentsCol.PAY_NUMBER, "#" + scheduleDO.getNumber());
     mapping.add(PaymentsCol.AMOUNT, scheduleDO.getAmount());
     mapping.add(PaymentsCol.COMMENT, scheduleDO.getComment());
-    mapping.add(PaymentsCol.REACHED, scheduleDO.getReached() == true ? "x" : "");
-    mapping.add(PaymentsCol.VOLLSTAENDIG_FAKTURIERT, scheduleDO.getVollstaendigFakturiert() == true ? "x" : "");
+    mapping.add(PaymentsCol.REACHED, scheduleDO.getReached() ? "x" : "");
+    mapping.add(PaymentsCol.VOLLSTAENDIG_FAKTURIERT, scheduleDO.getVollstaendigFakturiert() ? "x" : "");
     mapping.add(PaymentsCol.SCHEDULE_DATE, scheduleDO.getScheduleDate());
   }
 
@@ -267,7 +267,7 @@ public class OrderExport
 
   private void addCurrency(final PropertyMapping mapping, final Enum<?> col, final BigDecimal value)
   {
-    if (NumberHelper.isNotZero(value) == true) {
+    if (NumberHelper.isNotZero(value)) {
       mapping.add(col, value);
     } else {
       mapping.add(col, "");
@@ -281,7 +281,7 @@ public class OrderExport
    */
   public byte[] export(final List<AuftragDO> list)
   {
-    if (CollectionUtils.isEmpty(list) == true) {
+    if (CollectionUtils.isEmpty(list)) {
       return null;
     }
     log.info("Exporting order list.");

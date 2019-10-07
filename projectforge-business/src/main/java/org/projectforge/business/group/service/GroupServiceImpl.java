@@ -93,7 +93,7 @@ public class GroupServiceImpl implements GroupService
   @Override
   public List<String> getGroupNames(final String groupIds)
   {
-    if (StringUtils.isEmpty(groupIds) == true) {
+    if (StringUtils.isEmpty(groupIds)) {
       return null;
     }
     final int[] ids = StringHelper.splitToInts(groupIds, ",", false);
@@ -117,7 +117,7 @@ public class GroupServiceImpl implements GroupService
   @Override
   public Collection<GroupDO> getSortedGroups(final String groupIds)
   {
-    if (StringUtils.isEmpty(groupIds) == true) {
+    if (StringUtils.isEmpty(groupIds)) {
       return null;
     }
     Collection<GroupDO> sortedGroups = new TreeSet<GroupDO>(groupsComparator);
@@ -154,7 +154,7 @@ public class GroupServiceImpl implements GroupService
     TreeSet<GroupDO> sortedGroups = new TreeSet<GroupDO>(groupsComparator);
       final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
       for (final GroupDO group : allGroups) {
-        if (group.isDeleted() == false && groupDao.hasSelectAccess(loggedInUser, group, false) == true) {
+        if (!group.isDeleted() && groupDao.hasSelectAccess(loggedInUser, group, false)) {
           sortedGroups.add(group);
         }
       }
