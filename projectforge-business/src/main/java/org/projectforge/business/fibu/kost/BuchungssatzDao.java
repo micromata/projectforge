@@ -95,18 +95,14 @@ public class BuchungssatzDao extends BaseDao<BuchungssatzDO> {
     }
     if (myFilter.getFromMonth() < 0) {
       // Kein Von-Monat gesetzt.
-      if (toMonth >= 0 || toYear > 0) {
-        return false;
-      }
+      return toMonth < 0 && toYear <= 0;
     } else if (toYear > 0) {
       // Zeitraum gesetzt
       if (myFilter.getFromYear() > toYear) {
         return false;
       }
       if (myFilter.getFromYear() == myFilter.getToYear()) {
-        if (myFilter.getFromMonth() > myFilter.getToMonth()) {
-          return false;
-        }
+        return myFilter.getFromMonth() <= myFilter.getToMonth();
       }
     }
     return true;

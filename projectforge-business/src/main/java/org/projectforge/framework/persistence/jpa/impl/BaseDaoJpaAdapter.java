@@ -472,10 +472,7 @@ public class BaseDaoJpaAdapter
       // transients.
       return false;
     }
-    if ("created".equals(field.getName()) || "lastUpdate".equals(field.getName())) {
-      return false;
-    }
-    return true;
+    return !"created".equals(field.getName()) && !"lastUpdate".equals(field.getName());
   }
 
   public static ModificationStatus getModificationStatus(final ModificationStatus currentStatus,

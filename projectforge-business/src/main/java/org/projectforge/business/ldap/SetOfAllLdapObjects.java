@@ -51,9 +51,6 @@ public class SetOfAllLdapObjects
     if (obj.getId() != null && setOfIds.contains(obj.getId())) {
       return true;
     }
-    if (setOfDNs.contains(dn)) {
-      return true;
-    }
-    return false;
+    return setOfDNs.contains(dn);
   }
 }

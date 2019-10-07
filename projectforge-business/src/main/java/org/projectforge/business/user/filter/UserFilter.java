@@ -294,11 +294,9 @@ public class UserFilter implements Filter
       // No access checking for documentation (including site doc).
       // return true;
       // } else
-      if (StringHelper.startsWith(uri, IGNORE_PREFIX_LOGO, IGNORE_PREFIX_SMS_REVEIVE_SERVLET)) {
-        // No access checking for logo and sms receiver servlet.
-        // The sms receiver servlet has its own authentification (key).
-        return true;
-      }
+      // No access checking for logo and sms receiver servlet.
+      // The sms receiver servlet has its own authentification (key).
+      return StringHelper.startsWith(uri, IGNORE_PREFIX_LOGO, IGNORE_PREFIX_SMS_REVEIVE_SERVLET);
     }
     return false;
   }

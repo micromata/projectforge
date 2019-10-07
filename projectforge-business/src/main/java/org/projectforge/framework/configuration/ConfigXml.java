@@ -370,11 +370,7 @@ public class ConfigXml {
       // transients.
       return false;
     }
-    if (Modifier.isStatic(field.getModifiers())) {
-      // transients.
-      return false;
-    }
-    return true;
+    return !Modifier.isStatic(field.getModifiers());
   }
 
   /**
