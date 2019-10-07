@@ -194,9 +194,7 @@ public class DayHolder extends DateHolder
 
   public boolean isSunOrHoliday()
   {
-    if (isSunday() || isHoliday())
-      return true;
-    else return false;
+    return isSunday() || isHoliday();
   }
 
   public boolean isWorkingDay()

@@ -90,10 +90,7 @@ public interface AccessChecker
     if (user == null) {
       return false;
     }
-    if (!"demo".equals(user.getUsername())) {
-      return false;
-    }
-    return true;
+    return "demo".equals(user.getUsername());
   }
 
   public boolean isRestrictedOrDemoUser();

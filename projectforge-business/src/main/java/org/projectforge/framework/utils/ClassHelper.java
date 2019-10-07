@@ -58,9 +58,6 @@ public class ClassHelper
     if (value == null) {
       return true;
     }
-    if ((value instanceof Boolean || Boolean.TYPE.equals(type)) && !((Boolean) value)) {
-      return true;
-    }
-    return false;
+    return (value instanceof Boolean || Boolean.TYPE.equals(type)) && !((Boolean) value);
   }
 }

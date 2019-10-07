@@ -156,9 +156,7 @@ public class AuftragRight extends UserRightAccessCheck<AuftragDO>
           return true;
         } else if (obj.getAngebotsDatum() != null) {
           final long millis = (new Date()).getTime() - obj.getAngebotsDatum().getTime();
-          if (millis / DateHelper.MILLIS_DAY <= 1800) {
-            return true;
-          }
+          return millis / DateHelper.MILLIS_DAY <= 1800;
         }
       }
       return false;

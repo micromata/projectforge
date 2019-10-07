@@ -157,10 +157,7 @@ public class UserRightDO extends DefaultBaseDO implements Comparable<UserRightDO
       if (!Objects.equals(this.getRightIdString(), other.getRightIdString())) {
         return false;
       }
-      if (!Objects.equals(this.getId(), other.getId())) {
-        return false;
-      }
-      return true;
+      return Objects.equals(this.getId(), other.getId());
     }
     return false;
   }

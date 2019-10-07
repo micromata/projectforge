@@ -575,11 +575,7 @@ public class DateHelper implements Serializable
   public static boolean isSameDay(final Date d1, final Date d2)
   {
     if (d1 == null) {
-      if (d2 == null) {
-        return true;
-      } else {
-        return false;
-      }
+      return d2 == null;
     } else if (d2 == null) {
       return false;
     }
@@ -597,11 +593,7 @@ public class DateHelper implements Serializable
   public static boolean isSameDay(final DateTime d1, final DateTime d2)
   {
     if (d1 == null) {
-      if (d2 == null) {
-        return true;
-      } else {
-        return false;
-      }
+      return d2 == null;
     } else if (d2 == null) {
       return false;
     }
@@ -616,9 +608,7 @@ public class DateHelper implements Serializable
       if (month != fromMonth) {
         return false;
       }
-      if (dayOfMonth < fromDayOfMonth || dayOfMonth > toDayOfMonth) {
-        return false;
-      }
+      return dayOfMonth >= fromDayOfMonth && dayOfMonth <= toDayOfMonth;
     } else if (fromMonth < toMonth) {
       // e. g. APR - JUN
       if (month < fromMonth || month > toMonth) {
@@ -626,9 +616,7 @@ public class DateHelper implements Serializable
         return false;
       } else if (month == fromMonth && dayOfMonth < fromDayOfMonth) {
         return false;
-      } else if (month == toMonth && dayOfMonth > toDayOfMonth) {
-        return false;
-      }
+      } else return month != toMonth || dayOfMonth <= toDayOfMonth;
     } else if (fromMonth > toMonth) {
       // e. g. NOV - FEB
       if (month > toMonth && month < fromMonth) {
@@ -636,9 +624,7 @@ public class DateHelper implements Serializable
         return false;
       } else if (month == fromMonth && dayOfMonth < fromDayOfMonth) {
         return false;
-      } else if (month == toMonth && dayOfMonth > toDayOfMonth) {
-        return false;
-      }
+      } else return month != toMonth || dayOfMonth <= toDayOfMonth;
     }
     return true;
   }

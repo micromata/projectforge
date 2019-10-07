@@ -226,10 +226,7 @@ public class TeamEventRecurrenceData implements Serializable
 
   public boolean isCustomized()
   {
-    if (customized || interval > 1)
-      return true;
-    else
-      return false;
+    return customized || interval > 1;
   }
 
   /**
