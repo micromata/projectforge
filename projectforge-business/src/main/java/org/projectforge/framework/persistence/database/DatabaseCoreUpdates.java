@@ -932,10 +932,12 @@ public class DatabaseCoreUpdates
           return true;
 
         // old values in art field
-        return databaseService.doesTableRowExists(AuftragsPositionDO.class, "art", "FESTPREISPAKET", true) ||
+        if (databaseService.doesTableRowExists(AuftragsPositionDO.class, "art", "FESTPREISPAKET", true) ||
             databaseService.doesTableRowExists(AuftragsPositionDO.class, "art", "TIME_AND_MATERIALS", true) ||
-            databaseService.doesTableRowExists(AuftragsPositionDO.class, "art", "HOT_FIX", true);
+            databaseService.doesTableRowExists(AuftragsPositionDO.class, "art", "HOT_FIX", true))
+          return true;
 
+        return false;
       }
 
     });

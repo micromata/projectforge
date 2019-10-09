@@ -134,7 +134,9 @@ public class RechnungsPositionVO implements Comparable<RechnungsPositionVO>, Ser
       final RechnungsPositionVO other = (RechnungsPositionVO) o;
       if (!Objects.equals(this.getNumber(), other.getNumber()))
         return false;
-      return Objects.equals(this.getRechnungId(), other.getRechnungId());
+      if (!Objects.equals(this.getRechnungId(), other.getRechnungId()))
+        return false;
+      return true;
     }
     return false;
   }

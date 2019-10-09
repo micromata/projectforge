@@ -85,7 +85,11 @@ public abstract class AbstractConfiguration extends AbstractCache
   public boolean getBooleanValue(final IConfigurationParam parameter)
   {
     final Object obj = getValue(parameter);
-    return obj != null && Boolean.TRUE.equals(obj);
+    if (obj != null && Boolean.TRUE.equals(obj)) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   /**

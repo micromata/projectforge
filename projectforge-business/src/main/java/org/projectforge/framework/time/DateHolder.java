@@ -824,7 +824,9 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
   {
     if (obj instanceof DateHolder) {
       final DateHolder other = (DateHolder) obj;
-      return other.getTimeInMillis() == getTimeInMillis() && other.getPrecision() == getPrecision();
+      if (other.getTimeInMillis() == getTimeInMillis() && other.getPrecision() == getPrecision()) {
+        return true;
+      }
     }
     return false;
   }

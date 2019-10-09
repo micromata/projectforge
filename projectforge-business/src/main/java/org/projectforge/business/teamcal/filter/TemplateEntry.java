@@ -255,8 +255,11 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
       return false;
     final TemplateEntry other = (TemplateEntry) obj;
     if (name == null) {
-      return other.name == null;
-    } else return name.equals(other.name);
+      if (other.name != null)
+        return false;
+    } else if (!name.equals(other.name))
+      return false;
+    return true;
   }
 
   @Override

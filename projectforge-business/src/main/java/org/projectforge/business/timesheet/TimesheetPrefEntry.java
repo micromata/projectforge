@@ -128,7 +128,10 @@ public class TimesheetPrefEntry
       if (!Objects.equals(this.location, other.location)) {
         return false;
       }
-      return Objects.equals(this.description, other.description);
+      if (!Objects.equals(this.description, other.description)) {
+        return false;
+      }
+      return true;
     }
     return false;
   }

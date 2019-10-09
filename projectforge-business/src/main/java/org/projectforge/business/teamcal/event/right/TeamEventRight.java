@@ -159,7 +159,10 @@ public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
       return true;
     }
     final Integer userId = user.getId();
-    return teamCalRight.hasFullAccess(calendar, userId) || accessChecker.isDemoUser();
+    if (teamCalRight.hasFullAccess(calendar, userId) || accessChecker.isDemoUser()) {
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -184,8 +187,11 @@ public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
       return true;
     }
     final Integer userId = user.getId();
-    return teamCalRight.hasFullAccess(calendar, userId)
-        || teamCalRight.hasReadonlyAccess(calendar, userId);
+    if (teamCalRight.hasFullAccess(calendar, userId)
+        || teamCalRight.hasReadonlyAccess(calendar, userId)) {
+      return true;
+    }
+    return false;
   }
 
   public boolean hasMinimalAccess(final TeamEventDO event, final Integer userId)

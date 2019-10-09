@@ -256,7 +256,10 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
         // Inserting of object under new task not allowed.
         return false;
       }
-      return accessChecker.hasPermission(user, dbObj.getTaskId(), AccessType.TASK_ACCESS_MANAGEMENT, OperationType.DELETE, throwException);
+      if (!accessChecker.hasPermission(user, dbObj.getTaskId(), AccessType.TASK_ACCESS_MANAGEMENT, OperationType.DELETE, throwException)) {
+        // Deleting of object under old task not allowed.
+        return false;
+      }
     }
     return true;
   }

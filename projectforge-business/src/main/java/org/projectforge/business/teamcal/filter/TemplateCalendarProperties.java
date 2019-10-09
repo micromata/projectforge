@@ -132,8 +132,11 @@ public class TemplateCalendarProperties implements Serializable, Comparable<Temp
       return false;
     final TemplateCalendarProperties other = (TemplateCalendarProperties) obj;
     if (calId == null) {
-      return other.calId == null;
-    } else return calId.equals(other.calId);
+      if (other.calId != null)
+        return false;
+    } else if (!calId.equals(other.calId))
+      return false;
+    return true;
   }
 
   /**
@@ -190,6 +193,9 @@ public class TemplateCalendarProperties implements Serializable, Comparable<Temp
     if (this.millisOfLastChange != other.millisOfLastChange) {
       return true;
     }
-    return this.visible != other.visible;
+    if (this.visible != other.visible) {
+      return true;
+    }
+    return false;
   }
 }

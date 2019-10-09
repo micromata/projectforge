@@ -685,6 +685,10 @@ public class XmlDump
       // transients.
       return false;
     }
-    return !Modifier.isStatic(field.getModifiers());
+    if (Modifier.isStatic(field.getModifiers())) {
+      // transients.
+      return false;
+    }
+    return true;
   }
 }

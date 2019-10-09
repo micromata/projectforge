@@ -86,6 +86,9 @@ public class JodaDateTimeConverter implements Converter
   @SuppressWarnings("rawtypes")
   public boolean canConvert(final Class clazz)
   {
-    return DateTime.class.isAssignableFrom(clazz);
+    if (DateTime.class.isAssignableFrom(clazz)) {
+      return true;
+    }
+    return false;
   }
 }
