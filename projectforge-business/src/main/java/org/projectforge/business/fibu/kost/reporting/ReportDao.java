@@ -58,7 +58,7 @@ public class ReportDao
   public ReportDao()
   {
     xstream = new XStream();
-    Annotations.configureAliases(xstream, ReportObjective.class);
+    xstream.processAnnotations(ReportObjective.class);
   }
 
   /**
