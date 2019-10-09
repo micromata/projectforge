@@ -23,11 +23,11 @@
 
 package org.projectforge.business.teamcal.event;
 
+import org.projectforge.framework.time.RecurrenceFrequency;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.TimeZone;
-
-import org.projectforge.framework.time.RecurrenceFrequency;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

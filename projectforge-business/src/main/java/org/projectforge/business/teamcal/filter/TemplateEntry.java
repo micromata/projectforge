@@ -23,15 +23,7 @@
 
 package org.projectforge.business.teamcal.filter;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-
-import java.util.Objects;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.Const;
@@ -40,7 +32,8 @@ import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
-import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * Persist the settings of one named filter entry.

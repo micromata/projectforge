@@ -23,21 +23,20 @@
 
 package org.projectforge.framework.persistence.jpa;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
-import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.framework.persistence.api.IdObject;
-import org.junit.jupiter.api.Test;
-
 import de.micromata.genome.jpa.DbRecord;
 import de.micromata.genome.util.bean.FieldMatchers;
 import de.micromata.genome.util.bean.PrivateBeanUtils;
 import de.micromata.genome.util.matcher.CommonMatchers;
 import de.micromata.genome.util.matcher.Matcher;
+import org.junit.jupiter.api.Test;
+import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.framework.persistence.api.IdObject;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 public class BaseDaoJpaAdapterTest
 {

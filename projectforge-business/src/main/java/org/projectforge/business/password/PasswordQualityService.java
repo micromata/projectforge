@@ -23,9 +23,9 @@
 
 package org.projectforge.business.password;
 
-import java.util.List;
-
 import org.projectforge.framework.i18n.I18nKeyAndParams;
+
+import java.util.List;
 
 /**
  * Interface holding password quality check functions in ProjectForge.

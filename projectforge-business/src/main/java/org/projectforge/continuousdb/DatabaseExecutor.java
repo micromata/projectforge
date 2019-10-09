@@ -23,9 +23,8 @@
 
 package org.projectforge.continuousdb;
 
-import java.util.List;
-
 import javax.sql.DataSource;
+import java.util.List;
 
 /**
  * For manipulating the database (patching data etc.)

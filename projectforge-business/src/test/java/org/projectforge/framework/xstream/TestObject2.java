@@ -26,9 +26,6 @@ package org.projectforge.framework.xstream;
 import java.util.Collection;
 import java.util.Set;
 
-import org.projectforge.framework.xstream.XmlField;
-import org.projectforge.framework.xstream.XmlObject;
-
 @XmlObject
 public class TestObject2
 {

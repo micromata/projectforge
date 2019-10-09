@@ -23,16 +23,15 @@
 
 package org.projectforge.business.ldap;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.common.StringHelper;
 
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
-
-import org.apache.commons.lang3.StringUtils;
-import org.projectforge.common.StringHelper;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

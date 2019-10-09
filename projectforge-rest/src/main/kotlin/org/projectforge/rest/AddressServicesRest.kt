@@ -29,10 +29,10 @@ import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressExport
 import org.projectforge.business.address.PersonalAddressDao
+import org.projectforge.common.ReplaceUtils
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.LanguageService
-import org.projectforge.common.ReplaceUtils
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.ui.UIColor
 import org.springframework.beans.factory.annotation.Autowired

@@ -23,15 +23,15 @@
 
 package org.projectforge.framework.xstream.converter;
 
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.xstream.XmlConstants;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
-
-import org.apache.commons.lang3.StringUtils;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.xstream.XmlConstants;
 
 public class DateConverter extends AbstractValueConverter<Date>
 {

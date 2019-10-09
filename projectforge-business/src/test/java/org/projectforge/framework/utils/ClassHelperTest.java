@@ -23,10 +23,9 @@
 
 package org.projectforge.framework.utils;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import org.projectforge.framework.utils.ClassHelper;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ClassHelperTest
 {

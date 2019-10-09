@@ -23,17 +23,15 @@
 
 package org.projectforge.business.multitenancy;
 
-import java.util.List;
-import java.util.Set;
-
-import javax.persistence.EntityManager;
-
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
-
 import de.micromata.genome.jpa.IEmgr;
 import de.micromata.genome.jpa.impl.TableTruncater;
 import de.micromata.genome.jpa.metainf.EntityMetadata;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.persistence.user.entities.TenantDO;
+
+import javax.persistence.EntityManager;
+import java.util.List;
+import java.util.Set;
 
 /**
  * 

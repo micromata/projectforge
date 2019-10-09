@@ -23,11 +23,6 @@
 
 package org.projectforge.business.teamcal.event.ical.converter;
 
-import java.net.URISyntaxException;
-import java.util.Iterator;
-
-import org.projectforge.business.teamcal.event.model.TeamEventDO;
-
 import net.fortuna.ical4j.model.Parameter;
 import net.fortuna.ical4j.model.ParameterList;
 import net.fortuna.ical4j.model.Property;
@@ -37,6 +32,10 @@ import net.fortuna.ical4j.model.parameter.CuType;
 import net.fortuna.ical4j.model.parameter.PartStat;
 import net.fortuna.ical4j.model.parameter.Role;
 import net.fortuna.ical4j.model.property.Organizer;
+import org.projectforge.business.teamcal.event.model.TeamEventDO;
+
+import java.net.URISyntaxException;
+import java.util.Iterator;
 
 public class OrganizerConverter extends PropertyConverter
 {

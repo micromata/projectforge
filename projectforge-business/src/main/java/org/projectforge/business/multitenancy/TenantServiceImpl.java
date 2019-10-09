@@ -23,11 +23,6 @@
 
 package org.projectforge.business.multitenancy;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.configuration.GlobalConfiguration;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -35,6 +30,11 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 @Service
 public class TenantServiceImpl implements TenantService

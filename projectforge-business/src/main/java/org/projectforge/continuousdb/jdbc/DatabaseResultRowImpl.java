@@ -23,11 +23,11 @@
 
 package org.projectforge.continuousdb.jdbc;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import org.projectforge.continuousdb.DatabaseResultRow;
 import org.projectforge.continuousdb.DatabaseResultRowEntry;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

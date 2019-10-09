@@ -23,9 +23,6 @@
 
 package org.projectforge.reporting.impl;
 
-import java.math.BigDecimal;
-import java.util.Date;
-
 import org.projectforge.business.fibu.kost.BuchungssatzDO;
 import org.projectforge.business.fibu.kost.SHType;
 import org.projectforge.common.StringHelper;
@@ -33,6 +30,9 @@ import org.projectforge.reporting.Buchungssatz;
 import org.projectforge.reporting.Konto;
 import org.projectforge.reporting.Kost1;
 import org.projectforge.reporting.Kost2;
+
+import java.math.BigDecimal;
+import java.util.Date;
 
 
 /**

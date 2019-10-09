@@ -23,15 +23,14 @@
 
 package org.projectforge.framework.utils;
 
-import java.lang.annotation.Annotation;
-import java.util.Comparator;
-
 import org.apache.commons.lang3.ClassUtils;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.common.anots.StringAlphanumericSort;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-
 import se.sawano.java.text.AlphanumericComparator;
+
+import java.lang.annotation.Annotation;
+import java.util.Comparator;
 
 public class MyBeanComparator<T> implements Comparator<T>
 {

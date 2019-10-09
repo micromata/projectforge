@@ -25,7 +25,6 @@ package org.projectforge.business.orga;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.hibernate.criterion.Order;
-import org.projectforge.business.fibu.RechnungDO;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;

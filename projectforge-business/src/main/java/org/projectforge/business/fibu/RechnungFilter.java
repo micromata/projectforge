@@ -23,10 +23,10 @@
 
 package org.projectforge.business.fibu;
 
+import org.projectforge.framework.persistence.api.BaseSearchFilter;
+
 import java.io.Serializable;
 import java.util.Date;
-
-import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

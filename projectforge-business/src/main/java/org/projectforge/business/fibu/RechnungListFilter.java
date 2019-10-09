@@ -23,11 +23,10 @@
 
 package org.projectforge.business.fibu;
 
-import java.util.Date;
-
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
-import com.thoughtworks.xstream.annotations.XStreamAlias;
+import java.util.Date;
 
 @XStreamAlias("RechnungFilter")
 public class RechnungListFilter extends RechnungFilter implements SearchFilterWithPeriodOfPerformance

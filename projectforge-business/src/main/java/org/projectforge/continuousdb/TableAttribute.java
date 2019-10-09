@@ -23,6 +23,10 @@
 
 package org.projectforge.continuousdb;
 
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.common.BeanHelper;
+
+import javax.persistence.*;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -31,16 +35,6 @@ import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.LinkedList;
 import java.util.List;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToMany;
-
-import org.apache.commons.lang3.StringUtils;
-import org.projectforge.common.BeanHelper;
 
 /**
  * Represents one attribute of a table (e. g. for creation).

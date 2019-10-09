@@ -23,12 +23,11 @@
 
 package org.projectforge.framework.persistence.api;
 
-import java.io.Serializable;
-
-import org.projectforge.framework.access.AccessException;
-
 import de.micromata.genome.jpa.MarkDeletableRecord;
 import de.micromata.genome.util.bean.PrivateBeanUtils;
+import org.projectforge.framework.access.AccessException;
+
+import java.io.Serializable;
 
 /**
  * 

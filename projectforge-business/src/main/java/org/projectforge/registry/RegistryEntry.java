@@ -23,13 +23,13 @@
 
 package org.projectforge.registry;
 
-import java.io.Serializable;
-
 import org.projectforge.business.scripting.ScriptingDao;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.database.DatabaseDao;
+
+import java.io.Serializable;
 
 /**
  * For registering a dao object and its scripting dao (optional).

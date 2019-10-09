@@ -23,9 +23,6 @@
 
 package org.projectforge.framework.xstream;
 
-import org.projectforge.framework.xstream.XmlField;
-import org.projectforge.framework.xstream.XmlObject;
-
 @XmlObject(alias = "test3")
 public class TestObject3
 {

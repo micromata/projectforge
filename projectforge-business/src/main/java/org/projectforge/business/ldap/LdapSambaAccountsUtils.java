@@ -23,15 +23,15 @@
 
 package org.projectforge.business.ldap;
 
-import java.util.Collection;
-
-import java.util.Objects;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Collection;
+import java.util.Objects;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

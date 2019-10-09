@@ -23,13 +23,13 @@
 
 package org.projectforge.business.teamcal.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+import org.projectforge.test.AbstractTestBase;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
 
-import org.projectforge.test.AbstractTestBase;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class CryptServiceTest extends AbstractTestBase
 {

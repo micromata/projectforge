@@ -24,8 +24,8 @@
 package org.projectforge.business.teamcal.event.model;
 
 import de.micromata.genome.db.jpa.history.api.WithHistory;
-import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.*;
+import org.hibernate.search.annotations.Index;
 import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.common.anots.PropertyInfo;

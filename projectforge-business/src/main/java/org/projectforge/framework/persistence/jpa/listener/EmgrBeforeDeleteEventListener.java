@@ -23,6 +23,9 @@
 
 package org.projectforge.framework.persistence.jpa.listener;
 
+import de.micromata.genome.jpa.DbRecord;
+import de.micromata.genome.jpa.events.EmgrBeforeDeleteEvent;
+import de.micromata.genome.jpa.events.EmgrEventHandler;
 import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
@@ -31,10 +34,6 @@ import org.projectforge.framework.persistence.api.JpaPfGenericPersistenceService
 import org.projectforge.framework.persistence.jpa.PfEmgr;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import de.micromata.genome.jpa.DbRecord;
-import de.micromata.genome.jpa.events.EmgrBeforeDeleteEvent;
-import de.micromata.genome.jpa.events.EmgrEventHandler;
 
 /**
  * Before marked delete or delete an event.

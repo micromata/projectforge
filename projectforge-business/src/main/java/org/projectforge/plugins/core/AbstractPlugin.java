@@ -23,12 +23,6 @@
 
 package org.projectforge.plugins.core;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.user.UserPrefAreaRegistry;
 import org.projectforge.business.user.UserRight;
@@ -46,6 +40,12 @@ import org.projectforge.registry.Registry;
 import org.projectforge.registry.RegistryEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

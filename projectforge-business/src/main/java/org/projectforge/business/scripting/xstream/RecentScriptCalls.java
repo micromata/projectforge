@@ -23,9 +23,8 @@
 
 package org.projectforge.business.scripting.xstream;
 
-import org.projectforge.framework.utils.RecentQueue;
-
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.projectforge.framework.utils.RecentQueue;
 
 
 @XStreamAlias("RecentScriptCalls")

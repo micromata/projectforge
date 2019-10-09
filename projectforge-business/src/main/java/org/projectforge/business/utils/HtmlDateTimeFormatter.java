@@ -23,13 +23,13 @@
 
 package org.projectforge.business.utils;
 
-import java.util.Date;
-
 import org.projectforge.framework.renderer.RenderType;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.time.TimePeriod;
 import org.springframework.stereotype.Service;
+
+import java.util.Date;
 
 @Service
 public class HtmlDateTimeFormatter extends DateTimeFormatter

@@ -23,10 +23,9 @@
 
 package org.projectforge.business.teamcal.event.ical.converter;
 
-import org.projectforge.business.teamcal.event.model.TeamEventDO;
-
 import net.fortuna.ical4j.model.Property;
 import net.fortuna.ical4j.model.component.VEvent;
+import org.projectforge.business.teamcal.event.model.TeamEventDO;
 
 public class TransparencyConverter extends PropertyConverter
 {

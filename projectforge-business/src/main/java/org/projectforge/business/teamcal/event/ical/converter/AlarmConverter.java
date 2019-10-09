@@ -23,18 +23,17 @@
 
 package org.projectforge.business.teamcal.event.ical.converter;
 
-import java.util.List;
-
-import org.projectforge.business.teamcal.event.ical.VEventComponentConverter;
-import org.projectforge.business.teamcal.event.model.ReminderActionType;
-import org.projectforge.business.teamcal.event.model.ReminderDurationUnit;
-import org.projectforge.business.teamcal.event.model.TeamEventDO;
-
 import net.fortuna.ical4j.model.Dur;
 import net.fortuna.ical4j.model.component.VAlarm;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.Action;
 import net.fortuna.ical4j.model.property.Trigger;
+import org.projectforge.business.teamcal.event.ical.VEventComponentConverter;
+import org.projectforge.business.teamcal.event.model.ReminderActionType;
+import org.projectforge.business.teamcal.event.model.ReminderDurationUnit;
+import org.projectforge.business.teamcal.event.model.TeamEventDO;
+
+import java.util.List;
 
 public class AlarmConverter implements VEventComponentConverter
 {

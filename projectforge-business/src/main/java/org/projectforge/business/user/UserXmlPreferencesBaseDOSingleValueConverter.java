@@ -23,12 +23,11 @@
 
 package org.projectforge.business.user;
 
+import com.thoughtworks.xstream.converters.SingleValueConverter;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.springframework.context.ApplicationContext;
-
-import com.thoughtworks.xstream.converters.SingleValueConverter;
 
 /**
  * Converts BaseDO from and to strings (using the id).

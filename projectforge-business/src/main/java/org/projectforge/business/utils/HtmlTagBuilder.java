@@ -23,10 +23,10 @@
 
 package org.projectforge.business.utils;
 
+import org.projectforge.framework.utils.KeyValueBean;
+
 import java.util.ArrayList;
 import java.util.Collection;
-
-import org.projectforge.framework.utils.KeyValueBean;
 
 /**
  * Helper for building and writing html tags.

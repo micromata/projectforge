@@ -23,7 +23,11 @@
 
 package org.projectforge.web.teamcal.event;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
+import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.projectforge.framework.time.DateFormats;
+import org.projectforge.framework.time.DateHelper;
 
 import java.sql.Timestamp;
 import java.text.DateFormat;
@@ -33,11 +37,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
-import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
-import org.projectforge.business.teamcal.event.model.TeamEventDO;
-import org.projectforge.framework.time.DateFormats;
-import org.projectforge.framework.time.DateHelper;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class TeamRecurrenceEventTest
 {

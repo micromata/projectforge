@@ -23,11 +23,11 @@
 
 package org.projectforge.framework.xstream;
 
-import java.util.Date;
-import java.util.TimeZone;
-
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
+
+import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * For export and import it's usefull to use an instance of this object to define for example the time zone, version etc.

@@ -23,10 +23,10 @@
 
 package org.projectforge.business.gantt;
 
-import java.io.Serializable;
-
 import org.projectforge.framework.xstream.XmlField;
 import org.projectforge.framework.xstream.XmlObject;
+
+import java.io.Serializable;
 
 @XmlObject(alias = "ganttChartStyle")
 public class GanttChartStyle implements Serializable

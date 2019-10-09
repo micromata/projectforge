@@ -23,9 +23,9 @@
 
 package org.projectforge.framework.access;
 
-import java.util.List;
-
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.util.List;
 
 
 /**

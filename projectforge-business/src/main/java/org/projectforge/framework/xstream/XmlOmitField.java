@@ -23,11 +23,11 @@
 
 package org.projectforge.framework.xstream;
 
-import static java.lang.annotation.ElementType.FIELD;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.FIELD;
 
 /**
  * Annotation for properties which shouldn't be serialized.

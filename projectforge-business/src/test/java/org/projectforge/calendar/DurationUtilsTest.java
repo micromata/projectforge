@@ -23,9 +23,9 @@
 
 package org.projectforge.calendar;
 
-import org.projectforge.framework.calendar.DurationUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.projectforge.framework.calendar.DurationUtils;
 
 public class DurationUtilsTest
 {

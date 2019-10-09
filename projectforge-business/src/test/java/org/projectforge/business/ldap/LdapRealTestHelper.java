@@ -23,9 +23,6 @@
 
 package org.projectforge.business.ldap;
 
-import java.io.File;
-import java.io.IOException;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.fibu.kost.AccountingConfig;
@@ -33,6 +30,9 @@ import org.projectforge.framework.xstream.AliasMap;
 import org.projectforge.framework.xstream.XmlObjectReader;
 import org.projectforge.test.JUnitLDAPTestWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Test helper class for do some tests with a real LDAP test system. The LDAP system settings have to be set in

@@ -25,14 +25,12 @@ package org.projectforge.framework.xstream;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.xstream.converter.ISODateConverter;
 import org.projectforge.test.TestSetup;
 
 import java.util.Calendar;
 import java.util.Date;
-import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

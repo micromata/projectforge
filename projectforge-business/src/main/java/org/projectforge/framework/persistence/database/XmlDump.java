@@ -23,59 +23,16 @@
 
 package org.projectforge.framework.persistence.database;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.io.Writer;
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.math.BigDecimal;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
-
-import javax.annotation.PostConstruct;
-import javax.persistence.Transient;
-
+import com.thoughtworks.xstream.XStream;
+import de.micromata.genome.db.jpa.history.api.HistoryEntry;
+import de.micromata.genome.jpa.metainf.EntityMetadata;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ClassUtils;
-import java.util.Objects;
 import org.apache.commons.lang3.Validate;
-import org.hibernate.EmptyInterceptor;
-import org.hibernate.FlushMode;
-import org.hibernate.Hibernate;
-import org.hibernate.LockOptions;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.projectforge.business.fibu.AbstractRechnungDO;
-import org.projectforge.business.fibu.AbstractRechnungsPositionDO;
-import org.projectforge.business.fibu.AuftragDO;
-import org.projectforge.business.fibu.AuftragsPositionDO;
-import org.projectforge.business.fibu.EingangsrechnungDO;
-import org.projectforge.business.fibu.EingangsrechnungsPositionDO;
-import org.projectforge.business.fibu.EmployeeSalaryDO;
-import org.projectforge.business.fibu.KontoDO;
-import org.projectforge.business.fibu.KundeDO;
-import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.fibu.RechnungDO;
-import org.projectforge.business.fibu.RechnungsPositionDO;
+import org.hibernate.*;
+import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost2ArtDO;
 import org.projectforge.business.fibu.kost.Kost2DO;
@@ -94,11 +51,7 @@ import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.framework.persistence.hibernate.HibernateCompatUtils;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
-import org.projectforge.framework.persistence.user.entities.GroupDO;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.UserPrefDO;
-import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO;
-import org.projectforge.framework.persistence.user.entities.UserRightDO;
+import org.projectforge.framework.persistence.user.entities.*;
 import org.projectforge.framework.persistence.xstream.HibernateXmlConverter;
 import org.projectforge.framework.persistence.xstream.XStreamSavingConverter;
 import org.projectforge.framework.xstream.XStreamHelper;
@@ -111,10 +64,18 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Service;
 
-import com.thoughtworks.xstream.XStream;
-
-import de.micromata.genome.db.jpa.history.api.HistoryEntry;
-import de.micromata.genome.jpa.metainf.EntityMetadata;
+import javax.annotation.PostConstruct;
+import javax.persistence.Transient;
+import java.io.*;
+import java.lang.reflect.AccessibleObject;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * Dumps and restores the data-base.

@@ -23,13 +23,7 @@
 
 package org.projectforge.business.user;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.PostConstruct;
-
-import java.util.Objects;
+import com.thoughtworks.xstream.XStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.multitenancy.TenantDao;
@@ -58,7 +52,11 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.thoughtworks.xstream.XStream;
+import javax.annotation.PostConstruct;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Stores all user persistent objects such as filter settings, personal settings and persists them to the database as

@@ -24,11 +24,7 @@
 package de.micromata.hibernate.history.delta;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Wolfgang Jung (w.jung@micromata.de)

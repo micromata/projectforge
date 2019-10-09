@@ -23,12 +23,12 @@
 
 package org.projectforge.business.timesheet;
 
+import org.projectforge.framework.time.TimePeriod;
+
 import java.util.Collection;
 import java.util.Date;
 import java.util.Set;
 import java.util.TreeSet;
-
-import org.projectforge.framework.time.TimePeriod;
 
 /**
  * Stores some statistics of time sheets.

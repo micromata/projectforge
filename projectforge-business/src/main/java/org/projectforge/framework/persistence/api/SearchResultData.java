@@ -23,12 +23,11 @@
 
 package org.projectforge.framework.persistence.api;
 
-import java.util.List;
-
+import de.micromata.genome.db.jpa.history.api.HistoryEntry;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
-import de.micromata.genome.db.jpa.history.api.HistoryEntry;
+import java.util.List;
 
 public class SearchResultData
 {

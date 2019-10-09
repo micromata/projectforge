@@ -23,13 +23,13 @@
 
 package org.projectforge.framework.utils;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * Simple key value parser

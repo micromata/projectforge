@@ -23,10 +23,7 @@
 
 package org.projectforge.business.orga;
 
-import java.util.List;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
+import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
@@ -36,7 +33,9 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
+import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Repository
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)

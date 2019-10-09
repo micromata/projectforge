@@ -23,14 +23,6 @@
 
 package org.projectforge.business.multitenancy;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import java.util.Objects;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.continuousdb.Table;
 import org.projectforge.framework.access.AccessException;
@@ -49,6 +41,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

@@ -27,9 +27,9 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
-import org.projectforge.sms.SmsSenderConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.projectforge.sms.SmsSenderConfig;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;

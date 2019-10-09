@@ -23,14 +23,9 @@
 
 package org.projectforge.business.teamcal.filter;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+
+import java.util.*;
 
 /**
  * @author Johannes Unterstein (j.unterstein@micromata.de)

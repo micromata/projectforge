@@ -24,7 +24,6 @@
 package org.projectforge.business.ldap;
 
 import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
 
 @Disabled
 public class LdapOrganizationalUnitDaoTest

@@ -23,13 +23,13 @@
 
 package org.projectforge.calendar;
 
-import java.util.Calendar;
-import java.util.TimeZone;
-
-import org.projectforge.framework.calendar.CalendarUtils;
-import org.projectforge.framework.time.DateHelper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.projectforge.framework.calendar.CalendarUtils;
+import org.projectforge.framework.time.DateHelper;
+
+import java.util.Calendar;
+import java.util.TimeZone;
 
 public class CalendarUtilsTest
 {

@@ -23,15 +23,22 @@
 
 package org.projectforge.framework.persistence.database;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.zip.GZIPInputStream;
-
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.converters.ConverterLookup;
+import com.thoughtworks.xstream.core.ReferenceByIdMarshallingStrategy;
+import com.thoughtworks.xstream.core.TreeUnmarshaller;
+import com.thoughtworks.xstream.io.HierarchicalStreamReader;
+import com.thoughtworks.xstream.mapper.Mapper;
+import de.micromata.genome.db.jpa.xmldump.api.JpaXmlBeforePersistListener;
+import de.micromata.genome.db.jpa.xmldump.api.XmlDumpRestoreContext;
+import de.micromata.genome.db.jpa.xmldump.impl.JpaXmlDumpServiceImpl;
+import de.micromata.genome.db.jpa.xmldump.impl.SkippUnkownElementsCollectionConverter;
+import de.micromata.genome.db.jpa.xmldump.impl.XStreamRecordConverter;
+import de.micromata.genome.db.jpa.xmldump.impl.XStreamReferenceByIdUnmarshaller;
+import de.micromata.genome.jpa.EmgrFactory;
+import de.micromata.genome.jpa.IEmgr;
+import de.micromata.genome.jpa.metainf.EntityMetadata;
+import de.micromata.mgc.jpa.hibernatesearch.impl.SearchEmgr;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.AddressbookDao;
 import org.projectforge.business.multitenancy.TenantDao;
@@ -59,23 +66,14 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Service;
 
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.converters.ConverterLookup;
-import com.thoughtworks.xstream.core.ReferenceByIdMarshallingStrategy;
-import com.thoughtworks.xstream.core.TreeUnmarshaller;
-import com.thoughtworks.xstream.io.HierarchicalStreamReader;
-import com.thoughtworks.xstream.mapper.Mapper;
-
-import de.micromata.genome.db.jpa.xmldump.api.JpaXmlBeforePersistListener;
-import de.micromata.genome.db.jpa.xmldump.api.XmlDumpRestoreContext;
-import de.micromata.genome.db.jpa.xmldump.impl.JpaXmlDumpServiceImpl;
-import de.micromata.genome.db.jpa.xmldump.impl.SkippUnkownElementsCollectionConverter;
-import de.micromata.genome.db.jpa.xmldump.impl.XStreamRecordConverter;
-import de.micromata.genome.db.jpa.xmldump.impl.XStreamReferenceByIdUnmarshaller;
-import de.micromata.genome.jpa.EmgrFactory;
-import de.micromata.genome.jpa.IEmgr;
-import de.micromata.genome.jpa.metainf.EntityMetadata;
-import de.micromata.mgc.jpa.hibernatesearch.impl.SearchEmgr;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
 
 /**
  * PF extends to JpaXmlDumpServiceImpl.

@@ -23,10 +23,10 @@
 
 package org.projectforge.business.ldap;
 
-import java.io.Serializable;
-
 import org.projectforge.framework.persistence.utils.ReflectionToString;
 import org.projectforge.framework.utils.NumberHelper;
+
+import java.io.Serializable;
 
 /**
  * Bean used by ConfigXML (config.xml).

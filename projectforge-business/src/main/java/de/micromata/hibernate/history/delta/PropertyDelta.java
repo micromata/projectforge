@@ -23,20 +23,19 @@
 
 package de.micromata.hibernate.history.delta;
 
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.xssf.extractor.XSSFImportFromXML;
 import org.hibernate.HibernateException;
-import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
+import org.hibernate.query.Query;
 import org.hibernate.type.IntegerType;
 import org.hibernate.type.LongType;
 import org.hibernate.type.StringType;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Legacy used for XML persistence of DB.

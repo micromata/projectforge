@@ -23,10 +23,10 @@
 
 package org.projectforge.business.multitenancy;
 
-import java.util.Collection;
-
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
+
+import java.util.Collection;
 
 public interface TenantService
 {

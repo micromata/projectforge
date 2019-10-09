@@ -23,17 +23,16 @@
 
 package org.projectforge.framework.renderer;
 
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.pdf.BaseFont;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.FileUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.io.FileUtils;
-
-import com.lowagie.text.DocumentException;
-import com.lowagie.text.pdf.BaseFont;
 
 /**
  * Contains all additional load fonts from the font base directory (FOP). Original code from Wolfgang Jung from Micromata's SvgCombine.

@@ -23,25 +23,6 @@
 
 package org.projectforge.business.teamcal.event.ical;
 
-import static org.projectforge.business.teamcal.event.ical.ICalConverterStore.FULL_LIST;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
-
-import org.apache.commons.lang3.StringUtils;
-import org.projectforge.business.teamcal.TeamCalConfig;
-import org.projectforge.business.teamcal.event.model.TeamEventDO;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
-
 import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.data.ParserException;
 import net.fortuna.ical4j.model.Calendar;
@@ -49,6 +30,16 @@ import net.fortuna.ical4j.model.Component;
 import net.fortuna.ical4j.model.component.CalendarComponent;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.Method;
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.business.teamcal.TeamCalConfig;
+import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.io.*;
+import java.util.*;
+
+import static org.projectforge.business.teamcal.event.ical.ICalConverterStore.FULL_LIST;
 
 public class ICalParser
 {

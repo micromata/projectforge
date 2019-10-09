@@ -23,11 +23,12 @@
 
 package org.projectforge.business.excel;
 
-import java.util.Objects;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
+
+import java.util.Objects;
 
 public class CellFormat
 {

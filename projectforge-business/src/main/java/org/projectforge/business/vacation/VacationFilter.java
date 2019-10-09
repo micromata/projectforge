@@ -23,13 +23,12 @@
 
 package org.projectforge.business.vacation;
 
-import java.io.Serializable;
-
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.projectforge.business.vacation.model.VacationMode;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
-import com.thoughtworks.xstream.annotations.XStreamAlias;
+import java.io.Serializable;
 
 /**
  * @author Florian Blumenstein

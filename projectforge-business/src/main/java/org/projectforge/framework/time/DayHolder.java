@@ -23,17 +23,12 @@
 
 package org.projectforge.framework.time;
 
-import java.math.BigDecimal;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TimeZone;
-
 import org.apache.commons.lang3.Validate;
 import org.projectforge.framework.calendar.Holidays;
 import org.projectforge.framework.i18n.UserException;
+
+import java.math.BigDecimal;
+import java.util.*;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

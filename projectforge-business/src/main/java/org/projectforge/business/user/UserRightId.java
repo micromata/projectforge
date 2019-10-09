@@ -23,15 +23,15 @@
 
 package org.projectforge.business.user;
 
-import java.util.Arrays;
-import java.util.Collection;
-
 import org.hibernate.search.annotations.ClassBridge;
 import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.Store;
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.api.RightRightIdProviderService;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

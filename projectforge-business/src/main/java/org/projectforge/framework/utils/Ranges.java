@@ -23,13 +23,13 @@
 
 package org.projectforge.framework.utils;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.StringHelper;
 import org.springframework.util.CollectionUtils;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Holds number ranges, such as "10,20-25,30-35,50" (comma separated ranges and values).

@@ -23,13 +23,6 @@
 
 package org.projectforge.plugins.core.impl;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.ServiceLoader;
-import java.util.Set;
-import java.util.TreeSet;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.continuousdb.SystemUpdater;
 import org.projectforge.continuousdb.UpdateEntry;
@@ -38,17 +31,15 @@ import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.GlobalConfiguration;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.database.DatabaseService;
-import org.projectforge.plugins.core.AbstractPlugin;
-import org.projectforge.plugins.core.AvailablePlugin;
-import org.projectforge.plugins.core.PluginAdminService;
-import org.projectforge.plugins.core.PluginsRegistry;
-import org.projectforge.plugins.core.PFPluginService;
+import org.projectforge.plugins.core.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
+
+import java.util.*;
 
 /**
  * Standard implementation of PluginAdminService.

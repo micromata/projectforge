@@ -23,14 +23,14 @@
 
 package org.projectforge.business.fibu.kost;
 
-import java.io.Serializable;
-
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.utils.IntRanges;
 import org.projectforge.framework.xstream.AliasMap;
 import org.projectforge.framework.xstream.XmlField;
 import org.projectforge.framework.xstream.XmlObject;
 import org.projectforge.framework.xstream.XmlObjectReader;
+
+import java.io.Serializable;
 
 /**
  * Used in config.xml for the definition of the used business assessment schema. The business assessment is displayed in different

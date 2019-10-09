@@ -23,9 +23,7 @@
 
 package org.projectforge.multitenancy;
 
-import java.util.HashSet;
-import java.util.Set;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.multitenancy.TenantDao;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.framework.configuration.ConfigurationDao;
@@ -34,9 +32,10 @@ import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.junit.jupiter.api.Test;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class MultiTenancyTestFork extends AbstractTestBase
 {

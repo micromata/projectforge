@@ -23,11 +23,11 @@
 
 package org.projectforge.business.fibu.kost.reporting;
 
+import org.projectforge.business.fibu.EingangsrechnungDO;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.projectforge.business.fibu.EingangsrechnungDO;
 
 /**
  * This class contains the result of an SEPA transfer generation.

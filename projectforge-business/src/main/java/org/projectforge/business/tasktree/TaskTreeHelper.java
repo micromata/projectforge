@@ -23,14 +23,13 @@
 
 package org.projectforge.business.tasktree;
 
-import java.io.Serializable;
-
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
-import org.springframework.stereotype.Service;
+
+import java.io.Serializable;
 
 public class TaskTreeHelper implements Serializable
 {

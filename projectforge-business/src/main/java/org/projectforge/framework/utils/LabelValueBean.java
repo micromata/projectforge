@@ -23,9 +23,9 @@
 
 package org.projectforge.framework.utils;
 
-import java.io.Serializable;
-
 import org.apache.commons.lang3.builder.ToStringBuilder;
+
+import java.io.Serializable;
 
 /**
  * Simply an holder for a key value property.

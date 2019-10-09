@@ -23,17 +23,16 @@
 
 package org.projectforge.business.ldap;
 
-import java.util.List;
+import org.apache.commons.collections.CollectionUtils;
+import org.projectforge.framework.utils.NumberHelper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.ModificationItem;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.projectforge.framework.utils.NumberHelper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

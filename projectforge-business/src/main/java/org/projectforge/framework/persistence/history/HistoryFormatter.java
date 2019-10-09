@@ -23,14 +23,13 @@
 
 package org.projectforge.framework.persistence.history;
 
+import de.micromata.genome.db.jpa.history.api.HistoryEntry;
+import de.micromata.hibernate.history.delta.PropertyDelta;
+import org.hibernate.Session;
+
 import java.io.Serializable;
 import java.util.Locale;
 import java.util.ResourceBundle;
-
-import org.hibernate.Session;
-
-import de.micromata.genome.db.jpa.history.api.HistoryEntry;
-import de.micromata.hibernate.history.delta.PropertyDelta;
 
 /**
  * <b>Beachte Sicherheitshinweis:</b> Beim Überladen bitte dynamische Inhalte immer mit escapeHtml ausgeben (Vorsicht:

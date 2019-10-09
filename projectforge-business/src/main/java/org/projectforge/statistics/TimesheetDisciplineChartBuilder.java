@@ -23,12 +23,6 @@
 
 package org.projectforge.statistics;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.List;
-
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.renderer.xy.XYDifferenceRenderer;
 import org.jfree.data.time.Day;
@@ -40,6 +34,12 @@ import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetFilter;
 import org.projectforge.charting.XYChartBuilder;
 import org.projectforge.framework.time.DayHolder;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Calendar;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Erzeugt wahlweise eins von zwei Diagrammen:<br/>

@@ -23,10 +23,10 @@
 
 package org.projectforge.framework.i18n;
 
-import java.util.ResourceBundle;
-
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.projectforge.framework.api.ProjectForgeException;
+
+import java.util.ResourceBundle;
 
 /**
  * This Exception will be thrown by the application and the message should be displayed.

@@ -23,18 +23,18 @@
 
 package org.projectforge.business.gantt;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.utils.NumberHelper;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.projectforge.framework.time.DateHolder;
-import org.projectforge.framework.utils.NumberHelper;
 
 public class GanttTaskImpl implements GanttTask, Serializable
 {

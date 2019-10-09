@@ -23,8 +23,11 @@
 
 package org.projectforge.mail;
 
-import javax.annotation.PostConstruct;
-
+import de.micromata.genome.logging.GLog;
+import de.micromata.genome.logging.GenomeLogCategory;
+import de.micromata.genome.logging.ValMessageLogAttribute;
+import de.micromata.genome.util.runtime.config.MailSessionLocalSettingsConfigModel;
+import de.micromata.genome.util.validation.ValContext;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.framework.configuration.ConfigurationData;
@@ -32,11 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import de.micromata.genome.logging.GLog;
-import de.micromata.genome.logging.GenomeLogCategory;
-import de.micromata.genome.logging.ValMessageLogAttribute;
-import de.micromata.genome.util.runtime.config.MailSessionLocalSettingsConfigModel;
-import de.micromata.genome.util.validation.ValContext;
+import javax.annotation.PostConstruct;
 
 @Component
 public class SendMailConfig implements ConfigurationData

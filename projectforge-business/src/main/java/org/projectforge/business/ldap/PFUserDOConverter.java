@@ -23,9 +23,6 @@
 
 package org.projectforge.business.ldap;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -35,6 +32,9 @@ import org.projectforge.framework.xstream.XmlObjectReader;
 import org.projectforge.framework.xstream.XmlObjectWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

@@ -23,20 +23,15 @@
 
 package org.projectforge.framework.persistence.utils;
 
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import org.projectforge.export.AttrColumnDescription;
-
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 import de.micromata.hibernate.history.delta.PropertyDelta;
+import org.projectforge.export.AttrColumnDescription;
+
+import java.io.Serializable;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ImportedElementWithAttrs<PK extends Serializable, T extends TimeableAttrRow<PK>, E extends EntityWithTimeableAttr<PK, T>>
     extends ImportedElement<E>

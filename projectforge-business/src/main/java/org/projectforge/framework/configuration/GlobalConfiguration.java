@@ -23,11 +23,11 @@
 
 package org.projectforge.framework.configuration;
 
-import java.util.List;
-
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.xstream.XmlObject;
+
+import java.util.List;
 
 /**
  * This class also provides the configuration of the parameters which are stored via ConfigurationDao. Those parameters

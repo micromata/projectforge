@@ -23,12 +23,12 @@
 
 package org.projectforge.business.login;
 
-import java.util.Collection;
-import java.util.List;
-
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.stereotype.Service;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Different implementations of login handling are supported.

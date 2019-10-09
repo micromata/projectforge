@@ -23,13 +23,13 @@
 
 package org.projectforge.business.ldap;
 
-import java.io.Serializable;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+
+import java.io.Serializable;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

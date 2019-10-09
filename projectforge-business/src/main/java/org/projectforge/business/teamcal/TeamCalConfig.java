@@ -23,11 +23,11 @@
 
 package org.projectforge.business.teamcal;
 
-import java.util.UUID;
-
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationData;
+
+import java.util.UUID;
 
 public class TeamCalConfig implements ConfigurationData
 {

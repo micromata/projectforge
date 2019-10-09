@@ -23,19 +23,14 @@
 
 package org.projectforge.business.fibu.kost.reporting;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.business.fibu.kost.BuchungssatzDO;
 import org.projectforge.business.fibu.kost.BusinessAssessment;
 import org.projectforge.reporting.Buchungssatz;
 import org.projectforge.reporting.impl.BuchungssatzImpl;
+
+import java.util.*;
 
 public class ReportGenerator
 {

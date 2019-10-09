@@ -23,12 +23,7 @@
 
 package org.projectforge.business.humanresources;
 
-import org.projectforge.business.user.ProjectForgeGroup;
-import org.projectforge.business.user.UserRightAccessCheck;
-import org.projectforge.business.user.UserRightCategory;
-import org.projectforge.business.user.UserRightId;
-import org.projectforge.business.user.UserRightServiceImpl;
-import org.projectforge.business.user.UserRightValue;
+import org.projectforge.business.user.*;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;

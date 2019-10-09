@@ -23,13 +23,13 @@
 
 package org.projectforge.business.fibu;
 
-import java.util.Locale;
-
 import org.apache.lucene.document.Document;
 import org.hibernate.search.bridge.FieldBridge;
 import org.hibernate.search.bridge.LuceneOptions;
 import org.projectforge.Const;
 import org.projectforge.framework.i18n.I18nHelper;
+
+import java.util.Locale;
 
 /**
  * Bridge for hibernate search to search for payment type of incomming invoices.

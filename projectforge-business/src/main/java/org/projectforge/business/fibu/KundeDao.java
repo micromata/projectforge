@@ -23,8 +23,6 @@
 
 package org.projectforge.business.fibu;
 
-import java.util.List;
-
 import org.hibernate.criterion.Order;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.OperationType;
@@ -34,6 +32,8 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 @Repository
 public class KundeDao extends BaseDao<KundeDO>

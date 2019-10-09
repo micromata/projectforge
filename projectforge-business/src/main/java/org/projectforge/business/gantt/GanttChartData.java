@@ -23,11 +23,11 @@
 
 package org.projectforge.business.gantt;
 
+import org.projectforge.business.task.TaskDO;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-
-import org.projectforge.business.task.TaskDO;
 
 public class GanttChartData implements Serializable
 {

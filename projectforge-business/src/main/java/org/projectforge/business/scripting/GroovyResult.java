@@ -23,9 +23,9 @@
 
 package org.projectforge.business.scripting;
 
-import java.io.Serializable;
-
 import org.projectforge.business.utils.HtmlHelper;
+
+import java.io.Serializable;
 
 public class GroovyResult implements Serializable
 {

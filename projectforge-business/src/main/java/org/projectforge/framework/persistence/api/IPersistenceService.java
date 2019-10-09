@@ -23,12 +23,12 @@
 
 package org.projectforge.framework.persistence.api;
 
-import java.util.List;
-
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.database.DatabaseDao;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.util.List;
 
 /**
  * Legacy Persistence Service.

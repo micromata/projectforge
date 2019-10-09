@@ -23,11 +23,10 @@
 
 package org.projectforge.framework.persistence.database;
 
+import com.thoughtworks.xstream.converters.SingleValueConverter;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.user.UserPrefAreaRegistry;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
-
-import com.thoughtworks.xstream.converters.SingleValueConverter;
 
 /**
  * Converts UserRightArea from and to strings.

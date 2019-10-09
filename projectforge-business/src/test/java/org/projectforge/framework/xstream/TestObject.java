@@ -25,10 +25,6 @@ package org.projectforge.framework.xstream;
 
 import java.util.Date;
 
-import org.projectforge.framework.xstream.XmlField;
-import org.projectforge.framework.xstream.XmlObject;
-import org.projectforge.framework.xstream.XmlOmitField;
-
 @XmlObject(alias = "test")
 public class TestObject implements TestObjectIFace
 {

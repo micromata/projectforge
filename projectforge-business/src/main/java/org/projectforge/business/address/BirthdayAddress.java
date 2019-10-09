@@ -23,12 +23,12 @@
 
 package org.projectforge.business.address;
 
-import java.io.Serializable;
-import java.util.Date;
-
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.time.DateHolder;
+
+import java.io.Serializable;
+import java.util.Date;
 
 
 public class BirthdayAddress implements Comparable<BirthdayAddress>, Serializable

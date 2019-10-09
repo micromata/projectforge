@@ -23,18 +23,17 @@
 
 package de.micromata.hibernate.history.delta;
 
+import org.apache.commons.beanutils.ConvertUtils;
+import org.hibernate.Session;
+
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-
-import org.apache.commons.beanutils.ConvertUtils;
-import org.hibernate.Session;
 
 /**
  * @author Wolfgang Jung (w.jung@micromata.de)

@@ -23,10 +23,10 @@
 
 package org.projectforge.business.teamcal.filter;
 
-import java.io.Serializable;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.utils.NumberHelper;
+
+import java.io.Serializable;
 
 /**
  * Persist the settings of one calendar entry in the filter.

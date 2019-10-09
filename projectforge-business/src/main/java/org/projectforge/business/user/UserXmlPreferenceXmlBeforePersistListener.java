@@ -23,18 +23,17 @@
 
 package org.projectforge.business.user;
 
-import java.util.HashSet;
-import java.util.Set;
-
+import de.micromata.genome.db.jpa.xmldump.api.JpaXmlBeforePersistListener;
+import de.micromata.genome.db.jpa.xmldump.api.XmlDumpRestoreContext;
+import de.micromata.genome.jpa.metainf.EntityMetadata;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import de.micromata.genome.db.jpa.xmldump.api.JpaXmlBeforePersistListener;
-import de.micromata.genome.db.jpa.xmldump.api.XmlDumpRestoreContext;
-import de.micromata.genome.jpa.metainf.EntityMetadata;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Converts the pk references.

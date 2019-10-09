@@ -23,11 +23,11 @@
 
 package org.projectforge.business.fibu;
 
+import org.projectforge.framework.xstream.XmlObject;
+
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
-
-import org.projectforge.framework.xstream.XmlObject;
 
 /**
  * Stores the user interface status of an invoice (such as opened/closed invoice positions). This class will be marshalled and unmarshalled

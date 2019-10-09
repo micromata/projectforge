@@ -23,9 +23,6 @@
 
 package org.projectforge.framework.persistence.attr.impl;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
 import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
 import de.micromata.genome.db.jpa.tabattr.api.AttrSchema;
@@ -36,6 +33,9 @@ import de.micromata.genome.jpa.metainf.EntityMetadata;
 import de.micromata.mgc.jpa.hibernatesearch.api.HibernateSearchFieldInfoProvider;
 import de.micromata.mgc.jpa.hibernatesearch.api.SearchColumnMetadata;
 import de.micromata.mgc.jpa.hibernatesearch.impl.SearchColumnMetadataBean;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Add the configured attr schema to search fields.

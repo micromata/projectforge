@@ -23,18 +23,6 @@
 
 package org.projectforge.business.scripting;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.codehaus.groovy.control.CompilationFailedException;
-import org.projectforge.business.refactoring.RefactoringService;
-import org.projectforge.framework.access.AccessException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.Script;
@@ -42,6 +30,17 @@ import groovy.lang.Writable;
 import groovy.text.SimpleTemplateEngine;
 import groovy.text.Template;
 import groovy.text.TemplateEngine;
+import org.apache.commons.lang3.StringUtils;
+import org.codehaus.groovy.control.CompilationFailedException;
+import org.projectforge.business.refactoring.RefactoringService;
+import org.projectforge.framework.access.AccessException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.Map;
 
 /**
  * Executes groovy templates. For more functionality please refer GroovyEngine.

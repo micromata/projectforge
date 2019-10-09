@@ -23,19 +23,18 @@
 
 package org.projectforge.business.ldap;
 
-import java.io.File;
-import java.util.Hashtable;
-
-import javax.naming.Context;
-import javax.naming.NamingException;
-import javax.naming.ldap.InitialLdapContext;
-import javax.naming.ldap.LdapContext;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.ConfigurationListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import javax.naming.Context;
+import javax.naming.NamingException;
+import javax.naming.ldap.InitialLdapContext;
+import javax.naming.ldap.LdapContext;
+import java.io.File;
+import java.util.Hashtable;
 
 /**
  * Should be initialized on start-up and will be called every time if config.xml is reread. This class is needed for

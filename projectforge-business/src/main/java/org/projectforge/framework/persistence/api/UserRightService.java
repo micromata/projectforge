@@ -23,11 +23,11 @@
 
 package org.projectforge.framework.persistence.api;
 
-import java.util.List;
-
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserRight;
 import org.projectforge.business.user.UserRightValue;
+
+import java.util.List;
 
 /**
  * Gather user Rights.

@@ -23,13 +23,13 @@
 
 package org.projectforge.business.address;
 
+import org.projectforge.framework.configuration.ApplicationContextProvider;
+import org.projectforge.framework.persistence.api.BaseSearchFilter;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.stream.Collectors;
-
-import org.projectforge.framework.configuration.ApplicationContextProvider;
-import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

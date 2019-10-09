@@ -23,10 +23,10 @@
 
 package org.projectforge.business.teamcal.externalsubscription;
 
+import org.projectforge.common.i18n.I18nEnum;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import org.projectforge.common.i18n.I18nEnum;
 
 /**
  * Refresh interval in seconds.

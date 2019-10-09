@@ -23,10 +23,10 @@
 
 package org.projectforge.business.user;
 
-import java.io.Serializable;
-
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.io.Serializable;
 
 /**
  * 

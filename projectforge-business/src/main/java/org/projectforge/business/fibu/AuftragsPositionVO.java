@@ -23,11 +23,11 @@
 
 package org.projectforge.business.fibu;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
-
 import java.util.Objects;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * Repräsentiert einee Position innerhalb eines Auftrags als Übersichtsobject (value object) zur Verwendung z. B. im TaskTree.

@@ -23,15 +23,15 @@
 
 package org.projectforge.business.jobs;
 
-import java.util.Calendar;
-import java.util.Collection;
-
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.vacation.service.VacationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import java.util.Calendar;
+import java.util.Collection;
 
 @Component
 public class UpdateVacationFromLastYearJob

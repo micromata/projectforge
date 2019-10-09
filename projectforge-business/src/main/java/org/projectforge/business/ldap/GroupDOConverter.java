@@ -23,10 +23,6 @@
 
 package org.projectforge.business.ldap;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.collections.SetUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
@@ -39,6 +35,10 @@ import org.projectforge.framework.xstream.XmlObjectReader;
 import org.projectforge.framework.xstream.XmlObjectWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

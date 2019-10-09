@@ -23,15 +23,14 @@
 
 package org.projectforge.business.fibu;
 
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.projectforge.framework.persistence.api.BaseSearchFilter;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-
-import org.projectforge.framework.persistence.api.BaseSearchFilter;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
-
-import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

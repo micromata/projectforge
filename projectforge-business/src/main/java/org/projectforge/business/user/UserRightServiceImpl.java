@@ -23,15 +23,6 @@
 
 package org.projectforge.business.user;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.ServiceLoader;
-
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.collections.list.UnmodifiableList;
 import org.jfree.util.Log;
 import org.projectforge.business.address.AddressbookRight;
@@ -51,6 +42,10 @@ import org.projectforge.framework.persistence.api.RightRightIdProviderService;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
+import java.io.Serializable;
+import java.util.*;
 
 @Service
 public class UserRightServiceImpl implements UserRightService, Serializable

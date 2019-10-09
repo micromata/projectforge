@@ -23,42 +23,6 @@
 
 package org.projectforge.framework.persistence.jpa.impl;
 
-import java.io.Serializable;
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.ClassUtils;
-import java.util.Objects;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
-import org.projectforge.framework.configuration.ApplicationContextProvider;
-import org.projectforge.framework.persistence.api.BaseDO;
-import org.projectforge.framework.persistence.api.ExtendedBaseDO;
-import org.projectforge.framework.persistence.api.HibernateUtils;
-import org.projectforge.framework.persistence.api.IdObject;
-import org.projectforge.framework.persistence.api.ModificationStatus;
-import org.projectforge.framework.persistence.api.PFPersistancyBehavior;
-import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO;
-import org.projectforge.framework.persistence.hibernate.HibernateCompatUtils;
-import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
-import org.projectforge.framework.time.DayHolder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import de.micromata.genome.db.jpa.history.api.HistoryService;
 import de.micromata.genome.db.jpa.history.api.HistoryServiceManager;
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithAttributes;
@@ -75,6 +39,27 @@ import de.micromata.genome.util.bean.PrivateBeanUtils;
 import de.micromata.genome.util.matcher.CommonMatchers;
 import de.micromata.genome.util.matcher.Matcher;
 import de.micromata.genome.util.matcher.MatcherBase;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.projectforge.framework.configuration.ApplicationContextProvider;
+import org.projectforge.framework.persistence.api.*;
+import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO;
+import org.projectforge.framework.persistence.hibernate.HibernateCompatUtils;
+import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
+import org.projectforge.framework.time.DayHolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
+import java.lang.reflect.AccessibleObject;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Utilities to create compat with BaseDao

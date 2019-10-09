@@ -23,11 +23,11 @@
 
 package org.projectforge.framework.xstream.converter;
 
+import org.projectforge.framework.time.DateHolder;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import org.projectforge.framework.time.DateHolder;
 
 public class ISODateConverter extends DateConverter
 {

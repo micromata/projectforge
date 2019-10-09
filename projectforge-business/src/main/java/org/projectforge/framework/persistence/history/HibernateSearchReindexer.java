@@ -23,10 +23,6 @@
 
 package org.projectforge.framework.persistence.history;
 
-import java.util.Date;
-import java.util.Locale;
-import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
@@ -48,6 +44,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import java.util.Date;
+import java.util.Locale;
+import java.util.Set;
 
 @Service
 public class HibernateSearchReindexer

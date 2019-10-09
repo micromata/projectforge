@@ -23,13 +23,13 @@
 
 package org.projectforge.business.teamcal.event;
 
-import java.io.Serializable;
-import java.util.Calendar;
-import java.util.Date;
-
 import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.persistence.utils.ReflectionToString;
+
+import java.io.Serializable;
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  * Represents a recurrence event (created by a master TeamEventDO with recurrence rules).

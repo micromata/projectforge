@@ -24,7 +24,6 @@
 package org.projectforge.framework.utils;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 
 public class CurrencyHelper
 {

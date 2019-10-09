@@ -23,15 +23,14 @@
 
 package org.projectforge.framework.persistence.history;
 
-import java.util.Locale;
-
+import de.micromata.genome.db.jpa.history.api.HistoryEntry;
+import de.micromata.hibernate.history.delta.PropertyDelta;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
-import de.micromata.genome.db.jpa.history.api.HistoryEntry;
-import de.micromata.hibernate.history.delta.PropertyDelta;
+import java.util.Locale;
 
 /**
  * @author wolle

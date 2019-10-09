@@ -23,11 +23,11 @@
 
 package org.projectforge.jira;
 
-import java.io.Serializable;
-
 import org.projectforge.framework.utils.ILabelValueBean;
 import org.projectforge.framework.xstream.XmlField;
 import org.projectforge.framework.xstream.XmlObject;
+
+import java.io.Serializable;
 
 /**
  * Represents one available issue type of the JIRA system ProjectForge is connected to.

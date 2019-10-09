@@ -23,10 +23,10 @@
 
 package org.projectforge.jira;
 
+import org.projectforge.framework.configuration.ConfigXml;
+
 import java.io.Serializable;
 import java.util.List;
-
-import org.projectforge.framework.configuration.ConfigXml;
 
 /**
  * Basic configuration of the JIRA ProjectForge is connected to.

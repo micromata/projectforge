@@ -361,7 +361,7 @@
 
 
   <xsl:template name="standard-header">
-    <fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format">
       <fo:layout-master-set>
         <xsl:call-template name="include-page-landscape-master-standard" />
       </fo:layout-master-set>

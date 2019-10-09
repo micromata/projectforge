@@ -23,8 +23,6 @@
 
 package org.projectforge.business.user;
 
-import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
@@ -36,6 +34,8 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO;
 import org.projectforge.framework.persistence.xstream.XStreamSavingConverter;
+
+import java.util.Set;
 
 /**
  * 

@@ -23,17 +23,8 @@
 
 package org.projectforge.framework.persistence.jpa.impl;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-
-import javax.persistence.Id;
-
+import de.micromata.genome.db.jpa.history.api.WithHistory;
+import de.micromata.genome.util.runtime.ClassUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.analysis.standard.ClassicAnalyzer;
@@ -57,8 +48,15 @@ import org.projectforge.framework.time.DateHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.micromata.genome.db.jpa.history.api.WithHistory;
-import de.micromata.genome.util.runtime.ClassUtils;
+import javax.persistence.Id;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Some methods pulled out of BaseDao.

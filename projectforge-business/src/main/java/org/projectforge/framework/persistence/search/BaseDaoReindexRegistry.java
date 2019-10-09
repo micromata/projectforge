@@ -23,14 +23,14 @@
 
 package org.projectforge.framework.persistence.search;
 
+import org.projectforge.framework.persistence.api.BaseDO;
+import org.projectforge.framework.persistence.api.BaseDao;
+import org.springframework.cglib.proxy.Enhancer;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import org.projectforge.framework.persistence.api.BaseDO;
-import org.projectforge.framework.persistence.api.BaseDao;
-import org.springframework.cglib.proxy.Enhancer;
 
 /**
  * Hotfix: Hibernate-search does not update index of dependent objects.

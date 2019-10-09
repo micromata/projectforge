@@ -23,13 +23,12 @@
 
 package org.projectforge.business.teamcal.filter;
 
-import java.util.Date;
-
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import org.projectforge.Const;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
-import com.thoughtworks.xstream.annotations.XStreamAlias;
-import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import java.util.Date;
 
 /**
  * Some settings for the SelectDateAction stored in the flow scope (configurable by the caller).

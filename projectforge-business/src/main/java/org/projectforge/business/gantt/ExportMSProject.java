@@ -23,6 +23,12 @@
 
 package org.projectforge.business.gantt;
 
+import net.sf.mpxj.*;
+import net.sf.mpxj.mpx.MPXWriter;
+import net.sf.mpxj.mspdi.MSPDIWriter;
+import net.sf.mpxj.writer.ProjectWriter;
+import org.projectforge.framework.time.DayHolder;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
@@ -32,20 +38,6 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.projectforge.framework.time.DayHolder;
-
-import net.sf.mpxj.Day;
-import net.sf.mpxj.Duration;
-import net.sf.mpxj.ProjectCalendar;
-import net.sf.mpxj.ProjectFile;
-import net.sf.mpxj.ProjectHeader;
-import net.sf.mpxj.RelationType;
-import net.sf.mpxj.Task;
-import net.sf.mpxj.TimeUnit;
-import net.sf.mpxj.mpx.MPXWriter;
-import net.sf.mpxj.mspdi.MSPDIWriter;
-import net.sf.mpxj.writer.ProjectWriter;
 
 /**
  * Uses the implementation of http://mpxj.sourceforge.net/, which is distributed under the terms of the GNU LGPL.

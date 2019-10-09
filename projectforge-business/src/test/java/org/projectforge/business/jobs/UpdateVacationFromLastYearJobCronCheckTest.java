@@ -23,12 +23,12 @@
 
 package org.projectforge.business.jobs;
 
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.springframework.scheduling.support.CronSequenceGenerator;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-
-import org.junit.jupiter.api.Disabled;
-import org.springframework.scheduling.support.CronSequenceGenerator;
-import org.junit.jupiter.api.Test;
 
 public class UpdateVacationFromLastYearJobCronCheckTest
 {

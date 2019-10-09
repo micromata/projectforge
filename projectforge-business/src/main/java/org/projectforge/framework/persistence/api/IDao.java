@@ -23,9 +23,9 @@
 
 package org.projectforge.framework.persistence.api;
 
-import java.util.List;
-
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.util.List;
 
 public interface IDao<O>
 {

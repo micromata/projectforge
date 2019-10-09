@@ -23,10 +23,10 @@
 
 package org.projectforge.framework.calendar;
 
-import java.io.Serializable;
-
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+
+import java.io.Serializable;
 
 /**
  * Represents a date (day of month, month and year). It contains three integer values and has no time zone information.

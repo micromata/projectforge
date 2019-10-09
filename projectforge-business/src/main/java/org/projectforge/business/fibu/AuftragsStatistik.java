@@ -23,10 +23,10 @@
 
 package org.projectforge.business.fibu;
 
+import org.projectforge.framework.utils.NumberHelper;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
-
-import org.projectforge.framework.utils.NumberHelper;
 
 public class AuftragsStatistik implements Serializable
 {

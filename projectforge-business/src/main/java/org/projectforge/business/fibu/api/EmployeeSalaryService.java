@@ -23,10 +23,10 @@
 
 package org.projectforge.business.fibu.api;
 
-import java.util.Calendar;
-
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeSalaryDO;
+
+import java.util.Calendar;
 
 public interface EmployeeSalaryService
 {

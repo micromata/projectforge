@@ -23,19 +23,9 @@
 
 package org.projectforge.framework.persistence.database;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-
+import de.micromata.genome.jpa.StdRecord;
 import org.apache.commons.lang3.ClassUtils;
-import org.hibernate.CacheMode;
-import org.hibernate.Criteria;
-import org.hibernate.FlushMode;
-import org.hibernate.ScrollMode;
-import org.hibernate.ScrollableResults;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
+import org.hibernate.*;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
@@ -57,7 +47,10 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import de.micromata.genome.jpa.StdRecord;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * Creates index creation script and re-indexes data-base.

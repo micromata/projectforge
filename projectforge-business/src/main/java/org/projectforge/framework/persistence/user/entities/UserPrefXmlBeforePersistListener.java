@@ -23,8 +23,9 @@
 
 package org.projectforge.framework.persistence.user.entities;
 
-import java.util.Set;
-
+import de.micromata.genome.db.jpa.xmldump.api.JpaXmlBeforePersistListener;
+import de.micromata.genome.db.jpa.xmldump.api.XmlDumpRestoreContext;
+import de.micromata.genome.jpa.metainf.EntityMetadata;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
@@ -33,9 +34,7 @@ import org.projectforge.business.task.TaskDO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.micromata.genome.db.jpa.xmldump.api.JpaXmlBeforePersistListener;
-import de.micromata.genome.db.jpa.xmldump.api.XmlDumpRestoreContext;
-import de.micromata.genome.jpa.metainf.EntityMetadata;
+import java.util.Set;
 
 /**
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
