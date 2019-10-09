@@ -199,7 +199,6 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
       // Element has no attributes.
       return true;
     }
-    // Element has only id attribute and is not a predecessor definition for tasks outside the current Gantt object tree.
     if ("predecessor".equals(element.getName())) {
       if (element.attribute(XmlObjectWriter.ATTR_ID) != null) {
         // Describes a complete Gantt task which is referenced, so full output is needed.
@@ -219,7 +218,11 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
         }
         return false;
       }
-    } else return element.attributes().size() == 1 && element.attribute("id") != null;
+    } else if (element.attributes().size() == 1 && element.attribute("id") != null) {
+      // Element has only id attribute and is not a predecessor definition for tasks outside the current Gantt object tree.
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -268,8 +271,11 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
           // GanttTask already added to the Gantt object tree.
           return true;
         }
-        // External task, so ignore it:
-        return taskTree.getTaskById((Integer) ganttTask.getId()) != null;
+        if (taskTree.getTaskById((Integer) ganttTask.getId()) != null) {
+          // External task, so ignore it:
+          return true;
+        }
+        return false;
       }
 
       @Override

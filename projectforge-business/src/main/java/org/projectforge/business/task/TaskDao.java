@@ -338,8 +338,11 @@ public class TaskDao extends BaseDao<TaskDO> {
       if (obj.getParentTaskId() != null) {
         throw new UserException(TaskDao.I18N_KEY_ERROR_CYCLIC_REFERENCE);
       }
-      return accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.ADMIN_GROUP,
-          ProjectForgeGroup.FINANCE_GROUP);
+      if (!accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.ADMIN_GROUP,
+          ProjectForgeGroup.FINANCE_GROUP)) {
+        return false;
+      }
+      return true;
     }
     Validate.notNull(dbObj.getParentTaskId());
     if (obj.getParentTaskId() == null) {
@@ -365,8 +368,11 @@ public class TaskDao extends BaseDao<TaskDO> {
         // Inserting of object under new task not allowed.
         return false;
       }
-      return accessChecker.hasPermission(user, dbObj.getParentTaskId(), AccessType.TASKS, OperationType.DELETE,
-          throwException);
+      if (!accessChecker.hasPermission(user, dbObj.getParentTaskId(), AccessType.TASKS, OperationType.DELETE,
+          throwException)) {
+        // Deleting of object under old task not allowed.
+        return false;
+      }
     }
     return true;
   }

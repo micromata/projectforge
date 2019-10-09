@@ -344,13 +344,21 @@ public class GanttChartXLabelBarRenderer
       final int quarterCounter)
   {
     if (unit == GanttXUnit.DAY) {
-      return dayCounter % scale == 0;
+      if (dayCounter % scale == 0) {
+        return true;
+      }
     } else if (unit == GanttXUnit.WEEK) {
-      return weekCounter > 0 && weekCounter % scale == 0;
+      if (weekCounter > 0 && weekCounter % scale == 0) {
+        return true;
+      }
     } else if (unit == GanttXUnit.MONTH) {
-      return monthCounter > 0 && monthCounter % scale == 0;
+      if (monthCounter > 0 && monthCounter % scale == 0) {
+        return true;
+      }
     } else if (unit == GanttXUnit.QUARTER) {
-      return quarterCounter > 0 && quarterCounter % scale == 0;
+      if (quarterCounter > 0 && quarterCounter % scale == 0) {
+        return true;
+      }
     }
     return false;
   }

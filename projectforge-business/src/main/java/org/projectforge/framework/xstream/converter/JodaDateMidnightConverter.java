@@ -83,6 +83,9 @@ public class JodaDateMidnightConverter implements Converter
   @SuppressWarnings("rawtypes")
   public boolean canConvert(final Class clazz)
   {
-    return DateMidnight.class.isAssignableFrom(clazz);
+    if (DateMidnight.class.isAssignableFrom(clazz)) {
+      return true;
+    }
+    return false;
   }
 }

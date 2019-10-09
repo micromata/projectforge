@@ -75,11 +75,14 @@ public class CalEventRight  extends UserRightAccessCheck<CalEventDO>
       return true;
     }
     final Integer userId = user.getId();
-    // Clear fields for users with minimal access.
     if (teamCalRight.hasFullAccess(calendar, userId)
       || teamCalRight.hasReadonlyAccess(calendar, userId)) {
       return true;
-    } else return teamCalRight.hasMinimalAccess(calendar, userId);
+    } else if (teamCalRight.hasMinimalAccess(calendar, userId)) {
+      // Clear fields for users with minimal access.
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -147,7 +150,10 @@ public class CalEventRight  extends UserRightAccessCheck<CalEventDO>
       return true;
     }
     final Integer userId = user.getId();
-    return teamCalRight.hasFullAccess(calendar, userId) || accessChecker.isDemoUser();
+    if (teamCalRight.hasFullAccess(calendar, userId) || accessChecker.isDemoUser()) {
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -172,8 +178,11 @@ public class CalEventRight  extends UserRightAccessCheck<CalEventDO>
       return true;
     }
     final Integer userId = user.getId();
-    return teamCalRight.hasFullAccess(calendar, userId)
-        || teamCalRight.hasReadonlyAccess(calendar, userId);
+    if (teamCalRight.hasFullAccess(calendar, userId)
+      || teamCalRight.hasReadonlyAccess(calendar, userId)) {
+      return true;
+    }
+    return false;
   }
 
   public boolean hasMinimalAccess(final CalEventDO event, final Integer userId)

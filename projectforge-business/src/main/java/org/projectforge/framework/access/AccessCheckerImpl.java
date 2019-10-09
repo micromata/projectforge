@@ -399,7 +399,11 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
     // No groups found.
     if (userGroups == null) {
       final Collection<Integer> userGroups2 = userGroupCache.getUserGroups(user1);
-      return userGroups2 == null;
+      if (userGroups2 == null) {
+        return true;
+      } else {
+        return false;
+      }
     }
     final Collection<Integer> currentUserGroups = userGroupCache.getUserGroups(user1);
     if (currentUserGroups == null) {
@@ -954,8 +958,11 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
         ProjectForgeGroup.PROJECT_MANAGER)) {
       return true;
     }
-    return isUserMemberOfGroup(loggedInUser, ProjectForgeGroup.ORGA_TEAM)
-        && hasRight(loggedInUser, UserRightId.PM_HR_PLANNING, UserRightValue.READONLY, UserRightValue.READWRITE);
+    if (isUserMemberOfGroup(loggedInUser, ProjectForgeGroup.ORGA_TEAM)
+        && hasRight(loggedInUser, UserRightId.PM_HR_PLANNING, UserRightValue.READONLY, UserRightValue.READWRITE)) {
+      return true;
+    }
+    return false;
   }
 
   /**

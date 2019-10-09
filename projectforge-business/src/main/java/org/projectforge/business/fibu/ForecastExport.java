@@ -379,7 +379,10 @@ public class ForecastExport
     if (toCheck.get(Calendar.YEAR) == oneMonthBeforeNow.get(Calendar.YEAR)) {
       return toCheck.get(Calendar.MONTH) > oneMonthBeforeNow.get(Calendar.MONTH);
     }
-    return toCheck.get(Calendar.YEAR) >= oneMonthBeforeNow.get(Calendar.YEAR);
+    if (toCheck.get(Calendar.YEAR) < oneMonthBeforeNow.get(Calendar.YEAR)) {
+      return false;
+    }
+    return true;
   }
 
   private List<PaymentScheduleDO> getPaymentSchedule(final AuftragDO order, final AuftragsPositionDO pos)

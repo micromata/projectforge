@@ -141,7 +141,10 @@ public class SubscriptionHolder implements Serializable {
     if (between(eventStartTime, startTime, endTime) || between(eventEndTime, startTime, endTime)) {
       return true;
     }
-    return eventStartTime <= startTime && eventEndTime >= endTime;
+    if (eventStartTime <= startTime && eventEndTime >= endTime) {
+      return true;
+    }
+    return false;
   }
 
   private boolean between(final Long searchTime, final Long startTime, final Long endTime) {

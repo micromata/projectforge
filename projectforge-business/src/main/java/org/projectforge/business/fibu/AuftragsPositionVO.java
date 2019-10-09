@@ -167,7 +167,9 @@ public class AuftragsPositionVO implements Comparable<AuftragsPositionVO>, Seria
       AuftragsPositionVO other = (AuftragsPositionVO) o;
       if (!Objects.equals(this.getNumber(), other.getNumber()))
         return false;
-      return Objects.equals(this.getAuftragId(), other.getAuftragId());
+      if (!Objects.equals(this.getAuftragId(), other.getAuftragId()))
+        return false;
+      return true;
     }
     return false;
   }

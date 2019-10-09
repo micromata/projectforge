@@ -155,7 +155,10 @@ public class EmployeeDao extends BaseDao<EmployeeDO> {
           final EmployeeDO employee = (EmployeeDO) object;
           if (employee.getEintrittsDatum() != null && now.before(employee.getEintrittsDatum())) {
             return false;
-          } else return employee.getAustrittsDatum() == null || !now.after(employee.getAustrittsDatum());
+          } else if (employee.getAustrittsDatum() != null && now.after(employee.getAustrittsDatum())) {
+            return false;
+          }
+          return true;
         }
       });
     }

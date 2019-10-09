@@ -73,8 +73,11 @@ public class Configuration extends AbstractConfiguration
 
   public boolean isMebConfigured()
   {
-    return StringUtils.isNotEmpty(getStringValue(ConfigurationParam.MEB_SMS_RECEIVING_PHONE_NUMBER))
-        || configurationService.isMebMailAccountConfigured();
+    if (StringUtils.isNotEmpty(getStringValue(ConfigurationParam.MEB_SMS_RECEIVING_PHONE_NUMBER))
+        || configurationService.isMebMailAccountConfigured()) {
+      return true;
+    }
+    return false;
   }
 
   public String getCalendarDomain()

@@ -208,7 +208,10 @@ public class Holidays
       return false;
     }
     final Holiday day = getHolidays(date.getYear()).get(date.getDayOfYear());
-    return day == null || day.isWorkingDay();
+    if (day != null && !day.isWorkingDay()) {
+      return false;
+    }
+    return true;
   }
 
   public boolean isWorkingDay(final ZonedDateTime dateTime)
@@ -218,7 +221,10 @@ public class Holidays
       return false;
     }
     final Holiday day = getHolidays(dateTime.getYear()).get(dateTime.getDayOfYear());
-    return day == null || day.isWorkingDay();
+    if (day != null && !day.isWorkingDay()) {
+      return false;
+    }
+    return true;
   }
 
   public BigDecimal getWorkFraction(final DayHolder date)
