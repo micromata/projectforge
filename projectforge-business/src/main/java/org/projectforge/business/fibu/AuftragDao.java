@@ -374,11 +374,11 @@ public class AuftragDao extends BaseDao<AuftragDO> {
     // special case
     if (auftragsStatuses.contains(AuftragsStatus.ABGESCHLOSSEN)) {
       orCriterions.add(Restrictions.eq("paymentSchedule.reached", true));
-      queryFilter.createAlias("paymentSchedules", "paymentSchedule", JoinType.FULL_JOIN.getJoinTypeValue());
+      queryFilter.createAlias("paymentSchedules", "paymentSchedule", JoinType.FULL_JOIN);
     }
 
     queryFilter
-            .createAlias("positionen", "position", JoinType.FULL_JOIN.getJoinTypeValue())
+            .createAlias("positionen", "position", JoinType.FULL_JOIN)
             .add(Restrictions.or(orCriterions.toArray(new Criterion[orCriterions.size()])));
 
     // check deleted
