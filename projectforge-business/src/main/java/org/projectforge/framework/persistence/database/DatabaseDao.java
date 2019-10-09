@@ -47,6 +47,10 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Root;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -150,7 +154,7 @@ public class DatabaseDao
     final Session session = sessionFactory.getCurrentSession();
     Criteria criteria = createCriteria(session, clazz, settings, true);
     final Long number = (Long) criteria.uniqueResult(); // Get number of objects to re-index (select count(*) from).
-    final boolean scrollMode = number > MIN_REINDEX_ENTRIES_4_USE_SCROLL_MODE ? true : false;
+    final boolean scrollMode = number > MIN_REINDEX_ENTRIES_4_USE_SCROLL_MODE;
     log.info("Starting re-indexing of "
         + number
         + " entries (total number) of type "
@@ -213,7 +217,6 @@ public class DatabaseDao
           //.cacheMode(CacheMode.NORMAL) //
           .threadsToLoadObjects(5) //
           //.threadsForIndexWriter(1) //
-          .threadsForSubsequentFetching(20) //
           .startAndWait();
     } catch (final InterruptedException ex) {
       log.error("Exception encountered while reindexing: " + ex.getMessage(), ex);
