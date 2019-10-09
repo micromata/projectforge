@@ -24,7 +24,6 @@
 package org.projectforge.framework.persistence.entities;
 
 import de.micromata.genome.db.jpa.history.api.WithHistory;
-import org.projectforge.framework.ToStringUtil;
 
 import javax.persistence.MappedSuperclass;
 import java.io.Serializable;

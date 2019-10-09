@@ -23,16 +23,15 @@
 
 package org.projectforge.business.orga;
 
-import java.io.Serializable;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.TimePeriod;
 
-import com.thoughtworks.xstream.annotations.XStreamAlias;
+import java.io.Serializable;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 @XStreamAlias("VisitorbookFilter")
 public class VisitorbookFilter extends BaseSearchFilter implements Serializable

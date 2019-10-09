@@ -23,16 +23,7 @@
 
 package org.projectforge.business.gantt;
 
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Field;
-import java.math.BigDecimal;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.commons.collections.CollectionUtils;
-import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Attribute;
 import org.dom4j.Document;
@@ -48,19 +39,15 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.framework.xstream.AliasMap;
-import org.projectforge.framework.xstream.ProjectForgeRootElement;
-import org.projectforge.framework.xstream.Status;
-import org.projectforge.framework.xstream.XmlConstants;
-import org.projectforge.framework.xstream.XmlField;
-import org.projectforge.framework.xstream.XmlHelper;
-import org.projectforge.framework.xstream.XmlObject;
-import org.projectforge.framework.xstream.XmlObjectReader;
-import org.projectforge.framework.xstream.XmlObjectWriter;
-import org.projectforge.framework.xstream.XmlRegistry;
+import org.projectforge.framework.xstream.*;
 import org.projectforge.framework.xstream.converter.ISODateConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+
+import java.lang.reflect.AccessibleObject;
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.util.*;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

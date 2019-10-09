@@ -23,13 +23,9 @@
 
 package org.projectforge.framework.utils;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
 import org.apache.commons.codec.binary.Base64;
+
+import java.io.*;
 
 /*******************************************************************************************************************************************
  * Helper to encode/decode serializable objects into base64 representation.

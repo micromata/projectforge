@@ -23,17 +23,16 @@
 
 package org.projectforge.business.teamcal.event.ical.converter;
 
+import net.fortuna.ical4j.model.Property;
+import net.fortuna.ical4j.model.component.VEvent;
+import net.fortuna.ical4j.model.property.RecurrenceId;
+import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.projectforge.framework.time.DateHelper;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
-
-import org.projectforge.business.teamcal.event.model.TeamEventDO;
-import org.projectforge.framework.time.DateHelper;
-
-import net.fortuna.ical4j.model.Property;
-import net.fortuna.ical4j.model.component.VEvent;
-import net.fortuna.ical4j.model.property.RecurrenceId;
 
 public class RecurrenceIdConverter extends PropertyConverter
 {

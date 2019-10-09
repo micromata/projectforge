@@ -23,16 +23,16 @@
 
 package org.projectforge.business.teamcal.event.model;
 
+import org.projectforge.business.calendar.event.model.ICalendarEvent;
+import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
+import org.projectforge.framework.time.DateFormats;
+import org.projectforge.framework.utils.NumberHelper;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
-
-import org.projectforge.business.calendar.event.model.ICalendarEvent;
-import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
-import org.projectforge.framework.time.DateFormats;
-import org.projectforge.framework.utils.NumberHelper;
 
 /**
  * Used by {@link TeamCalEventProvider} for handling event id's. The id of {@link TeamEventDO} objects is the data-base

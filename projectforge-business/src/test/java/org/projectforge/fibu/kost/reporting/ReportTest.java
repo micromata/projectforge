@@ -23,19 +23,18 @@
 
 package org.projectforge.fibu.kost.reporting;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.kost.reporting.Report;
 import org.projectforge.business.fibu.kost.reporting.ReportDao;
 import org.projectforge.business.fibu.kost.reporting.ReportObjective;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ReportTest extends AbstractTestBase
 {

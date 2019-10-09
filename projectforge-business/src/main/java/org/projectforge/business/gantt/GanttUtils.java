@@ -23,18 +23,14 @@
 
 package org.projectforge.business.gantt;
 
-import java.io.Serializable;
-import java.math.RoundingMode;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-
-import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.utils.NumberHelper;
+
+import java.io.Serializable;
+import java.math.RoundingMode;
+import java.util.*;
 
 public class GanttUtils
 {

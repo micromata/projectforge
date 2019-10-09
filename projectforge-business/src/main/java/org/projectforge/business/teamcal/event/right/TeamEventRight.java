@@ -23,7 +23,6 @@
 
 package org.projectforge.business.teamcal.event.right;
 
-import java.util.Objects;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
@@ -33,6 +32,8 @@ import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.util.Objects;
 
 /**
  * Every user has access to own to-do's or to-do's he's assigned to. All other users have access if the to-do is

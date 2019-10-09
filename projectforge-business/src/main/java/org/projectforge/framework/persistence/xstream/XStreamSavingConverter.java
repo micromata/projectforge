@@ -23,18 +23,15 @@
 
 package org.projectforge.framework.persistence.xstream;
 
-import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.converters.Converter;
+import com.thoughtworks.xstream.converters.ConverterLookup;
+import com.thoughtworks.xstream.converters.MarshallingContext;
+import com.thoughtworks.xstream.converters.UnmarshallingContext;
+import com.thoughtworks.xstream.io.HierarchicalStreamReader;
+import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
+import de.micromata.genome.db.jpa.history.api.HistoryEntry;
+import de.micromata.hibernate.history.delta.PropertyDelta;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.projectforge.business.user.UserXmlPreferencesDO;
@@ -43,16 +40,10 @@ import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.api.IManualIndex;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
 
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.converters.Converter;
-import com.thoughtworks.xstream.converters.ConverterLookup;
-import com.thoughtworks.xstream.converters.MarshallingContext;
-import com.thoughtworks.xstream.converters.UnmarshallingContext;
-import com.thoughtworks.xstream.io.HierarchicalStreamReader;
-import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
-
-import de.micromata.genome.db.jpa.history.api.HistoryEntry;
-import de.micromata.hibernate.history.delta.PropertyDelta;
+import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
 
 /**
  * Registers all read objects and saves them in the configurable order to the data base.

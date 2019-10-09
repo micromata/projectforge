@@ -23,11 +23,6 @@
 
 package org.projectforge.business.scripting;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.AppVersion;
 import org.projectforge.business.fibu.kost.reporting.ReportGeneratorList;
@@ -41,6 +36,11 @@ import org.projectforge.registry.Registry;
 import org.projectforge.registry.RegistryEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

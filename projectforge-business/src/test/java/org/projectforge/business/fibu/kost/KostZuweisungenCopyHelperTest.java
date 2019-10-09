@@ -23,13 +23,13 @@
 
 package org.projectforge.business.fibu.kost;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+import org.projectforge.business.fibu.RechnungsPositionDO;
+import org.projectforge.test.AbstractTestBase;
 
 import java.math.BigDecimal;
 
-import org.projectforge.business.fibu.RechnungsPositionDO;
-import org.projectforge.test.AbstractTestBase;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class KostZuweisungenCopyHelperTest extends AbstractTestBase
 {

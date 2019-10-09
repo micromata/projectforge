@@ -23,12 +23,12 @@
 
 package org.projectforge.framework.xstream.converter;
 
-import java.io.IOException;
-import java.util.Base64;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.utils.Base64Helper;
 import org.projectforge.framework.xstream.XmlConstants;
+
+import java.io.IOException;
+import java.util.Base64;
 
 public class ByteArrayConverter implements IConverter<byte[]>
 {

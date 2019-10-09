@@ -23,7 +23,6 @@
 
 package org.projectforge.humanresources;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.KundeDao;

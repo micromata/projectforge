@@ -23,18 +23,18 @@
 
 package org.projectforge.business.humanresources;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.framework.persistence.api.IdObject;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.List;
 
 public class HRViewUserData implements Comparable<HRViewUserData>, Serializable, IdObject<Serializable>
 {

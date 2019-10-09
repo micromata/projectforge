@@ -23,13 +23,10 @@
 
 package org.projectforge.framework.persistence.jpa;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.annotation.PostConstruct;
-import javax.persistence.EntityManager;
-import javax.sql.DataSource;
-
+import de.micromata.genome.db.jpa.history.api.HistoryService;
+import de.micromata.genome.db.jpa.history.api.HistoryServiceManager;
+import de.micromata.genome.jpa.EmgrTx;
+import de.micromata.mgc.jpa.hibernatesearch.api.SearchEmgrFactory;
 import org.hibernate.cfg.AvailableSettings;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,10 +34,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
-import de.micromata.genome.db.jpa.history.api.HistoryService;
-import de.micromata.genome.db.jpa.history.api.HistoryServiceManager;
-import de.micromata.genome.jpa.EmgrTx;
-import de.micromata.mgc.jpa.hibernatesearch.api.SearchEmgrFactory;
+import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
+import javax.sql.DataSource;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A factory for creating PfEmgr objects.

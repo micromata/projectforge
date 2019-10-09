@@ -23,11 +23,10 @@
 
 package org.projectforge.business.fibu;
 
-import java.io.Serializable;
-
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
-import com.thoughtworks.xstream.annotations.XStreamAlias;
+import java.io.Serializable;
 
 
 /**

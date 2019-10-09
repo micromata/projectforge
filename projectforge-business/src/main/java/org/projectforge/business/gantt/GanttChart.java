@@ -23,13 +23,6 @@
 
 package org.projectforge.business.gantt;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.export.SVGColor;
@@ -39,6 +32,8 @@ import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.xstream.XmlObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import java.util.*;
 
 @XmlObject(alias = "ganttChart")
 public class GanttChart

@@ -23,11 +23,11 @@
 
 package org.projectforge.business.timesheet;
 
+import org.projectforge.framework.time.DateHolder;
+
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
-
-import org.projectforge.framework.time.DateHolder;
 
 /**
  * Provides some helper methods.

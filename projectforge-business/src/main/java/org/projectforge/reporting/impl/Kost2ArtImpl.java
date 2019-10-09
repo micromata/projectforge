@@ -23,11 +23,11 @@
 
 package org.projectforge.reporting.impl;
 
-import java.io.Serializable;
-
 import org.projectforge.business.fibu.kost.Kost2ArtDO;
 import org.projectforge.common.StringHelper;
 import org.projectforge.reporting.Kost2Art;
+
+import java.io.Serializable;
 
 
 /**

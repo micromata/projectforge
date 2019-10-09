@@ -23,7 +23,6 @@
 
 package org.projectforge.business.user.service;
 
-import org.jetbrains.annotations.NotNull;
 import org.projectforge.business.user.UserPrefCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

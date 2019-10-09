@@ -23,9 +23,9 @@
 
 package org.projectforge.framework.utils;
 
-import java.util.ArrayList;
-
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+
+import java.util.ArrayList;
 
 /**
  * Stores messages in an array. Used by methods as return value.

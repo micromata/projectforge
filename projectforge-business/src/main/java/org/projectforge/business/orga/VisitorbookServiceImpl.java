@@ -23,9 +23,6 @@
 
 package org.projectforge.business.orga;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
@@ -33,6 +30,9 @@ import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImp
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class VisitorbookServiceImpl extends CorePersistenceServiceImpl<Integer, VisitorbookDO>

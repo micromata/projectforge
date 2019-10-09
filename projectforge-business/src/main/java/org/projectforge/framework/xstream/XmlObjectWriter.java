@@ -23,6 +23,13 @@
 
 package org.projectforge.framework.xstream;
 
+import org.apache.commons.lang3.StringUtils;
+import org.dom4j.*;
+import org.dom4j.tree.DefaultCDATA;
+import org.projectforge.common.BeanHelper;
+import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.framework.xstream.converter.IConverter;
+
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -30,17 +37,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.dom4j.Attribute;
-import org.dom4j.Branch;
-import org.dom4j.Document;
-import org.dom4j.DocumentHelper;
-import org.dom4j.Element;
-import org.dom4j.tree.DefaultCDATA;
-import org.projectforge.common.BeanHelper;
-import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.framework.xstream.converter.IConverter;
 
 /**
  * Serializes objects to xml. A simple solution for streaming xml objects and to prevent default values from the xml output (because this

@@ -23,13 +23,13 @@
 
 package org.projectforge.business.user;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class UserRight implements Serializable, ShortDisplayNameCapable
 {

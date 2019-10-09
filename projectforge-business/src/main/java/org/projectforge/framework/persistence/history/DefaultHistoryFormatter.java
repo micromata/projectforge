@@ -23,21 +23,16 @@
 
 package org.projectforge.framework.persistence.history;
 
-import java.text.SimpleDateFormat;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
-import java.util.Set;
-
-import org.apache.commons.text.StringEscapeUtils;
+import de.micromata.genome.db.jpa.history.api.HistoryEntry;
+import de.micromata.hibernate.history.delta.PropertyDelta;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.micromata.genome.db.jpa.history.api.HistoryEntry;
-import de.micromata.hibernate.history.delta.PropertyDelta;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class DefaultHistoryFormatter implements HistoryFormatter
 {

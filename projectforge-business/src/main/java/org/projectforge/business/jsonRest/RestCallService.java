@@ -23,8 +23,6 @@
 
 package org.projectforge.business.jsonRest;
 
-import java.util.Arrays;
-
 import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -36,6 +34,8 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.Arrays;
 
 @Service
 public class RestCallService

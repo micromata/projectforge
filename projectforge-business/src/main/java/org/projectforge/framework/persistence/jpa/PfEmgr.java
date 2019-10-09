@@ -23,12 +23,6 @@
 
 package org.projectforge.framework.persistence.jpa;
 
-import java.util.function.Supplier;
-
-import javax.persistence.EntityManager;
-
-import org.hibernate.Session;
-
 import de.micromata.genome.jpa.EmgrTx;
 import de.micromata.genome.jpa.EntityCopyStatus;
 import de.micromata.genome.jpa.MarkDeletableRecord;
@@ -36,6 +30,10 @@ import de.micromata.genome.jpa.events.EmgrBeforeDeleteEvent;
 import de.micromata.genome.jpa.events.EmgrInitForInsertEvent;
 import de.micromata.mgc.jpa.hibernatesearch.api.SearchEmgrFactory;
 import de.micromata.mgc.jpa.hibernatesearch.impl.SearchEmgr;
+import org.hibernate.Session;
+
+import javax.persistence.EntityManager;
+import java.util.function.Supplier;
 
 /**
  * ProjectForge entity Manager, with modified behaivour.

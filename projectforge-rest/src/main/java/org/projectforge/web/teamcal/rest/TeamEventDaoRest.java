@@ -25,6 +25,7 @@ package org.projectforge.web.teamcal.rest;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
+import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.converter.DOConverter;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
@@ -36,7 +37,6 @@ import org.projectforge.business.teamcal.event.ical.HandleMethod;
 import org.projectforge.business.teamcal.event.ical.ICalGenerator;
 import org.projectforge.business.teamcal.event.ical.ICalHandler;
 import org.projectforge.business.teamcal.event.model.ReminderDurationUnit;
-import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;

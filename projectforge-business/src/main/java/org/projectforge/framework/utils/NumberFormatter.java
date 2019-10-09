@@ -23,11 +23,11 @@
 
 package org.projectforge.framework.utils;
 
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.Locale;
-
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
 public class NumberFormatter
 {

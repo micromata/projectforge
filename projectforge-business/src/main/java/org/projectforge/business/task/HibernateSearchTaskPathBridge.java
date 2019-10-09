@@ -23,13 +23,13 @@
 
 package org.projectforge.business.task;
 
-import java.util.List;
-
 import org.apache.lucene.document.Document;
 import org.hibernate.search.bridge.FieldBridge;
 import org.hibernate.search.bridge.LuceneOptions;
 import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.framework.persistence.database.PfJpaXmlDumpServiceImpl;
+
+import java.util.List;
 
 /**
  * TaskPathBridge for hibernate search to search in the parent task titles.

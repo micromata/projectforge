@@ -23,12 +23,12 @@
 
 package org.projectforge.business.teamcal.event;
 
+import org.projectforge.framework.persistence.api.BaseSearchFilter;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
-
-import org.projectforge.framework.persistence.api.BaseSearchFilter;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)

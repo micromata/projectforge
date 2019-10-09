@@ -23,10 +23,10 @@
 
 package org.projectforge.business.user;
 
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
 import java.io.Serializable;
 import java.util.Comparator;
-
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 public class UsersComparator implements Comparator<PFUserDO>, Serializable
 {

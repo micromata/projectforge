@@ -25,7 +25,6 @@ package org.projectforge.business.ldap;
 
 import org.junit.jupiter.api.Disabled;
 import org.projectforge.test.AbstractTestBase;
-import org.junit.jupiter.api.Test;
 @Disabled
 public class LdapSlaveLoginHandlerTest extends AbstractTestBase
 {/*

@@ -23,22 +23,16 @@
 
 package org.projectforge.business.fibu;
 
-import java.util.Date;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
-import org.projectforge.business.user.ProjectForgeGroup;
-import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.business.user.UserRightAccessCheck;
-import org.projectforge.business.user.UserRightCategory;
-import org.projectforge.business.user.UserRightId;
-import org.projectforge.business.user.UserRightServiceImpl;
-import org.projectforge.business.user.UserRightValue;
+import org.projectforge.business.user.*;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
+
+import java.util.Date;
 
 /**
  * User {@link UserRightValue#PARTLYREADWRITE} for users who are members of FIBU_ORGA_GROUPS <b>and</b> of

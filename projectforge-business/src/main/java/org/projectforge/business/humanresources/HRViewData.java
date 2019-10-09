@@ -23,20 +23,15 @@
 
 package org.projectforge.business.humanresources;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.hibernate.Hibernate;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.io.Serializable;
+import java.util.*;
 
 
 /**

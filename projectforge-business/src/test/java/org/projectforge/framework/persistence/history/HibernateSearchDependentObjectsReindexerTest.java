@@ -23,16 +23,15 @@
 
 package org.projectforge.framework.persistence.history;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.util.List;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.task.TaskDO;
-import org.projectforge.framework.persistence.history.HibernateSearchDependentObjectsReindexer;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefDO;
-import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class HibernateSearchDependentObjectsReindexerTest
 {

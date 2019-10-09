@@ -23,13 +23,6 @@
 
 package org.projectforge.business.vacation.service;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.vacation.model.VacationDO;
@@ -37,6 +30,13 @@ import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.framework.persistence.api.IDao;
 import org.projectforge.framework.persistence.api.IPersistenceService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Access to vacation.

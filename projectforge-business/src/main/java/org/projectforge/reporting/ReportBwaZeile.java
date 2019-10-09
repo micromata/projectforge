@@ -23,9 +23,9 @@
 
 package org.projectforge.reporting;
 
-import java.math.BigDecimal;
-
 import org.projectforge.common.i18n.Priority;
+
+import java.math.BigDecimal;
 
 
 public interface ReportBwaZeile

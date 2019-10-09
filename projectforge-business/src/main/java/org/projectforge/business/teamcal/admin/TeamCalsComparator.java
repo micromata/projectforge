@@ -23,10 +23,10 @@
 
 package org.projectforge.business.teamcal.admin;
 
+import org.projectforge.business.teamcal.admin.model.TeamCalDO;
+
 import java.io.Serializable;
 import java.util.Comparator;
-
-import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 
 public class TeamCalsComparator implements Comparator<TeamCalDO>, Serializable
 {

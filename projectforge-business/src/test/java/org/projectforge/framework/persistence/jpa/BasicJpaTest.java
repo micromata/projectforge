@@ -23,12 +23,12 @@
 
 package org.projectforge.framework.persistence.jpa;
 
-import java.util.List;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 public class BasicJpaTest extends AbstractTestBase
 {

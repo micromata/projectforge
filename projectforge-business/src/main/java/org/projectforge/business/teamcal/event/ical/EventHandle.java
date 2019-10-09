@@ -23,11 +23,11 @@
 
 package org.projectforge.business.teamcal.event.ical;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class EventHandle
 {

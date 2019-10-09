@@ -23,6 +23,21 @@
 
 package org.projectforge.business.fibu.kost.reporting;
 
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.business.fibu.EingangsrechnungDO;
+import org.projectforge.business.fibu.PaymentType;
+import org.projectforge.framework.i18n.UserException;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.generated.*;
+import org.springframework.stereotype.Component;
+import org.xml.sax.SAXException;
+
+import javax.xml.XMLConstants;
+import javax.xml.bind.*;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -30,58 +45,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
-
-import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.hssf.record.crypto.Biff8DecryptingStream;
-import org.projectforge.business.fibu.EingangsrechnungDO;
-import org.projectforge.business.fibu.PaymentType;
-import org.projectforge.business.utils.CurrencyFormatter;
-import org.projectforge.framework.i18n.UserException;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.generated.AccountIdentificationSEPA;
-import org.projectforge.generated.ActiveOrHistoricCurrencyAndAmountSEPA;
-import org.projectforge.generated.ActiveOrHistoricCurrencyCodeEUR;
-import org.projectforge.generated.AmountTypeSEPA;
-import org.projectforge.generated.BranchAndFinancialInstitutionIdentificationSEPA1;
-import org.projectforge.generated.BranchAndFinancialInstitutionIdentificationSEPA3;
-import org.projectforge.generated.CashAccountSEPA1;
-import org.projectforge.generated.CashAccountSEPA2;
-import org.projectforge.generated.CreditTransferTransactionInformationSCT;
-import org.projectforge.generated.CustomerCreditTransferInitiationV03;
-import org.projectforge.generated.Document;
-import org.projectforge.generated.FinancialInstitutionIdentificationSEPA1;
-import org.projectforge.generated.FinancialInstitutionIdentificationSEPA3;
-import org.projectforge.generated.GroupHeaderSCT;
-import org.projectforge.generated.ObjectFactory;
-import org.projectforge.generated.OthrIdentification;
-import org.projectforge.generated.OthrIdentificationCode;
-import org.projectforge.generated.PartyIdentificationSEPA1;
-import org.projectforge.generated.PartyIdentificationSEPA2;
-import org.projectforge.generated.PaymentIdentificationSEPA;
-import org.projectforge.generated.PaymentInstructionInformationSCT;
-import org.projectforge.generated.PaymentMethodSCTCode;
-import org.projectforge.generated.PaymentTypeInformationSCT1;
-import org.projectforge.generated.RemittanceInformationSEPA1Choice;
-import org.projectforge.generated.ServiceLevelSEPA;
-import org.springframework.stereotype.Component;
-import org.xml.sax.SAXException;
 
 /**
  * This component generates and reads transfer files in pain.001.003.03 format.

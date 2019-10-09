@@ -23,18 +23,11 @@
 
 package org.projectforge.framework.persistence.database;
 
-import java.util.Date;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-
 import org.projectforge.Version;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import javax.persistence.*;
+import java.util.Date;
 
 /**
  * Represents data-base updates of ProjectForge core and plugins.

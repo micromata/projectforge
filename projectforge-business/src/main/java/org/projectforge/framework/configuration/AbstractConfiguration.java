@@ -23,18 +23,18 @@
 
 package org.projectforge.framework.configuration;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.framework.cache.AbstractCache;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.xstream.XmlObject;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This class also provides the configuration of the parameters which are stored via ConfigurationDao. Those parameters

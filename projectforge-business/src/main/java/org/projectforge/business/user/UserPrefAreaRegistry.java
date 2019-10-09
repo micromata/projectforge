@@ -23,17 +23,11 @@
 
 package org.projectforge.business.user;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
+
+import java.util.*;
 
 /**
  * All user pref areas. They will shown in the list of 'my settings'.

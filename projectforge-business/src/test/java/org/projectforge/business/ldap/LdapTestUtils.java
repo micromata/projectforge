@@ -23,10 +23,9 @@
 
 package org.projectforge.business.ldap;
 
-import static org.junit.jupiter.api.Assertions.*;
-import org.projectforge.business.ldap.LdapPerson;
-import org.projectforge.business.ldap.LdapUser;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class LdapTestUtils
 {

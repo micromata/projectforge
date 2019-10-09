@@ -23,22 +23,6 @@
 
 package de.micromata.hibernate.history.delta;
 
-import java.beans.BeanInfo;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
@@ -50,6 +34,15 @@ import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.type.CollectionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.beans.BeanInfo;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.util.*;
 
 /**
  * Legacy used for XML persistence of DB.

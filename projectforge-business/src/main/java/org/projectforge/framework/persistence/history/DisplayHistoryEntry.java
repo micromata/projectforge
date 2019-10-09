@@ -23,14 +23,11 @@
 
 package org.projectforge.framework.persistence.history;
 
-import java.io.Serializable;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-
+import de.micromata.genome.db.jpa.history.api.DiffEntry;
+import de.micromata.genome.db.jpa.history.api.HistProp;
+import de.micromata.genome.db.jpa.history.api.HistoryEntry;
+import de.micromata.genome.db.jpa.history.entities.EntityOpType;
+import de.micromata.genome.jpa.metainf.EntityMetadata;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Transformer;
 import org.apache.commons.lang3.StringUtils;
@@ -46,11 +43,9 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberHelper;
 
-import de.micromata.genome.db.jpa.history.api.DiffEntry;
-import de.micromata.genome.db.jpa.history.api.HistProp;
-import de.micromata.genome.db.jpa.history.api.HistoryEntry;
-import de.micromata.genome.db.jpa.history.entities.EntityOpType;
-import de.micromata.genome.jpa.metainf.EntityMetadata;
+import java.io.Serializable;
+import java.sql.Timestamp;
+import java.util.*;
 
 /**
  * For storing the hibernate history entries in flat format.

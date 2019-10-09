@@ -23,6 +23,8 @@
 
 package org.projectforge.mail;
 
+import javax.mail.*;
+import javax.mail.search.FlagTerm;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -30,17 +32,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-
-import javax.mail.Address;
-import javax.mail.FetchProfile;
-import javax.mail.Flags;
-import javax.mail.Folder;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Multipart;
-import javax.mail.Part;
-import javax.mail.Store;
-import javax.mail.search.FlagTerm;
 
 /**
  * Connects to a mail server and receives mails.

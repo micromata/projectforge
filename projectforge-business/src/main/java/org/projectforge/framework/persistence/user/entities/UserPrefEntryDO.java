@@ -23,20 +23,6 @@
 
 package org.projectforge.framework.persistence.user.entities;
 
-import java.io.Serializable;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.persistence.UniqueConstraint;
-
-import java.util.Objects;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.projectforge.framework.persistence.api.BaseDO;
@@ -44,6 +30,10 @@ import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.framework.persistence.user.api.UserPrefParameter;
 import org.projectforge.framework.utils.NumberHelper;
+
+import javax.persistence.*;
+import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Represents a single generic user preference entry.

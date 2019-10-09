@@ -23,14 +23,14 @@
 
 package org.projectforge.business.configuration;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ConfigurationServiceTest extends AbstractTestBase
 {

@@ -23,9 +23,9 @@
 
 package org.projectforge.business.fibu.kost;
 
-import java.util.List;
-
 import org.projectforge.business.fibu.AbstractRechnungsPositionDO;
+
+import java.util.List;
 
 public class KostZuweisungenCopyHelper
 {

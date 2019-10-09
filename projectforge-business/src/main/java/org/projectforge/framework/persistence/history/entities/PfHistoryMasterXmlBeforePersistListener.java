@@ -23,19 +23,18 @@
 
 package org.projectforge.framework.persistence.history.entities;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import de.micromata.genome.db.jpa.xmldump.api.JpaXmlBeforePersistListener;
+import de.micromata.genome.db.jpa.xmldump.api.XmlDumpRestoreContext;
+import de.micromata.genome.jpa.StdRecord;
+import de.micromata.genome.jpa.metainf.EntityMetadata;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.micromata.genome.db.jpa.xmldump.api.JpaXmlBeforePersistListener;
-import de.micromata.genome.db.jpa.xmldump.api.XmlDumpRestoreContext;
-import de.micromata.genome.jpa.StdRecord;
-import de.micromata.genome.jpa.metainf.EntityMetadata;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Restore History entries with new Pks.

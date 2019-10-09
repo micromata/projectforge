@@ -23,20 +23,11 @@
 
 package org.projectforge.framework.persistence.xstream;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
-
-import org.hibernate.collection.internal.PersistentList;
-import org.hibernate.collection.internal.PersistentMap;
-import org.hibernate.collection.internal.PersistentSet;
-import org.hibernate.collection.internal.PersistentSortedMap;
-import org.hibernate.collection.internal.PersistentSortedSet;
-
 import com.thoughtworks.xstream.mapper.Mapper;
 import com.thoughtworks.xstream.mapper.XmlFriendlyMapper;
+import org.hibernate.collection.internal.*;
+
+import java.util.*;
 
 /**
  * Replaces Hibernate 3 specific collections with java.util implementations.

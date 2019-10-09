@@ -23,10 +23,10 @@
 
 package org.projectforge.business.orga;
 
-import java.util.Collection;
-
 import org.projectforge.framework.persistence.api.IDao;
 import org.projectforge.framework.persistence.api.IPersistenceService;
+
+import java.util.Collection;
 
 public interface VisitorbookService extends IPersistenceService<VisitorbookDO>, IDao<VisitorbookDO>
 {

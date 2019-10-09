@@ -23,10 +23,6 @@
 
 package org.projectforge.business.humanresources;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import org.hibernate.criterion.Order;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
@@ -49,6 +45,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * 

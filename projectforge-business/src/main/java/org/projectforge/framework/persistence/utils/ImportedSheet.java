@@ -23,15 +23,10 @@
 
 package org.projectforge.framework.persistence.utils;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-
 import org.apache.commons.collections.CollectionUtils;
+
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * Represents an imported sheet (e. g. MS Excel sheet) containing the bean objects.

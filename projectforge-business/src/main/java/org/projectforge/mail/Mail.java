@@ -23,17 +23,16 @@
 
 package org.projectforge.mail;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 import javax.mail.Message;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Represents a mail. Mails can be received from a MailAccount or can be sent via SendMail.

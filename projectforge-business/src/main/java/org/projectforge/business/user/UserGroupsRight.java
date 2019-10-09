@@ -23,12 +23,12 @@
 
 package org.projectforge.business.user;
 
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 /**
  * Right depending on the member-ship of at least one group.

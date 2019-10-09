@@ -23,13 +23,13 @@
 
 package org.projectforge.common;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.projectforge.framework.utils.KeyValuePairParser;
+
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.util.Map;
-
-import org.projectforge.framework.utils.KeyValuePairParser;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
 public class KeyValuePairParserTest
 {

@@ -23,10 +23,10 @@
 
 package org.projectforge.framework.persistence.api;
 
+import de.micromata.genome.jpa.MarkDeletableRecord;
+
 import java.io.Serializable;
 import java.util.Date;
-
-import de.micromata.genome.jpa.MarkDeletableRecord;
 
 /**
  * Extends BaseDO: Supports extended functionalities: deleted, created and lastUpdate.

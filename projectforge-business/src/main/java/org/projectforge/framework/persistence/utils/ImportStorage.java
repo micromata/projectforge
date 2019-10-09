@@ -23,12 +23,12 @@
 
 package org.projectforge.framework.persistence.utils;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.Validate;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.Validate;
 
 /**
  * Stores the imported data for displaying and committing.

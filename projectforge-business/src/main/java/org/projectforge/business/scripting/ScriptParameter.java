@@ -23,16 +23,15 @@
 
 package org.projectforge.business.scripting;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.Date;
-
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.TimePeriod;
 
-import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Date;
 
 
 public class ScriptParameter implements Serializable

@@ -23,14 +23,14 @@
 
 package org.projectforge.reporting.impl;
 
-import java.util.List;
-
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.ProjektStatus;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.reporting.Kost2Art;
 import org.projectforge.reporting.Kunde;
 import org.projectforge.reporting.Projekt;
+
+import java.util.List;
 
 /**
  * Proxy for ProjektDO;

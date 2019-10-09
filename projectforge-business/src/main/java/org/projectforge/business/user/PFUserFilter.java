@@ -23,9 +23,9 @@
 
 package org.projectforge.business.user;
 
-import java.io.Serializable;
-
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
+
+import java.io.Serializable;
 
 /**
  * 

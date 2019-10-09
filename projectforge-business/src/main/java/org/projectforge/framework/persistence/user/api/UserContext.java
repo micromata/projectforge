@@ -23,12 +23,12 @@
 
 package org.projectforge.framework.persistence.user.api;
 
-import java.io.Serializable;
-
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
+
+import java.io.Serializable;
 
 /**
  * User context for logged-in users. Contains the user and the current tenant (if any) etc.

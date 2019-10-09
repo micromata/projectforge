@@ -23,11 +23,11 @@
 
 package org.projectforge.framework.calendar;
 
-import java.math.BigDecimal;
-
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.projectforge.framework.xstream.XmlField;
 import org.projectforge.framework.xstream.XmlObject;
+
+import java.math.BigDecimal;
 
 /**
  * Used in config.xml for (re-)definition of holidays.

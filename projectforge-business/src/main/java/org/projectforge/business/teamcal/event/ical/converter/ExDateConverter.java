@@ -23,23 +23,18 @@
 
 package org.projectforge.business.teamcal.event.ical.converter;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TimeZone;
-
+import net.fortuna.ical4j.model.*;
+import net.fortuna.ical4j.model.component.VEvent;
+import net.fortuna.ical4j.model.parameter.Value;
+import net.fortuna.ical4j.model.property.ExDate;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.time.DateHelper;
 import org.springframework.util.CollectionUtils;
 
-import net.fortuna.ical4j.model.Date;
-import net.fortuna.ical4j.model.DateList;
-import net.fortuna.ical4j.model.Parameter;
-import net.fortuna.ical4j.model.Property;
-import net.fortuna.ical4j.model.PropertyList;
-import net.fortuna.ical4j.model.component.VEvent;
-import net.fortuna.ical4j.model.parameter.Value;
-import net.fortuna.ical4j.model.property.ExDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TimeZone;
 
 public class ExDateConverter extends PropertyConverter
 {

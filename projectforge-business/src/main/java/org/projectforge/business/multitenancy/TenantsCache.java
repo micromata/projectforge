@@ -23,15 +23,6 @@
 
 package org.projectforge.business.multitenancy;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.framework.cache.AbstractCache;
@@ -44,6 +35,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import java.util.*;
 
 /**
  * Caches the tenants.

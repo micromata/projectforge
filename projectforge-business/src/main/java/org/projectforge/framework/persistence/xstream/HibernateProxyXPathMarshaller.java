@@ -23,13 +23,12 @@
 
 package org.projectforge.framework.persistence.xstream;
 
-import org.hibernate.proxy.HibernateProxy;
-
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.ConverterLookup;
 import com.thoughtworks.xstream.core.ReferenceByXPathMarshaller;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.mapper.Mapper;
+import org.hibernate.proxy.HibernateProxy;
 
 /**
  * http://jira.codehaus.org/browse/XSTR-226

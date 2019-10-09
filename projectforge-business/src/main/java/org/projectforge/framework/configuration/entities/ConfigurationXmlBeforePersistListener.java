@@ -23,14 +23,13 @@
 
 package org.projectforge.framework.configuration.entities;
 
+import de.micromata.genome.db.jpa.xmldump.api.JpaXmlBeforePersistListener;
+import de.micromata.genome.db.jpa.xmldump.api.XmlDumpRestoreContext;
+import de.micromata.genome.jpa.metainf.EntityMetadata;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.framework.configuration.ConfigurationType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import de.micromata.genome.db.jpa.xmldump.api.JpaXmlBeforePersistListener;
-import de.micromata.genome.db.jpa.xmldump.api.XmlDumpRestoreContext;
-import de.micromata.genome.jpa.metainf.EntityMetadata;
 
 /**
  * 

@@ -23,8 +23,6 @@
 
 package org.projectforge.business.user;
 
-import java.util.List;
-
 import org.apache.commons.lang3.Validate;
 import org.hibernate.query.Query;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
@@ -35,6 +33,8 @@ import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * Stores all user persistent objects such as filter settings, personal settings and persists them to the database.

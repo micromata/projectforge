@@ -23,13 +23,13 @@
 
 package org.projectforge.common;
 
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Field;
-import java.util.Locale;
-
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.lang.reflect.AccessibleObject;
+import java.lang.reflect.Field;
+import java.util.Locale;
 
 public class TestHelper
 {

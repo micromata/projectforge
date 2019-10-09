@@ -23,12 +23,11 @@
 
 package org.projectforge.framework.persistence.database;
 
+import com.thoughtworks.xstream.converters.SingleValueConverter;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.api.UserRightService;
-
-import com.thoughtworks.xstream.converters.SingleValueConverter;
 
 /**
  * Converts UserRightId from and to strings.

@@ -23,9 +23,9 @@
 
 package org.projectforge.fibu.kost;
 
-import org.projectforge.business.fibu.kost.KostHelper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.projectforge.business.fibu.kost.KostHelper;
 
 public class KostHelperTest
 {

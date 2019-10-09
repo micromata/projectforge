@@ -23,15 +23,15 @@
 
 package org.projectforge.business.fibu;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Some useful helper methods. That are used in groovy scripts. The static methods are used here because groovy scripts

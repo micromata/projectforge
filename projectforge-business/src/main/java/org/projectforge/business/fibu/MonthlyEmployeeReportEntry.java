@@ -23,11 +23,11 @@
 
 package org.projectforge.business.fibu;
 
-import java.io.Serializable;
-
 import org.projectforge.business.fibu.kost.Kost2ArtDO;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.task.TaskDO;
+
+import java.io.Serializable;
 
 /**
  * Repräsentiert einen Eintrag innerhalb eines Wochenberichts eines Mitarbeiters zu einem Kostenträger (Anzahl Stunden).

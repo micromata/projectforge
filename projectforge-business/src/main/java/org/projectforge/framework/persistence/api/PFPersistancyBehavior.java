@@ -23,11 +23,11 @@
 
 package org.projectforge.framework.persistence.api;
 
-import static java.lang.annotation.ElementType.FIELD;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.FIELD;
 
 /**
  * Annotations for telling ProjectForge how to handle persistency.

@@ -23,26 +23,18 @@
 
 package org.projectforge.framework.i18n;
 
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
-import java.util.Set;
-
-import javax.annotation.PostConstruct;
-
+import de.micromata.genome.util.types.Pair;
 import org.projectforge.Const;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import de.micromata.genome.util.types.Pair;
+import javax.annotation.PostConstruct;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.*;
 
 @Service
 public class I18nServiceImpl implements I18nService

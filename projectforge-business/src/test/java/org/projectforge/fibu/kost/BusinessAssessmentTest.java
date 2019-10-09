@@ -23,17 +23,17 @@
 
 package org.projectforge.fibu.kost;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+import org.projectforge.business.fibu.KontoDO;
+import org.projectforge.business.fibu.kost.BuchungssatzDO;
+import org.projectforge.business.fibu.kost.BusinessAssessment;
+import org.projectforge.business.fibu.kost.BusinessAssessmentConfig;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.projectforge.business.fibu.KontoDO;
-import org.projectforge.business.fibu.kost.BuchungssatzDO;
-import org.projectforge.business.fibu.kost.BusinessAssessment;
-import org.projectforge.business.fibu.kost.BusinessAssessmentConfig;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class BusinessAssessmentTest
 {

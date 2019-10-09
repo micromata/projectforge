@@ -23,11 +23,10 @@
 
 package org.projectforge.continuousdb.jdbc;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-
-import javax.sql.DataSource;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

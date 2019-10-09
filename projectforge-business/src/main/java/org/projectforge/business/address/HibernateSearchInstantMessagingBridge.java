@@ -23,10 +23,10 @@
 
 package org.projectforge.business.address;
 
-import java.util.List;
-
 import org.hibernate.search.bridge.StringBridge;
 import org.projectforge.framework.utils.LabelValueBean;
+
+import java.util.List;
 
 
 /**

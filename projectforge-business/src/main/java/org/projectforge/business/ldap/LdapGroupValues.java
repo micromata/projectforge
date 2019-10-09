@@ -23,10 +23,10 @@
 
 package org.projectforge.business.ldap;
 
-import java.io.Serializable;
-
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.xstream.XmlObject;
+
+import java.io.Serializable;
 
 /**
  * Bean used for serialization and deserialization of the ldap values as xml string in {@link GroupDO#getLdapValues()} ConfigXML

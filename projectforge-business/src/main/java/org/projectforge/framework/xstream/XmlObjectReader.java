@@ -23,18 +23,6 @@
 
 package org.projectforge.framework.xstream;
 
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Attribute;
@@ -42,6 +30,10 @@ import org.dom4j.Element;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.xstream.converter.IConverter;
+
+import java.lang.reflect.AccessibleObject;
+import java.lang.reflect.Field;
+import java.util.*;
 
 /**
  * Parses objects serialized by the XmlObjectWriter. Uses the dom4j.

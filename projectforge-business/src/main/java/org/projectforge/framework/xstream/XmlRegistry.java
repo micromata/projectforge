@@ -23,30 +23,11 @@
 
 package org.projectforge.framework.xstream;
 
-import java.math.BigDecimal;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimeZone;
-
 import org.projectforge.Version;
-import org.projectforge.framework.xstream.converter.BigDecimalConverter;
-import org.projectforge.framework.xstream.converter.BooleanConverter;
-import org.projectforge.framework.xstream.converter.ByteArrayConverter;
-import org.projectforge.framework.xstream.converter.ClassConverter;
-import org.projectforge.framework.xstream.converter.DateConverter;
-import org.projectforge.framework.xstream.converter.DoubleConverter;
-import org.projectforge.framework.xstream.converter.IConverter;
-import org.projectforge.framework.xstream.converter.IntConverter;
-import org.projectforge.framework.xstream.converter.LocaleConverter;
-import org.projectforge.framework.xstream.converter.LongConverter;
-import org.projectforge.framework.xstream.converter.ShortConverter;
-import org.projectforge.framework.xstream.converter.StringConverter;
-import org.projectforge.framework.xstream.converter.TimeZoneConverter;
-import org.projectforge.framework.xstream.converter.VersionConverter;
+import org.projectforge.framework.xstream.converter.*;
+
+import java.math.BigDecimal;
+import java.util.*;
 
 /**
  * There is one singleton instance used for default mappings, aliases etc.

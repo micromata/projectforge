@@ -23,18 +23,14 @@
 
 package org.projectforge.business.fibu;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-
 import org.projectforge.framework.cache.AbstractCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Component;
+
+import java.util.*;
 
 /**
  * Caches the order positions assigned to invoice positions.

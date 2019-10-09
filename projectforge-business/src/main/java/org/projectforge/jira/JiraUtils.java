@@ -23,14 +23,14 @@
 
 package org.projectforge.jira;
 
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.framework.configuration.ConfigXml;
+import org.projectforge.framework.configuration.Configuration;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringUtils;
-import org.projectforge.framework.configuration.ConfigXml;
-import org.projectforge.framework.configuration.Configuration;
 
 public class JiraUtils
 {

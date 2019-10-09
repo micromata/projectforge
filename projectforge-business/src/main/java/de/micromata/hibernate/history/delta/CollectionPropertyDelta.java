@@ -23,15 +23,11 @@
 
 package de.micromata.hibernate.history.delta;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
+
+import java.util.*;
 
 /**
  * Legacy used for XML persistence of DB.

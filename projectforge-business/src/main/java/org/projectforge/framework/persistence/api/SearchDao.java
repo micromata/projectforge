@@ -23,12 +23,12 @@
 
 package org.projectforge.framework.persistence.api;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de) TODO RK check if needed and may replace

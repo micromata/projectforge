@@ -23,26 +23,18 @@
 
 package org.projectforge.framework.persistence.utils;
 
-import java.io.Serializable;
-import java.lang.reflect.Method;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
+import de.micromata.hibernate.history.delta.PropertyDelta;
+import de.micromata.hibernate.history.delta.SimplePropertyDelta;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
-import java.util.Objects;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable;
 import org.projectforge.framework.utils.NumberHelper;
 
-import de.micromata.hibernate.history.delta.PropertyDelta;
-import de.micromata.hibernate.history.delta.SimplePropertyDelta;
+import java.io.Serializable;
+import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.util.*;
 
 /**
  * Stores one imported object (e. g. MS Excel row as bean object). It also contains information about the status: New object or modified

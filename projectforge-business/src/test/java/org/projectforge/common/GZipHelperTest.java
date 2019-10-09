@@ -23,9 +23,9 @@
 
 package org.projectforge.common;
 
-import org.projectforge.framework.utils.GZIPHelper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.projectforge.framework.utils.GZIPHelper;
 
 public class GZipHelperTest
 {

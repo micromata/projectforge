@@ -23,12 +23,12 @@
 
 package org.projectforge.business.fibu;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.statistics.IntAggregatedValues;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
 
 public class AbstractRechnungsStatistik<T extends AbstractRechnungDO<?>> implements Serializable
 {

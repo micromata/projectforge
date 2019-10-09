@@ -23,17 +23,16 @@
 
 package org.projectforge.core;
 
-import java.util.Set;
-
+import de.micromata.genome.db.jpa.history.api.HistoryServiceManager;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
-import de.micromata.genome.db.jpa.history.api.HistoryServiceManager;
+import java.util.Set;
 
 public class AbstractHistorizableBaseDOTest extends AbstractTestBase
 {

@@ -23,10 +23,10 @@
 
 package org.projectforge.business.teamcal.event;
 
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
+
 import java.io.Serializable;
 import java.util.Comparator;
-
-import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 
 public class AttendeeComparator implements Comparator<TeamEventAttendeeDO>, Serializable
 {

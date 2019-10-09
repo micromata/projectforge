@@ -23,33 +23,18 @@
 
 package org.projectforge.business.orga;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-
+import de.micromata.genome.db.jpa.history.api.HistoryProperty;
+import de.micromata.genome.db.jpa.history.impl.TimependingHistoryPropertyConverter;
+import de.micromata.genome.db.jpa.tabattr.api.EntityWithConfigurableAttr;
+import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr;
+import de.micromata.genome.jpa.ComplexEntity;
+import de.micromata.genome.jpa.ComplexEntityVisitor;
+import de.micromata.mgc.jpa.hibernatesearch.api.HibernateSearchInfo;
+import de.micromata.mgc.jpa.hibernatesearch.bridges.TimeableListFieldBridge;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
-import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.FieldBridge;
+import org.hibernate.search.annotations.*;
 import org.hibernate.search.annotations.Index;
-import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.IndexedEmbedded;
-import org.hibernate.search.annotations.Store;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.api.AUserRightId;
@@ -61,14 +46,12 @@ import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.micromata.genome.db.jpa.history.api.HistoryProperty;
-import de.micromata.genome.db.jpa.history.impl.TimependingHistoryPropertyConverter;
-import de.micromata.genome.db.jpa.tabattr.api.EntityWithConfigurableAttr;
-import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr;
-import de.micromata.genome.jpa.ComplexEntity;
-import de.micromata.genome.jpa.ComplexEntityVisitor;
-import de.micromata.mgc.jpa.hibernatesearch.api.HibernateSearchInfo;
-import de.micromata.mgc.jpa.hibernatesearch.bridges.TimeableListFieldBridge;
+import javax.persistence.*;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 @Indexed

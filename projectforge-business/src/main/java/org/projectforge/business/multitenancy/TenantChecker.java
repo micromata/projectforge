@@ -23,8 +23,6 @@
 
 package org.projectforge.business.multitenancy;
 
-import java.io.Serializable;
-
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.configuration.GlobalConfiguration;
 import org.projectforge.framework.persistence.api.BaseDO;
@@ -35,6 +33,8 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.io.Serializable;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

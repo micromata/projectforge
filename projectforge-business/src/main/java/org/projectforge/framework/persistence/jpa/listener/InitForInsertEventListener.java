@@ -23,15 +23,14 @@
 
 package org.projectforge.framework.persistence.jpa.listener;
 
+import de.micromata.genome.jpa.DbRecord;
+import de.micromata.genome.jpa.events.EmgrEventHandler;
+import de.micromata.genome.jpa.events.EmgrInitForInsertEvent;
 import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.framework.persistence.api.ExtendedBaseDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import de.micromata.genome.jpa.DbRecord;
-import de.micromata.genome.jpa.events.EmgrEventHandler;
-import de.micromata.genome.jpa.events.EmgrInitForInsertEvent;
 
 /**
  * Bookkeeping of created and lastupdate fields.

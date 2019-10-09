@@ -23,16 +23,15 @@
 
 package org.projectforge.framework.persistence.history;
 
-import java.util.Date;
-
+import de.micromata.genome.db.jpa.history.api.HistoryEntry;
+import de.micromata.genome.db.jpa.history.entities.EntityOpType;
+import de.micromata.hibernate.history.delta.PropertyDelta;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
 
-import de.micromata.genome.db.jpa.history.api.HistoryEntry;
-import de.micromata.genome.db.jpa.history.entities.EntityOpType;
-import de.micromata.hibernate.history.delta.PropertyDelta;
+import java.util.Date;
 
 /**
  * For storing the hibernate history entries in flat format.

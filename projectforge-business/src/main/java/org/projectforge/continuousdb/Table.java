@@ -23,6 +23,10 @@
 
 package org.projectforge.continuousdb;
 
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.common.BeanHelper;
+
+import javax.persistence.*;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
@@ -30,15 +34,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.persistence.DiscriminatorColumn;
-import javax.persistence.DiscriminatorType;
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
-import javax.persistence.UniqueConstraint;
-
-import org.apache.commons.lang3.StringUtils;
-import org.projectforge.common.BeanHelper;
 
 /**
  * Represents one attribute of a table (e. g. for creation).

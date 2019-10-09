@@ -23,8 +23,8 @@
 
 package org.projectforge.timesheet;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.timesheet.TimesheetDO;
@@ -35,12 +35,10 @@ import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.junit.jupiter.api.Test;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -48,7 +46,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 public class TimesheetTestFork extends AbstractTestBase {
   // private static final Logger log = Logger.getLogger(TaskTest.class);
   @Autowired

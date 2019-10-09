@@ -23,32 +23,11 @@
 
 package org.projectforge.business.teamcal.event.ical;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.projectforge.business.teamcal.event.ical.converter.AlarmConverter;
-import org.projectforge.business.teamcal.event.ical.converter.AttendeeConverter;
-import org.projectforge.business.teamcal.event.ical.converter.CreatedConverter;
-import org.projectforge.business.teamcal.event.ical.converter.DTEndConverter;
-import org.projectforge.business.teamcal.event.ical.converter.DTStampConverter;
-import org.projectforge.business.teamcal.event.ical.converter.DTStartConverter;
-import org.projectforge.business.teamcal.event.ical.converter.DescriptionConverter;
-import org.projectforge.business.teamcal.event.ical.converter.ExDateConverter;
-import org.projectforge.business.teamcal.event.ical.converter.LastModifiedConverter;
-import org.projectforge.business.teamcal.event.ical.converter.LocationConverter;
-import org.projectforge.business.teamcal.event.ical.converter.OrganizerConverter;
-import org.projectforge.business.teamcal.event.ical.converter.RRuleConverter;
-import org.projectforge.business.teamcal.event.ical.converter.RecurrenceIdConverter;
-import org.projectforge.business.teamcal.event.ical.converter.SequenceConverter;
-import org.projectforge.business.teamcal.event.ical.converter.SummaryConverter;
-import org.projectforge.business.teamcal.event.ical.converter.TransparencyConverter;
-import org.projectforge.business.teamcal.event.ical.converter.UidConverter;
-
 import net.fortuna.ical4j.model.TimeZoneRegistry;
 import net.fortuna.ical4j.model.TimeZoneRegistryFactory;
+import org.projectforge.business.teamcal.event.ical.converter.*;
+
+import java.util.*;
 
 public class ICalConverterStore
 {

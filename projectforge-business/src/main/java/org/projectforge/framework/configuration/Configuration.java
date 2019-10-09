@@ -23,9 +23,6 @@
 
 package org.projectforge.framework.configuration;
 
-import java.util.List;
-import java.util.TimeZone;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.configuration.ConfigurationService;
@@ -37,6 +34,9 @@ import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.xstream.XmlObject;
+
+import java.util.List;
+import java.util.TimeZone;
 
 /**
  * This class also provides the configuration of the parameters which are stored via ConfigurationDao. Those parameters

@@ -23,9 +23,9 @@
 
 package org.projectforge.business.teamcal.filter;
 
-import java.io.Serializable;
-
 import org.joda.time.DateMidnight;
+
+import java.io.Serializable;
 
 /**
  * Some settings for the SelectDateAction stored in the flow scope (configurable by the caller).

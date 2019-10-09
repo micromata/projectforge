@@ -23,11 +23,11 @@
 
 package org.projectforge.business.multitenancy;
 
-import java.io.Serializable;
-import java.util.Comparator;
-
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.utils.StringComparator;
+
+import java.io.Serializable;
+import java.util.Comparator;
 
 public class TenantsComparator implements Comparator<TenantDO>, Serializable
 {

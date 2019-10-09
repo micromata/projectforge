@@ -23,14 +23,11 @@
 
 package org.projectforge.business.meb;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.Date;
-
-import javax.mail.Flags;
-import javax.mail.MessagingException;
-
+import de.micromata.genome.logging.GLog;
+import de.micromata.genome.logging.GenomeLogCategory;
+import de.micromata.genome.logging.ValMessageLogAttribute;
+import de.micromata.genome.util.validation.ValContext;
+import de.micromata.mgc.email.MailReceiverLocalSettingsConfigModel;
 import org.projectforge.mail.Mail;
 import org.projectforge.mail.MailAccount;
 import org.projectforge.mail.MailFilter;
@@ -39,11 +36,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Controller;
 
-import de.micromata.genome.logging.GLog;
-import de.micromata.genome.logging.GenomeLogCategory;
-import de.micromata.genome.logging.ValMessageLogAttribute;
-import de.micromata.genome.util.validation.ValContext;
-import de.micromata.mgc.email.MailReceiverLocalSettingsConfigModel;
+import javax.mail.Flags;
+import javax.mail.MessagingException;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.Date;
 
 /**
  * Gets the messages from a mail account and assigns them to the MEB user's inboxes.

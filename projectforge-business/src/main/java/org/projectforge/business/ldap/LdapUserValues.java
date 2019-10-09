@@ -23,12 +23,12 @@
 
 package org.projectforge.business.ldap;
 
-import java.io.Serializable;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.xstream.XmlField;
 import org.projectforge.framework.xstream.XmlObject;
+
+import java.io.Serializable;
 
 /**
  * Bean used for serialization and deserialization of the ldap values as xml string in {@link PFUserDO#getLdapValues()} ConfigXML

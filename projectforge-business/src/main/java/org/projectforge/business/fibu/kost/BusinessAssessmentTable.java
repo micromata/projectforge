@@ -23,10 +23,10 @@
 
 package org.projectforge.business.fibu.kost;
 
+import org.projectforge.framework.utils.LabelValueBean;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import org.projectforge.framework.utils.LabelValueBean;
 
 /**
  * Stores multiple business assessments in a list. A table with different business assessment columns can be used.

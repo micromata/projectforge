@@ -23,11 +23,11 @@
 
 package org.projectforge.business.teamcal.event.ical.converter;
 
-import java.net.URI;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-
+import net.fortuna.ical4j.model.Parameter;
+import net.fortuna.ical4j.model.PropertyList;
+import net.fortuna.ical4j.model.component.VEvent;
+import net.fortuna.ical4j.model.parameter.*;
+import net.fortuna.ical4j.model.property.Attendee;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
@@ -35,15 +35,10 @@ import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import net.fortuna.ical4j.model.Parameter;
-import net.fortuna.ical4j.model.PropertyList;
-import net.fortuna.ical4j.model.component.VEvent;
-import net.fortuna.ical4j.model.parameter.Cn;
-import net.fortuna.ical4j.model.parameter.CuType;
-import net.fortuna.ical4j.model.parameter.PartStat;
-import net.fortuna.ical4j.model.parameter.Role;
-import net.fortuna.ical4j.model.parameter.Rsvp;
-import net.fortuna.ical4j.model.property.Attendee;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 public class AttendeeConverter extends PropertyConverter
 {

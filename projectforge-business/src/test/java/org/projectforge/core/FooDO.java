@@ -23,10 +23,10 @@
 
 package org.projectforge.core;
 
-import java.util.Collection;
-
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
+
+import java.util.Collection;
 
 
 public class FooDO extends DefaultBaseDO

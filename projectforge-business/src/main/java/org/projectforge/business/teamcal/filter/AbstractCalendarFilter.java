@@ -23,9 +23,8 @@
 
 package org.projectforge.business.teamcal.filter;
 
-import org.joda.time.DateMidnight;
-
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import org.joda.time.DateMidnight;
 
 /**
  * Will be removed when Wicket filter is replaced by React filter in ProjectForge version 7.

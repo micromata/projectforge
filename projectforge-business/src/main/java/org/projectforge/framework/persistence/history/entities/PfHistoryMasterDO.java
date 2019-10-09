@@ -23,36 +23,19 @@
 
 package org.projectforge.framework.persistence.history.entities;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.Map;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Index;
-import javax.persistence.MapKey;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-
-import org.hibernate.search.annotations.Analyze;
-import org.hibernate.search.annotations.ClassBridge;
-import org.hibernate.search.annotations.DateBridge;
-import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.Resolution;
-import org.hibernate.search.annotations.Store;
-
 import de.micromata.genome.db.jpa.history.entities.HistoryMasterBaseDO;
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO;
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO;
 import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist;
 import de.micromata.mgc.jpa.hibernatesearch.api.HibernateSearchInfo;
 import de.micromata.mgc.jpa.hibernatesearch.bridges.HistoryMasterClassBridge;
+import org.hibernate.search.annotations.*;
+
+import javax.persistence.*;
+import javax.persistence.Index;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Map;
 
 /**
  * Stores history.

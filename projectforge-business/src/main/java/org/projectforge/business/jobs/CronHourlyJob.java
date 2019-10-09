@@ -23,8 +23,6 @@
 
 package org.projectforge.business.jobs;
 
-import java.util.Calendar;
-
 import org.projectforge.framework.persistence.api.ReindexSettings;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
@@ -33,6 +31,8 @@ import org.projectforge.framework.time.DateHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import java.util.Calendar;
 
 /**
  * Job should be scheduled hourly.

@@ -23,10 +23,9 @@
 
 package org.projectforge.framework.persistence.jpa.impl;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-
+import de.micromata.genome.logging.GenomeLogCategory;
+import de.micromata.genome.logging.LogLevel;
+import de.micromata.genome.logging.LoggedRuntimeException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.ExtendedBaseDO;
 import org.projectforge.framework.persistence.api.FallbackBaseDaoService;
@@ -34,9 +33,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
-import de.micromata.genome.logging.GenomeLogCategory;
-import de.micromata.genome.logging.LogLevel;
-import de.micromata.genome.logging.LoggedRuntimeException;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Implementation of FallbackBaseDaoService.

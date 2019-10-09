@@ -23,12 +23,12 @@
 
 package org.projectforge.business.orga;
 
-import java.io.Serializable;
-
 import org.projectforge.framework.persistence.utils.ReflectionToString;
 import org.projectforge.framework.utils.ILabelValueBean;
 import org.projectforge.framework.xstream.XmlField;
 import org.projectforge.framework.xstream.XmlObject;
+
+import java.io.Serializable;
 
 /**
  * Can't use LabelValueBean because XStream doesn't support generics (does it?).

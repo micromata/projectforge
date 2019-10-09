@@ -23,6 +23,8 @@
 
 package org.projectforge.business.ldap;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -32,9 +34,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.cert.CertificateException;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
 
 /**
  * http://docs.oracle.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html

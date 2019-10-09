@@ -23,23 +23,6 @@
 
 package org.projectforge.business.user.filter;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.Locale;
-
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import org.projectforge.Const;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -52,6 +35,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
+
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.Locale;
 
 /**
  * Ensures that an user is logged in and put the user id, locale and ip to the logging mdc.<br/>

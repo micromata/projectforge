@@ -23,21 +23,6 @@
 
 package org.projectforge.framework.persistence.attr.entities;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.stream.Stream;
-
-import javax.persistence.MappedSuperclass;
-import javax.persistence.Transient;
-
-import org.apache.commons.lang3.StringUtils;
-import org.projectforge.framework.persistence.api.BaseDO;
-import org.projectforge.framework.persistence.api.ModificationStatus;
-import org.projectforge.framework.persistence.entities.DefaultBaseDO;
-
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithAttributes;
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO;
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO;
@@ -46,6 +31,19 @@ import de.micromata.genome.jpa.ComplexEntityVisitor;
 import de.micromata.genome.util.strings.converter.StandardStringConverter;
 import de.micromata.genome.util.strings.converter.StringConverter;
 import de.micromata.genome.util.types.Pair;
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.framework.persistence.api.BaseDO;
+import org.projectforge.framework.persistence.api.ModificationStatus;
+import org.projectforge.framework.persistence.entities.DefaultBaseDO;
+
+import javax.persistence.MappedSuperclass;
+import javax.persistence.Transient;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Stream;
 
 /**
  * @author Florian Blumenstein (f.blumenstein@micromata.de)

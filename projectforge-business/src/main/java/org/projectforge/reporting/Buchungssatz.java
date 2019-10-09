@@ -23,10 +23,10 @@
 
 package org.projectforge.reporting;
 
+import org.projectforge.business.fibu.kost.SHType;
+
 import java.math.BigDecimal;
 import java.util.Date;
-
-import org.projectforge.business.fibu.kost.SHType;
 
 
 /**

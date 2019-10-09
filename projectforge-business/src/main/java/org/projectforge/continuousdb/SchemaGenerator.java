@@ -23,17 +23,12 @@
 
 package org.projectforge.continuousdb;
 
-import java.util.LinkedList;
-import java.util.List;
-
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
-import javax.persistence.OrderColumn;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.projectforge.framework.persistence.database.DatabaseService;
+
+import javax.persistence.*;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * 

@@ -23,9 +23,9 @@
 
 package org.projectforge.framework.configuration;
 
-import java.util.TimeZone;
-
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
+
+import java.util.TimeZone;
 
 /**
  * Configuration parameter class.

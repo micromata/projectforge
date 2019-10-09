@@ -23,14 +23,14 @@
 
 package org.projectforge.business.humanresources;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.framework.utils.NumberHelper;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 
 public class HRViewUserEntryData implements Comparable<HRViewUserEntryData>, Serializable

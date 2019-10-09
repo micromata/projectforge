@@ -23,21 +23,15 @@
 
 package org.projectforge.framework.persistence.jpa.impl;
 
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
-
+import de.micromata.genome.jpa.EntityCopyStatus;
+import de.micromata.genome.jpa.MarkDeletableRecord;
+import de.micromata.genome.util.bean.PrivateBeanUtils;
+import de.micromata.genome.util.runtime.ClassUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
-import org.projectforge.framework.persistence.api.AUserRightId;
-import org.projectforge.framework.persistence.api.BaseSearchFilter;
-import org.projectforge.framework.persistence.api.ICorePersistenceService;
-import org.projectforge.framework.persistence.api.IDao;
-import org.projectforge.framework.persistence.api.IUserRightId;
-import org.projectforge.framework.persistence.api.ModificationStatus;
-import org.projectforge.framework.persistence.api.UserRightService;
+import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -45,10 +39,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import de.micromata.genome.jpa.EntityCopyStatus;
-import de.micromata.genome.jpa.MarkDeletableRecord;
-import de.micromata.genome.util.bean.PrivateBeanUtils;
-import de.micromata.genome.util.runtime.ClassUtils;
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * 

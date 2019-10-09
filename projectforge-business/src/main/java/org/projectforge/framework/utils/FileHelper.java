@@ -23,10 +23,10 @@
 
 package org.projectforge.framework.utils;
 
+import org.projectforge.framework.time.DateHelper;
+
 import java.io.File;
 import java.util.Date;
-
-import org.projectforge.framework.time.DateHelper;
 
 /**
  * Some helper methods ...

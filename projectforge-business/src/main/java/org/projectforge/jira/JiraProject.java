@@ -23,9 +23,9 @@
 
 package org.projectforge.jira;
 
-import java.io.Serializable;
-
 import org.projectforge.framework.persistence.user.api.UserPrefParameter;
+
+import java.io.Serializable;
 
 /**
  * Favorite entry for a JIRA-Project.

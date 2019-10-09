@@ -23,8 +23,6 @@
 
 package org.projectforge.business.fibu.kost;
 
-import java.util.List;
-
 import org.hibernate.criterion.Order;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.BaseDao;
@@ -32,6 +30,8 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 @Repository
 public class Kost2ArtDao extends BaseDao<Kost2ArtDO>

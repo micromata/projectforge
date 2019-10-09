@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.configuration;
 
-import org.projectforge.framework.configuration.Configuration;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

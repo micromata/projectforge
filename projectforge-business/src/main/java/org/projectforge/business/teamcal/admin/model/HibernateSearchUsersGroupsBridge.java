@@ -23,9 +23,6 @@
 
 package org.projectforge.business.teamcal.admin.model;
 
-import java.util.Collection;
-import java.util.TreeSet;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Document;
 import org.hibernate.search.bridge.FieldBridge;
@@ -42,6 +39,9 @@ import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.context.ApplicationContext;
+
+import java.util.Collection;
+import java.util.TreeSet;
 
 /**
  * Users and groups bridge for hibernate search.

@@ -23,12 +23,12 @@
 
 package org.projectforge.business.meb;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.projectforge.framework.cache.AbstractCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The number of recent MEB entries is cached. Accessible via MebDao.

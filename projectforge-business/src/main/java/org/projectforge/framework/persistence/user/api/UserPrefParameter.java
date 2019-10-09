@@ -23,11 +23,11 @@
 
 package org.projectforge.framework.persistence.user.api;
 
-import static java.lang.annotation.ElementType.FIELD;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.FIELD;
 
 /**
  * An user preference parameter is a parameter which can be stored via UserPrefDao in the data base. It's used e. g. for storing favorite

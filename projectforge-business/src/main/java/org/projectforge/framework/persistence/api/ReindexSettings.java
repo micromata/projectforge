@@ -23,9 +23,9 @@
 
 package org.projectforge.framework.persistence.api;
 
-import java.util.Date;
-
 import org.projectforge.framework.persistence.utils.ReflectionToString;
+
+import java.util.Date;
 
 
 public class ReindexSettings

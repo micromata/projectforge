@@ -23,11 +23,11 @@
 
 package org.projectforge.business.humanresources;
 
-import java.io.Serializable;
-import java.util.Date;
-
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.time.TimePeriod;
+
+import java.io.Serializable;
+import java.util.Date;
 
 
 /**

@@ -23,11 +23,11 @@
 
 package org.projectforge.export;
 
-import java.io.IOException;
-import java.io.OutputStream;
-
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
+
+import java.io.IOException;
+import java.io.OutputStream;
 
 public class ExportJFreeChart
 {

@@ -23,14 +23,14 @@
 
 package org.projectforge.calendar;
 
+import org.projectforge.framework.time.DateFormats;
+import org.projectforge.framework.time.DateHelper;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.TimeZone;
-
-import org.projectforge.framework.time.DateFormats;
-import org.projectforge.framework.time.DateHelper;
 
 /**
  * Some date and calender helper methods for test cases.

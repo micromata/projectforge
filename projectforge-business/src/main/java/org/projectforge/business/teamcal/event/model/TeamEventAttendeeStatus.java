@@ -23,10 +23,9 @@
 
 package org.projectforge.business.teamcal.event.model;
 
+import net.fortuna.ical4j.model.parameter.PartStat;
 import org.projectforge.common.i18n.I18nEnum;
 import org.projectforge.framework.i18n.I18nHelper;
-
-import net.fortuna.ical4j.model.parameter.PartStat;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

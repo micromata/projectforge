@@ -24,11 +24,11 @@
 package org.projectforge.business.ldap;
 
 import org.springframework.stereotype.Service;
-import java.util.List;
 
 import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.ModificationItem;
+import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

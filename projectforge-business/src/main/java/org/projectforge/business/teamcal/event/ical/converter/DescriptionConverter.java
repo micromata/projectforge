@@ -23,12 +23,11 @@
 
 package org.projectforge.business.teamcal.event.ical.converter;
 
-import org.apache.commons.lang3.StringUtils;
-import org.projectforge.business.teamcal.event.model.TeamEventDO;
-
 import net.fortuna.ical4j.model.Property;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.Description;
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.business.teamcal.event.model.TeamEventDO;
 
 public class DescriptionConverter extends PropertyConverter
 {

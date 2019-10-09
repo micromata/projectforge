@@ -23,13 +23,13 @@
 
 package org.projectforge.business.user;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.framework.persistence.database.XmlDumpHook;
 import org.projectforge.framework.persistence.xstream.XStreamSavingConverter;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 

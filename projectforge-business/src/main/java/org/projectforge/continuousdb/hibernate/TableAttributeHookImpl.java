@@ -23,10 +23,10 @@
 
 package org.projectforge.continuousdb.hibernate;
 
-import java.lang.reflect.AccessibleObject;
-
 import org.projectforge.continuousdb.TableAttributeHook;
 import org.projectforge.continuousdb.TableAttributeType;
+
+import java.lang.reflect.AccessibleObject;
 
 /**
  * Represents one attribute of a table (e. g. for creation).

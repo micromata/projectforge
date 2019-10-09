@@ -23,9 +23,6 @@
 
 package org.projectforge.business.gantt;
 
-import java.util.Calendar;
-import java.util.Date;
-
 import org.projectforge.export.SVGColor;
 import org.projectforge.export.SVGHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -34,6 +31,9 @@ import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.time.DayHolder;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import java.util.Calendar;
+import java.util.Date;
 
 public class GanttChartXLabelBarRenderer
 {

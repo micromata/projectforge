@@ -23,10 +23,6 @@
 
 package org.projectforge.business.teamcal.admin;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.criterion.Order;
 import org.projectforge.business.group.service.GroupService;
@@ -51,6 +47,10 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * 

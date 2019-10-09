@@ -23,10 +23,10 @@
 
 package org.projectforge.business.group.service;
 
+import org.projectforge.framework.persistence.user.entities.GroupDO;
+
 import java.util.Collection;
 import java.util.List;
-
-import org.projectforge.framework.persistence.user.entities.GroupDO;
 
 public interface GroupService
 {

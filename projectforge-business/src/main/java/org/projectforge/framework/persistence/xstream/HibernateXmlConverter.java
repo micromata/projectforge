@@ -23,11 +23,12 @@
 
 package org.projectforge.framework.persistence.xstream;
 
-import java.io.IOException;
-import java.io.Writer;
-import java.util.*;
-import java.util.stream.Collectors;
-
+import com.thoughtworks.xstream.MarshallingStrategy;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.converters.reflection.PureJavaReflectionProvider;
+import com.thoughtworks.xstream.io.xml.CompactWriter;
+import com.thoughtworks.xstream.io.xml.PrettyPrintWriter;
+import com.thoughtworks.xstream.mapper.MapperWrapper;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.PredicateUtils;
 import org.apache.commons.io.output.NullWriter;
@@ -43,16 +44,13 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import com.thoughtworks.xstream.MarshallingStrategy;
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.converters.reflection.PureJavaReflectionProvider;
-import com.thoughtworks.xstream.io.xml.CompactWriter;
-import com.thoughtworks.xstream.io.xml.PrettyPrintWriter;
-import com.thoughtworks.xstream.mapper.MapperWrapper;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Hilfsklasse zum Laden und Speichern einer gesamten Hibernate-Datenbank im XML-Format. Zur Darstellung der Daten in

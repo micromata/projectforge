@@ -23,12 +23,6 @@
 
 package org.projectforge.framework.configuration;
 
-import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.TimeZone;
-
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.multitenancy.TenantDao;
 import org.projectforge.business.multitenancy.TenantRegistry;
@@ -49,6 +43,12 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.TimeZone;
 
 /**
  * Configuration values persistet in the data base. Please access the configuration parameters via

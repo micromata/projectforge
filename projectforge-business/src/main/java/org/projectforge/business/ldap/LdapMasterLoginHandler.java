@@ -23,13 +23,6 @@
 
 package org.projectforge.business.ldap;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.login.LoginResult;
 import org.projectforge.business.login.LoginResultStatus;
@@ -38,6 +31,8 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.*;
 
 /**
  * TODO: nested groups.<br/>

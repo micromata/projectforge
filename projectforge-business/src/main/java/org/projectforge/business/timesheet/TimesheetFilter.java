@@ -23,13 +23,13 @@
 
 package org.projectforge.business.timesheet;
 
-import java.io.Serializable;
-import java.util.Date;
-
 import org.projectforge.business.task.TaskDependentFilter;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.time.TimePeriod;
+
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

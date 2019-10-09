@@ -23,14 +23,13 @@
 
 package org.projectforge.framework.persistence.database;
 
-import java.io.File;
-
+import de.micromata.genome.db.jpa.xmldump.api.JpaXmlDumpService;
+import org.junit.jupiter.api.Test;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.junit.jupiter.api.Test;
 
-import de.micromata.genome.db.jpa.xmldump.api.JpaXmlDumpService;
+import java.io.File;
 
 public class ConvertOldDumpToNew extends AbstractTestBase
 {

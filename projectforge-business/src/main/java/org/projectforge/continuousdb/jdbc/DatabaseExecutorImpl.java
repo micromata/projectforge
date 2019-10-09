@@ -23,17 +23,16 @@
 
 package org.projectforge.continuousdb.jdbc;
 
+import org.projectforge.continuousdb.DatabaseExecutor;
+import org.projectforge.continuousdb.DatabaseResultRow;
+
+import javax.sql.DataSource;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
-
-import javax.sql.DataSource;
-
-import org.projectforge.continuousdb.DatabaseExecutor;
-import org.projectforge.continuousdb.DatabaseResultRow;
 
 /**
  * Using plain jdbc for executing jdbc commands. DON'T USE THIS CLASS FOR PRODUCTION! This class is only for

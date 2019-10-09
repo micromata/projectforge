@@ -23,8 +23,7 @@
 
 package org.projectforge.business.fibu.kost;
 
-import java.io.Serializable;
-
+import groovy.lang.Script;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.projectforge.business.scripting.GroovyExecutor;
@@ -34,7 +33,7 @@ import org.projectforge.framework.xstream.XmlField;
 import org.projectforge.framework.xstream.XmlObject;
 import org.projectforge.framework.xstream.XmlOmitField;
 
-import groovy.lang.Script;
+import java.io.Serializable;
 
 /**
  * Used in config.xml for the definition of the used business assessment schema. This object represents a single row of the business

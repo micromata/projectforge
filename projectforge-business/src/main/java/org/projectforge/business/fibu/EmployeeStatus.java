@@ -23,9 +23,9 @@
 
 package org.projectforge.business.fibu;
 
-import java.util.Arrays;
-
 import org.projectforge.common.i18n.I18nEnum;
+
+import java.util.Arrays;
 
 public enum EmployeeStatus implements I18nEnum
 {

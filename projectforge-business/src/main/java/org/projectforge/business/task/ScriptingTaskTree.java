@@ -23,13 +23,13 @@
 
 package org.projectforge.business.task;
 
+import org.projectforge.business.fibu.AuftragsPositionVO;
+import org.projectforge.business.fibu.ProjektDO;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
-import org.projectforge.business.fibu.AuftragsPositionVO;
-import org.projectforge.business.fibu.ProjektDO;
 
 
 /**

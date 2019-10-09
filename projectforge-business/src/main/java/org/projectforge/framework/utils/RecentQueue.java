@@ -23,11 +23,11 @@
 
 package org.projectforge.framework.utils;
 
+import org.apache.commons.collections.CollectionUtils;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.commons.collections.CollectionUtils;
 
 /**
  * For storing recent entries for selecting as templates by the user (recent time sheets, task etc.)

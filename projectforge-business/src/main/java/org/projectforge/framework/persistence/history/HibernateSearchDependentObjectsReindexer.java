@@ -23,19 +23,6 @@
 
 package org.projectforge.framework.persistence.history;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.annotation.PostConstruct;
-
 import org.hibernate.CacheMode;
 import org.hibernate.FlushMode;
 import org.hibernate.Session;
@@ -52,6 +39,12 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+
+import javax.annotation.PostConstruct;
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.*;
 
 /**
  * Hotfix: Hibernate-search does not update index of dependent objects.

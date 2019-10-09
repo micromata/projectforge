@@ -23,9 +23,9 @@
 
 package org.projectforge.business.teamcal.admin;
 
-import java.io.Serializable;
-
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
+
+import java.io.Serializable;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)

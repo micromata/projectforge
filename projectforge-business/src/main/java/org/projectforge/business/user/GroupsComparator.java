@@ -23,10 +23,10 @@
 
 package org.projectforge.business.user;
 
+import org.projectforge.framework.persistence.user.entities.GroupDO;
+
 import java.io.Serializable;
 import java.util.Comparator;
-
-import org.projectforge.framework.persistence.user.entities.GroupDO;
 
 public class GroupsComparator implements Comparator<GroupDO>, Serializable
 {
