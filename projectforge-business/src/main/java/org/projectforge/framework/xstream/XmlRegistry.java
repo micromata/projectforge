@@ -205,7 +205,7 @@ public class XmlRegistry
   private void internalRegisterConverter(final Class< ? > type, final IConverter< ? > converter)
   {
     if (this.converterRegistry == null) {
-      this.converterRegistry = new HashMap<Class< ? >, IConverter< ? >>();
+      this.converterRegistry = new HashMap<>();
     }
     this.converterRegistry.put(type, converter);
   }
@@ -239,7 +239,7 @@ public class XmlRegistry
   private void internalRegisterTypeAsAttribute(final Class< ? > type)
   {
     if (this.asAttributeAsDefaultSet == null) {
-      this.asAttributeAsDefaultSet = new HashSet<Class< ? >>();
+      this.asAttributeAsDefaultSet = new HashSet<>();
     }
     this.asAttributeAsDefaultSet.add(type);
   }

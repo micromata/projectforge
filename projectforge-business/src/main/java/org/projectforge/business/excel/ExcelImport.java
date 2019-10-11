@@ -163,7 +163,7 @@ public class ExcelImport<T>
    */
   public void setRowClass(final Class<T> clazz)
   {
-    this.clazzFactory = new SimpleClassFactory<T>(clazz);
+    this.clazzFactory = new SimpleClassFactory<>(clazz);
   }
 
   /**
@@ -185,7 +185,7 @@ public class ExcelImport<T>
   {
     final HSSFSheet sheet = work.getSheetAt(activeSheet);
     final HSSFRow columnNames = sheet.getRow(columnNameRow);
-    final List<String> list = new ArrayList<String>();
+    final List<String> list = new ArrayList<>();
     for (int column = 0; column < columnNames.getPhysicalNumberOfCells(); column++) {
       if (columnNames.getCell(column) == null) {
         continue;

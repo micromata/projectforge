@@ -62,7 +62,7 @@ public class SearchDao
       // An error occured.
       return null;
     }
-    final List<SearchResultData> result = new ArrayList<SearchResultData>();
+    final List<SearchResultData> result = new ArrayList<>();
     if (list.size() == 0) {
       return result;
     }

@@ -82,7 +82,7 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
     super(GanttChartDO.class);
     userRightId = USER_RIGHT_ID;
     AccessibleObject.setAccessible(taskFields, true);
-    fieldMapping = new HashMap<String, String>();
+    fieldMapping = new HashMap<>();
     fieldMapping.put("predecessor", "ganttPredecessor");
     fieldMapping.put("predecessorOffset", "ganttPredecessorOffset");
     fieldMapping.put("relationType", "ganttRelationType");

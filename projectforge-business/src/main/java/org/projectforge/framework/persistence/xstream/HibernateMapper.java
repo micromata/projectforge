@@ -43,7 +43,7 @@ import java.util.*;
 public class HibernateMapper extends MapperWrapper
 {
 
-  private Map<Class<?>, Class<?>> collectionMap = new HashMap<Class<?>, Class<?>>();
+  private Map<Class<?>, Class<?>> collectionMap = new HashMap<>();
 
   public HibernateMapper(MapperWrapper arg0)
   {

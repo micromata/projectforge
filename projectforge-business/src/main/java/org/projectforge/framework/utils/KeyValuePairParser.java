@@ -92,7 +92,7 @@ public class KeyValuePairParser
       final String value = parseValue();
       if (key != null) {
         if (keyValuePairs == null) {
-          keyValuePairs = new HashMap<String, String>();
+          keyValuePairs = new HashMap<>();
         }
         keyValuePairs.put(key, value);
       }
@@ -120,7 +120,7 @@ public class KeyValuePairParser
   public String parseKey()
   {
     skipWhitespaces();
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     while (true) {
       nextToken();
       if (type != Type.CHAR) {
@@ -150,7 +150,7 @@ public class KeyValuePairParser
       quoted = true; // value is quoted.
       nextToken();
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     while (true) {
       if (type != Type.CHAR) {
         if (quoted) {

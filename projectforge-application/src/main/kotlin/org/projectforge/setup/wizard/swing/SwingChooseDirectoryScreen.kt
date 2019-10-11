@@ -83,7 +83,7 @@ class SwingChooseDirectoryScreen(context: SwingGUIContext) : SwingAbstractWizard
         listModel.removeAllElements()
         val prevApplicationHomeDir = CanonicalFileUtils.absolute(context.setupData.applicationHomeDir)
         var prevApplicationHomeDirInList = false
-        var index = 0;
+        var index = 0
         for (dir in ProjectForgeHomeFinder.getSuggestedDirectories()) {
             listModel.addElement(CanonicalFileUtils.absolutePath(dir))
             if (dir == prevApplicationHomeDir) {
@@ -114,9 +114,9 @@ class SwingChooseDirectoryScreen(context: SwingGUIContext) : SwingAbstractWizard
         val dir = CanonicalFileUtils.absolute(jlist.selectedValue)
         context.setupData.applicationHomeDir = dir
         if (dir == null || (!dir.exists() && dir.parentFile?.exists() != true)) {
-            JOptionPane.showMessageDialog(null, Texts.ERROR_DIR_NOT_EXISTS, Texts.ERROR_TITLE, JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, Texts.ERROR_DIR_NOT_EXISTS, Texts.ERROR_TITLE, JOptionPane.ERROR_MESSAGE)
         } else if (ProjectForgeHomeFinder.isProjectForgeSourceCodeRepository(dir)) {
-            JOptionPane.showMessageDialog(null, Texts.ERROR_DIR_IS_SOURCE_REPO, Texts.ERROR_TITLE, JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, Texts.ERROR_DIR_IS_SOURCE_REPO, Texts.ERROR_TITLE, JOptionPane.ERROR_MESSAGE)
         } else {
             context.setupMain.next()
         }

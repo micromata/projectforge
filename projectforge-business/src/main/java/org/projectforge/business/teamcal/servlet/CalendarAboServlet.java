@@ -191,7 +191,7 @@ public class CalendarAboServlet extends HttpServlet
         generator.addEvent(new VEvent(new net.fortuna.ical4j.model.Date(0), TeamCalConfig.SETUP_EVENT));
       }
 
-      final StringBuffer buf = new StringBuffer();
+      final StringBuilder buf = new StringBuilder();
 
       // create log message
       for (final Map.Entry<String, String> entry : params.entrySet()) {

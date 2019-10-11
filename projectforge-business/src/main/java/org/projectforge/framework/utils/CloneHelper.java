@@ -62,10 +62,7 @@ public class CloneHelper
     try {
       object = (T) new ObjectInputStream(bais).readObject();
       return object;
-    } catch (final ClassNotFoundException ex) {
-      log.error("Exception encountered while cloning given object '" + origin + "': " + ex, ex);
-      return null;
-    } catch (final IOException ex) {
+    } catch (final ClassNotFoundException | IOException ex) {
       log.error("Exception encountered while cloning given object '" + origin + "': " + ex, ex);
       return null;
     }

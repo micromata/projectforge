@@ -144,7 +144,7 @@ public class DatevImportDao
   {
     checkLoggeinUserRight(accessChecker);
     log.info("importKontenplan called");
-    final ImportStorage<KontoDO> storage = new ImportStorage<KontoDO>(Type.KONTENPLAN);
+    final ImportStorage<KontoDO> storage = new ImportStorage<>(Type.KONTENPLAN);
     storage.setFilename(filename);
     final KontenplanExcelImporter imp = new KontenplanExcelImporter();
     imp.doImport(storage, is, actionLog);
@@ -166,7 +166,7 @@ public class DatevImportDao
   {
     checkLoggeinUserRight(accessChecker);
     log.info("importBuchungsdaten called");
-    final ImportStorage<BuchungssatzDO> storage = new ImportStorage<BuchungssatzDO>(Type.BUCHUNGSSAETZE);
+    final ImportStorage<BuchungssatzDO> storage = new ImportStorage<>(Type.BUCHUNGSSAETZE);
     storage.setFilename(filename);
     final BuchungssatzExcelImporter imp = new BuchungssatzExcelImporter(storage, kontoDao, kost1Dao, kost2Dao,
         actionLog);
@@ -273,7 +273,7 @@ public class DatevImportDao
   private int commitKontenplan(final ImportedSheet<KontoDO> sheet)
   {
     log.info("Commit Kontenplan called");
-    final Collection<KontoDO> col = new ArrayList<KontoDO>();
+    final Collection<KontoDO> col = new ArrayList<>();
     for (final ImportedElement<KontoDO> el : sheet.getElements()) {
       final KontoDO konto = el.getValue();
       final KontoDO dbKonto = kontoDao.getKonto(konto.getNummer());
@@ -301,7 +301,7 @@ public class DatevImportDao
   private int commitBuchungsdaten(final ImportedSheet<BuchungssatzDO> sheet)
   {
     log.info("Commit Buchungsdaten called");
-    final Collection<BuchungssatzDO> col = new ArrayList<BuchungssatzDO>();
+    final Collection<BuchungssatzDO> col = new ArrayList<>();
     for (final ImportedElement<BuchungssatzDO> el : sheet.getElements()) {
       final BuchungssatzDO satz = el.getValue();
       final BuchungssatzDO dbSatz = buchungssatzDao.getBuchungssatz(satz.getYear(), satz.getMonth(), satz.getSatznr());

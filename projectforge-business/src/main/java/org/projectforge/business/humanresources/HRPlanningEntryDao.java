@@ -119,8 +119,8 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO>
     if (!myFilter.isGroupEntries() && !myFilter.isOnlyMyProjects()) {
       return list;
     }
-    final List<HRPlanningEntryDO> result = new ArrayList<HRPlanningEntryDO>();
-    final Set<Integer> set = (myFilter.isGroupEntries()) ? new HashSet<Integer>() : null;
+    final List<HRPlanningEntryDO> result = new ArrayList<>();
+    final Set<Integer> set = (myFilter.isGroupEntries()) ? new HashSet<>() : null;
     for (final HRPlanningEntryDO entry : list) {
       if (myFilter.isOnlyMyProjects()) {
         if (entry.getProjekt() == null) {
@@ -149,7 +149,7 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO>
         sumEntry.setThursdayHours(planning.getTotalThursdayHours());
         sumEntry.setFridayHours(planning.getTotalFridayHours());
         sumEntry.setWeekendHours(planning.getTotalWeekendHours());
-        final StringBuffer buf = new StringBuffer();
+        final StringBuilder buf = new StringBuilder();
         boolean first = true;
         for (final HRPlanningEntryDO pos : planning.getEntries()) {
           final String str = pos.getProjektNameOrStatus();

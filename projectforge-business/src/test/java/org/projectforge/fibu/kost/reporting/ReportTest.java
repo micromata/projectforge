@@ -90,11 +90,11 @@ public class ReportTest extends AbstractTestBase
     assertEquals(".*\\.10\\..*", Report.modifyRegExp("*.10.*"));
     assertEquals("5.100.*", Report.modifyRegExp("'5.100.*"));
     assertEquals("*.10.*", Report.modifyRegExp("'*.10.*"));
-    List<String> regExpList = new ArrayList<String>();
+    List<String> regExpList = new ArrayList<>();
     regExpList.add("5.1*");
     assertFalse(Report.match(regExpList, "5.200.01.02", true));
     assertTrue(Report.match(regExpList, "5.190.01.02", true));
-    regExpList = new ArrayList<String>();
+    regExpList = new ArrayList<>();
     regExpList.add("*.02");
     assertFalse(Report.match(regExpList, "5.200.01.03", true));
     assertTrue(Report.match(regExpList, "5.190.01.02", true));

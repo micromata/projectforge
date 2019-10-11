@@ -65,7 +65,7 @@ public enum SubscriptionUpdateInterval implements I18nEnum
 
   public static List<Integer> getIntervals()
   {
-    final List<Integer> result = new ArrayList<Integer>();
+    final List<Integer> result = new ArrayList<>();
     for (final SubscriptionUpdateInterval value : values()) {
       result.add(value.getInterval());
     }

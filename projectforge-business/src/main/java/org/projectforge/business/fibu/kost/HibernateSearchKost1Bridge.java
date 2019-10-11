@@ -43,7 +43,7 @@ public class HibernateSearchKost1Bridge implements FieldBridge
   public void set(final String name, final Object value, final Document document, final LuceneOptions luceneOptions)
   {
     final Kost1DO kost1 = (Kost1DO) value;
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append(KostFormatter.format(kost1));
     buf.append(' ');
     buf.append(KostFormatter.format(kost1, true));

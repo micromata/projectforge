@@ -67,12 +67,12 @@ public class HibernateUtils {
 
   private DatabaseDialect databaseDialect;
   // TODO Threading.
-  private final Map<String, Integer> columnLengthMap = new HashMap<String, Integer>();
+  private final Map<String, Integer> columnLengthMap = new HashMap<>();
 
   /**
    * For saving performance of trying to get non Hibernate properties multiple times.
    */
-  private final Set<String> columnLengthFailedSet = new HashSet<String>();
+  private final Set<String> columnLengthFailedSet = new HashSet<>();
 
   /**
    * For internal test cases only! If true, log errors are suppressed. Please call {@link #exitTestMode()} always
@@ -100,7 +100,7 @@ public class HibernateUtils {
    */
   public static Serializable getIdentifier(final BaseDO<?> obj) {
     if (Hibernate.isInitialized(obj)) {
-      return ((BaseDO<?>) obj).getId();
+      return obj.getId();
     } else if (obj instanceof DefaultBaseDO) {
       return ((DefaultBaseDO) obj).getId();
     } else if (obj instanceof AccessEntryDO) {
@@ -154,9 +154,7 @@ public class HibernateUtils {
           if (idObject != null && Serializable.class.isAssignableFrom(idObject.getClass())) {
             return (Serializable) idObject;
           }
-        } catch (final IllegalArgumentException e) {
-          e.printStackTrace();
-        } catch (final IllegalAccessException e) {
+        } catch (final IllegalArgumentException | IllegalAccessException e) {
           e.printStackTrace();
         }
       }
@@ -176,9 +174,7 @@ public class HibernateUtils {
           field.setAccessible(true);
           field.set(obj, value);
           field.setAccessible(isAccessible);
-        } catch (final IllegalArgumentException e) {
-          e.printStackTrace();
-        } catch (final IllegalAccessException e) {
+        } catch (final IllegalArgumentException | IllegalAccessException e) {
           e.printStackTrace();
         }
       }
@@ -346,7 +342,7 @@ public class HibernateUtils {
       return null;
     }
 
-    length = (int) colinfo.getMaxLength();
+    length = colinfo.getMaxLength();
     columnLengthMap.put(entityName + "#" + propertyName, length);
     return length;
   }

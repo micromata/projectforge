@@ -45,7 +45,7 @@ public class ExceptionHelper
    */
   public static String getFilteredStackTrace(Throwable ex, String only4Namespace)
   {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     StackTraceElement[] sta = ex.getStackTrace();
     boolean ignored = false;
     if (sta != null && sta.length > 0) {

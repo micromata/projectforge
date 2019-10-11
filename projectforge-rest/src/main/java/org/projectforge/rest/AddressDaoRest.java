@@ -110,7 +110,7 @@ public class AddressDaoRest
     Set<Integer> favoritesSet = null;
     if (!exportAll) {
       favorites = personalAddressDao.getList();
-      favoritesSet = new HashSet<Integer>();
+      favoritesSet = new HashSet<>();
       if (favorites != null) {
         for (final PersonalAddressDO personalAddress : favorites) {
           if (personalAddress.isFavoriteCard() && !personalAddress.isDeleted()) {
@@ -119,7 +119,7 @@ public class AddressDaoRest
         }
       }
     }
-    final List<AddressObject> result = new LinkedList<AddressObject>();
+    final List<AddressObject> result = new LinkedList<>();
     if (list != null) {
       for (final AddressDO addressDO : list) {
         if (!exportAll && !favoritesSet.contains(addressDO.getId())) {

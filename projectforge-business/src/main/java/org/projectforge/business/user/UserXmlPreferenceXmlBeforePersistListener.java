@@ -68,7 +68,7 @@ public class UserXmlPreferenceXmlBeforePersistListener implements JpaXmlBeforePe
     if (oldIds.size() == 0) {
       return null;
     }
-    final Set<Integer> newIds = new HashSet<Integer>();
+    final Set<Integer> newIds = new HashSet<>();
     EntityMetadata taskem = ctx.getEmgr().getEmgrFactory().getMetadataRepository().getEntityMetadata(TaskDO.class);
     for (final Integer oldId : oldIds) {
       Object task = ctx.findEntityByOldPk(oldId, taskem.getJavaType());

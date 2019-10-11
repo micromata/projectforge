@@ -47,7 +47,7 @@ public class TenantRegistryMap extends AbstractCache {
 
   private static final long EXPIRE_TIME = AbstractCache.TICKS_PER_DAY;
 
-  private final Map<Integer, TenantRegistry> tenantRegistryMap = new HashMap<Integer, TenantRegistry>();
+  private final Map<Integer, TenantRegistry> tenantRegistryMap = new HashMap<>();
 
   private TenantRegistry singleTenantRegistry;
 

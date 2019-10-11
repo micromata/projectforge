@@ -55,7 +55,7 @@ public class BusinessAssessment implements Serializable
 
   private BusinessAssessmentConfig config;
 
-  private final List<BusinessAssessmentRow> rows = new ArrayList<BusinessAssessmentRow>();
+  private final List<BusinessAssessmentRow> rows = new ArrayList<>();
 
   private static final Logger log = LoggerFactory.getLogger(BusinessAssessment.class);
 
@@ -241,7 +241,7 @@ public class BusinessAssessment implements Serializable
 
   public String getHeader(final boolean html)
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     if (html) {
       buf.append("<h3>");
     }

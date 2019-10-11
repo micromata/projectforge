@@ -134,7 +134,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
             .setParameter("userId", user.getId())
             .setParameter("area", areaId)
             .list();
-    final List<UserPrefDO> result = new ArrayList<UserPrefDO>(list.size());
+    final List<UserPrefDO> result = new ArrayList<>(list.size());
     for (final Object[] oa : list) {
       UserPrefDO userPref = new UserPrefDO();
       userPref.setUser(user);

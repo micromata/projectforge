@@ -207,7 +207,7 @@ public class HRPlanningExport
     final PropertyMapping mapping = new PropertyMapping();
 
     // Ermittele Anzahl unterschiedlicher Projekte
-    final List<String> projectNames = new ArrayList<String>();
+    final List<String> projectNames = new ArrayList<>();
     for (final HRPlanningDO planningSheet : list) {
       // final String projectName = planningSheet.getProjekt().getName();
       // boolean exists = false;
@@ -331,7 +331,7 @@ public class HRPlanningExport
     final PropertyMapping mapping = new PropertyMapping();
 
     // Ermittele Anzahl unterschiedlicher User
-    final List<String> userNames = new ArrayList<String>();
+    final List<String> userNames = new ArrayList<>();
     for (final HRPlanningDO planningSheet : list) {
       final String userName = planningSheet.getUser().getFullname();
       boolean exists = false;
@@ -447,7 +447,7 @@ public class HRPlanningExport
     sheet.createFreezePane(8, 1);
 
     // Ermittele Anzahl unterschiedlicher Projekte
-    final List<String> projectNames = new ArrayList<String>();
+    final List<String> projectNames = new ArrayList<>();
     // for (HRPlanningDO planningSheet : list) {
     // String projectName = planningSheet.getProjekt().getName();
     // boolean exists = false;

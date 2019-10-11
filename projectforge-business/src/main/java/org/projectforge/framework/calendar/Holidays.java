@@ -53,16 +53,16 @@ public class Holidays
   }
 
   /** Contains all holidays of a year. Key is the year. Value is a map of all holidays in the year with the day of the year as key. */
-  private Map<Integer, Map<Integer, Holiday>> holidaysByYear = new HashMap<Integer, Map<Integer, Holiday>>();
+  private Map<Integer, Map<Integer, Holiday>> holidaysByYear = new HashMap<>();
 
-  private Map<HolidayDefinition, ConfigureHoliday> reconfiguredHolidays = new HashMap<HolidayDefinition, ConfigureHoliday>();
+  private Map<HolidayDefinition, ConfigureHoliday> reconfiguredHolidays = new HashMap<>();
 
   private ConfigXml xmlConfiguration;
 
   private Map<Integer, Holiday> computeHolidays(int year)
   {
     log.info("Compute holidays for year: " + year);
-    final Map<Integer, Holiday> holidays = new HashMap<Integer, Holiday>();
+    final Map<Integer, Holiday> holidays = new HashMap<>();
     final Calendar cal = Calendar.getInstance();
     cal.set(Calendar.YEAR, year);
     for (final HolidayDefinition holiday : HolidayDefinition.values()) {
@@ -189,7 +189,7 @@ public class Holidays
         holidaysByYear.clear();
       }
     }
-    Map<Integer, Holiday> holidays = holidaysByYear.get(new Integer(year));
+    Map<Integer, Holiday> holidays = holidaysByYear.get(year);
     if (holidays == null) {
       holidays = computeHolidays(year);
       holidaysByYear.put(year, holidays);

@@ -52,7 +52,7 @@ public class DatebaseUpdateHelperTest
   @SuppressWarnings("unused")
   private void checkString(final String str)
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     for (int i = 0; i < str.length(); i++) {
       final char ch = str.charAt(i);
       if (ch == '[' || ch == ']') {

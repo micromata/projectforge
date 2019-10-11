@@ -277,7 +277,7 @@ public class PFUserDOConverter
     setMailNullArray(src);
     setMailNullArray(dest);
     boolean modified;
-    final List<String> properties = new LinkedList<String>();
+    final List<String> properties = new LinkedList<>();
     ListHelper.addAll(properties, "commonName", "givenName", "surname", "mail", "description", "organization",
         "deactivated",
         "restrictedUser");

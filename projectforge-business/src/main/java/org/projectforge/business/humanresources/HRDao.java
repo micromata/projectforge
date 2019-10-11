@@ -180,7 +180,7 @@ public class HRDao implements IDao<HRViewData>
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<PFUserDO> getUnplannedResources(final HRViewData data)
   {
-    final List<PFUserDO> users = new ArrayList<PFUserDO>();
+    final List<PFUserDO> users = new ArrayList<>();
     final QueryFilter queryFilter = new QueryFilter(new BaseSearchFilter());
     queryFilter.addOrder(Order.asc("firstname")).addOrder(Order.asc("lastname"));
     final List<PFUserDO> allUsers = userDao.getList(queryFilter);

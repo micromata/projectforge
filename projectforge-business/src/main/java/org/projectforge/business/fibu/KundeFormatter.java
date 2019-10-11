@@ -46,7 +46,7 @@ public class KundeFormatter extends BaseFormatter
    */
   public static String formatKundeAsString(final KundeDO kunde, final String kundeText)
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     boolean first = true;
     if (StringUtils.isNotBlank(kundeText)) {
       first = false;

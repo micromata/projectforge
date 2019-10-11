@@ -60,9 +60,9 @@ public class HRViewData implements Serializable
   HRViewData(final HRFilter filter)
   {
     this.filter = filter;
-    userDatas = new HashMap<Integer, HRViewUserData>();
-    projects = new HashMap<Integer, ProjektDO>();
-    customers = new HashMap<Integer, KundeDO>();
+    userDatas = new HashMap<>();
+    projects = new HashMap<>();
+    customers = new HashMap<>();
   }
 
   void addTimesheet(final TimesheetDO sheet, final PFUserDO user)
@@ -130,11 +130,10 @@ public class HRViewData implements Serializable
   public List<ProjektDO> getProjects()
   {
     if (sortedProjects == null) {
-      sortedProjects = new ArrayList<ProjektDO>();
+      sortedProjects = new ArrayList<>();
       sortedProjects.addAll(projects.values());
-      Collections.sort(sortedProjects, new Comparator<ProjektDO>() {
-        public int compare(ProjektDO o1, ProjektDO o2)
-        {
+      sortedProjects.sort(new Comparator<ProjektDO>() {
+        public int compare(ProjektDO o1, ProjektDO o2) {
           return StringHelper.compareTo(o1.getProjektIdentifierDisplayName(), o2.getProjektIdentifierDisplayName());
         }
       });
@@ -145,11 +144,10 @@ public class HRViewData implements Serializable
   public List<KundeDO> getCustomers()
   {
     if (sortedCustomers == null) {
-      sortedCustomers = new ArrayList<KundeDO>();
+      sortedCustomers = new ArrayList<>();
       sortedCustomers.addAll(customers.values());
-      Collections.sort(sortedCustomers, new Comparator<KundeDO>() {
-        public int compare(KundeDO o1, KundeDO o2)
-        {
+      sortedCustomers.sort(new Comparator<KundeDO>() {
+        public int compare(KundeDO o1, KundeDO o2) {
           return StringHelper.compareTo(o1.getKundeIdentifierDisplayName(), o2.getKundeIdentifierDisplayName());
         }
       });
@@ -160,11 +158,10 @@ public class HRViewData implements Serializable
   public List<HRViewUserData> getUserDatas()
   {
     if (sortedUserDatas == null) {
-      sortedUserDatas = new ArrayList<HRViewUserData>();
+      sortedUserDatas = new ArrayList<>();
       sortedUserDatas.addAll(userDatas.values());
-      Collections.sort(sortedUserDatas, new Comparator<HRViewUserData>() {
-        public int compare(HRViewUserData o1, HRViewUserData o2)
-        {
+      sortedUserDatas.sort(new Comparator<HRViewUserData>() {
+        public int compare(HRViewUserData o1, HRViewUserData o2) {
           return StringHelper.compareTo(o1.getUser().getFullname(), o2.getUser().getFullname());
         }
       });

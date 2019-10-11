@@ -46,7 +46,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
    * Hier werden die keys gespeichert, die nicht gefunden werden konnte. Dies soll ein erneutes Suchen und eine damit
    * verbundene MissingResourceException verhindern. Das Keys nicht gefunden werden, ist normal.
    */
-  private Set<String> missingKeys = new HashSet<String>();
+  private Set<String> missingKeys = new HashSet<>();
 
   private String resourceBundleName;
 

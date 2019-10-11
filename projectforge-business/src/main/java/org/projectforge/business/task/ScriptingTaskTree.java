@@ -45,7 +45,7 @@ public class ScriptingTaskTree
     if (list == null) {
       return null;
     }
-    final List<ScriptingTaskNode> result = new ArrayList<ScriptingTaskNode>(list.size());
+    final List<ScriptingTaskNode> result = new ArrayList<>(list.size());
     for (final TaskNode node : list) {
       result.add(new ScriptingTaskNode(node));
     }

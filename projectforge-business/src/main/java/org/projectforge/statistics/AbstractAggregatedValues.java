@@ -33,9 +33,9 @@ import java.util.List;
  */
 public abstract class AbstractAggregatedValues<T>
 {
-  protected final List<T> values = new LinkedList<T>();
+  protected final List<T> values = new LinkedList<>();
 
-  protected final List<T> weights = new LinkedList<T>();
+  protected final List<T> weights = new LinkedList<>();
 
   protected boolean averageDirty, weightedAverageDirty;
 

@@ -74,7 +74,7 @@ public class TimesheetDaoRest
       @QueryParam("deleted") final Boolean deleted)
   {
     final List<TaskDO> list = queryList(searchTerm, notOpened, opened, closed, deleted);
-    final List<TaskObject> result = new ArrayList<TaskObject>();
+    final List<TaskObject> result = new ArrayList<>();
     if (list != null) {
       for (final TaskDO task : list) {
         result.add(createRTask(task));
@@ -111,16 +111,16 @@ public class TimesheetDaoRest
   {
     final TaskFilter filter = new TaskFilter();
     if (closed != null) {
-      filter.setClosed(closed.booleanValue());
+      filter.setClosed(closed);
     }
     if (deleted != null) {
-      filter.setDeleted(deleted.booleanValue());
+      filter.setDeleted(deleted);
     }
     if (opened != null) {
-      filter.setOpened(opened.booleanValue());
+      filter.setOpened(opened);
     }
     if (notOpened != null) {
-      filter.setNotOpened(notOpened.booleanValue());
+      filter.setNotOpened(notOpened);
     }
     filter.setSearchString(searchTerm);
     final List<TaskDO> list = taskDao.getList(filter);
@@ -135,12 +135,12 @@ public class TimesheetDaoRest
    */
   private List<TaskObject> convertTasks(final List<TaskDO> tasks)
   {
-    final List<TaskObject> topLevelTasks = new ArrayList<TaskObject>();
+    final List<TaskObject> topLevelTasks = new ArrayList<>();
     if (tasks == null || tasks.isEmpty()) {
       return topLevelTasks;
     }
     final TaskTree taskTree = taskDao.getTaskTree();
-    final Map<Integer, TaskObject> rtaskMap = new HashMap<Integer, TaskObject>();
+    final Map<Integer, TaskObject> rtaskMap = new HashMap<>();
     for (final TaskDO task : tasks) {
       final TaskObject rtask = createRTask(task);
       rtaskMap.put(task.getId(), rtask);

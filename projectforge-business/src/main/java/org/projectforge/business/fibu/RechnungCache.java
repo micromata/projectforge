@@ -72,8 +72,8 @@ public class RechnungCache extends AbstractCache
   {
     log.info("Initializing RechnungCache ...");
     // This method must not be synchronized because it works with a new copy of maps.
-    final Map<Integer, Set<RechnungsPositionVO>> mapByAuftragId = new HashMap<Integer, Set<RechnungsPositionVO>>();
-    final Map<Integer, Set<RechnungsPositionVO>> mapByAuftragsPositionId = new HashMap<Integer, Set<RechnungsPositionVO>>();
+    final Map<Integer, Set<RechnungsPositionVO>> mapByAuftragId = new HashMap<>();
+    final Map<Integer, Set<RechnungsPositionVO>> mapByAuftragsPositionId = new HashMap<>();
     final List<RechnungsPositionDO> list = (List<RechnungsPositionDO>) hibernateTemplate.find(
         "from RechnungsPositionDO t left join fetch t.auftragsPosition left join fetch t.auftragsPosition.auftrag where t.auftragsPosition is not null");
     for (final RechnungsPositionDO pos : list) {
@@ -90,12 +90,12 @@ public class RechnungCache extends AbstractCache
       final AuftragDO auftrag = auftragsPosition.getAuftrag();
       Set<RechnungsPositionVO> setByAuftragId = mapByAuftragId.get(auftrag.getId());
       if (setByAuftragId == null) {
-        setByAuftragId = new TreeSet<RechnungsPositionVO>();
+        setByAuftragId = new TreeSet<>();
         mapByAuftragId.put(auftrag.getId(), setByAuftragId);
       }
       Set<RechnungsPositionVO> setByAuftragsPositionId = mapByAuftragsPositionId.get(auftragsPosition.getId());
       if (setByAuftragsPositionId == null) {
-        setByAuftragsPositionId = new TreeSet<RechnungsPositionVO>();
+        setByAuftragsPositionId = new TreeSet<>();
         mapByAuftragsPositionId.put(auftragsPosition.getId(), setByAuftragsPositionId);
       }
       final RechnungsPositionVO vo = new RechnungsPositionVO(pos);

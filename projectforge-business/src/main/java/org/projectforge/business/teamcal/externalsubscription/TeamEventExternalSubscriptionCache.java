@@ -52,7 +52,7 @@ public class TeamEventExternalSubscriptionCache {
 
   private static final long MAX_WAIT_MS_AFTER_FAILED_UPDATE = 1000 * 60 * 60 * 24; // 24 h
 
-  private final Map<Integer, TeamEventSubscription> subscriptions = new HashMap<Integer, TeamEventSubscription>();
+  private final Map<Integer, TeamEventSubscription> subscriptions = new HashMap<>();
 
   private static final Long SUBSCRIPTION_UPDATE_TIME = 5L * 60 * 1000; // 5 min
 
@@ -88,7 +88,7 @@ public class TeamEventExternalSubscriptionCache {
       updateCache(calendar);
     }
 
-    final List<Integer> idsToRemove = new ArrayList<Integer>();
+    final List<Integer> idsToRemove = new ArrayList<>();
     for (final Integer calendarId : subscriptions.keySet()) {
       // if calendar is not subscribed anymore, remove them
       if (!calendarListContainsId(subscribedCalendars, calendarId)) {
@@ -206,9 +206,9 @@ public class TeamEventExternalSubscriptionCache {
 
   public List<TeamEventDO> getRecurrenceEvents(final TeamEventFilter filter) {
     init();
-    final List<TeamEventDO> result = new ArrayList<TeamEventDO>();
+    final List<TeamEventDO> result = new ArrayList<>();
     // precondition: existing teamcals ins filter
-    final Collection<Integer> teamCals = new LinkedList<Integer>();
+    final Collection<Integer> teamCals = new LinkedList<>();
     final Integer userId = ThreadLocalUserContext.getUserId();
     if (CollectionUtils.isNotEmpty(filter.getTeamCals())) {
       for (final Integer calendarId : filter.getTeamCals()) {

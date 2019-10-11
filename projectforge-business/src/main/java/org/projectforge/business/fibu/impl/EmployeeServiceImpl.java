@@ -119,17 +119,11 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
     try {
       Class<?> type = EmployeeDO.class.getDeclaredField(attributeName).getType();
       Method declaredMethod = EmployeeDO.class.getDeclaredMethod(
-              "set" + attributeName.substring(0, 1).toUpperCase() + attributeName.substring(1, attributeName.length()),
+              "set" + attributeName.substring(0, 1).toUpperCase() + attributeName.substring(1),
               type);
       declaredMethod.invoke(employeeDO, type.cast(attribute));
 
-    } catch (NoSuchFieldException e) {
-      e.printStackTrace();
-    } catch (NoSuchMethodException e) {
-      e.printStackTrace();
-    } catch (InvocationTargetException e) {
-      e.printStackTrace();
-    } catch (IllegalAccessException e) {
+    } catch (NoSuchFieldException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
       e.printStackTrace();
     }
 

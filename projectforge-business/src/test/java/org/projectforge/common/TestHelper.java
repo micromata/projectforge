@@ -45,18 +45,14 @@ public class TestHelper
     Field field;
     try {
       field = obj.getClass().getDeclaredField(fieldName);
-    } catch (SecurityException ex) {
-      throw new RuntimeException(ex);
-    } catch (NoSuchFieldException ex) {
+    } catch (SecurityException | NoSuchFieldException ex) {
       throw new RuntimeException(ex);
     }
     final Field[] fields = new Field[] { field };
     AccessibleObject.setAccessible(fields, true);
     try {
       field.set(obj, value);
-    } catch (IllegalArgumentException ex) {
-      throw new RuntimeException(ex);
-    } catch (IllegalAccessException ex) {
+    } catch (IllegalArgumentException | IllegalAccessException ex) {
       throw new RuntimeException(ex);
     }
   }
@@ -66,18 +62,14 @@ public class TestHelper
     Field field;
     try {
       field = clazz.getDeclaredField(fieldName);
-    } catch (SecurityException ex) {
-      throw new RuntimeException(ex);
-    } catch (NoSuchFieldException ex) {
+    } catch (SecurityException | NoSuchFieldException ex) {
       throw new RuntimeException(ex);
     }
     final Field[] fields = new Field[] { field };
     AccessibleObject.setAccessible(fields, true);
     try {
       field.set(null, value);
-    } catch (IllegalArgumentException ex) {
-      throw new RuntimeException(ex);
-    } catch (IllegalAccessException ex) {
+    } catch (IllegalArgumentException | IllegalAccessException ex) {
       throw new RuntimeException(ex);
     }
   }
@@ -87,18 +79,14 @@ public class TestHelper
     Field field;
     try {
       field = obj.getClass().getDeclaredField(fieldName);
-    } catch (SecurityException ex) {
-      throw new RuntimeException(ex);
-    } catch (NoSuchFieldException ex) {
+    } catch (SecurityException | NoSuchFieldException ex) {
       throw new RuntimeException(ex);
     }
     final Field[] fields = new Field[] { field };
     AccessibleObject.setAccessible(fields, true);
     try {
       return field.get(obj);
-    } catch (IllegalArgumentException ex) {
-      throw new RuntimeException(ex);
-    } catch (IllegalAccessException ex) {
+    } catch (IllegalArgumentException | IllegalAccessException ex) {
       throw new RuntimeException(ex);
     }
   }

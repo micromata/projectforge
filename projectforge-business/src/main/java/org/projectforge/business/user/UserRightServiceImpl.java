@@ -60,11 +60,11 @@ public class UserRightServiceImpl implements UserRightService, Serializable
   @Autowired
   TenantChecker tenantChecker;
 
-  private final Map<IUserRightId, UserRight> rights = new HashMap<IUserRightId, UserRight>();
+  private final Map<IUserRightId, UserRight> rights = new HashMap<>();
 
-  private final Map<String, IUserRightId> rightIds = new HashMap<String, IUserRightId>();
+  private final Map<String, IUserRightId> rightIds = new HashMap<>();
 
-  private final List<UserRight> orderedRights = new ArrayList<UserRight>();
+  private final List<UserRight> orderedRights = new ArrayList<>();
   /**
    * The user rights ids.
    */

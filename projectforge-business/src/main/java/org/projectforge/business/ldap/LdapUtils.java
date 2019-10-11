@@ -51,7 +51,7 @@ public class LdapUtils
     if (name == null) {
       return null;
     }
-    final StringBuffer buf = new StringBuffer(name.length() + 5);
+    final StringBuilder buf = new StringBuilder(name.length() + 5);
     for (int i = 0; i < name.length(); i++) {
       final char ch = name.charAt(i);
       if (",=+<>#;\\\"".indexOf(ch) >= 0) {
@@ -136,11 +136,11 @@ public class LdapUtils
 
   public static String getOrganizationalUnit(final String dn)
   {
-    if (dn == null || dn.indexOf("ou=") < 0) {
+    if (dn == null || !dn.contains("ou=")) {
       return null;
     }
     final String[] entries = StringUtils.split(dn, ",");
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     boolean first = true;
     for (String entry : entries) {
       if (entry == null) {
@@ -194,7 +194,7 @@ public class LdapUtils
       return null;
     }
     final NamingEnumeration< ? > enumeration = attr.getAll();
-    final List<String> list = new ArrayList<String>();
+    final List<String> list = new ArrayList<>();
     while (enumeration.hasMore()) {
       final Object attrValue = enumeration.next();
       if (attrValue == null) {
@@ -243,7 +243,7 @@ public class LdapUtils
       return attrId + "=" + value;
     }
     final String[] strs = StringHelper.splitAndTrim(value, ATTRIBUTE_SEPARATOR_CHAR);
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     boolean first = true;
     for (final String str : strs) {
       if (first) {
@@ -277,7 +277,7 @@ public class LdapUtils
   private static List<String> addEntry(List<String> list, final String entry)
   {
     if (list == null) {
-      list = new ArrayList<String>();
+      list = new ArrayList<>();
     }
     list.add(entry);
     return list;

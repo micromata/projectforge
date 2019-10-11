@@ -75,7 +75,7 @@ public class TeamCalCache extends AbstractCache
   public Collection<TeamCalDO> getAllAccessibleCalendars()
   {
     checkRefresh();
-    final Set<TeamCalDO> set = new TreeSet<TeamCalDO>(new TeamCalsComparator());
+    final Set<TeamCalDO> set = new TreeSet<>(new TeamCalsComparator());
     final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
     for (final TeamCalDO cal : calendarMap.values()) {
       if (teamCalRight.hasSelectAccess(loggedInUser, cal) && !cal.isDeleted()) {
@@ -93,7 +93,7 @@ public class TeamCalCache extends AbstractCache
   public Collection<TeamCalDO> getAllFullAccessCalendars()
   {
     checkRefresh();
-    final Set<TeamCalDO> set = new TreeSet<TeamCalDO>(new TeamCalsComparator());
+    final Set<TeamCalDO> set = new TreeSet<>(new TeamCalsComparator());
     final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
     for (final TeamCalDO cal : calendarMap.values()) {
       if (teamCalRight.hasFullAccess(cal, loggedInUser.getId()) && !cal.isDeleted()) {
@@ -111,7 +111,7 @@ public class TeamCalCache extends AbstractCache
   public Collection<TeamCalDO> getAllOwnCalendars()
   {
     checkRefresh();
-    final Set<TeamCalDO> set = new TreeSet<TeamCalDO>(new TeamCalsComparator());
+    final Set<TeamCalDO> set = new TreeSet<>(new TeamCalsComparator());
     final Integer loggedInUserId = ThreadLocalUserContext.getUserId();
     for (final TeamCalDO cal : calendarMap.values()) {
       if (teamCalRight.isOwner(loggedInUserId, cal)) {
@@ -123,7 +123,7 @@ public class TeamCalCache extends AbstractCache
 
   public Collection<TeamCalDO> getCalendars(final Collection<Integer> calIds)
   {
-    final Set<TeamCalDO> set = new TreeSet<TeamCalDO>(new TeamCalsComparator());
+    final Set<TeamCalDO> set = new TreeSet<>(new TeamCalsComparator());
     if (calIds != null) {
       for (final Integer calId : calIds) {
         final TeamCalDO cal = getCalendar(calId);
@@ -151,7 +151,7 @@ public class TeamCalCache extends AbstractCache
       teamCalRight = (TeamCalRight) userRights.getRight(UserRightId.PLUGIN_CALENDAR);
     }
     // This method must not be synchronized because it works with a new copy of maps.
-    final Map<Integer, TeamCalDO> map = new HashMap<Integer, TeamCalDO>();
+    final Map<Integer, TeamCalDO> map = new HashMap<>();
     final List<TeamCalDO> list = dao.internalLoadAll();
     for (final TeamCalDO cal : list) {
       TeamCalDO put = map.put(cal.getId(), cal);

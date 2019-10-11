@@ -88,7 +88,7 @@ public class IntRangesTest
 
   private Range<Integer> r(final int minValue, final int maxValue)
   {
-    return new Range<Integer>(minValue, maxValue);
+    return new Range<>(minValue, maxValue);
   }
 
   private void testListSizes(final IntRanges ranges, final int rangesSize, final int valuesSize)

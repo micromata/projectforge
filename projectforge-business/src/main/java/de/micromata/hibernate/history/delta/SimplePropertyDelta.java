@@ -123,9 +123,7 @@ public class SimplePropertyDelta extends PropertyDelta
         return SDF_TIMEDATE.get().parse(value);
       }
       return ConvertUtils.convert(value, Class.forName(propertyType));
-    } catch (ClassNotFoundException ex) {
-      return value;
-    } catch (ParseException e) {
+    } catch (ClassNotFoundException | ParseException ex) {
       return value;
     }
   }

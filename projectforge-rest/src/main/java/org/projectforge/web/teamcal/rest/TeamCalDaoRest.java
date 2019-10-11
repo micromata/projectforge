@@ -83,7 +83,7 @@ public class TeamCalDaoRest
     if(teamCalBlackListIds != null && teamCalBlackListIds.length > 0) {
       Arrays.stream(teamCalBlackListIds).forEach(calId -> list.remove(teamCalDao.getById(calId)));
     }
-    final List<CalendarObject> result = new LinkedList<CalendarObject>();
+    final List<CalendarObject> result = new LinkedList<>();
     if (list != null && list.size() > 0) {
       for (final TeamCalDO cal : list) {
         result.add(TeamCalDOConverter.getCalendarObject(cal, userRights));

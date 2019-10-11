@@ -248,7 +248,7 @@ public class DateTimeFormatter extends AbstractFormatter
    */
   public String getPrettyFormattedDuration(final long millis, final int hoursOfDay, final int minHours4DaySeparation)
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     final String str1 = getFormattedDuration(millis, hoursOfDay, minHours4DaySeparation);
     final String str2 = getFormattedDuration(millis, hoursOfDay, -1);
     buf.append(str1);

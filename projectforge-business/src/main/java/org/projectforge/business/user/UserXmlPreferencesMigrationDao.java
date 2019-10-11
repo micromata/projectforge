@@ -65,7 +65,7 @@ public class UserXmlPreferencesMigrationDao
   public String migrateAllUserPrefs()
   {
     accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     final List<UserXmlPreferencesDO> list = (List<UserXmlPreferencesDO>) hibernateTemplate.find(
         "from " + UserXmlPreferencesDO.class.getSimpleName() + " t order by user.id, key");
     int versionNumber = Integer.MAX_VALUE;
@@ -113,7 +113,7 @@ public class UserXmlPreferencesMigrationDao
   {
     final Integer userId = userPrefs.getUserId();
     Validate.notNull(userId);
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append("Checking user preferences for user '");
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final PFUserDO user = userGroupCache.getUser(userPrefs.getUserId());

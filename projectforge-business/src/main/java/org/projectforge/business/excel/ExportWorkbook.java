@@ -49,11 +49,11 @@ public class ExportWorkbook
 
   private String filename;
 
-  private final Map<String, Short> dataFormats = new HashMap<String, Short>();
+  private final Map<String, Short> dataFormats = new HashMap<>();
 
   public ExportWorkbook()
   {
-    sheets = new ArrayList<ExportSheet>();
+    sheets = new ArrayList<>();
     poiWorkbook = new HSSFWorkbook();
   }
 
@@ -72,7 +72,7 @@ public class ExportWorkbook
     try {
       poiWorkbook = new HSSFWorkbook(is, true);
       final int no = poiWorkbook.getNumberOfSheets();
-      sheets = new ArrayList<ExportSheet>(no);
+      sheets = new ArrayList<>(no);
       for (int i = 0; i < no; i++) {
         final Sheet sh = poiWorkbook.getSheetAt(i);
         final XlsContentProvider cp = (XlsContentProvider) ExportConfig.getInstance().createNewContentProvider(this);

@@ -148,7 +148,7 @@ public class KontoCache extends AbstractCache
   {
     log.info("Initializing KontoCache ...");
     // This method must not be synchronized because it works with a new copy of maps.
-    final Map<Integer, KontoDO> map = new HashMap<Integer, KontoDO>();
+    final Map<Integer, KontoDO> map = new HashMap<>();
     final List<KontoDO> list = (List<KontoDO>) hibernateTemplate.find("from KontoDO t where deleted=false");
     for (final KontoDO konto : list) {
       map.put(konto.getId(), konto);

@@ -78,7 +78,7 @@ abstract class LantAbstractWizardWindow(context: LantGUIContext,
 
     open fun resize() {
         size = context.windowSize
-        contentPanel.setPreferredSize(TerminalSize(size.columns, size.rows - 5))
+        contentPanel.preferredSize = TerminalSize(size.columns, size.rows - 5)
         separator.preferredSize = TerminalSize(context.terminalSize.columns - 8, 0)
     }
 }

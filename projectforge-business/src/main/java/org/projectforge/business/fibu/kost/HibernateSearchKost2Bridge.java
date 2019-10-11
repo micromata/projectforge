@@ -43,7 +43,7 @@ public class HibernateSearchKost2Bridge implements FieldBridge
   public void set(final String name, final Object value, final Document document, final LuceneOptions luceneOptions)
   {
     final Kost2DO kost2 = (Kost2DO) value;
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append(KostFormatter.format(kost2));
     buf.append(' ');
     buf.append(KostFormatter.format(kost2, true));

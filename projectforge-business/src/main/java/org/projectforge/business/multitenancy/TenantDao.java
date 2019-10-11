@@ -169,7 +169,7 @@ public class TenantDao extends BaseDao<TenantDO>
       // Clear the dummy entry:
       TenantRegistryMap.getInstance().clear();
     }
-    final Collection<TenantDO> tenantList = new ArrayList<TenantDO>();
+    final Collection<TenantDO> tenantList = new ArrayList<>();
     tenantList.add(tenant);
     if (tenant.getAssignedUsers() != null) {
       // Create history entry of PFUserDO for all assigned users:
@@ -191,8 +191,8 @@ public class TenantDao extends BaseDao<TenantDO>
   {
     final Set<PFUserDO> origAssignedUsers = dbTenant.getAssignedUsers();
     final Set<PFUserDO> assignedUsers = tenant.getAssignedUsers();
-    final Collection<PFUserDO> assignedList = new ArrayList<PFUserDO>(); // List of new assigned users.
-    final Collection<PFUserDO> unassignedList = new ArrayList<PFUserDO>(); // List of unassigned users.
+    final Collection<PFUserDO> assignedList = new ArrayList<>(); // List of new assigned users.
+    final Collection<PFUserDO> unassignedList = new ArrayList<>(); // List of unassigned users.
     for (final PFUserDO user : tenant.getAssignedUsers()) {
       if (!origAssignedUsers.contains(user)) {
         assignedList.add(user);
@@ -203,7 +203,7 @@ public class TenantDao extends BaseDao<TenantDO>
         unassignedList.add(user);
       }
     }
-    final Collection<TenantDO> tenantList = new ArrayList<TenantDO>();
+    final Collection<TenantDO> tenantList = new ArrayList<>();
     tenantList.add(tenant);
     // Create history entry of PFUserDO for all new assigned users:
     for (final PFUserDO user : assignedList) {
@@ -241,7 +241,7 @@ public class TenantDao extends BaseDao<TenantDO>
         return;
       }
     }
-    final List<TenantDO> assignedTenants = new ArrayList<TenantDO>();
+    final List<TenantDO> assignedTenants = new ArrayList<>();
     if (tenantsToAssign != null) {
       for (final TenantDO tenant : tenantsToAssign) {
         emgrFactory.runInTrans(emgr -> {
@@ -249,7 +249,7 @@ public class TenantDao extends BaseDao<TenantDO>
           final PFUserDO dbUser = emgr.selectByPkAttached(PFUserDO.class, user.getId());
           Set<PFUserDO> assignedUsers = dbTenant.getAssignedUsers();
           if (assignedUsers == null) {
-            assignedUsers = new HashSet<PFUserDO>();
+            assignedUsers = new HashSet<>();
             dbTenant.setAssignedUsers(assignedUsers);
           }
           if (!assignedUsers.contains(dbUser)) {
@@ -265,7 +265,7 @@ public class TenantDao extends BaseDao<TenantDO>
         });
       }
     }
-    final List<TenantDO> unassignedTenants = new ArrayList<TenantDO>();
+    final List<TenantDO> unassignedTenants = new ArrayList<>();
     if (tenantsToUnassign != null) {
       for (final TenantDO tenant : tenantsToUnassign) {
         emgrFactory.runInTrans(emgr -> {

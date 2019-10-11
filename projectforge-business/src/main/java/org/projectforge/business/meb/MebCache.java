@@ -73,6 +73,6 @@ public class MebCache extends AbstractCache
   protected void refresh()
   {
     log.info("Clearing MebCache.");
-    recentEntriesMap = new HashMap<Integer, Integer>();
+    recentEntriesMap = new HashMap<>();
   }
 }

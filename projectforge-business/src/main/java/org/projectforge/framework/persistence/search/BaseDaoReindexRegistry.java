@@ -45,7 +45,7 @@ public class BaseDaoReindexRegistry
     return instance;
   }
 
-  protected Map<Class< ? extends BaseDO< ? >>, Set<BaseDao< ? >>> registeredDependents = new HashMap<Class< ? extends BaseDO< ? >>, Set<BaseDao< ? >>>();
+  protected Map<Class< ? extends BaseDO< ? >>, Set<BaseDao< ? >>> registeredDependents = new HashMap<>();
 
   /**
    * Register dao to be called after updating an object of type clazz for updating search index of dependent objects managed by the given
@@ -60,7 +60,7 @@ public class BaseDaoReindexRegistry
     }
     Set<BaseDao< ? >> set = this.registeredDependents.get(clazz);
     if (set == null) {
-      set = new HashSet<BaseDao< ? >>();
+      set = new HashSet<>();
       this.registeredDependents.put(clazz, set);
     }
     set.add(dao);

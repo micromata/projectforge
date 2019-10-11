@@ -81,7 +81,7 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
   public void massUpdate()
   {
     final String prefix = "ts-mu1-";
-    final List<TimesheetDO> list = new ArrayList<TimesheetDO>();
+    final List<TimesheetDO> list = new ArrayList<>();
     initTestDB.addTask(prefix + "1", "root");
     initTestDB.addTask(prefix + "1.1", prefix + "1");
     initTestDB.addTask(prefix + "1.2", prefix + "1");
@@ -104,7 +104,7 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
   {
     logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     final String prefix = "ts-mu50-";
-    final List<TimesheetDO> list = new ArrayList<TimesheetDO>();
+    final List<TimesheetDO> list = new ArrayList<>();
     final KundeDO kunde = new KundeDO();
     kunde.setName("ACME");
     kunde.setId(50);
@@ -153,7 +153,7 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
   {
     logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     final String prefix = "ts-mu51-";
-    final List<TimesheetDO> list = new ArrayList<TimesheetDO>();
+    final List<TimesheetDO> list = new ArrayList<>();
     final KundeDO kunde = new KundeDO();
     kunde.setName("ACME ltd.");
     kunde.setId(51);
@@ -214,7 +214,7 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
   {
     logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     final String prefix = "ts-mu52-";
-    final List<TimesheetDO> list = new ArrayList<TimesheetDO>();
+    final List<TimesheetDO> list = new ArrayList<>();
     final KundeDO kunde = new KundeDO();
     kunde.setName("ACME International");
     kunde.setId(52);
@@ -269,7 +269,7 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
   {
     logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     final String prefix = "ts-mu53-";
-    final List<TimesheetDO> list = new ArrayList<TimesheetDO>();
+    final List<TimesheetDO> list = new ArrayList<>();
     final KundeDO kunde = new KundeDO();
     kunde.setName("ACME ltd.");
     kunde.setId(53);
@@ -328,7 +328,7 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
   @Test
   public void checkMaxMassUpdateNumber()
   {
-    final List<TimesheetDO> list = new ArrayList<TimesheetDO>();
+    final List<TimesheetDO> list = new ArrayList<>();
     for (int i = 0; i <= BaseDao.MAX_MASS_UPDATE; i++) {
       list.add(new TimesheetDO());
     }

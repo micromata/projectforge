@@ -58,12 +58,12 @@ public class MonthlyEmployeeReportWeek implements Serializable
   /**
    * Key is kost2 id.
    */
-  private Map<Integer, MonthlyEmployeeReportEntry> kost2Entries = new HashMap<Integer, MonthlyEmployeeReportEntry>();
+  private Map<Integer, MonthlyEmployeeReportEntry> kost2Entries = new HashMap<>();
 
   /**
    * Key is task id.
    */
-  private Map<Integer, MonthlyEmployeeReportEntry> taskEntries = new HashMap<Integer, MonthlyEmployeeReportEntry>();
+  private Map<Integer, MonthlyEmployeeReportEntry> taskEntries = new HashMap<>();
 
   /**
    * ToDate will be set to end of week but not after the last day of month.

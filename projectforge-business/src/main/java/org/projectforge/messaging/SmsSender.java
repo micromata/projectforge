@@ -114,11 +114,6 @@ public class SmsSender {
         log.error("Unexpected response from sms gateway: " + responseNumber + ": " + response + " (if this call was successful, did you configured projectforge.sms.returnCodePattern.success?).");
       }
       return responseCode;
-    } catch (final HttpException ex) {
-      String errorKey = "Call failed. Please contact administrator.";
-      log.error(errorKey + ": " + proceededUrl
-              + StringHelper.hideStringEnding(String.valueOf(phoneNumber), 'x', 3));
-      throw new RuntimeException(ex);
     } catch (final IOException ex) {
       String errorKey = "Call failed. Please contact administrator.";
       log.error(errorKey + ": " + proceededUrl

@@ -105,7 +105,7 @@ public class HibernateSearchUsersGroupsBridge implements FieldBridge
     if (StringUtils.isEmpty(groupIds)) {
       return null;
     }
-    Collection<GroupDO> sortedGroups = new TreeSet<GroupDO>(groupsComparator);
+    Collection<GroupDO> sortedGroups = new TreeSet<>(groupsComparator);
     final int[] ids = StringHelper.splitToInts(groupIds, ",", false);
     for (final int id : ids) {
       final GroupDO group = groupDao.internalGetById(id);
@@ -123,7 +123,7 @@ public class HibernateSearchUsersGroupsBridge implements FieldBridge
     if (StringUtils.isEmpty(userIds)) {
       return null;
     }
-    Collection<PFUserDO> sortedUsers = new TreeSet<PFUserDO>(usersComparator);
+    Collection<PFUserDO> sortedUsers = new TreeSet<>(usersComparator);
     final int[] ids = StringHelper.splitToInts(userIds, ",", false);
     for (final int id : ids) {
       final PFUserDO user = userDao.internalGetById(id);

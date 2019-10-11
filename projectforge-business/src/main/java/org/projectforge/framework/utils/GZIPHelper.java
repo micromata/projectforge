@@ -73,10 +73,7 @@ public class GZIPHelper
       IOUtils.copy(gzip, out);
       gzip.close();
       return out.toString();
-    } catch (final IOException ex) {
-      log.error("Error while uncompressing string: " + ex.getMessage(), ex);
-      return null;
-    } catch (final ClassNotFoundException ex) {
+    } catch (final IOException | ClassNotFoundException ex) {
       log.error("Error while uncompressing string: " + ex.getMessage(), ex);
       return null;
     }

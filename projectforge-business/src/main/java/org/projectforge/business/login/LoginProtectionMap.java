@@ -49,13 +49,13 @@ public class LoginProtectionMap
   /**
    * Number of failed logins per IP address/user id.
    */
-  private final Map<String, Integer> loginFailedAttemptsMap = new HashMap<String, Integer>();
+  private final Map<String, Integer> loginFailedAttemptsMap = new HashMap<>();
 
   /**
    * Time stamp of last failed login per IP address/user Id in ms since 01/01/1970.
    * @see System#currentTimeMillis()
    */
-  private final Map<String, Long> lastFailedLoginMap = new HashMap<String, Long>();
+  private final Map<String, Long> lastFailedLoginMap = new HashMap<>();
 
   /**
    * Call this before checking the login credentials. If a long > 0 is returned please don't proceed the login-procedure. Please display a

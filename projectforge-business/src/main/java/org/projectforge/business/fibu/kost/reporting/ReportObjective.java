@@ -157,7 +157,7 @@ public class ReportObjective
   public void addChildReportObjective(ReportObjective childReportObjective)
   {
     if (childReportObjectives == null) {
-      childReportObjectives = new ArrayList<ReportObjective>();
+      childReportObjectives = new ArrayList<>();
     }
     childReportObjectives.add(childReportObjective);
     childReportObjective.parent = this;
@@ -248,7 +248,7 @@ public class ReportObjective
   private List<String> addRegExp(List<String> regExpList, String regExp)
   {
     if (regExpList == null) {
-      regExpList = new ArrayList<String>();
+      regExpList = new ArrayList<>();
     }
     regExpList.add(regExp);
     return regExpList;

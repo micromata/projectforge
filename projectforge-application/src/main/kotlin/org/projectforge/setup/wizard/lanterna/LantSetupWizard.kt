@@ -81,7 +81,7 @@ class LantSetupWizard(presetAppHomeDir: File? = null) : AbstractSetupWizard() {
     override fun run(): SetupData? {
         super.initialize()
         chooseDirectoryScreen.waitUntilClosed()
-        return super.run();
+        return super.run()
     }
 
     override fun setActiveWindow(nextScreen: ScreenID) {

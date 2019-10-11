@@ -49,7 +49,7 @@ import java.util.Locale;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class QueryFilter {
-  private final List<Object> filterSettings = new ArrayList<Object>();
+  private final List<Object> filterSettings = new ArrayList<>();
 
   private String alias;
 

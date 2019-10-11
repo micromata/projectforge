@@ -50,7 +50,7 @@ public class ScriptingTaskNode
       task = (TaskDO) node.getTask().clone();
     } catch (CloneNotSupportedException ex) {
       log.error("Exception encountered " + ex, ex);
-      throw new InternalErrorException();
+      throw new InternalErrorException("exception.internalError");
     }
   }
 

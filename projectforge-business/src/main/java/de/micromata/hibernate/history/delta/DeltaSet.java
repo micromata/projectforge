@@ -37,13 +37,13 @@ public class DeltaSet implements java.io.Serializable
    */
   private static final long serialVersionUID = 3887433882538488773L;
 
-  private List<PropertyDelta> deltas = new ArrayList<PropertyDelta>();
+  private List<PropertyDelta> deltas = new ArrayList<>();
 
   private Class<?> entity;
 
   private Serializable id;
 
-  private transient Set<String> deltaPropertyNames = new HashSet<String>();
+  private transient Set<String> deltaPropertyNames = new HashSet<>();
 
   public void addDelta(PropertyDelta delta)
   {

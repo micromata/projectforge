@@ -27,9 +27,7 @@ import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFFont;
 import org.apache.poi.hssf.util.HSSFColor;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.*;
 import org.projectforge.common.DateFormatType;
 
 import java.util.*;
@@ -82,15 +80,15 @@ public class XlsContentProvider implements ContentProvider
 
   static protected Font FONT_RED_BOLD;
 
-  protected Map<CellFormat, CellStyle> reusableCellFormats = new HashMap<CellFormat, CellStyle>();
+  protected Map<CellFormat, CellStyle> reusableCellFormats = new HashMap<>();
 
   protected ExportWorkbook workbook;
 
-  private final Map<Object, CellFormat> formatMap = new HashMap<Object, CellFormat>();
+  private final Map<Object, CellFormat> formatMap = new HashMap<>();
 
-  protected final Map<Object, CellFormat> defaultFormatMap = new HashMap<Object, CellFormat>();
+  protected final Map<Object, CellFormat> defaultFormatMap = new HashMap<>();
 
-  private final Map<Integer, Integer> colWidthMap = new HashMap<Integer, Integer>();
+  private final Map<Integer, Integer> colWidthMap = new HashMap<>();
 
   private boolean autoFormatCells = true;
 
@@ -179,12 +177,12 @@ public class XlsContentProvider implements ContentProvider
       reusableCellFormats.put(format, cellStyle);
       format.copyToCellStyle(cellStyle);
       if (format.getFillForegroundColor() != null) {
-        cellStyle.setFillPattern(HSSFCellStyle.SOLID_FOREGROUND);
+        cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
       }
-      cellStyle.setBorderBottom((short) 1);
-      cellStyle.setBorderLeft((short) 1);
-      cellStyle.setBorderRight((short) 1);
-      cellStyle.setBorderTop((short) 1);
+      cellStyle.setBorderBottom(BorderStyle.valueOf((short) 1));
+      cellStyle.setBorderLeft(BorderStyle.valueOf((short) 1));
+      cellStyle.setBorderRight(BorderStyle.valueOf((short) 1));
+      cellStyle.setBorderTop(BorderStyle.valueOf((short) 1));
       cellStyle.setWrapText(true);
       final String dataFormat = format.getDataFormat();
       if (dataFormat != null) {
@@ -378,7 +376,7 @@ public class XlsContentProvider implements ContentProvider
   private XlsContentProvider registerColumn(final ExportColumn column)
   {
     if (this.columns == null) {
-      this.columns = new LinkedList<ExportColumn>();
+      this.columns = new LinkedList<>();
     }
     this.columns.add(column);
     return this;
@@ -404,21 +402,21 @@ public class XlsContentProvider implements ContentProvider
   {
     FONT_HEADER = workbook.createFont();
     FONT_HEADER.setFontHeightInPoints(FONT_HEADER_SIZE);
-    FONT_HEADER.setBoldweight(HSSFFont.BOLDWEIGHT_BOLD);
+    FONT_HEADER.setBold(true);
 
     FONT_NORMAL_BOLD = workbook.createFont();
-    FONT_NORMAL_BOLD.setBoldweight(HSSFFont.BOLDWEIGHT_BOLD);
+    FONT_NORMAL_BOLD.setBold(true);
 
     FONT_WHITE_BOLD = workbook.createFont();
-    FONT_WHITE_BOLD.setColor(HSSFColor.WHITE.index);
-    FONT_WHITE_BOLD.setBoldweight(HSSFFont.BOLDWEIGHT_BOLD);
+    FONT_WHITE_BOLD.setColor(HSSFColor.HSSFColorPredefined.WHITE.getIndex());
+    FONT_WHITE_BOLD.setBold(true);
 
     FONT_RED = workbook.createFont();
-    FONT_RED.setColor(HSSFColor.RED.index);
+    FONT_RED.setColor(HSSFColor.HSSFColorPredefined.RED.getIndex());
 
     FONT_RED_BOLD = workbook.createFont();
     FONT_RED_BOLD.setColor(HSSFColor.RED.index);
-    FONT_RED_BOLD.setBoldweight(HSSFFont.BOLDWEIGHT_BOLD);
+    FONT_RED_BOLD.setBold(true);
 
     FONT_NORMAL = workbook.createFont();
   }

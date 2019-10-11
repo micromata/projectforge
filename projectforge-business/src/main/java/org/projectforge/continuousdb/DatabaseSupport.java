@@ -179,7 +179,7 @@ public class DatabaseSupport
 
   public String renameAttribute(final String table, final String oldName, final String newName)
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append("ALTER TABLE ").append(table).append(" ");
     if (dialect == DatabaseDialect.HSQL) {
       buf.append("ALTER COLUMN ").append(oldName).append(" RENAME TO ").append(newName);

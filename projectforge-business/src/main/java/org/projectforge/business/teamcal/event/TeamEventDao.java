@@ -34,6 +34,8 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
+import org.hibernate.type.DateType;
+import org.hibernate.type.StringType;
 import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.calendar.event.model.SeriesModificationMode;
 import org.projectforge.business.multitenancy.TenantService;
@@ -477,7 +479,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
     }
     final QueryFilter qFilter = buildQueryFilter(teamEventFilter);
     final List<TeamEventDO> list = getList(qFilter);
-    final List<TeamEventDO> result = new ArrayList<TeamEventDO>();
+    final List<TeamEventDO> result = new ArrayList<>();
     if (list != null) {
       for (final TeamEventDO event : list) {
         if (matches(event.getStartDate(), event.getEndDate(), event.getAllDay(), teamEventFilter)) {
@@ -527,8 +529,8 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
     query.setParameterList("cals", calendars);
     final DateHolder dh = new DateHolder();
     dh.add(Calendar.YEAR, -1);
-    query.setDate("lastUpdate", dh.getDate());
-    query.setString("location", "%" + StringUtils.lowerCase(searchString) + "%");
+    query.setParameter("lastUpdate", dh.getDate(), DateType.INSTANCE);
+    query.setParameter("location", "%" + StringUtils.lowerCase(searchString) + "%", StringType.INSTANCE);
     return (List<String>) query.list();
   }
 
@@ -734,7 +736,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
       log.debug("---------- startDate=" + DateHelper.formatIsoTimestamp(eventStartDate, timeZone) + ", timeZone="
               + timeZone.getID());
     }
-    net.fortuna.ical4j.model.TimeZone ical4jTimeZone = null;
+    net.fortuna.ical4j.model.TimeZone ical4jTimeZone;
     try {
       ical4jTimeZone = ICal4JUtils.getTimeZone(timeZone4Calc);
     } catch (final Exception e) {

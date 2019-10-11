@@ -81,7 +81,7 @@ public class TaskFormatter extends AbstractFormatter
     if (CollectionUtils.isEmpty(list)) {
       return "";
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     int i = 0;
     for (final TaskNode node : list) {
       final TaskDO task = node.getTask();

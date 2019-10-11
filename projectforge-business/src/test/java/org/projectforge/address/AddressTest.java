@@ -146,7 +146,7 @@ public class AddressTest extends AbstractTestBase {
     filter.addOrder(Order.asc("name"));
     List<AddressDO> result = addressDao.getList(filter);
     assertEquals(3, result.size(), "Should found 3 address'.");
-    HashSet<String> set = new HashSet<String>();
+    HashSet<String> set = new HashSet<>();
     set.add("testa1");
     set.add("testa2");
     set.add("testa3");

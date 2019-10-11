@@ -58,26 +58,26 @@ public class XStreamSavingConverter implements Converter
 
   private final ConverterLookup defaultConv;
 
-  private final Map<Class<?>, List<Object>> allObjects = new HashMap<Class<?>, List<Object>>();
+  private final Map<Class<?>, List<Object>> allObjects = new HashMap<>();
 
-  private final Set<Class<?>> writtenObjectTypes = new HashSet<Class<?>>();
+  private final Set<Class<?>> writtenObjectTypes = new HashSet<>();
 
   // Objekte dürfen nur einmal geschrieben werden, daher merken, was bereits gespeichert wurde
-  private final Set<Object> writtenObjects = new HashSet<Object>();
+  private final Set<Object> writtenObjects = new HashSet<>();
 
   // Store the objects in the given order and all the other object types which are not listed here afterwards.
-  private final List<Class<?>> orderOfSaving = new ArrayList<Class<?>>();
+  private final List<Class<?>> orderOfSaving = new ArrayList<>();
 
   // Ignore these objects from saving because the are saved implicit by their parent objects.
-  private final Set<Class<?>> ignoreFromSaving = new HashSet<Class<?>>();
+  private final Set<Class<?>> ignoreFromSaving = new HashSet<>();
 
   // This map contains the mapping between the id's of the given xml stream and the new id's given by Hibernate. This is needed for writing
   // the history entries with the new id's.
-  private final Map<String, Serializable> entityMapping = new HashMap<String, Serializable>();
+  private final Map<String, Serializable> entityMapping = new HashMap<>();
 
-  private final List<HistoryEntry> historyEntries = new ArrayList<HistoryEntry>();
+  private final List<HistoryEntry> historyEntries = new ArrayList<>();
 
-  private final Map<String, Class<?>> historyClassMapping = new HashMap<String, Class<?>>();
+  private final Map<String, Class<?>> historyClassMapping = new HashMap<>();
 
   private Session session;
 
@@ -117,9 +117,7 @@ public class XStreamSavingConverter implements Converter
   public XStreamSavingConverter appendOrderedType(final Class<?>... types)
   {
     if (types != null) {
-      for (final Class<?> type : types) {
-        this.orderOfSaving.add(type);
-      }
+      this.orderOfSaving.addAll(Arrays.asList(types));
     }
     return this;
   }
@@ -127,9 +125,7 @@ public class XStreamSavingConverter implements Converter
   public XStreamSavingConverter appendIgnoredObjects(final Class<?>... types)
   {
     if (types != null) {
-      for (final Class<?> type : types) {
-        this.ignoreFromSaving.add(type);
-      }
+      this.ignoreFromSaving.addAll(Arrays.asList(types));
     }
     return this;
   }
@@ -179,7 +175,7 @@ public class XStreamSavingConverter implements Converter
       }
       invokeHistorySetter(entry, "setDelta", List.class, null);
       id = save(entry);
-      final List<PropertyDelta> list = new ArrayList<PropertyDelta>();
+      final List<PropertyDelta> list = new ArrayList<>();
       invokeHistorySetter(entry, "setDelta", List.class, list);
       // TODO HISTORY
       //      for (final PropertyDelta deltaEntry : delta) {
@@ -222,7 +218,7 @@ public class XStreamSavingConverter implements Converter
     if (children == null || children.size() == 0) {
       return null;
     }
-    final List<Serializable> idList = new ArrayList<Serializable>(children.size());
+    final List<Serializable> idList = new ArrayList<>(children.size());
     for (final BaseDO<?> child : children) {
       idList.add(child.getId());
       child.setId(null);
@@ -263,19 +259,7 @@ public class XStreamSavingConverter implements Converter
       final Method method = HistoryEntry.class.getDeclaredMethod(name, parameterType);
       method.setAccessible(true);
       method.invoke(entry, value);
-    } catch (final IllegalArgumentException ex) {
-      log.error("Can't modify id of history entry. This results in a corrupted history: " + entry);
-      log.error("Exception encountered " + ex, ex);
-    } catch (final IllegalAccessException ex) {
-      log.error("Can't modify id of history entry. This results in a corrupted history: " + entry);
-      log.error("Exception encountered " + ex, ex);
-    } catch (final InvocationTargetException ex) {
-      log.error("Can't modify id of history entry. This results in a corrupted history: " + entry);
-      log.error("Exception encountered " + ex, ex);
-    } catch (final SecurityException ex) {
-      log.error("Can't modify id of history entry. This results in a corrupted history: " + entry);
-      log.error("Exception encountered " + ex, ex);
-    } catch (final NoSuchMethodException ex) {
+    } catch (final IllegalArgumentException | NoSuchMethodException | SecurityException | InvocationTargetException | IllegalAccessException ex) {
       log.error("Can't modify id of history entry. This results in a corrupted history: " + entry);
       log.error("Exception encountered " + ex, ex);
     }
@@ -319,9 +303,7 @@ public class XStreamSavingConverter implements Converter
         if (log.isDebugEnabled()) {
           log.debug("wrote object " + obj + " under id " + id);
         }
-      } catch (final HibernateException ex) {
-        log.error("Failed to write " + obj + " ex=" + ex, ex);
-      } catch (final NullPointerException ex) {
+      } catch (final HibernateException | NullPointerException ex) {
         log.error("Failed to write " + obj + " ex=" + ex, ex);
       }
     }
@@ -449,9 +431,7 @@ public class XStreamSavingConverter implements Converter
       if (result != null) {
         registerObject(result);
       }
-    } catch (final HibernateException ex) {
-      log.error("Failed to write " + result + " ex=" + ex, ex);
-    } catch (final NullPointerException ex) {
+    } catch (final HibernateException | NullPointerException ex) {
       log.error("Failed to write " + result + " ex=" + ex, ex);
     }
     return result;
@@ -471,7 +451,7 @@ public class XStreamSavingConverter implements Converter
     }
     List<Object> list = this.allObjects.get(obj.getClass());
     if (list == null) {
-      list = new ArrayList<Object>();
+      list = new ArrayList<>();
       this.allObjects.put(obj.getClass(), list);
     }
     list.add(obj);

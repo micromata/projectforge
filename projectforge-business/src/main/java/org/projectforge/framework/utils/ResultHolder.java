@@ -36,7 +36,7 @@ public class ResultHolder
 {
   private ResultHolderStatus status;
 
-  private final ArrayList<IMessage> messages = new ArrayList<IMessage>();
+  private final ArrayList<IMessage> messages = new ArrayList<>();
 
   public interface IMessage
   {

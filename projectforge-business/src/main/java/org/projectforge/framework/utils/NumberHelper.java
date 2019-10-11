@@ -375,7 +375,7 @@ public class NumberHelper
     }
     str = str.trim();
     str = str.replaceAll("\\p{C}", ""); // Replace UTF controls chars, such as UTF-202C or UTF-202D (from Apple contacts app).
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     if (StringUtils.isNotEmpty(countryPrefix) && str.startsWith(countryPrefix)) {
       buf.append('0');
       str = str.substring(countryPrefix.length());

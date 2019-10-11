@@ -252,7 +252,7 @@ public class PersonalAddressDao {
             .createNamedQuery(PersonalAddressDO.FIND_BY_OWNER, PersonalAddressDO.class)
             .setParameter("ownerId", owner.getId())
             .list();
-    final Map<Integer, PersonalAddressDO> result = new HashMap<Integer, PersonalAddressDO>();
+    final Map<Integer, PersonalAddressDO> result = new HashMap<>();
     for (final PersonalAddressDO entry : list) {
       if (entry.isFavorite() && checkAccess(entry, false)) {
         result.put(entry.getAddressId(), entry);
@@ -272,7 +272,7 @@ public class PersonalAddressDao {
     Validate.notNull(owner);
     Validate.notNull(owner.getId());
     final List<PersonalAddressDO> list = getList();
-    final List<AddressDO> result = new ArrayList<AddressDO>();
+    final List<AddressDO> result = new ArrayList<>();
     for (final PersonalAddressDO entry : list) {
       if (entry.isFavorite() && checkAccess(entry, false)) {
         result.add(entry.getAddress());

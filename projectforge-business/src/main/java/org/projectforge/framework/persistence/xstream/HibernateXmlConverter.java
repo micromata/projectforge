@@ -144,7 +144,7 @@ public class HibernateXmlConverter
           throws DataAccessException, HibernateException
   {
     // Container für die Objekte
-    final List<Object> all = new ArrayList<Object>();
+    final List<Object> all = new ArrayList<>();
     final XStream stream = initXStream(session, true);
     final XStream defaultXStream = initXStream(session, false);
 

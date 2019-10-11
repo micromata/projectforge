@@ -29,7 +29,7 @@ import java.util.Map;
 
 public class ReportGeneratorList
 {
-  private List<ReportGenerator> reports = new ArrayList<ReportGenerator>();
+  private List<ReportGenerator> reports = new ArrayList<>();
   
   public void addReportGenerator(ReportGenerator generator) {
     reports.add(generator);

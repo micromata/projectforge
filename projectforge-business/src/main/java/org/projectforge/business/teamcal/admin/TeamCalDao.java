@@ -122,7 +122,7 @@ public class TeamCalDao extends BaseDao<TeamCalDO>
       // No further filtering, show all deleted calendars.
       return list;
     }
-    final List<TeamCalDO> result = new ArrayList<TeamCalDO>();
+    final List<TeamCalDO> result = new ArrayList<>();
     final TeamCalRight right = (TeamCalRight) getUserRight();
     final Integer userId = user.getId();
     final boolean adminAccessOnly = (myFilter.isAdmin()

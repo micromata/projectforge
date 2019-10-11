@@ -36,7 +36,7 @@ public class LanguageConverter
    * Contains a map for all used user locales. Each map contains the display name of a locale as key and the locale
    * object as value.
    */
-  private final static Map<Locale, Map<String, Locale>> localeMap = new HashMap<Locale, Map<String, Locale>>();
+  private final static Map<Locale, Map<String, Locale>> localeMap = new HashMap<>();
 
   public static final String getLanguageAsString(final Locale language, final Locale locale)
   {
@@ -50,7 +50,7 @@ public class LanguageConverter
   {
     synchronized (localeMap) {
       if (!localeMap.containsKey(locale)) {
-        final Map<String, Locale> m = new HashMap<String, Locale>();
+        final Map<String, Locale> m = new HashMap<>();
         for (final Locale lc : Locale.getAvailableLocales()) {
           m.put(lc.getDisplayName(locale), lc);
         }

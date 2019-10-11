@@ -38,9 +38,9 @@ import java.util.*;
 public class CollectionPropertyDelta extends PropertyDelta
 {
 
-  private transient Set<Object> additions = new HashSet<Object>();
+  private transient Set<Object> additions = new HashSet<>();
 
-  private transient Set<Object> removals = new HashSet<Object>();
+  private transient Set<Object> removals = new HashSet<>();
 
   protected CollectionPropertyDelta()
   {
@@ -92,7 +92,7 @@ public class CollectionPropertyDelta extends PropertyDelta
 
   private List<Object> splitElements(final String keyList, final Session session)
   {
-    List<Object> entityList = new ArrayList<Object>();
+    List<Object> entityList = new ArrayList<>();
     if (!StringUtils.isEmpty(keyList)) {
       for (String key : keyList.split(",")) {
         if (StringUtils.isEmpty(key)) {

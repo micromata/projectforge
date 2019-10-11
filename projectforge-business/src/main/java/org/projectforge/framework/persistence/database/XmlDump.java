@@ -104,7 +104,7 @@ public class XmlDump
   @Autowired
   PluginAdminService pluginAdminService;
 
-  private final List<XmlDumpHook> xmlDumpHooks = new LinkedList<XmlDumpHook>();
+  private final List<XmlDumpHook> xmlDumpHooks = new LinkedList<>();
 
   @Autowired
   private PfEmgrFactory emf;
@@ -147,10 +147,7 @@ public class XmlDump
   {
     try {
       return restoreDatabase(new InputStreamReader(new FileInputStream(XML_DUMP_FILENAME), "utf-8"));
-    } catch (final UnsupportedEncodingException ex) {
-      log.error(ex.getMessage(), ex);
-      throw new RuntimeException(ex);
-    } catch (final FileNotFoundException ex) {
+    } catch (final UnsupportedEncodingException | FileNotFoundException ex) {
       log.error(ex.getMessage(), ex);
       throw new RuntimeException(ex);
     }

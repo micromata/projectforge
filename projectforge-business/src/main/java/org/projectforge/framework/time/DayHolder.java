@@ -275,7 +275,7 @@ public class DayHolder extends DateHolder
   public DayHolder addObject(final String key, final Object value)
   {
     if (this.objects == null) {
-      this.objects = new HashMap<String, Object>();
+      this.objects = new HashMap<>();
     }
     this.objects.put(key, value);
     return this;

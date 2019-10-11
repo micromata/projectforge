@@ -73,7 +73,7 @@ public class SVGHelper
     checkPositiveValues("mixXDist", minXDist);
     final double xHalf = (x2 - x1) / 2;
     final double yHalf = (y2 - y1) / 2;
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append("M ").append(round(x1)).append(" ").append(round(y1)); // (x1, y1)
     if (type == GanttRelationType.FINISH_START || type == null) {
       if (xHalf > minXDist) {
@@ -117,7 +117,7 @@ public class SVGHelper
   {
     checkNonNegativeValues("x, y", x, y);
     checkPositiveValues("size", size);
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     if (direction == ArrowDirection.LEFT) {
       buf.append("M ").append(round(x)).append(" ").append(round(y)); // (x, y)
       buf.append(" L ").append(round(x + size)).append(" ").append(round(y + size)); // (x + size, y + size)

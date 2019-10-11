@@ -162,7 +162,7 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
       return list;
     }
 
-    final List<EingangsrechnungDO> result = new ArrayList<EingangsrechnungDO>();
+    final List<EingangsrechnungDO> result = new ArrayList<>();
     for (final EingangsrechnungDO rechnung : list) {
       if (myFilter.isShowUnbezahlt()) {
         if (!rechnung.isBezahlt()) {
@@ -225,11 +225,9 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
         }
       }
     }
-    Collections.sort(list, new Comparator<DisplayHistoryEntry>()
-    {
+    list.sort(new Comparator<DisplayHistoryEntry>() {
       @Override
-      public int compare(final DisplayHistoryEntry o1, final DisplayHistoryEntry o2)
-      {
+      public int compare(final DisplayHistoryEntry o1, final DisplayHistoryEntry o2) {
         return (o2.getTimestamp().compareTo(o1.getTimestamp()));
       }
     });

@@ -42,7 +42,7 @@ public class FontMap
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(FontMap.class);
   
-  private Map<String, BaseFont> fontMap = new HashMap<String, BaseFont>();
+  private Map<String, BaseFont> fontMap = new HashMap<>();
 
   public void loadFonts(File fontDir)
   {
@@ -50,13 +50,10 @@ public class FontMap
     final Collection<File> files = FileUtils.listFiles(fontDir, new String[] { "afm"}, true); // Read all afm files recursively.
     if (CollectionUtils.isNotEmpty(files)) {
       for (File file : files) {
-        BaseFont font = null;
+        BaseFont font;
         try {
           font = BaseFont.createFont(file.getAbsolutePath(), BaseFont.CP1252, BaseFont.EMBEDDED);
-        } catch (DocumentException ex) {
-          log.error("Error while loading font '" + file.getAbsolutePath() + "': " + ex.getMessage(), ex);
-          continue;
-        } catch (IOException ex) {
+        } catch (DocumentException | IOException ex) {
           log.error("Error while loading font '" + file.getAbsolutePath() + "': " + ex.getMessage(), ex);
           continue;
         }

@@ -95,7 +95,7 @@ public class KostCache extends AbstractCache
 
   public List<Kost2DO> getActiveKost2(final int nummernkreis, final int bereich, final int teilbereich)
   {
-    final List<Kost2DO> list = new ArrayList<Kost2DO>();
+    final List<Kost2DO> list = new ArrayList<>();
     for (final Kost2DO kost : getKost2Map().values()) {
       if (kost.getNummernkreis() == nummernkreis
           && kost.getBereich() == bereich
@@ -126,7 +126,7 @@ public class KostCache extends AbstractCache
   public Set<Kost2ArtDO> getKost2Arts(final Integer projektId)
   {
     checkRefresh();
-    final Set<Kost2ArtDO> set = new TreeSet<Kost2ArtDO>();
+    final Set<Kost2ArtDO> set = new TreeSet<>();
     if (projektId == null) {
       return set;
     }
@@ -153,7 +153,7 @@ public class KostCache extends AbstractCache
   {
     checkRefresh();
     final Set<Kost2ArtDO> set = getKost2Arts(projektId);
-    final List<Kost2Art> result = new ArrayList<Kost2Art>();
+    final List<Kost2Art> result = new ArrayList<>();
     for (final Kost2Art kost2Art : allKost2Arts) {
       if (kost2Art.isDeleted()) {
         continue;
@@ -172,7 +172,7 @@ public class KostCache extends AbstractCache
   public List<Kost2Art> getAllKostArts()
   {
     checkRefresh();
-    final List<Kost2Art> list = new ArrayList<Kost2Art>();
+    final List<Kost2Art> list = new ArrayList<>();
     if (allKost2Arts != null) {
       for (final Kost2Art kost2Art : allKost2Arts) {
         final Kost2ArtDO kost2ArtDO = ((Kost2ArtImpl) kost2Art).getKost2ArtDO();
@@ -215,7 +215,7 @@ public class KostCache extends AbstractCache
   {
     final List<Kost2ArtDO> result = (List<Kost2ArtDO>) hibernateTemplate
         .find("from Kost2ArtDO t where t.deleted = false order by t.id");
-    final List<Kost2Art> list = new ArrayList<Kost2Art>();
+    final List<Kost2Art> list = new ArrayList<>();
     for (final Kost2ArtDO kost2ArtDO : result) {
       final Kost2ArtImpl art = new Kost2ArtImpl(kost2ArtDO);
       list.add(art);
@@ -245,13 +245,13 @@ public class KostCache extends AbstractCache
   {
     log.info("Initializing KostCache ...");
     // This method must not be synchronized because it works with a new copy of maps.
-    final Map<Integer, Kost1DO> map1 = new HashMap<Integer, Kost1DO>();
+    final Map<Integer, Kost1DO> map1 = new HashMap<>();
     final List<Kost1DO> list1 = (List<Kost1DO>) hibernateTemplate.find("from Kost1DO t");
     for (final Kost1DO kost1 : list1) {
       map1.put(kost1.getId(), kost1);
     }
     this.kost1Map = map1;
-    final Map<Integer, Kost2DO> map2 = new HashMap<Integer, Kost2DO>();
+    final Map<Integer, Kost2DO> map2 = new HashMap<>();
     final List<Kost2DO> list2 = (List<Kost2DO>) hibernateTemplate.find("from Kost2DO t");
     kost2EntriesExists = false;
     for (final Kost2DO kost2 : list2) {

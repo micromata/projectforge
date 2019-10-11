@@ -465,7 +465,7 @@ public class ICal4JUtils
     if (sa == null) {
       return null;
     }
-    final List<net.fortuna.ical4j.model.Date> result = new ArrayList<net.fortuna.ical4j.model.Date>();
+    final List<net.fortuna.ical4j.model.Date> result = new ArrayList<>();
     for (final String str : sa) {
       if (StringUtils.isEmpty(str)) {
         continue;

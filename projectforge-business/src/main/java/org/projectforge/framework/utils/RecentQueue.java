@@ -76,7 +76,7 @@ public class RecentQueue<T> implements Serializable
   {
     synchronized (this) {
       if (recents == null) {
-        recents = new ArrayList<T>();
+        recents = new ArrayList<>();
       }
     }
     if (recents.indexOf(entry) == -1) {
@@ -88,7 +88,7 @@ public class RecentQueue<T> implements Serializable
   {
     synchronized (this) {
       if (recents == null) {
-        recents = new ArrayList<T>();
+        recents = new ArrayList<>();
       }
     }
     int idx = recents.indexOf(entry);

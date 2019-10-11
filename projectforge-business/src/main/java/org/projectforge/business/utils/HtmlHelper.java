@@ -123,7 +123,7 @@ public class HtmlHelper
     if (escapeChars) {
       s = escapeXml(str);
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     boolean doubleSpace = false;
     int col = 0;
     for (int i = 0; i < s.length(); i++) {

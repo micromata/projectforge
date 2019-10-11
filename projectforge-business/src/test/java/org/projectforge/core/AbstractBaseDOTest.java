@@ -91,9 +91,9 @@ public class AbstractBaseDOTest extends AbstractTestBase {
   //  @Test
   public void copyValuesFrom() {
     final FooDO srcFoo = new FooDO();
-    srcFoo.setManagedChildren(new ArrayList<BarDO>());
-    srcFoo.setUnmanagedChildren1(new ArrayList<BarDO>());
-    srcFoo.setUnmanagedChildren2(new ArrayList<BarDO>());
+    srcFoo.setManagedChildren(new ArrayList<>());
+    srcFoo.setUnmanagedChildren1(new ArrayList<>());
+    srcFoo.setUnmanagedChildren2(new ArrayList<>());
     srcFoo.getManagedChildren().add(new BarDO(1, "src1"));
     srcFoo.getManagedChildren().add(new BarDO(2, "src2"));
     srcFoo.getUnmanagedChildren1().add(new BarDO(3, "src3"));
@@ -101,9 +101,9 @@ public class AbstractBaseDOTest extends AbstractTestBase {
     srcFoo.getUnmanagedChildren2().add(new BarDO(5, "src5"));
     srcFoo.getUnmanagedChildren2().add(new BarDO(6, "src6"));
     final FooDO destFoo = new FooDO();
-    destFoo.setManagedChildren(new ArrayList<BarDO>());
-    destFoo.setUnmanagedChildren1(new ArrayList<BarDO>());
-    destFoo.setUnmanagedChildren2(new ArrayList<BarDO>());
+    destFoo.setManagedChildren(new ArrayList<>());
+    destFoo.setUnmanagedChildren1(new ArrayList<>());
+    destFoo.setUnmanagedChildren2(new ArrayList<>());
     destFoo.getManagedChildren().add(new BarDO(1, "dest1"));
     destFoo.getManagedChildren().add(new BarDO(2, "dest2"));
     destFoo.getUnmanagedChildren1().add(new BarDO(3, "dest3"));

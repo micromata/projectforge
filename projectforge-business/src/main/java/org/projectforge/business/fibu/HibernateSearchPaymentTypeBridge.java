@@ -54,7 +54,7 @@ public class HibernateSearchPaymentTypeBridge implements FieldBridge
       return;
     }
 
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
 
     for (final Locale locale : Const.I18NSERVICE_LANGUAGES) {
       final String localized = I18nHelper.getLocalizedMessage(locale, paymentType.getI18nKey());

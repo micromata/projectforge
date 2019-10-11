@@ -87,7 +87,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
     final String dn = buildDn(ouBase, obj);
     log.info("Create " + getObjectClass() + ": " + dn + ": " + getLogInfo(obj));
     final Attributes attrs = new BasicAttributes();
-    final List<ModificationItem> modificationItems = getModificationItems(new ArrayList<ModificationItem>(), obj);
+    final List<ModificationItem> modificationItems = getModificationItems(new ArrayList<>(), obj);
     modificationItems.add(createModificationItem(DirContext.ADD_ATTRIBUTE, "objectClass", getObjectClass()));
     final String[] additionalObjectClasses = getAdditionalObjectClasses(obj);
     if (additionalObjectClasses != null) {
@@ -185,7 +185,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   public void update(final DirContext ctx, final String ouBase, final T obj, final Object... objs)
       throws NamingException
   {
-    modify(ctx, obj, getModificationItems(new ArrayList<ModificationItem>(), obj));
+    modify(ctx, obj, getModificationItems(new ArrayList<>(), obj));
   }
 
   protected abstract List<ModificationItem> getModificationItems(final List<ModificationItem> list, final T obj);
@@ -430,7 +430,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
 
   public List<T> findAll(final DirContext ctx, final String organizationalUnit) throws NamingException
   {
-    final LinkedList<T> list = new LinkedList<T>();
+    final LinkedList<T> list = new LinkedList<>();
     NamingEnumeration<?> results = null;
     final SearchControls controls = new SearchControls();
     controls.setSearchScope(SearchControls.SUBTREE_SCOPE);

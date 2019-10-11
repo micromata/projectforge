@@ -72,7 +72,7 @@ public class LdapConfig
    */
   public String getCompleteServerUrl()
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append(this.server);
     if (port != null) {
       buf.append(':').append(port);

@@ -89,7 +89,7 @@ public class MailAccount
     //          + this.mailAcccountConfig.getProtocol());
     //      return null;
     //    }
-    final List<Mail> table = new ArrayList<Mail>();
+    final List<Mail> table = new ArrayList<>();
     try {
       int totalMessages = folder.getMessageCount();
       log.debug("New messages: " + folder.getNewMessageCount());
@@ -126,10 +126,7 @@ public class MailAccount
       table.toArray(mailArray);
       Arrays.sort(mailArray);
       return mailArray;
-    } catch (javax.mail.MessagingException ex) {
-      log.info(ex.getMessage(), ex);
-      throw new RuntimeException(ex);
-    } catch (IOException ex) {
+    } catch (MessagingException | IOException ex) {
       log.info(ex.getMessage(), ex);
       throw new RuntimeException(ex);
     }

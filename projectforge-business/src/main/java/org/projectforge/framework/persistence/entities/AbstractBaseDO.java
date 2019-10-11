@@ -205,7 +205,7 @@ public abstract class AbstractBaseDO<I extends Serializable> implements Extended
   public void setTransientAttribute(final String key, final Object value)
   {
     if (attributeMap == null) {
-      attributeMap = new HashMap<String, Object>();
+      attributeMap = new HashMap<>();
     }
     attributeMap.put(key, value);
   }

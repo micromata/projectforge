@@ -95,23 +95,23 @@ public class XmlStreamTest extends AbstractTestBase {
     TestObject obj = new TestObject();
     obj.b1 = obj.b2 = obj.b3 = false;
     String xml = XmlObjectWriter.writeAsXml(obj);
-    assertTrue(xml.indexOf("b1") < 0, "b1 shouldn't be present.");
-    assertTrue(xml.indexOf("b2=\"false\"") >= 0, "b1 shouldn't be present.");
-    assertTrue(xml.indexOf("b3") < 0, "b3 shouldn't be present.");
+    assertTrue(!xml.contains("b1"), "b1 shouldn't be present.");
+    assertTrue(xml.contains("b2=\"false\""), "b1 shouldn't be present.");
+    assertTrue(!xml.contains("b3"), "b3 shouldn't be present.");
     obj = (TestObject) reader.read(xml);
-    assertEquals(false, obj.b1, "b1");
-    assertEquals(false, obj.b2, "b2");
-    assertEquals(false, obj.b3, "b3");
+    assertFalse(obj.b1, "b1");
+    assertFalse(obj.b2, "b2");
+    assertFalse(obj.b3, "b3");
 
     obj.b1 = obj.b2 = obj.b3 = true;
     xml = XmlObjectWriter.writeAsXml(obj);
-    assertTrue(xml.indexOf("b1=\"true\"") >= 0, "b1 should be present.");
-    assertTrue(xml.indexOf("b2") < 0, "b2 shouldn't be present.");
-    assertTrue(xml.indexOf("b3=\"true\"") >= 0, "b3 should be present.");
+    assertTrue(xml.contains("b1=\"true\""), "b1 should be present.");
+    assertTrue(!xml.contains("b2"), "b2 shouldn't be present.");
+    assertTrue(xml.contains("b3=\"true\""), "b3 should be present.");
     obj = (TestObject) reader.read(xml);
-    assertEquals(true, obj.b1, "b1");
-    assertEquals(true, obj.b2, "b2");
-    assertEquals(true, obj.b3, "b3");
+    assertTrue(obj.b1, "b1");
+    assertTrue(obj.b2, "b2");
+    assertTrue(obj.b3, "b3");
 
     obj = (TestObject) reader.read("<test />");
     assertFalse(obj.b1);
@@ -152,7 +152,7 @@ public class XmlStreamTest extends AbstractTestBase {
     Element el2 = el.element("testObject");
     assertEquals("ds", el2.attribute("s1").getText(), "s1");
 
-    testObject2.list = new ArrayList<TestObject>();
+    testObject2.list = new ArrayList<>();
     el = writer.write(root, testObject2);
     containsElements(el, "testObject", "list");
     el2 = el.element("list");
@@ -217,7 +217,7 @@ public class XmlStreamTest extends AbstractTestBase {
     o2 = (TestObject2) reader.read(el);
     assertEquals("ds", o2.testObject.s1);
     assertNull(o2.list);
-    testObject2.list = new ArrayList<TestObject>();
+    testObject2.list = new ArrayList<>();
     el = writer.write(root, testObject2);
     o2 = (TestObject2) reader.read(el);
     assertEquals("ds", o2.testObject.s1);
@@ -244,8 +244,8 @@ public class XmlStreamTest extends AbstractTestBase {
     obj2 = (TestObject2) reader.read(xml);
     assertNull(obj2.set);
     assertNull(obj2.intSet);
-    obj2.set = new HashSet<TestObject>();
-    obj2.intSet = new HashSet<Integer>();
+    obj2.set = new HashSet<>();
+    obj2.intSet = new HashSet<>();
     xml = XmlObjectWriter.writeAsXml(obj2);
     obj2 = (TestObject2) reader.read(xml);
     assertEquals(0, obj2.set.size(), "Set should be empty.");
@@ -282,8 +282,8 @@ public class XmlStreamTest extends AbstractTestBase {
     obj2 = (TestObject2) reader.read(xml);
     assertNull(obj2.set);
     assertNull(obj2.intSet);
-    obj2.set = new HashSet<TestObject>();
-    obj2.intSet = new HashSet<Integer>();
+    obj2.set = new HashSet<>();
+    obj2.intSet = new HashSet<>();
     xml = XmlObjectWriter.writeAsXml(obj2);
     obj2 = (TestObject2) reader.read(xml);
     assertEquals(0, obj2.set.size(), "Set should be empty.");
@@ -370,7 +370,7 @@ public class XmlStreamTest extends AbstractTestBase {
     TestObject2 obj2 = new TestObject2();
     obj2.testObject = obj;
     obj2.testObjectIFace = obj;
-    obj2.list = new ArrayList<TestObject>();
+    obj2.list = new ArrayList<>();
     obj2.list.add(obj);
     obj = new TestObject();
     obj.s1 = "Fin";

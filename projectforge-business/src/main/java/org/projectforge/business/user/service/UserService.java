@@ -112,7 +112,7 @@ public class UserService implements UserChangedListener {
       return null;
     }
     final int[] ids = StringHelper.splitToInts(userIds, ",", false);
-    final List<String> list = new ArrayList<String>();
+    final List<String> list = new ArrayList<>();
     for (final int id : ids) {
       final PFUserDO user = getUserGroupCache().getUser(id);
       if (user != null) {
@@ -125,7 +125,7 @@ public class UserService implements UserChangedListener {
   }
 
   public Collection<PFUserDO> getSortedUsers() {
-    TreeSet<PFUserDO> sortedUsers = new TreeSet<PFUserDO>(usersComparator);
+    TreeSet<PFUserDO> sortedUsers = new TreeSet<>(usersComparator);
     final Collection<PFUserDO> allusers = getUserGroupCache().getAllUsers();
     final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
     for (final PFUserDO user : allusers) {
@@ -145,7 +145,7 @@ public class UserService implements UserChangedListener {
     if (StringUtils.isEmpty(userIds)) {
       return null;
     }
-    TreeSet<PFUserDO> sortedUsers = new TreeSet<PFUserDO>(usersComparator);
+    TreeSet<PFUserDO> sortedUsers = new TreeSet<>(usersComparator);
     final int[] ids = StringHelper.splitToInts(userIds, ",", false);
     for (final int id : ids) {
       final PFUserDO user = getUserGroupCache().getUser(id);
@@ -188,7 +188,7 @@ public class UserService implements UserChangedListener {
               "******* Exception while getting users from data-base (OK only in case of migration from older versions): "
                       + ex.getMessage(),
               ex);
-      return new ArrayList<PFUserDO>();
+      return new ArrayList<>();
     }
   }
 
@@ -575,7 +575,7 @@ public class UserService implements UserChangedListener {
     if (StringUtils.isNotBlank(user.getPersonalPhoneIdentifiers())) {
       final String[] ids = getPersonalPhoneIdentifiers(user);
       if (ids != null) {
-        final StringBuffer buf = new StringBuffer();
+        final StringBuilder buf = new StringBuilder();
         boolean first = true;
         for (final String id : ids) {
           if (first) {

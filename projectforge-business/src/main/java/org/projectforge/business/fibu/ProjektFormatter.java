@@ -47,7 +47,7 @@ public class ProjektFormatter extends BaseFormatter
    */
   public static String formatProjektKundeAsString(final ProjektDO projekt, final KundeDO kunde, final String kundeText)
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     boolean first = true;
     if (StringUtils.isNotBlank(kundeText)) {
       first = false;
@@ -109,7 +109,7 @@ public class ProjektFormatter extends BaseFormatter
     if (projekt == null) {
       return "";
     }
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     // final KundeDO kunde = projekt.getKunde();
     boolean hasAccess = projektDao.hasLoggedInUserSelectAccess(false);
     if (!hasAccess) {

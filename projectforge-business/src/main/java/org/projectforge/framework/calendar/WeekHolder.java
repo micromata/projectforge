@@ -116,7 +116,7 @@ public class WeekHolder implements Serializable
    */
   public void addObject(String key, Object value) {
     if (this.objects == null) {
-      this.objects = new HashMap<String, Object>();
+      this.objects = new HashMap<>();
     }
     this.objects.put(key, value);
   }

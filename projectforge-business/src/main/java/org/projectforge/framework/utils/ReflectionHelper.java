@@ -78,16 +78,7 @@ public class ReflectionHelper
     try {
       final Constructor< ? > constructor = clazz.getConstructor(argClasses);
       return constructor.newInstance(args);
-    } catch (NoSuchMethodException ex) {
-      log.error(ex.getMessage(), ex);
-      throw new RuntimeException(ex);
-    } catch (IllegalAccessException ex) {
-      log.error(ex.getMessage(), ex);
-      throw new RuntimeException(ex);
-    } catch (InstantiationException ex) {
-      log.error(ex.getMessage(), ex);
-      throw new RuntimeException(ex);
-    } catch (InvocationTargetException ex) {
+    } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException ex) {
       log.error(ex.getMessage(), ex);
       throw new RuntimeException(ex);
     }

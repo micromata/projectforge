@@ -41,7 +41,7 @@ public class HibernateSearchProjectKostBridge implements FieldBridge
   public void set(final String name, final Object value, final Document document, final LuceneOptions luceneOptions)
   {
     final ProjektDO projekt = (ProjektDO) value;
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append(KostFormatter.format(projekt));
     buf.append(' ');
     buf.append(KostFormatter.format(projekt, true));

@@ -34,7 +34,7 @@ public class RecentScriptCalls
 
   public RecentScriptCalls()
   {
-    recentQueue = new RecentQueue<ScriptCallData>();
+    recentQueue = new RecentQueue<>();
   }
 
   public void append(final ScriptCallData data)

@@ -219,7 +219,7 @@ public class TaskTest extends AbstractTestBase {
     } catch (final AccessException ex) {
       assertAccessException(ex, getTask("a.1").getId(), AccessType.TASKS, OperationType.SELECT);
     }
-    initTestDB.addGroup("taskTest1", new String[]{"taskTest1"});
+    initTestDB.addGroup("taskTest1", "taskTest1");
     initTestDB.createGroupTaskAccess(getGroup("taskTest1"), getTask("a.1"), AccessType.TASKS, true, true, true, true);
     TaskDO task = taskDao.getById(getTask("a.1").getId());
     assertEquals("a.1", task.getTitle(), "Now readable.");
@@ -245,7 +245,7 @@ public class TaskTest extends AbstractTestBase {
 
     initTestDB.addUser("taskTest2");
     logon("taskTest2");
-    initTestDB.addGroup("taskTest2", new String[]{"taskTest2"});
+    initTestDB.addGroup("taskTest2", "taskTest2");
     initTestDB.createGroupTaskAccess(getGroup("taskTest2"), getTask("a.1"), AccessType.TASKS, true, true, true, true);
     initTestDB.createGroupTaskAccess(getGroup("taskTest2"), getTask("a.2"), AccessType.TASKS, true, true, true, false);
     task = taskDao.getById(getTask("a.2.1").getId());
@@ -262,7 +262,7 @@ public class TaskTest extends AbstractTestBase {
   public void checkAccess() {
     logon(AbstractTestBase.TEST_ADMIN_USER);
     final TaskDO task = initTestDB.addTask("checkAccessTestTask", "root");
-    initTestDB.addGroup("checkAccessTestGroup", new String[]{AbstractTestBase.TEST_USER});
+    initTestDB.addGroup("checkAccessTestGroup", AbstractTestBase.TEST_USER);
     initTestDB.createGroupTaskAccess(getGroup("checkAccessTestGroup"), getTask("checkAccessTestTask"), AccessType.TASKS,
             true, true, true,
             true);
@@ -292,8 +292,8 @@ public class TaskTest extends AbstractTestBase {
     final String groupName = "checkKost2AndTimesheetBookingStatusAccessGroup";
     // Please note: TEST_USER is no project manager or assistant!
     final GroupDO projectManagers = initTestDB.addGroup(groupName,
-            new String[]{AbstractTestBase.TEST_PROJECT_MANAGER_USER, AbstractTestBase.TEST_PROJECT_ASSISTANT_USER,
-                    AbstractTestBase.TEST_USER});
+        AbstractTestBase.TEST_PROJECT_MANAGER_USER, AbstractTestBase.TEST_PROJECT_ASSISTANT_USER,
+        AbstractTestBase.TEST_USER);
     initTestDB.createGroupTaskAccess(projectManagers, task, AccessType.TASKS, true, true, true, true); // All rights.
     final ProjektDO projekt = new ProjektDO();
     projekt.setName("checkKost2AndTimesheetBookingStatusAccess");
@@ -482,17 +482,17 @@ public class TaskTest extends AbstractTestBase {
     boolean subtask1Found = false;
     for (final Object[] oa : list) {
       final Integer taskId = (Integer) oa[1];
-      if (taskId == task.getId()) {
+      if (taskId.equals(task.getId())) {
         assertFalse(taskFound, "Entry should only exist once.");
         assertFalse(subtask1Found, "Entry not first.");
         taskFound = true;
-        assertEquals(new Long(8 * 3600), oa[0]);
-      } else if (taskId == subTask1.getId()) {
+        assertEquals((long) (8 * 3600), oa[0]);
+      } else if (taskId.equals(subTask1.getId())) {
         assertFalse(subtask1Found, "Entry should only exist once.");
         assertTrue(taskFound, "Entry not second.");
         subtask1Found = true;
-        assertEquals(new Long(4 * 3600), oa[0]);
-      } else if (taskId == subTask2.getId()) {
+        assertEquals((long) (4 * 3600), oa[0]);
+      } else if (taskId.equals(subTask2.getId())) {
         fail("Entry not not expected.");
       }
     }

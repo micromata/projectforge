@@ -80,7 +80,7 @@ public class LdapConnector implements ConfigurationListener
   private Hashtable<String, String> createEnv(final String user, final String password)
   {
     // Set up the environment for creating the initial context
-    final Hashtable<String, String> env = new Hashtable<String, String>();
+    final Hashtable<String, String> env = new Hashtable<>();
     env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
     env.put(Context.PROVIDER_URL, ldapConfig.getCompleteServerUrl());
     final String authentication = ldapConfig.getAuthentication();

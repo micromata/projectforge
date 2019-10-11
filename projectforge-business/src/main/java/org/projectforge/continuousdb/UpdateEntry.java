@@ -112,7 +112,7 @@ public abstract class UpdateEntry implements Comparable<UpdateEntry>
   @Override
   public String toString()
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append(this.getClass()).append("=[");
     if (getRegionId() != null) {
       buf.append("regionId=[").append(getRegionId()).append("]");

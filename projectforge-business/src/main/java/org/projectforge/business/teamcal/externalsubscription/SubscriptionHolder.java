@@ -47,7 +47,7 @@ public class SubscriptionHolder implements Serializable {
   private boolean sorted;
 
   public SubscriptionHolder() {
-    eventList = new ArrayList<TeamEventDO>();
+    eventList = new ArrayList<>();
     sorted = false;
   }
 
@@ -79,7 +79,7 @@ public class SubscriptionHolder implements Serializable {
         return o1.getStartDate().compareTo(o2.getStartDate());
       }
     };
-    Collections.sort(eventList, comparator);
+    eventList.sort(comparator);
     sorted = true;
   }
 
@@ -98,7 +98,7 @@ public class SubscriptionHolder implements Serializable {
         sort();
       }
     }
-    final List<TeamEventDO> result = new ArrayList<TeamEventDO>();
+    final List<TeamEventDO> result = new ArrayList<>();
     for (final TeamEventDO teamEventDo : eventList) {
       // all our events are sorted, if we find a event which starts
       // after the end date, we can break this iteration

@@ -46,7 +46,7 @@ public class BusinessAssessmentTest
     // <row no='1260' id='sonstigeKosten' accountRange='6300,6800-6855' priority='low' title='sonstige Kosten' />
 
     final BusinessAssessmentConfig bwaConfig = BusinessAssessmentConfigTest.getBusinessAssessmentConfig();
-    final List<BuchungssatzDO> records = new ArrayList<BuchungssatzDO>();
+    final List<BuchungssatzDO> records = new ArrayList<>();
     records.add(createRecord(8.08, 4000));
     records.add(createRecord(16.16, 4123));
     records.add(createRecord(32.32, 4799));

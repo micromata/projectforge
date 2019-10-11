@@ -70,7 +70,7 @@ public class GroupServiceImpl implements GroupService
     if (groupSet == null) {
       return "";
     }
-    final List<String> list = new ArrayList<String>();
+    final List<String> list = new ArrayList<>();
     for (final Integer groupId : groupSet) {
       final GroupDO group = getGroup(groupId);
       if (group != null) {
@@ -93,7 +93,7 @@ public class GroupServiceImpl implements GroupService
       return null;
     }
     final int[] ids = StringHelper.splitToInts(groupIds, ",", false);
-    final List<String> list = new ArrayList<String>();
+    final List<String> list = new ArrayList<>();
     for (final int id : ids) {
       final GroupDO group = getGroup(id);
       if (group != null) {
@@ -116,7 +116,7 @@ public class GroupServiceImpl implements GroupService
     if (StringUtils.isEmpty(groupIds)) {
       return null;
     }
-    Collection<GroupDO> sortedGroups = new TreeSet<GroupDO>(groupsComparator);
+    Collection<GroupDO> sortedGroups = new TreeSet<>(groupsComparator);
     final int[] ids = StringHelper.splitToInts(groupIds, ",", false);
     for (final int id : ids) {
       final GroupDO group = getGroup(id);
@@ -147,7 +147,7 @@ public class GroupServiceImpl implements GroupService
   {
 
       final Collection<GroupDO> allGroups = getUserGroupCache().getAllGroups();
-    TreeSet<GroupDO> sortedGroups = new TreeSet<GroupDO>(groupsComparator);
+    TreeSet<GroupDO> sortedGroups = new TreeSet<>(groupsComparator);
       final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
       for (final GroupDO group : allGroups) {
         if (!group.isDeleted() && groupDao.hasSelectAccess(loggedInUser, group, false)) {

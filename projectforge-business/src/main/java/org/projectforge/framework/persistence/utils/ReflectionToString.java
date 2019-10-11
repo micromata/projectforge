@@ -105,9 +105,7 @@ public class ReflectionToString extends ReflectionToStringBuilder
         append(field.getName(), value);
         return false;
       }
-    } catch (final IllegalArgumentException ex) {
-      return false;
-    } catch (final IllegalAccessException ex) {
+    } catch (final IllegalArgumentException | IllegalAccessException ex) {
       return false;
     }
     return super.accept(field);

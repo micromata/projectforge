@@ -121,7 +121,7 @@ public class ProjektImpl implements Projekt
     if (kost2Arts == null) {
       return "";
     }
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     boolean first = false;
     for (Kost2Art value : kost2Arts) {
       if (first) {

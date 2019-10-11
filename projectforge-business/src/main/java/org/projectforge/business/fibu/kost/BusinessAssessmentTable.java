@@ -39,7 +39,7 @@ public class BusinessAssessmentTable
 
   public BusinessAssessmentTable()
   {
-    businessAssessmentList = new ArrayList<LabelValueBean<String, BusinessAssessment>>();
+    businessAssessmentList = new ArrayList<>();
   }
 
   public List<LabelValueBean<String, BusinessAssessment>> getBusinessAssessmentList()
@@ -49,6 +49,6 @@ public class BusinessAssessmentTable
 
   public void addBusinessAssessment(final String label, final BusinessAssessment businessAssessment)
   {
-    businessAssessmentList.add(new LabelValueBean<String, BusinessAssessment>(label, businessAssessment));
+    businessAssessmentList.add(new LabelValueBean<>(label, businessAssessment));
   }
 }

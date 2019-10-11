@@ -56,7 +56,7 @@ public class UserXmlPreferencesMap
   {
     synchronized (this) {
       if (persistentData == null) {
-        persistentData = new HashMap<String, Object>();
+        persistentData = new HashMap<>();
       }
     }
     return persistentData;
@@ -66,7 +66,7 @@ public class UserXmlPreferencesMap
   {
     synchronized (this) {
       if (volatileData == null) {
-        volatileData = new HashMap<String, Object>();
+        volatileData = new HashMap<>();
       }
     }
     return volatileData;
@@ -76,7 +76,7 @@ public class UserXmlPreferencesMap
   {
     synchronized (this) {
       if (modifiedObjects == null) {
-        modifiedObjects = new HashSet<String>();
+        modifiedObjects = new HashSet<>();
       }
     }
     return modifiedObjects;

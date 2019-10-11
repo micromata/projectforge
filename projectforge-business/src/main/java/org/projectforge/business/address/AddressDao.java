@@ -467,7 +467,7 @@ public class AddressDao extends BaseDao<AddressDO> {
    * @return
    */
   public String getFullName(final AddressDO a) {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     boolean space = false;
     if (isGiven(a.getName())) {
       buf.append(a.getName());

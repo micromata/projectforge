@@ -28,7 +28,7 @@ import java.util.Map;
 
 public class PropertyMapping
 {
-  protected Map<String, Object> map = new HashMap<String, Object>();
+  protected Map<String, Object> map = new HashMap<>();
 
   public void add(String propertyName, Object obj)
   {

@@ -96,7 +96,7 @@ public class ScriptDao extends BaseDao<ScriptDO>
   {
     hasLoggedInUserSelectAccess(script, true);
     final ReportGeneratorList reportGeneratorList = new ReportGeneratorList();
-    final Map<String, Object> scriptVariables = new HashMap<String, Object>();
+    final Map<String, Object> scriptVariables = new HashMap<>();
 
     addScriptVariables(scriptVariables);
     scriptVariables.put("reportList", reportGeneratorList);
@@ -106,7 +106,7 @@ public class ScriptDao extends BaseDao<ScriptDO>
       }
     }
     if (script.getFile() != null) {
-      final Map<String, Object> scriptVars = new HashMap<String, Object>();
+      final Map<String, Object> scriptVars = new HashMap<>();
       scriptVariables.put("script", scriptVars);
       scriptVars.put("file", script.getFile());
       scriptVars.put("filename", script.getFilename());

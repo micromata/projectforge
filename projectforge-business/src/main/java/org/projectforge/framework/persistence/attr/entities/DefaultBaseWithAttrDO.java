@@ -60,7 +60,7 @@ public abstract class DefaultBaseWithAttrDO<M extends DefaultBaseWithAttrDO<?>>e
   /**
    * holds the attributes
    */
-  private transient Map<String, JpaTabAttrBaseDO<M, Integer>> attributes = new TreeMap<String, JpaTabAttrBaseDO<M, Integer>>();
+  private transient Map<String, JpaTabAttrBaseDO<M, Integer>> attributes = new TreeMap<>();
 
   public DefaultBaseWithAttrDO()
   {

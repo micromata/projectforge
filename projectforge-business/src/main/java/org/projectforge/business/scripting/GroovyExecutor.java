@@ -103,13 +103,7 @@ public class GroovyExecutor
         log.debug(writer.toString());
       }
       return writer.toString();
-    } catch (final CompilationFailedException ex) {
-      log.error(ex.getMessage() + " while executing template: " + template, ex);
-    } catch (final FileNotFoundException ex) {
-      log.error(ex.getMessage() + " while executing template: " + template, ex);
-    } catch (final ClassNotFoundException ex) {
-      log.error(ex.getMessage() + " while executing template: " + template, ex);
-    } catch (final IOException ex) {
+    } catch (final CompilationFailedException | IOException | ClassNotFoundException ex) {
       log.error(ex.getMessage() + " while executing template: " + template, ex);
     }
     return null;
@@ -161,7 +155,7 @@ public class GroovyExecutor
       }
     };
 
-    Class<?> groovyClass = null;
+    Class<?> groovyClass;
     try {
       groovyClass = gcl.parseClass(script);
     } catch (final CompilationFailedException ex) {
@@ -171,16 +165,10 @@ public class GroovyExecutor
       }
       return null;
     }
-    Script groovyObject = null;
+    Script groovyObject;
     try {
       groovyObject = (Script) groovyClass.newInstance();
-    } catch (final InstantiationException ex) {
-      log.error(ex.getMessage(), ex);
-      if (result != null) {
-        result.setException(ex);
-      }
-      return null;
-    } catch (final IllegalAccessException ex) {
+    } catch (final InstantiationException | IllegalAccessException ex) {
       log.error(ex.getMessage(), ex);
       if (result != null) {
         result.setException(ex);
@@ -202,7 +190,7 @@ public class GroovyExecutor
 
   public GroovyResult execute(final Script groovyScript, final Map<String, Object> variables)
   {
-    return execute((GroovyResult) null, groovyScript, variables);
+    return execute(null, groovyScript, variables);
   }
 
   public GroovyResult execute(GroovyResult result, final Script groovyScript, final Map<String, Object> variables)
@@ -216,7 +204,7 @@ public class GroovyExecutor
     if (result == null) {
       result = new GroovyResult();
     }
-    Object res = null;
+    Object res;
     try {
       res = groovyScript.run();
     } catch (final Exception ex) {

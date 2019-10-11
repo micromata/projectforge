@@ -105,11 +105,11 @@ public class InitTestDB {
   @Autowired
   private UserRightDao userRightDao;
 
-  private final Map<String, GroupDO> groupMap = new HashMap<String, GroupDO>();
+  private final Map<String, GroupDO> groupMap = new HashMap<>();
 
-  private final Map<String, PFUserDO> userMap = new HashMap<String, PFUserDO>();
+  private final Map<String, PFUserDO> userMap = new HashMap<>();
 
-  private final Map<String, TaskDO> taskMap = new HashMap<String, TaskDO>();
+  private final Map<String, TaskDO> taskMap = new HashMap<>();
 
   public void putUser(final PFUserDO user) {
     this.userMap.put(user.getUsername(), user);
@@ -162,7 +162,7 @@ public class InitTestDB {
     final GroupDO group = new GroupDO();
     group.setName(groupname);
     if (usernames != null) {
-      final Set<PFUserDO> col = new HashSet<PFUserDO>();
+      final Set<PFUserDO> col = new HashSet<>();
       for (final String username : usernames) {
         col.add(getUser(username));
       }

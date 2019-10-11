@@ -63,7 +63,7 @@ public class GanttChart
 
   private transient String fontFamily = "Helvetica";
 
-  private transient Map<GanttTask, ObjectInfo> objectMap = new HashMap<GanttTask, ObjectInfo>();
+  private transient Map<GanttTask, ObjectInfo> objectMap = new HashMap<>();
 
   private class ObjectInfo
   {
@@ -317,7 +317,7 @@ public class GanttChart
   {
     rootNode.recalculate();
     fromDate = toDate = null;
-    final Collection<GanttTask> allVisibleGanttObjects = getAllVisibleGanttObjects(new ArrayList<GanttTask>(), rootNode);
+    final Collection<GanttTask> allVisibleGanttObjects = getAllVisibleGanttObjects(new ArrayList<>(), rootNode);
     for (final GanttTask node : allVisibleGanttObjects) {
       Date periodStart = GanttUtils.getCalculatedStartDate(node);
       Date periodEnd = GanttUtils.getCalculatedEndDate(node);

@@ -77,13 +77,7 @@ public class MyTrustManager implements X509TrustManager
       final TrustManagerFactory factory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
       factory.init(keyStore);
       this.trustManager = getX509TrustManager(factory.getTrustManagers());
-    } catch (final KeyStoreException ex) {
-      log.error("Exception encountered " + ex, ex);
-    } catch (final NoSuchAlgorithmException ex) {
-      log.error("Exception encountered " + ex, ex);
-    } catch (final CertificateException ex) {
-      log.error("Exception encountered " + ex, ex);
-    } catch (final IOException ex) {
+    } catch (final KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException ex) {
       log.error("Exception encountered " + ex, ex);
     }
   }
@@ -96,8 +90,6 @@ public class MyTrustManager implements X509TrustManager
       fis = new java.io.FileInputStream(file);
       addCertificate(alias, fis);
       fis.close();
-    } catch (final FileNotFoundException ex) {
-      log.error("Exception encountered " + ex, ex);
     } catch (final IOException ex) {
       log.error("Exception encountered " + ex, ex);
     } finally {
@@ -135,13 +127,7 @@ public class MyTrustManager implements X509TrustManager
           // Verifing by public key
           cert.checkValidity();
         }
-      } catch (final InvalidKeyException ex) {
-        throw new CertificateException(ex);
-      } catch (final NoSuchAlgorithmException ex) {
-        throw new CertificateException(ex);
-      } catch (final NoSuchProviderException ex) {
-        throw new CertificateException(ex);
-      } catch (final SignatureException ex) {
+      } catch (final InvalidKeyException | SignatureException | NoSuchAlgorithmException | NoSuchProviderException ex) {
         throw new CertificateException(ex);
       }
     } else {

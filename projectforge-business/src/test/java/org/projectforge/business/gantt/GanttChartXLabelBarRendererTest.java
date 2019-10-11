@@ -77,8 +77,6 @@ public class GanttChartXLabelBarRendererTest
       final FileOutputStream out = new FileOutputStream(file);
       out.write(ba);
       out.close();
-    } catch (final FileNotFoundException ex) {
-      log.error("Exception encountered " + ex, ex);
     } catch (final IOException ex) {
       log.error("Exception encountered " + ex, ex);
     }

@@ -34,9 +34,9 @@ import java.util.Set;
  */
 public class SetOfAllLdapObjects
 {
-  Set<String> setOfDNs = new HashSet<String>();
+  Set<String> setOfDNs = new HashSet<>();
 
-  Set<Serializable> setOfIds = new HashSet<Serializable>();
+  Set<Serializable> setOfIds = new HashSet<>();
 
   public void add(final LdapObject< ? > obj)
   {
