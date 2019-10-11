@@ -51,7 +51,7 @@ public class Kost2DOConverter
     if (kost2DO == null) {
       return null;
     }
-    if (Hibernate.isInitialized(kost2DO) == false) {
+    if (!Hibernate.isInitialized(kost2DO)) {
       final Integer kost2Id = kost2DO.getId();
       kost2DO = kost2Dao.internalGetById(kost2Id);
       if (kost2DO == null) {

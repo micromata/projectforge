@@ -84,10 +84,10 @@ public class AddressDOConverter
     address.setTitle(addressDO.getTitle());
     address.setWebsite(addressDO.getWebsite());
     address.setZipCode(addressDO.getZipCode());
-    if (disableImageData == false) {
+    if (!disableImageData) {
       address.setImage(Base64.encodeBase64String(addressDO.getImageData()));
     }
-    if (disableVCard == false) {
+    if (!disableVCard) {
       final StringWriter writer = new StringWriter();
       addressDao.exportVCard(new PrintWriter(writer), addressDO);
       address.setVCardData(Base64.encodeBase64String(writer.toString().getBytes()));
@@ -140,7 +140,7 @@ public class AddressDOConverter
     address.setTitle(addressObject.getTitle());
     address.setWebsite(addressObject.getWebsite());
     address.setZipCode(addressObject.getZipCode());
-    if (StringUtils.isEmpty(addressObject.getImage()) == false) {
+    if (!StringUtils.isEmpty(addressObject.getImage())) {
       address.setImageData(Base64.decodeBase64(addressObject.getImage()));
     }
     return address;

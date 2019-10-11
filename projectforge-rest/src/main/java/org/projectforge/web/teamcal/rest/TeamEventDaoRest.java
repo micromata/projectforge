@@ -145,7 +145,7 @@ public class TeamEventDaoRest
       final List<ICalendarEvent> list = teamEventService.getEventList(filter, true);
       if (list != null && list.size() > 0) {
         for (final ICalendarEvent event : list) {
-          if (event.getStartDate().after(now) == true) {
+          if (event.getStartDate().after(now)) {
             result.add(this.getEventObject(event));
           } else {
             log.info("Start date not in future:" + event.getStartDate() + ", " + event.getSubject());
@@ -190,11 +190,11 @@ public class TeamEventDaoRest
       final ICalHandler handler = this.teamEventService.getEventHandler(teamCalDO);
       final InputStream iCalStream = new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData()));
 
-      if (handler.readICal(iCalStream, HandleMethod.ADD_UPDATE) == false || handler.isEmpty()) {
+      if (!handler.readICal(iCalStream, HandleMethod.ADD_UPDATE) || handler.isEmpty()) {
         return Response.serverError().build();
       }
 
-      if (handler.validate() == false) {
+      if (!handler.validate()) {
         return Response.serverError().build();
       }
 
@@ -222,11 +222,11 @@ public class TeamEventDaoRest
     final ICalHandler handler = this.teamEventService.getEventHandler(teamCalDO);
     final InputStream iCalStream = new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData()));
 
-    if (handler.readICal(iCalStream, HandleMethod.CANCEL) == false || handler.eventCount() != 1) {
+    if (!handler.readICal(iCalStream, HandleMethod.CANCEL) || handler.eventCount() != 1) {
       return Response.serverError().build();
     }
 
-    if (handler.validate() == false) {
+    if (!handler.validate()) {
       return Response.serverError().build();
     }
 
@@ -317,7 +317,7 @@ public class TeamEventDaoRest
   private Collection<Integer> getCalendarIds(String calendarIds)
   {
     final Collection<Integer> cals = new LinkedList<>();
-    if (StringUtils.isBlank(calendarIds) == true) {
+    if (StringUtils.isBlank(calendarIds)) {
       final Collection<TeamCalDO> ownCals = teamCalCache.getAllOwnCalendars();
       if (ownCals != null && ownCals.size() > 0) {
         for (final TeamCalDO cal : ownCals) {

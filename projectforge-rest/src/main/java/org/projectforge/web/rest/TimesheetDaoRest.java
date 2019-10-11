@@ -136,7 +136,7 @@ public class TimesheetDaoRest
   private List<TaskObject> convertTasks(final List<TaskDO> tasks)
   {
     final List<TaskObject> topLevelTasks = new ArrayList<TaskObject>();
-    if (tasks == null || tasks.isEmpty() == true) {
+    if (tasks == null || tasks.isEmpty()) {
       return topLevelTasks;
     }
     final TaskTree taskTree = taskDao.getTaskTree();
@@ -157,7 +157,7 @@ public class TimesheetDaoRest
     TaskObject rtask = rtaskMap.get(task.getId());
     if (rtask == null) {
       // ancestor task not part of the result list, create it:
-      if (taskDao.hasSelectAccess(ThreadLocalUserContext.getUser(), task, false) == false) {
+      if (!taskDao.hasSelectAccess(ThreadLocalUserContext.getUser(), task, false)) {
         // User has no access, ignore this part of the task tree.
         return null;
       }
@@ -169,7 +169,7 @@ public class TimesheetDaoRest
       // this is the root node, ignore it:
       return null;
     }
-    if (taskTree.isRootNode(parent) == true) {
+    if (taskTree.isRootNode(parent)) {
       topLevelTasks.add(rtask);
       return rtask;
     }

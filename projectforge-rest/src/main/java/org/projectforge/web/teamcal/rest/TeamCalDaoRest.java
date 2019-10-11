@@ -72,7 +72,7 @@ public class TeamCalDaoRest
   public Response getList(@QueryParam("fullAccess") final boolean fullAccess)
   {
     final TeamCalFilter filter = new TeamCalFilter();
-    if (fullAccess == true) {
+    if (fullAccess) {
       filter.setFullAccess(true);
       filter.setMinimalAccess(false);
       filter.setReadonlyAccess(false);
