@@ -24,11 +24,13 @@
 package org.projectforge.framework.persistence.api
 
 import org.hibernate.Criteria
+import org.hibernate.ScrollMode
 import org.hibernate.Session
 import org.hibernate.criterion.Order
 import org.hibernate.criterion.Restrictions
 import org.hibernate.search.Search.getFullTextSession
 import org.hibernate.search.query.dsl.QueryBuilder
+import org.projectforge.business.multitenancy.TenantChecker
 import org.projectforge.business.multitenancy.TenantService
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.tasktree.TaskTreeHelper
@@ -42,7 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
 
-
+/* TODO: Under construction. */
 @Service
 class MagicFilterQuery {
     private class BuildContext(val doClass: Class<*>,
@@ -60,6 +62,10 @@ class MagicFilterQuery {
         val fullText
             get() = _query != null
     }
+
+    private class ModificationData(var queryModifiedByUserId: Int? = null,
+                                   var queryModifiedFromDate: PFDateTime? = null,
+                                   var queryModifiedToDate: PFDateTime? = null)
 
     private val log = LoggerFactory.getLogger(MagicFilterQuery::class.java)
 
@@ -82,11 +88,7 @@ class MagicFilterQuery {
         if (accessChecker.isRestrictedUser == true) {
             return ArrayList()
         }
-        var list: List<O>? = internalGetList(baseDao, filter)
-        if (list == null || list.size == 0) {
-            return list
-        }
-        list = baseDao.extractEntriesWithSelectAccess(list)
+        var list: List<O>? = getList(baseDao, filter, checkAccess = true)
         val end = System.currentTimeMillis()
         if (end - begin > 2000) {
             // Show only slow requests.
@@ -102,7 +104,11 @@ class MagicFilterQuery {
      * @param filter
      * @return
      */
-    fun <O : ExtendedBaseDO<Int>> internalGetList(baseDao: BaseDao<O>, filter: MagicFilter, ignoreTenant: Boolean = false): List<O> {
+    fun <O : ExtendedBaseDO<Int>> getList(baseDao: BaseDao<O>,
+                                          filter: MagicFilter,
+                                          checkAccess: Boolean = true,
+                                          ignoreTenant: Boolean = false)
+            : List<O> {
         try {
             val session = baseDao.session
             val clazz = baseDao.doClass
@@ -123,24 +129,22 @@ class MagicFilterQuery {
                 criteria.add(Restrictions.eq("deleted", filter.deleted))
             }
 
-            var queryModifiedByUserId: Int? = null
-            var queryModifiedFromDate: PFDateTime? = null
-            var queryModifiedToDate: PFDateTime? = null
+            var modificationData = ModificationData()
             //var bc = BuildContext(baseDao.doClass, session)
             for (it in filter.entries) {
                 if (it.field.isNullOrBlank())
                     continue // Use only field specific query (others are done by full text search
                 if (it.field == "modifiedBy") {
-                    queryModifiedByUserId = NumberHelper.parseInteger(it.value)
+                    modificationData.queryModifiedByUserId = NumberHelper.parseInteger(it.value)
                     // TODO
                     log.warn("TODO: Implement modifiedBy filter setting.")
                     continue
                 }
                 if (it.field == "modifiedInterval") {
                     if (it.fromValue != null)
-                        queryModifiedFromDate = it.fromValueDate
+                        modificationData.queryModifiedFromDate = it.fromValueDate
                     if (it.toValue != null)
-                        queryModifiedToDate = it.toValueDate
+                        modificationData.queryModifiedToDate = it.toValueDate
                     // TODO
                     log.warn("TODO: Implement modifiedInterval filter setting.")
                     continue
@@ -224,44 +228,8 @@ class MagicFilterQuery {
                 if (--maxOrder <= 0)
                     break // Add only 3 orders.
             }
-            criteria.setMaxResults(50) // TODO!!!!!!!!
             setCacheRegion(baseDao, criteria)
-            @Suppress("UNCHECKED_CAST")
-            var list = criteria.list() as List<O>
-
-            list = baseDao.selectUnique(list)
-            if (list.size > 0 && (queryModifiedByUserId != null || queryModifiedFromDate != null || queryModifiedToDate != null
-                            || !filter.searchHistory.isNullOrBlank())) {
-                val baseSearchFilter = BaseSearchFilter()
-                baseSearchFilter.modifiedByUserId = queryModifiedByUserId
-                baseSearchFilter.startTimeOfModification = queryModifiedFromDate?.utilDate
-                baseSearchFilter.stopTimeOfModification = queryModifiedToDate?.utilDate
-                // Search now all history entries which were modified by the given user and/or in the given time period.
-                val idSet = baseDao.getHistoryEntries(baseDao.session, baseSearchFilter)
-                val result = ArrayList<O>()
-                for (entry in list) {
-                    if (baseDao.contains(idSet, entry)) {
-                        result.add(entry)
-                    }
-                }
-                list = result
-                log.error("History search not yet implemented.")
-/*
-            if (CollectionUtils.isNotEmpty(idSet) == true) {
-                for (entry in list) {
-                    if (idSet!!.contains(entry.getId()) == true) {
-                        idSet!!.remove(entry.getId()) // Object does already exist in list.
-                    }
-                }
-                if (idSet!!.isEmpty() == false) {
-                    val criteria = filter.buildCriteria(baseDao.getSession(), baseDao.clazz)
-                    setCacheRegion(baseDao, criteria)
-                    criteria.add(Restrictions.`in`("id", idSet!!))
-                    val historyMatchingEntities = criteria.list()
-                    list.addAll(historyMatchingEntities)
-                }
-            }*/
-            }
+            var list = createList(baseDao, criteria, filter, modificationData, checkAccess)
 /*
         try {
             val fullTextSession = Search.getFullTextSession(session)
@@ -305,5 +273,64 @@ class MagicFilterQuery {
             return
         }
         criteria.setCacheRegion(baseDao.javaClass.name)
+    }
+
+    private fun <O : ExtendedBaseDO<Int>> createList(baseDao: BaseDao<O>, criteria: Criteria, filter: MagicFilter, modificationData: ModificationData,
+                                                     checkAccess: Boolean)
+            : List<O> {
+        val superAdmin = TenantChecker.isSuperAdmin<ExtendedBaseDO<Int>>(ThreadLocalUserContext.getUser())
+        val loggedInUser = ThreadLocalUserContext.getUser()
+
+        val scrollableResults = criteria.scroll(ScrollMode.FORWARD_ONLY)
+        val list = mutableListOf<O>()
+        var hasNext = scrollableResults.next()
+        if (!hasNext) return list
+        val ensureUniqueSet = mutableSetOf<Int>()
+        var resultCounter = 0
+        if (modificationData.queryModifiedByUserId != null
+                || modificationData.queryModifiedFromDate != null
+                || modificationData.queryModifiedToDate != null
+                || !filter.searchHistory.isNullOrBlank()) {
+            val baseSearchFilter = BaseSearchFilter()
+            baseSearchFilter.modifiedByUserId = modificationData.queryModifiedByUserId
+            baseSearchFilter.startTimeOfModification = modificationData.queryModifiedFromDate?.utilDate
+            baseSearchFilter.stopTimeOfModification = modificationData.queryModifiedToDate?.utilDate
+            // Search now all history entries which were modified by the given user and/or in the given time period.
+            val idSet = baseDao.getHistoryEntries(baseDao.session, baseSearchFilter)
+            while (hasNext) {
+                val obj = scrollableResults.get(0) as O
+                if (!ensureUniqueSet.contains(obj.id)) {
+                    // Current result object wasn't yet proceeded.
+                    ensureUniqueSet.add(obj.id) // Mark current object as already proceeded (ensure uniqueness)
+                    if ((!checkAccess || baseDao.hasSelectAccess(obj, loggedInUser, superAdmin))
+                            && baseDao.contains(idSet, obj)) {
+                        // Current result object fits the modified query:
+                        list.add(obj)
+                        if (++resultCounter >= filter.maxRows) {
+                            break
+                        }
+                    }
+                }
+                hasNext = scrollableResults.next()
+            }
+            log.error("History search not yet implemented.")
+        } else {
+            // No modified query
+            while (hasNext) {
+                val obj = scrollableResults.get(0) as O
+                if (!ensureUniqueSet.contains(obj.id)) {
+                    // Current result object wasn't yet proceeded.
+                    ensureUniqueSet.add(obj.id) // Mark current object as already proceeded (ensure uniqueness)
+                    if (!checkAccess || baseDao.hasSelectAccess(obj, loggedInUser, superAdmin)) {
+                        list.add(obj)
+                        if (++resultCounter >= filter.maxRows) {
+                            break
+                        }
+                    }
+                }
+                hasNext = scrollableResults.next()
+            }
+        }
+        return list
     }
 }
