@@ -17,6 +17,8 @@ function DateTimeRange(
         id,
         onChange,
         selectors,
+        setFrom,
+        setTo,
         to,
         ...props
     },
@@ -193,11 +195,17 @@ function DateTimeRange(
                 </Col>
             )}
             <Col sm={9}>
-                <p className={style.label}>
+                <span className={style.label}>
                     {!from && !to && '[Bitte wähle das Startdatum aus]'}
                     {from && !to && '[Bitte wähle das Enddatum aus]'}
                     {from && to && (
-                        <FormattedTimeRange to={to} from={from}>
+                        <FormattedTimeRange
+                            from={from}
+                            id={`date-time-range-${id}`}
+                            setFrom={setFrom}
+                            setTo={setTo}
+                            to={to}
+                        >
                             {' '}
                             <FontAwesomeIcon
                                 icon={faTimes}
@@ -205,7 +213,7 @@ function DateTimeRange(
                             />
                         </FormattedTimeRange>
                     )}
-                </p>
+                </span>
                 <DayPicker
                     className="range"
                     firstDayOfWeek={firstDayOfWeek}
@@ -235,6 +243,8 @@ DateTimeRange.propTypes = {
     firstDayOfWeek: PropTypes.number,
     from: PropTypes.instanceOf(Date),
     locale: PropTypes.string,
+    setFrom: PropTypes.func,
+    setTo: PropTypes.func,
     selectors: PropTypes.arrayOf(PropTypes.string),
     timeNotation: PropTypes.string,
     to: PropTypes.instanceOf(Date),
@@ -244,6 +254,8 @@ DateTimeRange.defaultProps = {
     firstDayOfWeek: 1,
     from: undefined,
     locale: 'en',
+    setFrom: undefined,
+    setTo: undefined,
     selectors: undefined,
     timeNotation: 'H24',
     to: undefined,

@@ -6,9 +6,11 @@ import { connect } from 'react-redux';
 function FormattedDateTime(
     {
         date,
+        dispatch,
         jsDateFormat,
         jsTimestampFormatMinutes,
         slot,
+        ...props
     },
 ) {
     let format = jsTimestampFormatMinutes;
@@ -20,15 +22,16 @@ function FormattedDateTime(
     }
 
     return (
-        <React.Fragment>
+        <span {...props}>
             {moment(date)
                 .format(format)}
-        </React.Fragment>
+        </span>
     );
 }
 
 FormattedDateTime.propTypes = {
     date: PropTypes.instanceOf(Date).isRequired,
+    dispatch: PropTypes.func.isRequired,
     jsDateFormat: PropTypes.string.isRequired,
     jsTimestampFormatMinutes: PropTypes.string.isRequired,
     slot: PropTypes.oneOf(['FROM', 'TO']),
