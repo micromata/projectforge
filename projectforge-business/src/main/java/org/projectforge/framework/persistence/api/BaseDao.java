@@ -44,7 +44,6 @@ import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRight;
-import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
@@ -59,7 +58,6 @@ import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter;
 import org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils;
-import org.projectforge.framework.persistence.search.BaseDaoReindexRegistry;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
@@ -91,16 +89,16 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    */
   public static final int MAX_MASS_UPDATE = 100;
   public static final String MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N = "massUpdate.error.maximumNumberOfAllowedMassUpdatesExceeded";
-  private static final List<DisplayHistoryEntry> EMPTY_HISTORY_ENTRIES = new ArrayList<DisplayHistoryEntry>();
+  private static final List<DisplayHistoryEntry> EMPTY_HISTORY_ENTRIES = new ArrayList<>();
   private static final Logger log = LoggerFactory.getLogger(BaseDao.class);
   /**
    * DEBUG flag. remove later
    */
-  public static final boolean NO_UPDATE_MAGIC = true;
+  private static final boolean NO_UPDATE_MAGIC = true;
   /**
    * DEBUG flag. Not sure, if always has be flushed.
    */
-  public static final boolean LUCENE_FLUSH_ALWAYS = true;
+  private static final boolean LUCENE_FLUSH_ALWAYS = true;
 
   protected Class<O> clazz;
 
@@ -131,9 +129,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   @Autowired
   protected SearchService searchService;
 
-  protected String[] searchFields;
-
-  protected BaseDaoReindexRegistry baseDaoReindexRegistry = BaseDaoReindexRegistry.getSingleton();
+  private String[] searchFields;
 
   protected IUserRightId userRightId = null;
   /**
@@ -164,8 +160,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * The setting of the DO class is required.
-   *
-   * @param clazz
    */
   protected BaseDao(final Class<O> clazz) {
     this.clazz = clazz;
@@ -175,8 +169,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * Get all declared hibernate search fields. These fields are defined over annotations in the database object class.
    * The names are the property names or, if defined the name declared in the annotation of a field. <br/>
    * The user can search in these fields explicit by typing e. g. authors:beck (<field>:<searchString>)
-   *
-   * @return
    */
   @Override
   public synchronized String[] getSearchFields() {
@@ -189,8 +181,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * Overwrite this method for adding search fields manually (e. g. for embedded objects). For example see TimesheetDao.
-   *
-   * @return
    */
   protected String[] getAdditionalSearchFields() {
     return null;
@@ -206,9 +196,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * getOrLoad checks first weather the id is valid or not. Default implementation: id != 0 && id &gt; 0. Overload this,
    * if the id of the DO can be 0 for example.
-   *
-   * @param id
-   * @return
    */
   protected boolean isIdValid(final Integer id) {
     return (id != null && id > 0);
@@ -217,9 +204,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * If the user has select access then the object will be returned. If not, the hibernate proxy object will be get via
    * getSession().load();
-   *
-   * @param id
-   * @return
    */
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public O getOrLoad(final Integer id) {
@@ -270,13 +254,14 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   }
 
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public List<O> internalLoad(final Collection<? extends Serializable> idList) {
+  public List internalLoad(final Collection<? extends Serializable> idList) {
     if (idList == null) {
       return null;
     }
     final Session session = getSession();
     final Criteria criteria = session.createCriteria(clazz).add(Restrictions.in("id", idList));
 
+    //noinspection unchecked
     return selectUnique(criteria.list());
   }
 
@@ -295,7 +280,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * This method is used by the searchDao and calls {@link #getList(BaseSearchFilter)} by default.
    *
-   * @param filter
    * @return A list of found entries or empty list. PLEASE NOTE: Returns null only if any error occured.
    * @see #getList(BaseSearchFilter)
    */
@@ -307,7 +291,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * Builds query filter by simply calling constructor of QueryFilter with given search filter and calls
    * getList(QueryFilter). Override this method for building more complex query filters.
    *
-   * @param filter
    * @return A list of found entries or empty list. PLEASE NOTE: Returns null only if any error occured.
    */
   @Override
@@ -323,9 +306,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * Gets the list filtered by the given filter.
-   *
-   * @param filter
-   * @return
    */
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> getList(final QueryFilter filter) throws AccessException {
@@ -334,11 +314,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * Gets the list filtered by the given filter.
-   *
-   * @param filter
-   * @return
    */
-  @SuppressWarnings("unchecked")
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> internalGetList(final QueryFilter filter) throws AccessException {
     return baseDaoLegacyQueryBuilder.internalGetList(this, filter);
@@ -346,9 +322,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * Gets the list filtered by the given filter.
-   *
-   * @param filter
-   * @return
    */
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> getList(final MagicFilter filter) throws AccessException {
@@ -357,21 +330,14 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * Gets the list filtered by the given filter.
-   *
-   * @param filter
-   * @return
    */
-  @SuppressWarnings("unchecked")
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> internalGetList(final MagicFilter filter) throws AccessException {
-    return magicFilterQueryBuilder.internalGetList(this, filter, false);
+    return magicFilterQueryBuilder.getList(this, filter, false, false);
   }
 
   /**
    * idSet.contains(entry.getId()) at default.
-   *
-   * @param idSet
-   * @param entry
    */
   protected boolean contains(final Set<Integer> idSet, final O entry) {
     if (idSet == null) {
@@ -385,13 +351,12 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     return result;
   }
 
-  protected List<O> extractEntriesWithSelectAccess(final List<O> origList) {
-    final List<O> result = new ArrayList<O>();
+  List<O> extractEntriesWithSelectAccess(final List<O> origList) {
+    final List<O> result = new ArrayList<>();
     final boolean superAdmin = TenantChecker.isSuperAdmin(ThreadLocalUserContext.getUser());
     final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
     for (final O obj : origList) {
-      if ((superAdmin || tenantChecker.isPartOfCurrentTenant(obj))
-              && hasSelectAccess(loggedInUser, obj, false)) {
+      if (hasSelectAccess(obj, loggedInUser, superAdmin)) {
         result.add(obj);
         afterLoad(obj);
       }
@@ -400,9 +365,20 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   }
 
   /**
+   * @param obj          The object to check.
+   * @param loggedInUser The currend logged in user.
+   * @param superAdmin   Super admin has access to entries of all tenants
+   * @return true if loggedInUser has select access.
+   * @see TenantChecker#isPartOfCurrentTenant(BaseDO)
+   * @see #hasSelectAccess(PFUserDO, ExtendedBaseDO, boolean)
+   */
+  public boolean hasSelectAccess(O obj, PFUserDO loggedInUser, boolean superAdmin) {
+    return (superAdmin || tenantChecker.isPartOfCurrentTenant(obj))
+            && hasSelectAccess(loggedInUser, obj, false);
+  }
+
+  /**
    * Overwrite this method for own list sorting. This method returns only the given list.
-   *
-   * @param list
    */
   public List<O> sort(final List<O> list) {
     return list;
@@ -410,7 +386,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * @param id primary key of the base object.
-   * @return
    */
   @Override
   @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
@@ -440,9 +415,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * Gets the history entries of the object.
-   *
-   * @param id The id of the object.
-   * @return
    */
   @SuppressWarnings("rawtypes")
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
@@ -463,9 +435,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * Gets the history entries of the object in flat format.<br/>
    * Please note: If user has no access an empty list will be returned.
-   *
-   * @param id The id of the object.
-   * @return
    */
   @Override
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
@@ -476,7 +445,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     return internalGetDisplayHistoryEntries(obj);
   }
 
-  public List<DisplayHistoryEntry> internalGetDisplayHistoryEntries(final BaseDO<?> obj) {
+  protected List<DisplayHistoryEntry> internalGetDisplayHistoryEntries(final BaseDO<?> obj) {
     accessChecker.checkRestrictedUser();
     return hibernateTemplate
             .execute(session -> {
@@ -489,7 +458,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   }
 
   @SuppressWarnings("rawtypes")
-  protected List<DisplayHistoryEntry> convertAll(final HistoryEntry[] entries, final Session session) {
+  private List<DisplayHistoryEntry> convertAll(final HistoryEntry[] entries, final Session session) {
     final List<DisplayHistoryEntry> list = new ArrayList<>();
     for (final HistoryEntry entry : entries) {
       final List<DisplayHistoryEntry> l = convert(entry, session);
@@ -515,9 +484,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * Gets the history entries of the object in flat format.<br/>
    * Please note: No check access will be done! Please check the access before getting the object.
-   *
-   * @param id The id of the object.
-   * @return
    */
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<SimpleHistoryEntry> getSimpleHistoryEntries(final O obj) {
@@ -525,9 +491,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   }
 
   /**
-   * @param obj
    * @return the generated identifier, if save method is used, otherwise null.
-   * @throws AccessException
    */
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Serializable saveOrUpdate(final O obj) throws AccessException {
@@ -541,7 +505,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   }
 
   /**
-   * @param obj
    * @return the generated identifier, if save method is used, otherwise null.
    */
   @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -557,10 +520,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * Call save(O) for every object in the given list.
-   *
-   * @param objects
-   * @return the generated identifier.
-   * @throws AccessException
    */
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void save(final List<O> objects) throws AccessException {
@@ -571,14 +530,11 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   }
 
   /**
-   * @param obj
    * @return the generated identifier.
-   * @throws AccessException
    */
   @Override
   @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
-  public Integer save(final O obj) throws AccessException
-  {
+  public Integer save(final O obj) throws AccessException {
     //long begin = System.currentTimeMillis();
     Validate.notNull(obj);
     if (!avoidNullIdCheckBeforeSave) {
@@ -701,7 +657,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * This method is for internal use e. g. for updating objects without check access.
    *
-   * @param obj
    * @return the generated identifier.
    */
   @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
@@ -786,9 +741,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   }
 
   /**
-   * @param obj
    * @return true, if modifications were done, false if no modification detected.
-   * @throws AccessException
    * @see #internalUpdate(ExtendedBaseDO, boolean)
    */
   @Override
@@ -806,7 +759,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * This method is for internal use e. g. for updating objects without check access.
    *
-   * @param obj
    * @return true, if modifications were done, false if no modification detected.
    * @see #internalUpdate(ExtendedBaseDO, boolean)
    */
@@ -819,7 +771,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * This method is for internal use e. g. for updating objects without check access.<br/>
    * Please note: update ignores the field deleted. Use markAsDeleted, delete and undelete methods instead.
    *
-   * @param obj
    * @param checkAccess If false, any access check will be ignored.
    * @return true, if modifications were done, false if no modification detected.
    */
@@ -895,9 +846,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * Used by internal update if supportAfterUpdate is true for storing db object version for afterUpdate. Override this
    * method to implement your own copy method.
-   *
-   * @param dbObj
-   * @return
    */
   protected O getBackupObject(final O dbObj) {
     final O backupObj = newInstance();
@@ -907,19 +855,15 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * Overwrite this method if you have lazy exceptions while Hibernate-Search re-indexes. See e. g. AuftragDao.
-   *
-   * @param obj
    */
   protected void prepareHibernateSearch(final O obj, final OperationType operationType) {
   }
 
   /**
    * Object will be marked as deleted (boolean flag), therefore undelete is always possible without any loss of data.
-   *
-   * @param obj
    */
   @Override
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
   public void markAsDeleted(final O obj) throws AccessException {
     Validate.notNull(obj);
     if (obj.getId() == null) {
@@ -938,7 +882,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   public void internalMarkAsDeleted(final O obj) {
     if (!HistoryBaseDaoAdapter.isHistorizable(obj)) {
       log.error(
-          "Object is not historizable. Therefore marking as deleted is not supported. Please use delete instead.");
+              "Object is not historizable. Therefore marking as deleted is not supported. Please use delete instead.");
       throw new InternalErrorException("exception.internalError");
     } else {
       onDelete(obj);
@@ -964,14 +908,13 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     }
   }
 
-  protected void flushSession() {
-
+  private void flushSession() {
     Session session = getSession();
     session.flush();
     //    Search.getFullTextSession(session).flushToIndexes();
   }
 
-  protected void flushSearchSession() {
+  private void flushSearchSession() {
     long begin = System.currentTimeMillis();
     if (LUCENE_FLUSH_ALWAYS) {
       Search.getFullTextSession(getSession()).flushToIndexes();
@@ -984,8 +927,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * Object will be deleted finally out of the data base.
-   *
-   * @param obj
    */
   @Override
   @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
@@ -1016,8 +957,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * Object will be marked as deleted (booelan flag), therefore undelete is always possible without any loss of data.
-   *
-   * @param obj
    */
   @Override
   @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
@@ -1058,14 +997,12 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     }
   }
 
-  protected void checkPartOfCurrentTenant(final O obj, final OperationType operationType) {
+  private void checkPartOfCurrentTenant(final O obj, final OperationType operationType) {
     tenantChecker.checkPartOfCurrentTenant(obj);
   }
 
   /**
    * Checks the basic select access right. Overload this method if your class supports this right.
-   *
-   * @return
    */
   public void checkLoggedInUserSelectAccess() throws AccessException {
     if (!hasSelectAccess(ThreadLocalUserContext.getUser(), true)) {
@@ -1083,7 +1020,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     }
   }
 
-  protected void checkLoggedInUserHistoryAccess(final O obj) throws AccessException {
+  private void checkLoggedInUserHistoryAccess(final O obj) throws AccessException {
     if (!hasHistoryAccess(ThreadLocalUserContext.getUser(), true)
             || !hasLoggedInUserHistoryAccess(obj, true)) {
       // Should not occur!
@@ -1092,7 +1029,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     }
   }
 
-  protected void checkLoggedInUserInsertAccess(final O obj) throws AccessException {
+  private void checkLoggedInUserInsertAccess(final O obj) throws AccessException {
     checkInsertAccess(ThreadLocalUserContext.getUser(), obj);
   }
 
@@ -1106,17 +1043,13 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * @param dbObj The original object (stored in the database)
-   * @param obj
-   * @throws AccessException
    */
-  protected void checkLoggedInUserUpdateAccess(final O obj, final O dbObj) throws AccessException {
+  private void checkLoggedInUserUpdateAccess(final O obj, final O dbObj) throws AccessException {
     checkUpdateAccess(ThreadLocalUserContext.getUser(), obj, dbObj);
   }
 
   /**
    * @param dbObj The original object (stored in the database)
-   * @param obj
-   * @throws AccessException
    */
   protected void checkUpdateAccess(final PFUserDO user, final O obj, final O dbObj) throws AccessException {
     if (!hasUpdateAccess(user, obj, dbObj, true)) {
@@ -1126,7 +1059,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     }
   }
 
-  protected void checkLoggedInUserDeleteAccess(final O obj, final O dbObj) throws AccessException {
+  private void checkLoggedInUserDeleteAccess(final O obj, final O dbObj) throws AccessException {
     if (!hasLoggedInUserDeleteAccess(obj, dbObj, true)) {
       // Should not occur!
       log.error("Development error: Subclass should throw an exception instead of returning false.");
@@ -1138,7 +1071,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * Checks the basic select access right. Overwrite this method if the basic select access should be checked.
    *
    * @return true at default or if readWriteUserRightId is given hasReadAccess(boolean).
-   * @see #hasReadAccess(boolean)
+   * @see #hasSelectAccess(PFUserDO, ExtendedBaseDO, boolean)
    */
   public boolean hasLoggedInUserSelectAccess(final boolean throwException) {
     return hasSelectAccess(ThreadLocalUserContext.getUser(), throwException);
@@ -1148,19 +1081,19 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * Checks the basic select access right. Overwrite this method if the basic select access should be checked.
    *
    * @return true at default or if readWriteUserRightId is given hasReadAccess(boolean).
-   * @see #hasReadAccess(boolean)
+   * @see #hasAccess(PFUserDO, ExtendedBaseDO, ExtendedBaseDO, OperationType, boolean)
    */
   public boolean hasSelectAccess(final PFUserDO user, final boolean throwException) {
     return hasAccess(user, null, null, OperationType.SELECT, throwException);
   }
 
   /**
-   * If userRightId is given then {@link AccessChecker#hasAccess(UserRightId, Object, Object, OperationType, boolean)}
+   * If userRightId is given then {@link AccessChecker#hasAccess(PFUserDO, IUserRightId, Object, Object, OperationType, boolean)}
    * is called and returned. If not given a UnsupportedOperationException is thrown. Checks the user's access to the
    * given object.
    *
    * @param obj           The object.
-   * @param obj           The old version of the object (is only given for operationType {@link OperationType#UPDATE}).
+   * @param oldObj        The old version of the object (is only given for operationType {@link OperationType#UPDATE}).
    * @param operationType The operation type (select, insert, update or delete)
    * @return true, if the user has the access right for the given operation type and object.
    */
@@ -1170,13 +1103,13 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   }
 
   /**
-   * If userRightId is given then {@link AccessChecker#hasAccess(UserRightId, Object, Object, OperationType, boolean)}
+   * If userRightId is given then {@link AccessChecker#hasAccess(PFUserDO, IUserRightId, Object, Object, OperationType, boolean)}
    * is called and returned. If not given a UnsupportedOperationException is thrown. Checks the user's access to the
    * given object.
    *
    * @param user          Check the access for the given user instead of the logged-in user.
    * @param obj           The object.
-   * @param obj           The old version of the object (is only given for operationType {@link OperationType#UPDATE}).
+   * @param oldObj        The old version of the object (is only given for operationType {@link OperationType#UPDATE}).
    * @param operationType The operation type (select, insert, update or delete)
    * @return true, if the user has the access right for the given operation type and object.
    */
@@ -1191,8 +1124,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * @param obj Check access to this object.
-   * @return
-   * @see #hasLoggedInUserAccess(Object, Object, OperationType, boolean)
+   * @see #hasSelectAccess(PFUserDO, ExtendedBaseDO, boolean)
    */
   public boolean hasLoggedInUserSelectAccess(final O obj, final boolean throwException) {
     return hasSelectAccess(ThreadLocalUserContext.getUser(), obj, throwException);
@@ -1202,8 +1134,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * @param user Check the access for the given user instead of the logged-in user. Checks select access right by
    *             calling hasAccess(obj, OperationType.SELECT).
    * @param obj  Check access to this object.
-   * @return
-   * @see #hasAccess(user, Object, Object, OperationType, boolean)
+   * @see #hasAccess(PFUserDO, ExtendedBaseDO, ExtendedBaseDO, OperationType, boolean)
    */
   public boolean hasSelectAccess(final PFUserDO user, final O obj, final boolean throwException) {
     return hasAccess(user, obj, null, OperationType.SELECT, throwException);
@@ -1212,8 +1143,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * Has the user access to the history of the given object. At default this method calls hasHistoryAccess(boolean)
    * first and then hasSelectAccess.
-   *
-   * @param throwException
    */
   public boolean hasLoggedInUserHistoryAccess(final O obj, final boolean throwException) {
     return hasHistoryAccess(ThreadLocalUserContext.getUser(), obj, throwException);
@@ -1222,8 +1151,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * Has the user access to the history of the given object. At default this method calls hasHistoryAccess(boolean)
    * first and then hasSelectAccess.
-   *
-   * @param throwException
    */
   public boolean hasHistoryAccess(final PFUserDO user, final O obj, final boolean throwException) {
     if (!hasHistoryAccess(user, throwException)) {
@@ -1237,8 +1164,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * Has the user access to the history in general of the objects. At default this method calls hasSelectAccess.
-   *
-   * @param throwException
    */
   public boolean hasLoggedInUserHistoryAccess(final boolean throwException) {
     return hasHistoryAccess(ThreadLocalUserContext.getUser(), throwException);
@@ -1246,8 +1171,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * Has the user access to the history in general of the objects. At default this method calls hasSelectAccess.
-   *
-   * @param throwException
    */
   public boolean hasHistoryAccess(final PFUserDO user, final boolean throwException) {
     if (userRightId != null) {
@@ -1260,8 +1183,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * Checks insert access right by calling hasAccess(obj, OperationType.INSERT).
    *
    * @param obj Check access to this object.
-   * @return
-   * @see #hasAccess(Object, OperationType)
+   * @see #hasInsertAccess(PFUserDO, ExtendedBaseDO, boolean)
    */
   @Override
   public boolean hasLoggedInUserInsertAccess(final O obj, final boolean throwException) {
@@ -1272,8 +1194,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * Checks insert access right by calling hasAccess(obj, OperationType.INSERT).
    *
    * @param obj Check access to this object.
-   * @return
-   * @see #hasAccess(Object, OperationType)
+   * @see #hasAccess(PFUserDO, ExtendedBaseDO, ExtendedBaseDO, OperationType, boolean)
    */
   public boolean hasInsertAccess(final PFUserDO user, final O obj, final boolean throwException) {
     return hasAccess(user, obj, null, OperationType.INSERT, throwException);
@@ -1284,7 +1205,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * be used for checking the insert access to show an insert button or not. Before inserting any object the write
    * access is checked by has*Access(...) independent of the result of this method.
    *
-   * @see org.projectforge.framework.persistence.api.IDao#hasLoggedInUserInsertAccess()
+   * @see org.projectforge.framework.persistence.api.IDao#hasInsertAccess(PFUserDO)
    */
   @Override
   public boolean hasLoggedInUserInsertAccess() {
@@ -1296,7 +1217,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * be used for checking the insert access to show an insert button or not. Before inserting any object the write
    * access is checked by has*Access(...) independent of the result of this method.
    *
-   * @see org.projectforge.framework.persistence.api.IDao#hasInsertAccess()
+   * @see AccessChecker#hasInsertAccess(PFUserDO, IUserRightId, boolean)
    */
   @Override
   public boolean hasInsertAccess(final PFUserDO user) {
@@ -1311,8 +1232,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    *
    * @param dbObj The original object (stored in the database)
    * @param obj   Check access to this object.
-   * @return
-   * @see #hasAccess(Object, OperationType)
+   * @see #hasUpdateAccess(PFUserDO, ExtendedBaseDO, ExtendedBaseDO, boolean)
    */
   @Override
   public boolean hasLoggedInUserUpdateAccess(final O obj, final O dbObj, final boolean throwException) {
@@ -1324,8 +1244,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    *
    * @param dbObj The original object (stored in the database)
    * @param obj   Check access to this object.
-   * @return
-   * @see #hasAccess(Object, OperationType)
+   * @see #hasAccess(PFUserDO, ExtendedBaseDO, ExtendedBaseDO, OperationType, boolean)
    */
   public boolean hasUpdateAccess(final PFUserDO user, final O obj, final O dbObj, final boolean throwException) {
     return hasAccess(user, obj, dbObj, OperationType.UPDATE, throwException);
@@ -1336,8 +1255,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    *
    * @param obj   Check access to this object.
    * @param dbObj current version of this object in the data base.
-   * @return
-   * @see #hasAccess(Object, OperationType)
+   * @see #hasDeleteAccess(PFUserDO, ExtendedBaseDO, ExtendedBaseDO, boolean)
    */
   @Override
   public boolean hasLoggedInUserDeleteAccess(final O obj, final O dbObj, final boolean throwException) {
@@ -1349,8 +1267,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    *
    * @param obj   Check access to this object.
    * @param dbObj current version of this object in the data base.
-   * @return
-   * @see #hasAccess(Object, OperationType)
+   * @see #hasAccess(PFUserDO, ExtendedBaseDO, ExtendedBaseDO, OperationType, boolean)
    */
   @Override
   public boolean hasDeleteAccess(final PFUserDO user, final O obj, final O dbObj, final boolean throwException) {
@@ -1369,8 +1286,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * Overload this method for copying field manually. Used for modifiing fields inside methods: update, markAsDeleted
    * and undelete.
    *
-   * @param src
-   * @param dest
    * @return true, if any field was modified, otherwise false.
    * @see BaseDO#copyValuesFrom(BaseDO, String...)
    */
@@ -1397,9 +1312,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * select access to users, therefore he may select all password fields!!!
    * <br/>
    * Refer implementation of ContractDao as example.
-   *
-   * @param property
-   * @return
    */
   public boolean isAutocompletionPropertyEnabled(String property) {
     return false;
@@ -1463,15 +1375,13 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * Re-index all dependent objects manually (hibernate search). Hibernate doesn't re-index these objects, does it?
-   *
-   * @param obj
    */
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
   public void reindexDependentObjects(final O obj) {
     hibernateSearchDependentObjectsReindexer.reindexDependents(obj);
   }
 
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void massUpdate(final List<O> list, final O master) {
     if (list == null || list.size() == 0) {
       // No entries to update.
@@ -1495,9 +1405,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * Object pass thru every massUpdateEntry call.
-   *
-   * @param list
-   * @param master
    * @return null if not overloaded.
    */
   protected Object prepareMassUpdateStore(final List<O> list, final O master) {
@@ -1507,8 +1414,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * Overload this method for mass update support.
    *
-   * @param entry
-   * @param master
    * @param store  Object created with prepareMassUpdateStore if needed. Null at default.
    * @return true, if entry is ready for update otherwise false (no update will be done for this entry).
    */
@@ -1521,7 +1426,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
       // User has in general no access to history entries of the given object type (clazz).
       return null;
     }
-    final Set<Integer> idSet = new HashSet<Integer>();
+    final Set<Integer> idSet = new HashSet<>();
     HibernateSearchFilterUtils.getHistoryEntriesDirect(session, filter, idSet, clazz);
     if (getAdditionalHistorySearchDOs() != null) {
       for (final Class<?> aclazz : getAdditionalHistorySearchDOs()) {
@@ -1531,7 +1436,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     return idSet;
   }
 
-  protected Set<Integer> searchHistoryEntries(final Session session, final BaseSearchFilter filter) {
+  Set<Integer> searchHistoryEntries(final Session session, final BaseSearchFilter filter) {
     if (!hasLoggedInUserSelectAccess(false) || !hasLoggedInUserHistoryAccess(false)) {
       // User has in general no access to history entries of the given object type (clazz).
       return null;
