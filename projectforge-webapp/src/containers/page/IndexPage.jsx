@@ -164,10 +164,10 @@ class IndexPage extends React.Component {
                                 <br />
                                 See /incomingInvoice
                             </li>
-                            <li>Update React-Select (fixes warning)</li>
                         </ol>
                         <h1>Done</h1>
                         <ol style={todoDone}>
+                            <li>Update React-Select (fixes warning)</li>
                             <li>
                                 TaskSelect panel: collapse search fields to have more a feeling
                                 of a bread crumb...
