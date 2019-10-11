@@ -1,5 +1,4 @@
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
-import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { CheckBox, Col, Input, Row } from '../../../components/design';
