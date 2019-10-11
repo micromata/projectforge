@@ -114,7 +114,7 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                 </ButtonGroup>
             );
             break;
-        case 'TIME_STAMP':
+        case 'TIME_STAMP': {
             if (!Object.isObject(value)) {
                 setValue({
                     from: undefined,
@@ -122,11 +122,25 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                 });
             } else if (value.from && value.to) {
                 label = (
-                    <FormattedTimeRange to={value.to} from={value.from} childrenAsPrefix>
+                    <FormattedTimeRange
+                        childrenAsPrefix
+                        id={`editable-multi-value-time-${data.id}`}
+                        from={value.from}
+                        to={value.to}
+                    >
                         {`${data.label}: `}
                     </FormattedTimeRange>
                 );
             }
+
+            const setFrom = from => setValue({
+                ...value,
+                from,
+            });
+            const setTo = to => setValue({
+                ...value,
+                to,
+            });
 
             input = (
                 <React.Fragment>
@@ -134,6 +148,8 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                         id={data.id}
                         onChange={setValue}
                         {...value}
+                        setFrom={setFrom}
+                        setTo={setTo}
                         selectors={[
                             'YEAR',
                             'MONTH',
@@ -145,6 +161,7 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                 </React.Fragment>
             );
             break;
+        }
         // Case for plain searchString without filterType
         case undefined:
             return (
