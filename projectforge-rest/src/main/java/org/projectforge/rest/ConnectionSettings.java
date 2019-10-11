@@ -72,7 +72,7 @@ public class ConnectionSettings
    */
   public final static void set(final ConnectionSettings settings)
   {
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug("set connection settings: " + settings);
     }
     context.set(settings);

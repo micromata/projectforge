@@ -93,7 +93,7 @@ public class RestUserFilter implements Filter {
   public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain)
           throws IOException,
           ServletException {
-    if (UserFilter.isUpdateRequiredFirst() == true) {
+    if (UserFilter.isUpdateRequiredFirst()) {
       log.warn("Update of the system is required first. Login via Rest not available. Administrators login required.");
       return;
     }
@@ -144,7 +144,7 @@ public class RestUserFilter implements Filter {
         if (user == null) {
           UserContext userContext = cookieService.checkStayLoggedIn(req, resp);
           if (userContext != null) {
-            if (log.isDebugEnabled() == true) {
+            if (log.isDebugEnabled()) {
               log.debug("User's stay logged-in cookie found: " + req.getRequestURI());
             }
             executeLogin(req, userContext);

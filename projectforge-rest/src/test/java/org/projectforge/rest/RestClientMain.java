@@ -106,7 +106,7 @@ public class RestClientMain
       return webResource;
     }
     WebTarget res = webResource;
-    if (settings.isDefaultDateTimeFormat() == false) {
+    if (!settings.isDefaultDateTimeFormat()) {
       res = webResource.queryParam(ConnectionSettings.DATE_TIME_FORMAT, settings.getDateTimeFormat().toString());
     }
     return res;

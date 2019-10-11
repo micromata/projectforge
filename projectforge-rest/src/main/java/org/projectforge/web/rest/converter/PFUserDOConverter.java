@@ -48,7 +48,7 @@ public class PFUserDOConverter
     if (userDO == null) {
       return null;
     }
-    if (Hibernate.isInitialized(userDO) == false) {
+    if (!Hibernate.isInitialized(userDO)) {
       final Integer userId = userDO.getId();
       userDO = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache().getUser(userDO.getId());
       if (userDO == null) {

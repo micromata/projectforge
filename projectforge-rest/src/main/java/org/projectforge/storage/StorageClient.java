@@ -58,7 +58,7 @@ public class StorageClient implements ConfigurationListener
   private void checkInitialized()
   {
     synchronized (this) {
-      if (initialized == true) {
+      if (initialized) {
         return;
       }
       this.config = ConfigXml.getInstance().getStorageConfig();
@@ -78,7 +78,7 @@ public class StorageClient implements ConfigurationListener
       if (response.getEntity() instanceof String) {
         output = (String) response.getEntity();
       }
-      if ("OK".equals(output) == false) {
+      if (!"OK".equals(output)) {
         throw new RuntimeException("Initialization of ProjectForge's storage failed: " + output);
       }
       webResource = client.target(getUrl("/securityCheck"));
@@ -97,7 +97,7 @@ public class StorageClient implements ConfigurationListener
       if (response.getEntity() instanceof String) {
         output = (String) response.getEntity();
       }
-      if (output.equals("authenticated") == false) {
+      if (!output.equals("authenticated")) {
         final String message = "Authentication didn't work. Storage isn't available.";
         log.error(message);
         throw new RuntimeException(message);
