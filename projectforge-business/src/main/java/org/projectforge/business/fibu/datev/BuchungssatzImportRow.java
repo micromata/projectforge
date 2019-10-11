@@ -255,7 +255,7 @@ public class BuchungssatzImportRow
           + day.isoFormat()
           + " "
           + NumberHelper.getAsString(betrag, NumberHelper.getCurrencyFormat(Locale.GERMAN)));
-      kost1 = new Double(10000000);
+      kost1 = 10000000d;
       betrag = BigDecimal.ZERO;
     } else if (kost1 == null || kost2 == null) {
       final String msg = "Oups: Kost1 oder Kost2 ist null für Beleg Nr. " + this.satzNr;

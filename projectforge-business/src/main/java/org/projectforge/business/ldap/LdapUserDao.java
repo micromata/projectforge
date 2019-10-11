@@ -143,7 +143,7 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
       // Already initialized.
       return;
     }
-    final List<String> additionalObjectClassesList = new LinkedList<String>();
+    final List<String> additionalObjectClassesList = new LinkedList<>();
     for (final String additionalObjectClass : ldapPersonDao.getAdditionalObjectClasses()) {
       additionalObjectClassesList.add(additionalObjectClass);
     }
@@ -273,7 +273,7 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
   public void deactivateUser(final DirContext ctx, final LdapUser user) throws NamingException
   {
     log.info("Deactivate user: " + buildDn(null, user));
-    final List<ModificationItem> modificationItems = new ArrayList<ModificationItem>();
+    final List<ModificationItem> modificationItems = new ArrayList<>();
     modificationItems.add(new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("userPassword", null)));
     modificationItems
         .add(new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("mail", DEACTIVATED_MAIL)));

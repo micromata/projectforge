@@ -57,7 +57,7 @@ public class LdapPosixAccountsUtils
       if (ldapUserValues == null) {
         continue;
       }
-      if (ldapUserValues.getUidNumber() != null && ldapUserValues.getUidNumber().intValue() > currentMaxNumber) {
+      if (ldapUserValues.getUidNumber() != null && ldapUserValues.getUidNumber() > currentMaxNumber) {
         currentMaxNumber = ldapUserValues.getUidNumber();
       }
     }
@@ -82,7 +82,7 @@ public class LdapPosixAccountsUtils
         continue;
       }
       if (ldapUserValues != null && ldapUserValues.getUidNumber() != null
-          && ldapUserValues.getUidNumber().intValue() == uidNumber) {
+          && ldapUserValues.getUidNumber() == uidNumber) {
         // Number isn't free.
         log.info("The uidNumber (posix account) '" + uidNumber + "' is already occupied by user: " + user);
         return false;

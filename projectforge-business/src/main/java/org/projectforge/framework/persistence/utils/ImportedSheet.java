@@ -77,7 +77,7 @@ public class ImportedSheet<T> implements Serializable
   public void addElement(final ImportedElement<T> element)
   {
     if (elements == null) {
-      elements = new ArrayList<ImportedElement<T>>();
+      elements = new ArrayList<>();
     }
     elements.add(element);
   }
@@ -259,7 +259,7 @@ public class ImportedSheet<T> implements Serializable
   public void setProperty(final String key, final Object value)
   {
     if (this.properties == null) {
-      this.properties = new HashMap<String, Object>();
+      this.properties = new HashMap<>();
     }
     this.properties.put(key, value);
   }
@@ -287,14 +287,14 @@ public class ImportedSheet<T> implements Serializable
         for (final String key : map.keySet()) {
           final Object value = map.get(key);
           if (errorProperties == null) {
-            errorProperties = new HashMap<String, Set<Object>>();
+            errorProperties = new HashMap<>();
           }
           Set<Object> set = null;
           if (errorProperties.containsKey(key)) {
             set = errorProperties.get(key);
           }
           if (set == null) {
-            set = new TreeSet<Object>();
+            set = new TreeSet<>();
             errorProperties.put(key, set);
           }
           set.add(value);

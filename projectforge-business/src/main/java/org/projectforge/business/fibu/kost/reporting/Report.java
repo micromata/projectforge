@@ -139,7 +139,7 @@ public class Report implements Serializable
     if (this.parent == null) {
       return null;
     }
-    final List<Report> path = new ArrayList<Report>();
+    final List<Report> path = new ArrayList<>();
     this.parent.getPath(path);
     return path;
   }
@@ -281,7 +281,7 @@ public class Report implements Serializable
   public List<Report> getChildren()
   {
     if (childReports == null && hasChildren()) {
-      childReports = new ArrayList<Report>();
+      childReports = new ArrayList<>();
       for (final ReportObjective child : reportObjective.getChildReportObjectives()) {
         final Report report = new Report(child, this);
         report.select(this.buchungssaetze);
@@ -298,13 +298,13 @@ public class Report implements Serializable
           if (!reportObjective.isSuppressOther() && n == 0) {
             // Kommt bei keinem Childreport vor:
             if (other == null) {
-              other = new ArrayList<BuchungssatzDO>();
+              other = new ArrayList<>();
             }
             other.add(satz);
           } else if (!reportObjective.isSuppressDuplicates() && n > 1) {
             // Kommt bei mehreren Children vor:
             if (duplicates == null) {
-              duplicates = new ArrayList<BuchungssatzDO>();
+              duplicates = new ArrayList<>();
             }
             duplicates.add(satz);
           }
@@ -397,8 +397,8 @@ public class Report implements Serializable
         return kost1Match && kost2Match;
       }
     };
-    this.buchungssaetze = new ArrayList<BuchungssatzDO>();
-    this.buchungssatzSet = new HashSet<BuchungssatzDO>();
+    this.buchungssaetze = new ArrayList<>();
+    this.buchungssatzSet = new HashSet<>();
     this.businessAssessment = null;
     this.businessAssessmentTable = null;
     this.childReports = null;

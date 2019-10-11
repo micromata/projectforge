@@ -117,7 +117,7 @@ public class HibernateSearchFilterUtils
       }
     }
     final String[] tokens = StringUtils.split(searchString, ' ');
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     boolean first = true;
     for (final String token : tokens) {
       if (first) {
@@ -161,7 +161,7 @@ public class HibernateSearchFilterUtils
    */
   protected static String modifySearchToken(final String searchToken)
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     for (int i = 0; i < searchToken.length(); i++) {
       final char ch = searchToken.charAt(i);
       /*
@@ -190,7 +190,7 @@ public class HibernateSearchFilterUtils
   {
     String className = clazz.getName();//ClassUtils.getShortClassName(clazz);
 
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append("(+entityName:").append(className);
     if (filter.getStartTimeOfModification() != null || filter.getStopTimeOfModification() != null) {
       final DateFormat df = new SimpleDateFormat(DateFormats.LUCENE_TIMESTAMP_MINUTE);
@@ -317,7 +317,7 @@ public class HibernateSearchFilterUtils
     }
 
     final Field[] fields = BeanHelper.getAllDeclaredFields(clazz);
-    final Set<String> fieldNames = new TreeSet<String>();
+    final Set<String> fieldNames = new TreeSet<>();
     for (final Field field : fields) {
       if (field.isAnnotationPresent(org.hibernate.search.annotations.Field.class)) {
         // @Field(index = Index.YES /*TOKENIZED*/),

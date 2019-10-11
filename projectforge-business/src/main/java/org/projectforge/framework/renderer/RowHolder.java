@@ -34,7 +34,7 @@ import java.util.List;
  */
 public class RowHolder
 {
-  private List<CellHolder> cells = new ArrayList<CellHolder>();
+  private List<CellHolder> cells = new ArrayList<>();
   
   public void addCell(CellHolder cell) {
     cells.add(cell);

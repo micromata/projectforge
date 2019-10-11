@@ -131,7 +131,7 @@ public class PfEmgrFactory extends SearchEmgrFactory<PfEmgr>
   @Override
   protected Map<String, Object> getInitEntityManagerFactoryProperties()
   {
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
     //properties.put(AvailableSettings.DIALECT, hibernateDialect);
     properties.put(AvailableSettings.SHOW_SQL, hibernateShowSql);
     properties.put(AvailableSettings.FORMAT_SQL, hibernateFormatSql);

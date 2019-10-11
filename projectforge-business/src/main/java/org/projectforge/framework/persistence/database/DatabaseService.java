@@ -139,7 +139,7 @@ public class DatabaseService
   {
     TableAttribute.register(new TableAttributeHookImpl());
 
-    final SortedSet<UpdateEntry> updateEntries = new TreeSet<UpdateEntry>();
+    final SortedSet<UpdateEntry> updateEntries = new TreeSet<>();
     DatabaseCoreUpdates.setApplicationContext(this.applicationContext);
     updateEntries.addAll(DatabaseCoreUpdates.getUpdateEntries());
     getSystemUpdater().setUpdateEntries(updateEntries);
@@ -748,7 +748,7 @@ public class DatabaseService
   public boolean addTableAttributes(final Table table, final String... attributeNames)
   {
 
-    final ArrayList<TableAttribute> list = new ArrayList<TableAttribute>();
+    final ArrayList<TableAttribute> list = new ArrayList<>();
     for (int i = 0; i < attributeNames.length; i++) {
       final TableAttribute attr = TableAttribute.createTableAttribute(table.getEntityClass(), attributeNames[i]);
       if (attr == null) {
@@ -815,7 +815,7 @@ public class DatabaseService
       log.info("No unique constraints found for table '" + table.getName() + "'.");
     }
     final UniqueConstraint[] uniqueConstraints = table.getUniqueConstraints();
-    final List<String> existingConstraintNames = new LinkedList<String>();
+    final List<String> existingConstraintNames = new LinkedList<>();
     if (uniqueConstraints != null && uniqueConstraints.length > 0) {
       for (final UniqueConstraint uniqueConstraint : uniqueConstraints) {
         final String[] columnNames = uniqueConstraint.columnNames();

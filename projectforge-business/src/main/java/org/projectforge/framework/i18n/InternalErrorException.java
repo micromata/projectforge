@@ -37,7 +37,7 @@ public class InternalErrorException extends ProjectForgeException
 {
   private static final long serialVersionUID = 3659587126199090720L;
 
-  protected String i18nKey = null;
+  protected String i18nKey;
 
   protected Object[] params;
 

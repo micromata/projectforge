@@ -255,7 +255,7 @@ public class DeltaSetCalculator
     if (coll == null) {
       return Collections.EMPTY_SET;
     }
-    List<Object> convList = new ArrayList<Object>(coll.size());
+    List<Object> convList = new ArrayList<>(coll.size());
     for (Object o : coll) {
       convList.add(convertElement(factory, o));
     }

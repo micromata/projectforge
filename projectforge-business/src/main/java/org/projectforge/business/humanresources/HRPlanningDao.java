@@ -329,7 +329,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
         list.addAll(entries);
       }
     }
-    Collections.sort(list, new Comparator<DisplayHistoryEntry>() {
+    list.sort(new Comparator<DisplayHistoryEntry>() {
       @Override
       public int compare(final DisplayHistoryEntry o1, final DisplayHistoryEntry o2) {
         return (o2.getTimestamp().compareTo(o1.getTimestamp()));

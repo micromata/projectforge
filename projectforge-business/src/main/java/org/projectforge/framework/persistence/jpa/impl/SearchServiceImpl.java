@@ -98,7 +98,7 @@ public class SearchServiceImpl implements SearchService
   protected <ENT extends ExtendedBaseDO<Integer>> List<ENT> extractEntriesWithSelectAccess(List<ENT> origList,
       Class<ENT> entClazz, BaseDao<ENT> baseDao)
   {
-    final List<ENT> result = new ArrayList<ENT>();
+    final List<ENT> result = new ArrayList<>();
 
     for (final ENT obj : origList) {
       if ((tenantChecker.isSuperAdmin(ThreadLocalUserContext.getUser())
@@ -166,7 +166,7 @@ public class SearchServiceImpl implements SearchService
         if (list.size() > 0 && searchFilter.applyModificationFilter()) {
           // Search now all history entries which were modified by the given user and/or in the given time period.
           Set<Integer> idSet = getHistoryEntries(session, searchFilter, entClazz);
-          List<ENT> result = new ArrayList<ENT>();
+          List<ENT> result = new ArrayList<>();
           for (final ENT entry : list) {
             if (idSet.contains(entry.getId())) {
               result.add(entry);
@@ -197,7 +197,7 @@ public class SearchServiceImpl implements SearchService
     }
     if (list == null) {
       // History search without search string.
-      list = new ArrayList<ENT>();
+      list = new ArrayList<>();
     }
     return list;
   }
@@ -211,7 +211,7 @@ public class SearchServiceImpl implements SearchService
       // User has in general no access to history entries of the given object type (clazz).
       return Collections.emptySet();
     }
-    final Set<Integer> idSet = new HashSet<Integer>();
+    final Set<Integer> idSet = new HashSet<>();
     HibernateSearchFilterUtils.getHistoryEntriesDirect(session, filter, idSet, entClass);
 
     return idSet;
@@ -226,7 +226,7 @@ public class SearchServiceImpl implements SearchService
       // User has in general no access to history entries of the given object type (clazz).
       return Collections.emptySet();
     }
-    final Set<Integer> idSet = new HashSet<Integer>();
+    final Set<Integer> idSet = new HashSet<>();
     HibernateSearchFilterUtils.getHistoryEntriesFromSearch(session, filter, idSet, entClass);
 
     return idSet;

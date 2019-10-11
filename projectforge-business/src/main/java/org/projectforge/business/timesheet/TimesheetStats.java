@@ -177,7 +177,7 @@ public class TimesheetStats
       this.latestStopDate = stopTime;
     }
     if (this.timesheets == null) {
-      this.timesheets = new TreeSet<TimesheetDO>();
+      this.timesheets = new TreeSet<>();
     }
     this.timesheets.add(timesheet);
     totalBreakMillis = totalMillis = null; // Set as dirty.

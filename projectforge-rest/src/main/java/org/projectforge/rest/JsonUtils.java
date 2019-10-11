@@ -39,7 +39,7 @@ import java.util.Map;
 public class JsonUtils {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(JsonUtils.class);
 
-  private static Map<Class<?>, Object> typeAdapterMap = new HashMap<Class<?>, Object>();
+  private static Map<Class<?>, Object> typeAdapterMap = new HashMap<>();
 
   public static void add(final Class<?> cls, final Object typeAdapter) {
     typeAdapterMap.put(cls, typeAdapter);

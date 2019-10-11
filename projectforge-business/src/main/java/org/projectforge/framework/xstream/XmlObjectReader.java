@@ -67,7 +67,7 @@ public class XmlObjectReader
   /**
    * Key is the object id (o-id) and value is the already deserialized object.
    */
-  private final Map<String, Object> referenceObjects = new HashMap<String, Object>();
+  private final Map<String, Object> referenceObjects = new HashMap<>();
 
   private boolean ignoreEmptyCollections;
 
@@ -89,7 +89,7 @@ public class XmlObjectReader
   public XmlObjectReader addImplementationMapping(final Class< ? > clazz, final Class< ? > implementationClass)
   {
     if (this.implementationMapping == null) {
-      this.implementationMapping = new HashMap<Class< ? >, Class< ? >>();
+      this.implementationMapping = new HashMap<>();
     }
     this.implementationMapping.put(clazz, implementationClass);
     return this;
@@ -127,7 +127,7 @@ public class XmlObjectReader
    */
   public void initialize(final Class< ? > clazz)
   {
-    initialize(new HashSet<Class< ? >>(), clazz);
+    initialize(new HashSet<>(), clazz);
   }
 
   private void initialize(final Set<Class< ? >> processed, final Class< ? > clazz)
@@ -161,8 +161,8 @@ public class XmlObjectReader
   public Object read(final String xml)
   {
     final Element element = XmlHelper.fromString(xml);
-    processedElements = new HashSet<Element>();
-    processedAttributes = new HashMap<Element, Set<String>>();
+    processedElements = new HashSet<>();
+    processedAttributes = new HashMap<>();
     warnings = null;
     final Object obj = read(element);
     warnings = checkForIgnoredElements(element);
@@ -347,11 +347,11 @@ public class XmlObjectReader
         final Collection<Object> c = (Collection<Object>) value;
         col = c;
       } else if (SortedSet.class.isAssignableFrom(clazz)) {
-        col = new TreeSet<Object>();
+        col = new TreeSet<>();
       } else if (Set.class.isAssignableFrom(clazz)) {
-        col = new HashSet<Object>();
+        col = new HashSet<>();
       } else {
-        col = new ArrayList<Object>();
+        col = new ArrayList<>();
       }
       putProcessedElement(el);
       for (final Object listObject : el.elements()) {
@@ -435,17 +435,7 @@ public class XmlObjectReader
   {
     try {
       field.set(obj, value);
-    } catch (final IllegalArgumentException ex) {
-      log.error("Exception encountered "
-          + ex
-          + ". Ignoring field '"
-          + field.getName()
-          + "' with value '"
-          + value
-          + "' in deserialization of class '"
-          + obj.getClass()
-          + "'.", ex);
-    } catch (final IllegalAccessException ex) {
+    } catch (final IllegalArgumentException | IllegalAccessException ex) {
       log.error("Exception encountered "
           + ex
           + ". Ignoring field '"
@@ -500,7 +490,7 @@ public class XmlObjectReader
     if (processedAttributes != null) {
       Set<String> attributeSet = processedAttributes.get(el);
       if (attributeSet == null) {
-        attributeSet = new HashSet<String>();
+        attributeSet = new HashSet<>();
         processedAttributes.put(el, attributeSet);
       }
       attributeSet.add(attrName);

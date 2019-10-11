@@ -105,7 +105,7 @@ public class UserGroupCache extends AbstractCache {
   private static Set<Integer> ensureAndGetUserGroupIdMap(final Map<Integer, Set<Integer>> ugIdMap, final Integer userId) {
     Set<Integer> set = ugIdMap.get(userId);
     if (set == null) {
-      set = new HashSet<Integer>();
+      set = new HashSet<>();
       ugIdMap.put(userId, set);
     }
     return set;
@@ -420,7 +420,7 @@ public class UserGroupCache extends AbstractCache {
     }
     log.info("Initializing UserGroupCache " + tenantLog + "...");
     // This method must not be synchronized because it works with a new copy of maps.
-    final Map<Integer, PFUserDO> uMap = new HashMap<Integer, PFUserDO>();
+    final Map<Integer, PFUserDO> uMap = new HashMap<>();
     // Could not autowire UserDao because of cyclic reference with AccessChecker.
     log.info("Loading all users ...");
     final List<PFUserDO> users = Login.getInstance().getAllUsers();
@@ -436,16 +436,16 @@ public class UserGroupCache extends AbstractCache {
     }
     log.info("Loading all groups ...");
     final List<GroupDO> groups = Login.getInstance().getAllGroups();
-    final Map<Integer, GroupDO> gMap = new HashMap<Integer, GroupDO>();
-    final Map<Integer, Set<Integer>> ugIdMap = new HashMap<Integer, Set<Integer>>();
-    final Set<Integer> nAdminUsers = new HashSet<Integer>();
-    final Set<Integer> nFinanceUser = new HashSet<Integer>();
-    final Set<Integer> nControllingUsers = new HashSet<Integer>();
-    final Set<Integer> nProjectManagers = new HashSet<Integer>();
-    final Set<Integer> nProjectAssistants = new HashSet<Integer>();
-    final Set<Integer> nMarketingUsers = new HashSet<Integer>();
-    final Set<Integer> nOrgaUsers = new HashSet<Integer>();
-    final Set<Integer> nhrUsers = new HashSet<Integer>();
+    final Map<Integer, GroupDO> gMap = new HashMap<>();
+    final Map<Integer, Set<Integer>> ugIdMap = new HashMap<>();
+    final Set<Integer> nAdminUsers = new HashSet<>();
+    final Set<Integer> nFinanceUser = new HashSet<>();
+    final Set<Integer> nControllingUsers = new HashSet<>();
+    final Set<Integer> nProjectManagers = new HashSet<>();
+    final Set<Integer> nProjectAssistants = new HashSet<>();
+    final Set<Integer> nMarketingUsers = new HashSet<>();
+    final Set<Integer> nOrgaUsers = new HashSet<>();
+    final Set<Integer> nhrUsers = new HashSet<>();
     for (final GroupDO group : groups) {
       if (tenant != null) {
         if (!tenantChecker.isPartOfTenant(tenant.getId(), group)) {
@@ -499,7 +499,7 @@ public class UserGroupCache extends AbstractCache {
     this.orgaUsers = nOrgaUsers;
     this.hrUsers = nhrUsers;
     this.userGroupIdMap = ugIdMap;
-    final Map<Integer, List<UserRightDO>> rMap = new HashMap<Integer, List<UserRightDO>>();
+    final Map<Integer, List<UserRightDO>> rMap = new HashMap<>();
     List<UserRightDO> rights;
     try {
       rights = userRightDao.internalGetAllOrdered();
@@ -508,7 +508,7 @@ public class UserGroupCache extends AbstractCache {
               "******* Exception while getting user rights from data-base (only OK for migration from older versions): "
                       + ex.getMessage(),
               ex);
-      rights = new ArrayList<UserRightDO>();
+      rights = new ArrayList<>();
     }
     List<UserRightDO> list = null;
     Integer userId = null;
@@ -518,7 +518,7 @@ public class UserGroupCache extends AbstractCache {
         continue;
       }
       if (!right.getUserId().equals(userId)) {
-        list = new ArrayList<UserRightDO>();
+        list = new ArrayList<>();
         userId = right.getUserId();
         if (userId != null) {
           rMap.put(userId, list);

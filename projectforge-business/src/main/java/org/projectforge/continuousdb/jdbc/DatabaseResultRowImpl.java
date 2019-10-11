@@ -35,7 +35,7 @@ import java.util.List;
  */
 public class DatabaseResultRowImpl implements DatabaseResultRow
 {
-  private List<DatabaseResultRowEntry> entries = new LinkedList<DatabaseResultRowEntry>();
+  private List<DatabaseResultRowEntry> entries = new LinkedList<>();
 
   @Override
   public List<DatabaseResultRowEntry> getEntries()

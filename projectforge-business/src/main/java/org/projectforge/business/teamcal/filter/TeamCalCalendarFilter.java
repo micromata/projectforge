@@ -40,7 +40,7 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
 
   public static final String DEFAULT_COLOR = "#FAAF26";
 
-  private static final Set<Integer> EMPTY_INT_SET = new HashSet<Integer>();
+  private static final Set<Integer> EMPTY_INT_SET = new HashSet<>();
 
   private final List<TemplateEntry> templateEntries;
 
@@ -51,7 +51,7 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
   public TeamCalCalendarFilter()
   {
     super();
-    templateEntries = new ArrayList<TemplateEntry>();
+    templateEntries = new ArrayList<>();
   }
 
   /**

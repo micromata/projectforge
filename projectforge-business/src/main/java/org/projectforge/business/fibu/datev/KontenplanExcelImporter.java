@@ -50,7 +50,7 @@ public class KontenplanExcelImporter
 
   public void doImport(final ImportStorage<KontoDO> storage, final InputStream is, final ActionLog actionLog) throws Exception
   {
-    final ExcelImport<KontenplanExcelRow> imp = new ExcelImport<KontenplanExcelRow>(is);
+    final ExcelImport<KontenplanExcelRow> imp = new ExcelImport<>(is);
     for (short idx = 0; idx < imp.getWorkbook().getNumberOfSheets(); idx++) {
       imp.setActiveSheet(idx);
       final String name = imp.getWorkbook().getSheetName(idx);
@@ -67,14 +67,14 @@ public class KontenplanExcelImporter
   private void importKontenplan(final ImportStorage<KontoDO> storage, final ExcelImport<KontenplanExcelRow> imp, final HSSFSheet sheet,
       final ActionLog actionLog) throws Exception
   {
-    final ImportedSheet<KontoDO> importedSheet = new ImportedSheet<KontoDO>();
+    final ImportedSheet<KontoDO> importedSheet = new ImportedSheet<>();
     storage.addSheet(importedSheet);
     importedSheet.setName(NAME_OF_EXCEL_SHEET);
     imp.setNameRowIndex(ROW_COLUMNNAMES);
     imp.setStartingRowIndex(ROW_COLUMNNAMES + 1);
     imp.setRowClass(KontenplanExcelRow.class);
 
-    final Map<String, String> map = new HashMap<String, String>();
+    final Map<String, String> map = new HashMap<>();
     map.put("Konto", "konto");
     map.put("Bezeichnung", "bezeichnung");
     map.put("Beschriftung", "bezeichnung");
@@ -85,7 +85,7 @@ public class KontenplanExcelImporter
     for (int i = 0; i < rows.length; i++) {
       actionLog.incrementCounterSuccess();
       final KontoDO konto = convertKonto(rows[i]);
-      final ImportedElement<KontoDO> element = new ImportedElement<KontoDO>(storage.nextVal(), KontoDO.class,
+      final ImportedElement<KontoDO> element = new ImportedElement<>(storage.nextVal(), KontoDO.class,
           DatevImportDao.KONTO_DIFF_PROPERTIES);
       element.setValue(konto);
       importedSheet.addElement(element);

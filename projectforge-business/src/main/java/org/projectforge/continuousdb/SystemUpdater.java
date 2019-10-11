@@ -67,7 +67,7 @@ public class SystemUpdater
   void testRegister(final UpdateEntry updateEntry)
   {
     if (this.updateEntries == null) {
-      this.updateEntries = new TreeSet<UpdateEntry>();
+      this.updateEntries = new TreeSet<>();
     }
     this.updateEntries.add(updateEntry);
   }
@@ -88,7 +88,7 @@ public class SystemUpdater
   public boolean isUpdated()
   {
     log.info("Checking for database updates...");
-    final Set<String> checkedRegions = new HashSet<String>();
+    final Set<String> checkedRegions = new HashSet<>();
     for (final UpdateEntry updateEntry : getUpdateEntries()) {
       if (!updateEntry.isInitial() && checkedRegions.contains(updateEntry.getRegionId())) {
         // Check only the newest update entry.

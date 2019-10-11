@@ -47,9 +47,9 @@ object FinalizeScreenSupport {
         setupData.domain = domain
         setupData.serverPort = if (port in 1..65535) port else 8080
         setupData.currencySymbol = currencySymbol
-        setupData.defaultLocale = listOfLocales.get(defaultLocaleSelectedIndex).value
-        setupData.defaultFirstDayOfWeek = listOfWeekdays.get(defaultFirstDayOfWeekSelectedIndex).value
-        setupData.defaultTimeNotation = listOfTimeNotations.get(defaultTimeNotationSelectedIndex).value
+        setupData.defaultLocale = listOfLocales[defaultLocaleSelectedIndex].value
+        setupData.defaultFirstDayOfWeek = listOfWeekdays[defaultFirstDayOfWeekSelectedIndex].value
+        setupData.defaultTimeNotation = listOfTimeNotations[defaultTimeNotationSelectedIndex].value
         setupData.startServer = startServer
         setupData.developmentMode = developmentMode
     }

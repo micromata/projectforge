@@ -84,7 +84,7 @@ public class TaskTree extends AbstractCache implements Serializable
 
   private TenantDO tenant;
 
-  private static final List<TaskNode> EMPTY_LIST = new ArrayList<TaskNode>();
+  private static final List<TaskNode> EMPTY_LIST = new ArrayList<>();
 
   /**
    * For log messages.
@@ -278,7 +278,7 @@ public class TaskTree extends AbstractCache implements Serializable
   public List<Kost2DO> getKost2List(ProjektDO projekt, final TaskDO task, final String[] blackWhiteList,
       final boolean kost2IsBlackList)
   {
-    final List<Kost2DO> kost2List = new ArrayList<Kost2DO>();
+    final List<Kost2DO> kost2List = new ArrayList<>();
     final boolean wildcard = blackWhiteList != null && blackWhiteList.length == 1 && "*".equals(blackWhiteList[0]);
     if (projekt != null && !Hibernate.isPropertyInitialized(projekt, "kunde")) {
       projekt = projektDao.internalGetById(projekt.getId());
@@ -640,7 +640,7 @@ public class TaskTree extends AbstractCache implements Serializable
    */
   public Set<AuftragsPositionVO> getOrderPositionsUpwards(final Integer taskId)
   {
-    final Set<AuftragsPositionVO> set = new TreeSet<AuftragsPositionVO>();
+    final Set<AuftragsPositionVO> set = new TreeSet<>();
     addOrderPositionsUpwards(set, taskId);
     return set;
   }
@@ -848,7 +848,7 @@ public class TaskTree extends AbstractCache implements Serializable
       return;
     }
     TaskNode newRoot = null;
-    taskMap = new HashMap<Integer, TaskNode>();
+    taskMap = new HashMap<>();
     final List<TaskDO> taskList;
     if (tenant != null) {
       taskList = taskDao.internalLoadAll(tenant);

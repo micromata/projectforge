@@ -38,7 +38,7 @@ public class UserPrefAreaRegistry
 {
   private static final UserPrefAreaRegistry instance = new UserPrefAreaRegistry();
 
-  private Set<UserPrefArea> set = new HashSet<UserPrefArea>();
+  private Set<UserPrefArea> set = new HashSet<>();
 
   public static UserPrefAreaRegistry instance()
   {
@@ -67,13 +67,11 @@ public class UserPrefAreaRegistry
    */
   public List<UserPrefArea> getOrderedEntries(final Locale locale)
   {
-    final List<UserPrefArea> list = new ArrayList<UserPrefArea>();
+    final List<UserPrefArea> list = new ArrayList<>();
     list.addAll(set);
-    Collections.sort(list, new Comparator<UserPrefArea>()
-    {
+    list.sort(new Comparator<UserPrefArea>() {
       @Override
-      public int compare(final UserPrefArea o1, final UserPrefArea o2)
-      {
+      public int compare(final UserPrefArea o1, final UserPrefArea o2) {
         return StringHelper.compareTo(
             I18nHelper.getLocalizedMessage(locale, o1.getI18nKey()),
             I18nHelper.getLocalizedMessage(locale, o2.getI18nKey())

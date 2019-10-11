@@ -200,7 +200,7 @@ public class TenantsCache extends AbstractCache
     // This method must not be synchronized because it works with a new copy of maps.
     final List<TenantDO> list = (List<TenantDO>) hibernateTemplate
         .find("from TenantDO as tenant left join fetch tenant.assignedUsers where tenant.deleted=false");
-    final Map<Integer, Set<TenantDO>> map = new HashMap<Integer, Set<TenantDO>>();
+    final Map<Integer, Set<TenantDO>> map = new HashMap<>();
     final Collection<PFUserDO> users = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache()
         .getAllUsers();
     for (final PFUserDO user : users) {
@@ -209,7 +209,7 @@ public class TenantsCache extends AbstractCache
       }
       final boolean superAdmin = TenantChecker.isSuperAdmin(user);
       if (list != null) {
-        final Set<TenantDO> set = new TreeSet<TenantDO>(new TenantsComparator());
+        final Set<TenantDO> set = new TreeSet<>(new TenantsComparator());
         for (final TenantDO tenant : list) {
           if (superAdmin) {
             set.add(tenant);

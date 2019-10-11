@@ -41,7 +41,7 @@ public class SchemaGenerator
 
   private final DatabaseService dao;
 
-  private final List<Table> tables = new LinkedList<Table>();
+  private final List<Table> tables = new LinkedList<>();
 
   public SchemaGenerator(final DatabaseService dao)
   {
@@ -105,7 +105,7 @@ public class SchemaGenerator
   void prepareOneToMany()
   {
     for (final Table table : tables) {
-      final List<TableAttribute> newAttrs = new LinkedList<TableAttribute>();
+      final List<TableAttribute> newAttrs = new LinkedList<>();
       for (final TableAttribute attr : table.getAttributes()) {
         if (attr.getType().isIn(TableAttributeType.SET, TableAttributeType.LIST)) {
           final OrderColumn orderColumn = attr.getAnnotation(OrderColumn.class);
@@ -175,7 +175,7 @@ public class SchemaGenerator
 
   void prepareManyToMany()
   {
-    final List<Table> joinTables = new LinkedList<Table>();
+    final List<Table> joinTables = new LinkedList<>();
     for (final Table table : tables) {
       for (final TableAttribute attr : table.getAttributes()) {
         if (attr.getType().isIn(TableAttributeType.SET, TableAttributeType.LIST)) {

@@ -68,7 +68,7 @@ public class ConfigXml {
 
   private static transient ConfigXml instance;
 
-  private transient final List<ConfigurationListener> listeners = new ArrayList<ConfigurationListener>();
+  private transient final List<ConfigurationListener> listeners = new ArrayList<>();
 
   private String applicationHomeDir;
 
@@ -311,7 +311,7 @@ public class ConfigXml {
           } else if (srcFieldValue instanceof ConfigurationData) {
             final Object destFieldValue = field.get(dest);
             Validate.notNull(destFieldValue);
-            final StringBuffer buf = new StringBuffer();
+            final StringBuilder buf = new StringBuilder();
             if (prefix != null) {
               buf.append(prefix);
             }
@@ -522,7 +522,7 @@ public class ConfigXml {
    */
   public ConfigurationData getPluginConfig(final Class<? extends ConfigurationData> configClass) {
     if (plugins == null) {
-      plugins = new ArrayList<ConfigurationData>();
+      plugins = new ArrayList<>();
     } else {
       for (final ConfigurationData configData : plugins) {
         if (configData != null && configClass.isAssignableFrom(configData.getClass())) {

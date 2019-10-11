@@ -120,7 +120,7 @@ public class UserAgentDetection
       int pos = userAgentString.indexOf(version);
       if (pos >= 0) {
         pos += version.length() + 1;
-        final StringBuffer buf = new StringBuffer();
+        final StringBuilder buf = new StringBuilder();
         int i = pos;
         while (true) {
           final char ch = userAgentString.charAt(i);

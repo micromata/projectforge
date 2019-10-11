@@ -147,11 +147,9 @@ public class EmployeeSalaryExportDao
   {
     log.info("Exporting employee salary list.");
     Validate.notEmpty(list);
-    Collections.sort(list, new Comparator<EmployeeSalaryDO>()
-    {
+    list.sort(new Comparator<EmployeeSalaryDO>() {
       @Override
-      public int compare(final EmployeeSalaryDO o1, final EmployeeSalaryDO o2)
-      {
+      public int compare(final EmployeeSalaryDO o1, final EmployeeSalaryDO o2) {
         return (o1.getEmployee().getUser().getFullname()).compareTo(o2.getEmployee().getUser().getFullname());
       }
     });

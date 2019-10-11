@@ -90,7 +90,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor
       @Override
       protected Object execute(final PreparedStatement stmt) throws SQLException
       {
-        final List<DatabaseResultRow> list = new LinkedList<DatabaseResultRow>();
+        final List<DatabaseResultRow> list = new LinkedList<>();
         ResultSet rs = null;
         try {
           rs = stmt.executeQuery();

@@ -88,7 +88,7 @@ public class TenantServiceImpl implements TenantService
     if (tenant.getAssignedUsers() == null) {
       return "";
     }
-    final List<String> list = new ArrayList<String>();
+    final List<String> list = new ArrayList<>();
     for (final PFUserDO user : tenant.getAssignedUsers()) {
       if (user != null) {
         list.add(user.getUsername());

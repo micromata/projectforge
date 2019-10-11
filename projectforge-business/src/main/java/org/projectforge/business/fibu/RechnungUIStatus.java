@@ -44,7 +44,7 @@ public class RechnungUIStatus implements Serializable
 
   public RechnungUIStatus()
   {
-    closedPositions = new HashSet<Short>();
+    closedPositions = new HashSet<>();
   }
 
   public RechnungUIStatus openPosition(final short pos)

@@ -170,7 +170,7 @@ public class UserGroupsRight extends UserRight implements Serializable
   {
     synchronized (this) {
       if (availableGroupRightValues == null) {
-        availableGroupRightValues = new HashMap<ProjectForgeGroup, UserRightValue[]>();
+        availableGroupRightValues = new HashMap<>();
       }
     }
     availableGroupRightValues.put(group, values);

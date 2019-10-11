@@ -70,7 +70,7 @@ public class ProjectUtils
    */
   public static Collection<ProjektDO> getProjectsOfManager(final PFUserDO user)
   {
-    final Collection<ProjektDO> result = new LinkedList<ProjektDO>();
+    final Collection<ProjektDO> result = new LinkedList<>();
     final ProjektFilter filter = new ProjektFilter();
     if (projektDao == null) {
       projektDao = ApplicationContextProvider.getApplicationContext().getBean(ProjektDao.class);

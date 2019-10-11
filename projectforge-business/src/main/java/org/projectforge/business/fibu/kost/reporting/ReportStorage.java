@@ -36,7 +36,7 @@ public class ReportStorage
   
   private String fileName;
 
-  private Set<String> openReports = new HashSet<String>();
+  private Set<String> openReports = new HashSet<>();
   
   public ReportStorage(Report root)
   {

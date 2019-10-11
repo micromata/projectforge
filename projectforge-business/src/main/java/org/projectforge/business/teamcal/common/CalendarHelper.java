@@ -43,8 +43,8 @@ public class CalendarHelper
     if (kost2 == null) {
       return (task != null && task.getTitle() != null) ? HtmlHelper.escapeXml(task.getTitle()) : "";
     }
-    final StringBuffer buf = new StringBuffer();
-    final StringBuffer b2 = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
+    final StringBuilder b2 = new StringBuilder();
     final ProjektDO projekt = kost2.getProjekt();
     if (projekt != null) {
       if (StringUtils.isNotBlank(projekt.getIdentifier())) {

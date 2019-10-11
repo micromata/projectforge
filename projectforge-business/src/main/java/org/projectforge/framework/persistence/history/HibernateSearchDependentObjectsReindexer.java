@@ -63,7 +63,7 @@ public class HibernateSearchDependentObjectsReindexer
   /**
    * Key is the embedded class (annotated with @IndexEmbedded), value the set of all dependent objects.
    */
-  final Map<Class<? extends BaseDO<?>>, List<Entry>> map = new HashMap<Class<? extends BaseDO<?>>, List<Entry>>();
+  final Map<Class<? extends BaseDO<?>>, List<Entry>> map = new HashMap<>();
 
   @PostConstruct
   public void init()
@@ -131,7 +131,7 @@ public class HibernateSearchDependentObjectsReindexer
       public void run()
       {
         final Session session = applicationContext.getBean(HibernateTemplate.class).getSessionFactory().openSession();
-        final Set<String> alreadyReindexed = new HashSet<String>();
+        final Set<String> alreadyReindexed = new HashSet<>();
         final List<Entry> entryList = map.get(obj.getClass());
         reindexDependents(session, obj, entryList, alreadyReindexed);
         session.disconnect();
@@ -260,7 +260,7 @@ public class HibernateSearchDependentObjectsReindexer
         final Entry entry = new Entry(clazz, name, setOrCollection);
         List<Entry> list = map.get(embeddedClass);
         if (list == null) {
-          list = new ArrayList<Entry>();
+          list = new ArrayList<>();
           @SuppressWarnings("unchecked")
           final Class<? extends BaseDO<?>> embeddedBaseDOClass = (Class<? extends BaseDO<?>>) embeddedClass;
           map.put(embeddedBaseDOClass, list);

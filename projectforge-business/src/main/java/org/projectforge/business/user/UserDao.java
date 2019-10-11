@@ -67,7 +67,7 @@ public class UserDao extends BaseDao<PFUserDO> {
 
   private static final short AUTHENTICATION_TOKEN_LENGTH = 20;
 
-  private final List<UserChangedListener> userChangedListeners = new LinkedList<UserChangedListener>();
+  private final List<UserChangedListener> userChangedListeners = new LinkedList<>();
 
   @Autowired
   private ApplicationContext applicationContext;
@@ -133,7 +133,7 @@ public class UserDao extends BaseDao<PFUserDO> {
     List<PFUserDO> list = getList(queryFilter);
     if (myFilter.getIsAdminUser() != null) {
       final List<PFUserDO> origList = list;
-      list = new LinkedList<PFUserDO>();
+      list = new LinkedList<>();
       for (final PFUserDO user : origList) {
         if (myFilter.getIsAdminUser() == accessChecker.isUserMemberOfAdminGroup(user, false)) {
           list.add(user);
@@ -143,7 +143,7 @@ public class UserDao extends BaseDao<PFUserDO> {
     if (applicationContext.getBean(TenantService.class).isMultiTenancyAvailable()
             && !TenantChecker.isSuperAdmin(ThreadLocalUserContext.getUser())) {
       final List<PFUserDO> origList = list;
-      list = new LinkedList<PFUserDO>();
+      list = new LinkedList<>();
       for (final PFUserDO user : origList) {
         if (tenantChecker.isPartOfTenant(ThreadLocalUserContext.getUserContext().getCurrentTenant(), user)) {
           list.add(user);
@@ -241,7 +241,7 @@ public class UserDao extends BaseDao<PFUserDO> {
             .setParameter("user", user)
             .list();
 
-    final Set<Integer> result = new HashSet<Integer>();
+    final Set<Integer> result = new HashSet<>();
     if (list != null) {
       for (final TenantDO tenant : list) {
         result.add(tenant.getId());
@@ -540,7 +540,7 @@ public class UserDao extends BaseDao<PFUserDO> {
         list.addAll(entries);
       }
     }
-    Collections.sort(list, new Comparator<DisplayHistoryEntry>() {
+    list.sort(new Comparator<DisplayHistoryEntry>() {
       @Override
       public int compare(final DisplayHistoryEntry o1, final DisplayHistoryEntry o2) {
         return (o2.getTimestamp().compareTo(o1.getTimestamp()));

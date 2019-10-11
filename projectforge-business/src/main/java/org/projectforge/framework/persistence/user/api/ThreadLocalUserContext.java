@@ -46,7 +46,7 @@ public class ThreadLocalUserContext
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ThreadLocalUserContext.class);
 
-  private static ThreadLocal<UserContext> threadLocalUserContext = new ThreadLocal<UserContext>();
+  private static ThreadLocal<UserContext> threadLocalUserContext = new ThreadLocal<>();
 
   /**
    * @return The user of ThreadLocal if exists.

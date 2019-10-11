@@ -106,7 +106,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
   @Autowired
   private Kost2Dao kost2Dao;
 
-  private final Map<Integer, Set<Integer>> timesheetsWithOverlapByUser = new HashMap<Integer, Set<Integer>>();
+  private final Map<Integer, Set<Integer>> timesheetsWithOverlapByUser = new HashMap<>();
 
   @Override
   protected String[] getAdditionalSearchFields() {
@@ -264,7 +264,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
     if (myFilter.isMarked()) {
       // Show only time sheets with time period violation (overlap):
       final List<TimesheetDO> list = result;
-      result = new ArrayList<TimesheetDO>();
+      result = new ArrayList<>();
       for (final TimesheetDO entry : list) {
         if (entry.getMarked()) {
           result.add(entry);
@@ -273,7 +273,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
     }
     if (myFilter.isOnlyBillable()) {
       final List<TimesheetDO> list = result;
-      result = new ArrayList<TimesheetDO>();
+      result = new ArrayList<>();
       for (final TimesheetDO entry : list) {
         if (entry.getKost2() != null && entry.getKost2().getKost2Art() != null && entry.getKost2().getKost2Art().getFakturiert()) {
           result.add(entry);
@@ -416,7 +416,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
         return timesheetsWithOverlapByUser.get((userId));
       }
       // log.info("Getting time sheet overlaps for user: " + user.getUsername());
-      final Set<Integer> result = new HashSet<Integer>();
+      final Set<Integer> result = new HashSet<>();
       final QueryFilter queryFilter = new QueryFilter();
       queryFilter.add(Restrictions.eq("user", user));
       queryFilter.addOrder(Order.asc("startTime"));

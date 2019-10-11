@@ -48,7 +48,7 @@ public class UserGroupCacheTest extends AbstractTestBase
     logon(AbstractTestBase.TEST_ADMIN_USER);
     GroupDO group1 = new GroupDO();
     group1.setName("testusergroupcache1");
-    Set<PFUserDO> assignedUsers = new HashSet<PFUserDO>();
+    Set<PFUserDO> assignedUsers = new HashSet<>();
     group1.setAssignedUsers(assignedUsers);
     assignedUsers.add(getUser(AbstractTestBase.TEST_USER));
     Serializable id = groupDao.save(group1);
@@ -56,7 +56,7 @@ public class UserGroupCacheTest extends AbstractTestBase
 
     GroupDO group2 = new GroupDO();
     group2.setName("testusergroupcache2");
-    assignedUsers = new HashSet<PFUserDO>();
+    assignedUsers = new HashSet<>();
     group2.setAssignedUsers(assignedUsers);
     assignedUsers.add(getUser(AbstractTestBase.TEST_ADMIN_USER));
     id = groupDao.save(group2);

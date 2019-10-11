@@ -56,7 +56,7 @@ public class ExportRow
     this.sheet = sheet;
     this.poiRow = poiRow;
     this.rowNum = rowNum;
-    cellMap = new HashMap<Integer, ExportCell>();
+    cellMap = new HashMap<>();
     if (poiRow.getLastCellNum() > 0) {
       // poiRow does already exists.
       for (int i = poiRow.getFirstCellNum(); i < poiRow.getLastCellNum(); i++) {

@@ -105,7 +105,7 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
   public void checkAndUpdateDatabaseEntries()
   {
     final List<ConfigurationDO> list = internalLoadAll();
-    final Set<String> params = new HashSet<String>();
+    final Set<String> params = new HashSet<>();
     for (final ConfigurationParam param : ConfigurationParam.values()) {
       checkAndUpdateDatabaseEntry(param, list, params);
     }

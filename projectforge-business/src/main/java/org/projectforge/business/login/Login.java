@@ -131,7 +131,7 @@ public class Login
   {
     if (loginHandler == null) {
       log.warn("No login handler is defined yet, so can't get all users.");
-      return new ArrayList<PFUserDO>();
+      return new ArrayList<>();
     }
     return loginHandler.getAllUsers();
   }
@@ -143,7 +143,7 @@ public class Login
   {
     if (loginHandler == null) {
       log.warn("No login handler is defined yet, so can't get all groups.");
-      return new ArrayList<GroupDO>();
+      return new ArrayList<>();
     }
     return loginHandler.getAllGroups();
   }

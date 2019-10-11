@@ -63,7 +63,7 @@ public class TimesheetTemplatesRest
   public Response getList()
   {
     final List<UserPrefDO> list = userPrefDao.getUserPrefs(UserPrefArea.TIMESHEET_TEMPLATE);
-    final List<TimesheetTemplateObject> result = new ArrayList<TimesheetTemplateObject>();
+    final List<TimesheetTemplateObject> result = new ArrayList<>();
     if (list != null) {
       for (final UserPrefDO userPref : list) {
         final TimesheetTemplateObject template = timesheetTemplateConverter.getTimesheetTemplateObject(userPref);

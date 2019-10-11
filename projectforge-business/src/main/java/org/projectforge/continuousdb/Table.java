@@ -54,7 +54,7 @@ public class Table implements Serializable
 
   private UniqueConstraint[] uniqueConstraints;
 
-  private final List<TableAttribute> attributes = new ArrayList<TableAttribute>();
+  private final List<TableAttribute> attributes = new ArrayList<>();
 
   private Table superTable;
 

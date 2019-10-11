@@ -242,7 +242,7 @@ public class LoginDefaultHandler implements LoginHandler
           "******* Exception while getting groups from data-base (OK only in case of migration from older versions): "
               + ex.getMessage(),
           ex);
-      return new ArrayList<GroupDO>();
+      return new ArrayList<>();
     }
   }
 
@@ -260,7 +260,7 @@ public class LoginDefaultHandler implements LoginHandler
           "******* Exception while getting users from data-base (OK only in case of migration from older versions): "
               + ex.getMessage(),
           ex);
-      return new ArrayList<PFUserDO>();
+      return new ArrayList<>();
     }
   }
 

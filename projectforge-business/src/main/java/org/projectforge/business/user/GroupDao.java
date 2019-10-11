@@ -142,7 +142,7 @@ public class GroupDao extends BaseDao<GroupDO> {
    */
   @Override
   public void afterSave(final GroupDO group) {
-    final Collection<GroupDO> groupList = new ArrayList<GroupDO>();
+    final Collection<GroupDO> groupList = new ArrayList<>();
     groupList.add(group);
     if (group.getAssignedUsers() != null) {
       // Create history entry of PFUserDO for all assigned users:
@@ -160,8 +160,8 @@ public class GroupDao extends BaseDao<GroupDO> {
     if (doHistoryUpdate) {
       final Set<PFUserDO> origAssignedUsers = dbGroup.getAssignedUsers();
       final Set<PFUserDO> assignedUsers = group.getAssignedUsers();
-      final Collection<PFUserDO> assignedList = new ArrayList<PFUserDO>(); // List of new assigned users.
-      final Collection<PFUserDO> unassignedList = new ArrayList<PFUserDO>(); // List of unassigned users.
+      final Collection<PFUserDO> assignedList = new ArrayList<>(); // List of new assigned users.
+      final Collection<PFUserDO> unassignedList = new ArrayList<>(); // List of unassigned users.
       for (final PFUserDO user : group.getAssignedUsers()) {
         if (!origAssignedUsers.contains(user)) {
           assignedList.add(user);
@@ -172,7 +172,7 @@ public class GroupDao extends BaseDao<GroupDO> {
           unassignedList.add(user);
         }
       }
-      final Collection<GroupDO> groupList = new ArrayList<GroupDO>();
+      final Collection<GroupDO> groupList = new ArrayList<>();
       groupList.add(group);
       // Create history entry of PFUserDO for all new assigned users:
       for (final PFUserDO user : assignedList) {

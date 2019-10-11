@@ -65,7 +65,7 @@ public class ExportSheet
     this.contentProvider = contentProvider;
     this.name = name;
     this.poiSheet = poiSheet;
-    this.rows = new ArrayList<ExportRow>();
+    this.rows = new ArrayList<>();
     initRowList();
     final PrintSetup printSetup = getPrintSetup();
     printSetup.setPaperSize(ExportConfig.getInstance().getDefaultPaperSizeId());

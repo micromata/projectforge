@@ -91,7 +91,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
   /**
    * For every group with access to this node the permissions will be stored here.
    */
-  private final List<GroupTaskAccessDO> groupTaskAccessList = new ArrayList<GroupTaskAccessDO>();
+  private final List<GroupTaskAccessDO> groupTaskAccessList = new ArrayList<>();
 
   public TaskNode() {
   }
@@ -215,7 +215,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
   }
 
   public List<Integer> getDescendantIds() {
-    final List<Integer> descendants = new ArrayList<Integer>();
+    final List<Integer> descendants = new ArrayList<>();
     getDescendantIds(descendants);
     return descendants;
   }
@@ -233,7 +233,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
   }
 
   public List<Integer> getAncestorIds() {
-    final List<Integer> ancestors = new ArrayList<Integer>();
+    final List<Integer> ancestors = new ArrayList<>();
     getAncestorIds(ancestors);
     return ancestors;
   }
@@ -260,7 +260,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
    */
   public List<TaskNode> getChildren() {
     if (this.children == null) {
-      this.children = new ArrayList<TaskNode>();
+      this.children = new ArrayList<>();
     }
     return this.children;
   }
@@ -322,7 +322,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
    */
   public List<TaskNode> getPathToAncestor(final Integer ancestorTaskId) {
     if (this.parent == null || this.task.getId().equals(ancestorTaskId)) {
-      return new ArrayList<TaskNode>();
+      return new ArrayList<>();
     }
     final List<TaskNode> path = this.parent.getPathToAncestor(ancestorTaskId);
     path.add(this);
@@ -355,7 +355,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
         return;
       }
       if (this.children == null) {
-        this.children = new ArrayList<TaskNode>();
+        this.children = new ArrayList<>();
       }
       this.children.add(child);
     }

@@ -79,7 +79,7 @@ public class FileHelper
    */
   public static String createSafeFilename(final String str, final String suffix, final int maxlength, final boolean appendTimestamp)
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     boolean escaped = false;
     int count = 0;
     for (int i = 0; i < str.length() && count < maxlength; i++) {

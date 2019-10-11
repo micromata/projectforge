@@ -59,7 +59,7 @@ public class HRViewUserData implements Comparable<HRViewUserData>, Serializable,
   HRViewUserData(final PFUserDO user)
   {
     this.user = user;
-    this.entries = new ArrayList<HRViewUserEntryData>();
+    this.entries = new ArrayList<>();
   }
 
   void addTimesheet(final TimesheetDO timesheet)

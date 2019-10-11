@@ -307,7 +307,7 @@ public class RechnungDao extends BaseDao<RechnungDO> {
       return list;
     }
 
-    final List<RechnungDO> result = new ArrayList<RechnungDO>();
+    final List<RechnungDO> result = new ArrayList<>();
     for (final RechnungDO rechnung : list) {
       if (myFilter.isShowUnbezahlt()) {
         if (!rechnung.isBezahlt()) {
@@ -408,7 +408,7 @@ public class RechnungDao extends BaseDao<RechnungDO> {
         }
       }
     }
-    Collections.sort(list, new Comparator<DisplayHistoryEntry>() {
+    list.sort(new Comparator<DisplayHistoryEntry>() {
       @Override
       public int compare(final DisplayHistoryEntry o1, final DisplayHistoryEntry o2) {
         return (o2.getTimestamp().compareTo(o1.getTimestamp()));

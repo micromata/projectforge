@@ -81,7 +81,7 @@ public class TaskHelper
     if (kost == null) {
       return task.getKost2BlackWhiteList();
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     if (StringUtils.isNotBlank(task.getKost2BlackWhiteList())) {
       buf.append(task.getKost2BlackWhiteList()).append(",");
     }

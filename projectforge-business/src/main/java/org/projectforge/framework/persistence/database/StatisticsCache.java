@@ -69,7 +69,7 @@ public class StatisticsCache extends AbstractCache
   protected void refresh()
   {
     log.info("Initializing StatisticsCache ...");
-    numberOfEntitiesMap = new HashMap<Class<? extends BaseDO<?>>, Integer>();
+    numberOfEntitiesMap = new HashMap<>();
     final JdbcTemplate jdbc = new JdbcTemplate(dataSource);
     for (final RegistryEntry registryEntry : Registry.getInstance().getOrderedList()) {
       try {

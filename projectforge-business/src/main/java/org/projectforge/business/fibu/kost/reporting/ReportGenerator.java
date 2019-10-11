@@ -36,7 +36,7 @@ public class ReportGenerator
 {
   private String jasperReportId;
 
-  private Map<String, Object> parameters = new HashMap<String, Object>();
+  private Map<String, Object> parameters = new HashMap<>();
 
   private ReportOutputType outputType = ReportOutputType.PDF;
 
@@ -124,7 +124,7 @@ public class ReportGenerator
     }
     final Iterator< ? > it = beanCollection.iterator();
     if (it.next() instanceof BuchungssatzDO) {
-      final List<Buchungssatz> list = new ArrayList<Buchungssatz>();
+      final List<Buchungssatz> list = new ArrayList<>();
       @SuppressWarnings("unchecked")
       final
       Collection<BuchungssatzDO> col = (Collection<BuchungssatzDO>)beanCollection;

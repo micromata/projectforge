@@ -178,7 +178,7 @@ public class JPAHelper
       return list;
     }
     if (list == null) {
-      list = new LinkedList<Annotation>();
+      list = new LinkedList<>();
     }
     list.add(object.getAnnotation(annotation));
     return list;
@@ -216,9 +216,7 @@ public class JPAHelper
       if (field != null) {
         return field;
       }
-    } catch (final SecurityException ex) {
-      // OK, nothing to do.
-    } catch (final NoSuchFieldException ex) {
+    } catch (final SecurityException | NoSuchFieldException ex) {
       // OK, nothing to do.
     }
     if (clazz.getSuperclass() != null) {
@@ -229,7 +227,7 @@ public class JPAHelper
 
   private static List<Field> getAllDeclaredFields(final Class<?> clazz)
   {
-    return getAllDeclaredFields(new ArrayList<Field>(), clazz);
+    return getAllDeclaredFields(new ArrayList<>(), clazz);
   }
 
   private static List<Field> getAllDeclaredFields(final List<Field> list, final Class<?> clazz)

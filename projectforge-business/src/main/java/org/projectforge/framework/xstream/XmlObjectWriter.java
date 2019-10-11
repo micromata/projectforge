@@ -65,7 +65,7 @@ public class XmlObjectWriter
    * Key is the class name with the hashCode of the object, e. g.: org.projectforge.xml.stream.TestObject:987345678854 and the value is the
    * element where the object was written to.
    */
-  private Map<String, Element> writtenObjects = new HashMap<String, Element>();
+  private Map<String, Element> writtenObjects = new HashMap<>();
 
   /**
    * For customization, the base xml registry of XmlRegistry is used at default.

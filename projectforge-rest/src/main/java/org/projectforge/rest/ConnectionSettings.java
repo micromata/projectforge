@@ -41,7 +41,7 @@ public class ConnectionSettings
 
   private static final DateTimeFormat DEFAULT_DATE_TIME_FORMAT = DateTimeFormat.ISO_DATE_TIME_MILLIS;
 
-  private static ThreadLocal<ConnectionSettings> context = new ThreadLocal<ConnectionSettings>();
+  private static ThreadLocal<ConnectionSettings> context = new ThreadLocal<>();
 
   private DateTimeFormat dateTimeFormat = DEFAULT_DATE_TIME_FORMAT;
 

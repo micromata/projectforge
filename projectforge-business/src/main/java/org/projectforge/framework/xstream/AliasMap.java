@@ -28,9 +28,9 @@ import java.util.Map;
 
 public class AliasMap
 {
-  private Map<Class< ? >, String> aliasMap1 = new HashMap<Class< ? >, String>();
+  private Map<Class< ? >, String> aliasMap1 = new HashMap<>();
 
-  private Map<String, Class< ? >> aliasMap2 = new HashMap<String, Class< ? >>();
+  private Map<String, Class< ? >> aliasMap2 = new HashMap<>();
 
   public String getAliasForClass(final Class< ? > type)
   {

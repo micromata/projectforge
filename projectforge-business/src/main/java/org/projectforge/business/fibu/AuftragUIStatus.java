@@ -44,7 +44,7 @@ public class AuftragUIStatus implements Serializable
 
   public AuftragUIStatus()
   {
-    closedPositions = new HashSet<Short>();
+    closedPositions = new HashSet<>();
   }
 
   public AuftragUIStatus openPosition(final short pos)

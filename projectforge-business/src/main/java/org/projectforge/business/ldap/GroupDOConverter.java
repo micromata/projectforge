@@ -219,7 +219,7 @@ public class GroupDOConverter
   public boolean copyGroupFields(final LdapGroup src, final LdapGroup dest)
   {
     boolean modified;
-    final List<String> properties = new LinkedList<String>();
+    final List<String> properties = new LinkedList<>();
     ListHelper.addAll(properties, "description", "organization");
     if (ldapUserDao.isPosixAccountsConfigured() && !isPosixAccountValuesEmpty(src)) {
       ListHelper.addAll(properties, "gidNumber");

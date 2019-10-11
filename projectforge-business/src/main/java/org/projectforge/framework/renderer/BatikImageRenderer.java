@@ -66,14 +66,14 @@ public class BatikImageRenderer
     final ImageTranscoder t;
     if (imageFormat == ImageFormat.JPEG) {
       t = new JPEGTranscoder();
-      t.addTranscodingHint(JPEGTranscoder.KEY_QUALITY, new Float(.8));
-      t.addTranscodingHint(JPEGTranscoder.KEY_WIDTH, new Float(width));
+      t.addTranscodingHint(JPEGTranscoder.KEY_QUALITY, .8f);
+      t.addTranscodingHint(JPEGTranscoder.KEY_WIDTH, (float) width);
       // } else if (imageFormat == ImageFormat.TIFF) {
       // t = new TIFFTranscoder();
       // t.addTranscodingHint(TIFFTranscoder.KEY_WIDTH, new Float(width));
     } else {
       t = new PNGTranscoder();
-      t.addTranscodingHint(PNGTranscoder.KEY_WIDTH, new Float(width));
+      t.addTranscodingHint(PNGTranscoder.KEY_WIDTH, (float) width);
     }
     // Set the transcoding hints.
     TranscoderInput input = new TranscoderInput(document);
@@ -99,7 +99,7 @@ public class BatikImageRenderer
     // Create a pdf transcoder
     final PDFTranscoder t = new PDFTranscoder();
     t.addTranscodingHint(PDFTranscoder.KEY_AUTO_FONTS, false);
-    t.addTranscodingHint(PDFTranscoder.KEY_WIDTH, new Float(width));
+    t.addTranscodingHint(PDFTranscoder.KEY_WIDTH, (float) width);
     TranscoderInput input = new TranscoderInput(document);
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
     final TranscoderOutput output = new TranscoderOutput(baos);

@@ -230,7 +230,7 @@ public class UserFilter implements Filter
         MDC.remove("user");
       }
       if (log.isDebugEnabled()) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("doFilter finished for ");
         sb.append(request.getRequestURI());
         if (request.getSession(false) != null) {

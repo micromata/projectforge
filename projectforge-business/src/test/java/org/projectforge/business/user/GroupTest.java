@@ -61,7 +61,7 @@ public class GroupTest extends AbstractTestBase {
         logon(AbstractTestBase.TEST_ADMIN_USER);
         GroupDO group = new GroupDO();
         group.setName("testgroup");
-        final Set<PFUserDO> assignedUsers = new HashSet<PFUserDO>();
+        final Set<PFUserDO> assignedUsers = new HashSet<>();
         group.setAssignedUsers(assignedUsers);
         assignedUsers.add(getUser(AbstractTestBase.TEST_USER));
         final Serializable id = groupDao.save(group);

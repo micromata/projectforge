@@ -306,7 +306,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
 
   private AccessException getLoggedInUserNotMemberOfException(final ProjectForgeGroup... groups)
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     for (int i = 0; i < groups.length; i++) {
       if (i > 0) {
         buf.append(", ");

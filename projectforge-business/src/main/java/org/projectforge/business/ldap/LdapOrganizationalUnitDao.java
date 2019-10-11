@@ -98,7 +98,7 @@ public class LdapOrganizationalUnitDao
 
   private boolean doesExist(final DirContext ctx, final String ou, final String... organizationalUnits) throws NamingException
   {
-    NamingEnumeration< ? > results = null;
+    NamingEnumeration< ? > results;
     final SearchControls controls = new SearchControls();
     controls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
     final String searchBase = LdapUtils.getOu(organizationalUnits);

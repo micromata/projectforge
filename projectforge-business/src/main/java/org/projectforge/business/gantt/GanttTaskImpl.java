@@ -297,7 +297,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
     if (this.children == null) {
       return;
     }
-    Collections.sort(this.children, GanttUtils.GANTT_OBJECT_COMPARATOR);
+    this.children.sort(GanttUtils.GANTT_OBJECT_COMPARATOR);
     for (final GanttTask child : this.children) {
       child.sortChildren();
     }
@@ -311,7 +311,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
   public GanttTaskImpl addChild(final GanttTask child)
   {
     if (this.children == null) {
-      this.children = new ArrayList<GanttTask>();
+      this.children = new ArrayList<>();
     }
     this.children.add(child);
     return this;

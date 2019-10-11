@@ -85,7 +85,7 @@ public class BuchungssatzExcelImporter
 
   public void doImport(final InputStream is) throws Exception
   {
-    final ExcelImport<BuchungssatzImportRow> imp = new ExcelImport<BuchungssatzImportRow>(is);
+    final ExcelImport<BuchungssatzImportRow> imp = new ExcelImport<>(is);
     for (short idx = 0; idx < imp.getWorkbook().getNumberOfSheets(); idx++) {
       final ImportedSheet<BuchungssatzDO> sheet = importBuchungssaetze(imp, idx);
       if (sheet != null) {
@@ -118,12 +118,12 @@ public class BuchungssatzExcelImporter
   private ImportedSheet<BuchungssatzDO> importBuchungssaetze(final ExcelImport<BuchungssatzImportRow> imp, final HSSFSheet sheet,
       final int month) throws Exception
   {
-    final ImportedSheet<BuchungssatzDO> importedSheet = new ImportedSheet<BuchungssatzDO>();
+    final ImportedSheet<BuchungssatzDO> importedSheet = new ImportedSheet<>();
     imp.setNameRowIndex(ROW_COLUMNNAMES);
     imp.setStartingRowIndex(ROW_COLUMNNAMES + 1);
     imp.setRowClass(BuchungssatzImportRow.class);
 
-    final Map<String, String> map = new HashMap<String, String>();
+    final Map<String, String> map = new HashMap<>();
     map.put("SatzNr.", "satzNr");
     map.put("Satz-Nr.", "satzNr");
     map.put("Betrag", "betrag");
@@ -237,7 +237,7 @@ public class BuchungssatzExcelImporter
     if (row.isEmpty()) {
       return null;
     }
-    final ImportedElement<BuchungssatzDO> element = new ImportedElement<BuchungssatzDO>(storage.nextVal(), BuchungssatzDO.class,
+    final ImportedElement<BuchungssatzDO> element = new ImportedElement<>(storage.nextVal(), BuchungssatzDO.class,
         DatevImportDao.BUCHUNGSSATZ_DIFF_PROPERTIES);
     final BuchungssatzDO satz = new BuchungssatzDO();
     element.setValue(satz);

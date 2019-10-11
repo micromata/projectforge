@@ -69,7 +69,7 @@ public class GroovyEngine
 
   public GroovyEngine(ConfigurationService configurationService, final Locale locale, final TimeZone timeZone)
   {
-    this(configurationService, new HashMap<String, Object>(), locale, timeZone);
+    this(configurationService, new HashMap<>(), locale, timeZone);
   }
 
   public GroovyEngine(ConfigurationService configurationService, final Map<String, Object> variables,

@@ -72,7 +72,7 @@ public class ImportStorage<T> implements Serializable
   {
     Validate.notNull(sheet);
     if (sheets == null) {
-      sheets = new ArrayList<ImportedSheet<T>>();
+      sheets = new ArrayList<>();
     }
     sheets.add(sheet);
   }

@@ -69,7 +69,7 @@ public class UserXmlPreferencesXmlDumpHook implements XmlDumpHook
       if (oldIds.size() == 0) {
         return;
       }
-      final Set<Integer> newIds = new HashSet<Integer>();
+      final Set<Integer> newIds = new HashSet<>();
       for (final Integer oldId : oldIds) {
         final Integer newId = xstreamSavingConverter.getNewIdAsInteger(TaskDO.class, oldId);
         newIds.add(newId);

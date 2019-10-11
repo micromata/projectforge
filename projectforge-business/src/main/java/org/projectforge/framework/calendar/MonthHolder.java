@@ -119,7 +119,7 @@ public class MonthHolder
     dateHolder.computeTime();
     dateHolder.setBeginOfWeek(); // get first week (with days of previous month)
 
-    weeks = new ArrayList<WeekHolder>();
+    weeks = new ArrayList<>();
     do {
       final WeekHolder week = new WeekHolder(dateHolder.getCalendar(), month);
       weeks.add(week);
@@ -139,7 +139,7 @@ public class MonthHolder
 
   public List<DayHolder> getDays()
   {
-    final List<DayHolder> list = new LinkedList<DayHolder>();
+    final List<DayHolder> list = new LinkedList<>();
     DayHolder dh = new DayHolder(begin);
     int paranoiaCounter = 40;
     while (!dh.after(end) && --paranoiaCounter > 0) {

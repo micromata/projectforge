@@ -48,7 +48,7 @@ open class SwingJdbcSettingsDialog(
 
     init {
         setSize(600, 400)
-        setLocationRelativeTo(context.mainFrame);
+        setLocationRelativeTo(context.mainFrame)
         val panel = JPanel(GridBagLayout())
 
         var y = -1

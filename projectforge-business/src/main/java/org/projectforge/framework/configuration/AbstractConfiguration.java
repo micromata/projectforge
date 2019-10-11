@@ -133,7 +133,7 @@ public abstract class AbstractConfiguration extends AbstractCache
   protected void refresh()
   {
     final String identifier = getIdentifier4LogMessage();
-    final Map<ConfigurationParam, Object> newMap = new HashMap<ConfigurationParam, Object>();
+    final Map<ConfigurationParam, Object> newMap = new HashMap<>();
     log.info("Initializing " + identifier + " (ConfigurationDO parameters) ...");
     if (configurationService == null) {
       // Do nothing.
@@ -148,7 +148,7 @@ public abstract class AbstractConfiguration extends AbstractCache
           "******* Exception while getting configuration parameters from data-base (only OK for migration from older versions): "
               + ex.getMessage(),
           ex);
-      list = new ArrayList<ConfigurationDO>();
+      list = new ArrayList<>();
     }
     for (final ConfigurationParam param : ConfigurationParam.values()) {
       if (param.isGlobal() != global) {

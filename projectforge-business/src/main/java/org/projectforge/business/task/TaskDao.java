@@ -150,7 +150,7 @@ public class TaskDao extends BaseDao<TaskDO> {
     }
     @SuppressWarnings("unchecked") final List<Object[]> result = (List<Object[]>) getHibernateTemplate().find(
             "select startTime, stopTime, task.id from TimesheetDO where deleted=false order by task.id");
-    final List<Object[]> list = new ArrayList<Object[]>();
+    final List<Object[]> list = new ArrayList<>();
     if (!CollectionUtils.isEmpty(result)) {
       Integer currentTaskId = null;
       long totalDuration = 0;

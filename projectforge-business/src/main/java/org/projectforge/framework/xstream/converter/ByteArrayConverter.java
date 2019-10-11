@@ -43,10 +43,7 @@ public class ByteArrayConverter implements IConverter<byte[]>
     try {
       final byte[] bytes = (byte[]) Base64Helper.decodeObject(str);
       return bytes;
-    } catch (final IOException ex) {
-      log.error("Error while uncompressing string: " + ex.getMessage(), ex);
-      return null;
-    } catch (final ClassNotFoundException ex) {
+    } catch (final IOException | ClassNotFoundException ex) {
       log.error("Error while uncompressing string: " + ex.getMessage(), ex);
       return null;
     }

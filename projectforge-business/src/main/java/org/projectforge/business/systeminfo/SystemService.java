@@ -187,7 +187,7 @@ public class SystemService {
    * @return
    */
   public String checkSystemIntegrity() {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append("ProjectForge system integrity check.\n\n");
     buf.append("------------------------------------\n");
     buf.append("|                                  |\n");
@@ -196,7 +196,7 @@ public class SystemService {
     buf.append("------------------------------------\n");
     final List<TaskDO> tasks = taskDao.internalLoadAll();
     buf.append("Found " + tasks.size() + " tasks.\n");
-    final Map<Integer, TaskDO> taskMap = new HashMap<Integer, TaskDO>();
+    final Map<Integer, TaskDO> taskMap = new HashMap<>();
     for (final TaskDO task : tasks) {
       taskMap.put(task.getId(), task);
     }

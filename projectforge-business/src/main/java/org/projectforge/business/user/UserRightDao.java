@@ -149,7 +149,7 @@ public class UserRightDao extends BaseDao<UserRightDO>
 
   public List<UserRightVO> getUserRights(final PFUserDO user)
   {
-    final List<UserRightVO> list = new ArrayList<UserRightVO>();
+    final List<UserRightVO> list = new ArrayList<>();
     if (user == null || user.getId() == null) {
       return list;
     }

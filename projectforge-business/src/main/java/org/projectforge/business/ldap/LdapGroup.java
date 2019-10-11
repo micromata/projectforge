@@ -35,7 +35,7 @@ public class LdapGroup extends LdapObject<String>
 
   private String description, organization, businessCategory;
 
-  private final Set<String> members = new HashSet<String>();
+  private final Set<String> members = new HashSet<>();
 
   /**
    * @see org.projectforge.business.ldap.LdapObject#getId()

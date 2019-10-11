@@ -460,7 +460,7 @@ public class DateHelper implements Serializable
     final long duration = milliSeconds / 60000;
     final long durationHours = duration / 60;
     final long durationMinutes = (duration % 60);
-    final StringBuffer buf = new StringBuffer(10);
+    final StringBuilder buf = new StringBuilder(10);
     buf.append(durationHours);
     if (durationMinutes < 10)
       buf.append(":0");
@@ -475,10 +475,10 @@ public class DateHelper implements Serializable
    */
   public static List<LabelValueBean<String, Integer>> getMonthList()
   {
-    final List<LabelValueBean<String, Integer>> list = new ArrayList<LabelValueBean<String, Integer>>();
-    list.add(new LabelValueBean<String, Integer>("--", -1));
+    final List<LabelValueBean<String, Integer>> list = new ArrayList<>();
+    list.add(new LabelValueBean<>("--", -1));
     for (int month = 0; month < 12; month++) {
-      list.add(new LabelValueBean<String, Integer>(StringHelper.format2DigitNumber(month + 1), month));
+      list.add(new LabelValueBean<>(StringHelper.format2DigitNumber(month + 1), month));
     }
     return list;
   }
@@ -490,7 +490,7 @@ public class DateHelper implements Serializable
    */
   public static String formatMonth(final int year, final int month)
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append(year);
     if (month >= 0) {
       buf.append('-');

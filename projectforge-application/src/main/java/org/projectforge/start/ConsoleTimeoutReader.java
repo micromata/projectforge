@@ -130,7 +130,7 @@ public class ConsoleTimeoutReader {
 
   private String readConsoleAnswer(String question) throws IOException {
     System.out.println(question);
-    String answer = null;
+    String answer;
     answer = bufferedReader.readLine();
     return answer != null ? answer : "";
   }

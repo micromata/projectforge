@@ -54,21 +54,21 @@ public class TimesheetPrefData
   private synchronized void ensureRecents()
   {
     if (recents == null) {
-      recents = new RecentQueue<TimesheetPrefEntry>(MAX_RECENT);
+      recents = new RecentQueue<>(MAX_RECENT);
     }
   }
 
   private synchronized void ensureRecentTasks()
   {
     if (recentTasks == null) {
-      recentTasks = new RecentQueue<Integer>(MAX_RECENT);
+      recentTasks = new RecentQueue<>(MAX_RECENT);
     }
   }
 
   private synchronized void ensureRecentLocations()
   {
     if (recentLocations == null) {
-      recentLocations = new RecentQueue<String>(MAX_RECENT);
+      recentLocations = new RecentQueue<>(MAX_RECENT);
     }
   }
 

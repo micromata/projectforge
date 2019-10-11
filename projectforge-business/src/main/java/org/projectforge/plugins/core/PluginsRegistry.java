@@ -35,7 +35,7 @@ public class PluginsRegistry
 
   private static PluginsRegistry instance;
 
-  private final List<AbstractPlugin> plugins = new ArrayList<AbstractPlugin>();
+  private final List<AbstractPlugin> plugins = new ArrayList<>();
 
   public synchronized static PluginsRegistry instance()
   {

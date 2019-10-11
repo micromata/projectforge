@@ -145,7 +145,7 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
         ancestors = node.getAncestorIds();
       }
       if (descendants != null || ancestors != null) {
-        final List<Integer> taskIds = new ArrayList<Integer>();
+        final List<Integer> taskIds = new ArrayList<>();
         if (descendants != null) {
           taskIds.addAll(descendants);
         }
@@ -167,7 +167,7 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
     List<GroupTaskAccessDO> list;
     if (myFilter.getTaskId() != null && myFilter.isInherit() && !myFilter.isIncludeAncestorTasks()) {
       // Now we have to remove all inherited entries of ancestor nodes which are not declared as recursive.
-      list = new ArrayList<GroupTaskAccessDO>();
+      list = new ArrayList<>();
       final TaskNode taskNode = taskTree.getTaskNodeById(myFilter.getTaskId());
       if (taskNode == null) { // Paranoia
         list = qlist;
@@ -188,7 +188,7 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
       list = qlist;
     }
     if (myFilter.getUserId() != null) {
-      final List<GroupTaskAccessDO> result = new ArrayList<GroupTaskAccessDO>();
+      final List<GroupTaskAccessDO> result = new ArrayList<>();
       for (final GroupTaskAccessDO access : list) {
         if (getUserGroupCache().isUserMemberOfGroup(myFilter.getUserId(), access.getGroupId())) {
           result.add(access);
@@ -291,8 +291,8 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
   protected void afterUpdate(final GroupTaskAccessDO obj, final GroupTaskAccessDO dbObj) {
     Validate.notNull(dbObj);
     final List<AccessEntryDO> entries = obj.getOrderedEntries();
-    final StringBuffer bufNew = new StringBuffer();
-    final StringBuffer bufOld = new StringBuffer();
+    final StringBuilder bufNew = new StringBuilder();
+    final StringBuilder bufOld = new StringBuilder();
     boolean firstNew = true, firstOld = true;
     for (final AccessEntryDO entry : entries) {
       final AccessEntryDO dbEntry = dbObj.getAccessEntry(entry.getAccessType());

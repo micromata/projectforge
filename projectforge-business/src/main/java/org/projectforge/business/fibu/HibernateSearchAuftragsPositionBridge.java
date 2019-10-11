@@ -52,7 +52,7 @@ public class HibernateSearchAuftragsPositionBridge implements FieldBridge
       return;
     }
     final AuftragDO auftrag = position.getAuftrag();
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     if (auftrag == null || auftrag.getNummer() == null) {
       log.error("AuftragDO for AuftragsPositionDO: " + position.getId() + "  is null.");
       return;

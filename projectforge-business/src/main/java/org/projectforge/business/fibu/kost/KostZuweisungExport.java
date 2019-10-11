@@ -101,7 +101,7 @@ public class KostZuweisungExport
   public byte[] exportRechnungen(final List<? extends AbstractRechnungDO<? extends AbstractRechnungsPositionDO>> list,
       final String sheetTitle, final KontoCache kontoCache)
   {
-    final List<KostZuweisungDO> zuweisungen = new ArrayList<KostZuweisungDO>();
+    final List<KostZuweisungDO> zuweisungen = new ArrayList<>();
     for (final AbstractRechnungDO<?> rechnung : list) {
       if (rechnung.getPositionen() != null) {
         for (final AbstractRechnungsPositionDO position : rechnung.getPositionen()) {

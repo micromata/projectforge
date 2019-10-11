@@ -53,7 +53,7 @@ public class TimesheetUtilsTest extends AbstractTestBase {
     user1.setId(1);
     final PFUserDO user2 = new PFUserDO();
     user1.setId(2);
-    final List<TimesheetDO> list = new LinkedList<TimesheetDO>();
+    final List<TimesheetDO> list = new LinkedList<>();
     add(list, user1, "2013-07-20 12:15", "2013-07-20 13:00");
     add(list, user2, "2013-07-20 10:00", "2013-07-20 16:00");
     add(list, user2, "2013-07-20 08:00", "2013-07-20 09:00");

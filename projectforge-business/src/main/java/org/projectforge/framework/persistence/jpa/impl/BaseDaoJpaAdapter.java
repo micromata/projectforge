@@ -257,11 +257,11 @@ public class BaseDaoJpaAdapter
 
     Set<String> destKeys = target.getAttributeKeys();
     Set<String> origKeys = source.getAttributeKeys();
-    Set<String> insertOrgs = new TreeSet<String>(origKeys);
+    Set<String> insertOrgs = new TreeSet<>(origKeys);
     insertOrgs.removeAll(destKeys);
-    Set<String> updateOrgs = new TreeSet<String>(origKeys);
+    Set<String> updateOrgs = new TreeSet<>(origKeys);
     updateOrgs.retainAll(destKeys);
-    Set<String> deleteOrgs = new TreeSet<String>(destKeys);
+    Set<String> deleteOrgs = new TreeSet<>(destKeys);
     deleteOrgs.removeAll(origKeys);
     for (String insert : insertOrgs) {
       target.putAttribute(insert, source.getAttribute(insert));
@@ -319,16 +319,16 @@ public class BaseDaoJpaAdapter
         } else if (srcFieldValue instanceof Collection) {
           Collection<Object> destColl = (Collection<Object>) destFieldValue;
           final Collection<Object> srcColl = (Collection<Object>) srcFieldValue;
-          final Collection<Object> toRemove = new ArrayList<Object>();
+          final Collection<Object> toRemove = new ArrayList<>();
           if (srcColl != null && destColl == null) {
             if (srcColl instanceof TreeSet) {
-              destColl = new TreeSet<Object>();
+              destColl = new TreeSet<>();
             } else if (srcColl instanceof HashSet) {
-              destColl = new HashSet<Object>();
+              destColl = new HashSet<>();
             } else if (srcColl instanceof List) {
-              destColl = new ArrayList<Object>();
+              destColl = new ArrayList<>();
             } else if (HibernateCompatUtils.isPersistenceSet(srcColl)) {
-              destColl = new HashSet<Object>();
+              destColl = new HashSet<>();
             } else {
               log.error("Unsupported collection type: " + srcColl.getClass().getName());
             }

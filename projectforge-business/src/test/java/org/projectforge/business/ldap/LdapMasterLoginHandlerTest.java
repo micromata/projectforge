@@ -148,8 +148,6 @@ public class LdapMasterLoginHandlerTest extends AbstractTestBase
     }
     try {
       jdbmPartition.setSuffix(String.valueOf(dnUsers));
-    } catch (LdapInvalidDnException e) {
-      e.printStackTrace();
     } catch (Exception e) {
       e.printStackTrace();
     }

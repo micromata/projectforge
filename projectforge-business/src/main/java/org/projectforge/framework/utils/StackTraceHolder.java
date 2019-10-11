@@ -66,7 +66,7 @@ public class StackTraceHolder implements Serializable
     if (debugStackTrace == null) {
       return null;
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     for (final StackTraceElement el : debugStackTrace) {
       buf.append("\nat " + el.getClassName()).append(".").append(el.getMethodName()).append("(").append(el.getFileName()).append(":")
       .append(el.getLineNumber()).append(")");

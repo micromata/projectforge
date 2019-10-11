@@ -48,7 +48,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
 
   private static final long serialVersionUID = 409057949195992116L;
 
-  private final Set<TemplateCalendarProperties> calendarProperties = new TreeSet<TemplateCalendarProperties>();
+  private final Set<TemplateCalendarProperties> calendarProperties = new TreeSet<>();
 
   private Set<Integer> visibleCalendarIds;
 
@@ -159,7 +159,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
   public Set<Integer> getVisibleCalendarIds()
   {
     if (this.visibleCalendarIds == null) {
-      this.visibleCalendarIds = new HashSet<Integer>();
+      this.visibleCalendarIds = new HashSet<>();
       for (final TemplateCalendarProperties props : this.calendarProperties) {
         if (props.isVisible()) {
           this.visibleCalendarIds.add(props.getCalId());
@@ -174,7 +174,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
    */
   public List<TeamCalDO> getCalendars()
   {
-    final List<TeamCalDO> result = new ArrayList<TeamCalDO>();
+    final List<TeamCalDO> result = new ArrayList<>();
     for (final TemplateCalendarProperties props : this.calendarProperties) {
       final TeamCalDO cal = getTeamCalCache().getCalendar(props.getCalId());
       if (cal != null) {
@@ -191,7 +191,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
    */
   public Set<Integer> getCalendarIds()
   {
-    final Set<Integer> result = new HashSet<Integer>();
+    final Set<Integer> result = new HashSet<>();
     for (final TemplateCalendarProperties props : this.calendarProperties) {
       result.add(props.getCalId());
     }

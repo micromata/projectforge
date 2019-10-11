@@ -89,8 +89,8 @@ public abstract class Ranges<T extends Comparable<T>> implements Serializable
    */
   public Ranges<T> setRanges(final String rangesString)
   {
-    ranges = new ArrayList<Range<T>>();
-    values = new ArrayList<T>();
+    ranges = new ArrayList<>();
+    values = new ArrayList<>();
     if (StringUtils.isBlank(rangesString)) {
       // No ranges given.
       return this;
@@ -110,7 +110,7 @@ public abstract class Ranges<T extends Comparable<T>> implements Serializable
         final String from = str.substring(0, pos);
         final String to = str.substring(pos + 1);
         try {
-          final Range<T> range = new Range<T>(parseValue(from.trim()), parseValue(to.trim()));
+          final Range<T> range = new Range<>(parseValue(from.trim()), parseValue(to.trim()));
           ranges.add(range);
         } catch (final NumberFormatException ex) {
           throw new IllegalArgumentException("Couldn't parse range: '" + rangesString + "'." + ex.getMessage(), ex);

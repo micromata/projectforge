@@ -127,7 +127,7 @@ public class ExportMSProject
 
     final List<GanttTask> children = ganttChart.getRootNode().getChildren();
     if (children != null) {
-      final Map<Serializable, Task> taskMap = new HashMap<Serializable, Task>();
+      final Map<Serializable, Task> taskMap = new HashMap<>();
       for (final GanttTask child : children) {
         addTask(file, taskMap, null, child);
       }
@@ -203,7 +203,7 @@ public class ExportMSProject
         if (predecessorOffset == null) {
           value = 0;
         } else {
-          value = predecessorOffset.intValue();
+          value = predecessorOffset;
         }
         task.addPredecessor(predecessor, getRelationType(ganttTask.getRelationType()), Duration.getInstance(value, TimeUnit.DAYS));
       }

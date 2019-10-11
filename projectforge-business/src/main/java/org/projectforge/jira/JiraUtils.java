@@ -92,7 +92,7 @@ public class JiraUtils
     if (jiraIssues == null) {
       return text;
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     int current = 0;
     for (final String jiraIssue : jiraIssues) {
       final int pos = text.indexOf(jiraIssue, current);
@@ -121,7 +121,7 @@ public class JiraUtils
     final Matcher m = p.matcher(text);
     while (m.find()) {
       if (list == null) {
-        list = new ArrayList<String>();
+        list = new ArrayList<>();
       }
       if (m.group(1) != null)
         list.add(m.group(1));

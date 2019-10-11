@@ -85,7 +85,7 @@ public class GanttUtils
    */
   public static Date getCalculatedStartDate(final GanttTask node)
   {
-    final Date start = getCalculatedStartDate(node, new HashSet<Serializable>(), new HashSet<Serializable>());
+    final Date start = getCalculatedStartDate(node, new HashSet<>(), new HashSet<>());
     return start;
   }
 
@@ -178,7 +178,7 @@ public class GanttUtils
    */
   public static Date getCalculatedEndDate(final GanttTask node)
   {
-    final Date end = getCalculatedEndDate(node, new HashSet<Serializable>(), new HashSet<Serializable>());
+    final Date end = getCalculatedEndDate(node, new HashSet<>(), new HashSet<>());
     return end;
   }
 

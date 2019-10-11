@@ -142,7 +142,7 @@ public abstract class UserRight implements Serializable, ShortDisplayNameCapable
     if (values == null) {
       return null;
     }
-    final List<UserRightValue> list = new ArrayList<UserRightValue>();
+    final List<UserRightValue> list = new ArrayList<>();
     for (final UserRightValue value : values) {
       if (isAvailable(userGroupCache, user, value)) {
         list.add(value);

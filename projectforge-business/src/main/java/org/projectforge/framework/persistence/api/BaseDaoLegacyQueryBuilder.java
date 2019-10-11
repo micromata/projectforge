@@ -157,7 +157,7 @@ public class BaseDaoLegacyQueryBuilder {
         if (list.size() > 0 && searchFilter.applyModificationFilter()) {
           // Search now all history entries which were modified by the given user and/or in the given time period.
           final Set<Integer> idSet = baseDao.getHistoryEntries(baseDao.getSession(), searchFilter);
-          final List<O> result = new ArrayList<O>();
+          final List<O> result = new ArrayList<>();
           for (final O entry : list) {
             if (baseDao.contains(idSet, entry)) {
               result.add(entry);
@@ -187,7 +187,7 @@ public class BaseDaoLegacyQueryBuilder {
     }
     if (list == null) {
       // History search without search string.
-      list = new ArrayList<O>();
+      list = new ArrayList<>();
     }
     return list;
   }

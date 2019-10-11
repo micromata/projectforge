@@ -279,7 +279,7 @@ public class TeamEventSubscription implements Serializable
   public List<TeamEventDO> getEvents(final Long startTime, final Long endTime, final boolean minimalAccess)
   {
     if (subscription == null) {
-      return new ArrayList<TeamEventDO>();
+      return new ArrayList<>();
     }
     // final Long perfStart = System.currentTimeMillis();
     final List<TeamEventDO> result = subscription.getResultList(startTime, endTime, minimalAccess);

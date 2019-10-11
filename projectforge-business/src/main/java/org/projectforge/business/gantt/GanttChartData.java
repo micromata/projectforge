@@ -66,7 +66,7 @@ public class GanttChartData implements Serializable
       return null;
     }
     if (externalObjects == null) {
-      externalObjects = new ArrayList<GanttTask>();
+      externalObjects = new ArrayList<>();
     }
     GanttTask ganttTask = getExternalObject(task.getId());
     if (ganttTask == null) {
