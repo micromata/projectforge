@@ -189,11 +189,11 @@ public class TaskDao extends BaseDao<TaskDO> {
               + " from TimesheetDO where task.id = :taskId and deleted=false")
               .setParameter("taskId", taskId).list();
       if (list.size() == 0) {
-        return new Long(0);
+        return 0L;
       }
       Validate.isTrue(list.size() == 1);
       if (list.get(0) == null) { // Has happened one time, why (PROJECTFORGE-543)?
-        return new Long(0);
+        return 0L;
       } else if (list.get(0) instanceof Long) {
         return (Long)list.get(0);
       } else if (list.get(0) instanceof Integer) {
@@ -207,7 +207,7 @@ public class TaskDao extends BaseDao<TaskDO> {
             .setParameter("taskId", taskId)
             .list();
     if (CollectionUtils.isEmpty(result)) {
-      return new Long(0);
+      return 0L;
     }
     long totalDuration = 0;
     for (final Object[] oa : result) {
@@ -229,7 +229,7 @@ public class TaskDao extends BaseDao<TaskDO> {
       myFilter = new TaskFilter(filter);
     }
     final QueryFilter queryFilter = new QueryFilter(myFilter);
-    final Collection<TaskStatus> col = new ArrayList<TaskStatus>(4);
+    final Collection<TaskStatus> col = new ArrayList<>(4);
     if (myFilter.isNotOpened()) {
       col.add(TaskStatus.N);
     }
