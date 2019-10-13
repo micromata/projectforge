@@ -23,21 +23,27 @@
 
 package org.projectforge.framework.persistence.api
 
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
-import org.projectforge.business.user.UserPrefDao
+class DBFilter(
+        /**
+         * Optional entries for searching (keywords, field search, range search etc.)
+         */
+        var entries: MutableList<DBFilterEntry> = mutableListOf(),
+        var sortAndLimitMaxRowsWhileSelect: Boolean = true,
+        var maxRows: Int = 50,
+        /**
+         * If true, only deleted entries will be shown. If false, no deleted entries will be shown. If null, all entries will be shown.
+         */
+        var deleted: Boolean? = false,
+        var searchHistory: String? = null) {
 
-class MagicFilterTest {
-    @Suppress("UNCHECKED_CAST")
-    @Test
-    fun serializationTest() {
-        val filter = MagicFilter()
-        filter.entries.add(MagicFilterEntry("zipCode", "12345"))
-        val om = UserPrefDao.createObjectMapper()
-        var json = om.writeValueAsString(filter)
-        var obj = om.readValue(json, MagicFilter::class.java) as MagicFilter
-        Assertions.assertEquals(1, obj.entries.size)
-        Assertions.assertEquals("zipCode", obj.entries[0].field)
-        Assertions.assertEquals("12345", obj.entries[0].value)
-    }
+    val criteriaSearchEntries
+        get() = entries.filter { !it.fulltextSearch }
+
+    val fulltextSearchEntries
+        get() = entries.filter { it.fulltextSearch }
+
+    @Transient
+    internal val log = org.slf4j.LoggerFactory.getLogger(DBFilter::class.java)
+
+    var sortProperties = mutableListOf<SortProperty>()
 }

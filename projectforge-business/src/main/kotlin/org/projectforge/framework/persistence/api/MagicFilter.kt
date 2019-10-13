@@ -60,12 +60,6 @@ class MagicFilter(
         extended.clear()
     }
 
-    fun prepareQueryFilter(clazz: Class<*>) {
-        entries.forEach { entry ->
-            entry.analyze(clazz)
-        }
-    }
-
     @Suppress("SENSELESS_COMPARISON")
     fun isModified(other: MagicFilter): Boolean {
         if (this.name != other.name) return true

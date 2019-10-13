@@ -111,7 +111,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   protected BaseDaoLegacyQueryBuilder baseDaoLegacyQueryBuilder;
 
   @Autowired
-  protected MagicFilterQuery magicFilterQueryBuilder;
+  protected DBFilterQuery magicFilterQueryBuilder;
 
   @Autowired
   protected DatabaseDao databaseDao;
@@ -324,7 +324,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * Gets the list filtered by the given filter.
    */
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public List<O> getList(final MagicFilter filter) throws AccessException {
+  public List<O> getList(final DBFilter filter) throws AccessException {
     return magicFilterQueryBuilder.getList(this, filter);
   }
 
@@ -332,7 +332,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * Gets the list filtered by the given filter.
    */
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public List<O> internalGetList(final MagicFilter filter) throws AccessException {
+  public List<O> internalGetList(final DBFilter filter) throws AccessException {
     return magicFilterQueryBuilder.getList(this, filter, false, false);
   }
 
