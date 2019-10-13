@@ -29,6 +29,7 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.MagicFilterProcessor
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.ValidationError
 import org.springframework.http.HttpStatus
@@ -43,9 +44,9 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
                 baseDao: BaseDao<O>,
                 magicFilter: MagicFilter)
         : ResultSet<O> {
-    magicFilter.prepareQueryFilter(baseDao.doClass)
     magicFilter.sortAndLimitMaxRowsWhileSelect = true
-    val list = baseDao.getList(magicFilter)
+    val dbFilter = MagicFilterProcessor.doIt(baseDao.doClass, magicFilter)
+    val list = baseDao.getList(dbFilter)
     val resultSet = ResultSet<O>(dataObjectRest.filterList(list, magicFilter), list.size)
     return resultSet
 }

@@ -23,21 +23,21 @@
 
 package org.projectforge.framework.persistence.api
 
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
-import org.projectforge.business.user.UserPrefDao
-
-class MagicFilterTest {
-    @Suppress("UNCHECKED_CAST")
-    @Test
-    fun serializationTest() {
-        val filter = MagicFilter()
-        filter.entries.add(MagicFilterEntry("zipCode", "12345"))
-        val om = UserPrefDao.createObjectMapper()
-        var json = om.writeValueAsString(filter)
-        var obj = om.readValue(json, MagicFilter::class.java) as MagicFilter
-        Assertions.assertEquals(1, obj.entries.size)
-        Assertions.assertEquals("zipCode", obj.entries[0].field)
-        Assertions.assertEquals("12345", obj.entries[0].value)
-    }
+internal enum class MatchType {
+    /**
+     * '*string*'
+     */
+    CONTAINS,
+    /**
+     * 'string'
+     */
+    EXACT,
+    /**
+     * 'string*' (default)
+     */
+    STARTS_WITH,
+    /**
+     * '*string'
+     */
+    ENDS_WITH
 }

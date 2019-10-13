@@ -46,7 +46,7 @@ import java.util.*
 
 /* TODO: Under construction. */
 @Service
-class MagicFilterQuery {
+class DBFilterQuery {
     private class BuildContext(val doClass: Class<*>,
                                val session: Session) {
         var _query: QueryBuilder? = null
@@ -67,7 +67,7 @@ class MagicFilterQuery {
                                    var queryModifiedFromDate: PFDateTime? = null,
                                    var queryModifiedToDate: PFDateTime? = null)
 
-    private val log = LoggerFactory.getLogger(MagicFilterQuery::class.java)
+    private val log = LoggerFactory.getLogger(DBFilterQuery::class.java)
 
     @Autowired
     private lateinit var accessChecker: AccessChecker
@@ -82,7 +82,7 @@ class MagicFilterQuery {
      * @return
      */
     @Throws(AccessException::class)
-    fun <O : ExtendedBaseDO<Int>> getList(baseDao: BaseDao<O>, filter: MagicFilter): List<O>? {
+    fun <O : ExtendedBaseDO<Int>> getList(baseDao: BaseDao<O>, filter: DBFilter): List<O>? {
         val begin = System.currentTimeMillis()
         baseDao.checkLoggedInUserSelectAccess()
         if (accessChecker.isRestrictedUser == true) {
@@ -105,7 +105,7 @@ class MagicFilterQuery {
      * @return
      */
     fun <O : ExtendedBaseDO<Int>> getList(baseDao: BaseDao<O>,
-                                          filter: MagicFilter,
+                                          filter: DBFilter,
                                           checkAccess: Boolean = true,
                                           ignoreTenant: Boolean = false)
             : List<O> {
@@ -131,7 +131,8 @@ class MagicFilterQuery {
 
             var modificationData = ModificationData()
             //var bc = BuildContext(baseDao.doClass, session)
-            for (it in filter.entries) {
+            // First, proceed all criteria search entries:
+            for (it in filter.criteriaSearchEntries) {
                 if (it.field.isNullOrBlank())
                     continue // Use only field specific query (others are done by full text search
                 if (it.field == "modifiedBy") {
@@ -153,17 +154,17 @@ class MagicFilterQuery {
                 when (it.type) {
                     String::class.java -> {
                         when (it.searchType) {
-                            MagicFilterEntry.SearchType.FIELD_STRING_SEARCH -> {
+                            SearchType.FIELD_STRING_SEARCH -> {
                                 //bc.query
                                 //        .simpleQueryString()
                                 //        .onField("history")
                                 //        .matching("storm")
                                 criteria.add(Restrictions.ilike(it.field, "${it.dbSearchString}"))
                             }
-                            MagicFilterEntry.SearchType.FIELD_RANGE_SEARCH -> {
+                            SearchType.FIELD_RANGE_SEARCH -> {
                                 log.error("Unsupported searchType '${it.searchType}' for strings.")
                             }
-                            MagicFilterEntry.SearchType.FIELD_VALUES_SEARCH -> {
+                            SearchType.FIELD_VALUES_SEARCH -> {
                                 criteria.add(Restrictions.`in`(it.field, it.values))
                             }
                             else -> {
@@ -230,6 +231,13 @@ class MagicFilterQuery {
             }
             setCacheRegion(baseDao, criteria)
             var list = createList(baseDao, criteria, filter, modificationData, checkAccess)
+
+            // Last, proceed all full text search entries:
+            val fullTextSearchEntries = filter.fulltextSearchEntries
+            if (!fullTextSearchEntries.isNullOrEmpty()) {
+                for (it in filter.fulltextSearchEntries) {
+                }
+            }
 /*
         try {
             val fullTextSession = Search.getFullTextSession(session)
@@ -275,7 +283,7 @@ class MagicFilterQuery {
         criteria.setCacheRegion(baseDao.javaClass.name)
     }
 
-    private fun <O : ExtendedBaseDO<Int>> createList(baseDao: BaseDao<O>, criteria: Criteria, filter: MagicFilter, modificationData: ModificationData,
+    private fun <O : ExtendedBaseDO<Int>> createList(baseDao: BaseDao<O>, criteria: Criteria, filter: DBFilter, modificationData: ModificationData,
                                                      checkAccess: Boolean)
             : List<O> {
         val superAdmin = TenantChecker.isSuperAdmin<ExtendedBaseDO<Int>>(ThreadLocalUserContext.getUser())

@@ -23,7 +23,13 @@
 
 package org.projectforge.framework.persistence.api
 
-class MagicFilterEntry(
+import com.fasterxml.jackson.annotation.JsonIgnore
+import org.projectforge.framework.time.PFDateTime
+
+/**
+ * The MagicFilterEntries will be transformed into DBFilterExpressions.
+ */
+class DBFilterEntry(
         /**
          * Optional name of a field for a field specific search. Null for global search.
          */
@@ -31,27 +37,48 @@ class MagicFilterEntry(
         /**
          * Value representsFind entries where the given field is equals to this given single value, or as search string.
          */
-        var value: String? = null) {
+        var value: String? = null,
+        /**
+         * If true, then this expression will be processed by Hibernate search otherwise by Hibernate criteria.
+         */
+        var fulltextSearch: Boolean = false) {
+
+    @JsonIgnore
+    internal var type: Class<*>? = null
 
     /**
-     * Find entries where the given field is equals or higher than the given fromValue (range search).
+     * The search string for data base queries (SQL), '*' will be replaced by '%'.
      */
+    @JsonIgnore
+    internal var dbSearchString: String? = null
+
+    @JsonIgnore
+    internal var plainSearchString: String? = null
+
+
+    @JsonIgnore
+    internal var matchType: MatchType? = null
+
+    @JsonIgnore
+    internal var searchType: SearchType? = null
+
     var fromValue: String? = null
-
-    /**
-     * Find entries where the given field is equals or lower than the given toValue (range search).
-     */
-    var toValue: String? = null
-
-    /**
-     * Find entries where the given field has one of the given values).
-     */
-    var values: Array<String>? = null
         private set
 
-    fun isModified(other: MagicFilterEntry): Boolean {
-        if (this.field != other.field) return true
-        if (this.value != other.value) return true
-        return false
-    }
+    var toValue: String? = null
+        private set
+
+    var values: Array<String>? = null
+
+    var fromValueDate: PFDateTime? = null
+
+    var toValueDate: PFDateTime? = null
+
+    var valueInt: Int? = null
+
+    var fromValueInt: Int? = null
+
+    var toValueInt: Int? = null
+
+    var isNew: Boolean? = false
 }
