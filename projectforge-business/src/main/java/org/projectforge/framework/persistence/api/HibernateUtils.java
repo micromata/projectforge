@@ -62,8 +62,6 @@ public class HibernateUtils {
   private static final HibernateUtils instance = new HibernateUtils();
 
   private static boolean TEST_MODE = false;
-  @Deprecated
-  private Configuration configuration;
 
   private DatabaseDialect databaseDialect;
   // TODO Threading.
@@ -181,11 +179,6 @@ public class HibernateUtils {
     }
   }
 
-  @Deprecated
-  public static Configuration getConfiguration() {
-    return instance.configuration;
-  }
-
   public static boolean isEntity(final Class<?> entity) {
     return instance.internalIsEntity(entity);
   }
@@ -259,13 +252,6 @@ public class HibernateUtils {
       return true;
     }
     return false;
-  }
-
-  /**
-   * Should be set at initialization of ProjectForge after initialization of hibernate.
-   */
-  public static void setConfiguration(final Configuration configuration) {
-    instance.configuration = configuration;
   }
 
   public static DatabaseDialect getDialect() {

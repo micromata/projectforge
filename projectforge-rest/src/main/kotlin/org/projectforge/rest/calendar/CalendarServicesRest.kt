@@ -139,7 +139,7 @@ class CalendarServicesRest {
             val origStartDate = if (startDate != null) RestHelper.parseJSDateTime(origStartDateParam)?.epochSeconds else null
             val origEndDate = if (endDate != null) RestHelper.parseJSDateTime(origEndDateParam)?.epochSeconds else null
             val dbId = NumberHelper.parseInteger(dbIdParam)
-            val dbIdString = if (dbId != null && dbId >= 0) "$dbId" else "";
+            val dbIdString = if (dbId != null && dbId >= 0) "$dbId" else ""
             val uidString = if (uidParam.isNullOrBlank()) "" else URLEncoder.encode(uidParam, "UTF-8")
             url = "$category/edit/$dbIdString$uidString?startDate=$startDate&endDate=$endDate"
             if (category != "timesheet" && origStartDate != null) {

@@ -69,20 +69,12 @@ public abstract class AbstractPlugin
   @Autowired
   UserRightService userRights;
 
-  @Deprecated
-  private String resourceBundleName;
-
   private List<String> resourceBundleNames = new ArrayList<>();
 
   private boolean initialized;
 
   @Deprecated
   private static Set<Class<?>> initializedPlugins = new HashSet<>();
-
-  public String getResourceBundleName()
-  {
-    return resourceBundleName;
-  }
 
   public final void init()
   {

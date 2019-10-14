@@ -54,7 +54,7 @@ open class LantJdbcSettingsDialog(
 
         val jdbcSettings = context.setupData.jdbcSettings
 
-        jdbcUrlTextBox = TextBox(jdbcSettings?.jdbcUrl ?: JdbcConnectionTest.defaultJdbcUrl)
+        jdbcUrlTextBox = TextBox(jdbcSettings?.jdbcUrl ?: defaultJdbcUrl)
                 .setPreferredSize(TerminalSize(60, 1))
         contentPane.addComponent(Label(Texts.JDBC_URL))
                 .addComponent(jdbcUrlTextBox)

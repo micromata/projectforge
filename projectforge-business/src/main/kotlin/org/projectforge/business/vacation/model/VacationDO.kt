@@ -48,11 +48,6 @@ class VacationDO : DefaultBaseDO() {
 
     /**
      * The employee.
-     *
-     * @return the user
-     */
-    /**
-     * @param employee the employee to set
      */
     @PropertyInfo(i18nKey = "vacation.employee")
     @IndexedEmbedded(includePaths = ["user.firstname", "user.lastname"])
@@ -72,11 +67,6 @@ class VacationDO : DefaultBaseDO() {
 
     /**
      * The substitutions.
-     *
-     * @return the substitutions
-     */
-    /**
-     * @param substitution the substitution to set
      */
     @PropertyInfo(i18nKey = "vacation.substitution")
     @get:ManyToMany
@@ -85,11 +75,6 @@ class VacationDO : DefaultBaseDO() {
 
     /**
      * The manager.
-     *
-     * @return the manager
-     */
-    /**
-     * @param manager the manager to set
      */
     @PropertyInfo(i18nKey = "vacation.manager")
     @get:ManyToOne(fetch = FetchType.EAGER)

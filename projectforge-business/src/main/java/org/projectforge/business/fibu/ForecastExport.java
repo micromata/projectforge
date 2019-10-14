@@ -296,7 +296,7 @@ public class ForecastExport
     currentMonth.setTime(startDate.getTime());
     currentMonth.add(Calendar.MONTH, -1);
 
-    for (int i = 0; i < monthCols.length; i++) {
+    for (PosCol monthCol : monthCols) {
       currentMonth.add(Calendar.MONTH, 1);
       BigDecimal sum = new BigDecimal(0.0);
 
@@ -317,7 +317,7 @@ public class ForecastExport
       }
 
       if (sum.compareTo(BigDecimal.ZERO) > 0 && checkAfterMonthBefore(currentMonth)) {
-        mapping.add(monthCols[i], sum);
+        mapping.add(monthCol, sum);
       }
     }
   }

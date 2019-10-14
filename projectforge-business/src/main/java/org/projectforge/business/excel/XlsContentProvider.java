@@ -24,8 +24,6 @@
 package org.projectforge.business.excel;
 
 import org.apache.commons.beanutils.ConvertUtils;
-import org.apache.poi.hssf.usermodel.HSSFCellStyle;
-import org.apache.poi.hssf.usermodel.HSSFFont;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.*;
 import org.projectforge.common.DateFormatType;
@@ -106,8 +104,8 @@ public class XlsContentProvider implements ContentProvider
     this.exportContext = exportContext;
     this.workbook = workbook;
     createFonts();
-    defaultFormatMap.put(Integer.class, new CellFormat("#,##0", CellStyle.ALIGN_RIGHT));
-    defaultFormatMap.put(Number.class, new CellFormat("#,###.######", CellStyle.ALIGN_RIGHT));
+    defaultFormatMap.put(Integer.class, new CellFormat("#,##0", HorizontalAlignment.RIGHT.getCode()));
+    defaultFormatMap.put(Number.class, new CellFormat("#,###.######", HorizontalAlignment.RIGHT.getCode()));
     defaultFormatMap
         .put(Date.class, new CellFormat(ExcelDateFormats.getExcelFormatString(exportContext, DateFormatType.DATE_TIME_MINUTES)));
     defaultFormatMap.put(java.sql.Date.class, new CellFormat(ExcelDateFormats.getExcelFormatString(exportContext, DateFormatType.DATE)));
@@ -236,7 +234,7 @@ public class XlsContentProvider implements ContentProvider
     } else if (value instanceof Calendar) {
       poiCell.setCellValue((Calendar) value);
     } else if (value instanceof Boolean) {
-      poiCell.setCellValue(((Boolean) value).booleanValue());
+      poiCell.setCellValue((Boolean) value);
     } else if (value instanceof Number) {
       poiCell.setCellValue(((Number) value).doubleValue());
     } else if (value instanceof Formula) {
@@ -250,7 +248,7 @@ public class XlsContentProvider implements ContentProvider
     }
     if (cellFormat == null) {
       cellFormat = new CellFormat();
-      cellFormat.setAlignment(CellStyle.ALIGN_LEFT);
+      cellFormat.setAlignment(HorizontalAlignment.LEFT.getCode());
       cellFormat.setDataFormat("@");
       cellFormat.setWrapText(true);
     }
@@ -415,7 +413,7 @@ public class XlsContentProvider implements ContentProvider
     FONT_RED.setColor(HSSFColor.HSSFColorPredefined.RED.getIndex());
 
     FONT_RED_BOLD = workbook.createFont();
-    FONT_RED_BOLD.setColor(HSSFColor.RED.index);
+    FONT_RED_BOLD.setColor(HSSFColor.HSSFColorPredefined.RED.getIndex());
     FONT_RED_BOLD.setBold(true);
 
     FONT_NORMAL = workbook.createFont();

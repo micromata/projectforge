@@ -33,11 +33,11 @@ import javax.persistence.*
 @DiscriminatorValue("1")
 class AddressAttrWithDataDO : AddressAttrDO {
 
-    constructor() : super() {}
+    constructor() : super()
 
-    constructor(parent: AddressDO, propertyName: String, type: Char, value: String) : super(parent, propertyName, type, value) {}
+    constructor(parent: AddressDO, propertyName: String, type: Char, value: String) : super(parent, propertyName, type, value)
 
-    constructor(parent: AddressDO) : super(parent) {}
+    constructor(parent: AddressDO) : super(parent)
 
     @OneToMany(cascade = [CascadeType.ALL], mappedBy = "parent", targetEntity = AddressAttrDataDO::class, orphanRemoval = true, fetch = FetchType.EAGER)
     @OrderColumn(name = "datarow")

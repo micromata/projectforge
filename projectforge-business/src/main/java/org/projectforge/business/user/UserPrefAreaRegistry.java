@@ -67,8 +67,7 @@ public class UserPrefAreaRegistry
    */
   public List<UserPrefArea> getOrderedEntries(final Locale locale)
   {
-    final List<UserPrefArea> list = new ArrayList<>();
-    list.addAll(set);
+    final List<UserPrefArea> list = new ArrayList<>(set);
     list.sort(new Comparator<UserPrefArea>() {
       @Override
       public int compare(final UserPrefArea o1, final UserPrefArea o2) {

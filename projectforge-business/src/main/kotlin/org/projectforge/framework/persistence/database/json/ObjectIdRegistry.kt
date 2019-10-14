@@ -34,14 +34,14 @@ internal class ObjectIdRegistry {
     private val writtenObjects = mutableMapOf<Class<*>, MutableList<Any>>()
 
     internal fun wasWritten(obj: AbstractBaseDO<*>): Boolean {
-        val list = writtenObjects.get(obj::class.java) ?: return false
+        val list = writtenObjects[obj::class.java] ?: return false
         return list.find {
             it == obj.id
         } != null
     }
 
     internal fun markAsWritten(obj: AbstractBaseDO<*>) {
-        var list = writtenObjects.get(obj::class.java)
+        var list = writtenObjects[obj::class.java]
         if (list == null) {
             list = mutableListOf()
             writtenObjects.put(obj::class.java, list)

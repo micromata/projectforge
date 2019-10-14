@@ -40,7 +40,7 @@ open class UIFilterSelectElement(
             if (enum is I18nEnum) {
                 newValues.add(UISelectValue(enum.name, translate(enum.i18nKey)))
             } else {
-                log.error("UIFilterSelectElement supports only enums of type I18nEnum, not '${enum}': '${this}'")
+                log.error("UIFilterSelectElement supports only enums of type I18nEnum, not '$enum': '${this}'")
             }
         }
 

@@ -142,7 +142,7 @@ public class TeamAttendeesPanel extends Panel
           //            attendee.setUser(null);
           //          }
         }
-      }, TeamEventAttendeeDO.Companion.getURL_MAX_LENGTH());
+      }, TeamEventAttendeeDO.Companion.getUrlMaxLength());
       this.attendeeModel = attendeeModel;
       this.lastEntry = lastEntry;
       setType(String.class);

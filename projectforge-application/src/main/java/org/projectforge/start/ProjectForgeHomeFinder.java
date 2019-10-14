@@ -165,7 +165,7 @@ public class ProjectForgeHomeFinder {
               .log(logMessage.replace("$APP_HOME_DIR", appHomeDir.getPath()))
               .logEnd();
       if (userAcceptsGraphicalTerminal == null) {
-        String answer = null;
+        String answer;
         if (GraphicsEnvironment.isHeadless()) {
            answer = new ConsoleTimeoutReader("Do you want to enter the setup wizard (Y/n)?", "y")
                   .ask();
@@ -335,15 +335,12 @@ public class ProjectForgeHomeFinder {
     File current = dir;
     //int recursiveCounter = 100; // Soft links may result in endless loops.
     //do {
-    if (current.exists()
-            && new File(current, "projectforge-application").exists()
-            && new File(current, "projectforge-business").exists()
-            && new File(current, "projectforge-common").exists()) {
-      return true;
-    }
+    return current.exists()
+        && new File(current, "projectforge-application").exists()
+        && new File(current, "projectforge-business").exists()
+        && new File(current, "projectforge-common").exists();
     //   current = current.getParentFile();
     // } while (current != null && --recursiveCounter > 0);
-    return false;
   }
 
   /**

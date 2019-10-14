@@ -78,11 +78,6 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
 
     /**
      * The ProjectForge user assigned to this employee.
-     *
-     * @return the user
-     */
-    /**
-     * @param user the user to set
      */
     @PropertyInfo(i18nKey = "fibu.employee.user")
     @IndexedEmbedded(depth = 1, includePaths = ["firstname", "lastname", "description", "organization"])

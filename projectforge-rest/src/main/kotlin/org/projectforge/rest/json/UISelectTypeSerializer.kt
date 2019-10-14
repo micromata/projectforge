@@ -42,7 +42,7 @@ class UISelectTypeSerializer : StdSerializer<UISelect<*>>(UISelect::class.java) 
     override fun serialize(value: UISelect<*>?, jgen: JsonGenerator, provider: SerializerProvider) {
         if (value == null) return
 
-        jgen.writeStartObject();
+        jgen.writeStartObject()
         jgen.writeStringField("id", value.id)
         jgen.writeStringField("type", value.type.name)
         jgen.writeStringField("key", value.key)
@@ -58,7 +58,7 @@ class UISelectTypeSerializer : StdSerializer<UISelect<*>>(UISelect::class.java) 
             jgen.writeArrayFieldStart("values")
             value.values?.forEach {
                 if (it.value != null) {
-                    jgen.writeStartObject();
+                    jgen.writeStartObject()
                     JacksonUtils.writeField(jgen, value.valueProperty, it.value) // Custom serialization needed.
                     jgen.writeStringField(value.labelProperty, it.label)         // Custom serialization needed.
                     jgen.writeEndObject()
@@ -70,7 +70,7 @@ class UISelectTypeSerializer : StdSerializer<UISelect<*>>(UISelect::class.java) 
         if (value.favorites != null) {
             jgen.writeArrayFieldStart("favorites")
             value.favorites?.forEach {
-                jgen.writeStartObject();
+                jgen.writeStartObject()
                 JacksonUtils.writeField(jgen, "id", it.id)
                 jgen.writeStringField("name", it.name)
                 jgen.writeEndObject()
@@ -93,7 +93,7 @@ class UISelectTypeSerializer : StdSerializer<UISelect<*>>(UISelect::class.java) 
         if (entries != null) {
             jgen.writeArrayFieldStart(property)
             entries.forEach {
-                jgen.writeStartObject();
+                jgen.writeStartObject()
                 JacksonUtils.writeField(jgen, valueProperty, it.value)
                 jgen.writeStringField(labelProperty, it.label)
                 JacksonUtils.writeField(jgen, "allSearchableFields", it.allSearchableFields)

@@ -74,7 +74,7 @@ public class ConsoleTimeoutReader {
     System.out.println();
     System.out.println(StringUtils.center(" QUESTION ", 120, "?"));
     System.out.println();
-    String answer = null;
+    String answer;
     do {
       answer = readConsoleAnswerWithTimeout();
       if (answer == null)

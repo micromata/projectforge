@@ -69,7 +69,7 @@ object FinalizeScreenSupport {
 
     fun getInfoText(portText: String, dir: File): String {
         val sb = StringBuilder()
-        sb.append("Please open your favorite browser after startup: http://localhost:${portText} and enjoy it!\n\n")
+        sb.append("Please open your favorite browser after startup: http://localhost:$portText and enjoy it!\n\n")
         if (ProjectForgeHomeFinder.isStandardProjectForgeUserDir(dir)) {
             sb.append("You chose the standard directory of ProjectForge, that will be found by ProjectForge automatically (OK).\n\n")
         } else {

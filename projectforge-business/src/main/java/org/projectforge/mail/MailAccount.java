@@ -111,9 +111,9 @@ public class MailAccount
       fp.add("X-Mailer");
       folder.fetch(msgs, fp);
 
-      for (int i = 0; i < msgs.length; i++) {
+      for (Message msg : msgs) {
         final Mail mail = new Mail();
-        setEnvelope(mail, msgs[i]);
+        setEnvelope(mail, msg);
         mail.setContent(getContent(mail.getMessage()));
         // if (filter == null || (mail.isRecent() == true && filter.isRecent() == true)
         // || (mail.isSeen() == true && filter.isSeen() == true)
@@ -279,8 +279,7 @@ public class MailAccount
     final Flags flags = message.getFlags();
     final Flags.Flag[] systemFlags = flags.getSystemFlags(); // get the system flags
 
-    for (int i = 0; i < systemFlags.length; i++) {
-      final Flags.Flag flag = systemFlags[i];
+    for (final Flags.Flag flag : systemFlags) {
       if (flag == Flags.Flag.ANSWERED) {
         // Ignore this flag
       } else if (flag == Flags.Flag.DELETED) {

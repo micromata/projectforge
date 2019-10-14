@@ -139,9 +139,8 @@ public class DatabaseService
   {
     TableAttribute.register(new TableAttributeHookImpl());
 
-    final SortedSet<UpdateEntry> updateEntries = new TreeSet<>();
     DatabaseCoreUpdates.setApplicationContext(this.applicationContext);
-    updateEntries.addAll(DatabaseCoreUpdates.getUpdateEntries());
+    final SortedSet<UpdateEntry> updateEntries = new TreeSet<>(DatabaseCoreUpdates.getUpdateEntries());
     getSystemUpdater().setUpdateEntries(updateEntries);
   }
 
@@ -151,7 +150,7 @@ public class DatabaseService
    * @param adminUser The admin user with the desired username and the salted password (salt string included). All other
    *                  attributes and groups of the user are set by this method.
    */
-  @Transactional(readOnly = false)
+  @Transactional
   public void initializeDefaultData(final PFUserDO adminUser, final TimeZone adminUserTimezone)
   {
     log.info("Init admin user and root task.");
@@ -749,10 +748,10 @@ public class DatabaseService
   {
 
     final ArrayList<TableAttribute> list = new ArrayList<>();
-    for (int i = 0; i < attributeNames.length; i++) {
-      final TableAttribute attr = TableAttribute.createTableAttribute(table.getEntityClass(), attributeNames[i]);
+    for (String attributeName : attributeNames) {
+      final TableAttribute attr = TableAttribute.createTableAttribute(table.getEntityClass(), attributeName);
       if (attr == null) {
-        log.debug("Property '" + table.getName() + "." + attributeNames[i] + "' is transient.");
+        log.debug("Property '" + table.getName() + "." + attributeName + "' is transient.");
         continue;
       }
       list.add(attr);
@@ -944,7 +943,7 @@ public class DatabaseService
     buf.append("insert into ").append(table).append(" (").append(StringHelper.listToString(",", columns))
         .append(") values (");
     boolean first = true;
-    for (int i = 0; i < values.length; i++) {
+    for (Object value : values) {
       first = StringHelper.append(buf, first, "?", ",");
     }
     buf.append(")");

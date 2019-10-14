@@ -87,25 +87,25 @@ public class RestServicesTest extends AbstractTestBase {
     addressDO.setImageData(new byte[]{0, 1, 3});
     addressDao.save(addressDO);
 
-    Response response = addressDaoRest.getList("Marcel", 0l, true, true, true);
+    Response response = addressDaoRest.getList("Marcel", 0L, true, true, true);
     Assertions.assertTrue(((String) response.getEntity()).contains("\"firstName\":\"Marcel\""));
-    Assertions.assertTrue(response.getStatus() == SUCCESS_STATUS);
+    Assertions.assertEquals(response.getStatus(), SUCCESS_STATUS);
 
-    response = addressDaoRest.getList("Marcel", 0l, false, true, true);
+    response = addressDaoRest.getList("Marcel", 0L, false, true, true);
     Assertions.assertFalse(((String) response.getEntity()).contains("\"firstName\":\"Marcel\""));
-    Assertions.assertTrue(response.getStatus() == SUCCESS_STATUS);
+    Assertions.assertEquals(response.getStatus(), SUCCESS_STATUS);
 
-    response = addressDaoRest.getList("Marcel", 0l, true, false, true);
+    response = addressDaoRest.getList("Marcel", 0L, true, false, true);
     Assertions.assertTrue(((String) response.getEntity()).contains("\"firstName\":\"Marcel\""));
     String base64ImageData = Base64.encodeBase64String(new byte[]{0, 1, 3});
     Assertions.assertTrue(((String) response.getEntity()).contains("\"image\":\"" + base64ImageData + "\""));
-    Assertions.assertTrue(response.getStatus() == SUCCESS_STATUS);
+    Assertions.assertEquals(response.getStatus(), SUCCESS_STATUS);
   }
 
   @Test
   public void testTaskDaoRest() {
     Response response = taskDaoRest.getList("ProjectForge", true, false, false, false);
-    Assertions.assertTrue(response.getStatus() == SUCCESS_STATUS);
+    Assertions.assertEquals(response.getStatus(), SUCCESS_STATUS);
     Assertions.assertTrue(
             ((String) response.getEntity()).contains("\"shortDescription\":\"ProjectForge root task"));
   }

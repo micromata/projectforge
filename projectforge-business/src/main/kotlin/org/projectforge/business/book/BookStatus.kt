@@ -25,7 +25,7 @@ package org.projectforge.business.book
 
 import org.projectforge.common.i18n.I18nEnum
 
-enum class BookStatus private constructor(
+enum class BookStatus(
         /**
          * The key will be used e. g. for i18n.
          */

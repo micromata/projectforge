@@ -46,7 +46,6 @@ class BirthdayCache() : AbstractCache() {
      *
      * @param fromDate Search for birthdays from given date (ignoring the year).
      * @param toDate   Search for birthdays until given date (ignoring the year).
-     * @param max      Maximum number of result entries.
      * @param all      If false, only the birthdays of favorites will be returned.
      * @return The entries are ordered by date of year and name.
      */
@@ -75,7 +74,7 @@ class BirthdayCache() : AbstractCache() {
             dh = DateHolder(address.birthday)
             val month = dh.month
             val dayOfMonth = dh.dayOfMonth
-            if (DateHelper.dateOfYearBetween(month, dayOfMonth, fromMonth, fromDayOfMonth, toMonth, toDayOfMonth) == false) {
+            if (!DateHelper.dateOfYearBetween(month, dayOfMonth, fromMonth, fromDayOfMonth, toMonth, toDayOfMonth)) {
                 continue
             }
             val ba = BirthdayAddress(address)

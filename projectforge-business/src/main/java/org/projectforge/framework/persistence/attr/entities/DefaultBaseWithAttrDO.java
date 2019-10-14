@@ -285,8 +285,7 @@ public abstract class DefaultBaseWithAttrDO<M extends DefaultBaseWithAttrDO<?>>e
       }
 
     }
-    final ArrayList<String> keys = new ArrayList<>();
-    keys.addAll(attributes.keySet());
+    final ArrayList<String> keys = new ArrayList<>(attributes.keySet());
     for (final String key : keys) {
       if (!src.getAttrs().containsKey(key)) {
         removeAttribute(key);

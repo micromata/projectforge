@@ -66,7 +66,7 @@ public class Kost2DOConverter
       cost2.setType(kost2DO.getKost2Art().getName());
     }
     final ProjektDO projektDO = kost2DO.getProjekt();
-    KundeDO kundeDO = null;
+    KundeDO kundeDO;
     if (projektDO != null) {
       cost2.setProject(projektDO.getName());
       kundeDO = projektDO.getKunde();

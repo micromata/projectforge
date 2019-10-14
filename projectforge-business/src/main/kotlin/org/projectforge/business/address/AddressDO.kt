@@ -265,11 +265,6 @@ class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
 
     /**
      * The substitutions.
-     *
-     * @return the substitutions
-     */
-    /**
-     * @param addressbookList the addressbookList to set
      */
     @PropertyInfo(i18nKey = "address.addressbooks")
     @get:ManyToMany(fetch = FetchType.LAZY)
@@ -375,9 +370,9 @@ class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
      */
     val mailingState: String?
         @Transient
-        get() = if (hasPostalAddress() == true) {
+        get() = if (hasPostalAddress()) {
             postalState
-        } else if (hasDefaultAddress() == true) {
+        } else if (hasDefaultAddress()) {
             state
         } else {
             privateState
@@ -394,13 +389,13 @@ class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
     var instantMessaging4DB: String?
         @Transient
         get() = getInstantMessagingAsString(instantMessaging)
-        set(properties) = if (StringUtils.isBlank(properties) == true) {
+        set(properties) = if (StringUtils.isBlank(properties)) {
             this.instantMessaging = null
         } else {
             val tokenizer = StringTokenizer(properties, "\n")
-            while (tokenizer.hasMoreTokens() == true) {
+            while (tokenizer.hasMoreTokens()) {
                 val line = tokenizer.nextToken()
-                if (StringUtils.isBlank(line) == true) {
+                if (StringUtils.isBlank(line)) {
                     continue
                 }
                 val idx = line.indexOf('=')
@@ -529,22 +524,22 @@ class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
     companion object {
         private val log = org.slf4j.LoggerFactory.getLogger(AddressDO::class.java)
 
-        private val serialVersionUID = 974064367925158463L
+        private const val serialVersionUID = 974064367925158463L
 
         /**
          * Used for representation in the data base and for hibernate search (lucene).
          */
         fun getInstantMessagingAsString(list: List<LabelValueBean<InstantMessagingType, String>>?): String? {
-            if (list == null || list.size == 0) {
+            if (list == null || list.isEmpty()) {
                 return null
             }
             val buf = StringBuffer()
             var first = true
             for (lv in list) {
-                if (StringUtils.isBlank(lv.value) == true) {
+                if (StringUtils.isBlank(lv.value)) {
                     continue // Do not write empty entries.
                 }
-                if (first == true) {
+                if (first) {
                     first = false
                 } else {
                     buf.append("\n")

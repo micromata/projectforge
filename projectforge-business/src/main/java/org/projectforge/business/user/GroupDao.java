@@ -93,7 +93,7 @@ public class GroupDao extends BaseDao<GroupDO> {
    */
   public boolean doesGroupnameAlreadyExist(final GroupDO group) {
     Validate.notNull(group);
-    GroupDO dbGroup = null;
+    GroupDO dbGroup;
     if (group.getId() == null) {
       // New group
       dbGroup = getByName(group.getName());
@@ -192,7 +192,7 @@ public class GroupDao extends BaseDao<GroupDO> {
    * @param groupsToUnassign Groups to unassign (nullable).
    * @throws AccessException
    */
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
   public void assignGroups(final PFUserDO user, final Set<GroupDO> groupsToAssign, final Set<GroupDO> groupsToUnassign, final boolean updateUserGroupCache) {
     final List<GroupDO> assignedGroups = new ArrayList<>();
     final List<GroupDO> unassignedGroups = new ArrayList<>();
@@ -247,7 +247,7 @@ public class GroupDao extends BaseDao<GroupDO> {
     }
   }
 
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
   public void assignGroups(final PFUserDO user, final Set<GroupDO> groupsToAssign, final Set<GroupDO> groupsToUnassign)
           throws AccessException {
     assignGroups(user, groupsToAssign, groupsToUnassign, true);

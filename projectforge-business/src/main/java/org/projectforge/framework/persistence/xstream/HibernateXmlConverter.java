@@ -167,8 +167,7 @@ public class HibernateXmlConverter
       list = (List<?>) CollectionUtils.select(list, PredicateUtils.uniquePredicate());
       final int size = list.size();
       log.info("Writing " + size + " objects");
-      for (final Iterator<?> it = list.iterator(); it.hasNext();) {
-        final Object obj = it.next();
+      for (final Object obj : list) {
         if (log.isDebugEnabled()) {
           log.debug("loaded object " + obj);
         }

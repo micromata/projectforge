@@ -277,9 +277,8 @@ public class SmbEncrypt {
       out[i] = d[(i+count)%n];
     }
 
-    for (int i=0; i<n; i++)
-    {
-      d[i] = out[i];
+    if (n >= 0) {
+      System.arraycopy(out, 0, d, 0, n);
     }
   }
 

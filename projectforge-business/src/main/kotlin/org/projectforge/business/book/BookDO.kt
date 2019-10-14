@@ -144,8 +144,8 @@ class BookDO : DefaultBaseDO() {
             var no: StringBuffer? = null
             for (i in 0 until this.signature!!.length) {
                 val ch = this.signature!![i]
-                if (Character.isDigit(ch) == false) {
-                    if (no != null && no.length > 0) {
+                if (!Character.isDigit(ch)) {
+                    if (no != null && no.isNotEmpty()) {
                         buf.append(StringUtils.leftPad(no.toString(), 5, '0'))
                         no = null
                     }
@@ -157,7 +157,7 @@ class BookDO : DefaultBaseDO() {
                     no.append(ch)
                 }
             }
-            if (no != null && no.length > 0) {
+            if (no != null && no.isNotEmpty()) {
                 buf.append(StringUtils.leftPad(no.toString(), 5, '0'))
             }
             return buf.toString()

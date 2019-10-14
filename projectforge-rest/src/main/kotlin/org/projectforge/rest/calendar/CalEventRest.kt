@@ -75,8 +75,8 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
         val calendarEventDO = CalEventDO()
         dto.copyTo(calendarEventDO)
         if (dto.selectedSeriesEvent != null) {
-            calendarEventDO.setTransientAttribute(CalEventDao.ATTR_SELECTED_ELEMENT, dto.selectedSeriesEvent);
-            calendarEventDO.setTransientAttribute(CalEventDao.ATTR_SERIES_MODIFICATION_MODE, dto.seriesModificationMode);
+            calendarEventDO.setTransientAttribute(CalEventDao.ATTR_SELECTED_ELEMENT, dto.selectedSeriesEvent)
+            calendarEventDO.setTransientAttribute(CalEventDao.ATTR_SERIES_MODIFICATION_MODE, dto.seriesModificationMode)
         }
         return calendarEventDO
     }
@@ -151,7 +151,7 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
 
     override fun getById(idString: String?, editMode: Boolean, userAccess: UILayout.UserAccess?): CalEvent? {
         if (idString.isNullOrBlank())
-            return CalEvent();
+            return CalEvent()
         if (idString.contains('-')) { // {calendarId}-{uid}
             val vals = idString.split('-', limit = 2)
             if (vals.size != 2) {

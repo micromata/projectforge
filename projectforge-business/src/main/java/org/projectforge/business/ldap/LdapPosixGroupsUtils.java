@@ -57,7 +57,7 @@ public class LdapPosixGroupsUtils
       if (ldapGroupValues == null) {
         continue;
       }
-      if (ldapGroupValues.getGidNumber() != null && ldapGroupValues.getGidNumber().intValue() > currentMaxNumber) {
+      if (ldapGroupValues.getGidNumber() != null && ldapGroupValues.getGidNumber() > currentMaxNumber) {
         currentMaxNumber = ldapGroupValues.getGidNumber();
       }
     }
@@ -83,7 +83,7 @@ public class LdapPosixGroupsUtils
         continue;
       }
       if (ldapGroupValues != null && ldapGroupValues.getGidNumber() != null
-          && ldapGroupValues.getGidNumber().intValue() == gidNumber) {
+          && ldapGroupValues.getGidNumber() == gidNumber) {
         // Number isn't free.
         log.info("The gidNumber (posix account) '" + gidNumber + "' is already occupied by group: " + group);
         return false;

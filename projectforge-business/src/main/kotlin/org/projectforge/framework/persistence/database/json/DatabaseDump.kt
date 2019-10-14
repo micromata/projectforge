@@ -52,17 +52,12 @@ class DatabaseDump {
     }
 
     /**
-     * @param filename virtual filename: If the filename suffix is "gz" then the dump will be compressed.
      * @param out
      */
     fun dump(out: OutputStream) {
         DatabaseWriter(emf, sessionFactory).dump(out)
     }
 
-    /**
-     * @param filename virtual filename: If the filename suffix is "gz" then the dump will be compressed.
-     * @param out
-     */
     fun restore(inputStream: InputStream) {
         DatabaseWriter(emf, sessionFactory).restore(inputStream)
     }

@@ -27,6 +27,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.projectforge.framework.persistence.database.DatabaseService;
 
 import javax.persistence.*;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -55,9 +56,7 @@ public class SchemaGenerator
   public SchemaGenerator add(final Table... tables)
   {
     if (tables != null) {
-      for (final Table table : tables) {
-        this.tables.add(table);
-      }
+      this.tables.addAll(Arrays.asList(tables));
     }
     return this;
   }

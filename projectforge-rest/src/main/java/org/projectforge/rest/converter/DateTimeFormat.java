@@ -50,7 +50,6 @@ public enum DateTimeFormat
     return pattern;
   }
 
-  private
   DateTimeFormat(final String pattern)
   {
     this.pattern = pattern;

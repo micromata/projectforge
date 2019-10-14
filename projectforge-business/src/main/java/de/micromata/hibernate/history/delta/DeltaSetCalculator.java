@@ -173,9 +173,9 @@ public class DeltaSetCalculator
       BeanInfo beanInfo = Introspector.getBeanInfo(obj1.getClass(), Object.class);
       PropertyDescriptor[] pds = beanInfo.getPropertyDescriptors();
 
-      for (int i = 0; i < pds.length; i++) {
-        final String propertyName = pds[i].getName();
-        final Class<?> propertyType = pds[i].getPropertyType();
+      for (PropertyDescriptor pd : pds) {
+        final String propertyName = pd.getName();
+        final Class<?> propertyType = pd.getPropertyType();
         final Object oldValue = PropertyUtils.getProperty(obj1, propertyName);
         final Object newValue = PropertyUtils.getProperty(obj2, propertyName);
 

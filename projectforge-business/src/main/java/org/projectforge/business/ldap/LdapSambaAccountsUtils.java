@@ -58,7 +58,7 @@ public class LdapSambaAccountsUtils
         continue;
       }
       if (ldapUserValues.getSambaSIDNumber() != null
-          && ldapUserValues.getSambaSIDNumber().intValue() > currentMaxNumber) {
+          && ldapUserValues.getSambaSIDNumber() > currentMaxNumber) {
         currentMaxNumber = ldapUserValues.getUidNumber();
       }
     }

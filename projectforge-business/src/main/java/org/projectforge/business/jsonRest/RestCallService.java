@@ -36,6 +36,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 @Service
 public class RestCallService
@@ -73,7 +74,7 @@ public class RestCallService
     T response = null;
     try {
       HttpHeaders headers = new HttpHeaders();
-      headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+      headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
       headers.setContentType(MediaType.APPLICATION_JSON);
       UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
 

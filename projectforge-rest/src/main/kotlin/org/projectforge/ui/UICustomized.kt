@@ -29,7 +29,7 @@ data class UICustomized(val id: String,
         if (values == null) {
             values = mutableMapOf()
         }
-        values?.put(property, value);
+        values?.put(property, value)
         return this
     }
 }

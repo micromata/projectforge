@@ -42,7 +42,7 @@ import java.io.IOException
  * This rest service should be available without login (public).
  */
 @RestController
-@RequestMapping("${Rest.PUBLIC_URL}")
+@RequestMapping(Rest.PUBLIC_URL)
 class LogoServiceRest {
     @Autowired
     private lateinit var configurationService: ConfigurationService

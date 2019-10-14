@@ -217,7 +217,7 @@ class TeamEventAttendeeDO : DefaultBaseDO(), Comparable<TeamEventAttendeeDO> {
             NON_HISTORIZABLE_ATTRIBUTES.add("loginToken")
         }
 
-        fun getURL_MAX_LENGTH(): Int {
+        fun getUrlMaxLength(): Int {
             return URL_MAX_LENGTH
         }
     }

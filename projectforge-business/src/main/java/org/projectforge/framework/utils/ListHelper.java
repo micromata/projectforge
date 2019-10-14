@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.utils;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -33,8 +34,6 @@ public class ListHelper
 {
   public static <T> void addAll(final List<T> list, final T... elements)
   {
-    for (final T element : elements) {
-      list.add(element);
-    }
+    list.addAll(Arrays.asList(elements));
   }
 }

@@ -39,10 +39,10 @@ object JdbcConnectionTest {
                 Logger.getLogger(ConnectionFactoryImpl::class.java.name).level = Level.OFF
                 Logger.getLogger("org.postgresql.Driver").level = Level.OFF
                 val connection = DriverManager.getConnection(jdbcUrl, username, password)
-                if (connection.isValid(10)) {
-                    return Texts.JDBC_TESTRESULT_OK
+                return if (connection.isValid(10)) {
+                    Texts.JDBC_TESTRESULT_OK
                 } else {
-                    return Texts.JDBC_TESTRESULT_NOT_VALID
+                    Texts.JDBC_TESTRESULT_NOT_VALID
                 }
             } catch (ex: Exception) {
                 return "${Texts.JDBC_TESTRESULT_CONNECTION_FAILED}: ${ex.message}!"

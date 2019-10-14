@@ -318,12 +318,6 @@ public class Mail implements Comparable<Mail>
   @Override
   public int compareTo(Mail o)
   {
-    if (this.messageNumber < o.messageNumber) {
-      return -1;
-    } else if (this.messageNumber == o.messageNumber) {
-      return 0;
-    } else {
-      return 1;
-    }
+    return Integer.compare(this.messageNumber, o.messageNumber);
   }
 }
