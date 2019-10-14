@@ -27,18 +27,41 @@ import org.hibernate.Criteria
 import org.hibernate.ScrollMode
 import org.hibernate.ScrollableResults
 import org.hibernate.Session
+import org.hibernate.search.FullTextSession
 import org.hibernate.search.Search
 import org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils
 import org.slf4j.LoggerFactory
+import javax.persistence.EntityManager
+import javax.persistence.criteria.CriteriaQuery
 
+/**
+ * Generic interface for iterating over database search results (after criteria search as well as after full text query).
+ */
 internal interface DBResultIterator<O : ExtendedBaseDO<Int>> {
     fun next(): O?
 }
 
-internal class DBCriteriaResultIterator<O : ExtendedBaseDO<Int>>(
-        criteria: Criteria)
+/**
+ * Usable for empty queries without any result.
+ */
+internal class DBEmptyResultIterator<O : ExtendedBaseDO<Int>>()
     : DBResultIterator<O> {
-    private val scrollableResults: ScrollableResults = criteria.scroll(ScrollMode.FORWARD_ONLY)
+    override fun next(): O? {
+        return null
+    }
+}
+
+internal class DBCriteriaResultIterator<O : ExtendedBaseDO<Int>>(
+        entityManager: EntityManager,
+        criteria: CriteriaQuery<O>)
+    : DBResultIterator<O> {
+    private val scrollableResults: ScrollableResults
+
+    init {
+        val query = entityManager.createQuery(criteria)
+        val hquery = query.unwrap(org.hibernate.query.Query::class.java)
+        scrollableResults = hquery.scroll(ScrollMode.FORWARD_ONLY)
+    }
 
     override fun next(): O? {
         if (!scrollableResults.next()) {
@@ -52,12 +75,53 @@ internal class DBCriteriaResultIterator<O : ExtendedBaseDO<Int>>(
 private const val MAX_RESULTS = 100
 
 internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
+        private val baseDao: BaseDao<O>,
+        private val fullTextSession: FullTextSession,
+        private val query: org.apache.lucene.search.Query) : DBResultIterator<O> {
+    private val log = LoggerFactory.getLogger(DBFullTextResultIterator::class.java)
+    private var result: List<O>
+    private var resultIndex = -1
+    private var firstIndex = 0
+
+    init {
+        result = nextResultBlock()
+    }
+
+    override fun next(): O? {
+        if (result.isEmpty()) {
+            return null
+        }
+        if (++resultIndex >= result.size) {
+            result = nextResultBlock()
+            if (result.isEmpty()) {
+                return null
+            }
+            resultIndex = 0
+        }
+        return result[resultIndex]
+    }
+
+    private fun nextResultBlock(): List<O> {
+        val fullTextQuery = fullTextSession.createFullTextQuery(query, baseDao.doClass)
+        fullTextQuery.firstResult = firstIndex
+        fullTextQuery.maxResults = MAX_RESULTS
+
+        firstIndex += MAX_RESULTS
+        @Suppress("UNCHECKED_CAST")
+        return fullTextQuery.resultList as List<O> // return a list of managed objects
+    }
+}
+
+/**
+ * Unrecommended mix of full text search and criteria query.
+ */
+internal class DBFullTextCriteriaResultIterator<O : ExtendedBaseDO<Int>>(
         session: Session,
-        private val criteria: Criteria,
+        private val criteria: Criteria?,
         private val baseDao: BaseDao<O>,
         searchString: String,
         searchFields: Array<String>?) : DBResultIterator<O> {
-    private val log = LoggerFactory.getLogger(DBFullTextResultIterator::class.java)
+    private val log = LoggerFactory.getLogger(DBFullTextCriteriaResultIterator::class.java)
     private var result: List<O>
     private var resultIndex = 0
     private var firstIndex = 0
@@ -66,9 +130,11 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
     val fullTextSession = Search.getFullTextSession(session)
 
     init {
-        criteria.setCacheable(true)
-        if (baseDao.useOwnCriteriaCacheRegion()) {
-            criteria.setCacheRegion(baseDao.javaClass.name)
+        if (criteria != null) {
+            criteria.setCacheable(true)
+            if (baseDao.useOwnCriteriaCacheRegion()) {
+                criteria.setCacheRegion(baseDao.javaClass.name)
+            }
         }
         result = nextResultBlock()
     }
@@ -91,7 +157,9 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
         val query = HibernateSearchFilterUtils.createFullTextQuery(fullTextSession, usedSearchFields, modSearchString, baseDao.clazz)
         val fullTextQuery = fullTextSession.createFullTextQuery(query, baseDao.clazz)
 
-        fullTextQuery.setCriteriaQuery(criteria)
+        if (criteria != null) {
+            fullTextQuery.setCriteriaQuery(criteria)
+        }
         fullTextQuery.firstResult = firstIndex
         fullTextQuery.maxResults = MAX_RESULTS
 
