@@ -26,11 +26,11 @@ package org.projectforge.framework.persistence.api.impl
 import org.hibernate.Criteria
 import org.hibernate.ScrollMode
 import org.hibernate.ScrollableResults
+import org.hibernate.Session
 import org.hibernate.search.FullTextSession
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.slf4j.LoggerFactory
-import javax.persistence.EntityManager
 import javax.persistence.criteria.CriteriaQuery
 
 /**
@@ -51,13 +51,13 @@ internal class DBEmptyResultIterator<O : ExtendedBaseDO<Int>>()
 }
 
 internal class DBCriteriaResultIterator<O : ExtendedBaseDO<Int>>(
-        entityManager: EntityManager,
+        session: Session,
         criteria: CriteriaQuery<O>)
     : DBResultIterator<O> {
     private val scrollableResults: ScrollableResults
 
     init {
-        val query = entityManager.createQuery(criteria)
+        val query = session.createQuery(criteria)
         val hquery = query.unwrap(org.hibernate.query.Query::class.java)
         scrollableResults = hquery.scroll(ScrollMode.FORWARD_ONLY)
     }

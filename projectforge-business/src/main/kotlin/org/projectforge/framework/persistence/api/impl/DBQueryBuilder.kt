@@ -31,7 +31,8 @@ import org.hibernate.search.query.dsl.BooleanJunction
 import org.hibernate.search.query.dsl.QueryBuilder
 import org.projectforge.business.multitenancy.TenantService
 import org.projectforge.common.props.PropUtils
-import org.projectforge.framework.persistence.api.*
+import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import javax.persistence.criteria.Predicate
 
@@ -53,13 +54,13 @@ internal class DBCriteriaBuilder<O : ExtendedBaseDO<Int>>(
         tenantService: TenantService,
         ignoreTenant: Boolean = false)
     : DBQueryBuilder<O> {
-    private val em = baseDao.entityManager
     private val cb = baseDao.session.getCriteriaBuilder()
     private val cr = cb.createQuery(baseDao.doClass)
     private val root = cr.from(baseDao.doClass)
     private val predicates = mutableListOf<Predicate>()
 
     init {
+
         if (!ignoreTenant && tenantService.isMultiTenancyAvailable) {
             val userContext = ThreadLocalUserContext.getUserContext()
             val currentTenant = userContext.currentTenant
@@ -83,7 +84,7 @@ internal class DBCriteriaBuilder<O : ExtendedBaseDO<Int>>(
     }
 
     override fun result(): DBResultIterator<O> {
-        return DBCriteriaResultIterator(em, cr.select(root).where(*predicates.toTypedArray()))
+        return DBCriteriaResultIterator(baseDao.session, cr.select(root).where(*predicates.toTypedArray()))
     }
 
     /**
