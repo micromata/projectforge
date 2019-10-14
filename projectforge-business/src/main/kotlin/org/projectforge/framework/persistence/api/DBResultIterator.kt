@@ -26,10 +26,7 @@ package org.projectforge.framework.persistence.api
 import org.hibernate.Criteria
 import org.hibernate.ScrollMode
 import org.hibernate.ScrollableResults
-import org.hibernate.Session
 import org.hibernate.search.FullTextSession
-import org.hibernate.search.Search
-import org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils
 import org.slf4j.LoggerFactory
 import javax.persistence.EntityManager
 import javax.persistence.criteria.CriteriaQuery
@@ -75,9 +72,12 @@ internal class DBCriteriaResultIterator<O : ExtendedBaseDO<Int>>(
 private const val MAX_RESULTS = 100
 
 internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
-        private val baseDao: BaseDao<O>,
-        private val fullTextSession: FullTextSession,
-        private val query: org.apache.lucene.search.Query) : DBResultIterator<O> {
+        val baseDao: BaseDao<O>,
+        val fullTextSession: FullTextSession,
+        val query: org.apache.lucene.search.Query,
+        val dbResultMatchers: List<DBResultMatcher>,
+        val criteria: Criteria? = null) // Not recommended
+    : DBResultIterator<O> {
     private val log = LoggerFactory.getLogger(DBFullTextResultIterator::class.java)
     private var result: List<O>
     private var resultIndex = -1
@@ -88,6 +88,21 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
     }
 
     override fun next(): O? {
+        while (true) {
+            val next = internalNext() ?: return null
+            if (!dbResultMatchers.isNullOrEmpty()) {
+                for (matcher in dbResultMatchers) {
+                    if (matcher.match(next)) {
+                        return next
+                    }
+                }
+                continue // No match.
+            }
+            return next
+        }
+    }
+
+    private fun internalNext(): O? {
         if (result.isEmpty()) {
             return null
         }
@@ -103,60 +118,6 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
 
     private fun nextResultBlock(): List<O> {
         val fullTextQuery = fullTextSession.createFullTextQuery(query, baseDao.doClass)
-        fullTextQuery.firstResult = firstIndex
-        fullTextQuery.maxResults = MAX_RESULTS
-
-        firstIndex += MAX_RESULTS
-        @Suppress("UNCHECKED_CAST")
-        return fullTextQuery.resultList as List<O> // return a list of managed objects
-    }
-}
-
-/**
- * Unrecommended mix of full text search and criteria query.
- */
-internal class DBFullTextCriteriaResultIterator<O : ExtendedBaseDO<Int>>(
-        session: Session,
-        private val criteria: Criteria?,
-        private val baseDao: BaseDao<O>,
-        searchString: String,
-        searchFields: Array<String>?) : DBResultIterator<O> {
-    private val log = LoggerFactory.getLogger(DBFullTextCriteriaResultIterator::class.java)
-    private var result: List<O>
-    private var resultIndex = 0
-    private var firstIndex = 0
-    private var modSearchString = HibernateSearchFilterUtils.modifySearchString(searchString)
-    private var usedSearchFields = searchFields ?: baseDao.searchFields
-    val fullTextSession = Search.getFullTextSession(session)
-
-    init {
-        if (criteria != null) {
-            criteria.setCacheable(true)
-            if (baseDao.useOwnCriteriaCacheRegion()) {
-                criteria.setCacheRegion(baseDao.javaClass.name)
-            }
-        }
-        result = nextResultBlock()
-    }
-
-    override fun next(): O? {
-        if (result.isEmpty()) {
-            return null
-        }
-        if (++resultIndex >= result.size) {
-            result = nextResultBlock()
-            if (result.isEmpty()) {
-                return null
-            }
-            resultIndex = 0
-        }
-        return result[resultIndex]
-    }
-
-    private fun nextResultBlock(): List<O> {
-        val query = HibernateSearchFilterUtils.createFullTextQuery(fullTextSession, usedSearchFields, modSearchString, baseDao.clazz)
-        val fullTextQuery = fullTextSession.createFullTextQuery(query, baseDao.clazz)
-
         if (criteria != null) {
             fullTextQuery.setCriteriaQuery(criteria)
         }
@@ -165,6 +126,6 @@ internal class DBFullTextCriteriaResultIterator<O : ExtendedBaseDO<Int>>(
 
         firstIndex += MAX_RESULTS
         @Suppress("UNCHECKED_CAST")
-        return fullTextQuery.list() as List<O> // return a list of managed objects
+        return fullTextQuery.resultList as List<O> // return a list of managed objects
     }
 }

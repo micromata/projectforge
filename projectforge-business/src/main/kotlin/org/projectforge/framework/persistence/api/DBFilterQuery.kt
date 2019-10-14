@@ -42,7 +42,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
 
-/* TODO: Under construction. */
+// Check here mixing fulltext and criteria searches in comparison to full text searches and DBResultMatchers.
+private const val MIX_FULLTEXT_AND_CRITERIA_SEARCH = false // not recommended
+
 @Service
 class DBFilterQuery {
     private class BuildContext(val doClass: Class<*>,
@@ -112,10 +114,12 @@ class DBFilterQuery {
             val fullTextSearchEntries = filter.fulltextSearchEntries
 
             val queryBuilder = if (fullTextSearchEntries.isNullOrEmpty()) {
-                DBFullTextQueryBuilder(baseDao)
-                //DBCriteriaBuilder(baseDao, tenantService, ignoreTenant)
+                DBCriteriaBuilder(baseDao, tenantService, ignoreTenant) // Criteria search (no full text search entries found).
+            } else if (MIX_FULLTEXT_AND_CRITERIA_SEARCH) {
+                val criteria = baseDao.session.createCriteria(baseDao.doClass)
+                DBFullTextQueryBuilder(baseDao, tenantService, ignoreTenant, criteria = criteria)
             } else {
-                DBFullTextQueryBuilder(baseDao)
+                DBFullTextQueryBuilder(baseDao, tenantService, ignoreTenant)
             }
             if (filter.deleted != null) {
                 queryBuilder.equal("deleted", filter.deleted!!)
@@ -237,9 +241,8 @@ class DBFilterQuery {
                 }
             }
             dbResultIterator = queryBuilder.result()
-
             val list = createList(baseDao, dbResultIterator, filter, modificationData, checkAccess)
-
+            queryBuilder.close()
 /*
         try {
             val fullTextSession = Search.getFullTextSession(session)
