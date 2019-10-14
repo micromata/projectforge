@@ -73,8 +73,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -155,9 +153,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   @Autowired
   protected PfEmgrFactory emgrFactory;
-
-  @PersistenceContext
-  EntityManager entityManager;
 
   @Autowired
   private UserRightService userRights;
@@ -1504,10 +1499,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   public HibernateTemplate getHibernateTemplate() {
     return hibernateTemplate;
-  }
-
-  public EntityManager getEntityManager() {
-    return entityManager;
   }
 
   @SuppressWarnings("unchecked")
