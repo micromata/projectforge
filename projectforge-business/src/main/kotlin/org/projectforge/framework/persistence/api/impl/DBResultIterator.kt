@@ -21,12 +21,14 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.api
+package org.projectforge.framework.persistence.api.impl
 
 import org.hibernate.Criteria
 import org.hibernate.ScrollMode
 import org.hibernate.ScrollableResults
 import org.hibernate.search.FullTextSession
+import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.slf4j.LoggerFactory
 import javax.persistence.EntityManager
 import javax.persistence.criteria.CriteriaQuery

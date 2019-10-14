@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.api
+package org.projectforge.framework.persistence.api.impl
 
 internal enum class MatchType {
     /**

@@ -743,7 +743,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
    * @see org.projectforge.framework.persistence.api.BaseDao#contains(Set, ExtendedBaseDO)
    */
   @Override
-  protected boolean contains(final Set<Integer> idSet, final AuftragDO entry) {
+  public boolean contains(final Set<Integer> idSet, final AuftragDO entry) {
     if (super.contains(idSet, entry)) {
       return true;
     }

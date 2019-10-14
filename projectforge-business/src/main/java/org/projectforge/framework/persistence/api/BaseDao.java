@@ -49,6 +49,8 @@ import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.i18n.InternalErrorException;
 import org.projectforge.framework.i18n.UserException;
+import org.projectforge.framework.persistence.api.impl.DBFilter;
+import org.projectforge.framework.persistence.api.impl.DBFilterQuery;
 import org.projectforge.framework.persistence.database.DatabaseDao;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.history.HibernateSearchDependentObjectsReindexer;
@@ -344,7 +346,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * idSet.contains(entry.getId()) at default.
    */
-  protected boolean contains(final Set<Integer> idSet, final O entry) {
+  public boolean contains(final Set<Integer> idSet, final O entry) {
     if (idSet == null) {
       return false;
     }
@@ -1426,7 +1428,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     throw new UnsupportedOperationException("Mass update is not supported by this dao for: " + clazz.getName());
   }
 
-  Set<Integer> getHistoryEntries(final Session session, final BaseSearchFilter filter) {
+  public Set<Integer> getHistoryEntries(final Session session, final BaseSearchFilter filter) {
     if (!hasLoggedInUserSelectAccess(false) || !hasLoggedInUserHistoryAccess(false)) {
       // User has in general no access to history entries of the given object type (clazz).
       return null;

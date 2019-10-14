@@ -31,6 +31,7 @@ import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
+import org.projectforge.framework.persistence.api.ExtendedBaseDO;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
@@ -243,11 +244,10 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
   /**
    * Returns also true, if idSet contains the id of any order position.
    *
-   * @see org.projectforge.framework.persistence.api.BaseDao#contains(java.util.Set,
-   * org.projectforge.core.ExtendedBaseDO)
+   * @see org.projectforge.framework.persistence.api.BaseDao#contains(Set, ExtendedBaseDO)
    */
   @Override
-  protected boolean contains(final Set<Integer> idSet, final EingangsrechnungDO entry)
+  public boolean contains(final Set<Integer> idSet, final EingangsrechnungDO entry)
   {
     if (super.contains(idSet, entry)) {
       return true;
