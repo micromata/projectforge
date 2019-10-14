@@ -168,7 +168,7 @@ public class HRPlanningExport
 
       sheet.addRow(mapping.getMapping(), 0);
     }
-    sheet.setZoom(3, 4); // 75%
+    sheet.setZoom(75); // 75%
 
     return xls;
   }
@@ -297,7 +297,7 @@ public class HRPlanningExport
     // }
     // }
     // }
-    sheet.setZoom(3, 4); // 75%
+    sheet.setZoom(75); // 75%
 
     return xls;
   }
@@ -529,7 +529,7 @@ public class HRPlanningExport
     // sheet.addRow(mapping.getMapping(), 0);
     // }
 
-    sheet.setZoom(3, 4); // 75%
+    sheet.setZoom(75); // 75%
 
     return xls;
   }

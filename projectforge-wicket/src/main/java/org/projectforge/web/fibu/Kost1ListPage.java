@@ -187,7 +187,7 @@ public class Kost1ListPage extends AbstractListPage<Kost1ListForm, Kost1Dao, Kos
       mapping.add(Col.DESCRIPTION, kost.getDescription());
       sheet.addRow(mapping.getMapping(), 0);
     }
-    sheet.setZoom(3, 4); // 75%
+    sheet.setZoom(75); // 75%
     DownloadUtils.setDownloadTarget(xls.getAsByteArray(), filename);
   }
 
