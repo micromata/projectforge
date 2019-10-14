@@ -23,6 +23,8 @@
 
 package org.projectforge.framework.persistence.api
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+
 class MagicFilterEntry(
         /**
          * Optional name of a field for a field specific search. Null for global search.
@@ -47,6 +49,10 @@ class MagicFilterEntry(
      * Find entries where the given field has one of the given values).
      */
     var values: Array<String>? = null
+        private set
+
+    @JsonIgnore
+    var isNew: Boolean? = false
         private set
 
     fun isModified(other: MagicFilterEntry): Boolean {
