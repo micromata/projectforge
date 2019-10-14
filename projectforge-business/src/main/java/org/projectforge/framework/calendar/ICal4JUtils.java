@@ -234,6 +234,10 @@ public class ICal4JUtils
     }
   }
 
+  /**
+   * @param interval
+   * @return
+   */
   public static String getCal4JFrequencyString(final RecurrenceFrequency interval)
   {
     if (interval == RecurrenceFrequency.DAILY) {
@@ -266,27 +270,6 @@ public class ICal4JUtils
       return RecurrenceFrequency.DAILY;
     } else if (Recur.YEARLY.equals(freq)) {
       return RecurrenceFrequency.YEARLY;
-    }
-    return null;
-  }
-
-  /**
-   * @param interval
-   * @return
-   */
-  public static String getFrequency(final RecurrenceFrequency interval)
-  {
-    if (interval == null) {
-      return null;
-    }
-    if (interval == RecurrenceFrequency.WEEKLY) {
-      return Recur.WEEKLY;
-    } else if (interval == RecurrenceFrequency.DAILY) {
-      return Recur.DAILY;
-    } else if (interval == RecurrenceFrequency.MONTHLY) {
-      return Recur.MONTHLY;
-    } else if (interval == RecurrenceFrequency.YEARLY) {
-      return Recur.YEARLY;
     }
     return null;
   }
@@ -432,7 +415,7 @@ public class ICal4JUtils
     if (date == null) {
       return null;
     }
-    DateFormat df = null;
+    DateFormat df;
     if (withoutTime) {
       df = new SimpleDateFormat(DateFormats.COMPACT_DATE);
     } else {
@@ -470,7 +453,7 @@ public class ICal4JUtils
       if (StringUtils.isEmpty(str)) {
         continue;
       }
-      Date date = null;
+      Date date;
       if (str.matches("\\d{8}.*")) {
         date = parseICalDateString(str, timeZone);
       } else {
@@ -500,7 +483,7 @@ public class ICal4JUtils
         continue;
       }
 
-      Date date = null;
+      Date date;
       if (str.matches("\\d{8}.*")) {
         date = parseICalDateString(str, timeZone);
       } else {
