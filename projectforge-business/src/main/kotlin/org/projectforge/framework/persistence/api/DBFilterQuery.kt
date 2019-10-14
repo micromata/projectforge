@@ -26,8 +26,6 @@ package org.projectforge.framework.persistence.api
 import org.hibernate.Criteria
 import org.hibernate.Session
 import org.hibernate.criterion.Order
-import org.hibernate.criterion.Restrictions
-import org.hibernate.search.Search
 import org.hibernate.search.Search.getFullTextSession
 import org.hibernate.search.query.dsl.QueryBuilder
 import org.projectforge.business.multitenancy.TenantChecker
@@ -36,7 +34,6 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.AccessException
-import org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
@@ -111,29 +108,24 @@ class DBFilterQuery {
                                           ignoreTenant: Boolean = false)
             : List<O> {
         try {
-            val session = baseDao.session
-            val clazz = baseDao.doClass
-            val criteria = session.createCriteria(clazz)
-            if (!ignoreTenant && tenantService.isMultiTenancyAvailable) {
-                val userContext = ThreadLocalUserContext.getUserContext()
-                val currentTenant = userContext.currentTenant
-                if (currentTenant != null) {
-                    if (currentTenant.isDefault) {
-                        criteria.add(Restrictions.or(Restrictions.eq("tenant", userContext.currentTenant),
-                                Restrictions.isNull("tenant")))
-                    } else {
-                        criteria.add(Restrictions.eq("tenant", userContext.currentTenant))
-                    }
-                }
+            val criteriaSearchEntries = filter.criteriaSearchEntries
+            val fullTextSearchEntries = filter.fulltextSearchEntries
+
+            val queryBuilder = if (fullTextSearchEntries.isNullOrEmpty()) {
+                DBFullTextQueryBuilder(baseDao)
+                //DBCriteriaBuilder(baseDao, tenantService, ignoreTenant)
+            } else {
+                DBFullTextQueryBuilder(baseDao)
             }
             if (filter.deleted != null) {
-                criteria.add(Restrictions.eq("deleted", filter.deleted))
+                queryBuilder.equal("deleted", filter.deleted!!)
             }
             val modificationData = ModificationData()
-            //var bc = BuildContext(baseDao.doClass, session)
             // First, proceed all criteria search entries:
-            val criteriaSearchEntries = filter.criteriaSearchEntries
-            if (!criteriaSearchEntries.isNullOrEmpty()) {
+
+            val criteriaSearch = true// fullTextSearchEntries.isNullOrEmpty() // Test here other strategies...
+
+            if (criteriaSearch && !criteriaSearchEntries.isNullOrEmpty()) {
                 for (it in criteriaSearchEntries) {
                     if (it.field.isNullOrBlank())
                         continue // Use only field specific query (others are done by full text search
@@ -161,13 +153,13 @@ class DBFilterQuery {
                                     //        .simpleQueryString()
                                     //        .onField("history")
                                     //        .matching("storm")
-                                    criteria.add(Restrictions.ilike(it.field, "${it.dbSearchString}"))
+                                    queryBuilder.ilike(it.field!!, "${it.dbSearchString}")
                                 }
                                 SearchType.FIELD_RANGE_SEARCH -> {
                                     log.error("Unsupported searchType '${it.searchType}' for strings.")
                                 }
                                 SearchType.FIELD_VALUES_SEARCH -> {
-                                    criteria.add(Restrictions.`in`(it.field, it.values))
+                                    //TODO criteria.add(Restrictions.`in`(it.field, it.values))
                                 }
                                 else -> {
                                     log.error("Unsupported searchType '${it.searchType}' for strings.")
@@ -176,22 +168,23 @@ class DBFilterQuery {
                         }
                         Date::class.java -> {
                             if (it.fromValueDate != null) {
-                                if (it.toValueDate != null) criteria.add(Restrictions.between(it.field, it.fromValueDate, it.toValueDate))
-                                else criteria.add(Restrictions.ge(it.field, it.fromValueDate))
-                            } else if (it.toValueDate != null) criteria.add(Restrictions.le(it.field, it.toValueDate))
-                            else log.error("Error while building query: fromValue and/or toValue must be given for filtering field '${it.field}'.")
+                                //TODO if (it.toValueDate != null) criteria.add(Restrictions.between(it.field, it.fromValueDate, it.toValueDate))
+                                //TODO else criteria.add(Restrictions.ge(it.field, it.fromValueDate))
+                            } else if (it.toValueDate != null) {
+                                // TODO criteria.add(Restrictions.le(it.field, it.toValueDate))
+                            } else log.error("Error while building query: fromValue and/or toValue must be given for filtering field '${it.field}'.")
                         }
                         Integer::class.java -> {
                             if (it.valueInt != null) {
-                                criteria.add(Restrictions.eq(it.field, it.valueInt))
+                                queryBuilder.equal(it.field!!, it.valueInt!!)
                             } else if (it.fromValueInt != null) {
                                 if (it.toValueInt != null) {
-                                    criteria.add(Restrictions.between(it.field, it.fromValue, it.toValue))
+                                    // TODO criteria.add(Restrictions.between(it.field, it.fromValue, it.toValue))
                                 } else {
-                                    criteria.add(Restrictions.ge(it.field, it.fromValue))
+                                    // TODO criteria.add(Restrictions.ge(it.field, it.fromValue))
                                 }
                             } else if (it.toValueInt != null) {
-                                criteria.add(Restrictions.le(it.field, it.toValue))
+                                // TODO criteria.add(Restrictions.le(it.field, it.toValue))
                             } else {
                                 log.error("Querying field '${it.field}' of type '$fieldType' without value, fromValue and toValue. At least one required.")
                             }
@@ -205,12 +198,12 @@ class DBFilterQuery {
                                 if (recursive) {
                                     val taskIds = node.descendantIds
                                     taskIds.add(node.id)
-                                    criteria.add(Restrictions.`in`("task.id", taskIds))
+                                    // TODO criteria.add(Restrictions.`in`("task.id", taskIds))
                                     if (log.isDebugEnabled) {
                                         log.debug("search in tasks: $taskIds")
                                     }
                                 } else {
-                                    criteria.add(Restrictions.eq("task.id", it.valueInt))
+                                    queryBuilder.equal("task.id", it.valueInt!!)
                                 }
                             }
                         }
@@ -226,36 +219,26 @@ class DBFilterQuery {
                         prop = prop.substring(prop.indexOf('.') + 1)
                     val order = if (sortProperty.sortOrder == SortOrder.ASCENDING) Order.asc(prop)
                     else Order.desc(prop)
-                    criteria.addOrder(order)
+                    // TODO criteria.addOrder(order)
                     if (--maxOrder <= 0)
                         break // Add only 3 orders.
                 }
-                setCacheRegion(baseDao, criteria)
+                // TODO setCacheRegion(baseDao, criteria)
             }
 
             val dbResultIterator: DBResultIterator<O>
 
             // Last, proceed all full text search entries:
-            val fullTextSearchEntries = filter.fulltextSearchEntries
-            if (fullTextSearchEntries.isNullOrEmpty()) {
-                dbResultIterator = DBCriteriaResultIterator(criteria)
-            } else {
-                val sb = StringBuilder()
-                var first = true
+            if (!fullTextSearchEntries.isNullOrEmpty()) {
                 for (it in filter.fulltextSearchEntries) {
                     if (!it.value.isNullOrBlank()) {
-                        if (first) {
-                            first = false
-                        } else {
-                            sb.append(" ")
-                        }
-                        sb.append(it.value)
+                        queryBuilder.fulltextSearch(it.value!!)
                     }
                 }
-                dbResultIterator = DBFullTextResultIterator(session, criteria, baseDao, sb.toString(), null)
             }
+            dbResultIterator = queryBuilder.result()
 
-           val list = createList(baseDao, dbResultIterator, filter, modificationData, checkAccess)
+            val list = createList(baseDao, dbResultIterator, filter, modificationData, checkAccess)
 
 /*
         try {

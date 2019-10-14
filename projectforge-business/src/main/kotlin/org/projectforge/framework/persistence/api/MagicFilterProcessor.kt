@@ -87,7 +87,7 @@ object MagicFilterProcessor {
                 }
             }
             entry.plainSearchString = plainStr
-            entry.dbSearchString = dbStr
+            entry.dbSearchString = dbStr.toLowerCase()
         } else if (fieldType == Date::class.java) {
             entry.fromValueDate = PFDateTime.parseUTCDate(magicFilterEntry.fromValue)
             entry.toValueDate = PFDateTime.parseUTCDate(magicFilterEntry.toValue)
