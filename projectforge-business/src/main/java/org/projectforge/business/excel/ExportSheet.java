@@ -279,13 +279,12 @@ public class ExportSheet
   }
 
   /**
-   * @param x
-   * @param y
-   * @see Sheet#setZoom(int, int)
+   * @param scale
+   * @see Sheet#setZoom(int)
    */
-  public void setZoom(final int x, final int y)
+  public void setZoom(final int scale)
   {
-    poiSheet.setZoom(x, y);
+    poiSheet.setZoom(scale);
   }
 
   /**
