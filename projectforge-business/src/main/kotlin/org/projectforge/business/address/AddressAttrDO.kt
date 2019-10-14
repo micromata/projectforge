@@ -52,9 +52,6 @@ open class AddressAttrDO : JpaTabAttrBaseDO<AddressDO, Int> {
         return pk
     }
 
-    /**
-     * @see org.projectforge.framework.persistence.attr.entities.DeprAttrBaseDO.createData
-     */
     override fun createData(data: String): JpaTabAttrDataBaseDO<*, Int> {
         return AddressAttrDataDO(this, data)
 

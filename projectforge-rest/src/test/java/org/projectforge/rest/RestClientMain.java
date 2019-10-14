@@ -33,7 +33,6 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Properties;
@@ -143,15 +142,13 @@ public class RestClientMain
       return;
     }
     final String filename = System.getProperty("user.home") + "/ProjectForge/restauthentification.properties";
-    Properties prop = null;
+    Properties prop;
     FileReader reader = null;
     {
       try {
         reader = new FileReader(filename);
         prop = new Properties();
         prop.load(reader);
-      } catch (final FileNotFoundException ex) {
-        prop = null;
       } catch (final IOException ex) {
         prop = null;
       } finally {

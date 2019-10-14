@@ -212,7 +212,7 @@ public class AddressDaoRest
     AddressDO dbAddress = addressDao.findByUid(uid);
 
     if (isNew) {
-      PersonalAddressDO personalAddress = null;
+      PersonalAddressDO personalAddress;
       personalAddress = new PersonalAddressDO();
       personalAddress.setAddress(dbAddress);
       personalAddress.setFavoriteCard(true);

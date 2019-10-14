@@ -24,6 +24,7 @@
 package org.projectforge.business.teamcal.event.ical.converter;
 
 import net.fortuna.ical4j.model.Parameter;
+import net.fortuna.ical4j.model.Property;
 import net.fortuna.ical4j.model.PropertyList;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.parameter.*;
@@ -91,8 +92,8 @@ public class AttendeeConverter extends PropertyConverter
       return false;
     }
 
-    for (int i = 0; i < eventAttendees.size(); i++) {
-      Attendee attendee = (Attendee) eventAttendees.get(i);
+    for (Property eventAttendee : eventAttendees) {
+      Attendee attendee = (Attendee) eventAttendee;
       URI attendeeUri = attendee.getCalAddress();
       final String email = (attendeeUri != null) ? attendeeUri.getSchemeSpecificPart() : null;
 

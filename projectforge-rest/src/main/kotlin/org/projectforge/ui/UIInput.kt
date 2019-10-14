@@ -51,7 +51,7 @@ data class UIInput(val id: String,
         if (!services.isAutocompletionPropertyEnabled(id)) {
             throw InternalErrorException("Development error: You must enable autocompletion properties explicit in '${ClassUtils.getUserClass(services.baseDao).simpleName}.isAutocompletionPropertyEnabled(String)' for property '$id' for security resasons first.")
         }
-        autoCompletionUrl = "${services.getRestPath()}/ac?property=${id}&search="
+        autoCompletionUrl = "${services.getRestPath()}/ac?property=$id&search="
         return this
     }
 }

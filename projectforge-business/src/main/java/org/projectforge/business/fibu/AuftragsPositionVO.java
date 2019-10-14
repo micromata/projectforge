@@ -189,12 +189,6 @@ public class AuftragsPositionVO implements Comparable<AuftragsPositionVO>, Seria
     if (!this.auftragNummer.equals(o.auftragNummer)) {
       return this.auftragNummer.compareTo(o.auftragNummer);
     }
-    if (this.number < o.number) {
-      return -1;
-    } else if (this.number == o.number) {
-      return 0;
-    } else {
-      return +1;
-    }
+    return Short.compare(this.number, o.number);
   }
 }

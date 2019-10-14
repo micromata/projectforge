@@ -46,9 +46,9 @@ class ProjektRest
     }
 
     override fun transformForDB(dto: Projekt): ProjektDO {
-        val ProjektDO = ProjektDO()
-        dto.copyTo(ProjektDO)
-        return ProjektDO
+        val projektDO = ProjektDO()
+        dto.copyTo(projektDO)
+        return projektDO
     }
 
     /**

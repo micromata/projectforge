@@ -191,8 +191,8 @@ class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
     /**
      * Rounds the timestamp to DatePrecision.MINUTE_15 before.
      *
-     * @param startTime the startTime to set
-     * @see DateHolder.DateHolder
+     * @param startDate the startTime to set
+     * @see DateHolder#DateHolder(Date, DatePrecision)
      */
     @Transient
     fun setStartDate(startDate: Date?): TimesheetDO {
@@ -216,7 +216,7 @@ class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
      *
      * @param stopDate the stopTime to set
      * @return this for chaining.
-     * @see DateHolder.DateHolder
+     * @see DateHolder#DateHolder(Date, DatePrecision)
      */
     @Transient
     fun setStopDate(stopDate: Date?): TimesheetDO {
@@ -236,7 +236,7 @@ class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
     }
 
     override fun compareTo(other: TimesheetDO): Int {
-        return startTime?.compareTo(other.startTime) ?: 1;
+        return startTime?.compareTo(other.startTime) ?: 1
     }
 
     companion object {

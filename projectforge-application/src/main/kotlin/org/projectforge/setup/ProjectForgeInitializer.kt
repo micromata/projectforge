@@ -106,7 +106,7 @@ object ProjectForgeInitializer {
                                  emphasizedLog: EmphasizedLogSupport, modifier: StringModifier? = null): Int {
         if (File(baseDir, filename).exists())
             return counter
-        emphasizedLog.log("  ${counter}. Creating config file: $filename...")
+        emphasizedLog.log("  $counter. Creating config file: $filename...")
         if (!ProjectForgeApp.ensureInitialConfigFile(baseDir, initialClasspathFilename, filename, false, modifier)) {
             emphasizedLog.logEnd()
             giveUpAndSystemExit("Error while creating config file '$filename'.")

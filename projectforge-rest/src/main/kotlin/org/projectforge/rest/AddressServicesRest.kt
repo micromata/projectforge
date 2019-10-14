@@ -102,7 +102,7 @@ class AddressServicesRest() {
         return ResponseEntity.ok()
                 .contentType(org.springframework.http.MediaType.parseMediaType("application/octet-stream"))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
-                .body(writer.toString());
+                .body(writer.toString())
     }
 
     /**
@@ -128,7 +128,7 @@ class AddressServicesRest() {
         return ResponseEntity.ok()
                 .contentType(org.springframework.http.MediaType.parseMediaType("application/octet-stream"))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
-                .body(resource);
+                .body(resource)
     }
 
     @GetMapping("exportFavoritePhoneList")
@@ -145,7 +145,7 @@ class AddressServicesRest() {
         return ResponseEntity.ok()
                 .contentType(org.springframework.http.MediaType.parseMediaType("application/octet-stream"))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
-                .body(writer.toString());
+                .body(writer.toString())
     }
 
     @GetMapping("downloadAppleScript")
@@ -169,7 +169,7 @@ class AddressServicesRest() {
         return ResponseEntity.ok()
                 .contentType(org.springframework.http.MediaType.parseMediaType("application/octet-stream"))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
-                .body(resource);
+                .body(resource)
     }
 
     @GetMapping("exportVCard/{id}")
@@ -184,6 +184,6 @@ class AddressServicesRest() {
         return ResponseEntity.ok()
                 .contentType(org.springframework.http.MediaType.parseMediaType("application/octet-stream"))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
-                .body(writer.toString());
+                .body(writer.toString())
     }
 }

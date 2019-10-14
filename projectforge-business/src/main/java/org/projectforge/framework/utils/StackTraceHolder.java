@@ -52,9 +52,8 @@ public class StackTraceHolder implements Serializable
       d = depth;
     }
     debugStackTrace = new StackTraceElement[d];
-    for (int i = 0; i < d; i++) {
-      debugStackTrace[i] = stackTraceElements[i];
-    }
+    if (d >= 0)
+      System.arraycopy(stackTraceElements, 0, debugStackTrace, 0, d);
   }
 
   /**

@@ -90,7 +90,7 @@ class Consumption(
                         Status.PROGRESS_80
                     } else if (percentage <= 100) {
                         Status.PROGRESS_90
-                    } else if (finished == true && percentage <= 110) {
+                    } else if (finished && percentage <= 110) {
                         Status.OVERBOOKED_MIN
                     } else {
                         Status.OVERBOOKED
@@ -107,7 +107,7 @@ class Consumption(
                     } else {
                         ""
                     }
-            val title = "$usageStr$unitStr${maxValueStr}"
+            val title = "$usageStr$unitStr$maxValueStr"
             return Consumption(title, status, "$width%", node.taskId)
         }
     }

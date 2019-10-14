@@ -118,6 +118,6 @@ open class UserStatusRest {
     private fun convertToJavascriptFormat(dateFormat: String?): String? {
         if (dateFormat == null) return null
         return dateFormat.replace('d', 'D', false)
-                .replace('y', 'Y', false);
+                .replace('y', 'Y', false)
     }
 }

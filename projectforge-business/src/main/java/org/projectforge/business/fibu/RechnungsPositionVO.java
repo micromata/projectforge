@@ -156,12 +156,6 @@ public class RechnungsPositionVO implements Comparable<RechnungsPositionVO>, Ser
     if (!this.rechnungNummer.equals(o.rechnungNummer)) {
       return this.rechnungNummer.compareTo(o.rechnungNummer);
     }
-    if (this.number < o.number) {
-      return -1;
-    } else if (this.number == o.number) {
-      return 0;
-    } else {
-      return +1;
-    }
+    return Short.compare(this.number, o.number);
   }
 }

@@ -62,7 +62,7 @@ class CalEventsProvider() {
                 recurrentEvent = false
             }
             else {
-                eventDO = CalEventDO(); //(it as TeamRecurrenceEvent).master
+                eventDO = CalEventDO() //(it as TeamRecurrenceEvent).master
                 recurrentEvent = true
             }
             val recurrentDate = if (recurrentEvent) "?recurrentDate=${it.startDate!!.time / 1000}" else ""

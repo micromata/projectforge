@@ -32,11 +32,11 @@ import javax.persistence.*
 @Entity
 @Table(name = "t_address_attrdata")
 class AddressAttrDataDO : JpaTabAttrDataBaseDO<AddressAttrDO, Int> {
-    constructor() : super() {}
+    constructor() : super()
 
-    constructor(parent: AddressAttrDO, value: String) : super(parent, value) {}
+    constructor(parent: AddressAttrDO, value: String) : super(parent, value)
 
-    constructor(parent: AddressAttrDO) : super(parent) {}
+    constructor(parent: AddressAttrDO) : super(parent)
 
     @Id
     @GeneratedValue

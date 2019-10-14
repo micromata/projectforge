@@ -67,8 +67,6 @@ class KontoDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     /**
      * Formats the account as string: "[nummer] [title]", e. g. "11000 Micromata GmbH"
-     *
-     * @param konto
      */
     fun formatKonto(): String {
         return formatKonto(this)

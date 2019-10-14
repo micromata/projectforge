@@ -94,7 +94,6 @@ class PersonalAddressDO : AbstractBaseDO<Int>() {
     var owner: PFUserDO? = null
 
     /**
-     * @param entry
      * @return true, if any checkbox is set (isFavoriteCard, isBusinessPhone etc.)
      */
     val isFavorite: Boolean

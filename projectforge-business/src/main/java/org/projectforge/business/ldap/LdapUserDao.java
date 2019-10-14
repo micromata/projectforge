@@ -144,18 +144,14 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
       return;
     }
     final List<String> additionalObjectClassesList = new LinkedList<>();
-    for (final String additionalObjectClass : ldapPersonDao.getAdditionalObjectClasses()) {
-      additionalObjectClassesList.add(additionalObjectClass);
-    }
+    Collections.addAll(additionalObjectClassesList, ldapPersonDao.getAdditionalObjectClasses());
     ALL_OBJECT_CLASSES = additionalObjectClassesList.toArray(new String[0]);
     additionalObjectClassesList.add(POSIX_OBJECT_CLASS);
     ALL_OBJECT_CLASSES_WITH_POSIX_ACCOUNT = additionalObjectClassesList.toArray(new String[0]);
     additionalObjectClassesList.add(SAMBA_OBJECT_CLASS);
     ALL_OBJECT_CLASSES_WITH_SAMBA_AND_POSIX_ACCOUNT = additionalObjectClassesList.toArray(new String[0]);
     additionalObjectClassesList.clear();
-    for (final String additionalObjectClass : ldapPersonDao.getAdditionalObjectClasses()) {
-      additionalObjectClassesList.add(additionalObjectClass);
-    }
+    additionalObjectClassesList.addAll(Arrays.asList(ldapPersonDao.getAdditionalObjectClasses()));
     additionalObjectClassesList.add(SAMBA_OBJECT_CLASS);
     ALL_OBJECT_CLASSES_WITH_SAMBA_ACCOUNT = additionalObjectClassesList.toArray(new String[0]);
   }

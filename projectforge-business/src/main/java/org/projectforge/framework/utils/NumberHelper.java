@@ -134,7 +134,7 @@ public class NumberHelper
    */
   public static boolean greaterZero(final Integer value)
   {
-    return value != null && value.intValue() > 0;
+    return value != null && value > 0;
   }
 
   /**
@@ -483,13 +483,13 @@ public class NumberHelper
    *
    * @param str
    * @return Converted string if number, otherwise the origin string.
-   * @see NumberUtils#isNumber(String)
+   * @see NumberUtils#isCreatable(String)
    * @see NumberUtils#createBigDecimal(String)
    * @see BigDecimal#toPlainString()
    */
   public static String toPlainString(final String str)
   {
-    if (NumberUtils.isNumber(str)) {
+    if (NumberUtils.isCreatable(str)) {
       final BigDecimal bd = NumberUtils.createBigDecimal(str);
       return bd.toPlainString();
     } else {

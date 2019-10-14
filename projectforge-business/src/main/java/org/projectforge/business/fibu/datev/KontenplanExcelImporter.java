@@ -82,9 +82,9 @@ public class KontenplanExcelImporter
 
     KontenplanExcelRow[] rows = new KontenplanExcelRow[0];
     rows = imp.convertToRows(KontenplanExcelRow.class);
-    for (int i = 0; i < rows.length; i++) {
+    for (KontenplanExcelRow row : rows) {
       actionLog.incrementCounterSuccess();
-      final KontoDO konto = convertKonto(rows[i]);
+      final KontoDO konto = convertKonto(row);
       final ImportedElement<KontoDO> element = new ImportedElement<>(storage.nextVal(), KontoDO.class,
           DatevImportDao.KONTO_DIFF_PROPERTIES);
       element.setValue(konto);

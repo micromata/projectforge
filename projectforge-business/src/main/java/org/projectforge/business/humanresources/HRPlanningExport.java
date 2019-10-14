@@ -335,8 +335,8 @@ public class HRPlanningExport
     for (final HRPlanningDO planningSheet : list) {
       final String userName = planningSheet.getUser().getFullname();
       boolean exists = false;
-      for (int i = 0; i < userNames.size(); i++) {
-        if (userName.equals(userNames.get(i))) {
+      for (String otherName : userNames) {
+        if (userName.equals(otherName)) {
           exists = true;
         }
       }

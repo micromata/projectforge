@@ -62,7 +62,6 @@ class DatabaseWriter(val emf: PfEmgrFactory,
     private lateinit var writer: Writer
 
     /**
-     * @param filename virtual filename: If the filename suffix is "gz" then the dump will be compressed.
      * @param out
      */
     fun dump(out: OutputStream?) {
@@ -92,10 +91,6 @@ class DatabaseWriter(val emf: PfEmgrFactory,
         jgen.flush()
     }
 
-    /**
-     * @param filename virtual filename: If the filename suffix is "gz" then the dump will be compressed.
-     * @param out
-     */
     fun restore(inputStream: InputStream) {
         //createObjectMapper().readValue(in, )
     }

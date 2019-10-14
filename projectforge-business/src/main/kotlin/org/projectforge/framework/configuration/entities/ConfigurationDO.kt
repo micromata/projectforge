@@ -367,7 +367,7 @@ class ConfigurationDO : DefaultBaseDO {
 
         const val PARAM_LENGTH = 4000
 
-        fun getPARAM_LENGTH(): Int {
+        fun getParamLength(): Int {
             return PARAM_LENGTH
         }
     }

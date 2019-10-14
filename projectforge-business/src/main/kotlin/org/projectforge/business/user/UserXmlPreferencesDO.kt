@@ -141,7 +141,7 @@ class UserXmlPreferencesDO : Serializable, DbRecord<Int> {
          */
         const val CURRENT_VERSION = 4
 
-        fun getCURRENT_VERSION(): Int {
+        fun getCurrentVersion(): Int {
             return CURRENT_VERSION
         }
     }

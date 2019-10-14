@@ -204,7 +204,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     /**
      * Ensures time zone. If no time zone is given for the user, the configured default time zone is returned.
-     * @see Configuration.getInstance.defaultTimeZone
+     * @see Configuration.getDefaultTimeZone
      */
     @PropertyInfo(i18nKey = "timezone")
     private var _timeZoneObject: TimeZone? = null

@@ -1341,7 +1341,7 @@ public class DatabaseCoreUpdates
           if (UserXmlPreferencesDO.class.isAssignableFrom(entityClass.getJavaType())) {
             try {
               emf.runInTrans(emgr -> {
-                log.info("Set tenant id for entities of type: " + UserXmlPreferencesDO.class.getClass());
+                log.info("Set tenant id for entities of type: " + UserXmlPreferencesDO.class);
                 CriteriaUpdate<UserXmlPreferencesDO> cu = CriteriaUpdate.createUpdate(UserXmlPreferencesDO.class);
                 cu.set("tenant", defaultTenant);
                 emgr.update(cu);

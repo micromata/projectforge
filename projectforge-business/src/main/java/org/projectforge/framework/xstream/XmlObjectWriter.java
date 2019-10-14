@@ -224,9 +224,8 @@ public class XmlObjectWriter
       return (Element) parent;
     } else if (obj instanceof Collection< ? >) {
       final Element listElement = parent.addElement(name);
-      final Iterator< ? > it = ((Collection< ? >) obj).iterator();
-      while (it.hasNext()) {
-        write(listElement, it.next(), null, false, false);
+      for (Object o : ((Collection<?>) obj)) {
+        write(listElement, o, null, false, false);
       }
       return listElement;
     }

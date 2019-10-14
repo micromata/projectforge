@@ -42,9 +42,6 @@ open class EmployeeTimedAttrDO : JpaTabAttrBaseDO<EmployeeTimedDO, Int> {
 
     constructor(parent: EmployeeTimedDO) : super(parent)
 
-    /**
-     * @see org.projectforge.framework.persistence.attr.entities.DeprAttrBaseDO.createData
-     */
     override fun createData(data: String): EmployeeTimedAttrDataDO {
         return EmployeeTimedAttrDataDO(this, data)
 

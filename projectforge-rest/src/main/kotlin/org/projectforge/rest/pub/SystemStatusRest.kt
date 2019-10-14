@@ -36,7 +36,7 @@ import java.util.*
  * This rest service should be available without login (public).
  */
 @RestController
-@RequestMapping("${Rest.PUBLIC_URL}")
+@RequestMapping(Rest.PUBLIC_URL)
 class SystemStatusRest {
     data class SystemData(var appname: String,
                           var version: String,
@@ -77,7 +77,7 @@ class SystemStatusRest {
     private lateinit var systemStatus: SystemStatus
 
     @GetMapping("systemStatus")
-    fun getSystemStatus(): SystemStatusRest.SystemData {
+    fun getSystemStatus(): SystemData {
         if (systemData.setupRedirectUrl != null
                 && systemStatus.setupRequiredFirst != true
                 && systemStatus.updateRequiredFirst != true) {

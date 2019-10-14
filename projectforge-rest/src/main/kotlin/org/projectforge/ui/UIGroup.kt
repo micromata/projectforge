@@ -46,7 +46,7 @@ data class UIGroup(val content: MutableList<UIElement> = mutableListOf()) : UIEl
             return null
         val label = when (element) {
             is UILabelledElement -> element.label
-            else -> "??? ${id} ???"
+            else -> "??? $id ???"
         }
         return add(UILabel(label = label), element)
     }
@@ -69,9 +69,9 @@ data class UIGroup(val content: MutableList<UIElement> = mutableListOf()) : UIEl
                     else -> null
                 }
         if (label.labelFor == null)
-            log.error("Unsupported element for method add(UILabel, UIElement): '${element}'. Supported elements are UIInput, UISelect and UITextArea")
+            log.error("Unsupported element for method add(UILabel, UIElement): '$element'. Supported elements are UIInput, UISelect and UITextArea")
         content.add(label)
         content.add(element)
-        return this;
+        return this
     }
 }

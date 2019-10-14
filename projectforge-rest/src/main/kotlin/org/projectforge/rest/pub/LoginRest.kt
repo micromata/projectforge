@@ -125,7 +125,7 @@ open class LoginRest {
         val offset = loginProtection.getFailedLoginTimeOffsetIfExists(loginData.username, clientIpAddress)
         if (offset > 0) {
             val seconds = (offset / 1000).toString()
-            log.warn("The account for '${loginData.username}' is locked for ${seconds} seconds due to failed login attempts. Please try again later.")
+            log.warn("The account for '${loginData.username}' is locked for $seconds seconds due to failed login attempts. Please try again later.")
 
             val numberOfFailedAttempts = loginProtection.getNumberOfFailedLoginAttempts(loginData.username, clientIpAddress)
             return LoginResult().setLoginResultStatus(LoginResultStatus.LOGIN_TIME_OFFSET).setMsgParams(seconds,

@@ -28,6 +28,6 @@ public class BooleanConverter extends AbstractValueConverter<Boolean>
   @Override
   public Boolean fromString(String str)
   {
-    return new Boolean(str);
+    return Boolean.valueOf(str);
   }
 }
