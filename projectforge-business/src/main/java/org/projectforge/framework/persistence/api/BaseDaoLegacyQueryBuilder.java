@@ -122,7 +122,7 @@ public class BaseDaoLegacyQueryBuilder {
             setCacheRegion(baseDao, criteria);
 
             FullTextSession fullTextSession = Search.getFullTextSession(session);
-            org.apache.lucene.search.Query query = HibernateSearchFilterUtils.createFullTextQuery(fullTextSession, searchFields, filter, searchString, baseDao.clazz);
+            org.apache.lucene.search.Query query = HibernateSearchFilterUtils.createFullTextQuery(fullTextSession, searchFields, searchString, baseDao.clazz);
             FullTextQuery fullTextQuery = fullTextSession.createFullTextQuery(query, baseDao.clazz);
 
             fullTextQuery.setCriteriaQuery(criteria);

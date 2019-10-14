@@ -142,7 +142,7 @@ public class SearchServiceImpl implements SearchService
         try {
           FullTextSession fullTextSession = Search.getFullTextSession(session);
           final org.apache.lucene.search.Query query = HibernateSearchFilterUtils.createFullTextQuery(fullTextSession,
-              searchFields, filter, searchString, entClazz);
+              searchFields, searchString, entClazz);
           final FullTextQuery fullTextQuery = fullTextSession.createFullTextQuery(query, entClazz);
           fullTextQuery.setCriteriaQuery(criteria);
           list = fullTextQuery.list(); // return a list of managed objects

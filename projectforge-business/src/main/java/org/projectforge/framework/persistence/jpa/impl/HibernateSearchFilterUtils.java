@@ -40,7 +40,6 @@ import org.hibernate.search.annotations.DocumentId;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
-import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.time.DateFormats;
@@ -218,7 +217,7 @@ public class HibernateSearchFilterUtils
     try {
       final FullTextSession fullTextSession = Search.getFullTextSession(session);
 
-      final org.apache.lucene.search.Query query = createFullTextQuery(fullTextSession, HISTORY_SEARCH_FIELDS, null,
+      final org.apache.lucene.search.Query query = createFullTextQuery(fullTextSession, HISTORY_SEARCH_FIELDS,
           searchString, PfHistoryMasterDO.class);
       if (query == null) {
         // An error occured:
@@ -372,8 +371,7 @@ public class HibernateSearchFilterUtils
   }
 
   public static org.apache.lucene.search.Query createFullTextQuery(FullTextSession fullTextSession,
-      String[] searchFields,
-      QueryFilter filter, String searchString, Class<?> clazz)
+      String[] searchFields, String searchString, Class<?> clazz)
   {
     final MultiFieldQueryParser parser = new MultiFieldQueryParser(searchFields, new ClassicAnalyzer());
     parser.setAllowLeadingWildcard(true);
