@@ -21,7 +21,9 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.api
+package org.projectforge.framework.persistence.api.impl
+
+import org.projectforge.framework.persistence.api.SortProperty
 
 class DBFilter(
         /**

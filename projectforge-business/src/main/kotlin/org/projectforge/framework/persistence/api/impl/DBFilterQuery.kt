@@ -21,9 +21,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.api
+package org.projectforge.framework.persistence.api.impl
 
-import org.hibernate.Criteria
 import org.hibernate.Session
 import org.hibernate.criterion.Order
 import org.hibernate.search.Search.getFullTextSession
@@ -34,6 +33,10 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.AccessException
+import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.SortOrder
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
@@ -105,9 +108,9 @@ class DBFilterQuery {
      * @return
      */
     fun <O : ExtendedBaseDO<Int>> getList(baseDao: BaseDao<O>,
-                                          filter: DBFilter,
-                                          checkAccess: Boolean = true,
-                                          ignoreTenant: Boolean = false)
+                                                                                     filter: DBFilter,
+                                                                                     checkAccess: Boolean = true,
+                                                                                     ignoreTenant: Boolean = false)
             : List<O> {
         try {
             val criteriaSearchEntries = filter.criteriaSearchEntries
@@ -278,14 +281,6 @@ class DBFilterQuery {
             log.error("Error while querying: ${ex.message}. Magicfilter: ${filter}.", ex)
             return mutableListOf()
         }
-    }
-
-    private fun setCacheRegion(baseDao: BaseDao<*>, criteria: Criteria) {
-        criteria.setCacheable(true)
-        if (!baseDao.useOwnCriteriaCacheRegion()) {
-            return
-        }
-        criteria.setCacheRegion(baseDao.javaClass.name)
     }
 
     private fun <O : ExtendedBaseDO<Int>> createList(baseDao: BaseDao<O>, dbResultIterator: DBResultIterator<O>, filter: DBFilter, modificationData: ModificationData,

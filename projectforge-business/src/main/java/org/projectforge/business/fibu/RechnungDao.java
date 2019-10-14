@@ -426,7 +426,7 @@ public class RechnungDao extends BaseDao<RechnungDO> {
    * Returns also true, if idSet contains the id of any order position.
    */
   @Override
-  protected boolean contains(final Set<Integer> idSet, final RechnungDO entry) {
+  public boolean contains(final Set<Integer> idSet, final RechnungDO entry) {
     if (super.contains(idSet, entry)) {
       return true;
     }

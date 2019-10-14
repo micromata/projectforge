@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.api
+package org.projectforge.framework.persistence.api.impl
 
 import org.projectforge.common.BeanHelper
 import java.util.*

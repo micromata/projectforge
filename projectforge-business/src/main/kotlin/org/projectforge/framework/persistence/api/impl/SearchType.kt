@@ -21,6 +21,6 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.api
+package org.projectforge.framework.persistence.api.impl
 
 internal enum class SearchType { NONE, STRING_SEARCH, FIELD_STRING_SEARCH, FIELD_RANGE_SEARCH, FIELD_VALUES_SEARCH }

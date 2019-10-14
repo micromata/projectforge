@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.api
+package org.projectforge.framework.persistence.api.impl
 
 import org.hibernate.Criteria
 import org.hibernate.Transaction
@@ -31,6 +31,7 @@ import org.hibernate.search.query.dsl.BooleanJunction
 import org.hibernate.search.query.dsl.QueryBuilder
 import org.projectforge.business.multitenancy.TenantService
 import org.projectforge.common.props.PropUtils
+import org.projectforge.framework.persistence.api.*
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import javax.persistence.criteria.Predicate
 

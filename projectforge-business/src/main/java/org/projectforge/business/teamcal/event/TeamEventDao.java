@@ -50,10 +50,7 @@ import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.calendar.CalendarUtils;
 import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.i18n.UserException;
-import org.projectforge.framework.persistence.api.BaseDao;
-import org.projectforge.framework.persistence.api.BaseSearchFilter;
-import org.projectforge.framework.persistence.api.ModificationStatus;
-import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -673,11 +670,10 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
   /**
    * Returns also true, if idSet contains the id of any attendee.
    *
-   * @see org.projectforge.framework.persistence.api.BaseDao#contains(java.util.Set,
-   * org.projectforge.core.ExtendedBaseDO)
+   * @see org.projectforge.framework.persistence.api.BaseDao#contains(Set, ExtendedBaseDO)
    */
   @Override
-  protected boolean contains(final Set<Integer> idSet, final TeamEventDO entry) {
+  public boolean contains(final Set<Integer> idSet, final TeamEventDO entry) {
     if (super.contains(idSet, entry)) {
       return true;
     }

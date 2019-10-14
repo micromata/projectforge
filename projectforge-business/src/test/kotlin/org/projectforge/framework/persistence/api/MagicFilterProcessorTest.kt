@@ -26,6 +26,7 @@ package org.projectforge.framework.persistence.api
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.address.AddressDO
+import org.projectforge.framework.persistence.api.impl.MatchType
 
 class MagicFilterProcessorTest {
     @Test

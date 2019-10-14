@@ -23,7 +23,12 @@
 
 package org.projectforge.framework.persistence.api
 
+import org.hibernate.Criteria
 import org.projectforge.common.props.PropUtils
+import org.projectforge.framework.persistence.api.impl.DBFilter
+import org.projectforge.framework.persistence.api.impl.DBFilterEntry
+import org.projectforge.framework.persistence.api.impl.MatchType
+import org.projectforge.framework.persistence.api.impl.SearchType
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.slf4j.LoggerFactory
@@ -101,6 +106,14 @@ object MagicFilterProcessor {
             log.warn("Search entry of type '${fieldType.name}' not yet supported for field '${entry.field}'.")
         }
         return entry
+    }
+
+    fun setCacheRegion(baseDao: BaseDao<*>, criteria: Criteria) {
+        criteria.setCacheable(true)
+        if (!baseDao.useOwnCriteriaCacheRegion()) {
+            return
+        }
+        criteria.setCacheRegion(baseDao.javaClass.name)
     }
 
     private val log = LoggerFactory.getLogger(MagicFilterProcessor::class.java)
