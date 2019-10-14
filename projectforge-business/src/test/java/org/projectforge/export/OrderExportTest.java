@@ -24,6 +24,7 @@
 package org.projectforge.export;
 
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -82,7 +83,7 @@ public class OrderExportTest extends AbstractTestBase
           hasPerformanceEnd = true;
         }
 
-        if (cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getRichStringCellValue().getString().trim()
+        if (cell.getCellTypeEnum() == CellType.STRING && cell.getRichStringCellValue().getString().trim()
             .equals("TESTBESCHREIBUNG")) {
           hasStatusBeschreibung = true;
         }
@@ -153,32 +154,32 @@ public class OrderExportTest extends AbstractTestBase
           hasSecondScheduleDate = true;
         }
 
-        if (cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getRichStringCellValue().getString().trim()
+        if (cell.getCellTypeEnum() == CellType.STRING && cell.getRichStringCellValue().getString().trim()
             .equals("SCHEDULE1")) {
           hasCommentfirstSchedule = true;
         }
 
-        if (cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getRichStringCellValue().getString().trim()
+        if (cell.getCellTypeEnum() == CellType.STRING && cell.getRichStringCellValue().getString().trim()
             .equals("SCHEDULE2")) {
           hasCommentSecondSchedule = true;
         }
 
-        if (cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getRichStringCellValue().toString().trim()
+        if (cell.getCellTypeEnum() == CellType.STRING && cell.getRichStringCellValue().toString().trim()
             .equals("#2") && excelImport.getWorkbook().getSheetAt(2).getRow(2) == row) {
           hasScheduleNumber = true;
         }
 
-        if (cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getRichStringCellValue().getString().trim()
+        if (cell.getCellTypeEnum() == CellType.STRING && cell.getRichStringCellValue().getString().trim()
             .equals("x")) {
           hasSetBoolean = true;
         }
 
-        if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC && cell.toString().trim()
+        if (cell.getCellTypeEnum() == CellType.NUMERIC && cell.toString().trim()
             .equals("111.0")) {
           hasAmount1 = true;
         }
 
-        if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC && cell.toString().trim()
+        if (cell.getCellTypeEnum() == CellType.NUMERIC && cell.toString().trim()
             .equals("222.0")) {
           hasAmount2 = true;
         }
