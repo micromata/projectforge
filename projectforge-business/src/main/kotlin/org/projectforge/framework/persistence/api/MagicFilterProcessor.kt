@@ -39,7 +39,11 @@ object MagicFilterProcessor {
         dbFilter.sortAndLimitMaxRowsWhileSelect = magicFilter.sortAndLimitMaxRowsWhileSelect
         dbFilter.sortProperties = magicFilter.sortProperties
         for (magicFilterEntry in magicFilter.entries) {
-            if (magicFilterEntry.field.isNullOrBlank()) {
+            // Workarround for frontend-bug: (search string without field is given as field, not as value:
+            if (magicFilterEntry.value.isNullOrBlank()) {
+                // Full text search (no field given).
+                dbFilter.entries.add(DBFilterEntry(value = magicFilterEntry.field, fulltextSearch = true))
+            } else if (magicFilterEntry.field.isNullOrBlank()) {
                 // Full text search (no field given).
                 dbFilter.entries.add(DBFilterEntry(value = magicFilterEntry.value, fulltextSearch = true))
             } else {
