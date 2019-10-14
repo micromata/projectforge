@@ -144,14 +144,19 @@ public class ICalHandlerTest
     Assert.assertEquals(3, event.getAttendees().size());
 
     for (TeamEventAttendeeDO attendee : event.getAttendees()) {
-      if (attendee.getUrl().equals("organizer@example.com")) {
-        validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.ACCEPTED, Role.CHAIR, null, "Organizer", null);
-      } else if (attendee.getUrl().equals("a1@example.com")) {
-        validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.NEEDS_ACTION, null, Boolean.TRUE, "Attendee1", null);
-      } else if (attendee.getUrl().equals("a2@example.com")) {
-        validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.NEEDS_ACTION, null, Boolean.TRUE, "Attendee2", null);
-      } else {
-        Assert.fail("Unknown attendee " + attendee.getUrl());
+      switch (attendee.getUrl()) {
+        case "organizer@example.com":
+          validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.ACCEPTED, Role.CHAIR, null, "Organizer", null);
+          break;
+        case "a1@example.com":
+          validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.NEEDS_ACTION, null, Boolean.TRUE, "Attendee1", null);
+          break;
+        case "a2@example.com":
+          validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.NEEDS_ACTION, null, Boolean.TRUE, "Attendee2", null);
+          break;
+        default:
+          Assert.fail("Unknown attendee " + attendee.getUrl());
+          break;
       }
     }
   }
@@ -264,14 +269,19 @@ public class ICalHandlerTest
     Assert.assertEquals(3, event.getAttendees().size());
 
     for (TeamEventAttendeeDO attendee : event.getAttendees()) {
-      if (attendee.getUrl().equals("organizer@example.com")) {
-        validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.ACCEPTED, Role.CHAIR, null, "Organizer", null);
-      } else if (attendee.getUrl().equals("a1@example.com")) {
-        validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.NEEDS_ACTION, null, Boolean.TRUE, "Attendee1", null);
-      } else if (attendee.getUrl().equals("a2@example.com")) {
-        validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.NEEDS_ACTION, null, Boolean.TRUE, "Attendee2", null);
-      } else {
-        Assert.fail("Unknown attendee " + attendee.getUrl());
+      switch (attendee.getUrl()) {
+        case "organizer@example.com":
+          validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.ACCEPTED, Role.CHAIR, null, "Organizer", null);
+          break;
+        case "a1@example.com":
+          validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.NEEDS_ACTION, null, Boolean.TRUE, "Attendee1", null);
+          break;
+        case "a2@example.com":
+          validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.NEEDS_ACTION, null, Boolean.TRUE, "Attendee2", null);
+          break;
+        default:
+          Assert.fail("Unknown attendee " + attendee.getUrl());
+          break;
       }
     }
   }
@@ -330,16 +340,20 @@ public class ICalHandlerTest
     Assert.assertEquals("Test normaler Event", event.getSubject());
     Assert.assertEquals(Integer.valueOf(0), event.getSequence());
     Assert.assertEquals("mailto:owner@example.com", event.getOrganizer());
-    Assert.assertEquals(null, event.getLocation());
+    Assert.assertNull(event.getLocation());
     Assert.assertEquals(2, event.getAttendees().size());
 
     for (TeamEventAttendeeDO attendee : event.getAttendees()) {
-      if (attendee.getUrl().equals("owner@example.com")) {
-        validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.ACCEPTED, Role.CHAIR, null, "Owner", null);
-      } else if (attendee.getUrl().equals("a1@example.com")) {
-        validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.NEEDS_ACTION, null, null, "Attendee", null);
-      } else {
-        Assert.fail("Unknown attendee " + attendee.getUrl());
+      switch (attendee.getUrl()) {
+        case "owner@example.com":
+          validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.ACCEPTED, Role.CHAIR, null, "Owner", null);
+          break;
+        case "a1@example.com":
+          validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.NEEDS_ACTION, null, null, "Attendee", null);
+          break;
+        default:
+          Assert.fail("Unknown attendee " + attendee.getUrl());
+          break;
       }
     }
 
@@ -372,12 +386,16 @@ public class ICalHandlerTest
     Assert.assertEquals(2, event.getAttendees().size());
 
     for (TeamEventAttendeeDO attendee : event.getAttendees()) {
-      if (attendee.getUrl().equals("owner@example.com")) {
-        validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.ACCEPTED, Role.CHAIR, null, "Owner", null);
-      } else if (attendee.getUrl().equals("a1@example.com")) {
-        validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.NEEDS_ACTION, null, null, "Attendee", null);
-      } else {
-        Assert.fail("Unknown attendee " + attendee.getUrl());
+      switch (attendee.getUrl()) {
+        case "owner@example.com":
+          validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.ACCEPTED, Role.CHAIR, null, "Owner", null);
+          break;
+        case "a1@example.com":
+          validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.NEEDS_ACTION, null, null, "Attendee", null);
+          break;
+        default:
+          Assert.fail("Unknown attendee " + attendee.getUrl());
+          break;
       }
     }
 
@@ -427,24 +445,28 @@ public class ICalHandlerTest
     Assert.assertEquals("Daily", event.getSubject());
     Assert.assertEquals(Integer.valueOf(0), event.getSequence());
     Assert.assertEquals("mailto:organizer@example.com", event.getOrganizer());
-    Assert.assertEquals(null, event.getLocation());
+    Assert.assertNull(event.getLocation());
     Assert.assertEquals("", event.getNote());
     Assert.assertEquals(2, event.getAttendees().size());
 
     for (TeamEventAttendeeDO attendee : event.getAttendees()) {
-      if (attendee.getUrl().equals("organizer@example.com")) {
-        validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.ACCEPTED, Role.CHAIR, null, "Organizer", null);
-      } else if (attendee.getUrl().equals("a1@example.com")) {
-        validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.NEEDS_ACTION, null, Boolean.TRUE, "Attendee1", null);
-      } else {
-        Assert.fail("Unknown attendee " + attendee.getUrl());
+      switch (attendee.getUrl()) {
+        case "organizer@example.com":
+          validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.ACCEPTED, Role.CHAIR, null, "Organizer", null);
+          break;
+        case "a1@example.com":
+          validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.NEEDS_ACTION, null, Boolean.TRUE, "Attendee1", null);
+          break;
+        default:
+          Assert.fail("Unknown attendee " + attendee.getUrl());
+          break;
       }
     }
 
     Assert.assertEquals("FREQ=DAILY", event.getRecurrenceRule());
-    Assert.assertEquals(null, event.getRecurrenceUntil());
-    Assert.assertEquals(null, event.getRecurrenceExDate());
-    Assert.assertEquals(null, event.getRecurrenceReferenceId());
+    Assert.assertNull(event.getRecurrenceUntil());
+    Assert.assertNull(event.getRecurrenceExDate());
+    Assert.assertNull(event.getRecurrenceReferenceId());
 
     when(eventService.findByUid(Mockito.eq(100), Mockito.eq("366F19E0-1602-4D58-B303-E1D58AF4D227"), Mockito.anyBoolean())).thenReturn(event);
 
@@ -464,30 +486,34 @@ public class ICalHandlerTest
     Assert.assertNotNull(event);
 
     Assert.assertEquals(calendar, event.getCalendar());
-    Assert.assertEquals(null, event.getUid());
+    Assert.assertNull(event.getUid());
     Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-07-04 15:13:44.000", DateHelper.UTC).getTime(), event.getDtStamp().getTime());
     Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-07-06 16:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getStartDate().getTime());
     Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-07-06 16:15:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
     Assert.assertEquals("Daily", event.getSubject());
     Assert.assertEquals(Integer.valueOf(0), event.getSequence());
     Assert.assertEquals("mailto:organizer@example.com", event.getOrganizer());
-    Assert.assertEquals(null, event.getLocation());
+    Assert.assertNull(event.getLocation());
     Assert.assertEquals("", event.getNote());
     Assert.assertEquals(2, event.getAttendees().size());
 
     for (TeamEventAttendeeDO attendee : event.getAttendees()) {
-      if (attendee.getUrl().equals("organizer@example.com")) {
-        validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.NEEDS_ACTION, Role.CHAIR, Boolean.TRUE, "Organizer", null);
-      } else if (attendee.getUrl().equals("a1@example.com")) {
-        validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.NEEDS_ACTION, null, Boolean.TRUE, "Attendee1", null);
-      } else {
-        Assert.fail("Unknown attendee " + attendee.getUrl());
+      switch (attendee.getUrl()) {
+        case "organizer@example.com":
+          validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.NEEDS_ACTION, Role.CHAIR, Boolean.TRUE, "Organizer", null);
+          break;
+        case "a1@example.com":
+          validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.NEEDS_ACTION, null, Boolean.TRUE, "Attendee1", null);
+          break;
+        default:
+          Assert.fail("Unknown attendee " + attendee.getUrl());
+          break;
       }
     }
 
-    Assert.assertEquals(null, event.getRecurrenceRule());
-    Assert.assertEquals(null, event.getRecurrenceUntil());
-    Assert.assertEquals(null, event.getRecurrenceExDate());
+    Assert.assertNull(event.getRecurrenceRule());
+    Assert.assertNull(event.getRecurrenceUntil());
+    Assert.assertNull(event.getRecurrenceExDate());
     Assert.assertEquals("20170706T124500", event.getRecurrenceReferenceId());
 
     // edit ----------------------------------------------------------------------------------------------------------------------
@@ -509,7 +535,7 @@ public class ICalHandlerTest
     Assert.assertNotNull(event);
 
     Assert.assertEquals(calendar, event.getCalendar());
-    Assert.assertEquals(null, event.getUid());
+    Assert.assertNull(event.getUid());
     Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-07-05 05:28:46.000", DateHelper.UTC).getTime(), event.getDtStamp().getTime());
     Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-07-06 16:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getStartDate().getTime());
     Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-07-06 16:15:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
@@ -521,18 +547,22 @@ public class ICalHandlerTest
     Assert.assertEquals(2, event.getAttendees().size());
 
     for (TeamEventAttendeeDO attendee : event.getAttendees()) {
-      if (attendee.getUrl().equals("organizer@example.com")) {
-        validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.ACCEPTED, Role.CHAIR, null, "Organizer", null);
-      } else if (attendee.getUrl().equals("a1@example.com")) {
-        validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.NEEDS_ACTION, null, Boolean.TRUE, "Attendee1", null);
-      } else {
-        Assert.fail("Unknown attendee " + attendee.getUrl());
+      switch (attendee.getUrl()) {
+        case "organizer@example.com":
+          validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.ACCEPTED, Role.CHAIR, null, "Organizer", null);
+          break;
+        case "a1@example.com":
+          validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.NEEDS_ACTION, null, Boolean.TRUE, "Attendee1", null);
+          break;
+        default:
+          Assert.fail("Unknown attendee " + attendee.getUrl());
+          break;
       }
     }
 
-    Assert.assertEquals(null, event.getRecurrenceRule());
-    Assert.assertEquals(null, event.getRecurrenceUntil());
-    Assert.assertEquals(null, event.getRecurrenceExDate());
+    Assert.assertNull(event.getRecurrenceRule());
+    Assert.assertNull(event.getRecurrenceUntil());
+    Assert.assertNull(event.getRecurrenceExDate());
     Assert.assertEquals("20170706T124500", event.getRecurrenceReferenceId());
 
     event = updatedEvent.getValue();
@@ -551,19 +581,23 @@ public class ICalHandlerTest
     Assert.assertEquals(2, event.getAttendees().size());
 
     for (TeamEventAttendeeDO attendee : event.getAttendees()) {
-      if (attendee.getUrl().equals("organizer@example.com")) {
-        validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.ACCEPTED, Role.CHAIR, null, "Organizer", null);
-      } else if (attendee.getUrl().equals("a1@example.com")) {
-        validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.NEEDS_ACTION, null, Boolean.TRUE, "Attendee1", null);
-      } else {
-        Assert.fail("Unknown attendee " + attendee.getUrl());
+      switch (attendee.getUrl()) {
+        case "organizer@example.com":
+          validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.ACCEPTED, Role.CHAIR, null, "Organizer", null);
+          break;
+        case "a1@example.com":
+          validateAttendee(attendee, CuType.INDIVIDUAL, TeamEventAttendeeStatus.NEEDS_ACTION, null, Boolean.TRUE, "Attendee1", null);
+          break;
+        default:
+          Assert.fail("Unknown attendee " + attendee.getUrl());
+          break;
       }
     }
 
     Assert.assertEquals("FREQ=DAILY", event.getRecurrenceRule());
-    Assert.assertEquals(null, event.getRecurrenceUntil());
+    Assert.assertNull(event.getRecurrenceUntil());
     Assert.assertEquals("20170706T124500", event.getRecurrenceExDate());
-    Assert.assertEquals(null, event.getRecurrenceReferenceId());
+    Assert.assertNull(event.getRecurrenceReferenceId());
 
     when(eventService.findByUid(Mockito.eq(100), Mockito.eq("366F19E0-1602-4D58-B303-E1D58AF4D227"), Mockito.anyBoolean())).thenReturn(event);
 
@@ -612,8 +646,8 @@ public class ICalHandlerTest
     Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-12 17:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
     Assert.assertEquals("Test Anlegen", event.getSubject());
     Assert.assertEquals(Integer.valueOf(0), event.getSequence());
-    Assert.assertEquals(null, event.getOrganizer());
-    Assert.assertEquals(null, event.getLocation());
+    Assert.assertNull(event.getOrganizer());
+    Assert.assertNull(event.getLocation());
     Assert.assertEquals(0, event.getAttendees().size());
 
     when(eventService.findByUid(Mockito.eq(100), Mockito.eq("170FA3B6-D786-43DC-A78F-BED563CCD411"), Mockito.anyBoolean())).thenReturn(event);
@@ -640,7 +674,7 @@ public class ICalHandlerTest
     Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-12 17:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
     Assert.assertEquals("Test Anlegen", event.getSubject());
     Assert.assertEquals(Integer.valueOf(0), event.getSequence());
-    Assert.assertEquals(null, event.getOrganizer());
+    Assert.assertNull(event.getOrganizer());
     Assert.assertEquals("adding location", event.getLocation());
     Assert.assertEquals(0, event.getAttendees().size());
 
@@ -666,7 +700,7 @@ public class ICalHandlerTest
     Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-13 17:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
     Assert.assertEquals("Test Anlegen", event.getSubject());
     Assert.assertEquals(Integer.valueOf(0), event.getSequence());
-    Assert.assertEquals(null, event.getOrganizer());
+    Assert.assertNull(event.getOrganizer());
     Assert.assertEquals("adding location", event.getLocation());
     Assert.assertEquals(0, event.getAttendees().size());
   }
@@ -703,15 +737,15 @@ public class ICalHandlerTest
     Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-14 17:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
     Assert.assertEquals("Recurring Dayly", event.getSubject());
     Assert.assertEquals(Integer.valueOf(0), event.getSequence());
-    Assert.assertEquals(null, event.getOrganizer());
-    Assert.assertEquals(null, event.getLocation());
-    Assert.assertEquals(null, event.getNote());
+    Assert.assertNull(event.getOrganizer());
+    Assert.assertNull(event.getLocation());
+    Assert.assertNull(event.getNote());
     Assert.assertEquals(0, event.getAttendees().size());
 
     Assert.assertEquals("FREQ=DAILY;INTERVAL=1", event.getRecurrenceRule());
-    Assert.assertEquals(null, event.getRecurrenceUntil());
-    Assert.assertEquals(null, event.getRecurrenceExDate());
-    Assert.assertEquals(null, event.getRecurrenceReferenceId());
+    Assert.assertNull(event.getRecurrenceUntil());
+    Assert.assertNull(event.getRecurrenceExDate());
+    Assert.assertNull(event.getRecurrenceReferenceId());
 
     when(eventService.findByUid(Mockito.eq(100), Mockito.eq("08C6BECA-AFF3-4363-870A-CB642436E69A"), Mockito.anyBoolean())).thenReturn(event);
 
@@ -738,15 +772,15 @@ public class ICalHandlerTest
     Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-14 17:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
     Assert.assertEquals("Recurring Dayly", event.getSubject());
     Assert.assertEquals(Integer.valueOf(0), event.getSequence());
-    Assert.assertEquals(null, event.getOrganizer());
-    Assert.assertEquals(null, event.getLocation());
-    Assert.assertEquals(null, event.getNote());
+    Assert.assertNull(event.getOrganizer());
+    Assert.assertNull(event.getLocation());
+    Assert.assertNull(event.getNote());
     Assert.assertEquals(0, event.getAttendees().size());
 
     Assert.assertEquals("FREQ=DAILY;INTERVAL=1", event.getRecurrenceRule());
-    Assert.assertEquals(null, event.getRecurrenceUntil());
+    Assert.assertNull(event.getRecurrenceUntil());
     Assert.assertEquals("20170822T140000", event.getRecurrenceExDate());
-    Assert.assertEquals(null, event.getRecurrenceReferenceId());
+    Assert.assertNull(event.getRecurrenceReferenceId());
 
     // add exception -------------------------------------------------------------------------------------------------------------
     handler = eventService.getEventHandler(calendar);
@@ -771,35 +805,35 @@ public class ICalHandlerTest
     Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-14 17:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
     Assert.assertEquals("Recurring Dayly", event.getSubject());
     Assert.assertEquals(Integer.valueOf(0), event.getSequence());
-    Assert.assertEquals(null, event.getOrganizer());
-    Assert.assertEquals(null, event.getLocation());
-    Assert.assertEquals(null, event.getNote());
+    Assert.assertNull(event.getOrganizer());
+    Assert.assertNull(event.getLocation());
+    Assert.assertNull(event.getNote());
     Assert.assertEquals(0, event.getAttendees().size());
 
     Assert.assertEquals("FREQ=DAILY;INTERVAL=1", event.getRecurrenceRule());
-    Assert.assertEquals(null, event.getRecurrenceUntil());
+    Assert.assertNull(event.getRecurrenceUntil());
     Assert.assertEquals("20170822T140000,20170824T140000", event.getRecurrenceExDate());
-    Assert.assertEquals(null, event.getRecurrenceReferenceId());
+    Assert.assertNull(event.getRecurrenceReferenceId());
 
     Mockito.verify(teamEventDao, Mockito.times(2)).save(savedEvent.capture());
     event = savedEvent.getValue();
     Assert.assertNotNull(event);
 
     Assert.assertEquals(calendar, event.getCalendar());
-    Assert.assertEquals(null, event.getUid());
+    Assert.assertNull(event.getUid());
     Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-07 13:02:24.000", DateHelper.UTC).getTime(), event.getDtStamp().getTime());
     Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-24 17:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getStartDate().getTime());
     Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-24 18:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
     Assert.assertEquals("Recurring Dayly", event.getSubject());
     Assert.assertEquals(Integer.valueOf(0), event.getSequence());
-    Assert.assertEquals(null, event.getOrganizer());
-    Assert.assertEquals(null, event.getLocation());
-    Assert.assertEquals(null, event.getNote());
+    Assert.assertNull(event.getOrganizer());
+    Assert.assertNull(event.getLocation());
+    Assert.assertNull(event.getNote());
     Assert.assertEquals(0, event.getAttendees().size());
 
-    Assert.assertEquals(null, event.getRecurrenceRule());
-    Assert.assertEquals(null, event.getRecurrenceUntil());
-    Assert.assertEquals(null, event.getRecurrenceExDate());
+    Assert.assertNull(event.getRecurrenceRule());
+    Assert.assertNull(event.getRecurrenceUntil());
+    Assert.assertNull(event.getRecurrenceExDate());
     Assert.assertEquals("20170824T140000", event.getRecurrenceReferenceId());
 
     // TODO apple_calendar_recurring_edit_futur_1
@@ -837,8 +871,8 @@ public class ICalHandlerTest
     Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-12 13:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
     Assert.assertEquals("Neuer Termin", event.getSubject());
     Assert.assertEquals(Integer.valueOf(0), event.getSequence());
-    Assert.assertEquals(null, event.getOrganizer());
-    Assert.assertEquals(null, event.getLocation());
+    Assert.assertNull(event.getOrganizer());
+    Assert.assertNull(event.getLocation());
     Assert.assertEquals(0, event.getAttendees().size());
 
     when(eventService.findByUid(Mockito.eq(100), Mockito.eq("bc939c07-4128-1647-acea-46345412e2e4"), Mockito.anyBoolean())).thenReturn(event);
@@ -865,8 +899,8 @@ public class ICalHandlerTest
     Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-12 13:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
     Assert.assertEquals("Test create", event.getSubject());
     Assert.assertEquals(Integer.valueOf(0), event.getSequence());
-    Assert.assertEquals(null, event.getOrganizer());
-    Assert.assertEquals(null, event.getLocation());
+    Assert.assertNull(event.getOrganizer());
+    Assert.assertNull(event.getLocation());
     Assert.assertEquals(0, event.getAttendees().size());
 
     // edit 2 --------------------------------------------------------------------------------------------------------------------
@@ -891,7 +925,7 @@ public class ICalHandlerTest
     Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-12 13:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
     Assert.assertEquals("Test create", event.getSubject());
     Assert.assertEquals(Integer.valueOf(2), event.getSequence());
-    Assert.assertEquals(null, event.getOrganizer());
+    Assert.assertNull(event.getOrganizer());
     Assert.assertEquals("adding location", event.getLocation());
     Assert.assertEquals(0, event.getAttendees().size());
 
@@ -917,7 +951,7 @@ public class ICalHandlerTest
     Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-13 13:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
     Assert.assertEquals("Test create", event.getSubject());
     Assert.assertEquals(Integer.valueOf(4), event.getSequence());
-    Assert.assertEquals(null, event.getOrganizer());
+    Assert.assertNull(event.getOrganizer());
     Assert.assertEquals("adding location", event.getLocation());
     Assert.assertEquals(0, event.getAttendees().size());
   }
@@ -953,15 +987,15 @@ public class ICalHandlerTest
     Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-12 14:15:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
     Assert.assertEquals("Recurring Dayly", event.getSubject());
     Assert.assertEquals(Integer.valueOf(0), event.getSequence());
-    Assert.assertEquals(null, event.getOrganizer());
-    Assert.assertEquals(null, event.getLocation());
-    Assert.assertEquals(null, event.getNote());
+    Assert.assertNull(event.getOrganizer());
+    Assert.assertNull(event.getLocation());
+    Assert.assertNull(event.getNote());
     Assert.assertEquals(0, event.getAttendees().size());
 
     Assert.assertEquals("FREQ=DAILY", event.getRecurrenceRule());
-    Assert.assertEquals(null, event.getRecurrenceUntil());
-    Assert.assertEquals(null, event.getRecurrenceExDate());
-    Assert.assertEquals(null, event.getRecurrenceReferenceId());
+    Assert.assertNull(event.getRecurrenceUntil());
+    Assert.assertNull(event.getRecurrenceExDate());
+    Assert.assertNull(event.getRecurrenceReferenceId());
 
     when(eventService.findByUid(Mockito.eq(100), Mockito.eq("6c7950a6-209b-7343-bff7-e356b18bc4aa"), Mockito.anyBoolean())).thenReturn(event);
 
@@ -988,15 +1022,15 @@ public class ICalHandlerTest
     Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-12 14:15:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
     Assert.assertEquals("Recurring Dayly", event.getSubject());
     Assert.assertEquals(Integer.valueOf(1), event.getSequence());
-    Assert.assertEquals(null, event.getOrganizer());
-    Assert.assertEquals(null, event.getLocation());
-    Assert.assertEquals(null, event.getNote());
+    Assert.assertNull(event.getOrganizer());
+    Assert.assertNull(event.getLocation());
+    Assert.assertNull(event.getNote());
     Assert.assertEquals(0, event.getAttendees().size());
 
     Assert.assertEquals("FREQ=DAILY", event.getRecurrenceRule());
-    Assert.assertEquals(null, event.getRecurrenceUntil());
+    Assert.assertNull(event.getRecurrenceUntil());
     Assert.assertEquals("20170819T111500", event.getRecurrenceExDate());
-    Assert.assertEquals(null, event.getRecurrenceReferenceId());
+    Assert.assertNull(event.getRecurrenceReferenceId());
 
     // add exception -------------------------------------------------------------------------------------------------------------
     handler = eventService.getEventHandler(calendar);
@@ -1021,35 +1055,35 @@ public class ICalHandlerTest
     Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-12 14:15:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
     Assert.assertEquals("Recurring Dayly", event.getSubject());
     Assert.assertEquals(Integer.valueOf(2), event.getSequence());
-    Assert.assertEquals(null, event.getOrganizer());
-    Assert.assertEquals(null, event.getLocation());
-    Assert.assertEquals(null, event.getNote());
+    Assert.assertNull(event.getOrganizer());
+    Assert.assertNull(event.getLocation());
+    Assert.assertNull(event.getNote());
     Assert.assertEquals(0, event.getAttendees().size());
 
     Assert.assertEquals("FREQ=DAILY", event.getRecurrenceRule());
-    Assert.assertEquals(null, event.getRecurrenceUntil());
+    Assert.assertNull(event.getRecurrenceUntil());
     Assert.assertEquals("20170819T111500,20170820T111500", event.getRecurrenceExDate());
-    Assert.assertEquals(null, event.getRecurrenceReferenceId());
+    Assert.assertNull(event.getRecurrenceReferenceId());
 
     Mockito.verify(teamEventDao, Mockito.times(2)).save(savedEvent.capture());
     event = savedEvent.getValue();
     Assert.assertNotNull(event);
 
     Assert.assertEquals(calendar, event.getCalendar());
-    Assert.assertEquals(null, event.getUid());
+    Assert.assertNull(event.getUid());
     Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-08 05:50:42.000", DateHelper.UTC).getTime(), event.getDtStamp().getTime());
     Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-20 12:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getStartDate().getTime());
     Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-20 13:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
     Assert.assertEquals("Recurring Dayly", event.getSubject());
     Assert.assertEquals(Integer.valueOf(3), event.getSequence());
-    Assert.assertEquals(null, event.getOrganizer());
-    Assert.assertEquals(null, event.getLocation());
-    Assert.assertEquals(null, event.getNote());
+    Assert.assertNull(event.getOrganizer());
+    Assert.assertNull(event.getLocation());
+    Assert.assertNull(event.getNote());
     Assert.assertEquals(0, event.getAttendees().size());
 
-    Assert.assertEquals(null, event.getRecurrenceRule());
-    Assert.assertEquals(null, event.getRecurrenceUntil());
-    Assert.assertEquals(null, event.getRecurrenceExDate());
+    Assert.assertNull(event.getRecurrenceRule());
+    Assert.assertNull(event.getRecurrenceUntil());
+    Assert.assertNull(event.getRecurrenceExDate());
     Assert.assertEquals("20170820T111500", event.getRecurrenceReferenceId());
 
     // TODO thunderbird_lightning_recurring_edit_all.ics
