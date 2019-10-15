@@ -24,7 +24,6 @@
 package org.projectforge.framework.persistence.api.impl
 
 import org.hibernate.Session
-import org.hibernate.criterion.Order
 import org.hibernate.search.Search.getFullTextSession
 import org.hibernate.search.query.dsl.QueryBuilder
 import org.projectforge.business.multitenancy.TenantChecker
@@ -36,7 +35,6 @@ import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import org.projectforge.framework.persistence.api.SortOrder
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
@@ -114,13 +112,14 @@ class DBFilterQuery {
             val fullTextSearchEntries = filter.fulltextSearchEntries
 
             val mode = if (fullTextSearchEntries.isNullOrEmpty()) {
-                DBGenericQueryBuilder.Mode.CRITERIA // Criteria search (no full text search entries found).
+                DBQueryBuilder.Mode.CRITERIA // Criteria search (no full text search entries found).
             } else {
-                DBGenericQueryBuilder.Mode.FULLTEXT
+                DBQueryBuilder.Mode.FULLTEXT
             }
 
-            val queryBuilder = DBGenericQueryBuilder<O>(baseDao, tenantService, mode,
+            val queryBuilder = DBQueryBuilder<O>(baseDao, tenantService, mode,
                     // Check here mixing fulltext and criteria searches in comparison to full text searches and DBResultMatchers.
+                    // If you set it to false, sorting isn't yet implemented (see DBQueryBuilder.addOrder(...) for details)!
                     combinedCriteriaSearch = true, // false is recommended by Hibernate, but true works for now...
                     ignoreTenant = ignoreTenant)
 
@@ -220,9 +219,7 @@ class DBFilterQuery {
                     var prop = sortProperty.property
                     if (prop.indexOf('.') > 0)
                         prop = prop.substring(prop.indexOf('.') + 1)
-                    val order = if (sortProperty.sortOrder == SortOrder.ASCENDING) Order.asc(prop)
-                    else Order.desc(prop)
-                    // TODO criteria.addOrder(order)
+                    queryBuilder.addOrder(sortProperty.sortOrder, prop)
                     if (--maxOrder <= 0)
                         break // Add only 3 orders.
                 }
