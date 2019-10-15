@@ -45,9 +45,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
 
-// Check here mixing fulltext and criteria searches in comparison to full text searches and DBResultMatchers.
-private const val COMBINE_FULLTEXT_AND_CRITERIA_SEARCH = false // not recommended
-
 @Service
 class DBFilterQuery {
     private class BuildContext(val doClass: Class<*>,
@@ -123,7 +120,8 @@ class DBFilterQuery {
             }
 
             val queryBuilder = DBGenericQueryBuilder<O>(baseDao, tenantService, mode,
-                    combinedCriteriaSearch = COMBINE_FULLTEXT_AND_CRITERIA_SEARCH,
+                    // Check here mixing fulltext and criteria searches in comparison to full text searches and DBResultMatchers.
+                    combinedCriteriaSearch = true, // false is recommended by Hibernate, but true works for now...
                     ignoreTenant = ignoreTenant)
 
             if (filter.deleted != null) {
@@ -158,10 +156,6 @@ class DBFilterQuery {
                         String::class.java -> {
                             when (it.searchType) {
                                 SearchType.FIELD_STRING_SEARCH -> {
-                                    //bc.query
-                                    //        .simpleQueryString()
-                                    //        .onField("history")
-                                    //        .matching("storm")
                                     queryBuilder.ilike(it.field!!, "${it.dbSearchString}")
                                 }
                                 SearchType.FIELD_RANGE_SEARCH -> {

@@ -58,7 +58,7 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Int>>(
     val criteria: Criteria
         get() {
             if (criteria_ == null) criteria_ = baseDao.session.createCriteria(baseDao.doClass)
-            return criteria
+            return criteria_!!
         }
 
     /**
