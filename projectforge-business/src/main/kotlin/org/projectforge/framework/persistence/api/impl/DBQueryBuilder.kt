@@ -64,7 +64,7 @@ internal class DBGenericQueryBuilder<O : ExtendedBaseDO<Int>>(
     private var dbQueryBuilderByCriteria_: DBQueryBuilderByCriteria<O>? = null
     private val dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O>
         get() {
-            if (dbQueryBuilderByCriteria_ == null) dbQueryBuilderByCriteria_ = DBQueryBuilderByCriteria<O>(baseDao)
+            if (dbQueryBuilderByCriteria_ == null) dbQueryBuilderByCriteria_ = DBQueryBuilderByCriteria<O>(baseDao, useHibernateCriteria = combinedCriteriaSearch)
             return dbQueryBuilderByCriteria_!!
         }
     private var dbQueryBuilderByFullText_: DBQueryBuilderByFullText<O>? = null
