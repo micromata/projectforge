@@ -26,10 +26,12 @@ package org.projectforge.framework.persistence.api.impl
 import org.projectforge.business.multitenancy.TenantService
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.SortOrder
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.slf4j.LoggerFactory
 
 
-internal class DBGenericQueryBuilder<O : ExtendedBaseDO<Int>>(
+internal class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
         val baseDao: BaseDao<O>,
         tenantService: TenantService,
         val mode: Mode,
@@ -60,11 +62,12 @@ internal class DBGenericQueryBuilder<O : ExtendedBaseDO<Int>>(
          */
         CRITERIA
     }
-
+    private val log = LoggerFactory.getLogger(DBQueryBuilder::class.java)
     private var dbQueryBuilderByCriteria_: DBQueryBuilderByCriteria<O>? = null
     private val dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O>
         get() {
-            if (dbQueryBuilderByCriteria_ == null) dbQueryBuilderByCriteria_ = DBQueryBuilderByCriteria<O>(baseDao, useHibernateCriteria = combinedCriteriaSearch)
+            if (dbQueryBuilderByCriteria_ == null) dbQueryBuilderByCriteria_ = DBQueryBuilderByCriteria<O>(baseDao,
+                    useHibernateCriteria = (mode != Mode.CRITERIA && combinedCriteriaSearch))
             return dbQueryBuilderByCriteria_!!
         }
     private var dbQueryBuilderByFullText_: DBQueryBuilderByFullText<O>? = null
@@ -157,6 +160,19 @@ internal class DBGenericQueryBuilder<O : ExtendedBaseDO<Int>>(
     }
 
     fun close() {
-        // Nothing to do.
+        if (mode == Mode.FULLTEXT) {
+            dbQueryBuilderByFullText.close()
+        }
+    }
+
+    /**
+     * Sorting is only implemented for criteria search (also if combined with full text search).
+     */
+    fun addOrder(sortOrder: SortOrder, field: String) {
+        if (mode == Mode.FULLTEXT && !combinedCriteriaSearch) {
+            log.warn("Sorting for full text search not supported if not combined with criteria search!")
+        } else {
+            dbQueryBuilderByCriteria.addOrder(sortOrder, field)
+        }
     }
 }
