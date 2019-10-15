@@ -23,177 +23,140 @@
 
 package org.projectforge.framework.persistence.api.impl
 
-import org.hibernate.Criteria
-import org.hibernate.Transaction
-import org.hibernate.criterion.Restrictions
-import org.hibernate.search.Search
-import org.hibernate.search.query.dsl.BooleanJunction
-import org.hibernate.search.query.dsl.QueryBuilder
 import org.projectforge.business.multitenancy.TenantService
-import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import javax.persistence.criteria.Predicate
 
 
-internal interface DBQueryBuilder<O : ExtendedBaseDO<Int>> {
-    fun result(): DBResultIterator<O>
-    fun equal(field: String, value: Any)
-    fun ilike(field: String, value: String)
-    fun fulltextSearch(searchString: String)
-    /**
-     * Should be called after processing the result set. The DBFullTextQueryBuilder must be closed for committing
-     * the transaction.
-     */
-    fun close()
-}
-
-internal class DBCriteriaBuilder<O : ExtendedBaseDO<Int>>(
-        private val baseDao: BaseDao<O>,
+internal class DBGenericQueryBuilder<O : ExtendedBaseDO<Int>>(
+        val baseDao: BaseDao<O>,
         tenantService: TenantService,
-        ignoreTenant: Boolean = false)
-    : DBQueryBuilder<O> {
-    private val cb = baseDao.session.getCriteriaBuilder()
-    private val cr = cb.createQuery(baseDao.doClass)
-    private val root = cr.from(baseDao.doClass)
-    private val predicates = mutableListOf<Predicate>()
+        val mode: Mode,
+        /**
+         * Not recommended, but it seems to work. Mixes fulltext search with criteria search if criteria search
+         * is needed. If false, DBResultMatcher's may be used for filtering fields without index (while iterating
+         * the result list).
+         */
+        val combinedCriteriaSearch: Boolean = false,
+        /**
+         * If given, these search fields are used. If not given, the search fields defined by the baseDao are used at default.
+         */
+        searchFields: Array<String>? = null,
+        ignoreTenant: Boolean = false) {
+
+    enum class Mode {
+        /**
+         * Standard full text search by using full text query builder.
+         */
+        FULLTEXT,
+        /**
+         * At default the query builder of the full text search is used. As an alternative, the query may be
+         * defined as a query string, e. g. '+name:sch* +kassel...'.
+         */
+        //FULLTEXT_PARSER, // Not yet implemented
+        /**
+         * Plain criteria search without full text search.
+         */
+        CRITERIA
+    }
+
+    private var dbQueryBuilderByCriteria_: DBQueryBuilderByCriteria<O>? = null
+    private val dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O>
+        get() {
+            if (dbQueryBuilderByCriteria_ == null) dbQueryBuilderByCriteria_ = DBQueryBuilderByCriteria<O>(baseDao)
+            return dbQueryBuilderByCriteria_!!
+        }
+    private var dbQueryBuilderByFullText_: DBQueryBuilderByFullText<O>? = null
+    private val dbQueryBuilderByFullText: DBQueryBuilderByFullText<O>
+        get() {
+            if (dbQueryBuilderByFullText_ == null) dbQueryBuilderByFullText_ = DBQueryBuilderByFullText<O>(baseDao)
+            return dbQueryBuilderByFullText_!!
+        }
+
+    /**
+     * As an alternative to the query builder of the full text search, Hibernate search supports a simple query string,
+     * e. g. '+name:sch* +kassel...'
+     */
+    //private val multiFieldParserQueryString = mutableListOf<String>()
+    /**
+     * matchers for filtering result list. Used e. g. for searching fields without index if criteria search is not
+     * configured.
+     */
+    private val dbResultMatchers = mutableListOf<DBResultMatcher>()
+
+    private val criteriaSearchAvailable: Boolean
+        get() = combinedCriteriaSearch || mode == Mode.CRITERIA
 
     init {
-
         if (!ignoreTenant && tenantService.isMultiTenancyAvailable) {
             val userContext = ThreadLocalUserContext.getUserContext()
             val currentTenant = userContext.currentTenant
             if (currentTenant != null) {
                 if (currentTenant.isDefault) {
-                    predicates.add(cb.or(cb.equal(root.get<Any>("tenant"), userContext.currentTenant),
-                            cb.isNull(root.get<Any>("tenant"))))
+                    addMatcher(DBResultMatcher.Or(DBResultMatcher.Equals("tenant", userContext.currentTenant),
+                            DBResultMatcher.IsNull("tenant")))
                 } else {
-                    predicates.add(cb.equal(root.get<Any>("tenant"), userContext.currentTenant))
+                    addMatcher(DBResultMatcher.Equals("tenant", userContext.currentTenant))
                 }
             }
         }
     }
 
-    override fun equal(field: String, value: Any) {
-        predicates.add(cb.equal(root.get<Any>(field), value))
-    }
-
-    override fun ilike(field: String, value: String) {
-        predicates.add(cb.like(cb.lower(root.get<String>(field)), value))
-    }
-
-    override fun result(): DBResultIterator<O> {
-        return DBCriteriaResultIterator(baseDao.session, cr.select(root).where(*predicates.toTypedArray()))
-    }
-
-    /**
-     * Not supported.
-     */
-    override fun fulltextSearch(searchString: String) {
-        throw UnsupportedOperationException("Method not supported by DBCriteriaQueryBuilder. Use DBFullTextQueryBuilder instead.")
-    }
-
-    override fun close() {
-        // Nothing to do.
-    }
-}
-
-internal class DBFullTextQueryBuilder<O : ExtendedBaseDO<Int>>(
-        val baseDao: BaseDao<O>,
-        tenantService: TenantService,
-        ignoreTenant: Boolean = false,
-        searchFields: Array<String>? = null,
-        val criteria: Criteria? = null)
-    : DBQueryBuilder<O> {
-    private var usedSearchFields = searchFields ?: baseDao.searchFields
-    private var queryBuilder: QueryBuilder
-    private var boolJunction: BooleanJunction<*>
-    private val transaction: Transaction
-    private val fullTextSession = Search.getFullTextSession(baseDao.session)
-    private val dbResultMatchers = mutableListOf<DBResultMatcher>()
-
-    init {
-        transaction = fullTextSession.beginTransaction()
-        queryBuilder = fullTextSession.searchFactory
-                .buildQueryBuilder().forEntity(baseDao.doClass).get()
-        boolJunction = queryBuilder.bool()
-        val fields = searchFields ?: baseDao.searchFields
-        val stringFields = mutableListOf<String>()
-        fields.forEach {
-            val field = PropUtils.getField(baseDao.doClass, it, true)
-            if (field?.type?.isAssignableFrom(String::class.java) == true) {
-                stringFields.add(it) // Search only for string fields, if no special field is specified.
-            }
+    fun equal(field: String, value: Any) {
+        if (criteriaSearchAvailable) {
+            dbQueryBuilderByCriteria.addEqualPredicate(field, value)
+            return
         }
-        usedSearchFields = stringFields.toTypedArray()
-        if (!ignoreTenant && tenantService.isMultiTenancyAvailable) {
-            val userContext = ThreadLocalUserContext.getUserContext()
-            val currentTenant = userContext.currentTenant
-            if (currentTenant != null) {
-                if (criteria != null) {
-                    // Tenant checking through given criteria:
-                    if (currentTenant.isDefault) {
-                        criteria.add(Restrictions.or(Restrictions.eq("tenant", userContext.currentTenant),
-                                Restrictions.isNull("tenant")))
-                    } else {
-                        criteria.add(Restrictions.eq("tenant", userContext.currentTenant))
-                    }
-                } else {
-                    // Tenant checking after receiving the result list by result matchers:
-                    if (currentTenant.isDefault) {
-                        dbResultMatchers.add(DBResultMatcher.Or(DBResultMatcher.Equals("tenant", userContext.currentTenant),
-                                DBResultMatcher.IsNull("tenant")))
-                    } else {
-                        dbResultMatchers.add(DBResultMatcher.Equals("tenant", userContext.currentTenant))
-                    }
-
-                }
-            }
-        }
-    }
-
-    override fun equal(field: String, value: Any) {
-        if (usedSearchFields.contains(field)) {
-            boolJunction = boolJunction.must(queryBuilder.keyword().onField(field).matching(value).createQuery())
-        } else if (criteria != null) {
-            criteria.add(Restrictions.eq(field, value))
+        // Full text search
+        if (dbQueryBuilderByFullText.fieldSupported(field)) {
+            dbQueryBuilderByFullText.equal(field, value)
         } else {
             dbResultMatchers.add(DBResultMatcher.Equals(field, value))
         }
     }
 
-    override fun ilike(field: String, value: String) {
-        search(value, field)
-    }
-
-    override fun fulltextSearch(searchString: String) {
-        search(searchString, *usedSearchFields)
-    }
-
-    override fun result(): DBResultIterator<O> {
-        return DBFullTextResultIterator(baseDao, fullTextSession, boolJunction.createQuery(), dbResultMatchers, criteria)
-    }
-
-    override fun close() {
-        transaction.commit()
-    }
-
-    private fun search(value: String, vararg fields: String) {
-        val str = value.replace('%', '*')
-        val context = if (str.indexOf('*') >= 0) {
-            if (fields.size > 1) {
-                queryBuilder.keyword().wildcard().onFields(*fields)
-            } else {
-                queryBuilder.keyword().wildcard().onField(fields[0])
-            }
+    fun ilike(field: String, value: String) {
+        if (mode == Mode.FULLTEXT && dbQueryBuilderByFullText.fieldSupported(field)) {
+            dbQueryBuilderByFullText.ilike(field, value)
         } else {
-            if (fields.size > 1) {
-                queryBuilder.keyword().onFields(*fields)
-            } else {
-                queryBuilder.keyword().onField(fields[0])
-            }
+            addMatcher(DBResultMatcher.Like(field, value))
         }
-        boolJunction = boolJunction.must(context.matching(str).createQuery())
+    }
+
+    /**
+     * Adds matcher to result matchers or, if criteria search is enabled, a new predicates for the criteria is appended.
+     */
+    private fun addMatcher(matcher: DBResultMatcher) {
+        if (criteriaSearchAvailable) {
+            dbQueryBuilderByCriteria.add(matcher)
+        } else {
+            dbResultMatchers.add(matcher)
+        }
+    }
+
+    fun result(): DBResultIterator<O> {
+        if (mode == Mode.FULLTEXT) {
+            if (combinedCriteriaSearch) {
+                return dbQueryBuilderByFullText.createResultIterator(dbResultMatchers, criteria = dbQueryBuilderByCriteria.buildCriteria())
+            }
+            return dbQueryBuilderByFullText.createResultIterator(dbResultMatchers, null)
+        }
+        return dbQueryBuilderByCriteria.createResultIterator()
+    }
+
+    /**
+     * Not supported.
+     */
+    fun fulltextSearch(searchString: String) {
+        if (mode == Mode.FULLTEXT) {
+            dbQueryBuilderByFullText.fulltextSearch(searchString)
+        } else {
+            throw UnsupportedOperationException("Internal error: FullTextQuery not available for string: " + searchString)
+        }
+    }
+
+    fun close() {
+        // Nothing to do.
     }
 }
