@@ -46,7 +46,7 @@ import org.springframework.stereotype.Service
 import java.util.*
 
 // Check here mixing fulltext and criteria searches in comparison to full text searches and DBResultMatchers.
-private const val MIX_FULLTEXT_AND_CRITERIA_SEARCH = false // not recommended
+private const val COMBINE_FULLTEXT_AND_CRITERIA_SEARCH = false // not recommended
 
 @Service
 class DBFilterQuery {
@@ -108,22 +108,24 @@ class DBFilterQuery {
      * @return
      */
     fun <O : ExtendedBaseDO<Int>> getList(baseDao: BaseDao<O>,
-                                                                                     filter: DBFilter,
-                                                                                     checkAccess: Boolean = true,
-                                                                                     ignoreTenant: Boolean = false)
+                                          filter: DBFilter,
+                                          checkAccess: Boolean = true,
+                                          ignoreTenant: Boolean = false)
             : List<O> {
         try {
             val criteriaSearchEntries = filter.criteriaSearchEntries
             val fullTextSearchEntries = filter.fulltextSearchEntries
 
-            val queryBuilder = if (fullTextSearchEntries.isNullOrEmpty()) {
-                DBCriteriaBuilder(baseDao, tenantService, ignoreTenant) // Criteria search (no full text search entries found).
-            } else if (MIX_FULLTEXT_AND_CRITERIA_SEARCH) {
-                val criteria = baseDao.session.createCriteria(baseDao.doClass)
-                DBFullTextQueryBuilder(baseDao, tenantService, ignoreTenant, criteria = criteria)
+            val mode = if (fullTextSearchEntries.isNullOrEmpty()) {
+                DBGenericQueryBuilder.Mode.CRITERIA // Criteria search (no full text search entries found).
             } else {
-                DBFullTextQueryBuilder(baseDao, tenantService, ignoreTenant)
+                DBGenericQueryBuilder.Mode.FULLTEXT
             }
+
+            val queryBuilder = DBGenericQueryBuilder<O>(baseDao, tenantService, mode,
+                    combinedCriteriaSearch = COMBINE_FULLTEXT_AND_CRITERIA_SEARCH,
+                    ignoreTenant = ignoreTenant)
+
             if (filter.deleted != null) {
                 queryBuilder.equal("deleted", filter.deleted!!)
             }
