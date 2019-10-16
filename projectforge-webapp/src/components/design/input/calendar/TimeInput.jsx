@@ -5,6 +5,10 @@ import AdvancedPopper from '../../popper/AdvancedPopper';
 import style from './CalendarInput.module.scss';
 import TimeInputUnit from './TimeInputUnit';
 
+const hourRegex = /^([01]?[0-9]|2[0-3]|)$/;
+const minuteRegex = /^([0-5]?[0-9]|)$/;
+
+
 function TimeInput(
     {
         id,
@@ -46,7 +50,7 @@ function TimeInput(
     };
 
     const handleHourChange = ({ target }) => {
-        if (!/^([01]?[0-9]|2[0-3]|)$/.test(target.value)) {
+        if (!hourRegex.test(target.value)) {
             return;
         }
 
@@ -54,7 +58,7 @@ function TimeInput(
     };
 
     const handleHourBlur = ({ target }) => {
-        if (!/^([01]?[0-9]|2[0-3])$/.test(target.value)) {
+        if (!hourRegex.test(target.value)) {
             return;
         }
 
@@ -62,7 +66,7 @@ function TimeInput(
     };
 
     const handleMinuteChange = ({ target }) => {
-        if (!/^([0-5]?[0-9]|)$/.test(target.value)) {
+        if (!minuteRegex.test(target.value)) {
             return;
         }
 
@@ -76,7 +80,7 @@ function TimeInput(
     };
 
     const handleMinuteBlur = ({ target }) => {
-        if (!/^([0-5]?[0-9])$/.test(target.value)) {
+        if (!minuteRegex.test(target.value)) {
             return;
         }
 
