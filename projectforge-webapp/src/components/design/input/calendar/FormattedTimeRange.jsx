@@ -42,7 +42,12 @@ function FormattedTimeRange(
             {fromInEditMode
                 ? (
                     <div ref={fromEditRef} className={style.editMode}>
-                        <TimeInput setTime={setFrom} time={from} id={`time-input-${id}-from`} />
+                        <TimeInput
+                            setTime={setFrom}
+                            time={from}
+                            id={`time-input-${id}-from`}
+                            showDate
+                        />
                     </div>
                 )
                 : (
@@ -56,7 +61,12 @@ function FormattedTimeRange(
             {toInEditMode
                 ? (
                     <div ref={toEditRef} className={style.editMode}>
-                        <TimeInput setTime={setTo} time={to} id={`time-input-${id}-to`} />
+                        <TimeInput
+                            setTime={setTo}
+                            time={to}
+                            id={`time-input-${id}-to`}
+                            showDate
+                        />
                     </div>
                 )
                 : (
