@@ -32,6 +32,7 @@ import org.hibernate.search.FullTextSession
 import org.projectforge.common.BeanHelper
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.slf4j.LoggerFactory
 import java.text.Collator
@@ -93,9 +94,11 @@ private const val MAX_RESULTS = 100
 internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
         val baseDao: BaseDao<O>,
         val fullTextSession: FullTextSession,
-        val query: org.apache.lucene.search.Query,
         val dbResultMatchers: List<DBResultMatcher>,
         val sortBys: Array<SortBy>,
+        val fullTextQuery: org.apache.lucene.search.Query? = null, // Full text query
+        val multiFieldQuery: List<String>? = null,         // MultiField query
+        val usedSearchFields: Array<String>? = null,       // MultiField query
         val criteria: Criteria? = null) // Not recommended
     : DBResultIterator<O> {
     private val log = LoggerFactory.getLogger(DBFullTextResultIterator::class.java)
@@ -174,7 +177,13 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
     }
 
     private fun nextResultBlock(): List<O> {
-        val fullTextQuery = fullTextSession.createFullTextQuery(query, baseDao.doClass)
+        val fullTextQuery = if (fullTextQuery != null) {
+            fullTextSession.createFullTextQuery(fullTextQuery, baseDao.doClass)
+        } else {
+            val queryString = multiFieldQuery?.joinToString(" ") ?: ""
+            val luceneQuery = HibernateSearchFilterUtils.createFullTextQuery(fullTextSession, usedSearchFields, queryString, baseDao.doClass)
+            fullTextSession.createFullTextQuery(luceneQuery, baseDao.doClass)
+        }
         if (criteria != null) {
             fullTextQuery.setCriteriaQuery(criteria)
         }
@@ -183,6 +192,6 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
 
         firstIndex += MAX_RESULTS
         @Suppress("UNCHECKED_CAST")
-        return fullTextQuery.resultList as List<O> // return a list of managed objects
+        return fullTextQuery.list() as List<O> // return a list of managed objects
     }
 }

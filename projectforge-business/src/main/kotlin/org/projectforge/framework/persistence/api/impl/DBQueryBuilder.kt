@@ -55,12 +55,13 @@ internal class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
          * At default the query builder of the full text search is used. As an alternative, the query may be
          * defined as a query string, e. g. '+name:sch* +kassel...'.
          */
-        //FULLTEXT_PARSER, // Not yet implemented
+        MULTI_FIELD_FULLTEXT_QUERY, // Not yet implemented
         /**
          * Plain criteria search without full text search.
          */
         CRITERIA
     }
+
     private val log = LoggerFactory.getLogger(DBQueryBuilder::class.java)
     private var dbQueryBuilderByCriteria_: DBQueryBuilderByCriteria<O>? = null
     private val dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O>
@@ -72,7 +73,7 @@ internal class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
     private var dbQueryBuilderByFullText_: DBQueryBuilderByFullText<O>? = null
     private val dbQueryBuilderByFullText: DBQueryBuilderByFullText<O>
         get() {
-            if (dbQueryBuilderByFullText_ == null) dbQueryBuilderByFullText_ = DBQueryBuilderByFullText<O>(baseDao)
+            if (dbQueryBuilderByFullText_ == null) dbQueryBuilderByFullText_ = DBQueryBuilderByFullText<O>(baseDao, useMultiFieldQueryParser = mode == Mode.MULTI_FIELD_FULLTEXT_QUERY)
             return dbQueryBuilderByFullText_!!
         }
 
@@ -89,6 +90,9 @@ internal class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
 
     private val criteriaSearchAvailable: Boolean
         get() = combinedCriteriaSearch || mode == Mode.CRITERIA
+
+    private val fullTextSearch: Boolean
+        get() = mode == Mode.FULLTEXT || mode == Mode.MULTI_FIELD_FULLTEXT_QUERY
 
     init {
         if (!ignoreTenant && tenantService.isMultiTenancyAvailable) {
@@ -119,7 +123,7 @@ internal class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
     }
 
     fun ilike(field: String, value: String) {
-        if (mode == Mode.FULLTEXT && dbQueryBuilderByFullText.fieldSupported(field)) {
+        if (fullTextSearch && dbQueryBuilderByFullText.fieldSupported(field)) {
             dbQueryBuilderByFullText.ilike(field, value)
         } else {
             addMatcher(DBResultMatcher.Like(field, value))
@@ -138,8 +142,8 @@ internal class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
     }
 
     fun result(): DBResultIterator<O> {
-        if (mode == Mode.FULLTEXT) {
-            if (combinedCriteriaSearch) {
+        if (fullTextSearch) {
+            if (mode == Mode.FULLTEXT && combinedCriteriaSearch) {
                 return dbQueryBuilderByFullText.createResultIterator(dbResultMatchers, criteria = dbQueryBuilderByCriteria.buildCriteria())
             }
             return dbQueryBuilderByFullText.createResultIterator(dbResultMatchers, null)
@@ -151,7 +155,7 @@ internal class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
      * Not supported.
      */
     fun fulltextSearch(searchString: String) {
-        if (mode == Mode.FULLTEXT) {
+        if (fullTextSearch) {
             dbQueryBuilderByFullText.fulltextSearch(searchString)
         } else {
             throw UnsupportedOperationException("Internal error: FullTextQuery not available for string: " + searchString)
@@ -159,7 +163,7 @@ internal class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
     }
 
     fun close() {
-        if (mode == Mode.FULLTEXT) {
+        if (fullTextSearch) {
             dbQueryBuilderByFullText.close()
         }
     }
@@ -168,7 +172,7 @@ internal class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
      * Sorting is only implemented for criteria search (also if combined with full text search).
      */
     fun addOrder(sortBy: SortBy) {
-        if (mode == Mode.FULLTEXT) {
+        if (fullTextSearch) {
             dbQueryBuilderByFullText.addOrder(sortBy)
         } else {
             dbQueryBuilderByCriteria.addOrder(sortBy)

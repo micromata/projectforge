@@ -34,6 +34,7 @@ import org.projectforge.framework.persistence.api.ExtendedBaseDO
 
 internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
         val baseDao: BaseDao<O>,
+        val useMultiFieldQueryParser: Boolean = false,
         searchFields: Array<String>? = null) {
     private var usedSearchFields = searchFields ?: baseDao.searchFields
     private var queryBuilder: QueryBuilder
@@ -41,6 +42,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     private val transaction: Transaction
     private val fullTextSession = Search.getFullTextSession(baseDao.session)
     private val sortBys = mutableListOf<SortBy>()
+    private val multiFieldQuery = mutableListOf<String>()
 
     init {
         transaction = fullTextSession.beginTransaction()
@@ -67,7 +69,11 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
      */
     fun equal(field: String, value: Any): Boolean {
         if (usedSearchFields.contains(field)) {
-            boolJunction = boolJunction.must(queryBuilder.keyword().onField(field).matching(value).createQuery())
+            if (useMultiFieldQueryParser) {
+                multiFieldQuery.add("+$field:$value")
+            } else {
+                boolJunction = boolJunction.must(queryBuilder.keyword().onField(field).matching(value).createQuery())
+            }
             return true
         }
         return false
@@ -82,7 +88,11 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     }
 
     fun createResultIterator(dbResultMatchers: List<DBResultMatcher>, criteria: Criteria?): DBResultIterator<O> {
-        return DBFullTextResultIterator(baseDao, fullTextSession, boolJunction.createQuery(), dbResultMatchers, sortBys.toTypedArray(), criteria)
+        return if (useMultiFieldQueryParser) {
+            DBFullTextResultIterator(baseDao, fullTextSession, dbResultMatchers, sortBys.toTypedArray(), usedSearchFields = usedSearchFields, multiFieldQuery = multiFieldQuery)
+        } else {
+            DBFullTextResultIterator(baseDao, fullTextSession, dbResultMatchers, sortBys.toTypedArray(), fullTextQuery = boolJunction.createQuery(), criteria = criteria)
+        }
     }
 
     fun close() {
@@ -91,20 +101,28 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
 
     private fun search(value: String, vararg fields: String) {
         val str = value.replace('%', '*')
-        val context = if (str.indexOf('*') >= 0) {
-            if (fields.size > 1) {
-                queryBuilder.keyword().wildcard().onFields(*fields)
+        if (useMultiFieldQueryParser) {
+            if (fields.isNotEmpty() && fields.size == 1) {
+                multiFieldQuery.add("+${fields[0]}:$str")
             } else {
-                queryBuilder.keyword().wildcard().onField(fields[0])
+                multiFieldQuery.add("+$str")
             }
         } else {
-            if (fields.size > 1) {
-                queryBuilder.keyword().onFields(*fields)
+            val context = if (str.indexOf('*') >= 0) {
+                if (fields.size > 1) {
+                    queryBuilder.keyword().wildcard().onFields(*fields)
+                } else {
+                    queryBuilder.keyword().wildcard().onField(fields[0])
+                }
             } else {
-                queryBuilder.keyword().onField(fields[0])
+                if (fields.size > 1) {
+                    queryBuilder.keyword().onFields(*fields)
+                } else {
+                    queryBuilder.keyword().onField(fields[0])
+                }
             }
+            boolJunction = boolJunction.must(context.matching(str).createQuery())
         }
-        boolJunction = boolJunction.must(context.matching(str).createQuery())
     }
 
     fun addOrder(sortBy: SortBy) {
