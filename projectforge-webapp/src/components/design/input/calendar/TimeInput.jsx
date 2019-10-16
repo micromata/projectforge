@@ -45,7 +45,7 @@ function TimeInput(
         setTime(newTime);
     };
 
-    const handleHourChange = ({target}) => {
+    const handleHourChange = ({ target }) => {
         if (!/^([01]?[0-9]|2[0-3]|)$/.test(target.value)) {
             return;
         }
@@ -61,7 +61,7 @@ function TimeInput(
         setHour(target.value);
     };
 
-    const handleMinuteChange = ({target}) => {
+    const handleMinuteChange = ({ target }) => {
         if (!/^([0-5]?[0-9]|)$/.test(target.value)) {
             return;
         }
