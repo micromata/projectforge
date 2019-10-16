@@ -23,21 +23,25 @@
 
 package org.projectforge.framework.persistence.api.impl
 
+import org.apache.commons.lang3.builder.CompareToBuilder
 import org.hibernate.Criteria
 import org.hibernate.ScrollMode
 import org.hibernate.ScrollableResults
 import org.hibernate.Session
 import org.hibernate.search.FullTextSession
+import org.projectforge.common.BeanHelper
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.slf4j.LoggerFactory
 import javax.persistence.criteria.CriteriaQuery
+
 
 /**
  * Generic interface for iterating over database search results (after criteria search as well as after full text query).
  */
 internal interface DBResultIterator<O : ExtendedBaseDO<Int>> {
     fun next(): O?
+    fun sort(list: List<O>): List<O>
 }
 
 /**
@@ -47,6 +51,13 @@ internal class DBEmptyResultIterator<O : ExtendedBaseDO<Int>>()
     : DBResultIterator<O> {
     override fun next(): O? {
         return null
+    }
+
+    /**
+     * Only implemented for sorting list after full text query.
+     */
+    override fun sort(list: List<O>): List<O> {
+        return list
     }
 }
 
@@ -69,6 +80,10 @@ internal class DBCriteriaResultIterator<O : ExtendedBaseDO<Int>>(
         @Suppress("UNCHECKED_CAST")
         return scrollableResults.get(0) as O
     }
+
+    override fun sort(list: List<O>): List<O> {
+        return list
+    }
 }
 
 private const val MAX_RESULTS = 100
@@ -78,6 +93,7 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
         val fullTextSession: FullTextSession,
         val query: org.apache.lucene.search.Query,
         val dbResultMatchers: List<DBResultMatcher>,
+        val sortBys: Array<SortBy>,
         val criteria: Criteria? = null) // Not recommended
     : DBResultIterator<O> {
     private val log = LoggerFactory.getLogger(DBFullTextResultIterator::class.java)
@@ -102,6 +118,35 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
             }
             return next
         }
+    }
+
+    override fun sort(list: List<O>): List<O> {
+        return list.sortedWith(object : Comparator<O> {
+            override fun compare(o1: O, o2: O): Int {
+                if (sortBys.isNullOrEmpty()) {
+                    return 0
+                }
+                val ctb = CompareToBuilder()
+                for (sortBy in sortBys) {
+                    val val1 = BeanHelper.getProperty(o1, sortBy.field)
+                    val val2 = BeanHelper.getProperty(o2, sortBy.field)
+                    if (val1 is Comparable<*>) {
+                        if (sortBy.ascending) {
+                            ctb.append(val1, val2)
+                        } else {
+                            ctb.append(val2, val1)
+                        }
+                    } else {
+                        if (sortBy.ascending) {
+                            ctb.append(val1?.toString(), val2?.toString())
+                        } else {
+                            ctb.append(val2?.toString(), val1?.toString())
+                        }
+                    }
+                }
+                return ctb.toComparison()
+            }
+        })
     }
 
     private fun internalNext(): O? {
