@@ -144,22 +144,20 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
             });
 
             input = (
-                <React.Fragment>
-                    <DateTimeRange
-                        id={data.id}
-                        onChange={setValue}
-                        {...value}
-                        setFrom={setFrom}
-                        setTo={setTo}
-                        selectors={[
-                            'YEAR',
-                            'MONTH',
-                            'WEEK',
-                            'DAY',
-                            'UNTIL_NOW',
-                        ]}
-                    />
-                </React.Fragment>
+                <DateTimeRange
+                    id={data.id}
+                    onChange={setValue}
+                    {...value}
+                    setFrom={setFrom}
+                    setTo={setTo}
+                    selectors={[
+                        'YEAR',
+                        'MONTH',
+                        'WEEK',
+                        'DAY',
+                        'UNTIL_NOW',
+                    ]}
+                />
             );
             break;
         }
