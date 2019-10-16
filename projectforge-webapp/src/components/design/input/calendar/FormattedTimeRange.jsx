@@ -22,6 +22,17 @@ function FormattedTimeRange(
     const fromEditRef = React.useRef(null);
     const toEditRef = React.useRef(null);
 
+    const handleFromClick = () => {
+        if (setFrom) {
+            setFromInEditMode(true);
+        }
+    };
+    const handleToClick = () => {
+        if (setTo) {
+            setToInEditMode(true);
+        }
+    };
+
     useClickOutsideHandler(fromEditRef, () => setFromInEditMode(false), fromInEditMode);
     useClickOutsideHandler(toEditRef, () => setToInEditMode(false), toInEditMode);
 
@@ -38,7 +49,7 @@ function FormattedTimeRange(
                     <FormattedDateTime
                         slot="FROM"
                         date={from}
-                        onClick={() => setFromInEditMode(true)}
+                        onClick={handleFromClick}
                     />
                 )}
             {' - '}
@@ -52,7 +63,7 @@ function FormattedTimeRange(
                     <FormattedDateTime
                         slot="TO"
                         date={to}
-                        onClick={() => setToInEditMode(true)}
+                        onClick={handleToClick}
                     />
                 )
             }
