@@ -29,7 +29,9 @@ public enum VisitorType implements I18nEnum
 {
   NORMAL("normal"),
   EXTENDED("extended"),
-  FAMILY("family");
+  FAMILY("family"),
+  SUPPLIER("supplier"),
+  WORKMAN("workman");
 
   private final String i18nKey;
 
