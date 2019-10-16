@@ -130,6 +130,34 @@ internal class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
         }
     }
 
+    fun <O> anyOf(field: String, vararg values: O) {
+        addMatcher(DBResultMatcher.AnyOf<O>(field, *values))
+    }
+
+    fun <O : Comparable<O>> between(field: String, from: O, to: O) {
+        if (fullTextSearch && dbQueryBuilderByFullText.fieldSupported(field)) {
+            dbQueryBuilderByFullText.between<O>(field, from, to)
+        } else {
+            addMatcher(DBResultMatcher.Between(field, from, to))
+        }
+    }
+
+    fun <O : Comparable<O>> greaterEqual(field: String, from: O) {
+        if (fullTextSearch && dbQueryBuilderByFullText.fieldSupported(field)) {
+            dbQueryBuilderByFullText.greaterEqual<O>(field, from)
+        } else {
+            addMatcher(DBResultMatcher.GreaterEqual(field, from))
+        }
+    }
+
+    fun <O : Comparable<O>> lessEqual(field: String, to: O) {
+        if (fullTextSearch && dbQueryBuilderByFullText.fieldSupported(field)) {
+            dbQueryBuilderByFullText.lessEqual<O>(field, to)
+        } else {
+            addMatcher(DBResultMatcher.LessEqual(field, to))
+        }
+    }
+
     /**
      * Adds matcher to result matchers or, if criteria search is enabled, a new predicates for the criteria is appended.
      */

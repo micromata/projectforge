@@ -26,6 +26,7 @@ package org.projectforge.framework.persistence.api.impl
 import org.hibernate.criterion.Criterion
 import org.hibernate.criterion.Restrictions
 import org.projectforge.common.BeanHelper
+import org.slf4j.LoggerFactory
 import java.util.*
 import javax.persistence.criteria.CriteriaBuilder
 import javax.persistence.criteria.Predicate
@@ -38,6 +39,10 @@ internal interface DBResultMatcher {
     fun match(obj: Any): Boolean
     fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate
     fun asHibernateCriterion(): Criterion
+
+    companion object {
+        private val log = LoggerFactory.getLogger(DBResultMatcher::class.java)
+    }
 
     class Equals(
             val field: String,
@@ -57,6 +62,113 @@ internal interface DBResultMatcher {
 
         override fun asHibernateCriterion(): Criterion {
             return Restrictions.eq(field, expectedValue)
+        }
+    }
+
+    class AnyOf<O>(
+            val field: String,
+            vararg val values: O)
+        : DBResultMatcher {
+        override fun match(obj: Any): Boolean {
+            val value = BeanHelper.getProperty(obj, field) ?: return false
+            for (v in  values) {
+                if (Objects.equals(v, value)) {
+                    return true
+                }
+            }
+            return false
+        }
+
+        /**
+         * Convert this matcher to JPA criteria for where clause in select.
+         */
+        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+            val exp = root.get<Any>(field)
+            val predicate = exp.`in`(values)
+            return cb.`in`(predicate)
+        }
+
+        override fun asHibernateCriterion(): Criterion {
+            return Restrictions.`in`(field, values)
+        }
+    }
+
+    class Between<O : Comparable<O>>(
+            val field: String,
+            val from: O,
+            val to: O)
+        : DBResultMatcher {
+        override fun match(obj: Any): Boolean {
+            val value = BeanHelper.getProperty(obj, field) ?: return false
+            if (from::class.java.isAssignableFrom(value::class.java)) {
+                @Suppress("UNCHECKED_CAST")
+                return from <= value as O && value <= to
+            }
+            log.warn("Between operator fails, because value isn't of type ${from::class.java}: $value")
+            return false
+        }
+
+        /**
+         * Convert this matcher to JPA criteria for where clause in select.
+         */
+        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+            return cb.between(root.get<O>(field), from, to)
+        }
+
+        override fun asHibernateCriterion(): Criterion {
+            return Restrictions.between(field, from, to)
+        }
+    }
+
+    class GreaterEqual<O : Comparable<O>>(
+            val field: String,
+            val from: O)
+        : DBResultMatcher {
+        override fun match(obj: Any): Boolean {
+            val value = BeanHelper.getProperty(obj, field) ?: return false
+            if (value::class.java.isAssignableFrom(value::class.java)) {
+                @Suppress("UNCHECKED_CAST")
+                return from <= value as O
+            }
+            log.warn("GreaterEqual operator fails, because value isn't of type ${from::class.java}: $value")
+            return false
+        }
+
+        /**
+         * Convert this matcher to JPA criteria for where clause in select.
+         */
+        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+            return cb.greaterThanOrEqualTo(root.get<O>(field), from)
+        }
+
+        override fun asHibernateCriterion(): Criterion {
+            return Restrictions.ge(field, from)
+        }
+    }
+
+    class LessEqual<O : Comparable<O>>(
+            val field: String,
+            val to: O)
+        : DBResultMatcher {
+        override fun match(obj: Any): Boolean {
+            val value = BeanHelper.getProperty(obj, field) ?: return false
+            if (value::class.java.isAssignableFrom(value::class.java)) {
+                @Suppress("UNCHECKED_CAST")
+                return value as O <= to
+            }
+            log.warn("LessEqual operator fails, because value isn't of type ${to::class.java}: $value")
+            return false
+        }
+
+        /**
+         * Convert this matcher to JPA criteria for where clause in select.
+         */
+        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+            return cb.lessThanOrEqualTo(root.get<O>(field), to)
+        }
+
+        override fun asHibernateCriterion(): Criterion {
+            return Restrictions.le(field, to)
         }
     }
 
