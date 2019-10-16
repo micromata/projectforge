@@ -116,7 +116,7 @@ class DBFilterQuery {
                 DBQueryBuilder.Mode.CRITERIA // Criteria search (no full text search entries found).
             } else {
                 DBQueryBuilder.Mode.FULLTEXT
-                //DBQueryBuilder.Mode.MULTI_FIELD_FULLTEXT_QUERY// FULLTEXT
+                //DBQueryBuilder.Mode.MULTI_FIELD_FULLTEXT_QUERY
             }
 
             val queryBuilder = DBQueryBuilder<O>(baseDao, tenantService, mode,
@@ -162,7 +162,7 @@ class DBFilterQuery {
                                     log.error("Unsupported searchType '${it.searchType}' for strings.")
                                 }
                                 SearchType.FIELD_VALUES_SEARCH -> {
-                                    //TODO criteria.add(Restrictions.`in`(it.field, it.values))
+                                    queryBuilder.anyOf(it.field!!, it.values)
                                 }
                                 else -> {
                                     log.error("Unsupported searchType '${it.searchType}' for strings.")
@@ -171,10 +171,13 @@ class DBFilterQuery {
                         }
                         Date::class.java -> {
                             if (it.fromValueDate != null) {
-                                //TODO if (it.toValueDate != null) criteria.add(Restrictions.between(it.field, it.fromValueDate, it.toValueDate))
-                                //TODO else criteria.add(Restrictions.ge(it.field, it.fromValueDate))
+                                if (it.toValueDate != null) {
+                                    queryBuilder.between(it.field!!, it.fromValueDate!!.utilDate, it.toValueDate!!.utilDate)
+                                } else {
+                                    queryBuilder.greaterEqual(it.field!!, it.fromValueDate!!.utilDate)
+                                }
                             } else if (it.toValueDate != null) {
-                                // TODO criteria.add(Restrictions.le(it.field, it.toValueDate))
+                                queryBuilder.lessEqual(it.field!!, it.toValueDate!!.utilDate)
                             } else log.error("Error while building query: fromValue and/or toValue must be given for filtering field '${it.field}'.")
                         }
                         Integer::class.java -> {
@@ -182,12 +185,12 @@ class DBFilterQuery {
                                 queryBuilder.equal(it.field!!, it.valueInt!!)
                             } else if (it.fromValueInt != null) {
                                 if (it.toValueInt != null) {
-                                    // TODO criteria.add(Restrictions.between(it.field, it.fromValue, it.toValue))
+                                    queryBuilder.between(it.field!!, it.fromValueInt!!, it.toValueInt!!)
                                 } else {
-                                    // TODO criteria.add(Restrictions.ge(it.field, it.fromValue))
+                                    queryBuilder.greaterEqual(it.field!!, it.fromValueInt!!)
                                 }
                             } else if (it.toValueInt != null) {
-                                // TODO criteria.add(Restrictions.le(it.field, it.toValue))
+                                queryBuilder.lessEqual(it.field!!, it.toValueInt!!)
                             } else {
                                 log.error("Querying field '${it.field}' of type '$fieldType' without value, fromValue and toValue. At least one required.")
                             }
@@ -201,7 +204,7 @@ class DBFilterQuery {
                                 if (recursive) {
                                     val taskIds = node.descendantIds
                                     taskIds.add(node.id)
-                                    // TODO criteria.add(Restrictions.`in`("task.id", taskIds))
+                                    queryBuilder.anyOf(it.field!!, taskIds)
                                     if (log.isDebugEnabled) {
                                         log.debug("search in tasks: $taskIds")
                                     }
