@@ -191,6 +191,7 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
 
     return (
         <Popper
+            direction="right"
             isOpen={isOpen}
             {...selectHandler}
             target={(
