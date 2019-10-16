@@ -26,7 +26,6 @@ package org.projectforge.framework.persistence.api.impl
 import org.projectforge.business.multitenancy.TenantService
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import org.projectforge.framework.persistence.api.SortOrder
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.slf4j.LoggerFactory
 
@@ -168,11 +167,11 @@ internal class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
     /**
      * Sorting is only implemented for criteria search (also if combined with full text search).
      */
-    fun addOrder(sortOrder: SortOrder, field: String) {
-        if (mode == Mode.FULLTEXT && !combinedCriteriaSearch) {
-            log.warn("Sorting for full text search not supported if not combined with criteria search!")
+    fun addOrder(sortBy: SortBy) {
+        if (mode == Mode.FULLTEXT) {
+            dbQueryBuilderByFullText.addOrder(sortBy)
         } else {
-            dbQueryBuilderByCriteria.addOrder(sortOrder, field)
+            dbQueryBuilderByCriteria.addOrder(sortBy)
         }
     }
 }

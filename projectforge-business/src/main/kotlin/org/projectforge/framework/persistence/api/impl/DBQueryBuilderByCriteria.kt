@@ -24,11 +24,9 @@
 package org.projectforge.framework.persistence.api.impl
 
 import org.hibernate.Criteria
-import org.hibernate.criterion.Order
 import org.hibernate.criterion.Restrictions
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import org.projectforge.framework.persistence.api.SortOrder
 import javax.persistence.criteria.CriteriaBuilder
 import javax.persistence.criteria.CriteriaQuery
 import javax.persistence.criteria.Predicate
@@ -67,7 +65,7 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Int>>(
      * predicates for criteria search.
      */
     private val predicates = mutableListOf<Predicate>()
-    private val orders = mutableListOf<javax.persistence.criteria.Order>()
+    private val order = mutableListOf<javax.persistence.criteria.Order>()
 
     fun add(matcher: DBResultMatcher) {
         if (useHibernateCriteria) {
@@ -86,25 +84,18 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Int>>(
     }
 
     fun createResultIterator(): DBResultIterator<O> {
-        return DBCriteriaResultIterator(baseDao.session, cr.select(root).where(*predicates.toTypedArray()).orderBy(*orders.toTypedArray()))
+        return DBCriteriaResultIterator(baseDao.session, cr.select(root).where(*predicates.toTypedArray()).orderBy(*order.toTypedArray()))
     }
 
     fun buildCriteria(): Criteria? {
         return criteria_ // Don't use criteria (it should be null, if not yet used
     }
 
-    fun addOrder(sortOrder: SortOrder, field: String) {
-        if (useHibernateCriteria) {
-            criteria.addOrder(when (sortOrder) {
-                SortOrder.ASCENDING -> Order.asc(field)
-                else -> Order.desc(field)
-            })
-        } else {
-            orders.add(
-                    when (sortOrder) {
-                        SortOrder.ASCENDING -> cb.asc(root.get<Any>(field))
-                        else -> cb.desc(root.get<Any>(field))
-                    })
-        }
+    fun addOrder(sortBy: SortBy) {
+        require(!useHibernateCriteria) { "Internal error: addOrder not supported for hibernate criterias." }
+        order.add(
+                if (sortBy.ascending) cb.asc(root.get<Any>(sortBy.field))
+                else cb.desc(root.get<Any>(sortBy.field))
+        )
     }
 }

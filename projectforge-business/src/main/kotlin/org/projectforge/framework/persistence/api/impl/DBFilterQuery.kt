@@ -35,6 +35,7 @@ import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.SortOrder
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
@@ -119,8 +120,7 @@ class DBFilterQuery {
 
             val queryBuilder = DBQueryBuilder<O>(baseDao, tenantService, mode,
                     // Check here mixing fulltext and criteria searches in comparison to full text searches and DBResultMatchers.
-                    // If you set it to false, sorting isn't yet implemented (see DBQueryBuilder.addOrder(...) for details)!
-                    combinedCriteriaSearch = true, // false is recommended by Hibernate, but true works for now...
+                    combinedCriteriaSearch = false, // false is recommended by Hibernate, but true works for now...
                     ignoreTenant = ignoreTenant)
 
             if (filter.deleted != null) {
@@ -219,7 +219,7 @@ class DBFilterQuery {
                     var prop = sortProperty.property
                     if (prop.indexOf('.') > 0)
                         prop = prop.substring(prop.indexOf('.') + 1)
-                    queryBuilder.addOrder(sortProperty.sortOrder, prop)
+                    queryBuilder.addOrder(SortBy(prop, sortProperty.sortOrder == SortOrder.ASCENDING))
                     if (--maxOrder <= 0)
                         break // Add only 3 orders.
                 }
@@ -237,8 +237,9 @@ class DBFilterQuery {
                 }
             }
             dbResultIterator = queryBuilder.result()
-            val list = createList(baseDao, dbResultIterator, filter, modificationData, checkAccess)
+            var list = createList(baseDao, dbResultIterator, filter, modificationData, checkAccess)
             queryBuilder.close()
+            list = dbResultIterator.sort(list)
 /*
         try {
             val fullTextSession = Search.getFullTextSession(session)

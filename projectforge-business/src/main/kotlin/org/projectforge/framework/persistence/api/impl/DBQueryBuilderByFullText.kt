@@ -40,6 +40,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     private var boolJunction: BooleanJunction<*>
     private val transaction: Transaction
     private val fullTextSession = Search.getFullTextSession(baseDao.session)
+    private val sortBys = mutableListOf<SortBy>()
 
     init {
         transaction = fullTextSession.beginTransaction()
@@ -81,7 +82,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     }
 
     fun createResultIterator(dbResultMatchers: List<DBResultMatcher>, criteria: Criteria?): DBResultIterator<O> {
-        return DBFullTextResultIterator(baseDao, fullTextSession, boolJunction.createQuery(), dbResultMatchers, criteria)
+        return DBFullTextResultIterator(baseDao, fullTextSession, boolJunction.createQuery(), dbResultMatchers, sortBys.toTypedArray(), criteria)
     }
 
     fun close() {
@@ -104,5 +105,9 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
             }
         }
         boolJunction = boolJunction.must(context.matching(str).createQuery())
+    }
+
+    fun addOrder(sortBy: SortBy) {
+        sortBys.add(SortBy(sortBy.field, sortBy.ascending))
     }
 }
