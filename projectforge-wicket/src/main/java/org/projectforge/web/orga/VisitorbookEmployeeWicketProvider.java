@@ -51,7 +51,7 @@ public class VisitorbookEmployeeWicketProvider extends AbstractEmployeeWicketPro
   public void initSortedEmployees()
   {
     if (sortedEmployees == null) {
-      sortedEmployees = employeeService.getAll(false);
+      sortedEmployees = employeeService.findAllActive(false);
       Set<EmployeeDO> assignedEmployees = visitorbook.getContactPersons();
       List<EmployeeDO> removeEmployeeList = new ArrayList<>();
       if (assignedEmployees != null) {

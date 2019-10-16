@@ -1,20 +1,20 @@
 package org.projectforge.web;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.utils.NumberHelper;
 import org.wicketstuff.select2.ChoiceProvider;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Created by blumenstein on 13.12.16.
  */
 public abstract class AbstractEmployeeWicketProvider extends ChoiceProvider<EmployeeDO>
 {
-  protected List<EmployeeDO> sortedEmployees;
+  protected Collection<EmployeeDO> sortedEmployees;
 
   protected transient EmployeeService employeeService;
 
@@ -35,7 +35,7 @@ public abstract class AbstractEmployeeWicketProvider extends ChoiceProvider<Empl
     return this;
   }
 
-  public List<EmployeeDO> getSortedEmployees()
+  public Collection<EmployeeDO> getSortedEmployees()
   {
     return sortedEmployees;
   }
