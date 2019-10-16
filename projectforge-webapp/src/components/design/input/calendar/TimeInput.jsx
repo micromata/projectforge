@@ -1,6 +1,8 @@
 import classNames from 'classnames';
+import moment from 'moment';
 import PropTypes from 'prop-types';
 import React from 'react';
+import { connect } from 'react-redux';
 import AdvancedPopper from '../../popper/AdvancedPopper';
 import style from './CalendarInput.module.scss';
 import TimeInputUnit from './TimeInputUnit';
@@ -12,8 +14,10 @@ const minuteRegex = /^([0-5]?[0-9]|)$/;
 function TimeInput(
     {
         id,
+        jsDateFormat,
         precision,
         setTime,
+        showDate,
         time,
     },
 ) {
@@ -47,6 +51,20 @@ function TimeInput(
         newTime.setMinutes(minute);
 
         setTime(newTime);
+    };
+
+    const handleDateBlur = ({ target }) => {
+        const newDate = moment(target.value, jsDateFormat);
+
+        if (!newDate.isValid()) {
+            return;
+        }
+
+        // Manipulating with MomentJS
+        newDate.hour(time.getHours());
+        newDate.minute(time.getMinutes());
+
+        setTime(newDate.toDate());
     };
 
     const handleHourChange = ({ target }) => {
@@ -90,6 +108,14 @@ function TimeInput(
     if (redirect) {
         return (
             <React.Fragment>
+                {showDate && (
+                    <input
+                        className={style.tempTimeInput}
+                        onBlur={handleDateBlur}
+                        defaultValue={moment(time)
+                            .format(jsDateFormat)}
+                    />
+                )}
                 <input
                     className={style.tempTimeInput}
                     onBlur={handleHourBlur}
@@ -183,13 +209,20 @@ function TimeInput(
 
 TimeInput.propTypes = {
     id: PropTypes.string.isRequired,
+    jsDateFormat: PropTypes.string.isRequired,
     setTime: PropTypes.func.isRequired,
     time: PropTypes.instanceOf(Date).isRequired,
     precision: PropTypes.oneOf([1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60]),
+    showDate: PropTypes.bool,
 };
 
 TimeInput.defaultProps = {
     precision: 5,
+    showDate: false,
 };
 
-export default TimeInput;
+const mapStateToProps = ({ authentication }) => ({
+    jsDateFormat: authentication.user.jsDateFormat,
+});
+
+export default connect(mapStateToProps)(TimeInput);
