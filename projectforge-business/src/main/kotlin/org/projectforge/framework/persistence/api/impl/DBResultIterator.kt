@@ -32,7 +32,9 @@ import org.hibernate.search.FullTextSession
 import org.projectforge.common.BeanHelper
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.slf4j.LoggerFactory
+import java.text.Collator
 import javax.persistence.criteria.CriteriaQuery
 
 
@@ -121,6 +123,7 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
     }
 
     override fun sort(list: List<O>): List<O> {
+        val collator = Collator.getInstance(ThreadLocalUserContext.getLocale())
         return list.sortedWith(object : Comparator<O> {
             override fun compare(o1: O, o2: O): Int {
                 if (sortBys.isNullOrEmpty()) {
@@ -130,7 +133,14 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
                 for (sortBy in sortBys) {
                     val val1 = BeanHelper.getProperty(o1, sortBy.field)
                     val val2 = BeanHelper.getProperty(o2, sortBy.field)
-                    if (val1 is Comparable<*>) {
+                    if (val1 is String) {
+                        // Strings should be compared by using locale dependent collator (especially for german Umlaute)
+                        if (sortBy.ascending) {
+                            ctb.append(val1, val2, collator)
+                        } else {
+                            ctb.append(val2, val1, collator)
+                        }
+                    } else if (val1 is Comparable<*>) {
                         if (sortBy.ascending) {
                             ctb.append(val1, val2)
                         } else {
