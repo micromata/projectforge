@@ -116,6 +116,7 @@ class DBFilterQuery {
                 DBQueryBuilder.Mode.CRITERIA // Criteria search (no full text search entries found).
             } else {
                 DBQueryBuilder.Mode.FULLTEXT
+                //DBQueryBuilder.Mode.MULTI_FIELD_FULLTEXT_QUERY// FULLTEXT
             }
 
             val queryBuilder = DBQueryBuilder<O>(baseDao, tenantService, mode,
