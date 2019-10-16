@@ -26,7 +26,7 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
     // Close Popper when clicking outside
     useClickOutsideHandler(popperRef, setIsOpen, isOpen);
 
-    let input;
+    let popperContent;
     let { label } = data;
 
     // disable eslint because variable is provided by react-select and can't be changed.
@@ -68,7 +68,7 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
     // Handle Different Types of Filters
     switch (data.filterType) {
         case 'STRING':
-            input = (
+            popperContent = (
                 <Input
                     label={data.label}
                     id={`editable-multi-value-input-${data.id}`}
@@ -79,7 +79,7 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
             );
             break;
         case 'COLOR_PICKER':
-            input = (
+            popperContent = (
                 <CalendarStyler calendar={data} submit={submitValue} />
             );
             break;
@@ -94,7 +94,7 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                     .join(', ')}`;
             }
 
-            input = (
+            popperContent = (
                 <ButtonGroup>
                     {data.values.map(selectValue => (
                         <Button
@@ -143,21 +143,24 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                 to,
             });
 
-            input = (
-                <DateTimeRange
-                    id={data.id}
-                    onChange={setValue}
-                    {...value}
-                    setFrom={setFrom}
-                    setTo={setTo}
-                    selectors={[
-                        'YEAR',
-                        'MONTH',
-                        'WEEK',
-                        'DAY',
-                        'UNTIL_NOW',
-                    ]}
-                />
+            popperContent = (
+                <React.Fragment>
+                    <span className="text-info">{data.label}</span>
+                    <DateTimeRange
+                        id={data.id}
+                        onChange={setValue}
+                        {...value}
+                        setFrom={setFrom}
+                        setTo={setTo}
+                        selectors={[
+                            'YEAR',
+                            'MONTH',
+                            'WEEK',
+                            'DAY',
+                            'UNTIL_NOW',
+                        ]}
+                    />
+                </React.Fragment>
             );
             break;
         }
@@ -168,7 +171,7 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
             );
         // Fallback for not implemented filterType
         default:
-            input = `${data.filterType} is not implemented yet.`;
+            popperContent = `${data.filterType} is not implemented yet.`;
     }
 
     const selectHandler = {
@@ -213,7 +216,7 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
             )}
         >
             <div ref={popperRef}>
-                {input}
+                {popperContent}
                 <Button color="success" block onClick={submitValue}>
                     <FontAwesomeIcon icon={faCheck} />
                 </Button>
