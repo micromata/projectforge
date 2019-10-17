@@ -24,6 +24,7 @@
 package org.projectforge.framework.persistence.api
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
 
 class MagicFilterEntry(
         /**
@@ -38,11 +39,13 @@ class MagicFilterEntry(
     /**
      * Find entries where the given field is equals or higher than the given fromValue (range search).
      */
+    @JsonProperty("from")
     var fromValue: String? = null
 
     /**
      * Find entries where the given field is equals or lower than the given toValue (range search).
      */
+    @JsonProperty("to")
     var toValue: String? = null
 
     /**
