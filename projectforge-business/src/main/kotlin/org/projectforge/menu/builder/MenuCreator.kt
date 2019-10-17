@@ -199,7 +199,7 @@ class MenuCreator {
         // Project management
         //
         menuItemDefHolder.add(MenuItemDef(MenuItemDefId.PROJECT_MANAGEMENT))
-                .add(MenuItemDef(MenuItemDefId.TASK_TREE, "taskTree"))
+                .add(MenuItemDef(MenuItemDefId.TASK_TREE, "wa/taskTree"))
                 .add(MenuItemDef(MenuItemDefId.TIMESHEET_LIST, "wa/timesheetList"))
                 .add(MenuItemDef(MenuItemDefId.MONTHLY_EMPLOYEE_REPORT, "wa/monthlyEmployeeReport"))
                 .add(MenuItemDef(MenuItemDefId.PERSONAL_STATISTICS, "wa/personalStatistics"))
