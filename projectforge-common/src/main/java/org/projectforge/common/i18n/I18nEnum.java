@@ -23,13 +23,11 @@
 
 package org.projectforge.common.i18n;
 
-import java.lang.reflect.Field;
-
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public interface I18nEnum {
-  public String getI18nKey();
+  String getI18nKey();
 
   /**
    * Used for accessing i18n keys through reflection.
@@ -37,7 +35,7 @@ public interface I18nEnum {
    * @param value The value to set (e. g. 'MISSED').
    * @return
    */
-  public static Enum<? extends I18nEnum> create(Class clazz, String value) {
+  static Enum<? extends I18nEnum> create(Class clazz, String value) {
     return Enum.valueOf((Class<Enum>) clazz, value);
   }
 }
