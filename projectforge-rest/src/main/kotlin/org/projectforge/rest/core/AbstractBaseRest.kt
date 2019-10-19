@@ -286,6 +286,7 @@ abstract class AbstractBaseRest<
      */
     @RequestMapping(RestPaths.LIST)
     fun getList(request: HttpServletRequest, @RequestBody filter: MagicFilter): ResultSet<*> {
+        fixMagicFilterFromClient(filter)
         val list = getList(this, baseDao, filter)
         saveCurrentFilter(filter)
         val resultSet = processResultSetBeforeExport(list)
@@ -306,6 +307,20 @@ abstract class AbstractBaseRest<
             userPrefService.putEntry(userPrefArea, Favorites.PREF_NAME_LIST, favorites)
         }
         return favorites
+    }
+
+    /**
+     * Workaround of parsing effects, e. g. from and to is given as json to value.
+     */
+    private fun fixMagicFilterFromClient(magicFilter: MagicFilter) {
+        if (magicFilter.entries.isNullOrEmpty())
+            return
+        for (entry in magicFilter.entries) {
+            if (entry.fromValue != null || entry.toValue != null) {
+                entry.value = null // Fix, because "{" is the value of parsing value json.
+            }
+        }
+        magicFilter.entries.removeIf { it.isEmpty }
     }
 
     private fun getCurrentFilter(): MagicFilter {
@@ -341,6 +356,7 @@ abstract class AbstractBaseRest<
      */
     @RequestMapping("filter/create")
     fun createFavoriteFilter(@RequestBody newFilter: MagicFilter): Map<String, Any> {
+        fixMagicFilterFromClient(newFilter)
         val favorites = getFilterFavorites()
         favorites.add(newFilter)
         val currentFilter = newFilter.clone() // A clone is needed, otherwise current and favorite of list are the same object.
@@ -376,6 +392,7 @@ abstract class AbstractBaseRest<
      */
     @RequestMapping("filter/update")
     fun updateFavoriteFilter(@RequestBody magicFilter: MagicFilter): Map<String, Any> {
+        fixMagicFilterFromClient(magicFilter)
         val favorites = getFilterFavorites()
         val id = magicFilter.id ?: return mapOf()
         favorites.remove(id)
@@ -655,7 +672,7 @@ abstract class AbstractBaseRest<
     }
 
     /**
-     * The filters are reset and the default returned.
+     * The current filter will be reset and returned.
      */
     @GetMapping(RestPaths.FILTER_RESET)
     fun filterReset(request: HttpServletRequest): MagicFilter {
