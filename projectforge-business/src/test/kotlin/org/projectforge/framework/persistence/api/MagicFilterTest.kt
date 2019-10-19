@@ -38,6 +38,6 @@ class MagicFilterTest {
         var obj = om.readValue(json, MagicFilter::class.java) as MagicFilter
         Assertions.assertEquals(1, obj.entries.size)
         Assertions.assertEquals("zipCode", obj.entries[0].field)
-        Assertions.assertEquals("12345", obj.entries[0].value)
+        Assertions.assertEquals("12345", obj.entries[0].value.str)
     }
 }
