@@ -139,9 +139,9 @@ class DBFilterQuery {
                     if (it.field == MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.fieldName) {
                         historySearchData.queryModifiedByUserId = NumberHelper.parseInteger(it.value)
                     } else if (it.field == MagicFilterEntry.HistorySearch.MODIFIED_INTERVAL.fieldName) {
-                        if (it.fromValue != null)
+                        if (it.fromValueDate != null)
                             historySearchData.queryModifiedFromDate = it.fromValueDate
-                        if (it.toValue != null)
+                        if (it.toValueDate != null)
                             historySearchData.queryModifiedToDate = it.toValueDate
                     } else if (it.field == MagicFilterEntry.HistorySearch.MODIFIED_HISTORY_VALUE.fieldName) {
                         // TODO
