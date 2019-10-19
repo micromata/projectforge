@@ -315,11 +315,6 @@ abstract class AbstractBaseRest<
     private fun fixMagicFilterFromClient(magicFilter: MagicFilter) {
         if (magicFilter.entries.isNullOrEmpty())
             return
-        for (entry in magicFilter.entries) {
-            if (entry.fromValue != null || entry.toValue != null) {
-                entry.value = null // Fix, because "{" is the value of parsing value json.
-            }
-        }
         magicFilter.entries.removeIf { it.isEmpty }
     }
 
