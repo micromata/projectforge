@@ -46,10 +46,7 @@ object MagicFilterProcessor {
         for (magicFilterEntry in magicFilter.entries) {
             var value = magicFilterEntry.value
             var field = magicFilterEntry.field
-            if (magicFilterEntry.fromValue != null || magicFilterEntry.toValue != null) {
-                magicFilterEntry.value = null // Fix, because "{" is the value of parsing value json.
-                value = null
-            } else if (magicFilterEntry.value.isNullOrBlank()) {
+            if (magicFilterEntry.isNoValueGiven) {
                 // Workaround for frontend-bug: (search string without field is given as field, not as value:
                 // Full text search (no field given).
                 value = magicFilterEntry.field
@@ -58,7 +55,7 @@ object MagicFilterProcessor {
 
             if (field.isNullOrBlank()) {
                 // Full text search (no field given).
-                dbFilter.allEntries.add(DBFilterEntry(value = magicFilterEntry.value, fulltextSearch = true))
+                dbFilter.allEntries.add(DBFilterEntry(value = value, fulltextSearch = true))
             } else {
                 // Field search.
                 dbFilter.allEntries.add(createFieldSearchEntry(entityClass, magicFilterEntry))

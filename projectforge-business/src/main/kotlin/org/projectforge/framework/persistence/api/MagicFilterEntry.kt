@@ -54,6 +54,15 @@ class MagicFilterEntry(
             return false
         }
 
+    val isNoValueGiven: Boolean
+        get() = value.isNullOrBlank() && fromValue.isNullOrBlank() && toValue.isNullOrBlank() && values.isNullOrEmpty()
+
+    /**
+     * True, if no value is given and the field is empty.
+     */
+    val isEmpty: Boolean
+        get() = isNoValueGiven && this.field.isNullOrBlank()
+
     /**
      * Find entries where the given field is equals or higher than the given fromValue (range search).
      */
