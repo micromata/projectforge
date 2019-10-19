@@ -44,18 +44,9 @@ object MagicFilterProcessor {
         dbFilter.sortAndLimitMaxRowsWhileSelect = magicFilter.sortAndLimitMaxRowsWhileSelect
         dbFilter.sortProperties = magicFilter.sortProperties
         for (magicFilterEntry in magicFilter.entries) {
-            var value = magicFilterEntry.value
-            var field = magicFilterEntry.field
-            if (magicFilterEntry.isNoValueGiven) {
-                // Workaround for frontend-bug: (search string without field is given as field, not as value:
+            if (magicFilterEntry.field.isNullOrBlank() && magicFilterEntry.value?.str.isNullOrBlank()) {
                 // Full text search (no field given).
-                value = magicFilterEntry.field
-                field = null
-            }
-
-            if (field.isNullOrBlank()) {
-                // Full text search (no field given).
-                dbFilter.allEntries.add(DBFilterEntry(value = value, fulltextSearch = true))
+                dbFilter.allEntries.add(DBFilterEntry(value = magicFilterEntry.value?.str, fulltextSearch = true))
             } else {
                 // Field search.
                 dbFilter.allEntries.add(createFieldSearchEntry(entityClass, magicFilterEntry))
@@ -67,21 +58,21 @@ object MagicFilterProcessor {
     internal fun createFieldSearchEntry(entityClass: Class<*>, magicFilterEntry: MagicFilterEntry): DBFilterEntry {
         val entry = DBFilterEntry()
         entry.field = magicFilterEntry.field
-        entry.value = magicFilterEntry.value
+        entry.value = magicFilterEntry.value?.str
         entry.fulltextSearch = false
         if (entry.isHistoryEntry) {
             if (entry.field == MagicFilterEntry.HistorySearch.MODIFIED_INTERVAL.fieldName) {
-                entry.fromValueDate = PFDateTime.parseUTCDate(magicFilterEntry.fromValue)
-                entry.toValueDate = PFDateTime.parseUTCDate(magicFilterEntry.toValue)
+                entry.fromValueDate = PFDateTime.parseUTCDate(magicFilterEntry.value?.fromValue)
+                entry.toValueDate = PFDateTime.parseUTCDate(magicFilterEntry.value?.toValue)
             } else if (entry.field == MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.fieldName) {
-                entry.valueInt = magicFilterEntry.value?.toIntOrNull()
+                entry.valueInt = magicFilterEntry.value?.str?.toIntOrNull()
             }
         } else {
             val fieldType = PropUtils.getField(entityClass, entry.field)?.type ?: String::class.java
             entry.type = fieldType
             if (fieldType == String::class.java) {
                 entry.searchType = if (entry.field.isNullOrBlank()) SearchType.STRING_SEARCH else SearchType.FIELD_STRING_SEARCH
-                val str = magicFilterEntry.value?.trim() ?: ""
+                val str = magicFilterEntry.value?.str?.trim() ?: ""
                 var plainStr = str
                 val dbStr: String
                 if (str.startsWith("*")) {
@@ -107,14 +98,14 @@ object MagicFilterProcessor {
                 entry.plainSearchString = plainStr
                 entry.dbSearchString = dbStr.toLowerCase()
             } else if (fieldType == Date::class.java) {
-                entry.fromValueDate = PFDateTime.parseUTCDate(magicFilterEntry.fromValue)
-                entry.toValueDate = PFDateTime.parseUTCDate(magicFilterEntry.toValue)
+                entry.fromValueDate = PFDateTime.parseUTCDate(magicFilterEntry.value?.fromValue)
+                entry.toValueDate = PFDateTime.parseUTCDate(magicFilterEntry.value?.toValue)
             } else if (fieldType == Integer::class.java) {
-                entry.valueInt = NumberHelper.parseInteger(magicFilterEntry.value)
-                entry.fromValueInt = NumberHelper.parseInteger(magicFilterEntry.fromValue)
-                entry.toValueInt = NumberHelper.parseInteger(magicFilterEntry.toValue)
+                entry.valueInt = NumberHelper.parseInteger(magicFilterEntry.value?.str)
+                entry.fromValueInt = NumberHelper.parseInteger(magicFilterEntry.value?.fromValue)
+                entry.toValueInt = NumberHelper.parseInteger(magicFilterEntry.value?.toValue)
             } else if (BaseDO::class.java.isAssignableFrom(fieldType)) {
-                entry.valueInt = NumberHelper.parseInteger(magicFilterEntry.value)
+                entry.valueInt = magicFilterEntry.value?.str?.toIntOrNull()
             } else {
                 log.warn("Search entry of type '${fieldType.name}' not yet supported for field '${entry.field}'.")
             }

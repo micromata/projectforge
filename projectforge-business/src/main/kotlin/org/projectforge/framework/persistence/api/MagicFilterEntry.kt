@@ -31,10 +31,33 @@ class MagicFilterEntry(
          * Optional name of a field for a field specific search. Null for global search.
          */
         var field: String? = null,
-        /**
-         * Value representsFind entries where the given field is equals to this given single value, or as search string.
-         */
-        var value: String? = null) {
+        stringValue: String? = null) {
+
+    class Value(
+            var str: String? = null,
+            /**
+             * Find entries where the given field is equals or higher than the given fromValue (range search).
+             */
+            @JsonProperty("from")
+            var fromValue: String? = null,
+
+            /**
+             * Find entries where the given field is equals or lower than the given toValue (range search).
+             */
+            @JsonProperty("to")
+            var toValue: String? = null,
+
+            /**
+             * Find entries where the given field has one of the given values).
+             */
+            var values: Array<String>? = null
+    )
+
+    var value: Value
+
+    init {
+        value = Value(stringValue)
+    }
 
     enum class HistorySearch(val fieldName: String, val i18nKey: String) {
         MODIFIED_BY_USER("modifiedByUser", "modifiedBy"),
@@ -55,31 +78,13 @@ class MagicFilterEntry(
         }
 
     val isNoValueGiven: Boolean
-        get() = value.isNullOrBlank() && fromValue.isNullOrBlank() && toValue.isNullOrBlank() && values.isNullOrEmpty()
+        get() = value == null || (value.str.isNullOrBlank() && value.fromValue.isNullOrBlank() && value.toValue.isNullOrBlank() && value.values.isNullOrEmpty())
 
     /**
      * True, if no value is given and the field is empty.
      */
     val isEmpty: Boolean
         get() = isNoValueGiven && this.field.isNullOrBlank()
-
-    /**
-     * Find entries where the given field is equals or higher than the given fromValue (range search).
-     */
-    @JsonProperty("from")
-    var fromValue: String? = null
-
-    /**
-     * Find entries where the given field is equals or lower than the given toValue (range search).
-     */
-    @JsonProperty("to")
-    var toValue: String? = null
-
-    /**
-     * Find entries where the given field has one of the given values).
-     */
-    var values: Array<String>? = null
-        private set
 
     @JsonIgnore
     var isNew: Boolean? = false

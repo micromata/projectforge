@@ -119,7 +119,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
     override fun getInitialList(request: HttpServletRequest): InitialListData {
         val taskId = NumberHelper.parseInteger(request.getParameter("taskId")) ?: return super.getInitialList(request)
         val filter = MagicFilter()
-        filter.entries.add(MagicFilterEntry("task", value = "$taskId"))
+        filter.entries.add(MagicFilterEntry("task", "$taskId"))
         return super.getInitialList(filter)
     }
 

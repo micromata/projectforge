@@ -34,7 +34,7 @@ class MagicFilterProcessorTest {
         val magicFilter = MagicFilter()
         magicFilter.entries.add(MagicFilterEntry("name", "rein*"))
         magicFilter.entries.add(MagicFilterEntry("zipCode", "12345"))
-        magicFilter.entries.add(MagicFilterEntry(value  = "fullTextSearch"))
+        magicFilter.entries.add(MagicFilterEntry(stringValue  = "fullTextSearch"))
         val dbFilter = MagicFilterProcessor.doIt(AddressDO::class.java, magicFilter)
         Assertions.assertEquals(2, dbFilter.criteriaSearchEntries.size)
         Assertions.assertEquals(1, dbFilter.fulltextSearchEntries.size)

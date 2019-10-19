@@ -68,7 +68,7 @@ class DBFilterQuery {
                                     /**
                                      * Search for this string in all history entries of the queried entities.
                                      */
-                                    var queryHistoryString: String? = null)
+                                    var queryHistorySearchString: String? = null)
 
     private val log = LoggerFactory.getLogger(DBFilterQuery::class.java)
 
@@ -144,8 +144,7 @@ class DBFilterQuery {
                         if (it.toValueDate != null)
                             historySearchData.queryModifiedToDate = it.toValueDate
                     } else if (it.field == MagicFilterEntry.HistorySearch.MODIFIED_HISTORY_VALUE.fieldName) {
-                        // TODO
-                        log.warn("TODO: Implement modifiedHistoryValue filter setting.")
+                        historySearchData.queryHistorySearchString = it.value
                     }
                 }
             }
@@ -308,8 +307,14 @@ class DBFilterQuery {
             baseSearchFilter.modifiedByUserId = modificationData.queryModifiedByUserId
             baseSearchFilter.startTimeOfModification = modificationData.queryModifiedFromDate?.utilDate
             baseSearchFilter.stopTimeOfModification = modificationData.queryModifiedToDate?.utilDate
+            baseSearchFilter.searchString = modificationData.queryHistorySearchString
             // Search now all history entries which were modified by the given user and/or in the given time period.
-            val idSet = baseDao.getHistoryEntries(baseDao.session, baseSearchFilter)
+            val idSet = if (baseSearchFilter.searchString.isNullOrBlank()) {
+                //baseDao.getHistoryEntriesFullTextSearch(baseDao.session, baseSearchFilter)
+                baseDao.getHistoryEntries(baseDao.session, baseSearchFilter) // No full text required.
+            } else {
+                baseDao.getHistoryEntriesFullTextSearch(baseDao.session, baseSearchFilter)
+            }
             while (next != null) {
                 if (!ensureUniqueSet.contains(next.id)) {
                     // Current result object wasn't yet proceeded.
