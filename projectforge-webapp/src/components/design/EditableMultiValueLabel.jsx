@@ -37,43 +37,37 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
 
     // Function to set value in react-select
     const submitValue = () => {
-        let sValue = value;
-
-        switch (data.filterType) {
-            case 'COLOR_PICKER':
-                if (data.id && data.bgColor) {
-                    fetch(getServiceURL('calendar/changeStyle', {
-                        calendarId: data.id,
-                        bgColor: data.bgColor,
-                    }), {
-                        method: 'GET',
-                        credentials: 'include',
-                    })
-                        .then(handleHTTPErrors)
-                        .then(response => response.json())
-                        .then(saveUpdateResponseInState)
-                        .catch(error => alert(`Internal error: ${error}`));
-                }
-                break;
-            case 'SELECT':
-                sValue = sValue.join(',');
-                break;
-            default:
+        if (data.filterType === 'COLOR_PICKER' && data.id && data.bgColor) {
+            fetch(getServiceURL('calendar/changeStyle', {
+                calendarId: data.id,
+                bgColor: data.bgColor,
+            }), {
+                method: 'GET',
+                credentials: 'include',
+            })
+                .then(handleHTTPErrors)
+                .then(response => response.json())
+                .then(saveUpdateResponseInState)
+                .catch(error => alert(`Internal error: ${error}`));
         }
 
         setIsOpen(false);
-        selectProps.setMultiValue(data.id, sValue);
+        selectProps.setMultiValue(data.id, value);
     };
 
     // Handle Different Types of Filters
     switch (data.filterType) {
         case 'STRING':
+            if (value.str) {
+                label = `${data.label}: ${value.str}`;
+            }
+
             popperContent = (
                 <Input
                     label={data.label}
                     id={`editable-multi-value-input-${data.id}`}
-                    value={value}
-                    onChange={event => setValue(event.target.value)}
+                    value={value.str}
+                    onChange={({ target }) => setValue({ str: target.value })}
                     autoFocus
                 />
             );
@@ -83,12 +77,14 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                 <CalendarStyler calendar={data} submit={submitValue} />
             );
             break;
-        case 'SELECT':
-            // TODO CONVERT STRING TO ARRAY
-            if (!Array.isArray(value)) {
-                setValue([]);
-            } else if (value.length !== 0) {
-                label = `${data.label}: ${value
+        case 'SELECT': {
+            const { values } = value;
+
+            if (!Array.isArray(values)) {
+                setValue({ values: [] });
+                break;
+            } else if (values.length !== 0) {
+                label = `${data.label}: ${values
                 // Find Labels for selected items by values
                     .map(v => data.values.find(dv => dv.value === v).label)
                     .join(', ')}`;
@@ -100,13 +96,15 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                         <Button
                             key={`multi-value-${data.key}-${selectValue.value}`}
                             onClick={() => {
-                                if (value.includes(selectValue.value)) {
-                                    setValue(value.filter(v => v !== selectValue.value));
+                                if (values.includes(selectValue.value)) {
+                                    setValue({
+                                        values: values.filter(v => v !== selectValue.value),
+                                    });
                                 } else {
-                                    setValue([...value, selectValue.value]);
+                                    setValue({ values: [...values, selectValue.value] });
                                 }
                             }}
-                            active={value.includes(selectValue.value)}
+                            active={values.includes(selectValue.value)}
                         >
                             {selectValue.label}
                         </Button>
@@ -114,11 +112,17 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                 </ButtonGroup>
             );
             break;
+        }
         case 'TIME_STAMP': {
-            if (!Object.isObject(value)) {
+            if (value.to === undefined || value.from === undefined) {
                 setValue({
-                    from: undefined,
-                    to: undefined,
+                    from: null,
+                    to: null,
+                });
+            } else if (typeof value.from === 'string' && typeof value.to === 'string') {
+                setValue({
+                    from: new Date(value.from),
+                    to: new Date(value.to),
                 });
             } else if (value.from && value.to) {
                 label = (
