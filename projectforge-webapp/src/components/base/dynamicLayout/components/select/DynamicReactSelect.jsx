@@ -48,7 +48,7 @@ function DynamicReactSelect(props) {
 
     return React.useMemo(() => {
         const onChange = (newValue) => {
-            setData({ [id]: newValue.value });
+            setData({ [id]: (newValue || {}).value });
         };
 
         const onFavoriteSelect = (favoriteId, name) => {
