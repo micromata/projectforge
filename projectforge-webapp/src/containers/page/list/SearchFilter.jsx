@@ -89,7 +89,7 @@ function SearchFilter() {
                 filterHelper.clearEntries();
                 break;
             case 'create-option':
-                filterHelper.addEntry({ value: value[value.length - 1].value });
+                filterHelper.addEntry({ value: { str: value[value.length - 1].value } });
                 break;
             case 'select-option':
                 filterHelper.addEntry({
@@ -101,6 +101,7 @@ function SearchFilter() {
             case 'pop-value':
             case 'remove-value':
                 if (meta.removedValue !== undefined) {
+                    console.log(meta.removedValue);
                     filterHelper.removeEntry(meta.removedValue.id || meta.removedValue.label);
                 }
                 break;
@@ -136,13 +137,13 @@ function SearchFilter() {
                 setMultiValue={handleSearchFilterValueChange}
                 value={entries.map(entry => ({
                     ...entry,
-                    key: entry.field || entry.value,
-                    label: entry.field || entry.value,
+                    key: entry.field || entry.value.str,
+                    label: entry.field || entry.value.str,
                     ...Array.findByField(options, 'id', entry.field),
                 }))}
                 values={entries.reduce((accumulator, currentValue) => ({
                     ...accumulator,
-                    [currentValue.field]: currentValue.value,
+                    [currentValue.field]: currentValue.value.str,
                 }), {})}
             />
         );
