@@ -348,6 +348,16 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     return idSet.contains(entry.getId());
   }
 
+  /**
+   * idSet.contains(entry.getId()) at default.
+   */
+  public boolean containsLong(final Set<Long> idSet, final O entry) {
+    if (idSet == null) {
+      return false;
+    }
+    return idSet.contains(entry.getId().longValue());
+  }
+
   protected List<O> selectUnique(final List<O> list) {
     @SuppressWarnings("unchecked") final List<O> result = (List<O>) CollectionUtils.select(list, PredicateUtils.uniquePredicate());
     return result;
