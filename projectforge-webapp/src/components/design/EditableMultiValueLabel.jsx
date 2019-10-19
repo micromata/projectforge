@@ -66,7 +66,7 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                 <Input
                     label={data.label}
                     id={`editable-multi-value-input-${data.id}`}
-                    value={value.str}
+                    value={value.str || ''}
                     onChange={({ target }) => setValue({ str: target.value })}
                     autoFocus
                 />
