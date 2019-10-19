@@ -59,7 +59,6 @@ public class PropUtils {
   }
 
   /**
-   *
    * @param clazz
    * @param property Nested properties are supported: task.project.title
    * @return
@@ -69,14 +68,19 @@ public class PropUtils {
   }
 
   /**
-   *
    * @param clazz
-   * @param property Nested properties are supported: task.project.title
+   * @param property        Nested properties are supported: task.project.title
    * @param suppressWarning If true, no warning message will be logged, if property not found.
    * @return
    */
   public static Field getField(final Class<?> clazz, final String property, boolean suppressWarning) {
     String[] nestedProps = StringUtils.split(property, '.');
+    if (nestedProps == null || nestedProps.length == 0) {
+      if (!suppressWarning) {
+        log.warn("Field '" + clazz.getName() + "." + property + "' not found (no property given).");
+      }
+      return null;
+    }
     Class<?> cls = clazz;
     Field field = null;
     for (String nestedProp : nestedProps) {
