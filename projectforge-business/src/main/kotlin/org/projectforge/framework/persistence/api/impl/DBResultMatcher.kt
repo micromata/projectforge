@@ -257,7 +257,7 @@ internal interface DBResultMatcher {
         }
 
         override fun asHibernateCriterion(): Criterion {
-            return Restrictions.or(*matcherList.map { it.asHibernateCriterion() }.toTypedArray())
+            return Restrictions.or(*matcherList.map { it.asHibernateCriterion() }.toTypedArray()) as Criterion
         }
     }
 }

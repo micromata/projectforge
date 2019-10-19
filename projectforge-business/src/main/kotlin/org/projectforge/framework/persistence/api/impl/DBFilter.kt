@@ -29,7 +29,7 @@ class DBFilter(
         /**
          * Optional entries for searching (keywords, field search, range search etc.)
          */
-        var entries: MutableList<DBFilterEntry> = mutableListOf(),
+        var allEntries: MutableList<DBFilterEntry> = mutableListOf(),
         var sortAndLimitMaxRowsWhileSelect: Boolean = true,
         var maxRows: Int = 50,
         /**
@@ -39,10 +39,10 @@ class DBFilter(
         var searchHistory: String? = null) {
 
     val criteriaSearchEntries
-        get() = entries.filter { !it.fulltextSearch }
+        get() = allEntries.filter { !it.fulltextSearch }
 
     val fulltextSearchEntries
-        get() = entries.filter { it.fulltextSearch }
+        get() = allEntries.filter { it.fulltextSearch }
 
     @Transient
     internal val log = org.slf4j.LoggerFactory.getLogger(DBFilter::class.java)

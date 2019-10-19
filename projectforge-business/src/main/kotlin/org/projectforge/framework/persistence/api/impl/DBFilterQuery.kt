@@ -32,10 +32,7 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.AccessException
-import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.api.BaseSearchFilter
-import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import org.projectforge.framework.persistence.api.SortOrder
+import org.projectforge.framework.persistence.api.*
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
@@ -62,9 +59,16 @@ class DBFilterQuery {
             get() = _query != null
     }
 
-    private class ModificationData(var queryModifiedByUserId: Int? = null,
-                                   var queryModifiedFromDate: PFDateTime? = null,
-                                   var queryModifiedToDate: PFDateTime? = null)
+    /**
+     * Searches the history table.
+     */
+    private class HistorySearchData(var queryModifiedByUserId: Int? = null,
+                                    var queryModifiedFromDate: PFDateTime? = null,
+                                    var queryModifiedToDate: PFDateTime? = null,
+                                    /**
+                                     * Search for this string in all history entries of the queried entities.
+                                     */
+                                    var queryHistoryString: String? = null)
 
     private val log = LoggerFactory.getLogger(DBFilterQuery::class.java)
 
@@ -127,8 +131,24 @@ class DBFilterQuery {
             if (filter.deleted != null) {
                 queryBuilder.equal("deleted", filter.deleted!!)
             }
-            val modificationData = ModificationData()
+            val historySearchData = HistorySearchData()
             // First, proceed all criteria search entries:
+
+            filter.allEntries.forEach {
+                if (it.isHistoryEntry) {
+                    if (it.field == MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.fieldName) {
+                        historySearchData.queryModifiedByUserId = NumberHelper.parseInteger(it.value)
+                    } else if (it.field == MagicFilterEntry.HistorySearch.MODIFIED_INTERVAL.fieldName) {
+                        if (it.fromValue != null)
+                            historySearchData.queryModifiedFromDate = it.fromValueDate
+                        if (it.toValue != null)
+                            historySearchData.queryModifiedToDate = it.toValueDate
+                    } else if (it.field == MagicFilterEntry.HistorySearch.MODIFIED_HISTORY_VALUE.fieldName) {
+                        // TODO
+                        log.warn("TODO: Implement modifiedHistoryValue filter setting.")
+                    }
+                }
+            }
 
             val criteriaSearch = true// fullTextSearchEntries.isNullOrEmpty() // Test here other strategies...
 
@@ -136,19 +156,8 @@ class DBFilterQuery {
                 for (it in criteriaSearchEntries) {
                     if (it.field.isNullOrBlank())
                         continue // Use only field specific query (others are done by full text search
-                    if (it.field == "modifiedBy") {
-                        modificationData.queryModifiedByUserId = NumberHelper.parseInteger(it.value)
-                        // TODO
-                        log.warn("TODO: Implement modifiedBy filter setting.")
-                        continue
-                    }
-                    if (it.field == "modifiedInterval") {
-                        if (it.fromValue != null)
-                            modificationData.queryModifiedFromDate = it.fromValueDate
-                        if (it.toValue != null)
-                            modificationData.queryModifiedToDate = it.toValueDate
-                        // TODO
-                        log.warn("TODO: Implement modifiedInterval filter setting.")
+                    if (it.isHistoryEntry) {
+                        // Not handled here...
                         continue
                     }
                     val fieldType = it.type
@@ -241,7 +250,7 @@ class DBFilterQuery {
                 }
             }
             dbResultIterator = queryBuilder.result()
-            var list = createList(baseDao, dbResultIterator, filter, modificationData, checkAccess)
+            var list = createList(baseDao, dbResultIterator, filter, historySearchData, checkAccess)
             queryBuilder.close()
             list = dbResultIterator.sort(list)
 /*
@@ -281,7 +290,7 @@ class DBFilterQuery {
         }
     }
 
-    private fun <O : ExtendedBaseDO<Int>> createList(baseDao: BaseDao<O>, dbResultIterator: DBResultIterator<O>, filter: DBFilter, modificationData: ModificationData,
+    private fun <O : ExtendedBaseDO<Int>> createList(baseDao: BaseDao<O>, dbResultIterator: DBResultIterator<O>, filter: DBFilter, modificationData: HistorySearchData,
                                                      checkAccess: Boolean)
             : List<O> {
         val superAdmin = TenantChecker.isSuperAdmin<ExtendedBaseDO<Int>>(ThreadLocalUserContext.getUser())
