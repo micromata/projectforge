@@ -36,6 +36,24 @@ class MagicFilterEntry(
          */
         var value: String? = null) {
 
+    enum class HistorySearch(val fieldName: String, val i18nKey: String) {
+        MODIFIED_BY_USER("modifiedByUser", "modifiedBy"),
+        MODIFIED_INTERVAL("modifiedInterval", "modificationTime"),
+        MODIFIED_HISTORY_VALUE("historySearch", "modifiedHistoryValue")
+    }
+
+    val isHistoryEntry: Boolean
+        get() {
+            if (this.field == null)
+                return false
+            for (historySearch in HistorySearch.values()) {
+                if (historySearch.fieldName == this.field) {
+                    return true
+                }
+            }
+            return false
+        }
+
     /**
      * Find entries where the given field is equals or higher than the given fromValue (range search).
      */

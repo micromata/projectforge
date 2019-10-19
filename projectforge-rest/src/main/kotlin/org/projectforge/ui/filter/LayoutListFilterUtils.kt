@@ -27,6 +27,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.core.AbstractBaseRest
 import org.projectforge.ui.*
@@ -42,19 +43,21 @@ class LayoutListFilterUtils {
                                  lc: LayoutContext): UINamedContainer {
             val container = UINamedContainer("searchFilter")
             val elements = mutableListOf<UILabelledElement>()
-            elements.add(UIFilterObjectElement("modifiedByUser",
-                    label = translate("modifiedBy"),
+            elements.add(UIFilterObjectElement(MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.fieldName,
+                    label = translate(MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.i18nKey),
                     autoCompletion = AutoCompletion<Int>(2,
                             //recent = listOf(AutoCompletion.Entry(42,"Fin Reinhard"), AutoCompletion.Entry(43, "Kai Reinhard")),
                             url = "user/ac")))
-            elements.add(UIFilterTimestampElement("modifiedInterval",
-                    label = translate("modificationTime"),
+            elements.add(UIFilterTimestampElement(MagicFilterEntry.HistorySearch.MODIFIED_INTERVAL.fieldName,
+                    label = translate(MagicFilterEntry.HistorySearch.MODIFIED_INTERVAL.i18nKey),
                     openInterval = true,
                     selectors = listOf(UIFilterTimestampElement.QuickSelector.YEAR,
                             UIFilterTimestampElement.QuickSelector.MONTH,
                             UIFilterTimestampElement.QuickSelector.WEEK,
                             UIFilterTimestampElement.QuickSelector.DAY,
                             UIFilterTimestampElement.QuickSelector.UNTIL_NOW)))
+            elements.add(UIFilterElement(MagicFilterEntry.HistorySearch.MODIFIED_HISTORY_VALUE.fieldName,
+                    label = translate(MagicFilterEntry.HistorySearch.MODIFIED_HISTORY_VALUE.i18nKey)))
 
             val baseDao = restService.baseDao
             val searchFields = baseDao.searchFields

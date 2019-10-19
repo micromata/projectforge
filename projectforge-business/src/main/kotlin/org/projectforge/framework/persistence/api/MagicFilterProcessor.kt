@@ -44,16 +44,24 @@ object MagicFilterProcessor {
         dbFilter.sortAndLimitMaxRowsWhileSelect = magicFilter.sortAndLimitMaxRowsWhileSelect
         dbFilter.sortProperties = magicFilter.sortProperties
         for (magicFilterEntry in magicFilter.entries) {
-            // Workarround for frontend-bug: (search string without field is given as field, not as value:
-            if (magicFilterEntry.value.isNullOrBlank()) {
+            var value = magicFilterEntry.value
+            var field = magicFilterEntry.field
+            if (magicFilterEntry.fromValue != null || magicFilterEntry.toValue != null) {
+                magicFilterEntry.value = null // Fix, because "{" is the value of parsing value json.
+                value = null
+            } else if (magicFilterEntry.value.isNullOrBlank()) {
+                // Workaround for frontend-bug: (search string without field is given as field, not as value:
                 // Full text search (no field given).
-                dbFilter.entries.add(DBFilterEntry(value = magicFilterEntry.field, fulltextSearch = true))
-            } else if (magicFilterEntry.field.isNullOrBlank()) {
+                value = magicFilterEntry.field
+                field = null
+            }
+
+            if (field.isNullOrBlank()) {
                 // Full text search (no field given).
-                dbFilter.entries.add(DBFilterEntry(value = magicFilterEntry.value, fulltextSearch = true))
+                dbFilter.allEntries.add(DBFilterEntry(value = magicFilterEntry.value, fulltextSearch = true))
             } else {
                 // Field search.
-                dbFilter.entries.add(createFieldSearchEntry(entityClass, magicFilterEntry))
+                dbFilter.allEntries.add(createFieldSearchEntry(entityClass, magicFilterEntry))
             }
         }
         return dbFilter
@@ -64,46 +72,55 @@ object MagicFilterProcessor {
         entry.field = magicFilterEntry.field
         entry.value = magicFilterEntry.value
         entry.fulltextSearch = false
-        val fieldType = PropUtils.getField(entityClass, entry.field)?.type ?: String::class.java
-        entry.type = fieldType
-        if (fieldType == String::class.java) {
-            entry.searchType = if (entry.field.isNullOrBlank()) SearchType.STRING_SEARCH else SearchType.FIELD_STRING_SEARCH
-            val str = magicFilterEntry.value?.trim() ?: ""
-            var plainStr = str
-            val dbStr: String
-            if (str.startsWith("*")) {
-                plainStr = plainStr.substring(1)
-                if (str.endsWith("*")) {
-                    plainStr = plainStr.substring(0, plainStr.lastIndex)
-                    dbStr = "%$plainStr%"
-                    entry.matchType = MatchType.CONTAINS
-                } else {
-                    dbStr = "%$plainStr"
-                    entry.matchType = MatchType.STARTS_WITH
-                }
-            } else {
-                if (str.endsWith("*")) {
-                    plainStr = plainStr.substring(0, plainStr.lastIndex)
-                    dbStr = "$plainStr%"
-                    entry.matchType = MatchType.ENDS_WITH
-                } else {
-                    entry.matchType = MatchType.EXACT
-                    dbStr = plainStr
-                }
+        if (entry.isHistoryEntry) {
+            if (entry.field == MagicFilterEntry.HistorySearch.MODIFIED_INTERVAL.fieldName) {
+                entry.fromValueDate = PFDateTime.parseUTCDate(magicFilterEntry.fromValue)
+                entry.toValueDate = PFDateTime.parseUTCDate(magicFilterEntry.toValue)
+            } else if (entry.field == MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.fieldName) {
+                entry.valueInt = magicFilterEntry.value?.toIntOrNull()
             }
-            entry.plainSearchString = plainStr
-            entry.dbSearchString = dbStr.toLowerCase()
-        } else if (fieldType == Date::class.java) {
-            entry.fromValueDate = PFDateTime.parseUTCDate(magicFilterEntry.fromValue)
-            entry.toValueDate = PFDateTime.parseUTCDate(magicFilterEntry.toValue)
-        } else if (fieldType == Integer::class.java) {
-            entry.valueInt = NumberHelper.parseInteger(magicFilterEntry.value)
-            entry.fromValueInt = NumberHelper.parseInteger(magicFilterEntry.fromValue)
-            entry.toValueInt = NumberHelper.parseInteger(magicFilterEntry.toValue)
-        } else if (BaseDO::class.java.isAssignableFrom(fieldType)) {
-            entry.valueInt = NumberHelper.parseInteger(magicFilterEntry.value)
         } else {
-            log.warn("Search entry of type '${fieldType.name}' not yet supported for field '${entry.field}'.")
+            val fieldType = PropUtils.getField(entityClass, entry.field)?.type ?: String::class.java
+            entry.type = fieldType
+            if (fieldType == String::class.java) {
+                entry.searchType = if (entry.field.isNullOrBlank()) SearchType.STRING_SEARCH else SearchType.FIELD_STRING_SEARCH
+                val str = magicFilterEntry.value?.trim() ?: ""
+                var plainStr = str
+                val dbStr: String
+                if (str.startsWith("*")) {
+                    plainStr = plainStr.substring(1)
+                    if (str.endsWith("*")) {
+                        plainStr = plainStr.substring(0, plainStr.lastIndex)
+                        dbStr = "%$plainStr%"
+                        entry.matchType = MatchType.CONTAINS
+                    } else {
+                        dbStr = "%$plainStr"
+                        entry.matchType = MatchType.STARTS_WITH
+                    }
+                } else {
+                    if (str.endsWith("*")) {
+                        plainStr = plainStr.substring(0, plainStr.lastIndex)
+                        dbStr = "$plainStr%"
+                        entry.matchType = MatchType.ENDS_WITH
+                    } else {
+                        entry.matchType = MatchType.EXACT
+                        dbStr = plainStr
+                    }
+                }
+                entry.plainSearchString = plainStr
+                entry.dbSearchString = dbStr.toLowerCase()
+            } else if (fieldType == Date::class.java) {
+                entry.fromValueDate = PFDateTime.parseUTCDate(magicFilterEntry.fromValue)
+                entry.toValueDate = PFDateTime.parseUTCDate(magicFilterEntry.toValue)
+            } else if (fieldType == Integer::class.java) {
+                entry.valueInt = NumberHelper.parseInteger(magicFilterEntry.value)
+                entry.fromValueInt = NumberHelper.parseInteger(magicFilterEntry.fromValue)
+                entry.toValueInt = NumberHelper.parseInteger(magicFilterEntry.toValue)
+            } else if (BaseDO::class.java.isAssignableFrom(fieldType)) {
+                entry.valueInt = NumberHelper.parseInteger(magicFilterEntry.value)
+            } else {
+                log.warn("Search entry of type '${fieldType.name}' not yet supported for field '${entry.field}'.")
+            }
         }
         return entry
     }
