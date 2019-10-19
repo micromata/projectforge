@@ -227,7 +227,7 @@ public class SearchServiceImpl implements SearchService
       return Collections.emptySet();
     }
     final Set<Integer> idSet = new HashSet<>();
-    HibernateSearchFilterUtils.getHistoryEntriesFromSearch(session, filter, idSet, entClass);
+    HibernateSearchFilterUtils.getHistoryEntriesFromFullTextSearch(session, filter, idSet, entClass);
 
     return idSet;
   }
