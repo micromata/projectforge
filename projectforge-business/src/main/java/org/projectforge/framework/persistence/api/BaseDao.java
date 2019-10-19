@@ -1423,6 +1423,12 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     throw new UnsupportedOperationException("Mass update is not supported by this dao for: " + clazz.getName());
   }
 
+  /**
+   * Searches all history entries matching the given modified by user and modification intervall. Any given search
+   * string will be ignored. Use {@link #getHistoryEntriesFullTextSearch(Session, BaseSearchFilter)} for searching
+   * for strings.
+   * @see HibernateSearchFilterUtils#getHistoryEntriesDirect(Session, BaseSearchFilter, Set, Class)
+   */
   public Set<Integer> getHistoryEntries(final Session session, final BaseSearchFilter filter) {
     if (!hasLoggedInUserSelectAccess(false) || !hasLoggedInUserHistoryAccess(false)) {
       // User has in general no access to history entries of the given object type (clazz).
@@ -1438,14 +1444,22 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     return idSet;
   }
 
-  Set<Integer> searchHistoryEntries(final Session session, final BaseSearchFilter filter) {
+  /**
+   * Searches all history entries matching the given modified by user, interval of modification and any given search string.
+   * @see HibernateSearchFilterUtils#getHistoryEntriesFromFullTextSearch(Session, BaseSearchFilter, Set, Class)
+   */
+  public Set<Integer> getHistoryEntriesFullTextSearch(final Session session, final BaseSearchFilter filter) {
     if (!hasLoggedInUserSelectAccess(false) || !hasLoggedInUserHistoryAccess(false)) {
       // User has in general no access to history entries of the given object type (clazz).
       return null;
     }
-    final Set<Integer> idSet = new HashSet<Integer>();
-    HibernateSearchFilterUtils.getHistoryEntriesFromSearch(session, filter, idSet, clazz);
-
+    final Set<Integer> idSet = new HashSet();
+    HibernateSearchFilterUtils.getHistoryEntriesFromFullTextSearch(session, filter, idSet, clazz);
+    if (getAdditionalHistorySearchDOs() != null) {
+      for (final Class<?> aclazz : getAdditionalHistorySearchDOs()) {
+        HibernateSearchFilterUtils.getHistoryEntriesFromFullTextSearch(session, filter, idSet, aclazz);
+      }
+    }
     return idSet;
   }
 

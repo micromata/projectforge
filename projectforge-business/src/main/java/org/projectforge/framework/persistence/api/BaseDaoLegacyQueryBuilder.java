@@ -169,7 +169,7 @@ public class BaseDaoLegacyQueryBuilder {
     }
     if (searchFilter.isSearchHistory() && searchFilter.isSearchNotEmpty()) {
       // Search now all history for the given search string.
-      final Set<Integer> idSet = baseDao.searchHistoryEntries(baseDao.getSession(), searchFilter);
+      final Set<Integer> idSet = baseDao.getHistoryEntriesFullTextSearch(baseDao.getSession(), searchFilter);
       if (CollectionUtils.isNotEmpty(idSet)) {
         for (final O entry : list) {
           if (idSet.contains(entry.getId())) {
