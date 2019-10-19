@@ -34,7 +34,6 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.*
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -58,17 +57,6 @@ class DBFilterQuery {
         val fullText
             get() = _query != null
     }
-
-    /**
-     * Searches the history table.
-     */
-    private class HistorySearchData(var queryModifiedByUserId: Int? = null,
-                                    var queryModifiedFromDate: PFDateTime? = null,
-                                    var queryModifiedToDate: PFDateTime? = null,
-                                    /**
-                                     * Search for this string in all history entries of the queried entities.
-                                     */
-                                    var queryHistorySearchString: String? = null)
 
     private val log = LoggerFactory.getLogger(DBFilterQuery::class.java)
 
@@ -131,20 +119,20 @@ class DBFilterQuery {
             if (filter.deleted != null) {
                 queryBuilder.equal("deleted", filter.deleted!!)
             }
-            val historySearchData = HistorySearchData()
+            val historySearchParams = DBHistoryQuery.SearchParams()
             // First, proceed all criteria search entries:
 
             filter.allEntries.forEach {
                 if (it.isHistoryEntry) {
                     if (it.field == MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.fieldName) {
-                        historySearchData.queryModifiedByUserId = NumberHelper.parseInteger(it.value)
+                        historySearchParams.modifiedByUserId = NumberHelper.parseInteger(it.value)
                     } else if (it.field == MagicFilterEntry.HistorySearch.MODIFIED_INTERVAL.fieldName) {
                         if (it.fromValueDate != null)
-                            historySearchData.queryModifiedFromDate = it.fromValueDate
+                            historySearchParams.modifiedFrom = it.fromValueDate
                         if (it.toValueDate != null)
-                            historySearchData.queryModifiedToDate = it.toValueDate
+                            historySearchParams.modifiedTo = it.toValueDate
                     } else if (it.field == MagicFilterEntry.HistorySearch.MODIFIED_HISTORY_VALUE.fieldName) {
-                        historySearchData.queryHistorySearchString = it.value
+                        historySearchParams.searchString = it.value
                     }
                 }
             }
@@ -249,7 +237,7 @@ class DBFilterQuery {
                 }
             }
             dbResultIterator = queryBuilder.result()
-            var list = createList(baseDao, dbResultIterator, filter, historySearchData, checkAccess)
+            var list = createList(baseDao, dbResultIterator, filter, historySearchParams, checkAccess)
             queryBuilder.close()
             list = dbResultIterator.sort(list)
 /*
@@ -289,7 +277,9 @@ class DBFilterQuery {
         }
     }
 
-    private fun <O : ExtendedBaseDO<Int>> createList(baseDao: BaseDao<O>, dbResultIterator: DBResultIterator<O>, filter: DBFilter, modificationData: HistorySearchData,
+    private fun <O : ExtendedBaseDO<Int>> createList(baseDao: BaseDao<O>,
+                                                     dbResultIterator: DBResultIterator<O>,
+                                                     filter: DBFilter, historySearchParams: DBHistoryQuery.SearchParams,
                                                      checkAccess: Boolean)
             : List<O> {
         val superAdmin = TenantChecker.isSuperAdmin<ExtendedBaseDO<Int>>(ThreadLocalUserContext.getUser())
@@ -299,28 +289,29 @@ class DBFilterQuery {
         var next: O? = dbResultIterator.next() ?: return list
         val ensureUniqueSet = mutableSetOf<Int>()
         var resultCounter = 0
-        if (modificationData.queryModifiedByUserId != null
-                || modificationData.queryModifiedFromDate != null
-                || modificationData.queryModifiedToDate != null
+        if (historySearchParams.modifiedByUserId != null
+                || historySearchParams.modifiedFrom != null
+                || historySearchParams.modifiedTo != null
                 || !filter.searchHistory.isNullOrBlank()) {
             val baseSearchFilter = BaseSearchFilter()
-            baseSearchFilter.modifiedByUserId = modificationData.queryModifiedByUserId
-            baseSearchFilter.startTimeOfModification = modificationData.queryModifiedFromDate?.utilDate
-            baseSearchFilter.stopTimeOfModification = modificationData.queryModifiedToDate?.utilDate
-            baseSearchFilter.searchString = modificationData.queryHistorySearchString
+            baseSearchFilter.modifiedByUserId = historySearchParams.modifiedByUserId
+            baseSearchFilter.startTimeOfModification = historySearchParams.modifiedFrom?.utilDate
+            baseSearchFilter.stopTimeOfModification = historySearchParams.modifiedTo?.utilDate
+            baseSearchFilter.searchString = historySearchParams.searchString
             // Search now all history entries which were modified by the given user and/or in the given time period.
             val idSet = if (baseSearchFilter.searchString.isNullOrBlank()) {
-                //baseDao.getHistoryEntriesFullTextSearch(baseDao.session, baseSearchFilter)
-                baseDao.getHistoryEntries(baseDao.session, baseSearchFilter) // No full text required.
+                DBHistoryQuery.searchHistoryEntryByCriteria(baseDao.session, baseDao.doClass, historySearchParams)
+                //baseDao.getHistoryEntries(baseDao.session, baseSearchFilter) // No full text required.
             } else {
-                baseDao.getHistoryEntriesFullTextSearch(baseDao.session, baseSearchFilter)
+                DBHistoryQuery.searchHistoryEntryByFullTextQuery(baseDao.session, baseDao.doClass, historySearchParams)
+                //baseDao.getHistoryEntriesFullTextSearch(baseDao.session, baseSearchFilter)
             }
             while (next != null) {
                 if (!ensureUniqueSet.contains(next.id)) {
                     // Current result object wasn't yet proceeded.
                     ensureUniqueSet.add(next.id) // Mark current object as already proceeded (ensure uniqueness)
                     if ((!checkAccess || baseDao.hasSelectAccess(next, loggedInUser, superAdmin))
-                            && baseDao.contains(idSet, next)) {
+                            && baseDao.containsLong(idSet, next)) {
                         // Current result object fits the modified query:
                         list.add(next)
                         if (++resultCounter >= filter.maxRows) {
@@ -330,7 +321,6 @@ class DBFilterQuery {
                 }
                 next = dbResultIterator.next()
             }
-            log.error("History search not yet implemented.")
         } else {
             // No modified query
             while (next != null) {
