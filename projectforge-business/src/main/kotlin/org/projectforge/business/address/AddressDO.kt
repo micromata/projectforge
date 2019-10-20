@@ -524,8 +524,6 @@ class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
     companion object {
         private val log = org.slf4j.LoggerFactory.getLogger(AddressDO::class.java)
 
-        private const val serialVersionUID = 974064367925158463L
-
         /**
          * Used for representation in the data base and for hibernate search (lucene).
          */
