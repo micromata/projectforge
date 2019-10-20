@@ -50,11 +50,6 @@ public class TaskStatusTest
     Assertions.assertTrue(N.isIn(O, C, N));
     Assertions.assertFalse(O.isIn(C, N));
     Assertions.assertFalse(C.isIn(new TaskStatus[] {}));
-    try {
-      Assertions.assertFalse(C.isIn(null));
-    } catch (NullPointerException e) {
-      Assertions.assertNotNull(e);
-    }
   }
 
   @Test

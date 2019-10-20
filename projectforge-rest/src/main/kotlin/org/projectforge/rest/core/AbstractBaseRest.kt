@@ -285,7 +285,7 @@ abstract class AbstractBaseRest<
      * Get the list of all items matching the given filter.
      */
     @RequestMapping(RestPaths.LIST)
-    fun getList(request: HttpServletRequest, @RequestBody filter: MagicFilter): ResultSet<*> {
+    fun getList(@RequestBody filter: MagicFilter): ResultSet<*> {
         fixMagicFilterFromClient(filter)
         val list = getList(this, baseDao, filter)
         saveCurrentFilter(filter)
@@ -670,7 +670,7 @@ abstract class AbstractBaseRest<
      * The current filter will be reset and returned.
      */
     @GetMapping(RestPaths.FILTER_RESET)
-    fun filterReset(request: HttpServletRequest): MagicFilter {
+    fun filterReset(): MagicFilter {
         val filter = getCurrentFilter()
         filter.reset()
         return filter
