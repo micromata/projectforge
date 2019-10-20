@@ -46,11 +46,11 @@ public class KostZuweisungDao extends BaseDao<KostZuweisungDO>
 
   /**
    * User must member of group finance or controlling.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess()
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException)
+  public boolean hasUserSelectAccess(final PFUserDO user, final boolean throwException)
   {
     return accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.FINANCE_GROUP,
         ProjectForgeGroup.CONTROLLING_GROUP);
@@ -59,17 +59,17 @@ public class KostZuweisungDao extends BaseDao<KostZuweisungDO>
   /**
    * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess(PFUserDO,
    *      org.projectforge.core.ExtendedBaseDO, boolean)
-   * @see #hasSelectAccess(PFUserDO, boolean)
+   * @see #hasUserSelectAccess(PFUserDO, boolean)
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final KostZuweisungDO obj, final boolean throwException)
+  public boolean hasUserSelectAccess(final PFUserDO user, final KostZuweisungDO obj, final boolean throwException)
   {
-    return hasSelectAccess(user, throwException);
+    return hasUserSelectAccess(user, throwException);
   }
 
   /**
    * User must member of group finance.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#hasAccess(Object, OperationType)
    */
   @Override

@@ -204,7 +204,7 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
    * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess()
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException) {
+  public boolean hasUserSelectAccess(final PFUserDO user, final boolean throwException) {
     return true;
   }
 
@@ -214,7 +214,7 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
    * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess(BaseDO, boolean)
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final GroupTaskAccessDO obj, final boolean throwException) {
+  public boolean hasUserSelectAccess(final PFUserDO user, final GroupTaskAccessDO obj, final boolean throwException) {
     Validate.notNull(obj);
     boolean result = accessChecker.isUserMemberOfAdminGroup(user);
     if (!result && !obj.isDeleted()) {

@@ -495,7 +495,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
    * return Always true, no generic select access needed for address objects.
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException) {
+  public boolean hasUserSelectAccess(final PFUserDO user, final boolean throwException) {
     return true;
   }
 
@@ -532,7 +532,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
    * hidden (empty strings).
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final TimesheetDO obj, final boolean throwException) {
+  public boolean hasUserSelectAccess(final PFUserDO user, final TimesheetDO obj, final boolean throwException) {
     if (!hasAccess(user, obj, null, OperationType.SELECT, false)) {
       // User has no access by definition.
       if (accessChecker.userEquals(user, obj.getUser())
@@ -555,7 +555,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
         return true;
       }
     }
-    return super.hasSelectAccess(user, obj, throwException);
+    return super.hasUserSelectAccess(user, obj, throwException);
   }
 
   @Override

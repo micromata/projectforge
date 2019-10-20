@@ -302,16 +302,16 @@ public class TaskDao extends BaseDao<TaskDO> {
    * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess(java.lang.Object, boolean)
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final TaskDO obj, final boolean throwException) {
+  public boolean hasUserSelectAccess(final PFUserDO user, final TaskDO obj, final boolean throwException) {
     if (accessChecker.isUserMemberOfGroup(user, false, ProjectForgeGroup.ADMIN_GROUP, ProjectForgeGroup.FINANCE_GROUP,
         ProjectForgeGroup.CONTROLLING_GROUP)) {
       return true;
     }
-    return super.hasSelectAccess(user, obj, throwException);
+    return super.hasUserSelectAccess(user, obj, throwException);
   }
 
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException) {
+  public boolean hasUserSelectAccess(final PFUserDO user, final boolean throwException) {
     return true;
   }
 

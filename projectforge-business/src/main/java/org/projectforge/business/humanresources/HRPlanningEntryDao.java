@@ -49,9 +49,9 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @Repository
 public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO>
@@ -200,7 +200,7 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO>
 
   /**
    * Checks week date on: monday, 0:00:00.000 and if check fails then the date will be set to.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#onSaveOrModify(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
@@ -221,12 +221,12 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO>
   }
 
   /**
-   * @see HRPlanningDao#hasSelectAccess(PFUserDO, boolean)
+   * @see HRPlanningDao#hasUserSelectAccess(PFUserDO, boolean)
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException)
+  public boolean hasUserSelectAccess(final PFUserDO user, final boolean throwException)
   {
-    return hrPlanningDao.hasSelectAccess(user, throwException);
+    return hrPlanningDao.hasUserSelectAccess(user, throwException);
   }
 
   /**
@@ -244,9 +244,9 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO>
    * @see HRPlanningDao#hasUserSelectAccess(HRPlanningDO, boolean)
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final HRPlanningEntryDO obj, final boolean throwException)
+  public boolean hasUserSelectAccess(final PFUserDO user, final HRPlanningEntryDO obj, final boolean throwException)
   {
-    return hrPlanningDao.hasSelectAccess(user, obj.getPlanning(), throwException);
+    return hrPlanningDao.hasUserSelectAccess(user, obj.getPlanning(), throwException);
   }
 
   @Override

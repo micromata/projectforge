@@ -180,7 +180,7 @@ public class TaskFilter extends BaseSearchFilter
       taskVisibility.put(task.getId(), false);
       return false;
     }
-    if (taskDao != null && !taskDao.hasSelectAccess(user, node.getTask(), false)) {
+    if (taskDao != null && !taskDao.hasUserSelectAccess(user, node.getTask(), false)) {
       return false;
     }
     final PFUserDO responsibleUser = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache()

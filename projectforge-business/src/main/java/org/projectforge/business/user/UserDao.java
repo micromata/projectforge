@@ -329,11 +329,11 @@ public class UserDao extends BaseDao<PFUserDO> {
   /**
    * @return false, if no admin user and the context user is not at minimum in one groups assigned to the given user or
    * false. Also deleted and deactivated users are only visible for admin users.
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess(PFUserDO, ExtendedBaseDO, boolean) )
+   * @see org.projectforge.framework.persistence.api.BaseDao#hasUserSelectAccess(PFUserDO, ExtendedBaseDO, boolean) )
    * @see AccessChecker#areUsersInSameGroup(PFUserDO, PFUserDO)
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final PFUserDO obj, final boolean throwException) {
+  public boolean hasUserSelectAccess(final PFUserDO user, final PFUserDO obj, final boolean throwException) {
     boolean result = accessChecker.isUserMemberOfAdminGroup(user)
             || accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP,
             ProjectForgeGroup.CONTROLLING_GROUP);
@@ -350,7 +350,7 @@ public class UserDao extends BaseDao<PFUserDO> {
   }
 
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException) {
+  public boolean hasUserSelectAccess(final PFUserDO user, final boolean throwException) {
     return true;
   }
 

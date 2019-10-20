@@ -162,7 +162,7 @@ public class BuchungssatzDao extends BaseDao<BuchungssatzDO> {
    * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess()
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException) {
+  public boolean hasUserSelectAccess(final PFUserDO user, final boolean throwException) {
     return accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.FINANCE_GROUP,
             ProjectForgeGroup.CONTROLLING_GROUP);
   }
@@ -170,11 +170,11 @@ public class BuchungssatzDao extends BaseDao<BuchungssatzDO> {
   /**
    * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess(PFUserDO,
    * org.projectforge.core.ExtendedBaseDO, boolean)
-   * @see #hasSelectAccess(PFUserDO, boolean)
+   * @see #hasUserSelectAccess(PFUserDO, boolean)
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final BuchungssatzDO obj, final boolean throwException) {
-    return hasSelectAccess(user, throwException);
+  public boolean hasUserSelectAccess(final PFUserDO user, final BuchungssatzDO obj, final boolean throwException) {
+    return hasUserSelectAccess(user, throwException);
   }
 
   /**

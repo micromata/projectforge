@@ -382,11 +382,11 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * @param superAdmin   Super admin has access to entries of all tenants
    * @return true if loggedInUser has select access.
    * @see TenantChecker#isPartOfCurrentTenant(BaseDO)
-   * @see #hasSelectAccess(PFUserDO, ExtendedBaseDO, boolean)
+   * @see #hasUserSelectAccess(PFUserDO, ExtendedBaseDO, boolean)
    */
   public boolean hasSelectAccess(O obj, PFUserDO loggedInUser, boolean superAdmin) {
     return (superAdmin || tenantChecker.isPartOfCurrentTenant(obj))
-            && hasSelectAccess(loggedInUser, obj, false);
+            && hasUserSelectAccess(loggedInUser, obj, false);
   }
 
   /**
@@ -1017,7 +1017,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * Checks the basic select access right. Overload this method if your class supports this right.
    */
   public void checkLoggedInUserSelectAccess() throws AccessException {
-    if (!hasSelectAccess(ThreadLocalUserContext.getUser(), true)) {
+    if (!hasUserSelectAccess(ThreadLocalUserContext.getUser(), true)) {
       // Should not occur!
       log.error("Development error: Subclass should throw an exception instead of returning false.");
       throw new UserException(UserException.I18N_KEY_PLEASE_CONTACT_DEVELOPER_TEAM);
@@ -1025,7 +1025,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   }
 
   protected void checkLoggedInUserSelectAccess(final O obj) throws AccessException {
-    if (!hasSelectAccess(ThreadLocalUserContext.getUser(), obj, true)) {
+    if (!hasUserSelectAccess(ThreadLocalUserContext.getUser(), obj, true)) {
       // Should not occur!
       log.error("Development error: Subclass should throw an exception instead of returning false.");
       throw new UserException(UserException.I18N_KEY_PLEASE_CONTACT_DEVELOPER_TEAM);
@@ -1083,10 +1083,10 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * Checks the basic select access right. Overwrite this method if the basic select access should be checked.
    *
    * @return true at default or if readWriteUserRightId is given hasReadAccess(boolean).
-   * @see #hasSelectAccess(PFUserDO, ExtendedBaseDO, boolean)
+   * @see #hasUserSelectAccess(PFUserDO, ExtendedBaseDO, boolean)
    */
   public boolean hasLoggedInUserSelectAccess(final boolean throwException) {
-    return hasSelectAccess(ThreadLocalUserContext.getUser(), throwException);
+    return hasUserSelectAccess(ThreadLocalUserContext.getUser(), throwException);
   }
 
   /**
@@ -1095,7 +1095,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * @return true at default or if readWriteUserRightId is given hasReadAccess(boolean).
    * @see #hasAccess(PFUserDO, ExtendedBaseDO, ExtendedBaseDO, OperationType, boolean)
    */
-  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException) {
+  public boolean hasUserSelectAccess(final PFUserDO user, final boolean throwException) {
     return hasAccess(user, null, null, OperationType.SELECT, throwException);
   }
 
@@ -1136,10 +1136,10 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * @param obj Check access to this object.
-   * @see #hasSelectAccess(PFUserDO, ExtendedBaseDO, boolean)
+   * @see #hasUserSelectAccess(PFUserDO, ExtendedBaseDO, boolean)
    */
   public boolean hasLoggedInUserSelectAccess(final O obj, final boolean throwException) {
-    return hasSelectAccess(ThreadLocalUserContext.getUser(), obj, throwException);
+    return hasUserSelectAccess(ThreadLocalUserContext.getUser(), obj, throwException);
   }
 
   /**
@@ -1148,7 +1148,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * @param obj  Check access to this object.
    * @see #hasAccess(PFUserDO, ExtendedBaseDO, ExtendedBaseDO, OperationType, boolean)
    */
-  public boolean hasSelectAccess(final PFUserDO user, final O obj, final boolean throwException) {
+  public boolean hasUserSelectAccess(final PFUserDO user, final O obj, final boolean throwException) {
     return hasAccess(user, obj, null, OperationType.SELECT, throwException);
   }
 
@@ -1171,7 +1171,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     if (userRightId != null) {
       return accessChecker.hasHistoryAccess(user, userRightId, obj, throwException);
     }
-    return hasSelectAccess(user, obj, throwException);
+    return hasUserSelectAccess(user, obj, throwException);
   }
 
   /**
@@ -1188,7 +1188,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     if (userRightId != null) {
       return accessChecker.hasHistoryAccess(user, userRightId, null, throwException);
     }
-    return hasSelectAccess(user, throwException);
+    return hasUserSelectAccess(user, throwException);
   }
 
   /**

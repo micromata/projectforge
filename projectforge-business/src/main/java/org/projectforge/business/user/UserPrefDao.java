@@ -484,7 +484,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
    * @return Always true, no generic select access needed for user pref objects.
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException) {
+  public boolean hasUserSelectAccess(final PFUserDO user, final boolean throwException) {
     return true;
   }
 

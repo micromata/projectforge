@@ -89,7 +89,7 @@ public class TenantDao extends BaseDao<TenantDO>
   }
 
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final TenantDO obj, final boolean throwException)
+  public boolean hasUserSelectAccess(final PFUserDO user, final TenantDO obj, final boolean throwException)
   {
     return true;
   }
