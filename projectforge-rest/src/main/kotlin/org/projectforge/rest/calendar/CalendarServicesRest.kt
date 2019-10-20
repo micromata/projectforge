@@ -41,9 +41,9 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import sun.util.calendar.ZoneInfo
 import java.net.URLEncoder
 import java.time.LocalDate
+import java.util.*
 import javax.ws.rs.BadRequestException
 
 /**
@@ -157,7 +157,7 @@ class CalendarServicesRest {
         val view = CalendarView.from(filter.view)
         // Workaround for BigCalendar, if the browser's timezone differs from user's timezone in ThreadLocalUserContext.
         // ZoneInfo.getTimeZone returns null, if timeZone not known. TimeZone.getTimeZone returns GMT on failure!
-        val timeZone = if (filter.timeZone != null) ZoneInfo.getTimeZone(filter.timeZone) else null
+        val timeZone = if (filter.timeZone != null) TimeZone.getTimeZone(filter.timeZone) else null
         if (filter.updateState == true) {
             calendarFilterServicesRest.updateCalendarFilter(filter.start, view, filter.activeCalendarIds)
         }
