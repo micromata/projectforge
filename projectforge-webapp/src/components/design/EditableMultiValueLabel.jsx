@@ -9,6 +9,7 @@ import CalendarStyler from '../../containers/panel/calendar/CalendarStyler';
 import { useClickOutsideHandler } from '../../utilities/hooks';
 import { getServiceURL, handleHTTPErrors } from '../../utilities/rest';
 import Input from './input';
+import AutoCompletion from './input/AutoCompletion';
 import DateTimeRange from './input/calendar/DateTimeRange';
 import FormattedTimeRange from './input/calendar/FormattedTimeRange';
 import Popper from './popper';
@@ -165,6 +166,29 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                         ]}
                     />
                 </React.Fragment>
+            );
+            break;
+        }
+        case 'OBJECT': {
+            const onChange = ({ value: newValue }) => setValue({ str: newValue });
+
+            if (value.str) {
+                label = `${data.label}: ${value.str}`;
+            }
+
+            popperContent = (
+                <div style={{ minWidth: '150px' }}>
+                    <AutoCompletion
+                        value={{
+                            label: value.str,
+                            value: value.str,
+                        }}
+                        id={`autocompletion-${data.id}`}
+                        url={data.autoCompletion.url}
+                        label={data.label}
+                        onChange={onChange}
+                    />
+                </div>
             );
             break;
         }

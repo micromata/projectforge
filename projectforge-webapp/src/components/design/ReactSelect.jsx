@@ -74,7 +74,7 @@ function ReactSelect(
                 getOptionLabel={getOptionLabel || (option => (option[labelProperty]))}
                 loadOptions={loadOptions}
                 defaultOptions={defaultOptions}
-                placeholder={translations['select.placeholder']}
+                placeholder={translations['select.placeholder'] || ''}
                 cache={{}}
                 value={value || null}
                 {...props}
