@@ -51,7 +51,7 @@ class MagicFilter(
 
     var sortProperties = mutableListOf<SortProperty>()
 
-    open fun reset() {
+    fun reset() {
         entries.clear()
         sortProperties.clear()
         sortAndLimitMaxRowsWhileSelect = true

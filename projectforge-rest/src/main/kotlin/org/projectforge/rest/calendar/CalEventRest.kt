@@ -87,6 +87,7 @@ class CalEventRest() : AbstractDTORest<CalEventDO, CalEvent, CalEventDao>(
         return calendarEvent
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun transformFromDB(obj: TeamEventDO, editMode: Boolean): CalEvent {
         val calendarEvent = CalEvent()
         calendarEvent.copyFromAny(obj)

@@ -33,8 +33,8 @@ public interface I18nEnum {
    * Used for accessing i18n keys through reflection.
    * @param clazz The class name of the I18nEnum (e. g. org.projectforge.business.books.BookStatus)
    * @param value The value to set (e. g. 'MISSED').
-   * @return
    */
+  @SuppressWarnings("unchecked")
   static Enum<? extends I18nEnum> create(Class clazz, String value) {
     return Enum.valueOf((Class<Enum>) clazz, value);
   }
