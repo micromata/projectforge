@@ -144,8 +144,6 @@ class IndexPage extends React.Component {
                         <ol>
                             <li>Finishing time sheet editing (recents)</li>
                             <li>
-                                Open Popover with focus in Inputfield after selecting a new
-                                field in list&apos;s search filter.
                                 Return key closes the popover, another Return click submits the
                                 filter and requests a new list?
                             </li>
@@ -170,6 +168,10 @@ class IndexPage extends React.Component {
                         </ol>
                         <h1>Done</h1>
                         <ol style={todoDone}>
+                            <li>
+                                Open Popover with focus in Inputfield after selecting a new
+                                field in list&apos;s search filter.
+                            </li>
                             <li>Update React-Select (fixes warning)</li>
                             <li>
                                 TaskSelect panel: collapse search fields to have more a feeling
