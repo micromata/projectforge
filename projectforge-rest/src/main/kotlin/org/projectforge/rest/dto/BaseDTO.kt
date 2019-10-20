@@ -130,17 +130,16 @@ open class BaseDTO<T : ExtendedBaseDO<Int>>(var id: Int? = null,
                                         destField.isAccessible = true
                                         destField.set(dest, instance)
                                     }
-                                } else if (AbstractHistorizableBaseDO::class.java.isAssignableFrom(destType) && BaseDTO::class.java.isAssignableFrom(srcField.type)) {
+                                } else if (BaseDO::class.java.isAssignableFrom(destType) && BaseDTO::class.java.isAssignableFrom(srcField.type)) {
                                     // Copy BaseObject -> AbstractHistorizableBaseDO
                                     srcField.isAccessible = true
                                     val srcValue = srcField.get(src)
                                     if (srcValue != null) {
                                         val instance = destType.newInstance()
-                                        (instance as AbstractHistorizableBaseDO<*>).id = (srcValue as BaseDTO<*>).id
+                                        (instance as BaseDO<*>).id = (srcValue as BaseDTO<*>).id
                                         destField.isAccessible = true
                                         destField.set(dest, instance)
                                     }
-
                                 } else {
                                     if (srcField.type.isPrimitive) { // boolean, ....
                                         var value: Any? = null
