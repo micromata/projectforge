@@ -113,7 +113,6 @@ class DBFilterQuery {
 
             val queryBuilder = DBQueryBuilder<O>(baseDao, tenantService, mode,
                     // Check here mixing fulltext and criteria searches in comparison to full text searches and DBResultMatchers.
-                    combinedCriteriaSearch = false, // false is recommended by Hibernate, but true works for now...
                     ignoreTenant = ignoreTenant)
 
             if (filter.deleted != null) {

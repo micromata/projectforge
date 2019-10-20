@@ -24,7 +24,6 @@
 package org.projectforge.framework.persistence.api.impl
 
 import org.apache.commons.lang3.builder.CompareToBuilder
-import org.hibernate.Criteria
 import org.hibernate.ScrollMode
 import org.hibernate.ScrollableResults
 import org.hibernate.Session
@@ -98,8 +97,7 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
         val sortBys: Array<SortBy>,
         val fullTextQuery: org.apache.lucene.search.Query? = null, // Full text query
         val multiFieldQuery: List<String>? = null,         // MultiField query
-        val usedSearchFields: Array<String>? = null,       // MultiField query
-        val criteria: Criteria? = null) // Not recommended
+        val usedSearchFields: Array<String>? = null)       // MultiField query
     : DBResultIterator<O> {
     private val log = LoggerFactory.getLogger(DBFullTextResultIterator::class.java)
     private var result: List<O>
@@ -183,9 +181,6 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
             val queryString = multiFieldQuery?.joinToString(" ") ?: ""
             val luceneQuery = HibernateSearchFilterUtils.createFullTextQuery(fullTextSession, usedSearchFields, queryString, baseDao.doClass)
             fullTextSession.createFullTextQuery(luceneQuery, baseDao.doClass)
-        }
-        if (criteria != null) {
-            fullTextQuery.setCriteriaQuery(criteria)
         }
         fullTextQuery.firstResult = firstIndex
         fullTextQuery.maxResults = MAX_RESULTS
