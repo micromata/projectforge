@@ -59,16 +59,16 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
     // Handle Different Types of Filters
     switch (data.filterType) {
         case 'STRING':
-            if (value.str) {
-                label = `${data.label}: ${value.str}`;
+            if (value.value) {
+                label = `${data.label}: ${value.value}`;
             }
 
             popperContent = (
                 <Input
                     label={data.label}
                     id={`editable-multi-value-input-${data.id}`}
-                    value={value.str || ''}
-                    onChange={({ target }) => setValue({ str: target.value })}
+                    value={value.value || ''}
+                    onChange={({ target }) => setValue({ value: target.value })}
                     autoFocus
                 />
             );
@@ -170,21 +170,21 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
             break;
         }
         case 'OBJECT': {
-            const onChange = ({ value: newValue }) => setValue({ str: newValue });
+            const onChange = newValue => setValue(newValue);
 
-            if (value.str) {
-                label = `${data.label}: ${value.str}`;
+            if (value.label) {
+                label = `${data.label}: ${value.label}`;
             }
 
             popperContent = (
                 <div style={{ minWidth: '150px' }}>
                     <AutoCompletion
                         value={{
-                            label: value.str,
-                            value: value.str,
+                            label: value.label,
+                            value: value.value,
                         }}
                         id={`autocompletion-${data.id}`}
-                        url={data.autoCompletion.url}
+                        {...data.autoCompletion}
                         label={data.label}
                         onChange={onChange}
                     />
