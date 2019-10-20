@@ -301,7 +301,7 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
     PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
     if (CollectionUtils.isNotEmpty(list)) {
       for (TimesheetDO sheet : list) {
-        monthlyEmployeeReport.addTimesheet(sheet, timesheetDao.hasSelectAccess(loggedInUser, sheet, false));
+        monthlyEmployeeReport.addTimesheet(sheet, timesheetDao.hasUserSelectAccess(loggedInUser, sheet, false));
       }
     }
     monthlyEmployeeReport.calculate();

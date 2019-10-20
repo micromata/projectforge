@@ -181,7 +181,7 @@ public class TenantServiceImpl implements TenantService
   @Override
   public boolean hasSelectAccess(PFUserDO loggedInUser, TenantDO tenant, boolean b)
   {
-    return tenantDao.hasSelectAccess(loggedInUser, tenant, b);
+    return tenantDao.hasUserSelectAccess(loggedInUser, tenant, b);
   }
 
   @Override

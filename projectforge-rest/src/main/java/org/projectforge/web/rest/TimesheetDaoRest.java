@@ -157,7 +157,7 @@ public class TimesheetDaoRest
     TaskObject rtask = rtaskMap.get(task.getId());
     if (rtask == null) {
       // ancestor task not part of the result list, create it:
-      if (!taskDao.hasSelectAccess(ThreadLocalUserContext.getUser(), task, false)) {
+      if (!taskDao.hasUserSelectAccess(ThreadLocalUserContext.getUser(), task, false)) {
         // User has no access, ignore this part of the task tree.
         return null;
       }

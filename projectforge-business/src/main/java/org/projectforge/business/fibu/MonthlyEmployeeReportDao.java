@@ -71,7 +71,7 @@ public class MonthlyEmployeeReportDao
     PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
     if (CollectionUtils.isNotEmpty(list)) {
       for (TimesheetDO sheet : list) {
-        report.addTimesheet(sheet, timesheetDao.hasSelectAccess(loggedInUser, sheet, false));
+        report.addTimesheet(sheet, timesheetDao.hasUserSelectAccess(loggedInUser, sheet, false));
       }
     }
     report.calculate();

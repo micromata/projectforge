@@ -305,7 +305,7 @@ public class GroupDao extends BaseDao<GroupDO> {
    * return Always true, no generic select access needed for group objects.
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException) {
+  public boolean hasUserSelectAccess(final PFUserDO user, final boolean throwException) {
     return true;
   }
 
@@ -314,7 +314,7 @@ public class GroupDao extends BaseDao<GroupDO> {
    * visible for admin users.
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final GroupDO obj, final boolean throwException) {
+  public boolean hasUserSelectAccess(final PFUserDO user, final GroupDO obj, final boolean throwException) {
     Validate.notNull(obj);
     boolean result = accessChecker.isUserMemberOfAdminGroup(user);
     if (result) {

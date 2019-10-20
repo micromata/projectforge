@@ -45,7 +45,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class TaskTreeProvider implements ITreeProvider<TaskNode>
 {
@@ -155,7 +155,7 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
     final PFUserDO user = ThreadLocalUserContext.getUser();
     for (final TaskNode node : nodes) {
       if (taskFilter.match(node, taskDao, user) == true
-          && taskDao.hasSelectAccess(user, node.getTask(), false) == true) {
+          && taskDao.hasUserSelectAccess(user, node.getTask(), false) == true) {
         list.add(node);
       }
     }
@@ -164,9 +164,9 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
 
   /**
    * A {@link Model} which uses an id to load its {@link Foo}.
-   * 
+   *
    * If {@link Foo}s were {@link Serializable} you could just use a standard {@link Model}.
-   * 
+   *
    * @see #equals(Object)
    * @see #hashCode()
    */

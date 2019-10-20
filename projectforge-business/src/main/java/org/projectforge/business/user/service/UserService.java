@@ -130,7 +130,7 @@ public class UserService implements UserChangedListener {
     final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
     for (final PFUserDO user : allusers) {
       if (!user.isDeleted() && !user.getDeactivated()
-              && userDao.hasSelectAccess(loggedInUser, user, false)) {
+              && userDao.hasUserSelectAccess(loggedInUser, user, false)) {
         sortedUsers.add(user);
       }
     }

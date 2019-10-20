@@ -91,7 +91,7 @@ public class BookDao extends BaseDao<BookDO> {
    * @return Always true, no generic select access needed for book objects.
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException) {
+  public boolean hasUserSelectAccess(final PFUserDO user, final boolean throwException) {
     return true;
   }
 

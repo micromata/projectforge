@@ -56,11 +56,11 @@ public class KundeDao extends BaseDao<KundeDO>
 
   /**
    * return Always true, no generic select access needed for address objects.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess()
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException)
+  public boolean hasUserSelectAccess(final PFUserDO user, final boolean throwException)
   {
     return accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.FINANCE_GROUP,
         ProjectForgeGroup.CONTROLLING_GROUP,
@@ -68,7 +68,7 @@ public class KundeDao extends BaseDao<KundeDO>
   }
 
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final KundeDO obj, final boolean throwException)
+  public boolean hasUserSelectAccess(final PFUserDO user, final KundeDO obj, final boolean throwException)
   {
     if (obj == null) {
       return true;

@@ -192,7 +192,7 @@ public class ToDoDao extends BaseDao<ToDoDO>
     if (reporterId != null && userId.equals(reporterId) == false && reporterId.equals(assigneeId) == false) {
       sendNotification(todo.getReporter(), todo, data, true);
     }
-    if (userId != assigneeId && userId != reporterId && hasSelectAccess(user, todo, false) == false) {
+    if (userId != assigneeId && userId != reporterId && hasUserSelectAccess(user, todo, false) == false) {
       // User is whether reporter nor assignee, so send e-mail (in the case the user hasn't read access anymore).
       sendNotification(ThreadLocalUserContext.getUser(), todo, data, false);
     }
@@ -201,7 +201,7 @@ public class ToDoDao extends BaseDao<ToDoDO>
   private void sendNotification(final PFUserDO recipient, final ToDoDO toDo, final Map<String, Object> data,
       final boolean checkAccess)
   {
-    if (checkAccess == true && hasSelectAccess(recipient, toDo, false) == false) {
+    if (checkAccess == true && hasUserSelectAccess(recipient, toDo, false) == false) {
       log.info("Recipient '"
           + recipient.getFullname()
           + "' (id="

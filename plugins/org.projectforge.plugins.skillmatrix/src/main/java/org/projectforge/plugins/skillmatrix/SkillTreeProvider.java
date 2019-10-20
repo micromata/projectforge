@@ -35,7 +35,7 @@ import java.util.*;
 
 /**
  * @author Billy Duong (b.duong@micromata.de)
- * 
+ *
  */
 public class SkillTreeProvider implements ITreeProvider<SkillNode>
 {
@@ -57,7 +57,7 @@ public class SkillTreeProvider implements ITreeProvider<SkillNode>
 
   /**
    * Nothing to do.
-   * 
+   *
    * @see org.apache.wicket.model.IDetachable#detach()
    */
   @Override
@@ -156,7 +156,7 @@ public class SkillTreeProvider implements ITreeProvider<SkillNode>
     for (final SkillNode node : nodes) {
 
       final boolean isMatch = skillFilter.match(node, skillDao, user);
-      final boolean hasAccess = skillDao.hasSelectAccess(user, node.getSkill(), false);
+      final boolean hasAccess = skillDao.hasUserSelectAccess(user, node.getSkill(), false);
 
       if (isMatch == true && hasAccess == true) {
         list.add(node);
@@ -185,9 +185,9 @@ public class SkillTreeProvider implements ITreeProvider<SkillNode>
 
   /**
    * A {@link Model} which uses an id to load its {@link Foo}.
-   * 
+   *
    * If {@link Foo}s were {@link Serializable} you could just use a standard {@link Model}.
-   * 
+   *
    * @see #equals(Object)
    * @see #hashCode()
    */
