@@ -50,7 +50,10 @@ class MagicFilterEntry(
             /**
              * Find entries where the given field has one of the given values).
              */
-            var values: Array<String>? = null
+            var values: Array<String>? = null,
+
+            @JsonIgnore
+            var label: String? = null
     )
 
     var value: Value

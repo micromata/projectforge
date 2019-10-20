@@ -101,7 +101,6 @@ function SearchFilter() {
             case 'pop-value':
             case 'remove-value':
                 if (meta.removedValue !== undefined) {
-                    console.log(meta.removedValue);
                     filterHelper.removeEntry(meta.removedValue.id || meta.removedValue.label);
                 }
                 break;
