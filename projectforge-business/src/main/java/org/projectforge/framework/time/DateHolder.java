@@ -417,7 +417,12 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    */
   public DateHolder setBeginOfWeek() {
     int firstDayOfWeek = getFirstDayOfWeek();
+    short paranoiaCounter = 10;
     while (calendar.get(Calendar.DAY_OF_WEEK) != firstDayOfWeek) {
+      if (--paranoiaCounter <= 0) {
+        System.err.println("************ DateHolder:setBeginOfWeek() Paranoia test violation: firstDayOfWeek " + firstDayOfWeek + " not reachable!!!!");
+        break;
+      }
       calendar.add(Calendar.DATE, -1); // Substract 1 day until first day of week.
     }
     setBeginOfDay();
