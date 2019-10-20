@@ -37,9 +37,17 @@ class AutoCompletion<T>(
          */
         var values: List<Entry<T>>? = null,
         /**
+         * Type of autocompletion values as information for the clients (e. g. user).
+         */
+        var type: String? = null,
+        /**
          * If given, the url will be called for getting the auto-completion values.
          */
         var url: String? = null) {
+    /**
+     * Pre-defined types of autocompletion objects as information for the clients.
+     */
+    enum class Type { USER }
     class Entry<T>(val value: T,
                    /**
                     * The title to display.
