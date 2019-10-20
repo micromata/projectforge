@@ -60,14 +60,6 @@ public class ProjectForgeApplication {
   private static final String[] DIR_NAMES = {"ProjectForge", "Projectforge", "projectforge"};
 
   public static void main(String[] args) {
-    String javaVersion = System.getProperty("java.version");
-    if (javaVersion != null && javaVersion.compareTo("1.9") >= 0) {
-      new EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.VERY_IMPORTANT)
-              .log("ProjectForge doesn't support versions higher than Java 1.8!!!!")
-              .log("")
-              .log("Please downgrade. Sorry, we're working on newer Java versions.")
-              .logEnd();
-    }
     // Find application home or start the setup wizard, if not found:
     File baseDir = new ProjectForgeHomeFinder().findAndEnsureAppHomeDir();
 
