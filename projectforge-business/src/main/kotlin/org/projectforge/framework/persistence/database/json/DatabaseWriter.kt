@@ -81,8 +81,8 @@ class DatabaseWriter(val emf: PfEmgrFactory,
             val entities = emf.metadataRepository.tableEntities
             for (entity in entities) {
                 val entityClass = entity.javaType
-                val entitySimpleName = entityClass.simpleName
-                val entityType = entityClass.name
+                //val entitySimpleName = entityClass.simpleName
+                //val entityType = entityClass.name
                 log.info("entityClass: ${entityClass.name}")
             }
         }
@@ -91,6 +91,7 @@ class DatabaseWriter(val emf: PfEmgrFactory,
         jgen.flush()
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun restore(inputStream: InputStream) {
         //createObjectMapper().readValue(in, )
     }
@@ -120,7 +121,7 @@ class DatabaseWriter(val emf: PfEmgrFactory,
         jgen.writeArrayFieldStart("${entityClass.simpleName}")
         list.forEach {
             var obj = it!!
-            var type = it::class.java
+            //var type = it::class.java
             //if (it is TenantDO) {
             //    obj = Tenant(it.pk, it.created, it.lastUpdate, it.shortName, it.name, it.description, it.defaultTenant)
             //}
