@@ -77,9 +77,6 @@ import javax.persistence.*
 @WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [TeamEventAttendeeDO::class])
 @AUserRightId(value = "PLUGIN_CALENDAR_EVENT")
 class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
-    @get:Transient
-    private val log = org.slf4j.LoggerFactory.getLogger(TeamEventDO::class.java)
-
     @PropertyInfo(i18nKey = "plugins.teamcal.event.subject")
     @Field
     @get:Column(length = Constants.LENGTH_SUBJECT)
@@ -996,5 +993,9 @@ class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
         result.organizer = this.organizer
         result.organizerAdditionalParams = this.organizerAdditionalParams
         return result
+    }
+
+    companion object {
+        private val log = org.slf4j.LoggerFactory.getLogger(TeamEventDO::class.java)
     }
 }
