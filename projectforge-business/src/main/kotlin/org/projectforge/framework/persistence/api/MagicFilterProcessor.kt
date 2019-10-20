@@ -46,7 +46,7 @@ object MagicFilterProcessor {
         for (magicFilterEntry in magicFilter.entries) {
             if (magicFilterEntry.field.isNullOrBlank()) {
                 // Full text search (no field given).
-                dbFilter.allEntries.add(DBFilterEntry(value = magicFilterEntry.value.str, fulltextSearch = true))
+                dbFilter.allEntries.add(DBFilterEntry(value = magicFilterEntry.value.value, fulltextSearch = true))
             } else {
                 // Field search.
                 dbFilter.allEntries.add(createFieldSearchEntry(entityClass, magicFilterEntry))
@@ -58,21 +58,21 @@ object MagicFilterProcessor {
     internal fun createFieldSearchEntry(entityClass: Class<*>, magicFilterEntry: MagicFilterEntry): DBFilterEntry {
         val entry = DBFilterEntry()
         entry.field = magicFilterEntry.field
-        entry.value = magicFilterEntry.value.str
+        entry.value = magicFilterEntry.value.value
         entry.fulltextSearch = false
         if (entry.isHistoryEntry) {
             if (entry.field == MagicFilterEntry.HistorySearch.MODIFIED_INTERVAL.fieldName) {
                 entry.fromValueDate = PFDateTime.parseUTCDate(magicFilterEntry.value.fromValue)
                 entry.toValueDate = PFDateTime.parseUTCDate(magicFilterEntry.value.toValue)
             } else if (entry.field == MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.fieldName) {
-                entry.valueInt = magicFilterEntry.value.str?.toIntOrNull()
+                entry.valueInt = magicFilterEntry.value.value?.toIntOrNull()
             }
         } else {
             val fieldType = PropUtils.getField(entityClass, entry.field)?.type ?: String::class.java
             entry.type = fieldType
             if (fieldType == String::class.java) {
                 entry.searchType = if (entry.field.isNullOrBlank()) SearchType.STRING_SEARCH else SearchType.FIELD_STRING_SEARCH
-                val str = magicFilterEntry.value.str?.trim() ?: ""
+                val str = magicFilterEntry.value.value?.trim() ?: ""
                 var plainStr = str
                 val dbStr: String
                 if (str.startsWith("*")) {
@@ -101,11 +101,11 @@ object MagicFilterProcessor {
                 entry.fromValueDate = PFDateTime.parseUTCDate(magicFilterEntry.value.fromValue)
                 entry.toValueDate = PFDateTime.parseUTCDate(magicFilterEntry.value.toValue)
             } else if (fieldType == Integer::class.java) {
-                entry.valueInt = NumberHelper.parseInteger(magicFilterEntry.value.str)
+                entry.valueInt = NumberHelper.parseInteger(magicFilterEntry.value.value)
                 entry.fromValueInt = NumberHelper.parseInteger(magicFilterEntry.value.fromValue)
                 entry.toValueInt = NumberHelper.parseInteger(magicFilterEntry.value.toValue)
             } else if (BaseDO::class.java.isAssignableFrom(fieldType)) {
-                entry.valueInt = magicFilterEntry.value.str?.toIntOrNull()
+                entry.valueInt = magicFilterEntry.value.value?.toIntOrNull()
             } else {
                 log.warn("Search entry of type '${fieldType.name}' not yet supported for field '${entry.field}'.")
             }

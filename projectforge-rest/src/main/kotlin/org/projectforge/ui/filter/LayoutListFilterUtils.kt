@@ -47,7 +47,7 @@ class LayoutListFilterUtils {
                     label = translate(MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.i18nKey),
                     autoCompletion = AutoCompletion<Int>(2,
                             //recent = listOf(AutoCompletion.Entry(42,"Fin Reinhard"), AutoCompletion.Entry(43, "Kai Reinhard")),
-                            url = "user/ac")))
+                            url = "user/aco&search=")))
             elements.add(UIFilterTimestampElement(MagicFilterEntry.HistorySearch.MODIFIED_INTERVAL.fieldName,
                     label = translate(MagicFilterEntry.HistorySearch.MODIFIED_INTERVAL.i18nKey),
                     openInterval = true,
