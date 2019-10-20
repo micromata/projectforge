@@ -122,7 +122,7 @@ internal object DBHistoryQuery {
             return emptySet()
         }
         return result.map {
-            (it as Array<Object>)[0] as Long
+            (it as Array<*>)[0] as Long
         }.toSet()
     }
 

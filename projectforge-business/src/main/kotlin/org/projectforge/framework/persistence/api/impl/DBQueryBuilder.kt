@@ -34,16 +34,6 @@ internal class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
         val baseDao: BaseDao<O>,
         tenantService: TenantService,
         val mode: Mode,
-        /**
-         * Not recommended, but it seems to work. Mixes fulltext search with criteria search if criteria search
-         * is needed. If false, DBResultMatcher's may be used for filtering fields without index (while iterating
-         * the result list).
-         */
-        val combinedCriteriaSearch: Boolean = false,
-        /**
-         * If given, these search fields are used. If not given, the search fields defined by the baseDao are used at default.
-         */
-        searchFields: Array<String>? = null,
         ignoreTenant: Boolean = false) {
 
     enum class Mode {
@@ -66,8 +56,7 @@ internal class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
     private var dbQueryBuilderByCriteria_: DBQueryBuilderByCriteria<O>? = null
     private val dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O>
         get() {
-            if (dbQueryBuilderByCriteria_ == null) dbQueryBuilderByCriteria_ = DBQueryBuilderByCriteria<O>(baseDao,
-                    useHibernateCriteria = (mode != Mode.CRITERIA && combinedCriteriaSearch))
+            if (dbQueryBuilderByCriteria_ == null) dbQueryBuilderByCriteria_ = DBQueryBuilderByCriteria<O>(baseDao)
             return dbQueryBuilderByCriteria_!!
         }
     private var dbQueryBuilderByFullText_: DBQueryBuilderByFullText<O>? = null
@@ -89,7 +78,7 @@ internal class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
     private val dbResultMatchers = mutableListOf<DBResultMatcher>()
 
     private val criteriaSearchAvailable: Boolean
-        get() = combinedCriteriaSearch || mode == Mode.CRITERIA
+        get() = mode == Mode.CRITERIA
 
     private val fullTextSearch: Boolean
         get() = mode == Mode.FULLTEXT || mode == Mode.MULTI_FIELD_FULLTEXT_QUERY
@@ -171,10 +160,7 @@ internal class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
 
     fun result(): DBResultIterator<O> {
         if (fullTextSearch) {
-            if (mode == Mode.FULLTEXT && combinedCriteriaSearch) {
-                return dbQueryBuilderByFullText.createResultIterator(dbResultMatchers, criteria = dbQueryBuilderByCriteria.buildCriteria())
-            }
-            return dbQueryBuilderByFullText.createResultIterator(dbResultMatchers, null)
+            return dbQueryBuilderByFullText.createResultIterator(dbResultMatchers)
         }
         return dbQueryBuilderByCriteria.createResultIterator()
     }
@@ -197,7 +183,7 @@ internal class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
     }
 
     /**
-     * Sorting is only implemented for criteria search (also if combined with full text search).
+     * Sorting for criteria query is done by the data base, for full text search by Kotlin after getting the result list.
      */
     fun addOrder(sortBy: SortBy) {
         if (fullTextSearch) {

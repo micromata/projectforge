@@ -23,8 +23,6 @@
 
 package org.projectforge.framework.persistence.api.impl
 
-import org.hibernate.criterion.Criterion
-import org.hibernate.criterion.Restrictions
 import org.projectforge.common.BeanHelper
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -38,7 +36,6 @@ import javax.persistence.criteria.Root
 internal interface DBResultMatcher {
     fun match(obj: Any): Boolean
     fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate
-    fun asHibernateCriterion(): Criterion
 
     companion object {
         private val log = LoggerFactory.getLogger(DBResultMatcher::class.java)
@@ -58,10 +55,6 @@ internal interface DBResultMatcher {
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
             return cb.equal(root.get<Any>(field), expectedValue)
-        }
-
-        override fun asHibernateCriterion(): Criterion {
-            return Restrictions.eq(field, expectedValue)
         }
     }
 
@@ -87,10 +80,6 @@ internal interface DBResultMatcher {
             val predicate = exp.`in`(values)
             return cb.`in`(predicate)
         }
-
-        override fun asHibernateCriterion(): Criterion {
-            return Restrictions.`in`(field, values)
-        }
     }
 
     class Between<O : Comparable<O>>(
@@ -114,10 +103,6 @@ internal interface DBResultMatcher {
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
             return cb.between(root.get<O>(field), from, to)
         }
-
-        override fun asHibernateCriterion(): Criterion {
-            return Restrictions.between(field, from, to)
-        }
     }
 
     class GreaterEqual<O : Comparable<O>>(
@@ -140,10 +125,6 @@ internal interface DBResultMatcher {
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
             return cb.greaterThanOrEqualTo(root.get<O>(field), from)
         }
-
-        override fun asHibernateCriterion(): Criterion {
-            return Restrictions.ge(field, from)
-        }
     }
 
     class LessEqual<O : Comparable<O>>(
@@ -165,10 +146,6 @@ internal interface DBResultMatcher {
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
             return cb.lessThanOrEqualTo(root.get<O>(field), to)
-        }
-
-        override fun asHibernateCriterion(): Criterion {
-            return Restrictions.le(field, to)
         }
     }
 
@@ -213,10 +190,6 @@ internal interface DBResultMatcher {
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
             return cb.like(cb.lower(root.get<String>(field)), expectedValue)
         }
-
-        override fun asHibernateCriterion(): Criterion {
-            return Restrictions.ilike(field, expectedValue)
-        }
     }
 
     class IsNull(
@@ -228,10 +201,6 @@ internal interface DBResultMatcher {
 
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
             return cb.isNull(root.get<Any>(field))
-        }
-
-        override fun asHibernateCriterion(): Criterion {
-            return Restrictions.isNull(field)
         }
     }
 
@@ -254,10 +223,6 @@ internal interface DBResultMatcher {
 
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
             return cb.or(*matcherList.map { it.asPredicate(cb, root) }.toTypedArray())
-        }
-
-        override fun asHibernateCriterion(): Criterion {
-            return Restrictions.or(*matcherList.map { it.asHibernateCriterion() }.toTypedArray()) as Criterion
         }
     }
 }

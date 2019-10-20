@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.api.impl
 
-import org.hibernate.Criteria
 import org.hibernate.Transaction
 import org.hibernate.search.Search
 import org.hibernate.search.query.dsl.BooleanJunction
@@ -82,7 +81,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     /**
      * @return true if the given field is indexed, otherwise false (dbMatcher should be used instead).
      */
-    fun <O: Comparable<O>> between(field: String, from: O, to: O): Boolean {
+    fun <O : Comparable<O>> between(field: String, from: O, to: O): Boolean {
         if (usedSearchFields.contains(field)) {
             if (useMultiFieldQueryParser) {
                 multiFieldQuery.add("+$field:[$from TO $to]")
@@ -97,7 +96,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     /**
      * @return true if the given field is indexed, otherwise false (dbMatcher should be used instead).
      */
-    fun <O: Comparable<O>> greaterEqual(field: String, from: O): Boolean {
+    fun <O : Comparable<O>> greaterEqual(field: String, from: O): Boolean {
         if (usedSearchFields.contains(field)) {
             if (useMultiFieldQueryParser) {
                 multiFieldQuery.add("+$field:[$from TO *]")
@@ -112,7 +111,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     /**
      * @return true if the given field is indexed, otherwise false (dbMatcher should be used instead).
      */
-    fun <O: Comparable<O>> lessEqual(field: String, to: O): Boolean {
+    fun <O : Comparable<O>> lessEqual(field: String, to: O): Boolean {
         if (usedSearchFields.contains(field)) {
             if (useMultiFieldQueryParser) {
                 multiFieldQuery.add("+$field:[* TO $to]")
@@ -132,11 +131,14 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
         search(searchString, *usedSearchFields)
     }
 
-    fun createResultIterator(dbResultMatchers: List<DBResultMatcher>, criteria: Criteria?): DBResultIterator<O> {
-        return if (useMultiFieldQueryParser) {
+    fun createResultIterator(dbResultMatchers: List<DBResultMatcher>): DBResultIterator<O> {
+        return if (boolJunction.isEmpty) { // Shouldn't occur:
+            // No restrictions found, so use normal criteria search without where clause.
+            DBQueryBuilderByCriteria(baseDao).createResultIterator()
+        } else if (useMultiFieldQueryParser) {
             DBFullTextResultIterator(baseDao, fullTextSession, dbResultMatchers, sortBys.toTypedArray(), usedSearchFields = usedSearchFields, multiFieldQuery = multiFieldQuery)
         } else {
-            DBFullTextResultIterator(baseDao, fullTextSession, dbResultMatchers, sortBys.toTypedArray(), fullTextQuery = boolJunction.createQuery(), criteria = criteria)
+            DBFullTextResultIterator(baseDao, fullTextSession, dbResultMatchers, sortBys.toTypedArray(), fullTextQuery = boolJunction.createQuery())
         }
     }
 
@@ -145,6 +147,9 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     }
 
     private fun search(value: String, vararg fields: String) {
+        if (value.isNullOrBlank()) {
+            return
+        }
         val str = value.replace('%', '*')
         if (useMultiFieldQueryParser) {
             if (fields.isNotEmpty() && fields.size == 1) {
