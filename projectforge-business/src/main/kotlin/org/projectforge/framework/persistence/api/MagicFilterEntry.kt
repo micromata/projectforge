@@ -52,6 +52,9 @@ class MagicFilterEntry(
              */
             var values: Array<String>? = null,
 
+            /**
+             * Label is returned by the React frontend but it will be ignored by the backend.
+             */
             @JsonIgnore
             var label: String? = null
     )

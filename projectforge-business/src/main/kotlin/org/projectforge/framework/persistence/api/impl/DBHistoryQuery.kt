@@ -51,7 +51,7 @@ internal object DBHistoryQuery {
         val predicates = mutableListOf<Predicate>()
         predicates.add(cb.equal(root.get<String>("entityName"), clazz.name))
         if (searchParams.modifiedByUserId != null) {
-            predicates.add(cb.equal(root.get<String>("modifiedBy"), searchParams.modifiedByUserId))
+            predicates.add(cb.equal(root.get<String>("modifiedBy"), "${searchParams.modifiedByUserId}"))
         }
         if (searchParams.modifiedFrom != null) {
             if (searchParams.modifiedTo != null) {
