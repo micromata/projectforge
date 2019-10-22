@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import Select from 'react-select';
 import makeAnimated from 'react-select/animated';
+import Async from 'react-select/async';
 import AsyncCreatable from 'react-select/async-creatable';
 import { UncontrolledTooltip } from 'reactstrap';
 import AdditionalLabel from './input/AdditionalLabel';
@@ -12,11 +13,13 @@ import style from './input/Input.module.scss';
 function ReactSelect(
     {
         additionalLabel,
+        autoCompletion,
         getOptionLabel,
         id,
         label,
         labelProperty,
         loadOptions,
+        multi,
         required,
         tooltip,
         translations,
@@ -31,7 +34,11 @@ function ReactSelect(
     let options;
 
     if (loadOptions) {
-        Tag = AsyncCreatable;
+        if (autoCompletion && autoCompletion.type !== undefined) {
+            Tag = Async;
+        } else {
+            Tag = AsyncCreatable;
+        }
         if (values && values.length > 0) {
             // values are now the default options for the drop down without autocompletion call.
             defaultOptions = values;
@@ -61,6 +68,21 @@ function ReactSelect(
             </React.Fragment>
         );
     }
+
+    const getOptionLabelDefault = (option) => {
+        // Property __isNew__ is provided by react select and can't be renamed.
+        // eslint-disable-next-line no-underscore-dangle
+        if (option.__isNew__) {
+            return option.label;
+        }
+
+        if (!option) {
+            return '';
+        }
+
+        return option[labelProperty];
+    };
+
     return (
         <React.Fragment>
             <span className={`mm-select ${style.text}`}>{label}</span>
@@ -71,10 +93,11 @@ function ReactSelect(
                 options={options}
                 isClearable={!required}
                 getOptionValue={option => (option[valueProperty])}
-                getOptionLabel={getOptionLabel || (option => (option[labelProperty]))}
+                getOptionLabel={getOptionLabel || getOptionLabelDefault}
                 loadOptions={loadOptions}
                 defaultOptions={defaultOptions}
                 id={id}
+                isMulti={multi}
                 placeholder={translations['select.placeholder'] || ''}
                 cache={{}}
                 value={value || null}
@@ -88,6 +111,9 @@ function ReactSelect(
 ReactSelect.propTypes = {
     label: PropTypes.string.isRequired,
     additionalLabel: PropTypes.string,
+    autoCompletion: PropTypes.shape({
+        type: PropTypes.oneOf(['USER', 'GROUP', undefined]),
+    }),
     value: PropTypes.oneOfType([
         PropTypes.shape({}),
         PropTypes.arrayOf(PropTypes.shape({})),
@@ -111,6 +137,7 @@ ReactSelect.propTypes = {
 };
 
 ReactSelect.defaultProps = {
+    autoCompletion: undefined,
     id: undefined,
     values: undefined,
     value: undefined,
