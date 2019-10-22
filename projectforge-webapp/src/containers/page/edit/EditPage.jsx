@@ -8,7 +8,6 @@ import LoadingContainer from '../../../components/design/loading-container';
 import history from '../../../utilities/history';
 import { getTranslation } from '../../../utilities/layout';
 import { getObjectFromQuery, getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
-import revisedRandomId from '../../../utilities/revisedRandomId';
 import style from '../../ProjectForge.module.scss';
 import EditHistory from './history';
 
@@ -175,9 +174,9 @@ function EditPage({ match, location }) {
         return (
             <Alert color="danger">
                 <ul>
-                    {globalErrors.map(entry => (
-                        <li key={`edit-page-global-validation-${revisedRandomId()}`}>
-                            {entry.message}
+                    {globalErrors.map(({ message, messageId }) => (
+                        <li key={`edit-page-global-validation-${messageId}`}>
+                            {message}
                         </li>
                     ))}
                 </ul>

@@ -44,6 +44,7 @@ function ReactSelect(
 
     let tooltipElement;
     if (tooltip) {
+        // TODO REPLACE REVISED RANDOM ID WITH AN UNIQUE CONSISTENT IDENTIFIER
         const tooltipId = `rs-${revisedRandomId()}`;
         tooltipElement = (
             <React.Fragment>

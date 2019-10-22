@@ -3,7 +3,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { menuItemPropType } from '../../../../utilities/propTypes';
-import revisedRandomId from '../../../../utilities/revisedRandomId';
 import { Col, Container, Dropdown, DropdownMenu, DropdownToggle, Row, } from '../../../design';
 import style from '../Navigation.module.scss';
 import Category from './Category';
@@ -61,13 +60,14 @@ function CategoriesDropdown({ badge, categories }) {
                         {columns.map(column => (
                             <Col
                                 md={3}
-                                key={`menu-column-${revisedRandomId()}`}
+                                key={`menu-column-${column.map(({ id }) => id)
+                                    .join('-')}`}
                                 className={style.categoryColumn}
                             >
                                 {column.map(category => (
                                     <Category
                                         category={category}
-                                        key={`category-${category.title}`}
+                                        key={`category-${category.id}`}
                                         closeMenu={() => setOpen(false)}
                                     />
                                 ))}
