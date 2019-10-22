@@ -3,10 +3,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Col, Collapse, Container, Row, UncontrolledTooltip, } from '../../../../components/design';
+import { Col, Collapse, Container, Row, UncontrolledTooltip } from '../../../../components/design';
 import DiffText from '../../../../components/design/DiffText';
 import { getTranslation } from '../../../../utilities/layout';
-import revisedRandomId from '../../../../utilities/revisedRandomId';
 import style from './History.module.scss';
 
 function getTypeSymbol(type) {
@@ -51,7 +50,8 @@ function HistoryEntry(
         diffSummary[operationType] = diff;
     });
 
-    const dateId = `history-date-${revisedRandomId()}`;
+    const idifiedDate = String.idify(modifiedAt);
+    const dateId = `history-date-${idifiedDate}`;
 
     return (
         <div
@@ -129,7 +129,7 @@ function HistoryEntry(
                                 diff = (
                                     <DiffText
                                         oldValue={`WAS ${oldValue}`}
-                                        id={`history-tooltip-${revisedRandomId()}`}
+                                        id={`history-tooltip-${idifiedDate}-${property}`}
                                     >
                                         {` ${property}: ${newValue}`}
                                     </DiffText>
