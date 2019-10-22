@@ -177,7 +177,7 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
             }
 
             popperContent = (
-                <div style={{ minWidth: '150px' }}>
+                <div style={{ minWidth: '250px' }}>
                     <AutoCompletion
                         value={{
                             label: value.label,
