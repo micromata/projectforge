@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import FavoritesPanel from '../../../../../containers/panel/favorite/FavoritesPanel';
 import { getServiceURL, handleHTTPErrors } from '../../../../../utilities/rest';
+import { resolveJSON } from '../../../../design/input/AutoCompletion';
 import ReactSelect from '../../../../design/ReactSelect';
 import { DynamicLayoutContext } from '../../context';
 import DynamicValidationManager from '../input/DynamicValidationManager';
@@ -48,7 +49,12 @@ function DynamicReactSelect(props) {
 
     return React.useMemo(() => {
         const onChange = (newValue) => {
-            setData({ [id]: (newValue || {}).value });
+            if (autoCompletion && autoCompletion.type) {
+                setData({ [id]: newValue });
+                return;
+            }
+
+            setData({ [id]: (newValue || {})[valueProperty] });
         };
 
         const onFavoriteSelect = (favoriteId, name) => {
@@ -71,10 +77,7 @@ function DynamicReactSelect(props) {
         )
             .then(handleHTTPErrors)
             .then(response => response.json())
-            .then(json => callback(json.map(completion => ({
-                value: completion,
-                label: completion,
-            }))));
+            .then(resolveJSON(callback, labelProperty ? 'RAW' : autoCompletion.type));
 
         const url = autoCompletion ? autoCompletion.url : undefined;
 
