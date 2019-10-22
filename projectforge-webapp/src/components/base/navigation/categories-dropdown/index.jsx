@@ -4,14 +4,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { menuItemPropType } from '../../../../utilities/propTypes';
 import revisedRandomId from '../../../../utilities/revisedRandomId';
-import {
-    Col,
-    Container,
-    Dropdown,
-    DropdownMenu,
-    DropdownToggle,
-    Row,
-} from '../../../design';
+import { Col, Container, Dropdown, DropdownMenu, DropdownToggle, Row, } from '../../../design';
 import style from '../Navigation.module.scss';
 import Category from './Category';
 import MenuBadge from './MenuBadge';
@@ -52,9 +45,15 @@ function CategoriesDropdown({ badge, categories }) {
         <Dropdown isOpen={open} toggle={() => setOpen(!open)}>
             <DropdownToggle nav caret>
                 <FontAwesomeIcon icon={faListUl} />
-                {badge
-                    ? <MenuBadge flying color={badge.style}>{badge.counter}</MenuBadge>
-                    : undefined}
+                {badge && (
+                    <MenuBadge
+                        key="DROPDOWN_TOGGLE"
+                        flying
+                        color={badge.style}
+                    >
+                        {badge.counter}
+                    </MenuBadge>
+                )}
             </DropdownToggle>
             <DropdownMenu className={style.categoryListDropdownMenu}>
                 <Container>
