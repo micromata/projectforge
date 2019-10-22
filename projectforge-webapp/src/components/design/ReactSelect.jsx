@@ -6,7 +6,6 @@ import Select from 'react-select';
 import makeAnimated from 'react-select/animated';
 import AsyncCreatable from 'react-select/async-creatable';
 import { UncontrolledTooltip } from 'reactstrap';
-import revisedRandomId from '../../utilities/revisedRandomId';
 import AdditionalLabel from './input/AdditionalLabel';
 import style from './input/Input.module.scss';
 
@@ -14,6 +13,7 @@ function ReactSelect(
     {
         additionalLabel,
         getOptionLabel,
+        id,
         label,
         labelProperty,
         loadOptions,
@@ -43,9 +43,8 @@ function ReactSelect(
     }
 
     let tooltipElement;
-    if (tooltip) {
-        // TODO REPLACE REVISED RANDOM ID WITH AN UNIQUE CONSISTENT IDENTIFIER
-        const tooltipId = `rs-${revisedRandomId()}`;
+    if (tooltip && id) {
+        const tooltipId = `rs-tooltip-${id}`;
         tooltipElement = (
             <React.Fragment>
                 <span>{' '}</span>
@@ -75,6 +74,7 @@ function ReactSelect(
                 getOptionLabel={getOptionLabel || (option => (option[labelProperty]))}
                 loadOptions={loadOptions}
                 defaultOptions={defaultOptions}
+                id={id}
                 placeholder={translations['select.placeholder'] || ''}
                 cache={{}}
                 value={value || null}
@@ -96,6 +96,7 @@ ReactSelect.propTypes = {
         PropTypes.shape({}),
         PropTypes.arrayOf(PropTypes.shape({})),
     ]),
+    id: PropTypes.string,
     values: PropTypes.arrayOf(PropTypes.object),
     valueProperty: PropTypes.string,
     labelProperty: PropTypes.string,
@@ -110,6 +111,7 @@ ReactSelect.propTypes = {
 };
 
 ReactSelect.defaultProps = {
+    id: undefined,
     values: undefined,
     value: undefined,
     defaultValue: undefined,
