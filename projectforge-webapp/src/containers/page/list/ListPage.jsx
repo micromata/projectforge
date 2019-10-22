@@ -37,7 +37,7 @@ function ListPage(
         removeEntry: fieldOrValue => setFilter({
             ...filter,
             entries: filter.entries.filter(
-                currentEntry => (currentEntry.field || currentEntry.value.str) !== fieldOrValue,
+                currentEntry => (currentEntry.field || currentEntry.value.value) !== fieldOrValue,
             ),
         }),
         editEntry: (id, newValue) => setFilter({
