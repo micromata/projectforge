@@ -84,7 +84,7 @@ class GroupRest() : AbstractDTORest<GroupDO, Group, GroupDao>(GroupDao::class.ja
                                         multi = true,
                                         label = "group.assignedUsers",
                                         additionalLabel = "access.users",
-                                        autoCompletion = AutoCompletion<Int>(url = "user/aco"),
+                                        autoCompletion = AutoCompletion<Int>(url = "user/aco?search="),
                                         labelProperty = "fullname",
                                         valueProperty = "id"))))
         return LayoutUtils.processEditPage(layout, dto, this)

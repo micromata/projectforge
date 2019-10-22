@@ -96,7 +96,7 @@ class AddressBookRest : AbstractDTORest<AddressbookDO, Addressbook, AddressbookD
                                         multi = true,
                                         label = "addressbook.fullAccess",
                                         additionalLabel = "access.users",
-                                        autoCompletion = AutoCompletion<Int>(url = "user/aco"),
+                                        autoCompletion = AutoCompletion<Int>(url = "user/aco?search="),
                                         labelProperty = "fullname",
                                         valueProperty = "id",
                                         tooltip = "addressbook.fullAccess.tooltip"))
@@ -104,7 +104,7 @@ class AddressBookRest : AbstractDTORest<AddressbookDO, Addressbook, AddressbookD
                                         multi = true,
                                         label = "addressbook.readonlyAccess",
                                         additionalLabel = "access.users",
-                                        autoCompletion = AutoCompletion<Int>(url = "user/aco"),
+                                        autoCompletion = AutoCompletion<Int>(url = "user/aco?search="),
                                         labelProperty = "fullname",
                                         valueProperty = "id",
                                         tooltip = "addressbook.readonlyAccess.tooltip")))
@@ -113,7 +113,7 @@ class AddressBookRest : AbstractDTORest<AddressbookDO, Addressbook, AddressbookD
                                         multi = true,
                                         label = "addressbook.fullAccess",
                                         additionalLabel = "access.groups",
-                                        autoCompletion = AutoCompletion<Int>(url = "group/aco"),
+                                        autoCompletion = AutoCompletion<Int>(url = "group/aco?search="),
                                         labelProperty = "name",
                                         valueProperty = "id",
                                         tooltip = "addressbook.fullAccess.tooltip"))
@@ -121,7 +121,7 @@ class AddressBookRest : AbstractDTORest<AddressbookDO, Addressbook, AddressbookD
                                         multi = true,
                                         label = "addressbook.readonlyAccess",
                                         additionalLabel = "access.groups",
-                                        autoCompletion = AutoCompletion<Int>(url = "group/aco"),
+                                        autoCompletion = AutoCompletion<Int>(url = "group/aco?search="),
                                         labelProperty = "name",
                                         valueProperty = "id",
                                         tooltip = "addressbook.readonlyAccess.tooltip"))))
