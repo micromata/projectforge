@@ -29,6 +29,7 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
 
     let popperContent;
     let { label } = data;
+    let big = false;
 
     // disable eslint because variable is provided by react-select and can't be changed.
     /* eslint-disable-next-line no-underscore-dangle */
@@ -115,6 +116,8 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
             break;
         }
         case 'TIME_STAMP': {
+            big = true;
+
             if (value.to === undefined || value.from === undefined) {
                 setValue({
                     from: null,
@@ -170,6 +173,8 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
             break;
         }
         case 'OBJECT': {
+            big = true;
+
             const onChange = newValue => setValue(newValue);
 
             if (value.label) {
@@ -177,18 +182,16 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
             }
 
             popperContent = (
-                <div style={{ minWidth: '250px' }}>
-                    <AutoCompletion
-                        value={{
-                            label: value.label,
-                            value: value.value,
-                        }}
-                        id={`autocompletion-${data.id}`}
-                        {...data.autoCompletion}
-                        label={data.label}
-                        onChange={onChange}
-                    />
-                </div>
+                <AutoCompletion
+                    value={{
+                        label: value.label,
+                        value: value.value,
+                    }}
+                    id={`autocompletion-${data.id}`}
+                    {...data.autoCompletion}
+                    label={data.label}
+                    onChange={onChange}
+                />
             );
             break;
         }
@@ -243,7 +246,10 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                 </div>
             )}
         >
-            <div ref={popperRef}>
+            <div
+                ref={popperRef}
+                style={{ minWidth: Math.min(window.innerWidth - 64, big ? 700 : 350) }}
+            >
                 {popperContent}
                 <Button color="success" block onClick={submitValue}>
                     <FontAwesomeIcon icon={faCheck} />
