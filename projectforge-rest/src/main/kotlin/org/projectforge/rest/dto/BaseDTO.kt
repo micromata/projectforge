@@ -41,6 +41,18 @@ open class BaseDTO<T : ExtendedBaseDO<Int>>(var id: Int? = null,
                                             var created: Date? = null,
                                             var lastUpdate: Date? = null,
                                             var tenantId: Int? = null) {
+    var tenant: TenantDO?
+        get() {
+            if (tenantId == null) {
+                return null
+            }
+            val tenant = TenantDO()
+            tenant.id = tenantId
+            return tenant
+        }
+        set(value) {
+            tenantId = value?.tenantId
+        }
 
     /**
      * Full and deep copy of the object. Should be extended by inherited classes.
@@ -169,5 +181,4 @@ open class BaseDTO<T : ExtendedBaseDO<Int>>(var id: Int? = null,
             }
         }
     }
-
 }
