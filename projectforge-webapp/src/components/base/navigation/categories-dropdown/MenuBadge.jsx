@@ -10,11 +10,11 @@ function MenuBadge(
         children,
         color,
         flying,
-        key,
+        elementKey,
         tooltip,
     },
 ) {
-    const id = `menu-badge-${key}`;
+    const id = `menu-badge-${elementKey}`;
 
     return (
         <React.Fragment>
@@ -40,7 +40,7 @@ MenuBadge.propTypes = {
         PropTypes.string,
         PropTypes.number,
     ]).isRequired,
-    key: PropTypes.string.isRequired,
+    elementKey: PropTypes.string.isRequired,
     color: colorPropType,
     flying: PropTypes.bool,
     tooltip: PropTypes.string,
