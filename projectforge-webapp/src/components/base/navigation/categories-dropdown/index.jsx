@@ -46,7 +46,7 @@ function CategoriesDropdown({ badge, categories }) {
                 <FontAwesomeIcon icon={faListUl} />
                 {badge && (
                     <MenuBadge
-                        key="DROPDOWN_TOGGLE"
+                        elementKey="DROPDOWN_TOGGLE"
                         flying
                         color={badge.style}
                     >

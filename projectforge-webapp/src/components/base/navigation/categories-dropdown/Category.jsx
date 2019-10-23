@@ -84,7 +84,7 @@ class Category extends React.Component {
                 >
                     {category.title}
                     {category.badge && (
-                        <MenuBadge key={category.key}>{category.badge.counter}</MenuBadge>
+                        <MenuBadge elementKey={category.key}>{category.badge.counter}</MenuBadge>
                     )}
                 </div>
                 <Collapse isOpen={collapse}>
@@ -100,7 +100,7 @@ class Category extends React.Component {
                                 >
                                     {item.title}
                                     {item.badge && (
-                                        <MenuBadge key={item.key} tooltip={item.badge.tooltip}>
+                                        <MenuBadge elementKey={item.key} tooltip={item.badge.tooltip}>
                                             {item.badge.counter}
                                         </MenuBadge>
                                     )}
