@@ -323,6 +323,8 @@ abstract class AbstractBaseRest<
         if (currentFilter == null) {
             currentFilter = MagicFilter()
             saveCurrentFilter(currentFilter)
+        } else {
+            currentFilter.init()
         }
         @Suppress("UNCHECKED_CAST")
         return currentFilter
@@ -340,6 +342,7 @@ abstract class AbstractBaseRest<
             // Puts a deep copy of the current filter. Without copying, the favorite filter of the list will
             // be synchronized with the current filter.
             saveCurrentFilter(currentFilter.clone())
+            currentFilter.init()
         } else {
             log.warn("Can't select filter $id, because it's not found in favorites list.")
         }
