@@ -129,7 +129,7 @@ function HistoryEntry(
                                 diff = (
                                     <DiffText
                                         oldValue={`WAS ${oldValue}`}
-                                        id={`history-tooltip-${idifiedDate}-${property}`}
+                                        id={`history-tooltip-${idifiedDate}-${String.idify(property)}`}
                                     >
                                         {` ${property}: ${newValue}`}
                                     </DiffText>
