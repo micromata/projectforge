@@ -23,7 +23,6 @@
 
 package org.projectforge.rest.dto
 
-import net.fortuna.ical4j.model.property.RRule
 import org.projectforge.business.calendar.event.model.ICalendarEvent
 import org.projectforge.business.calendar.event.model.SeriesModificationMode
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
@@ -31,7 +30,6 @@ import org.projectforge.business.teamcal.event.model.*
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.sql.Timestamp
 import java.util.*
-import javax.persistence.Transient
 
 class CalEvent(
         var seriesModificationMode: SeriesModificationMode? = null,
@@ -67,26 +65,4 @@ class CalEvent(
 
     val hasRecurrence: Boolean
         get() = !recurrenceRule.isNullOrBlank()
-
-    @Transient
-    fun setRecurrence(rRule: RRule?): CalEvent {
-        if (rRule == null || rRule.recur == null) {
-            this.recurrenceRule = null
-            this.recurrenceUntil = null
-
-            return this
-        }
-
-        val recur = rRule.recur
-
-        if (recur.until != null) {
-            this.recurrenceUntil = recur.until
-        } else {
-            this.recurrenceUntil = null
-        }
-
-        this.recurrenceRule = rRule.value
-
-        return this
-    }
 }
