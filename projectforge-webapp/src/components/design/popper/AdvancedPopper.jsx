@@ -17,12 +17,20 @@ function AdvancedPopper(
     const reference = React.useRef(null);
     const basicReference = React.useRef(null);
     const [basicHeight, setBasicHeight] = React.useState(0);
+    const [basicWidth, setBasicWidth] = React.useState(0);
 
     useClickOutsideHandler(reference, setIsOpen, isOpen);
 
-    React.useLayoutEffect(() => {
-        setBasicHeight(basicReference.current.clientHeight);
-    }, [basicReference.current && basicReference.current.clientHeight]);
+    React.useLayoutEffect(
+        () => {
+            setBasicHeight(basicReference.current.clientHeight);
+            setBasicWidth(basicReference.current.clientWidth);
+        },
+        [
+            basicReference.current && basicReference.current.clientHeight,
+            basicReference.current && basicReference.current.clientWidth,
+        ],
+    );
 
     return (
         <div
@@ -33,7 +41,10 @@ function AdvancedPopper(
             )}
         >
             <div
-                style={{ height: `${basicHeight}px` }}
+                style={{
+                    height: `${basicHeight}px`,
+                    width: `${basicWidth}px`,
+                }}
             />
             <div
                 ref={reference}

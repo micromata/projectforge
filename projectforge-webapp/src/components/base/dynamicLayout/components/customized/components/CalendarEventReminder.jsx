@@ -1,13 +1,12 @@
 import React from 'react';
-import { Col, Row } from 'reactstrap';
-import { DynamicLayoutContext } from '../../../context';
 import 'react-rrule-generator/build/styles.css';
-import ReactSelect from '../../../../../design/ReactSelect';
+import { Col, Row } from 'reactstrap';
 import { Input } from '../../../../../design';
+import ReactSelect from '../../../../../design/ReactSelect';
+import { DynamicLayoutContext } from '../../../context';
 
 function CalendarEventReminder() {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
-    const [value, setValue] = React.useState(data.reminderDuration ? String(data.reminderDuration) : '1');
 
     const options = [
         {
@@ -40,7 +39,7 @@ function CalendarEventReminder() {
     ];
 
     const onReminderChange = (option) => {
-        console.log(option)
+        // console.log(option)
         setData({ reminderActionType: option.value });
     };
 
@@ -49,8 +48,7 @@ function CalendarEventReminder() {
     };
 
     const handleInputChange = (event) => {
-        console.log(event.target.value)
-        setValue(event.target.value);
+        // console.log(event.target.value)
         setData({ reminderDuration: event.target.value });
     };
 
@@ -73,7 +71,7 @@ function CalendarEventReminder() {
                         label={ui.translations['plugins.teamcal.event.reminder']}
                         translations={ui.translations}
                         values={options}
-                        defaultValue={defaultReminder}
+                        value={defaultReminder}
                         onChange={onReminderChange}
                         required
                     />
@@ -85,7 +83,7 @@ function CalendarEventReminder() {
                                 <Input
                                     label=""
                                     id="reminderDuration"
-                                    value={value}
+                                    value={data.reminderDuration.toString()}
                                     onChange={handleInputChange}
                                 />
                             </Col>
@@ -94,7 +92,7 @@ function CalendarEventReminder() {
                                     label=""
                                     translations={ui.translations}
                                     values={units}
-                                    defaultValue={defaultUnit}
+                                    value={defaultUnit}
                                     onChange={onUnitChange}
                                     required
                                 />
@@ -103,7 +101,7 @@ function CalendarEventReminder() {
                     ) : undefined}
             </Row>
         ),
-        [data.reminderActionType, value],
+        [data.reminderActionType, data.reminderDuration, data.reminderDurationUnit],
     );
 }
 

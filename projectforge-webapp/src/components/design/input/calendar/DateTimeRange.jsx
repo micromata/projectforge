@@ -81,7 +81,7 @@ function DateTimeRange(
             to,
         };
 
-        if (from === undefined || day < from) {
+        if (!from || day < from) {
             newRange.from = day;
             if (from) {
                 newRange.from.setHours(from.getHours());

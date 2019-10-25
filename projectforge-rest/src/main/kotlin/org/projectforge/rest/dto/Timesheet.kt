@@ -23,9 +23,11 @@
 
 package org.projectforge.rest.dto
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.projectforge.business.timesheet.TimesheetDO
 import java.sql.Timestamp
 
+@JsonIgnoreProperties(value = arrayOf("reminderDuration", "reminderDurationUnit"))
 class Timesheet(var task: Task? = null,
                 var location: String? = null,
                 var description: String? = null,

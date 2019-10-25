@@ -48,7 +48,7 @@ class AddressBookRest : AbstractDTORest<AddressbookDO, Addressbook, AddressbookD
     private lateinit var userService: UserService
 
     // Needed to use as dto.
-    override fun transformFromDB(obj: AddressbookDO, editMode : Boolean): Addressbook {
+    override fun transformFromDB(obj: AddressbookDO, editMode: Boolean): Addressbook {
         val addressbook = Addressbook()
         addressbook.copyFrom(obj)
         // Group names needed by React client (for ReactSelect):
@@ -96,31 +96,39 @@ class AddressBookRest : AbstractDTORest<AddressbookDO, Addressbook, AddressbookD
                                         multi = true,
                                         label = "addressbook.fullAccess",
                                         additionalLabel = "access.users",
-                                        autoCompletion = AutoCompletion<Int>(url = "user/aco"),
+                                        autoCompletion = AutoCompletion<Int>(url = "user/aco?search=",
+                                                type = AutoCompletion.Type.USER.name),
                                         labelProperty = "fullname",
-                                        valueProperty = "id"))
+                                        valueProperty = "id",
+                                        tooltip = "addressbook.fullAccess.tooltip"))
                                 .add(UISelect<Int>("readonlyAccessUsers", lc,
                                         multi = true,
                                         label = "addressbook.readonlyAccess",
                                         additionalLabel = "access.users",
-                                        autoCompletion = AutoCompletion<Int>(url = "user/aco"),
+                                        autoCompletion = AutoCompletion<Int>(url = "user/aco?search=",
+                                                type = AutoCompletion.Type.USER.name),
                                         labelProperty = "fullname",
-                                        valueProperty = "id")))
+                                        valueProperty = "id",
+                                        tooltip = "addressbook.readonlyAccess.tooltip")))
                         .add(UICol()
                                 .add(UISelect<Int>("fullAccessGroups", lc,
                                         multi = true,
                                         label = "addressbook.fullAccess",
                                         additionalLabel = "access.groups",
-                                        autoCompletion = AutoCompletion<Int>(url = "group/aco"),
+                                        autoCompletion = AutoCompletion<Int>(url = "group/aco?search=",
+                                                type = AutoCompletion.Type.GROUP.name),
                                         labelProperty = "name",
-                                        valueProperty = "id"))
+                                        valueProperty = "id",
+                                        tooltip = "addressbook.fullAccess.tooltip"))
                                 .add(UISelect<Int>("readonlyAccessGroups", lc,
                                         multi = true,
                                         label = "addressbook.readonlyAccess",
                                         additionalLabel = "access.groups",
-                                        autoCompletion = AutoCompletion<Int>(url = "group/aco"),
+                                        autoCompletion = AutoCompletion<Int>(url = "group/aco?search=",
+                                                type = AutoCompletion.Type.GROUP.name),
                                         labelProperty = "name",
-                                        valueProperty = "id"))))
+                                        valueProperty = "id",
+                                        tooltip = "addressbook.readonlyAccess.tooltip"))))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

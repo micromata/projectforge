@@ -64,25 +64,27 @@ function UserSelect(props) {
                 className={style.userSelect}
                 translations={translations}
             />
-            <div style={{ display: (!value || value.id !== user.id) ? 'block' : 'none' }}>
-                <Button
-                    id="selectMe"
-                    color="link"
-                    className="selectPanelIconLinks"
-                    onClick={selectMe}
-                    onMouseEnter={handleSelectMeHoverBegin}
-                    onMouseLeave={handleSelectMeHoverEnd}
-                >
-                    <FontAwesomeIcon
-                        icon={selectMeIcon}
-                        className={style.icon}
-                        size="lg"
-                    />
-                </Button>
-                <UncontrolledTooltip placement="right" target="selectMe">
-                    {translations['tooltip.selectMe']}
-                </UncontrolledTooltip>
-            </div>
+            {(!value || value.id !== user.id) && (
+                <React.Fragment>
+                    <Button
+                        id="selectMe"
+                        color="link"
+                        className="selectPanelIconLinks"
+                        onClick={selectMe}
+                        onMouseEnter={handleSelectMeHoverBegin}
+                        onMouseLeave={handleSelectMeHoverEnd}
+                    >
+                        <FontAwesomeIcon
+                            icon={selectMeIcon}
+                            className={style.icon}
+                            size="lg"
+                        />
+                    </Button>
+                    <UncontrolledTooltip placement="right" target="selectMe">
+                        {translations['tooltip.selectMe']}
+                    </UncontrolledTooltip>
+                </React.Fragment>
+            )}
         </div>
     );
 }

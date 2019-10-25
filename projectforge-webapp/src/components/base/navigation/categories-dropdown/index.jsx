@@ -3,15 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { menuItemPropType } from '../../../../utilities/propTypes';
-import revisedRandomId from '../../../../utilities/revisedRandomId';
-import {
-    Col,
-    Container,
-    Dropdown,
-    DropdownMenu,
-    DropdownToggle,
-    Row,
-} from '../../../design';
+import { Col, Container, Dropdown, DropdownMenu, DropdownToggle, Row, } from '../../../design';
 import style from '../Navigation.module.scss';
 import Category from './Category';
 import MenuBadge from './MenuBadge';
@@ -52,9 +44,15 @@ function CategoriesDropdown({ badge, categories }) {
         <Dropdown isOpen={open} toggle={() => setOpen(!open)}>
             <DropdownToggle nav caret>
                 <FontAwesomeIcon icon={faListUl} />
-                {badge
-                    ? <MenuBadge flying color={badge.style}>{badge.counter}</MenuBadge>
-                    : undefined}
+                {badge && (
+                    <MenuBadge
+                        elementKey="DROPDOWN_TOGGLE"
+                        flying
+                        color={badge.style}
+                    >
+                        {badge.counter}
+                    </MenuBadge>
+                )}
             </DropdownToggle>
             <DropdownMenu className={style.categoryListDropdownMenu}>
                 <Container>
@@ -62,13 +60,14 @@ function CategoriesDropdown({ badge, categories }) {
                         {columns.map(column => (
                             <Col
                                 md={3}
-                                key={`menu-column-${revisedRandomId()}`}
+                                key={`menu-column-${column.map(({ id }) => id)
+                                    .join('-')}`}
                                 className={style.categoryColumn}
                             >
                                 {column.map(category => (
                                     <Category
                                         category={category}
-                                        key={`category-${category.title}`}
+                                        key={`category-${category.id}`}
                                         closeMenu={() => setOpen(false)}
                                     />
                                 ))}
