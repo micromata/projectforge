@@ -55,11 +55,16 @@ class MagicFilterEntry(
             /**
              * Label is returned by the React frontend but it will be ignored by the backend.
              */
-            @JsonIgnore
             var label: String? = null
     )
 
     var value: Value
+        get() {
+            if (field == null) {
+                field = Value()
+            }
+            return field
+        }
 
     init {
         value = Value(stringValue)
@@ -83,8 +88,9 @@ class MagicFilterEntry(
             return false
         }
 
+    @Suppress("SENSELESS_COMPARISON") // value might be null after json deserialization.
     val isNoValueGiven: Boolean
-        get() = value.value.isNullOrBlank() && value.fromValue.isNullOrBlank() && value.toValue.isNullOrBlank() && value.values.isNullOrEmpty()
+        get() = value == null || (value.value.isNullOrBlank() && value.fromValue.isNullOrBlank() && value.toValue.isNullOrBlank() && value.values.isNullOrEmpty())
 
     /**
      * True, if no value is given and the field is empty.

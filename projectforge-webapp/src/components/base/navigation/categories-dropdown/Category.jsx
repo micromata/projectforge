@@ -83,9 +83,9 @@ class Category extends React.Component {
                     role="presentation"
                 >
                     {category.title}
-                    {category.badge
-                        ? <MenuBadge>{category.badge.counter}</MenuBadge>
-                        : undefined}
+                    {category.badge && (
+                        <MenuBadge elementKey={category.key}>{category.badge.counter}</MenuBadge>
+                    )}
                 </div>
                 <Collapse isOpen={collapse}>
                     <ul className={style.categoryLinks}>
@@ -99,13 +99,11 @@ class Category extends React.Component {
                                     to={`/${item.url}/`}
                                 >
                                     {item.title}
-                                    {item.badge
-                                        ? (
-                                            <MenuBadge tooltip={item.badge.tooltip}>
-                                                {item.badge.counter}
-                                            </MenuBadge>
-                                        )
-                                        : undefined}
+                                    {item.badge && (
+                                        <MenuBadge elementKey={item.key} tooltip={item.badge.tooltip}>
+                                            {item.badge.counter}
+                                        </MenuBadge>
+                                    )}
                                 </Link>
                             </li>
                         ))}

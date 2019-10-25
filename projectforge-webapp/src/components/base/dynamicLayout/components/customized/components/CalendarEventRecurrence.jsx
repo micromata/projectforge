@@ -1,11 +1,11 @@
-import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Col, Row } from 'reactstrap';
+import { connect } from 'react-redux';
 import RRuleGenerator, { translations } from 'react-rrule-generator';
-import { DynamicLayoutContext } from '../../../context';
 import 'react-rrule-generator/build/styles.css';
+import { Col, Row } from 'reactstrap';
 import ReactSelect from '../../../../../design/ReactSelect';
+import { DynamicLayoutContext } from '../../../context';
 
 function CalendarEventRecurrence({ locale }) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
@@ -39,35 +39,32 @@ function CalendarEventRecurrence({ locale }) {
 
     const onChange = rrule => setData({ recurrenceRule: rrule });
 
-    const initialValue = () => {
-        const rrule = data.recurrenceRule != null ? data.recurrenceRule.toUpperCase() : undefined;
-        if (rrule && rrule.indexOf('FREQ') >= 0) {
-            if (rrule.indexOf('INTERVAL') >= 0 && rrule.indexOf('INTERVAL=1') < 0) {
-                // value of interval isn't 1:
-                return 'CUSTOMIZED';
-            }
-            if (rrule.indexOf('BY') >= 0
-                || rrule.indexOf('UNTIL') >= 0
-                || rrule.indexOf('COUNT') >= 0
-                || rrule.indexOf('WKST') >= 0) {
-                // customized options chosen:
-                return 'CUSTOMIZED';
-            }
-            // eslint-disable-next-line no-restricted-syntax
-            for (const opt of options) {
-                if (rrule.indexOf(opt.value) > 0) { // NONE and CUSTOMIZED shouldn't occur in rrule.
-                    // Standard recurrency, e. g. FREQ=WEEKLY,INTERVAL=1
-                    return opt.value;
-                }
-            }
-            return 'CUSTOMIZED'; // Shouldn't occur, try then to handle this by RRuleGenerator.
-        }
-        return 'NONE';
-    };
-
     const getTranslation = () => ((locale === 'de') ? translations.german : undefined);
 
-    const [value, setValue] = React.useState(initialValue());
+    const [value, setValue] = React.useState(() => {
+        const rrule = data.recurrenceRule && data.recurrenceRule.toUpperCase();
+
+        if (!rrule || rrule.indexOf('FREQ') < 0) {
+            return 'NONE';
+        }
+
+        if (rrule.indexOf('INTERVAL') >= 0 && rrule.indexOf('INTERVAL=1') < 0) {
+            // value of interval isn't 1:
+            return 'CUSTOMIZED';
+        }
+
+        if (rrule.indexOf('BY') >= 0
+            || rrule.indexOf('UNTIL') >= 0
+            || rrule.indexOf('COUNT') >= 0
+            || rrule.indexOf('WKST') >= 0) {
+            // customized options chosen:
+            return 'CUSTOMIZED';
+        }
+
+        return options
+            .map(({ value: opt }) => opt)
+            .find(opt => rrule.indexOf(opt) > 0) || 'CUSTOMIZED';
+    });
 
     const onSelectChange = (option) => {
         const val = option.value;
@@ -97,7 +94,7 @@ function CalendarEventRecurrence({ locale }) {
                             label={ui.translations['plugins.teamcal.event.recurrence']}
                             translations={ui.translations}
                             values={options}
-                            defaultValue={defaultValue}
+                            value={defaultValue}
                             onChange={onSelectChange}
                             required
                         />
@@ -120,7 +117,7 @@ function CalendarEventRecurrence({ locale }) {
                     ) : undefined}
             </React.Fragment>
         ),
-        [value],
+        [value, setData],
     );
 }
 

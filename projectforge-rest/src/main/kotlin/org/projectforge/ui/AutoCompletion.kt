@@ -47,7 +47,7 @@ class AutoCompletion<T>(
     /**
      * Pre-defined types of autocompletion objects as information for the clients.
      */
-    enum class Type { USER }
+    enum class Type { USER, GROUP }
     class Entry<T>(val value: T,
                    /**
                     * The title to display.

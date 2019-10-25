@@ -23,6 +23,9 @@
 
 package org.projectforge.framework.persistence.api
 
+import org.projectforge.business.multitenancy.TenantRegistry
+import org.projectforge.business.multitenancy.TenantRegistryMap
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserPrefDao
 import org.projectforge.favorites.AbstractFavorite
 
@@ -50,6 +53,18 @@ class MagicFilter(
     internal val log = org.slf4j.LoggerFactory.getLogger(MagicFilter::class.java)
 
     var sortProperties = mutableListOf<SortProperty>()
+
+    /**
+     * After deserialization from data base (prefs) this method should be called to rebuild some information needed by the
+     * clients.
+     */
+    fun init() {
+        entries.forEach {
+            if (it.field == MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.fieldName) {
+                it.value.label = getUserGroupCache().getUser(it.value.value?.toInt())?.username
+            }
+        }
+    }
 
     fun reset() {
         entries.clear()
@@ -88,5 +103,15 @@ class MagicFilter(
         val mapper = UserPrefDao.createObjectMapper()
         val json = mapper.writeValueAsString(this)
         return mapper.readValue(json, MagicFilter::class.java)
+    }
+
+    companion object {
+        private fun getTenantRegistry(): TenantRegistry {
+            return TenantRegistryMap.getInstance().tenantRegistry
+        }
+
+        private fun getUserGroupCache(): UserGroupCache {
+            return getTenantRegistry().userGroupCache
+        }
     }
 }

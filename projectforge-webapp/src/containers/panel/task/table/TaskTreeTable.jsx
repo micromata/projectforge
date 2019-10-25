@@ -14,56 +14,53 @@ function TaskTreeTable({ nodes }) {
     } = React.useContext(TaskTreeContext);
 
     return (
-        <Table striped hover responsive className={styles.tasks}>
-            <thead>
-                <tr>
-                    <th>{translations.task}</th>
-                    <th>{translations['task.consumption']}</th>
+        <React.Fragment>
+            <Table striped hover responsive className={styles.tasks}>
+                <thead>
+                    <tr>
+                        <th>{translations.task}</th>
+                        <th>{translations['task.consumption']}</th>
 
-                    {columnsVisibility.kost2 ? <th>{translations['fibu.kost2']}</th> : undefined}
+                        {columnsVisibility.kost2 && <th>{translations['fibu.kost2']}</th>}
 
-                    {!shortForm && columnsVisibility.orders
-                        ? <th>{translations['fibu.auftrag.auftraege']}</th>
-                        : undefined}
+                        {!shortForm && columnsVisibility.orders
+                        && <th>{translations['fibu.auftrag.auftraege']}</th>}
 
-                    <th>{translations.shortDescription}</th>
+                        <th>{translations.shortDescription}</th>
 
-                    {!shortForm ? (
-                        <React.Fragment>
+                        {!shortForm && (
+                            <React.Fragment>
 
-                            {columnsVisibility.protectionUntil
-                                ? <th>{translations['task.protectTimesheetsUntil.short']}</th>
-                                : undefined}
+                                {columnsVisibility.protectionUntil
+                                && <th>{translations['task.protectTimesheetsUntil.short']}</th>}
 
-                            {columnsVisibility.reference
-                                ? <th>{translations['task.reference']}</th>
-                                : undefined}
+                                {columnsVisibility.reference
+                                && <th>{translations['task.reference']}</th>}
 
-                            {columnsVisibility.priority
-                                ? <th>{translations.priority}</th>
-                                : undefined}
+                                {columnsVisibility.priority
+                                && <th>{translations.priority}</th>}
 
-                            <th>{translations.status}</th>
+                                <th>{translations.status}</th>
 
-                            {columnsVisibility.assignedUser
-                                ? <th>{translations['task.assignedUser']}</th>
-                                : undefined}
+                                {columnsVisibility.assignedUser
+                                && <th>{translations['task.assignedUser']}</th>}
 
-                        </React.Fragment>
-                    ) : undefined}
-                </tr>
-            </thead>
-            <tbody>
-                {nodes.map(task => (
-                    <TaskTreeTableEntry
-                        key={`task-tree-table-body-row-${task.id}`}
-                        task={task}
-                    />
-                ))}
-                {/* TODO TRANSLATION */}
-                {nodes.length === 0 && '[Keine Tasks gefunden]'}
-            </tbody>
-        </Table>
+                            </React.Fragment>
+                        )}
+                    </tr>
+                </thead>
+                <tbody>
+                    {nodes.map(task => (
+                        <TaskTreeTableEntry
+                            key={`task-tree-table-body-row-${task.id}`}
+                            task={task}
+                        />
+                    ))}
+                </tbody>
+            </Table>
+            {/* TODO TRANSLATION */}
+            {nodes.length === 0 && <span>[Keine Tasks gefunden]</span>}
+        </React.Fragment>
     );
 }
 
