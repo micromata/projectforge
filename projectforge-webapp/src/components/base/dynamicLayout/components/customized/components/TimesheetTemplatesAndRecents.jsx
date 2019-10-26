@@ -177,8 +177,8 @@ function TimesheetTemplatesAndRecents() {
                                                         .then(handleHTTPErrors)
                                                         .then(body => body.json())
                                                         .then(({ variables: newVariables }) => {
-                                                            setData(newVariables.data);
                                                             setVariables(newVariables.task);
+                                                            setData(newVariables.data);
                                                             setRecentsVisible(false);
                                                         })
                                                         .catch(error => alert(`Internal error: ${error}`));
