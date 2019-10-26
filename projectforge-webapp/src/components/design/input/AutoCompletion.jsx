@@ -40,6 +40,10 @@ function AutoCompletion({ url, type, ...props }) {
             translations={{}}
             loadOptions={loadOptions}
             {...props}
+            autoCompletion={{
+                url,
+                type,
+            }}
         />
     );
 }
