@@ -249,8 +249,8 @@ function EditPage({ match, location }) {
                                     </form>
                                 </Container>
                             </TabPane>
-                            {ui.showHistory === true
-                                ? (
+                            {ui.showHistory === true && id
+                                && (
                                     <TabPane tabId="history">
                                         <Container fluid>
                                             <EditHistory
@@ -261,8 +261,7 @@ function EditPage({ match, location }) {
                                             />
                                         </Container>
                                     </TabPane>
-                                )
-                                : undefined}
+                                )}
                         </TabContent>
                     </React.Fragment>
                 )}
