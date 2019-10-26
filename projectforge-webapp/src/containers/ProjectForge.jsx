@@ -174,6 +174,4 @@ const actions = {
     loadUserStatus,
 };
 
-export { prefix };
-
 export default connect(mapStateToProps, actions)(ProjectForge);
