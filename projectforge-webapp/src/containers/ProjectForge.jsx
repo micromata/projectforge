@@ -18,6 +18,8 @@ import ListPage from './page/list/ListPage';
 import TaskTreePage from './page/TaskTreePage';
 import { SystemStatusContext, systemStatusContextDefaultValues } from './SystemStatusContext';
 
+const prefix = '/';
+
 function ProjectForge(
     {
         alertMessage,
@@ -78,27 +80,27 @@ function ProjectForge(
                         {wicketRoute}
                         <Route
                             exact
-                            path="/"
+                            path={prefix}
                             component={IndexPage}
                         />
                         <Route
-                            path="/calendar"
+                            path={`${prefix}calendar`}
                             component={CalendarPage}
                         />
                         <Route
-                            path="/taskTree"
+                            path={`${prefix}taskTree`}
                             component={TaskTreePage}
                         />
                         <Route
-                            path="/dynamic/:page"
+                            path={`${prefix}dynamic/:page`}
                             component={DynamicPage}
                         />
                         <Route
-                            path="/:category/edit/:id?"
+                            path={`${prefix}:category/edit/:id?`}
                             component={EditPage}
                         />
                         <Route
-                            path="/:category/"
+                            path={`${prefix}:category`}
                             component={ListPage}
                         />
                     </Switch>
@@ -110,11 +112,11 @@ function ProjectForge(
             <Switch>
                 {wicketRoute}
                 <Route
-                    path="/:restPrefix/:page"
+                    path={`${prefix}:restPrefix/:page`}
                     component={DynamicPage}
                 />
                 <Route
-                    path="/"
+                    path={prefix}
                     render={props => (
                         <LoginView
                             // TODO REPLACE OLD LOGIN VIEW WITH DYNAMIC PAGE
