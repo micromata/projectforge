@@ -6,8 +6,8 @@ import CustomizedAddressImage from './components/CustomizedAddressImage';
 import CustomizedConsumptionBar from './components/CustomizedConsumptionBar';
 import CustomizedImageDataPreview from './components/ImageDataPreview';
 import DayRange from './components/DayRange';
-import TimesheetEditTaskAndKost2 from './components/TimesheetEditTaskAndKost2';
-import TimesheetTemplatesAndRecents from './components/TimesheetTemplatesAndRecents';
+import TimesheetEditTaskAndKost2 from './components/timesheet/TimesheetEditTaskAndKost2';
+import TimesheetTemplatesAndRecents from './components/timesheet/TimesheetTemplatesAndRecents';
 import CalendarEventReminder from './components/CalendarEventReminder';
 
 function DynamicCustomized({ id, ...props }) {

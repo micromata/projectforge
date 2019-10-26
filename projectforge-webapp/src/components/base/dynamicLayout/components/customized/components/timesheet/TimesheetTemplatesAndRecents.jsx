@@ -1,17 +1,18 @@
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import React from 'react';
 import { Button, Card, CardBody, Table } from 'reactstrap';
-import FavoritesPanel from '../../../../../../containers/panel/favorite/FavoritesPanel';
-import { useClickOutsideHandler } from '../../../../../../utilities/hooks';
+import FavoritesPanel from '../../../../../../../containers/panel/favorite/FavoritesPanel';
+import { useClickOutsideHandler } from '../../../../../../../utilities/hooks';
 import {
     fetchJsonGet,
     fetchJsonPost,
     getServiceURL,
     handleHTTPErrors,
-} from '../../../../../../utilities/rest';
-import { Collapse } from '../../../../../design';
-import Input from '../../../../../design/input';
-import { DynamicLayoutContext } from '../../../context';
+} from '../../../../../../../utilities/rest';
+import { Collapse } from '../../../../../../design';
+import Input from '../../../../../../design/input';
+import { DynamicLayoutContext } from '../../../../context';
+import TimesheetRecentEntry, { filterRecent } from './TimesheetRecentEntry';
 
 function TimesheetTemplatesAndRecents() {
     const {
@@ -148,59 +149,23 @@ function TimesheetTemplatesAndRecents() {
                                         </thead>
                                         <tbody>
                                             {recents.timesheets
-                                                .filter(recent => (
-                                                    recent.kost2.formattedNumber
-                                                        .includes(search)
-                                                    || recent.task.title.toLowerCase()
-                                                        .includes(search.toLowerCase())
-                                                    || recent.location.toLowerCase()
-                                                        .includes(search.toLowerCase())
-                                                    || recent.description.toLowerCase()
-                                                        .includes(search.toLowerCase())
+                                                .filter(recent => filterRecent(
+                                                    search.toLowerCase(),
+                                                    recent,
                                                 ))
-                                                .map((recent) => {
-                                                    const handleRowClick = () => fetch(
-                                                        getServiceURL('timesheet/selectRecent'),
-                                                        {
-                                                            credentials: 'include',
-                                                            method: 'POST',
-                                                            headers: {
-                                                                'Content-Type': 'application/json',
-                                                                Accept: 'application/json',
-                                                            },
-                                                            body: JSON.stringify({
-                                                                ...data,
-                                                                ...recent,
-                                                            }),
-                                                        },
-                                                    )
-                                                        .then(handleHTTPErrors)
-                                                        .then(body => body.json())
-                                                        .then(({ variables: newVariables }) => {
+                                                .map(({ hashKey, ...recent }) => (
+                                                    <TimesheetRecentEntry
+                                                        key={hashKey}
+                                                        callback={({ variables: newVariables }) => {
                                                             setVariables(newVariables.task);
                                                             setData(newVariables.data);
                                                             setRecentsVisible(false);
-                                                        })
-                                                        .catch(error => alert(`Internal error: ${error}`));
-
-                                                    return (
-                                                        <tr
-                                                            key={`recent-${recent.task.id}-${recent.description}-${recent.location}`}
-                                                            onClick={handleRowClick}
-                                                        >
-                                                            {recents.cost2Visible ? (
-                                                                <td>
-                                                                    {recent.kost2.formattedNumber}
-                                                                </td>
-                                                            ) : undefined}
-                                                            <td>???</td>
-                                                            <td>???</td>
-                                                            <td>{recent.task.title}</td>
-                                                            <td>{recent.location}</td>
-                                                            <td>{recent.description}</td>
-                                                        </tr>
-                                                    );
-                                                })}
+                                                        }}
+                                                        cost2Visible={recents.cost2Visible}
+                                                        data={data}
+                                                        recent={recent}
+                                                    />
+                                                ))}
                                         </tbody>
                                     </Table>
                                 </CardBody>

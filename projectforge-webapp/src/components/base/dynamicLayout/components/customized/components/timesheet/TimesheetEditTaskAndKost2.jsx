@@ -3,10 +3,10 @@ import PropTypes from 'prop-types';
 import 'rc-time-picker/assets/index.css';
 import React from 'react';
 import 'react-day-picker/lib/style.css';
-import { Col, FormGroup, Row } from '../../../../../design';
-import { DynamicLayoutContext } from '../../../context';
-import DynamicReactSelect from '../../select/DynamicReactSelect';
-import DynamicTaskSelect from '../../select/task';
+import { Col, FormGroup, Row } from '../../../../../../design';
+import { DynamicLayoutContext } from '../../../../context';
+import DynamicReactSelect from '../../../select/DynamicReactSelect';
+import DynamicTaskSelect from '../../../select/task';
 
 /**
  * Kost2 selection for editing time sheets.
