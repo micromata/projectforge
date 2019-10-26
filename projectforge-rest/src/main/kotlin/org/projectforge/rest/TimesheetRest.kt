@@ -24,6 +24,7 @@
 package org.projectforge.rest
 
 import org.apache.commons.lang3.builder.HashCodeBuilder
+import org.projectforge.Const
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.systeminfo.SystemInfoCache
@@ -164,7 +165,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
     }
 
     override fun afterEdit(obj: TimesheetDO, dto: TimesheetDO): ResponseAction {
-        return ResponseAction("/calendar")
+        return ResponseAction("/${Const.REACT_APP_PATH}calendar")
                 .addVariable("date", obj.startTime)
                 .addVariable("id", obj.id ?: -1)
     }
@@ -326,7 +327,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
         if (!calendarEvent.subject.isNullOrBlank() || !calendarEvent.note.isNullOrBlank())
             timesheet.description = "${calendarEvent.subject ?: ""} ${calendarEvent.note ?: ""}"
         val editLayoutData = getItemAndLayout(request, timesheet, UILayout.UserAccess(false, true))
-        return ResponseAction(url = "/calendar/${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
+        return ResponseAction(url = "/${Const.REACT_APP_PATH}calendar/${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
                 .addVariable("data", editLayoutData.data)
                 .addVariable("ui", editLayoutData.ui)
                 .addVariable("variables", editLayoutData.variables)

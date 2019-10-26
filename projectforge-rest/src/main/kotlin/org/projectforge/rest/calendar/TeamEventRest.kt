@@ -25,6 +25,7 @@
 
 package org.projectforge.rest.calendar
 
+import org.projectforge.Const
 import org.projectforge.business.calendar.event.model.SeriesModificationMode
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
@@ -137,7 +138,7 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
     }
 
     override fun afterEdit(obj: TeamEventDO, dto: TeamEvent): ResponseAction {
-        return ResponseAction("/calendar")
+        return ResponseAction("/${Const.REACT_APP_PATH}calendar")
                 .addVariable("date", dto.startDate)
                 .addVariable("id", obj.id ?: -1)
     }
@@ -211,7 +212,7 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
             teamEvent.calendar?.id = calendarId
         }
         val editLayoutData = getItemAndLayout(request, teamEvent, UILayout.UserAccess(false, true))
-        return ResponseAction(url = "/calendar/${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
+        return ResponseAction(url = "/${Const.REACT_APP_PATH}calendar/${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
                 .addVariable("data", editLayoutData.data)
                 .addVariable("ui", editLayoutData.ui)
                 .addVariable("variables", editLayoutData.variables)

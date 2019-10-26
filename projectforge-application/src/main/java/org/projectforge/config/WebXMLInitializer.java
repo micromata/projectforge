@@ -25,6 +25,7 @@ package org.projectforge.config;
 
 import org.apache.wicket.protocol.http.WicketFilter;
 import org.apache.wicket.spring.SpringWebApplicationFactory;
+import org.projectforge.Const;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.model.rest.RestPaths;
@@ -71,6 +72,7 @@ public class WebXMLInitializer implements ServletContextInitializer {
     boolean filterAfterInternal = false;
     userFilter.addMappingForUrlPatterns(null, filterAfterInternal, "/secure/*");
     userFilter.addMappingForUrlPatterns(null, filterAfterInternal, "/wa/*");
+    userFilter.addMappingForUrlPatterns(null, filterAfterInternal, "/" + Const.REACT_APP_PATH + "*");
 
     final FilterRegistration hibernateFilter = sc.addFilter("HibernateFilter", OpenSessionInViewFilter.class);
     hibernateFilter.setInitParameter("sessionFactoryBeanName", "sessionFactory");

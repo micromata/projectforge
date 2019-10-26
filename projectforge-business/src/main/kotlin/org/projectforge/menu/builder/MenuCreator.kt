@@ -23,6 +23,7 @@
 
 package org.projectforge.menu.builder
 
+import org.projectforge.Const
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.*
 import org.projectforge.business.fibu.datev.DatevImportDao
@@ -54,6 +55,7 @@ import org.springframework.stereotype.Component
  */
 @Component
 class MenuCreator {
+
     private val log = org.slf4j.LoggerFactory.getLogger(MenuCreator::class.java)
 
     internal class MenuItemDefHolder {
@@ -87,6 +89,7 @@ class MenuCreator {
     private var initialized = false
 
     companion object {
+        const val REACT_PREFIX: String = Const.REACT_APP_PATH
         /**
          * If test cases fails, try to set testCase to true.
          */
@@ -178,13 +181,13 @@ class MenuCreator {
         // COMMON
         //
         val commonMenu = menuItemDefHolder.add(MenuItemDef(MenuItemDefId.COMMON))
-                .add(MenuItemDef(MenuItemDefId.CALENDAR, "calendar"))
+                .add(MenuItemDef(MenuItemDefId.CALENDAR, "${REACT_PREFIX}calendar"))
                 .add(MenuItemDef(MenuItemDefId.TEAMCALENDAR, "wa/wicket/bookmarkable/org.projectforge.web.teamcal.admin.TeamCalListPage")) // teamCal
                 .add(MenuItemDef(MenuItemDefId.VACATION, "wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationListPage",
                         badgeCounter = { vacationService.getOpenLeaveApplicationsForUser(ThreadLocalUserContext.getUser()).toInt() }))
-                .add(MenuItemDef(MenuItemDefId.BOOK_LIST, "book"))
-                .add(MenuItemDef(MenuItemDefId.ADDRESSBOOK_LIST, "addressBook"))
-                .add(MenuItemDef(MenuItemDefId.ADDRESS_LIST, "address"))
+                .add(MenuItemDef(MenuItemDefId.BOOK_LIST, "${REACT_PREFIX}book"))
+                .add(MenuItemDef(MenuItemDefId.ADDRESSBOOK_LIST, "${REACT_PREFIX}addressBook"))
+                .add(MenuItemDef(MenuItemDefId.ADDRESS_LIST, "${REACT_PREFIX}address"))
         if (configurationService.telephoneSystemUrl.isNotEmpty())
             commonMenu.add(MenuItemDef(MenuItemDefId.PHONE_CALL, "wa/phoneCall"))
         if (smsSenderConfig.isSmsConfigured())
@@ -263,12 +266,12 @@ class MenuCreator {
         //
         menuItemDefHolder.add(MenuItemDef(MenuItemDefId.COST, requiredGroups = *FIBU_ORGA_HR_GROUPS,
                 checkAccess = { Configuration.getInstance().isCostConfigured }))
-                .add(MenuItemDef(MenuItemDefId.ACCOUNT_LIST, "konto",
+                .add(MenuItemDef(MenuItemDefId.ACCOUNT_LIST, "${REACT_PREFIX}konto",
                         checkAccess = {
                             hasRight(KontoDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
                                     isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
                         }))
-                .add(MenuItemDef(MenuItemDefId.COST1_LIST, "kost1",
+                .add(MenuItemDef(MenuItemDefId.COST1_LIST, "${REACT_PREFIX}kost1",
                         checkAccess = {
                             hasRight(Kost1Dao.USER_RIGHT_ID, *READONLY_READWRITE) ||
                                     isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
@@ -307,11 +310,11 @@ class MenuCreator {
         //
         menuItemDefHolder.add(MenuItemDef(MenuItemDefId.ORGA,
                 requiredGroups = *FIBU_ORGA_HR_GROUPS))
-                .add(MenuItemDef(MenuItemDefId.OUTBOX_LIST, "outgoingMail",
+                .add(MenuItemDef(MenuItemDefId.OUTBOX_LIST, "${REACT_PREFIX}outgoingMail",
                         requiredUserRightId = PostausgangDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
-                .add(MenuItemDef(MenuItemDefId.INBOX_LIST, "incomingMail",
+                .add(MenuItemDef(MenuItemDefId.INBOX_LIST, "${REACT_PREFIX}incomingMail",
                         requiredUserRightId = PosteingangDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
-                .add(MenuItemDef(MenuItemDefId.CONTRACTS, "contract",
+                .add(MenuItemDef(MenuItemDefId.CONTRACTS, "${REACT_PREFIX}contract",
                         requiredUserRightId = ContractDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
                 .add(MenuItemDef(MenuItemDefId.VISITORBOOK, "wa/wicket/bookmarkable/org.projectforge.web.orga.VisitorbookListPage",
                         requiredUserRightId = VisitorbookDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
