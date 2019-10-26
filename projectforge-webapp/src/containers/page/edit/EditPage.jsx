@@ -65,6 +65,21 @@ function EditPage({ match, location }) {
             .catch(setError);
     };
 
+    const setVariables = async (newVariables, callback) => {
+        const computedVariables = {
+            ...variables,
+            ...(typeof newVariables === 'function' ? newVariables(variables) : newVariables),
+        };
+
+        setVariablesState(computedVariables);
+
+        if (callback) {
+            callback(computedVariables);
+        }
+
+        return computedVariables;
+    };
+
     const callAction = ({ responseAction }) => {
         if (!responseAction) {
             return;
@@ -109,6 +124,9 @@ function EditPage({ match, location }) {
                             case 'UPDATE':
                                 history.push(`${json.url}`, { noReload: true });
                                 window.scrollTo(0, 0);
+                                if (json.variables.variables) {
+                                    setVariables(json.variables.variables);
+                                }
                                 setDataState(json.variables.data);
                                 setUI(json.variables.ui);
                                 break;
@@ -140,21 +158,6 @@ function EditPage({ match, location }) {
         }
 
         return computedData;
-    };
-
-    const setVariables = async (newVariables, callback) => {
-        const computedVariables = {
-            ...variables,
-            ...(typeof newVariables === 'function' ? newVariables(variables) : newVariables),
-        };
-
-        setVariablesState(computedVariables);
-
-        if (callback) {
-            callback(computedVariables);
-        }
-
-        return computedVariables;
     };
 
     React.useEffect(() => {
