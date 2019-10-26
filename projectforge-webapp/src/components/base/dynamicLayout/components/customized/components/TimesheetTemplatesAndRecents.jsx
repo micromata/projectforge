@@ -107,22 +107,22 @@ function TimesheetTemplatesAndRecents() {
                         htmlId="timesheetFavoritesPopover"
                         favoriteButtonText={`${ui.translations.templates} | `}
                     />
-                    <Button
-                        color="link"
-                        className="selectPanelIconLinks"
-                        onClick={toggleModal}
-                    >
-                        Recents
-                    </Button>
-                    <Collapse
-                        isOpen={recentsVisible}
-                        style={{
-                            maxHeight: '600px',
-                            overflow: 'scroll',
-                            scroll: 'auto',
-                        }}
-                    >
-                        <div ref={recentsRef}>
+                    <span ref={recentsRef}>
+                        <Button
+                            color="link"
+                            className="selectPanelIconLinks"
+                            onClick={toggleModal}
+                        >
+                            Recents
+                        </Button>
+                        <Collapse
+                            isOpen={recentsVisible}
+                            style={{
+                                maxHeight: '600px',
+                                overflow: 'scroll',
+                                scroll: 'auto',
+                            }}
+                        >
                             <Card>
                                 <CardBody>
                                     TODO TRANSLATIONS & SHOW KUNDE/PROJEKT
@@ -205,8 +205,8 @@ function TimesheetTemplatesAndRecents() {
                                     </Table>
                                 </CardBody>
                             </Card>
-                        </div>
-                    </Collapse>
+                        </Collapse>
+                    </span>
                 </React.Fragment>
             );
         },
