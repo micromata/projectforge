@@ -23,6 +23,7 @@
 
 package org.projectforge.rest
 
+import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.systeminfo.SystemInfoCache
@@ -271,6 +272,13 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
                     ts.kost2!!.copyFromMinimal(kost2)
                 }
             }
+            val hcb = HashCodeBuilder()
+            hcb.append(ts.kost2?.id)
+                    .append(ts.task?.id)
+                    .append(ts.user?.id)
+                    .append(ts.location)
+                    .append(ts.description)
+            ts.hashKey = hcb.toHashCode()
             ts
         }
         return RecentTimesheets(timesheets, SystemInfoCache.instance().isCost2EntriesExists())
