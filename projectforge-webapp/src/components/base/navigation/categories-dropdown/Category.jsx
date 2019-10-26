@@ -100,7 +100,10 @@ class Category extends React.Component {
                                 >
                                     {item.title}
                                     {item.badge && (
-                                        <MenuBadge elementKey={item.key} tooltip={item.badge.tooltip}>
+                                        <MenuBadge
+                                            elementKey={item.key}
+                                            tooltip={item.badge.tooltip}
+                                        >
                                             {item.badge.counter}
                                         </MenuBadge>
                                     )}
