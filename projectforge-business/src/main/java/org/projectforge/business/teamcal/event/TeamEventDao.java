@@ -421,7 +421,6 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
     if (list != null) {
       for (final TeamEventDO eventDO : list) {
         if (!eventDO.hasRecurrence()) {
-          log.warn("Shouldn't occur! Please contact developer.");
           // This event was handled above.
           continue;
         }
