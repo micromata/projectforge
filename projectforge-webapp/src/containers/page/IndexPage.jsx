@@ -142,7 +142,6 @@ class IndexPage extends React.Component {
                     <Col>
                         <h1>ToDo&apos;s (Fin)</h1>
                         <ol>
-                            <li>Finishing time sheet editing (recents)</li>
                             <li>
                                 Return key closes the popover, another Return click submits the
                                 filter and requests a new list?
@@ -162,12 +161,13 @@ class IndexPage extends React.Component {
                                 <br />
                                 See /incomingInvoice
                             </li>
-                            <li>
-                                ReactSelect.jsx tooltip random id.
-                            </li>
                         </ol>
                         <h1>Done</h1>
                         <ol style={todoDone}>
+                            <li>
+                                ReactSelect.jsx tooltip random id.
+                            </li>
+                            <li>Finishing time sheet editing (recents)</li>
                             <li>
                                 Open Popover with focus in Inputfield after selecting a new
                                 field in list&apos;s search filter.
