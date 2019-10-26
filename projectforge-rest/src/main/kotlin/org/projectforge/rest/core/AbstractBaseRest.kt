@@ -25,6 +25,7 @@ package org.projectforge.rest.core
 
 import org.apache.commons.beanutils.NestedNullException
 import org.apache.commons.beanutils.PropertyUtils
+import org.projectforge.Const
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.access.AccessChecker
@@ -762,7 +763,7 @@ abstract class AbstractBaseRest<
      * @return ResponseAction with the url of the standard list page.
      */
     internal open fun afterEdit(obj: O, dto: DTO): ResponseAction {
-        return ResponseAction("/${getCategory()}").addVariable("id", obj.id ?: -1)
+        return ResponseAction("/${Const.REACT_APP_PATH}${getCategory()}").addVariable("id", obj.id ?: -1)
     }
 
     internal open fun filterList(resultSet: MutableList<O>, filter: MagicFilter): List<O> {

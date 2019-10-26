@@ -33,6 +33,8 @@ import java.util.Locale;
 
 public class Const
 {
+  public static final String REACT_APP_PATH = "react/";
+
   public static final String WICKET_APPLICATION_PATH = "wa/";
 
   public static final int WICKET_REQUEST_TIMEOUT_MINUTES = 5;

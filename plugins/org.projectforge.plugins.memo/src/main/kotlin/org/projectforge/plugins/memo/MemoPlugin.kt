@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.memo
 
+import org.projectforge.Const
 import org.projectforge.continuousdb.UpdateEntry
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
@@ -61,7 +62,7 @@ class MemoPlugin : AbstractPlugin() {
 
         // Register the menu entry as sub menu entry of the misc menu:
         // Both: Wicket and React
-        pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, MenuItemDef(ID, "plugins.memo.menu", "memo"), MemoListPage::class.java)
+        pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, MenuItemDef(ID, "plugins.memo.menu", "${Const.REACT_APP_PATH}memo"), MemoListPage::class.java)
         // Later: React only:
         // menuCreator.add(parentId, menuItemDef);
 
