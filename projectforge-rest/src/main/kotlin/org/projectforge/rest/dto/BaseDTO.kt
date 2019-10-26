@@ -40,26 +40,14 @@ open class BaseDTO<T : ExtendedBaseDO<Int>>(var id: Int? = null,
                                             var deleted: Boolean = false,
                                             var created: Date? = null,
                                             var lastUpdate: Date? = null,
-                                            var tenantId: Int? = null) {
-    var tenant: TenantDO?
-        get() {
-            if (tenantId == null) {
-                return null
-            }
-            val tenant = TenantDO()
-            tenant.id = tenantId
-            return tenant
-        }
-        set(value) {
-            tenantId = value?.tenantId
-        }
+                                            var tenant: Tenant? = null) {
 
     /**
      * Full and deep copy of the object. Should be extended by inherited classes.
      */
     open fun copyFrom(src: T) {
         copy(src, this)
-        this.tenantId = src.tenantId
+        this.tenant = createTenant(src.tenantId)
     }
 
     /**
@@ -68,7 +56,7 @@ open class BaseDTO<T : ExtendedBaseDO<Int>>(var id: Int? = null,
     open fun copyFromAny(src: Any) {
         copy(src, this)
         if (src is BaseDO<*>) {
-            this.tenantId = src.tenantId
+            this.tenant = createTenant(src.tenantId)
         }
     }
 
@@ -76,6 +64,8 @@ open class BaseDTO<T : ExtendedBaseDO<Int>>(var id: Int? = null,
      * Full and deep copy of the object. Should be extended by inherited classes.
      */
     open fun copyTo(dest: T) {
+
+        val tenantId = tenant?.id
         if (tenantId != null) {
             dest.tenant = TenantDO()
             dest.tenant.id = tenantId
@@ -98,6 +88,15 @@ open class BaseDTO<T : ExtendedBaseDO<Int>>(var id: Int? = null,
         }
         @Suppress("UNCHECKED_CAST")
         copyFromMinimal(src as T)
+    }
+
+    private fun createTenant(id: Int?) : Tenant? {
+        if (id == null) {
+            return null
+        }
+        val tenant = Tenant()
+        tenant.id = id
+        return tenant
     }
 
     companion object {

@@ -49,7 +49,13 @@ import javax.persistence.*
                 query = "from Kost2DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and kost2Art.id=:kost2ArtId and id!=:id"),
         NamedQuery(name = Kost2DO.FIND_ACTIVES_BY_NK_BEREICH_TEILBEREICH,
                 query = "from Kost2DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and kost2Art.id=:kost2ArtId and (kostentraegerStatus='ACTIVE' or kostentraegerStatus is null) order by kost2Art.id"))
-class Kost2DO : DefaultBaseDO(), ShortDisplayNameCapable, Comparable<Kost2DO> {
+class Kost2DO(id: Int? = null) : DefaultBaseDO(), ShortDisplayNameCapable, Comparable<Kost2DO> {
+
+    init {
+        if (id != null) {
+            this.id = id
+        }
+    }
 
     @PropertyInfo(i18nKey = "status")
     @Field

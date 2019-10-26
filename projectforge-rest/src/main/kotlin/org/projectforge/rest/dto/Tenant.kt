@@ -23,12 +23,6 @@
 
 package org.projectforge.rest.dto
 
-import org.projectforge.business.fibu.ProjektDO
-import java.util.*
+import org.projectforge.framework.persistence.user.entities.TenantDO
 
-class Projekt(id: Int?,
-              deleted: Boolean,
-              created: Date?,
-              lastUpdate: Date?,
-              tenant: Tenant?)
-    : BaseDTO<ProjektDO>(id, deleted, created, lastUpdate, tenant)
+class Tenant(var name: String? = null) : BaseDTO<TenantDO>()
