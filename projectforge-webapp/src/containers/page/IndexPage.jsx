@@ -271,6 +271,7 @@ class IndexPage extends React.Component {
                     <Col>
                         <h1>ToDo&apos;s (Kai)</h1>
                         <ol>
+                            <li>Adressbücher fehlen zwei row title.</li>
                             <li>List pages: addresses, tasks etc.</li>
                             <li>
                                 Search filter
