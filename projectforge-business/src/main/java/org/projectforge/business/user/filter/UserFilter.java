@@ -23,6 +23,7 @@
 
 package org.projectforge.business.user.filter;
 
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.Const;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -39,6 +40,7 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Locale;
@@ -48,8 +50,7 @@ import java.util.Locale;
  * Ignores login for: /ProjectForge/wa/resources/* with the suffixes: *.js, *.css, *.gif, *.png. <br/>
  * Don't forget to call setServletContext on applications start-up!
  */
-public class UserFilter implements Filter
-{
+public class UserFilter implements Filter {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserFilter.class);
 
   private final static String SESSION_KEY_USER = "UserFilter.user";
@@ -74,10 +75,9 @@ public class UserFilter implements Filter
   private static boolean updateRequiredFirst = false;
 
   @Override
-  public void init(final FilterConfig filterConfig) throws ServletException
-  {
+  public void init(final FilterConfig filterConfig) throws ServletException {
     WebApplicationContext springContext = WebApplicationContextUtils
-        .getRequiredWebApplicationContext(filterConfig.getServletContext());
+            .getRequiredWebApplicationContext(filterConfig.getServletContext());
     final AutowireCapableBeanFactory beanFactory = springContext.getAutowireCapableBeanFactory();
     beanFactory.autowireBean(this);
     CONTEXT_PATH = filterConfig.getServletContext().getContextPath();
@@ -89,13 +89,11 @@ public class UserFilter implements Filter
     IGNORE_PREFIX_SMS_REVEIVE_SERVLET = CONTEXT_PATH + "/" + SMSReceiverServlet.URL;
   }
 
-  public static void setUpdateRequiredFirst(final boolean value)
-  {
+  public static void setUpdateRequiredFirst(final boolean value) {
     updateRequiredFirst = value;
   }
 
-  public static boolean isUpdateRequiredFirst()
-  {
+  public static boolean isUpdateRequiredFirst() {
     return updateRequiredFirst;
   }
 
@@ -103,8 +101,7 @@ public class UserFilter implements Filter
    * @param request
    * @param userContext
    */
-  public static void login(final HttpServletRequest request, final UserContext userContext)
-  {
+  public static void login(final HttpServletRequest request, final UserContext userContext) {
     final HttpSession session = request.getSession();
     session.setAttribute(SESSION_KEY_USER, userContext);
   }
@@ -112,26 +109,22 @@ public class UserFilter implements Filter
   /**
    * @param request
    */
-  public static void logout(final HttpServletRequest request)
-  {
+  public static void logout(final HttpServletRequest request) {
     final HttpSession session = request.getSession();
     session.removeAttribute(SESSION_KEY_USER);
   }
 
-  public static void refreshUser(final HttpServletRequest request)
-  {
+  public static void refreshUser(final HttpServletRequest request) {
     final UserContext userContext = getUserContext(request);
     userContext.refreshUser();
   }
 
-  public static PFUserDO getUser(final HttpServletRequest request)
-  {
+  public static PFUserDO getUser(final HttpServletRequest request) {
     final UserContext userContext = getUserContext(request);
     return userContext != null ? userContext.getUser() : null;
   }
 
-  private static UserContext getUserContext(final HttpServletRequest request)
-  {
+  private static UserContext getUserContext(final HttpServletRequest request) {
     final HttpSession session = request.getSession();
     if (session == null) {
       return null;
@@ -141,15 +134,13 @@ public class UserFilter implements Filter
   }
 
   @Override
-  public void destroy()
-  {
+  public void destroy() {
     // do nothing
   }
 
   @Override
   public void doFilter(final ServletRequest req, final ServletResponse resp, final FilterChain chain)
-      throws IOException, ServletException
-  {
+          throws IOException, ServletException {
     HttpServletRequest request = (HttpServletRequest) req;
     if (log.isDebugEnabled()) {
       log.debug("doFilter " + request.getRequestURI() + ": " + request.getSession().getId());
@@ -157,17 +148,17 @@ public class UserFilter implements Filter
       if (cookies != null) {
         for (final Cookie cookie : cookies) {
           log.debug("Cookie "
-              + cookie.getName()
-              + ", path="
-              + cookie.getPath()
-              + ", value="
-              + cookie.getValue()
-              + ", secure="
-              + cookie.getVersion()
-              + ", maxAge="
-              + cookie.getMaxAge()
-              + ", domain="
-              + cookie.getDomain());
+                  + cookie.getName()
+                  + ", path="
+                  + cookie.getPath()
+                  + ", value="
+                  + cookie.getValue()
+                  + ", secure="
+                  + cookie.getVersion()
+                  + ", maxAge="
+                  + cookie.getMaxAge()
+                  + ", domain="
+                  + cookie.getDomain());
         }
       }
     }
@@ -217,7 +208,12 @@ public class UserFilter implements Filter
             request = decorateWithLocale(request);
             chain.doFilter(request, response);
           } else {
-            response.sendRedirect("/");
+            String url = ((HttpServletRequest) req).getRequestURI();
+            String queryString = ((HttpServletRequest) req).getQueryString();
+            if (StringUtils.isNotBlank(queryString)) {
+              url = url + "?" + URLEncoder.encode(queryString, "UTF-8");
+            }
+            response.sendRedirect("/wa/login?url=" + url);
           }
         }
       }
@@ -243,20 +239,16 @@ public class UserFilter implements Filter
     }
   }
 
-  private HttpServletRequest decorateWithLocale(HttpServletRequest request)
-  {
+  private HttpServletRequest decorateWithLocale(HttpServletRequest request) {
     final Locale locale = ThreadLocalUserContext.getLocale(request.getLocale());
-    request = new HttpServletRequestWrapper(request)
-    {
+    request = new HttpServletRequestWrapper(request) {
       @Override
-      public Locale getLocale()
-      {
+      public Locale getLocale() {
         return locale;
       }
 
       @Override
-      public Enumeration<Locale> getLocales()
-      {
+      public Enumeration<Locale> getLocales() {
         return Collections.enumeration(Collections.singleton(locale));
       }
     };
@@ -269,8 +261,7 @@ public class UserFilter implements Filter
    * @param req from do Filter.
    * @return true, if the filter should ignore this request, otherwise false.
    */
-  private boolean ignoreFilterFor(final ServletRequest req)
-  {
+  private boolean ignoreFilterFor(final ServletRequest req) {
     final HttpServletRequest hreq = (HttpServletRequest) req;
     final String uri = hreq.getRequestURI();
     // If you have an NPE you have probably forgotten to call setServletContext on applications start-up.
