@@ -32,6 +32,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebApplicationConfig implements WebMvcConfigurer {
   @Override
   public void addViewControllers(ViewControllerRegistry registry) {
-    registry.addViewController("/" + Const.REACT_APP_PATH + "**").setViewName("forward:/index.html");
+    registry.addViewController("/" + Const.REACT_APP_PATH + "**").setViewName("forward:/react-app.html");
   }
 }

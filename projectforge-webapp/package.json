@@ -40,7 +40,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "postbuild": "mv build/index.html build/react-app.html"
   },
   "eslintConfig": {
     "extends": "react-app"
