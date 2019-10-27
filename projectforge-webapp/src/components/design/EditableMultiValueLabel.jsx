@@ -34,7 +34,7 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
     // disable eslint because variable is provided by react-select and can't be changed.
     /* eslint-disable-next-line no-underscore-dangle */
     if (!data.__isNew__) {
-        label = `${label}${initialValue ? `: ${initialValue}` : ''}`;
+        label = `${label}${(initialValue && typeof initialValue === 'string') ? `: ${initialValue}` : ''}`;
     }
 
     // Function to set value in react-select
@@ -177,15 +177,21 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
 
             const onChange = newValue => setValue(newValue);
 
-            if (value.label) {
+            if (value && value.label) {
                 label = `${data.label}: ${value.label}`;
             }
+
+            console.log({
+                label,
+                value,
+                data,
+            });
 
             popperContent = (
                 <AutoCompletion
                     value={{
-                        label: value.label,
-                        value: value.value,
+                        label: (value && value.label) || '',
+                        value: (value && value.value) || '',
                     }}
                     id={`autocompletion-${data.id}`}
                     {...data.autoCompletion}
