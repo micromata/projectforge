@@ -217,7 +217,7 @@ public class UserFilter implements Filter
             request = decorateWithLocale(request);
             chain.doFilter(request, response);
           } else {
-            response.getWriter().append("No access.");
+            response.sendRedirect("/");
           }
         }
       }
