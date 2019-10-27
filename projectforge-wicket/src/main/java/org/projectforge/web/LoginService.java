@@ -1,7 +1,9 @@
 package org.projectforge.web;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.request.http.WebResponse;
 import org.projectforge.Const;
@@ -74,7 +76,8 @@ public class LoginService {
    * @return i18n key of the validation error message if not successfully logged in, otherwise null.
    */
   public LoginResultStatus internalCheckLogin(final WebPage page, final String username,
-                                              final String password, final boolean userWantsToStayLoggedIn, final Class<? extends WebPage> defaultPage) {
+                                              final String password, final boolean userWantsToStayLoggedIn, final Class<? extends WebPage> defaultPage,
+                                              final String originalDestination) {
     final LoginResult loginResult = checkLogin(username, password);
     final PFUserDO user = loginResult.getUser();
     if (user == null || loginResult.getLoginResultStatus() != LoginResultStatus.SUCCESS) {
@@ -102,6 +105,9 @@ public class LoginService {
     }
     page.continueToOriginalDestination();
     // Redirect only if not a redirect is set by Wicket.
+    if (StringUtils.isNotBlank(originalDestination)) {
+      throw new RedirectToUrlException(originalDestination);
+    }
     throw new RestartResponseException(defaultPage);
   }
 

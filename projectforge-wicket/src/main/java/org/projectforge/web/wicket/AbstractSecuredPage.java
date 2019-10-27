@@ -30,6 +30,7 @@ import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.Const;
@@ -52,6 +53,8 @@ import java.util.Random;
  */
 public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
 {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractSecuredPage.class);
+
   @SpringBean
   private ConfigurationService configurationService;
 
@@ -73,6 +76,11 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
   public AbstractSecuredPage(final PageParameters parameters)
   {
     super(parameters);
+    if (ThreadLocalUserContext.getUser() == null) {
+      log.warn("AbstractSecuredPage called without logged-in user: " + this.getPageAsLink(parameters));
+      // Shouldn't occur, but safe is safe:
+      throw new RedirectToUrlException("/");
+    }
     modalDialogs = new RepeatingView("modalDialogs");
     body.add(modalDialogs);
     if (UserFilter.isUpdateRequiredFirst() == false) {

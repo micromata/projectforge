@@ -153,7 +153,7 @@ public class LoginPage extends AbstractUnsecureBasePage
 
   LoginResultStatus checkLogin()
   {
-    return loginService.internalCheckLogin(this, form.getUsername(), form.getPassword(), form.isStayLoggedIn(), WicketUtils.getDefaultPage());
+    return loginService.internalCheckLogin(this, form.getUsername(), form.getPassword(), form.isStayLoggedIn(), WicketUtils.getDefaultPage(), form.getOriginalDestination());
   }
 
   void addError(final String msg)

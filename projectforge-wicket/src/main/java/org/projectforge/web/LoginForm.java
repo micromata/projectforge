@@ -23,9 +23,7 @@
 
 package org.projectforge.web;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.form.Button;
-import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
@@ -40,31 +38,28 @@ import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.LabelPanel;
 
-public class LoginForm extends AbstractForm<LoginForm, LoginPage>
-{
+public class LoginForm extends AbstractForm<LoginForm, LoginPage> {
   private static final long serialVersionUID = -422822736093879603L;
 
   private boolean stayLoggedIn;
 
-  private String username, password;
+  private String username, password, originalDestination;
 
-  public LoginForm(final LoginPage parentPage)
-  {
+  public LoginForm(final LoginPage parentPage) {
     super(parentPage);
-
+    this.originalDestination = WicketUtils.getAsString(parentPage.getPageParameters(), "url");
   }
 
   @Override
   @SuppressWarnings("serial")
-  protected void init()
-  {
+  protected void init() {
     add(new FeedbackPanel("feedback").setOutputMarkupId(true));
     {
       final FieldsetPanel fs = new FieldsetPanel("username", getString("username"));
       add(fs);
       final RequiredTextField<String> username = new RequiredTextField<String>(fs.getTextFieldId(),
-          new PropertyModel<String>(this,
-              "username"));
+              new PropertyModel<String>(this,
+                      "username"));
       username.setRequired(true).setMarkupId("username").setOutputMarkupId(true);
       fs.add(username);
       WicketUtils.setFocus(username);
@@ -73,7 +68,7 @@ public class LoginForm extends AbstractForm<LoginForm, LoginPage>
       final FieldsetPanel fs = new FieldsetPanel("password", getString("password"));
       add(fs);
       final PasswordTextField password = new PasswordTextField(fs.getTextFieldId(),
-          new PropertyModel<String>(this, "password"));
+              new PropertyModel<String>(this, "password"));
       password.setResetPassword(true).setRequired(true).setMarkupId("password").setOutputMarkupId(true);
       fs.add(password);
     }
@@ -89,14 +84,12 @@ public class LoginForm extends AbstractForm<LoginForm, LoginPage>
       labelPanel.setLabelFor(stayLoggedInCheckBox.getCheckBox().getMarkupId());
       divPanel.add(labelPanel);
       WicketUtils.addTooltip(labelPanel.getLabel(), getString("login.stayLoggedIn"),
-          getString("login.stayLoggedIn.tooltip"));
+              getString("login.stayLoggedIn.tooltip"));
       stayLoggedInCheckBox.setTooltip(getString("login.stayLoggedIn"), getString("login.stayLoggedIn.tooltip"));
     }
-    final Button loginButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("login"))
-    {
+    final Button loginButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("login")) {
       @Override
-      public final void onSubmit()
-      {
+      public final void onSubmit() {
         final LoginResultStatus status = parentPage.checkLogin();
         if (status != null) {
           parentPage.addError(status.getLocalizedMessage());
@@ -108,33 +101,31 @@ public class LoginForm extends AbstractForm<LoginForm, LoginPage>
     add(new SingleButtonPanel("loginButton", loginButton, getString("login"), SingleButtonPanel.DEFAULT_SUBMIT));
   }
 
-  public String getUsername()
-  {
+  public String getUsername() {
     return username;
   }
 
-  public void setUsername(final String username)
-  {
+  public void setUsername(final String username) {
     this.username = username;
   }
 
-  public String getPassword()
-  {
+  public String getPassword() {
     return password;
   }
 
-  public void setPassword(final String password)
-  {
+  public void setPassword(final String password) {
     this.password = password;
   }
 
-  public boolean isStayLoggedIn()
-  {
+  public String getOriginalDestination() {
+    return originalDestination;
+  }
+
+  public boolean isStayLoggedIn() {
     return stayLoggedIn;
   }
 
-  public void setStayLoggedIn(final boolean stayLoggedIn)
-  {
+  public void setStayLoggedIn(final boolean stayLoggedIn) {
     this.stayLoggedIn = stayLoggedIn;
   }
 }
