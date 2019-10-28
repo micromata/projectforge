@@ -23,6 +23,7 @@
 
 package org.projectforge.business.teamcal.admin.model
 
+import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnore
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.apache.commons.lang3.StringUtils
@@ -44,7 +45,18 @@ import javax.persistence.*
 @Indexed
 @ClassBridge(name = "usersgroups", index = Index.YES, store = Store.NO, impl = HibernateSearchUsersGroupsBridge::class)
 @Table(name = "T_CALENDAR", indexes = [javax.persistence.Index(name = "idx_fk_t_calendar_owner_fk", columnList = "owner_fk"), javax.persistence.Index(name = "idx_fk_t_calendar_tenant_id", columnList = "tenant_id")])
-class TeamCalDO : BaseUserGroupRightsDO() {
+class TeamCalDO() : BaseUserGroupRightsDO() {
+
+    companion object {
+        @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+        @JvmStatic
+        fun createFrom(value: Number): TeamCalDO {
+            val cal = TeamCalDO()
+            cal.id = value.toInt()
+            return cal
+        }
+        val TEAMCALRESTBLACKLIST = "teamCalRestBlackList"
+    }
 
     @PropertyInfo(i18nKey = "plugins.teamcal.title")
     @Field
@@ -159,9 +171,5 @@ class TeamCalDO : BaseUserGroupRightsDO() {
         return if (this.id == other.id) {
             true
         } else StringUtils.equals(title, other.title)
-    }
-
-    companion object {
-        val TEAMCALRESTBLACKLIST = "teamCalRestBlackList"
     }
 }
