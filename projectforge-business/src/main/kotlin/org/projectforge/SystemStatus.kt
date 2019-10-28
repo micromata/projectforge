@@ -60,7 +60,6 @@ class SystemStatus {
      * This flag is set to true if ProjectForge's start is completed.
      */
     var upAndRunning: Boolean = false
-        private set
     val startTimeMillis: Long = System.currentTimeMillis()
 
     @PostConstruct

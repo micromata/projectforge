@@ -94,19 +94,23 @@ public class ProjectForgeApp {
 
   private SystemInfoCache systemInfoCache;
 
+  private SystemStatus systemStatus;
+
   @Autowired
   ProjectForgeApp(ApplicationContext applicationContext,
                   DatabaseService databaseUpdater,
                   DomainService domainService,
                   Environment environment,
                   UserXmlPreferencesCache userXmlPreferencesCache,
-                  SystemInfoCache systemInfoCache) {
+                  SystemInfoCache systemInfoCache,
+                  SystemStatus systemStatus) {
     this.applicationContext = applicationContext;
     this.databaseUpdater = databaseUpdater;
     this.domainService = domainService;
     this.environment = environment;
     this.userXmlPreferencesCache = userXmlPreferencesCache;
     this.systemInfoCache = systemInfoCache;
+    this.systemStatus = systemStatus;
   }
 
   @PostConstruct
@@ -137,6 +141,7 @@ public class ProjectForgeApp {
     CompatibilityHints.setHintEnabled(CompatibilityHints.KEY_RELAXED_UNFOLDING, true);
     CompatibilityHints.setHintEnabled(CompatibilityHints.KEY_RELAXED_VALIDATION, true);
     this.upAndRunning = true;
+    systemStatus.setUpAndRunning(true);
     new EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.NORMAL)
             .log("ProjectForge is now available (up and running): localhost:" + environment.getProperty("server.port"))
             .log("Configured domain: " + domainService.getDomainWithContextPath())
