@@ -50,9 +50,9 @@ class TeamCalDO() : BaseUserGroupRightsDO() {
     companion object {
         @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
         @JvmStatic
-        fun createFrom(value: Number): TeamCalDO {
+        fun createFrom(value: Int): TeamCalDO {
             val cal = TeamCalDO()
-            cal.id = value.toInt()
+            cal.id = value
             return cal
         }
         val TEAMCALRESTBLACKLIST = "teamCalRestBlackList"
