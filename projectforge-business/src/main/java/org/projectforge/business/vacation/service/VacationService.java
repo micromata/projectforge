@@ -297,4 +297,11 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @return
    */
   String getVacationCount(int fromYear, int fromMonth, int toYear, int toMonth, PFUserDO user);
+
+  /**
+   * Checks, if logged in User has HR vacation access.
+   *
+   * @return
+   */
+  boolean hasLoggedInUserHRVacationAccess();
 }

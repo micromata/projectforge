@@ -86,6 +86,10 @@ public class VacationDao extends BaseDao<VacationDO>
     return true;
   }
 
+  public boolean hasLoggedInUserHRVacationAccess() {
+    return accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READWRITE);
+  }
+
   public List<VacationDO> getVacationForPeriod(EmployeeDO employee, Date startVacationDate, Date endVacationDate, boolean withSpecial)
   {
     List<VacationDO> result = emgrFactory.runRoTrans(emgr -> {
