@@ -220,6 +220,10 @@ class CalendarServicesRest {
                 range.start = start.beginOfWeek
                 range.end = range.start.plusDays(7)
             }
+            CalendarView.WORK_WEEK -> {
+                range.start = start.beginOfWeek
+                range.end = range.start.plusDays(5)
+            }
             CalendarView.DAY -> {
                 range.start = start.beginOfDay
                 range.end = range.start.plusDays(1)
