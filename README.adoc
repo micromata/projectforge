@@ -57,7 +57,7 @@ To configure a different directory you have several options (*choose Your favori
 1. Launch eclipse
 2. Import Maven project -> pom.xml in projectforge git root dir
 3. Import Maven project -> pom.xml in projectforge-application dir
-4. Run maven clean install for pom.xml
+4. Run maven clean install for pom.xml in projectforge-webapp (to build React stuff)
 5. Start by simply running main (in `projectforge-application/src/main/java`): +
    `org.projectforge.start.ProjectForgeApplication.java`
 
@@ -71,7 +71,7 @@ Please note, that Java version 8 is needed for developing and running ProjectFor
 
 1. Launch IntelliJ IDEA
 2. Import new project via pom.xml in git root dir
-3. Run maven clean install for pom.xml
+3. Run maven clean install for pom.xml in projectforge-webapp (to build React stuff)
 4. Start by simply running main (in `projectforge-application/src/main/java`): +
    `org.projectforge.start.ProjectForgeApplication.java`
 
