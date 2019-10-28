@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu.kost
 
+import com.fasterxml.jackson.annotation.JsonCreator
 import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.search.annotations.ClassBridge
@@ -31,6 +32,7 @@ import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.ProjektDO
+import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
@@ -49,12 +51,19 @@ import javax.persistence.*
                 query = "from Kost2DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and kost2Art.id=:kost2ArtId and id!=:id"),
         NamedQuery(name = Kost2DO.FIND_ACTIVES_BY_NK_BEREICH_TEILBEREICH,
                 query = "from Kost2DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and kost2Art.id=:kost2ArtId and (kostentraegerStatus='ACTIVE' or kostentraegerStatus is null) order by kost2Art.id"))
-class Kost2DO(id: Int? = null) : DefaultBaseDO(), ShortDisplayNameCapable, Comparable<Kost2DO> {
+class Kost2DO() : DefaultBaseDO(), ShortDisplayNameCapable, Comparable<Kost2DO> {
 
-    init {
-        if (id != null) {
-            this.id = id
+    companion object {
+        @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+        @JvmStatic
+        fun createFrom(value: Number): Kost2DO {
+            val kost2 = Kost2DO()
+            kost2.id = value.toInt()
+            return kost2
         }
+        internal const val FIND_BY_NK_BEREICH_TEILBEREICH_KOST2ART = "Kost2DO_FindByNKBereichTeilbereichKost2Art"
+        internal const val FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_KOST2ART = "Kost2DO_FindOtherByNKBereichTeilbereichKost2Art"
+        internal const val FIND_ACTIVES_BY_NK_BEREICH_TEILBEREICH = "Kost2DO_FindActivesByNKBereichTeilbereich"
     }
 
     @PropertyInfo(i18nKey = "status")
@@ -202,11 +211,5 @@ class Kost2DO(id: Int? = null) : DefaultBaseDO(), ShortDisplayNameCapable, Compa
      */
     override fun compareTo(other: Kost2DO): Int {
         return this.shortDisplayName.compareTo(other.shortDisplayName)
-    }
-
-    companion object {
-        internal const val FIND_BY_NK_BEREICH_TEILBEREICH_KOST2ART = "Kost2DO_FindByNKBereichTeilbereichKost2Art"
-        internal const val FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_KOST2ART = "Kost2DO_FindOtherByNKBereichTeilbereichKost2Art"
-        internal const val FIND_ACTIVES_BY_NK_BEREICH_TEILBEREICH = "Kost2DO_FindActivesByNKBereichTeilbereich"
     }
 }
