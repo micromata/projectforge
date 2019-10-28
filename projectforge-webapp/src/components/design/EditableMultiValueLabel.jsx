@@ -181,12 +181,6 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                 label = `${data.label}: ${value.label}`;
             }
 
-            console.log({
-                label,
-                value,
-                data,
-            });
-
             popperContent = (
                 <AutoCompletion
                     value={{
