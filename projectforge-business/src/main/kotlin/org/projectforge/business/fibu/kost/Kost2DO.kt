@@ -56,9 +56,9 @@ class Kost2DO() : DefaultBaseDO(), ShortDisplayNameCapable, Comparable<Kost2DO> 
     companion object {
         @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
         @JvmStatic
-        fun createFrom(value: Number): Kost2DO {
+        fun createFrom(value: Int): Kost2DO {
             val kost2 = Kost2DO()
-            kost2.id = value.toInt()
+            kost2.id = value
             return kost2
         }
         internal const val FIND_BY_NK_BEREICH_TEILBEREICH_KOST2ART = "Kost2DO_FindByNKBereichTeilbereichKost2Art"
