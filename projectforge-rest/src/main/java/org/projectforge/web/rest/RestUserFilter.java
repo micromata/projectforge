@@ -35,6 +35,7 @@ import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.rest.Authentication;
+import org.projectforge.rest.AuthenticationOld;
 import org.projectforge.rest.ConnectionSettings;
 import org.projectforge.rest.converter.DateTimeFormat;
 import org.slf4j.MDC;
@@ -99,7 +100,7 @@ public class RestUserFilter implements Filter {
     }
     HttpServletRequest req = (HttpServletRequest) request;
     HttpServletResponse resp = (HttpServletResponse) response;
-    String userString = getAttribute(req, Authentication.AUTHENTICATION_USER_ID);
+    String userString = getAttribute(req, Authentication.AUTHENTICATION_USER_ID, AuthenticationOld.AUTHENTICATION_USER_ID);
     final LoginProtection loginProtection = LoginProtection.instance();
     final String clientIpAddress = request.getRemoteAddr();
     PFUserDO user = null;
@@ -112,7 +113,7 @@ public class RestUserFilter implements Filter {
 
       final Integer userId = NumberHelper.parseInteger(userString);
       if (userId != null) {
-        final String authenticationToken = getAttribute(req, Authentication.AUTHENTICATION_TOKEN);
+        final String authenticationToken = getAttribute(req, Authentication.AUTHENTICATION_TOKEN, AuthenticationOld.AUTHENTICATION_TOKEN);
         if (userService.checkAuthenticationToken(userId,
                 authenticationToken,
                 Authentication.AUTHENTICATION_USER_ID,
@@ -123,12 +124,12 @@ public class RestUserFilter implements Filter {
         log.error(Authentication.AUTHENTICATION_USER_ID + " is not an integer: '" + userString + "'. Rest call forbidden.");
       }
     } else {
-      userString = getAttribute(req, Authentication.AUTHENTICATION_USERNAME);
+      userString = getAttribute(req, Authentication.AUTHENTICATION_USERNAME, AuthenticationOld.AUTHENTICATION_USERNAME);
       if (checkLoginProtection((HttpServletResponse) response, userString, loginProtection, clientIpAddress)) {
         // access denied
         return;
       }
-      final String password = getAttribute(req, Authentication.AUTHENTICATION_PASSWORD);
+      final String password = getAttribute(req, Authentication.AUTHENTICATION_PASSWORD, AuthenticationOld.AUTHENTICATION_PASSWORD);
       if (userString != null && password != null) {
         user = userService.authenticateUser(userString, password);
         if (user == null) {
@@ -233,12 +234,26 @@ public class RestUserFilter implements Filter {
     return settings;
   }
 
-  private String getAttribute(final HttpServletRequest req, final String key) {
-    String value = req.getHeader(key);
-    if (value == null) {
-      value = req.getParameter(key);
+  /**
+   * @param req
+   * @param keys Name of the parameter key. Additional keys may be given as alternative keys if first key isn't found.
+   *             Might be used for backwards compatibility.
+   * @return
+   */
+  private String getAttribute(final HttpServletRequest req, final String... keys) {
+    if (keys == null) {
+      return null;
     }
-    return value;
+    for (String key : keys) {
+      String value = req.getHeader(key);
+      if (value == null) {
+        value = req.getParameter(key);
+      }
+      if (value != null) {
+        return value;
+      }
+    }
+    return null;
   }
 
   @Override
