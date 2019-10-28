@@ -215,8 +215,7 @@ class MenuCreator {
                         {
                             hasRight(AuftragDao.USER_RIGHT_ID, *READONLY_PARTLYREADWRITE_READWRITE) &&
                                     !isInGroup(*FIBU_ORGA_GROUPS) // Orderbook is shown under menu FiBu for FiBu users
-                        },
-                        badgeCounter = { auftragDao.abgeschlossenNichtFakturiertAnzahl }))
+                        }))
 
         //////////////////////////////////////
         //
