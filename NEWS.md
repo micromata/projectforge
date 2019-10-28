@@ -1,5 +1,4 @@
-Release 6.25.0
-* Update SMS Gateway functinality 
-* Update MGC version
-* Project setup refactorings
-* Some bugfixes
+Release 7.0
+* Update frontend component
+* Update backend REST Api
+* Some minor changes after/within frontend refactoring  
