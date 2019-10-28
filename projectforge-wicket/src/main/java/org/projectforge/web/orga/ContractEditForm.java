@@ -23,10 +23,6 @@
 
 package org.projectforge.web.orga;
 
-import java.util.Date;
-import java.util.List;
-
-import org.slf4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -41,16 +37,15 @@ import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteMaxLengthTextField;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DatePanelSettings;
-import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.components.MaxLengthTextArea;
-import org.projectforge.web.wicket.components.MaxLengthTextField;
-import org.projectforge.web.wicket.components.MinMaxNumberField;
+import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.slf4j.Logger;
+
+import java.util.Date;
+import java.util.List;
 
 public class ContractEditForm extends AbstractEditForm<ContractDO, ContractEditPage>
 {
@@ -134,12 +129,12 @@ public class ContractEditForm extends AbstractEditForm<ContractDO, ContractEditP
       // Status
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("status"));
       // DropDownChoice for convenient selection of time periods.
-      final LabelValueChoiceRenderer<String> statusChoiceRenderer = new LabelValueChoiceRenderer<String>();
+      final LabelValueChoiceRenderer<ContractStatus> statusChoiceRenderer = new LabelValueChoiceRenderer<>();
       for (final ContractStatus status : ContractStatus.values()) {
-        statusChoiceRenderer.addValue(status.name(), getString(status.getI18nKey()));
+        statusChoiceRenderer.addValue(status, getString(status.getI18nKey()));
       }
-      final DropDownChoice<String> statusChoice = new DropDownChoice<String>(fs.getDropDownChoiceId(),
-          new PropertyModel<String>(data,
+      final DropDownChoice<ContractStatus> statusChoice = new DropDownChoice<>(fs.getDropDownChoiceId(),
+          new PropertyModel<>(data,
               "status"),
           statusChoiceRenderer.getValues(), statusChoiceRenderer);
       statusChoice.setNullValid(false);
