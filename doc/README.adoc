@@ -21,6 +21,7 @@ Please, refer also https://www.projectforge.org/documentation.html[www.projectfo
 |Document | Description
 |link:development{outfilesuffix}[Development]|Development docs.
 |link:migration{outfilesuffix}[Migration]|Migration guide.
+|link:installation{outfilesuffix}[Installation]|Installation docs.
 |link:deployment{outfilesuffix}[Deployment]|How to deploy a new release.
 |link:license{outfilesuffix}[License]| GNU GENERAL PUBLIC LICENSE, Version 3
 |=======
