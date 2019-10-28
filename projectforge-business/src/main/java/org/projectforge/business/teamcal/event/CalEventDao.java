@@ -53,8 +53,7 @@ import javax.persistence.NonUniqueResultException;
 import java.util.*;
 
 @Repository
-public class CalEventDao extends BaseDao<CalEventDO>
-{
+public class CalEventDao extends BaseDao<CalEventDO> {
   /**
    * For storing the selected element of the series in the transient attribute map for correct handling in {@link #onDelete(CalEventDO)}
    * and {@link #onSaveOrModify(CalEventDO)} of series (all, future, selected).
@@ -81,8 +80,7 @@ public class CalEventDao extends BaseDao<CalEventDO>
     userRightId = UserRightId.CALENDAR_EVENT;
   }
 
-  public CalEventDO getByUid(Integer calendarId, final String uid)
-  {
+  public CalEventDO getByUid(Integer calendarId, final String uid) {
     return this.getByUid(calendarId, uid, true);
   }
 
@@ -228,8 +226,7 @@ public class CalEventDao extends BaseDao<CalEventDO>
   }
 
   @Override
-  public CalEventDO newInstance()
-  {
+  public CalEventDO newInstance() {
     return null;
   }
 
@@ -245,8 +242,7 @@ public class CalEventDao extends BaseDao<CalEventDO>
    * recurrence events (if calculateRecurrenceEvents is true). Origin events are of type {@link TeamEventDO},
    * calculated events of type {@link ICalendarEvent}.
    */
-  public List<ICalendarEvent> getEventList(final TeamEventFilter filter, final boolean calculateRecurrenceEvents)
-  {
+  public List<ICalendarEvent> getEventList(final TeamEventFilter filter, final boolean calculateRecurrenceEvents) {
     final List<ICalendarEvent> result = new ArrayList<>();
     List<CalEventDO> list = getList(filter);
     if (CollectionUtils.isNotEmpty(list)) {
@@ -274,12 +270,15 @@ public class CalEventDao extends BaseDao<CalEventDO>
    * Sets midnight (UTC) of all day events.
    */
   @Override
-  protected void onSaveOrModify(final CalEventDO event)
-  {
+  protected void onSaveOrModify(final CalEventDO event) {
     super.onSaveOrModify(event);
     Validate.notNull(event.getCalendar());
 
-    if (event.getEndDate().getTime() - event.getStartDate().getTime() < 60000) {
+    if (event.getAllDay()) {
+      if (event.getEndDate().getTime() < event.getStartDate().getTime()) {
+        throw new UserException("plugins.teamcal.event.duration.error"); // "Duration of time sheet must be at minimum 60s!
+      }
+    } else if (event.getEndDate().getTime() - event.getStartDate().getTime() < 60000) {
       throw new UserException("plugins.teamcal.event.duration.error"); // "Duration of time sheet must be at minimum 60s!
       // Or, end date is before start date.
     }
@@ -298,16 +297,14 @@ public class CalEventDao extends BaseDao<CalEventDO>
   }
 
   @Override
-  protected void onSave(final CalEventDO event)
-  {
+  protected void onSave(final CalEventDO event) {
     // create uid if empty
     if (StringUtils.isBlank(event.getUid())) {
       event.setUid(TeamCalConfig.get().createEventUid());
     }
   }
 
-  private QueryFilter buildQueryFilter(final TeamEventFilter filter)
-  {
+  private QueryFilter buildQueryFilter(final TeamEventFilter filter) {
     final QueryFilter queryFilter = new QueryFilter(filter);
     final Collection<Integer> cals = filter.getTeamCals();
     if (CollectionUtils.isNotEmpty(cals)) {
@@ -327,11 +324,11 @@ public class CalEventDao extends BaseDao<CalEventDO>
     }
     // limit events to load to chosen date view.
     if (startDate != null && endDate != null) {
-        queryFilter.add(Restrictions.or(
-          (Restrictions.or(Restrictions.between("startDate", startDate, endDate),
-            Restrictions.between("endDate", startDate, endDate))),
-          // get events whose duration overlap with chosen duration.
-          (Restrictions.and(Restrictions.le("startDate", startDate), Restrictions.ge("endDate", endDate)))));
+      queryFilter.add(Restrictions.or(
+              (Restrictions.or(Restrictions.between("startDate", startDate, endDate),
+                      Restrictions.between("endDate", startDate, endDate))),
+              // get events whose duration overlap with chosen duration.
+              (Restrictions.and(Restrictions.le("startDate", startDate), Restrictions.ge("endDate", endDate)))));
 
     } else if (endDate != null) {
       queryFilter.add(Restrictions.le("startDate", endDate));
