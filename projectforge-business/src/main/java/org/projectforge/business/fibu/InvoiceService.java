@@ -60,7 +60,7 @@ import java.util.stream.Collectors;
 public class InvoiceService {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(InvoiceService.class);
 
-  private static final int FILENAME_MAXLENGTH = 150;
+  private static final int FILENAME_MAXLENGTH = 100; // Higher values result in filename issues in Safari 13-
 
   @Autowired
   private ApplicationContext applicationContext;
@@ -360,7 +360,7 @@ public class InvoiceService {
     final String invoiceDate = "_" + DateTimeFormatter.instance().getFormattedDate(invoice.getDatum());
     String filename = StringUtils.abbreviate(
             ReplaceUtils.INSTANCE.encodeFilename(number + customer + project + subject + invoiceDate, true),
-            "[more]", FILENAME_MAXLENGTH) + suffix;
+            "...", FILENAME_MAXLENGTH) + suffix;
     return filename;
   }
 }
