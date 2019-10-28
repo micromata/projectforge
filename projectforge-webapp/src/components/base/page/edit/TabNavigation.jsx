@@ -5,9 +5,9 @@ import { Link } from 'react-router-dom';
 import { Nav, NavItem, NavLink } from '../../../design';
 import style from '../Page.module.scss';
 
-function TabNavigation({ tabs, activeTab }) {
+function TabNavigation({ tabs, activeTab, ...props }) {
     return (
-        <Nav tabs>
+        <Nav tabs {...props}>
             {tabs.map(tab => (
                 <NavItem key={tab.id}>
                     <NavLink
