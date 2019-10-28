@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
@@ -70,6 +69,15 @@ public class VacationFormValidator implements IFormValidator
 
     //Getting selected calendars from form component or direct from data
     final Collection<TeamCalDO> selectedCalendars = getSelectedCalendars(calendars);
+
+    //Is new vacation data
+    if (data.getId() == null) {
+      final Calendar now = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
+      if(startDate.before(now) && vacationService.hasLoggedInUserHRVacationAccess() == false) {
+        form.error(I18nHelper.getLocalizedMessage("vacation.validate.startDateBeforeNow"));
+        return;
+      }
+    }
 
     if (validateStartAndEndDate(form, startDate, endDate)) {
       return;
