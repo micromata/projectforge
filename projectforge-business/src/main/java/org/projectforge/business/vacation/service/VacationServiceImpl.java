@@ -672,6 +672,11 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
+  public boolean hasLoggedInUserHRVacationAccess() {
+    return vacationDao.hasLoggedInUserHRVacationAccess();
+  }
+
+  @Override
   public List<String> getAutocompletion(final String property, final String searchString)
   {
     return vacationDao.getAutocompletion(property, searchString);
