@@ -103,7 +103,7 @@ public class InvoiceServiceTest extends AbstractTestBase {
     String filename = invoiceService.getInvoiceFilename(data, UserAgentBrowser.UNKNOWN);
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
-    assertEquals("12345_Kunde_Koenig_Projekt____webapp_abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcab[more].docx",
+    assertEquals("12345_Kunde_Koenig_Projekt____webapp_abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc....docx",
             filename, "Assertions.equals is dependent from property projectforge.domain!");
   }
 }
