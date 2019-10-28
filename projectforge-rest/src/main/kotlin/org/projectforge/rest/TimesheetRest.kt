@@ -267,7 +267,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
                 ts.user!!.copyFromMinimal(user)
             }
             if (it.kost2Id != null) {
-                val kost2 = kost2Dao.getById(it.kost2Id)
+                val kost2 = kost2Dao.internalGetById(it.kost2Id)
                 if (kost2 != null) {
                     ts.kost2 = Kost2()
                     ts.kost2!!.copyFromMinimal(kost2)
