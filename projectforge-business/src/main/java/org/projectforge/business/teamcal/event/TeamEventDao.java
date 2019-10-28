@@ -363,7 +363,11 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
     super.onSaveOrModify(event);
     Validate.notNull(event.getCalendar());
 
-    if (event.getEndDate().getTime() - event.getStartDate().getTime() < 60000) {
+    if (event.getAllDay()) {
+      if (event.getEndDate().getTime() < event.getStartDate().getTime()) {
+        throw new UserException("plugins.teamcal.event.duration.error"); // "Duration of time sheet must be at minimum 60s!
+      }
+    } else if (event.getEndDate().getTime() - event.getStartDate().getTime() < 60000) {
       throw new UserException("plugins.teamcal.event.duration.error"); // "Duration of time sheet must be at minimum 60s!
       // Or, end date is before start date.
     }
