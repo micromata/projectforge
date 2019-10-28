@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import history from '../../../utilities/history';
+import prefix from '../../../utilities/prefix';
 import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import { NavLink } from '../../design';
 
@@ -65,7 +66,7 @@ class NavigationAction extends React.Component {
             case 'LINK':
             case 'REDIRECT':
                 return (
-                    <NavLink tag={Link} to={`/${url}`}>
+                    <NavLink tag={Link} to={`${prefix}${url}`}>
                         {title}
                     </NavLink>
                 );
