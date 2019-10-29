@@ -51,7 +51,7 @@ class MenuItem(var id: String? = null,
         key = menuItemDef.id
         url = menuItemDef.url
         if (menuItemDef.badgeCounter != null) {
-            //badge = MenuBadge(counter = menuItemDef.badgeCounter?.invoke())
+            badge = MenuBadge(counter = menuItemDef.badgeCounter?.invoke())
         }
     }
 

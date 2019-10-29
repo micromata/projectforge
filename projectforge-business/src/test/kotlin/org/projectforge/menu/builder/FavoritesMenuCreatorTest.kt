@@ -43,7 +43,7 @@ class FavoritesMenuTest : AbstractTestBase() {
     @Test
     fun setFavoritesMenuTest() {
         logon(ADMIN)
-        val menu = favoritesMenuCreator.getDefaultFavoriteMenu(XML)
+        val menu = favoritesMenuCreator.getFavoriteMenu(XML)
         assertEquals("Administration", menu.menuItems[0].title)
         assertEquals("ACCESS_LIST", menu.menuItems[0].subMenu!![0].id)
     }

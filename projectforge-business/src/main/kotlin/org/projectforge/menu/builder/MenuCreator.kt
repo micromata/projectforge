@@ -215,6 +215,12 @@ class MenuCreator {
                         {
                             hasRight(AuftragDao.USER_RIGHT_ID, *READONLY_PARTLYREADWRITE_READWRITE) &&
                                     !isInGroup(*FIBU_ORGA_GROUPS) // Orderbook is shown under menu FiBu for FiBu users
+                        },
+                        badgeCounter = {
+                            if (isInGroup(*FIBU_ORGA_GROUPS))
+                                auftragDao.abgeschlossenNichtFakturiertAnzahl
+                            else
+                                0
                         }))
 
         //////////////////////////////////////
@@ -257,26 +263,31 @@ class MenuCreator {
         // MenuNewCounterOrder, tooltip = "menu.fibu.orderbook.htmlSuffixTooltip"
         fibuMenu.add(MenuItemDef(MenuItemDefId.ORDER_LIST, "wa/orderBookList",
                 requiredGroups = *FIBU_ORGA_GROUPS,
-                badgeCounter = { auftragDao.abgeschlossenNichtFakturiertAnzahl }))
+                badgeCounter =
+                { auftragDao.abgeschlossenNichtFakturiertAnzahl }))
 
         //////////////////////////////////////
         //
         // COST
         //
         menuItemDefHolder.add(MenuItemDef(MenuItemDefId.COST, requiredGroups = *FIBU_ORGA_HR_GROUPS,
-                checkAccess = { Configuration.getInstance().isCostConfigured }))
+                checkAccess =
+                { Configuration.getInstance().isCostConfigured }))
                 .add(MenuItemDef(MenuItemDefId.ACCOUNT_LIST, "${REACT_PREFIX}konto",
-                        checkAccess = {
+                        checkAccess =
+                        {
                             hasRight(KontoDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
                                     isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
                         }))
                 .add(MenuItemDef(MenuItemDefId.COST1_LIST, "${REACT_PREFIX}kost1",
-                        checkAccess = {
+                        checkAccess =
+                        {
                             hasRight(Kost1Dao.USER_RIGHT_ID, *READONLY_READWRITE) ||
                                     isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
                         }))
                 .add(MenuItemDef(MenuItemDefId.COST2_LIST, "wa/cost2List",
-                        checkAccess = {
+                        checkAccess =
+                        {
                             hasRight(Kost2Dao.USER_RIGHT_ID, *READONLY_READWRITE) ||
                                     isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
                         }))
@@ -298,10 +309,12 @@ class MenuCreator {
         // Only visible if cost is configured:
         reportingMenu.add(MenuItemDef(MenuItemDefId.ACCOUNTING_RECORD_LIST, "wa/accountingRecordList",
                 requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP),
-                checkAccess = { Configuration.getInstance().isCostConfigured }))
+                checkAccess =
+                { Configuration.getInstance().isCostConfigured }))
                 .add(MenuItemDef(MenuItemDefId.DATEV_IMPORT, "wa/datevImport",
                         requiredUserRightId = DatevImportDao.USER_RIGHT_ID, requiredUserRightValues = arrayOf(UserRightValue.TRUE),
-                        checkAccess = { Configuration.getInstance().isCostConfigured }))
+                        checkAccess =
+                        { Configuration.getInstance().isCostConfigured }))
 
         //////////////////////////////////////
         //

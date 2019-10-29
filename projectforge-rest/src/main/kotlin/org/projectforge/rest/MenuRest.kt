@@ -52,7 +52,7 @@ class MenuRest {
     @GetMapping
     fun getMenu(): Menus {
         val mainMenu = menuCreator.build(MenuCreatorContext(ThreadLocalUserContext.getUser()))
-        val favoritesMenu = favoritesMenuCreator.getDefaultFavoriteMenu()
+        val favoritesMenu = favoritesMenuCreator.getFavoriteMenu()
         val goClassicsMenu = MenuItemDef("GoClassics", "goreact.menu.classics")
         goClassicsMenu.url = "wa"
         favoritesMenu.add(goClassicsMenu)
