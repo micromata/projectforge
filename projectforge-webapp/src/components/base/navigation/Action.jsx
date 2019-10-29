@@ -61,7 +61,7 @@ class NavigationAction extends React.Component {
                         elementKey={entryKey}
                         color="danger"
                         isFlying
-                        style={{ right: '-1.2em' }}
+                        style={{ right: '-1.3em' }}
                     >
                         {badge.counter}
                     </MenuBadge>
