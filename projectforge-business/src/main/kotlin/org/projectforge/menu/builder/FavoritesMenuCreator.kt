@@ -51,12 +51,12 @@ open class FavoritesMenuCreator {
     /**
      * Builds the standard favorite menu, if the use hasn't one yet.
      */
-    fun getDefaultFavoriteMenu(): Menu {
+    fun getFavoriteMenu(): Menu {
         val favMenuAsUserPrefString = userXmlPreferencesService.getEntry(USER_PREF_FAVORITES_MENU_ENTRIES_KEY) as String?
-        return getDefaultFavoriteMenu(favMenuAsUserPrefString)
+        return getFavoriteMenu(favMenuAsUserPrefString)
     }
 
-    internal fun getDefaultFavoriteMenu(favMenuAsUserPrefString: String?): Menu {
+    internal fun getFavoriteMenu(favMenuAsUserPrefString: String?): Menu {
         var menu = FavoritesMenuReaderWriter.read(menuCreator, favMenuAsUserPrefString)
         if (!menu.menuItems.isNullOrEmpty())
             return menu
