@@ -9,9 +9,10 @@ function MenuBadge(
     {
         children,
         color,
-        flying,
+        isFlying,
         elementKey,
         tooltip,
+        ...props
     },
 ) {
     const id = `menu-badge-${elementKey}`;
@@ -19,8 +20,9 @@ function MenuBadge(
     return (
         <React.Fragment>
             <span
-                className={classNames(style.badge, { [style.flying]: flying }, style[color])}
+                className={classNames(style.badge, { [style.isFlying]: isFlying }, style[color])}
                 id={id}
+                {...props}
             >
                 {children}
             </span>
@@ -42,13 +44,13 @@ MenuBadge.propTypes = {
     ]).isRequired,
     elementKey: PropTypes.string.isRequired,
     color: colorPropType,
-    flying: PropTypes.bool,
+    isFlying: PropTypes.bool,
     tooltip: PropTypes.string,
 };
 
 MenuBadge.defaultProps = {
     color: undefined,
-    flying: false,
+    isFlying: false,
     tooltip: undefined,
 };
 

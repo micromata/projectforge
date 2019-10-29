@@ -78,10 +78,10 @@ span.badge {
   margin-left: .8em;
   padding: .2em .5em;
   background-color: #000;
-  border-radius: 10px;
+  border-radius: 1em;
   color: #fff;
 
-  &.flying {
+  &.isFlying {
     @include transform(scale(0.75));
     position: absolute;
     top: -.75em;
