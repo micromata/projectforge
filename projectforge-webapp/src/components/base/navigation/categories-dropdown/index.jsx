@@ -47,7 +47,7 @@ function CategoriesDropdown({ badge, categories }) {
                 {badge && (
                     <MenuBadge
                         elementKey="DROPDOWN_TOGGLE"
-                        flying
+                        isFlying
                         color={badge.style}
                     >
                         {badge.counter}

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import history from '../../../utilities/history';
 import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import { NavLink } from '../../design';
+import MenuBadge from './categories-dropdown/MenuBadge';
 
 class NavigationAction extends React.Component {
     constructor(props) {
@@ -43,7 +44,30 @@ class NavigationAction extends React.Component {
     }
 
     render() {
-        const { type, title, url } = this.props;
+        const {
+            badge,
+            entryKey,
+            title,
+            type,
+            url,
+        } = this.props;
+        let content = title;
+
+        if (badge && badge.counter && entryKey) {
+            content = (
+                <div style={{ position: 'relative' }}>
+                    {title}
+                    <MenuBadge
+                        elementKey={entryKey}
+                        color="danger"
+                        isFlying
+                        style={{ right: '-1.2em' }}
+                    >
+                        {badge.counter}
+                    </MenuBadge>
+                </div>
+            );
+        }
 
         switch (type) {
             case 'RESTCALL':
@@ -53,20 +77,20 @@ class NavigationAction extends React.Component {
                         onKeyPress={() => {
                         }}
                     >
-                        {title}
+                        {content}
                     </NavLink>
                 );
             case 'DOWNLOAD':
                 return (
                     <NavLink href={getServiceURL(url)} target="_blank" rel="noopener noreferrer">
-                        {title}
+                        {content}
                     </NavLink>
                 );
             case 'LINK':
             case 'REDIRECT':
                 return (
                     <NavLink tag={Link} to={`/${url}`}>
-                        {title}
+                        {content}
                     </NavLink>
                 );
             case 'TEXT':
@@ -78,6 +102,10 @@ class NavigationAction extends React.Component {
 
 NavigationAction.propTypes = {
     title: PropTypes.string.isRequired,
+    badge: PropTypes.shape({
+        counter: PropTypes.number,
+    }),
+    entryKey: PropTypes.string,
     type: PropTypes.oneOf([
         'REDIRECT',
         'RESTCALL',
@@ -89,6 +117,8 @@ NavigationAction.propTypes = {
 };
 
 NavigationAction.defaultProps = {
+    badge: undefined,
+    entryKey: undefined,
     type: 'LINK',
     url: '',
 };
