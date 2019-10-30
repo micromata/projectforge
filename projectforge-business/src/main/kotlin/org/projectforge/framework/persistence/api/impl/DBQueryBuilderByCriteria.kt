@@ -62,8 +62,16 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Int>>(
         predicates.add(matcher.asPredicate(cb, root))
     }
 
+    fun add(predicate: Predicate) {
+        predicates.add(predicate)
+    }
+
     fun addEqualPredicate(field: String, value: Any) {
         predicates.add(cb.equal(root.get<Any>(field), value))
+    }
+
+    fun addNotEqualPredicate(field: String, value: Any) {
+        predicates.add(cb.notEqual(root.get<Any>(field), value))
     }
 
     fun createResultIterator(): DBResultIterator<O> {
@@ -72,6 +80,13 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Int>>(
 
     fun addOrder(sortBy: SortBy) {
         order.add(
+                if (sortBy.ascending) cb.asc(root.get<Any>(sortBy.field))
+                else cb.desc(root.get<Any>(sortBy.field))
+        )
+    }
+
+    fun addAlias(alias: Alias) {
+        predicates.(
                 if (sortBy.ascending) cb.asc(root.get<Any>(sortBy.field))
                 else cb.desc(root.get<Any>(sortBy.field))
         )

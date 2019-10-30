@@ -41,7 +41,7 @@ import javax.persistence.criteria.CriteriaQuery
 /**
  * Generic interface for iterating over database search results (after criteria search as well as after full text query).
  */
-internal interface DBResultIterator<O : ExtendedBaseDO<Int>> {
+interface DBResultIterator<O : ExtendedBaseDO<Int>> {
     fun next(): O?
     fun sort(list: List<O>): List<O>
 }

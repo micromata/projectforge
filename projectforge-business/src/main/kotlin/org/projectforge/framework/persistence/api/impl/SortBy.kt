@@ -23,4 +23,4 @@
 
 package org.projectforge.framework.persistence.api.impl
 
-internal class SortBy(val field: String, val ascending: Boolean = true)
+class SortBy(val field: String, val ascending: Boolean = true)

@@ -81,6 +81,21 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     /**
      * @return true if the given field is indexed, otherwise false (dbMatcher should be used instead).
      */
+    fun notEqual(field: String, value: Any): Boolean {
+        if (usedSearchFields.contains(field)) {
+            if (useMultiFieldQueryParser) {
+                multiFieldQuery.add("-$field:$value")
+            } else {
+                boolJunction = boolJunction.must(queryBuilder.keyword().onField(field).matching(value).createQuery()).not()
+            }
+            return true
+        }
+        return false
+    }
+
+    /**
+     * @return true if the given field is indexed, otherwise false (dbMatcher should be used instead).
+     */
     fun <O : Comparable<O>> between(field: String, from: O, to: O): Boolean {
         if (usedSearchFields.contains(field)) {
             if (useMultiFieldQueryParser) {
@@ -96,12 +111,42 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     /**
      * @return true if the given field is indexed, otherwise false (dbMatcher should be used instead).
      */
+    fun <O : Comparable<O>> greater(field: String, from: O): Boolean {
+        if (usedSearchFields.contains(field)) {
+            if (useMultiFieldQueryParser) {
+                multiFieldQuery.add("+$field:{$from TO *}")
+            } else {
+                boolJunction = boolJunction.must(queryBuilder.range().onField(field).above(from).excludeLimit().createQuery())
+            }
+            return true
+        }
+        return false
+    }
+
+    /**
+     * @return true if the given field is indexed, otherwise false (dbMatcher should be used instead).
+     */
     fun <O : Comparable<O>> greaterEqual(field: String, from: O): Boolean {
         if (usedSearchFields.contains(field)) {
             if (useMultiFieldQueryParser) {
                 multiFieldQuery.add("+$field:[$from TO *]")
             } else {
                 boolJunction = boolJunction.must(queryBuilder.range().onField(field).above(from).createQuery())
+            }
+            return true
+        }
+        return false
+    }
+
+    /**
+     * @return true if the given field is indexed, otherwise false (dbMatcher should be used instead).
+     */
+    fun <O : Comparable<O>> less(field: String, to: O): Boolean {
+        if (usedSearchFields.contains(field)) {
+            if (useMultiFieldQueryParser) {
+                multiFieldQuery.add("+$field:{* TO $to}")
+            } else {
+                boolJunction = boolJunction.must(queryBuilder.range().onField(field).below(to).excludeLimit().createQuery())
             }
             return true
         }

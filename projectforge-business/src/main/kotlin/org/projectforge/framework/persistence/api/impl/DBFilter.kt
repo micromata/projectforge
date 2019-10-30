@@ -41,8 +41,8 @@ class DBFilter(
 
     class Alias(val field: String, val alias: String, val joinType: JoinType?)
 
-    private val resultMatcher = mutableListOf<DBResultMatcher>()
-    private val aliasList = mutableListOf<Alias>()
+    val resultMatcher = mutableListOf<DBResultMatcher>()
+    val aliasList = mutableListOf<Alias>()
 
     fun add(entry: DBFilterEntry) {
         this.allEntries.add(entry)
