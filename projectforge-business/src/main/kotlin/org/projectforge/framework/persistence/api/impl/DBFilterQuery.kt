@@ -23,9 +23,6 @@
 
 package org.projectforge.framework.persistence.api.impl
 
-import org.hibernate.Session
-import org.hibernate.search.Search.getFullTextSession
-import org.hibernate.search.query.dsl.QueryBuilder
 import org.projectforge.business.multitenancy.TenantChecker
 import org.projectforge.business.multitenancy.TenantService
 import org.projectforge.business.task.TaskDO
@@ -42,22 +39,6 @@ import java.util.*
 
 @Service
 class DBFilterQuery {
-    private class BuildContext(val doClass: Class<*>,
-                               val session: Session) {
-        var _query: QueryBuilder? = null
-        val query: QueryBuilder
-            get() {
-                if (_query == null) {
-                    val fullTextSession = getFullTextSession(session)
-                    _query = fullTextSession.searchFactory
-                            .buildQueryBuilder().forEntity(doClass).get()
-                }
-                return _query!!
-            }
-        val fullText
-            get() = _query != null
-    }
-
     private val log = LoggerFactory.getLogger(DBFilterQuery::class.java)
 
     @Autowired
@@ -239,36 +220,6 @@ class DBFilterQuery {
             var list = createList(baseDao, dbResultIterator, filter, historySearchParams, checkAccess)
             queryBuilder.close()
             list = dbResultIterator.sort(list)
-/*
-        try {
-            val fullTextSession = Search.getFullTextSession(session)
-
-            val query = createFullTextQuery(fullTextSession, HISTORY_SEARCH_FIELDS, null,
-                    searchString, PfHistoryMasterDO::class.java)
-                    ?: // An error occured:
-                    return
-            val fullTextQuery = fullTextSession.createFullTextQuery(query, PfHistoryMasterDO::class.java)
-            fullTextQuery.isCacheable = true
-            fullTextQuery.cacheRegion = "historyItemCache"
-            fullTextQuery.setProjection("entityId")
-            val result = fullTextQuery.list()
-            if (result != null && result.size > 0) {
-                for (oa in result) {
-                    idSet.add(oa[0] as Int)
-                }
-            }
-        } catch (ex: Exception) {
-            val errorMsg = ("Lucene error message: "
-                    + ex.message
-                    + " (for "
-                    + clazz.simpleName
-                    + ": "
-                    + searchString
-                    + ").")
-            filter.setErrorMessage(errorMsg)
-            LOG.error(errorMsg)
-        }
-*/
             return list
         } catch (ex: Exception) {
             log.error("Error while querying: ${ex.message}. Magicfilter: ${filter}.", ex)

@@ -25,10 +25,6 @@ package org.projectforge.business.fibu;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.Validate;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.sql.JoinType;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
@@ -41,6 +37,7 @@ import org.projectforge.framework.i18n.MessageParam;
 import org.projectforge.framework.i18n.MessageParamType;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.*;
+import org.projectforge.framework.persistence.api.impl.DBResultMatcher;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
@@ -54,6 +51,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.criteria.JoinType;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.*;
@@ -313,11 +311,11 @@ public class AuftragDao extends BaseDao<AuftragDO> {
 
     if (myFilter.getUser() != null) {
       queryFilter.add(
-              Restrictions.or(
-                      Restrictions.eq("contactPerson", myFilter.getUser()),
-                      Restrictions.eq("projectManager", myFilter.getUser()),
-                      Restrictions.eq("headOfBusinessManager", myFilter.getUser()),
-                      Restrictions.eq("salesManager", myFilter.getUser())
+              QueryFilter.or(
+                      QueryFilter.eq("contactPerson", myFilter.getUser()),
+                      QueryFilter.eq("projectManager", myFilter.getUser()),
+                      QueryFilter.eq("headOfBusinessManager", myFilter.getUser()),
+                      QueryFilter.eq("salesManager", myFilter.getUser())
               )
       );
     }
@@ -326,7 +324,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
 
     AuftragAndRechnungDaoHelper.createCriterionForPeriodOfPerformance(myFilter).ifPresent(queryFilter::add);
 
-    queryFilter.addOrder(Order.desc("nummer"));
+    queryFilter.addOrder(SortProperty.desc("nummer"));
 
     final List<AuftragDO> list;
     if (checkAccess) {
@@ -367,45 +365,45 @@ public class AuftragDao extends BaseDao<AuftragDO> {
       return;
     }
 
-    final List<Criterion> orCriterions = new ArrayList<>();
-    orCriterions.add(Restrictions.in("auftragsStatus", auftragsStatuses));
-    orCriterions.add(Restrictions.in("position.status", auftragsStatuses));
+    final List<DBResultMatcher> orCriterions = new ArrayList<>();
+    orCriterions.add(QueryFilter.in("auftragsStatus", auftragsStatuses));
+    orCriterions.add(QueryFilter.in("position.status", auftragsStatuses));
 
     // special case
     if (auftragsStatuses.contains(AuftragsStatus.ABGESCHLOSSEN)) {
-      orCriterions.add(Restrictions.eq("paymentSchedule.reached", true));
-      queryFilter.createAlias("paymentSchedules", "paymentSchedule", JoinType.FULL_JOIN);
+      orCriterions.add(QueryFilter.eq("paymentSchedule.reached", true));
+      queryFilter.createAlias("paymentSchedules", "paymentSchedule", JoinType.LEFT);
     }
 
     queryFilter
-            .createAlias("positionen", "position", JoinType.FULL_JOIN)
-            .add(Restrictions.or(orCriterions.toArray(new Criterion[orCriterions.size()])));
+            .createAlias("positionen", "position", JoinType.LEFT)
+            .add(QueryFilter.or(orCriterions.toArray(new DBResultMatcher[orCriterions.size()])));
 
     // check deleted
     if (!myFilter.isIgnoreDeleted()) {
-      queryFilter.add(Restrictions.eq("position.deleted", myFilter.isDeleted()));
+      queryFilter.add(QueryFilter.eq("position.deleted", myFilter.isDeleted()));
     }
   }
 
-  private Optional<Criterion> createCriterionForErfassungsDatum(final AuftragFilter myFilter) {
+  private Optional<DBResultMatcher> createCriterionForErfassungsDatum(final AuftragFilter myFilter) {
     final java.sql.Date startDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getStartDate());
     final java.sql.Date endDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getEndDate());
 
     if (startDate != null && endDate != null) {
       return Optional.of(
-              Restrictions.between("erfassungsDatum", startDate, endDate)
+              QueryFilter.between("erfassungsDatum", startDate, endDate)
       );
     }
 
     if (startDate != null) {
       return Optional.of(
-              Restrictions.ge("erfassungsDatum", startDate)
+              QueryFilter.ge("erfassungsDatum", startDate)
       );
     }
 
     if (endDate != null) {
       return Optional.of(
-              Restrictions.le("erfassungsDatum", endDate)
+              QueryFilter.le("erfassungsDatum", endDate)
       );
     }
 
@@ -427,7 +425,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
 
       // special case
       if (HibernateUtils.getDialect() != DatabaseDialect.HSQL &&
-          !vollstaendigFakturiert && myFilter.getAuftragsStatuses().contains(AuftragsStatus.ABGESCHLOSSEN)) {
+              !vollstaendigFakturiert && myFilter.getAuftragsStatuses().contains(AuftragsStatus.ABGESCHLOSSEN)) {
 
         // if order is completed and not all positions are completely invoiced
         if (auftrag.getAuftragsStatus() == AuftragsStatus.ABGESCHLOSSEN && !orderIsCompletelyInvoiced) {

@@ -25,7 +25,6 @@ package org.projectforge.business.orga;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.i18n.MessageParam;
@@ -46,7 +45,7 @@ import java.util.List;
  */
 @Repository
 public class ContractDao extends BaseDao<ContractDO> {
-  public final static int START_NUMBER = 1000;
+  private final static int START_NUMBER = 1000;
 
   public static final UserRightId USER_RIGHT_ID = UserRightId.ORGA_CONTRACTS;
 
@@ -76,10 +75,10 @@ public class ContractDao extends BaseDao<ContractDO> {
     }
     final QueryFilter queryFilter = new QueryFilter(myFilter);
     if (myFilter.getStatus() != null) {
-      queryFilter.add(Restrictions.eq("status", myFilter.getStatus().name()));
+      queryFilter.add(QueryFilter.eq("status", myFilter.getStatus().name()));
     }
     if (myFilter.getType() != null) {
-      queryFilter.add(Restrictions.eq("type", myFilter.getType().getValue()));
+      queryFilter.add(QueryFilter.eq("type", myFilter.getType().getValue()));
     }
     queryFilter.setYearAndMonth("date", myFilter.getYear(), -1);
     if (log.isDebugEnabled()) {
@@ -90,13 +89,11 @@ public class ContractDao extends BaseDao<ContractDO> {
 
   /**
    * List of all years with contracts: select min(date), max(date) from t_contract.
-   *
-   * @return
    */
   public int[] getYears() {
     final Object[] minMaxDate = getSession().createNamedQuery(ContractDO.SELECT_MIN_MAX_DATE, Object[].class)
             .getSingleResult();
-    return SQLHelper.getYears((java.sql.Date)minMaxDate[0], (java.sql.Date)minMaxDate[1]);
+    return SQLHelper.getYears((java.sql.Date) minMaxDate[0], (java.sql.Date) minMaxDate[1]);
   }
 
   /**

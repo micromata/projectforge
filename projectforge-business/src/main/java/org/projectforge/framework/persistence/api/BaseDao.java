@@ -110,10 +110,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   protected AccessChecker accessChecker;
 
   @Autowired
-  protected BaseDaoLegacyQueryBuilder baseDaoLegacyQueryBuilder;
-
-  @Autowired
-  protected DBFilterQuery magicFilterQueryBuilder;
+  protected DBFilterQuery dbFilterQuery;
 
   @Autowired
   protected DatabaseDao databaseDao;
@@ -127,9 +124,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   @Autowired
   protected TenantService tenantService;
-
-  @Autowired
-  protected SearchService searchService;
 
   private String[] searchFields;
 
@@ -311,7 +305,8 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    */
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> getList(final QueryFilter filter) throws AccessException {
-    return baseDaoLegacyQueryBuilder.getList(this, filter);
+    final DBFilter dbFilter = filter.getDBFilter();
+    return dbFilterQuery.getList(this, dbFilter, true, false);
   }
 
   /**
@@ -319,7 +314,8 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    */
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> internalGetList(final QueryFilter filter) throws AccessException {
-    return baseDaoLegacyQueryBuilder.internalGetList(this, filter);
+    final DBFilter dbFilter = filter.getDBFilter();
+    return dbFilterQuery.getList(this, dbFilter, false, false);
   }
 
   /**
@@ -327,7 +323,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    */
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> getList(final DBFilter filter) throws AccessException {
-    return magicFilterQueryBuilder.getList(this, filter);
+    return dbFilterQuery.getList(this, filter);
   }
 
   /**
@@ -335,7 +331,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    */
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> internalGetList(final DBFilter filter) throws AccessException {
-    return magicFilterQueryBuilder.getList(this, filter, false, false);
+    return dbFilterQuery.getList(this, filter, false, false);
   }
 
   /**

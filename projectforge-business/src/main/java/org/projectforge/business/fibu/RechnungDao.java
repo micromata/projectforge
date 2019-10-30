@@ -26,8 +26,6 @@ package org.projectforge.business.fibu;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.hibernate.FetchMode;
-import org.hibernate.criterion.Order;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.AccessException;
@@ -38,6 +36,7 @@ import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.projectforge.framework.time.DateHelper;
@@ -294,10 +293,12 @@ public class RechnungDao extends BaseDao<RechnungDO> {
     }
 
     final QueryFilter queryFilter = AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction(myFilter);
-    queryFilter.addOrder(Order.desc("datum"));
-    queryFilter.addOrder(Order.desc("nummer"));
+    queryFilter.addOrder(SortProperty.desc("datum"));
+    queryFilter.addOrder(SortProperty.desc("nummer"));
     if (myFilter.isShowKostZuweisungStatus()) {
-      queryFilter.setFetchMode("positionen.kostZuweisungen", FetchMode.JOIN);
+      // TODO
+      log.warn("***************** TODO: setFetchmode");
+      //queryFilter.setFetchMode("positionen.kostZuweisungen", FetchMode.JOIN);
     }
 
     AuftragAndRechnungDaoHelper.createCriterionForPeriodOfPerformance(myFilter).ifPresent(queryFilter::add);

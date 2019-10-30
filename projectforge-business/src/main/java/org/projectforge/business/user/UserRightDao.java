@@ -24,8 +24,6 @@
 package org.projectforge.business.user;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.*;
@@ -176,10 +174,10 @@ public class UserRightDao extends BaseDao<UserRightDO>
     final QueryFilter queryFilter = new QueryFilter(filter);
     final UserRightFilter myFilter = (UserRightFilter) filter;
     if (myFilter.getUser() != null) {
-      queryFilter.add(Restrictions.eq("user", myFilter.getUser()));
+      queryFilter.add(QueryFilter.eq("user", myFilter.getUser()));
     }
     queryFilter.createAlias("user", "u");
-    queryFilter.addOrder(Order.asc("u.username")).addOrder(Order.asc("rightIdString"));
+    queryFilter.addOrder(SortProperty.asc("u.username")).addOrder(SortProperty.asc("rightIdString"));
     final List<UserRightDO> list = getList(queryFilter);
     return list;
   }
@@ -192,8 +190,6 @@ public class UserRightDao extends BaseDao<UserRightDO>
 
   /**
    * User must member of group finance or controlling.
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess()
    */
   @Override
   public boolean hasUserSelectAccess(final PFUserDO user, final boolean throwException)
@@ -202,8 +198,6 @@ public class UserRightDao extends BaseDao<UserRightDO>
   }
 
   /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess(PFUserDO,
-   * org.projectforge.core.ExtendedBaseDO, boolean)
    * @see #hasUserSelectAccess(PFUserDO, boolean)
    */
   @Override
@@ -214,8 +208,6 @@ public class UserRightDao extends BaseDao<UserRightDO>
 
   /**
    * User must member of group admin.
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasAccess(Object, OperationType)
    */
   @Override
   public boolean hasAccess(final PFUserDO user, final UserRightDO obj, final UserRightDO oldObj,

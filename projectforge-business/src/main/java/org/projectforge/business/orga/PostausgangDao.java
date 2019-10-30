@@ -24,11 +24,11 @@
 package org.projectforge.business.orga;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.hibernate.criterion.Order;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
@@ -76,8 +76,8 @@ public class PostausgangDao extends BaseDao<PostausgangDO>
     }
     final QueryFilter queryFilter = new QueryFilter(filter);
     queryFilter.setYearAndMonth("datum", myFilter.getYear(), myFilter.getMonth());
-    queryFilter.addOrder(Order.desc("datum"));
-    queryFilter.addOrder(Order.asc("empfaenger"));
+    queryFilter.addOrder(SortProperty.desc("datum"));
+    queryFilter.addOrder(SortProperty.asc("empfaenger"));
     final List<PostausgangDO> list = getList(queryFilter);
     return list;
   }

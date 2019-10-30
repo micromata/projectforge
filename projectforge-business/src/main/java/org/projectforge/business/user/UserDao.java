@@ -29,8 +29,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.hibernate.LockMode;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.business.multitenancy.TenantService;
@@ -87,7 +85,7 @@ public class UserDao extends BaseDao<PFUserDO> {
 
   public QueryFilter getDefaultFilter() {
     final QueryFilter queryFilter = new QueryFilter(null, false);
-    queryFilter.add(Restrictions.eq("deleted", false));
+    queryFilter.add(QueryFilter.eq("deleted", false));
     return queryFilter;
   }
 
@@ -114,22 +112,22 @@ public class UserDao extends BaseDao<PFUserDO> {
     }
     final QueryFilter queryFilter = createQueryFilter(myFilter);
     if (myFilter.getDeactivatedUser() != null) {
-      queryFilter.add(Restrictions.eq("deactivated", myFilter.getDeactivatedUser()));
+      queryFilter.add(QueryFilter.eq("deactivated", myFilter.getDeactivatedUser()));
     }
     if (Login.getInstance().hasExternalUsermanagementSystem()) {
       // Check hasExternalUsermngmntSystem because otherwise the filter is may-be preset for an user and the user can't change the filter
       // (because the fields aren't visible).
       if (myFilter.getRestrictedUser() != null) {
-        queryFilter.add(Restrictions.eq("restrictedUser", myFilter.getRestrictedUser()));
+        queryFilter.add(QueryFilter.eq("restrictedUser", myFilter.getRestrictedUser()));
       }
       if (myFilter.getLocalUser() != null) {
-        queryFilter.add(Restrictions.eq("localUser", myFilter.getLocalUser()));
+        queryFilter.add(QueryFilter.eq("localUser", myFilter.getLocalUser()));
       }
     }
     if (myFilter.getHrPlanning() != null) {
-      queryFilter.add(Restrictions.eq("hrPlanning", myFilter.getHrPlanning()));
+      queryFilter.add(QueryFilter.eq("hrPlanning", myFilter.getHrPlanning()));
     }
-    queryFilter.addOrder(Order.asc("username"));
+    queryFilter.addOrder(SortProperty.asc("username"));
     List<PFUserDO> list = getList(queryFilter);
     if (myFilter.getIsAdminUser() != null) {
       final List<PFUserDO> origList = list;

@@ -23,8 +23,6 @@
 
 package org.projectforge.business.vacation.repository;
 
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.user.UserRightId;
@@ -38,6 +36,7 @@ import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -55,8 +54,7 @@ import java.util.stream.Collectors;
  * @author Florian Blumenstein
  */
 @Repository
-public class VacationDao extends BaseDao<VacationDO>
-{
+public class VacationDao extends BaseDao<VacationDO> {
   private final static String META_SQL = " AND v.special = false AND v.deleted = :deleted AND v.tenant = :tenant";
 
   private final static String META_SQL_WITH_SPECIAL = " AND v.deleted = :deleted AND v.tenant = :tenant";
@@ -67,22 +65,19 @@ public class VacationDao extends BaseDao<VacationDO>
   @Autowired
   private PfEmgrFactory emgrFactory;
 
-  public VacationDao()
-  {
+  public VacationDao() {
     super(VacationDO.class);
   }
 
   @Override
-  public VacationDO newInstance()
-  {
+  public VacationDO newInstance() {
     return new VacationDO();
   }
 
   @Override
   public boolean hasAccess(final PFUserDO user, final VacationDO obj, final VacationDO oldObj,
-      final OperationType operationType,
-      final boolean throwException)
-  {
+                           final OperationType operationType,
+                           final boolean throwException) {
     return true;
   }
 
@@ -90,21 +85,19 @@ public class VacationDao extends BaseDao<VacationDO>
     return accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READWRITE);
   }
 
-  public List<VacationDO> getVacationForPeriod(EmployeeDO employee, Date startVacationDate, Date endVacationDate, boolean withSpecial)
-  {
+  public List<VacationDO> getVacationForPeriod(EmployeeDO employee, Date startVacationDate, Date endVacationDate, boolean withSpecial) {
     List<VacationDO> result = emgrFactory.runRoTrans(emgr -> {
       String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.endDate >= :startDate AND v.startDate <= :endDate";
       List<VacationDO> dbResultList = emgr.selectDetached(VacationDO.class, baseSQL + (withSpecial ? META_SQL_WITH_SPECIAL : META_SQL), "employee", employee,
-          "startDate", startVacationDate, "endDate", endVacationDate, "deleted", false, "tenant",
-          getTenant());
+              "startDate", startVacationDate, "endDate", endVacationDate, "deleted", false, "tenant",
+              getTenant());
       return dbResultList;
     });
     return result;
   }
 
   @Override
-  public List<VacationDO> getList(final BaseSearchFilter filter)
-  {
+  public List<VacationDO> getList(final BaseSearchFilter filter) {
     final VacationFilter myFilter;
     if (filter instanceof VacationFilter) {
       myFilter = (VacationFilter) filter;
@@ -113,20 +106,20 @@ public class VacationDao extends BaseDao<VacationDO>
     }
     final QueryFilter queryFilter = createQueryFilter(myFilter);
     if (!accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READONLY,
-        UserRightValue.READWRITE)) {
+            UserRightValue.READWRITE)) {
       final Integer employeeId = myFilter.getEmployeeId();
       final EmployeeDO employeeFromFilter = emgrFactory.runRoTrans(emgr -> emgr.selectByPk(EmployeeDO.class, employeeId));
       queryFilter.createAlias("substitutions", "subAlias"); // use alias to create the inner join
-      queryFilter.add(Restrictions.or(
-          Restrictions.eq("employee", employeeFromFilter),
-          Restrictions.eq("manager", employeeFromFilter),
-          Restrictions.eq("subAlias.id", employeeId) // does not work with the whole employee object, need id
+      queryFilter.add(QueryFilter.or(
+              QueryFilter.eq("employee", employeeFromFilter),
+              QueryFilter.eq("manager", employeeFromFilter),
+              QueryFilter.eq("subAlias.id", employeeId) // does not work with the whole employee object, need id
       ));
     }
     if (myFilter.getVacationstatus() != null) {
-      queryFilter.add(Restrictions.eq("status", myFilter.getVacationstatus()));
+      queryFilter.add(QueryFilter.eq("status", myFilter.getVacationstatus()));
     }
-    queryFilter.addOrder(Order.asc("startDate"));
+    queryFilter.addOrder(SortProperty.asc("startDate"));
     List<VacationDO> resultList = getList(queryFilter);
     if (myFilter.getVacationmode() != null) {
       resultList = resultList.stream().filter(vac -> vac.getVacationmode().equals(myFilter.getVacationmode())).collect(Collectors.toList());
@@ -134,47 +127,43 @@ public class VacationDao extends BaseDao<VacationDO>
     return resultList;
   }
 
-  public List<VacationDO> getActiveVacationForYear(EmployeeDO employee, int year, boolean withSpecial)
-  {
+  public List<VacationDO> getActiveVacationForYear(EmployeeDO employee, int year, boolean withSpecial) {
     Calendar startYear = new GregorianCalendar(year, Calendar.JANUARY, 1);
     Calendar endYear = new GregorianCalendar(year, Calendar.DECEMBER, 31);
     final List<VacationDO> result = emgrFactory.runRoTrans(emgr -> {
       String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.startDate >= :startDate AND v.startDate <= :endDate";
       List<VacationDO> dbResultList = emgr.selectDetached(VacationDO.class, baseSQL + (withSpecial ? META_SQL_WITH_SPECIAL : META_SQL), "employee", employee,
-          "startDate", startYear.getTime(), "endDate", endYear.getTime(),
-          "deleted", false, "tenant", getTenant());
+              "startDate", startYear.getTime(), "endDate", endYear.getTime(),
+              "deleted", false, "tenant", getTenant());
       return dbResultList;
     });
     return result;
   }
 
-  private TenantDO getTenant()
-  {
+  private TenantDO getTenant() {
     return ThreadLocalUserContext.getUser() != null && ThreadLocalUserContext.getUser().getTenant() != null ?
-        ThreadLocalUserContext.getUser().getTenant() :
-        tenantService.getDefaultTenant();
+            ThreadLocalUserContext.getUser().getTenant() :
+            tenantService.getDefaultTenant();
   }
 
-  public List<VacationDO> getAllActiveVacation(EmployeeDO employee, boolean withSpecial)
-  {
+  public List<VacationDO> getAllActiveVacation(EmployeeDO employee, boolean withSpecial) {
     final List<VacationDO> result = emgrFactory.runRoTrans(emgr -> {
       String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee";
       List<VacationDO> dbResultList = emgr
-          .selectDetached(VacationDO.class, baseSQL + (withSpecial ? META_SQL_WITH_SPECIAL : META_SQL), "employee", employee, "deleted", false, "tenant",
-              getTenant());
+              .selectDetached(VacationDO.class, baseSQL + (withSpecial ? META_SQL_WITH_SPECIAL : META_SQL), "employee", employee, "deleted", false, "tenant",
+                      getTenant());
       return dbResultList;
     });
     return result;
   }
 
-  public BigDecimal getOpenLeaveApplicationsForEmployee(EmployeeDO employee)
-  {
+  public BigDecimal getOpenLeaveApplicationsForEmployee(EmployeeDO employee) {
     BigDecimal result = BigDecimal.ZERO;
     final List<VacationDO> resultList = emgrFactory.runRoTrans(emgr -> {
       String baseSQL = "SELECT v FROM VacationDO v WHERE v.manager = :employee AND v.status = :status";
       List<VacationDO> dbResultList = emgr
-          .selectDetached(VacationDO.class, baseSQL + META_SQL_WITH_SPECIAL, "employee", employee, "status", VacationStatus.IN_PROGRESS, "deleted", false,
-              "tenant", getTenant());
+              .selectDetached(VacationDO.class, baseSQL + META_SQL_WITH_SPECIAL, "employee", employee, "status", VacationStatus.IN_PROGRESS, "deleted", false,
+                      "tenant", getTenant());
       return dbResultList;
     });
     if (resultList != null) {
@@ -183,21 +172,19 @@ public class VacationDao extends BaseDao<VacationDO>
     return result;
   }
 
-  public List<VacationDO> getSpecialVacation(EmployeeDO employee, int year, VacationStatus status)
-  {
+  public List<VacationDO> getSpecialVacation(EmployeeDO employee, int year, VacationStatus status) {
     final Calendar startYear = new GregorianCalendar(year, Calendar.JANUARY, 1);
     final Calendar endYear = new GregorianCalendar(year, Calendar.DECEMBER, 31);
     final List<VacationDO> resultList = emgrFactory.runRoTrans(emgr -> {
       final String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.startDate >= :startDate AND v.startDate <= :endDate AND v.status = :status AND v.special = :special";
       return emgr
-          .selectDetached(VacationDO.class, baseSQL + META_SQL_WITH_SPECIAL, "employee", employee, "startDate", startYear.getTime(), "endDate",
-              endYear.getTime(), "status", status, "special", true, "deleted", false, "tenant", getTenant());
+              .selectDetached(VacationDO.class, baseSQL + META_SQL_WITH_SPECIAL, "employee", employee, "startDate", startYear.getTime(), "endDate",
+                      endYear.getTime(), "status", status, "special", true, "deleted", false, "tenant", getTenant());
     });
     return resultList != null ? resultList : Collections.emptyList();
   }
 
-  public List<TeamCalDO> getCalendarsForVacation(VacationDO vacation)
-  {
+  public List<TeamCalDO> getCalendarsForVacation(VacationDO vacation) {
     final List<TeamCalDO> calendarList = new ArrayList<>();
     if (vacation.getId() == null) {
       return calendarList;
@@ -212,8 +199,7 @@ public class VacationDao extends BaseDao<VacationDO>
     return calendarList;
   }
 
-  public List<VacationCalendarDO> getVacationCalendarDOs(VacationDO vacation)
-  {
+  public List<VacationCalendarDO> getVacationCalendarDOs(VacationDO vacation) {
     final List<VacationCalendarDO> resultList = emgrFactory.runRoTrans(emgr -> {
       final String baseSQL = "SELECT vc FROM VacationCalendarDO vc WHERE vc.vacation = :vacation";
       return emgr.selectDetached(VacationCalendarDO.class, baseSQL, "vacation", vacation);
@@ -221,8 +207,7 @@ public class VacationDao extends BaseDao<VacationDO>
     return resultList;
   }
 
-  public void saveVacationCalendar(VacationCalendarDO obj)
-  {
+  public void saveVacationCalendar(VacationCalendarDO obj) {
     emgrFactory.runInTrans(emgr -> {
       if (obj.getId() != null) {
         VacationCalendarDO vacationCalendarDO = emgr.selectByPkAttached(VacationCalendarDO.class, obj.getPk());
@@ -235,16 +220,14 @@ public class VacationDao extends BaseDao<VacationDO>
     });
   }
 
-  public void markAsDeleted(VacationCalendarDO obj)
-  {
+  public void markAsDeleted(VacationCalendarDO obj) {
     emgrFactory.runInTrans(emgr -> {
       emgr.markDeleted(obj);
       return null;
     });
   }
 
-  public void markAsUndeleted(VacationCalendarDO obj)
-  {
+  public void markAsUndeleted(VacationCalendarDO obj) {
     emgrFactory.runInTrans(emgr -> {
       emgr.markUndeleted(obj);
       return null;

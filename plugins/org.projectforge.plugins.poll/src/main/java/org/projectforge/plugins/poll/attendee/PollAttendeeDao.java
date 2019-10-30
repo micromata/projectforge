@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.poll.attendee;
 
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -35,16 +34,13 @@ import java.util.List;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * 
  */
 @Repository
-public class PollAttendeeDao extends BaseDao<PollAttendeeDO>
-{
+public class PollAttendeeDao extends BaseDao<PollAttendeeDO> {
   /**
    * @param clazz
    */
-  protected PollAttendeeDao()
-  {
+  protected PollAttendeeDao() {
     super(PollAttendeeDO.class);
     userRightId = PollPluginUserRightId.PLUGIN_POLL_ATTENDEE;
   }
@@ -53,44 +49,41 @@ public class PollAttendeeDao extends BaseDao<PollAttendeeDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#newInstance()
    */
   @Override
-  public PollAttendeeDO newInstance()
-  {
+  public PollAttendeeDO newInstance() {
     return new PollAttendeeDO();
   }
 
   /**
    * get list of attendees by poll id, without deleted.
-   * 
+   *
    * @param poll
    * @return
    */
-  public List<PollAttendeeDO> getListByPoll(final PollDO poll)
-  {
+  public List<PollAttendeeDO> getListByPoll(final PollDO poll) {
     final QueryFilter qFilter = new QueryFilter();
     if (poll != null && poll.getId() != null) {
-      qFilter.add(Restrictions.and(Restrictions.eq("poll", poll), Restrictions.eq("deleted", false)));
+      qFilter.add(QueryFilter.and(QueryFilter.eq("poll", poll), QueryFilter.eq("deleted", false)));
     }
     return getList(qFilter);
   }
 
   /**
    * Verify if key is able to access poll data.
-   * 
+   *
    * @param user
    * @param secureKey
-   * @param poll - poll to check
+   * @param poll      - poll to check
    * @return
    */
-  public boolean verifyUserOrKey(final PFUserDO user, final String secureKey, final PollDO poll)
-  {
+  public boolean verifyUserOrKey(final PFUserDO user, final String secureKey, final PollDO poll) {
     final QueryFilter qFilter = new QueryFilter();
     if (user != null) {
-      qFilter.add(Restrictions.and(Restrictions.and(Restrictions.eq("poll", poll), Restrictions.eq("user", user)),
-          Restrictions.eq("deleted", false)));
+      qFilter.add(QueryFilter.and(QueryFilter.and(QueryFilter.eq("poll", poll), QueryFilter.eq("user", user)),
+              QueryFilter.eq("deleted", false)));
     } else {
       qFilter.add(
-          Restrictions.and(Restrictions.and(Restrictions.eq("poll", poll), Restrictions.eq("secureKey", secureKey)),
-              Restrictions.eq("deleted", false)));
+              QueryFilter.and(QueryFilter.and(QueryFilter.eq("poll", poll), QueryFilter.eq("secureKey", secureKey)),
+                      QueryFilter.eq("deleted", false)));
     }
     return !getList(qFilter).isEmpty();
   }
