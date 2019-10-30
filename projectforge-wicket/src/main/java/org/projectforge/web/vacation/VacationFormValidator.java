@@ -37,11 +37,27 @@ public class VacationFormValidator implements IFormValidator
 
   private ConfigurationService configService;
 
+  private final Calendar now;
+
   public VacationFormValidator(VacationService vacationService, ConfigurationService configService, VacationDO data)
+  {
+    this(vacationService, configService, data, Calendar.getInstance(ThreadLocalUserContext.getTimeZone()));
+  }
+
+  /**
+   * FOR TEST USE ONLY!
+   *
+   * @param vacationService
+   * @param configService
+   * @param data
+   * @param now
+   */
+  protected VacationFormValidator(VacationService vacationService, ConfigurationService configService, VacationDO data, Calendar now)
   {
     this.configService = configService;
     this.vacationService = vacationService;
     this.data = data;
+    this.now = now;
   }
 
   @Override
@@ -72,8 +88,7 @@ public class VacationFormValidator implements IFormValidator
 
     //Is new vacation data
     if (data.getId() == null) {
-      final Calendar now = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
-      if(startDate.before(now) && vacationService.hasLoggedInUserHRVacationAccess() == false) {
+      if(startDate.before(this.now) && vacationService.hasLoggedInUserHRVacationAccess() == false) {
         form.error(I18nHelper.getLocalizedMessage("vacation.validate.startDateBeforeNow"));
         return;
       }
