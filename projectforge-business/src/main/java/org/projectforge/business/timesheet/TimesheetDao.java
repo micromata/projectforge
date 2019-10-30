@@ -105,8 +105,6 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
   @Autowired
   private Kost2Dao kost2Dao;
 
-  private final Map<Integer, Set<Integer>> timesheetsWithOverlapByUser = new HashMap<>();
-
   @Override
   protected String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
@@ -248,28 +246,6 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
     if (result == null) {
       return null;
     }
-    // Check time period overlaps:
-    for (final TimesheetDO entry : result) {
-      Validate.notNull(entry.getUserId());
-      if (entry.getMarked()) {
-        continue; // Is already marked.
-      }
-      final Set<Integer> overlapSet = getTimesheetsWithTimeoverlap(entry.getUserId());
-      if (overlapSet.contains(entry.getId())) {
-        log.info("Overlap of time sheet decteced: " + entry);
-        entry.setMarked(true);
-      }
-    }
-    if (myFilter.isMarked()) {
-      // Show only time sheets with time period violation (overlap):
-      final List<TimesheetDO> list = result;
-      result = new ArrayList<>();
-      for (final TimesheetDO entry : list) {
-        if (entry.getMarked()) {
-          result.add(entry);
-        }
-      }
-    }
     if (myFilter.isOnlyBillable()) {
       final List<TimesheetDO> list = result;
       result = new ArrayList<>();
@@ -282,37 +258,12 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
     return result;
   }
 
-  //TODO:
-  //  public List<TimesheetDO> getTimeperiodOverlapList(final TimesheetListFilter actionFilter)
-  //  {
-  //    if (actionFilter.getUserId() != null) {
-  //      final QueryFilter queryFilter = new QueryFilter(actionFilter, tenantsCache);
-  //      final Set<Integer> set = getTimesheetsWithTimeoverlap(actionFilter.getUserId());
-  //      if (set == null || set.size() == 0) {
-  //        // No time sheets with overlap found.
-  //        return new ArrayList<TimesheetDO>();
-  //      }
-  //      queryFilter.add(Restrictions.in("id", set));
-  //      final List<TimesheetDO> result = getList(queryFilter);
-  //      for (final TimesheetDO entry : result) {
-  //        entry.setMarked(true);
-  //      }
-  //      Collections.sort(result, Collections.reverseOrder());
-  //      return result;
-  //    }
-  //    return getList(actionFilter);
-  //  }
-
   /**
    * Rechecks the time sheet overlaps.
    */
   @Override
   protected void afterSaveOrModify(final TimesheetDO obj) {
     super.afterSaveOrModify(obj);
-    if (obj.getUser() != null) {
-      // Force re-analysis of time sheet overlaps after any modification of time sheets.
-      recheckTimesheetOverlap(obj.getUserId());
-    }
     TaskTreeHelper.getTaskTree(obj).resetTotalDuration(obj.getTaskId());
   }
 
@@ -399,57 +350,6 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
     Validate.isTrue(cal.get(Calendar.SECOND) == 0, "Seconds of " + name + " is not 0!");
     final int m = cal.get(Calendar.MINUTE);
     Validate.isTrue(m == 0 || m == 15 || m == 30 || m == 45, "Minutes of " + name + " must be 0, 15, 30 or 45");
-  }
-
-  /**
-   * Analyses all time sheets of the user and detects any collision (overlap) of the user's time sheets. The result will
-   * be cached and the duration of a new analysis is only a few milliseconds!
-   */
-  public Set<Integer> getTimesheetsWithTimeoverlap(final Integer userId) {
-    long begin = System.currentTimeMillis();
-    Validate.notNull(userId);
-    final PFUserDO user = getUserGroupCache().getUser(userId);
-    Validate.notNull(user);
-    synchronized (timesheetsWithOverlapByUser) {
-      if (timesheetsWithOverlapByUser.get(userId) != null) {
-        return timesheetsWithOverlapByUser.get((userId));
-      }
-      // log.info("Getting time sheet overlaps for user: " + user.getUsername());
-      final Set<Integer> result = new HashSet<>();
-      final QueryFilter queryFilter = new QueryFilter();
-      queryFilter.add(QueryFilter.eq("user", user));
-      queryFilter.addOrder(SortProperty.asc("startTime"));
-      final List<TimesheetDO> list = getList(queryFilter);
-      long endTime = 0;
-      TimesheetDO lastEntry = null;
-      for (final TimesheetDO entry : list) {
-        if (entry.getStartTime().getTime() < endTime) {
-          // Time collision!
-          result.add(entry.getId());
-          if (lastEntry != null) { // Only for first iteration
-            result.add(lastEntry.getId()); // Also collision for last entry.
-          }
-        }
-        endTime = entry.getStopTime().getTime();
-        lastEntry = entry;
-      }
-      timesheetsWithOverlapByUser.put(user.getId(), result);
-      if (CollectionUtils.isNotEmpty(result)) {
-        log.info("Time sheet overlaps for user '" + user.getUsername() + "': " + result);
-      }
-      long end = System.currentTimeMillis();
-      log.info("TimesheetDao.getTimesheetsWithTimeoverlap took: " + (end - begin) + " ms.");
-      return result;
-    }
-  }
-
-  /**
-   * Deletes any existing time sheet overlap analysis and forces therefore a new analysis before next time sheet list
-   * selection. (The analysis will not be started inside this method!)
-   */
-  public void recheckTimesheetOverlap(final Integer userId) {
-    Validate.notNull(userId);
-    timesheetsWithOverlapByUser.remove(userId);
   }
 
   /**

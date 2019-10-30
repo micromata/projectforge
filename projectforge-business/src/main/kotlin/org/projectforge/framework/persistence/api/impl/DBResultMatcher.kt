@@ -36,6 +36,7 @@ import javax.persistence.criteria.Root
 interface DBResultMatcher {
     fun match(obj: Any): Boolean
     fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate
+    fun addTo(qb: DBQueryBuilder<*>)
 
     companion object {
         private val log = LoggerFactory.getLogger(DBResultMatcher::class.java)
@@ -56,6 +57,10 @@ interface DBResultMatcher {
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
             return cb.equal(root.get<Any>(field), expectedValue)
         }
+
+        override fun addTo(qb: DBQueryBuilder<*>) {
+            qb.equal(field, expectedValue)
+        }
     }
 
     class NotEquals(
@@ -72,6 +77,10 @@ interface DBResultMatcher {
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
             return cb.notEqual(root.get<Any>(field), notExpectedValue)
+        }
+
+        override fun addTo(qb: DBQueryBuilder<*>) {
+            qb.notEqual(field, notExpectedValue)
         }
     }
 
@@ -97,6 +106,10 @@ interface DBResultMatcher {
             val predicate = exp.`in`(values)
             return cb.`in`(predicate)
         }
+
+        override fun addTo(qb: DBQueryBuilder<*>) {
+            qb.anyOf(field, values)
+        }
     }
 
     class Between<O : Comparable<O>>(
@@ -120,6 +133,10 @@ interface DBResultMatcher {
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
             return cb.between(root.get<O>(field), from, to)
         }
+
+        override fun addTo(qb: DBQueryBuilder<*>) {
+            qb.between(field, from, to)
+        }
     }
 
     class Greater<O : Comparable<O>>(
@@ -141,6 +158,10 @@ interface DBResultMatcher {
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
             return cb.greaterThan(root.get<O>(field), from)
+        }
+
+        override fun addTo(qb: DBQueryBuilder<*>) {
+            qb.greater(field, from)
         }
     }
 
@@ -164,6 +185,10 @@ interface DBResultMatcher {
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
             return cb.greaterThanOrEqualTo(root.get<O>(field), from)
         }
+
+        override fun addTo(qb: DBQueryBuilder<*>) {
+            qb.greaterEqual(field, from)
+        }
     }
 
     class Less<O : Comparable<O>>(
@@ -186,6 +211,10 @@ interface DBResultMatcher {
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
             return cb.lessThan(root.get<O>(field), to)
         }
+
+        override fun addTo(qb: DBQueryBuilder<*>) {
+            qb.less(field, to)
+        }
     }
 
     class LessEqual<O : Comparable<O>>(
@@ -207,6 +236,10 @@ interface DBResultMatcher {
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
             return cb.lessThanOrEqualTo(root.get<O>(field), to)
+        }
+
+        override fun addTo(qb: DBQueryBuilder<*>) {
+            qb.lessEqual(field, to)
         }
     }
 
@@ -251,6 +284,10 @@ interface DBResultMatcher {
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
             return cb.like(cb.lower(root.get<String>(field)), expectedValue)
         }
+
+        override fun addTo(qb: DBQueryBuilder<*>) {
+            qb.ilike(field, expectedValue)
+        }
     }
 
     class IsNull(
@@ -262,6 +299,10 @@ interface DBResultMatcher {
 
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
             return cb.isNull(root.get<Any>(field))
+        }
+
+        override fun addTo(qb: DBQueryBuilder<*>) {
+            qb.isNull(field)
         }
     }
 
@@ -275,17 +316,25 @@ interface DBResultMatcher {
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
             return cb.isNotNull(root.get<Any>(field))
         }
+
+        override fun addTo(qb: DBQueryBuilder<*>) {
+            qb.isNotNull(field)
+        }
     }
 
-    class Not(val matcher: DBResultMatcher
+    class Not(val matchers: DBResultMatcher
     ) : DBResultMatcher {
 
         override fun match(obj: Any): Boolean {
-            return !matcher.match(obj)
+            return !matchers.match(obj)
         }
 
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.not(matcher.asPredicate(cb, root))
+            return cb.not(matchers.asPredicate(cb, root))
+        }
+
+        override fun addTo(qb: DBQueryBuilder<*>) {
+            qb.addMatcher(this)
         }
     }
 
@@ -309,6 +358,10 @@ interface DBResultMatcher {
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
             return cb.and(*matcherList.map { it.asPredicate(cb, root) }.toTypedArray())
         }
+
+        override fun addTo(qb: DBQueryBuilder<*>) {
+            qb.addMatcher(this)
+        }
     }
 
     class Or(
@@ -330,6 +383,10 @@ interface DBResultMatcher {
 
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
             return cb.or(*matcherList.map { it.asPredicate(cb, root) }.toTypedArray())
+        }
+
+        override fun addTo(qb: DBQueryBuilder<*>) {
+            qb.addMatcher(this)
         }
     }
 
@@ -360,6 +417,10 @@ interface DBResultMatcher {
                 inClause.value(value)
             }
             return inClause
+        }
+
+        override fun addTo(qb: DBQueryBuilder<*>) {
+            qb.addMatcher(this)
         }
     }
 }

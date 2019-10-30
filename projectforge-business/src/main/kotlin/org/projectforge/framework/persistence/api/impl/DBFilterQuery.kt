@@ -216,6 +216,18 @@ class DBFilterQuery {
                     }
                 }
             }
+            if (criteriaSearch) {
+                filter.resultMatcher.forEach {
+                    it.addTo(queryBuilder) // Add this to criteria search if possible.
+                }
+                filter.aliasList.forEach {
+    queryBuilder.
+                }
+            } else {
+                filter.resultMatcher.forEach {
+                    queryBuilder.addMatcher(it) // Add this as result matcher, criteria not available.
+                }
+            }
             dbResultIterator = queryBuilder.result()
             var list = createList(baseDao, dbResultIterator, filter, historySearchParams, checkAccess)
             queryBuilder.close()

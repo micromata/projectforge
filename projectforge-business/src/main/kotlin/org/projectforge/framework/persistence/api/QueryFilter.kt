@@ -40,7 +40,7 @@ class QueryFilter {
     private val log = LoggerFactory.getLogger(QueryFilter::class.java)
 
     val ignoreTenant: Boolean
-    private val dbFilter = DBFilter()
+    val dbFilter = DBFilter()
 
     var filter: BaseSearchFilter? = null
         private set
@@ -131,11 +131,6 @@ class QueryFilter {
     fun createAlias(field: String, alias: String, joinType: JoinType? = null): QueryFilter {
         dbFilter.addAlias(field, alias, joinType)
         return this
-    }
-
-    fun getDBFilter(): DBFilter {
-        val dbFilter = DBFilter()
-        return dbFilter
     }
 
     companion object {
