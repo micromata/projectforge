@@ -1,5 +1,16 @@
 package org.projectforge.web.vacation;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.when;
+
+import java.math.BigDecimal;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
@@ -22,18 +33,6 @@ import org.projectforge.test.TestSetup;
 import org.projectforge.web.wicket.components.DatePanel;
 import org.wicketstuff.select2.Select2Choice;
 import org.wicketstuff.select2.Select2MultiChoice;
-
-import java.math.BigDecimal;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.GregorianCalendar;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ DatePanel.class, Form.class })
@@ -273,7 +272,11 @@ public class VacationFormValidatorTest
 
   private VacationFormValidator createValidator()
   {
-    final VacationFormValidator validator = new VacationFormValidator(vacationService, configService, new VacationDO());
+    Calendar now = Calendar.getInstance();
+    now.set(Calendar.YEAR, 2017);
+    now.set(Calendar.MONTH, Calendar.JANUARY);
+    now.set(Calendar.DAY_OF_MONTH, 1);
+    final VacationFormValidator validator = new VacationFormValidator(vacationService, configService, new VacationDO(), now);
 
     validator.getDependentFormComponents()[0] = startDatePanel;
     validator.getDependentFormComponents()[1] = endDatePanel;
