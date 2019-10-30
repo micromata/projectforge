@@ -53,7 +53,9 @@ open class FavoritesMenuCreator {
      */
     fun getFavoriteMenu(): Menu {
         val favMenuAsUserPrefString = userXmlPreferencesService.getEntry(USER_PREF_FAVORITES_MENU_ENTRIES_KEY) as String?
-        return getFavoriteMenu(favMenuAsUserPrefString)
+        val menu = getFavoriteMenu(favMenuAsUserPrefString)
+        menu.postProcess() // Build badges of top menus.
+        return menu
     }
 
     internal fun getFavoriteMenu(favMenuAsUserPrefString: String?): Menu {
