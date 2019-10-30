@@ -28,7 +28,6 @@ import de.micromata.genome.db.jpa.history.api.HistProp;
 import de.micromata.genome.db.jpa.history.api.HistoryEntry;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.user.UserGroupCache;
@@ -78,17 +77,15 @@ public class AddressCampaignValueDao extends BaseDao<AddressCampaignValueDO> {
     }
     final QueryFilter queryFilter = new QueryFilter(myFilter);
     if (myFilter.getAddressCampaign() != null) {
-      queryFilter.add(Restrictions.eq("address_campaign_fk", myFilter.getAddressCampaign().getId()));
+      queryFilter.add(QueryFilter.eq("address_campaign_fk", myFilter.getAddressCampaign().getId()));
     }
     if (myFilter.getAddressCampaignValue() != null) {
-      queryFilter.add(Restrictions.eq("value", myFilter.getAddressCampaign().getId()));
+      queryFilter.add(QueryFilter.eq("value", myFilter.getAddressCampaign().getId()));
     }
     return getList(queryFilter);
   }
 
   /**
-   * @param address
-   * @param taskId  If null, then task will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
   public void setAddress(final AddressCampaignValueDO addressCampaignValue, final Integer addressId) {

@@ -28,8 +28,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.hibernate.Hibernate;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.Kost2Dao;
 import org.projectforge.business.task.TaskDO;
@@ -49,6 +47,7 @@ import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
@@ -168,33 +167,33 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
     if (filter.getUserId() != null) {
       final PFUserDO user = new PFUserDO();
       user.setId(filter.getUserId());
-      queryFilter.add(Restrictions.eq("user", user));
+      queryFilter.add(QueryFilter.eq("user", user));
     }
     if (filter.getStartTime() != null && filter.getStopTime() != null) {
-      queryFilter.add(Restrictions.and(Restrictions.ge("stopTime", filter.getStartTime()),
-              Restrictions.le("startTime", filter.getStopTime())));
+      queryFilter.add(QueryFilter.and(QueryFilter.ge("stopTime", filter.getStartTime()),
+              QueryFilter.le("startTime", filter.getStopTime())));
     } else if (filter.getStartTime() != null) {
-      queryFilter.add(Restrictions.ge("startTime", filter.getStartTime()));
+      queryFilter.add(QueryFilter.ge("startTime", filter.getStartTime()));
     } else if (filter.getStopTime() != null) {
-      queryFilter.add(Restrictions.le("startTime", filter.getStopTime()));
+      queryFilter.add(QueryFilter.le("startTime", filter.getStopTime()));
     }
     if (filter.getTaskId() != null) {
       if (filter.isRecursive()) {
         final TaskNode node = TaskTreeHelper.getTaskTree().getTaskNodeById(filter.getTaskId());
         final List<Integer> taskIds = node.getDescendantIds();
         taskIds.add(node.getId());
-        queryFilter.add(Restrictions.in("task.id", taskIds));
+        queryFilter.add(QueryFilter.in("task.id", taskIds));
         if (log.isDebugEnabled()) {
           log.debug("search in tasks: " + taskIds);
         }
       } else {
-        queryFilter.add(Restrictions.eq("task.id", filter.getTaskId()));
+        queryFilter.add(QueryFilter.eq("task.id", filter.getTaskId()));
       }
     }
     if (filter.getOrderType() == OrderDirection.DESC) {
-      queryFilter.addOrder(Order.desc("startTime"));
+      queryFilter.addOrder(SortProperty.desc("startTime"));
     } else {
-      queryFilter.addOrder(Order.asc("startTime"));
+      queryFilter.addOrder(SortProperty.asc("startTime"));
     }
     if (log.isDebugEnabled()) {
       log.debug(ToStringBuilder.reflectionToString(filter));
@@ -418,8 +417,8 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
       // log.info("Getting time sheet overlaps for user: " + user.getUsername());
       final Set<Integer> result = new HashSet<>();
       final QueryFilter queryFilter = new QueryFilter();
-      queryFilter.add(Restrictions.eq("user", user));
-      queryFilter.addOrder(Order.asc("startTime"));
+      queryFilter.add(QueryFilter.eq("user", user));
+      queryFilter.addOrder(SortProperty.asc("startTime"));
       final List<TimesheetDO> list = getList(queryFilter);
       long endTime = 0;
       TimesheetDO lastEntry = null;
@@ -464,12 +463,12 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
     Validate.notNull(timesheet);
     Validate.notNull(timesheet.getUser());
     final QueryFilter queryFilter = new QueryFilter();
-    queryFilter.add(Restrictions.eq("user", timesheet.getUser()));
-    queryFilter.add(Restrictions.lt("startTime", timesheet.getStopTime()));
-    queryFilter.add(Restrictions.gt("stopTime", timesheet.getStartTime()));
+    queryFilter.add(QueryFilter.eq("user", timesheet.getUser()));
+    queryFilter.add(QueryFilter.lt("startTime", timesheet.getStopTime()));
+    queryFilter.add(QueryFilter.gt("stopTime", timesheet.getStartTime()));
     if (timesheet.getId() != null) {
       // Update time sheet, do not compare with itself.
-      queryFilter.add(Restrictions.ne("id", timesheet.getId()));
+      queryFilter.add(QueryFilter.ne("id", timesheet.getId()));
     }
     final List<TimesheetDO> list = getList(queryFilter);
     if (list != null && list.size() > 0) {
@@ -506,7 +505,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
     if (accessChecker.userEquals(user, obj.getUser())) {
       // Own time sheet
       if (!accessChecker.hasPermission(user, obj.getTaskId(), AccessType.OWN_TIMESHEETS, operationType,
-          throwException)) {
+              throwException)) {
         return false;
       }
     } else {
@@ -515,7 +514,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
         return true;
       }
       if (!accessChecker.hasPermission(user, obj.getTaskId(), AccessType.TIMESHEETS, operationType,
-          throwException)) {
+              throwException)) {
         return false;
       }
     }

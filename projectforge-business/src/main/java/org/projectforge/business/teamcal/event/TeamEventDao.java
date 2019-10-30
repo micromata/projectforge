@@ -31,8 +31,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
 import org.hibernate.type.DateType;
 import org.hibernate.type.StringType;
@@ -412,7 +410,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
     }
     final TeamEventFilter teamEventFilter = filter.clone().setOnlyRecurrence(true);
     final QueryFilter qFilter = buildQueryFilter(teamEventFilter);
-    qFilter.add(Restrictions.isNotNull("recurrenceRule"));
+    qFilter.add(QueryFilter.isNotNull("recurrenceRule"));
     list = getList(qFilter);
     list = selectUnique(list);
     // add all abo events
@@ -587,9 +585,9 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
     final QueryFilter queryFilter = new QueryFilter(filter);
     final Collection<Integer> cals = filter.getTeamCals();
     if (CollectionUtils.isNotEmpty(cals)) {
-      queryFilter.add(Restrictions.in("calendar.id", cals));
+      queryFilter.add(QueryFilter.in("calendar.id", cals));
     } else if (filter.getTeamCalId() != null) {
-      queryFilter.add(Restrictions.eq("calendar.id", filter.getTeamCalId()));
+      queryFilter.add(QueryFilter.eq("calendar.id", filter.getTeamCalId()));
     }
     // Following period extension is needed due to all day events which are stored in UTC. The additional events in the result list not
     // matching the time period have to be removed by caller!
@@ -604,31 +602,31 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
     // limit events to load to chosen date view.
     if (startDate != null && endDate != null) {
       if (!filter.isOnlyRecurrence()) {
-        queryFilter.add(Restrictions.or(
-                (Restrictions.or(Restrictions.between("startDate", startDate, endDate),
-                        Restrictions.between("endDate", startDate, endDate))),
+        queryFilter.add(QueryFilter.or(
+                (QueryFilter.or(QueryFilter.between("startDate", startDate, endDate),
+                        QueryFilter.between("endDate", startDate, endDate))),
                 // get events whose duration overlap with chosen duration.
-                (Restrictions.and(Restrictions.le("startDate", startDate), Restrictions.ge("endDate", endDate)))));
+                (QueryFilter.and(QueryFilter.le("startDate", startDate), QueryFilter.ge("endDate", endDate)))));
       } else {
         queryFilter.add(
                 // "startDate" < endDate && ("recurrenceUntil" == null || "recurrenceUntil" > startDate)
-                (Restrictions.and(Restrictions.lt("startDate", endDate),
-                        Restrictions.or(Restrictions.isNull("recurrenceUntil"),
-                                Restrictions.gt("recurrenceUntil", startDate)))));
+                (QueryFilter.and(QueryFilter.lt("startDate", endDate),
+                        QueryFilter.or(QueryFilter.isNull("recurrenceUntil"),
+                                QueryFilter.gt("recurrenceUntil", startDate)))));
       }
     } else if (startDate != null) {
       if (!filter.isOnlyRecurrence()) {
-        queryFilter.add(Restrictions.ge("startDate", startDate));
+        queryFilter.add(QueryFilter.ge("startDate", startDate));
       } else {
         // This branch is reached for subscriptions and calendar downloads.
         queryFilter.add(
                 // "recurrenceUntil" == null || "recurrenceUntil" > startDate
-                Restrictions.or(Restrictions.isNull("recurrenceUntil"), Restrictions.gt("recurrenceUntil", startDate)));
+                QueryFilter.or(QueryFilter.isNull("recurrenceUntil"), QueryFilter.gt("recurrenceUntil", startDate)));
       }
     } else if (endDate != null) {
-      queryFilter.add(Restrictions.le("startDate", endDate));
+      queryFilter.add(QueryFilter.le("startDate", endDate));
     }
-    queryFilter.addOrder(Order.desc("startDate"));
+    queryFilter.addOrder(SortProperty.desc("startDate"));
     if (log.isDebugEnabled()) {
       log.debug(ToStringBuilder.reflectionToString(filter));
     }

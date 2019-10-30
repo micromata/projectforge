@@ -33,7 +33,7 @@ import javax.persistence.criteria.Root
 /**
  * After querying, every result entry is matched against matchers (for fields not supported by the full text query).
  */
-internal interface DBResultMatcher {
+interface DBResultMatcher {
     fun match(obj: Any): Boolean
     fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate
 
@@ -58,13 +58,30 @@ internal interface DBResultMatcher {
         }
     }
 
+    class NotEquals(
+            val field: String,
+            val notExpectedValue: Any)
+        : DBResultMatcher {
+        override fun match(obj: Any): Boolean {
+            val value = BeanHelper.getProperty(obj, field)
+            return !Objects.equals(notExpectedValue, value)
+        }
+
+        /**
+         * Convert this matcher to JPA criteria for where clause in select.
+         */
+        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+            return cb.notEqual(root.get<Any>(field), notExpectedValue)
+        }
+    }
+
     class AnyOf<O>(
             val field: String,
             vararg val values: O)
         : DBResultMatcher {
         override fun match(obj: Any): Boolean {
             val value = BeanHelper.getProperty(obj, field) ?: return false
-            for (v in  values) {
+            for (v in values) {
                 if (Objects.equals(v, value)) {
                     return true
                 }
@@ -105,6 +122,28 @@ internal interface DBResultMatcher {
         }
     }
 
+    class Greater<O : Comparable<O>>(
+            val field: String,
+            val from: O)
+        : DBResultMatcher {
+        override fun match(obj: Any): Boolean {
+            val value = BeanHelper.getProperty(obj, field) ?: return false
+            if (value::class.java.isAssignableFrom(value::class.java)) {
+                @Suppress("UNCHECKED_CAST")
+                return from < value as O
+            }
+            log.warn("GreaterEqual operator fails, because value isn't of type ${from::class.java}: $value")
+            return false
+        }
+
+        /**
+         * Convert this matcher to JPA criteria for where clause in select.
+         */
+        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+            return cb.greaterThan(root.get<O>(field), from)
+        }
+    }
+
     class GreaterEqual<O : Comparable<O>>(
             val field: String,
             val from: O)
@@ -124,6 +163,28 @@ internal interface DBResultMatcher {
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
             return cb.greaterThanOrEqualTo(root.get<O>(field), from)
+        }
+    }
+
+    class Less<O : Comparable<O>>(
+            val field: String,
+            val to: O)
+        : DBResultMatcher {
+        override fun match(obj: Any): Boolean {
+            val value = BeanHelper.getProperty(obj, field) ?: return false
+            if (value::class.java.isAssignableFrom(value::class.java)) {
+                @Suppress("UNCHECKED_CAST")
+                return (value as O) < to
+            }
+            log.warn("Less operator fails, because value isn't of type ${to::class.java}: $value")
+            return false
+        }
+
+        /**
+         * Convert this matcher to JPA criteria for where clause in select.
+         */
+        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+            return cb.lessThan(root.get<O>(field), to)
         }
     }
 
@@ -204,6 +265,52 @@ internal interface DBResultMatcher {
         }
     }
 
+    class IsNotNull(
+            val field: String)
+        : DBResultMatcher {
+        override fun match(obj: Any): Boolean {
+            return BeanHelper.getProperty(obj, field) != null
+        }
+
+        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+            return cb.isNotNull(root.get<Any>(field))
+        }
+    }
+
+    class Not(val matcher: DBResultMatcher
+    ) : DBResultMatcher {
+
+        override fun match(obj: Any): Boolean {
+            return !matcher.match(obj)
+        }
+
+        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+            return cb.not(matcher.asPredicate(cb, root))
+        }
+    }
+
+    class And(
+            vararg matchers: DBResultMatcher
+    ) : DBResultMatcher {
+        private val matcherList = matchers
+
+        override fun match(obj: Any): Boolean {
+            if (matcherList.isNullOrEmpty()) {
+                return false
+            }
+            for (matcher in matcherList) {
+                if (!matcher.match(obj)) {
+                    return false
+                }
+            }
+            return true
+        }
+
+        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+            return cb.and(*matcherList.map { it.asPredicate(cb, root) }.toTypedArray())
+        }
+    }
+
     class Or(
             vararg matcher: DBResultMatcher
     ) : DBResultMatcher {
@@ -223,6 +330,36 @@ internal interface DBResultMatcher {
 
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
             return cb.or(*matcherList.map { it.asPredicate(cb, root) }.toTypedArray())
+        }
+    }
+
+    class In(val field: String,
+             vararg values: Any
+    ) : DBResultMatcher {
+        val values: List<Any>
+
+        init {
+            this.values = listOf(values)
+        }
+
+        override fun match(obj: Any): Boolean {
+            if (values.isNullOrEmpty()) {
+                return false
+            }
+            for (value in values) {
+                if (value == obj) {
+                    return true
+                }
+            }
+            return false
+        }
+
+        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+            val inClause = cb.`in`(root.get<Any>(field))
+            for (value in values) {
+                inClause.value(value)
+            }
+            return inClause
         }
     }
 }

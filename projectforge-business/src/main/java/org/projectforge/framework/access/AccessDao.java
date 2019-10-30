@@ -25,7 +25,6 @@ package org.projectforge.framework.access;
 
 import org.apache.commons.lang3.Validate;
 import org.hibernate.Hibernate;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskNode;
@@ -153,15 +152,15 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
           taskIds.addAll(ancestors);
         }
         taskIds.add(node.getId());
-        queryFilter.add(Restrictions.in("task.id", taskIds));
+        queryFilter.add(QueryFilter.in("task.id", taskIds));
       } else {
-        queryFilter.add(Restrictions.eq("task.id", myFilter.getTaskId()));
+        queryFilter.add(QueryFilter.eq("task.id", myFilter.getTaskId()));
       }
     }
     if (myFilter.getGroupId() != null) {
       final GroupDO group = new GroupDO();
       group.setId(myFilter.getGroupId());
-      queryFilter.add(Restrictions.eq("group", group));
+      queryFilter.add(QueryFilter.eq("group", group));
     }
     final List<GroupTaskAccessDO> qlist = getList(queryFilter);
     List<GroupTaskAccessDO> list;
