@@ -34,10 +34,23 @@ import javax.persistence.criteria.Root
 /**
  * After querying, every result entry is matched against matchers (for fields not supported by the full text query).
  */
-interface DBPredicate {
-    fun match(obj: Any): Boolean
-    fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate
-    fun addTo(qb: DBQueryBuilder<*>)
+abstract class DBPredicate(
+        /**
+         * True if this predicate may be attached to a full text query for indexed fields.
+         */
+        val fullTextSupport: Boolean = false,
+        /**
+         * True if this predicate may be attached to a criteria search (as predicate).
+         */
+        val criteriaSupport: Boolean = true,
+        /**
+         * True if this predicate may be checked while iterating the result set.
+         */
+        val resultSetSupport: Boolean = true) {
+
+    abstract fun match(obj: Any): Boolean
+    abstract fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate
+    abstract fun addTo(qb: DBQueryBuilder<*>)
 
     companion object {
         private val log = LoggerFactory.getLogger(DBPredicate::class.java)
@@ -46,7 +59,7 @@ interface DBPredicate {
     class Equals(
             val field: String,
             val expectedValue: Any)
-        : DBPredicate {
+        : DBPredicate(true) {
         override fun match(obj: Any): Boolean {
             return fieldValueMatch(obj, field) { Objects.equals(expectedValue, it) }
         }
@@ -66,7 +79,7 @@ interface DBPredicate {
     class NotEquals(
             val field: String,
             val notExpectedValue: Any)
-        : DBPredicate {
+        : DBPredicate(true) {
         override fun match(obj: Any): Boolean {
             return fieldValueMatch(obj, field) { !Objects.equals(notExpectedValue, it) }
         }
@@ -83,10 +96,10 @@ interface DBPredicate {
         }
     }
 
-    class IsIn<O>(
+    class IsIn<T>(
             val field: String,
-            vararg val values: O)
-        : DBPredicate {
+            vararg val values: T)
+        : DBPredicate(false) {
         override fun match(obj: Any): Boolean {
             return fieldValueMatch(obj, field) { innerMatch(it) }
         }
@@ -120,11 +133,11 @@ interface DBPredicate {
         }
     }
 
-    class Between<O : Comparable<O>>(
+    class Between<T : Comparable<T>>(
             val field: String,
-            val from: O,
-            val to: O)
-        : DBPredicate {
+            val from: T,
+            val to: T)
+        : DBPredicate(true) {
         override fun match(obj: Any): Boolean {
             return fieldValueMatch(obj, field) { innerMatch(it) }
         }
@@ -133,7 +146,7 @@ interface DBPredicate {
             if (value == null) return false
             if (from::class.java.isAssignableFrom(value::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                return from <= value as O && value <= to
+                return from <= value as T && value <= to
             }
             log.warn("Between operator fails, because value isn't of type ${from::class.java}: $value")
             return false
@@ -143,7 +156,7 @@ interface DBPredicate {
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.between(getField<O>(root, field), from, to)
+            return cb.between(getField<T>(root, field), from, to)
         }
 
         override fun addTo(qb: DBQueryBuilder<*>) {
@@ -154,7 +167,7 @@ interface DBPredicate {
     class Greater<O : Comparable<O>>(
             val field: String,
             val from: O)
-        : DBPredicate {
+        : DBPredicate(true) {
         override fun match(obj: Any): Boolean {
             return fieldValueMatch(obj, field) { innerMatch(it) }
         }
@@ -184,7 +197,7 @@ interface DBPredicate {
     class GreaterEqual<O : Comparable<O>>(
             val field: String,
             val from: O)
-        : DBPredicate {
+        : DBPredicate(true) {
         override fun match(obj: Any): Boolean {
             return fieldValueMatch(obj, field) { innerMatch(it) }
         }
@@ -214,7 +227,7 @@ interface DBPredicate {
     class Less<O : Comparable<O>>(
             val field: String,
             val to: O)
-        : DBPredicate {
+        : DBPredicate(true) {
         override fun match(obj: Any): Boolean {
             return fieldValueMatch(obj, field) { innerMatch(it) }
         }
@@ -244,7 +257,7 @@ interface DBPredicate {
     class LessEqual<O : Comparable<O>>(
             val field: String,
             val to: O)
-        : DBPredicate {
+        : DBPredicate(true) {
         override fun match(obj: Any): Boolean {
             return fieldValueMatch(obj, field) { innerMatch(it) }
         }
@@ -275,9 +288,9 @@ interface DBPredicate {
             val field: String,
             val expectedValue: String,
             val ignoreCase: Boolean = true)
-        : DBPredicate {
-        private var plainString: String
-        private val matchType: MatchType
+        : DBPredicate(true) {
+        internal var plainString: String
+        internal val matchType: MatchType
 
         init {
             plainString = expectedValue.trim().replace('%', '*')
@@ -323,7 +336,29 @@ interface DBPredicate {
         }
     }
 
-    class IsNull(val field: String) : DBPredicate {
+    class FullSearch(val expectedValue: String)
+        : DBPredicate(true, false, false) {
+        override fun match(obj: Any): Boolean {
+            throw UnsupportedOperationException("match method only available for full text search!")
+        }
+
+        /**
+         * Convert this predicate to JPA criteria for where clause in select.
+         */
+        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+            throw UnsupportedOperationException("Full text search without field not available as criteria predicate!")
+        }
+
+        override fun addTo(qb: DBQueryBuilder<*>) {
+            if (qb is DBQueryBuilderByFullText<*>) {
+                qb.fulltextSearch(expectedValue)
+            } else {
+                throw UnsupportedOperationException("Fulltext search on all available fields only available for full text queries, not for criteria search!")
+            }
+        }
+    }
+
+    class IsNull(val field: String) : DBPredicate(false) {
         override fun match(obj: Any): Boolean {
             return fieldValueMatch(obj, field) { it == null }
         }
@@ -337,7 +372,7 @@ interface DBPredicate {
         }
     }
 
-    class IsNotNull(val field: String) : DBPredicate {
+    class IsNotNull(val field: String) : DBPredicate(false) {
         override fun match(obj: Any): Boolean {
             return fieldValueMatch(obj, field) { it != null }
         }
@@ -351,7 +386,7 @@ interface DBPredicate {
         }
     }
 
-    class Not(val predicate: DBPredicate) : DBPredicate {
+    class Not(val predicate: DBPredicate) : DBPredicate(false) {
         override fun match(obj: Any): Boolean {
             return !predicate.match(obj)
         }
@@ -365,7 +400,7 @@ interface DBPredicate {
         }
     }
 
-    class And(vararg val predicates: DBPredicate) : DBPredicate {
+    class And(vararg val predicates: DBPredicate) : DBPredicate(false) {
 
         override fun match(obj: Any): Boolean {
             if (predicates.isNullOrEmpty()) {
@@ -388,7 +423,7 @@ interface DBPredicate {
         }
     }
 
-    class Or(vararg val predicates: DBPredicate) : DBPredicate {
+    class Or(vararg val predicates: DBPredicate) : DBPredicate(false) {
 
         override fun match(obj: Any): Boolean {
             if (predicates.isNullOrEmpty()) {
@@ -411,7 +446,7 @@ interface DBPredicate {
         }
     }
 
-    fun <T> getField(root: Root<*>, field: String): Path<T> {
+    internal fun <T> getField(root: Root<*>, field: String): Path<T> {
         if (!field.contains('.'))
             return root.get<T>(field)
         val pathSeq = field.splitToSequence('.')
@@ -430,7 +465,7 @@ interface DBPredicate {
      * @param match The evaluating method to call.
      * @return True if specified property of object by field name matches (or any of the properties if multiple values are found for a property).
      */
-    fun fieldValueMatch(obj: Any, field: String, match: (value: Any?) -> Boolean): Boolean {
+    internal fun fieldValueMatch(obj: Any, field: String, match: (value: Any?) -> Boolean): Boolean {
         if (!field.contains('.')) {
             return match(getProperty(obj, field))
         }

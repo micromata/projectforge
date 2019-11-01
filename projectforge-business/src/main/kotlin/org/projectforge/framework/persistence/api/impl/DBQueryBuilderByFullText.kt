@@ -35,9 +35,34 @@ import org.slf4j.LoggerFactory
 internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
         val baseDao: BaseDao<O>,
         val useMultiFieldQueryParser: Boolean = false,
+        private var usedSearchFields: Array<String> = getUsedSearchFields(baseDao),
         searchFields: Array<String>? = null) {
-    private val log = LoggerFactory.getLogger(DBQueryBuilderByFullText::class.java)
-    private var usedSearchFields: Array<String>
+    companion object {
+        private val log = LoggerFactory.getLogger(DBQueryBuilderByFullText::class.java)
+
+        fun getUsedSearchFields(baseDao: BaseDao<*>): Array<String> {
+            val fields = baseDao.searchFields
+            val stringFields = mutableListOf<String>()
+            fields.forEach {
+                val type = PropUtils.getField(baseDao.doClass, it, true)?.type
+                if (type != null) {
+                    if (type.isAssignableFrom(String::class.java)
+                            || type.isAssignableFrom(Integer::class.java)
+                            || type.isAssignableFrom(Int::class.java)
+                            || type.isAssignableFrom(java.util.Date::class.java)
+                            || type.isAssignableFrom(Enum::class.java)
+                            || type.isAssignableFrom(java.lang.Enum::class.java)) {
+                        stringFields.add(it) // Search only for fields of type string and int, if no special field is specified.
+                    } else {
+                        log.debug("Type of search property '${baseDao.doClass}.$it' not supported.")
+                    }
+                } else {
+                    log.warn("Search property '${baseDao.doClass}.$it' not found (ignoring it).")
+                }
+            }
+            return stringFields.toTypedArray()
+        }
+    }
     private var queryBuilder: QueryBuilder
     private var boolJunction: BooleanJunction<*>
     private val transaction: Transaction
@@ -50,26 +75,6 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
         queryBuilder = fullTextSession.searchFactory
                 .buildQueryBuilder().forEntity(baseDao.doClass).get()
         boolJunction = queryBuilder.bool()
-        val fields = searchFields ?: baseDao.searchFields
-        val stringFields = mutableListOf<String>()
-        fields.forEach {
-            val type = PropUtils.getField(baseDao.doClass, it, true)?.type
-            if (type != null) {
-                if (type.isAssignableFrom(String::class.java)
-                        || type.isAssignableFrom(Integer::class.java)
-                        || type.isAssignableFrom(Int::class.java)
-                        || type.isAssignableFrom(java.util.Date::class.java)
-                        || type.isAssignableFrom(Enum::class.java)
-                        || type.isAssignableFrom(java.lang.Enum::class.java)) {
-                    stringFields.add(it) // Search only for fields of type string and int, if no special field is specified.
-                } else {
-                    log.debug("Type of search property '${baseDao.doClass}.$it' not supported.")
-                }
-            } else {
-                log.warn("Search property '${baseDao.doClass}.$it' not found (ignoring it).")
-            }
-        }
-        usedSearchFields = stringFields.toTypedArray()
     }
 
     fun fieldSupported(field: String): Boolean {

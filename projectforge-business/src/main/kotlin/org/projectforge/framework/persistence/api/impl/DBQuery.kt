@@ -25,16 +25,15 @@ package org.projectforge.framework.persistence.api.impl
 
 import org.projectforge.business.multitenancy.TenantChecker
 import org.projectforge.business.multitenancy.TenantService
-import org.projectforge.business.task.TaskDO
-import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.framework.access.AccessChecker
-import org.projectforge.framework.persistence.api.*
+import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.SortOrder
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.utils.NumberHelper
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.util.*
 
 @Service
 class DBQuery {
@@ -54,7 +53,7 @@ class DBQuery {
      */
     @JvmOverloads
     fun <O : ExtendedBaseDO<Int>> getList(baseDao: BaseDao<O>,
-                                          filter: DBFilter,
+                                          filter: QueryFilter,
                                           checkAccess: Boolean = true,
                                           ignoreTenant: Boolean = false)
             : List<O> {
@@ -64,151 +63,38 @@ class DBQuery {
             return listOf()
         }
         try {
-            val criteriaSearchEntries = filter.criteriaSearchEntries
-            val fullTextSearchEntries = filter.fulltextSearchEntries
-
-            val mode = if (fullTextSearchEntries.isNullOrEmpty()) {
-                DBQueryBuilder.Mode.CRITERIA // Criteria search (no full text search entries found).
-            } else {
+            val dbFilter = filter.createDBFilter()
+            val stats = dbFilter.createStatistics()
+            val mode = if (stats.fullTextRequired) {
                 DBQueryBuilder.Mode.FULLTEXT
                 //DBQueryBuilder.Mode.MULTI_FIELD_FULLTEXT_QUERY
+            } else {
+                DBQueryBuilder.Mode.CRITERIA // Criteria search (no full text search entries found).
             }
 
-            val queryBuilder = DBQueryBuilder<O>(baseDao, tenantService, mode,
+            val queryBuilder = DBQueryBuilder(baseDao, tenantService, mode,
                     // Check here mixing fulltext and criteria searches in comparison to full text searches and DBResultMatchers.
                     ignoreTenant = ignoreTenant)
 
-            if (filter.deleted != null) {
-                queryBuilder.equal("deleted", filter.deleted!!)
-            }
-            val historySearchParams = DBHistoryQuery.SearchParams()
-            // First, proceed all criteria search entries:
-
-            filter.allEntries.forEach {
-                if (it.isHistoryEntry) {
-                    if (it.field == MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.fieldName) {
-                        historySearchParams.modifiedByUserId = NumberHelper.parseInteger(it.value)
-                    } else if (it.field == MagicFilterEntry.HistorySearch.MODIFIED_INTERVAL.fieldName) {
-                        if (it.fromValueDate != null)
-                            historySearchParams.modifiedFrom = it.fromValueDate
-                        if (it.toValueDate != null)
-                            historySearchParams.modifiedTo = it.toValueDate
-                    } else if (it.field == MagicFilterEntry.HistorySearch.MODIFIED_HISTORY_VALUE.fieldName) {
-                        historySearchParams.searchString = it.value
-                    }
-                }
+            dbFilter.predicates.forEach {
+                queryBuilder.addMatcher(it)
             }
 
-            val criteriaSearch = fullTextSearchEntries.isNullOrEmpty() // Test here other strategies...
-
-            if (criteriaSearch && !criteriaSearchEntries.isNullOrEmpty()) {
-                for (it in criteriaSearchEntries) {
-                    if (it.field.isNullOrBlank())
-                        continue // Use only field specific query (others are done by full text search
-                    if (it.isHistoryEntry) {
-                        // Not handled here...
-                        continue
-                    }
-                    val fieldType = it.type
-                    when (it.type) {
-                        String::class.java -> {
-                            when (it.searchType) {
-                                SearchType.FIELD_STRING_SEARCH -> {
-                                    queryBuilder.ilike(it.field!!, "${it.dbSearchString}")
-                                }
-                                SearchType.FIELD_RANGE_SEARCH -> {
-                                    log.error("Unsupported searchType '${it.searchType}' for strings.")
-                                }
-                                SearchType.FIELD_VALUES_SEARCH -> {
-                                    queryBuilder.isIn(it.field!!, it.values)
-                                }
-                                else -> {
-                                    log.error("Unsupported searchType '${it.searchType}' for strings.")
-                                }
-                            }
-                        }
-                        Date::class.java -> {
-                            if (it.fromValueDate != null) {
-                                if (it.toValueDate != null) {
-                                    queryBuilder.between(it.field!!, it.fromValueDate!!.utilDate, it.toValueDate!!.utilDate)
-                                } else {
-                                    queryBuilder.greaterEqual(it.field!!, it.fromValueDate!!.utilDate)
-                                }
-                            } else if (it.toValueDate != null) {
-                                queryBuilder.lessEqual(it.field!!, it.toValueDate!!.utilDate)
-                            } else log.error("Error while building query: fromValue and/or toValue must be given for filtering field '${it.field}'.")
-                        }
-                        Integer::class.java -> {
-                            if (it.valueInt != null) {
-                                queryBuilder.equal(it.field!!, it.valueInt!!)
-                            } else if (it.fromValueInt != null) {
-                                if (it.toValueInt != null) {
-                                    queryBuilder.between(it.field!!, it.fromValueInt!!, it.toValueInt!!)
-                                } else {
-                                    queryBuilder.greaterEqual(it.field!!, it.fromValueInt!!)
-                                }
-                            } else if (it.toValueInt != null) {
-                                queryBuilder.lessEqual(it.field!!, it.toValueInt!!)
-                            } else {
-                                log.error("Querying field '${it.field}' of type '$fieldType' without value, fromValue and toValue. At least one required.")
-                            }
-                        }
-                        TaskDO::class.java -> {
-                            val node = TaskTreeHelper.getTaskTree().getTaskNodeById(it.valueInt)
-                            if (node == null) {
-                                log.warn("Can't query for given task id #${it.valueInt}, no such task node found.")
-                            } else {
-                                val recursive = true
-                                if (recursive) {
-                                    val taskIds = node.descendantIds
-                                    taskIds.add(node.id)
-                                    queryBuilder.isIn(it.field!!, taskIds)
-                                    if (log.isDebugEnabled) {
-                                        log.debug("search in tasks: $taskIds")
-                                    }
-                                } else {
-                                    queryBuilder.equal("task.id", it.valueInt!!)
-                                }
-                            }
-                        }
-                        else -> {
-                            log.error("Querying fields of type '$fieldType' not yet implemented.")
-                        }
-                    }
-                }
-                var maxOrder = 3
-                for (sortProperty in filter.sortProperties) {
-                    var prop = sortProperty.property
-                    if (prop.indexOf('.') > 0)
-                        prop = prop.substring(prop.indexOf('.') + 1)
-                    queryBuilder.addOrder(SortBy(prop, sortProperty.sortOrder == SortOrder.ASCENDING))
-                    if (--maxOrder <= 0)
-                        break // Add only 3 orders.
-                }
-                // TODO setCacheRegion(baseDao, criteria)
+            var maxOrder = 3
+            for (sortProperty in filter.sortProperties) {
+                var prop = sortProperty.property
+                if (prop.indexOf('.') > 0)
+                    prop = prop.substring(prop.indexOf('.') + 1)
+                queryBuilder.addOrder(SortBy(prop, sortProperty.sortOrder == SortOrder.ASCENDING))
+                if (--maxOrder <= 0)
+                    break // Add only 3 orders.
             }
+            // TODO setCacheRegion(baseDao, criteria)
 
             val dbResultIterator: DBResultIterator<O>
-
-            // Last, proceed all full text search entries:
-            if (!fullTextSearchEntries.isNullOrEmpty()) {
-                for (it in filter.fulltextSearchEntries) {
-                    if (!it.value.isNullOrBlank()) {
-                        queryBuilder.fulltextSearch(it.value!!)
-                    }
-                }
-            }
-            if (criteriaSearch) {
-                filter.predicates.forEach {
-                    it.addTo(queryBuilder) // Add this to criteria search if possible.
-                }
-            } else {
-                filter.predicates.forEach {
-                    queryBuilder.addMatcher(it) // Add this as result matcher, criteria not available.
-                }
-            }
             dbResultIterator = queryBuilder.result()
-            var list = createList(baseDao, dbResultIterator, filter, historySearchParams, checkAccess)
+            val historSearchParams = DBHistorySearchParams(filter.modifiedByUserId, filter.modifiedFrom, filter.modifiedTo, filter.searchHistory)
+            var list = createList(baseDao, dbResultIterator, dbFilter, historSearchParams, checkAccess)
             queryBuilder.close()
             list = dbResultIterator.sort(list)
 
@@ -228,7 +114,8 @@ class DBQuery {
 
     private fun <O : ExtendedBaseDO<Int>> createList(baseDao: BaseDao<O>,
                                                      dbResultIterator: DBResultIterator<O>,
-                                                     filter: DBFilter, historySearchParams: DBHistoryQuery.SearchParams,
+                                                     filter: DBFilter,
+                                                     historSearchParams: DBHistorySearchParams,
                                                      checkAccess: Boolean)
             : List<O> {
         val superAdmin = TenantChecker.isSuperAdmin<ExtendedBaseDO<Int>>(ThreadLocalUserContext.getUser())
@@ -238,21 +125,21 @@ class DBQuery {
         var next: O? = dbResultIterator.next() ?: return list
         val ensureUniqueSet = mutableSetOf<Int>()
         var resultCounter = 0
-        if (historySearchParams.modifiedByUserId != null
-                || historySearchParams.modifiedFrom != null
-                || historySearchParams.modifiedTo != null
-                || !filter.searchHistory.isNullOrBlank()) {
-            val baseSearchFilter = BaseSearchFilter()
-            baseSearchFilter.modifiedByUserId = historySearchParams.modifiedByUserId
-            baseSearchFilter.startTimeOfModification = historySearchParams.modifiedFrom?.utilDate
-            baseSearchFilter.stopTimeOfModification = historySearchParams.modifiedTo?.utilDate
-            baseSearchFilter.searchString = historySearchParams.searchString
+        if (historSearchParams.modifiedByUserId != null
+                || historSearchParams.modifiedFrom != null
+                || historSearchParams.modifiedTo != null
+                || !historSearchParams.searchHistory.isNullOrBlank()) {
+            val historSearchParams = DBHistorySearchParams(
+                    historSearchParams.modifiedByUserId,
+                    historSearchParams.modifiedFrom,
+                    historSearchParams.modifiedTo,
+                    historSearchParams.searchHistory)
             // Search now all history entries which were modified by the given user and/or in the given time period.
-            val idSet = if (baseSearchFilter.searchString.isNullOrBlank()) {
-                DBHistoryQuery.searchHistoryEntryByCriteria(baseDao.session, baseDao.doClass, historySearchParams)
+            val idSet = if (historSearchParams.searchHistory.isNullOrBlank()) {
+                DBHistoryQuery.searchHistoryEntryByCriteria(baseDao.session, baseDao.doClass, historSearchParams)
                 //baseDao.getHistoryEntries(baseDao.session, baseSearchFilter) // No full text required.
             } else {
-                DBHistoryQuery.searchHistoryEntryByFullTextQuery(baseDao.session, baseDao.doClass, historySearchParams)
+                DBHistoryQuery.searchHistoryEntryByFullTextQuery(baseDao.session, baseDao.doClass, historSearchParams)
                 //baseDao.getHistoryEntriesFullTextSearch(baseDao.session, baseSearchFilter)
             }
             while (next != null) {

@@ -27,38 +27,50 @@ import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.persistence.api.SortProperty
 
 class DBFilter(
-        /**
-         * Optional entries for searching (keywords, field search, range search etc.)
-         */
-        var allEntries: MutableList<DBFilterEntry> = mutableListOf(),
         var sortAndLimitMaxRowsWhileSelect: Boolean = true,
-        var maxRows: Int = 50,
-        /**
-         * If true, only deleted entries will be shown. If false, no deleted entries will be shown. If null, all entries will be shown.
-         */
-        var deleted: Boolean? = false,
-        var searchHistory: String? = null) {
+        var maxRows: Int = 50) {
+    class Statistics {
+        var fullTextRequired: Boolean = false
+        var numberOfCriteriaPredicates: Int = 0
+        var numberOfFullTextQueries: Int = 0
+        var numberOfResultPredicates: Int = 0
+    }
 
     val predicates = mutableListOf<DBPredicate>()
 
-    fun add(entry: DBFilterEntry) {
-        this.allEntries.add(entry)
+    val sortProperties = mutableListOf<SortProperty>()
+
+
+    fun createStatistics(): Statistics {
+        var fullTextRequired: Boolean = false
+        for (it in predicates) {
+            if (!it.criteriaSupport && !it.resultSetSupport) {
+                fullTextRequired = true
+                break
+            }
+        }
+        val statistics = Statistics()
+        statistics.fullTextRequired = fullTextRequired
+        predicates.forEach {
+            if (fullTextRequired) {
+                if (it.fullTextSupport) {
+                    ++statistics.numberOfFullTextQueries
+                } else {
+                    ++statistics.numberOfResultPredicates
+                }
+            } else {
+                if (it.criteriaSupport) {
+                    ++statistics.numberOfCriteriaPredicates
+                } else {
+                    ++statistics.numberOfResultPredicates
+                }
+            }
+        }
+        return statistics
     }
-
-    fun add(entry: DBPredicate) {
-        this.predicates.add(entry)
-    }
-
-    val criteriaSearchEntries
-        get() = allEntries.filter { !it.fulltextSearch }
-
-    val fulltextSearchEntries
-        get() = allEntries.filter { it.fulltextSearch }
 
     @Transient
     internal val log = org.slf4j.LoggerFactory.getLogger(DBFilter::class.java)
-
-    var sortProperties = mutableListOf<SortProperty>()
 
     override fun toString(): String {
         return ToStringUtil.toJsonString(this)

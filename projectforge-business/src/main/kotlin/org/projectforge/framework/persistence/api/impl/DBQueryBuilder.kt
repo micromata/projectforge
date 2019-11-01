@@ -75,7 +75,7 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
      * matchers for filtering result list. Used e. g. for searching fields without index if criteria search is not
      * configured.
      */
-    private val dbResultMatchers = mutableListOf<DBPredicate>()
+    private val dbPredicates = mutableListOf<DBPredicate>()
 
     private val criteriaSearchAvailable: Boolean
         get() = mode == Mode.CRITERIA
@@ -107,7 +107,7 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
         if (dbQueryBuilderByFullText.fieldSupported(field)) {
             dbQueryBuilderByFullText.equal(field, value)
         } else {
-            dbResultMatchers.add(DBPredicate.Equals(field, value))
+            dbPredicates.add(DBPredicate.Equals(field, value))
         }
     }
 
@@ -120,7 +120,7 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
         if (dbQueryBuilderByFullText.fieldSupported(field)) {
             dbQueryBuilderByFullText.notEqual(field, value)
         } else {
-            dbResultMatchers.add(DBPredicate.NotEquals(field, value))
+            dbPredicates.add(DBPredicate.NotEquals(field, value))
         }
     }
 
@@ -139,12 +139,12 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
             return
         }
         // Full text search doesn't support feature 'isNull'.
-        dbResultMatchers.add(matcher)
+        dbPredicates.add(matcher)
     }
 
     fun isNotNull(field: String) {
         // Full text search doesn't support feature 'isNotNull'.
-        dbResultMatchers.add(DBPredicate.IsNotNull(field))
+        dbPredicates.add(DBPredicate.IsNotNull(field))
     }
 
     fun <O> isIn(field: String, vararg values: O) {
@@ -192,19 +192,20 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
     }
 
     /**
-     * Adds matcher to result matchers or, if criteria search is enabled, a new predicates for the criteria is appended.
+     * Adds predicate to result matchers or, if criteria search is enabled, a new predicates for the criteria is appended.
      */
-    internal fun addMatcher(matcher: DBPredicate) {
+    internal fun addMatcher(predicate: DBPredicate) {
         if (criteriaSearchAvailable) {
-            dbQueryBuilderByCriteria.add(matcher)
+            dbQueryBuilderByCriteria.add(predicate)
+        } else if (predicate.fullTextSupport) {
         } else {
-            dbResultMatchers.add(matcher)
+            dbPredicates.add(predicate)
         }
     }
 
     fun result(): DBResultIterator<O> {
         if (fullTextSearch) {
-            return dbQueryBuilderByFullText.createResultIterator(dbResultMatchers)
+            return dbQueryBuilderByFullText.createResultIterator(dbPredicates)
         }
         return dbQueryBuilderByCriteria.createResultIterator()
     }
