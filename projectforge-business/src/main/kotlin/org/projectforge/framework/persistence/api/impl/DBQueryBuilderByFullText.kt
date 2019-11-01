@@ -176,7 +176,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
         search(searchString, *usedSearchFields)
     }
 
-    fun createResultIterator(dbResultMatchers: List<DBResultMatcher>): DBResultIterator<O> {
+    fun createResultIterator(dbResultMatchers: List<DBPredicate>): DBResultIterator<O> {
         return if (boolJunction.isEmpty) { // Shouldn't occur:
             // No restrictions found, so use normal criteria search without where clause.
             DBQueryBuilderByCriteria(baseDao).createResultIterator()

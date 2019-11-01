@@ -37,7 +37,7 @@ import org.projectforge.framework.i18n.MessageParam;
 import org.projectforge.framework.i18n.MessageParamType;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.*;
-import org.projectforge.framework.persistence.api.impl.DBResultMatcher;
+import org.projectforge.framework.persistence.api.impl.DBPredicate;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
@@ -365,7 +365,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
       return;
     }
 
-    final List<DBResultMatcher> orCriterions = new ArrayList<>();
+    final List<DBPredicate> orCriterions = new ArrayList<>();
     orCriterions.add(QueryFilter.in("auftragsStatus", auftragsStatuses));
     orCriterions.add(QueryFilter.in("position.status", auftragsStatuses));
 
@@ -377,7 +377,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
 
     queryFilter
             .createAlias("positionen", "position", JoinType.LEFT)
-            .add(QueryFilter.or(orCriterions.toArray(new DBResultMatcher[orCriterions.size()])));
+            .add(QueryFilter.or(orCriterions.toArray(new DBPredicate[orCriterions.size()])));
 
     // check deleted
     if (!myFilter.isIgnoreDeleted()) {
@@ -385,7 +385,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
     }
   }
 
-  private Optional<DBResultMatcher> createCriterionForErfassungsDatum(final AuftragFilter myFilter) {
+  private Optional<DBPredicate> createCriterionForErfassungsDatum(final AuftragFilter myFilter) {
     final java.sql.Date startDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getStartDate());
     final java.sql.Date endDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getEndDate());
 

@@ -50,7 +50,7 @@ import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.i18n.InternalErrorException;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.impl.DBFilter;
-import org.projectforge.framework.persistence.api.impl.DBFilterQuery;
+import org.projectforge.framework.persistence.api.impl.DBQuery;
 import org.projectforge.framework.persistence.database.DatabaseDao;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.history.HibernateSearchDependentObjectsReindexer;
@@ -110,7 +110,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   protected AccessChecker accessChecker;
 
   @Autowired
-  protected DBFilterQuery dbFilterQuery;
+  protected DBQuery dbFilterQuery;
 
   @Autowired
   protected DatabaseDao databaseDao;
@@ -306,7 +306,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> getList(final QueryFilter filter) throws AccessException {
     final DBFilter dbFilter = filter.getDbFilter();
-    return dbFilterQuery.getList(this, dbFilter, true, false);
+    return dbFilterQuery.getList(this, dbFilter);
   }
 
   /**
@@ -315,7 +315,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> internalGetList(final QueryFilter filter) throws AccessException {
     final DBFilter dbFilter = filter.getDbFilter();
-    return dbFilterQuery.getList(this, dbFilter, false, false);
+    return dbFilterQuery.getList(this, dbFilter, false;
   }
 
   /**
@@ -331,7 +331,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    */
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> internalGetList(final DBFilter filter) throws AccessException {
-    return dbFilterQuery.getList(this, filter, false, false);
+    return dbFilterQuery.getList(this, filter, false);
   }
 
   /**

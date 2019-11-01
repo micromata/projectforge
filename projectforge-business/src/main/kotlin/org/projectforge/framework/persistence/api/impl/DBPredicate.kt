@@ -33,19 +33,19 @@ import javax.persistence.criteria.Root
 /**
  * After querying, every result entry is matched against matchers (for fields not supported by the full text query).
  */
-interface DBResultMatcher {
+interface DBPredicate {
     fun match(obj: Any): Boolean
     fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate
     fun addTo(qb: DBQueryBuilder<*>)
 
     companion object {
-        private val log = LoggerFactory.getLogger(DBResultMatcher::class.java)
+        private val log = LoggerFactory.getLogger(DBPredicate::class.java)
     }
 
     class Equals(
             val field: String,
             val expectedValue: Any)
-        : DBResultMatcher {
+        : DBPredicate {
         override fun match(obj: Any): Boolean {
             val value = BeanHelper.getProperty(obj, field)
             return Objects.equals(expectedValue, value)
@@ -66,7 +66,7 @@ interface DBResultMatcher {
     class NotEquals(
             val field: String,
             val notExpectedValue: Any)
-        : DBResultMatcher {
+        : DBPredicate {
         override fun match(obj: Any): Boolean {
             val value = BeanHelper.getProperty(obj, field)
             return !Objects.equals(notExpectedValue, value)
@@ -87,7 +87,7 @@ interface DBResultMatcher {
     class AnyOf<O>(
             val field: String,
             vararg val values: O)
-        : DBResultMatcher {
+        : DBPredicate {
         override fun match(obj: Any): Boolean {
             val value = BeanHelper.getProperty(obj, field) ?: return false
             for (v in values) {
@@ -116,7 +116,7 @@ interface DBResultMatcher {
             val field: String,
             val from: O,
             val to: O)
-        : DBResultMatcher {
+        : DBPredicate {
         override fun match(obj: Any): Boolean {
             val value = BeanHelper.getProperty(obj, field) ?: return false
             if (from::class.java.isAssignableFrom(value::class.java)) {
@@ -142,7 +142,7 @@ interface DBResultMatcher {
     class Greater<O : Comparable<O>>(
             val field: String,
             val from: O)
-        : DBResultMatcher {
+        : DBPredicate {
         override fun match(obj: Any): Boolean {
             val value = BeanHelper.getProperty(obj, field) ?: return false
             if (value::class.java.isAssignableFrom(value::class.java)) {
@@ -168,7 +168,7 @@ interface DBResultMatcher {
     class GreaterEqual<O : Comparable<O>>(
             val field: String,
             val from: O)
-        : DBResultMatcher {
+        : DBPredicate {
         override fun match(obj: Any): Boolean {
             val value = BeanHelper.getProperty(obj, field) ?: return false
             if (value::class.java.isAssignableFrom(value::class.java)) {
@@ -194,7 +194,7 @@ interface DBResultMatcher {
     class Less<O : Comparable<O>>(
             val field: String,
             val to: O)
-        : DBResultMatcher {
+        : DBPredicate {
         override fun match(obj: Any): Boolean {
             val value = BeanHelper.getProperty(obj, field) ?: return false
             if (value::class.java.isAssignableFrom(value::class.java)) {
@@ -220,7 +220,7 @@ interface DBResultMatcher {
     class LessEqual<O : Comparable<O>>(
             val field: String,
             val to: O)
-        : DBResultMatcher {
+        : DBPredicate {
         override fun match(obj: Any): Boolean {
             val value = BeanHelper.getProperty(obj, field) ?: return false
             if (value::class.java.isAssignableFrom(value::class.java)) {
@@ -246,7 +246,7 @@ interface DBResultMatcher {
     class Like(
             val field: String,
             val expectedValue: String)
-        : DBResultMatcher {
+        : DBPredicate {
         var plainString: String
         val matchType: MatchType
 
@@ -292,7 +292,7 @@ interface DBResultMatcher {
 
     class IsNull(
             val field: String)
-        : DBResultMatcher {
+        : DBPredicate {
         override fun match(obj: Any): Boolean {
             return BeanHelper.getProperty(obj, field) == null
         }
@@ -308,7 +308,7 @@ interface DBResultMatcher {
 
     class IsNotNull(
             val field: String)
-        : DBResultMatcher {
+        : DBPredicate {
         override fun match(obj: Any): Boolean {
             return BeanHelper.getProperty(obj, field) != null
         }
@@ -322,8 +322,8 @@ interface DBResultMatcher {
         }
     }
 
-    class Not(val matchers: DBResultMatcher
-    ) : DBResultMatcher {
+    class Not(val matchers: DBPredicate
+    ) : DBPredicate {
 
         override fun match(obj: Any): Boolean {
             return !matchers.match(obj)
@@ -339,8 +339,8 @@ interface DBResultMatcher {
     }
 
     class And(
-            vararg matchers: DBResultMatcher
-    ) : DBResultMatcher {
+            vararg matchers: DBPredicate
+    ) : DBPredicate {
         private val matcherList = matchers
 
         override fun match(obj: Any): Boolean {
@@ -365,8 +365,8 @@ interface DBResultMatcher {
     }
 
     class Or(
-            vararg matcher: DBResultMatcher
-    ) : DBResultMatcher {
+            vararg matcher: DBPredicate
+    ) : DBPredicate {
         val matcherList = matcher
 
         override fun match(obj: Any): Boolean {
@@ -392,7 +392,7 @@ interface DBResultMatcher {
 
     class In(val field: String,
              vararg values: Any
-    ) : DBResultMatcher {
+    ) : DBPredicate {
         val values: List<Any>
 
         init {

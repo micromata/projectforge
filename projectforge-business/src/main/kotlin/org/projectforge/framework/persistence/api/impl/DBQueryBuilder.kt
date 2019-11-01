@@ -75,7 +75,7 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
      * matchers for filtering result list. Used e. g. for searching fields without index if criteria search is not
      * configured.
      */
-    private val dbResultMatchers = mutableListOf<DBResultMatcher>()
+    private val dbResultMatchers = mutableListOf<DBPredicate>()
 
     private val criteriaSearchAvailable: Boolean
         get() = mode == Mode.CRITERIA
@@ -89,10 +89,10 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
             val currentTenant = userContext.currentTenant
             if (currentTenant != null) {
                 if (currentTenant.isDefault) {
-                    addMatcher(DBResultMatcher.Or(DBResultMatcher.Equals("tenant", userContext.currentTenant),
-                            DBResultMatcher.IsNull("tenant")))
+                    addMatcher(DBPredicate.Or(DBPredicate.Equals("tenant", userContext.currentTenant),
+                            DBPredicate.IsNull("tenant")))
                 } else {
-                    addMatcher(DBResultMatcher.Equals("tenant", userContext.currentTenant))
+                    addMatcher(DBPredicate.Equals("tenant", userContext.currentTenant))
                 }
             }
         }
@@ -107,7 +107,7 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
         if (dbQueryBuilderByFullText.fieldSupported(field)) {
             dbQueryBuilderByFullText.equal(field, value)
         } else {
-            dbResultMatchers.add(DBResultMatcher.Equals(field, value))
+            dbResultMatchers.add(DBPredicate.Equals(field, value))
         }
     }
 
@@ -120,7 +120,7 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
         if (dbQueryBuilderByFullText.fieldSupported(field)) {
             dbQueryBuilderByFullText.notEqual(field, value)
         } else {
-            dbResultMatchers.add(DBResultMatcher.NotEquals(field, value))
+            dbResultMatchers.add(DBPredicate.NotEquals(field, value))
         }
     }
 
@@ -128,12 +128,12 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
         if (fullTextSearch && dbQueryBuilderByFullText.fieldSupported(field)) {
             dbQueryBuilderByFullText.ilike(field, value)
         } else {
-            addMatcher(DBResultMatcher.Like(field, value))
+            addMatcher(DBPredicate.Like(field, value))
         }
     }
 
     fun isNull(field: String) {
-        val matcher = DBResultMatcher.IsNull(field)
+        val matcher = DBPredicate.IsNull(field)
         if (criteriaSearchAvailable) {
             dbQueryBuilderByCriteria.add(matcher)
             return
@@ -144,18 +144,18 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
 
     fun isNotNull(field: String) {
         // Full text search doesn't support feature 'isNotNull'.
-        dbResultMatchers.add(DBResultMatcher.IsNotNull(field))
+        dbResultMatchers.add(DBPredicate.IsNotNull(field))
     }
 
     fun <O> anyOf(field: String, vararg values: O) {
-        addMatcher(DBResultMatcher.AnyOf<O>(field, *values))
+        addMatcher(DBPredicate.AnyOf<O>(field, *values))
     }
 
     fun <O : Comparable<O>> between(field: String, from: O, to: O) {
         if (fullTextSearch && dbQueryBuilderByFullText.fieldSupported(field)) {
             dbQueryBuilderByFullText.between<O>(field, from, to)
         } else {
-            addMatcher(DBResultMatcher.Between(field, from, to))
+            addMatcher(DBPredicate.Between(field, from, to))
         }
     }
 
@@ -163,7 +163,7 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
         if (fullTextSearch && dbQueryBuilderByFullText.fieldSupported(field)) {
             dbQueryBuilderByFullText.greater<O>(field, from)
         } else {
-            addMatcher(DBResultMatcher.Greater(field, from))
+            addMatcher(DBPredicate.Greater(field, from))
         }
     }
 
@@ -171,7 +171,7 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
         if (fullTextSearch && dbQueryBuilderByFullText.fieldSupported(field)) {
             dbQueryBuilderByFullText.greaterEqual<O>(field, from)
         } else {
-            addMatcher(DBResultMatcher.GreaterEqual(field, from))
+            addMatcher(DBPredicate.GreaterEqual(field, from))
         }
     }
 
@@ -179,7 +179,7 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
         if (fullTextSearch && dbQueryBuilderByFullText.fieldSupported(field)) {
             dbQueryBuilderByFullText.less<O>(field, to)
         } else {
-            addMatcher(DBResultMatcher.Less(field, to))
+            addMatcher(DBPredicate.Less(field, to))
         }
     }
 
@@ -187,14 +187,14 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
         if (fullTextSearch && dbQueryBuilderByFullText.fieldSupported(field)) {
             dbQueryBuilderByFullText.lessEqual<O>(field, to)
         } else {
-            addMatcher(DBResultMatcher.LessEqual(field, to))
+            addMatcher(DBPredicate.LessEqual(field, to))
         }
     }
 
     /**
      * Adds matcher to result matchers or, if criteria search is enabled, a new predicates for the criteria is appended.
      */
-    internal fun addMatcher(matcher: DBResultMatcher) {
+    internal fun addMatcher(matcher: DBPredicate) {
         if (criteriaSearchAvailable) {
             dbQueryBuilderByCriteria.add(matcher)
         } else {
@@ -241,7 +241,7 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
         if (fullTextSearch) {
             log.info("Alias not supported by full text searches. Ignoring alias: field='${alias.field}', alias='${alias.alias}', joinType=${alias.joinType?.name}.")
         } else {
-            dbQueryBuilderByCriteria.
+            //dbQueryBuilderByCriteria.
         }
     }
 }

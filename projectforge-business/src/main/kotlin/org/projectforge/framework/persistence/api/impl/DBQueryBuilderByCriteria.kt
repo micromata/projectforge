@@ -58,7 +58,7 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Int>>(
     private val predicates = mutableListOf<Predicate>()
     private val order = mutableListOf<javax.persistence.criteria.Order>()
 
-    fun add(matcher: DBResultMatcher) {
+    fun add(matcher: DBPredicate) {
         predicates.add(matcher.asPredicate(cb, root))
     }
 
