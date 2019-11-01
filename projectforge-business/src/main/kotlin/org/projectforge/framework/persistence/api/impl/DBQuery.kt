@@ -99,7 +99,7 @@ class DBQuery {
                 }
             }
 
-            val criteriaSearch = true// fullTextSearchEntries.isNullOrEmpty() // Test here other strategies...
+            val criteriaSearch = fullTextSearchEntries.isNullOrEmpty() // Test here other strategies...
 
             if (criteriaSearch && !criteriaSearchEntries.isNullOrEmpty()) {
                 for (it in criteriaSearchEntries) {
@@ -260,7 +260,8 @@ class DBQuery {
                     // Current result object wasn't yet proceeded.
                     ensureUniqueSet.add(next.id) // Mark current object as already proceeded (ensure uniqueness)
                     if ((!checkAccess || baseDao.hasSelectAccess(next, loggedInUser, superAdmin))
-                            && baseDao.containsLong(idSet, next)) {
+                            && baseDao.containsLong(idSet, next)
+                            && match(filter, next)) {
                         // Current result object fits the modified query:
                         list.add(next)
                         if (++resultCounter >= filter.maxRows) {
@@ -276,7 +277,7 @@ class DBQuery {
                 if (!ensureUniqueSet.contains(next.id)) {
                     // Current result object wasn't yet proceeded.
                     ensureUniqueSet.add(next.id) // Mark current object as already proceeded (ensure uniqueness)
-                    if (!checkAccess || baseDao.hasSelectAccess(next, loggedInUser, superAdmin)) {
+                    if (!checkAccess || baseDao.hasSelectAccess(next, loggedInUser, superAdmin) && match(filter, next)) {
                         list.add(next)
                         if (++resultCounter >= filter.maxRows) {
                             break
@@ -287,5 +288,20 @@ class DBQuery {
             }
         }
         return list
+    }
+
+    /**
+     * If predicates are definied (not used for data base query), they're checked with the given result object.
+     * @return true If no predicates are given or if any predicate matches, otherwise false.
+     */
+    private fun match(filter: DBFilter, next: ExtendedBaseDO<Int>): Boolean {
+        if (filter.predicates.isNullOrEmpty())
+            return true
+        for (predicate in filter.predicates) {
+            if (predicate.match(next)) {
+                return true
+            }
+        }
+        return false
     }
 }

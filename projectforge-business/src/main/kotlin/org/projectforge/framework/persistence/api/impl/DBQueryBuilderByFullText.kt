@@ -30,12 +30,14 @@ import org.hibernate.search.query.dsl.QueryBuilder
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.slf4j.LoggerFactory
 
 internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
         val baseDao: BaseDao<O>,
         val useMultiFieldQueryParser: Boolean = false,
         searchFields: Array<String>? = null) {
-    private var usedSearchFields = searchFields ?: baseDao.searchFields
+    private val log = LoggerFactory.getLogger(DBQueryBuilderByFullText::class.java)
+    private var usedSearchFields: Array<String>
     private var queryBuilder: QueryBuilder
     private var boolJunction: BooleanJunction<*>
     private val transaction: Transaction
@@ -51,9 +53,20 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
         val fields = searchFields ?: baseDao.searchFields
         val stringFields = mutableListOf<String>()
         fields.forEach {
-            val field = PropUtils.getField(baseDao.doClass, it, true)
-            if (field?.type?.isAssignableFrom(String::class.java) == true) {
-                stringFields.add(it) // Search only for string fields, if no special field is specified.
+            val type = PropUtils.getField(baseDao.doClass, it, true)?.type
+            if (type != null) {
+                if (type.isAssignableFrom(String::class.java)
+                        || type.isAssignableFrom(Integer::class.java)
+                        || type.isAssignableFrom(Int::class.java)
+                        || type.isAssignableFrom(java.util.Date::class.java)
+                        || type.isAssignableFrom(Enum::class.java)
+                        || type.isAssignableFrom(java.lang.Enum::class.java)) {
+                    stringFields.add(it) // Search only for fields of type string and int, if no special field is specified.
+                } else {
+                    log.debug("Type of search property '${baseDao.doClass}.$it' not supported.")
+                }
+            } else {
+                log.warn("Search property '${baseDao.doClass}.$it' not found (ignoring it).")
             }
         }
         usedSearchFields = stringFields.toTypedArray()

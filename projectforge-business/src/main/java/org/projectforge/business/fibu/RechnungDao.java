@@ -64,9 +64,7 @@ public class RechnungDao extends BaseDao<RechnungDO> {
   private static final Class<?>[] ADDITIONAL_SEARCH_DOS = new Class[]{RechnungsPositionDO.class};
 
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"kunde.name", "projekt.name",
-          "projekt.kunde.name",
-          "positionen.text", "positionen.auftragsPosition.position", "positionen.auftragsPosition.position",
-          "positionen.auftragsPosition.titel", "positionen.auftragsPosition.bemerkung"};
+          "projekt.kunde.name", "positionen.auftragsPosition.auftrag.nummer"};
 
   @Autowired
   private KundeDao kundeDao;
