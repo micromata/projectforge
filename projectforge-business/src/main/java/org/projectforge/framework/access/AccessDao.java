@@ -152,7 +152,7 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
           taskIds.addAll(ancestors);
         }
         taskIds.add(node.getId());
-        queryFilter.add(QueryFilter.in("task.id", taskIds));
+        queryFilter.add(QueryFilter.isIn("task.id", taskIds));
       } else {
         queryFilter.add(QueryFilter.eq("task.id", myFilter.getTaskId()));
       }

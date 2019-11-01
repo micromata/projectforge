@@ -180,7 +180,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
         final TaskNode node = TaskTreeHelper.getTaskTree().getTaskNodeById(filter.getTaskId());
         final List<Integer> taskIds = node.getDescendantIds();
         taskIds.add(node.getId());
-        queryFilter.add(QueryFilter.in("task.id", taskIds));
+        queryFilter.add(QueryFilter.isIn("task.id", taskIds));
         if (log.isDebugEnabled()) {
           log.debug("search in tasks: " + taskIds);
         }

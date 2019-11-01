@@ -24,7 +24,6 @@
 package org.projectforge.framework.persistence.api.impl
 
 import org.projectforge.framework.persistence.api.SortProperty
-import  javax.persistence.criteria.JoinType
 
 class DBFilter(
         /**
@@ -39,21 +38,14 @@ class DBFilter(
         var deleted: Boolean? = false,
         var searchHistory: String? = null) {
 
-    class Alias(val field: String, val alias: String, val joinType: JoinType?)
-
-    val resultMatcher = mutableListOf<DBPredicate>()
-    val aliasList = mutableListOf<Alias>()
+    val predicates = mutableListOf<DBPredicate>()
 
     fun add(entry: DBFilterEntry) {
         this.allEntries.add(entry)
     }
 
     fun add(entry: DBPredicate) {
-        this.resultMatcher.add(entry)
-    }
-
-    fun addAlias(field: String, alias: String, joinType: JoinType? = null) {
-        aliasList.add(Alias(field, alias, joinType))
+        this.predicates.add(entry)
     }
 
     val criteriaSearchEntries

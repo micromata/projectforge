@@ -84,11 +84,4 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Int>>(
                 else cb.desc(root.get<Any>(sortBy.field))
         )
     }
-
-    fun addAlias(alias: Alias) {
-        predicates.(
-                if (sortBy.ascending) cb.asc(root.get<Any>(sortBy.field))
-                else cb.desc(root.get<Any>(sortBy.field))
-        )
-    }
 }

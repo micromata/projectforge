@@ -24,8 +24,6 @@
 package org.projectforge.business.fibu;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.i18n.UserException;
@@ -149,7 +147,7 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
     final QueryFilter queryFilter = AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction(myFilter);
 
     if (myFilter.getPaymentTypes() != null && myFilter.getPaymentTypes().size() > 0) {
-      queryFilter.add(QueryFilter.in("paymentType", myFilter.getPaymentTypes()));
+      queryFilter.add(QueryFilter.isIn("paymentType", myFilter.getPaymentTypes()));
     }
 
     queryFilter.addOrder(SortProperty.desc("datum"));

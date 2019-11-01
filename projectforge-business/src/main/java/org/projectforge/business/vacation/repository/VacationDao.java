@@ -109,11 +109,10 @@ public class VacationDao extends BaseDao<VacationDO> {
             UserRightValue.READWRITE)) {
       final Integer employeeId = myFilter.getEmployeeId();
       final EmployeeDO employeeFromFilter = emgrFactory.runRoTrans(emgr -> emgr.selectByPk(EmployeeDO.class, employeeId));
-      queryFilter.createAlias("substitutions", "subAlias"); // use alias to create the inner join
       queryFilter.add(QueryFilter.or(
               QueryFilter.eq("employee", employeeFromFilter),
               QueryFilter.eq("manager", employeeFromFilter),
-              QueryFilter.eq("subAlias.id", employeeId) // does not work with the whole employee object, need id
+              QueryFilter.eq("substitutions.id", employeeId) // does not work with the whole employee object, need id
       ));
     }
     if (myFilter.getVacationstatus() != null) {

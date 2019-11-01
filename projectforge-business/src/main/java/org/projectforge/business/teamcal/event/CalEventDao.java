@@ -307,7 +307,7 @@ public class CalEventDao extends BaseDao<CalEventDO> {
     final QueryFilter queryFilter = new QueryFilter(filter);
     final Collection<Integer> cals = filter.getTeamCals();
     if (CollectionUtils.isNotEmpty(cals)) {
-      queryFilter.add(QueryFilter.in("calendar.id", cals));
+      queryFilter.add(QueryFilter.isIn("calendar.id", cals));
     } else if (filter.getTeamCalId() != null) {
       queryFilter.add(QueryFilter.eq("calendar.id", filter.getTeamCalId()));
     }

@@ -235,11 +235,11 @@ public class TaskDao extends BaseDao<TaskDO> {
       col.add(TaskStatus.C);
     }
     if (col.size() > 0) {
-      queryFilter.add(QueryFilter.in("status", col));
+      queryFilter.add(QueryFilter.isIn("status", col));
     } else {
       // Note: Result set should be empty, because every task should has one of the following status values.
       queryFilter.add(
-              QueryFilter.not(QueryFilter.in("status", new TaskStatus[]{TaskStatus.N, TaskStatus.O, TaskStatus.C})));
+              QueryFilter.not(QueryFilter.isIn("status", new TaskStatus[]{TaskStatus.N, TaskStatus.O, TaskStatus.C})));
     }
     queryFilter.addOrder(SortProperty.asc("title"));
     if (log.isDebugEnabled()) {

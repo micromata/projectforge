@@ -151,7 +151,6 @@ public class Kost2Dao extends BaseDao<Kost2DO> {
       myFilter = new KostFilter(filter);
     }
     final QueryFilter queryFilter = new QueryFilter(myFilter);
-    queryFilter.createAlias("kost2Art", "art");
     if (myFilter.isActive()) {
       queryFilter.add(QueryFilter.eq("kostentraegerStatus", KostentraegerStatus.ACTIVE));
     } else if (myFilter.isNonActive()) {
@@ -163,7 +162,7 @@ public class Kost2Dao extends BaseDao<Kost2DO> {
               QueryFilter.isNull("kostentraegerStatus")));
     }
     queryFilter.addOrder(SortProperty.asc("nummernkreis")).addOrder(SortProperty.asc("bereich")).addOrder(SortProperty.asc("teilbereich"))
-            .addOrder(SortProperty.asc("art.id"));
+            .addOrder(SortProperty.asc("kost2Art.id"));
     return getList(queryFilter);
   }
 

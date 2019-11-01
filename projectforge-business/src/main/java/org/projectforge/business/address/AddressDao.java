@@ -144,7 +144,7 @@ public class AddressDao extends BaseDao<AddressDO> {
         if (myFilter.isPersonaIngrata()) {
           col.add(ContactStatus.PERSONA_INGRATA);
         }
-        queryFilter.add(QueryFilter.in("contactStatus", col));
+        queryFilter.add(QueryFilter.isIn("contactStatus", col));
       }
 
       // Proceed address status:
@@ -160,7 +160,7 @@ public class AddressDao extends BaseDao<AddressDO> {
         if (myFilter.isLeaved()) {
           col.add(AddressStatus.LEAVED);
         }
-        queryFilter.add(QueryFilter.in("addressStatus", col));
+        queryFilter.add(QueryFilter.isIn("addressStatus", col));
       }
 
       //Add addressbook restriction
@@ -210,8 +210,7 @@ public class AddressDao extends BaseDao<AddressDO> {
       }
     }
     //Has to be on id value, full entity doesn't work!!!
-    queryFilter.createAlias("addressbookList", "abl");
-    queryFilter.add(QueryFilter.in("abl.id", abIdList));
+    queryFilter.add(QueryFilter.isIn("addressbookList.id", abIdList));
   }
 
   @Override
