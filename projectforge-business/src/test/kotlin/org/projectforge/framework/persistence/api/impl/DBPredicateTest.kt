@@ -27,12 +27,52 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
 class DBPredicateTest {
-    class TestClass(val str: String)
+    class Company(val title: String, val ceo: Person, val admins: List<Person>, val developers: Array<Person>)
+    class Person(val name: String, val address: Address? = null)
+    class Address(val city: String)
 
     @Test
     fun serializationTest() {
-        val pred = DBPredicate.Equals("str", "expected")
-        Assertions.assertTrue(pred.match(TestClass("expected")))
-        Assertions.assertFalse(pred.match(TestClass("sdfsd")))
+        val pred = DBPredicate.Equals("name", "Dave")
+        Assertions.assertTrue(pred.match(Person("Dave")))
+        Assertions.assertFalse(pred.match(Person("Not Dave")))
+
+        val admins = listOf(Person("Sheila", Address("Kassel")), Person("Patrick", Address("Bonn")), Person("Bob"))
+        val developers = arrayOf(Person("Dave"), Person("Betty"))
+        val company = Company("ACME", Person("Amy"), admins, developers)
+        Assertions.assertTrue(DBPredicate.Equals("ceo.name", "Amy").match(company))
+        Assertions.assertFalse(DBPredicate.Equals("ceo.name", "Dave").match(company))
+
+        Assertions.assertTrue(DBPredicate.Equals("developers.name", "Dave").match(company))
+        Assertions.assertFalse(DBPredicate.Equals("developers.name", "Sheila").match(company))
+
+        Assertions.assertTrue(DBPredicate.Equals("admins.name", "Sheila").match(company))
+        Assertions.assertFalse(DBPredicate.Equals("admins.name", "Dave").match(company))
+
+        Assertions.assertTrue(DBPredicate.Equals("admins.address.city", "Kassel").match(company))
+        Assertions.assertFalse(DBPredicate.Equals("developers.address.city", "Kassel").match(company))
+
+        Assertions.assertTrue(DBPredicate.NotEquals("admins.address.city", "Hamburg").match(company))
+        // Not all cities are Kassel (only one):
+        Assertions.assertTrue(DBPredicate.NotEquals("admins.address.city", "Kassel").match(company))
+
+        Assertions.assertTrue(DBPredicate.IsNotNull("admins.address.city").match(company))
+        Assertions.assertFalse(DBPredicate.IsNotNull("developers.address.city").match(company))
+
+        Assertions.assertTrue(DBPredicate.IsIn("admins.address.city", "Hamburg", "Kassel").match(company))
+        Assertions.assertFalse(DBPredicate.IsIn("admins.address.city", "Hamburg", "Berlin").match(company))
+
+        Assertions.assertTrue(DBPredicate.Like("admins.name", "*hei*").match(company))
+        Assertions.assertTrue(DBPredicate.Like("admins.name", "shei*").match(company))
+        Assertions.assertTrue(DBPredicate.Like("admins.name", "*eilA").match(company))
+        Assertions.assertFalse(DBPredicate.Like("admins.name", "hei*").match(company))
+
+        Assertions.assertTrue(DBPredicate.And(
+                DBPredicate.IsIn("admins.address.city", "Hamburg", "Kassel"),
+                DBPredicate.Like("admins.name", "*hei*")).match(company))
+
+        Assertions.assertFalse(DBPredicate.And(
+                DBPredicate.IsIn("admins.address.city", "Hamburg", "Kassel"),
+                DBPredicate.Like("admins.name", "*unknown*")).match(company))
     }
 }

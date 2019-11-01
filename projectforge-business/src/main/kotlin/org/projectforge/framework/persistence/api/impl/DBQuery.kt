@@ -120,7 +120,7 @@ class DBQuery {
                                     log.error("Unsupported searchType '${it.searchType}' for strings.")
                                 }
                                 SearchType.FIELD_VALUES_SEARCH -> {
-                                    queryBuilder.anyOf(it.field!!, it.values)
+                                    queryBuilder.isIn(it.field!!, it.values)
                                 }
                                 else -> {
                                     log.error("Unsupported searchType '${it.searchType}' for strings.")
@@ -162,7 +162,7 @@ class DBQuery {
                                 if (recursive) {
                                     val taskIds = node.descendantIds
                                     taskIds.add(node.id)
-                                    queryBuilder.anyOf(it.field!!, taskIds)
+                                    queryBuilder.isIn(it.field!!, taskIds)
                                     if (log.isDebugEnabled) {
                                         log.debug("search in tasks: $taskIds")
                                     }
