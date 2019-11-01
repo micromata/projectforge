@@ -24,6 +24,7 @@
 package org.projectforge.framework.persistence.api.impl
 
 import org.projectforge.framework.ToStringUtil
+import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.SortProperty
 
 class DBFilter(
@@ -31,9 +32,9 @@ class DBFilter(
         var maxRows: Int = 50) {
     class Statistics {
         var fullTextRequired: Boolean = false
-        var numberOfCriteriaPredicates: Int = 0
-        var numberOfFullTextQueries: Int = 0
-        var numberOfResultPredicates: Int = 0
+        var numberOfCriteriaPredicates = 0
+        var numberOfFullTextQueries = 0
+        var numberOfResultPredicates = 0
     }
 
     val predicates = mutableListOf<DBPredicate>()
@@ -41,8 +42,8 @@ class DBFilter(
     val sortProperties = mutableListOf<SortProperty>()
 
 
-    fun createStatistics(): Statistics {
-        var fullTextRequired: Boolean = false
+    fun createStatistics(baseDao: BaseDao<*>): Statistics {
+        var fullTextRequired = false
         for (it in predicates) {
             if (!it.criteriaSupport && !it.resultSetSupport) {
                 fullTextRequired = true
@@ -51,15 +52,19 @@ class DBFilter(
         }
         val statistics = Statistics()
         statistics.fullTextRequired = fullTextRequired
-        predicates.forEach {
-            if (fullTextRequired) {
-                if (it.fullTextSupport) {
+        if (fullTextRequired) {
+            val indexedSearchFields = DBQueryBuilderByFullText.getUsedSearchFields(baseDao)
+            predicates.forEach { predicate ->
+                if (predicate.fullTextSupport
+                        && (predicate.field == null || indexedSearchFields.any { it == predicate.field })) {
                     ++statistics.numberOfFullTextQueries
                 } else {
                     ++statistics.numberOfResultPredicates
                 }
-            } else {
-                if (it.criteriaSupport) {
+            }
+        } else {
+            predicates.forEach { predicate ->
+                if (predicate.criteriaSupport) {
                     ++statistics.numberOfCriteriaPredicates
                 } else {
                     ++statistics.numberOfResultPredicates

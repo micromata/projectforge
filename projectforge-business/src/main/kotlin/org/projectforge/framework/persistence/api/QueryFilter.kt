@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory
 import java.util.*
 
 /**
- * If now maximum number of results is defined, MAX_ROWS is used as max value.
+ * If no maximum number of results is defined, MAX_ROWS is used as max value.
  */
 const val QUERY_FILTER_MAX_ROWS: Int = 10000;
 

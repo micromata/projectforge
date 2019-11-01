@@ -35,6 +35,7 @@ import javax.persistence.criteria.Root
  * After querying, every result entry is matched against matchers (for fields not supported by the full text query).
  */
 abstract class DBPredicate(
+        val field: String?,
         /**
          * True if this predicate may be attached to a full text query for indexed fields.
          */
@@ -56,52 +57,46 @@ abstract class DBPredicate(
         private val log = LoggerFactory.getLogger(DBPredicate::class.java)
     }
 
-    class Equals(
-            val field: String,
-            val expectedValue: Any)
-        : DBPredicate(true) {
+    class Equals(field: String, val expectedValue: Any)
+        : DBPredicate(field, true) {
         override fun match(obj: Any): Boolean {
-            return fieldValueMatch(obj, field) { Objects.equals(expectedValue, it) }
+            return fieldValueMatch(obj, field!!) { Objects.equals(expectedValue, it) }
         }
 
         /**
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.equal(getField<Any>(root, field), expectedValue)
+            return cb.equal(getField<Any>(root, field!!), expectedValue)
         }
 
         override fun addTo(qb: DBQueryBuilder<*>) {
-            qb.equal(field, expectedValue)
+            qb.equal(field!!, expectedValue)
         }
     }
 
-    class NotEquals(
-            val field: String,
-            val notExpectedValue: Any)
-        : DBPredicate(true) {
+    class NotEquals(field: String, val notExpectedValue: Any)
+        : DBPredicate(field, true) {
         override fun match(obj: Any): Boolean {
-            return fieldValueMatch(obj, field) { !Objects.equals(notExpectedValue, it) }
+            return fieldValueMatch(obj, field!!) { !Objects.equals(notExpectedValue, it) }
         }
 
         /**
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.notEqual(getField<Any>(root, field), notExpectedValue)
+            return cb.notEqual(getField<Any>(root, field!!), notExpectedValue)
         }
 
         override fun addTo(qb: DBQueryBuilder<*>) {
-            qb.notEqual(field, notExpectedValue)
+            qb.notEqual(field!!, notExpectedValue)
         }
     }
 
-    class IsIn<T>(
-            val field: String,
-            vararg val values: T)
-        : DBPredicate(false) {
+    class IsIn<T>(field: String, vararg val values: T)
+        : DBPredicate(field, false) {
         override fun match(obj: Any): Boolean {
-            return fieldValueMatch(obj, field) { innerMatch(it) }
+            return fieldValueMatch(obj, field!!) { innerMatch(it) }
         }
 
         private fun innerMatch(value: Any?): Boolean {
@@ -118,10 +113,10 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            val predicate = getField<Any>(root, field).`in`(values)
+            val predicate = getField<Any>(root, field!!).`in`(values)
             return cb.`in`(predicate)
             // Alternative:
-            // val inClause = cb.`in`(getField<Any>(root, field))
+            // val inClause = cb.`in`(getField<Any>(root, field!!))
             // for (value in values) {
             //     inClause.value(value)
             // }
@@ -129,17 +124,14 @@ abstract class DBPredicate(
         }
 
         override fun addTo(qb: DBQueryBuilder<*>) {
-            qb.isIn(field, values)
+            qb.isIn(field!!, values)
         }
     }
 
-    class Between<T : Comparable<T>>(
-            val field: String,
-            val from: T,
-            val to: T)
-        : DBPredicate(true) {
+    class Between<T : Comparable<T>>(field: String, val from: T, val to: T)
+        : DBPredicate(field, true) {
         override fun match(obj: Any): Boolean {
-            return fieldValueMatch(obj, field) { innerMatch(it) }
+            return fieldValueMatch(obj, field!!) { innerMatch(it) }
         }
 
         private fun innerMatch(value: Any?): Boolean {
@@ -156,20 +148,18 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.between(getField<T>(root, field), from, to)
+            return cb.between(getField<T>(root, field!!), from, to)
         }
 
         override fun addTo(qb: DBQueryBuilder<*>) {
-            qb.between(field, from, to)
+            qb.between(field!!, from, to)
         }
     }
 
-    class Greater<O : Comparable<O>>(
-            val field: String,
-            val from: O)
-        : DBPredicate(true) {
+    class Greater<O : Comparable<O>>(field: String, val from: O)
+        : DBPredicate(field, true) {
         override fun match(obj: Any): Boolean {
-            return fieldValueMatch(obj, field) { innerMatch(it) }
+            return fieldValueMatch(obj, field!!) { innerMatch(it) }
         }
 
         private fun innerMatch(value: Any?): Boolean {
@@ -186,20 +176,18 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.greaterThan(getField<O>(root, field), from)
+            return cb.greaterThan(getField<O>(root, field!!), from)
         }
 
         override fun addTo(qb: DBQueryBuilder<*>) {
-            qb.greater(field, from)
+            qb.greater(field!!, from)
         }
     }
 
-    class GreaterEqual<O : Comparable<O>>(
-            val field: String,
-            val from: O)
-        : DBPredicate(true) {
+    class GreaterEqual<O : Comparable<O>>(field: String, val from: O)
+        : DBPredicate(field, true) {
         override fun match(obj: Any): Boolean {
-            return fieldValueMatch(obj, field) { innerMatch(it) }
+            return fieldValueMatch(obj, field!!) { innerMatch(it) }
         }
 
         private fun innerMatch(value: Any?): Boolean {
@@ -216,20 +204,18 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.greaterThanOrEqualTo(getField<O>(root, field), from)
+            return cb.greaterThanOrEqualTo(getField<O>(root, field!!), from)
         }
 
         override fun addTo(qb: DBQueryBuilder<*>) {
-            qb.greaterEqual(field, from)
+            qb.greaterEqual(field!!, from)
         }
     }
 
-    class Less<O : Comparable<O>>(
-            val field: String,
-            val to: O)
-        : DBPredicate(true) {
+    class Less<O : Comparable<O>>(field: String, val to: O)
+        : DBPredicate(field, true) {
         override fun match(obj: Any): Boolean {
-            return fieldValueMatch(obj, field) { innerMatch(it) }
+            return fieldValueMatch(obj, field!!) { innerMatch(it) }
         }
 
         private fun innerMatch(value: Any?): Boolean {
@@ -246,20 +232,18 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.lessThan(getField<O>(root, field), to)
+            return cb.lessThan(getField<O>(root, field!!), to)
         }
 
         override fun addTo(qb: DBQueryBuilder<*>) {
-            qb.less(field, to)
+            qb.less(field!!, to)
         }
     }
 
-    class LessEqual<O : Comparable<O>>(
-            val field: String,
-            val to: O)
-        : DBPredicate(true) {
+    class LessEqual<O : Comparable<O>>(field: String, val to: O)
+        : DBPredicate(field, true) {
         override fun match(obj: Any): Boolean {
-            return fieldValueMatch(obj, field) { innerMatch(it) }
+            return fieldValueMatch(obj, field!!) { innerMatch(it) }
         }
 
         private fun innerMatch(value: Any?): Boolean {
@@ -276,19 +260,16 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.lessThanOrEqualTo(getField<O>(root, field), to)
+            return cb.lessThanOrEqualTo(getField<O>(root, field!!), to)
         }
 
         override fun addTo(qb: DBQueryBuilder<*>) {
-            qb.lessEqual(field, to)
+            qb.lessEqual(field!!, to)
         }
     }
 
-    class Like(
-            val field: String,
-            val expectedValue: String,
-            val ignoreCase: Boolean = true)
-        : DBPredicate(true) {
+    class Like(field: String, val expectedValue: String, val ignoreCase: Boolean = true)
+        : DBPredicate(field, true) {
         internal var plainString: String
         internal val matchType: MatchType
 
@@ -311,7 +292,7 @@ abstract class DBPredicate(
         }
 
         override fun match(obj: Any): Boolean {
-            return fieldValueMatch(obj, field) { innerMatch(it as String) }
+            return fieldValueMatch(obj, field!!) { innerMatch(it as String) }
         }
 
         private fun innerMatch(value: String?): Boolean {
@@ -328,16 +309,16 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.like(cb.lower(getField<String>(root, field)), expectedValue)
+            return cb.like(cb.lower(getField<String>(root, field!!)), expectedValue)
         }
 
         override fun addTo(qb: DBQueryBuilder<*>) {
-            qb.ilike(field, expectedValue)
+            qb.ilike(field!!, expectedValue)
         }
     }
 
     class FullSearch(val expectedValue: String)
-        : DBPredicate(true, false, false) {
+        : DBPredicate(null, true, false, false) {
         override fun match(obj: Any): Boolean {
             throw UnsupportedOperationException("match method only available for full text search!")
         }
@@ -358,35 +339,35 @@ abstract class DBPredicate(
         }
     }
 
-    class IsNull(val field: String) : DBPredicate(false) {
+    class IsNull(field: String) : DBPredicate(field, false) {
         override fun match(obj: Any): Boolean {
-            return fieldValueMatch(obj, field) { it == null }
+            return fieldValueMatch(obj, field!!) { it == null }
         }
 
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.isNull(getField<Any>(root, field))
+            return cb.isNull(getField<Any>(root, field!!))
         }
 
         override fun addTo(qb: DBQueryBuilder<*>) {
-            qb.isNull(field)
+            qb.isNull(field!!)
         }
     }
 
-    class IsNotNull(val field: String) : DBPredicate(false) {
+    class IsNotNull(field: String) : DBPredicate(field, false) {
         override fun match(obj: Any): Boolean {
-            return fieldValueMatch(obj, field) { it != null }
+            return fieldValueMatch(obj, field!!) { it != null }
         }
 
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.isNotNull(getField<Any>(root, field))
+            return cb.isNotNull(getField<Any>(root, field!!))
         }
 
         override fun addTo(qb: DBQueryBuilder<*>) {
-            qb.isNotNull(field)
+            qb.isNotNull(field!!)
         }
     }
 
-    class Not(val predicate: DBPredicate) : DBPredicate(false) {
+    class Not(val predicate: DBPredicate) : DBPredicate(null, false) {
         override fun match(obj: Any): Boolean {
             return !predicate.match(obj)
         }
@@ -400,7 +381,7 @@ abstract class DBPredicate(
         }
     }
 
-    class And(vararg val predicates: DBPredicate) : DBPredicate(false) {
+    class And(vararg val predicates: DBPredicate) : DBPredicate(null, false) {
 
         override fun match(obj: Any): Boolean {
             if (predicates.isNullOrEmpty()) {
@@ -423,7 +404,7 @@ abstract class DBPredicate(
         }
     }
 
-    class Or(vararg val predicates: DBPredicate) : DBPredicate(false) {
+    class Or(vararg val predicates: DBPredicate) : DBPredicate(null, false) {
 
         override fun match(obj: Any): Boolean {
             if (predicates.isNullOrEmpty()) {
