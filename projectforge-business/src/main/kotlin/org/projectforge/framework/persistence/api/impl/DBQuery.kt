@@ -64,7 +64,7 @@ class DBQuery {
         }
         try {
             val dbFilter = filter.createDBFilter()
-            val stats = dbFilter.createStatistics()
+            val stats = dbFilter.createStatistics(baseDao)
             val mode = if (stats.fullTextRequired) {
                 DBQueryBuilder.Mode.FULLTEXT
                 //DBQueryBuilder.Mode.MULTI_FIELD_FULLTEXT_QUERY
@@ -129,11 +129,6 @@ class DBQuery {
                 || historSearchParams.modifiedFrom != null
                 || historSearchParams.modifiedTo != null
                 || !historSearchParams.searchHistory.isNullOrBlank()) {
-            val historSearchParams = DBHistorySearchParams(
-                    historSearchParams.modifiedByUserId,
-                    historSearchParams.modifiedFrom,
-                    historSearchParams.modifiedTo,
-                    historSearchParams.searchHistory)
             // Search now all history entries which were modified by the given user and/or in the given time period.
             val idSet = if (historSearchParams.searchHistory.isNullOrBlank()) {
                 DBHistoryQuery.searchHistoryEntryByCriteria(baseDao.session, baseDao.doClass, historSearchParams)
