@@ -70,6 +70,7 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null, va
                     dbFilter.add(DBFilterEntry(MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.fieldName, "${filter.modifiedByUserId}"))
                 }
             }
+            dbFilter.maxRows = 10000
         }
     }
 

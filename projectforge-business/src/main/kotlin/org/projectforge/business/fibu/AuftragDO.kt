@@ -77,6 +77,7 @@ class AuftragDO : DefaultBaseDO() {
      * Auftragsnummer ist eindeutig und wird fortlaufend erzeugt.
      */
     @PropertyInfo(i18nKey = "fibu.auftrag.nummer")
+    @Field
     @get:Column(nullable = false)
     var nummer: Int? = null
 
