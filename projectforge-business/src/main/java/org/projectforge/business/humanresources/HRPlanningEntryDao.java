@@ -165,23 +165,22 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO> {
 
   public QueryFilter buildQueryFilter(final HRPlanningFilter filter) {
     final QueryFilter queryFilter = new QueryFilter(filter);
-    queryFilter.createAlias("planning", "p").createAlias("p.user", "u");
     if (filter.getUserId() != null) {
       final PFUserDO user = new PFUserDO();
       user.setId(filter.getUserId());
-      queryFilter.add(QueryFilter.eq("p.user", user));
+      queryFilter.add(QueryFilter.eq("planning.user", user));
     }
     if (filter.getStartTime() != null && filter.getStopTime() != null) {
-      queryFilter.add(QueryFilter.between("p.week", filter.getStartTime(), filter.getStopTime()));
+      queryFilter.add(QueryFilter.between("planning.week", filter.getStartTime(), filter.getStopTime()));
     } else if (filter.getStartTime() != null) {
-      queryFilter.add(QueryFilter.ge("p.week", filter.getStartTime()));
+      queryFilter.add(QueryFilter.ge("planning.week", filter.getStartTime()));
     } else if (filter.getStopTime() != null) {
-      queryFilter.add(QueryFilter.le("p.week", filter.getStopTime()));
+      queryFilter.add(QueryFilter.le("planning.week", filter.getStopTime()));
     }
     if (filter.getProjektId() != null) {
       queryFilter.add(QueryFilter.eq("projekt.id", filter.getProjektId()));
     }
-    queryFilter.addOrder(SortProperty.desc("p.week")).addOrder(SortProperty.asc("u.firstname"));
+    queryFilter.addOrder(SortProperty.desc("planning.week")).addOrder(SortProperty.asc("planning.user.firstname"));
     if (log.isDebugEnabled()) {
       log.debug(ToStringBuilder.reflectionToString(filter));
     }

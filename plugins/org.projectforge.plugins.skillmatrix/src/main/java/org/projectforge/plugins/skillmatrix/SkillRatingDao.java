@@ -127,7 +127,7 @@ public class SkillRatingDao extends BaseDao<SkillRatingDO> {
     if (myFilter.getSkillRating() != null) {
       final Object[] values = SkillRating.getRequiredExperienceValues(myFilter
               .getSkillRating());
-      queryFilter.add(QueryFilter.in("skillRating", values));
+      queryFilter.add(QueryFilter.isIn("skillRating", values));
     }
 
     if (myFilter.getSkillId() != null) {

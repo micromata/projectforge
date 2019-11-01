@@ -61,7 +61,7 @@ class DBQuery {
         val begin = System.currentTimeMillis()
         baseDao.checkLoggedInUserSelectAccess()
         if (accessChecker.isRestrictedUser) {
-            return ArrayList()
+            return listOf()
         }
         try {
             val criteriaSearchEntries = filter.criteriaSearchEntries
@@ -199,14 +199,11 @@ class DBQuery {
                 }
             }
             if (criteriaSearch) {
-                filter.resultMatcher.forEach {
+                filter.predicates.forEach {
                     it.addTo(queryBuilder) // Add this to criteria search if possible.
                 }
-                filter.aliasList.forEach {
-                    // TODO  queryBuilder.
-                }
             } else {
-                filter.resultMatcher.forEach {
+                filter.predicates.forEach {
                     queryBuilder.addMatcher(it) // Add this as result matcher, criteria not available.
                 }
             }

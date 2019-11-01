@@ -122,13 +122,13 @@ public class ToDoDao extends BaseDao<ToDoDO> {
         col.add(ToDoStatus.IN_PROGRESS);
       }
       if (col.size() > 0) {
-        queryFilter.add(QueryFilter.in("status", col));
+        queryFilter.add(QueryFilter.isIn("status", col));
       }
       if (myFilter.getTaskId() != null) {
         final TaskNode node = getTaskTree().getTaskNodeById(myFilter.getTaskId());
         final List<Integer> taskIds = node.getDescendantIds();
         taskIds.add(node.getId());
-        queryFilter.add(QueryFilter.in("task.id", taskIds));
+        queryFilter.add(QueryFilter.isIn("task.id", taskIds));
       }
       if (myFilter.getAssigneeId() != null) {
         final PFUserDO assignee = new PFUserDO();

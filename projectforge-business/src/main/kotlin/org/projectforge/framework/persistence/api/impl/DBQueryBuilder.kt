@@ -236,12 +236,4 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
             dbQueryBuilderByCriteria.addOrder(sortBy)
         }
     }
-
-    fun alias(alias: DBFilter.Alias) {
-        if (fullTextSearch) {
-            log.info("Alias not supported by full text searches. Ignoring alias: field='${alias.field}', alias='${alias.alias}', joinType=${alias.joinType?.name}.")
-        } else {
-            //dbQueryBuilderByCriteria.
-        }
-    }
 }

@@ -366,18 +366,15 @@ public class AuftragDao extends BaseDao<AuftragDO> {
     }
 
     final List<DBPredicate> orCriterions = new ArrayList<>();
-    orCriterions.add(QueryFilter.in("auftragsStatus", auftragsStatuses));
-    orCriterions.add(QueryFilter.in("position.status", auftragsStatuses));
+    orCriterions.add(QueryFilter.isIn("auftragsStatus", auftragsStatuses));
+    orCriterions.add(QueryFilter.isIn("positionen.status", auftragsStatuses));
 
     // special case
     if (auftragsStatuses.contains(AuftragsStatus.ABGESCHLOSSEN)) {
-      orCriterions.add(QueryFilter.eq("paymentSchedule.reached", true));
-      queryFilter.createAlias("paymentSchedules", "paymentSchedule", JoinType.LEFT);
+      orCriterions.add(QueryFilter.eq("paymentSchedules.reached", true));
     }
 
-    queryFilter
-            .createAlias("positionen", "position", JoinType.LEFT)
-            .add(QueryFilter.or(orCriterions.toArray(new DBPredicate[orCriterions.size()])));
+    queryFilter.add(QueryFilter.or(orCriterions.toArray(new DBPredicate[orCriterions.size()])));
 
     // check deleted
     if (!myFilter.isIgnoreDeleted()) {

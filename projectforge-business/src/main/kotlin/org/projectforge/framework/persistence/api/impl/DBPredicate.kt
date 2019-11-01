@@ -27,6 +27,7 @@ import org.projectforge.common.BeanHelper
 import org.slf4j.LoggerFactory
 import java.util.*
 import javax.persistence.criteria.CriteriaBuilder
+import javax.persistence.criteria.Path
 import javax.persistence.criteria.Predicate
 import javax.persistence.criteria.Root
 
@@ -47,15 +48,14 @@ interface DBPredicate {
             val expectedValue: Any)
         : DBPredicate {
         override fun match(obj: Any): Boolean {
-            val value = BeanHelper.getProperty(obj, field)
-            return Objects.equals(expectedValue, value)
+            return fieldValueMatch(field, obj) { Objects.equals(expectedValue, it) }
         }
 
         /**
-         * Convert this matcher to JPA criteria for where clause in select.
+         * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.equal(root.get<Any>(field), expectedValue)
+            return cb.equal(getField<Any>(root, field), expectedValue)
         }
 
         override fun addTo(qb: DBQueryBuilder<*>) {
@@ -68,15 +68,14 @@ interface DBPredicate {
             val notExpectedValue: Any)
         : DBPredicate {
         override fun match(obj: Any): Boolean {
-            val value = BeanHelper.getProperty(obj, field)
-            return !Objects.equals(notExpectedValue, value)
+            return fieldValueMatch(field, obj) { !Objects.equals(notExpectedValue, it) }
         }
 
         /**
-         * Convert this matcher to JPA criteria for where clause in select.
+         * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.notEqual(root.get<Any>(field), notExpectedValue)
+            return cb.notEqual(getField<Any>(root, field), notExpectedValue)
         }
 
         override fun addTo(qb: DBQueryBuilder<*>) {
@@ -99,11 +98,10 @@ interface DBPredicate {
         }
 
         /**
-         * Convert this matcher to JPA criteria for where clause in select.
+         * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            val exp = root.get<Any>(field)
-            val predicate = exp.`in`(values)
+            val predicate = getField<Any>(root, field).`in`(values)
             return cb.`in`(predicate)
         }
 
@@ -128,10 +126,10 @@ interface DBPredicate {
         }
 
         /**
-         * Convert this matcher to JPA criteria for where clause in select.
+         * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.between(root.get<O>(field), from, to)
+            return cb.between(getField<O>(root, field), from, to)
         }
 
         override fun addTo(qb: DBQueryBuilder<*>) {
@@ -154,10 +152,10 @@ interface DBPredicate {
         }
 
         /**
-         * Convert this matcher to JPA criteria for where clause in select.
+         * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.greaterThan(root.get<O>(field), from)
+            return cb.greaterThan(getField<O>(root, field), from)
         }
 
         override fun addTo(qb: DBQueryBuilder<*>) {
@@ -180,10 +178,10 @@ interface DBPredicate {
         }
 
         /**
-         * Convert this matcher to JPA criteria for where clause in select.
+         * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.greaterThanOrEqualTo(root.get<O>(field), from)
+            return cb.greaterThanOrEqualTo(getField<O>(root, field), from)
         }
 
         override fun addTo(qb: DBQueryBuilder<*>) {
@@ -206,10 +204,10 @@ interface DBPredicate {
         }
 
         /**
-         * Convert this matcher to JPA criteria for where clause in select.
+         * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.lessThan(root.get<O>(field), to)
+            return cb.lessThan(getField<O>(root, field), to)
         }
 
         override fun addTo(qb: DBQueryBuilder<*>) {
@@ -232,10 +230,10 @@ interface DBPredicate {
         }
 
         /**
-         * Convert this matcher to JPA criteria for where clause in select.
+         * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.lessThanOrEqualTo(root.get<O>(field), to)
+            return cb.lessThanOrEqualTo(getField<O>(root, field), to)
         }
 
         override fun addTo(qb: DBQueryBuilder<*>) {
@@ -247,8 +245,8 @@ interface DBPredicate {
             val field: String,
             val expectedValue: String)
         : DBPredicate {
-        var plainString: String
-        val matchType: MatchType
+        private var plainString: String
+        private val matchType: MatchType
 
         init {
             plainString = expectedValue.trim().replace('%', '*')
@@ -279,10 +277,10 @@ interface DBPredicate {
         }
 
         /**
-         * Convert this matcher to JPA criteria for where clause in select.
+         * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.like(cb.lower(root.get<String>(field)), expectedValue)
+            return cb.like(cb.lower(getField<String>(root, field)), expectedValue)
         }
 
         override fun addTo(qb: DBQueryBuilder<*>) {
@@ -290,15 +288,13 @@ interface DBPredicate {
         }
     }
 
-    class IsNull(
-            val field: String)
-        : DBPredicate {
+    class IsNull(val field: String) : DBPredicate {
         override fun match(obj: Any): Boolean {
             return BeanHelper.getProperty(obj, field) == null
         }
 
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.isNull(root.get<Any>(field))
+            return cb.isNull(getField<Any>(root, field))
         }
 
         override fun addTo(qb: DBQueryBuilder<*>) {
@@ -306,15 +302,13 @@ interface DBPredicate {
         }
     }
 
-    class IsNotNull(
-            val field: String)
-        : DBPredicate {
+    class IsNotNull(val field: String) : DBPredicate {
         override fun match(obj: Any): Boolean {
             return BeanHelper.getProperty(obj, field) != null
         }
 
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.isNotNull(root.get<Any>(field))
+            return cb.isNotNull(getField<Any>(root, field))
         }
 
         override fun addTo(qb: DBQueryBuilder<*>) {
@@ -322,15 +316,13 @@ interface DBPredicate {
         }
     }
 
-    class Not(val matchers: DBPredicate
-    ) : DBPredicate {
-
+    class Not(val predicate: DBPredicate) : DBPredicate {
         override fun match(obj: Any): Boolean {
-            return !matchers.match(obj)
+            return !predicate.match(obj)
         }
 
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.not(matchers.asPredicate(cb, root))
+            return cb.not(predicate.asPredicate(cb, root))
         }
 
         override fun addTo(qb: DBQueryBuilder<*>) {
@@ -338,16 +330,13 @@ interface DBPredicate {
         }
     }
 
-    class And(
-            vararg matchers: DBPredicate
-    ) : DBPredicate {
-        private val matcherList = matchers
+    class And(vararg val predicates: DBPredicate) : DBPredicate {
 
         override fun match(obj: Any): Boolean {
-            if (matcherList.isNullOrEmpty()) {
+            if (predicates.isNullOrEmpty()) {
                 return false
             }
-            for (matcher in matcherList) {
+            for (matcher in predicates) {
                 if (!matcher.match(obj)) {
                     return false
                 }
@@ -356,7 +345,7 @@ interface DBPredicate {
         }
 
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.and(*matcherList.map { it.asPredicate(cb, root) }.toTypedArray())
+            return cb.and(*predicates.map { it.asPredicate(cb, root) }.toTypedArray())
         }
 
         override fun addTo(qb: DBQueryBuilder<*>) {
@@ -364,16 +353,13 @@ interface DBPredicate {
         }
     }
 
-    class Or(
-            vararg matcher: DBPredicate
-    ) : DBPredicate {
-        val matcherList = matcher
+    class Or(vararg val predicates: DBPredicate) : DBPredicate {
 
         override fun match(obj: Any): Boolean {
-            if (matcherList.isNullOrEmpty()) {
+            if (predicates.isNullOrEmpty()) {
                 return false
             }
-            for (matcher in matcherList) {
+            for (matcher in predicates) {
                 if (matcher.match(obj)) {
                     return true
                 }
@@ -382,7 +368,7 @@ interface DBPredicate {
         }
 
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.or(*matcherList.map { it.asPredicate(cb, root) }.toTypedArray())
+            return cb.or(*predicates.map { it.asPredicate(cb, root) }.toTypedArray())
         }
 
         override fun addTo(qb: DBQueryBuilder<*>) {
@@ -391,13 +377,8 @@ interface DBPredicate {
     }
 
     class In(val field: String,
-             vararg values: Any
+             vararg val values: Any
     ) : DBPredicate {
-        val values: List<Any>
-
-        init {
-            this.values = listOf(values)
-        }
 
         override fun match(obj: Any): Boolean {
             if (values.isNullOrEmpty()) {
@@ -412,7 +393,7 @@ interface DBPredicate {
         }
 
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            val inClause = cb.`in`(root.get<Any>(field))
+            val inClause = cb.`in`(getField<Any>(root, field))
             for (value in values) {
                 inClause.value(value)
             }
@@ -422,5 +403,25 @@ interface DBPredicate {
         override fun addTo(qb: DBQueryBuilder<*>) {
             qb.addMatcher(this)
         }
+    }
+
+    fun <T> getField(root: Root<*>, field: String): Path<T> {
+        if (!field.contains('.'))
+            return root.get<T>(field)
+        val pathSeq = field.splitToSequence('.')
+        var path: Path<*> = root
+        pathSeq.forEach {
+            path = path.get<Any>(it)
+        }
+        @Suppress("UNCHECKED_CAST")
+        return path as Path<T>
+    }
+
+    fun fieldValueMatch(field: String, obj: Any, match: (value: Any) -> Boolean): Boolean {
+        if (!field.contains('.')) {
+            return match(BeanHelper.getProperty(obj, field))
+        }
+        log.warn("Matching of nested properties not yet supported: '$field'.")
+        return false
     }
 }

@@ -28,7 +28,6 @@ import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.time.DateHelper
 import org.slf4j.LoggerFactory
 import java.util.*
-import javax.persistence.criteria.JoinType
 
 /**
  * Stores the expressions and settings for creating a hibernate criteria object. This template is useful for avoiding
@@ -116,23 +115,6 @@ class QueryFilter {
         }
     }
 
-    /**
-     * Convenient method signature for Java.
-     * @see org.hibernate.Criteria.createAlias
-     */
-    fun createAlias(field: String, alias: String): QueryFilter {
-        dbFilter.addAlias(field, alias, null)
-        return this
-    }
-
-    /**
-     * @see org.hibernate.Criteria.createAlias
-     */
-    fun createAlias(field: String, alias: String, joinType: JoinType? = null): QueryFilter {
-        dbFilter.addAlias(field, alias, joinType)
-        return this
-    }
-
     companion object {
         @JvmStatic
         fun isNull(field: String): DBPredicate {
@@ -185,7 +167,7 @@ class QueryFilter {
         }
 
         @JvmStatic
-        fun `in`(field: String, vararg values: Any): DBPredicate {
+        fun isIn(field: String, vararg values: Any): DBPredicate {
             return DBPredicate.In(field, values)
         }
 
