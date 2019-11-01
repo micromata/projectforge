@@ -24,7 +24,7 @@
 package org.projectforge.framework.persistence.api
 
 import org.projectforge.framework.persistence.api.impl.DBFilter
-import org.projectforge.framework.persistence.api.impl.DBResultMatcher
+import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.time.DateHelper
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -70,7 +70,7 @@ class QueryFilter {
     /**
      * @return this for chaining
      */
-    fun add(resultMatcher: DBResultMatcher): QueryFilter {
+    fun add(resultMatcher: DBPredicate): QueryFilter {
         dbFilter.add(resultMatcher)
         return this
     }
@@ -135,73 +135,73 @@ class QueryFilter {
 
     companion object {
         @JvmStatic
-        fun isNull(field: String): DBResultMatcher {
-            return DBResultMatcher.IsNull(field)
+        fun isNull(field: String): DBPredicate {
+            return DBPredicate.IsNull(field)
         }
 
         @JvmStatic
-        fun isNotNull(field: String): DBResultMatcher {
-            return DBResultMatcher.IsNotNull(field)
+        fun isNotNull(field: String): DBPredicate {
+            return DBPredicate.IsNotNull(field)
         }
 
         @JvmStatic
-        fun eq(field: String, value: Any): DBResultMatcher {
-            return DBResultMatcher.Equals(field, value)
+        fun eq(field: String, value: Any): DBPredicate {
+            return DBPredicate.Equals(field, value)
         }
 
         @JvmStatic
-        fun ne(field: String, value: Any): DBResultMatcher {
-            return DBResultMatcher.Equals(field, value)
+        fun ne(field: String, value: Any): DBPredicate {
+            return DBPredicate.Equals(field, value)
         }
 
         @JvmStatic
-        fun like(field: String, value: String): DBResultMatcher {
-            return DBResultMatcher.Like(field, value)
+        fun like(field: String, value: String): DBPredicate {
+            return DBPredicate.Like(field, value)
         }
 
         @JvmStatic
-        fun <O : Comparable<O>> between(field: String, from: O, to: O): DBResultMatcher {
-            return DBResultMatcher.Between(field, from, to)
+        fun <O : Comparable<O>> between(field: String, from: O, to: O): DBPredicate {
+            return DBPredicate.Between(field, from, to)
         }
 
         @JvmStatic
-        fun <O : Comparable<O>> ge(field: String, value: O): DBResultMatcher {
-            return DBResultMatcher.GreaterEqual<O>(field, value)
+        fun <O : Comparable<O>> ge(field: String, value: O): DBPredicate {
+            return DBPredicate.GreaterEqual<O>(field, value)
         }
 
         @JvmStatic
-        fun <O : Comparable<O>> gt(field: String, value: O): DBResultMatcher {
-            return DBResultMatcher.Greater<O>(field, value)
+        fun <O : Comparable<O>> gt(field: String, value: O): DBPredicate {
+            return DBPredicate.Greater<O>(field, value)
         }
 
         @JvmStatic
-        fun <O : Comparable<O>> le(field: String, value: O): DBResultMatcher {
-            return DBResultMatcher.LessEqual<O>(field, value)
+        fun <O : Comparable<O>> le(field: String, value: O): DBPredicate {
+            return DBPredicate.LessEqual<O>(field, value)
         }
 
         @JvmStatic
-        fun <O : Comparable<O>> lt(field: String, value: O): DBResultMatcher {
-            return DBResultMatcher.Less<O>(field, value)
+        fun <O : Comparable<O>> lt(field: String, value: O): DBPredicate {
+            return DBPredicate.Less<O>(field, value)
         }
 
         @JvmStatic
-        fun `in`(field: String, vararg values: Any): DBResultMatcher {
-            return DBResultMatcher.In(field, values)
+        fun `in`(field: String, vararg values: Any): DBPredicate {
+            return DBPredicate.In(field, values)
         }
 
         @JvmStatic
-        fun not(matcher: DBResultMatcher): DBResultMatcher {
-            return DBResultMatcher.Not(matcher)
+        fun not(matcher: DBPredicate): DBPredicate {
+            return DBPredicate.Not(matcher)
         }
 
         @JvmStatic
-        fun and(vararg matchers: DBResultMatcher): DBResultMatcher {
-            return DBResultMatcher.And(*matchers)
+        fun and(vararg matchers: DBPredicate): DBPredicate {
+            return DBPredicate.And(*matchers)
         }
 
         @JvmStatic
-        fun or(vararg matchers: DBResultMatcher): DBResultMatcher {
-            return DBResultMatcher.Or(*matchers)
+        fun or(vararg matchers: DBPredicate): DBPredicate {
+            return DBPredicate.Or(*matchers)
         }
     }
 }

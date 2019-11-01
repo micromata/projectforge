@@ -26,7 +26,7 @@ package org.projectforge.plugins.ffp.repository;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
-import org.projectforge.framework.persistence.api.impl.DBResultMatcher;
+import org.projectforge.framework.persistence.api.impl.DBPredicate;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.plugins.ffp.FinancialFairPlayPluginUserRightId;
@@ -116,17 +116,17 @@ public class FFPDebtDao extends BaseDao<FFPDebtDO> {
       queryFilter.add(QueryFilter.eq("to", userFromFilter));
     }
     if (myFilter.isiNeedToApprove()) {
-      DBResultMatcher fromMe = QueryFilter.and(//
+      DBPredicate fromMe = QueryFilter.and(//
               QueryFilter.eq("from", userFromFilter), //
               QueryFilter.eq("approvedByFrom", false));
-      DBResultMatcher toMe = QueryFilter.and(//
+      DBPredicate toMe = QueryFilter.and(//
               QueryFilter.eq("to", userFromFilter), //
               QueryFilter.eq("approvedByTo", false));
       queryFilter.add(QueryFilter.or(fromMe, toMe));
     }
     if (myFilter.isHideBothApproved()) {
-      DBResultMatcher notApprovedByFrom = QueryFilter.eq("approvedByFrom", false);
-      DBResultMatcher notApprovedByTo = QueryFilter.eq("approvedByTo", false);
+      DBPredicate notApprovedByFrom = QueryFilter.eq("approvedByFrom", false);
+      DBPredicate notApprovedByTo = QueryFilter.eq("approvedByTo", false);
       queryFilter.add(QueryFilter.or(notApprovedByFrom, notApprovedByTo));
     }
     List<FFPDebtDO> debtList = getList(queryFilter);

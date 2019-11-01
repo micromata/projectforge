@@ -93,7 +93,7 @@ private const val MAX_RESULTS = 100
 internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
         val baseDao: BaseDao<O>,
         val fullTextSession: FullTextSession,
-        val dbResultMatchers: List<DBResultMatcher>,
+        val dbResultMatchers: List<DBPredicate>,
         val sortBys: Array<SortBy>,
         val fullTextQuery: org.apache.lucene.search.Query? = null, // Full text query
         val multiFieldQuery: List<String>? = null,         // MultiField query

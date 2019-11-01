@@ -41,14 +41,14 @@ class DBFilter(
 
     class Alias(val field: String, val alias: String, val joinType: JoinType?)
 
-    val resultMatcher = mutableListOf<DBResultMatcher>()
+    val resultMatcher = mutableListOf<DBPredicate>()
     val aliasList = mutableListOf<Alias>()
 
     fun add(entry: DBFilterEntry) {
         this.allEntries.add(entry)
     }
 
-    fun add(entry: DBResultMatcher) {
+    fun add(entry: DBPredicate) {
         this.resultMatcher.add(entry)
     }
 

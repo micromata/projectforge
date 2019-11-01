@@ -28,7 +28,6 @@ import org.projectforge.business.multitenancy.TenantService
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.framework.access.AccessChecker
-import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.*
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
@@ -38,8 +37,8 @@ import org.springframework.stereotype.Service
 import java.util.*
 
 @Service
-class DBFilterQuery {
-    private val log = LoggerFactory.getLogger(DBFilterQuery::class.java)
+class DBQuery {
+    private val log = LoggerFactory.getLogger(DBQuery::class.java)
 
     @Autowired
     private lateinit var accessChecker: AccessChecker
@@ -53,34 +52,17 @@ class DBFilterQuery {
      * @param filter
      * @return
      */
-    @Throws(AccessException::class)
-    fun <O : ExtendedBaseDO<Int>> getList(baseDao: BaseDao<O>, filter: DBFilter): List<O>? {
-        val begin = System.currentTimeMillis()
-        baseDao.checkLoggedInUserSelectAccess()
-        if (accessChecker.isRestrictedUser == true) {
-            return ArrayList()
-        }
-        val list: List<O>? = getList(baseDao, filter, checkAccess = true)
-        val end = System.currentTimeMillis()
-        if (end - begin > 2000) {
-            // Show only slow requests.
-            log.info(
-                    "BaseDao.getList for entity class: " + baseDao.entityClass.simpleName + " took: " + (end - begin) + " ms (>2s).")
-        }
-        return list
-    }
-
-    /**
-     * Gets the list filtered by the given filter.
-     *
-     * @param filter
-     * @return
-     */
+    @JvmOverloads
     fun <O : ExtendedBaseDO<Int>> getList(baseDao: BaseDao<O>,
                                           filter: DBFilter,
                                           checkAccess: Boolean = true,
                                           ignoreTenant: Boolean = false)
             : List<O> {
+        val begin = System.currentTimeMillis()
+        baseDao.checkLoggedInUserSelectAccess()
+        if (accessChecker.isRestrictedUser) {
+            return ArrayList()
+        }
         try {
             val criteriaSearchEntries = filter.criteriaSearchEntries
             val fullTextSearchEntries = filter.fulltextSearchEntries
@@ -221,7 +203,7 @@ class DBFilterQuery {
                     it.addTo(queryBuilder) // Add this to criteria search if possible.
                 }
                 filter.aliasList.forEach {
-    queryBuilder.
+                    // TODO  queryBuilder.
                 }
             } else {
                 filter.resultMatcher.forEach {
@@ -232,6 +214,14 @@ class DBFilterQuery {
             var list = createList(baseDao, dbResultIterator, filter, historySearchParams, checkAccess)
             queryBuilder.close()
             list = dbResultIterator.sort(list)
+
+            val end = System.currentTimeMillis()
+            if (end - begin > 2000) {
+                // Show only slow requests.
+                log.info(
+                        "BaseDao.getList for entity class: " + baseDao.entityClass.simpleName + " took: " + (end - begin) + " ms (>2s).")
+            }
+
             return list
         } catch (ex: Exception) {
             log.error("Error while querying: ${ex.message}. Magicfilter: ${filter}.", ex)
