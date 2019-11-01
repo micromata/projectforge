@@ -48,7 +48,7 @@ interface DBPredicate {
             val expectedValue: Any)
         : DBPredicate {
         override fun match(obj: Any): Boolean {
-            return fieldValueMatch(field, obj) { Objects.equals(expectedValue, it) }
+            return fieldValueMatch(obj, field) { Objects.equals(expectedValue, it) }
         }
 
         /**
@@ -68,7 +68,7 @@ interface DBPredicate {
             val notExpectedValue: Any)
         : DBPredicate {
         override fun match(obj: Any): Boolean {
-            return fieldValueMatch(field, obj) { !Objects.equals(notExpectedValue, it) }
+            return fieldValueMatch(obj, field) { !Objects.equals(notExpectedValue, it) }
         }
 
         /**
@@ -83,12 +83,16 @@ interface DBPredicate {
         }
     }
 
-    class AnyOf<O>(
+    class IsIn<O>(
             val field: String,
             vararg val values: O)
         : DBPredicate {
         override fun match(obj: Any): Boolean {
-            val value = BeanHelper.getProperty(obj, field) ?: return false
+            return fieldValueMatch(obj, field) { innerMatch(it) }
+        }
+
+        private fun innerMatch(value: Any?): Boolean {
+            if (value == null) return false
             for (v in values) {
                 if (Objects.equals(v, value)) {
                     return true
@@ -103,10 +107,16 @@ interface DBPredicate {
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
             val predicate = getField<Any>(root, field).`in`(values)
             return cb.`in`(predicate)
+            // Alternative:
+            // val inClause = cb.`in`(getField<Any>(root, field))
+            // for (value in values) {
+            //     inClause.value(value)
+            // }
+            // return inClause
         }
 
         override fun addTo(qb: DBQueryBuilder<*>) {
-            qb.anyOf(field, values)
+            qb.isIn(field, values)
         }
     }
 
@@ -116,7 +126,11 @@ interface DBPredicate {
             val to: O)
         : DBPredicate {
         override fun match(obj: Any): Boolean {
-            val value = BeanHelper.getProperty(obj, field) ?: return false
+            return fieldValueMatch(obj, field) { innerMatch(it) }
+        }
+
+        private fun innerMatch(value: Any?): Boolean {
+            if (value == null) return false
             if (from::class.java.isAssignableFrom(value::class.java)) {
                 @Suppress("UNCHECKED_CAST")
                 return from <= value as O && value <= to
@@ -142,7 +156,11 @@ interface DBPredicate {
             val from: O)
         : DBPredicate {
         override fun match(obj: Any): Boolean {
-            val value = BeanHelper.getProperty(obj, field) ?: return false
+            return fieldValueMatch(obj, field) { innerMatch(it) }
+        }
+
+        private fun innerMatch(value: Any?): Boolean {
+            if (value == null) return false
             if (value::class.java.isAssignableFrom(value::class.java)) {
                 @Suppress("UNCHECKED_CAST")
                 return from < value as O
@@ -168,7 +186,11 @@ interface DBPredicate {
             val from: O)
         : DBPredicate {
         override fun match(obj: Any): Boolean {
-            val value = BeanHelper.getProperty(obj, field) ?: return false
+            return fieldValueMatch(obj, field) { innerMatch(it) }
+        }
+
+        private fun innerMatch(value: Any?): Boolean {
+            if (value == null) return false
             if (value::class.java.isAssignableFrom(value::class.java)) {
                 @Suppress("UNCHECKED_CAST")
                 return from <= value as O
@@ -194,7 +216,11 @@ interface DBPredicate {
             val to: O)
         : DBPredicate {
         override fun match(obj: Any): Boolean {
-            val value = BeanHelper.getProperty(obj, field) ?: return false
+            return fieldValueMatch(obj, field) { innerMatch(it) }
+        }
+
+        private fun innerMatch(value: Any?): Boolean {
+            if (value == null) return false
             if (value::class.java.isAssignableFrom(value::class.java)) {
                 @Suppress("UNCHECKED_CAST")
                 return (value as O) < to
@@ -220,7 +246,11 @@ interface DBPredicate {
             val to: O)
         : DBPredicate {
         override fun match(obj: Any): Boolean {
-            val value = BeanHelper.getProperty(obj, field) ?: return false
+            return fieldValueMatch(obj, field) { innerMatch(it) }
+        }
+
+        private fun innerMatch(value: Any?): Boolean {
+            if (value == null) return false
             if (value::class.java.isAssignableFrom(value::class.java)) {
                 @Suppress("UNCHECKED_CAST")
                 return value as O <= to
@@ -243,7 +273,8 @@ interface DBPredicate {
 
     class Like(
             val field: String,
-            val expectedValue: String)
+            val expectedValue: String,
+            val ignoreCase: Boolean = true)
         : DBPredicate {
         private var plainString: String
         private val matchType: MatchType
@@ -256,10 +287,10 @@ interface DBPredicate {
                     matchType = MatchType.CONTAINS
                     plainString = plainString.substring(0, plainString.length - 1)
                 } else {
-                    matchType = MatchType.STARTS_WITH
+                    matchType = MatchType.ENDS_WITH
                 }
             } else if (plainString.endsWith('*')) {
-                matchType = MatchType.ENDS_WITH
+                matchType = MatchType.STARTS_WITH
                 plainString = plainString.substring(0, plainString.length - 1)
             } else {
                 matchType = MatchType.EXACT
@@ -267,12 +298,16 @@ interface DBPredicate {
         }
 
         override fun match(obj: Any): Boolean {
-            val value = BeanHelper.getProperty(obj, field)?.toString() ?: return false
+            return fieldValueMatch(obj, field) { innerMatch(it as String) }
+        }
+
+        private fun innerMatch(value: String?): Boolean {
+            if (value == null) return false
             return when (matchType) {
-                MatchType.CONTAINS -> value.contains(plainString)
-                MatchType.EXACT -> value.equals(plainString)
-                MatchType.STARTS_WITH -> value.startsWith(plainString)
-                MatchType.ENDS_WITH -> value.endsWith(plainString)
+                MatchType.CONTAINS -> value.contains(plainString, ignoreCase)
+                MatchType.EXACT -> value.equals(plainString, ignoreCase)
+                MatchType.STARTS_WITH -> value.startsWith(plainString, ignoreCase)
+                MatchType.ENDS_WITH -> value.endsWith(plainString, ignoreCase)
             }
         }
 
@@ -290,7 +325,7 @@ interface DBPredicate {
 
     class IsNull(val field: String) : DBPredicate {
         override fun match(obj: Any): Boolean {
-            return BeanHelper.getProperty(obj, field) == null
+            return fieldValueMatch(obj, field) { it == null }
         }
 
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
@@ -304,7 +339,7 @@ interface DBPredicate {
 
     class IsNotNull(val field: String) : DBPredicate {
         override fun match(obj: Any): Boolean {
-            return BeanHelper.getProperty(obj, field) != null
+            return fieldValueMatch(obj, field) { it != null }
         }
 
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
@@ -376,35 +411,6 @@ interface DBPredicate {
         }
     }
 
-    class In(val field: String,
-             vararg val values: Any
-    ) : DBPredicate {
-
-        override fun match(obj: Any): Boolean {
-            if (values.isNullOrEmpty()) {
-                return false
-            }
-            for (value in values) {
-                if (value == obj) {
-                    return true
-                }
-            }
-            return false
-        }
-
-        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            val inClause = cb.`in`(getField<Any>(root, field))
-            for (value in values) {
-                inClause.value(value)
-            }
-            return inClause
-        }
-
-        override fun addTo(qb: DBQueryBuilder<*>) {
-            qb.addMatcher(this)
-        }
-    }
-
     fun <T> getField(root: Root<*>, field: String): Path<T> {
         if (!field.contains('.'))
             return root.get<T>(field)
@@ -417,11 +423,59 @@ interface DBPredicate {
         return path as Path<T>
     }
 
-    fun fieldValueMatch(field: String, obj: Any, match: (value: Any) -> Boolean): Boolean {
+    /**
+     * Evaluates whether the field matches the given match method or not. Nested fields are supported.
+     * @param obj The Object of the result set to evaluate
+     * @param field The field name of the object to evaluate (nested fields are supported as well as Arrays and Iterables).
+     * @param match The evaluating method to call.
+     * @return True if specified property of object by field name matches (or any of the properties if multiple values are found for a property).
+     */
+    fun fieldValueMatch(obj: Any, field: String, match: (value: Any?) -> Boolean): Boolean {
         if (!field.contains('.')) {
-            return match(BeanHelper.getProperty(obj, field))
+            return match(getProperty(obj, field))
         }
-        log.warn("Matching of nested properties not yet supported: '$field'.")
+        return fieldValueMatch(obj, field.split('.'), 0, match)
+    }
+
+    /**
+     * For recursive processing of nested properties...
+     */
+    private fun fieldValueMatch(obj: Any?, path: List<String>, idx: Int, match: (value: Any?) -> Boolean): Boolean {
+        val nestedObj = getProperty(obj, path[idx])
+        if (nestedObj == null) {
+            return match(nestedObj)
+        }
+        if (nestedObj is Iterable<*>) {
+            for (it in nestedObj) {
+                val result =
+                        if (hasNext(path, idx))
+                            fieldValueMatch(it, path, idx + 1, match)
+                        else match(it)
+                if (result) return true
+            }
+        } else if (nestedObj is Array<*>) {
+            for (it in nestedObj) {
+                val result =
+                        if (hasNext(path, idx))
+                            fieldValueMatch(it, path, idx + 1, match)
+                        else match(it)
+                if (result) return true
+            }
+        } else {
+            if (hasNext(path, idx))
+                return fieldValueMatch(nestedObj, path, idx + 1, match)
+            return match(nestedObj)
+        }
         return false
+    }
+
+    private fun getProperty(obj: Any?, field: String): Any? {
+        if (obj == null)
+            return null
+        return BeanHelper.getProperty(obj, field)
+    }
+
+    private fun hasNext(path: List<String>, idx: Int): Boolean {
+        return path.size > idx + 1
     }
 }

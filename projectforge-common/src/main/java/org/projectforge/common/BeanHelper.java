@@ -466,7 +466,7 @@ public class BeanHelper
   {
     final Method getter = determineGetter(bean.getClass(), property);
     if (getter == null) {
-      throw new RuntimeException("Getter for property '" + property + "' not found.");
+      throw new RuntimeException("Getter for property '" + bean.getClass() + "." + property + "' not found.");
     }
     try {
       return getter.invoke(bean);

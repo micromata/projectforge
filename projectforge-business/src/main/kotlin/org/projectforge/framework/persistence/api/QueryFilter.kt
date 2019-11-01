@@ -168,7 +168,7 @@ class QueryFilter {
 
         @JvmStatic
         fun isIn(field: String, vararg values: Any): DBPredicate {
-            return DBPredicate.In(field, values)
+            return DBPredicate.IsIn(field, values)
         }
 
         @JvmStatic

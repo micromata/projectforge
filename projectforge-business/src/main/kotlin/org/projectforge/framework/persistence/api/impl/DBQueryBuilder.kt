@@ -147,8 +147,8 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
         dbResultMatchers.add(DBPredicate.IsNotNull(field))
     }
 
-    fun <O> anyOf(field: String, vararg values: O) {
-        addMatcher(DBPredicate.AnyOf<O>(field, *values))
+    fun <O> isIn(field: String, vararg values: O) {
+        addMatcher(DBPredicate.IsIn<O>(field, *values))
     }
 
     fun <O : Comparable<O>> between(field: String, from: O, to: O) {
