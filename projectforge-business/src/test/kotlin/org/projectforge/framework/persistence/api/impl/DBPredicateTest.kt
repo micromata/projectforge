@@ -32,7 +32,7 @@ class DBPredicateTest {
     class Address(val city: String)
 
     @Test
-    fun serializationTest() {
+    fun matchTest() {
         val pred = DBPredicate.Equals("name", "Dave")
         Assertions.assertTrue(pred.match(Person("Dave")))
         Assertions.assertFalse(pred.match(Person("Not Dave")))
