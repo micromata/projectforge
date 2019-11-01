@@ -28,7 +28,6 @@ import org.hibernate.search.Search
 import org.hibernate.search.query.dsl.BooleanJunction
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO
-import org.projectforge.framework.time.PFDateTime
 import org.slf4j.LoggerFactory
 import java.util.*
 import javax.persistence.criteria.Predicate
@@ -36,15 +35,7 @@ import javax.persistence.criteria.Predicate
 internal object DBHistoryQuery {
     private const val MAX_RESULT_SIZE = 100000 // Limit result list to 100000
 
-    /**
-     * Search for this string in all history entries of the queried entities.
-     */
-    data class SearchParams(var modifiedByUserId: Int? = null,
-                            var modifiedFrom: PFDateTime? = null,
-                            var modifiedTo: PFDateTime? = null,
-                            var searchString: String? = null)
-
-    fun searchHistoryEntryByCriteria(session: Session, clazz: Class<*>, searchParams: SearchParams): Set<Long> {
+    fun searchHistoryEntryByCriteria(session: Session, clazz: Class<*>, searchParams: DBHistorySearchParams): Set<Long> {
         val cb = session.criteriaBuilder
         val cr = cb.createQuery(Long::class.java)
         val root = cr.from(PfHistoryMasterDO::class.java)
@@ -63,7 +54,7 @@ internal object DBHistoryQuery {
         } else if (searchParams.modifiedTo != null) {
             predicates.add(cb.lessThanOrEqualTo(root.get<Date>("modifiedAt"), searchParams.modifiedTo!!.utilDate))
         }
-        if (!searchParams.searchString.isNullOrBlank()) {
+        if (!searchParams.searchHistory.isNullOrBlank()) {
             log.warn("Search string for history search is given but is ignored by criteria search. Use full text search instead: ${ToStringUtil.toJsonString(searchParams)}")
         }
         val query = session.createQuery(cr.select(root.get("entityId")).where(*predicates.toTypedArray()))
@@ -75,7 +66,7 @@ internal object DBHistoryQuery {
         return result.toSet()
     }
 
-    fun searchHistoryEntryByFullTextQuery(session: Session, clazz: Class<*>, searchParams: SearchParams): Set<Long> {
+    fun searchHistoryEntryByFullTextQuery(session: Session, clazz: Class<*>, searchParams: DBHistorySearchParams): Set<Long> {
         val fullTextSession = Search.getFullTextSession(session)
         val queryBuilder = fullTextSession.searchFactory
                 .buildQueryBuilder().forEntity(PfHistoryMasterDO::class.java).get()
@@ -101,7 +92,7 @@ internal object DBHistoryQuery {
                     .below(searchParams.modifiedTo!!.utilDate)
                     .createQuery())
         }
-        val searchString = searchParams.searchString
+        val searchString = searchParams.searchHistory
         if (!searchString.isNullOrBlank()) {
             var str = searchString.replace('%', '*')
             if (!str.startsWith("*"))
@@ -116,7 +107,7 @@ internal object DBHistoryQuery {
         fullTextQuery.maxResults = MAX_RESULT_SIZE
         fullTextQuery.setProjection("entityId")
         @Suppress("UNCHECKED_CAST")
-        val result =  fullTextQuery.list()// as List<Long> // return a list of managed objects
+        val result = fullTextQuery.list()// as List<Long> // return a list of managed objects
 
         if (result.isNullOrEmpty()) {
             return emptySet()
