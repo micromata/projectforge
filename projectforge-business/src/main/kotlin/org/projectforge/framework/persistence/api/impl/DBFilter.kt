@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.persistence.api.impl
 
+import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.persistence.api.SortProperty
 
 class DBFilter(
@@ -58,4 +59,8 @@ class DBFilter(
     internal val log = org.slf4j.LoggerFactory.getLogger(DBFilter::class.java)
 
     var sortProperties = mutableListOf<SortProperty>()
+
+    override fun toString(): String {
+        return ToStringUtil.toJsonString(this)
+    }
 }

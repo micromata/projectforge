@@ -24,8 +24,10 @@
 package org.projectforge.framework.persistence.api
 
 import org.projectforge.framework.persistence.api.impl.DBFilter
+import org.projectforge.framework.persistence.api.impl.DBFilterEntry
 import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.time.DateHelper
+import org.projectforge.framework.time.PFDateTime
 import org.slf4j.LoggerFactory
 import java.util.*
 
@@ -35,34 +37,39 @@ import java.util.*
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class QueryFilter {
+
+class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null, val ignoreTenant: Boolean = false) {
     private val log = LoggerFactory.getLogger(QueryFilter::class.java)
 
-    val ignoreTenant: Boolean
     val dbFilter = DBFilter()
 
-    var filter: BaseSearchFilter? = null
-        private set
-
-    /**
-     * Creates new QueryFilter with a new SearchFilter as filter.
-     */
-    constructor() {
-        this.filter = BaseSearchFilter()
-        this.ignoreTenant = false
-    }
-
-    /**
-     * @param filter
-     * @param ignoreTenant default is false.
-     */
-    @JvmOverloads
-    constructor(filter: BaseSearchFilter?, ignoreTenant: Boolean = false) {
-        this.ignoreTenant = ignoreTenant
-        if (filter == null) {
-            this.filter = BaseSearchFilter()
-        } else {
-            this.filter = filter
+    init {
+        if (filter != null) {
+            // Legacy for old implementation:
+            if (!filter.ignoreDeleted) {
+                dbFilter.deleted = filter.deleted
+            }
+            if (filter.isSearchHistory && !filter.searchString.isNullOrBlank()) {
+                dbFilter.add(DBFilterEntry(MagicFilterEntry.HistorySearch.MODIFIED_HISTORY_VALUE.fieldName, filter.searchString))
+            }
+            if (filter.isSearchNotEmpty) {
+                dbFilter.add(DBFilterEntry(value = filter.searchString, fulltextSearch = true))
+            }
+            if (filter.useModificationFilter) {
+                if (filter.modifiedSince != null) {
+                    val entry = DBFilterEntry(MagicFilterEntry.HistorySearch.MODIFIED_INTERVAL.fieldName)
+                    if (filter.modifiedSince != null)
+                        entry.fromValueDate = PFDateTime.from(filter.modifiedSince)
+                    else if (filter.startTimeOfModification != null)
+                        entry.fromValueDate = PFDateTime.from(filter.startTimeOfModification)
+                    if (filter.stopTimeOfModification != null)
+                        entry.toValueDate = PFDateTime.from(filter.stopTimeOfModification)
+                    dbFilter.add(entry)
+                }
+                if (filter.modifiedByUserId != null) {
+                    dbFilter.add(DBFilterEntry(MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.fieldName, "${filter.modifiedByUserId}"))
+                }
+            }
         }
     }
 

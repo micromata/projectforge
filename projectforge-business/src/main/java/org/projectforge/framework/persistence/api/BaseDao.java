@@ -306,7 +306,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> getList(final QueryFilter filter) throws AccessException {
     final DBFilter dbFilter = filter.getDbFilter();
-    return dbFilterQuery.getList(this, dbFilter);
+    return dbFilterQuery.getList(this, dbFilter, true, filter.getIgnoreTenant());
   }
 
   /**
@@ -315,7 +315,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> internalGetList(final QueryFilter filter) throws AccessException {
     final DBFilter dbFilter = filter.getDbFilter();
-    return dbFilterQuery.getList(this, dbFilter, false);
+    return dbFilterQuery.getList(this, dbFilter, false, filter.getIgnoreTenant());
   }
 
   /**
