@@ -71,7 +71,7 @@ class DBQuery {
             val dbResultIterator: DBResultIterator<O>
             dbResultIterator = queryBuilder.result()
             val historSearchParams = DBHistorySearchParams(filter.modifiedByUserId, filter.modifiedFrom, filter.modifiedTo, filter.searchHistory)
-            var list = createList(baseDao, dbResultIterator, dbFilter, historSearchParams, checkAccess)
+            var list = createList(baseDao, dbResultIterator, queryBuilder.resultPredicates, dbFilter, historSearchParams, checkAccess)
             queryBuilder.close()
             list = dbResultIterator.sort(list)
 
@@ -91,6 +91,7 @@ class DBQuery {
 
     private fun <O : ExtendedBaseDO<Int>> createList(baseDao: BaseDao<O>,
                                                      dbResultIterator: DBResultIterator<O>,
+                                                     resultPredicates: List<DBPredicate>,
                                                      filter: DBFilter,
                                                      historSearchParams: DBHistorySearchParams,
                                                      checkAccess: Boolean)
@@ -120,7 +121,7 @@ class DBQuery {
                     ensureUniqueSet.add(next.id) // Mark current object as already proceeded (ensure uniqueness)
                     if ((!checkAccess || baseDao.hasSelectAccess(next, loggedInUser, superAdmin))
                             && baseDao.containsLong(idSet, next)
-                            && match(filter, next)) {
+                            && match(resultPredicates, next)) {
                         // Current result object fits the modified query:
                         list.add(next)
                         if (++resultCounter >= filter.maxRows) {
@@ -136,7 +137,7 @@ class DBQuery {
                 if (!ensureUniqueSet.contains(next.id)) {
                     // Current result object wasn't yet proceeded.
                     ensureUniqueSet.add(next.id) // Mark current object as already proceeded (ensure uniqueness)
-                    if (!checkAccess || baseDao.hasSelectAccess(next, loggedInUser, superAdmin) && match(filter, next)) {
+                    if (!checkAccess || baseDao.hasSelectAccess(next, loggedInUser, superAdmin) && match(resultPredicates, next)) {
                         list.add(next)
                         if (++resultCounter >= filter.maxRows) {
                             break
@@ -151,18 +152,16 @@ class DBQuery {
 
     /**
      * If predicates are definied (not used for data base query), they're checked with the given result object.
-     * @return true If no predicates are given or if any predicate matches, otherwise false.
+     * @return true, if no predicates are given or if all predicate matches, otherwise false.
      */
-    private fun match(filter: DBFilter, next: ExtendedBaseDO<Int>): Boolean {
-        if (filter.predicates.isNullOrEmpty())
+    private fun match(predicates: List<DBPredicate>, next: ExtendedBaseDO<Int>): Boolean {
+        if (predicates.isNullOrEmpty())
             return true
-        for (predicate in filter.predicates) {
-            if (predicate.fullTextSupport || predicate.criteriaSupport)
-                continue
-            if (predicate.match(next)) {
-                return true
+        for (predicate in predicates) {
+            if (!predicate.match(next)) {
+                return false
             }
         }
-        return false
+        return true
     }
 }

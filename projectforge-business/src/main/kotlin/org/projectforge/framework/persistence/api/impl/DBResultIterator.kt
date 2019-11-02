@@ -65,7 +65,8 @@ internal class DBEmptyResultIterator<O : ExtendedBaseDO<Int>>()
 
 internal class DBCriteriaResultIterator<O : ExtendedBaseDO<Int>>(
         session: Session,
-        criteria: CriteriaQuery<O>)
+        criteria: CriteriaQuery<O>,
+        val resultPredicates: List<DBPredicate>)
     : DBResultIterator<O> {
     private val scrollableResults: ScrollableResults
 
@@ -93,7 +94,7 @@ private const val MAX_RESULTS = 100
 internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
         val baseDao: BaseDao<O>,
         val fullTextSession: FullTextSession,
-        val dbResultMatchers: List<DBPredicate>,
+        val resultMatchers: List<DBPredicate>,
         val sortBys: Array<SortBy>,
         val fullTextQuery: org.apache.lucene.search.Query? = null, // Full text query
         val multiFieldQuery: List<String>? = null,         // MultiField query
@@ -111,8 +112,8 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
     override fun next(): O? {
         while (true) {
             val next = internalNext() ?: return null
-            if (!dbResultMatchers.isNullOrEmpty()) {
-                for (matcher in dbResultMatchers) {
+            if (!resultMatchers.isNullOrEmpty()) {
+                for (matcher in resultMatchers) {
                     if (matcher.match(next)) {
                         return next
                     }
