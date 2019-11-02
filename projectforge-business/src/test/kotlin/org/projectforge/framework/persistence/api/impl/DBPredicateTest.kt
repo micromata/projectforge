@@ -33,28 +33,28 @@ class DBPredicateTest {
 
     @Test
     fun matchTest() {
-        val pred = DBPredicate.Equals("name", "Dave")
+        val pred = DBPredicate.Equal("name", "Dave")
         Assertions.assertTrue(pred.match(Person("Dave")))
         Assertions.assertFalse(pred.match(Person("Not Dave")))
 
         val admins = listOf(Person("Sheila", Address("Kassel")), Person("Patrick", Address("Bonn")), Person("Bob"))
         val developers = arrayOf(Person("Dave"), Person("Betty"))
         val company = Company("ACME", Person("Amy"), admins, developers)
-        Assertions.assertTrue(DBPredicate.Equals("ceo.name", "Amy").match(company))
-        Assertions.assertFalse(DBPredicate.Equals("ceo.name", "Dave").match(company))
+        Assertions.assertTrue(DBPredicate.Equal("ceo.name", "Amy").match(company))
+        Assertions.assertFalse(DBPredicate.Equal("ceo.name", "Dave").match(company))
 
-        Assertions.assertTrue(DBPredicate.Equals("developers.name", "Dave").match(company))
-        Assertions.assertFalse(DBPredicate.Equals("developers.name", "Sheila").match(company))
+        Assertions.assertTrue(DBPredicate.Equal("developers.name", "Dave").match(company))
+        Assertions.assertFalse(DBPredicate.Equal("developers.name", "Sheila").match(company))
 
-        Assertions.assertTrue(DBPredicate.Equals("admins.name", "Sheila").match(company))
-        Assertions.assertFalse(DBPredicate.Equals("admins.name", "Dave").match(company))
+        Assertions.assertTrue(DBPredicate.Equal("admins.name", "Sheila").match(company))
+        Assertions.assertFalse(DBPredicate.Equal("admins.name", "Dave").match(company))
 
-        Assertions.assertTrue(DBPredicate.Equals("admins.address.city", "Kassel").match(company))
-        Assertions.assertFalse(DBPredicate.Equals("developers.address.city", "Kassel").match(company))
+        Assertions.assertTrue(DBPredicate.Equal("admins.address.city", "Kassel").match(company))
+        Assertions.assertFalse(DBPredicate.Equal("developers.address.city", "Kassel").match(company))
 
-        Assertions.assertTrue(DBPredicate.NotEquals("admins.address.city", "Hamburg").match(company))
+        Assertions.assertTrue(DBPredicate.NotEqual("admins.address.city", "Hamburg").match(company))
         // Not all cities are Kassel (only one):
-        Assertions.assertTrue(DBPredicate.NotEquals("admins.address.city", "Kassel").match(company))
+        Assertions.assertTrue(DBPredicate.NotEqual("admins.address.city", "Kassel").match(company))
 
         Assertions.assertTrue(DBPredicate.IsNotNull("admins.address.city").match(company))
         Assertions.assertFalse(DBPredicate.IsNotNull("developers.address.city").match(company))

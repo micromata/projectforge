@@ -35,8 +35,7 @@ import org.slf4j.LoggerFactory
 internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
         val baseDao: BaseDao<O>,
         val useMultiFieldQueryParser: Boolean = false,
-        private var usedSearchFields: Array<String> = getUsedSearchFields(baseDao),
-        searchFields: Array<String>? = null) {
+        private var usedSearchFields: Array<String> = getUsedSearchFields(baseDao)) {
     companion object {
         private val log = LoggerFactory.getLogger(DBQueryBuilderByFullText::class.java)
 
@@ -54,7 +53,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
                             || type.isAssignableFrom(java.lang.Enum::class.java)) {
                         stringFields.add(it) // Search only for fields of type string and int, if no special field is specified.
                     } else {
-                        log.debug("Type of search property '${baseDao.doClass}.$it' not supported.")
+                        if (log.isDebugEnabled) log.debug("Type of search property '${baseDao.doClass}.$it' not supported.")
                     }
                 } else {
                     log.warn("Search property '${baseDao.doClass}.$it' not found (ignoring it).")
@@ -79,6 +78,17 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
 
     fun fieldSupported(field: String): Boolean {
         return usedSearchFields.contains(field)
+    }
+
+    /**
+     * @return true, if the predicate was added to query builder, otherwise false (must be handled as result predicate instead).
+     */
+    fun add(predicate: DBPredicate): Boolean {
+        if (!predicate.fullTextSupport) return false
+        val field = predicate.field
+        if (field != null && !usedSearchFields.contains(field)) return false
+        predicate.addTo(this)
+        return true
     }
 
     /**

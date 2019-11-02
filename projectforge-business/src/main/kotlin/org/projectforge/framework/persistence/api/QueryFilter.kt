@@ -167,7 +167,7 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null, va
     fun createDBFilter(): DBFilter {
         val dbFilter = DBFilter(sortAndLimitMaxRowsWhileSelect, maxRows)
         if (deleted != null) {
-            dbFilter.predicates.add(DBPredicate.Equals("deleted", deleted == true))
+            dbFilter.predicates.add(DBPredicate.Equal("deleted", deleted == true))
         }
         predicates.forEach {
             dbFilter.predicates.add(it)
@@ -192,13 +192,13 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null, va
         }
 
         @JvmStatic
-        fun eq(field: String, value: Any): DBPredicate.Equals {
-            return DBPredicate.Equals(field, value)
+        fun eq(field: String, value: Any): DBPredicate.Equal {
+            return DBPredicate.Equal(field, value)
         }
 
         @JvmStatic
-        fun ne(field: String, value: Any): DBPredicate.NotEquals {
-            return DBPredicate.NotEquals(field, value)
+        fun ne(field: String, value: Any): DBPredicate.NotEqual {
+            return DBPredicate.NotEqual(field, value)
         }
 
         @JvmStatic
@@ -286,7 +286,7 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null, va
                     }
                     return DBPredicate.IsIn(field, taskIds)
                 } else {
-                    return DBPredicate.Equals(field, taskId)
+                    return DBPredicate.Equal(field, taskId)
                 }
             }
         }
