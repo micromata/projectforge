@@ -104,7 +104,7 @@ class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
     var gegenKonto: KontoDO? = null
 
     @Field(index = Index.YES, analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.DAY)
     @get:Column(nullable = false)
     var datum: Date? = null
 

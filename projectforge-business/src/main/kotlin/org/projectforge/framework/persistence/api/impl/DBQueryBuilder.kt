@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory
 class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
         val baseDao: BaseDao<O>,
         tenantService: TenantService,
-        val dbFilter: DBFilter,
+        dbFilter: DBFilter,
         ignoreTenant: Boolean = false) {
 
     enum class Mode {
@@ -54,16 +54,18 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
     }
 
     private val log = LoggerFactory.getLogger(DBQueryBuilder::class.java)
+    @Suppress("PrivatePropertyName")
     private var dbQueryBuilderByCriteria_: DBQueryBuilderByCriteria<O>? = null
     private val dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O>
         get() {
-            if (dbQueryBuilderByCriteria_ == null) dbQueryBuilderByCriteria_ = DBQueryBuilderByCriteria<O>(baseDao)
+            if (dbQueryBuilderByCriteria_ == null) dbQueryBuilderByCriteria_ = DBQueryBuilderByCriteria(baseDao)
             return dbQueryBuilderByCriteria_!!
         }
+    @Suppress("PrivatePropertyName")
     private var dbQueryBuilderByFullText_: DBQueryBuilderByFullText<O>? = null
     private val dbQueryBuilderByFullText: DBQueryBuilderByFullText<O>
         get() {
-            if (dbQueryBuilderByFullText_ == null) dbQueryBuilderByFullText_ = DBQueryBuilderByFullText<O>(baseDao, useMultiFieldQueryParser = mode == Mode.MULTI_FIELD_FULLTEXT_QUERY)
+            if (dbQueryBuilderByFullText_ == null) dbQueryBuilderByFullText_ = DBQueryBuilderByFullText(baseDao, useMultiFieldQueryParser = mode == Mode.MULTI_FIELD_FULLTEXT_QUERY)
             return dbQueryBuilderByFullText_!!
         }
     private val mode: Mode
@@ -88,10 +90,10 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
     init {
         val stats = dbFilter.createStatistics(baseDao)
         mode = if (stats.fullTextRequired) {
-            DBQueryBuilder.Mode.FULLTEXT
-            //DBQueryBuilder.Mode.MULTI_FIELD_FULLTEXT_QUERY
+            Mode.FULLTEXT
+            //Mode.MULTI_FIELD_FULLTEXT_QUERY
         } else {
-            DBQueryBuilder.Mode.CRITERIA // Criteria search (no full text search entries found).
+            Mode.CRITERIA // Criteria search (no full text search entries found).
         }
         if (!ignoreTenant && tenantService.isMultiTenancyAvailable) {
             val userContext = ThreadLocalUserContext.getUserContext()
@@ -125,7 +127,7 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
     /**
      * Adds predicate to result matchers or, if criteria search is enabled, a new predicates for the criteria is appended.
      */
-    internal fun addMatcher(predicate: DBPredicate) {
+    private fun addMatcher(predicate: DBPredicate) {
         if (criteriaSearchAvailable) {
             dbQueryBuilderByCriteria.add(predicate)
         } else if (predicate.fullTextSupport) {

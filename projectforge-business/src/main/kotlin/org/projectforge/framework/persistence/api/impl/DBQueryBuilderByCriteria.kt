@@ -33,7 +33,7 @@ import javax.persistence.criteria.Root
 internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Int>>(
         val baseDao: BaseDao<O>
 ) {
-    var cb_: CriteriaBuilder? = null
+    private var cb_: CriteriaBuilder? = null
     val cb: CriteriaBuilder
         get() {
             if (cb_ == null) cb_ = baseDao.session.getCriteriaBuilder()
