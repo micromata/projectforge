@@ -49,9 +49,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
                             || type.isAssignableFrom(Integer::class.java)
                             || type.isAssignableFrom(Int::class.java)
                             || type.isAssignableFrom(java.util.Date::class.java)
-                            || type.isAssignableFrom(java.sql.Date::class.java)
-                            || type.isAssignableFrom(Enum::class.java)
-                            || type.isAssignableFrom(java.lang.Enum::class.java)) {
+                            || type.isAssignableFrom(java.sql.Date::class.java)) {
                         stringFields.add(it) // Search only for fields of type string and int, if no special field is specified.
                     } else {
                         if (log.isDebugEnabled) log.debug("Type '${type.name}' of search property '${baseDao.doClass}.$it' not supported.")
