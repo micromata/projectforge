@@ -33,23 +33,23 @@ import javax.persistence.criteria.Root
 internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Int>>(
         val baseDao: BaseDao<O>
 ) {
-    private var cb_: CriteriaBuilder? = null
+    private var _cb: CriteriaBuilder? = null
     val cb: CriteriaBuilder
         get() {
-            if (cb_ == null) cb_ = baseDao.session.getCriteriaBuilder()
-            return cb_!!
+            if (_cb == null) _cb = baseDao.session.criteriaBuilder
+            return _cb!!
         }
-    var cr_: CriteriaQuery<O>? = null
+    private var _cr: CriteriaQuery<O>? = null
     val cr: CriteriaQuery<O>
         get() {
-            if (cr_ == null) cr_ = cb.createQuery(baseDao.doClass)
-            return cr_!!
+            if (_cr == null) _cr = cb.createQuery(baseDao.doClass)
+            return _cr!!
         }
-    var root_: Root<O>? = null
+    private var _root: Root<O>? = null
     val root: Root<O>
         get() {
-            if (root_ == null) root_ = cr.from(baseDao.doClass)
-            return root_!!
+            if (_root == null) _root = cr.from(baseDao.doClass)
+            return _root!!
         }
 
     /**
@@ -62,8 +62,8 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Int>>(
         predicates.add(matcher.asPredicate(cb, root))
     }
 
-    fun createResultIterator(): DBResultIterator<O> {
-        return DBCriteriaResultIterator(baseDao.session, cr.select(root).where(*predicates.toTypedArray()).orderBy(*order.toTypedArray()))
+    fun createResultIterator(resultPredicates: List<DBPredicate>): DBResultIterator<O> {
+        return DBCriteriaResultIterator(baseDao.session, cr.select(root).where(*predicates.toTypedArray()).orderBy(*order.toTypedArray()), resultPredicates)
     }
 
     fun addOrder(sortBy: SortBy) {

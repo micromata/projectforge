@@ -220,17 +220,17 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
         search(searchString, *usedSearchFields)
     }
 
-    fun createResultIterator(dbResultMatchers: List<DBPredicate>): DBResultIterator<O> {
+    fun createResultIterator(resultPredicates: List<DBPredicate>): DBResultIterator<O> {
         return when {
             boolJunction.isEmpty -> { // Shouldn't occur:
                 // No restrictions found, so use normal criteria search without where clause.
-                DBQueryBuilderByCriteria(baseDao).createResultIterator()
+                DBQueryBuilderByCriteria(baseDao).createResultIterator(resultPredicates)
             }
             useMultiFieldQueryParser -> {
-                DBFullTextResultIterator(baseDao, fullTextSession, dbResultMatchers, sortBys.toTypedArray(), usedSearchFields = usedSearchFields, multiFieldQuery = multiFieldQuery)
+                DBFullTextResultIterator(baseDao, fullTextSession, resultPredicates, sortBys.toTypedArray(), usedSearchFields = usedSearchFields, multiFieldQuery = multiFieldQuery)
             }
             else -> {
-                DBFullTextResultIterator(baseDao, fullTextSession, dbResultMatchers, sortBys.toTypedArray(), fullTextQuery = boolJunction.createQuery())
+                DBFullTextResultIterator(baseDao, fullTextSession, resultPredicates, sortBys.toTypedArray(), fullTextQuery = boolJunction.createQuery())
             }
         }
     }

@@ -54,19 +54,17 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
     }
 
     private val log = LoggerFactory.getLogger(DBQueryBuilder::class.java)
-    @Suppress("PrivatePropertyName")
-    private var dbQueryBuilderByCriteria_: DBQueryBuilderByCriteria<O>? = null
+    private var _dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O>? = null
     private val dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O>
         get() {
-            if (dbQueryBuilderByCriteria_ == null) dbQueryBuilderByCriteria_ = DBQueryBuilderByCriteria(baseDao)
-            return dbQueryBuilderByCriteria_!!
+            if (_dbQueryBuilderByCriteria == null) _dbQueryBuilderByCriteria = DBQueryBuilderByCriteria(baseDao)
+            return _dbQueryBuilderByCriteria!!
         }
-    @Suppress("PrivatePropertyName")
-    private var dbQueryBuilderByFullText_: DBQueryBuilderByFullText<O>? = null
+    private var _dbQueryBuilderByFullText: DBQueryBuilderByFullText<O>? = null
     private val dbQueryBuilderByFullText: DBQueryBuilderByFullText<O>
         get() {
-            if (dbQueryBuilderByFullText_ == null) dbQueryBuilderByFullText_ = DBQueryBuilderByFullText(baseDao, useMultiFieldQueryParser = mode == Mode.MULTI_FIELD_FULLTEXT_QUERY)
-            return dbQueryBuilderByFullText_!!
+            if (_dbQueryBuilderByFullText == null) _dbQueryBuilderByFullText = DBQueryBuilderByFullText(baseDao, useMultiFieldQueryParser = mode == Mode.MULTI_FIELD_FULLTEXT_QUERY)
+            return _dbQueryBuilderByFullText!!
         }
     private val mode: Mode
 
@@ -79,7 +77,7 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
      * matchers for filtering result list. Used e. g. for searching fields without index if criteria search is not
      * configured.
      */
-    private val resultPredicates = mutableListOf<DBPredicate>()
+    val resultPredicates = mutableListOf<DBPredicate>()
 
     private val criteriaSearchAvailable: Boolean
         get() = mode == Mode.CRITERIA
@@ -145,7 +143,7 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
         if (fullTextSearch) {
             return dbQueryBuilderByFullText.createResultIterator(resultPredicates)
         }
-        return dbQueryBuilderByCriteria.createResultIterator()
+        return dbQueryBuilderByCriteria.createResultIterator(resultPredicates)
     }
 
     fun close() {
