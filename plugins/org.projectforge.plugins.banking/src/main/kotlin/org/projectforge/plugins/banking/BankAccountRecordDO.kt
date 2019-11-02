@@ -41,7 +41,7 @@ class BankAccountRecordDO : DefaultBaseDO() {
     @get:JoinColumn(name = "account_fk", nullable = false)
     var account: BankAccountDO? = null
 
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "date_col", nullable = false)
     var date: Date? = null
 

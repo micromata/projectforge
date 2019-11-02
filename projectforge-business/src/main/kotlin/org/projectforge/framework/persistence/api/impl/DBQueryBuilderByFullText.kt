@@ -49,11 +49,12 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
                             || type.isAssignableFrom(Integer::class.java)
                             || type.isAssignableFrom(Int::class.java)
                             || type.isAssignableFrom(java.util.Date::class.java)
+                            || type.isAssignableFrom(java.sql.Date::class.java)
                             || type.isAssignableFrom(Enum::class.java)
                             || type.isAssignableFrom(java.lang.Enum::class.java)) {
                         stringFields.add(it) // Search only for fields of type string and int, if no special field is specified.
                     } else {
-                        if (log.isDebugEnabled) log.debug("Type of search property '${baseDao.doClass}.$it' not supported.")
+                        if (log.isDebugEnabled) log.debug("Type '${type.name}' of search property '${baseDao.doClass}.$it' not supported.")
                     }
                 } else {
                     log.warn("Search property '${baseDao.doClass}.$it' not found (ignoring it).")
@@ -62,6 +63,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
             return stringFields.toTypedArray()
         }
     }
+
     private var queryBuilder: QueryBuilder
     private var boolJunction: BooleanJunction<*>
     private val transaction: Transaction
@@ -219,13 +221,17 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     }
 
     fun createResultIterator(dbResultMatchers: List<DBPredicate>): DBResultIterator<O> {
-        return if (boolJunction.isEmpty) { // Shouldn't occur:
-            // No restrictions found, so use normal criteria search without where clause.
-            DBQueryBuilderByCriteria(baseDao).createResultIterator()
-        } else if (useMultiFieldQueryParser) {
-            DBFullTextResultIterator(baseDao, fullTextSession, dbResultMatchers, sortBys.toTypedArray(), usedSearchFields = usedSearchFields, multiFieldQuery = multiFieldQuery)
-        } else {
-            DBFullTextResultIterator(baseDao, fullTextSession, dbResultMatchers, sortBys.toTypedArray(), fullTextQuery = boolJunction.createQuery())
+        return when {
+            boolJunction.isEmpty -> { // Shouldn't occur:
+                // No restrictions found, so use normal criteria search without where clause.
+                DBQueryBuilderByCriteria(baseDao).createResultIterator()
+            }
+            useMultiFieldQueryParser -> {
+                DBFullTextResultIterator(baseDao, fullTextSession, dbResultMatchers, sortBys.toTypedArray(), usedSearchFields = usedSearchFields, multiFieldQuery = multiFieldQuery)
+            }
+            else -> {
+                DBFullTextResultIterator(baseDao, fullTextSession, dbResultMatchers, sortBys.toTypedArray(), fullTextQuery = boolJunction.createQuery())
+            }
         }
     }
 
@@ -234,7 +240,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     }
 
     private fun search(value: String, vararg fields: String) {
-        if (value.isNullOrBlank()) {
+        if (value.isBlank()) {
             return
         }
         val str = value.replace('%', '*')
@@ -249,7 +255,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
         } else {
             val context = if (str.indexOf('*') >= 0) {
                 if (fields.size > 1) {
-                    if (log.isDebugEnabled) log.debug("Adding fulltext search: [search] boolJunction.must(qb.keyword().wildcard().onFields('${fields.joinToString(", ")}').matching($str)...)")
+                    if (log.isDebugEnabled) log.debug("Adding fulltext search: [search] boolJunction.must(qb.keyword().wildcard().onFields(*).matching($str)...): fields:${fields.joinToString(", ")}")
                     queryBuilder.keyword().wildcard().onFields(*fields)
                 } else {
                     if (log.isDebugEnabled) log.debug("Adding fulltext search: [search] boolJunction.must(qb.keyword().wildcard().onField('${fields[0]}').matching($str)...)")
@@ -257,7 +263,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
                 }
             } else {
                 if (fields.size > 1) {
-                    if (log.isDebugEnabled) log.debug("Adding fulltext search: [search] boolJunction.must(qb.keyword().onFields('${fields.joinToString(", ")}').matching($str)...)")
+                    if (log.isDebugEnabled) log.debug("Adding fulltext search: [search] boolJunction.must(qb.keyword().onFields(*).matching($str)...): fields:${fields.joinToString(", ")}")
                     queryBuilder.keyword().onFields(*fields)
                 } else {
                     if (log.isDebugEnabled) log.debug("Adding fulltext search: [search] boolJunction.must(qb.keyword().onField('${fields[0]}').matching($str)...)")

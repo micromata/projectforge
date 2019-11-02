@@ -62,7 +62,7 @@ class DBFilter(
             val indexedSearchFields = DBQueryBuilderByFullText.getUsedSearchFields(baseDao)
             predicates.forEach { predicate ->
                 if (predicate.fullTextSupport
-                        && (predicate.field == null || indexedSearchFields!!.any { it == predicate.field })) {
+                        && (predicate.field == null || indexedSearchFields.any { it == predicate.field })) {
                     ++stats.numberOfFullTextQueries
                 } else {
                     ++stats.numberOfResultPredicates

@@ -125,7 +125,7 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search: [in] cb.in([${values.joinToString(", ", "'", "'") }].in'$field')")
+            if (log.isDebugEnabled) log.debug("Adding criteria search: [in] cb.in($field.in[${values.joinToString(", ", "'", "'")}])")
             val predicate = getField<Any>(root, field!!).`in`(values)
             return cb.`in`(predicate)
             // Alternative:
@@ -277,7 +277,7 @@ abstract class DBPredicate(
         }
     }
 
-    class Like(field: String, val expectedValue: String, val ignoreCase: Boolean = true)
+    class Like(field: String, val expectedValue: String, private val ignoreCase: Boolean = true)
         : DBPredicate(field, true) {
         internal var plainString: String
         internal val matchType: MatchType
@@ -326,7 +326,7 @@ abstract class DBPredicate(
         }
     }
 
-    class FullSearch(val expectedValue: String)
+    class FullSearch(private val expectedValue: String)
         : DBPredicate(null, true, false, false) {
         override fun match(obj: Any): Boolean {
             throw UnsupportedOperationException("match method only available for full text search!")
@@ -374,7 +374,7 @@ abstract class DBPredicate(
         }
     }
 
-    class And(vararg val predicates: DBPredicate) : DBPredicate(null, false) {
+    class And(private vararg val predicates: DBPredicate) : DBPredicate(null, false) {
 
         override fun match(obj: Any): Boolean {
             if (predicates.isNullOrEmpty()) {
@@ -393,7 +393,7 @@ abstract class DBPredicate(
         }
     }
 
-    class Or(vararg val predicates: DBPredicate) : DBPredicate(null, false) {
+    class Or(private vararg val predicates: DBPredicate) : DBPredicate(null, false) {
 
         override fun match(obj: Any): Boolean {
             if (predicates.isNullOrEmpty()) {
@@ -446,26 +446,30 @@ abstract class DBPredicate(
         if (nestedObj == null) {
             return match(nestedObj)
         }
-        if (nestedObj is Iterable<*>) {
-            for (it in nestedObj) {
-                val result =
-                        if (hasNext(path, idx))
-                            fieldValueMatch(it, path, idx + 1, match)
-                        else match(it)
-                if (result) return true
+        when (nestedObj) {
+            is Iterable<*> -> {
+                for (it in nestedObj) {
+                    val result =
+                            if (hasNext(path, idx))
+                                fieldValueMatch(it, path, idx + 1, match)
+                            else match(it)
+                    if (result) return true
+                }
             }
-        } else if (nestedObj is Array<*>) {
-            for (it in nestedObj) {
-                val result =
-                        if (hasNext(path, idx))
-                            fieldValueMatch(it, path, idx + 1, match)
-                        else match(it)
-                if (result) return true
+            is Array<*> -> {
+                for (it in nestedObj) {
+                    val result =
+                            if (hasNext(path, idx))
+                                fieldValueMatch(it, path, idx + 1, match)
+                            else match(it)
+                    if (result) return true
+                }
             }
-        } else {
-            if (hasNext(path, idx))
-                return fieldValueMatch(nestedObj, path, idx + 1, match)
-            return match(nestedObj)
+            else -> {
+                if (hasNext(path, idx))
+                    return fieldValueMatch(nestedObj, path, idx + 1, match)
+                return match(nestedObj)
+            }
         }
         return false
     }

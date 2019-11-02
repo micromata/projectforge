@@ -48,7 +48,7 @@ class BankAccountBalanceDO : DefaultBaseDO() {
     var account: BankAccountDO? = null
 
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "date_col", nullable = false)
     var date: Date? = null
 
