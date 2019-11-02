@@ -29,7 +29,6 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
-import org.projectforge.framework.persistence.api.SortOrder
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -64,32 +63,10 @@ class DBQuery {
         }
         try {
             val dbFilter = filter.createDBFilter()
-            val stats = dbFilter.createStatistics(baseDao)
-            val mode = if (stats.fullTextRequired) {
-                DBQueryBuilder.Mode.FULLTEXT
-                //DBQueryBuilder.Mode.MULTI_FIELD_FULLTEXT_QUERY
-            } else {
-                DBQueryBuilder.Mode.CRITERIA // Criteria search (no full text search entries found).
-            }
 
-            val queryBuilder = DBQueryBuilder(baseDao, tenantService, mode,
+            val queryBuilder = DBQueryBuilder(baseDao, tenantService, dbFilter,
                     // Check here mixing fulltext and criteria searches in comparison to full text searches and DBResultMatchers.
                     ignoreTenant = ignoreTenant)
-
-            dbFilter.predicates.forEach {
-                queryBuilder.addMatcher(it)
-            }
-
-            var maxOrder = 3
-            for (sortProperty in filter.sortProperties) {
-                var prop = sortProperty.property
-                if (prop.indexOf('.') > 0)
-                    prop = prop.substring(prop.indexOf('.') + 1)
-                queryBuilder.addOrder(SortBy(prop, sortProperty.sortOrder == SortOrder.ASCENDING))
-                if (--maxOrder <= 0)
-                    break // Add only 3 orders.
-            }
-            // TODO setCacheRegion(baseDao, criteria)
 
             val dbResultIterator: DBResultIterator<O>
             dbResultIterator = queryBuilder.result()
@@ -180,6 +157,8 @@ class DBQuery {
         if (filter.predicates.isNullOrEmpty())
             return true
         for (predicate in filter.predicates) {
+            if (predicate.fullTextSupport || predicate.criteriaSupport)
+                continue
             if (predicate.match(next)) {
                 return true
             }

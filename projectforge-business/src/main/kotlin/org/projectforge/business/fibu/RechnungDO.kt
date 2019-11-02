@@ -151,6 +151,7 @@ class RechnungDO : AbstractRechnungDO<RechnungsPositionDO>(), Comparable<Rechnun
 
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
     @JsonBackReference
+    @IndexedEmbedded(depth = 3)
     @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, mappedBy = "rechnung", targetEntity = RechnungsPositionDO::class)
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
     @get:ListIndexBase(1)
