@@ -56,28 +56,28 @@ class DBFilter(
                 break
             }
         }
-        val statistics = Statistics()
-        statistics.fullTextRequired = fullTextRequired
+        val stats = Statistics()
+        stats.fullTextRequired = fullTextRequired
         if (fullTextRequired) {
             val indexedSearchFields = DBQueryBuilderByFullText.getUsedSearchFields(baseDao)
             predicates.forEach { predicate ->
                 if (predicate.fullTextSupport
-                        && (predicate.field == null || indexedSearchFields.any { it == predicate.field })) {
-                    ++statistics.numberOfFullTextQueries
+                        && (predicate.field == null || indexedSearchFields!!.any { it == predicate.field })) {
+                    ++stats.numberOfFullTextQueries
                 } else {
-                    ++statistics.numberOfResultPredicates
+                    ++stats.numberOfResultPredicates
                 }
             }
         } else {
             predicates.forEach { predicate ->
                 if (predicate.criteriaSupport) {
-                    ++statistics.numberOfCriteriaPredicates
+                    ++stats.numberOfCriteriaPredicates
                 } else {
-                    ++statistics.numberOfResultPredicates
+                    ++stats.numberOfResultPredicates
                 }
             }
         }
-        return statistics
+        return stats
     }
 
     @Transient
