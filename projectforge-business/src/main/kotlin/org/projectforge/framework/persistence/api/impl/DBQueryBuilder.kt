@@ -26,6 +26,7 @@ package org.projectforge.framework.persistence.api.impl
 import org.projectforge.business.multitenancy.TenantService
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.SortOrder
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.slf4j.LoggerFactory
 
@@ -33,7 +34,7 @@ import org.slf4j.LoggerFactory
 class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
         val baseDao: BaseDao<O>,
         tenantService: TenantService,
-        val mode: Mode,
+        val dbFilter: DBFilter,
         ignoreTenant: Boolean = false) {
 
     enum class Mode {
@@ -65,6 +66,7 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
             if (dbQueryBuilderByFullText_ == null) dbQueryBuilderByFullText_ = DBQueryBuilderByFullText<O>(baseDao, useMultiFieldQueryParser = mode == Mode.MULTI_FIELD_FULLTEXT_QUERY)
             return dbQueryBuilderByFullText_!!
         }
+    private val mode: Mode
 
     /**
      * As an alternative to the query builder of the full text search, Hibernate search supports a simple query string,
@@ -84,6 +86,13 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
         get() = mode == Mode.FULLTEXT || mode == Mode.MULTI_FIELD_FULLTEXT_QUERY
 
     init {
+        val stats = dbFilter.createStatistics(baseDao)
+        mode = if (stats.fullTextRequired) {
+            DBQueryBuilder.Mode.FULLTEXT
+            //DBQueryBuilder.Mode.MULTI_FIELD_FULLTEXT_QUERY
+        } else {
+            DBQueryBuilder.Mode.CRITERIA // Criteria search (no full text search entries found).
+        }
         if (!ignoreTenant && tenantService.isMultiTenancyAvailable) {
             val userContext = ThreadLocalUserContext.getUserContext()
             val currentTenant = userContext.currentTenant
@@ -96,6 +105,21 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
                 }
             }
         }
+        dbFilter.predicates.forEach {
+            addMatcher(it)
+        }
+
+        var maxOrder = 3
+        for (sortProperty in dbFilter.sortProperties) {
+            var prop = sortProperty.property
+            if (prop.indexOf('.') > 0)
+                prop = prop.substring(prop.indexOf('.') + 1)
+            addOrder(SortBy(prop, sortProperty.sortOrder == SortOrder.ASCENDING))
+            if (--maxOrder <= 0)
+                break // Add only 3 orders.
+        }
+        // TODO setCacheRegion(baseDao, criteria)
+
     }
 
     fun equal(field: String, value: Any) {

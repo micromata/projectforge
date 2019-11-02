@@ -87,8 +87,10 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun equal(field: String, value: Any): Boolean {
         if (usedSearchFields.contains(field)) {
             if (useMultiFieldQueryParser) {
+                if (log.isDebugEnabled) log.debug("Adding multifieldQuery: [equal] +$field:$value")
                 multiFieldQuery.add("+$field:$value")
             } else {
+                if (log.isDebugEnabled) log.debug("Adding fulltext search: [equal] boolJunction.must(qb.keyword().onField('$field').matching('$value')...)")
                 boolJunction = boolJunction.must(queryBuilder.keyword().onField(field).matching(value).createQuery())
             }
             return true
@@ -102,8 +104,10 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun notEqual(field: String, value: Any): Boolean {
         if (usedSearchFields.contains(field)) {
             if (useMultiFieldQueryParser) {
+                if (log.isDebugEnabled) log.debug("Adding multifieldQuery: [notEqual] -$field:$value")
                 multiFieldQuery.add("-$field:$value")
             } else {
+                if (log.isDebugEnabled) log.debug("Adding fulltext search: [notEqual] boolJunction.must(qb.keyword().onField('$field').matching('$value')...).not()")
                 boolJunction = boolJunction.must(queryBuilder.keyword().onField(field).matching(value).createQuery()).not()
             }
             return true
@@ -117,8 +121,10 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun <O : Comparable<O>> between(field: String, from: O, to: O): Boolean {
         if (usedSearchFields.contains(field)) {
             if (useMultiFieldQueryParser) {
+                if (log.isDebugEnabled) log.debug("Adding multifieldQuery: [between] +$field:[$from TO $to]")
                 multiFieldQuery.add("+$field:[$from TO $to]")
             } else {
+                if (log.isDebugEnabled) log.debug("Adding fulltext search: [between] boolJunction.must(qb.range().onField('$field').from('$from').to('$to')...)")
                 boolJunction = boolJunction.must(queryBuilder.range().onField(field).from(from).to(to).createQuery())
             }
             return true
@@ -132,8 +138,10 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun <O : Comparable<O>> greater(field: String, from: O): Boolean {
         if (usedSearchFields.contains(field)) {
             if (useMultiFieldQueryParser) {
+                if (log.isDebugEnabled) log.debug("Adding multifieldQuery: [greater] +$field:{$from TO *}")
                 multiFieldQuery.add("+$field:{$from TO *}")
             } else {
+                if (log.isDebugEnabled) log.debug("Adding fulltext search: [greater] boolJunction.must(qb.range().onField('$field').above('$from').excludeLimit()...)")
                 boolJunction = boolJunction.must(queryBuilder.range().onField(field).above(from).excludeLimit().createQuery())
             }
             return true
@@ -147,8 +155,10 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun <O : Comparable<O>> greaterEqual(field: String, from: O): Boolean {
         if (usedSearchFields.contains(field)) {
             if (useMultiFieldQueryParser) {
+                if (log.isDebugEnabled) log.debug("Adding multifieldQuery: [greaterEqual] +$field:[$from TO *]")
                 multiFieldQuery.add("+$field:[$from TO *]")
             } else {
+                if (log.isDebugEnabled) log.debug("Adding fulltext search: [greaterEqual] boolJunction.must(qb.range().onField('$field').above('$from')...)")
                 boolJunction = boolJunction.must(queryBuilder.range().onField(field).above(from).createQuery())
             }
             return true
@@ -162,8 +172,10 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun <O : Comparable<O>> less(field: String, to: O): Boolean {
         if (usedSearchFields.contains(field)) {
             if (useMultiFieldQueryParser) {
+                if (log.isDebugEnabled) log.debug("Adding multifieldQuery: [less] +$field:{* TO $to}")
                 multiFieldQuery.add("+$field:{* TO $to}")
             } else {
+                if (log.isDebugEnabled) log.debug("Adding fulltext search: [less] boolJunction.must(qb.range().below('$field').excludeLimit()...)")
                 boolJunction = boolJunction.must(queryBuilder.range().onField(field).below(to).excludeLimit().createQuery())
             }
             return true
@@ -177,8 +189,10 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun <O : Comparable<O>> lessEqual(field: String, to: O): Boolean {
         if (usedSearchFields.contains(field)) {
             if (useMultiFieldQueryParser) {
+                if (log.isDebugEnabled) log.debug("Adding multifieldQuery: [lessEqual] +$field:[* TO $to]")
                 multiFieldQuery.add("+$field:[* TO $to]")
             } else {
+                if (log.isDebugEnabled) log.debug("Adding fulltext search: [lessEqual] boolJunction.must(qb.range().below('$field')...)")
                 boolJunction = boolJunction.must(queryBuilder.range().onField(field).below(to).createQuery())
             }
             return true
@@ -216,21 +230,27 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
         val str = value.replace('%', '*')
         if (useMultiFieldQueryParser) {
             if (fields.isNotEmpty() && fields.size == 1) {
+                if (log.isDebugEnabled) log.debug("Adding multifieldQuery: [search] +${fields[0]}:$str")
                 multiFieldQuery.add("+${fields[0]}:$str")
             } else {
+                if (log.isDebugEnabled) log.debug("Adding multifieldQuery: [search] +$str")
                 multiFieldQuery.add("+$str")
             }
         } else {
             val context = if (str.indexOf('*') >= 0) {
                 if (fields.size > 1) {
+                    if (log.isDebugEnabled) log.debug("Adding fulltext search: [search] boolJunction.must(qb.keyword().wildcard().onFields('${fields.joinToString(", ")}').matching($str)...)")
                     queryBuilder.keyword().wildcard().onFields(*fields)
                 } else {
+                    if (log.isDebugEnabled) log.debug("Adding fulltext search: [search] boolJunction.must(qb.keyword().wildcard().onField('${fields[0]}').matching($str)...)")
                     queryBuilder.keyword().wildcard().onField(fields[0])
                 }
             } else {
                 if (fields.size > 1) {
+                    if (log.isDebugEnabled) log.debug("Adding fulltext search: [search] boolJunction.must(qb.keyword().onFields('${fields.joinToString(", ")}').matching($str)...)")
                     queryBuilder.keyword().onFields(*fields)
                 } else {
+                    if (log.isDebugEnabled) log.debug("Adding fulltext search: [search] boolJunction.must(qb.keyword().onField('${fields[0]}').matching($str)...)")
                     queryBuilder.keyword().onField(fields[0])
                 }
             }

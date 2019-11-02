@@ -27,9 +27,15 @@ import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.SortProperty
 
+/**
+ * DBFilter is created by QueryFilter and hold all predicates for building a query.
+ */
 class DBFilter(
         var sortAndLimitMaxRowsWhileSelect: Boolean = true,
         var maxRows: Int = 50) {
+    /**
+     * Statistics are needed to evaluate which query should be used (full-text or criteria search).
+     */
     class Statistics {
         var fullTextRequired: Boolean = false
         var numberOfCriteriaPredicates = 0
