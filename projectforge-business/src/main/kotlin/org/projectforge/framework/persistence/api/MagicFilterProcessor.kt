@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.api
 
-import org.hibernate.Criteria
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.api.impl.DBPredicate
@@ -106,14 +105,6 @@ object MagicFilterProcessor {
         } else {
             log.warn("Search entry of type '${fieldType.name}' not yet supported for field '$field'.")
         }
-    }
-
-    fun setCacheRegion(baseDao: BaseDao<*>, criteria: Criteria) {
-        criteria.setCacheable(true)
-        if (!baseDao.useOwnCriteriaCacheRegion()) {
-            return
-        }
-        criteria.setCacheRegion(baseDao.javaClass.name)
     }
 
     internal fun isHistoryEntry(field: String?): Boolean {

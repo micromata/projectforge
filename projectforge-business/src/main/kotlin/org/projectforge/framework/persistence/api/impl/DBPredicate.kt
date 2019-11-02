@@ -70,7 +70,7 @@ abstract class DBPredicate(
     class Equal(field: String, val value: Any)
         : DBPredicate(field, true) {
         override fun match(obj: Any): Boolean {
-            return fieldValueMatch(obj, field!!) { Objects.equals(value, it) }
+            return fieldValueMatch(obj, field!!) { isEquals(value, it) }
         }
 
         /**
@@ -89,7 +89,7 @@ abstract class DBPredicate(
     class NotEqual(field: String, val value: Any)
         : DBPredicate(field, true) {
         override fun match(obj: Any): Boolean {
-            return fieldValueMatch(obj, field!!) { !Objects.equals(value, it) }
+            return fieldValueMatch(obj, field!!) { !isEquals(value, it) }
         }
 
         /**
@@ -114,7 +114,7 @@ abstract class DBPredicate(
         private fun innerMatch(value: Any?): Boolean {
             if (value == null) return false
             for (v in values) {
-                if (Objects.equals(v, value)) {
+                if (isEquals(v, value)) {
                     return true
                 }
             }
@@ -157,6 +157,7 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+            if (log.isDebugEnabled) log.debug("Adding criteria search: [between] cb.between($field, $from, $to)")
             return cb.between(getField<T>(root, field!!), from, to)
         }
 
@@ -185,6 +186,7 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+            if (log.isDebugEnabled) log.debug("Adding criteria search: [greater] cb.greaterThan($field, $from)")
             return cb.greaterThan(getField<O>(root, field!!), from)
         }
 
@@ -213,6 +215,7 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+            if (log.isDebugEnabled) log.debug("Adding criteria search: [greaterEqual] cb.greaterThanOrEqualTo($field, $from)")
             return cb.greaterThanOrEqualTo(getField<O>(root, field!!), from)
         }
 
@@ -241,6 +244,7 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+            if (log.isDebugEnabled) log.debug("Adding criteria search: [less] cb.lessThan($field, $to)")
             return cb.lessThan(getField<O>(root, field!!), to)
         }
 
@@ -269,6 +273,7 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+            if (log.isDebugEnabled) log.debug("Adding criteria search: [lessEqual] cb.lessThanOrEqualTo($field, $to)")
             return cb.lessThanOrEqualTo(getField<O>(root, field!!), to)
         }
 
@@ -318,6 +323,7 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+            if (log.isDebugEnabled) log.debug("Adding criteria search: [like] cb.like(cb.lower($field, $expectedValue))")
             return cb.like(cb.lower(getField<String>(root, field!!)), expectedValue)
         }
 
@@ -350,6 +356,7 @@ abstract class DBPredicate(
         }
 
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+            if (log.isDebugEnabled) log.debug("Adding criteria search: [isNull] cb.isNull($field)")
             return cb.isNull(getField<Any>(root, field!!))
         }
     }
@@ -360,6 +367,7 @@ abstract class DBPredicate(
         }
 
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+            if (log.isDebugEnabled) log.debug("Adding criteria search: [isNotNull] cb.isNotNull($field)")
             return cb.isNotNull(getField<Any>(root, field!!))
         }
     }
@@ -370,7 +378,10 @@ abstract class DBPredicate(
         }
 
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.not(predicate.asPredicate(cb, root))
+            if (log.isDebugEnabled) log.debug("Adding criteria search: [not] cb.not(... started.")
+            val result = cb.not(predicate.asPredicate(cb, root))
+            if (log.isDebugEnabled) log.debug("Adding criteria search: [not] cb.not(... ended.")
+            return result
         }
     }
 
@@ -389,7 +400,10 @@ abstract class DBPredicate(
         }
 
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.and(*predicates.map { it.asPredicate(cb, root) }.toTypedArray())
+            if (log.isDebugEnabled) log.debug("Adding criteria search: [and] cb.and(... started.")
+            val result = cb.and(*predicates.map { it.asPredicate(cb, root) }.toTypedArray())
+            if (log.isDebugEnabled) log.debug("Adding criteria search: [and] cb.and(... ended.")
+            return result
         }
     }
 
@@ -408,7 +422,10 @@ abstract class DBPredicate(
         }
 
         override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
-            return cb.or(*predicates.map { it.asPredicate(cb, root) }.toTypedArray())
+            if (log.isDebugEnabled) log.debug("Adding criteria search: [or] cb.or(... started.")
+            val result =  cb.or(*predicates.map { it.asPredicate(cb, root) }.toTypedArray())
+            if (log.isDebugEnabled) log.debug("Adding criteria search: [or] cb.or(... ended.")
+            return result
         }
     }
 
@@ -472,6 +489,15 @@ abstract class DBPredicate(
             }
         }
         return false
+    }
+
+    internal fun isEquals(val1: Any?, val2: Any?): Boolean {
+        if (val1 == null && val2 == null) return true   // null is equal null
+        if (val1 == null || val2 == null) return false  // null isn't equal to non-null.
+        if (val1::class.java.isEnum || val2::class.java.isEnum) {
+            return Objects.equals(val1.toString(), val2.toString()) // enums should match their string representations.
+        }
+        return Objects.equals(val1, val2)
     }
 
     private fun getProperty(obj: Any?, field: String): Any? {

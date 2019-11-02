@@ -102,7 +102,7 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null, va
                 if (filter.stopTimeOfModification != null) modifiedTo = PFDateTime.from(filter.stopTimeOfModification)
             }
             if (filter.modifiedByUserId != null) modifiedByUserId = filter.modifiedByUserId
-            if (filter.maxRows > 0) maxRows = filter.maxRows
+            // if (filter.maxRows > 0) maxRows = filter.maxRows // Legacy gets whole result list and supports pagination.
         }
     }
 
@@ -115,11 +115,6 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null, va
         return this
     }
 
-    /**
-     * @param order
-     * @return
-     * @see org.hibernate.Criteria.addOrder
-     */
     fun addOrder(vararg sortProperty: SortProperty): QueryFilter {
         sortProperties.addAll(sortProperty)
         return this
