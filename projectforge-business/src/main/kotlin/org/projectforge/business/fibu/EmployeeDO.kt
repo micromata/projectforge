@@ -131,7 +131,6 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
 
     @PropertyInfo(i18nKey = "fibu.employee.urlaubstage")
     @Field(analyze = Analyze.NO)
-    @FieldBridge(impl = ToStringFieldBridge::class)
     @get:Column
     open var urlaubstage: Int? = null // Open needed for mocking in VacationServiceTest
 
