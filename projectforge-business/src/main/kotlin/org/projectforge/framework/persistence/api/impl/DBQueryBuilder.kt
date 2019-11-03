@@ -30,10 +30,12 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.slf4j.LoggerFactory
+import javax.persistence.EntityManager
 
 
 class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
         private val baseDao: BaseDao<O>,
+        private val entityManager: EntityManager,
         tenantService: TenantService,
         private val queryFilter: QueryFilter,
         dbFilter: DBFilter,
@@ -59,13 +61,13 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
     private var _dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O>? = null
     private val dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O>
         get() {
-            if (_dbQueryBuilderByCriteria == null) _dbQueryBuilderByCriteria = DBQueryBuilderByCriteria(baseDao, queryFilter)
+            if (_dbQueryBuilderByCriteria == null) _dbQueryBuilderByCriteria = DBQueryBuilderByCriteria(baseDao, entityManager, queryFilter)
             return _dbQueryBuilderByCriteria!!
         }
     private var _dbQueryBuilderByFullText: DBQueryBuilderByFullText<O>? = null
     private val dbQueryBuilderByFullText: DBQueryBuilderByFullText<O>
         get() {
-            if (_dbQueryBuilderByFullText == null) _dbQueryBuilderByFullText = DBQueryBuilderByFullText(baseDao, queryFilter, useMultiFieldQueryParser = mode == Mode.MULTI_FIELD_FULLTEXT_QUERY)
+            if (_dbQueryBuilderByFullText == null) _dbQueryBuilderByFullText = DBQueryBuilderByFullText(baseDao, entityManager, queryFilter, useMultiFieldQueryParser = mode == Mode.MULTI_FIELD_FULLTEXT_QUERY)
             return _dbQueryBuilderByFullText!!
         }
     private val mode: Mode
@@ -145,12 +147,6 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
             return dbQueryBuilderByFullText.createResultIterator(resultPredicates)
         }
         return dbQueryBuilderByCriteria.createResultIterator(resultPredicates)
-    }
-
-    fun close() {
-        if (fullTextSearch) {
-            dbQueryBuilderByFullText.close()
-        }
     }
 
     /**
