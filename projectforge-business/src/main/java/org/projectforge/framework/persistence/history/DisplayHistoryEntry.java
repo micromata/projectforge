@@ -32,7 +32,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Transformer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.hibernate.Session;
 import org.jfree.util.Log;
 import org.projectforge.business.address.AddressbookDO;
 import org.projectforge.business.fibu.EmployeeDO;
@@ -43,6 +42,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberHelper;
 
+import javax.persistence.EntityManager;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.*;
@@ -98,7 +98,7 @@ public class DisplayHistoryEntry implements Serializable
   }
 
   public DisplayHistoryEntry(final UserGroupCache userGroupCache, final HistoryEntry entry, final DiffEntry prop,
-      final Session session)
+                             final EntityManager em)
   {
     this(userGroupCache, entry);
     if (prop.getNewProp() != null) {
@@ -113,7 +113,7 @@ public class DisplayHistoryEntry implements Serializable
     Object newObjectValue = null;
 
     try {
-      oldObjectValue = getObjectValue(userGroupCache, session, prop.getOldProp());
+      oldObjectValue = getObjectValue(userGroupCache, em, prop.getOldProp());
     } catch (final Exception ex) {
       oldObjectValue = "???";
       log.warn("Error while try to parse old object value '"
@@ -125,7 +125,7 @@ public class DisplayHistoryEntry implements Serializable
     }
 
     try {
-      newObjectValue = getObjectValue(userGroupCache, session, prop.getNewProp());
+      newObjectValue = getObjectValue(userGroupCache, em, prop.getNewProp());
     } catch (final Exception ex) {
       newObjectValue = "???";
       log.warn("Error while try to parse new object value '"
@@ -155,7 +155,7 @@ public class DisplayHistoryEntry implements Serializable
     return String.valueOf(toShortNameOfList(value));
   }
 
-  protected Object getObjectValue(UserGroupCache userGroupCache, Session session, HistProp prop)
+  protected Object getObjectValue(UserGroupCache userGroupCache, EntityManager em, HistProp prop)
   {
     if (prop == null) {
       return null;
@@ -175,7 +175,7 @@ public class DisplayHistoryEntry implements Serializable
     }
     if (EmployeeDO.class.getName().equals(type) || AddressbookDO.class.getName().equals(type)) {
       StringBuffer sb = new StringBuffer();
-      getDBObjects(session, prop).forEach(dbObject -> {
+      getDBObjects(em, prop).forEach(dbObject -> {
         if (dbObject instanceof EmployeeDO) {
           EmployeeDO employee = (EmployeeDO) dbObject;
           sb.append(employee.getUser().getFullname() + ";");
@@ -189,10 +189,10 @@ public class DisplayHistoryEntry implements Serializable
       return sb.toString();
     }
 
-    return getDBObjects(session, prop);
+    return getDBObjects(em, prop);
   }
 
-  private List<Object> getDBObjects(Session session, HistProp prop)
+  private List<Object> getDBObjects(EntityManager em, HistProp prop)
   {
     List<Object> ret = new ArrayList<>();
     EntityMetadata emd = PfEmgrFactory.get().getMetadataRepository().findEntityMetadata(prop.getType());
@@ -207,7 +207,7 @@ public class DisplayHistoryEntry implements Serializable
     for (String pks : sa) {
       try {
         int pk = Integer.parseInt(pks);
-        Object ent = session.get(emd.getJavaType(), pk);
+        Object ent = em.find(emd.getJavaType(), pk);
         if (ent != null) {
           ret.add(ent);
         }
