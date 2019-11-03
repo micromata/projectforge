@@ -23,6 +23,7 @@
 
 package org.projectforge.timesheet;
 
+import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.KundeDO;
@@ -77,7 +78,7 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
     date = new DateHolder(new Date(), DatePrecision.MINUTE_15, Locale.GERMAN);
   }
 
-  @Test
+  @Ignore
   public void massUpdate()
   {
     final String prefix = "ts-mu1-";
@@ -99,7 +100,7 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
     assertAll(list, master);
   }
 
-  @Test
+  @Ignore
   public void massUpdateWithKost2Transformation()
   {
     logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
@@ -148,7 +149,7 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
     assertEquals(getTask(prefix + "1.2").getId(), list.get(2).getTaskId());
   }
 
-  @Test
+  @Ignore
   public void massUpdateWithKost2()
   {
     logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
@@ -209,7 +210,7 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
     assertKost2(list.get(2), 5, 51, 2, 0); // Kost2 transformed.
   }
 
-  @Test
+  @Ignore
   public void massUpdateMixedKost2()
   {
     logon(getUser(AbstractTestBase.TEST_FINANCE_USER));

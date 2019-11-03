@@ -80,7 +80,6 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {TestConfiguration.class})
-//@SpringJUnitConfig(TestConfiguration.class)
 public abstract class AbstractTestBase {
   protected static final org.slf4j.Logger log = org.slf4j.LoggerFactory
           .getLogger(AbstractTestBase.class);
