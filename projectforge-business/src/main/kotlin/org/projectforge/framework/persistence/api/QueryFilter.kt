@@ -24,6 +24,7 @@
 package org.projectforge.framework.persistence.api
 
 import org.projectforge.business.tasktree.TaskTreeHelper
+import org.projectforge.framework.persistence.api.impl.DBAlias
 import org.projectforge.framework.persistence.api.impl.DBFilter
 import org.projectforge.framework.persistence.api.impl.DBHistorySearchParams
 import org.projectforge.framework.persistence.api.impl.DBPredicate
@@ -31,6 +32,7 @@ import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDateTime
 import org.slf4j.LoggerFactory
 import java.util.*
+import javax.persistence.criteria.JoinType
 
 /**
  * If no maximum number of results is defined, MAX_ROWS is used as max value.
@@ -45,6 +47,8 @@ const val QUERY_FILTER_MAX_ROWS: Int = 10000;
  */
 class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null, val ignoreTenant: Boolean = false) {
     private val predicates = mutableListOf<DBPredicate>()
+
+    val aliasList = mutableListOf<DBAlias>()
 
     var sortProperties = mutableListOf<SortProperty>()
 
@@ -117,6 +121,16 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null, va
 
     fun addOrder(vararg sortProperty: SortProperty): QueryFilter {
         sortProperties.addAll(sortProperty)
+        return this
+    }
+
+    /**
+     * Create an alias for criteria search, used for JoinSets.
+     * @return this for chaining.
+     */
+    @JvmOverloads
+    fun createAlias(attr: String, alias: String, joinType: JoinType = JoinType.LEFT, parent: String? = null): QueryFilter {
+        aliasList.add(DBAlias(attr, alias, joinType, parent))
         return this
     }
 

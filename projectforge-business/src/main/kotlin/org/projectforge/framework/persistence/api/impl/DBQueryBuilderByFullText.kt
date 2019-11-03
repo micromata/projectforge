@@ -30,10 +30,15 @@ import org.hibernate.search.query.dsl.QueryBuilder
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.QueryFilter
 import org.slf4j.LoggerFactory
 
 internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
         val baseDao: BaseDao<O>,
+        /**
+         * Only for fall back to criteria search if no predicates found for full text search.
+         */
+        private val queryFilter: QueryFilter,
         val useMultiFieldQueryParser: Boolean = false,
         private var usedSearchFields: Array<String> = getUsedSearchFields(baseDao)) {
     companion object {
@@ -222,7 +227,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
         return when {
             boolJunction.isEmpty -> { // Shouldn't occur:
                 // No restrictions found, so use normal criteria search without where clause.
-                DBQueryBuilderByCriteria(baseDao).createResultIterator(resultPredicates)
+                DBQueryBuilderByCriteria(baseDao, queryFilter).createResultIterator(resultPredicates)
             }
             useMultiFieldQueryParser -> {
                 DBFullTextResultIterator(baseDao, fullTextSession, resultPredicates, sortBys.toTypedArray(), usedSearchFields = usedSearchFields, multiFieldQuery = multiFieldQuery)
