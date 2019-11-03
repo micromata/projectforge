@@ -241,34 +241,33 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
         if (value.isBlank()) {
             return
         }
-        val str = value.replace('%', '*')
         if (useMultiFieldQueryParser) {
             if (fields.isNotEmpty() && fields.size == 1) {
-                if (log.isDebugEnabled) log.debug("Adding multifieldQuery: [search] +${fields[0]}:$str")
-                multiFieldQuery.add("+${fields[0]}:$str")
+                if (log.isDebugEnabled) log.debug("Adding multifieldQuery: [search] ${fields[0]}:$value")
+                multiFieldQuery.add("${fields[0]}:$value")
             } else {
-                if (log.isDebugEnabled) log.debug("Adding multifieldQuery: [search] +$str")
-                multiFieldQuery.add("$str")
+                if (log.isDebugEnabled) log.debug("Adding multifieldQuery: [search] $value")
+                multiFieldQuery.add("$value")
             }
         } else {
-            val context = if (str.indexOf('*') >= 0) {
+            val context = if (value.indexOf('*') >= 0) {
                 if (fields.size > 1) {
-                    if (log.isDebugEnabled) log.debug("Adding fulltext search: [search] boolJunction.must(qb.keyword().wildcard().onFields(*).matching($str)...): fields:${fields.joinToString(", ")}")
+                    if (log.isDebugEnabled) log.debug("Adding fulltext search: [search] boolJunction.must(qb.keyword().wildcard().onFields(*).matching($value)...): fields:${fields.joinToString(", ")}")
                     queryBuilder.keyword().wildcard().onFields(*fields)
                 } else {
-                    if (log.isDebugEnabled) log.debug("Adding fulltext search: [search] boolJunction.must(qb.keyword().wildcard().onField('${fields[0]}').matching($str)...)")
+                    if (log.isDebugEnabled) log.debug("Adding fulltext search: [search] boolJunction.must(qb.keyword().wildcard().onField('${fields[0]}').matching($value)...)")
                     queryBuilder.keyword().wildcard().onField(fields[0])
                 }
             } else {
                 if (fields.size > 1) {
-                    if (log.isDebugEnabled) log.debug("Adding fulltext search: [search] boolJunction.must(qb.keyword().onFields(*).matching($str)...): fields:${fields.joinToString(", ")}")
+                    if (log.isDebugEnabled) log.debug("Adding fulltext search: [search] boolJunction.must(qb.keyword().onFields(*).matching($value)...): fields:${fields.joinToString(", ")}")
                     queryBuilder.keyword().onFields(*fields)
                 } else {
-                    if (log.isDebugEnabled) log.debug("Adding fulltext search: [search] boolJunction.must(qb.keyword().onField('${fields[0]}').matching($str)...)")
+                    if (log.isDebugEnabled) log.debug("Adding fulltext search: [search] boolJunction.must(qb.keyword().onField('${fields[0]}').matching($value)...)")
                     queryBuilder.keyword().onField(fields[0])
                 }
             }
-            boolJunction = boolJunction.must(context.matching(str).createQuery())
+            boolJunction = boolJunction.must(context.ignoreAnalyzer().matching(value).createQuery())
         }
     }
 
