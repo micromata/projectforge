@@ -77,6 +77,18 @@ class DBPredicateTest {
     }
 
     @Test
+    fun likeTest() {
+        Assertions.assertEquals("", DBPredicate.Like("name", "").queryString)
+        Assertions.assertEquals("%", DBPredicate.Like("name", "*").queryString)
+        Assertions.assertEquals("%%", DBPredicate.Like("name", "**").queryString)
+        Assertions.assertEquals("%%", DBPredicate.Like("name", "*%").queryString)
+        Assertions.assertEquals("%%", DBPredicate.Like("name", "%*").queryString)
+        Assertions.assertEquals("test%", DBPredicate.Like("name", "test*").queryString)
+        Assertions.assertEquals("%test%", DBPredicate.Like("name", "*test*").queryString)
+        Assertions.assertEquals("%test", DBPredicate.Like("name", "*test").queryString)
+    }
+
+    @Test
     fun multiFieldFulltextQueryRequiredTest() {
         testMultiField("dfladksj", false)
         testMultiField("dfladksj* dfakl+", false)
