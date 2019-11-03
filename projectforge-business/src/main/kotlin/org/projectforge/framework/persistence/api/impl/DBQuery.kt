@@ -109,11 +109,11 @@ class DBQuery {
                 || !historSearchParams.searchHistory.isNullOrBlank()) {
             // Search now all history entries which were modified by the given user and/or in the given time period.
             val idSet = if (historSearchParams.searchHistory.isNullOrBlank()) {
-                DBHistoryQuery.searchHistoryEntryByCriteria(baseDao.session, baseDao.doClass, historSearchParams)
-                //baseDao.getHistoryEntries(baseDao.session, baseSearchFilter) // No full text required.
+                DBHistoryQuery.searchHistoryEntryByCriteria(baseDao.entityManager, baseDao.doClass, historSearchParams)
+                //baseDao.getHistoryEntries(baseDao.entityManager, baseSearchFilter) // No full text required.
             } else {
-                DBHistoryQuery.searchHistoryEntryByFullTextQuery(baseDao.session, baseDao.doClass, historSearchParams)
-                //baseDao.getHistoryEntriesFullTextSearch(baseDao.session, baseSearchFilter)
+                DBHistoryQuery.searchHistoryEntryByFullTextQuery(baseDao.entityManager, baseDao.doClass, historSearchParams)
+                //baseDao.getHistoryEntriesFullTextSearch(baseDao.entityManager, baseSearchFilter)
             }
             while (next != null) {
                 if (!ensureUniqueSet.contains(next.id)) {

@@ -70,6 +70,8 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import java.io.Serializable;
@@ -143,6 +145,9 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   @Autowired
   private SessionFactory sessionFactory;
+
+  @PersistenceContext
+  protected EntityManager entityManager;
 
   @Autowired
   protected PfEmgrFactory emgrFactory;
@@ -1497,6 +1502,10 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   public Session getSession() {
     return sessionFactory.getCurrentSession();
+  }
+
+  public EntityManager getEntityManager() {
+    return entityManager;
   }
 
   public HibernateTemplate getHibernateTemplate() {

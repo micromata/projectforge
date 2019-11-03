@@ -40,8 +40,11 @@ import javax.persistence.criteria.JoinType
 const val QUERY_FILTER_MAX_ROWS: Int = 10000;
 
 /**
- * Stores the expressions and settings for creating a hibernate criteria object. This template is useful for avoiding
- * the need of a hibernate session in the stripes action classes.
+ * Convenient helper to create database queries (criteria search, full text search and search in result lists).
+ * It will be automatically detected, which kind of database query is needed (critery, full text or multi field full text query).
+ * Field of the index of hibernate search will be detected and used in full text queries, if not indexed, the result will be filtered.
+ *
+ * You may add your predicates (independent of which strategy is used behind). The query strategy is automatically done.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
