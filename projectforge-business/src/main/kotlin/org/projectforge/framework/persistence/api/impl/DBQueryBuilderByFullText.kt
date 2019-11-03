@@ -225,12 +225,12 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
 
     fun createResultIterator(resultPredicates: List<DBPredicate>): DBResultIterator<O> {
         return when {
+            useMultiFieldQueryParser -> {
+                DBFullTextResultIterator(baseDao, fullTextSession, resultPredicates, sortBys.toTypedArray(), usedSearchFields = usedSearchFields, multiFieldQuery = multiFieldQuery)
+            }
             boolJunction.isEmpty -> { // Shouldn't occur:
                 // No restrictions found, so use normal criteria search without where clause.
                 DBQueryBuilderByCriteria(baseDao, queryFilter).createResultIterator(resultPredicates)
-            }
-            useMultiFieldQueryParser -> {
-                DBFullTextResultIterator(baseDao, fullTextSession, resultPredicates, sortBys.toTypedArray(), usedSearchFields = usedSearchFields, multiFieldQuery = multiFieldQuery)
             }
             else -> {
                 DBFullTextResultIterator(baseDao, fullTextSession, resultPredicates, sortBys.toTypedArray(), fullTextQuery = boolJunction.createQuery())
@@ -253,7 +253,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
                 multiFieldQuery.add("+${fields[0]}:$str")
             } else {
                 if (log.isDebugEnabled) log.debug("Adding multifieldQuery: [search] +$str")
-                multiFieldQuery.add("+$str")
+                multiFieldQuery.add("$str")
             }
         } else {
             val context = if (str.indexOf('*') >= 0) {

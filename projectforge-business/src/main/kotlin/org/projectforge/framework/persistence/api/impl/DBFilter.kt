@@ -37,7 +37,15 @@ class DBFilter(
      * Statistics are needed to evaluate which query should be used (full-text or criteria search).
      */
     class Statistics {
+        /**
+         * Full text search is required for search strings without field specification (if neither Criteria search
+         * nor result search is supported).
+         */
         var fullTextRequired: Boolean = false
+        /**
+         * If full text search without field specification strings contains '<field>:'.
+         */
+        var multiFieldFullTextQueryRequired: Boolean = false
         var numberOfCriteriaPredicates = 0
         var numberOfFullTextQueries = 0
         var numberOfResultPredicates = 0
@@ -49,14 +57,16 @@ class DBFilter(
 
 
     fun createStatistics(baseDao: BaseDao<*>): Statistics {
+        val stats = Statistics()
         var fullTextRequired = false
         for (it in predicates) {
             if (!it.criteriaSupport && !it.resultSetSupport) {
                 fullTextRequired = true
-                break
+            }
+            if (it is DBPredicate.FullSearch && it.multiFieldFulltextQueryRequired()) {
+                stats.multiFieldFullTextQueryRequired = true
             }
         }
-        val stats = Statistics()
         stats.fullTextRequired = fullTextRequired
         if (fullTextRequired) {
             val indexedSearchFields = DBQueryBuilderByFullText.getUsedSearchFields(baseDao)
