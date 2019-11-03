@@ -26,6 +26,7 @@ package org.projectforge.framework.persistence.api.impl
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.SortProperty
 import javax.persistence.criteria.Predicate
 
 internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Int>>(
@@ -58,12 +59,12 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Int>>(
         return DBCriteriaResultIterator(baseDao.session, ctx.cr.select(ctx.root).where(*predicates.toTypedArray()).orderBy(*order.toTypedArray()), resultPredicates)
     }
 
-    fun addOrder(sortBy: SortBy) {
+    fun addOrder(sortProperty: SortProperty) {
         order.add(
-                if (sortBy.ascending)
-                    ctx.cb.asc(ctx.root.get<Any>(sortBy.field))
+                if (sortProperty.ascending)
+                    ctx.cb.asc(ctx.getField<Any>(sortProperty.property))
                 else
-                    ctx.cb.desc(ctx.root.get<Any>(sortBy.field))
+                    ctx.cb.desc(ctx.getField<Any>(sortProperty.property))
         )
     }
 

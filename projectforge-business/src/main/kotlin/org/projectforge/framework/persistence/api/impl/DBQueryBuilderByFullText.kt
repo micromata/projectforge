@@ -31,6 +31,7 @@ import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.SortProperty
 import org.slf4j.LoggerFactory
 
 internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
@@ -71,7 +72,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     private var boolJunction: BooleanJunction<*>
     private val transaction: Transaction
     private val fullTextSession = Search.getFullTextSession(baseDao.session)
-    private val sortBys = mutableListOf<SortBy>()
+    private val sortOrders = mutableListOf<SortProperty>()
     private val multiFieldQuery = mutableListOf<String>()
 
     init {
@@ -226,14 +227,14 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun createResultIterator(resultPredicates: List<DBPredicate>): DBResultIterator<O> {
         return when {
             useMultiFieldQueryParser -> {
-                DBFullTextResultIterator(baseDao, fullTextSession, resultPredicates, sortBys.toTypedArray(), usedSearchFields = usedSearchFields, multiFieldQuery = multiFieldQuery)
+                DBFullTextResultIterator(baseDao, fullTextSession, resultPredicates, sortOrders.toTypedArray(), usedSearchFields = usedSearchFields, multiFieldQuery = multiFieldQuery)
             }
             boolJunction.isEmpty -> { // Shouldn't occur:
                 // No restrictions found, so use normal criteria search without where clause.
                 DBQueryBuilderByCriteria(baseDao, queryFilter).createResultIterator(resultPredicates)
             }
             else -> {
-                DBFullTextResultIterator(baseDao, fullTextSession, resultPredicates, sortBys.toTypedArray(), fullTextQuery = boolJunction.createQuery())
+                DBFullTextResultIterator(baseDao, fullTextSession, resultPredicates, sortOrders.toTypedArray(), fullTextQuery = boolJunction.createQuery())
             }
         }
     }
@@ -277,7 +278,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
         }
     }
 
-    fun addOrder(sortBy: SortBy) {
-        sortBys.add(SortBy(sortBy.field, sortBy.ascending))
+    fun addOrder(sortProperty: SortProperty) {
+        sortOrders.add(sortProperty)
     }
 }

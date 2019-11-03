@@ -27,7 +27,7 @@ import org.projectforge.business.multitenancy.TenantService
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
-import org.projectforge.framework.persistence.api.SortOrder
+import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.slf4j.LoggerFactory
 
@@ -115,10 +115,7 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
 
         var maxOrder = 3
         for (sortProperty in dbFilter.sortProperties) {
-            var prop = sortProperty.property
-            if (prop.indexOf('.') > 0)
-                prop = prop.substring(prop.indexOf('.') + 1)
-            addOrder(SortBy(prop, sortProperty.sortOrder == SortOrder.ASCENDING))
+            addOrder(sortProperty)
             if (--maxOrder <= 0)
                 break // Add only 3 orders.
         }
@@ -159,11 +156,11 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
     /**
      * Sorting for criteria query is done by the data base, for full text search by Kotlin after getting the result list.
      */
-    fun addOrder(sortBy: SortBy) {
+    fun addOrder(sortProperty: SortProperty) {
         if (fullTextSearch) {
-            dbQueryBuilderByFullText.addOrder(sortBy)
+            dbQueryBuilderByFullText.addOrder(sortProperty)
         } else {
-            dbQueryBuilderByCriteria.addOrder(sortBy)
+            dbQueryBuilderByCriteria.addOrder(sortProperty)
         }
     }
 }
