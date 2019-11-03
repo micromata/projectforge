@@ -39,7 +39,12 @@ object MagicFilterProcessor {
         queryFilter.maxRows = magicFilter.maxRows
         queryFilter.searchHistory = magicFilter.searchHistory
         queryFilter.sortAndLimitMaxRowsWhileSelect = magicFilter.sortAndLimitMaxRowsWhileSelect
-        queryFilter.sortProperties = magicFilter.sortProperties
+        queryFilter.sortProperties = magicFilter.sortProperties.map {
+            var property = it.property
+            if (property.indexOf('.') > 0)
+                property = property.substring(property.indexOf('.') + 1)
+            SortProperty(property, it.sortOrder)
+        }.toMutableList()
         for (magicFilterEntry in magicFilter.entries) {
             if (magicFilterEntry.field.isNullOrBlank()) {
                 // Full text search (no field given).
