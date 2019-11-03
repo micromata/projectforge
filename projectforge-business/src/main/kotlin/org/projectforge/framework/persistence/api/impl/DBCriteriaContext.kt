@@ -68,11 +68,11 @@ internal class DBCriteriaContext<O : ExtendedBaseDO<Int>>(
         val pathSeq = field.splitToSequence('.')
         var path: Path<*> = parent
         pathSeq.forEach {
-            if (path == parent) {
+            path = if (path == parent) {
                 // First loop, use alias, if any:
-                path = joinMap[it] ?: path.get<Any>(it)
+                joinMap[it] ?: path.get<Any>(it)
             } else {
-                path = path.get<Any>(it)
+                path.get<Any>(it)
             }
         }
         @Suppress("UNCHECKED_CAST")
