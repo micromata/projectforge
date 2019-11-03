@@ -159,6 +159,22 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
         return PFDateTime(dateTime.minusDays(days))
     }
 
+    fun plusMonths(months: Long): PFDateTime {
+        return PFDateTime(dateTime.plusMonths(months))
+    }
+
+    fun minusMonths(months: Long): PFDateTime {
+        return PFDateTime(dateTime.minusMonths(months))
+    }
+
+    fun plusYears(years: Long): PFDateTime {
+        return PFDateTime(dateTime.plusYears(years))
+    }
+
+    fun minusYears(years: Long): PFDateTime {
+        return PFDateTime(dateTime.minusYears(years))
+    }
+
     companion object {
         /**
          * Sets the user's time zone.
