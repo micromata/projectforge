@@ -61,9 +61,7 @@ public class TaskDao extends BaseDao<TaskDO> {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TaskDao.class);
 
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"responsibleUser.username",
-          "responsibleUser.firstname",
-          "responsibleUser.lastname", "taskpath", "projekt.name", "projekt.kunde.name", "kost2.nummer",
-          "kost2.description"};
+          "responsibleUser.firstname", "responsibleUser.lastname", "taskpath"};
 
   public static final String I18N_KEY_ERROR_CYCLIC_REFERENCE = "task.error.cyclicReference";
 
