@@ -30,12 +30,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.PredicateUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.hibernate.LockMode;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.query.Query;
-import org.hibernate.search.Search;
-import org.hibernate.type.DateType;
+import org.hibernate.search.jpa.Search;
 import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
@@ -60,16 +56,19 @@ import org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtil
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
+import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import java.io.Serializable;
@@ -114,6 +113,9 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   @Autowired
   protected DatabaseDao databaseDao;
 
+  @PersistenceContext
+  private EntityManager em;
+
   @Autowired
   @Deprecated
   protected TransactionTemplate txTemplate;
@@ -137,12 +139,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * base entry in this method.
    */
   protected boolean supportAfterUpdate = false;
-
-  @Autowired
-  private HibernateTemplate hibernateTemplate;
-
-  @Autowired
-  private SessionFactory sessionFactory;
 
   @Autowired
   protected PfEmgrFactory emgrFactory;
@@ -214,7 +210,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
             && hasLoggedInUserSelectAccess(obj, false)) {
       return obj;
     }
-    return getSession().load(clazz, id);
+    return em.getReference(clazz, id);
   }
 
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
@@ -222,30 +218,32 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     return internalLoadAll().stream().filter(o -> !o.isDeleted()).collect(Collectors.toList());
   }
 
-  @SuppressWarnings("unchecked")
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> internalLoadAll() {
-    return (List<O>) hibernateTemplate.find("from " + clazz.getSimpleName() + " t");
+    CriteriaBuilder cb = em.getCriteriaBuilder();
+    CriteriaQuery<O> cq = cb.createQuery(clazz);
+    CriteriaQuery<O> query = cq.select(cq.from(clazz));
+    return em.createQuery(query).getResultList();
   }
 
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> internalLoadAll(final TenantDO tenant) {
+    CriteriaBuilder cb = em.getCriteriaBuilder();
+    CriteriaQuery<O> cq = em.getCriteriaBuilder().createQuery(clazz);
+    Root<O> root = cq.from(clazz);
+    CriteriaQuery<O> query;
     if (tenant == null) {
-      return getSession().createQuery("FROM " + clazz.getSimpleName() + " t WHERE t.tenant.id is null",
-              clazz)
-              .list();
-    }
-    if (tenant.isDefault()) {
-      return getSession().createQuery("FROM " + clazz.getSimpleName() + " t WHERE t.tenant.id=:tid or t.tenant.id is null",
-              clazz)
-              .setParameter("tid", tenant.getId())
-              .list();
+      query = cq.where(cb.isNull(root.get("tenant").get("id")));
+    } else if (tenant.isDefault()) {
+      query = cq.where(cb.or(
+              cb.equal(root.get("tenant").get("id"), tenant.getId()),
+              cb.isNull(root.get("tenant").get("id"))));
+      // FROM clazz WHERE tenant.id=:tid or tenant.id is null
     } else {
-      return getSession().createQuery("FROM " + clazz.getSimpleName() + " t WHERE t.tenant.id=:tid",
-              clazz)
-              .setParameter("tid", tenant.getId())
-              .list();
+      query = cq.where(cb.equal(root.get("tenant").get("id"), tenant.getId()));
+      // FROM clazz WHERE tenant.id=:tid
     }
+    return em.createQuery(query).getResultList();
   }
 
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
@@ -253,12 +251,11 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     if (idList == null) {
       return null;
     }
-    Session session = getSession();
-    CriteriaQuery<O> cr = session.getCriteriaBuilder().createQuery(clazz);
+    CriteriaQuery<O> cr = em.getCriteriaBuilder().createQuery(clazz);
     Root<O> root = cr.from(clazz);
-    cr.select(root).where(root.get("id").in(idList));
-    List<O> results = session.createQuery(cr).getResultList();
-    return selectUnique(results);
+    cr.select(root).where(root.get("id").in(idList)).distinct(true);
+    List<O> results = em.createQuery(cr).getResultList();
+    return results;
   }
 
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
@@ -393,7 +390,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     if (id == null) {
       return null;
     }
-    final O obj = hibernateTemplate.get(clazz, id, LockMode.READ);
+    final O obj = em.find(clazz, id, LockModeType.READ);
     afterLoad(obj);
     return obj;
   }
@@ -430,36 +427,34 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     return internalGetDisplayHistoryEntries(obj);
   }
 
+  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   protected List<DisplayHistoryEntry> internalGetDisplayHistoryEntries(final BaseDO<?> obj) {
     accessChecker.checkRestrictedUser();
-    return hibernateTemplate
-            .execute(session -> {
-              final HistoryEntry[] entries = internalGetHistoryEntries(obj);
-              if (entries == null) {
-                return null;
-              }
-              return convertAll(entries, session);
-            });
+    final HistoryEntry[] entries = internalGetHistoryEntries(obj);
+    if (entries == null) {
+      return null;
+    }
+    return convertAll(entries, em);
   }
 
   @SuppressWarnings("rawtypes")
-  private List<DisplayHistoryEntry> convertAll(final HistoryEntry[] entries, final Session session) {
+  private List<DisplayHistoryEntry> convertAll(final HistoryEntry[] entries, final EntityManager em) {
     final List<DisplayHistoryEntry> list = new ArrayList<>();
     for (final HistoryEntry entry : entries) {
-      final List<DisplayHistoryEntry> l = convert(entry, session);
+      final List<DisplayHistoryEntry> l = convert(entry, em);
       list.addAll(l);
     }
     return list;
   }
 
-  public List<DisplayHistoryEntry> convert(final HistoryEntry<?> entry, final Session session) {
+  public List<DisplayHistoryEntry> convert(final HistoryEntry<?> entry, final EntityManager em) {
     if (entry.getDiffEntries().isEmpty()) {
       final DisplayHistoryEntry se = new DisplayHistoryEntry(getUserGroupCache(), entry);
       return Collections.singletonList(se);
     }
     List<DisplayHistoryEntry> result = new ArrayList<>();
     for (DiffEntry prop : entry.getDiffEntries()) {
-      DisplayHistoryEntry se = new DisplayHistoryEntry(getUserGroupCache(), entry, prop, session);
+      DisplayHistoryEntry se = new DisplayHistoryEntry(getUserGroupCache(), entry, prop, em);
       result.add(se);
     }
 
@@ -656,15 +651,15 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     onSave(obj);
     onSaveOrModify(obj);
     BaseDaoJpaAdapter.prepareInsert(obj);
-    Session session = Objects.requireNonNull(hibernateTemplate.getSessionFactory()).getCurrentSession();
-    Integer id = (Integer) session.save(obj);
+    em.persist(obj);
+    Integer id = obj.getId();
     if (logDatabaseActions) {
       log.info("New " + this.clazz.getSimpleName() + " added (" + id + "): " + obj.toString());
     }
     prepareHibernateSearch(obj, OperationType.INSERT);
     if (NO_UPDATE_MAGIC) {
       // safe will assocated not working
-      hibernateTemplate.merge(obj);
+      em.merge(obj);
     }
     flushSession();
     flushSearchSession();
@@ -676,7 +671,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   }
 
   private TenantDO getDefaultTenant() {
-    return hibernateTemplate.get(TenantDO.class, 1);
+    return em.find(TenantDO.class, 1);
   }
 
   @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
@@ -767,7 +762,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     if (checkAccess) {
       accessChecker.checkRestrictedOrDemoUser();
     }
-    final O dbObj = hibernateTemplate.load(clazz, obj.getId(), LockMode.PESSIMISTIC_WRITE);
+    final O dbObj = em.getReference(clazz, obj.getId());
     if (checkAccess) {
       checkPartOfCurrentTenant(obj, OperationType.UPDATE);
       checkLoggedInUserUpdateAccess(obj, dbObj);
@@ -797,7 +792,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
       // TODO HIBERNATE5 Magie nicht notwendig?!?!?!
       if (NO_UPDATE_MAGIC) {
         // update doesn't work, because of referenced objects
-        hibernateTemplate.merge(dbObj);
+        em.merge(dbObj);
       }
       flushSession();
       flushSearchSession();
@@ -856,7 +851,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
       log.error(msg);
       throw new RuntimeException(msg);
     }
-    final O dbObj = hibernateTemplate.load(clazz, obj.getId(), LockMode.PESSIMISTIC_WRITE);
+    final O dbObj = em.getReference(clazz, obj.getId());
     checkPartOfCurrentTenant(obj, OperationType.DELETE);
     checkLoggedInUserDeleteAccess(obj, dbObj);
     accessChecker.checkRestrictedOrDemoUser();
@@ -871,7 +866,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
       throw new InternalErrorException("exception.internalError");
     } else {
       onDelete(obj);
-      final O dbObj = hibernateTemplate.load(clazz, obj.getId(), LockMode.PESSIMISTIC_WRITE);
+      final O dbObj = em.getReference(clazz, obj.getId());
       onSaveOrModify(obj);
 
       HistoryBaseDaoAdapter.wrappHistoryUpdate(dbObj, () -> {
@@ -894,15 +889,13 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   }
 
   private void flushSession() {
-    Session session = getSession();
-    session.flush();
-    //    Search.getFullTextSession(session).flushToIndexes();
+    em.flush();
   }
 
   private void flushSearchSession() {
     long begin = System.currentTimeMillis();
     if (LUCENE_FLUSH_ALWAYS) {
-      Search.getFullTextSession(getSession()).flushToIndexes();
+      Search.getFullTextEntityManager(em).flushToIndexes();
     }
     long end = System.currentTimeMillis();
     if (end - begin > 1000) {
@@ -929,10 +922,10 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     }
     accessChecker.checkRestrictedOrDemoUser();
     onDelete(obj);
-    final O dbObj = hibernateTemplate.load(clazz, obj.getId(), LockMode.PESSIMISTIC_WRITE);
+    final O dbObj = em.getReference(clazz, obj.getId());
     checkPartOfCurrentTenant(obj, OperationType.DELETE);
     checkLoggedInUserDeleteAccess(obj, dbObj);
-    hibernateTemplate.delete(dbObj);
+    em.remove(dbObj);
     if (logDatabaseActions) {
       log.info(clazz.getSimpleName() + " deleted: " + obj.toString());
     }
@@ -960,7 +953,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
   public void internalUndelete(final O obj) {
-    final O dbObj = hibernateTemplate.load(clazz, obj.getId(), LockMode.PESSIMISTIC_WRITE);
+    final O dbObj = em.getReference(clazz, obj.getId());
     onSaveOrModify(obj);
 
     HistoryBaseDaoAdapter.wrappHistoryUpdate(dbObj, () -> {
@@ -1311,7 +1304,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * @return All matching entries (like search) for the given property modified or updated in the last 2 years.
    */
   @Override
-  @SuppressWarnings("unchecked")
   public List<String> getAutocompletion(final String property, final String searchString) {
     checkLoggedInUserSelectAccess();
     if (!isAutocompletionPropertyEnabled(property)) {
@@ -1321,20 +1313,16 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     if (StringUtils.isBlank(searchString)) {
       return new ArrayList<>();
     }
-    final String hql = "select distinct "
-            + property
-            + " from "
-            + clazz.getSimpleName()
-            + " t where deleted=false and lastUpdate > :lastUpdate and lower(t."
-            + property
-            + ") like :search order by t."
-            + property;
-    final Query query = getSession().createQuery(hql);
-    final DateHolder dh = new DateHolder();
-    dh.add(Calendar.YEAR, -2); // Search only for entries of the last 2 years.
-    query.setParameter("lastUpdate", dh.getDate(), DateType.INSTANCE);
-    query.setParameter("search", "%" + StringUtils.lowerCase(searchString) + "%");
-    return (List<String>) query.list();
+    CriteriaBuilder cb = em.getCriteriaBuilder();
+    CriteriaQuery<String> cr = cb.createQuery(String.class);
+    Root<O> root = cr.from(clazz);
+    Date yearsAgo = PFDateTime.now().minusYears(2).getUtilDate();
+    cr.select(root.get(property)).where(
+            cb.equal(root.get("deleted"), false),
+            cb.greaterThan(root.get("lastUpdate"), yearsAgo),
+            cb.like(cb.lower(root.get(property)), "%" + StringUtils.lowerCase(searchString) + "%"))
+            .distinct(true);
+    return em.createQuery(cr).getResultList();
   }
 
   /**
@@ -1491,14 +1479,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    */
   protected boolean useOwnCriteriaCacheRegion() {
     return false;
-  }
-
-  public Session getSession() {
-    return sessionFactory.getCurrentSession();
-  }
-
-  public HibernateTemplate getHibernateTemplate() {
-    return hibernateTemplate;
   }
 
   @SuppressWarnings("unchecked")
