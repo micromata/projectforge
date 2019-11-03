@@ -292,11 +292,7 @@ abstract class DBPredicate(
         internal var queryString: String
 
         init {
-            queryString = expectedValue.trim()
-            if (queryString.startsWith("*"))
-                queryString = "%${queryString.substring(1)}"
-            if (queryString.endsWith("*"))
-                queryString = "${queryString.substring(0, queryString.length - 1)}%"
+            queryString = modifySearchString(expectedValue, '*', '%')
             plainString = queryString
             if (plainString.startsWith("%")) {
                 plainString = plainString.substring(1)
@@ -343,6 +339,12 @@ abstract class DBPredicate(
 
     class FullSearch(private val expectedValue: String)
         : DBPredicate(null, true, false, false) {
+        private var queryString: String
+
+        init {
+            queryString = modifySearchString(expectedValue,'%', '*')
+        }
+
         override fun match(obj: Any): Boolean {
             throw UnsupportedOperationException("match method only available for full text search!")
         }
@@ -355,7 +357,7 @@ abstract class DBPredicate(
         }
 
         override fun addTo(qb: DBQueryBuilderByFullText<*>) {
-            qb.fulltextSearch(expectedValue)
+            qb.fulltextSearch(queryString)
         }
 
         fun multiFieldFulltextQueryRequired(): Boolean {
@@ -494,6 +496,21 @@ abstract class DBPredicate(
             }
         }
         return false
+    }
+
+    /**
+     * Replaces trailing and leading '*' by '%' or vica versa. Appends '%' (or '*') to alphanumeric strings doesn't start or end with '%' or '*'.
+     */
+
+    internal fun modifySearchString(str: String, oldChar: Char, newChar: Char): String {
+        var queryString = str.trim()
+        if (queryString.endsWith(oldChar))
+            queryString = "${queryString.substring(0, queryString.length - 1)}$newChar"
+        if (queryString.startsWith(oldChar))
+            queryString = "$newChar${queryString.substring(1)}"
+        else if (!queryString.endsWith(newChar) && queryString.matches("""[\p{L}0-9]+""".toRegex()))
+            queryString = "$queryString$newChar" // Always look for keyword* (\p{L} means all letters in all languages.
+        return queryString
     }
 
     internal fun isEquals(val1: Any?, val2: Any?): Boolean {
