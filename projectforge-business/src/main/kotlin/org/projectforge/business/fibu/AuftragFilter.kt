@@ -26,10 +26,8 @@ package org.projectforge.business.fibu
 import com.thoughtworks.xstream.annotations.XStreamAlias
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-
 import java.io.Serializable
-import java.util.ArrayList
-import java.util.Date
+import java.util.*
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -47,9 +45,12 @@ class AuftragFilter : BaseSearchFilter, Serializable, SearchFilterWithPeriodOfPe
 
     private var periodOfPerformanceEndDate: Date? = null
 
-    private val auftragsStatuses = ArrayList<AuftragsStatus>()
+    val auftragsStatuses = mutableListOf<AuftragsStatus>()
 
-    private val auftragsPositionsArten = ArrayList<AuftragsPositionsArt>()
+    val auftragsPositionStatuses: List<AuftragsPositionsStatus>
+        get() = auftragsStatuses.map { it.asAuftragsPositionStatus() }
+
+    val auftragsPositionsArten = ArrayList<AuftragsPositionsArt>()
 
     var auftragFakturiertFilterStatus: AuftragFakturiertFilterStatus? = null
         get() {
@@ -64,9 +65,9 @@ class AuftragFilter : BaseSearchFilter, Serializable, SearchFilterWithPeriodOfPe
      */
     var auftragsPositionsPaymentType: AuftragsPositionsPaymentType? = null
 
-    constructor() {}
-
-    constructor(filter: BaseSearchFilter) : super(filter) {}
+    @JvmOverloads
+    constructor(filter: BaseSearchFilter? = null) : super(filter) {
+    }
 
     override fun getPeriodOfPerformanceStartDate(): Date? {
         return periodOfPerformanceStartDate
@@ -84,20 +85,6 @@ class AuftragFilter : BaseSearchFilter, Serializable, SearchFilterWithPeriodOfPe
         this.periodOfPerformanceEndDate = periodOfPerformanceEndDate
     }
 
-    /**
-     * empty collection represents all.
-     */
-    fun getAuftragsStatuses(): Collection<AuftragsStatus> {
-        return auftragsStatuses
-    }
-
-    /**
-     * empty collection represents all.
-     */
-    fun getAuftragsPositionsArten(): Collection<AuftragsPositionsArt> {
-        return auftragsPositionsArten
-    }
-
     override fun reset(): AuftragFilter {
         searchString = ""
         startDate = null
@@ -110,9 +97,5 @@ class AuftragFilter : BaseSearchFilter, Serializable, SearchFilterWithPeriodOfPe
         auftragFakturiertFilterStatus = null
         auftragsPositionsPaymentType = null
         return this
-    }
-
-    companion object {
-        private const val serialVersionUID = 3456000966109255447L
     }
 }

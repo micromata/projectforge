@@ -371,7 +371,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
     queryFilter.createAlias("positionen", "position")
             .createAlias("paymentSchedules", "paymentSchedule", JoinType.LEFT);
 
-    orCriterions.add(QueryFilter.isIn("position.status", auftragsStatuses));
+    orCriterions.add(QueryFilter.isIn("position.status", myFilter.getAuftragsPositionStatuses()));
 
     // special case
     if (auftragsStatuses.contains(AuftragsStatus.ABGESCHLOSSEN)) {
