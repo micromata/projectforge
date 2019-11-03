@@ -75,4 +75,16 @@ class DBPredicateTest {
                 DBPredicate.IsIn("admins.address.city", "Hamburg", "Kassel"),
                 DBPredicate.Like("admins.name", "*unknown*")).match(company))
     }
+
+    @Test
+    fun multiFieldFulltextQueryRequiredTest() {
+        testMultiField("dfladksj", false)
+        testMultiField("dfladksj* dfakl+", false)
+        testMultiField("name:rein*", true)
+        testMultiField("dfladksj name:rein*", true)
+    }
+
+    private fun testMultiField(value: String, expectedResult: Boolean) {
+        Assertions.assertEquals(expectedResult, DBPredicate.FullSearch(value).multiFieldFulltextQueryRequired())
+    }
 }

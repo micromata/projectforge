@@ -351,6 +351,14 @@ abstract class DBPredicate(
         override fun addTo(qb: DBQueryBuilderByFullText<*>) {
             qb.fulltextSearch(expectedValue)
         }
+
+        fun multiFieldFulltextQueryRequired(): Boolean {
+            for (str in expectedValue.split(' ', '\t', '\n')) {
+                if (str.matches("""[A-Za-z][A-Za-z0-9_]*:.+""".toRegex()))
+                    return true
+            }
+            return false
+        }
     }
 
     class IsNull(field: String) : DBPredicate(field, false) {

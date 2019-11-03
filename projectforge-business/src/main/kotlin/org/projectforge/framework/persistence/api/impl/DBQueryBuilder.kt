@@ -65,7 +65,7 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
     private var _dbQueryBuilderByFullText: DBQueryBuilderByFullText<O>? = null
     private val dbQueryBuilderByFullText: DBQueryBuilderByFullText<O>
         get() {
-            if (_dbQueryBuilderByFullText == null) _dbQueryBuilderByFullText = DBQueryBuilderByFullText(baseDao, queryFilter, useMultiFieldQueryParser = mode == Mode . MULTI_FIELD_FULLTEXT_QUERY)
+            if (_dbQueryBuilderByFullText == null) _dbQueryBuilderByFullText = DBQueryBuilderByFullText(baseDao, queryFilter, useMultiFieldQueryParser = mode == Mode.MULTI_FIELD_FULLTEXT_QUERY)
             return _dbQueryBuilderByFullText!!
         }
     private val mode: Mode
@@ -89,12 +89,14 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
 
     init {
         val stats = dbFilter.createStatistics(baseDao)
-        mode = if (stats.fullTextRequired) {
-            Mode.FULLTEXT
-            //Mode.MULTI_FIELD_FULLTEXT_QUERY
-        } else {
-            Mode.CRITERIA // Criteria search (no full text search entries found).
-        }
+        mode =
+                if (stats.multiFieldFullTextQueryRequired)
+                    Mode.MULTI_FIELD_FULLTEXT_QUERY
+                else if (stats.fullTextRequired)
+                    Mode.FULLTEXT
+                else
+                    Mode.CRITERIA // Criteria search (no full text search entries found).
+
         if (!ignoreTenant && tenantService.isMultiTenancyAvailable) {
             val userContext = ThreadLocalUserContext.getUserContext()
             val currentTenant = userContext.currentTenant
