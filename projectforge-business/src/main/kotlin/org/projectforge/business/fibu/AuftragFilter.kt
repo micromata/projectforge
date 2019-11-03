@@ -24,7 +24,9 @@
 package org.projectforge.business.fibu
 
 import com.thoughtworks.xstream.annotations.XStreamAlias
+import org.projectforge.common.DatabaseDialect
 import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.io.Serializable
 import java.util.*
@@ -73,7 +75,7 @@ class AuftragFilter : BaseSearchFilter, Serializable, SearchFilterWithPeriodOfPe
         return periodOfPerformanceStartDate
     }
 
-    fun setPeriodOfPerformanceStartDate(periodOfPerformanceStartDate: Date) {
+    fun setPeriodOfPerformanceStartDate(periodOfPerformanceStartDate: Date?) {
         this.periodOfPerformanceStartDate = periodOfPerformanceStartDate
     }
 
@@ -81,7 +83,7 @@ class AuftragFilter : BaseSearchFilter, Serializable, SearchFilterWithPeriodOfPe
         return periodOfPerformanceEndDate
     }
 
-    fun setPeriodOfPerformanceEndDate(periodOfPerformanceEndDate: Date) {
+    fun setPeriodOfPerformanceEndDate(periodOfPerformanceEndDate: Date?) {
         this.periodOfPerformanceEndDate = periodOfPerformanceEndDate
     }
 
@@ -97,5 +99,45 @@ class AuftragFilter : BaseSearchFilter, Serializable, SearchFilterWithPeriodOfPe
         auftragFakturiertFilterStatus = null
         auftragsPositionsPaymentType = null
         return this
+    }
+
+    fun filterFakturiert(list: List<AuftragDO>): List<AuftragDO> {
+        if (auftragFakturiertFilterStatus == null || auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ALL) {
+            // do not filter
+            return list
+        }
+        return list.filter { checkFakturiert(it) }
+    }
+
+    private fun checkFakturiert(auftrag: AuftragDO): Boolean {
+        val orderIsCompletelyInvoiced = auftrag.isVollstaendigFakturiert;
+
+        val vollstaendigFakturiert = AuftragFakturiertFilterStatus.FAKTURIERT == auftragFakturiertFilterStatus
+        // special case
+        if (HibernateUtils.getDialect() != DatabaseDialect.HSQL &&
+                !vollstaendigFakturiert && auftragsStatuses.contains(AuftragsStatus.ABGESCHLOSSEN)) {
+
+            // if order is completed and not all positions are completely invoiced
+            if (auftrag.auftragsStatus == AuftragsStatus.ABGESCHLOSSEN && !orderIsCompletelyInvoiced) {
+                return true
+            }
+            // if order is completed and not completely invoiced
+            if (auftrag.positionenExcludingDeleted != null) {
+                for (pos in auftrag.positionenExcludingDeleted) {
+                    if (pos.isAbgeschlossenUndNichtVollstaendigFakturiert) {
+                        return true
+                    }
+                }
+            }
+            if (auftrag.paymentSchedules != null) {
+                for (schedule in auftrag.paymentSchedules!!) {
+                    if (schedule.reached && !schedule.vollstaendigFakturiert) {
+                        return true
+                    }
+                }
+            }
+            return false
+        }
+        return orderIsCompletelyInvoiced == vollstaendigFakturiert
     }
 }

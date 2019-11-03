@@ -31,7 +31,6 @@ import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserRightId;
-import org.projectforge.common.DatabaseDialect;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.i18n.MessageParam;
 import org.projectforge.framework.i18n.MessageParamType;
@@ -326,14 +325,14 @@ public class AuftragDao extends BaseDao<AuftragDO> {
 
     queryFilter.addOrder(SortProperty.desc("nummer"));
 
-    final List<AuftragDO> list;
+    List<AuftragDO> list;
     if (checkAccess) {
       list = getList(queryFilter);
     } else {
       list = internalGetList(queryFilter);
     }
 
-    filterFakturiert(myFilter, list);
+    list = myFilter.filterFakturiert(list);
 
     filterPositionsArten(myFilter, list);
 
@@ -368,21 +367,21 @@ public class AuftragDao extends BaseDao<AuftragDO> {
     final List<DBPredicate> orCriterions = new ArrayList<>();
     orCriterions.add(QueryFilter.isIn("auftragsStatus", auftragsStatuses));
 
-    queryFilter.createAlias("positionen", "position")
-            .createAlias("paymentSchedules", "paymentSchedule", JoinType.LEFT);
+    queryFilter.createJoin("positionen")
+            .createJoin("paymentSchedules", JoinType.LEFT);
 
-    orCriterions.add(QueryFilter.isIn("position.status", myFilter.getAuftragsPositionStatuses()));
+    orCriterions.add(QueryFilter.isIn("positionen.status", myFilter.getAuftragsPositionStatuses()));
 
     // special case
     if (auftragsStatuses.contains(AuftragsStatus.ABGESCHLOSSEN)) {
-      orCriterions.add(QueryFilter.eq("paymentSchedule.reached", true));
+      orCriterions.add(QueryFilter.eq("paymentSchedules.reached", true));
     }
 
     queryFilter.add(QueryFilter.or(orCriterions.toArray(new DBPredicate[orCriterions.size()])));
 
     // check deleted
     if (!myFilter.isIgnoreDeleted()) {
-      queryFilter.add(QueryFilter.eq("position.deleted", myFilter.isDeleted()));
+      queryFilter.add(QueryFilter.eq("positionen.deleted", myFilter.isDeleted()));
     }
   }
 
@@ -409,52 +408,6 @@ public class AuftragDao extends BaseDao<AuftragDO> {
     }
 
     return Optional.empty();
-  }
-
-  private void filterFakturiert(final AuftragFilter myFilter, final List<AuftragDO> list) {
-    final AuftragFakturiertFilterStatus auftragFakturiertFilterStatus = myFilter.getAuftragFakturiertFilterStatus();
-    if (auftragFakturiertFilterStatus == null || auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ALL) {
-      // do not filter
-      return;
-    }
-
-    boolean vollstaendigFakturiert = (AuftragFakturiertFilterStatus.FAKTURIERT == auftragFakturiertFilterStatus);
-
-    CollectionUtils.filter(list, object -> {
-      final AuftragDO auftrag = (AuftragDO) object;
-      final boolean orderIsCompletelyInvoiced = auftrag.isVollstaendigFakturiert();
-
-      // special case
-      if (HibernateUtils.getDialect() != DatabaseDialect.HSQL &&
-              !vollstaendigFakturiert && myFilter.getAuftragsStatuses().contains(AuftragsStatus.ABGESCHLOSSEN)) {
-
-        // if order is completed and not all positions are completely invoiced
-        if (auftrag.getAuftragsStatus() == AuftragsStatus.ABGESCHLOSSEN && !orderIsCompletelyInvoiced) {
-          return true;
-        }
-
-        // if order is completed and not completely invoiced
-        if (auftrag.getPositionenExcludingDeleted() != null) {
-          for (final AuftragsPositionDO pos : auftrag.getPositionenExcludingDeleted()) {
-            if (pos.isAbgeschlossenUndNichtVollstaendigFakturiert()) {
-              return true;
-            }
-          }
-        }
-
-        if (auftrag.getPaymentSchedules() != null) {
-          for (final PaymentScheduleDO schedule : auftrag.getPaymentSchedules()) {
-            if (schedule.getReached() && !schedule.getVollstaendigFakturiert()) {
-              return true;
-            }
-          }
-        }
-
-        return false;
-      }
-
-      return orderIsCompletelyInvoiced == vollstaendigFakturiert;
-    });
   }
 
   private void filterPositionsArten(final AuftragFilter myFilter, final List<AuftragDO> list) {
