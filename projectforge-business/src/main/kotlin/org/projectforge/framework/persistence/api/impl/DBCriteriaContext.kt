@@ -36,32 +36,26 @@ internal class DBCriteriaContext<O : ExtendedBaseDO<Int>>(
         val cr: CriteriaQuery<O>,
         val root: Root<O>) {
     private val log = LoggerFactory.getLogger(DBCriteriaContext::class.java)
-    private val aliasMap = mutableMapOf<String, Join<Any, Any>>()
+    private val joinMap = mutableMapOf<String, Join<Any, Any>>()
 
-    fun addAlias(dbAlias: DBAlias) {
+    fun addJoin(dbAlias: DBJoin) {
+        @Suppress("UNCHECKED_CAST")
+        var parent = root as From<Any, Any>
         if (dbAlias.parent != null) {
-            log.error("Chained joins are not yet supported: $dbAlias")
-            return
+            val parentJoin = joinMap[dbAlias.parent]
+            if (parentJoin == null) {
+                log.error("Parent '${dbAlias.parent}' not yet registered as join: $dbAlias")
+                return
+            }
+            parent = parentJoin
         }
-        //var parent = if (dbAlias.parent != null) getField<Any>(dbAlias.parent) else root
-        // chained?
-        //val join = root.fetch<Any, Any>(dbAlias.attribute, dbAlias.joinType) as Join<Any, Any>
 
-        val join = root.join<Any, Any>(dbAlias.attribute, dbAlias.joinType)
-        aliasMap[dbAlias.alias] = join
-        // CriteriaQuery<Parent> criteria = cb.createQuery((Class<Parent>) Parent.class);
-        //Root<Parent> parent = criteria.from(Parent.class);
-        //
-        //criteria.select((Selection<T>) parent);
-        //SetJoin<Parent, Children> children = parent.joinSet("children", JoinType.LEFT);
-        //
-        //val join = parent.fetch(Parent_.children) as Join<Parent, Children>
-
-        //Predicate sexPredicate = cb.equal(children.get("sex"), "MALE");
-        //parent.fetch(children);
-        ////parent.fetch("children");//try also this
-        //
-        //criteria.where(sexPredicate);
+        @Suppress("UNCHECKED_CAST")
+        val join = if (dbAlias.fetch)
+            parent.fetch<Any, Any>(dbAlias.attribute, dbAlias.joinType) as Join<Any, Any>
+        else
+            parent.join<Any, Any>(dbAlias.attribute, dbAlias.joinType)
+        joinMap[dbAlias.attribute] = join
     }
 
     fun <T> getField(field: String): Path<T> {
@@ -76,7 +70,7 @@ internal class DBCriteriaContext<O : ExtendedBaseDO<Int>>(
         pathSeq.forEach {
             if (path == parent) {
                 // First loop, use alias, if any:
-                path = aliasMap[it] ?: path.get<Any>(it)
+                path = joinMap[it] ?: path.get<Any>(it)
             } else {
                 path = path.get<Any>(it)
             }
