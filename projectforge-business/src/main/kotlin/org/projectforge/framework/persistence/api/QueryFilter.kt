@@ -128,12 +128,12 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null, va
      * Create an alias for criteria search, used for Joins.
      * @param attr The attribute to create a alias (JoinSet) for. Nested properties are supported (order.positions).
      * @param alias The alias name for referring in following criterias. The alias is not used for the criteria builder and not given to the data base.
-     * @param joinType [JoinType.LEFT] is default.
+     * @param joinType [JoinType.INNER] is default.
      * @param parent If not given, root is used. If given, the parent is used as root path of the attr.
      * @return this for chaining.
      */
     @JvmOverloads
-    fun createJoin(attr: String, joinType: JoinType = JoinType.LEFT, fetch: Boolean = false, parent: String? = null): QueryFilter {
+    fun createJoin(attr: String, joinType: JoinType = JoinType.INNER, fetch: Boolean = false, parent: String? = null): QueryFilter {
         joinList.add(DBJoin(attr, joinType, fetch, parent))
         return this
     }
@@ -258,6 +258,11 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null, va
             else if (to != null)
                 return DBPredicate.LessEqual(field, to)
             throw UnsupportedOperationException("interval needs at least one value ('from' and/or 'to').")
+        }
+
+        @JvmStatic
+        fun <T> isIn(field: String, values: Collection<*>): DBPredicate.IsIn<T> {
+            return DBPredicate.IsIn(field, *(values.toTypedArray() as Array<T>))
         }
 
         @JvmStatic

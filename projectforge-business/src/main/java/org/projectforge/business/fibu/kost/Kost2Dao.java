@@ -151,6 +151,7 @@ public class Kost2Dao extends BaseDao<Kost2DO> {
       myFilter = new KostFilter(filter);
     }
     final QueryFilter queryFilter = new QueryFilter(myFilter);
+    queryFilter.createJoin("kost2Art");
     if (myFilter.isActive()) {
       queryFilter.add(QueryFilter.eq("kostentraegerStatus", KostentraegerStatus.ACTIVE));
     } else if (myFilter.isNonActive()) {
