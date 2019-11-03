@@ -37,7 +37,7 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Int>>(
     private val ctx: DBCriteriaContext<O>
         get() {
             if (_ctx == null) {
-                val cb = baseDao.session.criteriaBuilder
+                val cb = baseDao.entityManager.criteriaBuilder
                 val cr = cb.createQuery(baseDao.doClass)
                 _ctx = DBCriteriaContext(cb, cr, cr.from(baseDao.doClass))
                 initJoinSets()
@@ -56,7 +56,7 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Int>>(
     }
 
     fun createResultIterator(resultPredicates: List<DBPredicate>): DBResultIterator<O> {
-        return DBCriteriaResultIterator(baseDao.session, ctx.cr.select(ctx.root).where(*predicates.toTypedArray()).orderBy(*order.toTypedArray()), resultPredicates)
+        return DBCriteriaResultIterator( baseDao.entityManager, ctx.cr.select(ctx.root).where(*predicates.toTypedArray()).orderBy(*order.toTypedArray()), resultPredicates)
     }
 
     fun addOrder(sortProperty: SortProperty) {

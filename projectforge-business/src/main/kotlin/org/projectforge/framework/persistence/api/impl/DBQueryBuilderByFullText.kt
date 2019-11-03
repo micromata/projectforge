@@ -23,8 +23,7 @@
 
 package org.projectforge.framework.persistence.api.impl
 
-import org.hibernate.Transaction
-import org.hibernate.search.Search
+import org.hibernate.search.jpa.Search
 import org.hibernate.search.query.dsl.BooleanJunction
 import org.hibernate.search.query.dsl.QueryBuilder
 import org.projectforge.common.props.PropUtils
@@ -33,6 +32,7 @@ import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.slf4j.LoggerFactory
+import javax.persistence.EntityTransaction
 
 internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
         val baseDao: BaseDao<O>,
@@ -70,15 +70,14 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
 
     private var queryBuilder: QueryBuilder
     private var boolJunction: BooleanJunction<*>
-    private val transaction: Transaction
-    private val fullTextSession = Search.getFullTextSession(baseDao.session)
+    private val transaction: EntityTransaction
+    private val fullTextEntityManager = Search.getFullTextEntityManager(baseDao.entityManager)
     private val sortOrders = mutableListOf<SortProperty>()
     private val multiFieldQuery = mutableListOf<String>()
 
     init {
-        transaction = fullTextSession.beginTransaction()
-        queryBuilder = fullTextSession.searchFactory
-                .buildQueryBuilder().forEntity(baseDao.doClass).get()
+        transaction = baseDao.entityManager.transaction
+        queryBuilder = fullTextEntityManager.searchFactory.buildQueryBuilder().forEntity(baseDao.doClass).get()
         boolJunction = queryBuilder.bool()
     }
 
@@ -227,14 +226,14 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun createResultIterator(resultPredicates: List<DBPredicate>): DBResultIterator<O> {
         return when {
             useMultiFieldQueryParser -> {
-                DBFullTextResultIterator(baseDao, fullTextSession, resultPredicates, sortOrders.toTypedArray(), usedSearchFields = usedSearchFields, multiFieldQuery = multiFieldQuery)
+                DBFullTextResultIterator(baseDao, fullTextEntityManager, resultPredicates, sortOrders.toTypedArray(), usedSearchFields = usedSearchFields, multiFieldQuery = multiFieldQuery)
             }
             boolJunction.isEmpty -> { // Shouldn't occur:
                 // No restrictions found, so use normal criteria search without where clause.
                 DBQueryBuilderByCriteria(baseDao, queryFilter).createResultIterator(resultPredicates)
             }
             else -> {
-                DBFullTextResultIterator(baseDao, fullTextSession, resultPredicates, sortOrders.toTypedArray(), fullTextQuery = boolJunction.createQuery())
+                DBFullTextResultIterator(baseDao, fullTextEntityManager, resultPredicates, sortOrders.toTypedArray(), fullTextQuery = boolJunction.createQuery())
             }
         }
     }
