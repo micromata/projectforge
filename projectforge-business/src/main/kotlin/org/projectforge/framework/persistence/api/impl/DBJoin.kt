@@ -30,7 +30,7 @@ import javax.persistence.criteria.JoinType
  * For preparation of Joins.
  */
 class DBJoin(val attribute: String,
-             val joinType: JoinType = JoinType.LEFT,
+             val joinType: JoinType = JoinType.INNER,
              val fetch: Boolean = false,
              val parent: String? = null) {
     override fun toString(): String {

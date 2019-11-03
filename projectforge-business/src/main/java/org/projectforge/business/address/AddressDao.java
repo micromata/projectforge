@@ -210,6 +210,7 @@ public class AddressDao extends BaseDao<AddressDO> {
       }
     }
     //Has to be on id value, full entity doesn't work!!!
+    queryFilter.createJoin("addressbookList");
     queryFilter.add(QueryFilter.isIn("addressbookList.id", abIdList));
   }
 

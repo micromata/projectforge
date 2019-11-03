@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.criteria.JoinType;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -165,6 +166,8 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO> {
 
   public QueryFilter buildQueryFilter(final HRPlanningFilter filter) {
     final QueryFilter queryFilter = new QueryFilter(filter);
+    queryFilter.createJoin("planning")
+            .createJoin("user", JoinType.INNER, false, "planning");
     if (filter.getUserId() != null) {
       final PFUserDO user = new PFUserDO();
       user.setId(filter.getUserId());
