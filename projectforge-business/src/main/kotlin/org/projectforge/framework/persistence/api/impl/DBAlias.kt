@@ -23,9 +23,17 @@
 
 package org.projectforge.framework.persistence.api.impl
 
+import org.projectforge.framework.ToStringUtil
 import javax.persistence.criteria.JoinType
 
 /**
- * For preparation of JoinSets.
+ * For preparation of Joins.
  */
-class DBAlias(val attribute: String, val alias: String, val joinType: JoinType = JoinType.LEFT, val parent: String? = null)
+class DBAlias(val attribute: String,
+              val alias: String,
+              val joinType: JoinType = JoinType.LEFT,
+              val parent: String? = null) {
+    override fun toString(): String {
+        return ToStringUtil.toJsonString(this)
+    }
+}

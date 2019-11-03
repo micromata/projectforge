@@ -69,7 +69,7 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Int>>(
 
     private fun initJoinSets() {
         queryFilter.aliasList.forEach {
-
+            ctx.addAlias(it)
         }
     }
 }

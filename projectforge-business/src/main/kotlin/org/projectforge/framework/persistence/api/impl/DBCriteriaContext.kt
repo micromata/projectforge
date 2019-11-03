@@ -24,10 +24,9 @@
 package org.projectforge.framework.persistence.api.impl
 
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import javax.persistence.criteria.CriteriaBuilder
-import javax.persistence.criteria.CriteriaQuery
-import javax.persistence.criteria.Path
-import javax.persistence.criteria.Root
+import org.slf4j.LoggerFactory
+import javax.persistence.criteria.*
+
 
 /**
  * Context for building criterias. Holding criteria builder, root path and joinSets.
@@ -36,13 +35,51 @@ internal class DBCriteriaContext<O : ExtendedBaseDO<Int>>(
         val cb: CriteriaBuilder,
         val cr: CriteriaQuery<O>,
         val root: Root<O>) {
-    internal fun <T> getField(field: String): Path<T> {
+    private val log = LoggerFactory.getLogger(DBCriteriaContext::class.java)
+    private val aliasMap = mutableMapOf<String, Join<Any, Any>>()
+
+    fun addAlias(dbAlias: DBAlias) {
+        if (dbAlias.parent != null) {
+            log.error("Chained joins are not yet supported: $dbAlias")
+            return
+        }
+        //var parent = if (dbAlias.parent != null) getField<Any>(dbAlias.parent) else root
+        // chained?
+        //val join = root.fetch<Any, Any>(dbAlias.attribute, dbAlias.joinType) as Join<Any, Any>
+
+        val join = root.join<Any, Any>(dbAlias.attribute, dbAlias.joinType)
+        aliasMap[dbAlias.alias] = join
+        // CriteriaQuery<Parent> criteria = cb.createQuery((Class<Parent>) Parent.class);
+        //Root<Parent> parent = criteria.from(Parent.class);
+        //
+        //criteria.select((Selection<T>) parent);
+        //SetJoin<Parent, Children> children = parent.joinSet("children", JoinType.LEFT);
+        //
+        //val join = parent.fetch(Parent_.children) as Join<Parent, Children>
+
+        //Predicate sexPredicate = cb.equal(children.get("sex"), "MALE");
+        //parent.fetch(children);
+        ////parent.fetch("children");//try also this
+        //
+        //criteria.where(sexPredicate);
+    }
+
+    fun <T> getField(field: String): Path<T> {
+        return getField(root, field)
+    }
+
+    private fun <T> getField(parent: Path<*>, field: String): Path<T> {
         if (!field.contains('.'))
-            return root.get<T>(field)
+            return parent.get<T>(field)
         val pathSeq = field.splitToSequence('.')
-        var path: Path<*> = root
+        var path: Path<*> = parent
         pathSeq.forEach {
-            path = path.get<Any>(it)
+            if (path == parent) {
+                // First loop, use alias, if any:
+                path = aliasMap[it] ?: path.get<Any>(it)
+            } else {
+                path = path.get<Any>(it)
+            }
         }
         @Suppress("UNCHECKED_CAST")
         return path as Path<T>

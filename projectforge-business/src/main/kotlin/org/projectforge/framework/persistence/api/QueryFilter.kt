@@ -125,7 +125,11 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null, va
     }
 
     /**
-     * Create an alias for criteria search, used for JoinSets.
+     * Create an alias for criteria search, used for Joins.
+     * @param attr The attribute to create a alias (JoinSet) for. Nested properties are supported (order.positions).
+     * @param alias The alias name for referring in following criterias. The alias is not used for the criteria builder and not given to the data base.
+     * @param joinType [JoinType.LEFT] is default.
+     * @param parent If not given, root is used. If given, the parent is used as root path of the attr.
      * @return this for chaining.
      */
     @JvmOverloads
