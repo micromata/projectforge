@@ -34,13 +34,12 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import javax.persistence.EntityManager
-import javax.persistence.PersistenceContext
 
 @Service
 open class DBQuery {
     private val log = LoggerFactory.getLogger(DBQuery::class.java)
 
-    @PersistenceContext
+    @Autowired
     private lateinit var entityManager: EntityManager
 
     @Autowired
