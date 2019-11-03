@@ -24,9 +24,9 @@
 package org.projectforge.framework.persistence.api
 
 import org.projectforge.business.tasktree.TaskTreeHelper
-import org.projectforge.framework.persistence.api.impl.DBAlias
 import org.projectforge.framework.persistence.api.impl.DBFilter
 import org.projectforge.framework.persistence.api.impl.DBHistorySearchParams
+import org.projectforge.framework.persistence.api.impl.DBJoin
 import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDateTime
@@ -48,7 +48,7 @@ const val QUERY_FILTER_MAX_ROWS: Int = 10000;
 class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null, val ignoreTenant: Boolean = false) {
     private val predicates = mutableListOf<DBPredicate>()
 
-    val aliasList = mutableListOf<DBAlias>()
+    val joinList = mutableListOf<DBJoin>()
 
     var sortProperties = mutableListOf<SortProperty>()
 
@@ -133,8 +133,8 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null, va
      * @return this for chaining.
      */
     @JvmOverloads
-    fun createAlias(attr: String, alias: String, joinType: JoinType = JoinType.LEFT, parent: String? = null): QueryFilter {
-        aliasList.add(DBAlias(attr, alias, joinType, parent))
+    fun createJoin(attr: String, joinType: JoinType = JoinType.LEFT, fetch: Boolean = false, parent: String? = null): QueryFilter {
+        joinList.add(DBJoin(attr, joinType, fetch, parent))
         return this
     }
 
