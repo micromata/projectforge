@@ -27,10 +27,7 @@ import org.projectforge.common.BeanHelper
 import org.projectforge.framework.ToStringUtil
 import org.slf4j.LoggerFactory
 import java.util.*
-import javax.persistence.criteria.CriteriaBuilder
-import javax.persistence.criteria.Path
 import javax.persistence.criteria.Predicate
-import javax.persistence.criteria.Root
 
 /**
  * After querying, every result entry is matched against matchers (for fields not supported by the full text query).
@@ -51,7 +48,7 @@ abstract class DBPredicate(
         val resultSetSupport: Boolean = true) {
 
     abstract fun match(obj: Any): Boolean
-    abstract fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate
+    internal abstract fun asPredicate(ctx: DBCriteriaContext<*>): Predicate
     internal open fun addTo(qb: DBQueryBuilderByFullText<*>) {
         throw UnsupportedOperationException("Operation '${this.javaClass}' not supported by full text query.")
     }
@@ -76,9 +73,9 @@ abstract class DBPredicate(
         /**
          * Convert this predicate to JPA criteria for where clause in select.
          */
-        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+        override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
             if (log.isDebugEnabled) log.debug("Adding criteria search: [equal] cb.equal('$field'), '$value')")
-            return cb.equal(getField<Any>(root, field!!), value)
+            return ctx.cb.equal(ctx.getField<Any>(field!!), value)
         }
 
         override fun addTo(qb: DBQueryBuilderByFullText<*>) {
@@ -95,9 +92,9 @@ abstract class DBPredicate(
         /**
          * Convert this predicate to JPA criteria for where clause in select.
          */
-        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+        override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
             if (log.isDebugEnabled) log.debug("Adding criteria search: [notEqual] cb.notEqual('$field'), '$value')")
-            return cb.notEqual(getField<Any>(root, field!!), value)
+            return ctx.cb.notEqual(ctx.getField<Any>(field!!), value)
         }
 
         override fun addTo(qb: DBQueryBuilderByFullText<*>) {
@@ -124,10 +121,10 @@ abstract class DBPredicate(
         /**
          * Convert this predicate to JPA criteria for where clause in select.
          */
-        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+        override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
             if (log.isDebugEnabled) log.debug("Adding criteria search: [in] cb.in($field.in[${values.joinToString(", ", "'", "'")}])")
-            val predicate = getField<Any>(root, field!!).`in`(values)
-            return cb.`in`(predicate)
+            val predicate = ctx.getField<Any>(field!!).`in`(values)
+            return ctx.cb.`in`(predicate)
             // Alternative:
             // val inClause = cb.`in`(getField<Any>(root, field!!))
             // for (value in values) {
@@ -156,9 +153,9 @@ abstract class DBPredicate(
         /**
          * Convert this predicate to JPA criteria for where clause in select.
          */
-        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+        override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
             if (log.isDebugEnabled) log.debug("Adding criteria search: [between] cb.between($field, $from, $to)")
-            return cb.between(getField<T>(root, field!!), from, to)
+            return ctx.cb.between(ctx.getField<T>(field!!), from, to)
         }
 
         override fun addTo(qb: DBQueryBuilderByFullText<*>) {
@@ -185,9 +182,9 @@ abstract class DBPredicate(
         /**
          * Convert this predicate to JPA criteria for where clause in select.
          */
-        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+        override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
             if (log.isDebugEnabled) log.debug("Adding criteria search: [greater] cb.greaterThan($field, $from)")
-            return cb.greaterThan(getField<O>(root, field!!), from)
+            return ctx.cb.greaterThan(ctx.getField<O>(field!!), from)
         }
 
         override fun addTo(qb: DBQueryBuilderByFullText<*>) {
@@ -214,9 +211,9 @@ abstract class DBPredicate(
         /**
          * Convert this predicate to JPA criteria for where clause in select.
          */
-        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+        override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
             if (log.isDebugEnabled) log.debug("Adding criteria search: [greaterEqual] cb.greaterThanOrEqualTo($field, $from)")
-            return cb.greaterThanOrEqualTo(getField<O>(root, field!!), from)
+            return ctx.cb.greaterThanOrEqualTo(ctx.getField<O>(field!!), from)
         }
 
         override fun addTo(qb: DBQueryBuilderByFullText<*>) {
@@ -243,9 +240,9 @@ abstract class DBPredicate(
         /**
          * Convert this predicate to JPA criteria for where clause in select.
          */
-        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+        override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
             if (log.isDebugEnabled) log.debug("Adding criteria search: [less] cb.lessThan($field, $to)")
-            return cb.lessThan(getField<O>(root, field!!), to)
+            return ctx.cb.lessThan(ctx.getField<O>(field!!), to)
         }
 
         override fun addTo(qb: DBQueryBuilderByFullText<*>) {
@@ -272,9 +269,9 @@ abstract class DBPredicate(
         /**
          * Convert this predicate to JPA criteria for where clause in select.
          */
-        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+        override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
             if (log.isDebugEnabled) log.debug("Adding criteria search: [lessEqual] cb.lessThanOrEqualTo($field, $to)")
-            return cb.lessThanOrEqualTo(getField<O>(root, field!!), to)
+            return ctx.cb.lessThanOrEqualTo(ctx.getField<O>( field!!), to)
         }
 
         override fun addTo(qb: DBQueryBuilderByFullText<*>) {
@@ -322,9 +319,9 @@ abstract class DBPredicate(
         /**
          * Convert this predicate to JPA criteria for where clause in select.
          */
-        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+        override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
             if (log.isDebugEnabled) log.debug("Adding criteria search: [like] cb.like(cb.lower($field, $expectedValue))")
-            return cb.like(cb.lower(getField<String>(root, field!!)), expectedValue)
+            return ctx.cb.like(ctx.cb.lower(ctx.getField<String>( field!!)), expectedValue)
         }
 
         override fun addTo(qb: DBQueryBuilderByFullText<*>) {
@@ -341,7 +338,7 @@ abstract class DBPredicate(
         /**
          * Convert this predicate to JPA criteria for where clause in select.
          */
-        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+        override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
             throw UnsupportedOperationException("Full text search without field not available as criteria predicate!")
         }
 
@@ -355,9 +352,9 @@ abstract class DBPredicate(
             return fieldValueMatch(obj, field!!) { it == null }
         }
 
-        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+        override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
             if (log.isDebugEnabled) log.debug("Adding criteria search: [isNull] cb.isNull($field)")
-            return cb.isNull(getField<Any>(root, field!!))
+            return ctx.cb.isNull(ctx.getField<Any>( field!!))
         }
     }
 
@@ -366,9 +363,9 @@ abstract class DBPredicate(
             return fieldValueMatch(obj, field!!) { it != null }
         }
 
-        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+        override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
             if (log.isDebugEnabled) log.debug("Adding criteria search: [isNotNull] cb.isNotNull($field)")
-            return cb.isNotNull(getField<Any>(root, field!!))
+            return ctx.cb.isNotNull(ctx.getField<Any>(field!!))
         }
     }
 
@@ -377,9 +374,9 @@ abstract class DBPredicate(
             return !predicate.match(obj)
         }
 
-        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+        override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
             if (log.isDebugEnabled) log.debug("Adding criteria search: [not] cb.not(... started.")
-            val result = cb.not(predicate.asPredicate(cb, root))
+            val result =ctx. cb.not(predicate.asPredicate(ctx))
             if (log.isDebugEnabled) log.debug("Adding criteria search: [not] cb.not(... ended.")
             return result
         }
@@ -399,9 +396,9 @@ abstract class DBPredicate(
             return true
         }
 
-        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+        override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
             if (log.isDebugEnabled) log.debug("Adding criteria search: [and] cb.and(... started.")
-            val result = cb.and(*predicates.map { it.asPredicate(cb, root) }.toTypedArray())
+            val result = ctx.cb.and(*predicates.map { it.asPredicate(ctx) }.toTypedArray())
             if (log.isDebugEnabled) log.debug("Adding criteria search: [and] cb.and(... ended.")
             return result
         }
@@ -421,24 +418,12 @@ abstract class DBPredicate(
             return false
         }
 
-        override fun asPredicate(cb: CriteriaBuilder, root: Root<*>): Predicate {
+        override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
             if (log.isDebugEnabled) log.debug("Adding criteria search: [or] cb.or(... started.")
-            val result =  cb.or(*predicates.map { it.asPredicate(cb, root) }.toTypedArray())
+            val result = ctx.cb.or(*predicates.map { it.asPredicate(ctx) }.toTypedArray())
             if (log.isDebugEnabled) log.debug("Adding criteria search: [or] cb.or(... ended.")
             return result
         }
-    }
-
-    internal fun <T> getField(root: Root<*>, field: String): Path<T> {
-        if (!field.contains('.'))
-            return root.get<T>(field)
-        val pathSeq = field.splitToSequence('.')
-        var path: Path<*> = root
-        pathSeq.forEach {
-            path = path.get<Any>(it)
-        }
-        @Suppress("UNCHECKED_CAST")
-        return path as Path<T>
     }
 
     /**

@@ -64,7 +64,7 @@ class DBQuery {
         try {
             val dbFilter = filter.createDBFilter()
 
-            val queryBuilder = DBQueryBuilder(baseDao, tenantService, dbFilter,
+            val queryBuilder = DBQueryBuilder(baseDao, tenantService, filter, dbFilter,
                     // Check here mixing fulltext and criteria searches in comparison to full text searches and DBResultMatchers.
                     ignoreTenant = ignoreTenant)
 

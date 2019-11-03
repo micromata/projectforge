@@ -26,14 +26,16 @@ package org.projectforge.framework.persistence.api.impl
 import org.projectforge.business.multitenancy.TenantService
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortOrder
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.slf4j.LoggerFactory
 
 
 class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
-        val baseDao: BaseDao<O>,
+        private val baseDao: BaseDao<O>,
         tenantService: TenantService,
+        private val queryFilter: QueryFilter,
         dbFilter: DBFilter,
         ignoreTenant: Boolean = false) {
 
@@ -57,13 +59,13 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
     private var _dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O>? = null
     private val dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O>
         get() {
-            if (_dbQueryBuilderByCriteria == null) _dbQueryBuilderByCriteria = DBQueryBuilderByCriteria(baseDao)
+            if (_dbQueryBuilderByCriteria == null) _dbQueryBuilderByCriteria = DBQueryBuilderByCriteria(baseDao, queryFilter)
             return _dbQueryBuilderByCriteria!!
         }
     private var _dbQueryBuilderByFullText: DBQueryBuilderByFullText<O>? = null
     private val dbQueryBuilderByFullText: DBQueryBuilderByFullText<O>
         get() {
-            if (_dbQueryBuilderByFullText == null) _dbQueryBuilderByFullText = DBQueryBuilderByFullText(baseDao, useMultiFieldQueryParser = mode == Mode.MULTI_FIELD_FULLTEXT_QUERY)
+            if (_dbQueryBuilderByFullText == null) _dbQueryBuilderByFullText = DBQueryBuilderByFullText(baseDao, queryFilter, useMultiFieldQueryParser = mode == Mode . MULTI_FIELD_FULLTEXT_QUERY)
             return _dbQueryBuilderByFullText!!
         }
     private val mode: Mode
