@@ -32,10 +32,11 @@ import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.slf4j.LoggerFactory
-import javax.persistence.EntityTransaction
+import javax.persistence.EntityManager
 
 internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
-        val baseDao: BaseDao<O>,
+        private val baseDao: BaseDao<O>,
+        private val entityManager: EntityManager,
         /**
          * Only for fall back to criteria search if no predicates found for full text search.
          */
@@ -70,13 +71,11 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
 
     private var queryBuilder: QueryBuilder
     private var boolJunction: BooleanJunction<*>
-    private val transaction: EntityTransaction
-    private val fullTextEntityManager = Search.getFullTextEntityManager(baseDao.entityManager)
+    private val fullTextEntityManager = Search.getFullTextEntityManager(entityManager)
     private val sortOrders = mutableListOf<SortProperty>()
     private val multiFieldQuery = mutableListOf<String>()
 
     init {
-        transaction = baseDao.entityManager.transaction
         queryBuilder = fullTextEntityManager.searchFactory.buildQueryBuilder().forEntity(baseDao.doClass).get()
         boolJunction = queryBuilder.bool()
     }
@@ -230,16 +229,12 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
             }
             boolJunction.isEmpty -> { // Shouldn't occur:
                 // No restrictions found, so use normal criteria search without where clause.
-                DBQueryBuilderByCriteria(baseDao, queryFilter).createResultIterator(resultPredicates)
+                DBQueryBuilderByCriteria(baseDao, entityManager, queryFilter).createResultIterator(resultPredicates)
             }
             else -> {
                 DBFullTextResultIterator(baseDao, fullTextEntityManager, resultPredicates, sortOrders.toTypedArray(), fullTextQuery = boolJunction.createQuery())
             }
         }
-    }
-
-    fun close() {
-        transaction.commit()
     }
 
     private fun search(value: String, vararg fields: String) {

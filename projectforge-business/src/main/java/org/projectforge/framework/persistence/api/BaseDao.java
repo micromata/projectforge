@@ -70,8 +70,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import java.io.Serializable;
@@ -111,7 +109,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   protected AccessChecker accessChecker;
 
   @Autowired
-  protected DBQuery dbFilterQuery;
+  protected DBQuery dbQuery;
 
   @Autowired
   protected DatabaseDao databaseDao;
@@ -145,9 +143,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   @Autowired
   private SessionFactory sessionFactory;
-
-  @PersistenceContext
-  protected EntityManager entityManager;
 
   @Autowired
   protected PfEmgrFactory emgrFactory;
@@ -305,17 +300,15 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * Gets the list filtered by the given filter.
    */
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> getList(final QueryFilter filter) throws AccessException {
-    return dbFilterQuery.getList(this, filter, true, filter.getIgnoreTenant());
+    return dbQuery.getList(this, filter, true, filter.getIgnoreTenant());
   }
 
   /**
    * Gets the list filtered by the given filter.
    */
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> internalGetList(final QueryFilter filter) throws AccessException {
-    return dbFilterQuery.getList(this, filter, false, filter.getIgnoreTenant());
+    return dbQuery.getList(this, filter, false, filter.getIgnoreTenant());
   }
 
   /**
@@ -1502,10 +1495,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   public Session getSession() {
     return sessionFactory.getCurrentSession();
-  }
-
-  public EntityManager getEntityManager() {
-    return entityManager;
   }
 
   public HibernateTemplate getHibernateTemplate() {
