@@ -119,18 +119,24 @@ abstract class DBPredicate(
         }
 
         /**
-         * Convert this predicate to JPA criteria for where clause in select.
+         * Convert this predicate to JPA criteria for where clause in select. If only value is given, an equal predicate will
+         * be returned.
          */
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
             if (log.isDebugEnabled) log.debug("Adding criteria search: [in] cb.in($field.in[${values.joinToString(", ", "'", "'")}])")
-            val predicate = ctx.getField<Any>(field!!).`in`(values)
-            return ctx.cb.`in`(predicate)
-            // Alternative:
-            // val inClause = cb.`in`(getField<Any>(root, field!!))
-            // for (value in values) {
-            //     inClause.value(value)
-            // }
-            // return inClause
+            if (values.isNullOrEmpty()) {
+                if (log.isDebugEnabled) log.debug("Adding criteria search: [in] cb.isNull('$field'), '${values[0]}') (uses equal, because no value is given).")
+                return ctx.cb.isNull(ctx.getField<Any>(field!!))
+            }
+            if (values.size == 1) {
+                if (log.isDebugEnabled) log.debug("Adding criteria search: [in] cb.equal('$field'), '${values[0]}') (uses equal, because only one value is given).")
+                return ctx.cb.equal(ctx.getField<Any>(field!!), values[0])
+            }
+            val inClause = ctx.cb.`in`(ctx.getField<Any>(field!!))
+            for (value in values) {
+                inClause.value(value)
+            }
+            return inClause
         }
     }
 
@@ -271,7 +277,7 @@ abstract class DBPredicate(
          */
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
             if (log.isDebugEnabled) log.debug("Adding criteria search: [lessEqual] cb.lessThanOrEqualTo($field, $to)")
-            return ctx.cb.lessThanOrEqualTo(ctx.getField<O>( field!!), to)
+            return ctx.cb.lessThanOrEqualTo(ctx.getField<O>(field!!), to)
         }
 
         override fun addTo(qb: DBQueryBuilderByFullText<*>) {
@@ -321,7 +327,7 @@ abstract class DBPredicate(
          */
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
             if (log.isDebugEnabled) log.debug("Adding criteria search: [like] cb.like(cb.lower($field, $expectedValue))")
-            return ctx.cb.like(ctx.cb.lower(ctx.getField<String>( field!!)), expectedValue)
+            return ctx.cb.like(ctx.cb.lower(ctx.getField<String>(field!!)), expectedValue)
         }
 
         override fun addTo(qb: DBQueryBuilderByFullText<*>) {
@@ -354,7 +360,7 @@ abstract class DBPredicate(
 
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
             if (log.isDebugEnabled) log.debug("Adding criteria search: [isNull] cb.isNull($field)")
-            return ctx.cb.isNull(ctx.getField<Any>( field!!))
+            return ctx.cb.isNull(ctx.getField<Any>(field!!))
         }
     }
 
@@ -376,7 +382,7 @@ abstract class DBPredicate(
 
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
             if (log.isDebugEnabled) log.debug("Adding criteria search: [not] cb.not(... started.")
-            val result =ctx. cb.not(predicate.asPredicate(ctx))
+            val result = ctx.cb.not(predicate.asPredicate(ctx))
             if (log.isDebugEnabled) log.debug("Adding criteria search: [not] cb.not(... ended.")
             return result
         }
