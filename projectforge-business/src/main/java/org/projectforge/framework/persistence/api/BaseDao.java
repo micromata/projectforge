@@ -114,7 +114,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   protected DatabaseDao databaseDao;
 
   @PersistenceContext
-  private EntityManager em;
+  protected EntityManager em;
 
   @Autowired
   @Deprecated
@@ -1321,6 +1321,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
             cb.equal(root.get("deleted"), false),
             cb.greaterThan(root.get("lastUpdate"), yearsAgo),
             cb.like(cb.lower(root.get(property)), "%" + StringUtils.lowerCase(searchString) + "%"))
+            .orderBy(cb.asc(root.get(property)))
             .distinct(true);
     return em.createQuery(cr).getResultList();
   }

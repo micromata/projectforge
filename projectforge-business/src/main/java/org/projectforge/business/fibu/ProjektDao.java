@@ -147,7 +147,7 @@ public class ProjektDao extends BaseDao<ProjektDO> {
   @SuppressWarnings("unchecked")
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public ProjektDO getProjekt(final int intern_kost2_4, final int nummer) {
-    return SQLHelper.ensureUniqueResult(getSession()
+    return SQLHelper.ensureUniqueResult(em
             .createNamedQuery(ProjektDO.FIND_BY_INTERNKOST24_AND_NUMMER, ProjektDO.class)
             .setParameter("internKost24", intern_kost2_4)
             .setParameter("nummer", nummer));

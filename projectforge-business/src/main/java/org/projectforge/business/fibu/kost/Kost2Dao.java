@@ -114,7 +114,7 @@ public class Kost2Dao extends BaseDao<Kost2DO> {
   }
 
   public Kost2DO getKost2(final int nummernkreis, final int bereich, final int teilbereich, final int kost2Art) {
-    return SQLHelper.ensureUniqueResult(getSession()
+    return SQLHelper.ensureUniqueResult(em
             .createNamedQuery(Kost2DO.FIND_BY_NK_BEREICH_TEILBEREICH_KOST2ART, Kost2DO.class)
             .setParameter("nummernkreis", nummernkreis)
             .setParameter("bereich", bereich)
@@ -123,11 +123,11 @@ public class Kost2Dao extends BaseDao<Kost2DO> {
   }
 
   public List<Kost2DO> getActiveKost2(final int nummernkreis, final int bereich, final int teilbereich) {
-    return getSession().createNamedQuery(Kost2DO.FIND_ACTIVES_BY_NK_BEREICH_TEILBEREICH, Kost2DO.class)
+    return em.createNamedQuery(Kost2DO.FIND_ACTIVES_BY_NK_BEREICH_TEILBEREICH, Kost2DO.class)
             .setParameter("nummernkreis", nummernkreis)
             .setParameter("bereich", bereich)
             .setParameter("teilbereich", teilbereich)
-            .list();
+            .getResultList();
   }
 
   /**
@@ -199,13 +199,13 @@ public class Kost2Dao extends BaseDao<Kost2DO> {
       other = getKost2(obj.getNummernkreis(), obj.getBereich(), obj.getTeilbereich(), obj.getKost2ArtId());
     } else {
       // kost entry already exists. Check maybe changed:
-      other = getSession().createNamedQuery(Kost2DO.FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_KOST2ART, Kost2DO.class)
+      other = em.createNamedQuery(Kost2DO.FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_KOST2ART, Kost2DO.class)
               .setParameter("nummernkreis", obj.getNummernkreis())
               .setParameter("bereich", obj.getBereich())
               .setParameter("teilbereich", obj.getTeilbereich())
               .setParameter("kost2ArtId", obj.getKost2ArtId())
               .setParameter("id", obj.getId())
-              .uniqueResult();
+              .getSingleResult();
     }
     if (other != null) {
       throw new UserException("fibu.kost.error.collision");

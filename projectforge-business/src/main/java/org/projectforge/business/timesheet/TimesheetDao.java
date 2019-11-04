@@ -115,7 +115,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
    * user=?.
    */
   public int[] getYears(final Integer userId) {
-    final Object[] minMaxDate = getSession().createNamedQuery(TimesheetDO.SELECT_MIN_MAX_DATE_FOR_USER, Object[].class)
+    final Object[] minMaxDate = em.createNamedQuery(TimesheetDO.SELECT_MIN_MAX_DATE_FOR_USER, Object[].class)
             .setParameter("userId", userId)
             .getSingleResult();
     return SQLHelper.getYears((java.util.Date) minMaxDate[0], (java.util.Date) minMaxDate[1]);
@@ -447,7 +447,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
         }
         // An user should see his own time sheets, but the values should be hidden.
         // A project manager should also see all time sheets, but the values should be hidden.
-        getSession().evict(obj);
+        em.detach(obj);
         obj.setDescription(HIDDEN_FIELD_MARKER);
         obj.setLocation(HIDDEN_FIELD_MARKER);
         log.debug("User has no access to own time sheet (or project manager): " + obj);
@@ -674,11 +674,11 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
   public List<String> getLocationAutocompletion(final String searchString) {
     checkLoggedInUserSelectAccess();
     PFDateTime oneYearAgo = PFDateTime.now().minusDays(365);
-    return getSession().createNamedQuery(TimesheetDO.SELECT_USED_LOCATIONS_BY_USER_AND_LOCATION_SEARCHSTRING, String.class)
+    return em.createNamedQuery(TimesheetDO.SELECT_USED_LOCATIONS_BY_USER_AND_LOCATION_SEARCHSTRING, String.class)
             .setParameter("userId", ThreadLocalUserContext.getUserId())
             .setParameter("lastUpdate", oneYearAgo.getUtilDate())
             .setParameter("locationSearch", "%" + StringUtils.lowerCase(searchString) + "%")
-            .list();
+            .getResultList();
   }
 
   /**
@@ -691,10 +691,10 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
     checkLoggedInUserSelectAccess();
     log.info("Get recent locations from the database.");
     PFDateTime oneYearAgo = PFDateTime.now().minusDays(365);
-    return getSession().createNamedQuery(TimesheetDO.SELECT_RECENT_USED_LOCATIONS_BY_USER_AND_LAST_UPDATE, String.class)
+    return em.createNamedQuery(TimesheetDO.SELECT_RECENT_USED_LOCATIONS_BY_USER_AND_LAST_UPDATE, String.class)
             .setParameter("userId", ThreadLocalUserContext.getUserId())
             .setParameter("lastUpdate", oneYearAgo.getUtilDate())
-            .list();
+            .getResultList();
   }
 
   @Override

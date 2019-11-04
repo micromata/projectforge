@@ -41,16 +41,18 @@ import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
+import org.projectforge.framework.time.PFDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.Tuple;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -128,29 +130,45 @@ public class TaskDao extends BaseDao<TaskDO> {
 
   /**
    * Gets the total duration of all time sheets of all tasks (excluding the child tasks).
-   *
-   * @param node
-   * @return
    */
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<Object[]> readTotalDurations() {
     log.debug("Calculating duration for all tasks");
     final String intervalInSeconds = DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime");
     if (intervalInSeconds != null) {
-      @SuppressWarnings("unchecked") final List<Object[]> list = (List<Object[]>) getHibernateTemplate().find(
-              "select " + intervalInSeconds + ", task.id from TimesheetDO where deleted=false group by task.id");
+      CriteriaBuilder cb = em.getCriteriaBuilder();
+      CriteriaQuery<Tuple> cr = cb.createQuery(Tuple.class);
+      Root<TaskDO> root = cr.from(clazz);
+      Date yearsAgo = PFDateTime.now().minusYears(2).getUtilDate();
+      cr.select(cb.tuple(root.get("intervalInSeconds"), root.get("task").get("id")))
+              .where(cb.equal(root.get("deleted"), false))
+              .groupBy(root.get("task").get("id"));
+      List<Tuple> result = em.createQuery(cr).getResultList();
+      // select intervalInSeconds, task.id from TimesheetDO where deleted=false group by task.id
+      final List<Object[]> list = new ArrayList<>();
+      for (Tuple tuple : em.createQuery(cr).getResultList()) {
+        list.add(new Object[]{tuple.get(0), tuple.get(1)})
+      }
       return list;
     }
-    @SuppressWarnings("unchecked") final List<Object[]> result = (List<Object[]>) getHibernateTemplate().find(
-            "select startTime, stopTime, task.id from TimesheetDO where deleted=false order by task.id");
+
+    CriteriaBuilder cb = em.getCriteriaBuilder();
+    CriteriaQuery<Tuple> cr = cb.createQuery(Tuple.class);
+    Root<TaskDO> root = cr.from(clazz);
+    Date yearsAgo = PFDateTime.now().minusYears(2).getUtilDate();
+    cr.select(cb.tuple(root.get("startTime"), root.get("stopTime"), root.get("task").get("id")))
+            .where(cb.equal(root.get("deleted"), false))
+            .orderBy(cb.asc(root.get("task").get("id")));
+    List<Tuple> result = em.createQuery(cr).getResultList();
+    // select startTime, stopTime, task.id from TimesheetDO where deleted=false order by task.id");
     final List<Object[]> list = new ArrayList<>();
     if (!CollectionUtils.isEmpty(result)) {
       Integer currentTaskId = null;
       long totalDuration = 0;
-      for (final Object[] oa : result) {
-        final Timestamp startTime = (Timestamp) oa[0];
-        final Timestamp stopTime = (Timestamp) oa[1];
-        final Integer taskId = (Integer) oa[2];
+      for (final Tuple oa : result) {
+        final Timestamp startTime = (Timestamp) oa.get(0);
+        final Timestamp stopTime = (Timestamp) oa.get(1);
+        final Integer taskId = (Integer) oa.get(2);
         final long duration = (stopTime.getTime() - startTime.getTime()) / 1000;
         if (currentTaskId == null || !currentTaskId.equals(taskId)) {
           if (currentTaskId != null) {
