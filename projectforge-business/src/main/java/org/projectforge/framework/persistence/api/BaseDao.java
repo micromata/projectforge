@@ -66,7 +66,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -390,7 +389,14 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     if (id == null) {
       return null;
     }
-    final O obj = em.find(clazz, id, LockModeType.READ);
+
+    O obj =  em.createQuery(
+            "select t from "+ clazz.getName() + " t where t.id = :id", clazz)
+            .setParameter("id", id)
+            .getSingleResult();
+    if (obj == null) {
+      return null;
+    }
     afterLoad(obj);
     return obj;
   }
