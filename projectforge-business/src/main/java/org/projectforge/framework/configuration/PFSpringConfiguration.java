@@ -77,9 +77,6 @@ public class PFSpringConfiguration
   @Autowired
   private SpringEmgrFilterBean springEmgrFilterBean;
 
-  @Autowired
-  private PfEmgrFactory pfEmgrFactory;
-
   @Value("${hibernate.search.default.indexBase}")
   private String hibernateIndexDir;
 
@@ -89,17 +86,8 @@ public class PFSpringConfiguration
     return builder.build();
   }
 
-  @Bean
-  public FactoryBean<Session> hibernateSession()
-  {
-    return new JpaToSessionSpringBeanFactory();
-  }
-
-  @Bean
-  public SessionFactory sessionFactory()
-  {
-    return entityManagerFactory().unwrap(SessionFactory.class);
-  }
+  @Autowired
+  private PfEmgrFactory pfEmgrFactory;
 
   /**
    * has to be defined, otherwise spring creates a LocalContainerEntityManagerFactoryBean, which has no correct
@@ -115,9 +103,21 @@ public class PFSpringConfiguration
   }
 
   @Bean
+  public FactoryBean<Session> hibernateSession()
+  {
+    return new JpaToSessionSpringBeanFactory();
+  }
+
+  @Bean
+  public SessionFactory sessionFactory()
+  {
+    return entityManagerFactory().unwrap(SessionFactory.class);
+  }
+
+  @Bean
   public HibernateTransactionManager transactionManager() throws Exception
   {
-    HibernateTransactionManager ret = new HibernateTransactionManager(sessionFactory());
+    HibernateTransactionManager ret = new HibernateTransactionManager(entityManagerFactory().unwrap(SessionFactory.class));
     ret.setAutodetectDataSource(false);
     ret.setDataSource(dataSource);
     return ret;

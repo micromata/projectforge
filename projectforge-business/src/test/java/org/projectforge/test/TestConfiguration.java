@@ -31,6 +31,7 @@ import de.micromata.genome.db.jpa.tabattr.impl.TimeableServiceImpl;
 import de.micromata.mgc.jpa.spring.SpringEmgrFilterBean;
 import de.micromata.mgc.jpa.spring.factories.JpaToSessionSpringBeanFactory;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.projectforge.framework.persistence.attr.impl.AttrSchemaServiceSpringBeanImpl;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
@@ -43,6 +44,7 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
 
@@ -51,18 +53,17 @@ import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
 @Configuration
-@ComponentScan(value = { "org.projectforge", "de.micromata.mgc.jpa.spring" },
-    excludeFilters = { @ComponentScan.Filter(type = FilterType.ASPECTJ,
-        pattern = "org.projectforge.framework.configuration.PFSpringConfiguration"),
-        @ComponentScan.Filter(type = FilterType.ASPECTJ,
-            pattern = "org.projectforge.web.configuration.PFWebConfiguration") })
+@ComponentScan(value = {"org.projectforge", "de.micromata.mgc.jpa.spring"},
+        excludeFilters = {@ComponentScan.Filter(type = FilterType.ASPECTJ,
+                pattern = "org.projectforge.framework.configuration.PFSpringConfiguration"),
+                @ComponentScan.Filter(type = FilterType.ASPECTJ,
+                        pattern = "org.projectforge.web.configuration.PFWebConfiguration")})
 @PropertySource({"classpath:/application.properties", "classpath:/application-test.properties"})
 @EnableTransactionManagement
 //@EnableAutoConfiguration(exclude = {HibernateJpaAutoConfiguration.class})
 //Needed, because not only interfaces are used as injection points
 @EnableAspectJAutoProxy(proxyTargetClass = true)
-public class TestConfiguration
-{
+public class TestConfiguration {
 
   @Value("${spring.datasource.url}")
   private String datasourceUrl;
@@ -85,12 +86,6 @@ public class TestConfiguration
   @Autowired
   private PfEmgrFactory pfEmgrFactory;
 
-  @Bean
-  public FactoryBean<Session> hibernateSession()
-  {
-    return new JpaToSessionSpringBeanFactory();
-  }
-
   /**
    * has to be defined, otherwise spring creates a LocalContainerEntityManagerFactoryBean, which has no correct
    * sessionFactory.getCurrentSession();.
@@ -105,52 +100,67 @@ public class TestConfiguration
   }
 
   @Bean
-  public JdbcTemplate jdbcTemplate()
+  public FactoryBean<Session> hibernateSession()
   {
+    return new JpaToSessionSpringBeanFactory();
+  }
+
+  @Bean
+  public SessionFactory sessionFactory()
+  {
+    return entityManagerFactory().unwrap(SessionFactory.class);
+  }
+
+  @Bean
+  public HibernateTransactionManager transactionManager() throws Exception
+  {
+    HibernateTransactionManager ret = new HibernateTransactionManager(entityManagerFactory().unwrap(SessionFactory.class));
+    ret.setAutodetectDataSource(false);
+    ret.setDataSource(dataSource());
+    return ret;
+  }
+
+
+  @Bean
+  public JdbcTemplate jdbcTemplate() {
     return new JdbcTemplate(dataSource());
   }
 
   @Bean
-  public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer()
-  {
+  public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
     return new PropertySourcesPlaceholderConfigurer();
   }
 
   @Bean
-  public DataSource dataSource()
-  {
+  public DataSource dataSource() {
     return DataSourceBuilder
-        .create()
-        .username(datasourceUsername)
-        .password(datasourcePassword)
-        .url(datasourceUrl)
-        .driverClassName(datasourceDriver)
-        .build();
+            .create()
+            .username(datasourceUsername)
+            .password(datasourcePassword)
+            .url(datasourceUrl)
+            .driverClassName(datasourceDriver)
+            .build();
   }
 
   @Bean
-  public SMSReceiverServlet smsReceiverServlet()
-  {
+  public SMSReceiverServlet smsReceiverServlet() {
     return new SMSReceiverServlet();
   }
 
   @Bean
-  public RestTemplate restTemplate()
-  {
+  public RestTemplate restTemplate() {
     return new RestTemplate();
   }
 
   @Bean(name = "attrSchemaService")
-  public AttrSchemaServiceSpringBeanImpl attrSchemaService()
-  {
+  public AttrSchemaServiceSpringBeanImpl attrSchemaService() {
     AttrSchemaServiceSpringBeanImpl ret = AttrSchemaServiceSpringBeanImpl.get();
     ret.setApplicationDir(applicationDir);
     return ret;
   }
 
   @Bean
-  public TimeableService timeableService()
-  {
+  public TimeableService timeableService() {
     return new TimeableServiceImpl();
   }
 
@@ -159,21 +169,17 @@ public class TestConfiguration
    * Without this, the spring context within our unit tests does not know this spring boot configuration bean.
    */
   @Bean
-  public ServerProperties serverProperties()
-  {
+  public ServerProperties serverProperties() {
     return new ServerProperties();
   }
 
   @PostConstruct
-  public void initEmgrFactory()
-  {
+  public void initEmgrFactory() {
     springEmgrFilterBean.registerEmgrFilter(pfEmgrFactory);
-    HistoryServiceManager.get().setHistoryService(new HistoryServiceImpl()
-    {
+    HistoryServiceManager.get().setHistoryService(new HistoryServiceImpl() {
 
       @Override
-      public Class<? extends HistoryMasterBaseDO<?, ?>> getHistoryMasterClass()
-      {
+      public Class<? extends HistoryMasterBaseDO<?, ?>> getHistoryMasterClass() {
         return PfHistoryMasterDO.class;
       }
 

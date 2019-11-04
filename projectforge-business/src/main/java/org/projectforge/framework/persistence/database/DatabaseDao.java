@@ -47,6 +47,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -68,7 +69,7 @@ public class DatabaseDao
   private Date currentReindexRun = null;
 
   @Autowired
-  private SessionFactory sessionFactory;
+  private EntityManager em;
 
   /**
    * Since yesterday and 1,000 newest entries at maximimum.
@@ -147,7 +148,7 @@ public class DatabaseDao
 
   private long reindexObjects(final Class<?> clazz, final ReindexSettings settings)
   {
-    final Session session = sessionFactory.getCurrentSession();
+    final Session session = (Session)em.getDelegate();
     Criteria criteria = createCriteria(session, clazz, settings, true);
     final Long number = (Long) criteria.uniqueResult(); // Get number of objects to re-index (select count(*) from).
     final boolean scrollMode = number > MIN_REINDEX_ENTRIES_4_USE_SCROLL_MODE;
@@ -201,7 +202,7 @@ public class DatabaseDao
    */
   private long reindexMassIndexer(final Class<?> clazz)
   {
-    final Session session = sessionFactory.getCurrentSession();
+    final Session session = (Session)em.getDelegate();
     final Criteria criteria = createCriteria(session, clazz, null, true);
     final Long number = (Long) criteria.uniqueResult(); // Get number of objects to re-index (select count(*) from).
     log.info("Starting (mass) re-indexing of " + number + " entries of type " + clazz.getName() + "...");
