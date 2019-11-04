@@ -42,7 +42,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
@@ -54,9 +53,6 @@ import java.util.List;
 public class HistoryMigrateService
 {
   private static final Logger LOG = LoggerFactory.getLogger(HistoryMigrateService.class);
-
-  @Autowired
-  private TransactionTemplate txTemplate;
 
   @Autowired
   private DataSource dataSource;
@@ -102,8 +98,7 @@ public class HistoryMigrateService
   {
     final long printcountEach = 100;
     final Holder<Long> counter = new Holder<>(0L);
-    txTemplate.execute((status) -> {
-
+    emfac.runInTrans(emgr1 -> {
       final JdbcTemplate jdbc = new JdbcTemplate(dataSource);
       jdbc.query("select * from t_history_entry", (rs) -> {
         emfac.runInTrans(emgr -> {

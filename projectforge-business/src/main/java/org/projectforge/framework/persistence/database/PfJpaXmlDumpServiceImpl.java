@@ -63,7 +63,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -81,17 +80,14 @@ import java.util.zip.GZIPInputStream;
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
 @Service
-public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements InitializingBean, PfJpaXmlDumpService
-{
+public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements InitializingBean, PfJpaXmlDumpService {
   private static final Logger LOG = LoggerFactory.getLogger(PfJpaXmlDumpServiceImpl.class);
-
-  @Autowired
-  private PfEmgrFactory emfac;
   /**
    * Nasty hack to avoid problems with full text indice.
    */
   public static boolean isTransaction = false;
-
+  @Autowired
+  private PfEmgrFactory emfac;
   @Autowired
   private ApplicationContext applicationContext;
 
@@ -114,9 +110,6 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
   private UserXmlPreferencesDao userXmlPrefDao;
 
   @Autowired
-  private HibernateTemplate hibernateTemplate;
-
-  @Autowired
   private TenantService tenantService;
 
   @Autowired
@@ -128,15 +121,29 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
   @Autowired
   private AddressbookDao addressbookDao;
 
-  public PfJpaXmlDumpServiceImpl()
-  {
+  public PfJpaXmlDumpServiceImpl() {
     super();
 
   }
 
+  public static InputStream openCpInputStream(String path) {
+    final ClassPathResource cpres = new ClassPathResource(path);
+    try {
+      InputStream in;
+      if (path.endsWith(".gz")) {
+        in = new GZIPInputStream(cpres.getInputStream());
+      } else {
+        in = cpres.getInputStream();
+      }
+      return in;
+    } catch (final IOException ex) {
+      LOG.error(ex.getMessage(), ex);
+      throw new RuntimeException(ex);
+    }
+  }
+
   @Override
-  public void afterPropertiesSet() throws Exception
-  {
+  public void afterPropertiesSet() throws Exception {
     AutowireCapableBeanFactory factory = applicationContext.getAutowireCapableBeanFactory();
     for (JpaXmlBeforePersistListener listener : getGlobalBeforeListener()) {
       factory.autowireBean(listener);
@@ -144,20 +151,18 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
   }
 
   @Override
-  protected List<EntityMetadata> filterSortTableEntities(List<EntityMetadata> tables)
-  {
+  protected List<EntityMetadata> filterSortTableEntities(List<EntityMetadata> tables) {
     tables = super.filterSortTableEntities(tables);
     // move PfHistoryMasterDO to the end of all
     List<EntityMetadata> ret = tables.stream().filter((e) -> e.getJavaType() != PfHistoryMasterDO.class)
-        .collect(Collectors.toList());
+            .collect(Collectors.toList());
     ret.add(emfac.getMetadataRepository().getEntityMetadata(PfHistoryMasterDO.class));
     return ret;
   }
 
   @Override
   protected void insertEntities(EmgrFactory<?> fac, XmlDumpRestoreContext ctx, List<Object> objects,
-      List<EntityMetadata> tableEnts)
-  {
+                                List<EntityMetadata> tableEnts) {
     try {
       isTransaction = true;
       super.insertEntities(fac, ctx, objects, tableEnts);
@@ -175,8 +180,7 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
 
   @Override
   protected void insertEntitiesInTrans(XmlDumpRestoreContext ctx, List<Object> objects, List<EntityMetadata> tableEnts,
-      IEmgr<?> emgr)
-  {
+                                       IEmgr<?> emgr) {
 
     //    SearchEmgr<?> semgr = (SearchEmgr<?>) emgr;
     //    FullTextEntityManager ftem = semgr.getFullTextEntityManager();
@@ -189,8 +193,7 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
   }
 
   @Override
-  protected <T> T createInstance(Class<T> clazz)
-  {
+  protected <T> T createInstance(Class<T> clazz) {
     T bean = super.createInstance(clazz);
 
     AutowireCapableBeanFactory factory = applicationContext.getAutowireCapableBeanFactory();
@@ -199,15 +202,12 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
   }
 
   @Override
-  public int restoreDb(EmgrFactory<?> fac, InputStream inputStream, RestoreMode restoreMode)
-  {
+  public int restoreDb(EmgrFactory<?> fac, InputStream inputStream, RestoreMode restoreMode) {
     XStream xstream = new XStream();
-    xstream.setMarshallingStrategy(new ReferenceByIdMarshallingStrategy()
-    {
+    xstream.setMarshallingStrategy(new ReferenceByIdMarshallingStrategy() {
       @Override
       protected TreeUnmarshaller createUnmarshallingContext(Object root, HierarchicalStreamReader reader,
-          ConverterLookup converterLookup, Mapper mapper)
-      {
+                                                            ConverterLookup converterLookup, Mapper mapper) {
         return new XStreamReferenceByIdUnmarshaller(root, reader, converterLookup, mapper);
       }
     });
@@ -215,7 +215,7 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
     XStreamRecordConverter recorder = new XStreamRecordConverter(xstream, fac);
     xstream.registerConverter(recorder, 10);
     xstream.registerConverter(new SkippUnkownElementsCollectionConverter(xstream.getMapper()),
-        XStream.PRIORITY_VERY_HIGH);
+            XStream.PRIORITY_VERY_HIGH);
 
     TenantDO defaultTenant = tenantService.getDefaultTenant();
 
@@ -285,23 +285,6 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
     return objects.size();
   }
 
-  public static InputStream openCpInputStream(String path)
-  {
-    final ClassPathResource cpres = new ClassPathResource(path);
-    try {
-      InputStream in;
-      if (path.endsWith(".gz")) {
-        in = new GZIPInputStream(cpres.getInputStream());
-      } else {
-        in = cpres.getInputStream();
-      }
-      return in;
-    } catch (final IOException ex) {
-      LOG.error(ex.getMessage(), ex);
-      throw new RuntimeException(ex);
-    }
-  }
-
   /**
    * Create test database from xml file.
    *
@@ -310,8 +293,7 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
    */
   @Override
   @Deprecated
-  public int createTestDatabase()
-  {
+  public int createTestDatabase() {
     LOG.warn("PfJpaXmlDumpServiceImpl.createTestDatabase() not implemented because of deprcation.");
     return -1;
   }

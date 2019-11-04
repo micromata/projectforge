@@ -43,6 +43,8 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -61,10 +63,7 @@ public class PersonalAddressDao {
   private UserDao userDao;
 
   @Autowired
-  private HibernateTemplate hibernateTemplate;
-
-  @Autowired
-  private SessionFactory sessionFactory;
+  private EntityManager em;
 
   @Autowired
   private AddressbookDao addressbookDao;
@@ -147,9 +146,9 @@ public class PersonalAddressDao {
     checkAccess(obj);
     obj.setCreated();
     obj.setLastUpdate();
-    final Serializable id = hibernateTemplate.save(obj);
-    log.info("New object added (" + id + "): " + obj.toString());
-    return id;
+    em.persist(obj);
+    log.info("New object added (" + obj.getId() + "): " + obj.toString());
+    return obj.getId();
   }
 
   private boolean isEmpty(final PersonalAddressDO obj) {
@@ -168,7 +167,7 @@ public class PersonalAddressDao {
   private boolean internalUpdate(final PersonalAddressDO obj) {
     PersonalAddressDO dbObj = null;
     if (obj.getId() != null) {
-      dbObj = hibernateTemplate.load(PersonalAddressDO.class, obj.getId(), LockMode.PESSIMISTIC_WRITE);
+      dbObj = em.find(PersonalAddressDO.class, obj.getId(), LockModeType.PESSIMISTIC_WRITE);
     }
     if (dbObj == null) {
       dbObj = getByAddressId(obj.getAddressId());
@@ -197,7 +196,7 @@ public class PersonalAddressDao {
     final PFUserDO owner = ThreadLocalUserContext.getUser();
     Validate.notNull(owner);
     Validate.notNull(owner.getId());
-    return SQLHelper.ensureUniqueResult(sessionFactory.getCurrentSession()
+    return SQLHelper.ensureUniqueResult(em
             .createNamedQuery(PersonalAddressDO.FIND_BY_OWNER_AND_ADDRESS_ID, PersonalAddressDO.class)
             .setParameter("ownerId", owner.getId())
             .setParameter("addressId", addressId),
@@ -214,10 +213,10 @@ public class PersonalAddressDao {
     Validate.notNull(owner);
     Validate.notNull(owner.getId());
     final long start = System.currentTimeMillis();
-    List<PersonalAddressDO> list = sessionFactory.getCurrentSession()
+    List<PersonalAddressDO> list = em
             .createNamedQuery(PersonalAddressDO.FIND_JOINED_BY_OWNER, PersonalAddressDO.class)
             .setParameter("ownerId", owner.getId())
-            .list();
+            .getResultList();
     log.info("PersonalDao.getList took " + (System.currentTimeMillis() - start) + "ms.");
     list = list.stream().filter(pa -> checkAccess(pa, false)).collect(Collectors.toList());
     return list;
@@ -231,10 +230,10 @@ public class PersonalAddressDao {
     final PFUserDO owner = ThreadLocalUserContext.getUser();
     Validate.notNull(owner);
     Validate.notNull(owner.getId());
-    List<Integer> list = sessionFactory.getCurrentSession()
+    List<Integer> list = em
             .createNamedQuery(PersonalAddressDO.FIND_IDS_BY_OWNER, Integer.class)
             .setParameter("ownerId", owner.getId())
-            .list();
+            .getResultList();
     return list;
   }
 
@@ -248,10 +247,10 @@ public class PersonalAddressDao {
     final PFUserDO owner = ThreadLocalUserContext.getUser();
     Validate.notNull(owner);
     Validate.notNull(owner.getId());
-    final List<PersonalAddressDO> list = sessionFactory.getCurrentSession()
+    final List<PersonalAddressDO> list = em
             .createNamedQuery(PersonalAddressDO.FIND_BY_OWNER, PersonalAddressDO.class)
             .setParameter("ownerId", owner.getId())
-            .list();
+            .getResultList();
     final Map<Integer, PersonalAddressDO> result = new HashMap<>();
     for (final PersonalAddressDO entry : list) {
       if (entry.isFavorite() && checkAccess(entry, false)) {

@@ -27,14 +27,14 @@ import org.projectforge.framework.cache.AbstractCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
  * Caches the order positions assigned to invoice positions.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
@@ -43,7 +43,7 @@ public class RechnungCache extends AbstractCache
   private static Logger log = LoggerFactory.getLogger(RechnungCache.class);
 
   @Autowired
-  private HibernateTemplate hibernateTemplate;
+  private EntityManager em;
 
   /** The key is the order id. */
   private Map<Integer, Set<RechnungsPositionVO>> invoicePositionMapByAuftragId;
@@ -74,8 +74,9 @@ public class RechnungCache extends AbstractCache
     // This method must not be synchronized because it works with a new copy of maps.
     final Map<Integer, Set<RechnungsPositionVO>> mapByAuftragId = new HashMap<>();
     final Map<Integer, Set<RechnungsPositionVO>> mapByAuftragsPositionId = new HashMap<>();
-    final List<RechnungsPositionDO> list = (List<RechnungsPositionDO>) hibernateTemplate.find(
-        "from RechnungsPositionDO t left join fetch t.auftragsPosition left join fetch t.auftragsPosition.auftrag where t.auftragsPosition is not null");
+    final List<RechnungsPositionDO> list = em.createQuery("from RechnungsPositionDO t left join fetch t.auftragsPosition left join fetch t.auftragsPosition.auftrag where t.auftragsPosition is not null",
+            RechnungsPositionDO.class)
+            .getResultList();
     for (final RechnungsPositionDO pos : list) {
       RechnungDO rechnung = (RechnungDO) pos.getRechnung();
       if (pos.getAuftragsPosition() == null || pos.getAuftragsPosition().getAuftrag() == null) {
