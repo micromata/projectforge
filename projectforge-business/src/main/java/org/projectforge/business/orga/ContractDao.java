@@ -38,6 +38,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.Tuple;
 import java.util.List;
 
 /**
@@ -91,9 +92,9 @@ public class ContractDao extends BaseDao<ContractDO> {
    * List of all years with contracts: select min(date), max(date) from t_contract.
    */
   public int[] getYears() {
-    final Object[] minMaxDate = getSession().createNamedQuery(ContractDO.SELECT_MIN_MAX_DATE, Object[].class)
+    final Tuple minMaxDate = em.createNamedQuery(ContractDO.SELECT_MIN_MAX_DATE, Tuple.class)
             .getSingleResult();
-    return SQLHelper.getYears((java.sql.Date) minMaxDate[0], (java.sql.Date) minMaxDate[1]);
+    return SQLHelper.getYears((java.sql.Date) minMaxDate.get(0), (java.sql.Date) minMaxDate.get(1));
   }
 
   /**
@@ -112,10 +113,10 @@ public class ContractDao extends BaseDao<ContractDO> {
         throw new UserException("legalAffaires.contract.error.numberNotConsecutivelyNumbered").setCausedByField("number");
       }
     } else {
-      ContractDO other = getSession().createNamedQuery(ContractDO.FIND_OTHER_BY_NUMBER, ContractDO.class)
+      ContractDO other = em.createNamedQuery(ContractDO.FIND_OTHER_BY_NUMBER, ContractDO.class)
               .setParameter("number", obj.getNumber())
               .setParameter("id", obj.getId())
-              .uniqueResult();
+              .getSingleResult();
       if (other != null) {
         throw new UserException("legalAffaires.contract.error.numberAlreadyExists").setCausedByField("number");
       }
@@ -138,7 +139,7 @@ public class ContractDao extends BaseDao<ContractDO> {
         return orig.getNumber();
       }
     }
-    final List<Integer> list = getSession().createQuery("select max(t.number) from ContractDO t").list();
+    final List<Integer> list = em.createQuery("select max(t.number) from ContractDO t").getResultList();
     Validate.notNull(list);
     if (list.size() == 0 || list.get(0) == null) {
       log.info("First entry of ContractDO");

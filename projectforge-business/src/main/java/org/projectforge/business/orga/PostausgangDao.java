@@ -34,6 +34,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.Tuple;
 import java.util.List;
 
 @Repository
@@ -60,9 +61,9 @@ public class PostausgangDao extends BaseDao<PostausgangDO>
    */
   public int[] getYears()
   {
-    final Object[] minMaxDate = getSession().createNamedQuery(PostausgangDO.SELECT_MIN_MAX_DATE, Object[].class)
+    final Tuple minMaxDate = em.createNamedQuery(PostausgangDO.SELECT_MIN_MAX_DATE, Tuple.class)
             .getSingleResult();
-    return SQLHelper.getYears((java.sql.Date)minMaxDate[0], (java.sql.Date)minMaxDate[1]);
+    return SQLHelper.getYears((java.sql.Date)minMaxDate.get(0), (java.sql.Date)minMaxDate.get(1));
   }
 
   @Override

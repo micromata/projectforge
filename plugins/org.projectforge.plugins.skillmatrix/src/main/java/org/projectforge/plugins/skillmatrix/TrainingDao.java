@@ -82,7 +82,7 @@ public class TrainingDao extends BaseDao<TrainingDO> {
     if (title == null) {
       return null;
     }
-    return SQLHelper.ensureUniqueResult(getSession()
+    return SQLHelper.ensureUniqueResult(em
             .createNamedQuery(TrainingDO.FIND_BY_TITLE, TrainingDO.class)
             .setParameter("title", title));
   }

@@ -36,6 +36,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import java.math.RoundingMode;
 import java.util.*;
@@ -69,9 +70,9 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
    */
   public int[] getYears()
   {
-    final Object[] minMaxDate = getSession().createNamedQuery(EingangsrechnungDO.SELECT_MIN_MAX_DATE, Object[].class)
+    final Tuple minMaxDate = em.createNamedQuery(EingangsrechnungDO.SELECT_MIN_MAX_DATE,Tuple.class)
             .getSingleResult();
-    return SQLHelper.getYears((java.sql.Date)minMaxDate[0], (java.sql.Date)minMaxDate[1]);
+    return SQLHelper.getYears((java.sql.Date)minMaxDate.get(0), (java.sql.Date)minMaxDate.get(1));
   }
 
   public EingangsrechnungsStatistik buildStatistik(final List<EingangsrechnungDO> list)
