@@ -160,7 +160,7 @@ public abstract class AbstractTestBase {
   protected InitTestDB initTestDB;
 
   @Autowired
-  private PfEmgrFactory emf;
+  protected PfEmgrFactory emf;
 
   @Autowired
   private DataSource dataSource;

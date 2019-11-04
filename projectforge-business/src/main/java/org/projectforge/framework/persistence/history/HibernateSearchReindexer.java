@@ -24,8 +24,6 @@
 package org.projectforge.framework.persistence.history;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.GlobalConfiguration;
@@ -37,26 +35,19 @@ import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.mail.Mail;
 import org.projectforge.mail.SendMail;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.orm.hibernate5.HibernateCallback;
-import org.springframework.orm.hibernate5.HibernateTemplate;
-import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Date;
 import java.util.Locale;
 import java.util.Set;
 
 @Service
-public class HibernateSearchReindexer
-{
+public class HibernateSearchReindexer {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HibernateSearchReindexer.class);
 
   private static final String ERROR_MSG = "Error while re-indexing data base: found lock files while re-indexing data-base. "
-      + "Try to run re-index manually in the web administration menu and if occured again, "
-      + "shutdown ProjectForge, delete lock file(s) in hibernate-search sub directory and restart.";
+          + "Try to run re-index manually in the web administration menu and if occured again, "
+          + "shutdown ProjectForge, delete lock file(s) in hibernate-search sub directory and restart.";
 
   @Autowired
   private SendMail sendMail;
@@ -67,13 +58,9 @@ public class HibernateSearchReindexer
   private Date currentReindexRun = null;
 
   @Autowired
-  private HibernateTemplate hibernate;
-
-  @Autowired
   private PfEmgrFactory emf;
 
-  public void execute()
-  {
+  public void execute() {
     log.info("Re-index job started.");
     if (databaseDao == null) {
       log.error("Job not configured, aborting.");
@@ -83,7 +70,7 @@ public class HibernateSearchReindexer
     if (result.contains("*")) {
       log.error(ERROR_MSG);
       final String recipients = GlobalConfiguration.getInstance()
-          .getStringValue(ConfigurationParam.SYSTEM_ADMIN_E_MAIL);
+              .getStringValue(ConfigurationParam.SYSTEM_ADMIN_E_MAIL);
       if (StringUtils.isNotBlank(recipients)) {
         log.info("Try to inform administrator about re-indexing error.");
         final Mail msg = new Mail();
@@ -97,8 +84,7 @@ public class HibernateSearchReindexer
     log.info("Re-index job finished successfully.");
   }
 
-  public String rebuildDatabaseSearchIndices(final ReindexSettings settings, final Class<?>... classes)
-  {
+  public String rebuildDatabaseSearchIndices(final ReindexSettings settings, final Class<?>... classes) {
     if (currentReindexRun != null) {
       final StringBuffer buf = new StringBuffer();
       if (classes != null && classes.length > 0) {
@@ -108,9 +94,9 @@ public class HibernateSearchReindexer
         }
       }
       final String date = DateTimeFormatter.instance().getFormattedDateTime(currentReindexRun, Locale.ENGLISH,
-          DateHelper.UTC);
+              DateHelper.UTC);
       log.info("Re-indexing of '" + buf.toString()
-          + "' cancelled due to another already running re-index job started at " + date + " (UTC):");
+              + "' cancelled due to another already running re-index job started at " + date + " (UTC):");
       return "Another re-index job is already running. The job was started at: " + date;
     }
     synchronized (this) {
@@ -135,41 +121,21 @@ public class HibernateSearchReindexer
     }
   }
 
-  @SuppressWarnings({ "rawtypes", "unchecked" })
-  private void reindex(final Class<?> clazz, final ReindexSettings settings, final StringBuffer buf)
-  {
+  private void reindex(final Class<?> clazz, final ReindexSettings settings, final StringBuffer buf) {
     // PF-378: Performance of run of full re-indexing the data-base is very slow for large data-bases
     // Single transactions needed, otherwise the full run will be very slow for large data-bases.
-    final TransactionTemplate tx = new TransactionTemplate(
-        new HibernateTransactionManager(hibernate.getSessionFactory()));
-    tx.execute(new TransactionCallback()
-    {
-      // The call-back is needed, otherwise a lot of transactions are left open until last run is completed:
-      @Override
-      public Object doInTransaction(final TransactionStatus status)
-      {
-        try {
-          hibernate.execute(new HibernateCallback()
-          {
-            @Override
-            public Object doInHibernate(final Session session) throws HibernateException
-            {
-              databaseDao.reindex(clazz, settings, buf);
-              status.setRollbackOnly();
-              return null;
-            }
-          });
-        } catch (final Exception ex) {
-          buf.append(" (an error occured, see log file for further information.), ");
-          log.error("While rebuilding data-base-search-index for '" + clazz.getName() + "': " + ex.getMessage(), ex);
-        }
-        return null;
-      }
-    });
+    try {
+      emf.runInTrans(emgr -> {
+        databaseDao.reindex(clazz, settings, buf);
+        return true;
+      });
+    } catch (Exception ex) {
+      buf.append(" (an error occured, see log file for further information.), ");
+      log.error("While rebuilding data-base-search-index for '" + clazz.getName() + "': " + ex.getMessage(), ex);
+    }
   }
 
-  public String rebuildDatabaseSearchIndices()
-  {
+  public String rebuildDatabaseSearchIndices() {
     return rebuildDatabaseSearchIndices(new ReindexSettings());
   }
 

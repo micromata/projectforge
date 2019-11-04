@@ -28,9 +28,6 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -44,9 +41,6 @@ public class GroupTest extends AbstractTestBase {
   @Autowired
   private GroupDao groupDao;
 
-  @Autowired
-  private TransactionTemplate txTemplate;
-
   @Override
   protected void afterAll() {
     recreateDataBase();
@@ -55,9 +49,7 @@ public class GroupTest extends AbstractTestBase {
   @SuppressWarnings({"unchecked", "rawtypes"})
   @Test
   public void test1SaveAndUpdate() {
-    txTemplate.execute(new TransactionCallback() {
-      @Override
-      public Object doInTransaction(final TransactionStatus status) {
+    emf.runInTrans(emgr -> {
         logon(AbstractTestBase.TEST_ADMIN_USER);
         GroupDO group = new GroupDO();
         group.setName("testgroup");
@@ -78,7 +70,6 @@ public class GroupTest extends AbstractTestBase {
         assertTrue(group.getAssignedUsers().contains(getUser(AbstractTestBase.TEST_USER)));
         assertTrue(group.getAssignedUsers().contains(user));
         return null;
-      }
     });
   }
 

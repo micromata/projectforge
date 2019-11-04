@@ -156,7 +156,7 @@ public class TeamEventSubscription implements Serializable
           + " information, using database from url '"
           + displayUrl
           + "': "
-          + e.getMessage(), e);
+          + e.getMessage());
     }
     if (bytes == null) {
       error("Unable to use database subscription calendar #" + teamCalDO.getId() + " information, quit from url '"
@@ -221,6 +221,10 @@ public class TeamEventSubscription implements Serializable
     this.lastErrorMessage = null;
     this.lastFailedUpdate = null;
     this.numberOfFailedUpdates = 0;
+  }
+
+  private void error(final String errorMessage) {
+    error(errorMessage, null);
   }
 
   private void error(final String errorMessage, final Exception ex)

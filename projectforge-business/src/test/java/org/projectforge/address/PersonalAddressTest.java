@@ -30,71 +30,51 @@ import org.projectforge.business.address.PersonalAddressDO;
 import org.projectforge.business.address.PersonalAddressDao;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class PersonalAddressTest extends AbstractTestBase
-{
+public class PersonalAddressTest extends AbstractTestBase {
   @Autowired
   private PersonalAddressDao personalAddressDao;
 
   @Autowired
   private AddressDao addressDao;
 
-  @Autowired
-  private TransactionTemplate txTemplate;
-
   @Test
-  public void testSaveAndUpdate()
-  {
+  public void testSaveAndUpdate() {
     logon(AbstractTestBase.ADMIN);
     final Integer[] addressIds = new Integer[1];
-    txTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW);
-    txTemplate.execute(new TransactionCallback()
-    {
-      @Override
-      public Object doInTransaction(TransactionStatus status)
-      {
-        AddressDO address = new AddressDO();
-        address.setFirstName("Kai");
-        address.setName("Reinhard");
-        address.setMobilePhone("+49 170 123 456");
-        address.setFax("+49 561 316793-11");
-        address.setBusinessPhone("+49 561 316793-0");
-        address.setPrivatePhone("+49 561 12345678");
-        addressIds[0] = (Integer) addressDao.save(address);
+    emf.runInTrans(emgr -> {
+      AddressDO address = new AddressDO();
+      address.setFirstName("Kai");
+      address.setName("Reinhard");
+      address.setMobilePhone("+49 170 123 456");
+      address.setFax("+49 561 316793-11");
+      address.setBusinessPhone("+49 561 316793-0");
+      address.setPrivatePhone("+49 561 12345678");
+      addressIds[0] = (Integer) addressDao.save(address);
 
-        PersonalAddressDO personalAddress = new PersonalAddressDO();
-        AddressDO a = addressDao.getOrLoad(addressIds[0]);
-        personalAddress.setAddress(a);
-        personalAddress.setOwner(getUser(AbstractTestBase.ADMIN));
-        personalAddress.setFavoriteCard(true);
-        personalAddress.setFavoriteBusinessPhone(true);
-        personalAddress.setFavoriteMobilePhone(true);
-        personalAddressDao.saveOrUpdate(personalAddress);
-        return null;
-      }
+      PersonalAddressDO personalAddress = new PersonalAddressDO();
+      AddressDO a = addressDao.getOrLoad(addressIds[0]);
+      personalAddress.setAddress(a);
+      personalAddress.setOwner(getUser(AbstractTestBase.ADMIN));
+      personalAddress.setFavoriteCard(true);
+      personalAddress.setFavoriteBusinessPhone(true);
+      personalAddress.setFavoriteMobilePhone(true);
+      personalAddressDao.saveOrUpdate(personalAddress);
+      return null;
     });
 
-    txTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW);
-    txTemplate.execute(new TransactionCallback()
-    {
-      @Override
-      public Object doInTransaction(TransactionStatus status)
-      {
-        PersonalAddressDO personalAddress = personalAddressDao.getByAddressId(addressIds[0]);
-        assertEquals(personalAddress.getAddressId(), addressIds[0]);
-        assertEquals(personalAddress.getOwnerId(), getUser(AbstractTestBase.ADMIN).getId());
-        assertTrue(personalAddress.isFavoriteCard());
-        assertTrue(personalAddress.isFavoriteBusinessPhone());
-        assertTrue(personalAddress.isFavoriteMobilePhone());
-        assertFalse(personalAddress.isFavoritePrivatePhone());
-        assertFalse(personalAddress.isFavoriteFax());
-        return null;
-      }
+    emf.runInTrans(emgr -> {
+      PersonalAddressDO personalAddress = personalAddressDao.getByAddressId(addressIds[0]);
+      assertEquals(personalAddress.getAddressId(), addressIds[0]);
+      assertEquals(personalAddress.getOwnerId(), getUser(AbstractTestBase.ADMIN).getId());
+      assertTrue(personalAddress.isFavoriteCard());
+      assertTrue(personalAddress.isFavoriteBusinessPhone());
+      assertTrue(personalAddress.isFavoriteMobilePhone());
+      assertFalse(personalAddress.isFavoritePrivatePhone());
+      assertFalse(personalAddress.isFavoriteFax());
+      return null;
     });
 
     /*

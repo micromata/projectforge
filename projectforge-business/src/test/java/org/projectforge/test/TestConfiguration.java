@@ -31,9 +31,6 @@ import de.micromata.genome.db.jpa.tabattr.impl.TimeableServiceImpl;
 import de.micromata.mgc.jpa.spring.SpringEmgrFilterBean;
 import de.micromata.mgc.jpa.spring.factories.JpaToSessionSpringBeanFactory;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.projectforge.continuousdb.DatabaseSupport;
-import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.attr.impl.AttrSchemaServiceSpringBeanImpl;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
@@ -46,10 +43,7 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.orm.hibernate5.HibernateTemplate;
-import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
@@ -64,6 +58,7 @@ import javax.sql.DataSource;
             pattern = "org.projectforge.web.configuration.PFWebConfiguration") })
 @PropertySource({"classpath:/application.properties", "classpath:/application-test.properties"})
 @EnableTransactionManagement
+//@EnableAutoConfiguration(exclude = {HibernateJpaAutoConfiguration.class})
 //Needed, because not only interfaces are used as injection points
 @EnableAspectJAutoProxy(proxyTargetClass = true)
 public class TestConfiguration
@@ -96,12 +91,6 @@ public class TestConfiguration
     return new JpaToSessionSpringBeanFactory();
   }
 
-  @Bean
-  public SessionFactory sessionFactory()
-  {
-    return entityManagerFactory().unwrap(SessionFactory.class);
-  }
-
   /**
    * has to be defined, otherwise spring creates a LocalContainerEntityManagerFactoryBean, which has no correct
    * sessionFactory.getCurrentSession();.
@@ -113,33 +102,6 @@ public class TestConfiguration
   public EntityManagerFactory entityManagerFactory()
   {
     return pfEmgrFactory.getEntityManagerFactory();
-  }
-
-  @Bean
-  public HibernateTransactionManager transactionManager() throws Exception
-  {
-    HibernateTransactionManager ret = new HibernateTransactionManager(sessionFactory());
-    ret.setAutodetectDataSource(false);
-    ret.setDataSource(dataSource());
-    return ret;
-  }
-
-  @Bean
-  public TransactionTemplate txTemplate() throws Exception
-  {
-    TransactionTemplate ret = new TransactionTemplate();
-    ret.setTransactionManager(transactionManager());
-    return ret;
-  }
-
-  @Bean
-  public HibernateTemplate hibernateTemplate() throws Exception
-  {
-    HibernateTemplate ht = new HibernateTemplate(sessionFactory());
-    if (DatabaseSupport.getInstance() == null) {
-      DatabaseSupport.setInstance(new DatabaseSupport(HibernateUtils.getDialect()));
-    }
-    return ht;
   }
 
   @Bean

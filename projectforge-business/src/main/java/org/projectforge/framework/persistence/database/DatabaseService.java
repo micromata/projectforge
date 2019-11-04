@@ -59,17 +59,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.Column;
+import javax.persistence.EntityManager;
 import javax.persistence.Persistence;
 import javax.persistence.UniqueConstraint;
 import javax.sql.DataSource;
-import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -105,9 +104,6 @@ public class DatabaseService
   private UserRightDao userRightDao;
 
   @Autowired
-  private HibernateTemplate hibernateTemplate;
-
-  @Autowired
   private JdbcTemplate jdbcTemplate;
 
   @Autowired
@@ -133,6 +129,9 @@ public class DatabaseService
 
   @Autowired
   private PfEmgrFactory emf;
+
+  @Autowired
+  private EntityManager entityManager;
 
   @PostConstruct
   public void initialize()
@@ -167,8 +166,8 @@ public class DatabaseService
     task.setCreated();
     task.setLastUpdate();
     task.setTenant(defaultTenant);
-    final Serializable id = hibernateTemplate.save(task);
-    log.info("New object added (" + id + "): " + task.toString());
+    entityManager.persist(task);
+    log.info("New object added (" + task.getId() + "): " + task.toString());
     // Use of taskDao does not work with maven test case: Could not synchronize database state with session?
 
     // Create Admin user
