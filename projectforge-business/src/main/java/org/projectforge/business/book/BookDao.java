@@ -66,15 +66,15 @@ public class BookDao extends BaseDao<BookDO> {
     BookDO other = null;
     if (book.getId() == null) {
       // New book
-      other = getSession().createNamedQuery(BookDO.FIND_BY_SIGNATURE, BookDO.class)
+      other = em.createNamedQuery(BookDO.FIND_BY_SIGNATURE, BookDO.class)
               .setParameter("signature", book.getSignature())
-              .uniqueResult();
+              .getSingleResult();
     } else {
       // Book already exists. Check maybe changed signature:
-      other = getSession().createNamedQuery(BookDO.FIND_OTHER_BY_SIGNATURE, BookDO.class)
+      other = em.createNamedQuery(BookDO.FIND_OTHER_BY_SIGNATURE, BookDO.class)
               .setParameter("signature", book.getSignature())
               .setParameter("id", book.getId())
-              .uniqueResult();
+              .getSingleResult();
     }
     return other != null;
   }
