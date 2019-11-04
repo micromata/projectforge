@@ -45,7 +45,7 @@ public class ExternalCalendarSubscriptionJob
     try {
       teamEventExternalSubscriptionCache.updateCache();
     } catch (final Throwable ex) {
-      log.error("Exception while executing ExternalCalendarSubscriptionJob: " + ex.getMessage(), ex);
+      log.error("Exception while executing ExternalCalendarSubscriptionJob: " + ex.getMessage());
     }
     log.info("External calendar subscriptions job finished.");
   }
