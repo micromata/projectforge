@@ -254,14 +254,6 @@ public class AddressbookDao extends BaseDao<AddressbookDO> {
     return list;
   }
 
-  /**
-   * @see BaseDao#useOwnCriteriaCacheRegion()
-   */
-  @Override
-  protected boolean useOwnCriteriaCacheRegion() {
-    return true;
-  }
-
   @Override
   protected void onDelete(final AddressbookDO obj) {
     super.onDelete(obj);

@@ -442,12 +442,4 @@ public class RechnungDao extends BaseDao<RechnungDO> {
   public RechnungDO newInstance() {
     return new RechnungDO();
   }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#useOwnCriteriaCacheRegion()
-   */
-  @Override
-  protected boolean useOwnCriteriaCacheRegion() {
-    return true;
-  }
 }

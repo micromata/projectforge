@@ -269,15 +269,6 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
     return new EingangsrechnungDO();
   }
 
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#useOwnCriteriaCacheRegion()
-   */
-  @Override
-  protected boolean useOwnCriteriaCacheRegion()
-  {
-    return true;
-  }
-
   public EingangsrechnungDO findNewestByKreditor(final String kreditor)
   {
     return pfEmgrFactory.runRoTrans(emgr -> {

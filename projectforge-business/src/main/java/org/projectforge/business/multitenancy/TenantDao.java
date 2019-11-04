@@ -317,15 +317,6 @@ public class TenantDao extends BaseDao<TenantDO>
     return new TenantDO();
   }
 
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#useOwnCriteriaCacheRegion()
-   */
-  @Override
-  protected boolean useOwnCriteriaCacheRegion()
-  {
-    return true;
-  }
-
   @Override
   public List<TenantDO> internalLoadAll()
   {

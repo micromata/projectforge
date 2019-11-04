@@ -697,14 +697,6 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
   }
 
   /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#useOwnCriteriaCacheRegion()
-   */
-  @Override
-  protected boolean useOwnCriteriaCacheRegion() {
-    return true;
-  }
-
-  /**
    * @param teamCalDao the teamCalDao to set
    */
   public void setTeamCalDao(final TeamCalDao teamCalDao) {

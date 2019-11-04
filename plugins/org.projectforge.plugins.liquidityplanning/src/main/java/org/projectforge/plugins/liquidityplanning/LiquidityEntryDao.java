@@ -37,9 +37,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @Repository
 public class LiquidityEntryDao extends BaseDao<LiquidityEntryDO>
@@ -123,14 +123,5 @@ public class LiquidityEntryDao extends BaseDao<LiquidityEntryDO>
   public LiquidityEntryDO newInstance()
   {
     return new LiquidityEntryDO();
-  }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#useOwnCriteriaCacheRegion()
-   */
-  @Override
-  protected boolean useOwnCriteriaCacheRegion()
-  {
-    return true;
   }
 }
