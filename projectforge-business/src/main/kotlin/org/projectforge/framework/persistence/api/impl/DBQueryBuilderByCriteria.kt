@@ -27,6 +27,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
+import org.slf4j.LoggerFactory
 import javax.persistence.EntityManager
 import javax.persistence.criteria.Predicate
 
@@ -35,13 +36,14 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Int>>(
         private val entityManager: EntityManager,
         private val queryFilter: QueryFilter
 ) {
+    private val log = LoggerFactory.getLogger(DBQueryBuilderByCriteria::class.java)
     private var _ctx: DBCriteriaContext<O>? = null
     private val ctx: DBCriteriaContext<O>
         get() {
             if (_ctx == null) {
                 val cb = entityManager.criteriaBuilder
                 val cr = cb.createQuery(baseDao.doClass)
-                _ctx = DBCriteriaContext(cb, cr, cr.from(baseDao.doClass))
+                _ctx = DBCriteriaContext(cb, cr, cr.from(baseDao.doClass), baseDao.doClass)
                 initJoinSets()
             }
             return _ctx!!
@@ -63,10 +65,13 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Int>>(
 
     fun addOrder(sortProperty: SortProperty) {
         order.add(
-                if (sortProperty.ascending)
+                if (sortProperty.ascending) {
+                    if (log.isDebugEnabled) log.debug("Adding criteria orderBy (${ctx.entityName}): order by ${sortProperty.property}.")
                     ctx.cb.asc(ctx.getField<Any>(sortProperty.property))
-                else
+                } else {
+                    if (log.isDebugEnabled) log.debug("Adding criteria orderBy (${ctx.entityName}): order by ${sortProperty.property} desc.")
                     ctx.cb.desc(ctx.getField<Any>(sortProperty.property))
+                }
         )
     }
 

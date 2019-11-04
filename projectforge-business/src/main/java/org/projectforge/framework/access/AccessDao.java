@@ -34,7 +34,6 @@ import org.projectforge.business.user.GroupDao;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.PFDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
@@ -42,7 +41,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.criteria.*;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -97,11 +95,10 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
     CriteriaBuilder cb = em.getCriteriaBuilder();
     CriteriaQuery<GroupTaskAccessDO> cr = cb.createQuery(GroupTaskAccessDO.class);
     From root = cr.from(clazz);
-    Join fetch = (Join) root.fetch("accessEntries", JoinType.LEFT);
-    Date yearsAgo = PFDateTime.now().minusYears(2).getUtilDate();
+    root.fetch("accessEntries", JoinType.LEFT);
     cr.select(root).where(
             cb.equal(root.get("deleted"), false))
-            .orderBy(cb.asc(fetch.get("task").get("id")), cb.asc(fetch.get("group").get("id")))
+            .orderBy(cb.asc(root.get("task").get("id")), cb.asc(root.get("group").get("id")))
             .distinct(true);
     return em.createQuery(cr).getResultList();
     // from GroupTaskAccessDO g join fetch g.accessEntries where deleted=false order by g.task.id, g.group.id");
