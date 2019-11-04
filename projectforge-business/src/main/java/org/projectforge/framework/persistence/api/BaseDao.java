@@ -56,6 +56,7 @@ import org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtil
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
+import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.projectforge.framework.time.PFDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +64,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -115,11 +115,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   @PersistenceContext
   protected EntityManager em;
 
-  @Autowired
-  @Deprecated
-  protected TransactionTemplate txTemplate;
-
-  @Autowired
+   @Autowired
   protected TenantChecker tenantChecker;
 
   @Autowired
@@ -389,12 +385,10 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     if (id == null) {
       return null;
     }
-
-    O obj =  em.createQuery(
+    O obj = SQLHelper.ensureUniqueResult( em.createQuery(
             "select t from "+ clazz.getName() + " t where t.id = :id", clazz)
-            .setParameter("id", id)
-            .getSingleResult();
-    if (obj == null) {
+            .setParameter("id", id));
+      if (obj == null) {
       return null;
     }
     afterLoad(obj);
