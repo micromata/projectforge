@@ -29,14 +29,10 @@ import de.micromata.genome.db.jpa.history.impl.HistoryServiceImpl;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 import de.micromata.genome.db.jpa.tabattr.impl.TimeableServiceImpl;
 import de.micromata.mgc.jpa.spring.SpringEmgrFilterBean;
-import de.micromata.mgc.jpa.spring.factories.JpaToSessionSpringBeanFactory;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.projectforge.framework.persistence.attr.impl.AttrSchemaServiceSpringBeanImpl;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.web.servlet.SMSReceiverServlet;
-import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
@@ -44,11 +40,15 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.orm.hibernate5.HibernateTransactionManager;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.vendor.HibernateJpaDialect;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
@@ -100,24 +100,25 @@ public class TestConfiguration {
   }
 
   @Bean
-  public FactoryBean<Session> hibernateSession()
+  public EntityManager entityManager()
   {
-    return new JpaToSessionSpringBeanFactory();
+    return pfEmgrFactory.getEntityManagerFactory().createEntityManager();
   }
 
   @Bean
-  public SessionFactory sessionFactory()
-  {
-    return entityManagerFactory().unwrap(SessionFactory.class);
+  public DataSourceTransactionManager transactionManager() {
+    final DataSourceTransactionManager txManager = new DataSourceTransactionManager();
+    txManager.setDataSource(dataSource());
+    return txManager;
   }
 
   @Bean
-  public HibernateTransactionManager transactionManager() throws Exception
-  {
-    HibernateTransactionManager ret = new HibernateTransactionManager(entityManagerFactory().unwrap(SessionFactory.class));
-    ret.setAutodetectDataSource(false);
-    ret.setDataSource(dataSource());
-    return ret;
+  public PlatformTransactionManager transactionManager(EntityManagerFactory emf) {
+    JpaTransactionManager transactionManager = new JpaTransactionManager();
+    transactionManager.setEntityManagerFactory(emf);
+    transactionManager.setDataSource(dataSource());
+    transactionManager.setJpaDialect(new HibernateJpaDialect());
+    return transactionManager;
   }
 
 
