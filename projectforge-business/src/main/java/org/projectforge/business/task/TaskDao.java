@@ -132,8 +132,6 @@ public class TaskDao extends BaseDao<TaskDO> {
     log.debug("Calculating duration for all tasks");
     final String intervalInSeconds = DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime");
     if (intervalInSeconds != null) {
-      Date yearsAgo = PFDateTime.now().minusYears(2).getUtilDate();
-
       TypedQuery<Tuple> typedQuery = em.createQuery(
               "select " + intervalInSeconds + ", task.id from TimesheetDO where deleted=false group by task.id",
               Tuple.class);
