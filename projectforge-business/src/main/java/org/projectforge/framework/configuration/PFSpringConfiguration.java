@@ -109,12 +109,6 @@ public class PFSpringConfiguration
   }
 
   @Bean
-  public SessionFactory sessionFactory()
-  {
-    return entityManagerFactory().unwrap(SessionFactory.class);
-  }
-
-  @Bean
   public HibernateTransactionManager transactionManager() throws Exception
   {
     HibernateTransactionManager ret = new HibernateTransactionManager(entityManagerFactory().unwrap(SessionFactory.class));
