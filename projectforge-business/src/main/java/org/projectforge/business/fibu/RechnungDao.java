@@ -47,6 +47,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.Tuple;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -106,9 +107,9 @@ public class RechnungDao extends BaseDao<RechnungDO> {
    * List of all years with invoices: select min(datum), max(datum) from t_fibu_rechnung.
    */
   public int[] getYears() {
-    final Object[] minMaxDate = getSession().createNamedQuery(RechnungDO.SELECT_MIN_MAX_DATE, Object[].class)
+    final Tuple minMaxDate = em.createNamedQuery(RechnungDO.SELECT_MIN_MAX_DATE, Tuple.class)
             .getSingleResult();
-    return SQLHelper.getYears((java.sql.Date) minMaxDate[0], (java.sql.Date) minMaxDate[1]);
+    return SQLHelper.getYears((java.sql.Date) minMaxDate.get(0), (java.sql.Date) minMaxDate.get(1));
   }
 
   public RechnungsStatistik buildStatistik(final List<RechnungDO> list) {
@@ -202,10 +203,10 @@ public class RechnungDao extends BaseDao<RechnungDO> {
             throw new UserException("fibu.rechnung.error.rechnungsNummerIstNichtFortlaufend");
           }
         } else {
-          final RechnungDO other = getSession().createNamedQuery(RechnungDO.FIND_OTHER_BY_NUMMER, RechnungDO.class)
+          final RechnungDO other = em.createNamedQuery(RechnungDO.FIND_OTHER_BY_NUMMER, RechnungDO.class)
                   .setParameter("nummer", rechnung.getNummer())
                   .setParameter("id", rechnung.getId())
-                  .uniqueResult();
+                  .getSingleResult();
           if (other != null) {
             throw new UserException("fibu.rechnung.error.rechnungsNummerBereitsVergeben");
           }
@@ -358,7 +359,7 @@ public class RechnungDao extends BaseDao<RechnungDO> {
         return orig.getNummer();
       }
     }
-    final List<Integer> list = getSession().createQuery("select max(t.nummer) from RechnungDO t").list();
+    final List<Integer> list = em.createQuery("select max(t.nummer) from RechnungDO t").getResultList();
     Validate.notNull(list);
     if (list.size() == 0 || list.get(0) == null) {
       log.info("First entry of RechnungDO");

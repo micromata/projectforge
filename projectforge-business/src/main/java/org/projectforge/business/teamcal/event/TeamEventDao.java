@@ -31,9 +31,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.hibernate.query.Query;
-import org.hibernate.type.DateType;
-import org.hibernate.type.StringType;
 import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.calendar.event.model.SeriesModificationMode;
 import org.projectforge.business.multitenancy.TenantService;
@@ -63,6 +60,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.NoResultException;
 import javax.persistence.NonUniqueResultException;
+import javax.persistence.TypedQuery;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -523,13 +521,13 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
     final String s = "select distinct location from "
             + clazz.getSimpleName()
             + " t where deleted=false and t.calendar in :cals and lastUpdate > :lastUpdate and lower(t.location) like :location) order by t.location";
-    final Query query = getSession().createQuery(s);
-    query.setParameterList("cals", calendars);
+    final TypedQuery<String> query = em.createQuery(s, String.class);
+    query.setParameter("cals", calendars);
     final DateHolder dh = new DateHolder();
     dh.add(Calendar.YEAR, -1);
-    query.setParameter("lastUpdate", dh.getDate(), DateType.INSTANCE);
-    query.setParameter("location", "%" + StringUtils.lowerCase(searchString) + "%", StringType.INSTANCE);
-    return (List<String>) query.list();
+    query.setParameter("lastUpdate", dh.getDate());
+    query.setParameter("location", "%" + StringUtils.lowerCase(searchString) + "%");
+    return (List<String>) query.getResultList();
   }
 
   private void addEventsToList(final TeamEventFilter teamEventFilter, final List<TeamEventDO> result,

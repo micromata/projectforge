@@ -50,6 +50,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.Tuple;
 import javax.persistence.criteria.JoinType;
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -122,9 +123,9 @@ public class AuftragDao extends BaseDao<AuftragDO> {
    * @return
    */
   public int[] getYears() {
-    final Object[] minMaxDate = getSession().createNamedQuery(AuftragDO.SELECT_MIN_MAX_DATE, Object[].class)
+    final Tuple minMaxDate = em.createNamedQuery(AuftragDO.SELECT_MIN_MAX_DATE, Tuple.class)
             .getSingleResult();
-    return SQLHelper.getYears((java.sql.Date) minMaxDate[0], (java.sql.Date) minMaxDate[1]);
+    return SQLHelper.getYears((java.sql.Date) minMaxDate.get(0), (java.sql.Date) minMaxDate.get(1));
   }
 
   /**
@@ -132,8 +133,9 @@ public class AuftragDao extends BaseDao<AuftragDO> {
    */
   public Map<Integer, Set<AuftragsPositionVO>> getTaskReferences() {
     final Map<Integer, Set<AuftragsPositionVO>> result = new HashMap<>();
-    @SuppressWarnings("unchecked") final List<AuftragsPositionDO> list = (List<AuftragsPositionDO>) getHibernateTemplate()
-            .find("from AuftragsPositionDO a where a.task.id is not null and a.deleted = false");
+    final List<AuftragsPositionDO> list = em.createQuery(
+            "from AuftragsPositionDO a where a.task.id is not null and a.deleted = false",
+            AuftragsPositionDO.class).getResultList();
     if (list == null) {
       return result;
     }
@@ -267,7 +269,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
       return null;
     }
     final AuftragDO auftrag = SQLHelper.ensureUniqueResult(
-            getSession()
+            em
                     .createNamedQuery(AuftragDO.FIND_BY_NUMMER, AuftragDO.class)
                     .setParameter("nummer", auftragsNummer));
     return auftrag != null ? auftrag.getPosition(positionNummer) : null;
@@ -438,10 +440,10 @@ public class AuftragDao extends BaseDao<AuftragDO> {
         throw new UserException("fibu.auftrag.error.nummerIstNichtFortlaufend");
       }
     } else {
-      final AuftragDO other = getSession().createNamedQuery(AuftragDO.FIND_OTHER_BY_NUMMER, AuftragDO.class)
+      final AuftragDO other = em.createNamedQuery(AuftragDO.FIND_OTHER_BY_NUMMER, AuftragDO.class)
               .setParameter("nummer", obj.getNummer())
               .setParameter("id", obj.getId())
-              .uniqueResult();
+              .getSingleResult();
       if (other != null) {
         throw new UserException("fibu.auftrag.error.nummerBereitsVergeben");
       }
@@ -631,7 +633,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
         return orig.getNummer();
       }
     }
-    final List<Integer> list = getSession().createQuery("select max(t.nummer) from AuftragDO t").list();
+    final List<Integer> list = em.createQuery("select max(t.nummer) from AuftragDO t").getResultList();
     Validate.notNull(list);
     if (list.size() == 0 || list.get(0) == null) {
       log.info("First entry of AuftragDO");

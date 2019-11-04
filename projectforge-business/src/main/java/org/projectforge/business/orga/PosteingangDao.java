@@ -34,6 +34,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.Tuple;
 import java.util.List;
 
 @Repository
@@ -57,9 +58,9 @@ public class PosteingangDao extends BaseDao<PosteingangDO> {
    * List of all years with invoices: select min(datum), max(datum) from t_fibu_rechnung.
    */
   public int[] getYears() {
-    final Object[] minMaxDate = getSession().createNamedQuery(PosteingangDO.SELECT_MIN_MAX_DATE, Object[].class)
+    final Tuple minMaxDate = em.createNamedQuery(PosteingangDO.SELECT_MIN_MAX_DATE, Tuple.class)
             .getSingleResult();
-    return SQLHelper.getYears((java.sql.Date) minMaxDate[0], (java.sql.Date) minMaxDate[1]);
+    return SQLHelper.getYears((java.sql.Date) minMaxDate.get(0), (java.sql.Date) minMaxDate.get(1));
   }
 
   @Override

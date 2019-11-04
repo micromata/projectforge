@@ -195,19 +195,19 @@ public class MebDao extends BaseDao<MebEntryDO> {
     synchronized (this) {
       final String checkSum = createCheckSum(entry.getMessage());
       // First check weather the entry is already in the data base or not.
-      final List<ImportedMebEntryDO> entryList = getSession()
+      final List<ImportedMebEntryDO> entryList = em
               .createNamedQuery(ImportedMebEntryDO.FIND_BY_SENDER_AND_DATE_AND_CHECKSUM, ImportedMebEntryDO.class)
               .setParameter("sender", entry.getSender())
               .setParameter("date", entry.getDate())
               .setParameter("checkSum", checkSum)
-              .list();
+              .getResultList();
       if (entryList != null && entryList.size() > 0) {
         return false;
       }
       // Try to assign the owner from the sender string.
-      final List<Object[]> userList = getSession()
+      final List<Object[]> userList = em
               .createNamedQuery(PFUserDO.SELECT_ID_MEB_MOBILE_NUMBERS, Object[].class)
-              .list();
+              .getResultList();
       final String senderNumber = StringHelper.removeNonDigits(entry.getSender());
       Integer pk = null;
       for (final Object[] user : userList) {
@@ -224,7 +224,7 @@ public class MebDao extends BaseDao<MebEntryDO> {
         }
       }
       if (pk != null) {
-        final PFUserDO user = (PFUserDO) getSession().load(PFUserDO.class, pk);
+        final PFUserDO user = em.getReference(PFUserDO.class, pk);
         entry.setOwner(user);
       }
       internalSave(entry);
@@ -235,7 +235,7 @@ public class MebDao extends BaseDao<MebEntryDO> {
       imported.setCreated();
       imported.setLastUpdate();
       imported.setSource(source);
-      getHibernateTemplate().save(imported);
+      em.persist(imported);
       return true;
     }
   }

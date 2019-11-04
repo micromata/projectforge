@@ -78,18 +78,18 @@ public class SkillRatingDao extends BaseDao<SkillRatingDO> {
   private void checkConstraintViolation(final SkillRatingDO skillRating) throws UserException {
     SkillRatingDO other;
     if (skillRating.getId() != null) {
-      other = getSession()
+      other = em
               .createNamedQuery(SkillRatingDO.FIND_OTHER_BY_USER_AND_SKILL, SkillRatingDO.class)
               .setParameter("userId", skillRating.getUserId())
               .setParameter("skillId", skillRating.getSkillId())
               .setParameter("id", skillRating.getId())
-              .uniqueResult();
+              .getSingleResult();
     } else {
-      other = getSession()
+      other = em
               .createNamedQuery(SkillRatingDO.FIND_BY_USER_AND_SKILL, SkillRatingDO.class)
               .setParameter("userId", skillRating.getUserId())
               .setParameter("skillId", skillRating.getSkillId())
-              .uniqueResult();
+              .getSingleResult();
     }
     if (other != null) {
       throw new UserException(I18N_KEY_ERROR_DUPLICATE_RATING);

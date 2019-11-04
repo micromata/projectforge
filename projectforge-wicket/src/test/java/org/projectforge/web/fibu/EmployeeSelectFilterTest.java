@@ -2,7 +2,6 @@ package org.projectforge.web.fibu;
 
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.tester.WicketTester;
-import org.hibernate.Session;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.EmployeeDO;
@@ -38,7 +37,6 @@ public class EmployeeSelectFilterTest extends AbstractTestBase {
           throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
     WicketTester wicketTester = new WicketTester();
 
-    Session session = userDao.getSession();
     EmployeeSalaryDO data = new EmployeeSalaryDO();
     EmployeeSelectPanel selectPanel = new EmployeeSelectPanel("1", new PropertyModel<EmployeeDO>(data,
             "employee"), null, "employee");

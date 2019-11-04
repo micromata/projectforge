@@ -75,9 +75,9 @@ public class TenantDao extends BaseDao<TenantDO>
 
   public TenantDO getDefaultTenant()
   {
-    @SuppressWarnings("unchecked")
-    final List<TenantDO> list = (List<TenantDO>) getHibernateTemplate()
-        .find("from TenantDO t where t.defaultTenant = true");
+    final List<TenantDO> list = em.createQuery(
+            "select t from TenantDO t where t.defaultTenant = true",
+            TenantDO.class).getResultList();
     if (list != null && list.isEmpty()) {
       return null;
     }
