@@ -39,7 +39,6 @@ import org.projectforge.web.rest.RestUserFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.orm.hibernate5.support.OpenSessionInViewFilter;
 
 import javax.servlet.FilterRegistration;
 import javax.servlet.ServletContext;
@@ -73,11 +72,6 @@ public class WebXMLInitializer implements ServletContextInitializer {
     userFilter.addMappingForUrlPatterns(null, filterAfterInternal, "/secure/*");
     userFilter.addMappingForUrlPatterns(null, filterAfterInternal, "/wa/*");
     userFilter.addMappingForUrlPatterns(null, filterAfterInternal, "/" + Const.REACT_APP_PATH + "*");
-
-    final FilterRegistration hibernateFilter = sc.addFilter("HibernateFilter", OpenSessionInViewFilter.class);
-    hibernateFilter.setInitParameter("sessionFactoryBeanName", "sessionFactory");
-    hibernateFilter.setInitParameter("singleSession", "false");
-    hibernateFilter.addMappingForUrlPatterns(null, filterAfterInternal, "/wa/*");
 
     final FilterRegistration springContext = sc.addFilter("springContext", SpringThreadLocalFilter.class);
     springContext.addMappingForUrlPatterns(null, filterAfterInternal, "/secure/*");
