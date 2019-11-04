@@ -53,10 +53,9 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase
-{
+public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
-      .getLogger(InitDatabaseDaoWithTestDataTestFork.class);
+          .getLogger(InitDatabaseDaoWithTestDataTestFork.class);
   // old format.
 
   @Autowired
@@ -87,14 +86,12 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase
   private TenantService tenantService;
 
   @Override
-  protected void initDb()
-  {
+  protected void initDb() {
     init(false);
   }
 
   @Test
-  public void initializeEmptyDatabase()
-  {
+  public void initializeEmptyDatabase() {
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final String testPassword = "demo123";
     TenantRegistryMap.getInstance().setAllUserGroupCachesAsExpired(); // Force reload (because it's may be expired due to previous tests).
@@ -125,8 +122,8 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase
     final List<GroupTaskAccessDO> accessList = accessDao.internalLoadAll();
     assertTrue(accessList.size() > 0);
     for (final GroupTaskAccessDO access : accessList) {
-      assertNotNull( access.getAccessEntries(),"Access entries should be serialized.");
-      assertTrue( access.getAccessEntries().size() > 0,"Access entries should be serialized.");
+      assertNotNull(access.getAccessEntries(), "Access entries should be serialized.");
+      assertTrue(access.getAccessEntries().size() > 0, "Access entries should be serialized.");
     }
 
     final List<AddressDO> addressList = addressDao.internalLoadAll();
@@ -146,10 +143,12 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase
         break;
       }
     }
-    assertNotNull( order,"Order #1 not found.");
-    assertEquals( 3, order.getPositionenIncludingDeleted().size(),"Order #1 must have 3 order positions.");
+    assertNotNull(order, "Order #1 not found.");
+    assertEquals(3, order.getPositionenIncludingDeleted().size(), "Order #1 must have 3 order positions.");
 
-    final List<PfHistoryMasterDO> list = hibernateTemplate.loadAll(PfHistoryMasterDO.class);
+    final List<PfHistoryMasterDO> list = em.createQuery(
+            "select t from " + PfHistoryMasterDO.class.getName() + " t where t.id = :id", PfHistoryMasterDO.class)
+            .getResultList();
     // assertTrue("At least 10 history entries expected: " + list.size(), list.size() >= 10);
 
     log.error("****> Next exception and error message are OK (part of the test).");

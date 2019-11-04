@@ -57,11 +57,13 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.orm.hibernate5.HibernateTemplate;
+import org.springframework.stereotype.Component;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.sql.DataSource;
 import java.io.File;
 import java.math.BigDecimal;
@@ -80,6 +82,8 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {TestConfiguration.class})
+//@Transactional
+@Component
 public abstract class AbstractTestBase {
   protected static final org.slf4j.Logger log = org.slf4j.LoggerFactory
           .getLogger(AbstractTestBase.class);
@@ -143,8 +147,8 @@ public abstract class AbstractTestBase {
 
   public static PFUserDO ADMIN_USER;
 
-  @Autowired
-  protected HibernateTemplate hibernateTemplate;
+  @PersistenceContext
+  protected EntityManager em;
 
   @Autowired
   protected UserService userService;
