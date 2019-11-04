@@ -60,8 +60,8 @@ public class UserRightDao extends BaseDao<UserRightDO>
   }
 
   public List<UserRightDO> internalGetAllOrdered() {
-    return getSession().createNamedQuery(UserRightDO.FIND_ALL_ORDERED, UserRightDO.class)
-            .list();
+    return em.createNamedQuery(UserRightDO.FIND_ALL_ORDERED, UserRightDO.class)
+            .getResultList();
   }
 
   @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
@@ -69,7 +69,7 @@ public class UserRightDao extends BaseDao<UserRightDO>
   {
     final List<UserRightDO> dbList = getList(user);
     // evict all entities from the session cache to avoid that the update is already done in the copy method
-    dbList.forEach(getHibernateTemplate()::evict);
+    dbList.forEach(em::detach);
     final UserGroupCache userGroupCache = getUserGroupCache();
     for (final UserRightVO rightVO : list) {
       UserRightDO rightDO = null;

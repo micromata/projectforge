@@ -72,7 +72,7 @@ public class Kost1Dao extends BaseDao<Kost1DO> {
 
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public Kost1DO getKost1(final int nummernkreis, final int bereich, final int teilbereich, final int endziffer) {
-    return SQLHelper.ensureUniqueResult(getSession()
+    return SQLHelper.ensureUniqueResult(em
             .createNamedQuery(Kost1DO.FIND_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER, Kost1DO.class)
             .setParameter("nummernkreis", nummernkreis)
             .setParameter("bereich", bereich)
@@ -114,13 +114,13 @@ public class Kost1Dao extends BaseDao<Kost1DO> {
       other = getKost1(obj.getNummernkreis(), obj.getBereich(), obj.getTeilbereich(), obj.getEndziffer());
     } else {
       // entry already exists. Check maybe changed:
-      other = getSession().createNamedQuery(Kost1DO.FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER, Kost1DO.class)
+      other = em.createNamedQuery(Kost1DO.FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER, Kost1DO.class)
               .setParameter("nummernkreis", obj.getNummernkreis())
               .setParameter("bereich", obj.getBereich())
               .setParameter("teilbereich", obj.getTeilbereich())
               .setParameter("endziffer", obj.getEndziffer())
               .setParameter("id", obj.getId())
-              .uniqueResult();
+              .getSingleResult();
     }
     if (other != null) {
       throw new UserException("fibu.kost.error.collision");

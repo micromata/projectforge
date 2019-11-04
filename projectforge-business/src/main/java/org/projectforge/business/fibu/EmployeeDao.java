@@ -88,7 +88,7 @@ public class EmployeeDao extends BaseDao<EmployeeDO> {
 
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public EmployeeDO findByUserId(final Integer userId) {
-    return SQLHelper.ensureUniqueResult(getSession()
+    return SQLHelper.ensureUniqueResult(em
             .createNamedQuery(EmployeeDO.FIND_BY_USER_ID, EmployeeDO.class)
             .setParameter("userId", userId)
             .setParameter("tenantId", TenantRegistryMap.getInstance().getTenantRegistry().getTenantId()));
@@ -108,11 +108,10 @@ public class EmployeeDao extends BaseDao<EmployeeDO> {
     Validate.isTrue(tokenizer.countTokens() == 2);
     final String lastname = tokenizer.nextToken().trim();
     final String firstname = tokenizer.nextToken().trim();
-    return SQLHelper.ensureUniqueResult(
-            getSession()
-                    .createNamedQuery(EmployeeDO.FIND_BY_LASTNAME_AND_FIRST_NAME, EmployeeDO.class)
-                    .setParameter("firstname", firstname)
-                    .setParameter("lastname", lastname));
+    return SQLHelper.ensureUniqueResult(em
+            .createNamedQuery(EmployeeDO.FIND_BY_LASTNAME_AND_FIRST_NAME, EmployeeDO.class)
+            .setParameter("firstname", firstname)
+            .setParameter("lastname", lastname));
   }
 
   /**
