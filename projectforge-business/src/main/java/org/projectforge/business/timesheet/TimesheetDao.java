@@ -760,12 +760,4 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
   public TimesheetDO newInstance() {
     return new TimesheetDO();
   }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#useOwnCriteriaCacheRegion()
-   */
-  @Override
-  protected boolean useOwnCriteriaCacheRegion() {
-    return true;
-  }
 }

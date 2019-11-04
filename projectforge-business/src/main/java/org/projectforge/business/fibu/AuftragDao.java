@@ -713,12 +713,4 @@ public class AuftragDao extends BaseDao<AuftragDO> {
   public AuftragDO newInstance() {
     return new AuftragDO();
   }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#useOwnCriteriaCacheRegion()
-   */
-  @Override
-  protected boolean useOwnCriteriaCacheRegion() {
-    return true;
-  }
 }

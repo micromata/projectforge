@@ -109,12 +109,4 @@ public class BookDao extends BaseDao<BookDO> {
   public BookDO newInstance() {
     return new BookDO();
   }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#useOwnCriteriaCacheRegion()
-   */
-  @Override
-  protected boolean useOwnCriteriaCacheRegion() {
-    return true;
-  }
 }

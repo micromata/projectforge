@@ -85,8 +85,6 @@ public class TaskDao extends BaseDao<TaskDO> {
 
   /**
    * Checks constraint violation.
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao#onSaveOrModify(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
   protected void onSaveOrModify(final TaskDO obj) {
@@ -263,20 +261,20 @@ public class TaskDao extends BaseDao<TaskDO> {
         throw new UserException(I18N_KEY_ERROR_PARENT_TASK_NOT_GIVEN);
       }
     } else {
-      TaskDO other;
+      List<TaskDO> others;
       if (task.getId() != null) {
-        other = em.createNamedQuery(TaskDO.FIND_OTHER_TASK_BY_PARENTTASKID_AND_TITLE, TaskDO.class)
+        others = em.createNamedQuery(TaskDO.FIND_OTHER_TASK_BY_PARENTTASKID_AND_TITLE, TaskDO.class)
                 .setParameter("parentTaskId", task.getParentTaskId())
                 .setParameter("title", task.getTitle())
                 .setParameter("id", task.getId()) // Find other (different from this id).
-                .getSingleResult();
+                .getResultList();
       } else {
-        other = em.createNamedQuery(TaskDO.FIND_BY_PARENTTASKID_AND_TITLE, TaskDO.class)
+        others = em.createNamedQuery(TaskDO.FIND_BY_PARENTTASKID_AND_TITLE, TaskDO.class)
                 .setParameter("parentTaskId", task.getParentTaskId())
                 .setParameter("title", task.getTitle())
-                .getSingleResult();
+                .getResultList();
       }
-      if (other != null) {
+      if (CollectionUtils.isNotEmpty(others)) {
         throw new UserException(I18N_KEY_ERROR_DUPLICATE_CHILD_TASKS);
       }
     }
@@ -292,8 +290,6 @@ public class TaskDao extends BaseDao<TaskDO> {
 
   /**
    * Must be visible for TaskTree.
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess(java.lang.Object, boolean)
    */
   @Override
   public boolean hasUserSelectAccess(final PFUserDO user, final TaskDO obj, final boolean throwException) {
@@ -309,9 +305,6 @@ public class TaskDao extends BaseDao<TaskDO> {
     return true;
   }
 
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasAccess(Object, OperationType)
-   */
   @Override
   public boolean hasAccess(final PFUserDO user, final TaskDO obj, final TaskDO oldObj,
                            final OperationType operationType,
@@ -319,9 +312,6 @@ public class TaskDao extends BaseDao<TaskDO> {
     return accessChecker.hasPermission(user, obj.getId(), AccessType.TASKS, operationType, throwException);
   }
 
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasUpdateAccess(java.lang.Object, java.lang.Object)
-   */
   @Override
   public boolean hasUpdateAccess(final PFUserDO user, final TaskDO obj, final TaskDO dbObj,
                                  final boolean throwException) {
@@ -514,8 +504,6 @@ public class TaskDao extends BaseDao<TaskDO> {
 
   /**
    * Checks only root task (can't be deleted).
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao#onDelete(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
   protected void onDelete(final TaskDO obj) {
@@ -536,9 +524,6 @@ public class TaskDao extends BaseDao<TaskDO> {
 
   /**
    * Re-index all dependent objects only if the title was changed.
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao#wantsReindexAllDependentObjects(org.projectforge.core.ExtendedBaseDO,
-   * org.projectforge.core.ExtendedBaseDO)
    */
   @Override
   protected boolean wantsReindexAllDependentObjects(final TaskDO obj, final TaskDO dbObj) {
@@ -551,13 +536,5 @@ public class TaskDao extends BaseDao<TaskDO> {
   @Override
   public TaskDO newInstance() {
     return new TaskDO();
-  }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#useOwnCriteriaCacheRegion()
-   */
-  @Override
-  protected boolean useOwnCriteriaCacheRegion() {
-    return true;
   }
 }
