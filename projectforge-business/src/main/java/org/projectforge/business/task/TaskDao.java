@@ -48,9 +48,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.Tuple;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
+import javax.persistence.TypedQuery;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -136,30 +134,24 @@ public class TaskDao extends BaseDao<TaskDO> {
     log.debug("Calculating duration for all tasks");
     final String intervalInSeconds = DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime");
     if (intervalInSeconds != null) {
-      CriteriaBuilder cb = em.getCriteriaBuilder();
-      CriteriaQuery<Tuple> cr = cb.createQuery(Tuple.class);
-      Root<TaskDO> root = cr.from(clazz);
       Date yearsAgo = PFDateTime.now().minusYears(2).getUtilDate();
-      cr.select(cb.tuple(root.get("intervalInSeconds"), root.get("task").get("id")))
-              .where(cb.equal(root.get("deleted"), false))
-              .groupBy(root.get("task").get("id"));
-      List<Tuple> result = em.createQuery(cr).getResultList();
+
+      TypedQuery<Tuple> typedQuery = em.createQuery(
+              "select " + intervalInSeconds + ", task.id from TimesheetDO where deleted=false group by task.id",
+              Tuple.class);
+      List<Tuple> result = typedQuery.getResultList();
       // select intervalInSeconds, task.id from TimesheetDO where deleted=false group by task.id
       final List<Object[]> list = new ArrayList<>();
-      for (Tuple tuple : em.createQuery(cr).getResultList()) {
-        list.add(new Object[]{tuple.get(0), tuple.get(1)})
+      for (Tuple tuple : result) {
+        list.add(new Object[]{tuple.get(0), tuple.get(1)});
       }
       return list;
     }
 
-    CriteriaBuilder cb = em.getCriteriaBuilder();
-    CriteriaQuery<Tuple> cr = cb.createQuery(Tuple.class);
-    Root<TaskDO> root = cr.from(clazz);
-    Date yearsAgo = PFDateTime.now().minusYears(2).getUtilDate();
-    cr.select(cb.tuple(root.get("startTime"), root.get("stopTime"), root.get("task").get("id")))
-            .where(cb.equal(root.get("deleted"), false))
-            .orderBy(cb.asc(root.get("task").get("id")));
-    List<Tuple> result = em.createQuery(cr).getResultList();
+    TypedQuery<Tuple> typedQuery = em.createQuery(
+            "select startTime, stopTime, task.id from TimesheetDO where deleted=false group by task.id",
+            Tuple.class);
+    List<Tuple> result = typedQuery.getResultList();
     // select startTime, stopTime, task.id from TimesheetDO where deleted=false order by task.id");
     final List<Object[]> list = new ArrayList<>();
     if (!CollectionUtils.isEmpty(result)) {
@@ -195,35 +187,26 @@ public class TaskDao extends BaseDao<TaskDO> {
     log.debug("Calculating duration for all tasks");
     final String intervalInSeconds = DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime");
     if (intervalInSeconds != null) {
-      final List<Object> list = getSession().createQuery("select "
-              + DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime")
-              + " from TimesheetDO where task.id = :taskId and deleted=false")
-              .setParameter("taskId", taskId).list();
-      if (list.size() == 0) {
+      TypedQuery<Long> typedQuery = em.createQuery(
+              "select " + intervalInSeconds + " from TimesheetDO where task.id=:taskId group by task.id",
+              Long.class).setParameter("taskId", taskId);
+      Long value = typedQuery.getSingleResult();
+      // select DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime") from TimesheetDO where task.id = :taskId and deleted=false")
+      if (value == null) {
         return 0L;
       }
-      Validate.isTrue(list.size() == 1);
-      if (list.get(0) == null) { // Has happened one time, why (PROJECTFORGE-543)?
-        return 0L;
-      } else if (list.get(0) instanceof Long) {
-        return (Long) list.get(0);
-      } else if (list.get(0) instanceof Integer) {
-        return new Long((Integer) list.get(0));
-      } else {
-        log.error("Internal error, unsupported return type " + list.get(0).getClass() + ". Long or Integer expected.");
-        return 0;
-      }
+      return value;
     }
-    List<Object[]> result = getSession().createNamedQuery(TimesheetDO.FIND_START_STOP_BY_TASKID, Object[].class)
+    List<Tuple> result = em.createNamedQuery(TimesheetDO.FIND_START_STOP_BY_TASKID, Tuple.class)
             .setParameter("taskId", taskId)
-            .list();
+            .getResultList();
     if (CollectionUtils.isEmpty(result)) {
       return 0L;
     }
     long totalDuration = 0;
-    for (final Object[] oa : result) {
-      final Timestamp startTime = (Timestamp) oa[0];
-      final Timestamp stopTime = (Timestamp) oa[1];
+    for (final Tuple oa : result) {
+      final Timestamp startTime = (Timestamp) oa.get(0);
+      final Timestamp stopTime = (Timestamp) oa.get(1);
       final long duration = stopTime.getTime() - startTime.getTime();
       totalDuration += duration;
     }
@@ -282,16 +265,16 @@ public class TaskDao extends BaseDao<TaskDO> {
     } else {
       TaskDO other;
       if (task.getId() != null) {
-        other = getSession().createNamedQuery(TaskDO.FIND_OTHER_TASK_BY_PARENTTASKID_AND_TITLE, TaskDO.class)
+        other = em.createNamedQuery(TaskDO.FIND_OTHER_TASK_BY_PARENTTASKID_AND_TITLE, TaskDO.class)
                 .setParameter("parentTaskId", task.getParentTaskId())
                 .setParameter("title", task.getTitle())
                 .setParameter("id", task.getId()) // Find other (different from this id).
-                .uniqueResult();
+                .getSingleResult();
       } else {
-        other = getSession().createNamedQuery(TaskDO.FIND_BY_PARENTTASKID_AND_TITLE, TaskDO.class)
+        other = em.createNamedQuery(TaskDO.FIND_BY_PARENTTASKID_AND_TITLE, TaskDO.class)
                 .setParameter("parentTaskId", task.getParentTaskId())
                 .setParameter("title", task.getTitle())
-                .uniqueResult();
+                .getSingleResult();
       }
       if (other != null) {
         throw new UserException(I18N_KEY_ERROR_DUPLICATE_CHILD_TASKS);

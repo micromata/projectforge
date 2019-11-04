@@ -58,7 +58,7 @@ public class BuchungssatzDao extends BaseDao<BuchungssatzDO> {
    */
   @SuppressWarnings("unchecked")
   public int[] getYears() {
-    final List<Object[]> list = getSession().createQuery("select min(year), max(year) from BuchungssatzDO t").list();
+    final List<Object[]> list = em.createQuery("select min(year), max(year) from BuchungssatzDO t").getResultList();
     if (list.size() == 0 || list.get(0) == null || list.get(0)[0] == null) {
       return new int[]{Calendar.getInstance().get(Calendar.YEAR)};
     }
@@ -77,7 +77,7 @@ public class BuchungssatzDao extends BaseDao<BuchungssatzDO> {
 
   public BuchungssatzDO getBuchungssatz(final int year, final int month, final int satznr) {
     return SQLHelper.ensureUniqueResult(
-            getSession().createNamedQuery(BuchungssatzDO.FIND_BY_YEAR_MONTH_SATZNR, BuchungssatzDO.class)
+            em.createNamedQuery(BuchungssatzDO.FIND_BY_YEAR_MONTH_SATZNR, BuchungssatzDO.class)
                     .setParameter("year", year)
                     .setParameter("month", month)
                     .setParameter("satznr", satznr));
