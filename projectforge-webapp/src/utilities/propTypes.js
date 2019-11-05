@@ -53,5 +53,5 @@ export const badgePropType = PropTypes.shape({
 // Content PropType for DynamicLayout
 export const contentPropType = PropTypes.shape({
     type: PropTypes.string.isRequired,
-    key: PropTypes.string.isRequired,
+    key: PropTypes.string,
 });
