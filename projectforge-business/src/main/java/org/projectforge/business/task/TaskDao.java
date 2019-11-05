@@ -41,7 +41,6 @@ import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
-import org.projectforge.framework.time.PFDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
@@ -50,7 +49,10 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -145,7 +147,7 @@ public class TaskDao extends BaseDao<TaskDO> {
     }
 
     TypedQuery<Tuple> typedQuery = em.createQuery(
-            "select startTime, stopTime, task.id from TimesheetDO where deleted=false group by task.id",
+            "select startTime, stopTime, task.id from TimesheetDO where deleted=false order by task.id",
             Tuple.class);
     List<Tuple> result = typedQuery.getResultList();
     // select startTime, stopTime, task.id from TimesheetDO where deleted=false order by task.id");
