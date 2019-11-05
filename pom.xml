@@ -214,7 +214,6 @@
     <module>projectforge-wicket</module>
     <module>plugins</module>
     <module>projectforge-application</module>
-    <module>plugin-examples</module>
   </modules>
 
   <profiles>
