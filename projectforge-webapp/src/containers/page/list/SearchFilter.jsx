@@ -142,7 +142,7 @@ function SearchFilter() {
                 }))}
                 values={entries.reduce((accumulator, currentValue) => ({
                     ...accumulator,
-                    [currentValue.field]: currentValue.value,
+                    [currentValue.field || currentValue.value.value]: currentValue.value,
                 }), {})}
             />
         );
