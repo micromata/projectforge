@@ -46,13 +46,14 @@ class MagicFilterProcessorTest {
     @Test
     fun filterEntrySearchStringConversionTest() {
         testEntry("12345", "12345",  MatchType.EXACT)
+        testEntry("12345", "12345",  MatchType.STARTS_WITH, true)
         testEntry("*12345", "12345",  MatchType.ENDS_WITH)
         testEntry("*12345*", "12345",  MatchType.CONTAINS)
         testEntry("12345*", "12345",  MatchType.STARTS_WITH)
     }
 
-    private fun testEntry(value: String, expectedPlainString: String, matchType: MatchType) {
-        val magicFilter = MagicFilter()
+    private fun testEntry(value: String, expectedPlainString: String, matchType: MatchType, autoStartWithSearch: Boolean = false) {
+        val magicFilter = MagicFilter(autoStartWithSearch = autoStartWithSearch)
         magicFilter.entries.add(MagicFilterEntry("zipCode", value))
         val queryFilter = MagicFilterProcessor.doIt(AddressDO::class.java, magicFilter)
         // 0 - deleted, 1 - zipCode

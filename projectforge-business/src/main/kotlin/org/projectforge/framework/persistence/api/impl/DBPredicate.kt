@@ -285,14 +285,14 @@ abstract class DBPredicate(
         }
     }
 
-    class Like(field: String, val expectedValue: String, private val ignoreCase: Boolean = true)
+    class Like(field: String, val expectedValue: String, private val ignoreCase: Boolean = true, autoStartWithSearch: Boolean = false)
         : DBPredicate(field, true) {
         internal var plainString: String
         internal val matchType: MatchType
         internal var queryString: String
 
         init {
-            queryString = modifySearchString(expectedValue, '*', '%')
+            queryString = modifySearchString(expectedValue, '*', '%', autoStartWithSearch)
             plainString = queryString
             if (plainString.startsWith("%")) {
                 plainString = plainString.substring(1)
@@ -502,13 +502,13 @@ abstract class DBPredicate(
      * Replaces trailing and leading '*' by '%' or vica versa. Appends '%' (or '*') to alphanumeric strings doesn't start or end with '%' or '*'.
      */
 
-    internal fun modifySearchString(str: String, oldChar: Char, newChar: Char): String {
+    internal fun modifySearchString(str: String, oldChar: Char, newChar: Char, autoStartWithSearch: Boolean = false): String {
         var queryString = str.trim()
         if (queryString.endsWith(oldChar))
             queryString = "${queryString.substring(0, queryString.length - 1)}$newChar"
         if (queryString.startsWith(oldChar))
             queryString = "$newChar${queryString.substring(1)}"
-        else if (!queryString.endsWith(newChar) && queryString.matches("""[\p{L}0-9]+""".toRegex()))
+        else if (autoStartWithSearch && !queryString.endsWith(newChar) && queryString.matches("""[\p{L}0-9]+""".toRegex()))
             queryString = "$queryString$newChar" // Always look for keyword* (\p{L} means all letters in all languages.
         return queryString
     }
