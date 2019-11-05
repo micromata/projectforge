@@ -46,7 +46,7 @@ public class LiquidityPlanningPluginUpdates
       {
         // Does the data-base table already exist?
         // Check only the oldest table.
-        if (dao.doTablesExist(LiquidityEntryDO.class) == true) {
+        if (dao.doTablesExist(LiquidityEntryDO.class)) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {
           // The oldest table doesn't exist, therefore the plug-in has to initialized completely.

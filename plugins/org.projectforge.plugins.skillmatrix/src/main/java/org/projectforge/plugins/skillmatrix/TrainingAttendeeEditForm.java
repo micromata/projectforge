@@ -81,12 +81,12 @@ public class TrainingAttendeeEditForm extends AbstractEditForm<TrainingAttendeeD
     // Training
     FieldsetPanel fs = gridBuilder.newFieldset(TrainingAttendeeDO.class, "training");
     TrainingDO training = data.getTraining();
-    if (Hibernate.isInitialized(training) == false) {
+    if (!Hibernate.isInitialized(training)) {
       training = trainingAttendeeDao.getTraingDao().getOrLoad(training.getId());
       data.setTraining(training);
     }
     final TrainingSelectPanel trainingSelectPanel = new TrainingSelectPanel(fs.newChildId(),
-        new PropertyModel<TrainingDO>(data, "training"), parentPage, "trainingId");
+        new PropertyModel<>(data, "training"), parentPage, "trainingId");
     trainingSelectPanel.setDefaultFormProcessing(false);
     trainingSelectPanel.init().withAutoSubmit(true).setRequired(true);
     fs.add(trainingSelectPanel);
@@ -94,53 +94,53 @@ public class TrainingAttendeeEditForm extends AbstractEditForm<TrainingAttendeeD
     // Attendee
     fs = gridBuilder.newFieldset(TrainingAttendeeDO.class, "attendee");
     PFUserDO attendee = data.getAttendee();
-    if (Hibernate.isInitialized(attendee) == false) {
+    if (!Hibernate.isInitialized(attendee)) {
       attendee = trainingAttendeeDao.getUserDao().getOrLoad(attendee.getId());
       data.setAttendee(attendee);
     }
     final UserSelectPanel attendeeSelectPanel = new UserSelectPanel(fs.newChildId(),
-        new PropertyModel<PFUserDO>(data, "attendee"),
+        new PropertyModel<>(data, "attendee"),
         parentPage, "attendeeId");
     fs.add(attendeeSelectPanel.setRequired(true));
     attendeeSelectPanel.init();
 
-    if (isNew() == true) {
+    if (isNew()) {
       trainingSelectPanel.setFocus();
     } else {
       attendeeSelectPanel.setFocus();
     }
     { // Rating
       ratingFs = gridBuilder.newFieldset(TrainingAttendeeDO.class, "rating");
-      ratingChoiceRenderer = new LabelValueChoiceRenderer<String>();
-      ratingFs.addDropDownChoice(new PropertyModel<String>(data, "rating"), ratingChoiceRenderer.getValues(),
+      ratingChoiceRenderer = new LabelValueChoiceRenderer<>();
+      ratingFs.addDropDownChoice(new PropertyModel<>(data, "rating"), ratingChoiceRenderer.getValues(),
           ratingChoiceRenderer)
           .setNullValid(true);
     }
     { // Certificate
       certificateFs = gridBuilder.newFieldset(TrainingAttendeeDO.class, "certificate");
-      certificateChoiceRenderer = new LabelValueChoiceRenderer<String>();
+      certificateChoiceRenderer = new LabelValueChoiceRenderer<>();
       certificateFs
-          .addDropDownChoice(new PropertyModel<String>(data, "certificate"), certificateChoiceRenderer.getValues(),
+          .addDropDownChoice(new PropertyModel<>(data, "certificate"), certificateChoiceRenderer.getValues(),
               certificateChoiceRenderer)
           .setNullValid(true);
     }
     {
       // startDate
       fs = gridBuilder.newFieldset(TrainingDO.class, "startDate");
-      fs.add(new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "startDate"),
+      fs.add(new DatePanel(fs.newChildId(), new PropertyModel<>(data, "startDate"),
           DatePanelSettings.get().withTargetType(
               java.sql.Date.class)));
     }
     {
       // EndDate
       fs = gridBuilder.newFieldset(TrainingDO.class, "endDate");
-      fs.add(new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "endDate"),
+      fs.add(new DatePanel(fs.newChildId(), new PropertyModel<>(data, "endDate"),
           DatePanelSettings.get().withTargetType(
               java.sql.Date.class)));
     }
     { // Description
       fs = gridBuilder.newFieldset(TrainingAttendeeDO.class, "description");
-      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<String>(data, "description"))).setAutogrow();
+      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<>(data, "description"))).setAutogrow();
     }
   }
 

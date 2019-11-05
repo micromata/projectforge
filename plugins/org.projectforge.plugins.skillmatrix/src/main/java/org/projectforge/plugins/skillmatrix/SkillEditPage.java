@@ -63,7 +63,7 @@ public class SkillEditPage extends AbstractEditPage<SkillDO, SkillEditForm, Skil
     init();
     addTopMenuPanel();
     final Integer parentSkillId = WicketUtils.getAsInteger(parameters, PARAM_PARENT_SKILL_ID);
-    if (NumberHelper.greaterZero(parentSkillId) == true) {
+    if (NumberHelper.greaterZero(parentSkillId)) {
       skillDao.setParentSkill(getData(), parentSkillId);
     }
   }
@@ -102,7 +102,7 @@ public class SkillEditPage extends AbstractEditPage<SkillDO, SkillEditForm, Skil
   @Override
   public void select(final String property, final Object selectedValue)
   {
-    if ("parentId".equals(property) == true) {
+    if ("parentId".equals(property)) {
       skillDao.setParentSkill(getData(), (Integer) selectedValue);
     } else {
       log.error("Property '" + property + "' not supported for selection.");
@@ -115,7 +115,7 @@ public class SkillEditPage extends AbstractEditPage<SkillDO, SkillEditForm, Skil
   @Override
   public void unselect(final String property)
   {
-    if ("parentId".equals(property) == true) {
+    if ("parentId".equals(property)) {
       getData().setParent(null);
     } else {
       log.error("Property '" + property + "' not supported for selection.");
@@ -143,7 +143,7 @@ public class SkillEditPage extends AbstractEditPage<SkillDO, SkillEditForm, Skil
   @SuppressWarnings("serial")
   private void addTopMenuPanel()
   {
-    if (isNew() == false) {
+    if (!isNew()) {
 
       final Integer[] curUserGroupIds = userDao.getAssignedGroups(ThreadLocalUserContext.getUser())
           .toArray(new Integer[0]);
@@ -160,7 +160,7 @@ public class SkillEditPage extends AbstractEditPage<SkillDO, SkillEditForm, Skil
         }
       }
 
-      if (isUserInFullAccessGroup == true) {
+      if (isUserInFullAccessGroup) {
         final ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(),
             new Link<Void>(ContentMenuEntryPanel.LINK_ID)
             {
@@ -188,7 +188,7 @@ public class SkillEditPage extends AbstractEditPage<SkillDO, SkillEditForm, Skil
         }
       }
 
-      if (isUserInTrainingGroup == true) {
+      if (isUserInTrainingGroup) {
         final ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(),
             new Link<Void>(ContentMenuEntryPanel.LINK_ID)
             {
@@ -205,7 +205,7 @@ public class SkillEditPage extends AbstractEditPage<SkillDO, SkillEditForm, Skil
         addContentMenuEntry(menu);
       }
 
-      if (isUserInFullAccessGroup == true) {
+      if (isUserInFullAccessGroup) {
         final ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(),
             new Link<Void>(ContentMenuEntryPanel.LINK_ID)
             {

@@ -58,6 +58,6 @@ public class MemoRight extends UserRightAccessCheck<MemoDO>
     if (memo == null) {
       return true; // General insert and select access given by default.
     }
-    return (Objects.equals(user.getId(), memo.getOwnerId()) == true);
+    return (Objects.equals(user.getId(), memo.getOwnerId()));
   }
 }

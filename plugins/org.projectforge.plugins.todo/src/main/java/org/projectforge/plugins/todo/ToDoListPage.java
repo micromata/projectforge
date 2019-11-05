@@ -79,7 +79,7 @@ public class ToDoListPage extends AbstractListPage<ToDoListForm, ToDoDao, ToDoDO
   public List<IColumn<ToDoDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
     final TaskTree taskTree = TaskTreeHelper.getTaskTree();
-    final List<IColumn<ToDoDO, String>> columns = new ArrayList<IColumn<ToDoDO, String>>();
+    final List<IColumn<ToDoDO, String>> columns = new ArrayList<>();
     final CellItemListener<ToDoDO> cellItemListener = new CellItemListener<ToDoDO>()
     {
       @Override
@@ -88,8 +88,8 @@ public class ToDoListPage extends AbstractListPage<ToDoListForm, ToDoDao, ToDoDO
       {
         final ToDoDO toDo = rowModel.getObject();
         appendCssClasses(item, toDo.getId(), toDo.isDeleted());
-        if (toDo.isDeleted() == false) {
-          if (toDo.getRecent() == true && Objects.equals(getUserId(), toDo.getAssigneeId()) == true) {
+        if (!toDo.isDeleted()) {
+          if (toDo.getRecent() && Objects.equals(getUserId(), toDo.getAssigneeId())) {
             appendCssClasses(item, RowCssClass.IMPORTANT_ROW);
           }
         }
@@ -112,23 +112,23 @@ public class ToDoListPage extends AbstractListPage<ToDoListForm, ToDoDao, ToDoDO
       }
     });
     columns
-        .add(new CellItemListenerPropertyColumn<ToDoDO>(ToDoDO.class, getSortable("lastUpdate", sortable), "lastUpdate",
+        .add(new CellItemListenerPropertyColumn<>(ToDoDO.class, getSortable("lastUpdate", sortable), "lastUpdate",
             cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<ToDoDO>(ToDoDO.class, getSortable("subject", sortable), "subject",
+    columns.add(new CellItemListenerPropertyColumn<>(ToDoDO.class, getSortable("subject", sortable), "subject",
         cellItemListener));
     columns.add(
-        new UserPropertyColumn<ToDoDO>(getUserGroupCache(), ToDoDO.class, getSortable("assigneeId", sortable),
+        new UserPropertyColumn<>(getUserGroupCache(), ToDoDO.class, getSortable("assigneeId", sortable),
             "assignee",
             cellItemListener)
                 .withUserFormatter(userFormatter));
     columns.add(
-        new UserPropertyColumn<ToDoDO>(getUserGroupCache(), ToDoDO.class, getSortable("reporterId", sortable),
+        new UserPropertyColumn<>(getUserGroupCache(), ToDoDO.class, getSortable("reporterId", sortable),
             "reporter",
             cellItemListener)
                 .withUserFormatter(userFormatter));
-    columns.add(new CellItemListenerPropertyColumn<ToDoDO>(ToDoDO.class, getSortable("dueDate", sortable), "dueDate",
+    columns.add(new CellItemListenerPropertyColumn<>(ToDoDO.class, getSortable("dueDate", sortable), "dueDate",
         cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<ToDoDO>(ToDoDO.class, getSortable("status", sortable), "status",
+    columns.add(new CellItemListenerPropertyColumn<>(ToDoDO.class, getSortable("status", sortable), "status",
         cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<ToDoDO>(ToDoDO.class, getSortable("priority", sortable), "priority",
         cellItemListener)
@@ -139,16 +139,16 @@ public class ToDoListPage extends AbstractListPage<ToDoListForm, ToDoDao, ToDoDO
       {
         final ToDoDO todo = rowModel.getObject();
         final String formattedPriority = priorityFormatter.getFormattedPriority(todo.getPriority());
-        final Label label = new Label(componentId, new Model<String>(formattedPriority));
+        final Label label = new Label(componentId, new Model<>(formattedPriority));
         label.setEscapeModelStrings(false);
         item.add(label);
         cellItemListener.populateItem(item, componentId, rowModel);
       }
     });
-    columns.add(new CellItemListenerPropertyColumn<ToDoDO>(ToDoDO.class, getSortable("type", sortable), "type",
+    columns.add(new CellItemListenerPropertyColumn<>(ToDoDO.class, getSortable("type", sortable), "type",
         cellItemListener));
     columns
-        .add(new TaskPropertyColumn<ToDoDO>(ToDoDO.class, getSortable("task.title", sortable), "task",
+        .add(new TaskPropertyColumn<>(ToDoDO.class, getSortable("task.title", sortable), "task",
             cellItemListener)
                 .withTaskTree(taskTree));
     columns.add(new CellItemListenerPropertyColumn<ToDoDO>(ToDoDO.class, null, "group", cellItemListener)
@@ -171,7 +171,7 @@ public class ToDoListPage extends AbstractListPage<ToDoListForm, ToDoDao, ToDoDO
       }
     });
     columns.add(
-        new CellItemListenerPropertyColumn<ToDoDO>(ToDoDO.class, getSortable("description", sortable), "description",
+        new CellItemListenerPropertyColumn<>(ToDoDO.class, getSortable("description", sortable), "description",
             cellItemListener));
     return columns;
   }
@@ -193,13 +193,13 @@ public class ToDoListPage extends AbstractListPage<ToDoListForm, ToDoDao, ToDoDO
   @Override
   public void select(final String property, final Object selectedValue)
   {
-    if ("taskId".equals(property) == true) {
+    if ("taskId".equals(property)) {
       form.getSearchFilter().setTaskId((Integer) selectedValue);
       refresh();
-    } else if ("reporterId".equals(property) == true) {
+    } else if ("reporterId".equals(property)) {
       form.getSearchFilter().setReporterId((Integer) selectedValue);
       refresh();
-    } else if ("assigneeId".equals(property) == true) {
+    } else if ("assigneeId".equals(property)) {
       form.getSearchFilter().setAssigneeId((Integer) selectedValue);
       refresh();
     } else {
@@ -214,13 +214,13 @@ public class ToDoListPage extends AbstractListPage<ToDoListForm, ToDoDao, ToDoDO
   @Override
   public void unselect(final String property)
   {
-    if ("taskId".equals(property) == true) {
+    if ("taskId".equals(property)) {
       form.getSearchFilter().setTaskId(null);
       refresh();
-    } else if ("reporterId".equals(property) == true) {
+    } else if ("reporterId".equals(property)) {
       form.getSearchFilter().setReporterId(null);
       refresh();
-    } else if ("assigneeId".equals(property) == true) {
+    } else if ("assigneeId".equals(property)) {
       form.getSearchFilter().setAssigneeId(null);
       refresh();
     } else {

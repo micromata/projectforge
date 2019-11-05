@@ -61,7 +61,7 @@ public class LiquidityForecastForm extends AbstractStandardForm<Object, Liquidit
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.liquidityplanning.forecast.startAmount"));
       final RequiredMinMaxNumberField<BigDecimal> amount = new RequiredMinMaxNumberField<BigDecimal>(
           fs.getTextFieldId(),
-          new PropertyModel<BigDecimal>(getSettings(), "startAmount"), Constants.TEN_BILLION_NEGATIVE,
+          new PropertyModel<>(getSettings(), "startAmount"), Constants.TEN_BILLION_NEGATIVE,
           Constants.TEN_BILLION)
       {
         @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -78,13 +78,13 @@ public class LiquidityForecastForm extends AbstractStandardForm<Object, Liquidit
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.liquidityplanning.forecast"))
           .setUnit(getString("days"));
-      final RequiredMinMaxNumberField<Integer> nextDays = new RequiredMinMaxNumberField<Integer>(fs.getTextFieldId(),
-          new PropertyModel<Integer>(getSettings(), "nextDays"), 3, LiquidityForecastSettings.MAX_FORECAST_DAYS);
+      final RequiredMinMaxNumberField<Integer> nextDays = new RequiredMinMaxNumberField<>(fs.getTextFieldId(),
+          new PropertyModel<>(getSettings(), "nextDays"), 3, LiquidityForecastSettings.MAX_FORECAST_DAYS);
       WicketUtils.setSize(nextDays, 4);
       fs.add(nextDays);
     }
     {
-      final Button callButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("execute"))
+      final Button callButton = new Button(SingleButtonPanel.WICKET_ID, new Model<>("execute"))
       {
         @Override
         public final void onSubmit()

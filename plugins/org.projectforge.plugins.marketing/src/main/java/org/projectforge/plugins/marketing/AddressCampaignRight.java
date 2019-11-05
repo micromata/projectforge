@@ -53,7 +53,7 @@ public class AddressCampaignRight extends UserRightAccessCheck<AddressCampaignDO
   {
     if (operationType == OperationType.SELECT == true) {
       return true;
-    } else if (accessChecker.isUserMemberOfAdminGroup(user) == true) {
+    } else if (accessChecker.isUserMemberOfAdminGroup(user)) {
       return true;
     }
     return false;

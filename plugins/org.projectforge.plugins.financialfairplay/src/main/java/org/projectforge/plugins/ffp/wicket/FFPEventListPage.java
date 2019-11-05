@@ -71,7 +71,7 @@ public class FFPEventListPage extends AbstractListPage<FFPEventListForm, FFPEven
       }
     };
 
-    columns.add(new CellItemListenerPropertyColumn<FFPEventDO>(new ResourceModel("plugins.ffp.eventDate"),
+    columns.add(new CellItemListenerPropertyColumn<>(new ResourceModel("plugins.ffp.eventDate"),
         getSortable("eventDate", sortable),
         "eventDate", cellItemListener));
 
@@ -88,7 +88,7 @@ public class FFPEventListPage extends AbstractListPage<FFPEventListForm, FFPEven
           final IModel<FFPEventDO> rowModel)
       {
         final FFPEventDO event = rowModel.getObject();
-        if (isSelectMode() == false) {
+        if (!isSelectMode()) {
           item.add(new ListSelectActionPanel(componentId, rowModel, FFPEventEditPage.class, event.getId(),
               returnToPage, event.getTitle()));
         } else {
@@ -102,7 +102,7 @@ public class FFPEventListPage extends AbstractListPage<FFPEventListForm, FFPEven
       }
     });
 
-    columns.add(new CellItemListenerPropertyColumn<FFPEventDO>(new ResourceModel("plugins.ffp.status"),
+    columns.add(new CellItemListenerPropertyColumn<>(new ResourceModel("plugins.ffp.status"),
         getSortable("status", sortable), "status", cellItemListener));
 
     return columns;

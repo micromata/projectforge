@@ -114,12 +114,12 @@ public class EmployeeSalaryExcelImporter
       columnNames.add(salaryColumnName);
       map.put(staffNrColumnName, "staffnumber");
       map.put(salaryColumnName, "salary");
-      if (StringUtils.isEmpty(remarkColumnName) == false) {
+      if (!StringUtils.isEmpty(remarkColumnName)) {
         columnNames.add(remarkColumnName);
         map.put(remarkColumnName, "remark");
       }
     }
-    if (importer.getColumnNames().containsAll(columnNames) == false) {
+    if (!importer.getColumnNames().containsAll(columnNames)) {
       throw new UserException("plugins.eed.salaryimport.validation.columndefinitionnotfound", columnNames.get(0), columnNames.get(1));
     }
     importer.setColumnMapping(map);
@@ -159,7 +159,7 @@ public class EmployeeSalaryExcelImporter
           employeeSalary.setMonth(selectedDateCalendar.get(Calendar.MONTH) + 1);
         }
         employeeSalary.setBruttoMitAgAnteil(row.getSalary());
-        if (StringUtils.isBlank(row.getRemark()) == false) {
+        if (!StringUtils.isBlank(row.getRemark())) {
           employeeSalary.setComment(row.getRemark());
         }
       }

@@ -57,7 +57,7 @@ public abstract class SkillSelectAutoCompleteFormComponent extends PFAutoComplet
   public SkillSelectAutoCompleteFormComponent(final String id)
   {
     this(id, null);
-    setModel(new PropertyModel<SkillDO>(this, "skill"));
+    setModel(new PropertyModel<>(this, "skill"));
   }
 
   /**
@@ -123,7 +123,7 @@ public abstract class SkillSelectAutoCompleteFormComponent extends PFAutoComplet
   {
     final StringBuilder builder = new StringBuilder();
     final List<SkillNode> nodeList = getSkillTree().getPathToRoot(skillId);
-    if (CollectionUtils.isEmpty(nodeList) == true) {
+    if (CollectionUtils.isEmpty(nodeList)) {
       return getString("task.path.rootTask");
     }
     final String pipeSeparator = " | ";
@@ -171,7 +171,7 @@ public abstract class SkillSelectAutoCompleteFormComponent extends PFAutoComplet
       @Override
       public Object convertToObject(final String value, final Locale locale)
       {
-        if (StringUtils.isEmpty(value) == true) {
+        if (StringUtils.isEmpty(value)) {
           getModel().setObject(null);
           return null;
         }

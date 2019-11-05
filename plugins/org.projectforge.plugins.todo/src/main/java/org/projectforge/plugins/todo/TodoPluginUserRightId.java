@@ -60,7 +60,7 @@ public enum TodoPluginUserRightId implements IUserRightId
    * @param orderString For displaying the rights in e. g. UserEditPage in the correct order.
    * @param i18nKey
    */
-  private TodoPluginUserRightId(final String id, final String orderString, final String i18nKey)
+  TodoPluginUserRightId(final String id, final String orderString, final String i18nKey)
   {
     this.id = id;
     this.orderString = orderString;

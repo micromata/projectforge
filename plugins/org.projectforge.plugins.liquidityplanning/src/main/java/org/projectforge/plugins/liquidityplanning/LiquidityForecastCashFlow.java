@@ -79,11 +79,11 @@ public class LiquidityForecastCashFlow implements Serializable
       }
       int numberOfDay = 0;
       if (dateOfPayment != null) {
-        if (today.before(dateOfPayment) == true && today.isSameDay(dateOfPayment) == false) {
+        if (today.before(dateOfPayment) && !today.isSameDay(dateOfPayment)) {
           numberOfDay = today.daysBetween(dateOfPayment);
         }
       }
-      if (numberOfDay >= 0 && numberOfDay < nextDays == true) {
+      if (numberOfDay >= 0 && numberOfDay < nextDays) {
         if (amount.compareTo(BigDecimal.ZERO) == 0) {
           // Zero, nothing to do.
         } else if (amount.compareTo(BigDecimal.ZERO) > 0) {
@@ -94,11 +94,11 @@ public class LiquidityForecastCashFlow implements Serializable
       }
       int numberOfDayExpected = 0;
       if (expectedDateOfPayment != null) {
-        if (today.before(expectedDateOfPayment) == true && today.isSameDay(expectedDateOfPayment) == false) {
+        if (today.before(expectedDateOfPayment) && !today.isSameDay(expectedDateOfPayment)) {
           numberOfDayExpected = today.daysBetween(expectedDateOfPayment);
         }
       }
-      if (numberOfDayExpected >= 0 && numberOfDayExpected < nextDays == true) {
+      if (numberOfDayExpected >= 0 && numberOfDayExpected < nextDays) {
         if (amount.compareTo(BigDecimal.ZERO) == 0) {
           // Zero, nothing to do.
         } else if (amount.compareTo(BigDecimal.ZERO) > 0) {
@@ -168,11 +168,11 @@ public class LiquidityForecastCashFlow implements Serializable
     for (int i = 0; i < credits.length; i++) {
       final int rowNumber = sheet.getRowCounter();
       mapping.add("date", current);
-      mapping.add("creditsExpected", NumberHelper.isZeroOrNull(creditsExpected[i]) == true ? "" : creditsExpected[i]);
-      mapping.add("debitsExpected", NumberHelper.isZeroOrNull(debitsExpected[i]) == true ? "" : debitsExpected[i]);
+      mapping.add("creditsExpected", NumberHelper.isZeroOrNull(creditsExpected[i]) ? "" : creditsExpected[i]);
+      mapping.add("debitsExpected", NumberHelper.isZeroOrNull(debitsExpected[i]) ? "" : debitsExpected[i]);
       mapping.add("balanceExpected", new Formula("D" + rowNumber + "+SUM(B" + rowNumber + ":C" + rowNumber + ")"));
-      mapping.add("credits", NumberHelper.isZeroOrNull(credits[i]) == true ? "" : credits[i]);
-      mapping.add("debits", NumberHelper.isZeroOrNull(debits[i]) == true ? "" : debits[i]);
+      mapping.add("credits", NumberHelper.isZeroOrNull(credits[i]) ? "" : credits[i]);
+      mapping.add("debits", NumberHelper.isZeroOrNull(debits[i]) ? "" : debits[i]);
       mapping.add("balance", new Formula("G" + rowNumber + "+SUM(E" + rowNumber + ":F" + rowNumber + ")"));
       sheet.addRow(mapping.getMapping(), 0);
       current.add(Calendar.DAY_OF_YEAR, 1);

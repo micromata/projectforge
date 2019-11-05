@@ -67,7 +67,7 @@ public class PollEventRight extends UserRightAccessCheck<PollEventDO>
   @Override
   public boolean hasInsertAccess(final PFUserDO user, final PollEventDO obj)
   {
-    if (obj == null || pollRight.isOwner(user, obj.getPoll()) == true) {
+    if (obj == null || pollRight.isOwner(user, obj.getPoll())) {
       return true;
     } else {
       return false;
@@ -76,10 +76,10 @@ public class PollEventRight extends UserRightAccessCheck<PollEventDO>
 
   public boolean hasSelectAccess(final PFUserDO user, final String secureKey, final PollEventDO pollEvent)
   {
-    if (pollRight.isOwner(user, pollEvent.getPoll()) == true) {
+    if (pollRight.isOwner(user, pollEvent.getPoll())) {
       return true;
     } else {
-      if (pollRight.isVerifiedUser(user, secureKey, pollEvent.getPoll()) == true) {
+      if (pollRight.isVerifiedUser(user, secureKey, pollEvent.getPoll())) {
         return true;
       } else {
         return false;
@@ -94,7 +94,7 @@ public class PollEventRight extends UserRightAccessCheck<PollEventDO>
   @Override
   public boolean hasSelectAccess(final PFUserDO user, final PollEventDO obj)
   {
-    if (obj == null || pollRight.isOwner(user, obj.getPoll()) == true) {
+    if (obj == null || pollRight.isOwner(user, obj.getPoll())) {
       return true;
     } else {
       return false;
@@ -109,7 +109,7 @@ public class PollEventRight extends UserRightAccessCheck<PollEventDO>
   public boolean hasAccess(final PFUserDO user, final PollEventDO obj, final PollEventDO oldObj,
       final OperationType operationType)
   {
-    if (obj == null || pollRight.isOwner(user, obj.getPoll()) == true) {
+    if (obj == null || pollRight.isOwner(user, obj.getPoll())) {
       return true;
     } else {
       return false;
@@ -118,7 +118,7 @@ public class PollEventRight extends UserRightAccessCheck<PollEventDO>
 
   public boolean hasAccess(final PFUserDO user, final PollEventDO obj, final Integer autenticationKey)
   {
-    if (obj == null || pollRight.isOwner(user, obj.getPoll()) == true) {
+    if (obj == null || pollRight.isOwner(user, obj.getPoll())) {
       return true;
     } else {
       return false;

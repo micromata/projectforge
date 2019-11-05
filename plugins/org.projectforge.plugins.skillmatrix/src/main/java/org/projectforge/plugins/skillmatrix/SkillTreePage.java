@@ -97,7 +97,7 @@ public class SkillTreePage extends AbstractSecuredPage
   @SuppressWarnings("serial")
   private void init()
   {
-    if (isSelectMode() == false) {
+    if (!isSelectMode()) {
       final ContentMenuEntryPanel menuEntry = new ContentMenuEntryPanel(getNewContentMenuChildId(),
           new Link<Object>("link")
           {
@@ -117,7 +117,7 @@ public class SkillTreePage extends AbstractSecuredPage
         @Override
         protected void rebuildDatabaseIndex(final boolean onlyNewest)
         {
-          if (onlyNewest == true) {
+          if (onlyNewest) {
             skillDao.rebuildDatabaseIndex4NewestEntries();
           } else {
             skillDao.rebuildDatabaseIndex();
@@ -139,7 +139,7 @@ public class SkillTreePage extends AbstractSecuredPage
         .setSelectMode(isSelectMode()).setShowRootNode(accessChecker.isLoggedInUserMemberOfAdminGroup());
     form.add(skillTreeBuilder.createTree("tree", this, form.getSearchFilter()));
 
-    body.add(new Label("info", new Model<String>(getString(I18N_KEY_SKILLTREE_INFO))));
+    body.add(new Label("info", new Model<>(getString(I18N_KEY_SKILLTREE_INFO))));
   }
 
   public void refresh()
@@ -178,7 +178,7 @@ public class SkillTreePage extends AbstractSecuredPage
 
   protected void onCancelSubmit()
   {
-    if (isSelectMode() == true) {
+    if (isSelectMode()) {
       WicketUtils.setResponsePage(this, caller);
       caller.cancelSelection(selectProperty);
     }

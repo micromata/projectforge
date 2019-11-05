@@ -86,8 +86,8 @@ public class LBExporterService
         .getSingleEmployeeConfigurationDO();
 
     for (EmployeeDO employee : employeeList) {
-      if (employeeService.isEmployeeActive(employee) == true) {
-        if (employeeService.isFulltimeEmployee(employee, selectedDate) == true) {
+      if (employeeService.isEmployeeActive(employee)) {
+        if (employeeService.isFulltimeEmployee(employee, selectedDate)) {
           sheetFulltimeEmployee.copyRow(copyRowFulltime);
           copyRowNrFulltime++;
           final ExportRow currentRow = sheetFulltimeEmployee.getRow(copyRowNrFulltime - 1);

@@ -110,7 +110,7 @@ public class TrainingEditForm extends AbstractEditForm<TrainingDO, TrainingEditP
 
     // Skill
     FieldsetPanel fs = gridBuilder.newFieldset(TrainingDO.class, "skill");
-    final SkillSelectPanel parentSelectPanel = new SkillSelectPanel(fs, new PropertyModel<SkillDO>(data, "skill"),
+    final SkillSelectPanel parentSelectPanel = new SkillSelectPanel(fs, new PropertyModel<>(data, "skill"),
         parentPage, "skillId");
     fs.add(parentSelectPanel);
     parentSelectPanel.setRequired(true);
@@ -119,7 +119,7 @@ public class TrainingEditForm extends AbstractEditForm<TrainingDO, TrainingEditP
     // Title of training
     fs = gridBuilder.newFieldset(TrainingDO.class, "title");
     final RequiredMaxLengthTextField titleField = new RequiredMaxLengthTextField(fs.getTextFieldId(),
-        new PropertyModel<String>(data,
+        new PropertyModel<>(data,
             "title"));
     fs.add(titleField);
     dependentFormComponents[0] = titleField;
@@ -140,8 +140,8 @@ public class TrainingEditForm extends AbstractEditForm<TrainingDO, TrainingEditP
           fullAccessGroupsListHelper.addOriginalAssignedItem(group).assignItem(group);
         }
       }
-      final Select2MultiChoice<GroupDO> groups = new Select2MultiChoice<GroupDO>(fs.getSelect2MultiChoiceId(),
-          new PropertyModel<Collection<GroupDO>>(this.fullAccessGroupsListHelper, "assignedItems"),
+      final Select2MultiChoice<GroupDO> groups = new Select2MultiChoice<>(fs.getSelect2MultiChoiceId(),
+          new PropertyModel<>(this.fullAccessGroupsListHelper, "assignedItems"),
           new GroupsWicketProvider(groupService));
       groups.add(new IValidator<Object>()
       {
@@ -154,12 +154,12 @@ public class TrainingEditForm extends AbstractEditForm<TrainingDO, TrainingEditP
 
           boolean isInUserGroups = false;
           for (final GroupDO group : groups) {
-            if (curUserGroupIds.contains(group.getId()) == true) {
+            if (curUserGroupIds.contains(group.getId())) {
               isInUserGroups = true;
               break;
             }
           }
-          if (isInUserGroups == false) {
+          if (!isInUserGroups) {
             final ValidationError validationError = new ValidationError()
                 .addKey("plugins.skillmatrix.skilltraining.error.nousergroup");
             validatable.error(validationError);
@@ -186,8 +186,8 @@ public class TrainingEditForm extends AbstractEditForm<TrainingDO, TrainingEditP
           readonlyAccessGroupsListHelper.addOriginalAssignedItem(group).assignItem(group);
         }
       }
-      final Select2MultiChoice<GroupDO> groups = new Select2MultiChoice<GroupDO>(fs.getSelect2MultiChoiceId(),
-          new PropertyModel<Collection<GroupDO>>(this.readonlyAccessGroupsListHelper, "assignedItems"),
+      final Select2MultiChoice<GroupDO> groups = new Select2MultiChoice<>(fs.getSelect2MultiChoiceId(),
+          new PropertyModel<>(this.readonlyAccessGroupsListHelper, "assignedItems"),
           new GroupsWicketProvider(groupService));
       fs.addHelpIcon(getString("plugins.skillmatrix.skilltraining.readonlyaccess"));
       fs.add(groups);
@@ -197,13 +197,13 @@ public class TrainingEditForm extends AbstractEditForm<TrainingDO, TrainingEditP
     {
       // Description
       fs = gridBuilder.newFieldset(TrainingDO.class, "description");
-      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<String>(data, "description"))).setAutogrow();
+      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<>(data, "description"))).setAutogrow();
     }
 
     {
       // startDate
       fs = gridBuilder.newFieldset(TrainingDO.class, "startDate");
-      fs.add(new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "startDate"),
+      fs.add(new DatePanel(fs.newChildId(), new PropertyModel<>(data, "startDate"),
           DatePanelSettings.get().withTargetType(
               java.sql.Date.class)));
     }
@@ -211,7 +211,7 @@ public class TrainingEditForm extends AbstractEditForm<TrainingDO, TrainingEditP
     {
       // EndDate
       fs = gridBuilder.newFieldset(TrainingDO.class, "endDate");
-      fs.add(new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "endDate"),
+      fs.add(new DatePanel(fs.newChildId(), new PropertyModel<>(data, "endDate"),
           DatePanelSettings.get().withTargetType(
               java.sql.Date.class)));
     }
@@ -219,7 +219,7 @@ public class TrainingEditForm extends AbstractEditForm<TrainingDO, TrainingEditP
     {
       // Rating
       fs = gridBuilder.newFieldset(TrainingDO.class, "rating");
-      valuesRating = new RequiredMaxLengthTextField(fs.getTextFieldId(), new PropertyModel<String>(data, "rating"));
+      valuesRating = new RequiredMaxLengthTextField(fs.getTextFieldId(), new PropertyModel<>(data, "rating"));
       fs.addHelpIcon(getString("plugins.marketing.addressCampaign.values.format"));
       fs.add(valuesRating);
       fs.addAlertIcon(getString("plugins.skillmatrix.skilltraining.edit.warning.doNotChangeValues"));
@@ -240,7 +240,7 @@ public class TrainingEditForm extends AbstractEditForm<TrainingDO, TrainingEditP
       // Certificate
       fs = gridBuilder.newFieldset(TrainingDO.class, "certificate");
       valuesCertificate = new RequiredMaxLengthTextField(fs.getTextFieldId(),
-          new PropertyModel<String>(data, "certificate"));
+          new PropertyModel<>(data, "certificate"));
       fs.addHelpIcon(getString("plugins.marketing.addressCampaign.values.format"));
       fs.add(valuesCertificate);
       fs.addAlertIcon(getString("plugins.skillmatrix.skilltraining.edit.warning.doNotChangeValues"));

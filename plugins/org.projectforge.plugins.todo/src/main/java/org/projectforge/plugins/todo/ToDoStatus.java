@@ -63,7 +63,7 @@ public enum ToDoStatus implements I18nEnum
     return false;
   }
 
-  private ToDoStatus(final String key)
+  ToDoStatus(final String key)
   {
     this.key = key;
   }

@@ -69,11 +69,11 @@ public class FFPDebtListPage extends AbstractListPage<FFPDebtListForm, FFPDebtDa
   public List<IColumn<FFPDebtDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
     final List<IColumn<FFPDebtDO, String>> columns = new ArrayList<>();
-    columns.add(new PropertyColumn<FFPDebtDO, String>(new ResourceModel("plugins.ffp.eventDate"), "event.eventDate"));
-    columns.add(new PropertyColumn<FFPDebtDO, String>(new ResourceModel("plugins.ffp.title"), "event.title"));
-    columns.add(new PropertyColumn<FFPDebtDO, String>(new ResourceModel("plugins.ffp.from"), "from.fullname"));
-    columns.add(new PropertyColumn<FFPDebtDO, String>(new ResourceModel("plugins.ffp.to"), "to.fullname"));
-    columns.add(new CellItemListenerPropertyColumn<FFPDebtDO>(FFPDebtDO.class, "plugins.ffp.value", "value", null));
+    columns.add(new PropertyColumn<>(new ResourceModel("plugins.ffp.eventDate"), "event.eventDate"));
+    columns.add(new PropertyColumn<>(new ResourceModel("plugins.ffp.title"), "event.title"));
+    columns.add(new PropertyColumn<>(new ResourceModel("plugins.ffp.from"), "from.fullname"));
+    columns.add(new PropertyColumn<>(new ResourceModel("plugins.ffp.to"), "to.fullname"));
+    columns.add(new CellItemListenerPropertyColumn<>(FFPDebtDO.class, "plugins.ffp.value", "value", null));
 
     columns.add(new CellItemListenerPropertyColumn<FFPDebtDO>(FFPDebtDO.class, "plugins.ffp.approvedByFrom", "approvedByFrom", null)
     {
@@ -92,7 +92,7 @@ public class FFPDebtListPage extends AbstractListPage<FFPDebtListForm, FFPDebtDa
             @Override
             protected void onEvent(AjaxRequestTarget target)
             {
-              if (debt.isApprovedByFrom() == false) {
+              if (!debt.isApprovedByFrom()) {
                 eventService.updateDebtFrom(debt);
                 button.add(AttributeModifier.append("class", ButtonType.GREEN.getClassAttrValue()));
                 button.addOrReplace(new Label("title", I18nHelper.getLocalizedMessage("plugins.ffp.payed")));
@@ -127,7 +127,7 @@ public class FFPDebtListPage extends AbstractListPage<FFPDebtListForm, FFPDebtDa
             @Override
             protected void onEvent(AjaxRequestTarget target)
             {
-              if (debt.isApprovedByTo() == false) {
+              if (!debt.isApprovedByTo()) {
                 eventService.updateDebtTo(debt);
                 button.add(AttributeModifier.append("class", ButtonType.GREEN.getClassAttrValue()));
                 button.addOrReplace(new Label("title", I18nHelper.getLocalizedMessage("plugins.ffp.approved")));

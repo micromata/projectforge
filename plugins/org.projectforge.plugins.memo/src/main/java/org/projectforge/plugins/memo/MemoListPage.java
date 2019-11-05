@@ -64,7 +64,7 @@ public class MemoListPage extends AbstractListPage<MemoListForm, MemoDao, MemoDO
   @SuppressWarnings("serial")
   public List<IColumn<MemoDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
-    final List<IColumn<MemoDO, String>> columns = new ArrayList<IColumn<MemoDO, String>>();
+    final List<IColumn<MemoDO, String>> columns = new ArrayList<>();
     final CellItemListener<MemoDO> cellItemListener = new CellItemListener<MemoDO>()
     {
       @Override
@@ -96,9 +96,9 @@ public class MemoListPage extends AbstractListPage<MemoListForm, MemoDao, MemoDO
       }
     });
     columns
-        .add(new CellItemListenerPropertyColumn<MemoDO>(MemoDO.class, getSortable("lastUpdate", sortable), "lastUpdate",
+        .add(new CellItemListenerPropertyColumn<>(MemoDO.class, getSortable("lastUpdate", sortable), "lastUpdate",
             cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<MemoDO>(MemoDO.class, getSortable("subject", sortable), "subject",
+    columns.add(new CellItemListenerPropertyColumn<>(MemoDO.class, getSortable("subject", sortable), "subject",
         cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<MemoDO>(MemoDO.class, getSortable("memo", sortable), "memo",
         cellItemListener)
@@ -108,7 +108,7 @@ public class MemoListPage extends AbstractListPage<MemoListForm, MemoDao, MemoDO
           final IModel<MemoDO> rowModel)
       {
         final MemoDO memo = rowModel.getObject();
-        final Label label = new Label(componentId, new Model<String>(StringUtils.abbreviate(memo.getMemo(), 100)));
+        final Label label = new Label(componentId, new Model<>(StringUtils.abbreviate(memo.getMemo(), 100)));
         cellItemListener.populateItem(item, componentId, rowModel);
         item.add(label);
       }

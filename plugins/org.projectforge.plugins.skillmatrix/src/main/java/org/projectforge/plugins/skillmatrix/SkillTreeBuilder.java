@@ -108,10 +108,10 @@ public class SkillTreeBuilder implements Serializable
       @Override
       protected Item<SkillNode> newRowItem(final String id, final int index, final IModel<SkillNode> model)
       {
-        return new OddEvenItem<SkillNode>(id, index, model);
+        return new OddEvenItem<>(id, index, model);
       }
     };
-    tree.getTable().addTopToolbar(new HeadersToolbar<String>(tree.getTable(), null));
+    tree.getTable().addTopToolbar(new HeadersToolbar<>(tree.getTable(), null));
     tree.getTable().addBottomToolbar(new NoRecordsToolbar(tree.getTable()));
     tree.add(new Behavior()
     {
@@ -148,7 +148,7 @@ public class SkillTreeBuilder implements Serializable
       }
     };
 
-    final List<IColumn<SkillNode, String>> columns = new ArrayList<IColumn<SkillNode, String>>();
+    final List<IColumn<SkillNode, String>> columns = new ArrayList<>();
 
     final TreeColumn<SkillNode, String> title = new TreeColumn<SkillNode, String>(
         new ResourceModel("plugins.skillmatrix.skill.title"))
@@ -160,7 +160,7 @@ public class SkillTreeBuilder implements Serializable
         final RepeatingView view = new RepeatingView(componentId);
         cellItem.add(view);
         final SkillNode skillNode = rowModel.getObject();
-        if (selectMode == false) {
+        if (!selectMode) {
           view.add(new ListSelectActionPanel(view.newChildId(), rowModel, SkillEditPage.class, skillNode.getId(),
               parentPage, ""));
         } else {
@@ -176,27 +176,27 @@ public class SkillTreeBuilder implements Serializable
       }
     };
 
-    final CellItemListenerPropertyColumn<SkillNode> created = new CellItemListenerPropertyColumn<SkillNode>(
+    final CellItemListenerPropertyColumn<SkillNode> created = new CellItemListenerPropertyColumn<>(
         new ResourceModel(
             "created"),
         null, "skill.created", cellItemListener);
 
-    final CellItemListenerPropertyColumn<SkillNode> lastUpdate = new CellItemListenerPropertyColumn<SkillNode>(
+    final CellItemListenerPropertyColumn<SkillNode> lastUpdate = new CellItemListenerPropertyColumn<>(
         new ResourceModel(
             "lastUpdate"),
         null, "skill.lastUpdate", cellItemListener);
 
-    final CellItemListenerPropertyColumn<SkillNode> description = new CellItemListenerPropertyColumn<SkillNode>(
+    final CellItemListenerPropertyColumn<SkillNode> description = new CellItemListenerPropertyColumn<>(
         new ResourceModel(
             "plugins.skillmatrix.skill.description"),
         null, "skill.description", cellItemListener);
 
-    final CellItemListenerPropertyColumn<SkillNode> comment = new CellItemListenerPropertyColumn<SkillNode>(
+    final CellItemListenerPropertyColumn<SkillNode> comment = new CellItemListenerPropertyColumn<>(
         new ResourceModel(
             "plugins.skillmatrix.skill.comment"),
         null, "skill.comment", cellItemListener);
 
-    final CellItemListenerPropertyColumn<SkillNode> rateable = new CellItemListenerPropertyColumn<SkillNode>(
+    final CellItemListenerPropertyColumn<SkillNode> rateable = new CellItemListenerPropertyColumn<>(
         new ResourceModel(
             "plugins.skillmatrix.skill.rateable"),
         null, "skill.rateable", cellItemListener);
@@ -214,7 +214,7 @@ public class SkillTreeBuilder implements Serializable
   protected void addColumn(final WebMarkupContainer parent, final Component component, final String cssStyle)
   {
     if (cssStyle != null) {
-      component.add(AttributeModifier.append("style", new Model<String>(cssStyle)));
+      component.add(AttributeModifier.append("style", new Model<>(cssStyle)));
     }
     parent.add(component);
   }

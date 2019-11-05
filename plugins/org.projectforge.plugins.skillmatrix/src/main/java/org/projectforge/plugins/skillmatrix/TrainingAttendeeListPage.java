@@ -71,7 +71,7 @@ public class TrainingAttendeeListPage
   {
     super(parameters, I18N_KEY_PREFIX);
     final Integer trainingId = WicketUtils.getAsInteger(parameters, PARAM_TRAINING_ID);
-    if (NumberHelper.greaterZero(trainingId) == true) {
+    if (NumberHelper.greaterZero(trainingId)) {
       form.getSearchFilter().setTrainingId(trainingId);
     }
   }
@@ -84,7 +84,7 @@ public class TrainingAttendeeListPage
   @Override
   public List<IColumn<TrainingAttendeeDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
-    final List<IColumn<TrainingAttendeeDO, String>> columns = new ArrayList<IColumn<TrainingAttendeeDO, String>>();
+    final List<IColumn<TrainingAttendeeDO, String>> columns = new ArrayList<>();
     final CellItemListener<TrainingAttendeeDO> cellItemListener = new CellItemListener<TrainingAttendeeDO>()
     {
       public void populateItem(final Item<ICellPopulator<TrainingAttendeeDO>> item, final String componentId,
@@ -96,31 +96,31 @@ public class TrainingAttendeeListPage
     };
 
     columns
-        .add(new CellItemListenerPropertyColumn<TrainingAttendeeDO>(getString("plugins.skillmatrix.skillrating.skill"),
+        .add(new CellItemListenerPropertyColumn<>(getString("plugins.skillmatrix.skillrating.skill"),
             getSortable("training.skill.title", sortable), "training.skill.title", cellItemListener));
     columns.add(
-        new CellItemListenerPropertyColumn<TrainingAttendeeDO>(getString("plugins.skillmatrix.skilltraining.training"),
+        new CellItemListenerPropertyColumn<>(getString("plugins.skillmatrix.skilltraining.training"),
             getSortable("training.title", sortable), "training.title", cellItemListener));
 
     columns.add(
-        new CellItemListenerPropertyColumn<TrainingAttendeeDO>(getString("plugins.skillmatrix.skilltraining.startDate"),
+        new CellItemListenerPropertyColumn<>(getString("plugins.skillmatrix.skilltraining.startDate"),
             getSortable("training.startDate", sortable), "training.startDate",
             cellItemListener));
     columns.add(
-        new CellItemListenerPropertyColumn<TrainingAttendeeDO>(getString("plugins.skillmatrix.skilltraining.endDate"),
+        new CellItemListenerPropertyColumn<>(getString("plugins.skillmatrix.skilltraining.endDate"),
             getSortable("training.endDate", sortable), "training.endDate",
             cellItemListener));
 
-    columns.add(new UserPropertyColumn<TrainingAttendeeDO>(getUserGroupCache(), TrainingAttendeeDO.class,
+    columns.add(new UserPropertyColumn<>(getUserGroupCache(), TrainingAttendeeDO.class,
         getSortable("attendeeId", sortable), "attendee",
         cellItemListener).withUserFormatter(userFormatter));
-    columns.add(new CellItemListenerPropertyColumn<TrainingAttendeeDO>(TrainingAttendeeDO.class,
+    columns.add(new CellItemListenerPropertyColumn<>(TrainingAttendeeDO.class,
         getSortable("rating", sortable), "rating",
         cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<TrainingAttendeeDO>(TrainingAttendeeDO.class,
+    columns.add(new CellItemListenerPropertyColumn<>(TrainingAttendeeDO.class,
         getSortable("certificate", sortable), "certificate",
         cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<TrainingAttendeeDO>(TrainingAttendeeDO.class,
+    columns.add(new CellItemListenerPropertyColumn<>(TrainingAttendeeDO.class,
         getSortable("description", sortable), "description",
         cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<TrainingAttendeeDO>(TrainingAttendeeDO.class,
@@ -140,7 +140,7 @@ public class TrainingAttendeeListPage
       }
     });
 
-    columns.add(new CellItemListenerPropertyColumn<TrainingAttendeeDO>(TrainingAttendeeDO.class,
+    columns.add(new CellItemListenerPropertyColumn<>(TrainingAttendeeDO.class,
         getSortable("lastUpdate", sortable), "lastUpdate",
         cellItemListener));
 
@@ -174,7 +174,7 @@ public class TrainingAttendeeListPage
       @Override
       public void addMapping(final PropertyMapping mapping, final Object entry, final Field field)
       {
-        if ("training".equals(field.getName()) == true) {
+        if ("training".equals(field.getName())) {
           final SkillDO skill = ((TrainingAttendeeDO) entry).getTraining().getSkill();
           mapping.add(field.getName(), skill != null ? skill.getTitle() : "");
         } else {
@@ -199,10 +199,10 @@ public class TrainingAttendeeListPage
   @Override
   public void select(final String property, final Object selectedValue)
   {
-    if ("attendeeId".equals(property) == true) {
+    if ("attendeeId".equals(property)) {
       form.getSearchFilter().setAttendeeId((Integer) selectedValue);
       refresh();
-    } else if ("trainingId".equals(property) == true) {
+    } else if ("trainingId".equals(property)) {
       form.getSearchFilter().setTrainingId((Integer) selectedValue);
       refresh();
     } else {
@@ -216,10 +216,10 @@ public class TrainingAttendeeListPage
   @Override
   public void unselect(final String property)
   {
-    if ("attendeeId".equals(property) == true) {
+    if ("attendeeId".equals(property)) {
       form.getSearchFilter().setAttendeeId(null);
       refresh();
-    } else if ("trainingId".equals(property) == true) {
+    } else if ("trainingId".equals(property)) {
       form.getSearchFilter().setTrainingId(null);
       refresh();
     } else {

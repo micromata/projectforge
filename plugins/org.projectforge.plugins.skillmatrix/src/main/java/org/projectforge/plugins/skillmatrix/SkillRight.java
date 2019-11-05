@@ -76,7 +76,7 @@ public class SkillRight extends UserRightAccessCheck<SkillDO>
       final OperationType operationType)
   {
 
-    if (accessChecker.isUserMemberOfAdminGroup(user) == true) {
+    if (accessChecker.isUserMemberOfAdminGroup(user)) {
       return true;
     }
 
@@ -86,7 +86,7 @@ public class SkillRight extends UserRightAccessCheck<SkillDO>
       return true;
     }
     if (operationType == OperationType.SELECT) {
-      return (hasFullAccess(skill, user.getId()) == true) || (hasReadOnlyAccess(skill, user.getId()) == true);
+      return (hasFullAccess(skill, user.getId())) || (hasReadOnlyAccess(skill, user.getId()));
     }
     return hasFullAccess(skill, user.getId());
   }
@@ -111,7 +111,7 @@ public class SkillRight extends UserRightAccessCheck<SkillDO>
 
   private boolean hasAccess(final Integer[] groupIds, final Integer userId)
   {
-    if (getUserGroupCache().isUserMemberOfAtLeastOneGroup(userId, groupIds) == true) {
+    if (getUserGroupCache().isUserMemberOfAtLeastOneGroup(userId, groupIds)) {
       return true;
     }
     return false;
@@ -119,14 +119,14 @@ public class SkillRight extends UserRightAccessCheck<SkillDO>
 
   public Integer[] getFullAccessGroupIds(final SkillDO skill)
   {
-    final Set<Integer> result = new HashSet<Integer>();
+    final Set<Integer> result = new HashSet<>();
     getFullAccessGroupIds(result, skill);
     return result.toArray(new Integer[0]);
   }
 
   private void getFullAccessGroupIds(final Set<Integer> groupIds, final SkillDO skill)
   {
-    if (StringUtils.isNotBlank(skill.getFullAccessGroupIds()) == true) {
+    if (StringUtils.isNotBlank(skill.getFullAccessGroupIds())) {
       final Collection<GroupDO> groups = groupService
           .getSortedGroups(skill.getFullAccessGroupIds());
       if (groups != null) {
@@ -143,14 +143,14 @@ public class SkillRight extends UserRightAccessCheck<SkillDO>
 
   public Integer[] getReadOnlyAccessGroupIds(final SkillDO skill)
   {
-    final Set<Integer> result = new HashSet<Integer>();
+    final Set<Integer> result = new HashSet<>();
     getReadOnlyAccessGroupIds(result, skill);
     return result.toArray(new Integer[0]);
   }
 
   private void getReadOnlyAccessGroupIds(final Set<Integer> groupIds, final SkillDO skill)
   {
-    if (StringUtils.isNotBlank(skill.getReadOnlyAccessGroupIds()) == true) {
+    if (StringUtils.isNotBlank(skill.getReadOnlyAccessGroupIds())) {
       final Collection<GroupDO> groups = groupService
           .getSortedGroups(skill.getReadOnlyAccessGroupIds());
       if (groups != null) {
@@ -167,14 +167,14 @@ public class SkillRight extends UserRightAccessCheck<SkillDO>
 
   public Integer[] getTrainingAccessGroupIds(final SkillDO skill)
   {
-    final Set<Integer> result = new HashSet<Integer>();
+    final Set<Integer> result = new HashSet<>();
     getTrainingAccessGroupIds(result, skill);
     return result.toArray(new Integer[0]);
   }
 
   private void getTrainingAccessGroupIds(final Set<Integer> groupIds, final SkillDO skill)
   {
-    if (StringUtils.isNotBlank(skill.getTrainingGroupsIds()) == true) {
+    if (StringUtils.isNotBlank(skill.getTrainingGroupsIds())) {
       final Collection<GroupDO> groups = groupService
           .getSortedGroups(skill.getTrainingGroupsIds());
       if (groups != null) {

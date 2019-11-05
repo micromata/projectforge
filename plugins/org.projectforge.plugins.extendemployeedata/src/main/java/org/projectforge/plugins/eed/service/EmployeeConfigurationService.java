@@ -31,11 +31,11 @@ import org.projectforge.plugins.eed.model.EmployeeConfigurationTimedDO;
 public interface EmployeeConfigurationService
     extends IPersistenceService<EmployeeConfigurationDO>, IDao<EmployeeConfigurationDO>
 {
-  public static final String STAFFNR_COLUMN_NAME_ATTR = "staffnrcolumnname";
+  String STAFFNR_COLUMN_NAME_ATTR = "staffnrcolumnname";
 
-  public static final String SALARY_COLUMN_NAME_ATTR = "salarycolumnname";
+  String SALARY_COLUMN_NAME_ATTR = "salarycolumnname";
 
-  public static final String REMARK_COLUMN_NAME_ATTR = "remarkcolumnname";
+  String REMARK_COLUMN_NAME_ATTR = "remarkcolumnname";
 
   EmployeeConfigurationTimedDO
 

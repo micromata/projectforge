@@ -53,7 +53,7 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
   {
     super(parameters, "plugins.todo");
     init();
-    if (isNew() == true) {
+    if (isNew()) {
       final ToDoDO pref = getToDoPrefData(false);
       if (pref != null) {
         copyPrefValues(pref, getData());
@@ -71,13 +71,13 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
   protected void onAfterRender()
   {
     super.onAfterRender();
-    if (accessChecker.isRestrictedOrDemoUser() == true) {
+    if (accessChecker.isRestrictedOrDemoUser()) {
       // Do nothing.
       return;
     }
-    if (Objects.equals(ThreadLocalUserContext.getUserId(), getData().getAssigneeId()) == true) {
+    if (Objects.equals(ThreadLocalUserContext.getUserId(), getData().getAssigneeId())) {
       // OK, user has now seen this to-do: delete recent flag:
-      if (isNew() == false && getData().getRecent() == true) {
+      if (!isNew() && getData().getRecent()) {
         getData().setRecent(false);
         toDoDao.update(getData());
       }
@@ -98,13 +98,13 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
     copyPrefValues(getData(), pref);
     // Does the user want to store this to-do as template?
     boolean sendNotification = false;
-    if (form.sendNotification == true) {
+    if (form.sendNotification) {
       sendNotification = true;
     } else if (oldToDo == null) {
       // Send notification on new to-do's.
       sendNotification = true;
     } else {
-      if (Objects.equals(oldToDo.getAssigneeId(), getData().getAssigneeId()) == false) {
+      if (!Objects.equals(oldToDo.getAssigneeId(), getData().getAssigneeId())) {
         // Assignee was changed.
         sendNotification = true;
       } else if (oldToDo.getStatus() != getData().getStatus()) {
@@ -115,14 +115,14 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
         sendNotification = true;
       }
     }
-    if (sendNotification == true) {
+    if (sendNotification) {
       sendNotification();
     }
     // if (form.sendShortMessage == true) {
     // final PFUserDO assignee = getData().getAssignee();
     // final String mobileNumber = assignee != null ? assignee.getPersonalMebMobileNumbers() : null;
     // }
-    if (BooleanUtils.isTrue(form.saveAsTemplate) == true) {
+    if (BooleanUtils.isTrue(form.saveAsTemplate)) {
       final UserPrefEditPage userPrefEditPage = new UserPrefEditPage(ToDoPlugin.USER_PREF_AREA, getData());
       userPrefEditPage.setReturnToPage(this.returnToPage);
       return userPrefEditPage;
@@ -142,7 +142,7 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
   private ToDoDO getToDoPrefData(final boolean force)
   {
     ToDoDO pref = (ToDoDO) getUserPrefEntry(ToDoDO.class.getName());
-    if (pref == null && force == true) {
+    if (pref == null && force) {
       pref = new ToDoDO();
       putUserPrefEntry(ToDoDO.class.getName(), pref, true);
     }
@@ -155,9 +155,9 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
   @Override
   public void select(final String property, final Object selectedValue)
   {
-    if ("taskId".equals(property) == true) {
+    if ("taskId".equals(property)) {
       toDoDao.setTask(getData(), (Integer) selectedValue);
-    } else if ("groupId".equals(property) == true) {
+    } else if ("groupId".equals(property)) {
       toDoDao.setGroup(getData(), (Integer) selectedValue);
       form.groupSelectPanel.getTextField().modelChanged();
     } else {
@@ -171,9 +171,9 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
   @Override
   public void unselect(final String property)
   {
-    if ("taskId".equals(property) == true) {
+    if ("taskId".equals(property)) {
       getData().setTask(null);
-    } else if ("groupId".equals(property) == true) {
+    } else if ("groupId".equals(property)) {
       getData().setGroup(null);
       form.groupSelectPanel.getTextField().modelChanged();
     } else {

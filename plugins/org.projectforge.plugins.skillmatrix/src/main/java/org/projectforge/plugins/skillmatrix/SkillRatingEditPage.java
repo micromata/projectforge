@@ -58,7 +58,7 @@ public class SkillRatingEditPage extends AbstractEditPage<SkillRatingDO, SkillRa
     super(parameters, I18N_KEY_PREFIX);
     skillId = WicketUtils.getAsInteger(parameters, SkillRatingEditForm.PARAM_SKILL_ID);
     init();
-    if (NumberHelper.greaterZero(skillId) == true) {
+    if (NumberHelper.greaterZero(skillId)) {
       skillRatingDao.setSkill(getData(), skillId);
     }
   }
@@ -97,7 +97,7 @@ public class SkillRatingEditPage extends AbstractEditPage<SkillRatingDO, SkillRa
   @Override
   public void select(final String property, final Object selectedValue)
   {
-    if ("skillId".equals(property) == true) {
+    if ("skillId".equals(property)) {
       skillRatingDao.setSkill(getData(), (Integer) selectedValue);
     } else {
       log.error("Property '" + property + "' not supported for selection.");
@@ -110,7 +110,7 @@ public class SkillRatingEditPage extends AbstractEditPage<SkillRatingDO, SkillRa
   @Override
   public void unselect(final String property)
   {
-    if ("skillId".equals(property) == true) {
+    if ("skillId".equals(property)) {
       getData().setSkill(null);
     } else {
       log.error("Property '" + property + "' not supported for selection.");
