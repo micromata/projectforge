@@ -287,6 +287,7 @@ abstract class AbstractBaseRest<
      */
     @RequestMapping(RestPaths.LIST)
     fun getList(@RequestBody filter: MagicFilter): ResultSet<*> {
+        filter.autoStartWithSearch = true
         fixMagicFilterFromClient(filter)
         val list = getList(this, baseDao, filter)
         saveCurrentFilter(filter)

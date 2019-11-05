@@ -51,13 +51,13 @@ object MagicFilterProcessor {
                 queryFilter.addFullTextSearch(magicFilterEntry.value.value)
             } else {
                 // Field search.
-                createFieldSearchEntry(entityClass, queryFilter, magicFilterEntry)
+                createFieldSearchEntry(entityClass, queryFilter, magicFilterEntry, magicFilter.autoStartWithSearch)
             }
         }
         return queryFilter
     }
 
-    internal fun createFieldSearchEntry(entityClass: Class<*>, queryFilter: QueryFilter, magicFilterEntry: MagicFilterEntry) {
+    internal fun createFieldSearchEntry(entityClass: Class<*>, queryFilter: QueryFilter, magicFilterEntry: MagicFilterEntry, autoStartWithSearch: Boolean) {
         val field = magicFilterEntry.field!!
         if (isHistoryEntry(field)) {
             if (isModifiedInterval(field)) {
@@ -71,7 +71,7 @@ object MagicFilterProcessor {
         val fieldType = PropUtils.getField(entityClass, field)?.type ?: String::class.java
         if (fieldType == String::class.java) {
             val str = magicFilterEntry.value.value?.trim() ?: ""
-            val predicate = DBPredicate.Like(field, str)
+            val predicate = DBPredicate.Like(field, str, autoStartWithSearch = autoStartWithSearch)
             queryFilter.add(predicate)
             return
         }
