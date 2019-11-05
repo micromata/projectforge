@@ -53,7 +53,7 @@ class MagicFilterProcessorTest {
     }
 
     private fun testEntry(value: String, expectedPlainString: String, matchType: MatchType, autoStartWithSearch: Boolean = false) {
-        val magicFilter = MagicFilter(autoStartWithSearch = autoStartWithSearch)
+        val magicFilter = MagicFilter(autoWildcardSearch = autoStartWithSearch)
         magicFilter.entries.add(MagicFilterEntry("zipCode", value))
         val queryFilter = MagicFilterProcessor.doIt(AddressDO::class.java, magicFilter)
         // 0 - deleted, 1 - zipCode
