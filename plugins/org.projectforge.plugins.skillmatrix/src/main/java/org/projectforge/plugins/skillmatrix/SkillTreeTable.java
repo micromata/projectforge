@@ -78,7 +78,7 @@ public class SkillTreeTable extends TreeTable<SkillTreeTableNode>
     final SkillNode skill = parent.getSkillNode();
     if (skill.getChildren() != null) {
       for (final SkillNode node : skill.getChildren()) {
-        if (skillDao.hasSelectAccess(node) == true) {
+        if (skillDao.hasSelectAccess(node)) {
           // The logged in user has select access, so add this skill node
           // to this tree table:
           final SkillTreeTableNode child = new SkillTreeTableNode(parent, node);

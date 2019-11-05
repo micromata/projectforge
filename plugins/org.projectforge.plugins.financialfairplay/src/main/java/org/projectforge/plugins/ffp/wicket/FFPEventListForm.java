@@ -44,7 +44,7 @@ public class FFPEventListForm extends AbstractListForm<FFPEventFilter, FFPEventL
   protected void onOptionsPanelCreate(FieldsetPanel optionsFieldsetPanel, DivPanel optionsCheckBoxesPanel) {
      FFPEventFilter filter = getSearchFilter();
     optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(),
-      new PropertyModel<Boolean>(filter, "showOnlyActiveEntries"), getString("plugins.ffp.event.options.showOnlyActiveEntries")));
+        new PropertyModel<>(filter, "showOnlyActiveEntries"), getString("plugins.ffp.event.options.showOnlyActiveEntries")));
 	}
   
   @Override

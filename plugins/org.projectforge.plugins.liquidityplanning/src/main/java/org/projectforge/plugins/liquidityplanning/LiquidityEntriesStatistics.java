@@ -53,12 +53,12 @@ public class LiquidityEntriesStatistics implements Serializable
   {
     final BigDecimal amount = entry.getAmount();
     this.total = NumberHelper.add(total, amount);
-    if (entry.getPaid() == true) {
+    if (entry.getPaid()) {
       this.paid = NumberHelper.add(paid, amount);
       counterPaid++;
     } else {
       this.open = NumberHelper.add(open, amount);
-      if (entry.getDateOfPayment() != null && entry.getDateOfPayment().before(today) == true) {
+      if (entry.getDateOfPayment() != null && entry.getDateOfPayment().before(today)) {
         this.overdue = NumberHelper.add(overdue, amount);
       }
     }

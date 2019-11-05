@@ -80,7 +80,7 @@ public class AddressCampaignValueListForm
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("value"));
       final LabelValueChoiceRenderer<String> choiceRenderer = getValueLabelValueChoiceRenderer();
       addressCampaignValueDropDownChoice = new DropDownChoice<String>(fs.getDropDownChoiceId(),
-          new PropertyModel<String>(this,
+          new PropertyModel<>(this,
               "addressCampaignValue"),
           choiceRenderer.getValues(), choiceRenderer)
       {
@@ -111,32 +111,32 @@ public class AddressCampaignValueListForm
     gridBuilder.newSplitPanel(GridSize.COL66);
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.marketing.addressCampaign"));
-      final LabelValueChoiceRenderer<Integer> addressCampaignRenderer = new LabelValueChoiceRenderer<Integer>();
+      final LabelValueChoiceRenderer<Integer> addressCampaignRenderer = new LabelValueChoiceRenderer<>();
       for (final AddressCampaignDO addressCampaign : addressCampaignList) {
         addressCampaignRenderer.addValue(addressCampaign.getId(), addressCampaign.getTitle());
       }
       final DropDownChoice<Integer> addressCampaignChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(),
-          new PropertyModel<Integer>(this, "addressCampaignId"), addressCampaignRenderer.getValues(),
+          new PropertyModel<>(this, "addressCampaignId"), addressCampaignRenderer.getValues(),
           addressCampaignRenderer)
       {
         @Override
         protected void onSelectionChanged(final Integer newSelection)
         {
           for (final AddressCampaignDO addressCampaign : addressCampaignList) {
-            if (addressCampaign.getId().equals(addressCampaignId) == true) {
+            if (addressCampaign.getId().equals(addressCampaignId)) {
               searchFilter.setAddressCampaign(addressCampaign);
               final String oldValue = searchFilter.getAddressCampaignValue();
               // Is oldValue given and not "-(null)-"?
-              if (oldValue != null && ADDRESS_CAMPAIGN_VALUE_UNDEFINED.equals(oldValue) == false) {
+              if (oldValue != null && !ADDRESS_CAMPAIGN_VALUE_UNDEFINED.equals(oldValue)) {
                 // Check whether the campaign has the former selected value or not.
                 boolean found = false;
                 for (final String value : addressCampaign.getValuesArray()) {
-                  if (oldValue.equals(value) == true) {
+                  if (oldValue.equals(value)) {
                     found = true;
                     break;
                   }
                 }
-                if (found == false) {
+                if (!found) {
                   // Not found, therefore set the value to null:
                   searchFilter.setAddressCampaignValue(null);
                   addressCampaignValueDropDownChoice.modelChanged();
@@ -178,7 +178,7 @@ public class AddressCampaignValueListForm
 
   private LabelValueChoiceRenderer<String> getValueLabelValueChoiceRenderer()
   {
-    final LabelValueChoiceRenderer<String> choiceRenderer = new LabelValueChoiceRenderer<String>();
+    final LabelValueChoiceRenderer<String> choiceRenderer = new LabelValueChoiceRenderer<>();
     if (searchFilter.getAddressCampaign() != null) {
       choiceRenderer.addValue(ADDRESS_CAMPAIGN_VALUE_UNDEFINED, "- " + getString("undefined") + " -");
       for (final String value : searchFilter.getAddressCampaign().getValuesArray()) {
@@ -191,7 +191,7 @@ public class AddressCampaignValueListForm
   @Override
   protected boolean isFilterVisible()
   {
-    return parentPage.isMassUpdateMode() == false;
+    return !parentPage.isMassUpdateMode();
   }
 
   @Override

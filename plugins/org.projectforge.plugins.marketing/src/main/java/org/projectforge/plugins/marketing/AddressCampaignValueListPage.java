@@ -107,7 +107,7 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
       final Map<Integer, AddressCampaignValueDO> addressCampaignValueMap)
   {
 
-    final List<IColumn<AddressDO, String>> columns = new ArrayList<IColumn<AddressDO, String>>();
+    final List<IColumn<AddressDO, String>> columns = new ArrayList<>();
     final CellItemListener<AddressDO> cellItemListener = new CellItemListener<AddressDO>()
     {
       @Override
@@ -123,25 +123,25 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
         }
         final PersonalAddressDO personalAddress = personalAddressMap.get(address.getId());
         appendCssClasses(item, address.getId(), highlightedRowId, address.isDeleted());
-        if (address.isDeleted() == true) {
+        if (address.isDeleted()) {
           // Do nothing further
-        } else if (personalAddress != null && personalAddress.isFavoriteCard() == true) {
+        } else if (personalAddress != null && personalAddress.isFavoriteCard()) {
           appendCssClasses(item, RowCssClass.FAVORITE_ENTRY);
         }
-        if (address.getAddressStatus().isIn(AddressStatus.LEAVED, AddressStatus.OUTDATED) == true
+        if (address.getAddressStatus().isIn(AddressStatus.LEAVED, AddressStatus.OUTDATED)
             || address.getContactStatus().isIn(ContactStatus.DEPARTED, ContactStatus.NON_ACTIVE,
             ContactStatus.PERSONA_INGRATA,
-            ContactStatus.UNINTERESTING, ContactStatus.DEPARTED) == true) {
+            ContactStatus.UNINTERESTING, ContactStatus.DEPARTED)) {
           appendCssClasses(item, RowCssClass.MARKED_AS_DELETED);
         }
       }
     };
     if (page instanceof AddressCampaignValueMassUpdatePage) {
-      columns.add(new CellItemListenerPropertyColumn<AddressDO>(new Model<String>(page.getString("created")),
+      columns.add(new CellItemListenerPropertyColumn<>(new Model<>(page.getString("created")),
           getSortable("created",
               sortable),
           "created", cellItemListener));
-    } else if (massUpdateMode == true && page instanceof AddressCampaignValueListPage) {
+    } else if (massUpdateMode && page instanceof AddressCampaignValueListPage) {
       final AddressCampaignValueListPage addressCampaignValueListPage = (AddressCampaignValueListPage) page;
       columns.add(new CellItemListenerPropertyColumn<AddressDO>("", null, "selected", cellItemListener)
       {
@@ -158,7 +158,7 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
         }
       });
     } else {
-      columns.add(new CellItemListenerPropertyColumn<AddressDO>(new Model<String>(page.getString("created")),
+      columns.add(new CellItemListenerPropertyColumn<AddressDO>(new Model<>(page.getString("created")),
           getSortable("created",
               sortable),
           "created", cellItemListener)
@@ -182,21 +182,21 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
         }
       });
     }
-    columns.add(new CellItemListenerPropertyColumn<AddressDO>(new Model<String>(page.getString("name")),
+    columns.add(new CellItemListenerPropertyColumn<>(new Model<>(page.getString("name")),
         getSortable("name", sortable),
         "name", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<AddressDO>(new Model<String>(page.getString("firstName")),
+    columns.add(new CellItemListenerPropertyColumn<>(new Model<>(page.getString("firstName")),
         getSortable("firstName",
             sortable),
         "firstName", cellItemListener));
     columns.add(
-        new CellItemListenerPropertyColumn<AddressDO>(new Model<String>(page.getString("organization")), getSortable(
+        new CellItemListenerPropertyColumn<>(new Model<>(page.getString("organization")), getSortable(
             "organization", sortable), "organization", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<AddressDO>(
-        new Model<String>(page.getString("address.contactStatus")), getSortable(
-            "contactStatus", sortable),
+    columns.add(new CellItemListenerPropertyColumn<>(
+        new Model<>(page.getString("address.contactStatus")), getSortable(
+        "contactStatus", sortable),
         "contactStatus", cellItemListener));
-    columns.add(new AbstractColumn<AddressDO, String>(new Model<String>(page.getString("address.addressText")))
+    columns.add(new AbstractColumn<AddressDO, String>(new Model<>(page.getString("address.addressText")))
     {
       @Override
       public void populateItem(final Item<ICellPopulator<AddressDO>> item, final String componentId,
@@ -208,7 +208,7 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
                 + " "
                 + address.getMailingCity(),
             address.getMailingCountry());
-        if (massUpdateMode == false) {
+        if (!massUpdateMode) {
           final AddressEditLinkPanel addressEditLinkPanel = new AddressEditLinkPanel(componentId, page, address,
               addressText);
           item.add(addressEditLinkPanel);
@@ -218,11 +218,11 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
         cellItemListener.populateItem(item, componentId, rowModel);
       }
     });
-    columns.add(new CellItemListenerPropertyColumn<AddressDO>(
-        new Model<String>(page.getString("address.addressStatus")), getSortable(
-            "addressStatus", sortable),
+    columns.add(new CellItemListenerPropertyColumn<>(
+        new Model<>(page.getString("address.addressStatus")), getSortable(
+        "addressStatus", sortable),
         "addressStatus", cellItemListener));
-    columns.add(new AbstractColumn<AddressDO, String>(new Model<String>(page.getString("value")))
+    columns.add(new AbstractColumn<AddressDO, String>(new Model<>(page.getString("value")))
     {
       @Override
       public void populateItem(final Item<ICellPopulator<AddressDO>> item, final String componentId,
@@ -233,14 +233,14 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
         final AddressCampaignValueDO addressCampaignValue = addressCampaignValueMap.get(id);
         if (addressCampaignValue != null) {
           item.add(new Label(componentId, addressCampaignValue.getValue()));
-          item.add(AttributeModifier.append("style", new Model<String>("white-space: nowrap;")));
+          item.add(AttributeModifier.append("style", new Model<>("white-space: nowrap;")));
         } else {
           item.add(new Label(componentId, ""));
         }
         cellItemListener.populateItem(item, componentId, rowModel);
       }
     });
-    columns.add(new AbstractColumn<AddressDO, String>(new Model<String>(page.getString("comment")))
+    columns.add(new AbstractColumn<AddressDO, String>(new Model<>(page.getString("comment")))
     {
       @Override
       public void populateItem(final Item<ICellPopulator<AddressDO>> item, final String componentId,
@@ -251,7 +251,7 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
         final AddressCampaignValueDO addressCampaignValue = addressCampaignValueMap.get(id);
         if (addressCampaignValue != null) {
           item.add(new Label(componentId, addressCampaignValue.getComment()));
-          item.add(AttributeModifier.append("style", new Model<String>("white-space: nowrap;")));
+          item.add(AttributeModifier.append("style", new Model<>("white-space: nowrap;")));
         } else {
           item.add(new Label(componentId, ""));
         }
@@ -264,7 +264,7 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
   @Override
   protected void onNextSubmit()
   {
-    if (CollectionUtils.isEmpty(this.selectedItems) == true || form.getSearchFilter().getAddressCampaign() == null) {
+    if (CollectionUtils.isEmpty(this.selectedItems) || form.getSearchFilter().getAddressCampaign() == null) {
       return;
     }
     final List<AddressDO> list = addressDao.internalLoad(this.selectedItems);
@@ -291,7 +291,7 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
   protected void init()
   {
     personalAddressMap = personalAddressDao.getPersonalAddressByAddressId();
-    addressCampaignValueMap = new HashMap<Integer, AddressCampaignValueDO>();
+    addressCampaignValueMap = new HashMap<>();
     {
       // Excel export
       final SubmitLink excelExportLink = new SubmitLink(ContentMenuEntryPanel.LINK_ID, form)
@@ -328,18 +328,18 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
   {
     List<AddressDO> list = super.buildList();
     final String value = form.getSearchFilter().getAddressCampaignValue();
-    if (StringUtils.isEmpty(value) == false) {
+    if (!StringUtils.isEmpty(value)) {
       final List<AddressDO> origList = list;
-      list = new ArrayList<AddressDO>();
+      list = new ArrayList<>();
       for (final AddressDO address : origList) {
         final AddressCampaignValueDO addressCampaignValue = addressCampaignValueMap.get(address.getId());
         if (addressCampaignValue != null && addressCampaignValue.getValue() != null) {
-          if (value.equals(addressCampaignValue.getValue()) == true) {
+          if (value.equals(addressCampaignValue.getValue())) {
             list.add(address);
           }
         } else {
           // address campaign value of the given address is not set:
-          if (AddressCampaignValueListForm.ADDRESS_CAMPAIGN_VALUE_UNDEFINED.equals(value) == true) {
+          if (AddressCampaignValueListForm.ADDRESS_CAMPAIGN_VALUE_UNDEFINED.equals(value)) {
             // Filter all address campaign values without defined value:
             list.add(address);
           }
@@ -361,8 +361,8 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
   public void refresh()
   {
     super.refresh();
-    if (form.getSearchFilter().isNewest() == true
-        && StringUtils.isBlank(form.getSearchFilter().getSearchString()) == true) {
+    if (form.getSearchFilter().isNewest()
+        && StringUtils.isBlank(form.getSearchFilter().getSearchString())) {
       form.getSearchFilter().setMaxRows(form.getPageSize());
     }
   }

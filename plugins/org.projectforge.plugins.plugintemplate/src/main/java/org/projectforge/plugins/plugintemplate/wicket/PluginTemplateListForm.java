@@ -45,7 +45,7 @@ public class PluginTemplateListForm extends AbstractListForm<PluginTemplateFilte
   {
     PluginTemplateFilter filter = getSearchFilter();
     optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(),
-        new PropertyModel<Boolean>(filter, "showOnlyEntriesWithValue"), getString("plugins.plugintemplate.filter.options.showOnlyEntriesWithValue")));
+        new PropertyModel<>(filter, "showOnlyEntriesWithValue"), getString("plugins.plugintemplate.filter.options.showOnlyEntriesWithValue")));
   }
 
   @Override

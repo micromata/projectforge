@@ -68,7 +68,7 @@ public class TrainingRight extends UserRightAccessCheck<TrainingDO>
   public boolean hasAccess(final PFUserDO user, final TrainingDO obj, final TrainingDO oldObj,
       final OperationType operationType)
   {
-    if (accessChecker.isUserMemberOfAdminGroup(user) == true) {
+    if (accessChecker.isUserMemberOfAdminGroup(user)) {
       return true;
     }
 
@@ -77,15 +77,15 @@ public class TrainingRight extends UserRightAccessCheck<TrainingDO>
       return true;
     }
     if (operationType == OperationType.SELECT) {
-      return (hasAccess(StringHelper.splitToIntegers(training.getFullAccessGroupIds(), ","), user.getId()) == true)
-          || (hasAccess(StringHelper.splitToIntegers(training.getReadOnlyAccessGroupIds(), ","), user.getId()) == true);
+      return (hasAccess(StringHelper.splitToIntegers(training.getFullAccessGroupIds(), ","), user.getId()))
+          || (hasAccess(StringHelper.splitToIntegers(training.getReadOnlyAccessGroupIds(), ","), user.getId()));
     }
     return hasAccess(StringHelper.splitToIntegers(training.getSkill().getTrainingGroupsIds(), ","), user.getId());
   }
 
   private boolean hasAccess(final Integer[] groupIds, final Integer userId)
   {
-    if (getUserGroupCache().isUserMemberOfAtLeastOneGroup(userId, groupIds) == true) {
+    if (getUserGroupCache().isUserMemberOfAtLeastOneGroup(userId, groupIds)) {
       return true;
     }
     return false;

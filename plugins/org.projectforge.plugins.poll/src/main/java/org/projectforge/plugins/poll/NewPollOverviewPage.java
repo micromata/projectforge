@@ -98,25 +98,25 @@ public class NewPollOverviewPage extends PollBasePage
   {
     super.onInitialize();
 
-    if (model.isNew() == false) {
+    if (!model.isNew()) {
       isModified = isModelModified();
     }
 
     final FieldsetPanel fsTitle = gridBuilder.newFieldset(getString("plugins.poll.new.title"));
-    final TextField<String> title = new TextField<String>(fsTitle.getTextFieldId(),
-        new PropertyModel<String>(model.getPollDo(), "title"));
+    final TextField<String> title = new TextField<>(fsTitle.getTextFieldId(),
+        new PropertyModel<>(model.getPollDo(), "title"));
     title.setEnabled(this.model.isNew());
     fsTitle.add(title);
 
     final FieldsetPanel fsLocation = gridBuilder.newFieldset(getString("plugins.poll.new.location")).setLabelFor(this);
-    final TextField<String> location = new TextField<String>(fsLocation.getTextFieldId(),
-        new PropertyModel<String>(model.getPollDo(), "location"));
+    final TextField<String> location = new TextField<>(fsLocation.getTextFieldId(),
+        new PropertyModel<>(model.getPollDo(), "location"));
     location.setEnabled(this.model.isNew());
     fsLocation.add(location);
 
     final FieldsetPanel fsDescription = gridBuilder.newFieldset(getString("plugins.poll.new.description"));
-    final TextArea<String> description = new TextArea<String>(fsDescription.getTextAreaId(),
-        new PropertyModel<String>(this.model.getPollDo(),
+    final TextArea<String> description = new TextArea<>(fsDescription.getTextAreaId(),
+        new PropertyModel<>(this.model.getPollDo(),
             "description"));
     description.setEnabled(this.model.isNew());
     fsDescription.add(description);
@@ -154,19 +154,19 @@ public class NewPollOverviewPage extends PollBasePage
   private void createDisabledChoices(final FieldsetPanel fieldset, final List<PollAttendeeDO> rawList,
       final boolean isUser)
   {
-    final List<PollAttendeeDO> modelList = new LinkedList<PollAttendeeDO>();
+    final List<PollAttendeeDO> modelList = new LinkedList<>();
     for (final PollAttendeeDO attendee : rawList) {
-      if (attendee.getUser() != null && isUser == true) {
+      if (attendee.getUser() != null && isUser) {
         modelList.add(attendee);
-      } else if (attendee.getEmail() != null && isUser == false) {
+      } else if (attendee.getEmail() != null && !isUser) {
         modelList.add(attendee);
       }
     }
     final MultiChoiceListHelper<PollAttendeeDO> assignHelper = new MultiChoiceListHelper<PollAttendeeDO>()
         .setAssignedItems(modelList);
-    final Select2MultiChoice<PollAttendeeDO> multiChoices = new Select2MultiChoice<PollAttendeeDO>(
+    final Select2MultiChoice<PollAttendeeDO> multiChoices = new Select2MultiChoice<>(
         fieldset.getSelect2MultiChoiceId(),
-        new PropertyModel<Collection<PollAttendeeDO>>(assignHelper, "assignedItems"),
+        new PropertyModel<>(assignHelper, "assignedItems"),
         new PollAttendeeDisabledChoiceProvider(modelList));
     fieldset.add(multiChoices);
     multiChoices.setEnabled(false);
@@ -180,7 +180,7 @@ public class NewPollOverviewPage extends PollBasePage
     final MultiChoiceListHelper<PFUserDO> assignUsersListHelper = new MultiChoiceListHelper<PFUserDO>()
         .setComparator(new UsersComparator())
         .setFullList(usersProvider.getSortedUsers());
-    final HashSet<PFUserDO> attendeess = new HashSet<PFUserDO>();
+    final HashSet<PFUserDO> attendeess = new HashSet<>();
     for (final PollAttendeeDO attendee : model.getPollAttendeeList()) {
       if (attendee.getUser() != null) {
         attendeess.add(attendee.getUser());
@@ -189,8 +189,8 @@ public class NewPollOverviewPage extends PollBasePage
       }
     }
     assignUsersListHelper.setAssignedItems(attendeess);
-    final Select2MultiChoice<PFUserDO> users = new Select2MultiChoice<PFUserDO>(fsUserSelect.getSelect2MultiChoiceId(),
-        new PropertyModel<Collection<PFUserDO>>(assignUsersListHelper, "assignedItems"), usersProvider);
+    final Select2MultiChoice<PFUserDO> users = new Select2MultiChoice<>(fsUserSelect.getSelect2MultiChoiceId(),
+        new PropertyModel<>(assignUsersListHelper, "assignedItems"), usersProvider);
     fsUserSelect.add(users);
   }
 
@@ -203,9 +203,9 @@ public class NewPollOverviewPage extends PollBasePage
   {
     final MultiChoiceListHelper<PollEventDO> assignHelper = new MultiChoiceListHelper<PollEventDO>()
         .setAssignedItems(modelList);
-    final Select2MultiChoice<PollEventDO> multiChoices = new Select2MultiChoice<PollEventDO>(
+    final Select2MultiChoice<PollEventDO> multiChoices = new Select2MultiChoice<>(
         fieldset.getSelect2MultiChoiceId(),
-        new PropertyModel<Collection<PollEventDO>>(assignHelper, "assignedItems"),
+        new PropertyModel<>(assignHelper, "assignedItems"),
         new PollEventDisabledChoiceProvider(modelList));
     fieldset.add(multiChoices);
     multiChoices.setEnabled(false);
@@ -231,7 +231,7 @@ public class NewPollOverviewPage extends PollBasePage
     pollDao.saveOrUpdate(model.getPollDo());
 
     // relate elements with poll
-    if (isNew == true || isModified == true) {
+    if (isNew || isModified) {
       for (final PollEventDO event : model.getAllEvents()) {
         if (event.getPoll() == null) {
           event.setPoll(model.getPollDo());
@@ -301,7 +301,7 @@ public class NewPollOverviewPage extends PollBasePage
       // compare poll
       final boolean comparePoll = Objects.equals(pollOld, poll);
 
-      if (compareAttendees == false || compareEvents == false || comparePoll == false) {
+      if (!compareAttendees || !compareEvents || !comparePoll) {
         return true;
       } else {
         return false;
@@ -322,7 +322,7 @@ public class NewPollOverviewPage extends PollBasePage
   {
     if (listA.size() == listB.size()) {
       for (final Object obj : listB) {
-        if (listA.contains(obj) == false) {
+        if (!listA.contains(obj)) {
           return false;
         }
       }

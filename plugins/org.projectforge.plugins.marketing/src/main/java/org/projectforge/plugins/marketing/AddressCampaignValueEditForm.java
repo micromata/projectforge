@@ -85,16 +85,16 @@ public class AddressCampaignValueEditForm extends AbstractEditForm<AddressCampai
       // Value
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("value"));
       final AddressCampaignDO addressCampaign = data.getAddressCampaign();
-      final LabelValueChoiceRenderer<String> valueChoiceRenderer = new LabelValueChoiceRenderer<String>(
+      final LabelValueChoiceRenderer<String> valueChoiceRenderer = new LabelValueChoiceRenderer<>(
           addressCampaign.getValuesArray());
-      fs.addDropDownChoice(new PropertyModel<String>(data, "value"), valueChoiceRenderer.getValues(),
+      fs.addDropDownChoice(new PropertyModel<>(data, "value"), valueChoiceRenderer.getValues(),
           valueChoiceRenderer).setNullValid(
               true);
     }
     {
       // Comment
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("comment"));
-      fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<String>(data, "comment"))).setAutogrow();
+      fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "comment"))).setAutogrow();
     }
   }
 

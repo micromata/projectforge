@@ -66,10 +66,10 @@ public class PollAttendeeRight extends UserRightAccessCheck<PollAttendeeDO>
       return true;
     }
 
-    if (pollRight.isOwner(user, obj.getPoll()) == true) {
+    if (pollRight.isOwner(user, obj.getPoll())) {
       return true;
     } else {
-      if (pollRight.isVerifiedUser(user, null, obj.getPoll()) == true) {
+      if (pollRight.isVerifiedUser(user, null, obj.getPoll())) {
         return true;
       } else {
         return false;
@@ -87,7 +87,7 @@ public class PollAttendeeRight extends UserRightAccessCheck<PollAttendeeDO>
     // new entry if obj.getPoll() == null
     if (obj == null
         || obj.getPoll() == null
-        || pollRight.isOwner(user, obj.getPoll()) == true) {
+        || pollRight.isOwner(user, obj.getPoll())) {
       return true;
     } else {
       return false;
@@ -103,7 +103,7 @@ public class PollAttendeeRight extends UserRightAccessCheck<PollAttendeeDO>
       final OperationType operationType)
   {
     // new entry if obj == null
-    if (obj == null || pollRight.isOwner(user, obj.getPoll()) == true) {
+    if (obj == null || pollRight.isOwner(user, obj.getPoll())) {
       return true;
     } else {
       return false;

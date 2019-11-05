@@ -50,7 +50,7 @@ public class SkillMatrixPluginUpdates
       {
         // Does the data-base tables already exist?
         // Check only the oldest table.
-        if (dao.doTablesExist(doClasses) == false) {
+        if (!dao.doTablesExist(doClasses)) {
           // The oldest table doesn't exist, therefore the plugin has to initialized completely.
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }

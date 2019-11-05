@@ -106,28 +106,28 @@ public class ToDoDao extends BaseDao<ToDoDO>
       myFilter = new ToDoFilter(filter);
     }
     final QueryFilter queryFilter = new QueryFilter(myFilter);
-    final Collection<ToDoStatus> col = new ArrayList<ToDoStatus>(5);
+    final Collection<ToDoStatus> col = new ArrayList<>(5);
     final String searchString = myFilter.getSearchString();
-    if (myFilter.isOnlyRecent() == true) {
+    if (myFilter.isOnlyRecent()) {
       final PFUserDO assignee = new PFUserDO();
       assignee.setId(ThreadLocalUserContext.getUserId());
       queryFilter.add(Restrictions.eq("assignee", assignee));
       myFilter.setSearchString(""); // Delete search string for ignoring it.
       queryFilter.add(Restrictions.eq("recent", true));
     } else {
-      if (myFilter.isOpened() == true) {
+      if (myFilter.isOpened()) {
         col.add(ToDoStatus.OPENED);
       }
-      if (myFilter.isClosed() == true) {
+      if (myFilter.isClosed()) {
         col.add(ToDoStatus.CLOSED);
       }
-      if (myFilter.isPostponed() == true) {
+      if (myFilter.isPostponed()) {
         col.add(ToDoStatus.POSTPONED);
       }
-      if (myFilter.isReopened() == true) {
+      if (myFilter.isReopened()) {
         col.add(ToDoStatus.RE_OPENED);
       }
-      if (myFilter.isInprogress() == true) {
+      if (myFilter.isInprogress()) {
         col.add(ToDoStatus.IN_PROGRESS);
       }
       if (col.size() > 0) {
@@ -165,15 +165,15 @@ public class ToDoDao extends BaseDao<ToDoDO>
    */
   public void sendNotification(final ToDoDO todo, final String requestUrl)
   {
-    if (configurationService.isSendMailConfigured() == false) {
+    if (!configurationService.isSendMailConfigured()) {
       // Can't send e-mail because no send mail is configured.
       return;
     }
-    final Map<String, Object> data = new HashMap<String, Object>();
+    final Map<String, Object> data = new HashMap<>();
     data.put("todo", todo);
     data.put("requestUrl", requestUrl);
     final List<DisplayHistoryEntry> history = getDisplayHistoryEntries(todo);
-    final List<DisplayHistoryEntry> list = new ArrayList<DisplayHistoryEntry>();
+    final List<DisplayHistoryEntry> list = new ArrayList<>();
     int i = 0;
     for (final DisplayHistoryEntry entry : history) {
       list.add(entry);
@@ -186,13 +186,13 @@ public class ToDoDao extends BaseDao<ToDoDO>
     final Integer userId = user.getId();
     final Integer assigneeId = todo.getAssigneeId();
     final Integer reporterId = todo.getReporterId();
-    if (assigneeId != null && userId.equals(assigneeId) == false) {
+    if (assigneeId != null && !userId.equals(assigneeId)) {
       sendNotification(todo.getAssignee(), todo, data, true);
     }
-    if (reporterId != null && userId.equals(reporterId) == false && reporterId.equals(assigneeId) == false) {
+    if (reporterId != null && !userId.equals(reporterId) && !reporterId.equals(assigneeId)) {
       sendNotification(todo.getReporter(), todo, data, true);
     }
-    if (userId != assigneeId && userId != reporterId && hasUserSelectAccess(user, todo, false) == false) {
+    if (userId != assigneeId && userId != reporterId && !hasUserSelectAccess(user, todo, false)) {
       // User is whether reporter nor assignee, so send e-mail (in the case the user hasn't read access anymore).
       sendNotification(ThreadLocalUserContext.getUser(), todo, data, false);
     }
@@ -201,7 +201,7 @@ public class ToDoDao extends BaseDao<ToDoDO>
   private void sendNotification(final PFUserDO recipient, final ToDoDO toDo, final Map<String, Object> data,
       final boolean checkAccess)
   {
-    if (checkAccess == true && hasUserSelectAccess(recipient, toDo, false) == false) {
+    if (checkAccess && !hasUserSelectAccess(recipient, toDo, false)) {
       log.info("Recipient '"
           + recipient.getFullname()
           + "' (id="
@@ -213,7 +213,7 @@ public class ToDoDao extends BaseDao<ToDoDO>
     final Locale locale = recipient.getLocale();
     final Mail msg = new Mail();
     msg.setTo(recipient);
-    final StringBuffer subject = new StringBuffer();
+    final StringBuilder subject = new StringBuilder();
     final ToDoStatus status = toDo.getStatus();
     if (status != null && status != ToDoStatus.OPENED) {
       subject.append("[").append(I18nHelper.getLocalizedMessage(locale, "plugins.todo.status")).append(": ")
@@ -231,7 +231,7 @@ public class ToDoDao extends BaseDao<ToDoDO>
   @Override
   protected void onSave(final ToDoDO obj)
   {
-    if (Objects.equals(ThreadLocalUserContext.getUserId(), obj.getAssigneeId()) == false) {
+    if (!Objects.equals(ThreadLocalUserContext.getUserId(), obj.getAssigneeId())) {
       // To-do is changed by other user than assignee, so set recent flag for this to-do for the assignee.
       obj.setRecent(true);
     }
@@ -240,7 +240,7 @@ public class ToDoDao extends BaseDao<ToDoDO>
   @Override
   protected void onChange(final ToDoDO obj, final ToDoDO dbObj)
   {
-    if (Objects.equals(ThreadLocalUserContext.getUserId(), obj.getAssigneeId()) == false) {
+    if (!Objects.equals(ThreadLocalUserContext.getUserId(), obj.getAssigneeId())) {
       // To-do is changed by other user than assignee, so set recent flag for this to-do for the assignee.
       final ToDoDO copyOfDBObj = new ToDoDO();
       copyOfDBObj.copyValuesFrom(dbObj, "deleted");

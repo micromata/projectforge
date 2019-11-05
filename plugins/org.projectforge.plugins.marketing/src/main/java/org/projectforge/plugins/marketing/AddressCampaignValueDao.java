@@ -116,7 +116,7 @@ public class AddressCampaignValueDao extends BaseDao<AddressCampaignValueDO> {
       if (value != null) {
         addressCampaignValue.setValue(value);
       }
-      if (StringUtils.isEmpty(comment) == false) {
+      if (!StringUtils.isEmpty(comment)) {
         addressCampaignValue.setComment(comment);
       }
       if (addressCampaignValue.getId() != null) {
@@ -143,7 +143,7 @@ public class AddressCampaignValueDao extends BaseDao<AddressCampaignValueDO> {
 
   public Map<Integer, AddressCampaignValueDO> getAddressCampaignValuesByAddressId(
           final AddressCampaignValueFilter searchFilter) {
-    final HashMap<Integer, AddressCampaignValueDO> map = new HashMap<Integer, AddressCampaignValueDO>();
+    final HashMap<Integer, AddressCampaignValueDO> map = new HashMap<>();
     return getAddressCampaignValuesByAddressId(map, searchFilter);
   }
 
@@ -159,7 +159,7 @@ public class AddressCampaignValueDao extends BaseDao<AddressCampaignValueDO> {
             .createNamedQuery(AddressCampaignValueDO.FIND_BY_CAMPAIGN, AddressCampaignValueDO.class)
             .setParameter("addressCampaignId", searchFilter.getAddressCampaignId())
             .list();
-    if (CollectionUtils.isEmpty(list) == true) {
+    if (CollectionUtils.isEmpty(list)) {
       return map;
     }
     for (final AddressCampaignValueDO addressCampaignValue : list) {
@@ -170,7 +170,7 @@ public class AddressCampaignValueDao extends BaseDao<AddressCampaignValueDO> {
 
   @Override
   public List<DisplayHistoryEntry> convert(final HistoryEntry<?> entry, final Session session) {
-    if (entry.getDiffEntries().isEmpty() == true) {
+    if (entry.getDiffEntries().isEmpty()) {
       final DisplayHistoryEntry se = new DisplayHistoryEntry(getUserGroupCache(), entry);
       return Collections.singletonList(se);
     }
