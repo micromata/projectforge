@@ -35,14 +35,10 @@ import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS, isolation = Isolation.REPEATABLE_READ)
 public class Kost2Dao extends BaseDao<Kost2DO> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.FIBU_COST_UNIT;
 
@@ -104,7 +100,6 @@ public class Kost2Dao extends BaseDao<Kost2DO> {
    * @param kostString Format ######## or #.###.##.## is supported.
    * @see #getKost2(int, int, int, int)
    */
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public Kost2DO getKost2(final String kostString) {
     final int[] kost = KostHelper.parseKostString(kostString);
     if (kost == null) {
@@ -142,7 +137,6 @@ public class Kost2Dao extends BaseDao<Kost2DO> {
   }
 
   @Override
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<Kost2DO> getList(final BaseSearchFilter filter) {
     final KostFilter myFilter;
     if (filter instanceof KostFilter) {

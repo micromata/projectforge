@@ -40,9 +40,6 @@ import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
@@ -99,7 +96,6 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO> {
   /**
    * Checks and creates missing data base entries. Updates also out-dated descriptions.
    */
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
   public void checkAndUpdateDatabaseEntries() {
     final List<ConfigurationDO> list = internalLoadAll();
     final Set<String> params = new HashSet<>();
@@ -114,7 +110,6 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO> {
     }
   }
 
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public ConfigurationDO getEntry(final IConfigurationParam param) {
     Validate.notNull(param);
     return SQLHelper.ensureUniqueResult(em
@@ -241,7 +236,6 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO> {
   }
 
   @Override
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<ConfigurationDO> internalLoadAll() {
     TenantDao tenantDao = applicationContext.getBean(TenantDao.class);
     if (tenantDao.tenantTableExists()) {
@@ -255,7 +249,6 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO> {
   }
 
   @Override
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<ConfigurationDO> internalLoadAll(TenantDO tenant) {
     TenantDao tenantDao = applicationContext.getBean(TenantDao.class);
     if (tenantDao.tenantTableExists()) {
