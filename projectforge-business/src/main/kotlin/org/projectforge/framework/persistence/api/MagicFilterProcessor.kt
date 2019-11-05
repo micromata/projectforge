@@ -71,7 +71,7 @@ object MagicFilterProcessor {
         val fieldType = PropUtils.getField(entityClass, field)?.type ?: String::class.java
         if (fieldType == String::class.java) {
             val str = magicFilterEntry.value.value?.trim() ?: ""
-            val predicate = DBPredicate.Like(field, str, autoStartWithSearch = autoWildcardSearch)
+            val predicate = DBPredicate.Like(field, str, autoWildcardSearch = autoWildcardSearch)
             queryFilter.add(predicate)
             return
         }
