@@ -23,12 +23,9 @@
 
 package org.projectforge.framework.persistence.api
 
-import org.hibernate.Criteria
+import org.projectforge.business.task.TaskDO
 import org.projectforge.common.props.PropUtils
-import org.projectforge.framework.persistence.api.impl.DBFilter
-import org.projectforge.framework.persistence.api.impl.DBFilterEntry
-import org.projectforge.framework.persistence.api.impl.MatchType
-import org.projectforge.framework.persistence.api.impl.SearchType
+import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.slf4j.LoggerFactory
@@ -36,89 +33,102 @@ import java.util.*
 
 /** Transforms MagicFilterEntries to DBFilterExpressions. */
 object MagicFilterProcessor {
-    fun doIt(entityClass: Class<*>, magicFilter: MagicFilter): DBFilter {
-        val dbFilter = DBFilter()
-        dbFilter.deleted = magicFilter.deleted
-        dbFilter.maxRows = magicFilter.maxRows
-        dbFilter.searchHistory = magicFilter.searchHistory
-        dbFilter.sortAndLimitMaxRowsWhileSelect = magicFilter.sortAndLimitMaxRowsWhileSelect
-        dbFilter.sortProperties = magicFilter.sortProperties
+    fun doIt(entityClass: Class<*>, magicFilter: MagicFilter): QueryFilter {
+        val queryFilter = QueryFilter()
+        queryFilter.deleted = magicFilter.deleted
+        queryFilter.maxRows = magicFilter.maxRows
+        queryFilter.searchHistory = magicFilter.searchHistory
+        queryFilter.sortAndLimitMaxRowsWhileSelect = magicFilter.sortAndLimitMaxRowsWhileSelect
+        queryFilter.sortProperties = magicFilter.sortProperties.map {
+            var property = it.property
+            if (property.indexOf('.') > 0)
+                property = property.substring(property.indexOf('.') + 1)
+            SortProperty(property, it.sortOrder)
+        }.toMutableList()
         for (magicFilterEntry in magicFilter.entries) {
             if (magicFilterEntry.field.isNullOrBlank()) {
                 // Full text search (no field given).
-                dbFilter.allEntries.add(DBFilterEntry(value = magicFilterEntry.value.value, fulltextSearch = true))
+                queryFilter.addFullTextSearch(magicFilterEntry.value.value)
             } else {
                 // Field search.
-                dbFilter.allEntries.add(createFieldSearchEntry(entityClass, magicFilterEntry))
+                createFieldSearchEntry(entityClass, queryFilter, magicFilterEntry)
             }
         }
-        return dbFilter
+        return queryFilter
     }
 
-    internal fun createFieldSearchEntry(entityClass: Class<*>, magicFilterEntry: MagicFilterEntry): DBFilterEntry {
-        val entry = DBFilterEntry()
-        entry.field = magicFilterEntry.field
-        entry.value = magicFilterEntry.value.value
-        entry.fulltextSearch = false
-        if (entry.isHistoryEntry) {
-            if (entry.field == MagicFilterEntry.HistorySearch.MODIFIED_INTERVAL.fieldName) {
-                entry.fromValueDate = PFDateTime.parseUTCDate(magicFilterEntry.value.fromValue)
-                entry.toValueDate = PFDateTime.parseUTCDate(magicFilterEntry.value.toValue)
-            } else if (entry.field == MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.fieldName) {
-                entry.valueInt = magicFilterEntry.value.value?.toIntOrNull()
+    internal fun createFieldSearchEntry(entityClass: Class<*>, queryFilter: QueryFilter, magicFilterEntry: MagicFilterEntry) {
+        val field = magicFilterEntry.field!!
+        if (isHistoryEntry(field)) {
+            if (isModifiedInterval(field)) {
+                queryFilter.modifiedFrom = PFDateTime.parseUTCDate(magicFilterEntry.value.fromValue)
+                queryFilter.modifiedTo = PFDateTime.parseUTCDate(magicFilterEntry.value.toValue)
+            } else if (isModifiedByUserId(field)) {
+                queryFilter.modifiedByUserId = magicFilterEntry.value.value?.toIntOrNull()
             }
-        } else {
-            val fieldType = PropUtils.getField(entityClass, entry.field)?.type ?: String::class.java
-            entry.type = fieldType
-            if (fieldType == String::class.java) {
-                entry.searchType = if (entry.field.isNullOrBlank()) SearchType.STRING_SEARCH else SearchType.FIELD_STRING_SEARCH
-                val str = magicFilterEntry.value.value?.trim() ?: ""
-                var plainStr = str
-                val dbStr: String
-                if (str.startsWith("*")) {
-                    plainStr = plainStr.substring(1)
-                    if (str.endsWith("*")) {
-                        plainStr = plainStr.substring(0, plainStr.lastIndex)
-                        dbStr = "%$plainStr%"
-                        entry.matchType = MatchType.CONTAINS
-                    } else {
-                        dbStr = "%$plainStr"
-                        entry.matchType = MatchType.STARTS_WITH
-                    }
-                } else {
-                    if (str.endsWith("*")) {
-                        plainStr = plainStr.substring(0, plainStr.lastIndex)
-                        dbStr = "$plainStr%"
-                        entry.matchType = MatchType.ENDS_WITH
-                    } else {
-                        entry.matchType = MatchType.EXACT
-                        dbStr = plainStr
-                    }
-                }
-                entry.plainSearchString = plainStr
-                entry.dbSearchString = dbStr.toLowerCase()
-            } else if (fieldType == Date::class.java) {
-                entry.fromValueDate = PFDateTime.parseUTCDate(magicFilterEntry.value.fromValue)
-                entry.toValueDate = PFDateTime.parseUTCDate(magicFilterEntry.value.toValue)
-            } else if (fieldType == Integer::class.java) {
-                entry.valueInt = NumberHelper.parseInteger(magicFilterEntry.value.value)
-                entry.fromValueInt = NumberHelper.parseInteger(magicFilterEntry.value.fromValue)
-                entry.toValueInt = NumberHelper.parseInteger(magicFilterEntry.value.toValue)
-            } else if (BaseDO::class.java.isAssignableFrom(fieldType)) {
-                entry.valueInt = magicFilterEntry.value.value?.toIntOrNull()
-            } else {
-                log.warn("Search entry of type '${fieldType.name}' not yet supported for field '${entry.field}'.")
-            }
-        }
-        return entry
-    }
-
-    fun setCacheRegion(baseDao: BaseDao<*>, criteria: Criteria) {
-        criteria.setCacheable(true)
-        if (!baseDao.useOwnCriteriaCacheRegion()) {
             return
         }
-        criteria.setCacheRegion(baseDao.javaClass.name)
+        val fieldType = PropUtils.getField(entityClass, field)?.type ?: String::class.java
+        if (fieldType == String::class.java) {
+            val str = magicFilterEntry.value.value?.trim() ?: ""
+            val predicate = DBPredicate.Like(field, str)
+            queryFilter.add(predicate)
+            return
+        }
+        if (fieldType == Date::class.java) {
+            val valueDate = PFDateTime.parseUTCDate(magicFilterEntry.value.value)?.utilDate
+            val fromDate = PFDateTime.parseUTCDate(magicFilterEntry.value.fromValue)?.utilDate
+            val toDate = PFDateTime.parseUTCDate(magicFilterEntry.value.toValue)?.utilDate
+            if (fromDate != null || toDate != null) {
+                queryFilter.add(QueryFilter.interval(field, fromDate, toDate))
+            } else if (valueDate != null) {
+                queryFilter.add(QueryFilter.eq(field, valueDate))
+            } else {
+                queryFilter.add(QueryFilter.isNull(field))
+            }
+        } else if (fieldType == Integer::class.java) {
+            val valueInt = NumberHelper.parseInteger(magicFilterEntry.value.value)
+            val fromInt = NumberHelper.parseInteger(magicFilterEntry.value.fromValue)
+            val toInt = NumberHelper.parseInteger(magicFilterEntry.value.toValue)
+            if (fromInt != null || toInt != null) {
+                queryFilter.add(QueryFilter.interval(field, fromInt, toInt))
+            } else if (valueInt != null) {
+                queryFilter.add(QueryFilter.eq(field, valueInt))
+            } else {
+                queryFilter.add(QueryFilter.isNull(field))
+            }
+        } else if (TaskDO::class.java.isAssignableFrom(fieldType)) {
+            val valueInt = magicFilterEntry.value.value?.toIntOrNull()
+            queryFilter.add(QueryFilter.taskSearch(field, valueInt, true))
+        } else if (BaseDO::class.java.isAssignableFrom(fieldType)) {
+            val valueInt = magicFilterEntry.value.value?.toIntOrNull()
+            if (valueInt != null) {
+                queryFilter.add(QueryFilter.eq(field, valueInt))
+            } else {
+                queryFilter.add(QueryFilter.isNull(field))
+            }
+        } else {
+            log.warn("Search entry of type '${fieldType.name}' not yet supported for field '$field'.")
+        }
+    }
+
+    internal fun isHistoryEntry(field: String?): Boolean {
+        if (field == null)
+            return false
+        for (historySearch in MagicFilterEntry.HistorySearch.values()) {
+            if (historySearch.fieldName == field) {
+                return true
+            }
+        }
+        return false
+    }
+
+    internal fun isModifiedInterval(field: String?): Boolean {
+        return field == MagicFilterEntry.HistorySearch.MODIFIED_INTERVAL.fieldName
+    }
+
+    internal fun isModifiedByUserId(field: String?): Boolean {
+        return field == MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.fieldName
     }
 
     private val log = LoggerFactory.getLogger(MagicFilterProcessor::class.java)

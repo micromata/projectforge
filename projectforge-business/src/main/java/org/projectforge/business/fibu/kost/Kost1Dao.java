@@ -23,14 +23,13 @@
 
 package org.projectforge.business.fibu.kost;
 
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.ProjektStatus;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -92,17 +91,17 @@ public class Kost1Dao extends BaseDao<Kost1DO> {
     }
     final QueryFilter queryFilter = new QueryFilter(myFilter);
     if (myFilter.isActive()) {
-      queryFilter.add(Restrictions.eq("kostentraegerStatus", KostentraegerStatus.ACTIVE));
+      queryFilter.add(QueryFilter.eq("kostentraegerStatus", KostentraegerStatus.ACTIVE));
     } else if (myFilter.isNonActive()) {
-      queryFilter.add(Restrictions.eq("kostentraegerStatus", KostentraegerStatus.NONACTIVE));
+      queryFilter.add(QueryFilter.eq("kostentraegerStatus", KostentraegerStatus.NONACTIVE));
     } else if (myFilter.isEnded()) {
-      queryFilter.add(Restrictions.eq("kostentraegerStatus", KostentraegerStatus.ENDED));
+      queryFilter.add(QueryFilter.eq("kostentraegerStatus", KostentraegerStatus.ENDED));
     } else if (myFilter.isNotEnded()) {
-      queryFilter.add(Restrictions.or(Restrictions.ne("kostentraegerStatus", ProjektStatus.ENDED),
-              Restrictions.isNull("kostentraegerStatus")));
+      queryFilter.add(QueryFilter.or(QueryFilter.ne("kostentraegerStatus", ProjektStatus.ENDED),
+              QueryFilter.isNull("kostentraegerStatus")));
     }
-    queryFilter.addOrder(Order.asc("nummernkreis")).addOrder(Order.asc("bereich")).addOrder(Order.asc("teilbereich"))
-            .addOrder(Order.asc("endziffer"));
+    queryFilter.addOrder(SortProperty.asc("nummernkreis")).addOrder(SortProperty.asc("bereich")).addOrder(SortProperty.asc("teilbereich"))
+            .addOrder(SortProperty.asc("endziffer"));
     return getList(queryFilter);
   }
 

@@ -43,7 +43,7 @@
 
     <!-- custom logging levels -->
     <logger name="de.micromata.genome.jpa.impl.JpaWithExtLibrariesScanner" level="WARN" />
-    <logger name="org.hibernate.orm.deprecation" level="ERROR" />
+    <!--logger name="org.projectforge.framework.persistence.api.impl" level="DEBUG" /-->
     <!--logger name="org.hibernate.cache" level="DEBUG" /-->
 
 </configuration>

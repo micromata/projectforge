@@ -23,11 +23,10 @@
 
 package org.projectforge.business.fibu;
 
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.framework.i18n.RequiredFieldIsEmptyException;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.impl.DBPredicate;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DayHolder;
 
@@ -36,10 +35,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Optional;
 
-public class AuftragAndRechnungDaoHelper
-{
-  public static Optional<Criterion> createCriterionForPeriodOfPerformance(final SearchFilterWithPeriodOfPerformance myFilter)
-  {
+public class AuftragAndRechnungDaoHelper {
+  public static Optional<DBPredicate> createCriterionForPeriodOfPerformance(final SearchFilterWithPeriodOfPerformance myFilter) {
     final String popBeginName = "periodOfPerformanceBegin";
     final String popEndName = "periodOfPerformanceEnd";
 
@@ -48,30 +45,28 @@ public class AuftragAndRechnungDaoHelper
 
     if (startDate != null && endDate != null) {
       return Optional.of(
-          Restrictions.and(
-              Restrictions.ge(popEndName, startDate),
-              Restrictions.le(popBeginName, endDate)
-          )
+              QueryFilter.and(QueryFilter.ge(popEndName, startDate),
+                      QueryFilter.le(popBeginName, endDate)
+              )
       );
     }
 
     if (startDate != null) {
       return Optional.of(
-          Restrictions.ge(popEndName, startDate)
+              QueryFilter.ge(popEndName, startDate)
       );
     }
 
     if (endDate != null) {
       return Optional.of(
-          Restrictions.le(popBeginName, endDate)
+              QueryFilter.le(popBeginName, endDate)
       );
     }
 
     return Optional.empty();
   }
 
-  public static QueryFilter createQueryFilterWithDateRestriction(final RechnungFilter myFilter)
-  {
+  public static QueryFilter createQueryFilterWithDateRestriction(final RechnungFilter myFilter) {
     final String dateName = "datum";
 
     final Date from = myFilter.getFromDate();
@@ -83,26 +78,24 @@ public class AuftragAndRechnungDaoHelper
     final QueryFilter queryFilter = new QueryFilter(myFilter);
 
     if (fromDate != null && toDate != null) {
-      queryFilter.add(Restrictions.between(dateName, fromDate, toDate));
+      queryFilter.add(QueryFilter.between(dateName, fromDate, toDate));
     } else if (fromDate != null) {
-      queryFilter.add(Restrictions.ge(dateName, fromDate));
+      queryFilter.add(QueryFilter.ge(dateName, fromDate));
     } else if (toDate != null) {
-      queryFilter.add(Restrictions.le(dateName, toDate));
+      queryFilter.add(QueryFilter.le(dateName, toDate));
     }
 
     return queryFilter;
   }
 
-  public static void onSaveOrModify(final AbstractRechnungDO<?> rechnung)
-  {
+  public static void onSaveOrModify(final AbstractRechnungDO<?> rechnung) {
     checkAndCalculateFaelligkeit(rechnung);
     checkAndCalculateDiscountMaturity(rechnung);
     validateFaelligkeit(rechnung);
     validateBezahlDatumAndZahlBetrag(rechnung);
   }
 
-  private static void checkAndCalculateFaelligkeit(final AbstractRechnungDO<?> rechnung)
-  {
+  private static void checkAndCalculateFaelligkeit(final AbstractRechnungDO<?> rechnung) {
     final Integer zahlungsZiel = rechnung.getZahlungsZielInTagen();
     if (rechnung.getFaelligkeit() == null && zahlungsZiel != null) {
       final Date rechnungsDatum = rechnung.getDatum();
@@ -114,8 +107,7 @@ public class AuftragAndRechnungDaoHelper
     }
   }
 
-  private static void checkAndCalculateDiscountMaturity(final AbstractRechnungDO<?> rechnung)
-  {
+  private static void checkAndCalculateDiscountMaturity(final AbstractRechnungDO<?> rechnung) {
     final Integer discountZahlungsZiel = rechnung.getDiscountZahlungsZielInTagen();
     if (rechnung.getDiscountMaturity() == null && discountZahlungsZiel != null) {
       final Date rechnungsDatum = rechnung.getDatum();
@@ -127,15 +119,13 @@ public class AuftragAndRechnungDaoHelper
     }
   }
 
-  private static void validateFaelligkeit(final AbstractRechnungDO<?> rechnung)
-  {
+  private static void validateFaelligkeit(final AbstractRechnungDO<?> rechnung) {
     if (rechnung.getFaelligkeit() == null) {
       throw new RequiredFieldIsEmptyException("fibu.rechnung.faelligkeit");
     }
   }
 
-  private static void validateBezahlDatumAndZahlBetrag(final AbstractRechnungDO<?> rechnung)
-  {
+  private static void validateBezahlDatumAndZahlBetrag(final AbstractRechnungDO<?> rechnung) {
     final Date bezahlDatum = rechnung.getBezahlDatum();
     final BigDecimal zahlBetrag = rechnung.getZahlBetrag();
     final boolean zahlBetragExists = (zahlBetrag != null && zahlBetrag.compareTo(BigDecimal.ZERO) != 0);

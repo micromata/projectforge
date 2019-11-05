@@ -24,12 +24,12 @@
 package org.projectforge.business.fibu.kost;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.hibernate.criterion.Order;
 import org.projectforge.business.excel.*;
 import org.projectforge.business.fibu.*;
 import org.projectforge.common.StringHelper;
 import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.CurrencyHelper;
 import org.projectforge.framework.utils.NumberHelper;
@@ -46,30 +46,25 @@ import java.util.List;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-public class KostZuweisungExport
-{
+public class KostZuweisungExport {
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KostZuweisungExport.class);
 
   @Autowired
   KontoDao kontoDao;
 
-  private class MyContentProvider extends MyXlsContentProvider
-  {
-    public MyContentProvider(final ExportWorkbook workbook)
-    {
+  private class MyContentProvider extends MyXlsContentProvider {
+    public MyContentProvider(final ExportWorkbook workbook) {
       super(workbook);
     }
 
     @Override
-    public ContentProvider newInstance()
-    {
+    public ContentProvider newInstance() {
       return new MyContentProvider(this.workbook);
     }
   }
 
-  private enum InvoicesCol
-  {
+  private enum InvoicesCol {
     BRUTTO("fibu.common.brutto", MyXlsContentProvider.LENGTH_CURRENCY), //
     VAT("fibu.common.vat", MyXlsContentProvider.LENGTH_BOOLEAN), //
     KONTO("fibu.buchungssatz.konto", 14), //
@@ -85,8 +80,7 @@ public class KostZuweisungExport
 
     final int width;
 
-    InvoicesCol(final String theTitle, final int width)
-    {
+    InvoicesCol(final String theTitle, final int width) {
       this.theTitle = theTitle;
       this.width = (short) width;
     }
@@ -99,8 +93,7 @@ public class KostZuweisungExport
    * @return
    */
   public byte[] exportRechnungen(final List<? extends AbstractRechnungDO<? extends AbstractRechnungsPositionDO>> list,
-      final String sheetTitle, final KontoCache kontoCache)
-  {
+                                 final String sheetTitle, final KontoCache kontoCache) {
     final List<KostZuweisungDO> zuweisungen = new ArrayList<>();
     for (final AbstractRechnungDO<?> rechnung : list) {
       if (rechnung.getPositionen() != null) {
@@ -131,8 +124,7 @@ public class KostZuweisungExport
   /**
    * Exports the filtered list as table.
    */
-  public byte[] export(final List<KostZuweisungDO> list, final String sheetTitle, final KontoCache kontoCache)
-  {
+  public byte[] export(final List<KostZuweisungDO> list, final String sheetTitle, final KontoCache kontoCache) {
     log.info("Exporting kost zuweisung list.");
     final ExportWorkbook xls = new ExportWorkbook();
     final ContentProvider contentProvider = new MyContentProvider(xls);
@@ -217,8 +209,7 @@ public class KostZuweisungExport
     return xls.getAsByteArray();
   }
 
-  private enum AccountsCol
-  {
+  private enum AccountsCol {
     NUMBER("fibu.konto.nummer", 16), //
     NAME("fibu.konto.bezeichnung", MyXlsContentProvider.LENGTH_STD), //
     STATUS("status", 14), //
@@ -230,15 +221,13 @@ public class KostZuweisungExport
 
     final int width;
 
-    AccountsCol(final String theTitle, final int width)
-    {
+    AccountsCol(final String theTitle, final int width) {
       this.theTitle = theTitle;
       this.width = (short) width;
     }
   }
 
-  private void addAccounts(final ExportWorkbook xls, final ContentProvider contentProvider)
-  {
+  private void addAccounts(final ExportWorkbook xls, final ContentProvider contentProvider) {
     final ExportSheet sheet = xls.addSheet(ThreadLocalUserContext.getLocalizedString("fibu.konto.konten"));
     sheet.createFreezePane(0, 1);
 
@@ -257,7 +246,7 @@ public class KostZuweisungExport
     sheetProvider.putFormat(AccountsCol.NUMBER, "#");
 
     final QueryFilter filter = new QueryFilter();
-    filter.addOrder(Order.desc("lastUpdate"));
+    filter.addOrder(SortProperty.desc("lastUpdate"));
     final List<KontoDO> list = kontoDao.getList(filter);
 
     final PropertyMapping mapping = new PropertyMapping();

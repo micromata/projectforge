@@ -21,22 +21,14 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.api;
+package org.projectforge.framework.persistence.api.impl
 
-import org.projectforge.framework.access.AccessException;
-
-import java.util.List;
+import org.projectforge.framework.time.PFDateTime
 
 /**
- * Base interface to search
- * 
- * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
- *
+ * Search for this string in all history entries of the queried entities.
  */
-public interface SearchService
-{
-  public String[] getSearchFields(Class<? extends BaseDO<?>> entClass);
-
-  <ENT extends ExtendedBaseDO<Integer>> List<ENT> getList(final QueryFilter filter, Class<ENT> entClazz)
-      throws AccessException;
-}
+data class DBHistorySearchParams(var modifiedByUserId: Int? = null,
+                                 var modifiedFrom: PFDateTime? = null,
+                                 var modifiedTo: PFDateTime? = null,
+                                 var searchHistory: String? = null)

@@ -24,7 +24,6 @@
 package org.projectforge.business.teamcal.admin;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.criterion.Order;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.teamcal.admin.TeamCalFilter.OwnerType;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
@@ -37,6 +36,7 @@ import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
@@ -53,18 +53,15 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * 
  */
 @Repository
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-public class TeamCalDao extends BaseDao<TeamCalDO>
-{
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "usersgroups", "owner.username",
-      "owner.firstname",
-      "owner.lastname" };
+public class TeamCalDao extends BaseDao<TeamCalDO> {
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"usersgroups", "owner.username",
+          "owner.firstname",
+          "owner.lastname"};
 
   @Autowired
   private UserDao userDao;
@@ -81,33 +78,28 @@ public class TeamCalDao extends BaseDao<TeamCalDO>
   @Autowired
   private UserService userService;
 
-  public TeamCalDao()
-  {
+  public TeamCalDao() {
     super(TeamCalDO.class);
     userRightId = UserRightId.PLUGIN_CALENDAR;
   }
 
   @Override
-  protected String[] getAdditionalSearchFields()
-  {
+  protected String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
-  public void setOwner(final TeamCalDO calendar, final Integer userId)
-  {
+  public void setOwner(final TeamCalDO calendar, final Integer userId) {
     final PFUserDO user = userDao.getOrLoad(userId);
     calendar.setOwner(user);
   }
 
   @Override
-  public TeamCalDO newInstance()
-  {
+  public TeamCalDO newInstance() {
     return new TeamCalDO();
   }
 
   @Override
-  public List<TeamCalDO> getList(final BaseSearchFilter filter)
-  {
+  public List<TeamCalDO> getList(final BaseSearchFilter filter) {
     TeamCalFilter myFilter;
     if (filter instanceof TeamCalFilter)
       myFilter = (TeamCalFilter) filter;
@@ -116,7 +108,7 @@ public class TeamCalDao extends BaseDao<TeamCalDO>
     }
     final PFUserDO user = ThreadLocalUserContext.getUser();
     final QueryFilter queryFilter = new QueryFilter(myFilter);
-    queryFilter.addOrder(Order.asc("title"));
+    queryFilter.addOrder(SortProperty.asc("title"));
     final List<TeamCalDO> list = getList(queryFilter);
     if (myFilter.isDeleted()) {
       // No further filtering, show all deleted calendars.
@@ -126,7 +118,7 @@ public class TeamCalDao extends BaseDao<TeamCalDO>
     final TeamCalRight right = (TeamCalRight) getUserRight();
     final Integer userId = user.getId();
     final boolean adminAccessOnly = (myFilter.isAdmin()
-        && accessChecker.isUserMemberOfAdminGroup(user));
+            && accessChecker.isUserMemberOfAdminGroup(user));
     for (final TeamCalDO cal : list) {
       final boolean isOwn = right.isOwner(user, cal);
       if (isOwn) {
@@ -142,8 +134,8 @@ public class TeamCalDao extends BaseDao<TeamCalDO>
         // User is not owner.
         if (myFilter.isAll() || myFilter.isOthers() || adminAccessOnly) {
           if ((myFilter.isFullAccess() && right.hasFullAccess(cal, userId))
-              || (myFilter.isReadonlyAccess() && right.hasReadonlyAccess(cal, userId))
-              || (myFilter.isMinimalAccess() && right.hasMinimalAccess(cal, userId))) {
+                  || (myFilter.isReadonlyAccess() && right.hasReadonlyAccess(cal, userId))
+                  || (myFilter.isMinimalAccess() && right.hasMinimalAccess(cal, userId))) {
             // Calendar matches the filter:
             if (!adminAccessOnly) {
               result.add(cal);
@@ -160,11 +152,10 @@ public class TeamCalDao extends BaseDao<TeamCalDO>
   /**
    * Gets a list of all calendars with full access of the current logged-in user as well as the calendars owned by the
    * current logged-in user.
-   * 
+   *
    * @return
    */
-  public List<TeamCalDO> getAllCalendarsWithFullAccess()
-  {
+  public List<TeamCalDO> getAllCalendarsWithFullAccess() {
     final TeamCalFilter filter = new TeamCalFilter();
     filter.setOwnerType(OwnerType.ALL);
     filter.setFullAccess(true).setReadonlyAccess(false).setMinimalAccess(false);
@@ -173,97 +164,85 @@ public class TeamCalDao extends BaseDao<TeamCalDO>
 
   /**
    * Please note: Only the string group.fullAccessGroupIds will be modified (but not be saved)!
-   * 
+   *
    * @param calendar
    * @param fullAccessGroups
    */
-  public void setFullAccessGroups(final TeamCalDO calendar, final Collection<GroupDO> fullAccessGroups)
-  {
+  public void setFullAccessGroups(final TeamCalDO calendar, final Collection<GroupDO> fullAccessGroups) {
     calendar.setFullAccessGroupIds(groupService.getGroupIds(fullAccessGroups));
   }
 
-  public Collection<GroupDO> getSortedFullAccessGroups(final TeamCalDO calendar)
-  {
+  public Collection<GroupDO> getSortedFullAccessGroups(final TeamCalDO calendar) {
     return groupService.getSortedGroups(calendar.getFullAccessGroupIds());
   }
 
   /**
    * Please note: Only the string group.fullAccessGroupIds will be modified (but not be saved)!
-   * 
+   *
    * @param calendar
    * @param fullAccessUsers
    */
-  public void setFullAccessUsers(final TeamCalDO calendar, final Collection<PFUserDO> fullAccessUsers)
-  {
+  public void setFullAccessUsers(final TeamCalDO calendar, final Collection<PFUserDO> fullAccessUsers) {
     calendar.setFullAccessUserIds(userService.getUserIds(fullAccessUsers));
   }
 
-  public Collection<PFUserDO> getSortedFullAccessUsers(final TeamCalDO calendar)
-  {
+  public Collection<PFUserDO> getSortedFullAccessUsers(final TeamCalDO calendar) {
     return userService.getSortedUsers(calendar.getFullAccessUserIds());
   }
 
   /**
    * Please note: Only the string group.readonlyAccessGroupIds will be modified (but not be saved)!
-   * 
+   *
    * @param calendar
    * @param readonlyAccessGroups
    */
-  public void setReadonlyAccessGroups(final TeamCalDO calendar, final Collection<GroupDO> readonlyAccessGroups)
-  {
+  public void setReadonlyAccessGroups(final TeamCalDO calendar, final Collection<GroupDO> readonlyAccessGroups) {
     calendar.setReadonlyAccessGroupIds(groupService.getGroupIds(readonlyAccessGroups));
   }
 
-  public Collection<GroupDO> getSortedReadonlyAccessGroups(final TeamCalDO calendar)
-  {
+  public Collection<GroupDO> getSortedReadonlyAccessGroups(final TeamCalDO calendar) {
     return groupService.getSortedGroups(calendar.getReadonlyAccessGroupIds());
   }
 
   /**
    * Please note: Only the string group.readonlyAccessGroupIds will be modified (but not be saved)!
-   * 
+   *
    * @param calendar
    * @param readonlyAccessUsers
    */
-  public void setReadonlyAccessUsers(final TeamCalDO calendar, final Collection<PFUserDO> readonlyAccessUsers)
-  {
+  public void setReadonlyAccessUsers(final TeamCalDO calendar, final Collection<PFUserDO> readonlyAccessUsers) {
     calendar.setReadonlyAccessUserIds(userService.getUserIds(readonlyAccessUsers));
   }
 
-  public Collection<PFUserDO> getSortedReadonlyAccessUsers(final TeamCalDO calendar)
-  {
+  public Collection<PFUserDO> getSortedReadonlyAccessUsers(final TeamCalDO calendar) {
     return userService.getSortedUsers(calendar.getReadonlyAccessUserIds());
   }
 
   /**
    * Please note: Only the string group.minimalAccessGroupIds will be modified (but not be saved)!
-   * 
+   *
    * @param calendar
    * @param minimalAccessGroups
    */
-  public void setMinimalAccessGroups(final TeamCalDO calendar, final Collection<GroupDO> minimalAccessGroups)
-  {
+  public void setMinimalAccessGroups(final TeamCalDO calendar, final Collection<GroupDO> minimalAccessGroups) {
     calendar.setMinimalAccessGroupIds(groupService.getGroupIds(minimalAccessGroups));
   }
 
-  public Collection<GroupDO> getSortedMinimalAccessGroups(final TeamCalDO calendar)
-  {
+  public Collection<GroupDO> getSortedMinimalAccessGroups(final TeamCalDO calendar) {
     return groupService.getSortedGroups(calendar.getMinimalAccessGroupIds());
   }
 
   /**
    * Please note: Only the string group.minimalAccessGroupIds will be modified (but not be saved)!
-   * 
+   *
    * @param calendar
    * @param minimalAccessUsers
    */
-  public void setMinimalAccessUsers(final TeamCalDO calendar, final Collection<PFUserDO> minimalAccessUsers)
-  {
+  public void setMinimalAccessUsers(final TeamCalDO calendar, final Collection<PFUserDO> minimalAccessUsers) {
     calendar.setMinimalAccessUserIds(userService.getUserIds(minimalAccessUsers));
   }
 
-  public Collection<PFUserDO> getSortedMinimalAccessUsers(final TeamCalDO calendar)
-  {
+  public Collection<PFUserDO> getSortedMinimalAccessUsers(final TeamCalDO calendar) {
     return userService.getSortedUsers(calendar.getMinimalAccessUserIds());
   }
 
@@ -271,8 +250,7 @@ public class TeamCalDao extends BaseDao<TeamCalDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#getDisplayHistoryEntries(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
-  public List<DisplayHistoryEntry> getDisplayHistoryEntries(final TeamCalDO obj)
-  {
+  public List<DisplayHistoryEntry> getDisplayHistoryEntries(final TeamCalDO obj) {
     final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(obj);
     if (CollectionUtils.isEmpty(list)) {
       return list;
@@ -309,12 +287,11 @@ public class TeamCalDao extends BaseDao<TeamCalDO>
 
   /**
    * Calls {@link TeamCalCache#setExpired()}.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#afterSaveOrModify(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
-  protected void afterSaveOrModify(final TeamCalDO obj)
-  {
+  protected void afterSaveOrModify(final TeamCalDO obj) {
     super.afterSaveOrModify(obj);
     teamCalCache.setExpired();
   }
@@ -323,14 +300,12 @@ public class TeamCalDao extends BaseDao<TeamCalDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#useOwnCriteriaCacheRegion()
    */
   @Override
-  protected boolean useOwnCriteriaCacheRegion()
-  {
+  protected boolean useOwnCriteriaCacheRegion() {
     return true;
   }
 
   @Override
-  protected void afterSave(final TeamCalDO obj)
-  {
+  protected void afterSave(final TeamCalDO obj) {
     super.afterSave(obj);
     if (obj.getExternalSubscription()) {
       getTeamEventExternalSubscriptionCache().updateCache(obj);
@@ -338,20 +313,19 @@ public class TeamCalDao extends BaseDao<TeamCalDO>
   }
 
   @Override
-  protected void afterUpdate(final TeamCalDO obj, final TeamCalDO dbObj)
-  {
+  protected void afterUpdate(final TeamCalDO obj, final TeamCalDO dbObj) {
     super.afterUpdate(obj, dbObj);
     if (obj != null
-        && dbObj != null
-        && obj.getExternalSubscription()
-        && !StringUtils.equals(obj.getExternalSubscriptionUrl(), dbObj.getExternalSubscriptionUrl())) {
+            && dbObj != null
+            && obj.getExternalSubscription()
+            && !StringUtils.equals(obj.getExternalSubscriptionUrl(), dbObj.getExternalSubscriptionUrl())) {
       // only update if the url has changed!
       getTeamEventExternalSubscriptionCache().updateCache(obj);
     }
     // if calendar is present in subscription cache and is not an external subscription anymore -> cleanup!
     if (obj != null
-        && !obj.getExternalSubscription()
-        && getTeamEventExternalSubscriptionCache().isExternalSubscribedCalendar(obj.getId())) {
+            && !obj.getExternalSubscription()
+            && getTeamEventExternalSubscriptionCache().isExternalSubscribedCalendar(obj.getId())) {
       obj.setExternalSubscriptionCalendarBinary(null);
       obj.setExternalSubscriptionUrl(null);
       obj.setExternalSubscriptionUpdateInterval(null);
@@ -360,8 +334,7 @@ public class TeamCalDao extends BaseDao<TeamCalDO>
     }
   }
 
-  private TeamEventExternalSubscriptionCache getTeamEventExternalSubscriptionCache()
-  {
+  private TeamEventExternalSubscriptionCache getTeamEventExternalSubscriptionCache() {
     return applicationContext.getBean(TeamEventExternalSubscriptionCache.class);
   }
 }

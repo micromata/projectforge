@@ -23,13 +23,13 @@
 
 package org.projectforge.address;
 
-import org.hibernate.criterion.Order;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.address.*;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
 import org.slf4j.Logger;
@@ -143,7 +143,7 @@ public class AddressTest extends AbstractTestBase {
     BaseSearchFilter searchFilter = new BaseSearchFilter();
     searchFilter.setSearchString("testa*");
     QueryFilter filter = new QueryFilter(searchFilter);
-    filter.addOrder(Order.asc("name"));
+    filter.addOrder(SortProperty.asc("name"));
     List<AddressDO> result = addressDao.getList(filter);
     assertEquals(3, result.size(), "Should found 3 address'.");
     HashSet<String> set = new HashSet<>();

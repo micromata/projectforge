@@ -24,7 +24,6 @@
 package org.projectforge.business.teamcal.externalsubscription;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.common.DataobjectAccessType;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
@@ -70,7 +69,7 @@ public class TeamEventExternalSubscriptionCache {
   private UserRightService userRights;
 
   // @PostConstruct doesn't work (it will be called to early before TenantRegistryMap is ready).
-  private synchronized void init(){
+  private synchronized void init() {
     if (!initialized) {
       updateCache();
       initialized = true;
@@ -80,7 +79,7 @@ public class TeamEventExternalSubscriptionCache {
   public void updateCache() {
     log.info("Start updating TeamEventExternalSubscriptionCache.");
     final QueryFilter filter = new QueryFilter();
-    filter.add(Restrictions.eq("externalSubscription", true));
+    filter.add(QueryFilter.eq("externalSubscription", true));
     // internalGetList is valid at this point, because we are calling this method in an asyn thread
     final List<TeamCalDO> subscribedCalendars = teamCalDao.internalGetList(filter);
 
@@ -190,6 +189,7 @@ public class TeamEventExternalSubscriptionCache {
 
   /**
    * Checks also the access.
+   *
    * @return The accessType if available and the logged in user has access to, otherwise null.
    */
   private DataobjectAccessType getAccessType(TeamEventSubscription eventSubscription) {

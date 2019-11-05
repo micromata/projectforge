@@ -24,7 +24,6 @@
 package org.projectforge.framework.persistence.api.impl
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.time.PFDateTime
 
 /**
@@ -43,20 +42,7 @@ class DBFilterEntry(
          * If true, then this expression will be processed by Hibernate search otherwise by Hibernate criteria.
          */
         var fulltextSearch: Boolean = false) {
-    /**
-     * True, if the field name is defined in [HistorySearch].
-     */
-    val isHistoryEntry: Boolean
-        get() {
-            if (this.field == null)
-                return false
-            for (historySearch in MagicFilterEntry.HistorySearch.values()) {
-                if (historySearch.fieldName == this.field) {
-                    return true
-                }
-            }
-            return false
-        }
+
     @JsonIgnore
     internal var type: Class<*>? = null
 

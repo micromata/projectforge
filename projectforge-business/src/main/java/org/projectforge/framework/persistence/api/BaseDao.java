@@ -30,11 +30,9 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.PredicateUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.hibernate.Criteria;
 import org.hibernate.LockMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
 import org.hibernate.search.Search;
 import org.hibernate.type.DateType;
@@ -49,8 +47,7 @@ import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.i18n.InternalErrorException;
 import org.projectforge.framework.i18n.UserException;
-import org.projectforge.framework.persistence.api.impl.DBFilter;
-import org.projectforge.framework.persistence.api.impl.DBFilterQuery;
+import org.projectforge.framework.persistence.api.impl.DBQuery;
 import org.projectforge.framework.persistence.database.DatabaseDao;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.history.HibernateSearchDependentObjectsReindexer;
@@ -73,6 +70,8 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -110,10 +109,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   protected AccessChecker accessChecker;
 
   @Autowired
-  protected BaseDaoLegacyQueryBuilder baseDaoLegacyQueryBuilder;
-
-  @Autowired
-  protected DBFilterQuery magicFilterQueryBuilder;
+  protected DBQuery dbFilterQuery;
 
   @Autowired
   protected DatabaseDao databaseDao;
@@ -127,9 +123,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   @Autowired
   protected TenantService tenantService;
-
-  @Autowired
-  protected SearchService searchService;
 
   private String[] searchFields;
 
@@ -256,15 +249,16 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   }
 
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public List internalLoad(final Collection<? extends Serializable> idList) {
+  public List<O> internalLoad(final Collection<? extends Serializable> idList) {
     if (idList == null) {
       return null;
     }
-    final Session session = getSession();
-    final Criteria criteria = session.createCriteria(clazz).add(Restrictions.in("id", idList));
-
-    //noinspection unchecked
-    return selectUnique(criteria.list());
+    Session session = getSession();
+    CriteriaQuery<O> cr = session.getCriteriaBuilder().createQuery(clazz);
+    Root<O> root = cr.from(clazz);
+    cr.select(root).where(root.get("id").in(idList));
+    List<O> results = session.createQuery(cr).getResultList();
+    return selectUnique(results);
   }
 
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
@@ -272,10 +266,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     if (idList == null) {
       return null;
     }
-    final Session session = getSession();
-    final Criteria criteria = session.createCriteria(clazz).add(Restrictions.in("id", idList));
-    @SuppressWarnings("unchecked") final List<O> list = selectUnique(criteria.list());
-
+    final List<O> list = internalLoad(idList);
     return extractEntriesWithSelectAccess(list);
   }
 
@@ -311,7 +302,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    */
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> getList(final QueryFilter filter) throws AccessException {
-    return baseDaoLegacyQueryBuilder.getList(this, filter);
+    return dbFilterQuery.getList(this, filter, true, filter.getIgnoreTenant());
   }
 
   /**
@@ -319,23 +310,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    */
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> internalGetList(final QueryFilter filter) throws AccessException {
-    return baseDaoLegacyQueryBuilder.internalGetList(this, filter);
-  }
-
-  /**
-   * Gets the list filtered by the given filter.
-   */
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public List<O> getList(final DBFilter filter) throws AccessException {
-    return magicFilterQueryBuilder.getList(this, filter);
-  }
-
-  /**
-   * Gets the list filtered by the given filter.
-   */
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public List<O> internalGetList(final DBFilter filter) throws AccessException {
-    return magicFilterQueryBuilder.getList(this, filter, false, false);
+    return dbFilterQuery.getList(this, filter, false, filter.getIgnoreTenant());
   }
 
   /**
@@ -1417,6 +1392,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * Object pass thru every massUpdateEntry call.
+   *
    * @return null if not overloaded.
    */
   protected Object prepareMassUpdateStore(final List<O> list, final O master) {
@@ -1426,7 +1402,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * Overload this method for mass update support.
    *
-   * @param store  Object created with prepareMassUpdateStore if needed. Null at default.
+   * @param store Object created with prepareMassUpdateStore if needed. Null at default.
    * @return true, if entry is ready for update otherwise false (no update will be done for this entry).
    */
   protected boolean massUpdateEntry(final O entry, final O master, final Object store) {
@@ -1437,6 +1413,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * Searches all history entries matching the given modified by user and modification intervall. Any given search
    * string will be ignored. Use {@link #getHistoryEntriesFullTextSearch(Session, BaseSearchFilter)} for searching
    * for strings.
+   *
    * @see HibernateSearchFilterUtils#getHistoryEntriesDirect(Session, BaseSearchFilter, Set, Class)
    */
   public Set<Integer> getHistoryEntries(final Session session, final BaseSearchFilter filter) {
@@ -1456,6 +1433,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * Searches all history entries matching the given modified by user, interval of modification and any given search string.
+   *
    * @see HibernateSearchFilterUtils#getHistoryEntriesFromFullTextSearch(Session, BaseSearchFilter, Set, Class)
    */
   public Set<Integer> getHistoryEntriesFullTextSearch(final Session session, final BaseSearchFilter filter) {

@@ -249,7 +249,7 @@ class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
 
     @PropertyInfo(i18nKey = "address.birthday")
     @Field(index = Index.YES, analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.DAY)
     @get:Column
     var birthday: Date? = null
 

@@ -23,7 +23,6 @@
 
 package org.projectforge.business.humanresources;
 
-import org.hibernate.criterion.Order;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
@@ -37,6 +36,7 @@ import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.IDao;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DayHolder;
@@ -51,13 +51,10 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Repository
-public class HRDao implements IDao<HRViewData>
-{
+public class HRDao implements IDao<HRViewData> {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRDao.class);
 
   @Autowired
@@ -74,8 +71,7 @@ public class HRDao implements IDao<HRViewData>
    * projects (see getProjectNames)
    */
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public HRViewData getResources(final HRFilter filter)
-  {
+  public HRViewData getResources(final HRFilter filter) {
     final HRViewData data = new HRViewData(filter);
     if (filter.getStartTime() == null) {
       final DayHolder day = new DayHolder();
@@ -174,15 +170,14 @@ public class HRDao implements IDao<HRViewData>
   /**
    * Returns a list of all users which are accessible by the current logged in user and not planned in the given
    * HRViewData object.
-   * 
+   *
    * @return Result list (may be empty but never null).
    */
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public List<PFUserDO> getUnplannedResources(final HRViewData data)
-  {
+  public List<PFUserDO> getUnplannedResources(final HRViewData data) {
     final List<PFUserDO> users = new ArrayList<>();
     final QueryFilter queryFilter = new QueryFilter(new BaseSearchFilter());
-    queryFilter.addOrder(Order.asc("firstname")).addOrder(Order.asc("lastname"));
+    queryFilter.addOrder(SortProperty.asc("firstname")).addOrder(SortProperty.asc("lastname"));
     final List<PFUserDO> allUsers = userDao.getList(queryFilter);
     if (allUsers != null) {
       for (final PFUserDO user : allUsers) {
@@ -198,13 +193,12 @@ public class HRDao implements IDao<HRViewData>
   /**
    * Return the target object (ProjektDO, KundeDO or null) to which the entry (time sheet or planning) should be
    * assigned to. The results depends on the filter settings.
-   * 
+   *
    * @param filter
    * @param projekt
    * @return
    */
-  private Object getTargetObject(final UserGroupCache userGroupCache, final HRFilter filter, final ProjektDO projekt)
-  {
+  private Object getTargetObject(final UserGroupCache userGroupCache, final HRFilter filter, final ProjektDO projekt) {
     if (projekt == null) {
       return null;
     }
@@ -233,27 +227,24 @@ public class HRDao implements IDao<HRViewData>
     }
   }
 
-  private boolean isMyProject(final UserGroupCache userGroupCache, final ProjektDO projekt)
-  {
+  private boolean isMyProject(final UserGroupCache userGroupCache, final ProjektDO projekt) {
     return (projekt != null && projekt.getProjektManagerGroup() != null
-        && userGroupCache.isLoggedInUserMemberOfGroup(projekt
-        .getProjektManagerGroupId()));
+            && userGroupCache.isLoggedInUserMemberOfGroup(projekt
+            .getProjektManagerGroupId()));
   }
 
   /**
    * Throws UnsupportedOperationException.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.IDao#getList(org.projectforge.framework.persistence.api.BaseSearchFilter)
    */
   @Override
-  public List<HRViewData> getList(final BaseSearchFilter filter)
-  {
+  public List<HRViewData> getList(final BaseSearchFilter filter) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public String[] getSearchFields()
-  {
+  public String[] getSearchFields() {
     return null;
   }
 
@@ -262,18 +253,15 @@ public class HRDao implements IDao<HRViewData>
    * @see org.projectforge.framework.persistence.api.IDao#isHistorizable()
    */
   @Override
-  public boolean isHistorizable()
-  {
+  public boolean isHistorizable() {
     return false;
   }
 
   /**
    * @return true.
-   * @see org.projectforge.framework.persistence.api.IDao#hasInsertAccess()
    */
   @Override
-  public boolean hasInsertAccess(final PFUserDO user)
-  {
+  public boolean hasInsertAccess(final PFUserDO user) {
     return hrPlanningDao.hasInsertAccess(user);
   }
 }

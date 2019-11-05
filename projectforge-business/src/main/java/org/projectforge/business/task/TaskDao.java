@@ -26,8 +26,6 @@ package org.projectforge.business.task;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.timesheet.TimesheetDO;
@@ -40,10 +38,7 @@ import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.i18n.UserException;
-import org.projectforge.framework.persistence.api.BaseDao;
-import org.projectforge.framework.persistence.api.BaseSearchFilter;
-import org.projectforge.framework.persistence.api.ModificationStatus;
-import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,9 +61,7 @@ public class TaskDao extends BaseDao<TaskDO> {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TaskDao.class);
 
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"responsibleUser.username",
-          "responsibleUser.firstname",
-          "responsibleUser.lastname", "taskpath", "projekt.name", "projekt.kunde.name", "kost2.nummer",
-          "kost2.description"};
+          "responsibleUser.firstname", "responsibleUser.lastname", "taskpath"};
 
   public static final String I18N_KEY_ERROR_CYCLIC_REFERENCE = "task.error.cyclicReference";
 
@@ -195,9 +188,9 @@ public class TaskDao extends BaseDao<TaskDO> {
       if (list.get(0) == null) { // Has happened one time, why (PROJECTFORGE-543)?
         return 0L;
       } else if (list.get(0) instanceof Long) {
-        return (Long)list.get(0);
+        return (Long) list.get(0);
       } else if (list.get(0) instanceof Integer) {
-        return new Long((Integer)list.get(0));
+        return new Long((Integer) list.get(0));
       } else {
         log.error("Internal error, unsupported return type " + list.get(0).getClass() + ". Long or Integer expected.");
         return 0;
@@ -211,8 +204,8 @@ public class TaskDao extends BaseDao<TaskDO> {
     }
     long totalDuration = 0;
     for (final Object[] oa : result) {
-      final Timestamp startTime = (Timestamp)oa[0];
-      final Timestamp stopTime = (Timestamp)oa[1];
+      final Timestamp startTime = (Timestamp) oa[0];
+      final Timestamp stopTime = (Timestamp) oa[1];
       final long duration = stopTime.getTime() - startTime.getTime();
       totalDuration += duration;
     }
@@ -240,13 +233,13 @@ public class TaskDao extends BaseDao<TaskDO> {
       col.add(TaskStatus.C);
     }
     if (col.size() > 0) {
-      queryFilter.add(Restrictions.in("status", col));
+      queryFilter.add(QueryFilter.isIn("status", col));
     } else {
       // Note: Result set should be empty, because every task should has one of the following status values.
       queryFilter.add(
-              Restrictions.not(Restrictions.in("status", new TaskStatus[]{TaskStatus.N, TaskStatus.O, TaskStatus.C})));
+              QueryFilter.not(QueryFilter.isIn("status", new TaskStatus[]{TaskStatus.N, TaskStatus.O, TaskStatus.C})));
     }
-    queryFilter.addOrder(Order.asc("title"));
+    queryFilter.addOrder(SortProperty.asc("title"));
     if (log.isDebugEnabled()) {
       log.debug(myFilter.toString());
     }
@@ -304,7 +297,7 @@ public class TaskDao extends BaseDao<TaskDO> {
   @Override
   public boolean hasUserSelectAccess(final PFUserDO user, final TaskDO obj, final boolean throwException) {
     if (accessChecker.isUserMemberOfGroup(user, false, ProjectForgeGroup.ADMIN_GROUP, ProjectForgeGroup.FINANCE_GROUP,
-        ProjectForgeGroup.CONTROLLING_GROUP)) {
+            ProjectForgeGroup.CONTROLLING_GROUP)) {
       return true;
     }
     return super.hasUserSelectAccess(user, obj, throwException);
@@ -339,7 +332,7 @@ public class TaskDao extends BaseDao<TaskDO> {
         throw new UserException(TaskDao.I18N_KEY_ERROR_CYCLIC_REFERENCE);
       }
       if (!accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.ADMIN_GROUP,
-          ProjectForgeGroup.FINANCE_GROUP)) {
+              ProjectForgeGroup.FINANCE_GROUP)) {
         return false;
       }
       return true;
@@ -355,11 +348,11 @@ public class TaskDao extends BaseDao<TaskDO> {
     // Checks cyclic and self reference. The parent task is not allowed to be a self reference.
     checkCyclicReference(obj);
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.ADMIN_GROUP,
-        ProjectForgeGroup.FINANCE_GROUP)) {
+            ProjectForgeGroup.FINANCE_GROUP)) {
       return true;
     }
     if (!accessChecker.hasPermission(user, obj.getId(), AccessType.TASKS, OperationType.UPDATE,
-        throwException)) {
+            throwException)) {
       return false;
     }
     if (!dbObj.getParentTaskId().equals(obj.getParentTaskId())) {
@@ -369,7 +362,7 @@ public class TaskDao extends BaseDao<TaskDO> {
         return false;
       }
       if (!accessChecker.hasPermission(user, dbObj.getParentTaskId(), AccessType.TASKS, OperationType.DELETE,
-          throwException)) {
+              throwException)) {
         // Deleting of object under old task not allowed.
         return false;
       }
@@ -460,7 +453,7 @@ public class TaskDao extends BaseDao<TaskDO> {
       }
     }
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.ADMIN_GROUP,
-        ProjectForgeGroup.FINANCE_GROUP)) {
+            ProjectForgeGroup.FINANCE_GROUP)) {
       return true;
     }
     return accessChecker.hasPermission(user, obj.getParentTaskId(), AccessType.TASKS, OperationType.INSERT,
@@ -475,7 +468,7 @@ public class TaskDao extends BaseDao<TaskDO> {
       return true;
     }
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.ADMIN_GROUP,
-        ProjectForgeGroup.FINANCE_GROUP)) {
+            ProjectForgeGroup.FINANCE_GROUP)) {
       return true;
     }
     return accessChecker.hasPermission(user, obj.getParentTaskId(), AccessType.TASKS, OperationType.DELETE,
