@@ -767,7 +767,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     if (user == null) {
       return false;
     }
-    return isDemoUser(user.getId());
+    return AccessChecker.isDemoUser(user);
   }
 
   @Override
@@ -782,7 +782,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     if (user == null) {
       return true;
     }
-    return isRestrictedUser(user.getId());
+    return isRestrictedUser(user);
   }
 
   @Override

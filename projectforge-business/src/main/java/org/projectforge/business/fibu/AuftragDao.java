@@ -121,8 +121,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
    * @return
    */
   public int[] getYears() {
-    final Tuple minMaxDate = em.createNamedQuery(AuftragDO.SELECT_MIN_MAX_DATE, Tuple.class)
-            .getSingleResult();
+    final Tuple minMaxDate = SQLHelper.ensureUniqueResult(em.createNamedQuery(AuftragDO.SELECT_MIN_MAX_DATE, Tuple.class));
     return SQLHelper.getYears((java.sql.Date) minMaxDate.get(0), (java.sql.Date) minMaxDate.get(1));
   }
 
@@ -437,10 +436,9 @@ public class AuftragDao extends BaseDao<AuftragDO> {
         throw new UserException("fibu.auftrag.error.nummerIstNichtFortlaufend");
       }
     } else {
-      final AuftragDO other = em.createNamedQuery(AuftragDO.FIND_OTHER_BY_NUMMER, AuftragDO.class)
+      final AuftragDO other = SQLHelper.ensureUniqueResult(em.createNamedQuery(AuftragDO.FIND_OTHER_BY_NUMMER, AuftragDO.class)
               .setParameter("nummer", obj.getNummer())
-              .setParameter("id", obj.getId())
-              .getSingleResult();
+              .setParameter("id", obj.getId()));
       if (other != null) {
         throw new UserException("fibu.auftrag.error.nummerBereitsVergeben");
       }

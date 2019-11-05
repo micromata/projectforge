@@ -26,7 +26,6 @@ package org.projectforge.framework.persistence.api
 import org.apache.commons.lang3.Validate
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.InternalErrorException
-import org.projectforge.framework.persistence.api.BaseDao.NO_UPDATE_MAGIC
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter
 import org.slf4j.LoggerFactory
@@ -55,10 +54,7 @@ object BaseDaoSupport {
                 log.info("New " + baseDao.clazz.getSimpleName() + " added (" + obj.getId() + "): " + obj.toString())
             }
             baseDao.prepareHibernateSearch(obj, OperationType.INSERT)
-            if (NO_UPDATE_MAGIC) {
-                // safe will assocated not working
-                emgr.merge(obj)
-            }
+            emgr.merge(obj)
             emgr.flush()
             baseDao.flushSearchSession(emgr.getEntityManager())
             null
@@ -83,7 +79,7 @@ object BaseDaoSupport {
         val res = ResultObject()
         baseDao.emgrFactory.runInTrans { emgr ->
             val em = emgr.entityManager
-            val dbObj = em.getReference(baseDao.clazz, obj.id)
+            val dbObj = em.find(baseDao.clazz, obj.id)
             if (checkAccess) {
                 baseDao.checkPartOfCurrentTenant(obj, OperationType.UPDATE)
                 baseDao.checkLoggedInUserUpdateAccess(obj, dbObj)
@@ -96,27 +92,21 @@ object BaseDaoSupport {
             }
             res.wantsReindexAllDependentObjects = baseDao.wantsReindexAllDependentObjects(obj, dbObj)
             res.modStatus = HistoryBaseDaoAdapter.wrappHistoryUpdate(dbObj) {
-                // Copy all values of modified user to database object, ignore field 'deleted'.
-                val tresult = baseDao.copyValues(obj, dbObj, "deleted")
-
-                if (tresult != ModificationStatus.NONE) {
+                val result = baseDao.copyValues(obj, dbObj)
+                if (result != ModificationStatus.NONE) {
                     BaseDaoJpaAdapter.prepareUpdate(dbObj)
                     dbObj.setLastUpdate()
                     if (baseDao.logDatabaseActions) {
                         log.info(baseDao.clazz.getSimpleName() + " updated: " + dbObj.toString())
                     }
-                } else {
-                    //log.info("No modifications detected (no update needed): " + dbObj.toString());
+                    // } else {
+                    //   log.info("No modifications detected (no update needed): " + dbObj.toString());
                 }
                 baseDao.prepareHibernateSearch(obj, OperationType.UPDATE)
-                // TODO HIBERNATE5 Magie nicht notwendig?!?!?!
-                if (BaseDao.NO_UPDATE_MAGIC) {
-                    // update doesn't work, because of referenced objects
-                    em.merge(dbObj)
-                }
+                em.merge(dbObj)
                 em.flush()
                 baseDao.flushSearchSession(em)
-                tresult
+                result
             }
             null
         }
@@ -144,7 +134,7 @@ object BaseDaoSupport {
             baseDao.onDelete(obj)
             baseDao.emgrFactory.runInTrans { emgr ->
                 val em = emgr.entityManager
-                val dbObj = em.getReference(baseDao.clazz, obj.id)
+                val dbObj = em.find(baseDao.clazz, obj.id)
                 baseDao.onSaveOrModify(obj)
 
                 HistoryBaseDaoAdapter.wrappHistoryUpdate(dbObj) {
@@ -156,14 +146,12 @@ object BaseDaoSupport {
                     baseDao.flushSearchSession(em)
                     null
                 }
-
-                baseDao.afterSaveOrModify(obj)
-                baseDao.afterDelete(obj)
-                em.flush()
                 if (baseDao.logDatabaseActions) {
                     log.info(baseDao.clazz.getSimpleName() + " marked as deleted: " + dbObj.toString())
                 }
             }
+            baseDao.afterSaveOrModify(obj)
+            baseDao.afterDelete(obj)
         }
     }
 

@@ -28,6 +28,7 @@ import org.projectforge.business.user.UserDao;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -66,15 +67,13 @@ public class BookDao extends BaseDao<BookDO> {
     BookDO other = null;
     if (book.getId() == null) {
       // New book
-      other = em.createNamedQuery(BookDO.FIND_BY_SIGNATURE, BookDO.class)
-              .setParameter("signature", book.getSignature())
-              .getSingleResult();
+      other = SQLHelper.ensureUniqueResult(em.createNamedQuery(BookDO.FIND_BY_SIGNATURE, BookDO.class)
+              .setParameter("signature", book.getSignature()));
     } else {
       // Book already exists. Check maybe changed signature:
-      other = em.createNamedQuery(BookDO.FIND_OTHER_BY_SIGNATURE, BookDO.class)
+      other = SQLHelper.ensureUniqueResult(em.createNamedQuery(BookDO.FIND_OTHER_BY_SIGNATURE, BookDO.class)
               .setParameter("signature", book.getSignature())
-              .setParameter("id", book.getId())
-              .getSingleResult();
+              .setParameter("id", book.getId()));
     }
     return other != null;
   }

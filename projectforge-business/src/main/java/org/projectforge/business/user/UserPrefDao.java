@@ -169,18 +169,16 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     Validate.notNull(name);
     final UserPrefDO userPref;
     if (id != null) {
-      userPref = em.createNamedQuery(UserPrefDO.FIND_OTHER_BY_USER_AND_AREA_AND_NAME, UserPrefDO.class)
+      userPref = SQLHelper.ensureUniqueResult(em.createNamedQuery(UserPrefDO.FIND_OTHER_BY_USER_AND_AREA_AND_NAME, UserPrefDO.class)
               .setParameter("id", id)
               .setParameter("userId", userId)
               .setParameter("area", areaId)
-              .setParameter("name", name)
-              .getSingleResult();
+              .setParameter("name", name));
     } else {
-      userPref = em.createNamedQuery(UserPrefDO.FIND_BY_USER_AND_AREA_AND_NAME, UserPrefDO.class)
+      userPref = SQLHelper.ensureUniqueResult(em.createNamedQuery(UserPrefDO.FIND_BY_USER_AND_AREA_AND_NAME, UserPrefDO.class)
               .setParameter("userId", userId)
               .setParameter("area", areaId)
-              .setParameter("name", name)
-              .getSingleResult();
+              .setParameter("name", name));
     }
     return userPref != null;
   }

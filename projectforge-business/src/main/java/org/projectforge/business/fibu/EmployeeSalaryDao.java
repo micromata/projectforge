@@ -68,8 +68,7 @@ public class EmployeeSalaryDao extends BaseDao<EmployeeSalaryDO> {
    * List of all years with employee salaries: select min(year), max(year) from t_fibu_employee_salary.
    */
   public int[] getYears() {
-    final Tuple minMaxYear = em.createNamedQuery(EmployeeSalaryDO.SELECT_MIN_MAX_YEAR, Tuple.class)
-            .getSingleResult();
+    final Tuple minMaxYear = SQLHelper.ensureUniqueResult(em.createNamedQuery(EmployeeSalaryDO.SELECT_MIN_MAX_YEAR, Tuple.class));
     return SQLHelper.getYears((Integer) minMaxYear.get(0), (Integer) minMaxYear.get(1));
   }
 

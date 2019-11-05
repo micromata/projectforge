@@ -104,8 +104,7 @@ public class RechnungDao extends BaseDao<RechnungDO> {
    * List of all years with invoices: select min(datum), max(datum) from t_fibu_rechnung.
    */
   public int[] getYears() {
-    final Tuple minMaxDate = em.createNamedQuery(RechnungDO.SELECT_MIN_MAX_DATE, Tuple.class)
-            .getSingleResult();
+    final Tuple minMaxDate = SQLHelper.ensureUniqueResult(em.createNamedQuery(RechnungDO.SELECT_MIN_MAX_DATE, Tuple.class));
     return SQLHelper.getYears((java.sql.Date) minMaxDate.get(0), (java.sql.Date) minMaxDate.get(1));
   }
 
@@ -200,10 +199,9 @@ public class RechnungDao extends BaseDao<RechnungDO> {
             throw new UserException("fibu.rechnung.error.rechnungsNummerIstNichtFortlaufend");
           }
         } else {
-          final RechnungDO other = em.createNamedQuery(RechnungDO.FIND_OTHER_BY_NUMMER, RechnungDO.class)
+          final RechnungDO other = SQLHelper.ensureUniqueResult(em.createNamedQuery(RechnungDO.FIND_OTHER_BY_NUMMER, RechnungDO.class)
                   .setParameter("nummer", rechnung.getNummer())
-                  .setParameter("id", rechnung.getId())
-                  .getSingleResult();
+                  .setParameter("id", rechnung.getId()));
           if (other != null) {
             throw new UserException("fibu.rechnung.error.rechnungsNummerBereitsVergeben");
           }

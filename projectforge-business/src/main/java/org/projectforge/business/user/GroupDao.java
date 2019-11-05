@@ -95,10 +95,9 @@ public class GroupDao extends BaseDao<GroupDO> {
       dbGroup = getByName(group.getName());
     } else {
       // group already exists. Check maybe changed name:
-      dbGroup = em.createNamedQuery(GroupDO.FIND_OTHER_GROUP_BY_NAME, GroupDO.class)
+      dbGroup = SQLHelper.ensureUniqueResult(em.createNamedQuery(GroupDO.FIND_OTHER_GROUP_BY_NAME, GroupDO.class)
               .setParameter("name", group.getName())
-              .setParameter("id", group.getId())
-              .getSingleResult();
+              .setParameter("id", group.getId()));
     }
     return dbGroup != null;
   }

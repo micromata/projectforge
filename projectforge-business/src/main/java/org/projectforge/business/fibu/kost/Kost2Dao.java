@@ -193,13 +193,12 @@ public class Kost2Dao extends BaseDao<Kost2DO> {
       other = getKost2(obj.getNummernkreis(), obj.getBereich(), obj.getTeilbereich(), obj.getKost2ArtId());
     } else {
       // kost entry already exists. Check maybe changed:
-      other = em.createNamedQuery(Kost2DO.FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_KOST2ART, Kost2DO.class)
+      other = SQLHelper.ensureUniqueResult(em.createNamedQuery(Kost2DO.FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_KOST2ART, Kost2DO.class)
               .setParameter("nummernkreis", obj.getNummernkreis())
               .setParameter("bereich", obj.getBereich())
               .setParameter("teilbereich", obj.getTeilbereich())
               .setParameter("kost2ArtId", obj.getKost2ArtId())
-              .setParameter("id", obj.getId())
-              .getSingleResult();
+              .setParameter("id", obj.getId()));
     }
     if (other != null) {
       throw new UserException("fibu.kost.error.collision");
