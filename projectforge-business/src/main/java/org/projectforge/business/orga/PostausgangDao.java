@@ -31,25 +31,19 @@ import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.Tuple;
 import java.util.List;
 
 @Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-public class PostausgangDao extends BaseDao<PostausgangDO>
-{
+public class PostausgangDao extends BaseDao<PostausgangDO> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.ORGA_OUTGOING_MAIL;
+  private static final String[] ENABLED_AUTOCOMPLETION_PROPERTIES = {"empfaenger", "person", "inhalt"};
 
-  protected PostausgangDao()
-  {
+  protected PostausgangDao() {
     super(PostausgangDO.class);
     userRightId = USER_RIGHT_ID;
   }
-
-  private static final String[] ENABLED_AUTOCOMPLETION_PROPERTIES = {"empfaenger", "person", "inhalt"};
 
   @Override
   public boolean isAutocompletionPropertyEnabled(String property) {
@@ -59,16 +53,14 @@ public class PostausgangDao extends BaseDao<PostausgangDO>
   /**
    * List of all years with invoices: select min(datum), max(datum) from t_fibu_rechnung.
    */
-  public int[] getYears()
-  {
+  public int[] getYears() {
     final Tuple minMaxDate = em.createNamedQuery(PostausgangDO.SELECT_MIN_MAX_DATE, Tuple.class)
             .getSingleResult();
-    return SQLHelper.getYears((java.sql.Date)minMaxDate.get(0), (java.sql.Date)minMaxDate.get(1));
+    return SQLHelper.getYears((java.sql.Date) minMaxDate.get(0), (java.sql.Date) minMaxDate.get(1));
   }
 
   @Override
-  public List<PostausgangDO> getList(final BaseSearchFilter filter)
-  {
+  public List<PostausgangDO> getList(final BaseSearchFilter filter) {
     final PostFilter myFilter;
     if (filter instanceof PostFilter) {
       myFilter = (PostFilter) filter;
@@ -84,8 +76,7 @@ public class PostausgangDao extends BaseDao<PostausgangDO>
   }
 
   @Override
-  public PostausgangDO newInstance()
-  {
+  public PostausgangDO newInstance() {
     return new PostausgangDO();
   }
 }

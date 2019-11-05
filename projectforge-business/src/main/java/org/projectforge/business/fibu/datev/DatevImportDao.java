@@ -41,9 +41,6 @@ import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.framework.utils.ActionLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
@@ -52,49 +49,33 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 @Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class DatevImportDao {
+  public static final UserRightId USER_RIGHT_ID = UserRightId.FIBU_DATEV_IMPORT;
+  static final String[] KONTO_DIFF_PROPERTIES = {"nummer", "bezeichnung"};
+  static final String[] BUCHUNGSSATZ_DIFF_PROPERTIES = {"satznr", "betrag", "sh", "konto", "kost2", "menge", "beleg",
+          "datum",
+          "gegenKonto", "text", "kost1", "comment"};
   /**
    * Size of bulk inserts. If this value is too large, exceptions are expected and as more small the value is so as more
    * slowly is the insert process.
    */
   private static final int BUCHUNGSSATZ_INSERT_BLOCK_SIZE = 50;
-
   /**
    * Size of bulk inserts. If this value is too large, exceptions are expected and as more small the value is so as more
    * slowly is the insert process.
    */
   private static final int KONTO_INSERT_BLOCK_SIZE = 50;
-
-  public enum Type {
-    KONTENPLAN, BUCHUNGSSAETZE
-  }
-
-  public static final UserRightId USER_RIGHT_ID = UserRightId.FIBU_DATEV_IMPORT;
-
-  static final String[] KONTO_DIFF_PROPERTIES = {"nummer", "bezeichnung"};
-
-  static final String[] BUCHUNGSSATZ_DIFF_PROPERTIES = {"satznr", "betrag", "sh", "konto", "kost2", "menge", "beleg",
-          "datum",
-          "gegenKonto", "text", "kost1", "comment"};
-
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DatevImportDao.class);
-
   @Autowired
   private EntityManager em;
-
   @Autowired
   private AccessChecker accessChecker;
-
   @Autowired
   private KontoDao kontoDao;
-
   @Autowired
   private Kost1Dao kost1Dao;
-
   @Autowired
   private Kost2Dao kost2Dao;
-
   @Autowired
   private BuchungssatzDao buchungssatzDao;
 
@@ -194,7 +175,6 @@ public class DatevImportDao {
   }
 
   @SuppressWarnings("unchecked")
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
   public void commit(final ImportStorage<?> storage, final String sheetName) {
     checkLoggeinUserRight(accessChecker);
     Validate.notNull(storage.getSheets());
@@ -312,6 +292,10 @@ public class DatevImportDao {
     }
     buchungssatzDao.internalSaveOrUpdate(buchungssatzDao, col, BUCHUNGSSATZ_INSERT_BLOCK_SIZE);
     return col.size();
+  }
+
+  public enum Type {
+    KONTENPLAN, BUCHUNGSSAETZE
   }
 
 }

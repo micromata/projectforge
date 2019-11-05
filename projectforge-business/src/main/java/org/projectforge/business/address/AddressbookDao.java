@@ -39,8 +39,6 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -51,14 +49,11 @@ import java.util.List;
  * @author Florian blumenstein
  */
 @Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class AddressbookDao extends BaseDao<AddressbookDO> {
+  public static final int GLOBAL_ADDRESSBOOK_ID = 1;
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"usersgroups", "owner.username",
           "owner.firstname",
           "owner.lastname"};
-
-  public static final int GLOBAL_ADDRESSBOOK_ID = 1;
-
   @Autowired
   private UserDao userDao;
 
@@ -229,23 +224,23 @@ public class AddressbookDao extends BaseDao<AddressbookDO> {
         continue;
       } else if (entry.getPropertyName().endsWith("GroupIds")) {
         final String oldValue = entry.getOldValue();
-        if (StringUtils.isNotBlank(oldValue) && !"null".equals(oldValue)) {
+        if (StringUtils.isNotBlank(oldValue) && !"null" .equals(oldValue)) {
           final List<String> oldGroupNames = groupService.getGroupNames(oldValue);
           entry.setOldValue(StringHelper.listToString(oldGroupNames, ", ", true));
         }
         final String newValue = entry.getNewValue();
-        if (StringUtils.isNotBlank(newValue) && !"null".equals(newValue)) {
+        if (StringUtils.isNotBlank(newValue) && !"null" .equals(newValue)) {
           final List<String> newGroupNames = groupService.getGroupNames(newValue);
           entry.setNewValue(StringHelper.listToString(newGroupNames, ", ", true));
         }
       } else if (entry.getPropertyName().endsWith("UserIds")) {
         final String oldValue = entry.getOldValue();
-        if (StringUtils.isNotBlank(oldValue) && !"null".equals(oldValue)) {
+        if (StringUtils.isNotBlank(oldValue) && !"null" .equals(oldValue)) {
           final List<String> oldGroupNames = userService.getUserNames(oldValue);
           entry.setOldValue(StringHelper.listToString(oldGroupNames, ", ", true));
         }
         final String newValue = entry.getNewValue();
-        if (StringUtils.isNotBlank(newValue) && !"null".equals(newValue)) {
+        if (StringUtils.isNotBlank(newValue) && !"null" .equals(newValue)) {
           final List<String> newGroupNames = userService.getUserNames(newValue);
           entry.setNewValue(StringHelper.listToString(newGroupNames, ", ", true));
         }

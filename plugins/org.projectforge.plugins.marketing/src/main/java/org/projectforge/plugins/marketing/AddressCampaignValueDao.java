@@ -38,8 +38,6 @@ import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.persistence.EntityManager;
@@ -93,7 +91,6 @@ public class AddressCampaignValueDao extends BaseDao<AddressCampaignValueDO> {
     addressCampaignValue.setAddress(address);
   }
 
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
   public void massUpdate(final List<AddressDO> list, final AddressCampaignDO addressCampaign, final String value,
                          final String comment) {
     if (list == null || list.size() == 0) {
@@ -101,7 +98,7 @@ public class AddressCampaignValueDao extends BaseDao<AddressCampaignValueDO> {
       return;
     }
     if (list.size() > MAX_MASS_UPDATE) {
-      throw new UserException(MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N, new Object[]{MAX_MASS_UPDATE});
+      throw new UserException(MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N, MAX_MASS_UPDATE);
     }
     for (final AddressDO address : list) {
       AddressCampaignValueDO addressCampaignValue = get(address.getId(), addressCampaign.getId());
@@ -175,7 +172,7 @@ public class AddressCampaignValueDao extends BaseDao<AddressCampaignValueDO> {
     for (DiffEntry prop : entry.getDiffEntries()) {
       DisplayHistoryEntry se = new DisplayHistoryEntry(getUserGroupCache(), entry, prop, em) {
         @Override
-        protected Object getObjectValue(UserGroupCache userGroupCache,EntityManager em, HistProp prop) {
+        protected Object getObjectValue(UserGroupCache userGroupCache, EntityManager em, HistProp prop) {
           if (prop == null) {
             return null;
           }

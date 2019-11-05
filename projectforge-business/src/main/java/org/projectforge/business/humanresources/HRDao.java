@@ -43,8 +43,6 @@ import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -70,7 +68,6 @@ public class HRDao implements IDao<HRViewData> {
    * Rows contains the users and the last row contains the total sums. Columns of each rows are the man days of the
    * projects (see getProjectNames)
    */
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public HRViewData getResources(final HRFilter filter) {
     final HRViewData data = new HRViewData(filter);
     if (filter.getStartTime() == null) {
@@ -173,7 +170,6 @@ public class HRDao implements IDao<HRViewData> {
    *
    * @return Result list (may be empty but never null).
    */
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<PFUserDO> getUnplannedResources(final HRViewData data) {
     final List<PFUserDO> users = new ArrayList<>();
     final QueryFilter queryFilter = new QueryFilter(new BaseSearchFilter());

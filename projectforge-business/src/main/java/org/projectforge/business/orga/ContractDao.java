@@ -35,8 +35,6 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.Tuple;
 import java.util.List;
@@ -46,18 +44,15 @@ import java.util.List;
  */
 @Repository
 public class ContractDao extends BaseDao<ContractDO> {
-  private final static int START_NUMBER = 1000;
-
   public static final UserRightId USER_RIGHT_ID = UserRightId.ORGA_CONTRACTS;
-
+  private final static int START_NUMBER = 1000;
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ContractDao.class);
+  private static final String[] ENABLED_AUTOCOMPLETION_PROPERTIES = {"title", "coContractorA", "coContractorB", "contractPersonA", "contractPersonB", "signerA", "signerB"};
 
   public ContractDao() {
     super(ContractDO.class);
     userRightId = USER_RIGHT_ID;
   }
-
-  private static final String[] ENABLED_AUTOCOMPLETION_PROPERTIES = {"title", "coContractorA", "coContractorB", "contractPersonA", "contractPersonB", "signerA", "signerB"};
 
   @Override
   public boolean isAutocompletionPropertyEnabled(String property) {
@@ -66,7 +61,6 @@ public class ContractDao extends BaseDao<ContractDO> {
   }
 
   @Override
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<ContractDO> getList(final BaseSearchFilter filter) throws AccessException {
     final ContractFilter myFilter;
     if (filter instanceof ContractFilter) {
@@ -130,7 +124,6 @@ public class ContractDao extends BaseDao<ContractDO> {
    *                 assured that this contract has an unchanged number.
    */
   @SuppressWarnings("unchecked")
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public Integer getNextNumber(final ContractDO contract) {
     if (contract.getId() != null) {
       final ContractDO orig = internalGetById(contract.getId());

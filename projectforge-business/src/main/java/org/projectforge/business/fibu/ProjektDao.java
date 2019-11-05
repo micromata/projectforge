@@ -37,18 +37,14 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.NoResultException;
 import java.util.List;
 
 @Repository
 public class ProjektDao extends BaseDao<ProjektDO> {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjektDao.class);
-
   public static final UserRightId USER_RIGHT_ID = UserRightId.PM_PROJECT;
-
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjektDao.class);
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"kunde.name", "kunde.division", "kost2",
           "projektManagerGroup.name"};
 
@@ -132,7 +128,6 @@ public class ProjektDao extends BaseDao<ProjektDO> {
   }
 
   @SuppressWarnings("unchecked")
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public ProjektDO getProjekt(final KundeDO kunde, final int nummer) {
     return emgrFactory.runRoTrans(emgr -> {
       try {
@@ -145,7 +140,6 @@ public class ProjektDao extends BaseDao<ProjektDO> {
   }
 
   @SuppressWarnings("unchecked")
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public ProjektDO getProjekt(final int intern_kost2_4, final int nummer) {
     return SQLHelper.ensureUniqueResult(em
             .createNamedQuery(ProjektDO.FIND_BY_INTERNKOST24_AND_NUMMER, ProjektDO.class)
@@ -154,7 +148,6 @@ public class ProjektDao extends BaseDao<ProjektDO> {
   }
 
   @Override
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<ProjektDO> getList(final BaseSearchFilter filter) {
     final ProjektFilter myFilter;
     if (filter instanceof ProjektFilter) {
@@ -172,7 +165,6 @@ public class ProjektDao extends BaseDao<ProjektDO> {
     return getList(queryFilter);
   }
 
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<ProjektDO> getKundenProjekte(final Integer kundeId) {
     if (kundeId == null) {
       return null;

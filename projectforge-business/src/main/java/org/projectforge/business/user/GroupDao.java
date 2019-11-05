@@ -38,9 +38,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -191,7 +188,6 @@ public class GroupDao extends BaseDao<GroupDO> {
    * @param groupsToUnassign Groups to unassign (nullable).
    * @throws AccessException
    */
-  @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
   public void assignGroups(final PFUserDO user, final Set<GroupDO> groupsToAssign, final Set<GroupDO> groupsToUnassign, final boolean updateUserGroupCache) {
     final List<GroupDO> assignedGroups = new ArrayList<>();
     final List<GroupDO> unassignedGroups = new ArrayList<>();
@@ -246,7 +242,6 @@ public class GroupDao extends BaseDao<GroupDO> {
     }
   }
 
-  @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
   public void assignGroups(final PFUserDO user, final Set<GroupDO> groupsToAssign, final Set<GroupDO> groupsToUnassign)
           throws AccessException {
     assignGroups(user, groupsToAssign, groupsToUnassign, true);

@@ -47,9 +47,6 @@ import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -71,6 +68,16 @@ public class UserDao extends BaseDao<PFUserDO> {
 
   public UserDao() {
     super(PFUserDO.class);
+  }
+
+  public static List<PFUserDO> copyUsersWithoutSecrectFields(List<PFUserDO> list) {
+    if (list == null)
+      return null;
+    List<PFUserDO> result = new ArrayList<>(list.size());
+    for (PFUserDO user : list) {
+      result.add(PFUserDO.createCopyWithoutSecretFields(user));
+    }
+    return result;
   }
 
   /**
@@ -100,7 +107,6 @@ public class UserDao extends BaseDao<PFUserDO> {
     return new QueryFilter(filter, true);
   }
 
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   @Override
   public List<PFUserDO> getList(final BaseSearchFilter filter) {
     final PFUserFilter myFilter;
@@ -184,7 +190,6 @@ public class UserDao extends BaseDao<PFUserDO> {
     return copyUsersWithoutSecrectFields(super.internalLoadAll(tenant));
   }
 
-
   /**
    * Removes secret fields for security reasons by copying all users without secret fields.
    * Result elements are evicted.
@@ -207,22 +212,11 @@ public class UserDao extends BaseDao<PFUserDO> {
     return copyUsersWithoutSecrectFields(super.getListByIds(idList));
   }
 
-  public static List<PFUserDO> copyUsersWithoutSecrectFields(List<PFUserDO> list) {
-    if (list == null)
-      return null;
-    List<PFUserDO> result = new ArrayList<>(list.size());
-    for (PFUserDO user : list) {
-      result.add(PFUserDO.createCopyWithoutSecretFields(user));
-    }
-    return result;
-  }
-
   /**
    * Removes secret fields for security reasons.
    *
    * @see BaseDao#getOrLoad(Integer)
    */
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   @Override
   public PFUserDO getOrLoad(Integer id) {
     return PFUserDO.createCopyWithoutSecretFields(super.getOrLoad(id));
@@ -444,7 +438,6 @@ public class UserDao extends BaseDao<PFUserDO> {
    * Returns the user's authentication token if exists (must be not blank with a size >= 10). If not, a new token key
    * will be generated.
    */
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
   public String getAuthenticationToken(final Integer userId) {
     final PFUserDO user = internalGetById(userId);
     if (StringUtils.isBlank(user.getAuthenticationToken()) || user.getAuthenticationToken().trim().length() < 10) {
@@ -460,7 +453,6 @@ public class UserDao extends BaseDao<PFUserDO> {
   /**
    * Renews the user's authentication token (random string sequence).
    */
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
   public void renewAuthenticationToken(final Integer userId) {
     if (!ThreadLocalUserContext.getUserId().equals(userId)) {
       // Only admin users are able to renew authentication token of other users:
@@ -479,7 +471,6 @@ public class UserDao extends BaseDao<PFUserDO> {
     return NumberHelper.getSecureRandomUrlSaveString(AUTHENTICATION_TOKEN_LENGTH);
   }
 
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public PFUserDO getInternalByName(final String username) {
     return em.createNamedQuery(PFUserDO.FIND_BY_USERNAME, PFUserDO.class)
             .setParameter("username", username)
@@ -492,7 +483,6 @@ public class UserDao extends BaseDao<PFUserDO> {
    *
    * @param user
    */
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
   public void updateMyAccount(final PFUserDO user) {
     accessChecker.checkRestrictedOrDemoUser();
     final PFUserDO contextUser = ThreadLocalUserContext.getUser();

@@ -36,10 +36,11 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.criteria.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.JoinType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -90,7 +91,6 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
    */
   @Override
   @SuppressWarnings("unchecked")
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<GroupTaskAccessDO> internalLoadAll() {
     CriteriaBuilder cb = em.getCriteriaBuilder();
     CriteriaQuery<GroupTaskAccessDO> cr = cb.createQuery(GroupTaskAccessDO.class);
@@ -110,7 +110,6 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
   }
 
   @SuppressWarnings("unchecked")
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public GroupTaskAccessDO getEntry(final TaskDO task, final GroupDO group) {
     Validate.notNull(task);
     Validate.notNull(task.getId());

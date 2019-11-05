@@ -188,7 +188,6 @@ public class KostCache extends AbstractCache {
   /**
    * Should be called after user modifications.
    */
-  //@Transactional(readOnly = true, isolation = Isolation.READ_UNCOMMITTED, propagation = Propagation.REQUIRES_NEW)
   void updateKost2(final Kost2DO kost2) {
     getKost2Map().put(kost2.getId(), kost2);
   }
@@ -200,7 +199,6 @@ public class KostCache extends AbstractCache {
     getKost1Map().put(kost1.getId(), kost1);
   }
 
-  //@Transactional(readOnly = true, isolation = Isolation.READ_UNCOMMITTED, propagation = Propagation.REQUIRES_NEW)
   void updateKost2Arts() {
     List<Kost2ArtDO> result = em.createQuery("from Kost2ArtDO t where t.deleted = false order by t.id",
             Kost2ArtDO.class)
@@ -229,7 +227,6 @@ public class KostCache extends AbstractCache {
    * This method will be called by CacheHelper and is synchronized via getData();
    */
   @Override
-  //@Transactional(readOnly = true, isolation = Isolation.READ_UNCOMMITTED, propagation = Propagation.REQUIRES_NEW)
   protected void refresh() {
     log.info("Initializing KostCache ...");
     // This method must not be synchronized because it works with a new copy of maps.

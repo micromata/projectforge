@@ -43,9 +43,6 @@ import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.NoResultException;
 import javax.persistence.NonUniqueResultException;
@@ -196,7 +193,6 @@ public class CalEventDao extends BaseDao<CalEventDO> {
    * Handles deletion of series element (if any) for future and single events of a series.
    */
   @Override
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
   public void internalMarkAsDeleted(final CalEventDO obj) {
     ICalendarEvent selectedEvent = (ICalendarEvent) obj.removeTransientAttribute(ATTR_SELECTED_ELEMENT); // Must be removed, otherwise update below will handle this attrs again.
     SeriesModificationMode mode = (SeriesModificationMode) obj.removeTransientAttribute(ATTR_SERIES_MODIFICATION_MODE);

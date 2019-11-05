@@ -33,8 +33,6 @@ import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -47,21 +45,20 @@ public class Kost1Dao extends BaseDao<Kost1DO> {
   @Autowired
   private KostCache kostCache;
 
-  @Override
-  protected String[] getAdditionalSearchFields() {
-    return ADDITIONAL_SEARCH_FIELDS;
-  }
-
   public Kost1Dao() {
     super(Kost1DO.class);
     userRightId = USER_RIGHT_ID;
+  }
+
+  @Override
+  protected String[] getAdditionalSearchFields() {
+    return ADDITIONAL_SEARCH_FIELDS;
   }
 
   /**
    * @param kostString Format ######## or #.###.##.## is supported.
    * @see #getKost1(int, int, int, int)
    */
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public Kost1DO getKost1(final String kostString) {
     final int[] kost = KostHelper.parseKostString(kostString);
     if (kost == null) {
@@ -70,7 +67,6 @@ public class Kost1Dao extends BaseDao<Kost1DO> {
     return getKost1(kost[0], kost[1], kost[2], kost[3]);
   }
 
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public Kost1DO getKost1(final int nummernkreis, final int bereich, final int teilbereich, final int endziffer) {
     return SQLHelper.ensureUniqueResult(em
             .createNamedQuery(Kost1DO.FIND_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER, Kost1DO.class)
@@ -81,7 +77,6 @@ public class Kost1Dao extends BaseDao<Kost1DO> {
   }
 
   @Override
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<Kost1DO> getList(final BaseSearchFilter filter) {
     final KostFilter myFilter;
     if (filter instanceof KostFilter) {
