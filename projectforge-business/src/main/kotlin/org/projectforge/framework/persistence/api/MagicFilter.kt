@@ -44,7 +44,7 @@ class MagicFilter(
         /**
          * If true, any searchstring (alphanumeric) without wildcard will be changed to '<searchString>*'.
          */
-        var autoStartWithSearch: Boolean = false,
+        var autoWildcardSearch: Boolean = false,
         /**
          * Extend the filter by additional variables and settings.
          */
