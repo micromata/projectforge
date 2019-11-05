@@ -94,7 +94,8 @@ public class GanttChartTest extends AbstractTestBase {
     GanttTask ganttObject = ganttChartDao.readGanttObjects(ganttChartDO).getRootObject();
     ganttChartDao.writeGanttObjects(ganttChartDO, ganttObject);
     assertEquals(xml, ganttChartDO.getGanttObjectsAsXml());
-    assertEquals(BigDecimal.TEN, findById(ganttObject, getTask(prefix + "1").getId()).getDuration(), "duration");
+    BigDecimal duration = findById(ganttObject, getTask(prefix + "1").getId()).getDuration();
+    assertTrue(BigDecimal.TEN.compareTo(duration) == 0, "duration " + duration + "!=10!");
     assertEquals(dh.getDate(), findById(ganttObject, getTask(prefix + "1").getId()).getStartDate(), "startDate");
 
     initTestDB.addTask(prefix + "II", "root");
