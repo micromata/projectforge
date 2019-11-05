@@ -31,6 +31,7 @@ import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.api.UserRightService;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
@@ -58,6 +59,9 @@ public class PersonalAddressDao {
 
   @Autowired
   private EntityManager em;
+
+  @Autowired
+  private PfEmgrFactory emgrFactory;
 
   @Autowired
   private AddressbookDao addressbookDao;
@@ -139,7 +143,10 @@ public class PersonalAddressDao {
     checkAccess(obj);
     obj.setCreated();
     obj.setLastUpdate();
-    em.persist(obj);
+    emgrFactory.runInTrans(emgr -> {
+      emgr.persist(obj);
+      return null;
+    });
     log.info("New object added (" + obj.getId() + "): " + obj.toString());
     return obj.getId();
   }

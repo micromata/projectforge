@@ -31,6 +31,9 @@ import org.projectforge.business.address.PersonalAddressDao;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class PersonalAddressTest extends AbstractTestBase {
@@ -44,38 +47,36 @@ public class PersonalAddressTest extends AbstractTestBase {
   public void testSaveAndUpdate() {
     logon(AbstractTestBase.ADMIN);
     final Integer[] addressIds = new Integer[1];
-    emf.runInTrans(emgr -> {
-      AddressDO address = new AddressDO();
-      address.setFirstName("Kai");
-      address.setName("Reinhard");
-      address.setMobilePhone("+49 170 123 456");
-      address.setFax("+49 561 316793-11");
-      address.setBusinessPhone("+49 561 316793-0");
-      address.setPrivatePhone("+49 561 12345678");
-      addressIds[0] = (Integer) addressDao.save(address);
+    AddressDO address = new AddressDO();
+    address.setFirstName("Kai");
+    address.setName("Reinhard");
+    address.setMobilePhone("+49 170 123 456");
+    address.setFax("+49 561 316793-11");
+    address.setBusinessPhone("+49 561 316793-0");
+    address.setPrivatePhone("+49 561 12345678");
+    addressIds[0] = (Integer) addressDao.save(address);
 
-      PersonalAddressDO personalAddress = new PersonalAddressDO();
-      AddressDO a = addressDao.getOrLoad(addressIds[0]);
-      personalAddress.setAddress(a);
-      personalAddress.setOwner(getUser(AbstractTestBase.ADMIN));
-      personalAddress.setFavoriteCard(true);
-      personalAddress.setFavoriteBusinessPhone(true);
-      personalAddress.setFavoriteMobilePhone(true);
-      personalAddressDao.saveOrUpdate(personalAddress);
-      return null;
-    });
+    PersonalAddressDO personalAddress = new PersonalAddressDO();
+    AddressDO a = addressDao.getOrLoad(addressIds[0]);
+    personalAddress.setAddress(a);
+    personalAddress.setOwner(getUser(AbstractTestBase.ADMIN));
+    personalAddress.setFavoriteCard(true);
+    personalAddress.setFavoriteBusinessPhone(true);
+    personalAddress.setFavoriteMobilePhone(true);
+    personalAddressDao.saveOrUpdate(personalAddress);
 
-    emf.runInTrans(emgr -> {
-      PersonalAddressDO personalAddress = personalAddressDao.getByAddressId(addressIds[0]);
-      assertEquals(personalAddress.getAddressId(), addressIds[0]);
-      assertEquals(personalAddress.getOwnerId(), getUser(AbstractTestBase.ADMIN).getId());
-      assertTrue(personalAddress.isFavoriteCard());
-      assertTrue(personalAddress.isFavoriteBusinessPhone());
-      assertTrue(personalAddress.isFavoriteMobilePhone());
-      assertFalse(personalAddress.isFavoritePrivatePhone());
-      assertFalse(personalAddress.isFavoriteFax());
-      return null;
-    });
+    CriteriaBuilder cb = em.getCriteriaBuilder();
+    CriteriaQuery<PersonalAddressDO> cq = cb.createQuery(PersonalAddressDO.class);
+    CriteriaQuery<PersonalAddressDO> query = cq.select(cq.from(PersonalAddressDO.class));
+
+    personalAddress = personalAddressDao.getByAddressId(addressIds[0]);
+    assertEquals(personalAddress.getAddressId(), addressIds[0]);
+    assertEquals(personalAddress.getOwnerId(), getUser(AbstractTestBase.ADMIN).getId());
+    assertTrue(personalAddress.isFavoriteCard());
+    assertTrue(personalAddress.isFavoriteBusinessPhone());
+    assertTrue(personalAddress.isFavoriteMobilePhone());
+    assertFalse(personalAddress.isFavoritePrivatePhone());
+    assertFalse(personalAddress.isFavoriteFax());
 
     /*
      * txTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW); txTemplate.execute(new
