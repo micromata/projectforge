@@ -86,8 +86,7 @@ public class ContractDao extends BaseDao<ContractDO> {
    * List of all years with contracts: select min(date), max(date) from t_contract.
    */
   public int[] getYears() {
-    final Tuple minMaxDate = em.createNamedQuery(ContractDO.SELECT_MIN_MAX_DATE, Tuple.class)
-            .getSingleResult();
+    final Tuple minMaxDate =  SQLHelper.ensureUniqueResult(em.createNamedQuery(ContractDO.SELECT_MIN_MAX_DATE, Tuple.class));
     return SQLHelper.getYears((java.sql.Date) minMaxDate.get(0), (java.sql.Date) minMaxDate.get(1));
   }
 
@@ -107,10 +106,9 @@ public class ContractDao extends BaseDao<ContractDO> {
         throw new UserException("legalAffaires.contract.error.numberNotConsecutivelyNumbered").setCausedByField("number");
       }
     } else {
-      ContractDO other = em.createNamedQuery(ContractDO.FIND_OTHER_BY_NUMBER, ContractDO.class)
+      ContractDO other =  SQLHelper.ensureUniqueResult(em.createNamedQuery(ContractDO.FIND_OTHER_BY_NUMBER, ContractDO.class)
               .setParameter("number", obj.getNumber())
-              .setParameter("id", obj.getId())
-              .getSingleResult();
+              .setParameter("id", obj.getId()));
       if (other != null) {
         throw new UserException("legalAffaires.contract.error.numberAlreadyExists").setCausedByField("number");
       }

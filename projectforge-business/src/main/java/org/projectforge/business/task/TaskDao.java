@@ -41,6 +41,7 @@ import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
+import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -177,7 +178,7 @@ public class TaskDao extends BaseDao<TaskDO> {
       TypedQuery<Long> typedQuery = em.createQuery(
               "select " + intervalInSeconds + " from TimesheetDO where task.id=:taskId group by task.id",
               Long.class).setParameter("taskId", taskId);
-      Long value = typedQuery.getSingleResult();
+      Long value = SQLHelper.ensureUniqueResult(typedQuery);
       // select DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime") from TimesheetDO where task.id = :taskId and deleted=false")
       if (value == null) {
         return 0L;

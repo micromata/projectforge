@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.EntityManager;
 import javax.sql.DataSource;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -225,7 +226,11 @@ public class MebDao extends BaseDao<MebEntryDO> {
       imported.setCreated();
       imported.setLastUpdate();
       imported.setSource(source);
-      em.persist(imported);
+      emgrFactory.runInTrans(emgr -> {
+        EntityManager em = emgr.getEntityManager();
+        em.persist(imported);
+        return null;
+      });
       return true;
     }
   }

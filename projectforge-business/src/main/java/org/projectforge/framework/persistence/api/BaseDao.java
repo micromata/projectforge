@@ -738,7 +738,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
       log.error(msg);
       throw new RuntimeException(msg);
     }
-    final O dbObj = em.getReference(clazz, obj.getId());
+    final O dbObj = em.find(clazz, obj.getId());
     checkPartOfCurrentTenant(obj, OperationType.DELETE);
     checkLoggedInUserDeleteAccess(obj, dbObj);
     accessChecker.checkRestrictedOrDemoUser();
@@ -781,7 +781,11 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     final O dbObj = em.getReference(clazz, obj.getId());
     checkPartOfCurrentTenant(obj, OperationType.DELETE);
     checkLoggedInUserDeleteAccess(obj, dbObj);
-    em.remove(dbObj);
+    emgrFactory.runInTrans(emgr -> {
+      EntityManager em = emgr.getEntityManager();
+      em.remove(dbObj);
+      return null;
+    });
     if (logDatabaseActions) {
       log.info(clazz.getSimpleName() + " deleted: " + obj.toString());
     }

@@ -43,6 +43,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
+import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -413,20 +414,18 @@ public class UserDao extends BaseDao<PFUserDO> {
       dbUser = getInternalByName(user.getUsername());
     } else {
       // user already exists. Check maybe changed username:
-      dbUser = em.createNamedQuery(PFUserDO.FIND_OTHER_USER_BY_USERNAME, PFUserDO.class)
+      dbUser = SQLHelper.ensureUniqueResult(em.createNamedQuery(PFUserDO.FIND_OTHER_USER_BY_USERNAME, PFUserDO.class)
               .setParameter("username", user.getUsername())
-              .setParameter("id", user.getId())
-              .getSingleResult();
+              .setParameter("id", user.getId()));
     }
     return dbUser != null;
   }
 
   public PFUserDO getUserByAuthenticationToken(final Integer userId, final String authKey) {
-    final PFUserDO user = em
+    final PFUserDO user = SQLHelper.ensureUniqueResult(em
             .createNamedQuery(PFUserDO.FIND_BY_USERID_AND_AUTHENTICATIONTOKEN, PFUserDO.class)
             .setParameter("id", userId)
-            .setParameter("authenticationToken", authKey)
-            .getSingleResult();
+            .setParameter("authenticationToken", authKey));
     if (user != null && !user.hasSystemAccess()) {
       log.warn("Deleted user tried to login (via authentication token): " + user);
       return null;
@@ -472,9 +471,8 @@ public class UserDao extends BaseDao<PFUserDO> {
   }
 
   public PFUserDO getInternalByName(final String username) {
-    return em.createNamedQuery(PFUserDO.FIND_BY_USERNAME, PFUserDO.class)
-            .setParameter("username", username)
-            .getSingleResult();
+    return SQLHelper.ensureUniqueResult(em.createNamedQuery(PFUserDO.FIND_BY_USERNAME, PFUserDO.class)
+            .setParameter("username", username));
   }
 
   /**

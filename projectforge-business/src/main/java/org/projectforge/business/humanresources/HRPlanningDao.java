@@ -133,17 +133,15 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
     final HRPlanningDO other;
     if (planningId == null) {
       // New entry
-      other = em.createNamedQuery(HRPlanningDO.FIND_BY_USER_AND_WEEK, HRPlanningDO.class)
+      other = SQLHelper.ensureUniqueResult(em.createNamedQuery(HRPlanningDO.FIND_BY_USER_AND_WEEK, HRPlanningDO.class)
               .setParameter("userId", userId)
-              .setParameter("week", week)
-              .getSingleResult();
+              .setParameter("week", week));
     } else {
       // Entry already exists. Check collision:
-      other = em.createNamedQuery(HRPlanningDO.FIND_OTHER_BY_USER_AND_WEEK, HRPlanningDO.class)
+      other = SQLHelper.ensureUniqueResult(em.createNamedQuery(HRPlanningDO.FIND_OTHER_BY_USER_AND_WEEK, HRPlanningDO.class)
               .setParameter("userId", userId)
               .setParameter("week", week)
-              .setParameter("id", planningId)
-              .getSingleResult();
+              .setParameter("id", planningId));
     }
     return other != null;
   }

@@ -62,8 +62,7 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO> {
    * List of all years with invoices: select min(datum), max(datum) from t_fibu_rechnung.
    */
   public int[] getYears() {
-    final Tuple minMaxDate = em.createNamedQuery(EingangsrechnungDO.SELECT_MIN_MAX_DATE, Tuple.class)
-            .getSingleResult();
+    final Tuple minMaxDate = SQLHelper.ensureUniqueResult(em.createNamedQuery(EingangsrechnungDO.SELECT_MIN_MAX_DATE, Tuple.class));
     return SQLHelper.getYears((java.sql.Date) minMaxDate.get(0), (java.sql.Date) minMaxDate.get(1));
   }
 

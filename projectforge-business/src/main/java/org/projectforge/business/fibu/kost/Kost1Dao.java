@@ -109,13 +109,12 @@ public class Kost1Dao extends BaseDao<Kost1DO> {
       other = getKost1(obj.getNummernkreis(), obj.getBereich(), obj.getTeilbereich(), obj.getEndziffer());
     } else {
       // entry already exists. Check maybe changed:
-      other = em.createNamedQuery(Kost1DO.FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER, Kost1DO.class)
+      other = SQLHelper.ensureUniqueResult(em.createNamedQuery(Kost1DO.FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER, Kost1DO.class)
               .setParameter("nummernkreis", obj.getNummernkreis())
               .setParameter("bereich", obj.getBereich())
               .setParameter("teilbereich", obj.getTeilbereich())
               .setParameter("endziffer", obj.getEndziffer())
-              .setParameter("id", obj.getId())
-              .getSingleResult();
+              .setParameter("id", obj.getId()));
     }
     if (other != null) {
       throw new UserException("fibu.kost.error.collision");
