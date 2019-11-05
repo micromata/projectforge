@@ -58,7 +58,6 @@ class EingangsrechnungRest : AbstractDORest<EingangsrechnungDO, Eingangsrechnung
      */
     override fun createEditLayout(dto: EingangsrechnungDO, userAccess: UILayout.UserAccess): UILayout {
         val layout = super.createEditLayout(dto, userAccess)
-                .add(UILabel())
                 .add(lc, "betreff")
                 .add(UIRow()
                         .add(UICol()
