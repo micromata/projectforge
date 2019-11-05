@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import java.util.*;
 
 /**
@@ -186,26 +187,24 @@ public class KostCache extends AbstractCache {
 
   /**
    * Should be called after user modifications.
-   *
-   * @param user
    */
+  //@Transactional(readOnly = true, isolation = Isolation.READ_UNCOMMITTED, propagation = Propagation.REQUIRES_NEW)
   void updateKost2(final Kost2DO kost2) {
     getKost2Map().put(kost2.getId(), kost2);
   }
 
   /**
    * Should be called after user modifications.
-   *
-   * @param user
    */
   void updateKost1(final Kost1DO kost1) {
     getKost1Map().put(kost1.getId(), kost1);
   }
 
-  @SuppressWarnings("unchecked")
+  //@Transactional(readOnly = true, isolation = Isolation.READ_UNCOMMITTED, propagation = Propagation.REQUIRES_NEW)
   void updateKost2Arts() {
-    final List<Kost2ArtDO> result = em.createQuery("from Kost2ArtDO t where t.deleted = false order by t.id",
+    List<Kost2ArtDO> result = em.createQuery("from Kost2ArtDO t where t.deleted = false order by t.id",
             Kost2ArtDO.class)
+            .setLockMode(LockModeType.NONE)
             .getResultList();
     final List<Kost2Art> list = new ArrayList<>();
     for (final Kost2ArtDO kost2ArtDO : result) {
@@ -230,18 +229,22 @@ public class KostCache extends AbstractCache {
    * This method will be called by CacheHelper and is synchronized via getData();
    */
   @Override
-  @SuppressWarnings("unchecked")
+  //@Transactional(readOnly = true, isolation = Isolation.READ_UNCOMMITTED, propagation = Propagation.REQUIRES_NEW)
   protected void refresh() {
     log.info("Initializing KostCache ...");
     // This method must not be synchronized because it works with a new copy of maps.
     final Map<Integer, Kost1DO> map1 = new HashMap<>();
-    final List<Kost1DO> list1 = em.createQuery("from Kost1DO t", Kost1DO.class).getResultList();
+    final List<Kost1DO> list1 = em.createQuery("from Kost1DO t", Kost1DO.class)
+            .setLockMode(LockModeType.NONE)
+            .getResultList();
     for (final Kost1DO kost1 : list1) {
       map1.put(kost1.getId(), kost1);
     }
     this.kost1Map = map1;
     final Map<Integer, Kost2DO> map2 = new HashMap<>();
-    final List<Kost2DO> list2 = em.createQuery("from Kost2DO t", Kost2DO.class).getResultList();
+    final List<Kost2DO> list2 = em.createQuery("from Kost2DO t", Kost2DO.class)
+            .setLockMode(LockModeType.NONE)
+            .getResultList();
     kost2EntriesExists = false;
     for (final Kost2DO kost2 : list2) {
       if (!kost2EntriesExists && !kost2.isDeleted()) {
@@ -253,5 +256,4 @@ public class KostCache extends AbstractCache {
     updateKost2Arts();
     log.info("Initializing of KostCache done.");
   }
-
 }
