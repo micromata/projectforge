@@ -33,9 +33,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
 import java.security.MessageDigest;
@@ -50,21 +47,20 @@ import java.util.List;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class MebDao extends BaseDao<MebEntryDO> {
-  private static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MebDao.class);
-
   public static final UserRightId USER_RIGHT_ID = UserRightId.MISC_MEB;
-
   public static final String DATE_FORMAT = "yyyyMMddHHmmss";
-
+  private static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MebDao.class);
+  private final MebCache mebCache = new MebCache(this);
   @Autowired
   private DataSource dataSource;
-
   @Autowired
   private UserDao userDao;
 
-  private final MebCache mebCache = new MebCache(this);
+  public MebDao() {
+    super(MebEntryDO.class);
+    userRightId = USER_RIGHT_ID;
+  }
 
   /**
    * Removes all non digit and letter characters (also white-spaces) first. Afterward a MD5 checksum is calculated.
@@ -119,11 +115,6 @@ public class MebDao extends BaseDao<MebEntryDO> {
       }
     }
     return date;
-  }
-
-  public MebDao() {
-    super(MebEntryDO.class);
-    userRightId = USER_RIGHT_ID;
   }
 
   /**
@@ -186,7 +177,6 @@ public class MebDao extends BaseDao<MebEntryDO> {
    * @return Number of new imported messages.
    */
   @SuppressWarnings("unchecked")
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
   public boolean checkAndAddEntry(final MebEntryDO entry, final String source) {
     Validate.notNull(entry.getSender());
     Validate.notNull(entry.getDate());

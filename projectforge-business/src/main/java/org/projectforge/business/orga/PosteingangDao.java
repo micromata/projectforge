@@ -31,23 +31,19 @@ import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.Tuple;
 import java.util.List;
 
 @Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class PosteingangDao extends BaseDao<PosteingangDO> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.ORGA_INCOMING_MAIL;
+  private static final String[] ENABLED_AUTOCOMPLETION_PROPERTIES = {"absender", "person", "inhalt"};
 
   protected PosteingangDao() {
     super(PosteingangDO.class);
     userRightId = USER_RIGHT_ID;
   }
-
-  private static final String[] ENABLED_AUTOCOMPLETION_PROPERTIES = {"absender", "person", "inhalt"};
 
   @Override
   public boolean isAutocompletionPropertyEnabled(String property) {

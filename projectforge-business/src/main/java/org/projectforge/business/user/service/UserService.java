@@ -49,8 +49,6 @@ import org.projectforge.framework.utils.Crypt;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -66,22 +64,14 @@ public class UserService implements UserChangedListener {
   private static final String MESSAGE_KEY_OLD_PASSWORD_WRONG = "user.changePassword.error.oldPasswordWrong";
 
   private static final String MESSAGE_KEY_LOGIN_PASSWORD_WRONG = "user.changeWlanPassword.error.loginPasswordWrong";
-
-  private UserGroupCache userGroupCache;
-
-  private Map<Integer, String> authenticationTokenCache = new HashMap<>();
-
-  private ConfigurationService configurationService;
-
-  private UserDao userDao;
-
-  private AccessChecker accessChecker;
-
-  private TenantService tenantService;
-
-  private PasswordQualityService passwordQualityService;
-
   private final UsersComparator usersComparator = new UsersComparator();
+  private UserGroupCache userGroupCache;
+  private Map<Integer, String> authenticationTokenCache = new HashMap<>();
+  private ConfigurationService configurationService;
+  private UserDao userDao;
+  private AccessChecker accessChecker;
+  private TenantService tenantService;
+  private PasswordQualityService passwordQualityService;
 
   /**
    * Needed by Wicket for proxying.
@@ -303,7 +293,6 @@ public class UserService implements UserChangedListener {
    * @param newPassword
    * @return Error message key if any check failed or null, if successfully changed.
    */
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
   public List<I18nKeyAndParams> changePassword(PFUserDO user, final String oldPassword, final String newPassword) {
     Validate.notNull(user);
     Validate.notNull(oldPassword);
@@ -335,7 +324,6 @@ public class UserService implements UserChangedListener {
    * @param newWlanPassword
    * @return Error message key if any check failed or null, if successfully changed.
    */
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
   public List<I18nKeyAndParams> changeWlanPassword(PFUserDO user, final String loginPassword, final String newWlanPassword) {
     Validate.notNull(user);
     Validate.notNull(loginPassword);
@@ -392,7 +380,6 @@ public class UserService implements UserChangedListener {
   }
 
   @SuppressWarnings("unchecked")
-  @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
   protected PFUserDO getUser(final String username, final String password, final boolean updateSaltAndPepperIfNeeded) {
     final List<PFUserDO> list = userDao.findByUsername(username);
     if (list == null || list.isEmpty() || list.get(0) == null) {
@@ -471,7 +458,6 @@ public class UserService implements UserChangedListener {
    * @param userId
    * @return
    */
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
   public String getStayLoggedInKey(final Integer userId) {
     final PFUserDO user = userDao.internalGetById(userId);
     if (StringUtils.isBlank(user.getStayLoggedInKey()) || user.getStayLoggedInKey().trim().length() < 10) {
@@ -484,7 +470,6 @@ public class UserService implements UserChangedListener {
   /**
    * Renews the user's stay-logged-in key (random string sequence).
    */
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
   public void renewStayLoggedInKey(final Integer userId) {
     if (!ThreadLocalUserContext.getUserId().equals(userId)) {
       // Only admin users are able to renew authentication token of other users:

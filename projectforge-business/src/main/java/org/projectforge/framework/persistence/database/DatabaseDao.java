@@ -43,9 +43,6 @@ import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.time.DayHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import java.util.Calendar;
@@ -59,9 +56,7 @@ import java.util.Locale;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-public class DatabaseDao
-{
+public class DatabaseDao {
   private static final int MIN_REINDEX_ENTRIES_4_USE_SCROLL_MODE = 2000;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DatabaseDao.class);
@@ -76,8 +71,7 @@ public class DatabaseDao
    *
    * @return
    */
-  public static ReindexSettings createReindexSettings(final boolean onlyNewest)
-  {
+  public static ReindexSettings createReindexSettings(final boolean onlyNewest) {
     if (onlyNewest) {
       final DayHolder day = new DayHolder();
       day.add(Calendar.DAY_OF_MONTH, -1); // Since yesterday:
@@ -87,22 +81,18 @@ public class DatabaseDao
     }
   }
 
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
-  public String rebuildDatabaseSearchIndices(final Class<?> clazz, final ReindexSettings settings)
-  {
+  public String rebuildDatabaseSearchIndices(final Class<?> clazz, final ReindexSettings settings) {
     if (currentReindexRun != null) {
       return "Another re-index job is already running. The job was started at: "
-          + DateTimeFormatter.instance().getFormattedDateTime(currentReindexRun, Locale.ENGLISH, DateHelper.UTC)
-          + " (UTC)";
+              + DateTimeFormatter.instance().getFormattedDateTime(currentReindexRun, Locale.ENGLISH, DateHelper.UTC)
+              + " (UTC)";
     }
     final StringBuffer buf = new StringBuffer();
     reindex(clazz, settings, buf);
     return buf.toString();
   }
 
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
-  public void reindex(final Class<?> clazz, final ReindexSettings settings, final StringBuffer buf)
-  {
+  public void reindex(final Class<?> clazz, final ReindexSettings settings, final StringBuffer buf) {
     if (currentReindexRun != null) {
       buf.append(" (cancelled due to another running index-job)");
       return;
@@ -122,8 +112,7 @@ public class DatabaseDao
   /**
    * @param clazz
    */
-  private long reindex(final Class<?> clazz, final ReindexSettings settings)
-  {
+  private long reindex(final Class<?> clazz, final ReindexSettings settings) {
     if (settings.getLastNEntries() != null || settings.getFromDate() != null) {
       // OK, only partly re-index required:
       return reindexObjects(clazz, settings);
@@ -136,8 +125,7 @@ public class DatabaseDao
     return reindexObjects(clazz, null);
   }
 
-  private boolean isIn(final Class<?> clazz, final Class<?>... classes)
-  {
+  private boolean isIn(final Class<?> clazz, final Class<?>... classes) {
     for (final Class<?> cls : classes) {
       if (clazz.equals(cls)) {
         return true;
@@ -146,19 +134,18 @@ public class DatabaseDao
     return false;
   }
 
-  private long reindexObjects(final Class<?> clazz, final ReindexSettings settings)
-  {
-    final Session session = (Session)em.getDelegate();
+  private long reindexObjects(final Class<?> clazz, final ReindexSettings settings) {
+    final Session session = (Session) em.getDelegate();
     Criteria criteria = createCriteria(session, clazz, settings, true);
     final Long number = (Long) criteria.uniqueResult(); // Get number of objects to re-index (select count(*) from).
     final boolean scrollMode = number > MIN_REINDEX_ENTRIES_4_USE_SCROLL_MODE;
     log.info("Starting re-indexing of "
-        + number
-        + " entries (total number) of type "
-        + clazz.getName()
-        + " with scrollMode="
-        + scrollMode
-        + "...");
+            + number
+            + " entries (total number) of type "
+            + clazz.getName()
+            + " with scrollMode="
+            + scrollMode
+            + "...");
     final int batchSize = 1000;// NumberUtils.createInteger(System.getProperty("hibernate.search.worker.batch_size")
     final FullTextSession fullTextSession = Search.getFullTextSession(session);
     HibernateCompatUtils.setFlushMode(fullTextSession, FlushMode.MANUAL);
@@ -200,9 +187,8 @@ public class DatabaseDao
   /**
    * @param clazz
    */
-  private long reindexMassIndexer(final Class<?> clazz)
-  {
-    final Session session = (Session)em.getDelegate();
+  private long reindexMassIndexer(final Class<?> clazz) {
+    final Session session = (Session) em.getDelegate();
     final Criteria criteria = createCriteria(session, clazz, null, true);
     final Long number = (Long) criteria.uniqueResult(); // Get number of objects to re-index (select count(*) from).
     log.info("Starting (mass) re-indexing of " + number + " entries of type " + clazz.getName() + "...");
@@ -210,11 +196,11 @@ public class DatabaseDao
     try {
 
       fullTextSession.createIndexer(clazz)//
-          .batchSizeToLoadObjects(25) //
-          //.cacheMode(CacheMode.NORMAL) //
-          .threadsToLoadObjects(5) //
-          //.threadsForIndexWriter(1) //
-          .startAndWait();
+              .batchSizeToLoadObjects(25) //
+              //.cacheMode(CacheMode.NORMAL) //
+              .threadsToLoadObjects(5) //
+              //.threadsForIndexWriter(1) //
+              .startAndWait();
     } catch (final InterruptedException ex) {
       log.error("Exception encountered while reindexing: " + ex.getMessage(), ex);
     }
@@ -226,8 +212,7 @@ public class DatabaseDao
   }
 
   private Criteria createCriteria(final Session session, final Class<?> clazz, final ReindexSettings settings,
-      final boolean rowCount)
-  {
+                                  final boolean rowCount) {
     final Criteria criteria = session.createCriteria(clazz);
     if (rowCount) {
       criteria.setProjection(Projections.rowCount());

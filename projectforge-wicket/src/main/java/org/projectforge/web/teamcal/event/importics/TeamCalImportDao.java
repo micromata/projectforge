@@ -23,10 +23,8 @@
 
 package org.projectforge.web.teamcal.event.importics;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
+import net.fortuna.ical4j.model.Calendar;
+import net.fortuna.ical4j.model.component.VEvent;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventService;
@@ -41,17 +39,13 @@ import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.framework.utils.ActionLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
-import net.fortuna.ical4j.model.Calendar;
-import net.fortuna.ical4j.model.component.VEvent;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 @Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-public class TeamCalImportDao
-{
+public class TeamCalImportDao {
   @Autowired
   private TeamEventService eventService;
 
@@ -61,17 +55,16 @@ public class TeamCalImportDao
    */
   private static final int INSERT_BLOCK_SIZE = 50;
 
-  private static final String[] DIFF_PROPERTIES = { "subject", "location", "allDay", "startDate", "endDate", "note",
-      "recurrenceRule",
-      "recurrenceUntil" };
+  private static final String[] DIFF_PROPERTIES = {"subject", "location", "allDay", "startDate", "endDate", "note",
+          "recurrenceRule",
+          "recurrenceUntil"};
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamCalImportDao.class);
 
   @Autowired
   private TeamEventDao teamEventDao;
 
-  public ImportStorage<TeamEventDO> importEvents(final Calendar calendar, final String filename, final ActionLog actionLog)
-  {
+  public ImportStorage<TeamEventDO> importEvents(final Calendar calendar, final String filename, final ActionLog actionLog) {
     ICalParser parser = ICalParser.parseAllFields();
     parser.parse(calendar);
     final List<TeamEventDO> events = parser.getExtractedEvents();
@@ -80,8 +73,7 @@ public class TeamCalImportDao
     return importEvents(events, filename, actionLog);
   }
 
-  public ImportStorage<TeamEventDO> importEvents(final List<VEvent> vEvents, final ActionLog actionLog)
-  {
+  public ImportStorage<TeamEventDO> importEvents(final List<VEvent> vEvents, final ActionLog actionLog) {
     final Calendar calendar = new Calendar();
     vEvents.forEach(event -> calendar.getComponents().add(event));
 
@@ -94,8 +86,7 @@ public class TeamCalImportDao
   }
 
   private ImportStorage<TeamEventDO> importEvents(final List<TeamEventDO> events, final String filename,
-      final ActionLog actionLog)
-  {
+                                                  final ActionLog actionLog) {
     log.info("Uploading ics file: '" + filename + "'...");
     final ImportStorage<TeamEventDO> storage = new ImportStorage<TeamEventDO>();
     storage.setFilename(filename);
@@ -107,7 +98,7 @@ public class TeamCalImportDao
     for (final TeamEventDO event : events) {
       actionLog.incrementCounterSuccess();
       final ImportedElement<TeamEventDO> element = new ImportedElement<TeamEventDO>(storage.nextVal(),
-          TeamEventDO.class, DIFF_PROPERTIES);
+              TeamEventDO.class, DIFF_PROPERTIES);
       element.setValue(event);
       importedSheet.addElement(element);
     }
@@ -116,8 +107,7 @@ public class TeamCalImportDao
   }
 
   @SuppressWarnings("unchecked")
-  public void reconcile(final ImportStorage<?> storage, final ImportedSheet<?> sheet, final Integer teamCalId)
-  {
+  public void reconcile(final ImportStorage<?> storage, final ImportedSheet<?> sheet, final Integer teamCalId) {
     Validate.notNull(storage.getSheets());
     Validate.notNull(sheet);
     reconcile((ImportedSheet<TeamEventDO>) sheet, teamCalId);
@@ -125,9 +115,7 @@ public class TeamCalImportDao
   }
 
   @SuppressWarnings("unchecked")
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
-  public void commit(final ImportStorage<?> storage, final ImportedSheet<?> sheet, final Integer teamCalId)
-  {
+  public void commit(final ImportStorage<?> storage, final ImportedSheet<?> sheet, final Integer teamCalId) {
     Validate.notNull(storage.getSheets());
     Validate.notNull(sheet);
     Validate.isTrue(sheet.getStatus() == ImportStatus.RECONCILED);
@@ -136,13 +124,11 @@ public class TeamCalImportDao
     sheet.setStatus(ImportStatus.IMPORTED);
   }
 
-  String getSheetName()
-  {
+  String getSheetName() {
     return ThreadLocalUserContext.getLocalizedString("plugins.teamcal.events");
   }
 
-  private void reconcile(final ImportedSheet<TeamEventDO> sheet, final Integer teamCalId)
-  {
+  private void reconcile(final ImportedSheet<TeamEventDO> sheet, final Integer teamCalId) {
     for (final ImportedElement<TeamEventDO> el : sheet.getElements()) {
       final TeamEventDO event = el.getValue();
       teamEventDao.setCalendar(event, teamCalId);
@@ -153,8 +139,7 @@ public class TeamCalImportDao
     sheet.calculateStatistics();
   }
 
-  private int commit(final ImportedSheet<TeamEventDO> sheet, final Integer teamCalId)
-  {
+  private int commit(final ImportedSheet<TeamEventDO> sheet, final Integer teamCalId) {
     log.info("Commit team events called");
     final Collection<TeamEventDO> col = new ArrayList<TeamEventDO>();
     for (final ImportedElement<TeamEventDO> el : sheet.getElements()) {

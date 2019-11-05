@@ -47,8 +47,6 @@ import org.projectforge.mail.Mail;
 import org.projectforge.mail.SendMail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.Tuple;
 import javax.persistence.criteria.JoinType;
@@ -98,6 +96,11 @@ public class AuftragDao extends BaseDao<AuftragDO> {
 
   private TaskTree taskTree;
 
+  public AuftragDao() {
+    super(AuftragDO.class);
+    userRightId = USER_RIGHT_ID;
+  }
+
   /**
    * Could not use injection by spring, because TaskTree is already injected in AuftragDao.
    *
@@ -105,11 +108,6 @@ public class AuftragDao extends BaseDao<AuftragDO> {
    */
   public void registerTaskTree(final TaskTree taskTree) {
     this.taskTree = taskTree;
-  }
-
-  public AuftragDao() {
-    super(AuftragDO.class);
-    userRightId = USER_RIGHT_ID;
   }
 
   @Override
@@ -251,7 +249,6 @@ public class AuftragDao extends BaseDao<AuftragDO> {
   /**
    * @param posString Format ###.## (&lt;order number&gt;.&lt;position number&gt;).
    */
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public AuftragsPositionDO getAuftragsPosition(final String posString) {
     Integer auftragsNummer;
     Short positionNummer;
@@ -611,7 +608,6 @@ public class AuftragDao extends BaseDao<AuftragDO> {
    * Gets the highest Auftragsnummer.
    */
   @SuppressWarnings("unchecked")
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public Integer getNextNumber() {
     return getNextNumber(null);
   }
@@ -624,7 +620,6 @@ public class AuftragDao extends BaseDao<AuftragDO> {
    *                Auftrag bekommt die alte Nummer wieder zugeordnet.
    */
   @SuppressWarnings("unchecked")
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public Integer getNextNumber(final AuftragDO auftrag) {
     if (auftrag != null && auftrag.getId() != null) {
       final AuftragDO orig = internalGetById(auftrag.getId());

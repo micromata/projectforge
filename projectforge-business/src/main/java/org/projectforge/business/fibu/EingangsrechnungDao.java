@@ -33,8 +33,6 @@ import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
@@ -42,16 +40,12 @@ import java.math.RoundingMode;
 import java.util.*;
 
 @Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
-{
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EingangsrechnungDao.class);
-
+public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.FIBU_EINGANGSRECHNUNGEN;
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EingangsrechnungDao.class);
+  private static final Class<?>[] ADDITIONAL_SEARCH_DOS = new Class[]{EingangsrechnungsPositionDO.class};
 
-  private static final Class<?>[] ADDITIONAL_SEARCH_DOS = new Class[] { EingangsrechnungsPositionDO.class };
-
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "positionen.text" };
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"positionen.text"};
 
   @Autowired
   private KontoDao kontoDao;
@@ -59,8 +53,7 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
   @Autowired
   private PfEmgrFactory pfEmgrFactory;
 
-  public EingangsrechnungDao()
-  {
+  public EingangsrechnungDao() {
     super(EingangsrechnungDO.class);
     userRightId = USER_RIGHT_ID;
   }
@@ -68,15 +61,13 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
   /**
    * List of all years with invoices: select min(datum), max(datum) from t_fibu_rechnung.
    */
-  public int[] getYears()
-  {
-    final Tuple minMaxDate = em.createNamedQuery(EingangsrechnungDO.SELECT_MIN_MAX_DATE,Tuple.class)
+  public int[] getYears() {
+    final Tuple minMaxDate = em.createNamedQuery(EingangsrechnungDO.SELECT_MIN_MAX_DATE, Tuple.class)
             .getSingleResult();
-    return SQLHelper.getYears((java.sql.Date)minMaxDate.get(0), (java.sql.Date)minMaxDate.get(1));
+    return SQLHelper.getYears((java.sql.Date) minMaxDate.get(0), (java.sql.Date) minMaxDate.get(1));
   }
 
-  public EingangsrechnungsStatistik buildStatistik(final List<EingangsrechnungDO> list)
-  {
+  public EingangsrechnungsStatistik buildStatistik(final List<EingangsrechnungDO> list) {
     final EingangsrechnungsStatistik stats = new EingangsrechnungsStatistik();
     if (list == null) {
       return stats;
@@ -92,8 +83,7 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
    * @param kontoId          If null, then konto will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
-  public void setKonto(final EingangsrechnungDO eingangsrechnung, final Integer kontoId)
-  {
+  public void setKonto(final EingangsrechnungDO eingangsrechnung, final Integer kontoId) {
     final KontoDO konto = kontoDao.getOrLoad(kontoId);
     eingangsrechnung.setKonto(konto);
   }
@@ -105,8 +95,7 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
    * wird.
    */
   @Override
-  protected void onSaveOrModify(final EingangsrechnungDO rechnung)
-  {
+  protected void onSaveOrModify(final EingangsrechnungDO rechnung) {
     AuftragAndRechnungDaoHelper.onSaveOrModify(rechnung);
 
     if (rechnung.getZahlBetrag() != null) {
@@ -130,14 +119,12 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
   }
 
   @Override
-  protected String[] getAdditionalSearchFields()
-  {
+  protected String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
   @Override
-  public List<EingangsrechnungDO> getList(final BaseSearchFilter filter)
-  {
+  public List<EingangsrechnungDO> getList(final BaseSearchFilter filter) {
     final EingangsrechnungListFilter myFilter;
     if (filter instanceof EingangsrechnungListFilter) {
       myFilter = (EingangsrechnungListFilter) filter;
@@ -186,8 +173,7 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#getDisplayHistoryEntries(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
-  public List<DisplayHistoryEntry> getDisplayHistoryEntries(final EingangsrechnungDO obj)
-  {
+  public List<DisplayHistoryEntry> getDisplayHistoryEntries(final EingangsrechnungDO obj) {
     final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(obj);
     if (!hasLoggedInUserHistoryAccess(obj, false)) {
       return list;
@@ -211,7 +197,7 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
               final String propertyName = entry.getPropertyName();
               if (propertyName != null) {
                 entry.setPropertyName(
-                    "#" + position.getNumber() + ".kost#" + zuweisung.getIndex() + ":" + entry.getPropertyName()); // Prepend
+                        "#" + position.getNumber() + ".kost#" + zuweisung.getIndex() + ":" + entry.getPropertyName()); // Prepend
                 // number of positon and index of zuweisung.
               } else {
                 entry.setPropertyName("#" + position.getNumber() + ".kost#" + zuweisung.getIndex());
@@ -232,8 +218,7 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
   }
 
   @Override
-  protected Class<?>[] getAdditionalHistorySearchDOs()
-  {
+  protected Class<?>[] getAdditionalHistorySearchDOs() {
     return ADDITIONAL_SEARCH_DOS;
   }
 
@@ -243,8 +228,7 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#contains(Set, ExtendedBaseDO)
    */
   @Override
-  public boolean contains(final Set<Integer> idSet, final EingangsrechnungDO entry)
-  {
+  public boolean contains(final Set<Integer> idSet, final EingangsrechnungDO entry) {
     if (super.contains(idSet, entry)) {
       return true;
     }
@@ -257,20 +241,17 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
   }
 
   @Override
-  public List<EingangsrechnungDO> sort(final List<EingangsrechnungDO> list)
-  {
+  public List<EingangsrechnungDO> sort(final List<EingangsrechnungDO> list) {
     Collections.sort(list);
     return list;
   }
 
   @Override
-  public EingangsrechnungDO newInstance()
-  {
+  public EingangsrechnungDO newInstance() {
     return new EingangsrechnungDO();
   }
 
-  public EingangsrechnungDO findNewestByKreditor(final String kreditor)
-  {
+  public EingangsrechnungDO findNewestByKreditor(final String kreditor) {
     return pfEmgrFactory.runRoTrans(emgr -> {
       final String sql = "SELECT er FROM EingangsrechnungDO er WHERE er.kreditor = :kreditor AND er.deleted = false ORDER BY er.created DESC";
       final TypedQuery<EingangsrechnungDO> query = emgr.createQueryDetached(EingangsrechnungDO.class, sql, "kreditor", kreditor);

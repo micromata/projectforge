@@ -43,8 +43,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
@@ -58,21 +56,14 @@ import java.util.Objects;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class TaskDao extends BaseDao<TaskDO> {
+  public static final String I18N_KEY_ERROR_CYCLIC_REFERENCE = "task.error.cyclicReference";
+  public static final String I18N_KEY_ERROR_PARENT_TASK_NOT_FOUND = "task.error.parentTaskNotFound";
+  public static final String I18N_KEY_ERROR_PARENT_TASK_NOT_GIVEN = "task.error.parentTaskNotGiven";
+  public static final String I18N_KEY_ERROR_DUPLICATE_CHILD_TASKS = "task.error.duplicateChildTasks";
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TaskDao.class);
-
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"responsibleUser.username",
           "responsibleUser.firstname", "responsibleUser.lastname", "taskpath"};
-
-  public static final String I18N_KEY_ERROR_CYCLIC_REFERENCE = "task.error.cyclicReference";
-
-  public static final String I18N_KEY_ERROR_PARENT_TASK_NOT_FOUND = "task.error.parentTaskNotFound";
-
-  public static final String I18N_KEY_ERROR_PARENT_TASK_NOT_GIVEN = "task.error.parentTaskNotGiven";
-
-  public static final String I18N_KEY_ERROR_DUPLICATE_CHILD_TASKS = "task.error.duplicateChildTasks";
-
   @Autowired
   private UserDao userDao;
 
@@ -129,7 +120,6 @@ public class TaskDao extends BaseDao<TaskDO> {
   /**
    * Gets the total duration of all time sheets of all tasks (excluding the child tasks).
    */
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<Object[]> readTotalDurations() {
     log.debug("Calculating duration for all tasks");
     final String intervalInSeconds = DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime");
@@ -180,7 +170,6 @@ public class TaskDao extends BaseDao<TaskDO> {
   /**
    * Gets the total duration of all time sheets of the given task (excluding the child tasks).
    */
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public long readTotalDuration(final Integer taskId) {
     log.debug("Calculating duration for all tasks");
     final String intervalInSeconds = DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime");
@@ -212,7 +201,6 @@ public class TaskDao extends BaseDao<TaskDO> {
   }
 
   @Override
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<TaskDO> getList(final BaseSearchFilter filter) throws AccessException {
     final TaskFilter myFilter;
     if (filter instanceof TaskFilter) {
@@ -236,7 +224,7 @@ public class TaskDao extends BaseDao<TaskDO> {
     } else {
       // Note: Result set should be empty, because every task should has one of the following status values.
       queryFilter.add(
-              QueryFilter.not(QueryFilter.isIn("status", new TaskStatus[]{TaskStatus.N, TaskStatus.O, TaskStatus.C})));
+              QueryFilter.not(QueryFilter.isIn("status", TaskStatus.N, TaskStatus.O, TaskStatus.C)));
     }
     queryFilter.addOrder(SortProperty.asc("title"));
     if (log.isDebugEnabled()) {
@@ -322,11 +310,8 @@ public class TaskDao extends BaseDao<TaskDO> {
       if (obj.getParentTaskId() != null) {
         throw new UserException(TaskDao.I18N_KEY_ERROR_CYCLIC_REFERENCE);
       }
-      if (!accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.ADMIN_GROUP,
-              ProjectForgeGroup.FINANCE_GROUP)) {
-        return false;
-      }
-      return true;
+      return accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.ADMIN_GROUP,
+              ProjectForgeGroup.FINANCE_GROUP);
     }
     Validate.notNull(dbObj.getParentTaskId());
     if (obj.getParentTaskId() == null) {
@@ -352,11 +337,9 @@ public class TaskDao extends BaseDao<TaskDO> {
         // Inserting of object under new task not allowed.
         return false;
       }
-      if (!accessChecker.hasPermission(user, dbObj.getParentTaskId(), AccessType.TASKS, OperationType.DELETE,
-              throwException)) {
-        // Deleting of object under old task not allowed.
-        return false;
-      }
+      // Deleting of object under old task not allowed.
+      return accessChecker.hasPermission(user, dbObj.getParentTaskId(), AccessType.TASKS, OperationType.DELETE,
+              throwException);
     }
     return true;
   }
@@ -372,10 +355,7 @@ public class TaskDao extends BaseDao<TaskDO> {
     final TaskTree taskTree = getTaskTree(obj);
     final ProjektDO projekt = taskTree.getProjekt(taskId);
     // Parent task because id of current task is null and project can't be found.
-    if (projekt != null && getUserGroupCache().isUserProjectManagerOrAssistantForProject(projekt)) {
-      return true;
-    }
-    return false;
+    return projekt != null && getUserGroupCache().isUserProjectManagerOrAssistantForProject(projekt);
   }
 
   @Override

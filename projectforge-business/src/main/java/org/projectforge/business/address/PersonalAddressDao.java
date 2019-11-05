@@ -24,8 +24,6 @@
 package org.projectforge.business.address;
 
 import org.apache.commons.lang3.Validate;
-import org.hibernate.LockMode;
-import org.hibernate.SessionFactory;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.AccessChecker;
@@ -37,11 +35,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
@@ -87,7 +81,6 @@ public class PersonalAddressDao {
    * @param obj
    * @return the generated identifier.
    */
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
   public Serializable saveOrUpdate(final PersonalAddressDO obj) {
     if (internalUpdate(obj)) {
       return obj.getId();
@@ -191,23 +184,21 @@ public class PersonalAddressDao {
    * @return the PersonalAddressDO entry assigned to the given address for the context user or null, if not exist.
    */
   @SuppressWarnings("unchecked")
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public PersonalAddressDO getByAddressId(final Integer addressId) {
     final PFUserDO owner = ThreadLocalUserContext.getUser();
     Validate.notNull(owner);
     Validate.notNull(owner.getId());
     return SQLHelper.ensureUniqueResult(em
-            .createNamedQuery(PersonalAddressDO.FIND_BY_OWNER_AND_ADDRESS_ID, PersonalAddressDO.class)
-            .setParameter("ownerId", owner.getId())
-            .setParameter("addressId", addressId),
+                    .createNamedQuery(PersonalAddressDO.FIND_BY_OWNER_AND_ADDRESS_ID, PersonalAddressDO.class)
+                    .setParameter("ownerId", owner.getId())
+                    .setParameter("addressId", addressId),
             "Multiple personal address book entries for same user (" + owner.getId() + ") and same address ("
-                                    + addressId + "). Should not occur?!");
+                    + addressId + "). Should not occur?!");
   }
 
   /**
    * @return the list of all PersonalAddressDO entries for the context user.
    */
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<PersonalAddressDO> getList() {
     final PFUserDO owner = ThreadLocalUserContext.getUser();
     Validate.notNull(owner);
@@ -225,7 +216,6 @@ public class PersonalAddressDao {
   /**
    * @return the list of all PersonalAddressDO entries for the context user without any check access (addresses might be also deleted).
    */
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<Integer> getIdList() {
     final PFUserDO owner = ThreadLocalUserContext.getUser();
     Validate.notNull(owner);
@@ -242,7 +232,6 @@ public class PersonalAddressDao {
    * @see PersonalAddressDO#isFavorite()
    */
   @SuppressWarnings("unchecked")
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public Map<Integer, PersonalAddressDO> getPersonalAddressByAddressId() {
     final PFUserDO owner = ThreadLocalUserContext.getUser();
     Validate.notNull(owner);
@@ -265,7 +254,6 @@ public class PersonalAddressDao {
    * @see PersonalAddressDO#isFavorite()
    */
   @SuppressWarnings("unchecked")
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<AddressDO> getMyAddresses() {
     final PFUserDO owner = ThreadLocalUserContext.getUser();
     Validate.notNull(owner);
