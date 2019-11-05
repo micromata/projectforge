@@ -24,15 +24,10 @@
 package org.projectforge.business.fibu;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.i18n.UserException;
-import org.projectforge.framework.persistence.api.BaseDao;
-import org.projectforge.framework.persistence.api.BaseSearchFilter;
-import org.projectforge.framework.persistence.api.ExtendedBaseDO;
-import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.utils.SQLHelper;
@@ -152,11 +147,11 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
     final QueryFilter queryFilter = AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction(myFilter);
 
     if (myFilter.getPaymentTypes() != null && myFilter.getPaymentTypes().size() > 0) {
-      queryFilter.add(Restrictions.in("paymentType", myFilter.getPaymentTypes()));
+      queryFilter.add(QueryFilter.isIn("paymentType", myFilter.getPaymentTypes()));
     }
 
-    queryFilter.addOrder(Order.desc("datum"));
-    queryFilter.addOrder(Order.desc("kreditor"));
+    queryFilter.addOrder(SortProperty.desc("datum"));
+    queryFilter.addOrder(SortProperty.desc("kreditor"));
 
     final List<EingangsrechnungDO> list = getList(queryFilter);
     if (myFilter.isShowAll() || myFilter.isDeleted()) {

@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.memo;
 
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
@@ -46,6 +45,7 @@ public class MemoDao extends BaseDao<MemoDO> {
 
   /**
    * Load only memo's of current logged-in user.
+   *
    * @param filter
    * @return
    */
@@ -54,7 +54,7 @@ public class MemoDao extends BaseDao<MemoDO> {
     QueryFilter queryFilter = super.createQueryFilter(filter);
     final PFUserDO user = new PFUserDO();
     user.setId(ThreadLocalUserContext.getUserId());
-    queryFilter.add(Restrictions.eq("owner", user));
+    queryFilter.add(QueryFilter.eq("owner", user));
     return queryFilter;
   }
 

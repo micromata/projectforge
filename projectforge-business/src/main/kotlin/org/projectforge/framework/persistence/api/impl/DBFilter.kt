@@ -23,29 +23,77 @@
 
 package org.projectforge.framework.persistence.api.impl
 
+import org.projectforge.framework.ToStringUtil
+import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.SortProperty
 
+/**
+ * DBFilter is created by QueryFilter and hold all predicates for building a query.
+ */
 class DBFilter(
-        /**
-         * Optional entries for searching (keywords, field search, range search etc.)
-         */
-        var allEntries: MutableList<DBFilterEntry> = mutableListOf(),
         var sortAndLimitMaxRowsWhileSelect: Boolean = true,
-        var maxRows: Int = 50,
+        var maxRows: Int = 50) {
+    /**
+     * Statistics are needed to evaluate which query should be used (full-text or criteria search).
+     */
+    class Statistics {
         /**
-         * If true, only deleted entries will be shown. If false, no deleted entries will be shown. If null, all entries will be shown.
+         * Full text search is required for search strings without field specification (if neither Criteria search
+         * nor result search is supported).
          */
-        var deleted: Boolean? = false,
-        var searchHistory: String? = null) {
+        var fullTextRequired: Boolean = false
+        /**
+         * If full text search without field specification strings contains '<field>:'.
+         */
+        var multiFieldFullTextQueryRequired: Boolean = false
+        var numberOfCriteriaPredicates = 0
+        var numberOfFullTextQueries = 0
+        var numberOfResultPredicates = 0
+    }
 
-    val criteriaSearchEntries
-        get() = allEntries.filter { !it.fulltextSearch }
+    val predicates = mutableListOf<DBPredicate>()
 
-    val fulltextSearchEntries
-        get() = allEntries.filter { it.fulltextSearch }
+    val sortProperties = mutableListOf<SortProperty>()
+
+
+    fun createStatistics(baseDao: BaseDao<*>): Statistics {
+        val stats = Statistics()
+        var fullTextRequired = false
+        for (it in predicates) {
+            if (!it.criteriaSupport && !it.resultSetSupport) {
+                fullTextRequired = true
+            }
+            if (it is DBPredicate.FullSearch && it.multiFieldFulltextQueryRequired()) {
+                stats.multiFieldFullTextQueryRequired = true
+            }
+        }
+        stats.fullTextRequired = fullTextRequired
+        if (fullTextRequired) {
+            val indexedSearchFields = DBQueryBuilderByFullText.getUsedSearchFields(baseDao)
+            predicates.forEach { predicate ->
+                if (predicate.fullTextSupport
+                        && (predicate.field == null || indexedSearchFields.any { it == predicate.field })) {
+                    ++stats.numberOfFullTextQueries
+                } else {
+                    ++stats.numberOfResultPredicates
+                }
+            }
+        } else {
+            predicates.forEach { predicate ->
+                if (predicate.criteriaSupport) {
+                    ++stats.numberOfCriteriaPredicates
+                } else {
+                    ++stats.numberOfResultPredicates
+                }
+            }
+        }
+        return stats
+    }
 
     @Transient
     internal val log = org.slf4j.LoggerFactory.getLogger(DBFilter::class.java)
 
-    var sortProperties = mutableListOf<SortProperty>()
+    override fun toString(): String {
+        return ToStringUtil.toJsonString(this)
+    }
 }

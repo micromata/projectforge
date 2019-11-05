@@ -35,8 +35,6 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.KundeDao;
 import org.projectforge.business.fibu.ProjektDO;
@@ -192,11 +190,11 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     final UserPrefFilter myFilter = (UserPrefFilter) filter;
     final QueryFilter queryFilter = new QueryFilter(filter);
     if (myFilter.getArea() != null) {
-      queryFilter.add(Restrictions.eq("area", myFilter.getArea().getId()));
+      queryFilter.add(QueryFilter.eq("area", myFilter.getArea().getId()));
     }
-    queryFilter.add(Restrictions.eq("user.id", ThreadLocalUserContext.getUserId()));
-    queryFilter.addOrder(Order.asc("area"));
-    queryFilter.addOrder(Order.asc("name"));
+    queryFilter.add(QueryFilter.eq("user.id", ThreadLocalUserContext.getUserId()));
+    queryFilter.addOrder(SortProperty.asc("area"));
+    queryFilter.addOrder(SortProperty.asc("name"));
     return getList(queryFilter);
   }
 

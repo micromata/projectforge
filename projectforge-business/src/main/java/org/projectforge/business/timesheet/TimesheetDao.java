@@ -28,8 +28,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.hibernate.Hibernate;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.Kost2Dao;
 import org.projectforge.business.task.TaskDO;
@@ -49,6 +47,7 @@ import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
@@ -105,8 +104,6 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
 
   @Autowired
   private Kost2Dao kost2Dao;
-
-  private final Map<Integer, Set<Integer>> timesheetsWithOverlapByUser = new HashMap<>();
 
   @Override
   protected String[] getAdditionalSearchFields() {
@@ -168,33 +165,33 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
     if (filter.getUserId() != null) {
       final PFUserDO user = new PFUserDO();
       user.setId(filter.getUserId());
-      queryFilter.add(Restrictions.eq("user", user));
+      queryFilter.add(QueryFilter.eq("user", user));
     }
     if (filter.getStartTime() != null && filter.getStopTime() != null) {
-      queryFilter.add(Restrictions.and(Restrictions.ge("stopTime", filter.getStartTime()),
-              Restrictions.le("startTime", filter.getStopTime())));
+      queryFilter.add(QueryFilter.and(QueryFilter.ge("stopTime", filter.getStartTime()),
+              QueryFilter.le("startTime", filter.getStopTime())));
     } else if (filter.getStartTime() != null) {
-      queryFilter.add(Restrictions.ge("startTime", filter.getStartTime()));
+      queryFilter.add(QueryFilter.ge("startTime", filter.getStartTime()));
     } else if (filter.getStopTime() != null) {
-      queryFilter.add(Restrictions.le("startTime", filter.getStopTime()));
+      queryFilter.add(QueryFilter.le("startTime", filter.getStopTime()));
     }
     if (filter.getTaskId() != null) {
       if (filter.isRecursive()) {
         final TaskNode node = TaskTreeHelper.getTaskTree().getTaskNodeById(filter.getTaskId());
         final List<Integer> taskIds = node.getDescendantIds();
         taskIds.add(node.getId());
-        queryFilter.add(Restrictions.in("task.id", taskIds));
+        queryFilter.add(QueryFilter.isIn("task.id", taskIds));
         if (log.isDebugEnabled()) {
           log.debug("search in tasks: " + taskIds);
         }
       } else {
-        queryFilter.add(Restrictions.eq("task.id", filter.getTaskId()));
+        queryFilter.add(QueryFilter.eq("task.id", filter.getTaskId()));
       }
     }
     if (filter.getOrderType() == OrderDirection.DESC) {
-      queryFilter.addOrder(Order.desc("startTime"));
+      queryFilter.addOrder(SortProperty.desc("startTime"));
     } else {
-      queryFilter.addOrder(Order.asc("startTime"));
+      queryFilter.addOrder(SortProperty.asc("startTime"));
     }
     if (log.isDebugEnabled()) {
       log.debug(ToStringBuilder.reflectionToString(filter));
@@ -249,28 +246,6 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
     if (result == null) {
       return null;
     }
-    // Check time period overlaps:
-    for (final TimesheetDO entry : result) {
-      Validate.notNull(entry.getUserId());
-      if (entry.getMarked()) {
-        continue; // Is already marked.
-      }
-      final Set<Integer> overlapSet = getTimesheetsWithTimeoverlap(entry.getUserId());
-      if (overlapSet.contains(entry.getId())) {
-        log.info("Overlap of time sheet decteced: " + entry);
-        entry.setMarked(true);
-      }
-    }
-    if (myFilter.isMarked()) {
-      // Show only time sheets with time period violation (overlap):
-      final List<TimesheetDO> list = result;
-      result = new ArrayList<>();
-      for (final TimesheetDO entry : list) {
-        if (entry.getMarked()) {
-          result.add(entry);
-        }
-      }
-    }
     if (myFilter.isOnlyBillable()) {
       final List<TimesheetDO> list = result;
       result = new ArrayList<>();
@@ -283,37 +258,12 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
     return result;
   }
 
-  //TODO:
-  //  public List<TimesheetDO> getTimeperiodOverlapList(final TimesheetListFilter actionFilter)
-  //  {
-  //    if (actionFilter.getUserId() != null) {
-  //      final QueryFilter queryFilter = new QueryFilter(actionFilter, tenantsCache);
-  //      final Set<Integer> set = getTimesheetsWithTimeoverlap(actionFilter.getUserId());
-  //      if (set == null || set.size() == 0) {
-  //        // No time sheets with overlap found.
-  //        return new ArrayList<TimesheetDO>();
-  //      }
-  //      queryFilter.add(Restrictions.in("id", set));
-  //      final List<TimesheetDO> result = getList(queryFilter);
-  //      for (final TimesheetDO entry : result) {
-  //        entry.setMarked(true);
-  //      }
-  //      Collections.sort(result, Collections.reverseOrder());
-  //      return result;
-  //    }
-  //    return getList(actionFilter);
-  //  }
-
   /**
    * Rechecks the time sheet overlaps.
    */
   @Override
   protected void afterSaveOrModify(final TimesheetDO obj) {
     super.afterSaveOrModify(obj);
-    if (obj.getUser() != null) {
-      // Force re-analysis of time sheet overlaps after any modification of time sheets.
-      recheckTimesheetOverlap(obj.getUserId());
-    }
     TaskTreeHelper.getTaskTree(obj).resetTotalDuration(obj.getTaskId());
   }
 
@@ -403,57 +353,6 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
   }
 
   /**
-   * Analyses all time sheets of the user and detects any collision (overlap) of the user's time sheets. The result will
-   * be cached and the duration of a new analysis is only a few milliseconds!
-   */
-  public Set<Integer> getTimesheetsWithTimeoverlap(final Integer userId) {
-    long begin = System.currentTimeMillis();
-    Validate.notNull(userId);
-    final PFUserDO user = getUserGroupCache().getUser(userId);
-    Validate.notNull(user);
-    synchronized (timesheetsWithOverlapByUser) {
-      if (timesheetsWithOverlapByUser.get(userId) != null) {
-        return timesheetsWithOverlapByUser.get((userId));
-      }
-      // log.info("Getting time sheet overlaps for user: " + user.getUsername());
-      final Set<Integer> result = new HashSet<>();
-      final QueryFilter queryFilter = new QueryFilter();
-      queryFilter.add(Restrictions.eq("user", user));
-      queryFilter.addOrder(Order.asc("startTime"));
-      final List<TimesheetDO> list = getList(queryFilter);
-      long endTime = 0;
-      TimesheetDO lastEntry = null;
-      for (final TimesheetDO entry : list) {
-        if (entry.getStartTime().getTime() < endTime) {
-          // Time collision!
-          result.add(entry.getId());
-          if (lastEntry != null) { // Only for first iteration
-            result.add(lastEntry.getId()); // Also collision for last entry.
-          }
-        }
-        endTime = entry.getStopTime().getTime();
-        lastEntry = entry;
-      }
-      timesheetsWithOverlapByUser.put(user.getId(), result);
-      if (CollectionUtils.isNotEmpty(result)) {
-        log.info("Time sheet overlaps for user '" + user.getUsername() + "': " + result);
-      }
-      long end = System.currentTimeMillis();
-      log.info("TimesheetDao.getTimesheetsWithTimeoverlap took: " + (end - begin) + " ms.");
-      return result;
-    }
-  }
-
-  /**
-   * Deletes any existing time sheet overlap analysis and forces therefore a new analysis before next time sheet list
-   * selection. (The analysis will not be started inside this method!)
-   */
-  public void recheckTimesheetOverlap(final Integer userId) {
-    Validate.notNull(userId);
-    timesheetsWithOverlapByUser.remove(userId);
-  }
-
-  /**
    * Checks if the time sheet overlaps with another time sheet of the same user. Should be checked on every insert or
    * update (also undelete). For time collision detection deleted time sheets are ignored.
    *
@@ -464,12 +363,12 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
     Validate.notNull(timesheet);
     Validate.notNull(timesheet.getUser());
     final QueryFilter queryFilter = new QueryFilter();
-    queryFilter.add(Restrictions.eq("user", timesheet.getUser()));
-    queryFilter.add(Restrictions.lt("startTime", timesheet.getStopTime()));
-    queryFilter.add(Restrictions.gt("stopTime", timesheet.getStartTime()));
+    queryFilter.add(QueryFilter.eq("user", timesheet.getUser()));
+    queryFilter.add(QueryFilter.lt("startTime", timesheet.getStopTime()));
+    queryFilter.add(QueryFilter.gt("stopTime", timesheet.getStartTime()));
     if (timesheet.getId() != null) {
       // Update time sheet, do not compare with itself.
-      queryFilter.add(Restrictions.ne("id", timesheet.getId()));
+      queryFilter.add(QueryFilter.ne("id", timesheet.getId()));
     }
     final List<TimesheetDO> list = getList(queryFilter);
     if (list != null && list.size() > 0) {
@@ -506,7 +405,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
     if (accessChecker.userEquals(user, obj.getUser())) {
       // Own time sheet
       if (!accessChecker.hasPermission(user, obj.getTaskId(), AccessType.OWN_TIMESHEETS, operationType,
-          throwException)) {
+              throwException)) {
         return false;
       }
     } else {
@@ -515,7 +414,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
         return true;
       }
       if (!accessChecker.hasPermission(user, obj.getTaskId(), AccessType.TIMESHEETS, operationType,
-          throwException)) {
+              throwException)) {
         return false;
       }
     }
