@@ -131,6 +131,7 @@ function SearchFilter() {
                 isMulti
                 name="searchFilter"
                 options={options}
+                getOptionValue={option => option.key}
                 onChange={handleSearchFilterChange}
                 placeholder={ui.translations['select.placeholder']}
                 setMultiValue={handleSearchFilterValueChange}
