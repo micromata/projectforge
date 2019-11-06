@@ -30,7 +30,7 @@ import org.projectforge.statistics.IntAggregatedValues;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-public class AbstractRechnungsStatistik<T extends AbstractRechnungDO<?>> implements Serializable
+public class AbstractRechnungsStatistik<T extends AbstractRechnungDO> implements Serializable
 {
   private static final long serialVersionUID = 3695426728243488756L;
 

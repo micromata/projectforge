@@ -29,6 +29,7 @@ import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO
 import org.projectforge.business.fibu.EmployeeSalaryDO
+import org.projectforge.business.fibu.AbstractRechnungsPositionDO
 import org.projectforge.business.fibu.RechnungsPositionDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
@@ -96,6 +97,13 @@ class KostZuweisungDO : DefaultBaseDO(), ShortDisplayNameCapable {
             }
             field = eingangsrechnungsPosition
         }
+
+    fun setRechnungsPosition(position: AbstractRechnungsPositionDO) {
+        if (position is RechnungsPositionDO)
+            rechnungsPosition = position
+        else
+            eingangsrechnungsPosition = position as EingangsrechnungsPositionDO
+    }
 
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.EAGER)

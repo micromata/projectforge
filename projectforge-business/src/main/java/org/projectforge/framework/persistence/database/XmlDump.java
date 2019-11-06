@@ -155,16 +155,20 @@ public class XmlDump {
         if (obj instanceof PFUserDO) {
           final PFUserDO user = (PFUserDO) obj;
           return save(user, user.getRights());
-        } else if (obj instanceof AbstractRechnungDO<?>) {
+        } else if (obj instanceof AbstractRechnungDO) {
 
-          final AbstractRechnungDO<? extends AbstractRechnungsPositionDO> rechnung = (AbstractRechnungDO<?>) obj;
-          final List<? extends AbstractRechnungsPositionDO> positions = rechnung.getPositionen();
+          final AbstractRechnungDO rechnung = (AbstractRechnungDO) obj;
+          final List<? extends AbstractRechnungsPositionDO> positions = rechnung.getAbstractPositionen();
           final KontoDO konto = rechnung.getKonto();
           if (konto != null) {
             save(konto);
             rechnung.setKonto(null);
           }
-          rechnung.setPositionen(null); // Need to nullable positions first (otherwise insert fails).
+          if (rechnung instanceof RechnungDO) {
+            ((RechnungDO)rechnung).setPositionen(null); // Need to nullable positions first (otherwise insert fails).
+          } else {
+            ((EingangsrechnungDO)rechnung).setPositionen(null); // Need to nullable positions first (otherwise insert fails).
+          }
           final Serializable id = save(rechnung);
           if (konto != null) {
             rechnung.setKonto(konto);
@@ -175,11 +179,7 @@ public class XmlDump {
                 final List<KostZuweisungDO> zuweisungen = pos.getKostZuweisungen();
                 pos.setKostZuweisungen(null); // Need to nullable first (otherwise insert fails).
                 save(pos);
-                if (pos instanceof RechnungsPositionDO) {
-                  ((RechnungDO) rechnung).addPosition((RechnungsPositionDO) pos);
-                } else {
-                  ((EingangsrechnungDO) rechnung).addPosition((EingangsrechnungsPositionDO) pos);
-                }
+                rechnung.addPosition( pos);
                 if (zuweisungen != null) {
                   for (final KostZuweisungDO zuweisung : zuweisungen) {
                     pos.addKostZuweisung(zuweisung);

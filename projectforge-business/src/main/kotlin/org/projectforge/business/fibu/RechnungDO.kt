@@ -34,7 +34,6 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import java.math.BigDecimal
 import java.sql.Date
-import java.util.*
 import javax.persistence.*
 
 /**
@@ -45,7 +44,8 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Cacheable
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Cache(region = "invoices", usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+//@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Table(name = "t_fibu_rechnung",
         uniqueConstraints = [UniqueConstraint(columnNames = ["nummer", "tenant_id"])],
         indexes = [
@@ -59,7 +59,7 @@ import javax.persistence.*
 @NamedQueries(
         NamedQuery(name = RechnungDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from RechnungDO"),
         NamedQuery(name = RechnungDO.FIND_OTHER_BY_NUMMER, query = "from RechnungDO where nummer=:nummer and id!=:id"))
-class RechnungDO : AbstractRechnungDO<RechnungsPositionDO>(), Comparable<RechnungDO> {
+class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
 
     @PropertyInfo(i18nKey = "fibu.rechnung.nummer")
     @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
@@ -128,18 +128,6 @@ class RechnungDO : AbstractRechnungDO<RechnungsPositionDO>(), Comparable<Rechnun
     @get:Column(name = "period_of_performance_end")
     var periodOfPerformanceEnd: Date? = null
 
-    val kundeId: Int?
-        @Transient
-        get() = if (this.kunde == null) {
-            null
-        } else kunde!!.id
-
-    val projektId: Int?
-        @Transient
-        get() = if (this.projekt == null) {
-            null
-        } else projekt!!.id
-
     /**
      * (this.status == RechnungStatus.BEZAHLT && this.bezahlDatum != null && this.zahlBetrag != null)
      */
@@ -149,30 +137,60 @@ class RechnungDO : AbstractRechnungDO<RechnungsPositionDO>(), Comparable<Rechnun
             true
         } else this.status == RechnungStatus.BEZAHLT && this.bezahlDatum != null && this.zahlBetrag != null
 
+
+    val kundeId: Int?
+        @Transient
+        get() = if (this.kunde == null) {
+            null
+        } else kunde!!.nummer
+
+    val projektId: Int?
+        @Transient
+        get() = if (this.projekt == null) {
+            null
+        } else projekt!!.id
+
+
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
     @JsonBackReference
     @IndexedEmbedded(depth = 3)
-    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, mappedBy = "rechnung", targetEntity = RechnungsPositionDO::class)
+    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, mappedBy = "rechnung", targetEntity = RechnungsPositionDO::class)
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
     @get:ListIndexBase(1)
-    override var positionen: MutableList<RechnungsPositionDO>? = null
+    var positionen: MutableList<RechnungsPositionDO>? = null
+
+    override val abstractPositionen: List<AbstractRechnungsPositionDO>?
+        @Transient
+        get() = positionen
+
+    override fun ensureAndGetPositionen(): MutableList<out AbstractRechnungsPositionDO> {
+        if (this.positionen == null) {
+            positionen = mutableListOf()
+        }
+        return positionen!!
+    }
+
+    override fun addPositionWithoutCheck(position: AbstractRechnungsPositionDO) {
+        position as RechnungsPositionDO
+        this.positionen!!.add(position)
+        position.rechnung = this
+    }
+
+    override fun setRechnung(position: AbstractRechnungsPositionDO) {
+        position as RechnungsPositionDO
+        position.rechnung = this
+    }
 
     val auftragsPositionVOs: Set<AuftragsPositionVO>?
         @Transient
         get() {
-            if (this.positionen == null) {
-                return null
+            val result = mutableSetOf<AuftragsPositionVO>()
+            this.positionen?.forEach {
+                val auftragsPosition = it.auftragsPosition
+                if (auftragsPosition != null)
+                    result.add(AuftragsPositionVO(auftragsPosition))
             }
-            var set: MutableSet<AuftragsPositionVO>? = null
-            for (pos in this.positionen!!) {
-                if (pos.auftragsPosition == null) {
-                    continue
-                } else if (set == null) {
-                    set = TreeSet()
-                }
-                set.add(AuftragsPositionVO(pos.auftragsPosition))
-            }
-            return set
+            return result
         }
 
     /**
@@ -182,24 +200,14 @@ class RechnungDO : AbstractRechnungDO<RechnungsPositionDO>(), Comparable<Rechnun
         @Transient
         get() = KundeFormatter.formatKundeAsString(this.kunde, this.kundeText)
 
-    override fun setRechnung(position: RechnungsPositionDO) {
+    fun setRechnung(position: RechnungsPositionDO) {
         position.rechnung = this
     }
 
     override fun compareTo(other: RechnungDO): Int {
-        if (this.datum != null && other.datum != null) {
-            val r = other.datum!!.compareTo(this.datum!!)
-            if (r != 0) {
-                return r
-            }
-
-        }
-        if (this.nummer == null) {
-            return if (other.nummer == null) 0 else 1
-        }
-        return if (other.nummer == null) {
-            -1
-        } else this.nummer!!.compareTo(other.nummer!!)
+        val cmp = compareValues(this.datum, other.datum)
+        if (cmp != null) return cmp
+        return compareValues(this.nummer, other.nummer)
     }
 
     companion object {

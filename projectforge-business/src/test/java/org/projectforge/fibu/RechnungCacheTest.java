@@ -109,7 +109,7 @@ public class RechnungCacheTest extends AbstractTestBase {
     assertTrue(new BigDecimal("200").compareTo(RechnungDao.getNettoSumme(set)) == 0);
 
     final RechnungDO rechnung = rechnungDao.getById(rechnung2.getId());
-    rechnung.getPosition(0).setAuftragsPosition(null);
+    rechnung.getPositionen().get(0).setAuftragsPosition(null);
     rechnungDao.update(rechnung);
     set = rechnungDao.getRechnungCache().getRechnungsPositionVOSetByAuftragId(auftrag.getId());
     assertEquals( 2, set.size(),"2 invoice positions expected.");

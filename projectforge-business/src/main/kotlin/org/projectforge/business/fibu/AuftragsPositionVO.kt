@@ -24,10 +24,8 @@
 package org.projectforge.business.fibu
 
 import org.apache.commons.lang3.builder.HashCodeBuilder
-
 import java.io.Serializable
 import java.math.BigDecimal
-import java.util.Objects
 
 /**
  * Repräsentiert einee Position innerhalb eines Auftrags als Übersichtsobject (value object) zur Verwendung z. B. im TaskTree.
@@ -44,19 +42,19 @@ class AuftragsPositionVO(auftragsPosition: AuftragsPositionDO) : Comparable<Auft
         private set
 
     /**
-     * @see AuftragDO.getTitel
+     * @see AuftragDO.titel
      */
     var auftragTitle: String? = null
         private set
 
     /**
-     * @see AuftragDO.getAuftragsStatus
+     * @see AuftragDO.auftragsStatus
      */
     var auftragsStatus: AuftragsStatus? = null
         private set
 
     /**
-     * @see AuftragDO.getPersonDays
+     * @see AuftragDO.personDays
      */
     var auftragsPersonDays: BigDecimal? = null
         private set
@@ -95,15 +93,14 @@ class AuftragsPositionVO(auftragsPosition: AuftragsPositionDO) : Comparable<Auft
         if (this.personDays == null) {
             this.personDays = BigDecimal.ZERO
         }
-        this.isVollstaendigFakturiert = auftragsPosition.vollstaendigFakturiert!!
+        this.isVollstaendigFakturiert = (auftragsPosition.vollstaendigFakturiert == true)
     }
 
-    override fun equals(o: Any?): Boolean {
-        if (o is AuftragsPositionVO) {
-            val other = o as AuftragsPositionVO?
-            if (this.number != other!!.number)
+    override fun equals(other: Any?): Boolean {
+        if (other is AuftragsPositionVO) {
+            if (this.number != other.number)
                 return false
-            return if (this.auftragId != other.auftragId) false else true
+            return this.auftragId != other.auftragId
         }
         return false
     }
@@ -115,13 +112,9 @@ class AuftragsPositionVO(auftragsPosition: AuftragsPositionDO) : Comparable<Auft
         return hcb.toHashCode()
     }
 
-    override fun compareTo(o: AuftragsPositionVO): Int {
-        return if (this.auftragNummer != o.auftragNummer) {
-            this.auftragNummer!!.compareTo(o.auftragNummer!!)
-        } else java.lang.Short.compare(this.number, o.number)
-    }
-
-    companion object {
-        private const val serialVersionUID = 5425767060569257885L
+    override fun compareTo(other: AuftragsPositionVO): Int {
+        val cmp = compareValues(this.auftragNummer, other.auftragNummer)
+        if (cmp == 0) return 0
+        return compareValues(this.number, other.number)
     }
 }
