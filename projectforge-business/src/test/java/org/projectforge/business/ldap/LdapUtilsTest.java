@@ -34,6 +34,15 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 public class LdapUtilsTest
 {
   @Test
+  void toJsonStringTest() {
+    LdapUser user = new LdapUser();
+    user.setSurname("Reinhard");
+    user.setUid("kai");
+    user.setSambaNTPassword("secret");
+    assertEquals("{\"uid\":\"kai\",\"surname\":\"Reinhard\"}", user.toString());
+  }
+
+  @Test
   public void escapeUserGroupNames()
   {
     assertNull(LdapUtils.escapeCommonName(null));
