@@ -26,7 +26,10 @@ package org.projectforge.business.fibu
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
-import org.hibernate.search.annotations.*
+import org.hibernate.search.annotations.DateBridge
+import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.annotations.IndexedEmbedded
+import org.hibernate.search.annotations.Resolution
 import org.projectforge.business.fibu.kost.KostZuweisungDO
 import org.projectforge.common.anots.PropertyInfo
 import java.sql.Date
@@ -39,15 +42,19 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Cacheable
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+//@Cacheable
+@Cache(region = "invoices", usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+//@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Table(name = "t_fibu_rechnung_position", uniqueConstraints = [UniqueConstraint(columnNames = ["rechnung_fk", "number"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_position_auftrags_position_fk", columnList = "auftrags_position_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_position_rechnung_fk", columnList = "rechnung_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_position_tenant_id", columnList = "tenant_id")])
 class RechnungsPositionDO : AbstractRechnungsPositionDO() {
-
     @get:JsonManagedReference
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "rechnung_fk", nullable = false)
-    var rechnung : RechnungDO? = null
+    var rechnung: RechnungDO? = null
+
+    val rechnungId: Int?
+        @Transient
+        get() = rechnung?.id
 
     @PropertyInfo(i18nKey = "fibu.auftrag.position")
     @IndexedEmbedded(depth = 1)
@@ -70,21 +77,28 @@ class RechnungsPositionDO : AbstractRechnungsPositionDO() {
     @get:Column(name = "period_of_performance_end")
     var periodOfPerformanceEnd: Date? = null
 
-    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "rechnungs_pos_fk")
-    @get:OrderColumn(name = "index")
-    override var kostZuweisungen: MutableList<KostZuweisungDO>? = null
-
-    override val rechnungId: Int?
-        @Transient
-        get() = rechnung?.id
-
-    @Transient
-    override fun setThis(kostZuweisung: KostZuweisungDO) {
-        kostZuweisung.rechnungsPosition = this
+    override fun checkKostZuweisungId(zuweisung: KostZuweisungDO): Boolean {
+        return zuweisung.rechnungsPositionId == this.id
     }
 
-    override fun newInstance(): AbstractRechnungsPositionDO {
+    /**
+     * Clones this including cost assignments and order position (without id's).
+     *
+     * @return
+     */
+    fun newClone(): RechnungsPositionDO {
+        val rechnungsPosition = newInstance()
+        rechnungsPosition.copyValuesFrom(this, "id", "kostZuweisungen")
+        if (this.kostZuweisungen != null) {
+            for (origKostZuweisung in this.kostZuweisungen!!) {
+                val kostZuweisung = origKostZuweisung.newClone()
+                rechnungsPosition.addKostZuweisung(kostZuweisung)
+            }
+        }
+        return rechnungsPosition
+    }
+
+    fun newInstance(): RechnungsPositionDO {
         return RechnungsPositionDO()
     }
 }

@@ -23,11 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -44,10 +39,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.business.fibu.AbstractRechnungDO;
-import org.projectforge.business.fibu.AbstractRechnungsPositionDO;
-import org.projectforge.business.fibu.AuftragsPositionDO;
-import org.projectforge.business.fibu.RechnungsPositionDO;
+import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
 import org.projectforge.business.fibu.kost.KostZuweisungenCopyHelper;
 import org.projectforge.business.utils.CurrencyFormatter;
@@ -62,35 +54,22 @@ import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DatePanelSettings;
-import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.components.MaxLengthTextArea;
-import org.projectforge.web.wicket.components.MinMaxNumberField;
-import org.projectforge.web.wicket.components.SingleButtonPanel;
+import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.converter.BigDecimalPercentConverter;
 import org.projectforge.web.wicket.converter.CurrencyConverter;
-import org.projectforge.web.wicket.flowlayout.ButtonPanel;
-import org.projectforge.web.wicket.flowlayout.ButtonType;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldSetIconPosition;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.IconPanel;
-import org.projectforge.web.wicket.flowlayout.IconType;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
-import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
-import org.projectforge.web.wicket.flowlayout.TextPanel;
-import org.projectforge.web.wicket.flowlayout.TextStyle;
-import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel;
+import org.projectforge.web.wicket.flowlayout.*;
 import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel.ToggleStatus;
 
-public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, T extends AbstractRechnungsPositionDO, P extends AbstractEditPage<?, ?, ?>>
-    extends AbstractEditForm<O, P>
-{
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T extends AbstractRechnungsPositionDO, P extends AbstractEditPage<?, ?, ?>>
+        extends AbstractEditForm<O, P> {
   private static final long serialVersionUID = 9073611406229693582L;
 
-  private static final int[] ZAHLUNGSZIELE_IN_TAGEN = { 7, 14, 30, 60, 90 };
+  private static final int[] ZAHLUNGSZIELE_IN_TAGEN = {7, 14, 30, 60, 90};
 
   private static final Component[] COMPONENT_ARRAY = new Component[0];
 
@@ -104,8 +83,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
 
   private Component[] ajaxUpdateComponentsArray;
 
-  public AbstractRechnungEditForm(final P parentPage, final O data)
-  {
+  public AbstractRechnungEditForm(final P parentPage, final O data) {
     super(parentPage, data);
   }
 
@@ -113,8 +91,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
 
   @SuppressWarnings("serial")
   @Override
-  protected void init()
-  {
+  protected void init() {
     super.init();
 
     if (Configuration.getInstance().isCostConfigured() == true) {
@@ -131,7 +108,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
       // Date
       final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "datum");
       final DatePanel datumPanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "datum"), DatePanelSettings.get().withTargetType(
-          java.sql.Date.class));
+              java.sql.Date.class));
       datumPanel.setRequired(true);
       fs.add(datumPanel);
     }
@@ -139,11 +116,9 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
     {
       // Net sum
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.common.netto"));
-      final DivTextPanel netPanel = new DivTextPanel(fs.newChildId(), new Model<String>()
-      {
+      final DivTextPanel netPanel = new DivTextPanel(fs.newChildId(), new Model<String>() {
         @Override
-        public String getObject()
-        {
+        public String getObject() {
           return CurrencyFormatter.format(data.getNetSum());
         }
       }, TextStyle.FORM_TEXT);
@@ -155,11 +130,9 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
     {
       // Vat amount
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.common.vatAmount"));
-      final DivTextPanel vatPanel = new DivTextPanel(fs.newChildId(), new Model<String>()
-      {
+      final DivTextPanel vatPanel = new DivTextPanel(fs.newChildId(), new Model<String>() {
         @Override
-        public String getObject()
-        {
+        public String getObject() {
           return CurrencyFormatter.format(data.getVatAmountSum());
         }
       }, TextStyle.FORM_TEXT);
@@ -171,11 +144,9 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
     {
       // Brutto
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.common.brutto"));
-      final DivTextPanel grossPanel = new DivTextPanel(fs.newChildId(), new Model<String>()
-      {
+      final DivTextPanel grossPanel = new DivTextPanel(fs.newChildId(), new Model<String>() {
         @Override
-        public String getObject()
-        {
+        public String getObject() {
           return CurrencyFormatter.format(data.getGrossSum());
         }
       }, TextStyle.FORM_TEXT);
@@ -188,7 +159,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
       // Bezahldatum
       final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "bezahlDatum");
       final DatePanel bezahlDatumPanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "bezahlDatum"),
-          DatePanelSettings.get().withTargetType(java.sql.Date.class));
+              DatePanelSettings.get().withTargetType(java.sql.Date.class));
       fs.add(bezahlDatumPanel);
     }
     gridBuilder.newSubSplitPanel(GridSize.COL50);
@@ -196,12 +167,10 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
       // Zahlbetrag
       final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "zahlBetrag");
       final TextField<BigDecimal> zahlBetragField = new TextField<BigDecimal>(InputPanel.WICKET_ID, new PropertyModel<BigDecimal>(data,
-          "zahlBetrag"))
-      {
-        @SuppressWarnings({ "rawtypes", "unchecked" })
+              "zahlBetrag")) {
+        @SuppressWarnings({"rawtypes", "unchecked"})
         @Override
-        public IConverter getConverter(final Class type)
-        {
+        public IConverter getConverter(final Class type) {
           return new CurrencyConverter();
         }
       };
@@ -212,7 +181,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
       // Fälligkeit und Zahlungsziel
       final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "faelligkeit");
       final DatePanel faelligkeitPanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "faelligkeit"),
-          DatePanelSettings.get().withTargetType(java.sql.Date.class));
+              DatePanelSettings.get().withTargetType(java.sql.Date.class));
       fs.add(faelligkeitPanel);
       fs.setLabelFor(faelligkeitPanel);
 
@@ -222,11 +191,9 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
         zielChoiceRenderer.addValue(days, String.valueOf(days) + " " + getString("days"));
       }
       final DropDownChoice<Integer> zahlungsZielChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(), new PropertyModel<>(data, "zahlungsZielInTagen"),
-          zielChoiceRenderer.getValues(), zielChoiceRenderer)
-      {
+              zielChoiceRenderer.getValues(), zielChoiceRenderer) {
         @Override
-        public boolean isVisible()
-        {
+        public boolean isVisible() {
           return data.getFaelligkeit() == null;
         }
       };
@@ -234,19 +201,15 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
       zahlungsZielChoice.setRequired(false);
 
       fs.add(zahlungsZielChoice);
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-      {
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
         @Override
-        public String getObject()
-        {
+        public String getObject() {
           data.recalculate();
           return data.getZahlungsZielInTagen() + " " + getString("days");
         }
-      })
-      {
+      }) {
         @Override
-        public boolean isVisible()
-        {
+        public boolean isVisible() {
           return data.getFaelligkeit() != null;
         }
       });
@@ -256,7 +219,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
       // Discount
       final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("fibu.rechnung.discount"));
       final DatePanel discountPanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "discountMaturity"),
-          DatePanelSettings.get().withTargetType(java.sql.Date.class), true);
+              DatePanelSettings.get().withTargetType(java.sql.Date.class), true);
       fs.add(discountPanel);
       fs.setLabelFor(discountPanel);
 
@@ -266,11 +229,9 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
         discountZielChoiceRenderer.addValue(days, String.valueOf(days) + " " + getString("days"));
       }
       final DropDownChoice<Integer> discountZahlungsZielChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(),
-          new PropertyModel<>(data, "discountZahlungsZielInTagen"), discountZielChoiceRenderer.getValues(), discountZielChoiceRenderer)
-      {
+              new PropertyModel<>(data, "discountZahlungsZielInTagen"), discountZielChoiceRenderer.getValues(), discountZielChoiceRenderer) {
         @Override
-        public boolean isVisible()
-        {
+        public boolean isVisible() {
           return data.getDiscountMaturity() == null;
         }
       };
@@ -278,19 +239,15 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
       discountZahlungsZielChoice.setRequired(false);
 
       fs.add(discountZahlungsZielChoice);
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-      {
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
         @Override
-        public String getObject()
-        {
+        public String getObject() {
           data.recalculate();
           return data.getDiscountZahlungsZielInTagen() + " " + getString("days");
         }
-      })
-      {
+      }) {
         @Override
-        public boolean isVisible()
-        {
+        public boolean isVisible() {
           return data.getDiscountMaturity() != null;
         }
       });
@@ -322,15 +279,13 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
     refreshPositions();
     if (getBaseDao().hasInsertAccess(getUser()) == true) {
       final DivPanel panel = gridBuilder.newGridPanel().getPanel();
-      final Button addPositionButton = new Button(SingleButtonPanel.WICKET_ID)
-      {
+      final Button addPositionButton = new Button(SingleButtonPanel.WICKET_ID) {
         @Override
-        public final void onSubmit()
-        {
+        public final void onSubmit() {
           final T position = newPositionInstance();
           data.addPosition(position);
           if (position.getNumber() > 1) {
-            final T predecessor = data.getPosition(position.getNumber() - 2);
+            final AbstractRechnungsPositionDO predecessor = data.getAbstractPosition(position.getNumber() - 2);
             if (predecessor != null) {
               position.setVat(predecessor.getVat()); // Preset the vat from the predecessor position.
             }
@@ -344,28 +299,30 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
     }
   }
 
-  protected void addCellAfterDiscount()
-  {
+  protected void addCellAfterDiscount() {
     // Do nothing.
   }
 
   protected abstract T newPositionInstance();
 
   @SuppressWarnings("serial")
-  protected void refreshPositions()
-  {
+  protected void refreshPositions() {
     positionsRepeater.removeAll();
     final boolean hasInsertAccess = getBaseDao().hasInsertAccess(getUser());
-    if (CollectionUtils.isEmpty(data.getPositionen()) == true) {
+    if (CollectionUtils.isEmpty(data.getAbstractPositionen()) == true) {
       // Ensure that at least one position is available:
       final T position = newPositionInstance();
       position.setVat(Configuration.getInstance().getPercentValue(ConfigurationParam.FIBU_DEFAULT_VAT));
       data.addPosition(position);
     }
 
-    data.getPositionen().removeIf(AbstractBaseDO::isDeleted);
+    if (data instanceof RechnungDO) {
+      ((RechnungDO) data).getPositionen().removeIf(AbstractBaseDO::isDeleted);
+    } else {
+      ((EingangsrechnungDO) data).getPositionen().removeIf(AbstractBaseDO::isDeleted);
+    }
 
-    for (final T position : data.getPositionen()) {
+    for (final AbstractRechnungsPositionDO position : data.getAbstractPositionen()) {
       // Fetch all kostZuweisungen:
       if (CollectionUtils.isNotEmpty(position.getKostZuweisungen()) == true) {
         for (final KostZuweisungDO zuweisung : position.getKostZuweisungen()) {
@@ -374,22 +331,19 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
       }
       final List<Component> ajaxUpdatePositionComponents = new ArrayList<Component>();
       final RechnungsPositionDO rechnungsPosition = (position instanceof RechnungsPositionDO) ? (RechnungsPositionDO) position : null;
-      final ToggleContainerPanel positionsPanel = new ToggleContainerPanel(positionsRepeater.newChildId())
-      {
+      final ToggleContainerPanel positionsPanel = new ToggleContainerPanel(positionsRepeater.newChildId()) {
         /**
          * @see org.projectforge.web.wicket.flowlayout.ToggleContainerPanel#wantsOnStatusChangedNotification()
          */
         @Override
-        protected boolean wantsOnStatusChangedNotification()
-        {
+        protected boolean wantsOnStatusChangedNotification() {
           return true;
         }
 
         /**
          */
         @Override
-        protected void onToggleStatusChanged(final AjaxRequestTarget target, final ToggleStatus toggleStatus)
-        {
+        protected void onToggleStatusChanged(final AjaxRequestTarget target, final ToggleStatus toggleStatus) {
           if (toggleStatus == ToggleStatus.OPENED) {
             data.getUiStatus().openPosition(position.getNumber());
           } else {
@@ -415,15 +369,13 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
           posGridBuilder.newSubSplitPanel(gridSize); // COL25
           final FieldsetPanel fieldset = posGridBuilder.newFieldset(getString("fibu.auftrag")).setLabelSide(false);
           fieldset.add(new InputPanel(fieldset.newChildId(), new AuftragsPositionFormComponent(InputPanel.WICKET_ID,
-              new PropertyModel<AuftragsPositionDO>(position, "auftragsPosition"), false)));
-          fieldset.add(new IconPanel(fieldset.newIconChildId(), IconType.GOTO, getString("show"))
-          {
+                  new PropertyModel<AuftragsPositionDO>(position, "auftragsPosition"), false)));
+          fieldset.add(new IconPanel(fieldset.newIconChildId(), IconType.GOTO, getString("show")) {
             /**
              * @see org.apache.wicket.markup.html.link.Link#onClick()
              */
             @Override
-            public void onClick()
-            {
+            public void onClick() {
               if (rechnungsPosition.getAuftragsPosition() != null) {
                 final PageParameters parameters = new PageParameters();
                 parameters.add(AbstractEditPage.PARAMETER_KEY_ID, rechnungsPosition.getAuftragsPosition().getAuftrag().getId());
@@ -434,8 +386,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
             }
 
             @Override
-            public boolean isVisible()
-            {
+            public boolean isVisible() {
               return rechnungsPosition.getAuftragsPosition() != null;
             }
           }.enableAjaxOnClick(), FieldSetIconPosition.TOP_RIGHT);
@@ -445,12 +396,10 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
           posGridBuilder.newSubSplitPanel(gridSize);
           final FieldsetPanel fieldset = posGridBuilder.newFieldset(getString("fibu.rechnung.menge")).setLabelSide(false);
           final TextField<BigDecimal> amountTextField = new MinMaxNumberField<BigDecimal>(InputPanel.WICKET_ID,
-              new PropertyModel<BigDecimal>(position, "menge"), BigDecimal.ZERO, NumberHelper.BILLION);
-          amountTextField.add(new AjaxFormComponentUpdatingBehavior("blur")
-          {
+                  new PropertyModel<BigDecimal>(position, "menge"), BigDecimal.ZERO, NumberHelper.BILLION);
+          amountTextField.add(new AjaxFormComponentUpdatingBehavior("blur") {
             @Override
-            protected void onUpdate(final AjaxRequestTarget target)
-            {
+            protected void onUpdate(final AjaxRequestTarget target) {
               addAjaxComponents(target, ajaxUpdatePositionComponents);
             }
           });
@@ -461,20 +410,16 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
           posGridBuilder.newSubSplitPanel(gridSize);
           final FieldsetPanel fieldset = posGridBuilder.newFieldset(getString("fibu.rechnung.position.einzelNetto")).setLabelSide(false);
           final TextField<BigDecimal> netTextField = new TextField<BigDecimal>(InputPanel.WICKET_ID, new PropertyModel<BigDecimal>(
-              position, "einzelNetto"))
-          {
-            @SuppressWarnings({ "rawtypes", "unchecked" })
+                  position, "einzelNetto")) {
+            @SuppressWarnings({"rawtypes", "unchecked"})
             @Override
-            public IConverter getConverter(final Class type)
-            {
+            public IConverter getConverter(final Class type) {
               return new CurrencyConverter();
             }
           };
-          netTextField.add(new AjaxFormComponentUpdatingBehavior("blur")
-          {
+          netTextField.add(new AjaxFormComponentUpdatingBehavior("blur") {
             @Override
-            protected void onUpdate(final AjaxRequestTarget target)
-            {
+            protected void onUpdate(final AjaxRequestTarget target) {
               addAjaxComponents(target, ajaxUpdatePositionComponents);
             }
           });
@@ -485,20 +430,16 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
           posGridBuilder.newSubSplitPanel(gridSize);
           final FieldsetPanel fieldset = posGridBuilder.newFieldset(getString("fibu.rechnung.mehrwertSteuerSatz")).setLabelSide(false);
           final TextField<BigDecimal> vatTextField = new MinMaxNumberField<BigDecimal>(InputPanel.WICKET_ID, new PropertyModel<BigDecimal>(
-              position, "vat"), BigDecimal.ZERO, NumberHelper.HUNDRED)
-          {
-            @SuppressWarnings({ "rawtypes", "unchecked" })
+                  position, "vat"), BigDecimal.ZERO, NumberHelper.HUNDRED) {
+            @SuppressWarnings({"rawtypes", "unchecked"})
             @Override
-            public IConverter getConverter(final Class type)
-            {
+            public IConverter getConverter(final Class type) {
               return new BigDecimalPercentConverter(true);
             }
           };
-          vatTextField.add(new AjaxFormComponentUpdatingBehavior("blur")
-          {
+          vatTextField.add(new AjaxFormComponentUpdatingBehavior("blur") {
             @Override
-            protected void onUpdate(final AjaxRequestTarget target)
-            {
+            protected void onUpdate(final AjaxRequestTarget target) {
               addAjaxComponents(target, ajaxUpdatePositionComponents);
             }
           });
@@ -510,12 +451,10 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
         posGridBuilder.newSubSplitPanel(GridSize.COL33);
         {
           final FieldsetPanel fieldset = posGridBuilder.newFieldset(getString("fibu.common.netto")).setLabelSide(false)
-              .suppressLabelForWarning();
-          final TextPanel netTextPanel = new TextPanel(fieldset.newChildId(), new Model<String>()
-          {
+                  .suppressLabelForWarning();
+          final TextPanel netTextPanel = new TextPanel(fieldset.newChildId(), new Model<String>() {
             @Override
-            public String getObject()
-            {
+            public String getObject() {
               return CurrencyFormatter.format(position.getNetSum());
             }
           });
@@ -527,12 +466,10 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
         posGridBuilder.newSubSplitPanel(GridSize.COL33);
         {
           final FieldsetPanel fieldset = posGridBuilder.newFieldset(getString("fibu.common.vatAmount")).setLabelSide(false)
-              .suppressLabelForWarning();
-          final TextPanel vatTextPanel = new TextPanel(fieldset.newChildId(), new Model<String>()
-          {
+                  .suppressLabelForWarning();
+          final TextPanel vatTextPanel = new TextPanel(fieldset.newChildId(), new Model<String>() {
             @Override
-            public String getObject()
-            {
+            public String getObject() {
               return CurrencyFormatter.format(position.getVatAmount());
             }
           });
@@ -544,12 +481,10 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
         posGridBuilder.newSubSplitPanel(GridSize.COL33);
         {
           final FieldsetPanel fieldset = posGridBuilder.newFieldset(getString("fibu.common.brutto")).setLabelSide(false)
-              .suppressLabelForWarning();
-          final TextPanel grossTextPanel = new TextPanel(fieldset.newChildId(), new Model<String>()
-          {
+                  .suppressLabelForWarning();
+          final TextPanel grossTextPanel = new TextPanel(fieldset.newChildId(), new Model<String>() {
             @Override
-            public String getObject()
-            {
+            public String getObject() {
               return CurrencyFormatter.format(position.getBruttoSum());
             }
           });
@@ -573,16 +508,14 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
         {
           posGridBuilder.newSubSplitPanel(GridSize.COL50);
           DivPanel panel = posGridBuilder.getPanel();
-          final RechnungCostTablePanel costTable = new RechnungCostTablePanel(panel.newChildId(), position)
-          {
+          final RechnungCostTablePanel costTable = new RechnungCostTablePanel(panel.newChildId(), position) {
             /**
              * @see org.projectforge.web.fibu.RechnungCostTablePanel#onRenderCostRow(org.projectforge.business.fibu.AbstractRechnungsPositionDO,
              *      org.apache.wicket.Component, org.apache.wicket.Component)
              */
             @Override
             protected void onRenderCostRow(final AbstractRechnungsPositionDO position, final KostZuweisungDO costAssignment,
-                final Component cost1, final Component cost2)
-            {
+                                           final Component cost1, final Component cost2) {
               AbstractRechnungEditForm.this.onRenderCostRow(position, costAssignment, cost1, cost2);
             }
           };
@@ -599,11 +532,9 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
             } else {
               buttonType = ButtonType.LIGHT;
             }
-            final AjaxButton editCostButton = new AjaxButton(ButtonPanel.BUTTON_ID, this)
-            {
+            final AjaxButton editCostButton = new AjaxButton(ButtonPanel.BUTTON_ID, this) {
               @Override
-              protected void onSubmit(final AjaxRequestTarget target, final Form<?> form)
-              {
+              protected void onSubmit(final AjaxRequestTarget target, final Form<?> form) {
                 costEditModalDialog.open(target);
                 // Redraw the content:
                 costEditModalDialog.redraw(position, costTable);
@@ -612,8 +543,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
               }
 
               @Override
-              protected void onError(final AjaxRequestTarget target, final Form<?> form)
-              {
+              protected void onError(final AjaxRequestTarget target, final Form<?> form) {
                 target.add(AbstractRechnungEditForm.this.feedbackPanel);
               }
             };
@@ -622,11 +552,9 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
           } else {
             panel.add(new TextPanel(panel.newChildId(), " "));
           }
-          panel.add(new TextPanel(panel.newChildId(), new Model<String>()
-          {
+          panel.add(new TextPanel(panel.newChildId(), new Model<String>() {
             @Override
-            public String getObject()
-            {
+            public String getObject() {
               final BigDecimal fehlbetrag = position.getKostZuweisungNetFehlbetrag();
               if (NumberHelper.isNotZero(fehlbetrag) == true) {
                 return CurrencyFormatter.format(fehlbetrag);
@@ -642,18 +570,16 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
         {
           // Remove Position
           DivPanel divPanel = removeButtonGridBuilder.getPanel();
-          final Button removePositionButton = new Button(SingleButtonPanel.WICKET_ID)
-          {
+          final Button removePositionButton = new Button(SingleButtonPanel.WICKET_ID) {
             @Override
-            public final void onSubmit()
-            {
+            public final void onSubmit() {
               position.setDeleted(true);
               refreshPositions();
             }
           };
           removePositionButton.add(AttributeModifier.append("class", ButtonType.DELETE.getClassAttrValue()));
           final SingleButtonPanel removePositionButtonPanel = new SingleButtonPanel(divPanel.newChildId(), removePositionButton,
-              getString("delete"));
+                  getString("delete"));
           removePositionButtonPanel.setVisible(isNew() == true);
           divPanel.add(removePositionButtonPanel);
         }
@@ -675,12 +601,10 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
    * @param cost2
    */
   protected void onRenderCostRow(final AbstractRechnungsPositionDO position, final KostZuweisungDO costAssignment, final Component cost1,
-      final Component cost2)
-  {
+                                 final Component cost2) {
   }
 
-  protected String getPositionHeading(final AbstractRechnungsPositionDO position, final ToggleContainerPanel positionsPanel)
-  {
+  protected String getPositionHeading(final AbstractRechnungsPositionDO position, final ToggleContainerPanel positionsPanel) {
     if (positionsPanel.getToggleStatus() == ToggleStatus.OPENED) {
       return getString("label.position.short") + " #" + position.getNumber();
     }
@@ -696,12 +620,10 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
   /**
    * Overwrite this method if you need to add own form elements for a order position.
    */
-  protected void onRenderPosition(final GridBuilder posGridBuilder, final T position)
-  {
+  protected void onRenderPosition(final GridBuilder posGridBuilder, final AbstractRechnungsPositionDO position) {
   }
 
-  protected void addCostEditModalDialog()
-  {
+  protected void addCostEditModalDialog() {
     costEditModalDialog = new CostEditModalDialog();
     final String title = (isNew() == true) ? "create" : "update";
     costEditModalDialog.setCloseButtonLabel(getString(title)).setOutputMarkupId(true);
@@ -709,8 +631,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
     costEditModalDialog.init();
   }
 
-  private class CostEditModalDialog extends ModalDialog
-  {
+  private class CostEditModalDialog extends ModalDialog {
     private static final long serialVersionUID = 7113006438653862995L;
 
     private RechnungCostEditTablePanel rechnungCostEditTablePanel;
@@ -719,21 +640,18 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
 
     private RechnungCostTablePanel costTable;
 
-    CostEditModalDialog()
-    {
+    CostEditModalDialog() {
       super(parentPage.newModalDialogId());
       setBigWindow().setEscapeKeyEnabled(false);
     }
 
     @Override
-    public void init()
-    {
+    public void init() {
       setTitle(getString("fibu.rechnung.showEditableKostZuweisungen"));
       init(new Form<String>(getFormId()));
     }
 
-    public void redraw(final AbstractRechnungsPositionDO position, final RechnungCostTablePanel costTable)
-    {
+    public void redraw(final AbstractRechnungsPositionDO position, final RechnungCostTablePanel costTable) {
       this.position = position;
       this.costTable = costTable;
       clearContent();
@@ -749,8 +667,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
      * @see org.projectforge.web.dialog.ModalDialog#onCloseButtonSubmit(org.apache.wicket.ajax.AjaxRequestTarget)
      */
     @Override
-    protected boolean onCloseButtonSubmit(final AjaxRequestTarget target)
-    {
+    protected boolean onCloseButtonSubmit(final AjaxRequestTarget target) {
       // Copy edited values to DO object.
       final AbstractRechnungsPositionDO srcPosition = rechnungCostEditTablePanel.getPosition();
       KostZuweisungenCopyHelper.copy(srcPosition.getKostZuweisungen(), position);
@@ -762,8 +679,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
   /**
    * @return null
    */
-  public Long getBezahlDatumInMillis()
-  {
+  public Long getBezahlDatumInMillis() {
     return null;
   }
 
@@ -772,12 +688,10 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
    *
    * @param bezahlDatumInMillis
    */
-  public void setBezahlDatumInMillis(final Long bezahlDatumInMillis)
-  {
+  public void setBezahlDatumInMillis(final Long bezahlDatumInMillis) {
   }
 
-  private void addAjaxComponents(final AjaxRequestTarget target, final List<Component> components)
-  {
+  private void addAjaxComponents(final AjaxRequestTarget target, final List<Component> components) {
     target.add(components.toArray(COMPONENT_ARRAY));
     if (ajaxUpdateComponentsArray == null) {
       ajaxUpdateComponentsArray = ajaxUpdateComponents.toArray(COMPONENT_ARRAY);

@@ -88,7 +88,7 @@ public class RechnungDao extends BaseDao<RechnungDO> {
     return nettoSumme;
   }
 
-  static void writeUiStatusToXml(final AbstractRechnungDO<?> rechnung) {
+  static void writeUiStatusToXml(final AbstractRechnungDO rechnung) {
     final String uiStatusAsXml = XmlObjectWriter.writeAsXml(rechnung.getUiStatus());
     rechnung.setUiStatusAsXml(uiStatusAsXml);
   }

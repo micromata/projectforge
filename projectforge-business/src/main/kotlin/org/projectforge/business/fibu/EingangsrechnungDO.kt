@@ -32,6 +32,7 @@ import org.hibernate.search.annotations.FieldBridge
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
+import org.projectforge.framework.utils.StringComparator
 import java.math.BigDecimal
 import javax.persistence.*
 
@@ -51,7 +52,23 @@ import javax.persistence.*
 @WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [EingangsrechnungsPositionDO::class])
 @NamedQueries(
         NamedQuery(name = EingangsrechnungDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from EingangsrechnungDO"))
-class EingangsrechnungDO : AbstractRechnungDO<EingangsrechnungsPositionDO>(), Comparable<EingangsrechnungDO> {
+class EingangsrechnungDO : AbstractRechnungDO(), Comparable<EingangsrechnungDO> {
+
+    @PropertyInfo(i18nKey = "fibu.rechnung.receiver")
+    @Field
+    @get:Column
+    open var receiver: String? = null
+
+    @PropertyInfo(i18nKey = "fibu.rechnung.iban")
+    @Field
+    @get:Column(length = 50)
+    open var iban: String? = null
+
+    @PropertyInfo(i18nKey = "fibu.rechnung.bic")
+    @Field
+    @get:Column(length = 11)
+    open var bic: String? = null
+
 
     /**
      * Referenz / Eingangsrechnungsnummer des Kreditors.
@@ -84,9 +101,28 @@ class EingangsrechnungDO : AbstractRechnungDO<EingangsrechnungsPositionDO>(), Co
     @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, mappedBy = "eingangsrechnung", targetEntity = EingangsrechnungsPositionDO::class)
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
     @get:ListIndexBase(1)
-    override var positionen: MutableList<EingangsrechnungsPositionDO>? = null
+    var positionen: MutableList<EingangsrechnungsPositionDO>? = null
 
-    override fun setRechnung(position: EingangsrechnungsPositionDO) {
+    override val abstractPositionen: List<AbstractRechnungsPositionDO>?
+        @Transient
+        get() = positionen
+
+    override fun ensureAndGetPositionen(): MutableList<out AbstractRechnungsPositionDO> {
+        if (this.positionen == null) {
+            positionen = mutableListOf()
+        }
+        return positionen!!
+    }
+
+    override fun addPositionWithoutCheck(position: AbstractRechnungsPositionDO) {
+        position as EingangsrechnungsPositionDO
+        this.positionen!!.add(position)
+        position.eingangsrechnung = this
+    }
+
+
+    override fun setRechnung(position: AbstractRechnungsPositionDO) {
+        position as EingangsrechnungsPositionDO
         position.eingangsrechnung = this
     }
 
@@ -100,19 +136,11 @@ class EingangsrechnungDO : AbstractRechnungDO<EingangsrechnungsPositionDO>(), Co
         } else this.bezahlDatum != null && this.zahlBetrag != null
 
     override fun compareTo(other: EingangsrechnungDO): Int {
-        var r = this.datum!!.compareTo(other.datum!!)
-        if (r != 0) {
-            return -r
-        }
-        var s1 = StringUtils.defaultString(this.kreditor)
-        var s2 = StringUtils.defaultString(other.kreditor)
-        r = s1.compareTo(s2)
-        if (r != 0) {
-            return -r
-        }
-        s1 = StringUtils.defaultString(this.referenz)
-        s2 = StringUtils.defaultString(other.referenz)
-        return s1.compareTo(s2)
+        var cmp = compareValues(this.datum, other.datum)
+        if (cmp != null) return cmp
+        cmp = StringComparator.compare(this.kreditor, other.kreditor)
+        if (cmp != null) return cmp
+        return StringComparator.compare(this.referenz, other.referenz)
     }
 
     companion object {

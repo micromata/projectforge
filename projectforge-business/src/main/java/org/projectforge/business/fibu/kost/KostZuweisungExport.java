@@ -92,12 +92,12 @@ public class KostZuweisungExport {
    * @param list
    * @return
    */
-  public byte[] exportRechnungen(final List<? extends AbstractRechnungDO<? extends AbstractRechnungsPositionDO>> list,
+  public byte[] exportRechnungen(final List<? extends AbstractRechnungDO> list,
                                  final String sheetTitle, final KontoCache kontoCache) {
     final List<KostZuweisungDO> zuweisungen = new ArrayList<>();
-    for (final AbstractRechnungDO<?> rechnung : list) {
-      if (rechnung.getPositionen() != null) {
-        for (final AbstractRechnungsPositionDO position : rechnung.getPositionen()) {
+    for (final AbstractRechnungDO rechnung : list) {
+      if (rechnung.getAbstractPositionen() != null) {
+        for (final AbstractRechnungsPositionDO position : rechnung.getAbstractPositionen()) {
           if (CollectionUtils.isNotEmpty(position.getKostZuweisungen())) {
             for (final KostZuweisungDO zuweisung : position.getKostZuweisungen()) {
               if (NumberHelper.isZeroOrNull(zuweisung.getBrutto())) {
@@ -153,7 +153,7 @@ public class KostZuweisungExport {
     final PropertyMapping mapping = new PropertyMapping();
     for (final KostZuweisungDO zuweisung : list) {
       final AbstractRechnungsPositionDO position;
-      final AbstractRechnungDO<?> rechnung;
+      final AbstractRechnungDO rechnung;
       final String referenz;
       final String text;
       if (zuweisung.getRechnungsPosition() != null) {
