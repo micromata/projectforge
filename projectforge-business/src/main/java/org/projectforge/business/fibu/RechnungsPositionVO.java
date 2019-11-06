@@ -58,7 +58,7 @@ public class RechnungsPositionVO implements Comparable<RechnungsPositionVO>, Ser
 
   public RechnungsPositionVO(final RechnungsPositionDO rechnungsPosition)
   {
-    final RechnungDO rechnung = (RechnungDO) rechnungsPosition.getRechnung();
+    final RechnungDO rechnung = rechnungsPosition.getRechnung();
     this.date = rechnung.getDatum();
     this.number = rechnungsPosition.getNumber();
     this.rechnungId = rechnung.getId();

@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu
 
+import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.projectforge.business.fibu.kost.KostZuweisungDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
@@ -57,14 +58,18 @@ abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), ShortDisplayNameCa
     @get:OrderColumn(name = "index")
     var kostZuweisungen: MutableList<KostZuweisungDO>? = null
 
-    fun getKostZuweisung(idx: Int) : KostZuweisungDO? {
+    @get:Transient
+    abstract val rechnungId: Int?
+
+    fun getKostZuweisung(idx: Int): KostZuweisungDO? {
         return kostZuweisungen?.getOrNull(idx)
     }
 
     fun addKostZuweisung(kostZuweisung: KostZuweisungDO) {
         val zuweisungen = this.ensureAndGetKostzuweisungen()
-        val number: Short = zuweisungen.maxBy { it.index }?.index ?: 1
-        kostZuweisung.index = (number + 1).toShort()
+        // Get the highest used number + 1 or take 0 for the first position.
+        val nextIndex = zuweisungen.maxBy { it.index }?.index?.plus(1)?.toShort() ?: 0
+        kostZuweisung.index = nextIndex
         kostZuweisung.setRechnungsPosition(this)
         zuweisungen.add(kostZuweisung)
     }
@@ -125,10 +130,18 @@ abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), ShortDisplayNameCa
         @Transient
         get() = text.isNullOrEmpty() || NumberHelper.isZeroOrNull(einzelNetto)
 
-
     @Transient
     override fun getShortDisplayName(): String {
         return number.toString()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (other == null || !(other is AbstractRechnungsPositionDO)) return false
+        return this.number == other.number && this.rechnungId == other.rechnungId
+    }
+
+    override fun hashCode(): Int {
+        return HashCodeBuilder().append(number).append(rechnungId).toHashCode()
     }
 
     companion object {
