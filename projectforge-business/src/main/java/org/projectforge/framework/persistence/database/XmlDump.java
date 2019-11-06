@@ -65,6 +65,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
 import javax.persistence.Transient;
 import java.io.*;
 import java.lang.reflect.AccessibleObject;
@@ -351,9 +352,11 @@ public class XmlDump {
    */
   public int verifyDump(final XStreamSavingConverter xstreamSavingConverter) {
     Session session = null;
+    EntityManager em = null;
     boolean hasError = false;
     try {
-      session = (Session) emf.getEntityManagerFactory().createEntityManager().getDelegate();
+      em = emf.getEntityManagerFactory().createEntityManager();
+      session = (Session) em.getDelegate();
       session.setDefaultReadOnly(true);
       int counter = 0;
       for (final Map.Entry<Class<?>, List<Object>> entry : xstreamSavingConverter.getAllObjects().entrySet()) {
@@ -409,7 +412,14 @@ public class XmlDump {
       return counter;
     } finally {
       if (session != null) {
-        session.close();
+        try {
+          session.close();
+        } catch (Exception ex) {
+          log.error("Error while closing session: " + ex.getMessage(), ex);
+        }
+      }
+      if (em != null) {
+        em.close();
       }
     }
   }

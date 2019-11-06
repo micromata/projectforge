@@ -40,6 +40,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -119,21 +120,26 @@ public class HibernateSearchDependentObjectsReindexer {
     new Thread() {
       @Override
       public void run() {
-        final Session session = (Session) emgrFactory.getEntityManagerFactory().createEntityManager().getDelegate();
-        final Set<String> alreadyReindexed = new HashSet<>();
-        final List<Entry> entryList = map.get(obj.getClass());
-        reindexDependents(session, obj, entryList, alreadyReindexed);
-        session.disconnect();
-        final int size = alreadyReindexed.size();
-        if (size >= 10) {
-          log.info("Re-indexing of " + size + " objects done after updating " + obj.getClass().getName() + ":"
-                  + obj.getId());
-        }
+        emgrFactory.runInTrans(emgr -> {
+                  final EntityManager em = emgr.getEntityManager();
+                  final Session session = (Session) em.getDelegate();
+                  final Set<String> alreadyReindexed = new HashSet<>();
+                  final List<Entry> entryList = map.get(obj.getClass());
+                  reindexDependents(em, session, obj, entryList, alreadyReindexed);
+                  session.disconnect();
+                  final int size = alreadyReindexed.size();
+                  if (size >= 10) {
+                    log.info("Re-indexing of " + size + " objects done after updating " + obj.getClass().getName() + ":"
+                            + obj.getId());
+                  }
+                  return null;
+                }
+        );
       }
     }.start();
   }
 
-  private void reindexDependents(final Session session, final BaseDO<?> obj,
+  private void reindexDependents(final EntityManager em, final Session session, final BaseDO<?> obj,
                                  final List<Entry> entryList, final Set<String> alreadyReindexed) {
     if (CollectionUtils.isEmpty(entryList)) {
       // Nothing to do.
@@ -145,21 +151,21 @@ public class HibernateSearchDependentObjectsReindexer {
         // Nothing to do
         return;
       }
-      final List<?> result = getDependents(registryEntry, entry, obj);
+      final List<?> result = getDependents(em, registryEntry, entry, obj);
       if (result != null) {
         for (Object dependentObject : result) {
           if (dependentObject instanceof Object[]) {
             dependentObject = ((Object[]) dependentObject)[0];
           }
           if (dependentObject instanceof BaseDO) {
-            reindexDependents(session, (BaseDO<?>) dependentObject, alreadyReindexed);
+            reindexDependents(em, session, (BaseDO<?>) dependentObject, alreadyReindexed);
           }
         }
       }
     }
   }
 
-  private void reindexDependents(final Session session, final BaseDO<?> obj,
+  private void reindexDependents(final EntityManager em, final Session session, final BaseDO<?> obj,
                                  final Set<String> alreadyReindexed) {
     if (alreadyReindexed.contains(getReindexId(obj))) {
       if (log.isDebugEnabled()) {
@@ -188,10 +194,11 @@ public class HibernateSearchDependentObjectsReindexer {
     }
     // session.flush(); // clear every batchSize since the queue is processed
     final List<Entry> entryList = map.get(obj.getClass());
-    reindexDependents(session, obj, entryList, alreadyReindexed);
+    reindexDependents(em, session, obj, entryList, alreadyReindexed);
   }
 
-  private List<?> getDependents(final RegistryEntry registryEntry,
+  private List<?> getDependents(final EntityManager em,
+                                final RegistryEntry registryEntry,
                                 final Entry entry,
                                 final BaseDO<?> obj) {
     final String queryString;
@@ -203,7 +210,7 @@ public class HibernateSearchDependentObjectsReindexer {
     if (log.isDebugEnabled()) {
       log.debug(queryString + ", id=" + obj.getId());
     }
-    final List<?> result = emgrFactory.getEntityManagerFactory().createEntityManager().createQuery(queryString, registryEntry.getDOClass())
+    final List<?> result = em.createQuery(queryString, registryEntry.getDOClass())
             .setParameter("id", obj.getId())
             .getResultList();
     return result;

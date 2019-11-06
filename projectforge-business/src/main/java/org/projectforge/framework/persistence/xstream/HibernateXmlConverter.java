@@ -101,7 +101,7 @@ public class HibernateXmlConverter {
    */
   public void dumpDatabaseToXml(final Writer writer, final boolean includeHistory, final boolean preserveIds) {
     emf.runInTrans(emgr -> {
-      Session session = (Session) emf.getEntityManagerFactory().createEntityManager().getDelegate();
+      Session session = (Session) emgr.getEntityManager().getDelegate();
       writeObjects(writer, includeHistory, session, preserveIds);
       return null;
     });
