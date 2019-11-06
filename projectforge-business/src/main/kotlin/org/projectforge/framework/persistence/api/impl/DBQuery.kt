@@ -29,6 +29,7 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -40,7 +41,7 @@ open class DBQuery {
     private val log = LoggerFactory.getLogger(DBQuery::class.java)
 
     @Autowired
-    private lateinit var entityManager: EntityManager
+    private lateinit var emgrFactory: PfEmgrFactory
 
     @Autowired
     private lateinit var accessChecker: AccessChecker
@@ -56,27 +57,29 @@ open class DBQuery {
      */
     @JvmOverloads
     open fun <O : ExtendedBaseDO<Int>> getList(baseDao: BaseDao<O>,
-                                          filter: QueryFilter,
-                                          checkAccess: Boolean = true,
-                                          ignoreTenant: Boolean = false)
+                                               filter: QueryFilter,
+                                               checkAccess: Boolean = true,
+                                               ignoreTenant: Boolean = false)
             : List<O> {
-        val begin = System.currentTimeMillis()
         baseDao.checkLoggedInUserSelectAccess()
         if (accessChecker.isRestrictedUser) {
             return listOf()
         }
         try {
+            val begin = System.currentTimeMillis()
             val dbFilter = filter.createDBFilter()
+            val list = emgrFactory.runRoTrans {
+                val em = it.entityManager
+                val queryBuilder = DBQueryBuilder(baseDao, em, tenantService, filter, dbFilter,
+                        // Check here mixing fulltext and criteria searches in comparison to full text searches and DBResultMatchers.
+                        ignoreTenant = ignoreTenant)
 
-            val queryBuilder = DBQueryBuilder(baseDao, entityManager, tenantService, filter, dbFilter,
-                    // Check here mixing fulltext and criteria searches in comparison to full text searches and DBResultMatchers.
-                    ignoreTenant = ignoreTenant)
-
-            val dbResultIterator: DBResultIterator<O>
-            dbResultIterator = queryBuilder.result()
-            val historSearchParams = DBHistorySearchParams(filter.modifiedByUserId, filter.modifiedFrom, filter.modifiedTo, filter.searchHistory)
-            var list = createList(baseDao, dbResultIterator, queryBuilder.resultPredicates, dbFilter, historSearchParams, checkAccess)
-            list = dbResultIterator.sort(list)
+                val dbResultIterator: DBResultIterator<O>
+                dbResultIterator = queryBuilder.result()
+                val historSearchParams = DBHistorySearchParams(filter.modifiedByUserId, filter.modifiedFrom, filter.modifiedTo, filter.searchHistory)
+                var list = createList(baseDao, em, dbResultIterator, queryBuilder.resultPredicates, dbFilter, historSearchParams, checkAccess)
+                dbResultIterator.sort(list)
+            }
 
             val end = System.currentTimeMillis()
             if (end - begin > 2000) {
@@ -93,6 +96,7 @@ open class DBQuery {
     }
 
     private fun <O : ExtendedBaseDO<Int>> createList(baseDao: BaseDao<O>,
+                                                     em: EntityManager,
                                                      dbResultIterator: DBResultIterator<O>,
                                                      resultPredicates: List<DBPredicate>,
                                                      filter: DBFilter,
@@ -112,10 +116,10 @@ open class DBQuery {
                 || !historSearchParams.searchHistory.isNullOrBlank()) {
             // Search now all history entries which were modified by the given user and/or in the given time period.
             val idSet = if (historSearchParams.searchHistory.isNullOrBlank()) {
-                DBHistoryQuery.searchHistoryEntryByCriteria(entityManager, baseDao.doClass, historSearchParams)
+                DBHistoryQuery.searchHistoryEntryByCriteria(em, baseDao.doClass, historSearchParams)
                 //baseDao.getHistoryEntries(baseDao.entityManager, baseSearchFilter) // No full text required.
             } else {
-                DBHistoryQuery.searchHistoryEntryByFullTextQuery(entityManager, baseDao.doClass, historSearchParams)
+                DBHistoryQuery.searchHistoryEntryByFullTextQuery(em, baseDao.doClass, historSearchParams)
                 //baseDao.getHistoryEntriesFullTextSearch(baseDao.entityManager, baseSearchFilter)
             }
             while (next != null) {
