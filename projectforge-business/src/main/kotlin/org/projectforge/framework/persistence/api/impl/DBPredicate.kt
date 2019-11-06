@@ -337,12 +337,12 @@ abstract class DBPredicate(
         }
     }
 
-    class FullSearch(private val expectedValue: String)
+    class FullSearch(private val expectedValue: String, autoWildcardSearch: Boolean = false)
         : DBPredicate(null, true, false, false) {
         private var queryString: String
 
         init {
-            queryString = modifySearchString(expectedValue,'%', '*')
+            queryString = modifySearchString(expectedValue,'%', '*', autoWildcardSearch)
         }
 
         override fun match(obj: Any): Boolean {

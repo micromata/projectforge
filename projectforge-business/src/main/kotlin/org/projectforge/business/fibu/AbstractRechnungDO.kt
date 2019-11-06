@@ -205,7 +205,6 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
     }
 
     fun addPosition(position: AbstractRechnungsPositionDO) {
-        position as RechnungsPositionDO
         ensureAndGetPositionen()
         // Get the highest used number + 1 or take 1 for the first position.
         val nextNumber = abstractPositionen!!.maxBy { it.number }?.number?.plus(1)?.toShort() ?: 1
