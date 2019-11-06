@@ -100,7 +100,7 @@ public class MyBeanComparator<T> implements Comparator<T>
             return alphanumericComparator.compare((String) value1, (String) value2);
           }
         } else {
-          return StringComparator.getInstance().compare((String) value1, (String) value2, asc);
+          return StringComparator.compare((String) value1, (String) value2, asc);
         }
       }
       if (ClassUtils.isAssignable(value2.getClass(), value1.getClass())) {
