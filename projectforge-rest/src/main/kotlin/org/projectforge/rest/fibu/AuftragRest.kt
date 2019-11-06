@@ -147,6 +147,9 @@ class AuftragRest() : AbstractDORest<AuftragDO, AuftragDao>(AuftragDao::class.ja
                         .add(UIRow()
                                 .add(UICol()
                                         .add(lc, "position.task", "position.periodOfPerformanceType", "position.bemerkung"))))
+
+        layout.getLabelledElementById("position.periodOfPerformanceType").label = "fibu.periodOfPerformance"
+
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

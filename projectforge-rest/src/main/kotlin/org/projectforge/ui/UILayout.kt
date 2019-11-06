@@ -177,6 +177,10 @@ class UILayout {
         return getElementById(id) as UITextArea
     }
 
+    fun getLabelledElementById(id: String): UILabelledElement {
+        return getElementById(id) as UILabelledElement
+    }
+
     fun getNamedContainerById(id: String): UINamedContainer? {
         namedContainers.forEach {
             if (it.id == id) {
@@ -205,6 +209,7 @@ class UILayout {
                 is UIRow -> getElementById(id, it.content)
                 is UICol -> getElementById(id, it.content)
                 is UITable -> getElementById(id, it.columns)
+                is UIList -> getElementById(id, it.content)
                 else -> null
             }
             if (element != null)
