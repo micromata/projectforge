@@ -23,13 +23,15 @@
 
 package org.projectforge.business.ldap;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.Date;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class LdapUser extends LdapPerson
-{
+@JsonIgnoreProperties(value = { "sambaNTPassword" })
+public class LdapUser extends LdapPerson {
   private Integer uidNumber, gidNumber, sambaSIDNumber, sambaPrimaryGroupSIDNumber;
 
   private String loginShell, homeDirectory, sambaNTPassword;
@@ -39,13 +41,11 @@ public class LdapUser extends LdapPerson
   /**
    * @return The uid number of object class posixAccount.
    */
-  public Integer getUidNumber()
-  {
+  public Integer getUidNumber() {
     return uidNumber;
   }
 
-  public LdapUser setUidNumber(final Integer uidNumber)
-  {
+  public LdapUser setUidNumber(final Integer uidNumber) {
     this.uidNumber = uidNumber;
     return this;
   }
@@ -53,13 +53,11 @@ public class LdapUser extends LdapPerson
   /**
    * @return The gid number of object class posixAccount.
    */
-  public Integer getGidNumber()
-  {
+  public Integer getGidNumber() {
     return gidNumber;
   }
 
-  public LdapUser setGidNumber(final Integer gidNumber)
-  {
+  public LdapUser setGidNumber(final Integer gidNumber) {
     this.gidNumber = gidNumber;
     return this;
   }
@@ -67,13 +65,11 @@ public class LdapUser extends LdapPerson
   /**
    * @return The login shell of object class posixAccount.
    */
-  public String getLoginShell()
-  {
+  public String getLoginShell() {
     return loginShell;
   }
 
-  public LdapUser setLoginShell(final String loginShell)
-  {
+  public LdapUser setLoginShell(final String loginShell) {
     this.loginShell = loginShell;
     return this;
   }
@@ -81,13 +77,11 @@ public class LdapUser extends LdapPerson
   /**
    * @return The home directory of object class posixAccount.
    */
-  public String getHomeDirectory()
-  {
+  public String getHomeDirectory() {
     return homeDirectory;
   }
 
-  public LdapUser setHomeDirectory(final String homeDirectory)
-  {
+  public LdapUser setHomeDirectory(final String homeDirectory) {
     this.homeDirectory = homeDirectory;
     return this;
   }
@@ -95,8 +89,7 @@ public class LdapUser extends LdapPerson
   /**
    * @return the sambaSID (without prefix {@link LdapSambaAccountsConfig#getSambaSIDPrefix()}.
    */
-  public Integer getSambaSIDNumber()
-  {
+  public Integer getSambaSIDNumber() {
     return sambaSIDNumber;
   }
 
@@ -104,8 +97,7 @@ public class LdapUser extends LdapPerson
    * @param sambaSIDNumber the sambaSIDNumber to set
    * @return this for chaining.
    */
-  public LdapUser setSambaSIDNumber(final Integer sambaSIDNumber)
-  {
+  public LdapUser setSambaSIDNumber(final Integer sambaSIDNumber) {
     this.sambaSIDNumber = sambaSIDNumber;
     return this;
   }
@@ -113,8 +105,7 @@ public class LdapUser extends LdapPerson
   /**
    * @return the sambaPrimaryGroupSID
    */
-  public Integer getSambaPrimaryGroupSIDNumber()
-  {
+  public Integer getSambaPrimaryGroupSIDNumber() {
     return sambaPrimaryGroupSIDNumber;
   }
 
@@ -122,8 +113,7 @@ public class LdapUser extends LdapPerson
    * @param sambaPrimaryGroupSIDNumber the sambaPrimaryGroupSID to set
    * @return this for chaining.
    */
-  public LdapUser setSambaPrimaryGroupSIDNumber(final Integer sambaPrimaryGroupSIDNumber)
-  {
+  public LdapUser setSambaPrimaryGroupSIDNumber(final Integer sambaPrimaryGroupSIDNumber) {
     this.sambaPrimaryGroupSIDNumber = sambaPrimaryGroupSIDNumber;
     return this;
   }
@@ -131,8 +121,7 @@ public class LdapUser extends LdapPerson
   /**
    * @return the sambaNTPassword
    */
-  public String getSambaNTPassword()
-  {
+  public String getSambaNTPassword() {
     return sambaNTPassword;
   }
 
@@ -140,8 +129,7 @@ public class LdapUser extends LdapPerson
    * @param sambaNTPassword the sambaNTPassword to set
    * @return this for chaining.
    */
-  public LdapUser setSambaNTPassword(final String sambaNTPassword)
-  {
+  public LdapUser setSambaNTPassword(final String sambaNTPassword) {
     this.sambaNTPassword = sambaNTPassword;
     return this;
   }
@@ -149,16 +137,14 @@ public class LdapUser extends LdapPerson
   /**
    * @return the sambaPwdLastSet
    */
-  public Date getSambaPwdLastSet()
-  {
+  public Date getSambaPwdLastSet() {
     return sambaPwdLastSet;
   }
 
   /**
    * @return the sambaPwdLastSet as seconds since 1970 (Unix)
    */
-  public long getSambaPwdLastSetAsUnixEpochSeconds()
-  {
+  public long getSambaPwdLastSetAsUnixEpochSeconds() {
     if (sambaPwdLastSet != null) {
       return sambaPwdLastSet.getTime() / 1000;
     }
@@ -169,8 +155,7 @@ public class LdapUser extends LdapPerson
    * @param sambaPwdLastSet the sambaPwdLastSet to set
    * @return this for chaining.
    */
-  public LdapUser setSambaPwdLastSet(final Date sambaPwdLastSet)
-  {
+  public LdapUser setSambaPwdLastSet(final Date sambaPwdLastSet) {
     this.sambaPwdLastSet = sambaPwdLastSet;
     return this;
   }
