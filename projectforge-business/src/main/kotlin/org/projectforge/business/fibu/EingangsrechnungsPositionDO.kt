@@ -43,7 +43,7 @@ class EingangsrechnungsPositionDO : AbstractRechnungsPositionDO() {
     @get:JoinColumn(name = "eingangsrechnung_fk", nullable = false)
     var eingangsrechnung: EingangsrechnungDO? = null
 
-    val rechnungId: Int?
+    override val rechnungId: Int?
         @Transient
         get() = eingangsrechnung?.id
 

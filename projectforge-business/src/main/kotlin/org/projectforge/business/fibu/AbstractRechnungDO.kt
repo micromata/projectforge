@@ -155,6 +155,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
     /**
      * (this.status == RechnungStatus.BEZAHLT && this.bezahlDatum != null && this.zahlBetrag != null)
      */
+    @get:Transient
     abstract val isBezahlt: Boolean
 
     val isUeberfaellig: Boolean
@@ -206,8 +207,9 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
     fun addPosition(position: AbstractRechnungsPositionDO) {
         position as RechnungsPositionDO
         ensureAndGetPositionen()
-        val number: Short = abstractPositionen!!.maxBy { it.number }?.number ?: 1
-        position.number = (number + 1).toShort()
+        // Get the highest used number + 1 or take 1 for the first position.
+        val nextNumber = abstractPositionen!!.maxBy { it.number }?.number?.plus(1)?.toShort() ?: 1
+        position.number = nextNumber
         setRechnung(position)
         addPositionWithoutCheck(position)
     }
