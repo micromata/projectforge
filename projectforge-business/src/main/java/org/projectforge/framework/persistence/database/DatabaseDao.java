@@ -38,6 +38,7 @@ import org.projectforge.framework.persistence.api.ReindexSettings;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.framework.persistence.hibernate.HibernateCompatUtils;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.time.DayHolder;
@@ -64,7 +65,7 @@ public class DatabaseDao {
   private Date currentReindexRun = null;
 
   @Autowired
-  private EntityManager em;
+  private PfEmgrFactory emgrFactory;
 
   /**
    * Since yesterday and 1,000 newest entries at maximimum.
@@ -135,80 +136,86 @@ public class DatabaseDao {
   }
 
   private long reindexObjects(final Class<?> clazz, final ReindexSettings settings) {
-    final Session session = (Session) em.getDelegate();
-    Criteria criteria = createCriteria(session, clazz, settings, true);
-    final Long number = (Long) criteria.uniqueResult(); // Get number of objects to re-index (select count(*) from).
-    final boolean scrollMode = number > MIN_REINDEX_ENTRIES_4_USE_SCROLL_MODE;
-    log.info("Starting re-indexing of "
-            + number
-            + " entries (total number) of type "
-            + clazz.getName()
-            + " with scrollMode="
-            + scrollMode
-            + "...");
-    final int batchSize = 1000;// NumberUtils.createInteger(System.getProperty("hibernate.search.worker.batch_size")
-    final FullTextSession fullTextSession = Search.getFullTextSession(session);
-    HibernateCompatUtils.setFlushMode(fullTextSession, FlushMode.MANUAL);
-    HibernateCompatUtils.setCacheMode(fullTextSession, CacheMode.IGNORE);
-    long index = 0;
-    if (scrollMode) {
-      // Scroll-able results will avoid loading too many objects in memory
-      criteria = createCriteria(fullTextSession, clazz, settings, false);
-      final ScrollableResults results = criteria.scroll(ScrollMode.FORWARD_ONLY);
-      while (results.next()) {
-        final Object obj = results.get(0);
-        if (obj instanceof ExtendedBaseDO<?>) {
-          ((ExtendedBaseDO<?>) obj).recalculate();
+    return emgrFactory.runInTrans(emgr -> {
+      final EntityManager em = emgr.getEntityManager();
+      final Session session = (Session) em.getDelegate();
+      Criteria criteria = createCriteria(session, clazz, settings, true);
+      final Long number = (Long) criteria.uniqueResult(); // Get number of objects to re-index (select count(*) from).
+      final boolean scrollMode = number > MIN_REINDEX_ENTRIES_4_USE_SCROLL_MODE;
+      log.info("Starting re-indexing of "
+              + number
+              + " entries (total number) of type "
+              + clazz.getName()
+              + " with scrollMode="
+              + scrollMode
+              + "...");
+      final int batchSize = 1000;// NumberUtils.createInteger(System.getProperty("hibernate.search.worker.batch_size")
+      final FullTextSession fullTextSession = Search.getFullTextSession(session);
+      HibernateCompatUtils.setFlushMode(fullTextSession, FlushMode.MANUAL);
+      HibernateCompatUtils.setCacheMode(fullTextSession, CacheMode.IGNORE);
+      long index = 0;
+      if (scrollMode) {
+        // Scroll-able results will avoid loading too many objects in memory
+        criteria = createCriteria(fullTextSession, clazz, settings, false);
+        final ScrollableResults results = criteria.scroll(ScrollMode.FORWARD_ONLY);
+        while (results.next()) {
+          final Object obj = results.get(0);
+          if (obj instanceof ExtendedBaseDO<?>) {
+            ((ExtendedBaseDO<?>) obj).recalculate();
+          }
+          HibernateCompatUtils.index(fullTextSession, obj);
+          if (index++ % batchSize == 0) {
+            session.flush(); // clear every batchSize since the queue is processed
+          }
         }
-        HibernateCompatUtils.index(fullTextSession, obj);
-        if (index++ % batchSize == 0) {
-          session.flush(); // clear every batchSize since the queue is processed
+      } else {
+        criteria = createCriteria(session, clazz, settings, false);
+        final List<?> list = criteria.list();
+        for (final Object obj : list) {
+          if (obj instanceof ExtendedBaseDO<?>) {
+            ((ExtendedBaseDO<?>) obj).recalculate();
+          }
+          HibernateCompatUtils.index(fullTextSession, obj);
+          if (index++ % batchSize == 0) {
+            session.flush(); // clear every batchSize since the queue is processed
+          }
         }
       }
-    } else {
-      criteria = createCriteria(session, clazz, settings, false);
-      final List<?> list = criteria.list();
-      for (final Object obj : list) {
-        if (obj instanceof ExtendedBaseDO<?>) {
-          ((ExtendedBaseDO<?>) obj).recalculate();
-        }
-        HibernateCompatUtils.index(fullTextSession, obj);
-        if (index++ % batchSize == 0) {
-          session.flush(); // clear every batchSize since the queue is processed
-        }
-      }
-    }
-    final SearchFactory searchFactory = fullTextSession.getSearchFactory();
-    searchFactory.optimize(clazz);
-    log.info("Re-indexing of " + index + " objects of type " + clazz.getName() + " done.");
-    return index;
+      final SearchFactory searchFactory = fullTextSession.getSearchFactory();
+      searchFactory.optimize(clazz);
+      log.info("Re-indexing of " + index + " objects of type " + clazz.getName() + " done.");
+      return index;
+    });
   }
 
   /**
    * @param clazz
    */
   private long reindexMassIndexer(final Class<?> clazz) {
-    final Session session = (Session) em.getDelegate();
-    final Criteria criteria = createCriteria(session, clazz, null, true);
-    final Long number = (Long) criteria.uniqueResult(); // Get number of objects to re-index (select count(*) from).
-    log.info("Starting (mass) re-indexing of " + number + " entries of type " + clazz.getName() + "...");
-    final FullTextSession fullTextSession = Search.getFullTextSession(session);
-    try {
+    return emgrFactory.runInTrans(emgr -> {
+      final EntityManager em = emgr.getEntityManager();
 
-      fullTextSession.createIndexer(clazz)//
-              .batchSizeToLoadObjects(25) //
-              //.cacheMode(CacheMode.NORMAL) //
-              .threadsToLoadObjects(5) //
-              //.threadsForIndexWriter(1) //
-              .startAndWait();
-    } catch (final InterruptedException ex) {
-      log.error("Exception encountered while reindexing: " + ex.getMessage(), ex);
-    }
-    final SearchFactory searchFactory = fullTextSession.getSearchFactory();
-    searchFactory.optimize(clazz);
-    log.info("Re-indexing of " + number + " objects of type " + clazz.getName() + " done.");
-    return number;
+      final Session session = (Session) em.getDelegate();
+      final Criteria criteria = createCriteria(session, clazz, null, true);
+      final Long number = (Long) criteria.uniqueResult(); // Get number of objects to re-index (select count(*) from).
+      log.info("Starting (mass) re-indexing of " + number + " entries of type " + clazz.getName() + "...");
+      final FullTextSession fullTextSession = Search.getFullTextSession(session);
+      try {
 
+        fullTextSession.createIndexer(clazz)//
+                .batchSizeToLoadObjects(25) //
+                //.cacheMode(CacheMode.NORMAL) //
+                .threadsToLoadObjects(5) //
+                //.threadsForIndexWriter(1) //
+                .startAndWait();
+      } catch (final InterruptedException ex) {
+        log.error("Exception encountered while reindexing: " + ex.getMessage(), ex);
+      }
+      final SearchFactory searchFactory = fullTextSession.getSearchFactory();
+      searchFactory.optimize(clazz);
+      log.info("Re-indexing of " + number + " objects of type " + clazz.getName() + " done.");
+      return number;
+    });
   }
 
   private Criteria createCriteria(final Session session, final Class<?> clazz, final ReindexSettings settings,

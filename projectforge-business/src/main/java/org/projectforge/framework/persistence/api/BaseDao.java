@@ -273,7 +273,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   }
 
   protected QueryFilter createQueryFilter(final BaseSearchFilter filter) {
-    return new QueryFilter(filter);
+    return new QueryFilter(filter, false);
   }
 
   /**
@@ -1183,7 +1183,10 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   @Override
   public void rebuildDatabaseIndex() {
     final ReindexSettings settings = DatabaseDao.createReindexSettings(false);
-    databaseDao.rebuildDatabaseSearchIndices(clazz, settings);
+    emgrFactory.runInTrans(emgr -> {
+      databaseDao.rebuildDatabaseSearchIndices(clazz, settings);
+      return null;
+    });
   }
 
   /**
