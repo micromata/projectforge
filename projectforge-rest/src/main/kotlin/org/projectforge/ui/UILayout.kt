@@ -238,6 +238,7 @@ class UILayout {
                     values.forEach { list.add(it) }
             }
             is UITable -> element.columns.forEach { list.add(it) }
+            is UIList -> addAllElements(list, element.content)
         }
     }
 }
