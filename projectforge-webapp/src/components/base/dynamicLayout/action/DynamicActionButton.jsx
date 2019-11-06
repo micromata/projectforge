@@ -28,9 +28,9 @@ function DynamicActionButton(props) {
 
     return (
         <Button
+            {...stylingProps}
             onClick={handleClick}
             type={type}
-            {...stylingProps}
         >
             {title}
         </Button>
