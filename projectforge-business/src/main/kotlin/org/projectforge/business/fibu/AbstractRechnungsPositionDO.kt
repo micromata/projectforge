@@ -32,6 +32,7 @@ import org.projectforge.framework.utils.NumberHelper
 import java.math.BigDecimal
 import javax.persistence.*
 
+@MappedSuperclass
 abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @PropertyInfo(i18nKey = "fibu.rechnung.nummer")
     @get:Column

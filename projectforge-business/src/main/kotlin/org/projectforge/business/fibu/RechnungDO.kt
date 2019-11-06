@@ -154,7 +154,7 @@ class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
     @JsonBackReference
     @IndexedEmbedded(depth = 3)
-    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, mappedBy = "rechnung", targetEntity = RechnungsPositionDO::class)
+    @get:OneToMany(cascade = [CascadeType.MERGE], fetch = FetchType.EAGER, mappedBy = "rechnung", targetEntity = RechnungsPositionDO::class)
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
     @get:ListIndexBase(1)
     var positionen: MutableList<RechnungsPositionDO>? = null
