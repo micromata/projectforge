@@ -7,7 +7,7 @@ import DynamicCheckbox from './input/DynamicCheckbox';
 import DynamicInputResolver from './input/DynamicInputResolver';
 import DynamicRadioButton from './input/DynamicRadioButton';
 import DynamicTextArea from './input/DynamicTextArea';
-import DynamicList from './list/DynamicList';
+import DynamicList from './DynamicList';
 import DynamicReactSelect from './select/DynamicReactSelect';
 import DynamicTable from './table/DynamicTable';
 
