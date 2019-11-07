@@ -49,14 +49,15 @@ object BaseDaoSupport {
         baseDao.onSaveOrModify(obj)
         BaseDaoJpaAdapter.prepareInsert(obj)
         baseDao.emgrFactory.runInTrans { emgr ->
-            emgr.persist(obj)
+            val em = emgr.entityManager
+            em.persist(obj)
             if (baseDao.logDatabaseActions) {
                 log.info("New " + baseDao.clazz.getSimpleName() + " added (" + obj.getId() + "): " + obj.toString())
             }
             baseDao.prepareHibernateSearch(obj, OperationType.INSERT)
-            emgr.merge(obj)
-            emgr.flush()
-            baseDao.flushSearchSession(emgr.getEntityManager())
+            em.merge(obj)
+            em.flush()
+            baseDao.flushSearchSession(em)
             null
         }
         HistoryBaseDaoAdapter.inserted(obj)
