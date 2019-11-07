@@ -85,8 +85,8 @@ public class PollEditForm extends AbstractEditForm<PollDO, PollEditPage>
   {
     super.init();
 
-    final Collection<PFUserDO> attendeePFUserList = new ArrayList<PFUserDO>();
-    final Collection<String> emailList = new ArrayList<String>();
+    final Collection<PFUserDO> attendeePFUserList = new ArrayList<>();
+    final Collection<String> emailList = new ArrayList<>();
     for (final PollAttendeeDO attendee : pollAttendeeDao.getListByPoll(data)) {
       if (attendee.getUser() != null) {
         attendeePFUserList.add(attendee.getUser());
@@ -101,14 +101,14 @@ public class PollEditForm extends AbstractEditForm<PollDO, PollEditPage>
 
     // new title
     final FieldsetPanel fsTitle = gridBuilder.newFieldset(getString("plugins.poll.new.title"));
-    final RequiredTextField<String> title = new RequiredTextField<String>(fsTitle.getTextFieldId(),
-        new PropertyModel<String>(this.data, "title"));
+    final RequiredTextField<String> title = new RequiredTextField<>(fsTitle.getTextFieldId(),
+        new PropertyModel<>(this.data, "title"));
     fsTitle.add(title);
 
     // new location
     final FieldsetPanel fsLocation = gridBuilder.newFieldset(getString("plugins.poll.new.location"));
     final PFAutoCompleteTextField<String> location = new PFAutoCompleteTextField<String>(fsLocation.getTextFieldId(),
-        new PropertyModel<String>(
+        new PropertyModel<>(
             this.data, "location"))
     {
       private static final long serialVersionUID = -2309992819521957913L;
@@ -123,8 +123,8 @@ public class PollEditForm extends AbstractEditForm<PollDO, PollEditPage>
 
     // new description
     final FieldsetPanel fsDesc = gridBuilder.newFieldset(getString("plugins.poll.new.description"));
-    final TextArea<String> desc = new TextArea<String>(fsDesc.getTextAreaId(),
-        new PropertyModel<String>(this.data, "description"));
+    final TextArea<String> desc = new TextArea<>(fsDesc.getTextAreaId(),
+        new PropertyModel<>(this.data, "description"));
     fsDesc.add(desc);
 
     // attendee list
@@ -134,9 +134,9 @@ public class PollEditForm extends AbstractEditForm<PollDO, PollEditPage>
         .setComparator(new UsersComparator())
         .setFullList(usersProvider.getSortedUsers());
     attendeeHelper.setAssignedItems(attendeePFUserList);
-    final Select2MultiChoice<PFUserDO> attendees = new Select2MultiChoice<PFUserDO>(
+    final Select2MultiChoice<PFUserDO> attendees = new Select2MultiChoice<>(
         fsAttendee.getSelect2MultiChoiceId(),
-        new PropertyModel<Collection<PFUserDO>>(attendeeHelper, "assignedItems"), usersProvider);
+        new PropertyModel<>(attendeeHelper, "assignedItems"), usersProvider);
     fsAttendee.add(attendees);
 
     // new email list

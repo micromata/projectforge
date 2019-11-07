@@ -48,7 +48,7 @@ public class MemoPluginUpdates
       {
         // Does the data-base table already exist?
         // Check only the oldest table.
-        if (dao.doTablesExist(MemoDO.class) == true) {
+        if (dao.doTablesExist(MemoDO.class)) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {
           // The oldest table doesn't exist, therefore the plug-in has to initialized completely.

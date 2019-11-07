@@ -131,6 +131,7 @@ function SearchFilter() {
                 isMulti
                 name="searchFilter"
                 options={options}
+                getOptionValue={option => option.key}
                 onChange={handleSearchFilterChange}
                 placeholder={ui.translations['select.placeholder']}
                 setMultiValue={handleSearchFilterValueChange}
@@ -142,7 +143,7 @@ function SearchFilter() {
                 }))}
                 values={entries.reduce((accumulator, currentValue) => ({
                     ...accumulator,
-                    [currentValue.field]: currentValue.value,
+                    [currentValue.field || currentValue.value.value]: currentValue.value,
                 }), {})}
             />
         );

@@ -51,6 +51,6 @@ public class IhkExportRight extends UserRightAccessCheck<TimesheetDO>
     if (timesheet == null) {
       return true; // General insert and select access given by default.
     }
-    return (Objects.equals(user.getId(), timesheet.getUserId()) == true);
+    return (Objects.equals(user.getId(), timesheet.getUserId()));
   }
 }

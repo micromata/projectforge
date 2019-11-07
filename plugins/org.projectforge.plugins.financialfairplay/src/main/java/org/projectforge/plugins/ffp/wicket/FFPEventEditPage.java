@@ -97,7 +97,7 @@ public class FFPEventEditPage extends AbstractEditPage<FFPEventDO, FFPEventEditF
   @Override
   public AbstractSecuredBasePage afterSaveOrUpdate()
   {
-    if (getData().getFinished() == true && eventService.debtExists(getData()) == false) {
+    if (getData().getFinished() && !eventService.debtExists(getData())) {
       eventService.createDept(getData());
     }
     return null;

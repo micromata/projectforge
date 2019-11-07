@@ -72,7 +72,7 @@ public class FFPDebtDao extends BaseDao<FFPDebtDO> {
     Integer result = 0;
     List<FFPDebtDO> debtList = getDebtList(user);
     for (FFPDebtDO debt : debtList) {
-      if (debt.getFrom().equals(user) && debt.isApprovedByFrom() == false) {
+      if (debt.getFrom().equals(user) && !debt.isApprovedByFrom()) {
         result++;
       }
     }
@@ -83,7 +83,7 @@ public class FFPDebtDao extends BaseDao<FFPDebtDO> {
     Integer result = 0;
     List<FFPDebtDO> debtList = getDebtList(user);
     for (FFPDebtDO debt : debtList) {
-      if (debt.getTo().equals(user) && debt.isApprovedByFrom() == true && debt.isApprovedByTo() == false) {
+      if (debt.getTo().equals(user) && debt.isApprovedByFrom() && !debt.isApprovedByTo()) {
         result++;
       }
     }

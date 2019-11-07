@@ -53,7 +53,7 @@ public class PollEditPage extends AbstractEditPage<PollDO, PollEditForm, PollDao
   {
     super(parameters, "plugins.poll");
     init();
-    if (form.isNew() == true) {
+    if (form.isNew()) {
       NewPollPage.redirectToNewPollPage(parameters);
     }
   }

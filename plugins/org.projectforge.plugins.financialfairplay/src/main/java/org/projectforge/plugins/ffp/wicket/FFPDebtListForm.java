@@ -51,13 +51,13 @@ public class FFPDebtListForm extends AbstractListForm<FFPDebtFilter, FFPDebtList
   protected void onOptionsPanelCreate(FieldsetPanel optionsFieldsetPanel, DivPanel optionsCheckBoxesPanel) {
     final FFPDebtFilter ffpDebtFilter = getSearchFilter();
     optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(),
-            new PropertyModel<Boolean>(ffpDebtFilter, "fromMe"), getString("plugins.ffp.debt.options.fromMe")));
+        new PropertyModel<>(ffpDebtFilter, "fromMe"), getString("plugins.ffp.debt.options.fromMe")));
     optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(),
-            new PropertyModel<Boolean>(ffpDebtFilter, "toMe"), getString("plugins.ffp.debt.options.toMe")));
+        new PropertyModel<>(ffpDebtFilter, "toMe"), getString("plugins.ffp.debt.options.toMe")));
     optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(),
-            new PropertyModel<Boolean>(ffpDebtFilter, "iNeedToApprove"), getString("plugins.ffp.debt.options.iNeedToApprove")));
+        new PropertyModel<>(ffpDebtFilter, "iNeedToApprove"), getString("plugins.ffp.debt.options.iNeedToApprove")));
     optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(),
-            new PropertyModel<Boolean>(ffpDebtFilter, "hideBothApproved"), getString("plugins.ffp.debt.options.hideBothApprove")));
+        new PropertyModel<>(ffpDebtFilter, "hideBothApproved"), getString("plugins.ffp.debt.options.hideBothApprove")));
   }
   
 
