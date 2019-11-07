@@ -53,7 +53,7 @@ public enum ToDoType implements I18nEnum
     return key;
   }
 
-  private ToDoType(String key)
+  ToDoType(String key)
   {
     this.key = key;
   }

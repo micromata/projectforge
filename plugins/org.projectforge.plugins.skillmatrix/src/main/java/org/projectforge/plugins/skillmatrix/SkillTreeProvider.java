@@ -84,7 +84,7 @@ public class SkillTreeProvider implements ITreeProvider<SkillNode>
   @Override
   public boolean hasChildren(final SkillNode node)
   {
-    if (node.isRootNode() == true) {
+    if (node.isRootNode()) {
       // Don't show children of root node again.
       return false;
     }
@@ -97,7 +97,7 @@ public class SkillTreeProvider implements ITreeProvider<SkillNode>
   @Override
   public Iterator<SkillNode> getChildren(final SkillNode node)
   {
-    if (node.isRootNode() == true) {
+    if (node.isRootNode()) {
       // Don't show children of root node again.
       return new LinkedList<SkillNode>().iterator();
     }
@@ -121,19 +121,17 @@ public class SkillTreeProvider implements ITreeProvider<SkillNode>
   private Iterator<SkillNode> iterator(final List<SkillNode> nodes, final boolean appendRootNode)
   {
     // ensureSkillTree();
-    final SortedSet<SkillNode> list = new TreeSet<SkillNode>(new Comparator<SkillNode>()
-    {
+    final SortedSet<SkillNode> list = new TreeSet<>(new Comparator<SkillNode>() {
       /**
        * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
        */
       @Override
-      public int compare(final SkillNode skillNode1, final SkillNode skillNode2)
-      {
-        if (skillNode1.isRootNode() == true) {
+      public int compare(final SkillNode skillNode1, final SkillNode skillNode2) {
+        if (skillNode1.isRootNode()) {
           // Show root node at last position.
           return 1;
         }
-        if (skillNode2.isRootNode() == true) {
+        if (skillNode2.isRootNode()) {
           // Show root node at last position.
           return -1;
         }
@@ -144,12 +142,12 @@ public class SkillTreeProvider implements ITreeProvider<SkillNode>
         return title1.compareTo(title2);
       }
     });
-    if (appendRootNode == true) {
-      if (skillFilter.match(getSkillTree().getRootSkillNode(), null, null) == true) {
+    if (appendRootNode) {
+      if (skillFilter.match(getSkillTree().getRootSkillNode(), null, null)) {
         list.add(getSkillTree().getRootSkillNode());
       }
     }
-    if (nodes == null || nodes.isEmpty() == true) {
+    if (nodes == null || nodes.isEmpty()) {
       return list.iterator();
     }
     final PFUserDO user = ThreadLocalUserContext.getUser();
@@ -158,7 +156,7 @@ public class SkillTreeProvider implements ITreeProvider<SkillNode>
       final boolean isMatch = skillFilter.match(node, skillDao, user);
       final boolean hasAccess = skillDao.hasUserSelectAccess(user, node.getSkill(), false);
 
-      if (isMatch == true && hasAccess == true) {
+      if (isMatch && hasAccess) {
         list.add(node);
       }
     }

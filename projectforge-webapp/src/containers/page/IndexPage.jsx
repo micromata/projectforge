@@ -143,9 +143,6 @@ class IndexPage extends React.Component {
                         <h1>ToDo&apos;s (Fin)</h1>
                         <ol>
                             <li>
-                                Clear Autocomplete (EditableMultiValueLabel) crash.
-                            </li>
-                            <li>
                                 Return key closes the popover, another Return click submits the
                                 filter and requests a new list?
                             </li>
@@ -167,6 +164,9 @@ class IndexPage extends React.Component {
                         </ol>
                         <h1>Done</h1>
                         <ol style={todoDone}>
+                            <li>
+                                Clear Autocomplete (EditableMultiValueLabel) crash.
+                            </li>
                             <li>
                                 ReactSelect.jsx tooltip random id.
                             </li>

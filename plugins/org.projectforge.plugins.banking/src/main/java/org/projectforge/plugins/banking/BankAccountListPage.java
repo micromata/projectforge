@@ -59,7 +59,7 @@ public class BankAccountListPage extends AbstractListPage<BankAccountListForm, B
   @Override
   protected void init()
   {
-    final List<IColumn<BankAccountDO, String>> columns = new ArrayList<IColumn<BankAccountDO, String>>();
+    final List<IColumn<BankAccountDO, String>> columns = new ArrayList<>();
     final CellItemListener<BankAccountDO> cellItemListener = new CellItemListener<BankAccountDO>()
     {
       public void populateItem(final Item<ICellPopulator<BankAccountDO>> item, final String componentId,
@@ -70,7 +70,7 @@ public class BankAccountListPage extends AbstractListPage<BankAccountListForm, B
       }
     };
     columns.add(new CellItemListenerPropertyColumn<BankAccountDO>(
-        new Model<String>(getString("plugins.banking.account.number")),
+        new Model<>(getString("plugins.banking.account.number")),
         "accountNumber", "accountNumber", cellItemListener)
     {
       @SuppressWarnings("unchecked")
@@ -86,13 +86,13 @@ public class BankAccountListPage extends AbstractListPage<BankAccountListForm, B
       }
     });
     columns
-        .add(new CellItemListenerPropertyColumn<BankAccountDO>(
-            new Model<String>(getString("plugins.banking.account.name")), "name", "name", cellItemListener));
+        .add(new CellItemListenerPropertyColumn<>(
+            new Model<>(getString("plugins.banking.account.name")), "name", "name", cellItemListener));
     columns
-        .add(new CellItemListenerPropertyColumn<BankAccountDO>(new Model<String>(getString("plugins.banking.bank")),
+        .add(new CellItemListenerPropertyColumn<>(new Model<>(getString("plugins.banking.bank")),
             "bank", "bank", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<BankAccountDO>(
-        new Model<String>(getString("plugins.banking.bankIdentificationCode")), "bankIdentificationCode",
+    columns.add(new CellItemListenerPropertyColumn<>(
+        new Model<>(getString("plugins.banking.bankIdentificationCode")), "bankIdentificationCode",
         "bankIdentificationCode", cellItemListener));
     dataTable = createDataTable(columns, "accountNumber", SortOrder.ASCENDING);
     form.add(dataTable);

@@ -73,6 +73,6 @@ public class ToDoCache extends AbstractCache
   protected void refresh()
   {
     log.info("Clearing cache with open to-do entries.");
-    openEntriesMap = new HashMap<Integer, Integer>();
+    openEntriesMap = new HashMap<>();
   }
 }

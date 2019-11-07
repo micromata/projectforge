@@ -60,7 +60,7 @@ public enum SkillRating implements I18nEnum
     return key;
   }
 
-  private SkillRating(final String key, final int ordering)
+  SkillRating(final String key, final int ordering)
   {
     this.key = key;
     this.ordering = ordering;
@@ -73,7 +73,7 @@ public enum SkillRating implements I18nEnum
    */
   public static Object[] getRequiredExperienceValues(final SkillRating rating)
   {
-    final Collection<SkillRating> values = new ArrayList<SkillRating>(5);
+    final Collection<SkillRating> values = new ArrayList<>(5);
     // The missing breaks are intentionally: this way the key of the case itself and all the cases higher are added.
     switch (rating) {
       case UNKNOWN:

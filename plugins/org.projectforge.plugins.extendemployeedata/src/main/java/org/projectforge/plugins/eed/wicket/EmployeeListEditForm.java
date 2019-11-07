@@ -159,7 +159,7 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
     FieldsetPanel optionsFieldsetPanel = gridBuilder.newFieldset(getOptionsLabel()).suppressLabelForWarning();
     final DivPanel optionsCheckBoxesPanel = optionsFieldsetPanel.addNewCheckBoxButtonDiv();
     optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(),
-        new PropertyModel<Boolean>(this, "showOnlyActiveEntries"), getString("label.onlyActiveEntries")));
+        new PropertyModel<>(this, "showOnlyActiveEntries"), getString("label.onlyActiveEntries")));
   }
 
   public EmployeeListEditForm(final EmployeeListEditPage parentPage)

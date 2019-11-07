@@ -52,7 +52,7 @@ public class HibernateSearchUsersBridge implements FieldBridge
   public void set(final String name, final Object value, final Document document, final LuceneOptions luceneOptions)
   {
     final LicenseDO license = (LicenseDO) value;
-    if (StringUtils.isBlank(license.getOwnerIds()) == true) {
+    if (StringUtils.isBlank(license.getOwnerIds())) {
       return;
     }
     //TODO: Nicht null übergeben

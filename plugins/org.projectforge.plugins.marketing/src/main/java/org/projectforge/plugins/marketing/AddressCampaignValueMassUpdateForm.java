@@ -57,16 +57,16 @@ public class AddressCampaignValueMassUpdateForm
       // Value
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("value"));
       final AddressCampaignDO addressCampaign = data.getAddressCampaign();
-      final LabelValueChoiceRenderer<String> valueChoiceRenderer = new LabelValueChoiceRenderer<String>(
+      final LabelValueChoiceRenderer<String> valueChoiceRenderer = new LabelValueChoiceRenderer<>(
           addressCampaign.getValuesArray());
-      fs.addDropDownChoice(new PropertyModel<String>(data, "value"), valueChoiceRenderer.getValues(),
+      fs.addDropDownChoice(new PropertyModel<>(data, "value"), valueChoiceRenderer.getValues(),
           valueChoiceRenderer).setNullValid(
               false);
     }
     {
       // Comment
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("comment"));
-      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<String>(data, "comment"))).setAutogrow();
+      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<>(data, "comment"))).setAutogrow();
     }
   }
 }

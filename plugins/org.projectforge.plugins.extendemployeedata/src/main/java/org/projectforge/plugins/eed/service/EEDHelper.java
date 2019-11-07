@@ -50,10 +50,10 @@ public class EEDHelper
     // do not cache the years because this is a long lasting service and the years could change in the meantime
     final List<Integer> years = timeableService.getAvailableStartTimeYears(employeeDao.internalLoadAll());
     final Integer actualYear = new GregorianCalendar().get(Calendar.YEAR);
-    if (years.contains(actualYear) == false) {
+    if (!years.contains(actualYear)) {
       years.add(actualYear);
     }
-    if (years.contains(actualYear + 1) == false) {
+    if (!years.contains(actualYear + 1)) {
       years.add(actualYear + 1);
     }
     return years

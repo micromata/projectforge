@@ -24,9 +24,7 @@
 package org.projectforge.plugins.memo;
 
 import org.hibernate.search.annotations.ClassBridge;
-import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.Store;
 import org.projectforge.business.user.HibernateSearchUserRightIdBridge;
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.api.RightRightIdProviderService;
@@ -35,7 +33,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 @Indexed
-@ClassBridge(index = Index.YES /* TOKENIZED */, store = Store.NO, impl = HibernateSearchUserRightIdBridge.class)
+@ClassBridge(impl = HibernateSearchUserRightIdBridge.class)
 public enum MemoPluginUserRightId implements IUserRightId
 {
   PLUGIN_MEMO("PLUGIN_MEMO", "plugin20", "plugins.memo.memo");
@@ -59,7 +57,7 @@ public enum MemoPluginUserRightId implements IUserRightId
    * @param orderString For displaying the rights in e. g. UserEditPage in the correct order.
    * @param i18nKey
    */
-  private MemoPluginUserRightId(final String id, final String orderString, final String i18nKey)
+  MemoPluginUserRightId(final String id, final String orderString, final String i18nKey)
   {
     this.id = id;
     this.orderString = orderString;
