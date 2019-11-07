@@ -199,6 +199,7 @@ public class PersonalAddressDao {
                     .createNamedQuery(PersonalAddressDO.FIND_BY_OWNER_AND_ADDRESS_ID, PersonalAddressDO.class)
                     .setParameter("ownerId", owner.getId())
                     .setParameter("addressId", addressId),
+            true,
             "Multiple personal address book entries for same user (" + owner.getId() + ") and same address ("
                     + addressId + "). Should not occur?!");
   }

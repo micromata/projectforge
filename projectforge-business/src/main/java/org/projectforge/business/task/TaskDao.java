@@ -271,10 +271,8 @@ public class TaskDao extends BaseDao<TaskDO> {
 
   @Override
   protected void afterSaveOrModify(final TaskDO obj) {
-    // Reread it from the database to get the current version (given obj could be different, for example after markAsDeleted):
-    final TaskDO task = internalGetById(obj.getId());
-    final TaskTree taskTree = getTaskTree(task);
-    taskTree.addOrUpdateTaskNode(task);
+    final TaskTree taskTree = getTaskTree(obj);
+    taskTree.addOrUpdateTaskNode(obj);
   }
 
   /**

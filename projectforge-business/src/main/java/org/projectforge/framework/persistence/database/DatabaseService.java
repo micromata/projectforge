@@ -40,6 +40,7 @@ import org.projectforge.business.user.*;
 import org.projectforge.common.DatabaseDialect;
 import org.projectforge.common.StringHelper;
 import org.projectforge.common.task.TaskStatus;
+import org.projectforge.continuousdb.Table;
 import org.projectforge.continuousdb.*;
 import org.projectforge.continuousdb.hibernate.TableAttributeHookImpl;
 import org.projectforge.continuousdb.jdbc.DatabaseExecutorImpl;
@@ -60,12 +61,11 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
-import javax.persistence.Column;
-import javax.persistence.EntityManager;
-import javax.persistence.Persistence;
-import javax.persistence.UniqueConstraint;
+import javax.persistence.*;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -74,6 +74,7 @@ import java.sql.SQLException;
 import java.util.*;
 
 @Service
+@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class DatabaseService {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DatabaseService.class);
 
@@ -87,6 +88,9 @@ public class DatabaseService {
 
   @Autowired
   private ApplicationContext applicationContext;
+
+  @PersistenceContext
+  private EntityManager em;
 
   @Autowired
   private HibernateSearchReindexer hibernateSearchReindexer;
@@ -1068,11 +1072,9 @@ public class DatabaseService {
   }
 
   public boolean doesGroupExists(ProjectForgeGroup group) {
-    return emf.runRoTrans(emgr -> {
-      List<GroupDO> selectedGroups = emgr.select(GroupDO.class, "SELECT g FROM GroupDO g WHERE g.name = :name", "name",
-              group.getName());
-      return selectedGroups != null && selectedGroups.size() > 0;
-    });
+    return em.createQuery( "SELECT count(*) FROM GroupDO g WHERE g.name = :name", Integer.class)
+            .setParameter("name",group.getName())
+            .getSingleResult() > 0;
   }
 
   public boolean doesTableRowExists(final Class<?> entity, final String columnName, final String cellValue, final boolean useQuotationMarks) {

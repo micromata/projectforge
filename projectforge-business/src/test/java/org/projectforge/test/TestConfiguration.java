@@ -42,7 +42,6 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.vendor.HibernateJpaDialect;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -88,6 +87,13 @@ public class TestConfiguration {
   @Autowired
   private PfEmgrFactory pfEmgrFactory;
 
+  @PostConstruct
+  private void postConstruct() {
+    if (DatabaseSupport.getInstance() == null) {
+      DatabaseSupport.setInstance(new DatabaseSupport(HibernateUtils.getDialect()));
+    }
+  }
+
   /**
    * has to be defined, otherwise spring creates a LocalContainerEntityManagerFactoryBean, which has no correct
    * sessionFactory.getCurrentSession();.
@@ -101,24 +107,10 @@ public class TestConfiguration {
     return pfEmgrFactory.getEntityManagerFactory();
   }
 
-  @PostConstruct
-  private void postConstruct() {
-    if (DatabaseSupport.getInstance() == null) {
-      DatabaseSupport.setInstance(new DatabaseSupport(HibernateUtils.getDialect()));
-    }
-  }
-
   @Bean
   public EntityManager entityManager()
   {
-    return pfEmgrFactory.getEntityManagerFactory().createEntityManager();
-  }
-
-  @Bean
-  public DataSourceTransactionManager transactionManager() {
-    final DataSourceTransactionManager txManager = new DataSourceTransactionManager();
-    txManager.setDataSource(dataSource());
-    return txManager;
+    return entityManagerFactory().createEntityManager();
   }
 
   @Bean
@@ -129,7 +121,6 @@ public class TestConfiguration {
     transactionManager.setJpaDialect(new HibernateJpaDialect());
     return transactionManager;
   }
-
 
   @Bean
   public JdbcTemplate jdbcTemplate() {

@@ -18,8 +18,9 @@
             <!-- To disable logoutput: https://hibernate.atlassian.net/browse/HHH-12368 -->
             <property name="hibernate.jdbc.lob.non_contextual_creation" value="true"/>
 
-            <!-- Needed since upgrade from Hibernate 5.0 to 5.5: -->
-            <property name="hibernate.connection.release_mode" value="ON_CLOSE"/>
+            <!-- https://docs.jboss.org/hibernate/orm/5.4/javadocs/org/hibernate/resource/jdbc/spi/PhysicalConnectionHandlingMode.html -->
+            <property name="hibernate.connection.handling_mode" value="DELAYED_ACQUISITION_AND_HOLD"/>
+            <property name="hibernate.search.lucene_version" value="LUCENE_CURRENT"/>
 
             <property name="hibernate.archive.scanner"
                       value="de.micromata.genome.jpa.impl.JpaWithExtLibrariesScanner"/>
