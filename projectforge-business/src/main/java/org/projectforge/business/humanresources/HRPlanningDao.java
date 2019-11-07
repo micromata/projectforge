@@ -133,17 +133,15 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
     final HRPlanningDO other;
     if (planningId == null) {
       // New entry
-      other = getSession().createNamedQuery(HRPlanningDO.FIND_BY_USER_AND_WEEK, HRPlanningDO.class)
+      other = SQLHelper.ensureUniqueResult(em.createNamedQuery(HRPlanningDO.FIND_BY_USER_AND_WEEK, HRPlanningDO.class)
               .setParameter("userId", userId)
-              .setParameter("week", week)
-              .uniqueResult();
+              .setParameter("week", week));
     } else {
       // Entry already exists. Check collision:
-      other = getSession().createNamedQuery(HRPlanningDO.FIND_OTHER_BY_USER_AND_WEEK, HRPlanningDO.class)
+      other = SQLHelper.ensureUniqueResult(em.createNamedQuery(HRPlanningDO.FIND_OTHER_BY_USER_AND_WEEK, HRPlanningDO.class)
               .setParameter("userId", userId)
               .setParameter("week", week)
-              .setParameter("id", planningId)
-              .uniqueResult();
+              .setParameter("id", planningId));
     }
     return other != null;
   }
@@ -158,7 +156,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
       log.error("Date is not begin of week, try to change date: " + DateHelper.formatAsUTC(date.getDate()));
       date.setBeginOfWeek();
     }
-    final HRPlanningDO planning = SQLHelper.ensureUniqueResult(getSession()
+    final HRPlanningDO planning = SQLHelper.ensureUniqueResult(em
             .createNamedQuery(HRPlanningDO.FIND_BY_USER_AND_WEEK, HRPlanningDO.class)
             .setParameter("userId", userId)
             .setParameter("week", week));

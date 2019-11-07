@@ -31,9 +31,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.hibernate.query.Query;
-import org.hibernate.type.DateType;
-import org.hibernate.type.StringType;
 import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.calendar.event.model.SeriesModificationMode;
 import org.projectforge.business.multitenancy.TenantService;
@@ -57,12 +54,10 @@ import org.projectforge.framework.time.DateHolder;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.NoResultException;
 import javax.persistence.NonUniqueResultException;
+import javax.persistence.TypedQuery;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -71,7 +66,6 @@ import java.util.*;
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  */
 @Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class TeamEventDao extends BaseDao<TeamEventDO> {
   public static final long MIN_DATE_1800 = -5364662400000L;
 
@@ -121,7 +115,6 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
   }
 
   @Override
-  @Transactional(readOnly = false, propagation = Propagation.SUPPORTS)
   public ModificationStatus internalUpdate(final TeamEventDO obj, final boolean checkAccess) {
     logReminderChange(obj);
     return super.internalUpdate(obj, checkAccess);
@@ -309,7 +302,6 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
    * Handles deletion of series element (if any) for future and single events of a series.
    */
   @Override
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
   public void internalMarkAsDeleted(final TeamEventDO obj) {
     ICalendarEvent selectedEvent = (ICalendarEvent) obj.removeTransientAttribute(ATTR_SELECTED_ELEMENT); // Must be removed, otherwise update below will handle this attrs again.
     SeriesModificationMode mode = (SeriesModificationMode) obj.removeTransientAttribute(ATTR_SERIES_MODIFICATION_MODE);
@@ -464,7 +456,6 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
    * @see org.projectforge.framework.persistence.api.BaseDao#getList(org.projectforge.framework.persistence.api.BaseSearchFilter)
    */
   @Override
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<TeamEventDO> getList(final BaseSearchFilter filter) {
     final TeamEventFilter teamEventFilter;
     if (filter instanceof TeamEventFilter) {
@@ -523,13 +514,13 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
     final String s = "select distinct location from "
             + clazz.getSimpleName()
             + " t where deleted=false and t.calendar in :cals and lastUpdate > :lastUpdate and lower(t.location) like :location) order by t.location";
-    final Query query = getSession().createQuery(s);
-    query.setParameterList("cals", calendars);
+    final TypedQuery<String> query = em.createQuery(s, String.class);
+    query.setParameter("cals", calendars);
     final DateHolder dh = new DateHolder();
     dh.add(Calendar.YEAR, -1);
-    query.setParameter("lastUpdate", dh.getDate(), DateType.INSTANCE);
-    query.setParameter("location", "%" + StringUtils.lowerCase(searchString) + "%", StringType.INSTANCE);
-    return (List<String>) query.list();
+    query.setParameter("lastUpdate", dh.getDate());
+    query.setParameter("location", "%" + StringUtils.lowerCase(searchString) + "%");
+    return query.getResultList();
   }
 
   private void addEventsToList(final TeamEventFilter teamEventFilter, final List<TeamEventDO> result,
@@ -696,14 +687,6 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
    */
   public Logger getLog() {
     return log;
-  }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#useOwnCriteriaCacheRegion()
-   */
-  @Override
-  protected boolean useOwnCriteriaCacheRegion() {
-    return true;
   }
 
   /**

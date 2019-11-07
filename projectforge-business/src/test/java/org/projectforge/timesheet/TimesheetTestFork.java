@@ -36,9 +36,6 @@ import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -56,9 +53,6 @@ public class TimesheetTestFork extends AbstractTestBase {
   @Autowired
   TaskDao taskDao;
 
-  @Autowired
-  private TransactionTemplate txTemplate;
-
   DateHolder date;
 
   @BeforeEach
@@ -69,8 +63,7 @@ public class TimesheetTestFork extends AbstractTestBase {
   @Test
   public void hasSelectAccess() {
     final Serializable[] id = new Serializable[1];
-    txTemplate.execute(new TransactionCallback() {
-      public Object doInTransaction(final TransactionStatus status) {
+    emf.runInTrans(emgr -> {
         initTestDB.addTask("ts-hasSelectAccess-task", "root");
         initTestDB.addUser("ts-hasSelectAccess-user");
         final TimesheetDO ts = new TimesheetDO();
@@ -85,26 +78,21 @@ public class TimesheetTestFork extends AbstractTestBase {
         id[0] = timesheetDao.internalSave(ts);
         timesheetDao.internalSave(ts);
         return null;
-      }
     });
-    txTemplate.execute(new TransactionCallback() {
-      public Object doInTransaction(final TransactionStatus status) {
+    emf.runInTrans(emgr -> {
         logon(getUser("ts-hasSelectAccess-user"));
         final TimesheetDO ts = timesheetDao.getById(id[0]); // Has no access, but is owner of this timesheet
         assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, ts.getShortDescription());
         assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, ts.getDescription());
         assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, ts.getLocation());
         return null;
-      }
     });
-    txTemplate.execute(new TransactionCallback() {
-      public Object doInTransaction(final TransactionStatus status) {
+    emf.runInTrans(emgr -> {
         final TimesheetDO ts = timesheetDao.internalGetById(id[0]);
         assertEquals("Field should not be overwritten", "A lot of stuff done and more.", ts.getShortDescription());
         assertEquals("Field should not be overwritten", "A lot of stuff done and more.", ts.getDescription());
         assertEquals("Field should not be overwritten", "Office", ts.getLocation());
         return null;
-      }
     });
   }
 
@@ -183,12 +171,10 @@ public class TimesheetTestFork extends AbstractTestBase {
     } catch (final UserException ex) {
       assertEquals("timesheet.error.timeperiodOverlapDetection", ex.getI18nKey());
     }
-    txTemplate.execute(new TransactionCallback() {
-      public Object doInTransaction(final TransactionStatus status) {
+    emf.runInTrans(emgr -> {
         final TimesheetDO t = timesheetDao.internalGetById(id2);
         timesheetDao.markAsDeleted(t); // Delete conflicting time sheet
         return null;
-      }
     });
     id = timesheetDao.save(ts3); // No overlap, OK.
     ts3 = timesheetDao.getById(id);

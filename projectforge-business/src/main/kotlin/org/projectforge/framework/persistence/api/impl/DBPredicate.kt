@@ -74,7 +74,7 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search: [equal] cb.equal('$field'), '$value')")
+            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [equal] cb.equal('$field'), '$value')")
             return ctx.cb.equal(ctx.getField<Any>(field!!), value)
         }
 
@@ -93,7 +93,7 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search: [notEqual] cb.notEqual('$field'), '$value')")
+            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [notEqual] cb.notEqual('$field'), '$value')")
             return ctx.cb.notEqual(ctx.getField<Any>(field!!), value)
         }
 
@@ -123,13 +123,13 @@ abstract class DBPredicate(
          * be returned.
          */
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search: [in] cb.in($field.in[${values.joinToString(", ", "'", "'")}])")
+            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [in] cb.in($field.in[${values.joinToString(", ", "'", "'")}])")
             if (values.isNullOrEmpty()) {
-                if (log.isDebugEnabled) log.debug("Adding criteria search: [in] cb.isNull('$field'), '${values[0]}') (uses equal, because no value is given).")
+                if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [in] cb.isNull('$field'), '${values[0]}') (uses equal, because no value is given).")
                 return ctx.cb.isNull(ctx.getField<Any>(field!!))
             }
             if (values.size == 1) {
-                if (log.isDebugEnabled) log.debug("Adding criteria search: [in] cb.equal('$field'), '${values[0]}') (uses equal, because only one value is given).")
+                if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [in] cb.equal('$field'), '${values[0]}') (uses equal, because only one value is given).")
                 return ctx.cb.equal(ctx.getField<Any>(field!!), values[0])
             }
             val inClause = ctx.cb.`in`(ctx.getField<Any>(field!!))
@@ -160,7 +160,7 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search: [between] cb.between($field, $from, $to)")
+            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [between] cb.between($field, $from, $to)")
             return ctx.cb.between(ctx.getField<T>(field!!), from, to)
         }
 
@@ -189,7 +189,7 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search: [greater] cb.greaterThan($field, $from)")
+            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [greater] cb.greaterThan($field, $from)")
             return ctx.cb.greaterThan(ctx.getField<O>(field!!), from)
         }
 
@@ -218,7 +218,7 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search: [greaterEqual] cb.greaterThanOrEqualTo($field, $from)")
+            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [greaterEqual] cb.greaterThanOrEqualTo($field, $from)")
             return ctx.cb.greaterThanOrEqualTo(ctx.getField<O>(field!!), from)
         }
 
@@ -247,7 +247,7 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search: [less] cb.lessThan($field, $to)")
+            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [less] cb.lessThan($field, $to)")
             return ctx.cb.lessThan(ctx.getField<O>(field!!), to)
         }
 
@@ -276,7 +276,7 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search: [lessEqual] cb.lessThanOrEqualTo($field, $to)")
+            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [lessEqual] cb.lessThanOrEqualTo($field, $to)")
             return ctx.cb.lessThanOrEqualTo(ctx.getField<O>(field!!), to)
         }
 
@@ -285,18 +285,14 @@ abstract class DBPredicate(
         }
     }
 
-    class Like(field: String, val expectedValue: String, private val ignoreCase: Boolean = true)
+    class Like(field: String, val expectedValue: String, private val ignoreCase: Boolean = true, autoWildcardSearch: Boolean = false)
         : DBPredicate(field, true) {
         internal var plainString: String
         internal val matchType: MatchType
         internal var queryString: String
 
         init {
-            queryString = expectedValue.trim()
-            if (queryString.startsWith("*"))
-                queryString = "%${queryString.substring(1)}"
-            if (queryString.endsWith("*"))
-                queryString = "${queryString.substring(0, queryString.length - 1)}%"
+            queryString = modifySearchString(expectedValue, '*', '%', autoWildcardSearch)
             plainString = queryString
             if (plainString.startsWith("%")) {
                 plainString = plainString.substring(1)
@@ -332,7 +328,7 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search: [like] cb.like(cb.lower($field, ${queryString.toLowerCase()}))")
+            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [like] cb.like(cb.lower($field, ${queryString.toLowerCase()}))")
             return ctx.cb.like(ctx.cb.lower(ctx.getField<String>(field!!)), queryString.toLowerCase())
         }
 
@@ -341,8 +337,14 @@ abstract class DBPredicate(
         }
     }
 
-    class FullSearch(private val expectedValue: String)
+    class FullSearch(private val expectedValue: String, autoWildcardSearch: Boolean = false)
         : DBPredicate(null, true, false, false) {
+        private var queryString: String
+
+        init {
+            queryString = modifySearchString(expectedValue,'%', '*', autoWildcardSearch)
+        }
+
         override fun match(obj: Any): Boolean {
             throw UnsupportedOperationException("match method only available for full text search!")
         }
@@ -355,7 +357,7 @@ abstract class DBPredicate(
         }
 
         override fun addTo(qb: DBQueryBuilderByFullText<*>) {
-            qb.fulltextSearch(expectedValue)
+            qb.fulltextSearch(queryString)
         }
 
         fun multiFieldFulltextQueryRequired(): Boolean {
@@ -373,7 +375,7 @@ abstract class DBPredicate(
         }
 
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search: [isNull] cb.isNull($field)")
+            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [isNull] cb.isNull($field)")
             return ctx.cb.isNull(ctx.getField<Any>(field!!))
         }
     }
@@ -384,7 +386,7 @@ abstract class DBPredicate(
         }
 
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search: [isNotNull] cb.isNotNull($field)")
+            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [isNotNull] cb.isNotNull($field)")
             return ctx.cb.isNotNull(ctx.getField<Any>(field!!))
         }
     }
@@ -395,9 +397,9 @@ abstract class DBPredicate(
         }
 
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search: [not] cb.not(...) started.")
+            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [not] cb.not(...) started.")
             val result = ctx.cb.not(predicate.asPredicate(ctx))
-            if (log.isDebugEnabled) log.debug("Adding criteria search: [not] cb.not(...) ended.")
+            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [not] cb.not(...) ended.")
             return result
         }
     }
@@ -417,9 +419,9 @@ abstract class DBPredicate(
         }
 
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search: [and] cb.and(...) started.")
+            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [and] cb.and(...) started.")
             val result = ctx.cb.and(*predicates.map { it.asPredicate(ctx) }.toTypedArray())
-            if (log.isDebugEnabled) log.debug("Adding criteria search: [and] cb.and(...) ended.")
+            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [and] cb.and(...) ended.")
             return result
         }
     }
@@ -439,9 +441,9 @@ abstract class DBPredicate(
         }
 
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search: [or] cb.or(...) started.")
+            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [or] cb.or(...) started.")
             val result = ctx.cb.or(*predicates.map { it.asPredicate(ctx) }.toTypedArray())
-            if (log.isDebugEnabled) log.debug("Adding criteria search: [or] cb.or(...) ended.")
+            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [or] cb.or(...) ended.")
             return result
         }
     }
@@ -494,6 +496,21 @@ abstract class DBPredicate(
             }
         }
         return false
+    }
+
+    /**
+     * Replaces trailing and leading '*' by '%' or vica versa. Appends '%' (or '*') to alphanumeric strings doesn't start or end with '%' or '*'.
+     */
+
+    internal fun modifySearchString(str: String, oldChar: Char, newChar: Char, autoWildcardSearch: Boolean = false): String {
+        var queryString = str.trim()
+        if (queryString.endsWith(oldChar))
+            queryString = "${queryString.substring(0, queryString.length - 1)}$newChar"
+        if (queryString.startsWith(oldChar))
+            queryString = "$newChar${queryString.substring(1)}"
+        else if (autoWildcardSearch && !queryString.endsWith(newChar) && queryString.matches("""[\p{L}0-9]+""".toRegex()))
+            queryString = "$queryString$newChar" // Always look for keyword* (\p{L} means all letters in all languages.
+        return queryString
     }
 
     internal fun isEquals(val1: Any?, val2: Any?): Boolean {

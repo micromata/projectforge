@@ -95,31 +95,27 @@ public class SkillDao extends BaseDao<SkillDO> {
     SkillDO other = null;
     if (skill.getParentId() != null) {
       if (skill.getId() != null) {
-        other = getSession()
+        other = SQLHelper.ensureUniqueResult(em
                 .createNamedQuery(SkillDO.FIND_OTHER_BY_TITLE_AND_PARENT, SkillDO.class)
                 .setParameter("title", skill.getTitle())
                 .setParameter("parentId", skill.getParentId())
-                .setParameter("id", skill.getId())
-                .uniqueResult();
+                .setParameter("id", skill.getId()));
       } else {
-        other = getSession()
+        other = SQLHelper.ensureUniqueResult(em
                 .createNamedQuery(SkillDO.FIND_BY_TITLE_AND_PARENT, SkillDO.class)
                 .setParameter("title", skill.getTitle())
-                .setParameter("parentId", skill.getParentId())
-                .uniqueResult();
+                .setParameter("parentId", skill.getParentId()));
       }
     } else {
       if (skill.getId() != null) {
-        other = getSession()
+        other = SQLHelper.ensureUniqueResult(em
                 .createNamedQuery(SkillDO.FIND_OTHER_BY_TITLE_ON_TOPLEVEL, SkillDO.class)
                 .setParameter("title", skill.getTitle())
-                .setParameter("id", skill.getId())
-                .uniqueResult();
+                .setParameter("id", skill.getId()));
       } else {
-        other = getSession()
+        other = SQLHelper.ensureUniqueResult(em
                 .createNamedQuery(SkillDO.FIND_BY_TITLE_ON_TOPLEVEL, SkillDO.class)
-                .setParameter("title", skill.getTitle())
-                .uniqueResult();
+                .setParameter("title", skill.getTitle()));
       }
     }
     if (other != null) {
@@ -232,7 +228,7 @@ public class SkillDao extends BaseDao<SkillDO> {
     if (title == null) {
       return null;
     }
-    return SQLHelper.ensureUniqueResult(getSession()
+    return SQLHelper.ensureUniqueResult(em
             .createNamedQuery(SkillDO.FIND_BY_TITLE, SkillDO.class)
             .setParameter("title", title));
   }

@@ -44,8 +44,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -57,7 +55,6 @@ import java.util.List;
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  */
 @Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class TeamCalDao extends BaseDao<TeamCalDO> {
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"usersgroups", "owner.username",
           "owner.firstname",
@@ -260,23 +257,23 @@ public class TeamCalDao extends BaseDao<TeamCalDO> {
         continue;
       } else if (entry.getPropertyName().endsWith("GroupIds")) {
         final String oldValue = entry.getOldValue();
-        if (StringUtils.isNotBlank(oldValue) && !"null".equals(oldValue)) {
+        if (StringUtils.isNotBlank(oldValue) && !"null" .equals(oldValue)) {
           final List<String> oldGroupNames = groupService.getGroupNames(oldValue);
           entry.setOldValue(StringHelper.listToString(oldGroupNames, ", ", true));
         }
         final String newValue = entry.getNewValue();
-        if (StringUtils.isNotBlank(newValue) && !"null".equals(newValue)) {
+        if (StringUtils.isNotBlank(newValue) && !"null" .equals(newValue)) {
           final List<String> newGroupNames = groupService.getGroupNames(newValue);
           entry.setNewValue(StringHelper.listToString(newGroupNames, ", ", true));
         }
       } else if (entry.getPropertyName().endsWith("UserIds")) {
         final String oldValue = entry.getOldValue();
-        if (StringUtils.isNotBlank(oldValue) && !"null".equals(oldValue)) {
+        if (StringUtils.isNotBlank(oldValue) && !"null" .equals(oldValue)) {
           final List<String> oldGroupNames = userService.getUserNames(oldValue);
           entry.setOldValue(StringHelper.listToString(oldGroupNames, ", ", true));
         }
         final String newValue = entry.getNewValue();
-        if (StringUtils.isNotBlank(newValue) && !"null".equals(newValue)) {
+        if (StringUtils.isNotBlank(newValue) && !"null" .equals(newValue)) {
           final List<String> newGroupNames = userService.getUserNames(newValue);
           entry.setNewValue(StringHelper.listToString(newGroupNames, ", ", true));
         }
@@ -294,14 +291,6 @@ public class TeamCalDao extends BaseDao<TeamCalDO> {
   protected void afterSaveOrModify(final TeamCalDO obj) {
     super.afterSaveOrModify(obj);
     teamCalCache.setExpired();
-  }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#useOwnCriteriaCacheRegion()
-   */
-  @Override
-  protected boolean useOwnCriteriaCacheRegion() {
-    return true;
   }
 
   @Override

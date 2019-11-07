@@ -35,14 +35,10 @@ import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS, isolation = Isolation.REPEATABLE_READ)
 public class Kost2Dao extends BaseDao<Kost2DO> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.FIBU_COST_UNIT;
 
@@ -104,7 +100,6 @@ public class Kost2Dao extends BaseDao<Kost2DO> {
    * @param kostString Format ######## or #.###.##.## is supported.
    * @see #getKost2(int, int, int, int)
    */
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public Kost2DO getKost2(final String kostString) {
     final int[] kost = KostHelper.parseKostString(kostString);
     if (kost == null) {
@@ -114,7 +109,7 @@ public class Kost2Dao extends BaseDao<Kost2DO> {
   }
 
   public Kost2DO getKost2(final int nummernkreis, final int bereich, final int teilbereich, final int kost2Art) {
-    return SQLHelper.ensureUniqueResult(getSession()
+    return SQLHelper.ensureUniqueResult(em
             .createNamedQuery(Kost2DO.FIND_BY_NK_BEREICH_TEILBEREICH_KOST2ART, Kost2DO.class)
             .setParameter("nummernkreis", nummernkreis)
             .setParameter("bereich", bereich)
@@ -123,11 +118,11 @@ public class Kost2Dao extends BaseDao<Kost2DO> {
   }
 
   public List<Kost2DO> getActiveKost2(final int nummernkreis, final int bereich, final int teilbereich) {
-    return getSession().createNamedQuery(Kost2DO.FIND_ACTIVES_BY_NK_BEREICH_TEILBEREICH, Kost2DO.class)
+    return em.createNamedQuery(Kost2DO.FIND_ACTIVES_BY_NK_BEREICH_TEILBEREICH, Kost2DO.class)
             .setParameter("nummernkreis", nummernkreis)
             .setParameter("bereich", bereich)
             .setParameter("teilbereich", teilbereich)
-            .list();
+            .getResultList();
   }
 
   /**
@@ -142,7 +137,6 @@ public class Kost2Dao extends BaseDao<Kost2DO> {
   }
 
   @Override
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<Kost2DO> getList(final BaseSearchFilter filter) {
     final KostFilter myFilter;
     if (filter instanceof KostFilter) {
@@ -199,13 +193,12 @@ public class Kost2Dao extends BaseDao<Kost2DO> {
       other = getKost2(obj.getNummernkreis(), obj.getBereich(), obj.getTeilbereich(), obj.getKost2ArtId());
     } else {
       // kost entry already exists. Check maybe changed:
-      other = getSession().createNamedQuery(Kost2DO.FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_KOST2ART, Kost2DO.class)
+      other = SQLHelper.ensureUniqueResult(em.createNamedQuery(Kost2DO.FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_KOST2ART, Kost2DO.class)
               .setParameter("nummernkreis", obj.getNummernkreis())
               .setParameter("bereich", obj.getBereich())
               .setParameter("teilbereich", obj.getTeilbereich())
               .setParameter("kost2ArtId", obj.getKost2ArtId())
-              .setParameter("id", obj.getId())
-              .uniqueResult();
+              .setParameter("id", obj.getId()));
     }
     if (other != null) {
       throw new UserException("fibu.kost.error.collision");

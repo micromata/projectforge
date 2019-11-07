@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.Tuple;
 import java.util.List;
 
 /**
@@ -67,9 +68,8 @@ public class EmployeeSalaryDao extends BaseDao<EmployeeSalaryDO> {
    * List of all years with employee salaries: select min(year), max(year) from t_fibu_employee_salary.
    */
   public int[] getYears() {
-    final Object[] minMaxYear = getSession().createNamedQuery(EmployeeSalaryDO.SELECT_MIN_MAX_YEAR, Object[].class)
-            .getSingleResult();
-    return SQLHelper.getYears((Integer) minMaxYear[0], (Integer) minMaxYear[1]);
+    final Tuple minMaxYear = SQLHelper.ensureUniqueResult(em.createNamedQuery(EmployeeSalaryDO.SELECT_MIN_MAX_YEAR, Tuple.class));
+    return SQLHelper.getYears((Integer) minMaxYear.get(0), (Integer) minMaxYear.get(1));
   }
 
   @Override

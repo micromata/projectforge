@@ -204,7 +204,7 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
   }
 
   @Override
-  protected void onRenderPosition(final GridBuilder posGridBuilder, final RechnungsPositionDO position)
+  protected void onRenderPosition(final GridBuilder posGridBuilder, final AbstractRechnungsPositionDO position)
   {
     // Period of performance
     posGridBuilder.newSplitPanel(GridSize.COL100);

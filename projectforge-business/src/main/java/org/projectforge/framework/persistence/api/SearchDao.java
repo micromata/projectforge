@@ -24,8 +24,6 @@
 package org.projectforge.framework.persistence.api;
 
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,13 +32,10 @@ import java.util.List;
  * @author Kai Reinhard (k.reinhard@micromata.de) TODO RK check if needed and may replace
  */
 @Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-public class SearchDao
-{
+public class SearchDao {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SearchDao.class);
 
-  public List<SearchResultData> getEntries(final BaseSearchFilter filter, final Class clazz, final BaseDao baseDao)
-  {
+  public List<SearchResultData> getEntries(final BaseSearchFilter filter, final Class clazz, final BaseDao baseDao) {
     if (filter == null) {
       log.info("Filter or rows in filter is null (may be Search as redirect after login): " + filter);
       return null;
@@ -51,8 +46,8 @@ public class SearchDao
       return null;
     }
     if (filter.getModifiedByUserId() != null
-        || filter.getStartTimeOfModification() != null
-        || filter.getStopTimeOfModification() != null) {
+            || filter.getStartTimeOfModification() != null
+            || filter.getStopTimeOfModification() != null) {
       filter.setUseModificationFilter(true);
     } else {
       filter.setUseModificationFilter(false);

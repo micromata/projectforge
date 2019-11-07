@@ -34,9 +34,16 @@ import javax.persistence.criteria.*
 internal class DBCriteriaContext<O : ExtendedBaseDO<Int>>(
         val cb: CriteriaBuilder,
         val cr: CriteriaQuery<O>,
-        val root: Root<O>) {
+        val root: Root<O>,
+        /**
+         * For logging purposes.
+         */
+        val entityClass: Class<O>) {
     private val log = LoggerFactory.getLogger(DBCriteriaContext::class.java)
     private val joinMap = mutableMapOf<String, Join<Any, Any>>()
+
+    val entityName
+        get() = entityClass.simpleName
 
     fun addJoin(dbAlias: DBJoin) {
         @Suppress("UNCHECKED_CAST")

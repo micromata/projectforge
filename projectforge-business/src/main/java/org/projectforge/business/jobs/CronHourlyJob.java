@@ -27,6 +27,7 @@ import org.projectforge.framework.persistence.api.ReindexSettings;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.time.DateHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -40,8 +41,7 @@ import java.util.Calendar;
  * @author Florian Blumenstein
  */
 @Component
-public class CronHourlyJob
-{
+public class CronHourlyJob {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CronHourlyJob.class);
 
   @Autowired
@@ -50,17 +50,22 @@ public class CronHourlyJob
   @Autowired
   private HibernateSearchReindexer hibernateSearchReindexer;
 
+  @Autowired
+  private PfEmgrFactory emgrFactory;
+
   //@Scheduled(cron = "0 0 * * * *")
   @Scheduled(cron = "${projectforge.cron.hourly}")
-  public void execute()
-  {
+  public void execute() {
     log.info("Hourly job started.");
     try {
       log.info("Starting (re-)indexing of history entries of the last 24 hours.");
       final Calendar cal = Calendar.getInstance(DateHelper.UTC);
       cal.add(Calendar.DAY_OF_YEAR, -1);
       final ReindexSettings settings = new ReindexSettings(cal.getTime(), null);
-      hibernateSearchReindexer.rebuildDatabaseSearchIndices(settings, PfHistoryMasterDO.class);
+      emgrFactory.runInTrans(emgr -> {
+        hibernateSearchReindexer.rebuildDatabaseSearchIndices(settings, PfHistoryMasterDO.class);
+        return null;
+      });
     } catch (final Throwable ex) {
       log.error("While executing fix job for data base history entries: " + ex.getMessage(), ex);
     }

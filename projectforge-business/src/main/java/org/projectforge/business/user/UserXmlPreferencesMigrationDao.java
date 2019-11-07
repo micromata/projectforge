@@ -24,29 +24,27 @@
 package org.projectforge.business.user;
 
 import org.apache.commons.lang3.Validate;
-import org.hibernate.query.Query;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import java.util.List;
 
 /**
  * Stores all user persistent objects such as filter settings, personal settings and persists them to the database.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
 @Repository
-public class UserXmlPreferencesMigrationDao
-{
+public class UserXmlPreferencesMigrationDao {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
-      .getLogger(UserXmlPreferencesMigrationDao.class);
+          .getLogger(UserXmlPreferencesMigrationDao.class);
 
   @Autowired
   private AccessChecker accessChecker;
@@ -58,16 +56,16 @@ public class UserXmlPreferencesMigrationDao
   private UserXmlPreferencesCache userXmlPreferencesCache;
 
   @Autowired
-  HibernateTemplate hibernateTemplate;
+  private EntityManager em;
 
   @SuppressWarnings("unchecked")
   @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
-  public String migrateAllUserPrefs()
-  {
+  public String migrateAllUserPrefs() {
     accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
     final StringBuilder buf = new StringBuilder();
-    final List<UserXmlPreferencesDO> list = (List<UserXmlPreferencesDO>) hibernateTemplate.find(
-        "from " + UserXmlPreferencesDO.class.getSimpleName() + " t order by user.id, key");
+    final List<UserXmlPreferencesDO> list = em.createQuery("from " + UserXmlPreferencesDO.class.getSimpleName() + " t order by user.id, key",
+            UserXmlPreferencesDO.class)
+            .getResultList();
     int versionNumber = Integer.MAX_VALUE;
     for (final UserXmlPreferencesDO userPrefs : list) {
       buf.append(migrateUserPrefs(userPrefs));
@@ -83,11 +81,10 @@ public class UserXmlPreferencesMigrationDao
   /**
    * Here you can insert update or delete statements for all user xml pref entries (e. g. delete all entries with an
    * unused key).
-   * 
+   *
    * @param version Version number of oldest entry.
    */
-  protected void migrate(final int version)
-  {
+  protected void migrate(final int version) {
     if (version < 4) {
       // deleteOldKeys("org.projectforge.web.humanresources.HRViewForm:Filter");
       // deleteOldKeys("org.projectforge.web.fibu.AuftragListAction:Filter");
@@ -98,19 +95,17 @@ public class UserXmlPreferencesMigrationDao
 
   /**
    * Unsupported or unused keys should be deleted. This method deletes all entries with the given key.
-   * 
+   *
    * @param key Key of the entries to delete.
    */
-  protected void deleteOldKeys(final String key)
-  {
-    final Query query = hibernateTemplate.getSessionFactory().getCurrentSession().createQuery(
-        "delete from " + UserXmlPreferencesDO.class.getSimpleName() + " where key = '" + key + "'");
+  protected void deleteOldKeys(final String key) {
+    final TypedQuery<UserXmlPreferencesDO> query = em.createQuery("delete from " + UserXmlPreferencesDO.class.getSimpleName() + " where key = '" + key + "'",
+            UserXmlPreferencesDO.class);
     final int numberOfUpdatedEntries = query.executeUpdate();
     log.info(numberOfUpdatedEntries + " '" + key + "' entries deleted.");
   }
 
-  protected String migrateUserPrefs(final UserXmlPreferencesDO userPrefs)
-  {
+  protected String migrateUserPrefs(final UserXmlPreferencesDO userPrefs) {
     final Integer userId = userPrefs.getUserId();
     Validate.notNull(userId);
     final StringBuilder buf = new StringBuilder();
@@ -131,7 +126,7 @@ public class UserXmlPreferencesMigrationDao
     final Object data = userXmlPreferencesDao.deserialize(null, userPrefs, true);
     buf.append("version ");
     buf.append(userPrefs.getVersion());
-    if (data != null || "<null/>".equals(userPrefs.getSerializedSettings())) {
+    if (data != null || "<null/>" .equals(userPrefs.getSerializedSettings())) {
       buf.append(" OK ");
     } else {
       buf.append(" ***not re-usable*** ");
@@ -145,11 +140,10 @@ public class UserXmlPreferencesMigrationDao
 
   /**
    * Fixes incompatible versions of user preferences before de-serialization.
-   * 
+   *
    * @param userPrefs
    */
-  protected static void migrate(final UserXmlPreferencesDO userPrefs)
-  {
+  protected static void migrate(final UserXmlPreferencesDO userPrefs) {
     if (userPrefs.getVersion() < 4) {
       userPrefs.setVersion(4);
     }

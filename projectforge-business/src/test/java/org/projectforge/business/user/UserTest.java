@@ -34,9 +34,6 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.Serializable;
 import java.util.List;
@@ -56,9 +53,6 @@ public class UserTest extends AbstractTestBase {
   private static final String MESSAGE_KEY_PASSWORD_NONCHAR_ERROR = "user.changePassword.error.noNonCharacter";
 
   private static final String MESSAGE_KEY_PASSWORD_OLD_EQ_NEW_ERROR = "user.changePassword.error.oldPasswdEqualsNew";
-
-  @Autowired
-  private TransactionTemplate txTemplate;
 
   @Autowired
   private GroupService groupService;
@@ -267,53 +261,38 @@ public class UserTest extends AbstractTestBase {
   @Test
   public void testUniqueUsernameDO() {
     final Serializable[] ids = new Integer[2];
-    txTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW);
-    txTemplate.execute(new TransactionCallback() {
-      @Override
-      public Object doInTransaction(final TransactionStatus status) {
-        PFUserDO user = createTestUser("42");
-        ids[0] = userService.save(user);
-        user = createTestUser("100");
-        ids[1] = userService.save(user);
-        return null;
-      }
+
+    emf.runInTrans(emgr -> {
+      PFUserDO user = createTestUser("42");
+      ids[0] = userService.save(user);
+      user = createTestUser("100");
+      ids[1] = userService.save(user);
+      return null;
     });
-    txTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW);
-    txTemplate.execute(new TransactionCallback() {
-      @Override
-      public Object doInTransaction(final TransactionStatus status) {
-        final PFUserDO user = createTestUser("42");
-        assertTrue(userService.doesUsernameAlreadyExist(user), "Username should already exist.");
-        user.setUsername("5");
-        assertFalse(userService.doesUsernameAlreadyExist(user), "Signature should not exist.");
-        userService.save(user);
-        return null;
-      }
+    emf.runInTrans(emgr -> {
+      final PFUserDO user = createTestUser("42");
+      assertTrue(userService.doesUsernameAlreadyExist(user), "Username should already exist.");
+      user.setUsername("5");
+      assertFalse(userService.doesUsernameAlreadyExist(user), "Signature should not exist.");
+      userService.save(user);
+      return null;
     });
-    txTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW);
-    txTemplate.execute(new TransactionCallback() {
-      @Override
-      public Object doInTransaction(final TransactionStatus status) {
-        final PFUserDO dbUser = userService.internalGetById(ids[1]);
-        final PFUserDO user = new PFUserDO();
-        user.copyValuesFrom(dbUser);
-        assertFalse(userService.doesUsernameAlreadyExist(user), "Username does not exist.");
-        user.setUsername("42");
-        assertTrue(userService.doesUsernameAlreadyExist(user), "Username does already exist.");
-        user.setUsername("4711");
-        assertFalse(userService.doesUsernameAlreadyExist(user), "Username does not exist.");
-        //userService.update(user);
-        return null;
-      }
+    emf.runInTrans(emgr -> {
+      final PFUserDO dbUser = userService.internalGetById(ids[1]);
+      final PFUserDO user = new PFUserDO();
+      user.copyValuesFrom(dbUser);
+      assertFalse(userService.doesUsernameAlreadyExist(user), "Username does not exist.");
+      user.setUsername("42");
+      assertTrue(userService.doesUsernameAlreadyExist(user), "Username does already exist.");
+      user.setUsername("4711");
+      assertFalse(userService.doesUsernameAlreadyExist(user), "Username does not exist.");
+      //userService.update(user);
+      return null;
     });
-    txTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW);
-    txTemplate.execute(new TransactionCallback() {
-      @Override
-      public Object doInTransaction(final TransactionStatus status) {
-        final PFUserDO user = userService.internalGetById(ids[1]);
-        assertFalse(userService.doesUsernameAlreadyExist(user), "Signature does not exist.");
-        return null;
-      }
+    emf.runInTrans(emgr -> {
+      final PFUserDO user = userService.internalGetById(ids[1]);
+      assertFalse(userService.doesUsernameAlreadyExist(user), "Signature does not exist.");
+      return null;
     });
   }
 

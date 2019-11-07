@@ -24,18 +24,19 @@
 package org.projectforge.framework.persistence.api.impl
 
 import org.apache.commons.lang3.builder.CompareToBuilder
+import org.apache.lucene.analysis.standard.ClassicAnalyzer
+import org.apache.lucene.queryparser.classic.MultiFieldQueryParser
 import org.hibernate.ScrollMode
 import org.hibernate.ScrollableResults
-import org.hibernate.Session
-import org.hibernate.search.FullTextSession
+import org.hibernate.search.jpa.FullTextEntityManager
 import org.projectforge.common.BeanHelper
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.SortProperty
-import org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.slf4j.LoggerFactory
 import java.text.Collator
+import javax.persistence.EntityManager
 import javax.persistence.criteria.CriteriaQuery
 
 
@@ -65,14 +66,14 @@ internal class DBEmptyResultIterator<O : ExtendedBaseDO<Int>>()
 }
 
 internal class DBCriteriaResultIterator<O : ExtendedBaseDO<Int>>(
-        session: Session,
+        entityManager: EntityManager,
         criteria: CriteriaQuery<O>,
         val resultPredicates: List<DBPredicate>)
     : DBResultIterator<O> {
     private val scrollableResults: ScrollableResults
 
     init {
-        val query = session.createQuery(criteria)
+        val query = entityManager.createQuery(criteria)
         val hquery = query.unwrap(org.hibernate.query.Query::class.java)
         scrollableResults = hquery.scroll(ScrollMode.FORWARD_ONLY)
     }
@@ -94,7 +95,7 @@ private const val MAX_RESULTS = 100
 
 internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
         val baseDao: BaseDao<O>,
-        val fullTextSession: FullTextSession,
+        val fullTextEntityManager: FullTextEntityManager,
         val resultMatchers: List<DBPredicate>,
         val sortProperties: Array<SortProperty>,
         val fullTextQuery: org.apache.lucene.search.Query? = null, // Full text query
@@ -178,17 +179,27 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
 
     private fun nextResultBlock(): List<O> {
         val fullTextQuery = if (fullTextQuery != null) {
-            fullTextSession.createFullTextQuery(fullTextQuery, baseDao.doClass)
+            fullTextEntityManager.createFullTextQuery(fullTextQuery, baseDao.doClass)
         } else {
             val queryString = multiFieldQuery?.joinToString(" ") ?: ""
-            val luceneQuery = HibernateSearchFilterUtils.createFullTextQuery(fullTextSession, usedSearchFields, queryString, baseDao.doClass)
-            fullTextSession.createFullTextQuery(luceneQuery, baseDao.doClass)
+
+            val parser = MultiFieldQueryParser(usedSearchFields, ClassicAnalyzer())
+            parser.allowLeadingWildcard = true
+            var query: org.apache.lucene.search.Query? = null
+            try {
+                query = parser.parse(queryString)
+            } catch (ex: org.apache.lucene.queryparser.classic.ParseException) {
+                val errorMsg = ("Lucene error message: '${ex.message}'  (for ${baseDao.doClass.getSimpleName()}: '$queryString').")
+                // TODO feedback
+                log.error(errorMsg)
+            }
+            fullTextEntityManager.createFullTextQuery(query, baseDao.doClass)
         }
         fullTextQuery.firstResult = firstIndex
         fullTextQuery.maxResults = MAX_RESULTS
 
         firstIndex += MAX_RESULTS
         @Suppress("UNCHECKED_CAST")
-        return fullTextQuery.list() as List<O> // return a list of managed objects
+        return fullTextQuery.getResultList() as List<O> // return a list of managed objects
     }
 }

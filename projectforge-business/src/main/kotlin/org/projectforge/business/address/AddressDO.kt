@@ -29,6 +29,8 @@ import de.micromata.genome.db.jpa.history.impl.TabAttrHistoryPropertyConverter
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
 import org.apache.commons.lang3.StringUtils
+import org.hibernate.annotations.Cache
+import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.search.annotations.*
 import org.hibernate.search.annotations.Index
 import org.projectforge.common.StringHelper
@@ -52,6 +54,7 @@ import javax.persistence.*
         indexes = [javax.persistence.Index(name = "idx_fk_t_address_tenant_id",
                 columnList = "tenant_id"), javax.persistence.Index(name = "idx_fk_t_address_uid_tenant_id",
                 columnList = "uid, tenant_id")])
+@Cache(region = "address", usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
 
     @PropertyInfo(i18nKey = "address.contactStatus")

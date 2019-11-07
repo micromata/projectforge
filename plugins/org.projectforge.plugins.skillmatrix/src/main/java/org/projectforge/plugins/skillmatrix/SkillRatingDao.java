@@ -28,6 +28,7 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -78,18 +79,16 @@ public class SkillRatingDao extends BaseDao<SkillRatingDO> {
   private void checkConstraintViolation(final SkillRatingDO skillRating) throws UserException {
     SkillRatingDO other;
     if (skillRating.getId() != null) {
-      other = getSession()
+      other = SQLHelper.ensureUniqueResult(em
               .createNamedQuery(SkillRatingDO.FIND_OTHER_BY_USER_AND_SKILL, SkillRatingDO.class)
               .setParameter("userId", skillRating.getUserId())
               .setParameter("skillId", skillRating.getSkillId())
-              .setParameter("id", skillRating.getId())
-              .uniqueResult();
+              .setParameter("id", skillRating.getId()));
     } else {
-      other = getSession()
+      other = SQLHelper.ensureUniqueResult(em
               .createNamedQuery(SkillRatingDO.FIND_BY_USER_AND_SKILL, SkillRatingDO.class)
               .setParameter("userId", skillRating.getUserId())
-              .setParameter("skillId", skillRating.getSkillId())
-              .uniqueResult();
+              .setParameter("skillId", skillRating.getSkillId()));
     }
     if (other != null) {
       throw new UserException(I18N_KEY_ERROR_DUPLICATE_RATING);

@@ -30,8 +30,10 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.Validate;
-import org.hibernate.*;
+import org.hibernate.FlushMode;
+import org.hibernate.Hibernate;
+import org.hibernate.LockOptions;
+import org.hibernate.Session;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost2ArtDO;
@@ -49,7 +51,6 @@ import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
-import org.projectforge.framework.persistence.hibernate.HibernateCompatUtils;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.entities.*;
 import org.projectforge.framework.persistence.xstream.HibernateXmlConverter;
@@ -61,10 +62,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
 import javax.persistence.Transient;
 import java.io.*;
 import java.lang.reflect.AccessibleObject;
@@ -72,6 +73,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
@@ -86,51 +88,33 @@ import java.util.zip.GZIPOutputStream;
  */
 @Service
 @Deprecated
-public class XmlDump
-{
+public class XmlDump {
   private static final Logger log = LoggerFactory.getLogger(XmlDump.class);
 
   private static final String XML_DUMP_FILENAME = System.getProperty("user.home") + "/tmp/database-dump.xml.gz";
-
-  @Autowired
-  private HibernateTemplate hibernate;
-
+  private final List<XmlDumpHook> xmlDumpHooks = new LinkedList<>();
+  /**
+   * TODO RK better also via Metadata. These classes are stored automatically because they're dependent.
+   */
+  private final Class<?>[] embeddedClasses = new Class<?>[]{UserRightDO.class, AuftragsPositionDO.class,
+          EingangsrechnungsPositionDO.class, RechnungsPositionDO.class};
   @Autowired
   UserRightService userRights;
-
   @Autowired
   UserXmlPreferencesDao userXmlPreferencesDao;
-
   @Autowired
   PluginAdminService pluginAdminService;
-
-  private final List<XmlDumpHook> xmlDumpHooks = new LinkedList<>();
-
   @Autowired
   private PfEmgrFactory emf;
 
   @PostConstruct
-  public void init()
-  {
+  public void init() {
     this.registerHook(new UserXmlPreferencesXmlDumpHook());
     this.registerHook(new UserPrefDOXmlDumpHook());
     this.registerHook(new ConfigurationDOXmlDumpHook());
   }
 
-  /**
-   * TODO RK better also via Metadata. These classes are stored automatically because they're dependent.
-   */
-  private final Class<?>[] embeddedClasses = new Class<?>[] { UserRightDO.class, AuftragsPositionDO.class,
-      EingangsrechnungsPositionDO.class, RechnungsPositionDO.class };
-
-  public HibernateTemplate getHibernate()
-  {
-    Validate.notNull(hibernate);
-    return hibernate;
-  }
-
-  public void registerHook(final XmlDumpHook xmlDumpHook)
-  {
+  public void registerHook(final XmlDumpHook xmlDumpHook) {
     for (final XmlDumpHook hook : xmlDumpHooks) {
       if (hook.getClass().equals(xmlDumpHook.getClass())) {
         log.error("Can't register XmlDumpHook twice: " + xmlDumpHook);
@@ -143,11 +127,10 @@ public class XmlDump
   /**
    * @return Only for test cases.
    */
-  public XStreamSavingConverter restoreDatabase()
-  {
+  public XStreamSavingConverter restoreDatabase() {
     try {
-      return restoreDatabase(new InputStreamReader(new FileInputStream(XML_DUMP_FILENAME), "utf-8"));
-    } catch (final UnsupportedEncodingException | FileNotFoundException ex) {
+      return restoreDatabase(new InputStreamReader(new FileInputStream(XML_DUMP_FILENAME), StandardCharsets.UTF_8));
+    } catch (final FileNotFoundException ex) {
       log.error(ex.getMessage(), ex);
       throw new RuntimeException(ex);
     }
@@ -157,35 +140,35 @@ public class XmlDump
    * @param reader
    * @return Only for test cases.
    */
-  public XStreamSavingConverter restoreDatabase(final Reader reader)
-  {
+  public XStreamSavingConverter restoreDatabase(final Reader reader) {
     final List<AbstractPlugin> plugins = pluginAdminService.getActivePlugin();
-    final XStreamSavingConverter xstreamSavingConverter = new XStreamSavingConverter()
-    {
+    final XStreamSavingConverter xstreamSavingConverter = new XStreamSavingConverter() {
 
       @Override
-      protected Serializable getOriginalIdentifierValue(final Object obj)
-      {
+      protected Serializable getOriginalIdentifierValue(final Object obj) {
         return HibernateUtils.getIdentifier(obj);
       }
 
       @Override
-      public Serializable onBeforeSave(final Session session, final Object obj)
-      {
+      public Serializable onBeforeSave(final Session session, final Object obj) {
         log.info("Object " + obj);
         if (obj instanceof PFUserDO) {
           final PFUserDO user = (PFUserDO) obj;
           return save(user, user.getRights());
-        } else if (obj instanceof AbstractRechnungDO<?>) {
+        } else if (obj instanceof AbstractRechnungDO) {
 
-          final AbstractRechnungDO<? extends AbstractRechnungsPositionDO> rechnung = (AbstractRechnungDO<?>) obj;
-          final List<? extends AbstractRechnungsPositionDO> positions = rechnung.getPositionen();
+          final AbstractRechnungDO rechnung = (AbstractRechnungDO) obj;
+          final List<? extends AbstractRechnungsPositionDO> positions = rechnung.getAbstractPositionen();
           final KontoDO konto = rechnung.getKonto();
           if (konto != null) {
             save(konto);
             rechnung.setKonto(null);
           }
-          rechnung.setPositionen(null); // Need to nullable positions first (otherwise insert fails).
+          if (rechnung instanceof RechnungDO) {
+            ((RechnungDO)rechnung).setPositionen(null); // Need to nullable positions first (otherwise insert fails).
+          } else {
+            ((EingangsrechnungDO)rechnung).setPositionen(null); // Need to nullable positions first (otherwise insert fails).
+          }
           final Serializable id = save(rechnung);
           if (konto != null) {
             rechnung.setKonto(konto);
@@ -196,11 +179,7 @@ public class XmlDump
                 final List<KostZuweisungDO> zuweisungen = pos.getKostZuweisungen();
                 pos.setKostZuweisungen(null); // Need to nullable first (otherwise insert fails).
                 save(pos);
-                if (pos instanceof RechnungsPositionDO) {
-                  ((RechnungDO) rechnung).addPosition((RechnungsPositionDO) pos);
-                } else {
-                  ((EingangsrechnungDO) rechnung).addPosition((EingangsrechnungsPositionDO) pos);
-                }
+                rechnung.addPosition( pos);
                 if (zuweisungen != null) {
                   for (final KostZuweisungDO zuweisung : zuweisungen) {
                     pos.addKostZuweisung(zuweisung);
@@ -239,8 +218,7 @@ public class XmlDump
        *      java.io.Serializable)
        */
       @Override
-      public void onAfterSave(final Object obj, final Serializable id)
-      {
+      public void onAfterSave(final Object obj, final Serializable id) {
         if (plugins != null) {
           for (final AbstractPlugin plugin : plugins) {
             plugin.onAfterRestore(this, obj, id);
@@ -257,12 +235,12 @@ public class XmlDump
     Collections.reverse(classList);
 
     xstreamSavingConverter.appendOrderedType(PFUserDO.class, GroupDO.class, TaskDO.class, KundeDO.class,
-        ProjektDO.class, Kost1DO.class,
-        Kost2ArtDO.class, Kost2DO.class, AuftragDO.class, //
-        RechnungDO.class, EingangsrechnungDO.class, EmployeeSalaryDO.class, KostZuweisungDO.class, //
-        UserPrefEntryDO.class, UserPrefDO.class, //
-        AccessEntryDO.class, GroupTaskAccessDO.class, ConfigurationDO.class);
-    xstreamSavingConverter.appendOrderedType(classList.toArray(new Class<?>[] {}));
+            ProjektDO.class, Kost1DO.class,
+            Kost2ArtDO.class, Kost2DO.class, AuftragDO.class, //
+            RechnungDO.class, EingangsrechnungDO.class, EmployeeSalaryDO.class, KostZuweisungDO.class, //
+            UserPrefEntryDO.class, UserPrefDO.class, //
+            AccessEntryDO.class, GroupTaskAccessDO.class, ConfigurationDO.class);
+    xstreamSavingConverter.appendOrderedType(classList.toArray(new Class<?>[]{}));
 
     //    if (plugins != null) {
     //      for (final AbstractPlugin plugin : plugins) {
@@ -271,8 +249,7 @@ public class XmlDump
     //    }
     Session session = null;
     try {
-      final SessionFactory sessionFactory = hibernate.getSessionFactory();
-      session = HibernateCompatUtils.openSession(sessionFactory, EmptyInterceptor.INSTANCE);
+      session = (Session) emf.getEntityManagerFactory().createEntityManager().getDelegate();
       session.setFlushMode(FlushMode.AUTO);
       final XStream xstream = XStreamHelper.createXStream();
       xstream.setMode(XStream.ID_REFERENCES);
@@ -299,8 +276,7 @@ public class XmlDump
   /**
    * @return Only for test cases.
    */
-  public XStreamSavingConverter restoreDatabaseFromClasspathResource(final String path, final String encoding)
-  {
+  public XStreamSavingConverter restoreDatabaseFromClasspathResource(final String path, final String encoding) {
     final ClassPathResource cpres = new ClassPathResource(path);
     Reader reader;
     try {
@@ -318,8 +294,7 @@ public class XmlDump
     return restoreDatabase(reader);
   }
 
-  public void dumpDatabase()
-  {
+  public void dumpDatabase() {
     dumpDatabase(XML_DUMP_FILENAME, "utf-8");
   }
 
@@ -327,29 +302,26 @@ public class XmlDump
    * @param filename virtual filename: If the filename suffix is "gz" then the dump will be compressed.
    * @param out
    */
-  public void dumpDatabase(final String filename, final OutputStream out)
-  {
-    final HibernateXmlConverter converter = new HibernateXmlConverter()
-    {
+  public void dumpDatabase(final String filename, final OutputStream out) {
+    final HibernateXmlConverter converter = new HibernateXmlConverter() {
       @Override
-      protected void init(final XStream xstream)
-      {
+      protected void init(final XStream xstream) {
         xstream.omitField(AbstractBaseDO.class, "minorChange");
         xstream.omitField(AbstractBaseDO.class, "selected");
         xstream.registerConverter(new UserRightIdSingleValueConverter(userRights), 20);
         xstream.registerConverter(new UserPrefAreaSingleValueConverter(), 19);
       }
     };
-    converter.setHibernate(hibernate);
+    converter.setEntityManagaerFactory(emf);
     converter.appendIgnoredTopLevelObjects(embeddedClasses);
     Writer writer = null;
     GZIPOutputStream gzipOut = null;
     try {
       if (filename.endsWith(".gz")) {
         gzipOut = new GZIPOutputStream(out);
-        writer = new OutputStreamWriter(gzipOut, "utf-8");
+        writer = new OutputStreamWriter(gzipOut, StandardCharsets.UTF_8);
       } else {
-        writer = new OutputStreamWriter(out, "utf-8");
+        writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
       }
       converter.dumpDatabaseToXml(writer, true); // history=false, preserveIds=true
     } catch (final IOException ex) {
@@ -360,8 +332,7 @@ public class XmlDump
     }
   }
 
-  public void dumpDatabase(final String path, final String encoding)
-  {
+  public void dumpDatabase(final String path, final String encoding) {
     OutputStream out = null;
     try {
       out = new FileOutputStream(path);
@@ -379,13 +350,13 @@ public class XmlDump
    * @return Number of checked objects. This number is negative if any error occurs (at least one object wasn't imported
    * successfully).
    */
-  public int verifyDump(final XStreamSavingConverter xstreamSavingConverter)
-  {
-    final SessionFactory sessionFactory = hibernate.getSessionFactory();
+  public int verifyDump(final XStreamSavingConverter xstreamSavingConverter) {
     Session session = null;
+    EntityManager em = null;
     boolean hasError = false;
     try {
-      session = HibernateCompatUtils.openSession(sessionFactory, EmptyInterceptor.INSTANCE);
+      em = emf.getEntityManagerFactory().createEntityManager();
+      session = (Session) em.getDelegate();
       session.setDefaultReadOnly(true);
       int counter = 0;
       for (final Map.Entry<Class<?>, List<Object>> entry : xstreamSavingConverter.getAllObjects().entrySet()) {
@@ -420,28 +391,35 @@ public class XmlDump
         final Object o = type != null ? session.get(type, historyEntry.getEntityId()) : null;
         if (o == null) {
           log.warn("A corrupted history entry found (entity of class '"
-              + historyEntry.getEntityName()
-              + "' with id "
-              + historyEntry.getEntityId()
-              + " not found: "
-              + historyEntry
-              + ". This doesn't affect the functioning of ProjectForge, this may result in orphaned history entries.");
+                  + historyEntry.getEntityName()
+                  + "' with id "
+                  + historyEntry.getEntityId()
+                  + " not found: "
+                  + historyEntry
+                  + ". This doesn't affect the functioning of ProjectForge, this may result in orphaned history entries.");
           hasError = true;
         }
         ++counter;
       }
       if (hasError) {
         log.error(
-            "*********** A inconsistency in the import was found! This may result in a data loss or corrupted data! Please retry the import. "
-                + counter
-                + " entries checked.");
+                "*********** A inconsistency in the import was found! This may result in a data loss or corrupted data! Please retry the import. "
+                        + counter
+                        + " entries checked.");
         return -counter;
       }
       log.info("Data-base import successfully verified: " + counter + " entries checked.");
       return counter;
     } finally {
       if (session != null) {
-        session.close();
+        try {
+          session.close();
+        } catch (Exception ex) {
+          log.error("Error while closing session: " + ex.getMessage(), ex);
+        }
+      }
+      if (em != null) {
+        em.close();
       }
     }
   }
@@ -452,8 +430,7 @@ public class XmlDump
    * @param logDifference If true than the difference is logged.
    * @return True if the given objects are equal.
    */
-  private boolean equals(final Object o1, final Object o2, final boolean logDifference)
-  {
+  private boolean equals(final Object o1, final Object o2, final boolean logDifference) {
     if (o1 == null) {
       final boolean equals = (o2 == null);
       if (!equals && logDifference) {
@@ -480,7 +457,7 @@ public class XmlDump
           if (!Objects.equals(fieldValue2, fieldValue1)) {
             if (logDifference) {
               log.error("Field is different: " + field.getName() + "; value 1 '" + fieldValue1 + "' 2 '"
-                  + fieldValue2 + "'.");
+                      + fieldValue2 + "'.");
             }
             return false;
           }
@@ -495,7 +472,7 @@ public class XmlDump
             }
             if (logDifference) {
               log.error("Field '" + field.getName() + "': value 1 '" + fieldValue1 + "' is different from value 2 '"
-                  + fieldValue2 + "'.");
+                      + fieldValue2 + "'.");
             }
             return false;
           }
@@ -503,7 +480,7 @@ public class XmlDump
           if (fieldValue1 != null) {
             if (logDifference) {
               log.error("Field '" + field.getName() + "': value 1 '" + fieldValue1 + "' is different from value 2 '"
-                  + fieldValue2 + "'.");
+                      + fieldValue2 + "'.");
             }
             return false;
           }
@@ -513,12 +490,12 @@ public class XmlDump
           if (col1.size() != col2.size()) {
             if (logDifference) {
               log.error("Field '"
-                  + field.getName()
-                  + "': colection's size '"
-                  + col1.size()
-                  + "' is different from collection's size '"
-                  + col2.size()
-                  + "'.");
+                      + field.getName()
+                      + "': colection's size '"
+                      + col1.size()
+                      + "' is different from collection's size '"
+                      + col2.size()
+                      + "'.");
             }
             return false;
           }
@@ -527,16 +504,16 @@ public class XmlDump
           }
         } else if (HibernateUtils.isEntity(fieldValue1.getClass())) {
           if (fieldValue2 == null
-              || !Objects.equals(HibernateUtils.getIdentifier(fieldValue1),
-              HibernateUtils.getIdentifier(fieldValue2))) {
+                  || !Objects.equals(HibernateUtils.getIdentifier(fieldValue1),
+                  HibernateUtils.getIdentifier(fieldValue2))) {
             if (logDifference) {
               log.error("Field '"
-                  + field.getName()
-                  + "': Hibernate object id '"
-                  + HibernateUtils.getIdentifier(fieldValue1)
-                  + "' is different from id '"
-                  + HibernateUtils.getIdentifier(fieldValue2)
-                  + "'.");
+                      + field.getName()
+                      + "': Hibernate object id '"
+                      + HibernateUtils.getIdentifier(fieldValue1)
+                      + "' is different from id '"
+                      + HibernateUtils.getIdentifier(fieldValue2)
+                      + "'.");
             }
             return false;
           }
@@ -544,7 +521,7 @@ public class XmlDump
           if (fieldValue2 == null || ((BigDecimal) fieldValue1).compareTo((BigDecimal) fieldValue2) != 0) {
             if (logDifference) {
               log.error("Field '" + field.getName() + "': value 1 '" + fieldValue1 + "' is different from value 2 '"
-                  + fieldValue2 + "'.");
+                      + fieldValue2 + "'.");
             }
             return false;
           }
@@ -552,14 +529,14 @@ public class XmlDump
           if (!ArrayUtils.isEquals(fieldValue1, fieldValue2)) {
             if (logDifference) {
               log.error("Field '" + field.getName() + "': value 1 '" + fieldValue1 + "' is different from value 2 '"
-                  + fieldValue2 + "'.");
+                      + fieldValue2 + "'.");
             }
             return false;
           }
         } else if (!Objects.equals(fieldValue2, fieldValue1)) {
           if (logDifference) {
             log.error("Field '" + field.getName() + "': value 1 '" + fieldValue1 + "' is different from value 2 '"
-                + fieldValue2 + "'.");
+                    + fieldValue2 + "'.");
           }
           return false;
         }
@@ -579,8 +556,7 @@ public class XmlDump
    * @return
    */
   private boolean equals(final Field field, final Collection<?> col1, final Collection<?> col2,
-      final boolean logDifference)
-  {
+                         final boolean logDifference) {
     for (final Object colVal1 : col1) {
       boolean equals = false;
       for (final Object colVal2 : col2) {
@@ -608,15 +584,14 @@ public class XmlDump
    * @throws IllegalAccessException
    */
   private Object getValue(final Object obj, final Object compareObj, final Field field) throws IllegalArgumentException,
-      IllegalAccessException
-  {
+          IllegalAccessException {
     Object val = null;
     final Method getter = BeanHelper.determineGetter(obj.getClass(), field.getName());
     final Method getter2 = BeanHelper.determineGetter(compareObj.getClass(), field.getName());
     if (getter != null
-        && !getter.isAnnotationPresent(Transient.class)
-        && getter2 != null
-        && !getter2.isAnnotationPresent(Transient.class)) {
+            && !getter.isAnnotationPresent(Transient.class)
+            && getter2 != null
+            && !getter2.isAnnotationPresent(Transient.class)) {
       val = BeanHelper.invoke(obj, getter);
     }
     if (val == null) {
@@ -629,8 +604,7 @@ public class XmlDump
    * @param field
    * @return true, if the given field should be compared.
    */
-  protected boolean accept(final Field field)
-  {
+  protected boolean accept(final Field field) {
     if (field.getName().indexOf(ClassUtils.INNER_CLASS_SEPARATOR_CHAR) != -1) {
       // Reject field from inner class.
       return false;
@@ -643,10 +617,7 @@ public class XmlDump
       // transients.
       return false;
     }
-    if (Modifier.isStatic(field.getModifiers())) {
-      // transients.
-      return false;
-    }
-    return true;
+    // transients.
+    return !Modifier.isStatic(field.getModifiers());
   }
 }

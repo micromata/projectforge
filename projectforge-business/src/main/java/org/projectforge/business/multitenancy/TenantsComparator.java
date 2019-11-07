@@ -41,6 +41,6 @@ public class TenantsComparator implements Comparator<TenantDO>, Serializable
   {
     final String n1 = t1 != null ? t1.getName() : null;
     final String n2 = t2 != null ? t2.getName() : null;
-    return StringComparator.getInstance().compare(n1, n2);
+    return StringComparator.compare(n1, n2);
   }
 }

@@ -41,11 +41,6 @@ import org.hibernate.proxy.HibernateProxyHelper;
 import org.projectforge.framework.persistence.hibernate.HibernateCompatUtils;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.springframework.dao.DataAccessException;
-import org.springframework.orm.hibernate5.HibernateCallback;
-import org.springframework.orm.hibernate5.HibernateTemplate;
-import org.springframework.orm.hibernate5.HibernateTransactionManager;
-import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -56,23 +51,21 @@ import java.util.stream.Collectors;
  * Hilfsklasse zum Laden und Speichern einer gesamten Hibernate-Datenbank im XML-Format. Zur Darstellung der Daten in
  * XML wird XStream zur Serialisierung eingesetzt. Alle Lazy-Objekte aus Hibernate werden vollständig initialisiert.
  * http://jira.codehaus.org/browse/XSTR-377
- * 
+ *
  * @author Wolfgang Jung (w.jung@micromata.de)
- * 
  */
-public class HibernateXmlConverter
-{
-  /** The logger */
+public class HibernateXmlConverter {
+  /**
+   * The logger
+   */
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HibernateXmlConverter.class);
 
-  /** the wrapper to hibernate */
-  private HibernateTemplate hibernate;
+  private PfEmgrFactory emf;
 
   // Ignore these objects listing in the top level list saving because the are saved implicit by their parent objects.
   private final Set<Class<?>> ignoreFromTopLevelListing = new HashSet<>();
 
-  public HibernateXmlConverter()
-  {
+  public HibernateXmlConverter() {
     // TODO HISTORY
     //    this.ignoreFromTopLevelListing.add(PropertyDelta.class);
     //    this.ignoreFromTopLevelListing.add(SimplePropertyDelta.class);
@@ -82,50 +75,39 @@ public class HibernateXmlConverter
 
   /**
    * Initialisierung der Hibernate-verbindung.
-   * 
-   * @param hibernate ein bereits initialisiertes HibernateTemplate
    */
-  public void setHibernate(final HibernateTemplate hibernate)
-  {
-    this.hibernate = hibernate;
+  public void setEntityManagaerFactory(final PfEmgrFactory emf) {
+    this.emf = emf;
   }
 
   /**
    * Schreibt alle Objekte der Datenbank in den angegebenen Writer.<br/>
    * <b>Warnung!</b> Bei der Serialisierung von Collections wird derzeit nur {@link java.util.Set} sauber unterstützt.
-   * 
-   * @param writer Ziel für die XML-Datei.
+   *
+   * @param writer         Ziel für die XML-Datei.
    * @param includeHistory bei false werden die History Einträge nicht geschrieben
    */
-  public void dumpDatabaseToXml(final Writer writer, final boolean includeHistory)
-  {
+  public void dumpDatabaseToXml(final Writer writer, final boolean includeHistory) {
     dumpDatabaseToXml(writer, includeHistory, true);
   }
 
   /**
    * Schreibt alle Objekte der Datenbank in den angegebenen Writer.<br/>
    * <b>Warnung!</b> Bei der Serialisierung von Collections wird derzeit nur {@link java.util.Set} sauber unterstützt.
-   * 
-   * @param writer Ziel für die XML-Datei.
+   *
+   * @param writer         Ziel für die XML-Datei.
    * @param includeHistory bei false werden die History Einträge nicht geschrieben
-   * @param preserveIds If true, the object ids will be preserved, otherwise new ids will be assigned through xstream.
+   * @param preserveIds    If true, the object ids will be preserved, otherwise new ids will be assigned through xstream.
    */
-  public void dumpDatabaseToXml(final Writer writer, final boolean includeHistory, final boolean preserveIds)
-  {
-    final TransactionTemplate tx = new TransactionTemplate(
-        new HibernateTransactionManager(hibernate.getSessionFactory()));
-    tx.execute((TransactionCallback) status -> {
-      hibernate.execute((HibernateCallback) session -> {
-        writeObjects(writer, includeHistory, session, preserveIds);
-        status.setRollbackOnly();
-        return null;
-      });
+  public void dumpDatabaseToXml(final Writer writer, final boolean includeHistory, final boolean preserveIds) {
+    emf.runInTrans(emgr -> {
+      Session session = (Session) emgr.getEntityManager().getDelegate();
+      writeObjects(writer, includeHistory, session, preserveIds);
       return null;
     });
   }
 
-  public HibernateXmlConverter appendIgnoredTopLevelObjects(final Class<?>... types)
-  {
+  public HibernateXmlConverter appendIgnoredTopLevelObjects(final Class<?>... types) {
     if (types != null) {
       this.ignoreFromTopLevelListing.addAll(Arrays.asList(types));
     }
@@ -140,9 +122,8 @@ public class HibernateXmlConverter
    * @throws HibernateException
    */
   private void writeObjects(final Writer writer, final boolean includeHistory, final Session session,
-      final boolean preserveIds)
-          throws DataAccessException, HibernateException
-  {
+                            final boolean preserveIds)
+          throws DataAccessException, HibernateException {
     // Container für die Objekte
     final List<Object> all = new ArrayList<>();
     final XStream stream = initXStream(session, true);
@@ -152,7 +133,7 @@ public class HibernateXmlConverter
     // Alles laden
     //    final List<Class<?>> entities = new ArrayList<Class<?>>();
     final List<Class<?>> entities = PfEmgrFactory.get().getMetadataRepository().getTableEntities().stream()
-        .map((e) -> e.getJavaType()).collect(Collectors.toList());
+            .map((e) -> e.getJavaType()).collect(Collectors.toList());
     //    entities.addAll(HibernateEntities.instance().getOrderedEntities());
     //    entities.addAll(HibernateEntities.instance().getOrderedHistoryEntities());
     for (final Class<?> entityClass : entities) {
@@ -207,32 +188,28 @@ public class HibernateXmlConverter
 
   /**
    * Overload this method if you need further initializations before reading xml stream. Does nothing at default.
-   * 
+   *
    * @param xstream
    */
-  protected void init(final XStream xstream)
-  {
+  protected void init(final XStream xstream) {
   }
 
   /**
    * @return
    */
-  private XStream initXStream(final Session session, final boolean nullifyPk)
-  {
-    final XStream xstream = new XStream()
-    {
+  private XStream initXStream(final Session session, final boolean nullifyPk) {
+    final XStream xstream = new XStream() {
       @Override
-      protected MapperWrapper wrapMapper(final MapperWrapper next)
-      {
+      protected MapperWrapper wrapMapper(final MapperWrapper next) {
         return new HibernateMapper(new HibernateCollectionsMapper(next));
       }
     };
     // Converter für die Hibernate-Collections
     xstream.registerConverter(new HibernateCollectionConverter(xstream.getConverterLookup()));
     xstream.registerConverter(
-        new HibernateProxyConverter(xstream.getMapper(), new PureJavaReflectionProvider(),
-            xstream.getConverterLookup()),
-        XStream.PRIORITY_VERY_HIGH);
+            new HibernateProxyConverter(xstream.getMapper(), new PureJavaReflectionProvider(),
+                    xstream.getConverterLookup()),
+            XStream.PRIORITY_VERY_HIGH);
     xstream.setMarshallingStrategy(new XStreamMarshallingStrategy(XStreamMarshallingStrategy.RELATIVE));
     init(xstream);
     return xstream;

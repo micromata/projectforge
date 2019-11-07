@@ -42,6 +42,10 @@ class MagicFilter(
         var deleted: Boolean? = false,
         var searchHistory: String? = null,
         /**
+         * If true, any searchstring (alphanumeric) without wildcard will be changed to '<searchString>*'.
+         */
+        var autoWildcardSearch: Boolean = false,
+        /**
          * Extend the filter by additional variables and settings.
          */
         var extended: MutableMap<String, Any> = mutableMapOf(),

@@ -32,15 +32,15 @@ import org.hibernate.search.annotations.ContainedIn;
 import org.hibernate.search.annotations.IndexedEmbedded;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.hibernate.HibernateCompatUtils;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.registry.Registry;
 import org.projectforge.registry.RegistryEntry;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -48,17 +48,16 @@ import java.util.*;
 
 /**
  * Hotfix: Hibernate-search does not update index of dependent objects.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-public class HibernateSearchDependentObjectsReindexer
-{
+public class HibernateSearchDependentObjectsReindexer {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
-      .getLogger(HibernateSearchDependentObjectsReindexer.class);
+          .getLogger(HibernateSearchDependentObjectsReindexer.class);
 
   @Autowired
-  ApplicationContext applicationContext;
+  private PfEmgrFactory emgrFactory;
 
   /**
    * Key is the embedded class (annotated with @IndexEmbedded), value the set of all dependent objects.
@@ -66,23 +65,20 @@ public class HibernateSearchDependentObjectsReindexer
   final Map<Class<? extends BaseDO<?>>, List<Entry>> map = new HashMap<>();
 
   @PostConstruct
-  public void init()
-  {
+  public void init() {
     for (final RegistryEntry registryEntry : Registry.getInstance().getOrderedList()) {
       register(registryEntry);
     }
   }
 
-  class Entry
-  {
+  class Entry {
     Class<? extends BaseDO<?>> clazz; // The dependent class which contains the annotated field.
 
     String fieldName;
 
     boolean setOrCollection;
 
-    Entry(final Class<? extends BaseDO<?>> clazz, final String fieldName, final boolean setOrCollection)
-    {
+    Entry(final Class<? extends BaseDO<?>> clazz, final String fieldName, final boolean setOrCollection) {
       this.clazz = clazz;
       this.fieldName = fieldName;
       this.setOrCollection = setOrCollection;
@@ -92,8 +88,7 @@ public class HibernateSearchDependentObjectsReindexer
      * @see java.lang.Object#toString()
      */
     @Override
-    public String toString()
-    {
+    public String toString() {
       return "Entry[clazz=" + clazz.getName() + ",fieldName=" + fieldName + "]";
     }
 
@@ -101,8 +96,7 @@ public class HibernateSearchDependentObjectsReindexer
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
-    public boolean equals(final Object obj)
-    {
+    public boolean equals(final Object obj) {
       if (!(obj instanceof Entry)) {
         return false;
       }
@@ -111,8 +105,7 @@ public class HibernateSearchDependentObjectsReindexer
     }
 
     @Override
-    public int hashCode()
-    {
+    public int hashCode() {
       final int prime = 31;
       int result = 1;
       result = prime * result + ((clazz == null) ? 0 : clazz.hashCode());
@@ -123,30 +116,31 @@ public class HibernateSearchDependentObjectsReindexer
 
   }
 
-  public void reindexDependents(final BaseDO<?> obj)
-  {
-    new Thread()
-    {
+  public void reindexDependents(final BaseDO<?> obj) {
+    new Thread() {
       @Override
-      public void run()
-      {
-        final Session session = applicationContext.getBean(HibernateTemplate.class).getSessionFactory().openSession();
-        final Set<String> alreadyReindexed = new HashSet<>();
-        final List<Entry> entryList = map.get(obj.getClass());
-        reindexDependents(session, obj, entryList, alreadyReindexed);
-        session.disconnect();
-        final int size = alreadyReindexed.size();
-        if (size >= 10) {
-          log.info("Re-indexing of " + size + " objects done after updating " + obj.getClass().getName() + ":"
-              + obj.getId());
-        }
+      public void run() {
+        emgrFactory.runInTrans(emgr -> {
+                  final EntityManager em = emgr.getEntityManager();
+                  final Session session = (Session) em.getDelegate();
+                  final Set<String> alreadyReindexed = new HashSet<>();
+                  final List<Entry> entryList = map.get(obj.getClass());
+                  reindexDependents(em, session, obj, entryList, alreadyReindexed);
+                  session.disconnect();
+                  final int size = alreadyReindexed.size();
+                  if (size >= 10) {
+                    log.info("Re-indexing of " + size + " objects done after updating " + obj.getClass().getName() + ":"
+                            + obj.getId());
+                  }
+                  return null;
+                }
+        );
       }
     }.start();
   }
 
-  private void reindexDependents(final Session session, final BaseDO<?> obj,
-      final List<Entry> entryList, final Set<String> alreadyReindexed)
-  {
+  private void reindexDependents(final EntityManager em, final Session session, final BaseDO<?> obj,
+                                 final List<Entry> entryList, final Set<String> alreadyReindexed) {
     if (CollectionUtils.isEmpty(entryList)) {
       // Nothing to do.
       return;
@@ -157,23 +151,22 @@ public class HibernateSearchDependentObjectsReindexer
         // Nothing to do
         return;
       }
-      final List<?> result = getDependents(registryEntry, entry, obj);
+      final List<?> result = getDependents(em, registryEntry, entry, obj);
       if (result != null) {
         for (Object dependentObject : result) {
           if (dependentObject instanceof Object[]) {
             dependentObject = ((Object[]) dependentObject)[0];
           }
           if (dependentObject instanceof BaseDO) {
-            reindexDependents(session, (BaseDO<?>) dependentObject, alreadyReindexed);
+            reindexDependents(em, session, (BaseDO<?>) dependentObject, alreadyReindexed);
           }
         }
       }
     }
   }
 
-  private void reindexDependents(final Session session, final BaseDO<?> obj,
-      final Set<String> alreadyReindexed)
-  {
+  private void reindexDependents(final EntityManager em, final Session session, final BaseDO<?> obj,
+                                 final Set<String> alreadyReindexed) {
     if (alreadyReindexed.contains(getReindexId(obj))) {
       if (log.isDebugEnabled()) {
         log.debug("Object already re-indexed (skipping): " + getReindexId(obj));
@@ -201,47 +194,46 @@ public class HibernateSearchDependentObjectsReindexer
     }
     // session.flush(); // clear every batchSize since the queue is processed
     final List<Entry> entryList = map.get(obj.getClass());
-    reindexDependents(session, obj, entryList, alreadyReindexed);
+    reindexDependents(em, session, obj, entryList, alreadyReindexed);
   }
 
-  private List<?> getDependents(final RegistryEntry registryEntry,
-      final Entry entry,
-      final BaseDO<?> obj)
-  {
+  private List<?> getDependents(final EntityManager em,
+                                final RegistryEntry registryEntry,
+                                final Entry entry,
+                                final BaseDO<?> obj) {
     final String queryString;
     if (entry.setOrCollection) {
-      queryString = "from " + registryEntry.getDOClass().getName() + " o join o." + entry.fieldName + " r where r.id=?";
+      queryString = "from " + registryEntry.getDOClass().getName() + " o join o." + entry.fieldName + " r where r.id=:id";
     } else {
-      queryString = "from " + registryEntry.getDOClass().getName() + " o where o." + entry.fieldName + ".id=?";
+      queryString = "from " + registryEntry.getDOClass().getName() + " o where o." + entry.fieldName + ".id=:id";
     }
     if (log.isDebugEnabled()) {
       log.debug(queryString + ", id=" + obj.getId());
     }
-    final List<?> result = applicationContext.getBean(HibernateTemplate.class).find(queryString, obj.getId());
+    final List<?> result = em.createQuery(queryString, registryEntry.getDOClass())
+            .setParameter("id", obj.getId())
+            .getResultList();
     return result;
   }
 
-  private String getReindexId(final BaseDO<?> obj)
-  {
+  private String getReindexId(final BaseDO<?> obj) {
     return obj.getClass() + ":" + obj.getId();
   }
 
-  void register(final RegistryEntry registryEntry)
-  {
+  void register(final RegistryEntry registryEntry) {
     final Class<? extends BaseDO<?>> clazz = registryEntry.getDOClass();
     register(clazz);
   }
 
-  void register(final Class<? extends BaseDO<?>> clazz)
-  {
+  void register(final Class<? extends BaseDO<?>> clazz) {
     final Field[] fields = clazz.getDeclaredFields();
     for (final Field field : fields) {
       if (field.isAnnotationPresent(IndexedEmbedded.class) ||
-          field.isAnnotationPresent(ContainedIn.class)) {
+              field.isAnnotationPresent(ContainedIn.class)) {
         Class<?> embeddedClass = field.getType();
         boolean setOrCollection = false;
         if (Set.class.isAssignableFrom(embeddedClass)
-            || Collection.class.isAssignableFrom(embeddedClass)) {
+                || Collection.class.isAssignableFrom(embeddedClass)) {
           // Please use @ContainedIn.
           final Type type = field.getGenericType();
           if (type instanceof ParameterizedType) {
@@ -261,8 +253,7 @@ public class HibernateSearchDependentObjectsReindexer
         List<Entry> list = map.get(embeddedClass);
         if (list == null) {
           list = new ArrayList<>();
-          @SuppressWarnings("unchecked")
-          final Class<? extends BaseDO<?>> embeddedBaseDOClass = (Class<? extends BaseDO<?>>) embeddedClass;
+          @SuppressWarnings("unchecked") final Class<? extends BaseDO<?>> embeddedBaseDOClass = (Class<? extends BaseDO<?>>) embeddedClass;
           map.put(embeddedBaseDOClass, list);
         } else {
           for (final Entry e : list) {

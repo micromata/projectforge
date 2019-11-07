@@ -29,37 +29,36 @@ import org.projectforge.framework.cache.AbstractCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.EntityManager;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Caches the DATEV accounts.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-public class KontoCache extends AbstractCache
-{
+public class KontoCache extends AbstractCache {
   private static Logger log = LoggerFactory.getLogger(KontoCache.class);
 
   @Autowired
-  private HibernateTemplate hibernateTemplate;
+  private EntityManager em;
 
-  /** The key is the order id. */
+  /**
+   * The key is the order id.
+   */
   private Map<Integer, KontoDO> accountMapById;
 
-  public boolean isEmpty()
-  {
+  public boolean isEmpty() {
     checkRefresh();
     return MapUtils.isEmpty(accountMapById);
   }
 
-  public KontoDO getKonto(final Integer id)
-  {
+  public KontoDO getKonto(final Integer id) {
     if (id == null) {
       return null;
     }
@@ -72,12 +71,11 @@ public class KontoCache extends AbstractCache
    * no account is given at all, null is returned.<br/>
    * Please note: The object of project must be initialized including the assigned customer, if not a
    * {@link LazyInitializationException} could be thrown.
-   * 
+   *
    * @param project
    * @return The assigned account if given, otherwise null.
    */
-  public KontoDO getKonto(final ProjektDO project)
-  {
+  public KontoDO getKonto(final ProjektDO project) {
     if (project == null) {
       return null;
     }
@@ -102,12 +100,11 @@ public class KontoCache extends AbstractCache
    * <li>Returns the account of the customer assigned to the project if given.<br/>
    * Please note: The object of project must be initialized including the assigned customer, if not a
    * {@link LazyInitializationException} could be thrown.
-   * 
+   *
    * @param invoice
    * @return The assigned account if given, otherwise null.
    */
-  public KontoDO getKonto(final RechnungDO invoice)
-  {
+  public KontoDO getKonto(final RechnungDO invoice) {
     if (invoice == null) {
       return null;
     }
@@ -144,12 +141,12 @@ public class KontoCache extends AbstractCache
    */
   @Override
   @SuppressWarnings("unchecked")
-  protected void refresh()
-  {
+  protected void refresh() {
     log.info("Initializing KontoCache ...");
     // This method must not be synchronized because it works with a new copy of maps.
     final Map<Integer, KontoDO> map = new HashMap<>();
-    final List<KontoDO> list = (List<KontoDO>) hibernateTemplate.find("from KontoDO t where deleted=false");
+    final List<KontoDO> list = em.createQuery("from KontoDO t where deleted=false", KontoDO.class)
+            .getResultList();
     for (final KontoDO konto : list) {
       map.put(konto.getId(), konto);
     }

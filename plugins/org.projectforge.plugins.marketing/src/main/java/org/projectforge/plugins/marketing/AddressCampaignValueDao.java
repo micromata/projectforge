@@ -27,7 +27,6 @@ import de.micromata.genome.db.jpa.history.api.DiffEntry;
 import de.micromata.genome.db.jpa.history.api.HistProp;
 import de.micromata.genome.db.jpa.history.api.HistoryEntry;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Session;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.user.UserGroupCache;
@@ -39,10 +38,9 @@ import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
@@ -61,7 +59,7 @@ public class AddressCampaignValueDao extends BaseDao<AddressCampaignValueDO> {
   }
 
   public AddressCampaignValueDO get(final Integer addressId, final Integer addressCampaignId) {
-    return SQLHelper.ensureUniqueResult(getSession()
+    return SQLHelper.ensureUniqueResult(em
             .createNamedQuery(AddressCampaignValueDO.FIND_BY_ADDRESS_AND_CAMPAIGN, AddressCampaignValueDO.class)
             .setParameter("addressId", addressId)
             .setParameter("addressCampaignId", addressCampaignId));
@@ -93,7 +91,6 @@ public class AddressCampaignValueDao extends BaseDao<AddressCampaignValueDO> {
     addressCampaignValue.setAddress(address);
   }
 
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
   public void massUpdate(final List<AddressDO> list, final AddressCampaignDO addressCampaign, final String value,
                          final String comment) {
     if (list == null || list.size() == 0) {
@@ -101,7 +98,7 @@ public class AddressCampaignValueDao extends BaseDao<AddressCampaignValueDO> {
       return;
     }
     if (list.size() > MAX_MASS_UPDATE) {
-      throw new UserException(MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N, new Object[]{MAX_MASS_UPDATE});
+      throw new UserException(MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N, MAX_MASS_UPDATE);
     }
     for (final AddressDO address : list) {
       AddressCampaignValueDO addressCampaignValue = get(address.getId(), addressCampaign.getId());
@@ -152,10 +149,10 @@ public class AddressCampaignValueDao extends BaseDao<AddressCampaignValueDO> {
     if (addressCampaignId == null) {
       return map;
     }
-    final List<AddressCampaignValueDO> list = getSession()
+    final List<AddressCampaignValueDO> list = em
             .createNamedQuery(AddressCampaignValueDO.FIND_BY_CAMPAIGN, AddressCampaignValueDO.class)
             .setParameter("addressCampaignId", searchFilter.getAddressCampaignId())
-            .list();
+            .getResultList();
     if (CollectionUtils.isEmpty(list)) {
       return map;
     }
@@ -166,16 +163,16 @@ public class AddressCampaignValueDao extends BaseDao<AddressCampaignValueDO> {
   }
 
   @Override
-  public List<DisplayHistoryEntry> convert(final HistoryEntry<?> entry, final Session session) {
+  public List<DisplayHistoryEntry> convert(final HistoryEntry<?> entry, final EntityManager em) {
     if (entry.getDiffEntries().isEmpty()) {
       final DisplayHistoryEntry se = new DisplayHistoryEntry(getUserGroupCache(), entry);
       return Collections.singletonList(se);
     }
     List<DisplayHistoryEntry> result = new ArrayList<>();
     for (DiffEntry prop : entry.getDiffEntries()) {
-      DisplayHistoryEntry se = new DisplayHistoryEntry(getUserGroupCache(), entry, prop, session) {
+      DisplayHistoryEntry se = new DisplayHistoryEntry(getUserGroupCache(), entry, prop, em) {
         @Override
-        protected Object getObjectValue(UserGroupCache userGroupCache, Session session, HistProp prop) {
+        protected Object getObjectValue(UserGroupCache userGroupCache, EntityManager em, HistProp prop) {
           if (prop == null) {
             return null;
           }
@@ -189,7 +186,7 @@ public class AddressCampaignValueDao extends BaseDao<AddressCampaignValueDO> {
             return prop.getValue();
           }
 
-          return super.getObjectValue(userGroupCache, session, prop);
+          return super.getObjectValue(userGroupCache, em, prop);
         }
       };
       result.add(se);

@@ -38,9 +38,6 @@ import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -48,49 +45,40 @@ import java.util.*;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-public class TenantDao extends BaseDao<TenantDO>
-{
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TenantDao.class);
-
+public class TenantDao extends BaseDao<TenantDO> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.ADMIN_TENANT;
-
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "assignedUsers.username",
-      "assignedUsers.firstname",
-      "assignedUsers.lastname" };
-
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TenantDao.class);
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"assignedUsers.username",
+          "assignedUsers.firstname",
+          "assignedUsers.lastname"};
+  private static Boolean tenantTableExists = null;
   @Autowired
   private DatabaseService initDatabaseDao;
-
   @Autowired
   private JdbcTemplate jdbc;
 
-  private static Boolean tenantTableExists = null;
-
-  public TenantDao()
-  {
+  public TenantDao() {
     super(TenantDO.class);
     this.supportAfterUpdate = true;
     userRightId = USER_RIGHT_ID;
   }
 
-  public TenantDO getDefaultTenant()
-  {
-    @SuppressWarnings("unchecked")
-    final List<TenantDO> list = (List<TenantDO>) getHibernateTemplate()
-        .find("from TenantDO t where t.defaultTenant = true");
+  public TenantDO getDefaultTenant() {
+    final List<TenantDO> list = em.createQuery(
+            "select t from TenantDO t where t.defaultTenant = true",
+            TenantDO.class).getResultList();
     if (list != null && list.isEmpty()) {
       return null;
     }
     if (list.size() > 1) {
       log.warn(
-          "There are more than one tenent object declared as default! No or only one tenant should be defined as default!");
+              "There are more than one tenent object declared as default! No or only one tenant should be defined as default!");
     }
     return list.get(0);
   }
 
   @Override
-  public boolean hasUserSelectAccess(final PFUserDO user, final TenantDO obj, final boolean throwException)
-  {
+  public boolean hasUserSelectAccess(final PFUserDO user, final TenantDO obj, final boolean throwException) {
     return true;
   }
 
@@ -98,8 +86,7 @@ public class TenantDao extends BaseDao<TenantDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#onSaveOrModify(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
-  protected void onSaveOrModify(final TenantDO obj)
-  {
+  protected void onSaveOrModify(final TenantDO obj) {
     if (!obj.isDefault()) {
       return;
     }
@@ -116,8 +103,7 @@ public class TenantDao extends BaseDao<TenantDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#createQueryFilter(org.projectforge.framework.persistence.api.BaseSearchFilter)
    */
   @Override
-  protected QueryFilter createQueryFilter(final BaseSearchFilter filter)
-  {
+  protected QueryFilter createQueryFilter(final BaseSearchFilter filter) {
     final boolean superAdmin = TenantChecker.isSuperAdmin(ThreadLocalUserContext.getUser());
     if (!superAdmin) {
       return super.createQueryFilter(filter);
@@ -132,8 +118,7 @@ public class TenantDao extends BaseDao<TenantDO>
    * @param assignedUsers Full list of all users which have to assigned to this tenant.
    * @return
    */
-  public void setAssignedUsers(final TenantDO tenant, final Collection<PFUserDO> assignedUsers) throws AccessException
-  {
+  public void setAssignedUsers(final TenantDO tenant, final Collection<PFUserDO> assignedUsers) throws AccessException {
     final Set<PFUserDO> origAssignedUsers = tenant.getAssignedUsers();
     if (origAssignedUsers != null) {
       final Iterator<PFUserDO> it = origAssignedUsers.iterator();
@@ -159,8 +144,7 @@ public class TenantDao extends BaseDao<TenantDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#afterSave(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
-  public void afterSave(final TenantDO tenant)
-  {
+  public void afterSave(final TenantDO tenant) {
     final PFUserDO adminUser = ThreadLocalUserContext.getUser();
     if (!tenant.isDefault()) {
       // The groups do already exist for the default tenant.
@@ -187,8 +171,7 @@ public class TenantDao extends BaseDao<TenantDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#afterUpdate(TenantDO, TenantDO)
    */
   @Override
-  protected void afterUpdate(final TenantDO tenant, final TenantDO dbTenant)
-  {
+  protected void afterUpdate(final TenantDO tenant, final TenantDO dbTenant) {
     final Set<PFUserDO> origAssignedUsers = dbTenant.getAssignedUsers();
     final Set<PFUserDO> assignedUsers = tenant.getAssignedUsers();
     final Collection<PFUserDO> assignedList = new ArrayList<>(); // List of new assigned users.
@@ -223,18 +206,14 @@ public class TenantDao extends BaseDao<TenantDO>
    * @param tenantsToUnassign Tenants to unassign (nullable).
    * @throws AccessException
    */
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
   public void assignTenants(final PFUserDO user, final Set<TenantDO> tenantsToAssign,
-      final Set<TenantDO> tenantsToUnassign)
-  {
+                            final Set<TenantDO> tenantsToUnassign) {
     internalAssignTenants(user, tenantsToAssign, tenantsToUnassign, true, true);
   }
 
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
   public void internalAssignTenants(final PFUserDO user, final Set<TenantDO> tenantsToAssign,
-      final Set<TenantDO> tenantsToUnassign, boolean checkAccess, boolean createHistoryEntry)
-      throws AccessException
-  {
+                                    final Set<TenantDO> tenantsToUnassign, boolean checkAccess, boolean createHistoryEntry)
+          throws AccessException {
     if (checkAccess) {
       if (!TenantChecker.isSuperAdmin(ThreadLocalUserContext.getUser())) {
         log.warn("User has now access right to change assigned users of a tenant! Skipping assignment.");
@@ -279,7 +258,7 @@ public class TenantDao extends BaseDao<TenantDO>
             dbTenant.setLastUpdate(); // Needed, otherwise TenantDO is not detected for hibernate history!
           } else {
             log.info("User '" + user.getUsername() + "' is not assigned to tenant '" + dbTenant.getName()
-                + "' (can't unassign).");
+                    + "' (can't unassign).");
           }
           return null;
         });
@@ -291,8 +270,7 @@ public class TenantDao extends BaseDao<TenantDO>
   }
 
   private void createHistoryEntry(final PFUserDO user, Collection<TenantDO> unassignedList,
-      Collection<TenantDO> assignedList)
-  {
+                                  Collection<TenantDO> assignedList) {
     if (unassignedList != null && unassignedList.size() == 0) {
       unassignedList = null;
     }
@@ -306,46 +284,30 @@ public class TenantDao extends BaseDao<TenantDO>
   }
 
   @Override
-  protected String[] getAdditionalSearchFields()
-  {
+  protected String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
   @Override
-  public TenantDO newInstance()
-  {
+  public TenantDO newInstance() {
     return new TenantDO();
   }
 
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#useOwnCriteriaCacheRegion()
-   */
   @Override
-  protected boolean useOwnCriteriaCacheRegion()
-  {
-    return true;
-  }
-
-  @Override
-  public List<TenantDO> internalLoadAll()
-  {
+  public List<TenantDO> internalLoadAll() {
     return findAll();
   }
 
-  public List<TenantDO> findAll()
-  {
+  public List<TenantDO> findAll() {
     return PfEmgrFactory.get().runRoTrans(emgr -> emgr.selectAllAttached(TenantDO.class));
   }
 
-  public boolean hasTenants()
-  {
+  public boolean hasTenants() {
     List<TenantDO> allTenants = findAll();
     return allTenants != null && allTenants.size() > 0;
   }
 
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public boolean tenantTableExists()
-  {
+  public boolean tenantTableExists() {
     if (tenantTableExists == null) {
       final Table tenantTable = new Table(TenantDO.class);
       try {
@@ -353,16 +315,15 @@ public class TenantDao extends BaseDao<TenantDO>
         tenantTableExists = true;
       } catch (final Exception ex) {
         log.info(
-            "Exception while checking count from table: " + tenantTable.getName() + " Exception: " + ex.getMessage()
-                + "*** OK, if database is empty or needs to migrate ***");
+                "Exception while checking count from table: " + tenantTable.getName() + " Exception: " + ex.getMessage()
+                        + "*** OK, if database is empty or needs to migrate ***");
         tenantTableExists = false;
       }
     }
     return tenantTableExists;
   }
 
-  public boolean hasAssignedTenants(PFUserDO user)
-  {
+  public boolean hasAssignedTenants(PFUserDO user) {
     for (TenantDO tenant : findAll()) {
       for (PFUserDO tenantUser : tenant.getAssignedUsers()) {
         if (tenantUser.getId().equals(user.getId())) {
@@ -373,8 +334,7 @@ public class TenantDao extends BaseDao<TenantDO>
     return false;
   }
 
-  public void resetTenantTableStatus()
-  {
+  public void resetTenantTableStatus() {
     tenantTableExists = null;
   }
 

@@ -31,36 +31,39 @@ import org.projectforge.reporting.impl.Kost2ArtImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import java.util.*;
 
 /**
  * The kost2 entries will be cached.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-public class KostCache extends AbstractCache
-{
+public class KostCache extends AbstractCache {
   private static Logger log = LoggerFactory.getLogger(KostCache.class);
 
   @Autowired
-  private HibernateTemplate hibernateTemplate;
+  private EntityManager em;
 
-  /** The key is the kost2-id. */
+  /**
+   * The key is the kost2-id.
+   */
   private Map<Integer, Kost2DO> kost2Map;
 
-  /** The key is the kost2-id. */
+  /**
+   * The key is the kost2-id.
+   */
   private Map<Integer, Kost1DO> kost1Map;
 
   private List<Kost2Art> allKost2Arts;
 
   private boolean kost2EntriesExists = false;
 
-  public Kost2DO getKost2(final Integer kost2Id)
-  {
+  public Kost2DO getKost2(final Integer kost2Id) {
     if (!NumberHelper.greaterZero(kost2Id)) {
       return null;
     }
@@ -71,8 +74,7 @@ public class KostCache extends AbstractCache
    * @param kostString Format ######## or #.###.##.## is supported.
    * @see #getKost2(int, int, int, int)
    */
-  public Kost2DO getKost2(final String kostString)
-  {
+  public Kost2DO getKost2(final String kostString) {
     final int[] kost = KostHelper.parseKostString(kostString);
     if (kost == null) {
       return null;
@@ -80,27 +82,25 @@ public class KostCache extends AbstractCache
     return getKost2(kost[0], kost[1], kost[2], kost[3]);
   }
 
-  public Kost2DO getKost2(final int nummernkreis, final int bereich, final int teilbereich, final int kost2art)
-  {
+  public Kost2DO getKost2(final int nummernkreis, final int bereich, final int teilbereich, final int kost2art) {
     for (final Kost2DO kost : getKost2Map().values()) {
       if (kost.getNummernkreis() == nummernkreis
-          && kost.getBereich() == bereich
-          && kost.getTeilbereich() == teilbereich
-          && kost.getKost2ArtId() == kost2art) {
+              && kost.getBereich() == bereich
+              && kost.getTeilbereich() == teilbereich
+              && kost.getKost2ArtId() == kost2art) {
         return kost;
       }
     }
     return null;
   }
 
-  public List<Kost2DO> getActiveKost2(final int nummernkreis, final int bereich, final int teilbereich)
-  {
+  public List<Kost2DO> getActiveKost2(final int nummernkreis, final int bereich, final int teilbereich) {
     final List<Kost2DO> list = new ArrayList<>();
     for (final Kost2DO kost : getKost2Map().values()) {
       if (kost.getNummernkreis() == nummernkreis
-          && kost.getBereich() == bereich
-          && kost.getTeilbereich() == teilbereich
-          && (kost.getKostentraegerStatus() == KostentraegerStatus.ACTIVE || kost.getKostentraegerStatus() == null)) {
+              && kost.getBereich() == bereich
+              && kost.getTeilbereich() == teilbereich
+              && (kost.getKostentraegerStatus() == KostentraegerStatus.ACTIVE || kost.getKostentraegerStatus() == null)) {
         list.add(kost);
       }
     }
@@ -110,8 +110,7 @@ public class KostCache extends AbstractCache
     return list;
   }
 
-  public Kost1DO getKost1(final Integer kost1Id)
-  {
+  public Kost1DO getKost1(final Integer kost1Id) {
     if (!NumberHelper.greaterZero(kost1Id)) {
       return null;
     }
@@ -120,11 +119,10 @@ public class KostCache extends AbstractCache
 
   /**
    * Gibt die für das Projekt definierten, nicht gelöschten Kostenarten zurück.
-   * 
+   *
    * @param projektId
    */
-  public Set<Kost2ArtDO> getKost2Arts(final Integer projektId)
-  {
+  public Set<Kost2ArtDO> getKost2Arts(final Integer projektId) {
     checkRefresh();
     final Set<Kost2ArtDO> set = new TreeSet<>();
     if (projektId == null) {
@@ -146,11 +144,10 @@ public class KostCache extends AbstractCache
 
   /**
    * Gibt alle nicht gelöschten Kostenarten zurück, wobei die für das Projekt definierten entsprechend markiert sind.
-   * 
+   *
    * @param projektId
    */
-  public List<Kost2Art> getAllKost2Arts(final Integer projektId)
-  {
+  public List<Kost2Art> getAllKost2Arts(final Integer projektId) {
     checkRefresh();
     final Set<Kost2ArtDO> set = getKost2Arts(projektId);
     final List<Kost2Art> result = new ArrayList<>();
@@ -169,8 +166,7 @@ public class KostCache extends AbstractCache
     return result;
   }
 
-  public List<Kost2Art> getAllKostArts()
-  {
+  public List<Kost2Art> getAllKostArts() {
     checkRefresh();
     final List<Kost2Art> list = new ArrayList<>();
     if (allKost2Arts != null) {
@@ -184,37 +180,30 @@ public class KostCache extends AbstractCache
     return list;
   }
 
-  public boolean isKost2EntriesExists()
-  {
+  public boolean isKost2EntriesExists() {
     checkRefresh();
     return kost2EntriesExists;
   }
 
   /**
    * Should be called after user modifications.
-   * 
-   * @param user
    */
-  void updateKost2(final Kost2DO kost2)
-  {
+  void updateKost2(final Kost2DO kost2) {
     getKost2Map().put(kost2.getId(), kost2);
   }
 
   /**
    * Should be called after user modifications.
-   * 
-   * @param user
    */
-  void updateKost1(final Kost1DO kost1)
-  {
+  void updateKost1(final Kost1DO kost1) {
     getKost1Map().put(kost1.getId(), kost1);
   }
 
-  @SuppressWarnings("unchecked")
-  void updateKost2Arts()
-  {
-    final List<Kost2ArtDO> result = (List<Kost2ArtDO>) hibernateTemplate
-        .find("from Kost2ArtDO t where t.deleted = false order by t.id");
+  void updateKost2Arts() {
+    List<Kost2ArtDO> result = em.createQuery("from Kost2ArtDO t where t.deleted = false order by t.id",
+            Kost2ArtDO.class)
+            .setLockMode(LockModeType.NONE)
+            .getResultList();
     final List<Kost2Art> list = new ArrayList<>();
     for (final Kost2ArtDO kost2ArtDO : result) {
       final Kost2ArtImpl art = new Kost2ArtImpl(kost2ArtDO);
@@ -224,14 +213,12 @@ public class KostCache extends AbstractCache
     this.allKost2Arts = list;
   }
 
-  private Map<Integer, Kost2DO> getKost2Map()
-  {
+  private Map<Integer, Kost2DO> getKost2Map() {
     checkRefresh();
     return kost2Map;
   }
 
-  private Map<Integer, Kost1DO> getKost1Map()
-  {
+  private Map<Integer, Kost1DO> getKost1Map() {
     checkRefresh();
     return kost1Map;
   }
@@ -240,19 +227,21 @@ public class KostCache extends AbstractCache
    * This method will be called by CacheHelper and is synchronized via getData();
    */
   @Override
-  @SuppressWarnings("unchecked")
-  protected void refresh()
-  {
+  protected void refresh() {
     log.info("Initializing KostCache ...");
     // This method must not be synchronized because it works with a new copy of maps.
     final Map<Integer, Kost1DO> map1 = new HashMap<>();
-    final List<Kost1DO> list1 = (List<Kost1DO>) hibernateTemplate.find("from Kost1DO t");
+    final List<Kost1DO> list1 = em.createQuery("from Kost1DO t", Kost1DO.class)
+            .setLockMode(LockModeType.NONE)
+            .getResultList();
     for (final Kost1DO kost1 : list1) {
       map1.put(kost1.getId(), kost1);
     }
     this.kost1Map = map1;
     final Map<Integer, Kost2DO> map2 = new HashMap<>();
-    final List<Kost2DO> list2 = (List<Kost2DO>) hibernateTemplate.find("from Kost2DO t");
+    final List<Kost2DO> list2 = em.createQuery("from Kost2DO t", Kost2DO.class)
+            .setLockMode(LockModeType.NONE)
+            .getResultList();
     kost2EntriesExists = false;
     for (final Kost2DO kost2 : list2) {
       if (!kost2EntriesExists && !kost2.isDeleted()) {
@@ -264,5 +253,4 @@ public class KostCache extends AbstractCache
     updateKost2Arts();
     log.info("Initializing of KostCache done.");
   }
-
 }

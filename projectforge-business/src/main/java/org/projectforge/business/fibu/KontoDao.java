@@ -56,7 +56,7 @@ public class KontoDao extends BaseDao<KontoDO>
     if (kontonummer == null) {
       return null;
     }
-    return SQLHelper.ensureUniqueResult(getSession()
+    return SQLHelper.ensureUniqueResult(em
             .createNamedQuery(KontoDO.FIND_BY_NUMMER, KontoDO.class)
             .setParameter("nummer", kontonummer));
   }

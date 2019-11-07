@@ -33,10 +33,8 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
 import javax.sql.DataSource;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -50,21 +48,20 @@ import java.util.List;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class MebDao extends BaseDao<MebEntryDO> {
-  private static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MebDao.class);
-
   public static final UserRightId USER_RIGHT_ID = UserRightId.MISC_MEB;
-
   public static final String DATE_FORMAT = "yyyyMMddHHmmss";
-
+  private static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MebDao.class);
+  private final MebCache mebCache = new MebCache(this);
   @Autowired
   private DataSource dataSource;
-
   @Autowired
   private UserDao userDao;
 
-  private final MebCache mebCache = new MebCache(this);
+  public MebDao() {
+    super(MebEntryDO.class);
+    userRightId = USER_RIGHT_ID;
+  }
 
   /**
    * Removes all non digit and letter characters (also white-spaces) first. Afterward a MD5 checksum is calculated.
@@ -119,11 +116,6 @@ public class MebDao extends BaseDao<MebEntryDO> {
       }
     }
     return date;
-  }
-
-  public MebDao() {
-    super(MebEntryDO.class);
-    userRightId = USER_RIGHT_ID;
   }
 
   /**
@@ -186,7 +178,6 @@ public class MebDao extends BaseDao<MebEntryDO> {
    * @return Number of new imported messages.
    */
   @SuppressWarnings("unchecked")
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
   public boolean checkAndAddEntry(final MebEntryDO entry, final String source) {
     Validate.notNull(entry.getSender());
     Validate.notNull(entry.getDate());
@@ -195,19 +186,19 @@ public class MebDao extends BaseDao<MebEntryDO> {
     synchronized (this) {
       final String checkSum = createCheckSum(entry.getMessage());
       // First check weather the entry is already in the data base or not.
-      final List<ImportedMebEntryDO> entryList = getSession()
+      final List<ImportedMebEntryDO> entryList = em
               .createNamedQuery(ImportedMebEntryDO.FIND_BY_SENDER_AND_DATE_AND_CHECKSUM, ImportedMebEntryDO.class)
               .setParameter("sender", entry.getSender())
               .setParameter("date", entry.getDate())
               .setParameter("checkSum", checkSum)
-              .list();
+              .getResultList();
       if (entryList != null && entryList.size() > 0) {
         return false;
       }
       // Try to assign the owner from the sender string.
-      final List<Object[]> userList = getSession()
+      final List<Object[]> userList = em
               .createNamedQuery(PFUserDO.SELECT_ID_MEB_MOBILE_NUMBERS, Object[].class)
-              .list();
+              .getResultList();
       final String senderNumber = StringHelper.removeNonDigits(entry.getSender());
       Integer pk = null;
       for (final Object[] user : userList) {
@@ -224,7 +215,7 @@ public class MebDao extends BaseDao<MebEntryDO> {
         }
       }
       if (pk != null) {
-        final PFUserDO user = (PFUserDO) getSession().load(PFUserDO.class, pk);
+        final PFUserDO user = em.getReference(PFUserDO.class, pk);
         entry.setOwner(user);
       }
       internalSave(entry);
@@ -235,7 +226,11 @@ public class MebDao extends BaseDao<MebEntryDO> {
       imported.setCreated();
       imported.setLastUpdate();
       imported.setSource(source);
-      getHibernateTemplate().save(imported);
+      emgrFactory.runInTrans(emgr -> {
+        EntityManager em = emgr.getEntityManager();
+        em.persist(imported);
+        return null;
+      });
       return true;
     }
   }

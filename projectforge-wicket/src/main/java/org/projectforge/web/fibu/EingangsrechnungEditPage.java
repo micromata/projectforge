@@ -180,7 +180,7 @@ public class EingangsrechnungEditPage
     if (positionen != null) {
       rechnung.setPositionen(new ArrayList<EingangsrechnungsPositionDO>());
       for (final EingangsrechnungsPositionDO origPosition : positionen) {
-        final EingangsrechnungsPositionDO position = (EingangsrechnungsPositionDO) origPosition.newClone();
+        final EingangsrechnungsPositionDO position = origPosition.newClone();
         rechnung.addPosition(position);
       }
     }

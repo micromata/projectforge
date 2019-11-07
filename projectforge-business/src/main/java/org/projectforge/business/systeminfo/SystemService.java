@@ -41,8 +41,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,7 +53,6 @@ import java.util.*;
  * @author Kai Reinhard (k.reinhard@micromata.de), Florian Blumenstein
  */
 @Service
-@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 public class SystemService {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SystemService.class);
 
@@ -103,7 +100,6 @@ public class SystemService {
     return versionCheck;
   }
 
-  @Transactional(propagation = Propagation.SUPPORTS)
   public boolean isNewPFVersionAvailable() {
     LocalDate now = LocalDate.now();
     if (lastVersionCheckDate == null) {
