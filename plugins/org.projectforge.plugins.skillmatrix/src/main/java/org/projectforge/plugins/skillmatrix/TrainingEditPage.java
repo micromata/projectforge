@@ -65,7 +65,7 @@ public class TrainingEditPage extends AbstractEditPage<TrainingDO, TrainingEditF
     init();
     addTopMenuPanel();
     final Integer parentSkillId = WicketUtils.getAsInteger(parameters, PARAM_PARENT_SKILL_ID);
-    if (NumberHelper.greaterZero(parentSkillId) == true) {
+    if (NumberHelper.greaterZero(parentSkillId)) {
       trainingDao.setSkill(getData(), parentSkillId);
     }
   }
@@ -104,7 +104,7 @@ public class TrainingEditPage extends AbstractEditPage<TrainingDO, TrainingEditF
   @Override
   public void select(final String property, final Object selectedValue)
   {
-    if ("skillId".equals(property) == true) {
+    if ("skillId".equals(property)) {
       trainingDao.setSkill(getData(), (Integer) selectedValue);
     } else {
       log.error("Property '" + property + "' not supported for selection.");
@@ -117,7 +117,7 @@ public class TrainingEditPage extends AbstractEditPage<TrainingDO, TrainingEditF
   @Override
   public void unselect(final String property)
   {
-    if ("skillId".equals(property) == true) {
+    if ("skillId".equals(property)) {
       trainingDao.setSkill(getData(), null);
     } else {
       log.error("Property '" + property + "' not supported for selection.");
@@ -143,7 +143,7 @@ public class TrainingEditPage extends AbstractEditPage<TrainingDO, TrainingEditF
 
   private void addTopMenuPanel()
   {
-    if (isNew() == false) {
+    if (!isNew()) {
       final Integer id = form.getData().getId();
 
       @SuppressWarnings("serial")

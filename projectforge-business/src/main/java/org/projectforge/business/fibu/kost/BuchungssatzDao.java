@@ -23,14 +23,13 @@
 
 package org.projectforge.business.fibu.kost;
 
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.stereotype.Repository;
@@ -56,8 +55,6 @@ public class BuchungssatzDao extends BaseDao<BuchungssatzDO> {
 
   /**
    * List of all years witch BuchungssatzDO entries: select min(year), max(year) from t_fibu_buchungssatz.
-   *
-   * @return
    */
   @SuppressWarnings("unchecked")
   public int[] getYears() {
@@ -86,7 +83,7 @@ public class BuchungssatzDao extends BaseDao<BuchungssatzDO> {
                     .setParameter("satznr", satznr));
   }
 
-  public boolean validateTimeperiod(final BuchungssatzFilter myFilter) {
+  private boolean validateTimeperiod(final BuchungssatzFilter myFilter) {
     final int toMonth = myFilter.getToMonth();
     final int toYear = myFilter.getToYear();
     if (toMonth >= 0 && toYear < 0 || toMonth < 0 && toYear > 0) {
@@ -128,38 +125,35 @@ public class BuchungssatzDao extends BaseDao<BuchungssatzDO> {
     }
     if (myFilter.getFromMonth() < 0) {
       // Kein Von-Monat gesetzt.
-      queryFilter.add(Restrictions.eq("year", myFilter.getFromYear()));
-      queryFilter.add(Restrictions.between("month", 0, 11));
+      queryFilter.add(QueryFilter.eq("year", myFilter.getFromYear()));
+      queryFilter.add(QueryFilter.between("month", 0, 11));
     } else if (myFilter.getToYear() > 0) {
       if (myFilter.getFromYear() == myFilter.getToYear()) {
-        queryFilter.add(Restrictions.eq("year", myFilter.getFromYear()));
-        queryFilter.add(Restrictions.between("month", myFilter.getFromMonth(), myFilter.getToMonth()));
+        queryFilter.add(QueryFilter.eq("year", myFilter.getFromYear()));
+        queryFilter.add(QueryFilter.between("month", myFilter.getFromMonth(), myFilter.getToMonth()));
       } else {
         // between but different years
-        queryFilter.add(Restrictions.disjunction().add(
-                Restrictions.and(Restrictions.eq("year", myFilter.getFromYear()),
-                        Restrictions.ge("month", myFilter.getFromMonth())))
-                .add(
-                        Restrictions.and(Restrictions.eq("year", myFilter.getToYear()),
-                                Restrictions.le("month", myFilter.getToMonth())))
-                .add(
-                        Restrictions.and(Restrictions.gt("year", myFilter.getFromYear()),
-                                Restrictions.lt("year", myFilter.getToYear()))));
+        queryFilter.add(
+                QueryFilter.or(
+                        QueryFilter.and(QueryFilter.eq("year", myFilter.getFromYear()),
+                                QueryFilter.ge("month", myFilter.getFromMonth())),
+                        QueryFilter.and(QueryFilter.eq("year", myFilter.getToYear()),
+                                QueryFilter.le("month", myFilter.getToMonth())),
+                        QueryFilter.and(QueryFilter.gt("year", myFilter.getFromYear()),
+                                QueryFilter.lt("year", myFilter.getToYear()))));
       }
     } else {
       // Nur Von-Monat gesetzt.
-      queryFilter.add(Restrictions.eq("year", myFilter.getFromYear()));
-      queryFilter.add(Restrictions.eq("month", myFilter.getFromMonth()));
+      queryFilter.add(QueryFilter.eq("year", myFilter.getFromYear()));
+      queryFilter.add(QueryFilter.eq("month", myFilter.getFromMonth()));
     }
-    queryFilter.addOrder(Order.asc("year")).addOrder(Order.asc("month")).addOrder(Order.asc("satznr"));
+    queryFilter.addOrder(SortProperty.asc("year")).addOrder(SortProperty.asc("month")).addOrder(SortProperty.asc("satznr"));
     final List<BuchungssatzDO> list = getList(queryFilter);
     return list;
   }
 
   /**
    * User must member of group finance or controlling.
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess()
    */
   @Override
   public boolean hasUserSelectAccess(final PFUserDO user, final boolean throwException) {
@@ -168,8 +162,6 @@ public class BuchungssatzDao extends BaseDao<BuchungssatzDO> {
   }
 
   /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess(PFUserDO,
-   * org.projectforge.core.ExtendedBaseDO, boolean)
    * @see #hasUserSelectAccess(PFUserDO, boolean)
    */
   @Override
@@ -179,8 +171,6 @@ public class BuchungssatzDao extends BaseDao<BuchungssatzDO> {
 
   /**
    * User must member of group finance.
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasAccess(Object, OperationType)
    */
   @Override
   public boolean hasAccess(final PFUserDO user, final BuchungssatzDO obj, final BuchungssatzDO oldObj,

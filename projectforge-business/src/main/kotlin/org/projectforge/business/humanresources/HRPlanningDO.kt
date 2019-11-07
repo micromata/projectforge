@@ -65,7 +65,7 @@ class HRPlanningDO : DefaultBaseDO() {
      * @return The first day of the week.
      */
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "week", nullable = false)
     var week: Date? = null
 

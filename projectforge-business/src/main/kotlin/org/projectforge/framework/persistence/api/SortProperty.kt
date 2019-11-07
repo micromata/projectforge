@@ -21,37 +21,33 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.api;
+package org.projectforge.framework.persistence.api
 
-public class SortProperty {
-  private SortOrder sortOrder;
-  private String property;
+import com.fasterxml.jackson.annotation.JsonIgnore
 
-  public SortProperty() {
-  }
 
-  public SortProperty(String property) {
-    this(property, SortOrder.ASCENDING);
-  }
+class SortProperty @JvmOverloads constructor(property: String? = null, var sortOrder: SortOrder = SortOrder.ASCENDING) {
+    lateinit var property: String
 
-  public SortProperty(String property, SortOrder sortOrder) {
-    this.property = property;
-    this.sortOrder = sortOrder;
-  }
+    init {
+        if (property != null)
+            this.property = property
+    }
 
-  public SortOrder getSortOrder() {
-    return sortOrder;
-  }
+    @get:JsonIgnore
+    val ascending: Boolean
+        get() = (sortOrder == SortOrder.ASCENDING)
 
-  public void setSortOrder(SortOrder sortOrder) {
-    this.sortOrder = sortOrder;
-  }
+    companion object {
 
-  public String getProperty() {
-    return property;
-  }
+        @JvmStatic
+        fun asc(property: String): SortProperty {
+            return SortProperty(property, SortOrder.ASCENDING)
+        }
 
-  public void setProperty(String property) {
-    this.property = property;
-  }
+        @JvmStatic
+        fun desc(property: String): SortProperty {
+            return SortProperty(property, SortOrder.DESCENDING)
+        }
+    }
 }

@@ -31,6 +31,7 @@ import org.hibernate.search.FullTextSession
 import org.projectforge.common.BeanHelper
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.slf4j.LoggerFactory
@@ -41,7 +42,7 @@ import javax.persistence.criteria.CriteriaQuery
 /**
  * Generic interface for iterating over database search results (after criteria search as well as after full text query).
  */
-internal interface DBResultIterator<O : ExtendedBaseDO<Int>> {
+interface DBResultIterator<O : ExtendedBaseDO<Int>> {
     fun next(): O?
     fun sort(list: List<O>): List<O>
 }
@@ -65,7 +66,8 @@ internal class DBEmptyResultIterator<O : ExtendedBaseDO<Int>>()
 
 internal class DBCriteriaResultIterator<O : ExtendedBaseDO<Int>>(
         session: Session,
-        criteria: CriteriaQuery<O>)
+        criteria: CriteriaQuery<O>,
+        val resultPredicates: List<DBPredicate>)
     : DBResultIterator<O> {
     private val scrollableResults: ScrollableResults
 
@@ -93,8 +95,8 @@ private const val MAX_RESULTS = 100
 internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
         val baseDao: BaseDao<O>,
         val fullTextSession: FullTextSession,
-        val dbResultMatchers: List<DBResultMatcher>,
-        val sortBys: Array<SortBy>,
+        val resultMatchers: List<DBPredicate>,
+        val sortProperties: Array<SortProperty>,
         val fullTextQuery: org.apache.lucene.search.Query? = null, // Full text query
         val multiFieldQuery: List<String>? = null,         // MultiField query
         val usedSearchFields: Array<String>? = null)       // MultiField query
@@ -111,8 +113,8 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
     override fun next(): O? {
         while (true) {
             val next = internalNext() ?: return null
-            if (!dbResultMatchers.isNullOrEmpty()) {
-                for (matcher in dbResultMatchers) {
+            if (!resultMatchers.isNullOrEmpty()) {
+                for (matcher in resultMatchers) {
                     if (matcher.match(next)) {
                         return next
                     }
@@ -127,28 +129,28 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
         val collator = Collator.getInstance(ThreadLocalUserContext.getLocale())
         return list.sortedWith(object : Comparator<O> {
             override fun compare(o1: O, o2: O): Int {
-                if (sortBys.isNullOrEmpty()) {
+                if (sortProperties.isNullOrEmpty()) {
                     return 0
                 }
                 val ctb = CompareToBuilder()
-                for (sortBy in sortBys) {
-                    val val1 = BeanHelper.getProperty(o1, sortBy.field)
-                    val val2 = BeanHelper.getProperty(o2, sortBy.field)
+                for (sortProperty in sortProperties) {
+                    val val1 = BeanHelper.getProperty(o1, sortProperty.property)
+                    val val2 = BeanHelper.getProperty(o2, sortProperty.property)
                     if (val1 is String) {
                         // Strings should be compared by using locale dependent collator (especially for german Umlaute)
-                        if (sortBy.ascending) {
+                        if (sortProperty.ascending) {
                             ctb.append(val1, val2, collator)
                         } else {
                             ctb.append(val2, val1, collator)
                         }
                     } else if (val1 is Comparable<*>) {
-                        if (sortBy.ascending) {
+                        if (sortProperty.ascending) {
                             ctb.append(val1, val2)
                         } else {
                             ctb.append(val2, val1)
                         }
                     } else {
-                        if (sortBy.ascending) {
+                        if (sortProperty.ascending) {
                             ctb.append(val1?.toString(), val2?.toString())
                         } else {
                             ctb.append(val2?.toString(), val1?.toString())

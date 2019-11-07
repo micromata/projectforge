@@ -146,7 +146,7 @@ public class SkillTextSelectPanel extends AbstractSelectPanel<SkillDO> implement
           @Override
           public Object convertToObject(final String value, final Locale locale)
           {
-            if (StringUtils.isEmpty(value) == true) {
+            if (StringUtils.isEmpty(value)) {
               getModel().setObject(null);
               return null;
             }
@@ -230,7 +230,7 @@ public class SkillTextSelectPanel extends AbstractSelectPanel<SkillDO> implement
       this.recentSkills = (RecentQueue<String>) UserPreferencesHelper.getEntry(USER_PREF_KEY_RECENT_SKILLS);
     }
     if (this.recentSkills == null) {
-      this.recentSkills = new RecentQueue<String>();
+      this.recentSkills = new RecentQueue<>();
       UserPreferencesHelper.putEntry(USER_PREF_KEY_RECENT_SKILLS, this.recentSkills, true);
     }
     return this.recentSkills;

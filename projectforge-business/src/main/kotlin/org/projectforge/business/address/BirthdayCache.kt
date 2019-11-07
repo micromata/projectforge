@@ -23,7 +23,6 @@
 
 package org.projectforge.business.address
 
-import org.hibernate.criterion.Restrictions
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.time.DateHelper
@@ -86,7 +85,7 @@ class BirthdayCache() : AbstractCache() {
 
     override fun refresh() {
         val filter = QueryFilter()
-        filter.add(Restrictions.isNotNull("birthday"))
+        filter.add(QueryFilter.isNotNull("birthday"))
         val addressList = addressDao.internalGetList(filter)
         val newList = mutableListOf<BirthdayAddress>()
         addressList.forEach {

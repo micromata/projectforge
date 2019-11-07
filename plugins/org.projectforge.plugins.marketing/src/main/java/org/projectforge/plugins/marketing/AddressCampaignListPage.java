@@ -62,7 +62,7 @@ public class AddressCampaignListPage
   @SuppressWarnings("serial")
   public List<IColumn<AddressCampaignDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
-    final List<IColumn<AddressCampaignDO, String>> columns = new ArrayList<IColumn<AddressCampaignDO, String>>();
+    final List<IColumn<AddressCampaignDO, String>> columns = new ArrayList<>();
     final CellItemListener<AddressCampaignDO> cellItemListener = new CellItemListener<AddressCampaignDO>()
     {
       public void populateItem(final Item<ICellPopulator<AddressCampaignDO>> item, final String componentId,
@@ -73,7 +73,7 @@ public class AddressCampaignListPage
       }
     };
 
-    columns.add(new CellItemListenerPropertyColumn<AddressCampaignDO>(new Model<String>(getString("created")),
+    columns.add(new CellItemListenerPropertyColumn<AddressCampaignDO>(new Model<>(getString("created")),
         getSortable("created",
             sortable),
         "created", cellItemListener)
@@ -94,17 +94,17 @@ public class AddressCampaignListPage
         cellItemListener.populateItem(item, componentId, rowModel);
       }
     });
-    columns.add(new CellItemListenerPropertyColumn<AddressCampaignDO>(getString("modified"),
+    columns.add(new CellItemListenerPropertyColumn<>(getString("modified"),
         getSortable("lastUpdate", sortable),
         "lastUpdate", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<AddressCampaignDO>(new Model<String>(getString("title")),
+    columns.add(new CellItemListenerPropertyColumn<>(new Model<>(getString("title")),
         getSortable("title", sortable), "title", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<AddressCampaignDO>(new Model<String>(getString("values")),
+    columns.add(new CellItemListenerPropertyColumn<>(new Model<>(getString("values")),
         getSortable("values",
             sortable),
         "values", cellItemListener));
     columns.add(
-        new CellItemListenerPropertyColumn<AddressCampaignDO>(new Model<String>(getString("comment")), null, "comment",
+        new CellItemListenerPropertyColumn<>(new Model<>(getString("comment")), null, "comment",
             cellItemListener));
     return columns;
   }

@@ -45,7 +45,7 @@ abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBase
 
     @PropertyInfo(i18nKey = "fibu.rechnung.datum")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.DAY)
     @get:Column(nullable = false)
     open var datum: Date? = null
 
@@ -66,7 +66,7 @@ abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBase
 
     @PropertyInfo(i18nKey = "fibu.rechnung.faelligkeit")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.DAY)
     @get:Column
     open var faelligkeit: Date? = null
 
@@ -82,13 +82,12 @@ abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBase
      * Wird nur zur Berechnung benutzt und kann für die Anzeige aufgerufen werden. Vorher sollte recalculate aufgerufen
      * werden.
      */
-    @Field(analyze = Analyze.NO)
     @get:Transient
     open var discountZahlungsZielInTagen: Int? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.bezahlDatum")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "bezahl_datum")
     open var bezahlDatum: Date? = null
 
@@ -114,8 +113,6 @@ abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBase
     open var discountPercent: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.discountMaturity")
-    @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column
     open var discountMaturity: Date? = null
 

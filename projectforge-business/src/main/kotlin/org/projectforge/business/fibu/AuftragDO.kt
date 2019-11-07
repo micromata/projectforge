@@ -77,6 +77,7 @@ class AuftragDO : DefaultBaseDO() {
      * Auftragsnummer ist eindeutig und wird fortlaufend erzeugt.
      */
     @PropertyInfo(i18nKey = "fibu.auftrag.nummer")
+    @Field
     @get:Column(nullable = false)
     var nummer: Int? = null
 
@@ -145,25 +146,25 @@ class AuftragDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "fibu.auftrag.angebot.datum")
     @Field
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "angebots_datum")
     var angebotsDatum: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.erfassung.datum")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "erfassungs_datum")
     var erfassungsDatum: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.entscheidung.datum")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "entscheidungs_datum")
     var entscheidungsDatum: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.bindungsFrist")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "bindungs_frist")
     var bindungsFrist: Date? = null
 
@@ -230,13 +231,13 @@ class AuftragDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.from")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "period_of_performance_begin")
     var periodOfPerformanceBegin: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.to")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "period_of_performance_end")
     var periodOfPerformanceEnd: Date? = null
 

@@ -25,31 +25,24 @@ package org.projectforge.framework.persistence.api.impl
 
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import javax.persistence.criteria.CriteriaBuilder
-import javax.persistence.criteria.CriteriaQuery
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.SortProperty
 import javax.persistence.criteria.Predicate
-import javax.persistence.criteria.Root
 
 internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Int>>(
-        val baseDao: BaseDao<O>
+        private val baseDao: BaseDao<O>,
+        private val queryFilter: QueryFilter
 ) {
-    var cb_: CriteriaBuilder? = null
-    val cb: CriteriaBuilder
+    private var _ctx: DBCriteriaContext<O>? = null
+    private val ctx: DBCriteriaContext<O>
         get() {
-            if (cb_ == null) cb_ = baseDao.session.getCriteriaBuilder()
-            return cb_!!
-        }
-    var cr_: CriteriaQuery<O>? = null
-    val cr: CriteriaQuery<O>
-        get() {
-            if (cr_ == null) cr_ = cb.createQuery(baseDao.doClass)
-            return cr_!!
-        }
-    var root_: Root<O>? = null
-    val root: Root<O>
-        get() {
-            if (root_ == null) root_ = cr.from(baseDao.doClass)
-            return root_!!
+            if (_ctx == null) {
+                val cb = baseDao.session.criteriaBuilder
+                val cr = cb.createQuery(baseDao.doClass)
+                _ctx = DBCriteriaContext(cb, cr, cr.from(baseDao.doClass))
+                initJoinSets()
+            }
+            return _ctx!!
         }
 
     /**
@@ -58,22 +51,26 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Int>>(
     private val predicates = mutableListOf<Predicate>()
     private val order = mutableListOf<javax.persistence.criteria.Order>()
 
-    fun add(matcher: DBResultMatcher) {
-        predicates.add(matcher.asPredicate(cb, root))
+    fun add(matcher: DBPredicate) {
+        predicates.add(matcher.asPredicate(ctx))
     }
 
-    fun addEqualPredicate(field: String, value: Any) {
-        predicates.add(cb.equal(root.get<Any>(field), value))
+    fun createResultIterator(resultPredicates: List<DBPredicate>): DBResultIterator<O> {
+        return DBCriteriaResultIterator(baseDao.session, ctx.cr.select(ctx.root).where(*predicates.toTypedArray()).orderBy(*order.toTypedArray()), resultPredicates)
     }
 
-    fun createResultIterator(): DBResultIterator<O> {
-        return DBCriteriaResultIterator(baseDao.session, cr.select(root).where(*predicates.toTypedArray()).orderBy(*order.toTypedArray()))
-    }
-
-    fun addOrder(sortBy: SortBy) {
+    fun addOrder(sortProperty: SortProperty) {
         order.add(
-                if (sortBy.ascending) cb.asc(root.get<Any>(sortBy.field))
-                else cb.desc(root.get<Any>(sortBy.field))
+                if (sortProperty.ascending)
+                    ctx.cb.asc(ctx.getField<Any>(sortProperty.property))
+                else
+                    ctx.cb.desc(ctx.getField<Any>(sortProperty.property))
         )
+    }
+
+    private fun initJoinSets() {
+        queryFilter.joinList.forEach {
+            ctx.addJoin(it)
+        }
     }
 }

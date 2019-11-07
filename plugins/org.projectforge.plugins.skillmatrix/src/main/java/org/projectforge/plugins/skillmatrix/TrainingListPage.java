@@ -67,7 +67,7 @@ public class TrainingListPage extends AbstractListPage<TrainingListForm, Trainin
   @Override
   public List<IColumn<TrainingDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
-    final List<IColumn<TrainingDO, String>> columns = new ArrayList<IColumn<TrainingDO, String>>();
+    final List<IColumn<TrainingDO, String>> columns = new ArrayList<>();
     final CellItemListener<TrainingDO> cellItemListener = new CellItemListener<TrainingDO>()
     {
       public void populateItem(final Item<ICellPopulator<TrainingDO>> item, final String componentId,
@@ -79,25 +79,25 @@ public class TrainingListPage extends AbstractListPage<TrainingListForm, Trainin
     };
 
     columns.add(
-        new CellItemListenerPropertyColumn<TrainingDO>(getString("plugins.skillmatrix.skillrating.skill"), getSortable(
+        new CellItemListenerPropertyColumn<>(getString("plugins.skillmatrix.skillrating.skill"), getSortable(
             "skill.title", sortable), "skill.title", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<TrainingDO>(getString("plugins.skillmatrix.skilltraining.training"),
+    columns.add(new CellItemListenerPropertyColumn<>(getString("plugins.skillmatrix.skilltraining.training"),
         getSortable("title",
             sortable),
         "title", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<TrainingDO>(TrainingDO.class, getSortable("description", sortable),
+    columns.add(new CellItemListenerPropertyColumn<>(TrainingDO.class, getSortable("description", sortable),
         "description",
         cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<TrainingDO>(TrainingDO.class, getSortable("startDate", sortable),
+    columns.add(new CellItemListenerPropertyColumn<>(TrainingDO.class, getSortable("startDate", sortable),
         "startDate",
         cellItemListener));
     columns.add(
-        new CellItemListenerPropertyColumn<TrainingDO>(TrainingDO.class, getSortable("endDate", sortable), "endDate",
+        new CellItemListenerPropertyColumn<>(TrainingDO.class, getSortable("endDate", sortable), "endDate",
             cellItemListener));
     columns
-        .add(new CellItemListenerPropertyColumn<TrainingDO>(TrainingDO.class, getSortable("rating", sortable), "rating",
+        .add(new CellItemListenerPropertyColumn<>(TrainingDO.class, getSortable("rating", sortable), "rating",
             cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<TrainingDO>(TrainingDO.class, getSortable("certificate", sortable),
+    columns.add(new CellItemListenerPropertyColumn<>(TrainingDO.class, getSortable("certificate", sortable),
         "certificate",
         cellItemListener));
     columns.add(
@@ -116,7 +116,7 @@ public class TrainingListPage extends AbstractListPage<TrainingListForm, Trainin
             cellItemListener.populateItem(item, componentId, rowModel);
           }
         });
-    columns.add(new CellItemListenerPropertyColumn<TrainingDO>(TrainingDO.class, getSortable("lastUpdate", sortable),
+    columns.add(new CellItemListenerPropertyColumn<>(TrainingDO.class, getSortable("lastUpdate", sortable),
         "lastUpdate",
         cellItemListener));
 
@@ -157,10 +157,10 @@ public class TrainingListPage extends AbstractListPage<TrainingListForm, Trainin
   @Override
   public void select(final String property, final Object selectedValue)
   {
-    if ("skillId".equals(property) == true) {
+    if ("skillId".equals(property)) {
       form.getSearchFilter().setSkillId((Integer) selectedValue);
       refresh();
-    } else if ("trainingId".equals(property) == true) {
+    } else if ("trainingId".equals(property)) {
       form.getSearchFilter().setTrainingId((Integer) selectedValue);
       refresh();
     } else
@@ -174,10 +174,10 @@ public class TrainingListPage extends AbstractListPage<TrainingListForm, Trainin
   @Override
   public void unselect(final String property)
   {
-    if ("skillId".equals(property) == true) {
+    if ("skillId".equals(property)) {
       form.getSearchFilter().setSkillId(null);
       refresh();
-    } else if ("trainingId".equals(property) == true) {
+    } else if ("trainingId".equals(property)) {
       form.getSearchFilter().setTrainingId(null);
       refresh();
     }

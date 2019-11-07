@@ -147,7 +147,7 @@ public abstract class PollBasePage extends AbstractSecuredPage
         SingleButtonPanel.DEFAULT_SUBMIT);
     deletePanel.setVisible(isDeleteButtonVisible());
 
-    form = new Form<String>("pollForm");
+    form = new Form<>("pollForm");
     body.add(form);
     form.add(cancelPanel);
     form.add(confirmPanel);

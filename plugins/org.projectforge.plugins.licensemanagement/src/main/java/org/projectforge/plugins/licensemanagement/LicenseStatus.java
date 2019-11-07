@@ -63,7 +63,7 @@ public enum LicenseStatus implements I18nEnum
     return false;
   }
 
-  private LicenseStatus(final String key)
+  LicenseStatus(final String key)
   {
     this.key = key;
   }

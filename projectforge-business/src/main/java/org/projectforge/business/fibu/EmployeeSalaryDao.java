@@ -24,13 +24,12 @@
 package org.projectforge.business.fibu;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.slf4j.Logger;
@@ -38,7 +37,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -71,7 +69,7 @@ public class EmployeeSalaryDao extends BaseDao<EmployeeSalaryDO> {
   public int[] getYears() {
     final Object[] minMaxYear = getSession().createNamedQuery(EmployeeSalaryDO.SELECT_MIN_MAX_YEAR, Object[].class)
             .getSingleResult();
-    return SQLHelper.getYears((Integer)minMaxYear[0], (Integer)minMaxYear[1]);
+    return SQLHelper.getYears((Integer) minMaxYear[0], (Integer) minMaxYear[1]);
   }
 
   @Override
@@ -84,12 +82,12 @@ public class EmployeeSalaryDao extends BaseDao<EmployeeSalaryDO> {
     }
     final QueryFilter queryFilter = new QueryFilter(myFilter);
     if (myFilter.getYear() >= 0) {
-      queryFilter.add(Restrictions.eq("year", myFilter.getYear()));
+      queryFilter.add(QueryFilter.eq("year", myFilter.getYear()));
       if (myFilter.getMonth() >= 0) {
-        queryFilter.add(Restrictions.eq("month", myFilter.getMonth()));
+        queryFilter.add(QueryFilter.eq("month", myFilter.getMonth()));
       }
     }
-    queryFilter.addOrder(Order.desc("year")).addOrder(Order.desc("month"));
+    queryFilter.addOrder(SortProperty.desc("year")).addOrder(SortProperty.desc("month"));
 
     List<EmployeeSalaryDO> list = getList(queryFilter);
     return list;
@@ -138,8 +136,7 @@ public class EmployeeSalaryDao extends BaseDao<EmployeeSalaryDO> {
   }
 
   public List<EmployeeSalaryDO> findByEmployee(EmployeeDO employee) {
-    List<EmployeeSalaryDO> salaryList = new ArrayList<>();
-    salaryList = pfEmgrFactory.runRoTrans(emgr -> {
+    List<EmployeeSalaryDO> salaryList = pfEmgrFactory.runRoTrans(emgr -> {
       return emgr
               .createQuery(EmployeeSalaryDO.class, "from EmployeeSalaryDO sal where sal.employee = :emp", "emp", employee)
               .getResultList();

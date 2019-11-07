@@ -90,7 +90,7 @@ public class PollEventEditPage extends AbstractSecuredPage
   protected void onInitialize()
   {
     super.onInitialize();
-    final Form<Void> form = new Form<Void>("form");
+    final Form<Void> form = new Form<>("form");
     body.add(form);
 
     form.add(new Label("title", model.getPollDo().getTitle()));
@@ -140,7 +140,7 @@ public class PollEventEditPage extends AbstractSecuredPage
       @Override
       public final void onSubmit()
       {
-        if (eventProvider.getAllEvents().isEmpty() == false) {
+        if (!eventProvider.getAllEvents().isEmpty()) {
           onNextButtonClick(model.getPollDo(), eventProvider.getAllEvents());
         } else {
           this.error(getString("plugins.poll.event.error"));
@@ -158,7 +158,7 @@ public class PollEventEditPage extends AbstractSecuredPage
     form.add(entryContainer);
 
     eventProvider = new PollEventEventsProvider(model.getPollDo());
-    if (model.getAllEvents().isEmpty() == false) {
+    if (!model.getAllEvents().isEmpty()) {
       for (final PollEventDO event : model.getAllEvents()) {
         eventProvider.addEvent(
             new SelectedRange(new DateTime(event.getStartDate()), new DateTime(event.getEndDate()), false), null);

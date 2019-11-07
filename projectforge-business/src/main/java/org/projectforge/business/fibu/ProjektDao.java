@@ -24,8 +24,6 @@
 package org.projectforge.business.fibu;
 
 import org.hibernate.Hibernate;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.user.GroupDao;
@@ -33,6 +31,7 @@ import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
@@ -165,11 +164,11 @@ public class ProjektDao extends BaseDao<ProjektDO> {
     }
     final QueryFilter queryFilter = new QueryFilter(myFilter);
     if (myFilter.isEnded()) {
-      queryFilter.add(Restrictions.eq("status", ProjektStatus.ENDED));
+      queryFilter.add(QueryFilter.eq("status", ProjektStatus.ENDED));
     } else if (myFilter.isNotEnded()) {
-      queryFilter.add(Restrictions.or(Restrictions.ne("status", ProjektStatus.ENDED), Restrictions.isNull("status")));
+      queryFilter.add(QueryFilter.or(QueryFilter.ne("status", ProjektStatus.ENDED), QueryFilter.isNull("status")));
     }
-    queryFilter.addOrder(Order.asc("internKost2_4")).addOrder(Order.asc("kunde.id")).addOrder(Order.asc("nummer"));
+    queryFilter.addOrder(SortProperty.asc("internKost2_4")).addOrder(SortProperty.asc("kunde.id")).addOrder(SortProperty.asc("nummer"));
     return getList(queryFilter);
   }
 
@@ -179,8 +178,8 @@ public class ProjektDao extends BaseDao<ProjektDO> {
       return null;
     }
     final QueryFilter queryFilter = new QueryFilter();
-    queryFilter.add(Restrictions.eq("kunde.id", kundeId));
-    queryFilter.addOrder(Order.asc("nummer"));
+    queryFilter.add(QueryFilter.eq("kunde.id", kundeId));
+    queryFilter.addOrder(SortProperty.asc("nummer"));
     return getList(queryFilter);
   }
 

@@ -23,4 +23,17 @@
 
 package org.projectforge.framework.persistence.api.impl
 
-internal class SortBy(val field: String, val ascending: Boolean = true)
+import org.projectforge.framework.ToStringUtil
+import javax.persistence.criteria.JoinType
+
+/**
+ * For preparation of Joins.
+ */
+class DBJoin(val attribute: String,
+             val joinType: JoinType = JoinType.INNER,
+             val fetch: Boolean = false,
+             val parent: String? = null) {
+    override fun toString(): String {
+        return ToStringUtil.toJsonString(this)
+    }
+}

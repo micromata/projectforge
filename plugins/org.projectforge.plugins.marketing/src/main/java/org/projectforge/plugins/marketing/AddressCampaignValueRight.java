@@ -56,7 +56,7 @@ public class AddressCampaignValueRight extends UserRightAccessCheck<AddressCampa
       final AddressCampaignValueDO oldObj,
       final OperationType operationType)
   {
-    if (operationType.isIn(OperationType.SELECT, OperationType.INSERT) == true && obj == null) {
+    if (operationType.isIn(OperationType.SELECT, OperationType.INSERT) && obj == null) {
       return addressDao.hasInsertAccess(user);
     }
     return addressDao.hasAccess(user, obj != null ? obj.getAddress() : null,

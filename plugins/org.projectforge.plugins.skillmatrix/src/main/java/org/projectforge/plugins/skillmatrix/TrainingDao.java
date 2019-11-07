@@ -23,12 +23,11 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -130,12 +129,12 @@ public class TrainingDao extends BaseDao<TrainingDO> {
     if (myFilter.getSkillId() != null) {
       final SkillDO skill = new SkillDO();
       skill.setId(myFilter.getSkillId());
-      queryFilter.add(Restrictions.eq("skill", skill));
+      queryFilter.add(QueryFilter.eq("skill", skill));
     }
     if (myFilter.getTrainingId() != null) {
-      queryFilter.add(Restrictions.eq("id", myFilter.getTrainingId()));
+      queryFilter.add(QueryFilter.eq("id", myFilter.getTrainingId()));
     }
-    queryFilter.addOrder(Order.desc("created"));
+    queryFilter.addOrder(SortProperty.desc("created"));
     final List<TrainingDO> list = getList(queryFilter);
     myFilter.setSearchString(searchString); // Restore search string.
     return list;

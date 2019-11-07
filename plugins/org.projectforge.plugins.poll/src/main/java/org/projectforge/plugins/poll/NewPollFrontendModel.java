@@ -75,9 +75,9 @@ public class NewPollFrontendModel implements Serializable
   {
     Injector.get().inject(this);
     this.pollDo = pollDo;
-    this.allEvents = new LinkedList<PollEventDO>();
-    this.pollAttendeeList = new LinkedList<PollAttendeeDO>();
-    this.pollGroupList = new LinkedList<GroupDO>();
+    this.allEvents = new LinkedList<>();
+    this.pollAttendeeList = new LinkedList<>();
+    this.pollGroupList = new LinkedList<>();
   }
 
   public void initModelByPoll()
@@ -132,7 +132,7 @@ public class NewPollFrontendModel implements Serializable
 
   public List<PFUserDO> getUserDoFromAttendees()
   {
-    final List<PFUserDO> result = new LinkedList<PFUserDO>();
+    final List<PFUserDO> result = new LinkedList<>();
     for (final PollAttendeeDO attendee : getPollAttendeeList()) {
       if (attendee.getUser() != null) {
         result.add(attendee.getUser());
@@ -148,10 +148,10 @@ public class NewPollFrontendModel implements Serializable
    * @return
    */
   public List<PollAttendeeDO> getUserOrEmailList(final boolean choice) {
-    final List<PollAttendeeDO> list = new ArrayList<PollAttendeeDO>();
+    final List<PollAttendeeDO> list = new ArrayList<>();
     if (pollAttendeeList != null) {
       for (final PollAttendeeDO attendee : pollAttendeeList) {
-        if (choice == true) {
+        if (choice) {
           if (attendee.getUser() != null) {
             list.add(attendee);
           }

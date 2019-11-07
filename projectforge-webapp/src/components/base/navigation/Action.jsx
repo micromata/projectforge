@@ -46,6 +46,7 @@ class NavigationAction extends React.Component {
     render() {
         const {
             badge,
+            badgeIsFlying,
             entryKey,
             title,
             type,
@@ -60,7 +61,7 @@ class NavigationAction extends React.Component {
                     <MenuBadge
                         elementKey={entryKey}
                         color="danger"
-                        isFlying
+                        isFlying={badgeIsFlying}
                         style={{ right: '-1.3em' }}
                     >
                         {badge.counter}
@@ -95,7 +96,7 @@ class NavigationAction extends React.Component {
                 );
             case 'TEXT':
             default:
-                return <span className="nav-link">{title}</span>;
+                return <span className="nav-link">{content}</span>;
         }
     }
 }
@@ -105,6 +106,7 @@ NavigationAction.propTypes = {
     badge: PropTypes.shape({
         counter: PropTypes.number,
     }),
+    badgeIsFlying: PropTypes.bool,
     entryKey: PropTypes.string,
     type: PropTypes.oneOf([
         'REDIRECT',
@@ -118,6 +120,7 @@ NavigationAction.propTypes = {
 
 NavigationAction.defaultProps = {
     badge: undefined,
+    badgeIsFlying: true,
     entryKey: undefined,
     type: 'LINK',
     url: '',

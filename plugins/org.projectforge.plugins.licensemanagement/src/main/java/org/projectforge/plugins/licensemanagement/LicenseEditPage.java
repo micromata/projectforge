@@ -50,7 +50,7 @@ public class LicenseEditPage extends AbstractEditPage<LicenseDO, LicenseEditForm
   {
     super(parameters, "plugins.licensemanagement");
     init();
-    if (isNew() == true) {
+    if (isNew()) {
       getData().setNumberOfLicenses(1);
     }
   }

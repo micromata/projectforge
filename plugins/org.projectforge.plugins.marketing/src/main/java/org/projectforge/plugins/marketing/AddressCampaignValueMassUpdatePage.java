@@ -73,9 +73,9 @@ public class AddressCampaignValueMassUpdatePage extends AbstractMassEditPage
         if (addresses == null) {
           return null;
         }
-        final Comparator<AddressDO> comp = new MyBeanComparator<AddressDO>(sp.getProperty().toString(),
+        final Comparator<AddressDO> comp = new MyBeanComparator<>(sp.getProperty().toString(),
             sp.isAscending());
-        Collections.sort(addresses, comp);
+        addresses.sort(comp);
         return addresses.subList((int) first, (int) (first + count)).iterator();
       }
 
@@ -98,7 +98,7 @@ public class AddressCampaignValueMassUpdatePage extends AbstractMassEditPage
     };
     sortableDataProvider.setSort("name", SortOrder.DESCENDING);
 
-    final DefaultDataTable<AddressDO, String> dataTable = new DefaultDataTable<AddressDO, String>("table", columns,
+    final DefaultDataTable<AddressDO, String> dataTable = new DefaultDataTable<>("table", columns,
         sortableDataProvider, 1000);
     body.add(dataTable);
   }

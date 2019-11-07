@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.persistence.api.impl
 
-internal enum class MatchType {
+enum class MatchType {
     /**
      * '*string*'
      */

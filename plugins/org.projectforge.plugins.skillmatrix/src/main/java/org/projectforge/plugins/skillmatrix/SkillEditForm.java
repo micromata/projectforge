@@ -89,13 +89,13 @@ public class SkillEditForm extends AbstractEditForm<SkillDO, SkillEditPage>
     super.init();
 
     skillRight = (SkillRight) userRights.getRight(SkillmatrixPluginUserRightId.PLUGIN_SKILL_MATRIX_SKILL);
-    ajaxTargets = new HashSet<Component>();
+    ajaxTargets = new HashSet<>();
 
     gridBuilder.newSplitPanel(GridSize.COL50, GridType.CONTAINER);
     // Title of skill
     FieldsetPanel fs = gridBuilder.newFieldset(SkillDO.class, "title");
     final RequiredMaxLengthTextField titleField = new RequiredMaxLengthTextField(fs.getTextFieldId(),
-        new PropertyModel<String>(data,
+        new PropertyModel<>(data,
             "title"));
     fs.add(titleField);
     WicketUtils.setFocus(titleField);
@@ -103,7 +103,7 @@ public class SkillEditForm extends AbstractEditForm<SkillDO, SkillEditPage>
     gridBuilder.newSplitPanel(GridSize.COL50, GridType.CONTAINER);
     // Parent
     fs = gridBuilder.newFieldset(SkillDO.class, "parent");
-    final SkillSelectPanel parentSelectPanel = new SkillSelectPanel(fs, new PropertyModel<SkillDO>(data, "parent"),
+    final SkillSelectPanel parentSelectPanel = new SkillSelectPanel(fs, new PropertyModel<>(data, "parent"),
         parentPage, "parentId")
     {
       private static final long serialVersionUID = 8355684523726816059L;
@@ -127,7 +127,7 @@ public class SkillEditForm extends AbstractEditForm<SkillDO, SkillEditPage>
     fs.add(parentSelectPanel);
     parentSelectPanel.init();
     fs.getFieldset().setOutputMarkupId(true);
-    if (getSkillTree().isRootNode(data) == true) {
+    if (getSkillTree().isRootNode(data)) {
       fs.setVisible(false);
     } else {
       parentSelectPanel.setRequired(true);
@@ -145,8 +145,8 @@ public class SkillEditForm extends AbstractEditForm<SkillDO, SkillEditPage>
         fullAccessGroupsListHelper.addOriginalAssignedItem(group).assignItem(group);
       }
     }
-    final Select2MultiChoice<GroupDO> groupsFullAccess = new Select2MultiChoice<GroupDO>(fs.getSelect2MultiChoiceId(),
-        new PropertyModel<Collection<GroupDO>>(this.fullAccessGroupsListHelper, "assignedItems"),
+    final Select2MultiChoice<GroupDO> groupsFullAccess = new Select2MultiChoice<>(fs.getSelect2MultiChoiceId(),
+        new PropertyModel<>(this.fullAccessGroupsListHelper, "assignedItems"),
         new GroupsWicketProvider(groupService));
     fs.add(groupsFullAccess);
 
@@ -186,8 +186,8 @@ public class SkillEditForm extends AbstractEditForm<SkillDO, SkillEditPage>
           readOnlyAccessGroupsListHelper.addOriginalAssignedItem(group).assignItem(group);
         }
       }
-      final Select2MultiChoice<GroupDO> groups = new Select2MultiChoice<GroupDO>(fs.getSelect2MultiChoiceId(),
-          new PropertyModel<Collection<GroupDO>>(this.readOnlyAccessGroupsListHelper, "assignedItems"),
+      final Select2MultiChoice<GroupDO> groups = new Select2MultiChoice<>(fs.getSelect2MultiChoiceId(),
+          new PropertyModel<>(this.readOnlyAccessGroupsListHelper, "assignedItems"),
           new GroupsWicketProvider(groupService));
       fs.add(groups);
 
@@ -228,8 +228,8 @@ public class SkillEditForm extends AbstractEditForm<SkillDO, SkillEditPage>
           trainingAccessGroupsListHelper.addOriginalAssignedItem(group).assignItem(group);
         }
       }
-      final Select2MultiChoice<GroupDO> groups = new Select2MultiChoice<GroupDO>(fs.getSelect2MultiChoiceId(),
-          new PropertyModel<Collection<GroupDO>>(this.trainingAccessGroupsListHelper, "assignedItems"),
+      final Select2MultiChoice<GroupDO> groups = new Select2MultiChoice<>(fs.getSelect2MultiChoiceId(),
+          new PropertyModel<>(this.trainingAccessGroupsListHelper, "assignedItems"),
           new GroupsWicketProvider(groupService));
       fs.add(groups);
 
@@ -259,16 +259,16 @@ public class SkillEditForm extends AbstractEditForm<SkillDO, SkillEditPage>
     {
       // Description
       fs = gridBuilder.newFieldset(SkillDO.class, "description");
-      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<String>(data, "description"))).setAutogrow();
+      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<>(data, "description"))).setAutogrow();
     }
     {
       // Comment
       fs = gridBuilder.newFieldset(SkillDO.class, "comment");
-      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<String>(data, "comment"))).setAutogrow();
+      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<>(data, "comment"))).setAutogrow();
     }
     {
       // Rateable
-      gridBuilder.newFieldset(SkillDO.class, "rateable").addCheckBox(new PropertyModel<Boolean>(data, "rateable"),
+      gridBuilder.newFieldset(SkillDO.class, "rateable").addCheckBox(new PropertyModel<>(data, "rateable"),
           null);
     }
   }

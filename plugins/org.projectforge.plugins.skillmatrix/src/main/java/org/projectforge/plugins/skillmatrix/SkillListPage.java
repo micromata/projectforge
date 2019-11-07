@@ -78,7 +78,7 @@ public class SkillListPage extends AbstractListPage<SkillListForm, SkillDao, Ski
   @Override
   public List<IColumn<SkillDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
-    final List<IColumn<SkillDO, String>> columns = new ArrayList<IColumn<SkillDO, String>>();
+    final List<IColumn<SkillDO, String>> columns = new ArrayList<>();
     final CellItemListener<SkillDO> cellItemListener = new CellItemListener<SkillDO>()
     {
       private static final long serialVersionUID = 3628573642359696336L;
@@ -92,7 +92,7 @@ public class SkillListPage extends AbstractListPage<SkillListForm, SkillDao, Ski
     };
 
     final CellItemListenerPropertyColumn<SkillDO> created = new CellItemListenerPropertyColumn<SkillDO>(
-        new Model<String>(
+        new Model<>(
             getString("created")),
         getSortable("created", sortable), "created", cellItemListener)
     {
@@ -109,31 +109,31 @@ public class SkillListPage extends AbstractListPage<SkillListForm, SkillDao, Ski
       }
     };
 
-    final CellItemListenerPropertyColumn<SkillDO> lastUpdate = new CellItemListenerPropertyColumn<SkillDO>(
+    final CellItemListenerPropertyColumn<SkillDO> lastUpdate = new CellItemListenerPropertyColumn<>(
         getString("lastUpdate"),
         getSortable("lastUpdate", sortable), "lastUpdate", cellItemListener);
 
-    final CellItemListenerPropertyColumn<SkillDO> title = new CellItemListenerPropertyColumn<SkillDO>(SkillDO.class,
+    final CellItemListenerPropertyColumn<SkillDO> title = new CellItemListenerPropertyColumn<>(SkillDO.class,
         getSortable("title",
             sortable),
         "title", cellItemListener);
 
     // TODO: Workaround with get (hardcoded I18N), needs a better solution.
-    final CellItemListenerPropertyColumn<SkillDO> parentTitle = new CellItemListenerPropertyColumn<SkillDO>(
+    final CellItemListenerPropertyColumn<SkillDO> parentTitle = new CellItemListenerPropertyColumn<>(
         getString("plugins.skillmatrix.skill.parent"), getSortable("parent.title", sortable), "parent.title",
         cellItemListener);
 
-    final CellItemListenerPropertyColumn<SkillDO> description = new CellItemListenerPropertyColumn<SkillDO>(
+    final CellItemListenerPropertyColumn<SkillDO> description = new CellItemListenerPropertyColumn<>(
         SkillDO.class, getSortable(
-            "description", sortable),
+        "description", sortable),
         "description", cellItemListener);
 
-    final CellItemListenerPropertyColumn<SkillDO> comment = new CellItemListenerPropertyColumn<SkillDO>(SkillDO.class,
+    final CellItemListenerPropertyColumn<SkillDO> comment = new CellItemListenerPropertyColumn<>(SkillDO.class,
         getSortable(
             "comment", sortable),
         "comment", cellItemListener);
 
-    final CellItemListenerPropertyColumn<SkillDO> rateable = new CellItemListenerPropertyColumn<SkillDO>(SkillDO.class,
+    final CellItemListenerPropertyColumn<SkillDO> rateable = new CellItemListenerPropertyColumn<>(SkillDO.class,
         getSortable(
             "rateable", sortable),
         "rateable", cellItemListener);

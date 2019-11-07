@@ -126,9 +126,9 @@ public class SkillNode implements IdObject<Integer>, Serializable
       return false;
     }
     for (final SkillNode child : this.children) {
-      if (child.equals(node) == true) {
+      if (child.equals(node)) {
         return true;
-      } else if (child.isParentOf(node) == true) {
+      } else if (child.isParentOf(node)) {
         return true;
       }
     }
@@ -148,8 +148,8 @@ public class SkillNode implements IdObject<Integer>, Serializable
    */
   public List<SkillNode> getPathToAncestor(final Integer ancestorSkillId)
   {
-    if (this.parent == null || this.getId().equals(ancestorSkillId) == true) {
-      return new ArrayList<SkillNode>();
+    if (this.parent == null || this.getId().equals(ancestorSkillId)) {
+      return new ArrayList<>();
     }
     final List<SkillNode> path = this.parent.getPathToAncestor(ancestorSkillId);
     path.add(this);
@@ -162,7 +162,7 @@ public class SkillNode implements IdObject<Integer>, Serializable
   void setParent(final SkillNode parent)
   {
     if (parent != null) {
-      if (parent.getId().equals(getId()) == true || this.isParentOf(parent)) {
+      if (parent.getId().equals(getId()) || this.isParentOf(parent)) {
         log.error("Oups, cyclic reference detection: skillId = " + getId() + ", parentSkillId = " + parent.getId());
         throw new UserException(SkillDao.I18N_KEY_ERROR_CYCLIC_REFERENCE);
       }
@@ -178,12 +178,12 @@ public class SkillNode implements IdObject<Integer>, Serializable
   void addChild(final SkillNode child)
   {
     if (child != null) {
-      if (child.getId().equals(getId()) == true || child.isParentOf(this)) {
+      if (child.getId().equals(getId()) || child.isParentOf(this)) {
         log.error("Oups, cyclic reference detection: skillId = " + getId() + ", parentSkillId = " + parent.getId());
         return;
       }
       if (this.children == null) {
-        this.children = new ArrayList<SkillNode>();
+        this.children = new ArrayList<>();
       }
       this.children.add(child);
     }
@@ -198,7 +198,7 @@ public class SkillNode implements IdObject<Integer>, Serializable
       log.error("Oups, child is null, can't remove it from parent.");
     } else if (this.children == null) {
       log.error("Oups, this node has no children to remove.");
-    } else if (this.children.contains(child) == false) {
+    } else if (!this.children.contains(child)) {
       log.error("Oups, this node doesn't contain given child.");
     } else {
       log.debug("Removing child " + child.getId() + " from parent " + this.getId());
@@ -224,7 +224,7 @@ public class SkillNode implements IdObject<Integer>, Serializable
 
   public List<Integer> getAncestorIds()
   {
-    final List<Integer> ancestors = new ArrayList<Integer>();
+    final List<Integer> ancestors = new ArrayList<>();
     getAncestorIds(ancestors);
     return ancestors;
   }
@@ -232,7 +232,7 @@ public class SkillNode implements IdObject<Integer>, Serializable
   private void getAncestorIds(final List<Integer> ancestors)
   {
     if (this.parent != null) {
-      if (ancestors.contains(this.parent.getId()) == false) {
+      if (!ancestors.contains(this.parent.getId())) {
         // Paranoia setting for cyclic references.
         ancestors.add(this.parent.getId());
         this.parent.getAncestorIds(ancestors);

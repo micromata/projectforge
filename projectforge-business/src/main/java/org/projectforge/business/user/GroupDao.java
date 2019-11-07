@@ -24,8 +24,6 @@
 package org.projectforge.business.user;
 
 import org.apache.commons.lang3.Validate;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.login.Login;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.AccessType;
@@ -33,6 +31,7 @@ import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -81,10 +80,10 @@ public class GroupDao extends BaseDao<GroupDO> {
       // Check hasExternalUsermngmntSystem because otherwise the filter is may-be preset for an user and the user can't change the filter
       // (because the fields aren't visible).
       if (myFilter.getLocalGroup() != null) {
-        queryFilter.add(Restrictions.eq("localGroup", myFilter.getLocalGroup()));
+        queryFilter.add(QueryFilter.eq("localGroup", myFilter.getLocalGroup()));
       }
     }
-    queryFilter.addOrder(Order.asc("name"));
+    queryFilter.addOrder(SortProperty.asc("name"));
     return getList(queryFilter);
   }
 

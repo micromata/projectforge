@@ -59,7 +59,7 @@ public class PollEventEventsProvider extends MyFullCalendarEventsProvider
   public PollEventEventsProvider(final PollDO poll)
   {
     this.poll = poll;
-    pollEventCache = new HashMap<PollEventDO, Event>();
+    pollEventCache = new HashMap<>();
     randomizer = new Random(System.currentTimeMillis());
   }
 

@@ -70,12 +70,12 @@ public class IhkExportPage extends AbstractStandardFormPage implements ISelectCa
   @Override
   public void select(String property, Object selectedValue)
   {
-    if (property.startsWith("quickSelect.") == true) {
+    if (property.startsWith("quickSelect.")) {
       final Date date = (Date) selectedValue;
 
       form.getTimePeriod().setFromDate(date);
       final DateHolder dateHolder = new DateHolder(date);
-      if (property.endsWith(".week") == true) {
+      if (property.endsWith(".week")) {
         dateHolder.setEndOfWeek();
       }
       form.getTimePeriod().setToDate(dateHolder.getDate());

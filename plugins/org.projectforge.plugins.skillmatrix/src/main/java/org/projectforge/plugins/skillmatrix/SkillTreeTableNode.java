@@ -72,7 +72,7 @@ public class SkillTreeTableNode extends TreeTableNode
   @Override
   public String toString()
   {
-    final StringBuffer sb = new StringBuffer("SkillTreeTableNode[skillName=");
+    final StringBuilder sb = new StringBuilder("SkillTreeTableNode[skillName=");
     sb.append(getSkillTitle());
     sb.append(",id=");
     sb.append(getId());

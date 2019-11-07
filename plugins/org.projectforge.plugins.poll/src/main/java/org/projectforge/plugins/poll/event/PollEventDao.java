@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.poll.event;
 
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.plugins.poll.PollDO;
@@ -34,16 +33,10 @@ import java.util.List;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * 
  */
 @Repository
-public class PollEventDao extends BaseDao<PollEventDO>
-{
-  /**
-   * @param clazz
-   */
-  protected PollEventDao()
-  {
+public class PollEventDao extends BaseDao<PollEventDO> {
+  protected PollEventDao() {
     super(PollEventDO.class);
     userRightId = PollPluginUserRightId.PLUGIN_POLL_EVENT;
   }
@@ -52,15 +45,13 @@ public class PollEventDao extends BaseDao<PollEventDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#newInstance()
    */
   @Override
-  public PollEventDO newInstance()
-  {
+  public PollEventDO newInstance() {
     return new PollEventDO();
   }
 
-  public List<PollEventDO> getListByPoll(PollDO poll)
-  {
+  public List<PollEventDO> getListByPoll(PollDO poll) {
     QueryFilter qFilter = new QueryFilter();
-    qFilter.add(Restrictions.and(Restrictions.eq("poll", poll), Restrictions.eq("deleted", false)));
+    qFilter.add(QueryFilter.and(QueryFilter.eq("poll", poll), QueryFilter.eq("deleted", false)));
     return getList(qFilter);
   }
 }

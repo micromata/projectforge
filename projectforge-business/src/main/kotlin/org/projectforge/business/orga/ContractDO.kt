@@ -51,19 +51,19 @@ class ContractDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "date")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "c_date")
     var date: Date? = null
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.validity")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "valid_from")
     var validFrom: Date? = null
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.validity")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "valid_until")
     var validUntil: Date? = null
 
@@ -104,7 +104,7 @@ class ContractDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.signing")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "signing_date")
     var signingDate: Date? = null
 
@@ -136,13 +136,13 @@ class ContractDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "resubmissionOnDate")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "resubmission_on_date")
     var resubmissionOnDate: Date? = null
 
     @PropertyInfo(i18nKey = "dueDate")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "due_date")
     var dueDate: Date? = null
 

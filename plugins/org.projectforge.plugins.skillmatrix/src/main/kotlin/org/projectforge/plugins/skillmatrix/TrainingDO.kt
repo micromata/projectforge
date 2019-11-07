@@ -76,13 +76,13 @@ class TrainingDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skilltraining.startDate")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "start_date")
     var startDate: Date? = null
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skilltraining.endDate")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "end_date")
     var endDate: Date? = null
 

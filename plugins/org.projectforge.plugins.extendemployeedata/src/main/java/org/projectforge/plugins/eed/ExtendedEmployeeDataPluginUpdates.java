@@ -42,7 +42,7 @@ public class ExtendedEmployeeDataPluginUpdates
   @SuppressWarnings("serial")
   public static List<UpdateEntry> getUpdateEntries()
   {
-    final List<UpdateEntry> list = new ArrayList<UpdateEntry>();
+    final List<UpdateEntry> list = new ArrayList<>();
     list.add(new UpdateEntryImpl(ExtendEmployeeDataPlugin.ID, "6.5", "2016-11-15",
         "Adds attribute tables for employee configuration page")
     {
@@ -51,7 +51,7 @@ public class ExtendedEmployeeDataPluginUpdates
       {
         // Does the data-base table already exist?
         if (databaseService
-            .doTablesExist(EmployeeConfigurationAttrDO.class, EmployeeConfigurationAttrDataDO.class, EmployeeConfigurationTimedAttrWithDataDO.class) == true) {
+            .doTablesExist(EmployeeConfigurationAttrDO.class, EmployeeConfigurationAttrDataDO.class, EmployeeConfigurationTimedAttrWithDataDO.class)) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
@@ -61,8 +61,8 @@ public class ExtendedEmployeeDataPluginUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        if (databaseService
-            .doTablesExist(EmployeeConfigurationAttrDO.class, EmployeeConfigurationAttrDataDO.class, EmployeeConfigurationTimedAttrWithDataDO.class) == false) {
+        if (!databaseService
+            .doTablesExist(EmployeeConfigurationAttrDO.class, EmployeeConfigurationAttrDataDO.class, EmployeeConfigurationTimedAttrWithDataDO.class)) {
           databaseService.updateSchema();
         }
         return UpdateRunningStatus.DONE;

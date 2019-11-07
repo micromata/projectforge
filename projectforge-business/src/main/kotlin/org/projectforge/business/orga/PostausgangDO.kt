@@ -44,7 +44,7 @@ class PostausgangDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "date")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.DAY)
     @get:Column(nullable = false)
     var datum: Date? = null
 

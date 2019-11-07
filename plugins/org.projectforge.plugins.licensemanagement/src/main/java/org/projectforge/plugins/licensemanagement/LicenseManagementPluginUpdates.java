@@ -42,7 +42,7 @@ public class LicenseManagementPluginUpdates
   @SuppressWarnings("serial")
   public static List<UpdateEntry> getUpdateEntries()
   {
-    final List<UpdateEntry> list = new ArrayList<UpdateEntry>();
+    final List<UpdateEntry> list = new ArrayList<>();
     // /////////////////////////////////////////////////////////////////
     // 5.1
     // /////////////////////////////////////////////////////////////////
@@ -55,7 +55,7 @@ public class LicenseManagementPluginUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         // Does the data-base table already exist?
-        if (dao.doTableAttributesExist(LicenseDO.class, newAttributes) == true) {
+        if (dao.doTableAttributesExist(LicenseDO.class, newAttributes)) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
@@ -65,7 +65,7 @@ public class LicenseManagementPluginUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        if (dao.doTableAttributesExist(LicenseDO.class, newAttributes) == false) {
+        if (!dao.doTableAttributesExist(LicenseDO.class, newAttributes)) {
           dao.addTableAttributes(LicenseDO.class, newAttributes);
         }
         return UpdateRunningStatus.DONE;
@@ -84,7 +84,7 @@ public class LicenseManagementPluginUpdates
       {
         // Does the data-base table already exist?
         // Check only the oldest table.
-        if (dao.doTablesExist(LicenseDO.class) == true) {
+        if (dao.doTablesExist(LicenseDO.class)) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {
           // The oldest table doesn't exist, therefore the plugin has to initialized completely.

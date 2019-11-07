@@ -67,7 +67,7 @@ public class AddressCampaignValueEditPage extends
   {
     super(parameters, "plugins.marketing.addressCampaign");
     StringValue sval = parameters.get(AbstractEditPage.PARAMETER_KEY_ID);
-    final Integer id = sval.isEmpty() == true ? null : sval.toInteger();
+    final Integer id = sval.isEmpty() ? null : sval.toInteger();
     if (id == null) {
       // Create new entry.
       sval = parameters.get(PARAMETER_ADDRESS_ID);
@@ -104,7 +104,7 @@ public class AddressCampaignValueEditPage extends
   protected void updateAndNext()
   {
     if (getData().getId() == null) {
-      if (log.isDebugEnabled() == true) {
+      if (log.isDebugEnabled()) {
         log.debug("update in " + this.editPageSupport.getClass() + ": " + getData());
       }
       create();
@@ -118,12 +118,12 @@ public class AddressCampaignValueEditPage extends
   @Override
   public void setResponsePage()
   {
-    if (this.editPageSupport.isUpdateAndNext() == true) {
+    if (this.editPageSupport.isUpdateAndNext()) {
       this.editPageSupport.setUpdateAndNext(false);
       final AddressCampaignValueListPage listPage = (AddressCampaignValueListPage) this.returnToPage;
       final Iterator<AddressDO> it = listPage.getList().iterator();
-      while (it.hasNext() == true) {
-        if (it.next().getId().equals(getHighlightedRowId()) == true && it.hasNext() == true) {
+      while (it.hasNext()) {
+        if (it.next().getId().equals(getHighlightedRowId()) && it.hasNext()) {
           // Found current entry and next entry available.
           final AddressDO address = it.next();
           final PageParameters parameters = new PageParameters();

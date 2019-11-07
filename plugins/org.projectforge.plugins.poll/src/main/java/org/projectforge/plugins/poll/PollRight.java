@@ -85,7 +85,7 @@ public class PollRight extends UserRightAccessCheck<PollDO>
   @Override
   public boolean hasSelectAccess(final PFUserDO user, final PollDO obj)
   {
-    if (isOwner(user, obj) == true) {
+    if (isOwner(user, obj)) {
       // User has full access to it's own polls.
       return true;
     }
@@ -124,7 +124,7 @@ public class PollRight extends UserRightAccessCheck<PollDO>
   @Override
   public boolean hasUpdateAccess(final PFUserDO user, final PollDO obj, final PollDO oldObj)
   {
-    if (isOwner(user, obj) == true) {
+    if (isOwner(user, obj)) {
       // User has full access to it's own polls.
       return true;
     }
@@ -149,7 +149,7 @@ public class PollRight extends UserRightAccessCheck<PollDO>
     if (poll == null) {
       return true;
     }
-    if (isOwner(user, poll) == true) {
+    if (isOwner(user, poll)) {
       return true;
     }
     // TODO set rights
@@ -172,12 +172,12 @@ public class PollRight extends UserRightAccessCheck<PollDO>
 
   public boolean isOwner(final PFUserDO user, final PollDO poll)
   {
-    return Objects.equals(user.getId(), poll.getOwner().getId()) == true;
+    return Objects.equals(user.getId(), poll.getOwner().getId());
   }
 
   public boolean isVerifiedUser(final PFUserDO user, final String secureKey, final PollDO poll)
   {
-    if (pollAttendeeDao.verifyUserOrKey(user, secureKey, poll) == true) {
+    if (pollAttendeeDao.verifyUserOrKey(user, secureKey, poll)) {
       return true;
     } else {
       return false;

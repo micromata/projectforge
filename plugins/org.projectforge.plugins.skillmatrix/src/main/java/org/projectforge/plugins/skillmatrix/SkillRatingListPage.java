@@ -67,7 +67,7 @@ public class SkillRatingListPage extends AbstractListPage<SkillRatingListForm, S
   {
     super(parameters, "plugins.skillmatrix.rating");
     final Integer skillId = WicketUtils.getAsInteger(parameters, PARAM_SKILL_ID);
-    if (NumberHelper.greaterZero(skillId) == true) {
+    if (NumberHelper.greaterZero(skillId)) {
       form.getSearchFilter().setSkillId(skillId);
     }
   }
@@ -80,7 +80,7 @@ public class SkillRatingListPage extends AbstractListPage<SkillRatingListForm, S
   @Override
   public List<IColumn<SkillRatingDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
-    final List<IColumn<SkillRatingDO, String>> columns = new ArrayList<IColumn<SkillRatingDO, String>>();
+    final List<IColumn<SkillRatingDO, String>> columns = new ArrayList<>();
     final CellItemListener<SkillRatingDO> cellItemListener = new CellItemListener<SkillRatingDO>()
     {
       public void populateItem(final Item<ICellPopulator<SkillRatingDO>> item, final String componentId,
@@ -92,7 +92,7 @@ public class SkillRatingListPage extends AbstractListPage<SkillRatingListForm, S
     };
 
     final CellItemListenerPropertyColumn<SkillRatingDO> created = new CellItemListenerPropertyColumn<SkillRatingDO>(
-        new Model<String>(
+        new Model<>(
             getString("created")),
         getSortable("created", sortable), "created", cellItemListener)
     {
@@ -110,11 +110,11 @@ public class SkillRatingListPage extends AbstractListPage<SkillRatingListForm, S
 
     };
 
-    final CellItemListenerPropertyColumn<SkillRatingDO> modified = new CellItemListenerPropertyColumn<SkillRatingDO>(
+    final CellItemListenerPropertyColumn<SkillRatingDO> modified = new CellItemListenerPropertyColumn<>(
         getString("modified"),
         getSortable("lastUpdate", sortable), "lastUpdate", cellItemListener);
 
-    final CellItemListenerPropertyColumn<SkillRatingDO> user = new UserPropertyColumn<SkillRatingDO>(
+    final CellItemListenerPropertyColumn<SkillRatingDO> user = new UserPropertyColumn<>(
         getUserGroupCache(),
         SkillRatingDO.class, getSortable(
         "userId", sortable),
@@ -125,28 +125,28 @@ public class SkillRatingListPage extends AbstractListPage<SkillRatingListForm, S
     // final CellItemListenerPropertyColumn<SkillRatingDO> skillTitle = new
     // CellItemListenerPropertyColumn<SkillRatingDO>(SkillRatingDO.class,
     // getSortable("skill.title", sortable), "skill.title", cellItemListener);
-    final CellItemListenerPropertyColumn<SkillRatingDO> skillTitle = new CellItemListenerPropertyColumn<SkillRatingDO>(
+    final CellItemListenerPropertyColumn<SkillRatingDO> skillTitle = new CellItemListenerPropertyColumn<>(
         getString("plugins.skillmatrix.skillrating.skill"), getSortable("skill.title", sortable), "skill.title",
         cellItemListener);
 
-    final CellItemListenerPropertyColumn<SkillRatingDO> experience = new CellItemListenerPropertyColumn<SkillRatingDO>(
+    final CellItemListenerPropertyColumn<SkillRatingDO> experience = new CellItemListenerPropertyColumn<>(
         SkillRatingDO.class,
         getSortable("skillRating", sortable), "skillRating", cellItemListener);
 
-    final CellItemListenerPropertyColumn<SkillRatingDO> sinceYear = new CellItemListenerPropertyColumn<SkillRatingDO>(
+    final CellItemListenerPropertyColumn<SkillRatingDO> sinceYear = new CellItemListenerPropertyColumn<>(
         SkillRatingDO.class,
         getSortable("sinceYear", sortable), "sinceYear", cellItemListener);
 
-    final CellItemListenerPropertyColumn<SkillRatingDO> certificates = new CellItemListenerPropertyColumn<SkillRatingDO>(
+    final CellItemListenerPropertyColumn<SkillRatingDO> certificates = new CellItemListenerPropertyColumn<>(
         SkillRatingDO.class, getSortable("certificates", sortable), "certificates", cellItemListener);
 
-    final CellItemListenerPropertyColumn<SkillRatingDO> trainingCourses = new CellItemListenerPropertyColumn<SkillRatingDO>(
+    final CellItemListenerPropertyColumn<SkillRatingDO> trainingCourses = new CellItemListenerPropertyColumn<>(
         SkillRatingDO.class, getSortable("trainingCourses", sortable), "trainingCourses", cellItemListener);
 
-    final CellItemListenerPropertyColumn<SkillRatingDO> description = new CellItemListenerPropertyColumn<SkillRatingDO>(
+    final CellItemListenerPropertyColumn<SkillRatingDO> description = new CellItemListenerPropertyColumn<>(
         SkillRatingDO.class, getSortable("description", sortable), "description", cellItemListener);
 
-    final CellItemListenerPropertyColumn<SkillRatingDO> comment = new CellItemListenerPropertyColumn<SkillRatingDO>(
+    final CellItemListenerPropertyColumn<SkillRatingDO> comment = new CellItemListenerPropertyColumn<>(
         SkillRatingDO.class,
         getSortable("comment", sortable), "comment", cellItemListener);
 
@@ -191,7 +191,7 @@ public class SkillRatingListPage extends AbstractListPage<SkillRatingListForm, S
       @Override
       public void addMapping(final PropertyMapping mapping, final Object entry, final Field field)
       {
-        if ("skill".equals(field.getName()) == true) {
+        if ("skill".equals(field.getName())) {
           final SkillDO skill = ((SkillRatingDO) entry).getSkill();
           mapping.add(field.getName(), skill != null ? skill.getTitle() : "");
         } else {
@@ -225,10 +225,10 @@ public class SkillRatingListPage extends AbstractListPage<SkillRatingListForm, S
   @Override
   public void select(final String property, final Object selectedValue)
   {
-    if ("skillId".equals(property) == true) {
+    if ("skillId".equals(property)) {
       form.getSearchFilter().setSkillId((Integer) selectedValue);
       refresh();
-    } else if ("userId".equals(property) == true) {
+    } else if ("userId".equals(property)) {
       form.getSearchFilter().setUserId((Integer) selectedValue);
       refresh();
     } else
@@ -241,10 +241,10 @@ public class SkillRatingListPage extends AbstractListPage<SkillRatingListForm, S
   @Override
   public void unselect(final String property)
   {
-    if ("skillId".equals(property) == true) {
+    if ("skillId".equals(property)) {
       form.getSearchFilter().setSkillId(null);
       refresh();
-    } else if ("userId".equals(property) == true) {
+    } else if ("userId".equals(property)) {
       form.getSearchFilter().setUserId(null);
       refresh();
     }
