@@ -122,7 +122,7 @@ class GroupDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @PropertyInfo(i18nKey = "group.assignedUsers")
     @ContainedIn
     @IndexedEmbedded(depth = 1)
-    @get:ManyToMany(targetEntity = PFUserDO::class, cascade = [CascadeType.PERSIST, CascadeType.MERGE], fetch = FetchType.EAGER)
+    @get:ManyToMany(targetEntity = PFUserDO::class, cascade = [CascadeType.MERGE], fetch = FetchType.EAGER)
     @get:JoinTable(name = "T_GROUP_USER", joinColumns = [JoinColumn(name = "GROUP_ID")], inverseJoinColumns = [JoinColumn(name = "USER_ID")], indexes = [javax.persistence.Index(name = "idx_fk_t_group_user_group_id", columnList = "group_id"), javax.persistence.Index(name = "idx_fk_t_group_user_user_id", columnList = "user_id")])
     var assignedUsers: MutableSet<PFUserDO>? = null
 

@@ -55,12 +55,12 @@ import javax.persistence.*
 class GroupTaskAccessDO : DefaultBaseDO() {
 
     @IndexedEmbedded(depth = 1)
-    @get:ManyToOne(cascade = [CascadeType.PERSIST, CascadeType.MERGE])
+    @get:ManyToOne(cascade = [CascadeType.MERGE])
     @get:JoinColumn(name = "group_id")
     var group: GroupDO? = null
 
     @IndexedEmbedded(depth = 1)
-    @get:ManyToOne(cascade = [CascadeType.PERSIST, CascadeType.MERGE], targetEntity = TaskDO::class)
+    @get:ManyToOne(cascade = [CascadeType.MERGE], targetEntity = TaskDO::class)
     @get:JoinColumn(name = "task_id")
     var task: TaskDO? = null
 
@@ -76,7 +76,7 @@ class GroupTaskAccessDO : DefaultBaseDO() {
     var description: String? = null
 
     @NoHistory
-    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+    @get:OneToMany(cascade = [CascadeType.MERGE, CascadeType.REMOVE], fetch = FetchType.EAGER, orphanRemoval = true)
     @get:JoinColumn(name = "group_task_access_fk", insertable = true, updatable = true)
     var accessEntries: MutableSet<AccessEntryDO>? = null
 

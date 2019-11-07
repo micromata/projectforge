@@ -59,12 +59,15 @@ public class ConfigurationDOTest extends AbstractTestBase {
     config.setValue("Hurzel");
     assertNotNull(config);
     configurationDao.internalSave(config);
-    List<ConfigurationDO> list = (List<ConfigurationDO>) hibernateTemplate
-            .find("from ConfigurationDO c where c.parameter = 'unknown'");
+    List<ConfigurationDO> list = em.createQuery(
+            "select t from " + ConfigurationDO.class.getName() + " t where t.parameter = 'unknown'", ConfigurationDO.class)
+            .getResultList();
     config = list.get(0);
     assertEquals("Hurzel", config.getStringValue());
     configurationDao.checkAndUpdateDatabaseEntries();
-    list = (List<ConfigurationDO>) hibernateTemplate.find("from ConfigurationDO c where c.parameter = 'unknown'");
+    list = em.createQuery(
+            "select t from " + ConfigurationDO.class.getName() + " t where t.parameter = 'unknown'", ConfigurationDO.class)
+            .getResultList();
     config = list.get(0);
     assertEquals(true, config.isDeleted(), "Entry should be deleted.");
 

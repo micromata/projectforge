@@ -28,9 +28,6 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -44,9 +41,6 @@ public class GroupTest extends AbstractTestBase {
   @Autowired
   private GroupDao groupDao;
 
-  @Autowired
-  private TransactionTemplate txTemplate;
-
   @Override
   protected void afterAll() {
     recreateDataBase();
@@ -55,31 +49,25 @@ public class GroupTest extends AbstractTestBase {
   @SuppressWarnings({"unchecked", "rawtypes"})
   @Test
   public void test1SaveAndUpdate() {
-    txTemplate.execute(new TransactionCallback() {
-      @Override
-      public Object doInTransaction(final TransactionStatus status) {
-        logon(AbstractTestBase.TEST_ADMIN_USER);
-        GroupDO group = new GroupDO();
-        group.setName("testgroup");
-        final Set<PFUserDO> assignedUsers = new HashSet<>();
-        group.setAssignedUsers(assignedUsers);
-        assignedUsers.add(getUser(AbstractTestBase.TEST_USER));
-        final Serializable id = groupDao.save(group);
-        group = groupDao.getById(id);
-        assertEquals("testgroup", group.getName());
-        assertEquals(1, group.getAssignedUsers().size());
-        assertTrue(group.getAssignedUsers().contains(getUser(AbstractTestBase.TEST_USER)));
-        final PFUserDO user = getUser(AbstractTestBase.TEST_USER2);
-        assertNotNull(user);
-        group.getAssignedUsers().add(user);
-        groupDao.update(group);
-        group = groupDao.getById(id);
-        assertEquals(2, group.getAssignedUsers().size());
-        assertTrue(group.getAssignedUsers().contains(getUser(AbstractTestBase.TEST_USER)));
-        assertTrue(group.getAssignedUsers().contains(user));
-        return null;
-      }
-    });
+    logon(AbstractTestBase.TEST_ADMIN_USER);
+    GroupDO group = new GroupDO();
+    group.setName("testgroup");
+    final Set<PFUserDO> assignedUsers = new HashSet<>();
+    group.setAssignedUsers(assignedUsers);
+    assignedUsers.add(getUser(AbstractTestBase.TEST_USER));
+    final Serializable id = groupDao.save(group);
+    group = groupDao.getById(id);
+    assertEquals("testgroup", group.getName());
+    assertEquals(1, group.getAssignedUsers().size());
+    assertTrue(group.getAssignedUsers().contains(getUser(AbstractTestBase.TEST_USER)));
+    final PFUserDO user = getUser(AbstractTestBase.TEST_USER2);
+    assertNotNull(user);
+    group.getAssignedUsers().add(user);
+    groupDao.update(group);
+    group = groupDao.getById(id);
+    assertEquals(2, group.getAssignedUsers().size());
+    assertTrue(group.getAssignedUsers().contains(getUser(AbstractTestBase.TEST_USER)));
+    assertTrue(group.getAssignedUsers().contains(user));
   }
 
   // TODO HISTORY
@@ -140,7 +128,7 @@ public class GroupTest extends AbstractTestBase {
     GroupDO adminGroup = getGroup(ProjectForgeGroup.ADMIN_GROUP.getName());
     final Integer id = adminGroup.getId();
     adminGroup.setName("Changed admin group");
-    groupDao.internalSave(adminGroup);
+    groupDao.internalUpdate(adminGroup);
     adminGroup = groupDao.internalGetById(id);
     assertEquals(ProjectForgeGroup.ADMIN_GROUP.getName(), adminGroup.getName(), "Group's name shouldn't be allowed to change.");
   }

@@ -42,14 +42,14 @@ import java.util.List;
  *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
-public class AbstractRechnungXmlBeforePersistListener implements JpaXmlBeforePersistListener
-{
+public class AbstractRechnungXmlBeforePersistListener implements JpaXmlBeforePersistListener {
 
   @Override
-  public Object preparePersist(EntityMetadata entityMetadata, Object entity, XmlDumpRestoreContext ctx)
-  {
-    final AbstractRechnungDO<? extends AbstractRechnungsPositionDO> rechnung = (AbstractRechnungDO<?>) entity;
-    final List<? extends AbstractRechnungsPositionDO> positions = rechnung.getPositionen();
+  public Object preparePersist(EntityMetadata entityMetadata, Object entity, XmlDumpRestoreContext ctx) {
+    RechnungDO rechnung = null;
+    EingangsrechnungDO eingangsrechnungDO = null;
+    if (entity instanceof RechnungDO) rechnung = (RechnungDO) entity;
+    else eingangsrechnungDO = (EingangsrechnungDO) entity;
     KontoDO konto = rechnung.getKonto();
     XmlJpaPersistService persserivce = ctx.getPersistService();
     if (konto != null) {
@@ -64,31 +64,35 @@ public class AbstractRechnungXmlBeforePersistListener implements JpaXmlBeforePer
     if (konto != null) {
       rechnung.setKonto(konto);
     }
-    if (positions != null) {
-      for (final AbstractRechnungsPositionDO pos : positions) {
-        if (pos.getKostZuweisungen() != null) {
-          final List<KostZuweisungDO> zuweisungen = pos.getKostZuweisungen();
-          pos.setKostZuweisungen(null); // Need to nullable first (otherwise insert fails).
-          persserivce.persist(ctx, pos);
-          if (pos instanceof RechnungsPositionDO) {
-            ((RechnungDO) rechnung).addPosition((RechnungsPositionDO) pos);
-          } else {
-            ((EingangsrechnungDO) rechnung).addPosition((EingangsrechnungsPositionDO) pos);
-          }
-          if (zuweisungen != null) {
-            for (int i = 0; i < zuweisungen.size(); ++i) {
-              KostZuweisungDO zuweisung = zuweisungen.get(i);
-              pos.addKostZuweisung(zuweisung);
-              zuweisung.setKost1((Kost1DO) persserivce.persist(ctx, zuweisung.getKost1()));
-              zuweisung.setKost2((Kost2DO) persserivce.persist(ctx, zuweisung.getKost2()));
-              zuweisung = (KostZuweisungDO) persserivce.persist(ctx, zuweisung);
-              zuweisungen.set(i, zuweisung);
-            }
-          }
-        }
-      }
+    if (rechnung != null) {
+      proceedKostZuweisungen(rechnung, persserivce, ctx);
+    } else if (eingangsrechnungDO != null) {
+      proceedKostZuweisungen(eingangsrechnungDO, persserivce, ctx);
     }
     return false;
   }
 
+  private void proceedKostZuweisungen(AbstractRechnungDO rechnung, XmlJpaPersistService persserivce, XmlDumpRestoreContext ctx) {
+    if (rechnung.getAbstractPositionen() == null) {
+      return;
+    }
+    for (AbstractRechnungsPositionDO position : rechnung.getAbstractPositionen()) {
+      if (position.getKostZuweisungen() == null)
+        return;
+      final List<KostZuweisungDO> zuweisungen = position.getKostZuweisungen();
+      position.setKostZuweisungen(null); // Need to nullable first (otherwise insert fails).
+      persserivce.persist(ctx, position);
+      rechnung.addPosition(position);
+      if (zuweisungen != null) {
+        for (int i = 0; i < zuweisungen.size(); ++i) {
+          KostZuweisungDO zuweisung = zuweisungen.get(i);
+          position.addKostZuweisung(zuweisung);
+          zuweisung.setKost1((Kost1DO) persserivce.persist(ctx, zuweisung.getKost1()));
+          zuweisung.setKost2((Kost2DO) persserivce.persist(ctx, zuweisung.getKost2()));
+          zuweisung = (KostZuweisungDO) persserivce.persist(ctx, zuweisung);
+          zuweisungen.set(i, zuweisung);
+        }
+      }
+    }
+  }
 }

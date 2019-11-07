@@ -33,10 +33,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
@@ -45,8 +45,7 @@ import java.util.*;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-public class TenantsCache extends AbstractCache
-{
+public class TenantsCache extends AbstractCache {
   private static final long serialVersionUID = 8692234056373706543L;
 
   private static Logger log = LoggerFactory.getLogger(TenantsCache.class);
@@ -55,10 +54,10 @@ public class TenantsCache extends AbstractCache
   private ApplicationContext applicationContext;
 
   @Autowired
-  private HibernateTemplate hibernateTemplate;
+  private ConfigurationService configService;
 
   @Autowired
-  private ConfigurationService configService;
+  private EntityManager em;
 
   /**
    * Collection of all tenants (without deleted ones).
@@ -73,20 +72,17 @@ public class TenantsCache extends AbstractCache
   private Map<Integer, Set<TenantDO>> userTenantMap;
 
   @PostConstruct
-  public void init()
-  {
+  public void init() {
     TenantRegistryMap tenantRegistryMap = TenantRegistryMap.getInstance();
     tenantRegistryMap.setApplicationContext(applicationContext);
   }
 
-  public boolean isEmpty()
-  {
+  public boolean isEmpty() {
     checkRefresh();
     return CollectionUtils.isEmpty(tenants);
   }
 
-  public String getLogName(final TenantDO tenant)
-  {
+  public String getLogName(final TenantDO tenant) {
     final TenantDO t = getTenant(tenant.getId());
     return "#" + t.getId() + " '" + t.getShortName() + "'";
   }
@@ -94,14 +90,12 @@ public class TenantsCache extends AbstractCache
   /**
    * @return the defaultTenant
    */
-  public TenantDO getDefaultTenant()
-  {
+  public TenantDO getDefaultTenant() {
     checkRefresh();
     return defaultTenant;
   }
 
-  public TenantDO getTenant(final Integer id)
-  {
+  public TenantDO getTenant(final Integer id) {
     if (id == null) {
       return null;
     }
@@ -120,14 +114,12 @@ public class TenantsCache extends AbstractCache
   /**
    * @return the tenants
    */
-  public Collection<TenantDO> getTenants()
-  {
+  public Collection<TenantDO> getTenants() {
     checkRefresh();
     return tenants;
   }
 
-  public boolean hasTenants()
-  {
+  public boolean hasTenants() {
     checkRefresh();
     return tenants != null && tenants.size() > 0;
   }
@@ -135,8 +127,7 @@ public class TenantsCache extends AbstractCache
   /**
    * @return the tenants
    */
-  public Collection<TenantDO> getTenantsOfLoggedInUser()
-  {
+  public Collection<TenantDO> getTenantsOfLoggedInUser() {
     return getTenantsOfUser(ThreadLocalUserContext.getUserId());
   }
 
@@ -144,14 +135,12 @@ public class TenantsCache extends AbstractCache
    * @param userId
    * @return the tenants
    */
-  public Collection<TenantDO> getTenantsOfUser(final Integer userId)
-  {
+  public Collection<TenantDO> getTenantsOfUser(final Integer userId) {
     checkRefresh();
     return userTenantMap.get(userId);
   }
 
-  public boolean isUserAssignedToTenant(final Integer tenantId, final Integer userId)
-  {
+  public boolean isUserAssignedToTenant(final Integer tenantId, final Integer userId) {
     if (tenantId == null || userId == null) {
       return false;
     }
@@ -159,10 +148,9 @@ public class TenantsCache extends AbstractCache
     return isUserAssignedToTenant(tenant, userId);
   }
 
-  public boolean isMultiTenancyAvailable()
-  {
+  public boolean isMultiTenancyAvailable() {
     return configService.isMultiTenancyConfigured()
-        && hasTenants();
+            && hasTenants();
   }
 
   /**
@@ -171,8 +159,7 @@ public class TenantsCache extends AbstractCache
    * @return true if tenant is not null and not deleted and the given user is assigned to the given tenant. Otherwise
    * false.
    */
-  public boolean isUserAssignedToTenant(final TenantDO tenant, final Integer userId)
-  {
+  public boolean isUserAssignedToTenant(final TenantDO tenant, final Integer userId) {
     if (tenant == null || tenant.getId() == null) {
       return false;
     }
@@ -194,15 +181,14 @@ public class TenantsCache extends AbstractCache
    */
   @Override
   @SuppressWarnings("unchecked")
-  protected void refresh()
-  {
+  protected void refresh() {
     log.info("Initializing TenantsCache ...");
     // This method must not be synchronized because it works with a new copy of maps.
-    final List<TenantDO> list = (List<TenantDO>) hibernateTemplate
-        .find("from TenantDO as tenant left join fetch tenant.assignedUsers where tenant.deleted=false");
+    final List<TenantDO> list = em.createQuery("from TenantDO as tenant left join fetch tenant.assignedUsers where tenant.deleted=false", TenantDO.class)
+            .getResultList();
     final Map<Integer, Set<TenantDO>> map = new HashMap<>();
     final Collection<PFUserDO> users = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache()
-        .getAllUsers();
+            .getAllUsers();
     for (final PFUserDO user : users) {
       if (user.isDeleted()) {
         continue;

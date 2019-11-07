@@ -88,14 +88,14 @@ public class AuftragAndRechnungDaoHelper {
     return queryFilter;
   }
 
-  public static void onSaveOrModify(final AbstractRechnungDO<?> rechnung) {
+  public static void onSaveOrModify(final AbstractRechnungDO rechnung) {
     checkAndCalculateFaelligkeit(rechnung);
     checkAndCalculateDiscountMaturity(rechnung);
     validateFaelligkeit(rechnung);
     validateBezahlDatumAndZahlBetrag(rechnung);
   }
 
-  private static void checkAndCalculateFaelligkeit(final AbstractRechnungDO<?> rechnung) {
+  private static void checkAndCalculateFaelligkeit(final AbstractRechnungDO rechnung) {
     final Integer zahlungsZiel = rechnung.getZahlungsZielInTagen();
     if (rechnung.getFaelligkeit() == null && zahlungsZiel != null) {
       final Date rechnungsDatum = rechnung.getDatum();
@@ -107,7 +107,7 @@ public class AuftragAndRechnungDaoHelper {
     }
   }
 
-  private static void checkAndCalculateDiscountMaturity(final AbstractRechnungDO<?> rechnung) {
+  private static void checkAndCalculateDiscountMaturity(final AbstractRechnungDO rechnung) {
     final Integer discountZahlungsZiel = rechnung.getDiscountZahlungsZielInTagen();
     if (rechnung.getDiscountMaturity() == null && discountZahlungsZiel != null) {
       final Date rechnungsDatum = rechnung.getDatum();
@@ -119,13 +119,13 @@ public class AuftragAndRechnungDaoHelper {
     }
   }
 
-  private static void validateFaelligkeit(final AbstractRechnungDO<?> rechnung) {
+  private static void validateFaelligkeit(final AbstractRechnungDO rechnung) {
     if (rechnung.getFaelligkeit() == null) {
       throw new RequiredFieldIsEmptyException("fibu.rechnung.faelligkeit");
     }
   }
 
-  private static void validateBezahlDatumAndZahlBetrag(final AbstractRechnungDO<?> rechnung) {
+  private static void validateBezahlDatumAndZahlBetrag(final AbstractRechnungDO rechnung) {
     final Date bezahlDatum = rechnung.getBezahlDatum();
     final BigDecimal zahlBetrag = rechnung.getZahlBetrag();
     final boolean zahlBetragExists = (zahlBetrag != null && zahlBetrag.compareTo(BigDecimal.ZERO) != 0);

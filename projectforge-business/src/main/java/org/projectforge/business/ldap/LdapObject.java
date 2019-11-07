@@ -28,6 +28,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.projectforge.framework.ToStringUtil;
 
 import java.io.Serializable;
 
@@ -145,6 +146,6 @@ public abstract class LdapObject<I extends Serializable>
   @Override
   public String toString()
   {
-    return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
+    return ToStringUtil.toJsonString(this);
   }
 }

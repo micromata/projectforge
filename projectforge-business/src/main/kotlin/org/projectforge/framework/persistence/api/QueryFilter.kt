@@ -40,12 +40,16 @@ import javax.persistence.criteria.JoinType
 const val QUERY_FILTER_MAX_ROWS: Int = 10000;
 
 /**
- * Stores the expressions and settings for creating a hibernate criteria object. This template is useful for avoiding
- * the need of a hibernate session in the stripes action classes.
+ * Convenient helper to create database queries (criteria search, full text search and search in result lists).
+ * It will be automatically detected, which kind of database query is needed (critery, full text or multi field full text query).
+ * Field of the index of hibernate search will be detected and used in full text queries, if not indexed, the result will be filtered.
+ *
+ * You may add your predicates (independent of which strategy is used behind). The query strategy is automatically done.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null, val ignoreTenant: Boolean = false) {
+class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null,
+                                            val ignoreTenant: Boolean = false) {
     private val predicates = mutableListOf<DBPredicate>()
 
     val joinList = mutableListOf<DBJoin>()
@@ -53,6 +57,11 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null, va
     var sortProperties = mutableListOf<SortProperty>()
 
     private val historyQuery = DBHistorySearchParams()
+
+    /**
+     * If true, any searchstring (alphanumeric) without wildcard will be changed to '<searchString>*'.
+     */
+    var autoWildcardSearch: Boolean = false
 
     /**
      * If null, deleted and normal entries will be queried.
@@ -90,6 +99,7 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null, va
     init {
         maxRows = QUERY_FILTER_MAX_ROWS
         if (filter != null) {
+            this.autoWildcardSearch = true
             // Legacy for old implementation:
             if (!filter.ignoreDeleted) {
                 deleted = filter.deleted
@@ -98,7 +108,7 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null, va
                 searchHistory = filter.searchString
             }
             if (filter.isSearchNotEmpty) {
-                addFullTextSearch(filter.searchString)
+                addFullTextSearch(filter.searchString, autoWildcardSearch)
             }
             if (filter.useModificationFilter) {
                 if (filter.modifiedSince != null) modifiedFrom = PFDateTime.from(filter.modifiedSince)
@@ -141,9 +151,9 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null, va
     /**
      * Does nothing if str is null or blank.
      */
-    fun addFullTextSearch(str: String?) {
+    fun addFullTextSearch(str: String?, autoWildcardSearch: Boolean = false) {
         if (str.isNullOrBlank()) return
-        predicates.add(DBPredicate.FullSearch(str))
+        predicates.add(DBPredicate.FullSearch(str, autoWildcardSearch))
     }
 
     /**
@@ -214,9 +224,10 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null, va
             return DBPredicate.NotEqual(field, value)
         }
 
+        @JvmOverloads
         @JvmStatic
-        fun like(field: String, value: String): DBPredicate.Like {
-            return DBPredicate.Like(field, value)
+        fun like(field: String, value: String, autoWildcardSearch: Boolean = false): DBPredicate.Like {
+            return DBPredicate.Like(field, value, autoWildcardSearch)
         }
 
         @JvmStatic

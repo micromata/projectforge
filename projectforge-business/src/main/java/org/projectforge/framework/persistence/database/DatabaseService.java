@@ -59,17 +59,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.Column;
+import javax.persistence.EntityManager;
 import javax.persistence.Persistence;
 import javax.persistence.UniqueConstraint;
 import javax.sql.DataSource;
-import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -77,8 +74,7 @@ import java.sql.SQLException;
 import java.util.*;
 
 @Service
-public class DatabaseService
-{
+public class DatabaseService {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DatabaseService.class);
 
   public static final String DEFAULT_ADMIN_USER = "admin";
@@ -103,9 +99,6 @@ public class DatabaseService
 
   @Autowired
   private UserRightDao userRightDao;
-
-  @Autowired
-  private HibernateTemplate hibernateTemplate;
 
   @Autowired
   private JdbcTemplate jdbcTemplate;
@@ -134,9 +127,11 @@ public class DatabaseService
   @Autowired
   private PfEmgrFactory emf;
 
+  @Autowired
+  private EntityManager entityManager;
+
   @PostConstruct
-  public void initialize()
-  {
+  public void initialize() {
     TableAttribute.register(new TableAttributeHookImpl());
 
     DatabaseCoreUpdates.setApplicationContext(this.applicationContext);
@@ -150,9 +145,7 @@ public class DatabaseService
    * @param adminUser The admin user with the desired username and the salted password (salt string included). All other
    *                  attributes and groups of the user are set by this method.
    */
-  @Transactional
-  public void initializeDefaultData(final PFUserDO adminUser, final TimeZone adminUserTimezone)
-  {
+  public void initializeDefaultData(final PFUserDO adminUser, final TimeZone adminUserTimezone) {
     log.info("Init admin user and root task.");
     if (databaseTablesWithEntriesExists()) {
       databaseNotEmpty();
@@ -167,8 +160,8 @@ public class DatabaseService
     task.setCreated();
     task.setLastUpdate();
     task.setTenant(defaultTenant);
-    final Serializable id = hibernateTemplate.save(task);
-    log.info("New object added (" + id + "): " + task.toString());
+    entityManager.persist(task);
+    log.info("New object added (" + task.getId() + "): " + task.toString());
     // Use of taskDao does not work with maven test case: Could not synchronize database state with session?
 
     // Create Admin user
@@ -212,18 +205,15 @@ public class DatabaseService
     log.info("Default data successfully initialized in database.");
   }
 
-  public TenantRegistry getTenantRegistry()
-  {
+  public TenantRegistry getTenantRegistry() {
     return TenantRegistryMap.getInstance().getTenantRegistry();
   }
 
-  public UserGroupCache getUserGroupCache()
-  {
+  public UserGroupCache getUserGroupCache() {
     return getTenantRegistry().getUserGroupCache();
   }
 
-  public TenantDO insertDefaultTenant()
-  {
+  public TenantDO insertDefaultTenant() {
     log.info("Checking if default tenant exists.");
     try {
       String selectDefaultTenant = "SELECT * FROM t_tenant WHERE pk = 1";
@@ -236,20 +226,18 @@ public class DatabaseService
     }
     log.info("Adding default tenant.");
     String insertDefaultTenant = "INSERT INTO t_tenant(PK, CREATED, DELETED, LAST_UPDATE, DEFAULT_TENANT, NAME, SHORTNAME, DESCRIPTION, TENANT_ID) "
-        + "VALUES (1,'2016-03-17 14:00:00',FALSE,'2016-03-17 14:00:00',TRUE,'Default tenant','Default tenant','defaultTenant',1)";
+            + "VALUES (1,'2016-03-17 14:00:00',FALSE,'2016-03-17 14:00:00',TRUE,'Default tenant','Default tenant','defaultTenant',1)";
     jdbcTemplate.execute(insertDefaultTenant);
     log.info("Adding default tenant finished.");
     tenantService.resetTenantTableStatus();
     return tenantService.getDefaultTenant();
   }
 
-  public AddressbookDO insertGlobalAddressbook()
-  {
+  public AddressbookDO insertGlobalAddressbook() {
     return insertGlobalAddressbook(null);
   }
 
-  public AddressbookDO insertGlobalAddressbook(PFUserDO user)
-  {
+  public AddressbookDO insertGlobalAddressbook(PFUserDO user) {
     log.info("Checking if global addressbook exists.");
     try {
       String selectGlobal = "SELECT * FROM t_addressbook WHERE pk = 1";
@@ -262,9 +250,9 @@ public class DatabaseService
     }
     log.info("Adding global addressbook.");
     String insertGlobal =
-        "INSERT INTO t_addressbook(pk, created, deleted, last_update, description, title, tenant_id, owner_fk) "
-            + "VALUES (1, CURRENT_TIMESTAMP, false, CURRENT_TIMESTAMP, 'The global addressbook', 'Global', 1, "
-            + (user != null && user.getId() != null ? user.getId() : ThreadLocalUserContext.getUserId()) + ")";
+            "INSERT INTO t_addressbook(pk, created, deleted, last_update, description, title, tenant_id, owner_fk) "
+                    + "VALUES (1, CURRENT_TIMESTAMP, false, CURRENT_TIMESTAMP, 'The global addressbook', 'Global', 1, "
+                    + (user != null && user.getId() != null ? user.getId() : ThreadLocalUserContext.getUserId()) + ")";
     jdbcTemplate.execute(insertGlobal);
     log.info("Adding global addressbook finished.");
     return addressbookDao.getGlobalAddressbook();
@@ -276,8 +264,7 @@ public class DatabaseService
    * @param tenant
    * @param adminUser
    */
-  public void internalCreateProjectForgeGroups(final TenantDO tenant, final PFUserDO adminUser)
-  {
+  public void internalCreateProjectForgeGroups(final TenantDO tenant, final PFUserDO adminUser) {
     final Set<PFUserDO> adminUsers = new HashSet<>();
     adminUsers.add(adminUser);
     Set<PFUserDO> adminUsersForNewTenants = null;
@@ -289,24 +276,23 @@ public class DatabaseService
 
     addGroup(ProjectForgeGroup.ADMIN_GROUP, "Administrators of ProjectForge", tenant, adminUsers);
     addGroup(ProjectForgeGroup.CONTROLLING_GROUP, "Users for having read access to the company's finances.", tenant,
-        adminUsersForNewTenants);
+            adminUsersForNewTenants);
     addGroup(ProjectForgeGroup.FINANCE_GROUP, "Finance and Accounting", tenant, adminUsersForNewTenants);
     addGroup(ProjectForgeGroup.MARKETING_GROUP, "Marketing users can download all addresses in excel format.", tenant,
-        null);
+            null);
     addGroup(ProjectForgeGroup.ORGA_TEAM, "The organization team has access to post in- and outbound, contracts etc..",
-        tenant,
-        adminUsersForNewTenants);
+            tenant,
+            adminUsersForNewTenants);
     addGroup(ProjectForgeGroup.HR_GROUP, "Users for having full access to the companies hr.",
-        tenant,
-        adminUsersForNewTenants);
+            tenant,
+            adminUsersForNewTenants);
     addGroup(ProjectForgeGroup.PROJECT_MANAGER,
-        "Project managers have access to assigned orders and resource planning.", tenant, null);
+            "Project managers have access to assigned orders and resource planning.", tenant, null);
     addGroup(ProjectForgeGroup.PROJECT_ASSISTANT, "Project assistants have access to assigned orders.", tenant, null);
   }
 
   private void addGroup(final ProjectForgeGroup projectForgeGroup, final String description, final TenantDO tenant,
-      final Set<PFUserDO> users)
-  {
+                        final Set<PFUserDO> users) {
     final GroupDO group = new GroupDO();
     group.setName(projectForgeGroup.toString());
     group.setDescription(description);
@@ -323,8 +309,7 @@ public class DatabaseService
    * @param adminUser         The admin user with the desired username and the salted password (salt string included).
    * @param adminUserTimezone
    */
-  public PFUserDO updateAdminUser(PFUserDO user, final TimeZone adminUserTimezone)
-  {
+  public PFUserDO updateAdminUser(PFUserDO user, final TimeZone adminUserTimezone) {
     //Update test data user with data from setup page
     PFUserDO adminUser = userDao.getInternalByName(DEFAULT_ADMIN_USER);
     adminUser.setUsername(user.getUsername());
@@ -342,8 +327,7 @@ public class DatabaseService
     return adminUser;
   }
 
-  public void afterCreatedTestDb(boolean blocking)
-  {
+  public void afterCreatedTestDb(boolean blocking) {
     Thread rebuildThread = new Thread(() -> hibernateSearchReindexer.rebuildDatabaseSearchIndices());
     rebuildThread.start();
     if (blocking) {
@@ -359,15 +343,13 @@ public class DatabaseService
     log.info("Database successfully initialized with test data.");
   }
 
-  private void databaseNotEmpty()
-  {
+  private void databaseNotEmpty() {
     final String msg = "Database seems to be not empty. Initialization of database aborted.";
     log.error(msg);
     throw new AccessException(msg);
   }
 
-  public void updateSchema()
-  {
+  public void updateSchema() {
     log.info("Start generating Schema...");
     Map<String, Object> props = new HashMap<>();
     props.put("hibernate.hbm2ddl.auto", "update");
@@ -382,21 +364,18 @@ public class DatabaseService
     log.info("Finished generating Schema...");
   }
 
-  public DatabaseDialect getDialect()
-  {
+  public DatabaseDialect getDialect() {
     return HibernateUtils.getDialect();
   }
 
-  private DatabaseSupport getDatabaseSupport()
-  {
+  private DatabaseSupport getDatabaseSupport() {
     if (databaseSupport == null) {
       databaseSupport = new DatabaseSupport(getDialect());
     }
     return databaseSupport;
   }
 
-  private DatabaseExecutor getDatabaseExecutor()
-  {
+  private DatabaseExecutor getDatabaseExecutor() {
     if (databaseExecutor == null) {
       databaseExecutor = new DatabaseExecutorImpl();
       databaseExecutor.setDataSource(dataSource);
@@ -410,27 +389,24 @@ public class DatabaseService
    *
    * @param writeaccess
    */
-  protected void accessCheck(final boolean writeaccess)
-  {
+  protected void accessCheck(final boolean writeaccess) {
     if (ThreadLocalUserContext.getUser() == SYSTEM_ADMIN_PSEUDO_USER) {
       // No access check for the system admin pseudo user.
       return;
     }
     if (!Login.getInstance().isAdminUser(ThreadLocalUserContext.getUser())) {
       throw new AccessException(AccessCheckerImpl.I18N_KEY_VIOLATION_USER_NOT_MEMBER_OF,
-          ProjectForgeGroup.ADMIN_GROUP.getKey());
+              ProjectForgeGroup.ADMIN_GROUP.getKey());
     }
     accessChecker.checkRestrictedOrDemoUser();
   }
 
-  public boolean doesTableExist(final String table)
-  {
+  public boolean doesTableExist(final String table) {
     accessCheck(false);
     return internalDoesTableExist(table);
   }
 
-  public boolean doTablesExist(final Class<?>... entities)
-  {
+  public boolean doTablesExist(final Class<?>... entities) {
     accessCheck(false);
     for (final Class<?> entity : entities) {
       if (!internalDoesTableExist(new Table(entity).getName())) {
@@ -440,8 +416,7 @@ public class DatabaseService
     return true;
   }
 
-  public boolean doExist(final Table... tables)
-  {
+  public boolean doExist(final Table... tables) {
     accessCheck(false);
     for (final Table table : tables) {
       if (!internalDoesTableExist(table.getName())) {
@@ -457,8 +432,7 @@ public class DatabaseService
    * @param table
    * @return
    */
-  public boolean internalDoesTableExist(final String table)
-  {
+  public boolean internalDoesTableExist(final String table) {
     final DatabaseExecutor jdbc = getDatabaseExecutor();
     try {
       jdbc.queryForInt("SELECT COUNT(*) FROM " + table);
@@ -469,8 +443,7 @@ public class DatabaseService
     return true;
   }
 
-  public boolean doesTableAttributeExist(final String table, final String attribute)
-  {
+  public boolean doesTableAttributeExist(final String table, final String attribute) {
     accessCheck(false);
     final DatabaseExecutor jdbc = getDatabaseExecutor();
     try {
@@ -486,8 +459,7 @@ public class DatabaseService
    * @param properties
    * @return false if at least one property of the given entity doesn't exist in the database, otherwise true.
    */
-  public boolean doTableAttributesExist(final Class<?> entityClass, final String... properties)
-  {
+  public boolean doTableAttributesExist(final Class<?> entityClass, final String... properties) {
     accessCheck(false);
     final Table table = new Table(entityClass);
     return doTableAttributesExist(table, properties);
@@ -498,8 +470,7 @@ public class DatabaseService
    * @param properties
    * @return false if at least one property of the given table doesn't exist in the database, otherwise true.
    */
-  public boolean doTableAttributesExist(final Table table, final String... properties)
-  {
+  public boolean doTableAttributesExist(final Table table, final String... properties) {
     accessCheck(false);
     for (final String property : properties) {
       final TableAttribute attr = TableAttribute.createTableAttribute(table.getEntityClass(), property);
@@ -514,19 +485,16 @@ public class DatabaseService
     return true;
   }
 
-  public boolean isTableEmpty(final Class<?> entity)
-  {
+  public boolean isTableEmpty(final Class<?> entity) {
     return isTableEmpty(new Table(entity).getName());
   }
 
-  public boolean isTableEmpty(final String table)
-  {
+  public boolean isTableEmpty(final String table) {
     accessCheck(false);
     return internalIsTableEmpty(table);
   }
 
-  public boolean internalIsTableEmpty(final String table)
-  {
+  public boolean internalIsTableEmpty(final String table) {
     final DatabaseExecutor jdbc = getDatabaseExecutor();
     try {
       return jdbc.queryForInt("SELECT COUNT(*) FROM " + table) == 0;
@@ -539,8 +507,7 @@ public class DatabaseService
    * @param table
    * @return true, if the table is successfully dropped or does not exist.
    */
-  public boolean dropTable(final String table)
-  {
+  public boolean dropTable(final String table) {
     accessCheck(true);
     if (!doesTableExist(table)) {
       // Table is already dropped or does not exist.
@@ -560,8 +527,7 @@ public class DatabaseService
    * @param attribute
    * @return
    */
-  public boolean dropTableAttribute(final String table, final String attribute)
-  {
+  public boolean dropTableAttribute(final String table, final String attribute) {
     accessCheck(true);
     execute("ALTER TABLE " + table + " DROP COLUMN " + attribute);
     return true;
@@ -573,15 +539,13 @@ public class DatabaseService
    * @param length
    * @return
    */
-  public boolean alterTableColumnVarCharLength(final String table, final String attribute, final int length)
-  {
+  public boolean alterTableColumnVarCharLength(final String table, final String attribute, final int length) {
     accessCheck(true);
     execute(getDatabaseSupport().alterTableColumnVarCharLength(table, attribute, length), false);
     return true;
   }
 
-  public void buildCreateTableStatement(final StringBuffer buf, final Table table)
-  {
+  public void buildCreateTableStatement(final StringBuffer buf, final Table table) {
     buf.append("CREATE TABLE " + table.getName() + " (\n");
     boolean first = true;
     for (final TableAttribute attr : table.getAttributes()) {
@@ -606,8 +570,8 @@ public class DatabaseService
       if (StringUtils.isNotEmpty(attr.getForeignTable())) {
         // foreign key (user_fk) references t_pf_user(pk)
         buf.append(",\n  FOREIGN KEY (").append(attr.getName()).append(") REFERENCES ").append(attr.getForeignTable())
-            .append("(")
-            .append(attr.getForeignAttribute()).append(")");
+                .append("(")
+                .append(attr.getForeignAttribute()).append(")");
       }
     }
     final UniqueConstraint[] uniqueConstraints = table.getUniqueConstraints();
@@ -634,8 +598,7 @@ public class DatabaseService
     buf.append("\n);\n");
   }
 
-  public String getAttribute(final Class entityClass, final String property)
-  {
+  public String getAttribute(final Class entityClass, final String property) {
     TableAttribute attr = TableAttribute.createTableAttribute(entityClass, property);
 
     if (attr == null)
@@ -649,8 +612,7 @@ public class DatabaseService
     }
   }
 
-  private void buildAttribute(final StringBuffer buf, final TableAttribute attr)
-  {
+  private void buildAttribute(final StringBuffer buf, final TableAttribute attr) {
     buf.append(attr.getName()).append(" ");
     final Column columnAnnotation = attr.getAnnotation(Column.class);
     if (columnAnnotation != null && StringUtils.isNotEmpty(columnAnnotation.columnDefinition())) {
@@ -671,16 +633,14 @@ public class DatabaseService
     }
   }
 
-  public void buildForeignKeyConstraint(final StringBuffer buf, final String table, final TableAttribute attr)
-  {
+  public void buildForeignKeyConstraint(final StringBuffer buf, final String table, final TableAttribute attr) {
     buf.append("ALTER TABLE ").append(table).append(" ADD CONSTRAINT ").append(table).append("_").append(attr.getName())
-        .append(" FOREIGN KEY (").append(attr.getName()).append(") REFERENCES ").append(attr.getForeignTable())
-        .append("(")
-        .append(attr.getForeignAttribute()).append(");\n");
+            .append(" FOREIGN KEY (").append(attr.getName()).append(") REFERENCES ").append(attr.getForeignTable())
+            .append("(")
+            .append(attr.getForeignAttribute()).append(");\n");
   }
 
-  public boolean createTable(final Table table)
-  {
+  public boolean createTable(final Table table) {
     accessCheck(true);
     if (doExist(table)) {
       log.info("Table '" + table.getName() + "' does already exist.");
@@ -692,8 +652,7 @@ public class DatabaseService
     return true;
   }
 
-  public boolean createSequence(final String name, final boolean ignoreErrors)
-  {
+  public boolean createSequence(final String name, final boolean ignoreErrors) {
     accessCheck(true);
     final String sql = getDatabaseSupport().createSequence(name);
     if (sql != null) {
@@ -703,8 +662,7 @@ public class DatabaseService
   }
 
   public void buildAddTableAttributesStatement(final StringBuffer buf, final String table,
-      final TableAttribute... attributes)
-  {
+                                               final TableAttribute... attributes) {
     for (final TableAttribute attr : attributes) {
       if (doesTableAttributeExist(table, attr.getName())) {
         buf.append("-- Does already exist: ");
@@ -724,8 +682,7 @@ public class DatabaseService
   }
 
   public void buildAddTableAttributesStatement(final StringBuffer buf, final String table,
-      final Collection<TableAttribute> attributes)
-  {
+                                               final Collection<TableAttribute> attributes) {
     buildAddTableAttributesStatement(buf, table, attributes.toArray(new TableAttribute[0]));
   }
 
@@ -734,8 +691,7 @@ public class DatabaseService
    * @param attributeNames Property names of the attributes to create.
    * @return
    */
-  public boolean addTableAttributes(final Class<?> entityClass, final String... attributeNames)
-  {
+  public boolean addTableAttributes(final Class<?> entityClass, final String... attributeNames) {
     return addTableAttributes(new Table(entityClass), attributeNames);
   }
 
@@ -744,8 +700,7 @@ public class DatabaseService
    * @param attributeNames Property names of the attributes to create.
    * @return
    */
-  public boolean addTableAttributes(final Table table, final String... attributeNames)
-  {
+  public boolean addTableAttributes(final Table table, final String... attributeNames) {
 
     final ArrayList<TableAttribute> list = new ArrayList<>();
     for (String attributeName : attributeNames) {
@@ -760,8 +715,7 @@ public class DatabaseService
     return addTableAttributes(table, attributes);
   }
 
-  public boolean addTableAttributes(final String table, final TableAttribute... attributes)
-  {
+  public boolean addTableAttributes(final String table, final TableAttribute... attributes) {
     // splitting in multiple commands is required for HSQL
     for (TableAttribute att : attributes) {
       final StringBuffer buf = new StringBuffer();
@@ -772,28 +726,24 @@ public class DatabaseService
     return true;
   }
 
-  public boolean addTableAttributes(final Table table, final TableAttribute... attributes)
-  {
+  public boolean addTableAttributes(final Table table, final TableAttribute... attributes) {
     return addTableAttributes(table.getName(), attributes);
   }
 
   public void buildAddUniqueConstraintStatement(final StringBuffer buf, final String table, final String constraintName,
-      final String... attributes)
-  {
+                                                final String... attributes) {
     buf.append("ALTER TABLE ").append(table).append(" ADD CONSTRAINT ").append(constraintName).append(" UNIQUE (");
     buf.append(StringHelper.listToString(", ", attributes));
     buf.append(");\n");
   }
 
-  public boolean renameTableAttribute(final String table, final String oldName, final String newName)
-  {
+  public boolean renameTableAttribute(final String table, final String oldName, final String newName) {
     final String alterStatement = getDatabaseSupport().renameAttribute(table, oldName, newName);
     execute(alterStatement);
     return true;
   }
 
-  public boolean addUniqueConstraint(final String table, final String constraintName, final String... attributes)
-  {
+  public boolean addUniqueConstraint(final String table, final String constraintName, final String... attributes) {
     accessCheck(true);
     final StringBuffer buf = new StringBuffer();
     buildAddUniqueConstraintStatement(buf, table, constraintName, attributes);
@@ -801,8 +751,7 @@ public class DatabaseService
     return true;
   }
 
-  public boolean dropAndRecreateAllUniqueConstraints(final Class<?> entity)
-  {
+  public boolean dropAndRecreateAllUniqueConstraints(final Class<?> entity) {
     accessCheck(true);
     final Table table = new Table(entity).autoAddAttributes();
     final String[] uniqueConstraintNames = getAllUniqueConstraintNames(table.getName());
@@ -820,7 +769,7 @@ public class DatabaseService
         final String[] columnNames = uniqueConstraint.columnNames();
         if (columnNames.length > 0) {
           final String constraintName = createUniqueConstraintName(table.getName(), columnNames,
-              existingConstraintNames.toArray(new String[0]));
+                  existingConstraintNames.toArray(new String[0]));
           addUniqueConstraint(table.getName(), constraintName, columnNames);
           existingConstraintNames.add(constraintName);
         }
@@ -833,7 +782,7 @@ public class DatabaseService
       final String[] columnNames = new String[1];
       columnNames[0] = attr.getName();
       final String constraintName = createUniqueConstraintName(table.getName(), columnNames,
-          existingConstraintNames.toArray(new String[0]));
+              existingConstraintNames.toArray(new String[0]));
       addUniqueConstraint(table.getName(), constraintName, columnNames);
       existingConstraintNames.add(constraintName);
     }
@@ -849,8 +798,7 @@ public class DatabaseService
    * @return The generated constraint name different to the given names.
    */
   public String createUniqueConstraintName(final String table, final String[] columnNames,
-      final String[] existingConstraintNames)
-  {
+                                           final String[] existingConstraintNames) {
     final StringBuilder sb = new StringBuilder();
     sb.append(StringUtils.left(table, 15)).append("_uq_").append(StringUtils.left(columnNames[0], 8));
     final String prefix = sb.toString().toLowerCase();
@@ -871,16 +819,15 @@ public class DatabaseService
       }
     }
     final String message = "Oups, can't find any free constraint name! This must be a bug or a database out of control! Trying to find a name '"
-        + prefix
-        + "[0-999]' for table '"
-        + table
-        + "'.";
+            + prefix
+            + "[0-999]' for table '"
+            + table
+            + "'.";
     log.error(message);
     throw new UnsupportedOperationException(message);
   }
 
-  public String[] getAllUniqueConstraintNames(final String table)
-  {
+  public String[] getAllUniqueConstraintNames(final String table) {
     final String uniqueConstraintNamesSql = getDatabaseSupport().getQueryForAllUniqueConstraintNames();
     final DatabaseExecutor jdbc = getDatabaseExecutor();
     final List<DatabaseResultRow> result = jdbc.query(uniqueConstraintNamesSql, table.toLowerCase());
@@ -894,9 +841,9 @@ public class DatabaseService
       final int numberOfEntries = entries != null ? entries.size() : 0;
       if (numberOfEntries != 1) {
         log.error("Error while getting unique constraint name for table '"
-            + table
-            + "'. Each result entry of the query should be one but is: "
-            + numberOfEntries);
+                + table
+                + "'. Each result entry of the query should be one but is: "
+                + numberOfEntries);
       }
       if (numberOfEntries > 0) {
         final DatabaseResultRowEntry entry = entries.get(0);
@@ -913,8 +860,7 @@ public class DatabaseService
    *
    * @return Number of successful created database indices.
    */
-  public int createMissingIndices()
-  {
+  public int createMissingIndices() {
     accessCheck(true);
     log.info("createMissingIndices called.");
     int counter = 0;
@@ -937,11 +883,10 @@ public class DatabaseService
     return counter;
   }
 
-  public void insertInto(final String table, final String[] columns, final Object[] values)
-  {
+  public void insertInto(final String table, final String[] columns, final Object[] values) {
     final StringBuffer buf = new StringBuffer();
     buf.append("insert into ").append(table).append(" (").append(StringHelper.listToString(",", columns))
-        .append(") values (");
+            .append(") values (");
     boolean first = true;
     for (Object value : values) {
       first = StringHelper.append(buf, first, "?", ",");
@@ -958,12 +903,11 @@ public class DatabaseService
    * @param version
    * @return true, if any entry for the given regionId and version is found in the database table t_database_update.
    */
-  public boolean isVersionUpdated(final String regionId, final String version)
-  {
+  public boolean isVersionUpdated(final String regionId, final String version) {
     accessCheck(false);
     final DatabaseExecutor jdbc = getDatabaseExecutor();
     final int result = jdbc.queryForInt("select count(*) from t_database_update where region_id=? and version=?",
-        regionId, version);
+            regionId, version);
     return result > 0;
   }
 
@@ -975,8 +919,7 @@ public class DatabaseService
    * @param attributes
    * @return true, if the index was created, false if an error has occured or the index already exists.
    */
-  public boolean createIndex(final String name, final String table, final String attributes)
-  {
+  public boolean createIndex(final String name, final String table, final String attributes) {
     accessCheck(true);
     try {
       final String jdbcString = "CREATE INDEX " + name + " ON " + table + "(" + attributes + ");";
@@ -993,8 +936,7 @@ public class DatabaseService
    * @param name
    * @return true, if the index was dropped, false if an error has occured or the index does not exist.
    */
-  public boolean dropIndex(final String name)
-  {
+  public boolean dropIndex(final String name) {
     accessCheck(true);
     try {
       execute("DROP INDEX " + name);
@@ -1009,8 +951,7 @@ public class DatabaseService
    * @param jdbcString
    * @see #execute(String, boolean)
    */
-  public void execute(final String jdbcString)
-  {
+  public void execute(final String jdbcString) {
     execute(jdbcString, true);
   }
 
@@ -1021,32 +962,28 @@ public class DatabaseService
    * @param ignoreErrors If true (default) then errors will be caught and logged.
    * @return true if no error occurred (no exception was caught), otherwise false.
    */
-  public void execute(final String jdbcString, final boolean ignoreErrors)
-  {
+  public void execute(final String jdbcString, final boolean ignoreErrors) {
     accessCheck(true);
     final DatabaseExecutor jdbc = getDatabaseExecutor();
     jdbc.execute(jdbcString, ignoreErrors);
     log.info(jdbcString);
   }
 
-  public int queryForInt(final String jdbcQuery)
-  {
+  public int queryForInt(final String jdbcQuery) {
     accessCheck(false);
     final DatabaseExecutor jdbc = getDatabaseExecutor();
     log.info(jdbcQuery);
     return jdbc.queryForInt(jdbcQuery);
   }
 
-  public List<DatabaseResultRow> query(final String sql, final Object... args)
-  {
+  public List<DatabaseResultRow> query(final String sql, final Object... args) {
     accessCheck(false);
     final DatabaseExecutor jdbc = getDatabaseExecutor();
     log.info(sql);
     return jdbc.query(sql, args);
   }
 
-  public int update(final String sql, final Object... args)
-  {
+  public int update(final String sql, final Object... args) {
     accessCheck(false);
     final DatabaseExecutor jdbc = getDatabaseExecutor();
     log.info(sql);
@@ -1058,8 +995,7 @@ public class DatabaseService
    *
    * @see DatabaseSupport#getShutdownDatabaseStatement()
    */
-  public void shutdownDatabase()
-  {
+  public void shutdownDatabase() {
     final String statement = getDatabaseSupport().getShutdownDatabaseStatement();
     if (statement == null) {
       return;
@@ -1068,22 +1004,19 @@ public class DatabaseService
     execute(statement);
   }
 
-  public int getDatabaseTableColumnLenght(final Class<?> entityClass, final String attributeNames)
-  {
+  public int getDatabaseTableColumnLenght(final Class<?> entityClass, final String attributeNames) {
     String jdbcQuery = "select character_maximum_length from information_schema.columns where LOWER(table_name) = '"
-        + new Table(entityClass).getName().toLowerCase() + "' And LOWER(column_name) = '" + attributeNames.toLowerCase() + "'";
+            + new Table(entityClass).getName().toLowerCase() + "' And LOWER(column_name) = '" + attributeNames.toLowerCase() + "'";
     final DatabaseExecutor jdbc = getDatabaseExecutor();
     log.info(jdbcQuery);
     return jdbc.queryForInt(jdbcQuery);
   }
 
-  public static PFUserDO __internalGetSystemAdminPseudoUser()
-  {
+  public static PFUserDO __internalGetSystemAdminPseudoUser() {
     return SYSTEM_ADMIN_PSEUDO_USER;
   }
 
-  public SystemUpdater getSystemUpdater()
-  {
+  public SystemUpdater getSystemUpdater() {
     if (systemUpdater == null) {
       systemUpdater = new SystemUpdater();
     }
@@ -1091,13 +1024,13 @@ public class DatabaseService
   }
 
   /**
+   *
    */
-  public List<DatabaseUpdateDO> getUpdateHistory()
-  {
+  public List<DatabaseUpdateDO> getUpdateHistory() {
     accessCheck(false);
     final JdbcTemplate jdbc = new JdbcTemplate(dataSource);
     final List<Map<String, Object>> dbResult = jdbc
-        .queryForList("SELECT * FROM t_database_update ORDER BY update_date DESC");
+            .queryForList("SELECT * FROM t_database_update ORDER BY update_date DESC");
     final List<DatabaseUpdateDO> result = new ArrayList<>();
     for (final Map<String, Object> map : dbResult) {
       final DatabaseUpdateDO entry = new DatabaseUpdateDO();
@@ -1106,7 +1039,7 @@ public class DatabaseService
       entry.setVersionString((String) map.get("version"));
       entry.setExecutionResult((String) map.get("execution_result"));
       final PFUserDO executedByUser = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache()
-          .getUser((Integer) map.get("executed_by_user_fk"));
+              .getUser((Integer) map.get("executed_by_user_fk"));
       entry.setExecutedBy(executedByUser);
       entry.setDescription((String) map.get("description"));
       result.add(entry);
@@ -1114,9 +1047,7 @@ public class DatabaseService
     return result;
   }
 
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public boolean databaseTablesExists()
-  {
+  public boolean databaseTablesExists() {
     try {
       final Table userTable = new Table(PFUserDO.class);
       return !internalDoesTableExist(userTable.getName());
@@ -1126,9 +1057,7 @@ public class DatabaseService
     return false;
   }
 
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public boolean databaseTablesWithEntriesExists()
-  {
+  public boolean databaseTablesWithEntriesExists() {
     try {
       final Table userTable = new Table(PFUserDO.class);
       return internalDoesTableExist(userTable.getName()) && !internalIsTableEmpty(userTable.getName());
@@ -1138,25 +1067,22 @@ public class DatabaseService
     return false;
   }
 
-  public boolean doesGroupExists(ProjectForgeGroup group)
-  {
+  public boolean doesGroupExists(ProjectForgeGroup group) {
     return emf.runRoTrans(emgr -> {
       List<GroupDO> selectedGroups = emgr.select(GroupDO.class, "SELECT g FROM GroupDO g WHERE g.name = :name", "name",
-          group.getName());
+              group.getName());
       return selectedGroups != null && selectedGroups.size() > 0;
     });
   }
 
-  public boolean doesTableRowExists(final Class<?> entity, final String columnName, final String cellValue, final boolean useQuotationMarks)
-  {
+  public boolean doesTableRowExists(final Class<?> entity, final String columnName, final String cellValue, final boolean useQuotationMarks) {
     return doesTableRowExists(new Table(entity).getName(), columnName, cellValue, useQuotationMarks);
   }
 
-  public boolean doesTableRowExists(String tablename, String columnname, String columnvalue, boolean useQuotationMarks)
-  {
+  public boolean doesTableRowExists(String tablename, String columnname, String columnvalue, boolean useQuotationMarks) {
     String quotationMark = useQuotationMarks ? "'" : "";
     String sql = "SELECT * FROM " + tablename + " WHERE " + columnname + " = " + quotationMark + columnvalue
-        + quotationMark;
+            + quotationMark;
     try {
       List<DatabaseResultRow> query = query(sql);
       if (query != null && query.size() > 0) {
@@ -1168,8 +1094,7 @@ public class DatabaseService
     return false;
   }
 
-  public int countTimeableAttrGroupEntries(final Class<? extends TimeableAttrRow<?>> entityClass, final String groupName)
-  {
+  public int countTimeableAttrGroupEntries(final Class<? extends TimeableAttrRow<?>> entityClass, final String groupName) {
     accessCheck(false);
     final Table table = new Table(entityClass);
     final TableAttribute attr = TableAttribute.createTableAttribute(table.getEntityClass(), "groupName");
@@ -1182,29 +1107,25 @@ public class DatabaseService
     }
   }
 
-  public int replaceTableCellStrings(final Class<?> entity, final String columnName, final String oldCellValue, final String newCellValue)
-  {
+  public int replaceTableCellStrings(final Class<?> entity, final String columnName, final String oldCellValue, final String newCellValue) {
     final String tableName = new Table(entity).getName();
     return update("UPDATE " + tableName + " SET " + columnName + " = ? WHERE status = ?", newCellValue, oldCellValue);
   }
 
-  public boolean doesUniqueConstraintExists(final String tableName, final String uniqueConstraintName)
-  {
+  public boolean doesUniqueConstraintExists(final String tableName, final String uniqueConstraintName) {
     final String[] allUniqueConstraintNames = getAllUniqueConstraintNames(tableName);
     return (allUniqueConstraintNames != null) &&
-        Arrays.asList(allUniqueConstraintNames).contains(uniqueConstraintName);
+            Arrays.asList(allUniqueConstraintNames).contains(uniqueConstraintName);
   }
 
-  public boolean doesUniqueConstraintExists(final String tableName, final String... fields)
-  {
+  public boolean doesUniqueConstraintExists(final String tableName, final String... fields) {
     return this.getUniqueConstraintName(tableName, fields) != null;
   }
 
-  public String getUniqueConstraintName(final String tableName, final String... fields)
-  {
+  public String getUniqueConstraintName(final String tableName, final String... fields) {
     String queryString = String.format("select tc.constraint_name, cc.Column_Name from INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc "
-        + "inner join information_schema.constraint_column_usage cc on tc.Constraint_Name = cc.Constraint_Name "
-        + "where tc.CONSTRAINT_TYPE='UNIQUE' and LOWER(tc.table_name)='%s'", tableName.toLowerCase());
+            + "inner join information_schema.constraint_column_usage cc on tc.Constraint_Name = cc.Constraint_Name "
+            + "where tc.CONSTRAINT_TYPE='UNIQUE' and LOWER(tc.table_name)='%s'", tableName.toLowerCase());
 
     List<DatabaseResultRow> resultSet = this.query(queryString);
 
@@ -1253,8 +1174,7 @@ public class DatabaseService
     return null;
   }
 
-  public Optional<Boolean> isColumnNullable(final String tableName, final String columnName)
-  {
+  public Optional<Boolean> isColumnNullable(final String tableName, final String columnName) {
     try (final Connection connection = dataSource.getConnection()) {
 
       final ResultSet columns;
@@ -1276,15 +1196,14 @@ public class DatabaseService
     }
   }
 
-  public int dropForeignKeys()
-  {
+  public int dropForeignKeys() {
     final DatabaseExecutor jdbc = this.getDatabaseExecutor();
     int countDroppedKeys = 0;
     int countCurrent = 0;
     String tableNameLast = null;
 
     final List<DatabaseResultRow> queryResult = jdbc
-        .query("SELECT TABLE_NAME, CONSTRAINT_NAME FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_TYPE='FOREIGN KEY' ORDER BY TABLE_NAME;");
+            .query("SELECT TABLE_NAME, CONSTRAINT_NAME FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_TYPE='FOREIGN KEY' ORDER BY TABLE_NAME;");
     for (DatabaseResultRow row : queryResult) {
       final String tableName = (String) row.getEntry(0).getValue();
       final String foreignKey = (String) row.getEntry(1).getValue();
@@ -1308,8 +1227,7 @@ public class DatabaseService
     return countDroppedKeys;
   }
 
-  public DataSource getDataSource()
-  {
+  public DataSource getDataSource() {
     return dataSource;
   }
 }

@@ -53,7 +53,8 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Cacheable
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Cache(region = "orders", usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+//@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Table(name = "t_fibu_auftrag",
         uniqueConstraints = [UniqueConstraint(columnNames = ["nummer", "tenant_id"])],
         indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_contact_person_fk", columnList = "contact_person_fk"),
@@ -92,7 +93,7 @@ class AuftragDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "label.position.short")
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
     @IndexedEmbedded(depth = 1)
-    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true, mappedBy = "auftrag")
+    @get:OneToMany(cascade = [CascadeType.MERGE], fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "auftrag")
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
     @get:ListIndexBase(1)
     var positionen: MutableList<AuftragsPositionDO>? = null

@@ -252,8 +252,8 @@
 
     <!--kotlin.compiler.incremental>true</kotlin.compiler.incremental--> <!-- It's experimentell, so don't use it for now -->
 
-    <hibernate.version>5.4.4.Final</hibernate.version>
-    <hibernate-search.version>5.11.2.Final</hibernate-search.version>
+    <hibernate.version>5.4.8.Final</hibernate.version>
+    <hibernate-search.version>5.11.3.Final</hibernate-search.version>
     <mgc.version>3.1.1</mgc.version>
 
     <commons-httpclient.version>3.1</commons-httpclient.version>
@@ -286,8 +286,8 @@
     <xmlgraphics-commons.version>2.3</xmlgraphics-commons.version>
     <xmlgraphics-batik-codec.version>1.11</xmlgraphics-batik-codec.version>
     <!-- HIBERNATE5 -->
-    <postgresql.version>42.2.6</postgresql.version>
-    <hsqldb.version>2.4.1</hsqldb.version>
+    <postgresql.version>42.2.8</postgresql.version>
+    <hsqldb.version>2.5.0</hsqldb.version>
     <codehaus-jackson.version>1.9.13</codehaus-jackson.version>
     <jackson.version>2.9.9</jackson.version>
     <powermock.version>2.0.4</powermock.version>
@@ -314,18 +314,23 @@
       <version>${hibernate.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-ehcache</artifactId>
+      <version>${hibernate.version}</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/org.ehcache/ehcache -->
+    <dependency>
+      <groupId>org.ehcache</groupId>
+      <artifactId>ehcache</artifactId>
+      <version>3.8.1</version>
+    </dependency>
+    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-cache</artifactId>
     </dependency>
     <dependency>
       <groupId>javax.cache</groupId>
       <artifactId>cache-api</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.ehcache</groupId>
-      <artifactId>ehcache</artifactId>
-      <version>3.8.0</version>
     </dependency>
 
     <dependency>

@@ -40,9 +40,6 @@ import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
@@ -57,8 +54,7 @@ import java.util.TimeZone;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-public class ConfigurationDao extends BaseDao<ConfigurationDO>
-{
+public class ConfigurationDao extends BaseDao<ConfigurationDO> {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ConfigurationDao.class);
 
   @Autowired
@@ -77,15 +73,14 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
    * @see AbstractConfiguration#setExpired()
    */
   @Override
-  protected void afterSaveOrModify(final ConfigurationDO obj)
-  {
+  protected void afterSaveOrModify(final ConfigurationDO obj) {
     if (obj.getParameter().equals(ConfigurationParam.MULTI_TENANCY_ENABLED.getKey())
-        && obj.getBooleanValue()) {
+            && obj.getBooleanValue()) {
       // Enable current logged in user as super admin user.
       final Integer adminUserId = ThreadLocalUserContext.getUserId();
       final PFUserDO adminUser = userDao.getById(adminUserId);
       log.info("Enabling current user as super admin (for administer tenants) because he has enabled multi-tenancy: "
-          + adminUser.getUserDisplayName());
+              + adminUser.getUserDisplayName());
       adminUser.setSuperAdmin(true);
       userDao.update(adminUser);
     }
@@ -101,9 +96,7 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
   /**
    * Checks and creates missing data base entries. Updates also out-dated descriptions.
    */
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
-  public void checkAndUpdateDatabaseEntries()
-  {
+  public void checkAndUpdateDatabaseEntries() {
     final List<ConfigurationDO> list = internalLoadAll();
     final Set<String> params = new HashSet<>();
     for (final ConfigurationParam param : ConfigurationParam.values()) {
@@ -117,22 +110,18 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
     }
   }
 
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public ConfigurationDO getEntry(final IConfigurationParam param)
-  {
+  public ConfigurationDO getEntry(final IConfigurationParam param) {
     Validate.notNull(param);
-    return SQLHelper.ensureUniqueResult(getSession()
+    return SQLHelper.ensureUniqueResult(em
             .createNamedQuery(ConfigurationDO.FIND_BY_PARAMETER, ConfigurationDO.class)
             .setParameter("parameter", param.getKey()));
   }
 
-  public Object getValue(final IConfigurationParam parameter)
-  {
+  public Object getValue(final IConfigurationParam parameter) {
     return getValue(parameter, getEntry(parameter));
   }
 
-  public Object getValue(final IConfigurationParam parameter, final ConfigurationDO configurationDO)
-  {
+  public Object getValue(final IConfigurationParam parameter, final ConfigurationDO configurationDO) {
     if (parameter.getType().isIn(ConfigurationType.STRING, ConfigurationType.TEXT)) {
       if (configurationDO == null) {
         return parameter.getDefaultStringValue();
@@ -183,27 +172,23 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
     throw new UnsupportedOperationException("Type unsupported: " + parameter.getType());
   }
 
-  public ConfigurationDao()
-  {
+  public ConfigurationDao() {
     super(ConfigurationDO.class);
   }
 
   @Override
   public boolean hasAccess(final PFUserDO user, final ConfigurationDO obj, final ConfigurationDO oldObj,
-      final OperationType operationType,
-      final boolean throwException)
-  {
+                           final OperationType operationType,
+                           final boolean throwException) {
     return accessChecker.isUserMemberOfAdminGroup(user, throwException);
   }
 
   @Override
-  public ConfigurationDO newInstance()
-  {
+  public ConfigurationDO newInstance() {
     throw new UnsupportedOperationException();
   }
 
-  private void checkAndUpdateDatabaseEntry(final IConfigurationParam param, final List<ConfigurationDO> list, final Set<String> params)
-  {
+  private void checkAndUpdateDatabaseEntry(final IConfigurationParam param, final List<ConfigurationDO> list, final Set<String> params) {
     params.add(param.getKey());
 
     // find the entry and update it
@@ -251,24 +236,20 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
   }
 
   @Override
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public List<ConfigurationDO> internalLoadAll()
-  {
+  public List<ConfigurationDO> internalLoadAll() {
     TenantDao tenantDao = applicationContext.getBean(TenantDao.class);
     if (tenantDao.tenantTableExists()) {
       return super.internalLoadAll();
     } else {
       return emf.runInTrans((emgr) -> {
         return emgr.select(ConfigurationDO.class,
-            "SELECT new org.projectforge.framework.configuration.entities.ConfigurationDO(c.id, c.created, c.deleted, c.lastUpdate, c.configurationType, c.floatValue, c.intValue, c.parameter, c.stringValue) FROM ConfigurationDO c");
+                "SELECT new org.projectforge.framework.configuration.entities.ConfigurationDO(c.id, c.created, c.deleted, c.lastUpdate, c.configurationType, c.floatValue, c.intValue, c.parameter, c.stringValue) FROM ConfigurationDO c");
       });
     }
   }
 
   @Override
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public List<ConfigurationDO> internalLoadAll(TenantDO tenant)
-  {
+  public List<ConfigurationDO> internalLoadAll(TenantDO tenant) {
     TenantDao tenantDao = applicationContext.getBean(TenantDao.class);
     if (tenantDao.tenantTableExists()) {
       return super.internalLoadAll(tenant);
@@ -277,8 +258,7 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
     }
   }
 
-  public ApplicationContext getApplicationContext()
-  {
+  public ApplicationContext getApplicationContext() {
     return applicationContext;
   }
 }

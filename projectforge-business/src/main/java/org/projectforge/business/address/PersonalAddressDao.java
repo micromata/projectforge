@@ -24,8 +24,6 @@
 package org.projectforge.business.address;
 
 import org.apache.commons.lang3.Validate;
-import org.hibernate.LockMode;
-import org.hibernate.SessionFactory;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.AccessChecker;
@@ -33,16 +31,15 @@ import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.api.UserRightService;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -61,10 +58,10 @@ public class PersonalAddressDao {
   private UserDao userDao;
 
   @Autowired
-  private HibernateTemplate hibernateTemplate;
+  private EntityManager em;
 
   @Autowired
-  private SessionFactory sessionFactory;
+  private PfEmgrFactory emgrFactory;
 
   @Autowired
   private AddressbookDao addressbookDao;
@@ -88,7 +85,6 @@ public class PersonalAddressDao {
    * @param obj
    * @return the generated identifier.
    */
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
   public Serializable saveOrUpdate(final PersonalAddressDO obj) {
     if (internalUpdate(obj)) {
       return obj.getId();
@@ -147,9 +143,12 @@ public class PersonalAddressDao {
     checkAccess(obj);
     obj.setCreated();
     obj.setLastUpdate();
-    final Serializable id = hibernateTemplate.save(obj);
-    log.info("New object added (" + id + "): " + obj.toString());
-    return id;
+    emgrFactory.runInTrans(emgr -> {
+      emgr.persist(obj);
+      return null;
+    });
+    log.info("New object added (" + obj.getId() + "): " + obj.toString());
+    return obj.getId();
   }
 
   private boolean isEmpty(final PersonalAddressDO obj) {
@@ -168,7 +167,7 @@ public class PersonalAddressDao {
   private boolean internalUpdate(final PersonalAddressDO obj) {
     PersonalAddressDO dbObj = null;
     if (obj.getId() != null) {
-      dbObj = hibernateTemplate.load(PersonalAddressDO.class, obj.getId(), LockMode.PESSIMISTIC_WRITE);
+      dbObj = em.find(PersonalAddressDO.class, obj.getId(), LockModeType.PESSIMISTIC_WRITE);
     }
     if (dbObj == null) {
       dbObj = getByAddressId(obj.getAddressId());
@@ -192,32 +191,30 @@ public class PersonalAddressDao {
    * @return the PersonalAddressDO entry assigned to the given address for the context user or null, if not exist.
    */
   @SuppressWarnings("unchecked")
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public PersonalAddressDO getByAddressId(final Integer addressId) {
     final PFUserDO owner = ThreadLocalUserContext.getUser();
     Validate.notNull(owner);
     Validate.notNull(owner.getId());
-    return SQLHelper.ensureUniqueResult(sessionFactory.getCurrentSession()
-            .createNamedQuery(PersonalAddressDO.FIND_BY_OWNER_AND_ADDRESS_ID, PersonalAddressDO.class)
-            .setParameter("ownerId", owner.getId())
-            .setParameter("addressId", addressId),
+    return SQLHelper.ensureUniqueResult(em
+                    .createNamedQuery(PersonalAddressDO.FIND_BY_OWNER_AND_ADDRESS_ID, PersonalAddressDO.class)
+                    .setParameter("ownerId", owner.getId())
+                    .setParameter("addressId", addressId),
             "Multiple personal address book entries for same user (" + owner.getId() + ") and same address ("
-                                    + addressId + "). Should not occur?!");
+                    + addressId + "). Should not occur?!");
   }
 
   /**
    * @return the list of all PersonalAddressDO entries for the context user.
    */
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<PersonalAddressDO> getList() {
     final PFUserDO owner = ThreadLocalUserContext.getUser();
     Validate.notNull(owner);
     Validate.notNull(owner.getId());
     final long start = System.currentTimeMillis();
-    List<PersonalAddressDO> list = sessionFactory.getCurrentSession()
+    List<PersonalAddressDO> list = em
             .createNamedQuery(PersonalAddressDO.FIND_JOINED_BY_OWNER, PersonalAddressDO.class)
             .setParameter("ownerId", owner.getId())
-            .list();
+            .getResultList();
     log.info("PersonalDao.getList took " + (System.currentTimeMillis() - start) + "ms.");
     list = list.stream().filter(pa -> checkAccess(pa, false)).collect(Collectors.toList());
     return list;
@@ -226,15 +223,14 @@ public class PersonalAddressDao {
   /**
    * @return the list of all PersonalAddressDO entries for the context user without any check access (addresses might be also deleted).
    */
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<Integer> getIdList() {
     final PFUserDO owner = ThreadLocalUserContext.getUser();
     Validate.notNull(owner);
     Validate.notNull(owner.getId());
-    List<Integer> list = sessionFactory.getCurrentSession()
+    List<Integer> list = em
             .createNamedQuery(PersonalAddressDO.FIND_IDS_BY_OWNER, Integer.class)
             .setParameter("ownerId", owner.getId())
-            .list();
+            .getResultList();
     return list;
   }
 
@@ -243,15 +239,14 @@ public class PersonalAddressDao {
    * @see PersonalAddressDO#isFavorite()
    */
   @SuppressWarnings("unchecked")
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public Map<Integer, PersonalAddressDO> getPersonalAddressByAddressId() {
     final PFUserDO owner = ThreadLocalUserContext.getUser();
     Validate.notNull(owner);
     Validate.notNull(owner.getId());
-    final List<PersonalAddressDO> list = sessionFactory.getCurrentSession()
+    final List<PersonalAddressDO> list = em
             .createNamedQuery(PersonalAddressDO.FIND_BY_OWNER, PersonalAddressDO.class)
             .setParameter("ownerId", owner.getId())
-            .list();
+            .getResultList();
     final Map<Integer, PersonalAddressDO> result = new HashMap<>();
     for (final PersonalAddressDO entry : list) {
       if (entry.isFavorite() && checkAccess(entry, false)) {
@@ -266,7 +261,6 @@ public class PersonalAddressDao {
    * @see PersonalAddressDO#isFavorite()
    */
   @SuppressWarnings("unchecked")
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<AddressDO> getMyAddresses() {
     final PFUserDO owner = ThreadLocalUserContext.getUser();
     Validate.notNull(owner);

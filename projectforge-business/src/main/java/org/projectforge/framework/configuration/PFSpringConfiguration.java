@@ -32,8 +32,6 @@ import de.micromata.mgc.jpa.spring.SpringEmgrFilterBean;
 import de.micromata.mgc.jpa.spring.factories.JpaToSessionSpringBeanFactory;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.projectforge.continuousdb.DatabaseSupport;
-import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.attr.impl.AttrSchemaServiceSpringBeanImpl;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
@@ -46,11 +44,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Primary;
-import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
@@ -81,9 +77,6 @@ public class PFSpringConfiguration
   @Autowired
   private SpringEmgrFilterBean springEmgrFilterBean;
 
-  @Autowired
-  private PfEmgrFactory pfEmgrFactory;
-
   @Value("${hibernate.search.default.indexBase}")
   private String hibernateIndexDir;
 
@@ -93,17 +86,8 @@ public class PFSpringConfiguration
     return builder.build();
   }
 
-  @Bean
-  public FactoryBean<Session> hibernateSession()
-  {
-    return new JpaToSessionSpringBeanFactory();
-  }
-
-  @Bean
-  public SessionFactory sessionFactory()
-  {
-    return entityManagerFactory().unwrap(SessionFactory.class);
-  }
+  @Autowired
+  private PfEmgrFactory pfEmgrFactory;
 
   /**
    * has to be defined, otherwise spring creates a LocalContainerEntityManagerFactoryBean, which has no correct
@@ -119,30 +103,18 @@ public class PFSpringConfiguration
   }
 
   @Bean
+  public FactoryBean<Session> hibernateSession()
+  {
+    return new JpaToSessionSpringBeanFactory();
+  }
+
+  @Bean
   public HibernateTransactionManager transactionManager() throws Exception
   {
-    HibernateTransactionManager ret = new HibernateTransactionManager(sessionFactory());
+    HibernateTransactionManager ret = new HibernateTransactionManager(entityManagerFactory().unwrap(SessionFactory.class));
     ret.setAutodetectDataSource(false);
     ret.setDataSource(dataSource);
     return ret;
-  }
-
-  @Bean
-  public TransactionTemplate txTemplate() throws Exception
-  {
-    TransactionTemplate ret = new TransactionTemplate();
-    ret.setTransactionManager(transactionManager());
-    return ret;
-  }
-
-  @Bean
-  public HibernateTemplate hibernateTemplate() throws Exception
-  {
-    HibernateTemplate ht = new HibernateTemplate(sessionFactory());
-    if (DatabaseSupport.getInstance() == null) {
-      DatabaseSupport.setInstance(new DatabaseSupport(HibernateUtils.getDialect()));
-    }
-    return ht;
   }
 
   @Bean(name = "attrSchemaService")

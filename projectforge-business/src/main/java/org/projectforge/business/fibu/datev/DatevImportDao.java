@@ -24,7 +24,6 @@
 package org.projectforge.business.fibu.datev;
 
 import org.apache.commons.lang3.Validate;
-import org.hibernate.LockMode;
 import org.projectforge.business.excel.ExcelImportException;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KontoDao;
@@ -41,64 +40,44 @@ import org.projectforge.framework.persistence.utils.ImportedElement;
 import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.framework.utils.ActionLog;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 
 @Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-public class DatevImportDao
-{
+public class DatevImportDao {
+  public static final UserRightId USER_RIGHT_ID = UserRightId.FIBU_DATEV_IMPORT;
+  static final String[] KONTO_DIFF_PROPERTIES = {"nummer", "bezeichnung"};
+  static final String[] BUCHUNGSSATZ_DIFF_PROPERTIES = {"satznr", "betrag", "sh", "konto", "kost2", "menge", "beleg",
+          "datum",
+          "gegenKonto", "text", "kost1", "comment"};
   /**
    * Size of bulk inserts. If this value is too large, exceptions are expected and as more small the value is so as more
    * slowly is the insert process.
    */
   private static final int BUCHUNGSSATZ_INSERT_BLOCK_SIZE = 50;
-
   /**
    * Size of bulk inserts. If this value is too large, exceptions are expected and as more small the value is so as more
    * slowly is the insert process.
    */
   private static final int KONTO_INSERT_BLOCK_SIZE = 50;
-
-  public enum Type
-  {
-    KONTENPLAN, BUCHUNGSSAETZE
-  }
-
-  public static final UserRightId USER_RIGHT_ID = UserRightId.FIBU_DATEV_IMPORT;
-
-  static final String[] KONTO_DIFF_PROPERTIES = { "nummer", "bezeichnung" };
-
-  static final String[] BUCHUNGSSATZ_DIFF_PROPERTIES = { "satznr", "betrag", "sh", "konto", "kost2", "menge", "beleg",
-      "datum",
-      "gegenKonto", "text", "kost1", "comment" };
-
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DatevImportDao.class);
-
+  @Autowired
+  private EntityManager em;
   @Autowired
   private AccessChecker accessChecker;
-
   @Autowired
   private KontoDao kontoDao;
-
   @Autowired
   private Kost1Dao kost1Dao;
-
   @Autowired
   private Kost2Dao kost2Dao;
-
   @Autowired
   private BuchungssatzDao buchungssatzDao;
-
-  @Autowired
-  HibernateTemplate hibernateTemplate;
 
   /**
    * Has the user the right FIBU_DATEV_IMPORT (value true)?
@@ -107,8 +86,7 @@ public class DatevImportDao
    * @see UserRightId#FIBU_DATEV_IMPORT
    * @see AccessChecker#hasRight(UserRightId, UserRightValue, boolean)
    */
-  public static boolean hasRight(final AccessChecker accessChecker)
-  {
+  public static boolean hasRight(final AccessChecker accessChecker) {
     return hasRight(accessChecker, false);
   }
 
@@ -120,13 +98,11 @@ public class DatevImportDao
    * @see UserRightId#FIBU_DATEV_IMPORT
    * @see AccessChecker#hasRight(UserRightId, UserRightValue, boolean)
    */
-  public static boolean checkLoggeinUserRight(final AccessChecker accessChecker)
-  {
+  public static boolean checkLoggeinUserRight(final AccessChecker accessChecker) {
     return hasRight(accessChecker, true);
   }
 
-  private static boolean hasRight(final AccessChecker accessChecker, final boolean throwException)
-  {
+  private static boolean hasRight(final AccessChecker accessChecker, final boolean throwException) {
     return accessChecker.hasLoggedInUserRight(USER_RIGHT_ID, throwException, UserRightValue.TRUE);
   }
 
@@ -140,8 +116,7 @@ public class DatevImportDao
    * @throws Exception
    */
   public ImportStorage<KontoDO> importKontenplan(final InputStream is, final String filename, final ActionLog actionLog)
-      throws Exception
-  {
+          throws Exception {
     checkLoggeinUserRight(accessChecker);
     log.info("importKontenplan called");
     final ImportStorage<KontoDO> storage = new ImportStorage<>(Type.KONTENPLAN);
@@ -161,15 +136,14 @@ public class DatevImportDao
    * @throws Exception
    */
   public ImportStorage<BuchungssatzDO> importBuchungsdaten(final InputStream is, final String filename,
-      final ActionLog actionLog)
-      throws Exception
-  {
+                                                           final ActionLog actionLog)
+          throws Exception {
     checkLoggeinUserRight(accessChecker);
     log.info("importBuchungsdaten called");
     final ImportStorage<BuchungssatzDO> storage = new ImportStorage<>(Type.BUCHUNGSSAETZE);
     storage.setFilename(filename);
     final BuchungssatzExcelImporter imp = new BuchungssatzExcelImporter(storage, kontoDao, kost1Dao, kost2Dao,
-        actionLog);
+            actionLog);
     try {
       imp.doImport(is);
     } catch (final ExcelImportException ex) {
@@ -187,8 +161,7 @@ public class DatevImportDao
    * @param name    of sheet to reconcile.
    */
   @SuppressWarnings("unchecked")
-  public void reconcile(final ImportStorage<?> storage, final String sheetName)
-  {
+  public void reconcile(final ImportStorage<?> storage, final String sheetName) {
     checkLoggeinUserRight(accessChecker);
     Validate.notNull(storage.getSheets());
     final ImportedSheet<?> sheet = storage.getNamedSheet(sheetName);
@@ -202,9 +175,7 @@ public class DatevImportDao
   }
 
   @SuppressWarnings("unchecked")
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
-  public void commit(final ImportStorage<?> storage, final String sheetName)
-  {
+  public void commit(final ImportStorage<?> storage, final String sheetName) {
     checkLoggeinUserRight(accessChecker);
     Validate.notNull(storage.getSheets());
     final ImportedSheet<?> sheet = storage.getNamedSheet(sheetName);
@@ -222,8 +193,7 @@ public class DatevImportDao
     sheet.setStatus(ImportStatus.IMPORTED);
   }
 
-  private void reconcileKontenplan(final ImportedSheet<KontoDO> sheet)
-  {
+  private void reconcileKontenplan(final ImportedSheet<KontoDO> sheet) {
     log.info("Reconcile Kontenplan called");
     for (final ImportedElement<KontoDO> el : sheet.getElements()) {
       final KontoDO konto = el.getValue();
@@ -236,8 +206,7 @@ public class DatevImportDao
     sheet.calculateStatistics();
   }
 
-  private void reconcileBuchungsdaten(final ImportedSheet<BuchungssatzDO> sheet)
-  {
+  private void reconcileBuchungsdaten(final ImportedSheet<BuchungssatzDO> sheet) {
     log.info("Reconcile Buchungsdaten called");
     for (final ImportedElement<BuchungssatzDO> el : sheet.getElements()) {
       final BuchungssatzDO satz = el.getValue();
@@ -270,8 +239,7 @@ public class DatevImportDao
     sheet.calculateStatistics();
   }
 
-  private int commitKontenplan(final ImportedSheet<KontoDO> sheet)
-  {
+  private int commitKontenplan(final ImportedSheet<KontoDO> sheet) {
     log.info("Commit Kontenplan called");
     final Collection<KontoDO> col = new ArrayList<>();
     for (final ImportedElement<KontoDO> el : sheet.getElements()) {
@@ -290,16 +258,14 @@ public class DatevImportDao
     return col.size();
   }
 
-  private Object get(final Class<?> clazz, final Integer id)
-  {
+  private Object get(final Class<?> clazz, final Integer id) {
     if (id == null) {
       return null;
     }
-    return hibernateTemplate.get(clazz, id, LockMode.READ);
+    return em.find(clazz, id, LockModeType.READ);
   }
 
-  private int commitBuchungsdaten(final ImportedSheet<BuchungssatzDO> sheet)
-  {
+  private int commitBuchungsdaten(final ImportedSheet<BuchungssatzDO> sheet) {
     log.info("Commit Buchungsdaten called");
     final Collection<BuchungssatzDO> col = new ArrayList<>();
     for (final ImportedElement<BuchungssatzDO> el : sheet.getElements()) {
@@ -326,6 +292,10 @@ public class DatevImportDao
     }
     buchungssatzDao.internalSaveOrUpdate(buchungssatzDao, col, BUCHUNGSSATZ_INSERT_BLOCK_SIZE);
     return col.size();
+  }
+
+  public enum Type {
+    KONTENPLAN, BUCHUNGSSAETZE
   }
 
 }

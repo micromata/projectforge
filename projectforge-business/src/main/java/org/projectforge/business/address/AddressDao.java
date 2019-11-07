@@ -40,6 +40,9 @@ import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.text.DateFormat;
@@ -74,17 +77,20 @@ public class AddressDao extends BaseDao<AddressDO> {
   }
 
   public List<Locale> getUsedCommunicationLanguages() {
-    @SuppressWarnings("unchecked") final List<Locale> list = (List<Locale>) getHibernateTemplate()
-            .find(
-                    "select distinct a.communicationLanguage from AddressDO a where deleted=false and a.communicationLanguage is not null order by a.communicationLanguage");
-    return list;
+    CriteriaBuilder cb = em.getCriteriaBuilder();
+    CriteriaQuery<Locale> cr = cb.createQuery(Locale.class);
+    Root<AddressDO> root = cr.from(clazz);
+    cr.select(root.get("communicationLanguage")).where(
+            cb.equal(root.get("deleted"), false),
+            cb.isNotNull(root.get("communicationLanguage")))
+            .orderBy(cb.asc(root.get("communicationLanguage")))
+            .distinct(true);
+//    "select distinct a.communicationLanguage from AddressDO a where deleted=false and a.communicationLanguage is not null order by a.communicationLanguage");
+    return em.createQuery(cr).getResultList();
   }
 
   /**
    * Get the newest address entries (by time of creation).
-   *
-   * @return
-   * @see #getNewestMax()
    */
   public List<AddressDO> getNewest(final BaseSearchFilter filter) {
     final QueryFilter queryFilter = new QueryFilter();
@@ -579,10 +585,6 @@ public class AddressDao extends BaseDao<AddressDO> {
 
   /**
    * Simply call StringUtils.isNotBlank(String)
-   *
-   * @param str
-   * @return
-   * @see StringUtils#isNotBlank(String)
    */
   private boolean isGiven(final String str) {
     return StringUtils.isNotBlank(str);
@@ -619,14 +621,6 @@ public class AddressDao extends BaseDao<AddressDO> {
   @Override
   public AddressDO newInstance() {
     return new AddressDO();
-  }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#useOwnCriteriaCacheRegion()
-   */
-  @Override
-  protected boolean useOwnCriteriaCacheRegion() {
-    return true;
   }
 
   public List<AddressDO> findAll() {

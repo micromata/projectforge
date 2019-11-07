@@ -42,8 +42,6 @@ import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.NoResultException;
 import java.util.Date;
@@ -86,9 +84,8 @@ public class EmployeeDao extends BaseDao<EmployeeDO> {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public EmployeeDO findByUserId(final Integer userId) {
-    return SQLHelper.ensureUniqueResult(getSession()
+    return SQLHelper.ensureUniqueResult(em
             .createNamedQuery(EmployeeDO.FIND_BY_USER_ID, EmployeeDO.class)
             .setParameter("userId", userId)
             .setParameter("tenantId", TenantRegistryMap.getInstance().getTenantRegistry().getTenantId()));
@@ -99,7 +96,6 @@ public class EmployeeDao extends BaseDao<EmployeeDO> {
    *
    * @param fullname Format: &lt;last name&gt;, &lt;first name&gt;
    */
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public EmployeeDO findByName(final String fullname) {
     final StringTokenizer tokenizer = new StringTokenizer(fullname, ",");
     if (tokenizer.countTokens() != 2) {
@@ -108,11 +104,10 @@ public class EmployeeDao extends BaseDao<EmployeeDO> {
     Validate.isTrue(tokenizer.countTokens() == 2);
     final String lastname = tokenizer.nextToken().trim();
     final String firstname = tokenizer.nextToken().trim();
-    return SQLHelper.ensureUniqueResult(
-            getSession()
-                    .createNamedQuery(EmployeeDO.FIND_BY_LASTNAME_AND_FIRST_NAME, EmployeeDO.class)
-                    .setParameter("firstname", firstname)
-                    .setParameter("lastname", lastname));
+    return SQLHelper.ensureUniqueResult(em
+            .createNamedQuery(EmployeeDO.FIND_BY_LASTNAME_AND_FIRST_NAME, EmployeeDO.class)
+            .setParameter("firstname", firstname)
+            .setParameter("lastname", lastname));
   }
 
   /**
@@ -155,10 +150,7 @@ public class EmployeeDao extends BaseDao<EmployeeDO> {
           final EmployeeDO employee = (EmployeeDO) object;
           if (employee.getEintrittsDatum() != null && now.before(employee.getEintrittsDatum())) {
             return false;
-          } else if (employee.getAustrittsDatum() != null && now.after(employee.getAustrittsDatum())) {
-            return false;
-          }
-          return true;
+          } else return employee.getAustrittsDatum() == null || !now.after(employee.getAustrittsDatum());
         }
       });
     }
