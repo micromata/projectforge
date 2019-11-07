@@ -25,8 +25,6 @@ package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonBackReference
 import de.micromata.genome.db.jpa.history.api.WithHistory
-import org.hibernate.annotations.Cache
-import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.annotations.ListIndexBase
 import org.hibernate.search.annotations.*
 import org.hibernate.search.bridge.builtin.IntegerBridge
@@ -43,8 +41,8 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Cacheable
-@Cache(region = "invoices", usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+//@Cacheable
+//@Cache(region = "invoices", usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 //@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Table(name = "t_fibu_rechnung",
         uniqueConstraints = [UniqueConstraint(columnNames = ["nummer", "tenant_id"])],
@@ -206,7 +204,7 @@ class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
 
     override fun compareTo(other: RechnungDO): Int {
         val cmp = compareValues(this.datum, other.datum)
-        if (cmp != null) return cmp
+        if (cmp != 0) return cmp
         return compareValues(this.nummer, other.nummer)
     }
 

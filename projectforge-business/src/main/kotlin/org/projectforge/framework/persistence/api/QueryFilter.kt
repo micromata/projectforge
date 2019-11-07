@@ -37,7 +37,7 @@ import javax.persistence.criteria.JoinType
 /**
  * If no maximum number of results is defined, MAX_ROWS is used as max value.
  */
-const val QUERY_FILTER_MAX_ROWS: Int = 10000;
+const val QUERY_FILTER_MAX_ROWS: Int = 10000
 
 /**
  * Convenient helper to create database queries (criteria search, full text search and search in result lists).
@@ -137,7 +137,7 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null,
     /**
      * Create an alias for criteria search, used for Joins.
      * @param attr The attribute to create a alias (JoinSet) for. Nested properties are supported (order.positions).
-     * @param alias The alias name for referring in following criterias. The alias is not used for the criteria builder and not given to the data base.
+     * @param fetch
      * @param joinType [JoinType.INNER] is default.
      * @param parent If not given, root is used. If given, the parent is used as root path of the attr.
      * @return this for chaining.
@@ -252,7 +252,7 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null,
 
         @JvmStatic
         fun <O : Comparable<O>> lt(field: String, value: O): DBPredicate {
-            return DBPredicate.Less<O>(field, value)
+            return DBPredicate.Less(field, value)
         }
 
         /**
@@ -262,10 +262,10 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null,
         @JvmStatic
         fun <T : Comparable<T>> interval(field: String, from: T?, to: T?): DBPredicate {
             if (from != null)
-                if (to != null)
-                    return DBPredicate.Between(field, from, to)
+                return if (to != null)
+                    DBPredicate.Between(field, from, to)
                 else
-                    return DBPredicate.GreaterEqual(field, from)
+                    DBPredicate.GreaterEqual(field, from)
             else if (to != null)
                 return DBPredicate.LessEqual(field, to)
             throw UnsupportedOperationException("interval needs at least one value ('from' and/or 'to').")
@@ -273,6 +273,7 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null,
 
         @JvmStatic
         fun <T> isIn(field: String, values: Collection<*>): DBPredicate.IsIn<T> {
+            @Suppress("UNCHECKED_CAST")
             return DBPredicate.IsIn(field, *(values.toTypedArray() as Array<T>))
         }
 
@@ -302,20 +303,19 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null,
                 return DBPredicate.IsNull(field)
             }
             val node = TaskTreeHelper.getTaskTree().getTaskNodeById(taskId)
-            if (node == null) {
+            return if (node == null) {
                 log.warn("Can't query for given task id #$taskId, no such task node found.")
-                return DBPredicate.IsNull(field)
+                DBPredicate.IsNull(field)
             } else {
-                val recursive = true
                 if (recursive) {
                     val taskIds = node.descendantIds
                     taskIds.add(node.id)
                     if (log.isDebugEnabled) {
                         log.debug("search in tasks: $taskIds")
                     }
-                    return DBPredicate.IsIn(field, taskIds)
+                    DBPredicate.IsIn(field, taskIds)
                 } else {
-                    return DBPredicate.Equal(field, taskId)
+                    DBPredicate.Equal(field, taskId)
                 }
             }
         }

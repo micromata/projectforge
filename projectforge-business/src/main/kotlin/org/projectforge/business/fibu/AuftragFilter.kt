@@ -110,7 +110,7 @@ class AuftragFilter : BaseSearchFilter, Serializable, SearchFilterWithPeriodOfPe
     }
 
     private fun checkFakturiert(auftrag: AuftragDO): Boolean {
-        val orderIsCompletelyInvoiced = auftrag.isVollstaendigFakturiert;
+        val orderIsCompletelyInvoiced = auftrag.isVollstaendigFakturiert
 
         val vollstaendigFakturiert = AuftragFakturiertFilterStatus.FAKTURIERT == auftragFakturiertFilterStatus
         // special case
@@ -122,11 +122,9 @@ class AuftragFilter : BaseSearchFilter, Serializable, SearchFilterWithPeriodOfPe
                 return true
             }
             // if order is completed and not completely invoiced
-            if (auftrag.positionenExcludingDeleted != null) {
-                for (pos in auftrag.positionenExcludingDeleted) {
-                    if (pos.isAbgeschlossenUndNichtVollstaendigFakturiert) {
-                        return true
-                    }
+            for (pos in auftrag.positionenExcludingDeleted) {
+                if (pos.isAbgeschlossenUndNichtVollstaendigFakturiert) {
+                    return true
                 }
             }
             if (auftrag.paymentSchedules != null) {
