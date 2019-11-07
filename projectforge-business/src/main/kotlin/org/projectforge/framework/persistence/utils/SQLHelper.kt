@@ -81,32 +81,17 @@ object SQLHelper {
      * <br></br>
      * An internal error prevents the system on proceed with inconsistent (multiple) data entries.
      *
-     * @throws InternalErrorException if the list is not empty and has more than one elements (size > 1).
-     */
-    @JvmStatic
-    fun <T> ensureUniqueResult(query: TypedQuery<T>): T? {
-        return ensureUniqueResult(query, null)
-    }
-
-    /**
-     * Do a query.list() call and ensures that the result is either null/empty or the result list has only one element (size == 1).
-     * If multiple entries were received, an Exception will be thrown
-     * <br></br>
-     * Through this method ProjectForge ensures, that some entities are unique by their defined attributes (invoices with unique number etc.), especially
-     * if the uniquness can't be guaranteed by a data base constraint.
-     * <br></br>
-     * An internal error prevents the system on proceed with inconsistent (multiple) data entries.
-     *
      * @param errorMessage An optional error message to display.
      * @throws InternalErrorException if the list is not empty and has more than one elements (size > 1).
      */
     @JvmStatic
-    fun <T> ensureUniqueResult(query: TypedQuery<T>, errorMessage: String?): T? {
+    @JvmOverloads
+    fun <T> ensureUniqueResult(query: TypedQuery<T>, nullAllowed: Boolean = true, errorMessage: String? = null): T? {
         val list = query.resultList
-        if (list.isNullOrEmpty())
+        if (nullAllowed && list.isNullOrEmpty())
             return null
-        if (list.size > 1) {
-            throw InternalErrorException("Internal error: ProjectForge detects an uniqueness violation in the database. Found multiple entries for: " + queryToString(query, errorMessage))
+        if (list.size != 1) {
+            throw InternalErrorException("Internal error: ProjectForge requires a single entry, but found ${list.size} entries: ${queryToString(query, errorMessage)}")
         }
         return list[0]
     }

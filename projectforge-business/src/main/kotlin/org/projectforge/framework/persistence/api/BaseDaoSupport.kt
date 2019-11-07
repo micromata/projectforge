@@ -97,16 +97,16 @@ object BaseDaoSupport {
                 if (result != ModificationStatus.NONE) {
                     BaseDaoJpaAdapter.prepareUpdate(dbObj)
                     dbObj.setLastUpdate()
+                    // } else {
+                    //   log.info("No modifications detected (no update needed): " + dbObj.toString());
+                    baseDao.prepareHibernateSearch(obj, OperationType.UPDATE)
+                    em.merge(dbObj)
+                    em.flush()
                     if (baseDao.logDatabaseActions) {
                         log.info(baseDao.clazz.getSimpleName() + " updated: " + dbObj.toString())
                     }
-                    // } else {
-                    //   log.info("No modifications detected (no update needed): " + dbObj.toString());
+                    baseDao.flushSearchSession(em)
                 }
-                baseDao.prepareHibernateSearch(obj, OperationType.UPDATE)
-                em.merge(dbObj)
-                em.flush()
-                baseDao.flushSearchSession(em)
                 result
             }
             null
@@ -140,9 +140,12 @@ object BaseDaoSupport {
 
                 HistoryBaseDaoAdapter.wrappHistoryUpdate(dbObj) {
                     BaseDaoJpaAdapter.beforeUpdateCopyMarkDelete(dbObj, obj)
-                    baseDao.copyValues(obj, dbObj, "deleted") // If user has made additional changes.
+                    baseDao.copyValues(obj, dbObj) // If user has made additional changes.
                     dbObj.setDeleted(true)
                     dbObj.setLastUpdate()
+                    obj.isDeleted = true                     // For callee having same object.
+                    obj.setLastUpdate(dbObj.getLastUpdate()) // For callee having same object.
+                    em.merge(dbObj)
                     em.flush()
                     baseDao.flushSearchSession(em)
                     null
@@ -164,11 +167,12 @@ object BaseDaoSupport {
             val dbObj = em.getReference(baseDao.clazz, obj.getId())
             HistoryBaseDaoAdapter.wrappHistoryUpdate(dbObj) {
                 BaseDaoJpaAdapter.beforeUpdateCopyMarkUnDelete(dbObj, obj)
-                baseDao.copyValues(obj, dbObj, "deleted") // If user has made additional changes.
-                dbObj.setDeleted(false)
-                obj.setDeleted(false)
+                baseDao.copyValues(obj, dbObj) // If user has made additional changes.
+                dbObj.isDeleted = false
                 dbObj.setLastUpdate()
-                obj.setLastUpdate(dbObj.getLastUpdate())
+                obj.isDeleted =  false                   // For callee having same object.
+                obj.setLastUpdate(dbObj.getLastUpdate()) // For callee having same object.
+                em.merge(dbObj)
                 em.flush()
                 baseDao.flushSearchSession(em)
                 null

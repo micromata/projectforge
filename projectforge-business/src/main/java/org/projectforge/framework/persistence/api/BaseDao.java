@@ -59,6 +59,8 @@ import org.projectforge.framework.time.PFDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -72,6 +74,7 @@ import java.util.stream.Collectors;
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
+@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
         implements IDao<O>, IPersistenceService<O> {
 
