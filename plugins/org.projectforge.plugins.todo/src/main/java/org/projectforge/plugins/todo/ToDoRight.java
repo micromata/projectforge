@@ -116,7 +116,7 @@ public class ToDoRight extends UserRightAccessCheck<ToDoDO>
   public boolean hasAccess(final PFUserDO user, final ToDoDO obj, final ToDoDO oldObj,
       final OperationType operationType)
   {
-    return hasAccess(user, obj, operationType) == true || hasAccess(user, oldObj, operationType) == true;
+    return hasAccess(user, obj, operationType) || hasAccess(user, oldObj, operationType);
   }
 
   private boolean hasAccess(final PFUserDO user, final ToDoDO toDo, final OperationType operationType)
@@ -124,13 +124,13 @@ public class ToDoRight extends UserRightAccessCheck<ToDoDO>
     if (toDo == null) {
       return true;
     }
-    if (Objects.equals(user.getId(), toDo.getAssigneeId()) == true
-        || Objects.equals(user.getId(), toDo.getReporterId()) == true) {
+    if (Objects.equals(user.getId(), toDo.getAssigneeId())
+        || Objects.equals(user.getId(), toDo.getReporterId())) {
       return true;
     }
     if (toDo.getGroup() != null) {
       final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
-      if (userGroupCache.isUserMemberOfGroup(user.getId(), toDo.getGroupId()) == true) {
+      if (userGroupCache.isUserMemberOfGroup(user.getId(), toDo.getGroupId())) {
         return true;
       }
     }

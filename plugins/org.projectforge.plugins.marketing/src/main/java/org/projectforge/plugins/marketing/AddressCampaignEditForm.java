@@ -58,12 +58,12 @@ public class AddressCampaignEditForm extends AbstractEditForm<AddressCampaignDO,
     {
       // Title
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("title"));
-      fs.add(new RequiredMaxLengthTextField(fs.getTextFieldId(), new PropertyModel<String>(data, "title")));
+      fs.add(new RequiredMaxLengthTextField(fs.getTextFieldId(), new PropertyModel<>(data, "title")));
     }
     {
       // Values
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("values"));
-      valuesField = new RequiredMaxLengthTextField(fs.getTextFieldId(), new PropertyModel<String>(data, "values"));
+      valuesField = new RequiredMaxLengthTextField(fs.getTextFieldId(), new PropertyModel<>(data, "values"));
       fs.addHelpIcon(getString("plugins.marketing.addressCampaign.values.format"));
       fs.add(valuesField);
       fs.addAlertIcon(getString("plugins.marketing.addressCampaign.edit.warning.doNotChangeValues"));
@@ -76,7 +76,7 @@ public class AddressCampaignEditForm extends AbstractEditForm<AddressCampaignDO,
     {
       // Text description
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("comment"));
-      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<String>(data, "comment")));
+      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<>(data, "comment")));
     }
   }
 

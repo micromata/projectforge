@@ -68,10 +68,10 @@ public class SkillRatingListForm extends AbstractListForm<SkillRatingFilter, Ski
       gridBuilder.newSplitPanel(GridSize.COL100);
       FieldsetPanel fs = gridBuilder.newFieldset(getString(I18N_KEY_REQUIRED_EXPERIENCE)).suppressLabelForWarning();
       fs.getFieldset().setOutputMarkupId(true);
-      final LabelValueChoiceRenderer<SkillRating> ratingChoiceRenderer = new LabelValueChoiceRenderer<SkillRating>(this,
+      final LabelValueChoiceRenderer<SkillRating> ratingChoiceRenderer = new LabelValueChoiceRenderer<>(this,
           SkillRating.values());
-      final DropDownChoicePanel<SkillRating> skillChoice = new DropDownChoicePanel<SkillRating>(fs.newChildId(),
-          new PropertyModel<SkillRating>(getSearchFilter(), "skillRating"), ratingChoiceRenderer.getValues(),
+      final DropDownChoicePanel<SkillRating> skillChoice = new DropDownChoicePanel<>(fs.newChildId(),
+          new PropertyModel<>(getSearchFilter(), "skillRating"), ratingChoiceRenderer.getValues(),
           ratingChoiceRenderer);
       skillChoice.setNullValid(true);
       fs.add(skillChoice);

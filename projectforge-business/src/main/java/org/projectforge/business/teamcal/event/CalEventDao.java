@@ -26,8 +26,6 @@ package org.projectforge.business.teamcal.event;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.calendar.event.model.SeriesModificationMode;
 import org.projectforge.business.multitenancy.TenantService;
@@ -40,6 +38,7 @@ import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -308,9 +307,9 @@ public class CalEventDao extends BaseDao<CalEventDO> {
     final QueryFilter queryFilter = new QueryFilter(filter);
     final Collection<Integer> cals = filter.getTeamCals();
     if (CollectionUtils.isNotEmpty(cals)) {
-      queryFilter.add(Restrictions.in("calendar.id", cals));
+      queryFilter.add(QueryFilter.isIn("calendar.id", cals));
     } else if (filter.getTeamCalId() != null) {
-      queryFilter.add(Restrictions.eq("calendar.id", filter.getTeamCalId()));
+      queryFilter.add(QueryFilter.eq("calendar.id", filter.getTeamCalId()));
     }
     // Following period extension is needed due to all day events which are stored in UTC. The additional events in the result list not
     // matching the time period have to be removed by caller!
@@ -324,16 +323,16 @@ public class CalEventDao extends BaseDao<CalEventDO> {
     }
     // limit events to load to chosen date view.
     if (startDate != null && endDate != null) {
-      queryFilter.add(Restrictions.or(
-              (Restrictions.or(Restrictions.between("startDate", startDate, endDate),
-                      Restrictions.between("endDate", startDate, endDate))),
+      queryFilter.add(QueryFilter.or(
+              (QueryFilter.or(QueryFilter.between("startDate", startDate, endDate),
+                      QueryFilter.between("endDate", startDate, endDate))),
               // get events whose duration overlap with chosen duration.
-              (Restrictions.and(Restrictions.le("startDate", startDate), Restrictions.ge("endDate", endDate)))));
+              (QueryFilter.and(QueryFilter.le("startDate", startDate), QueryFilter.ge("endDate", endDate)))));
 
     } else if (endDate != null) {
-      queryFilter.add(Restrictions.le("startDate", endDate));
+      queryFilter.add(QueryFilter.le("startDate", endDate));
     }
-    queryFilter.addOrder(Order.desc("startDate"));
+    queryFilter.addOrder(SortProperty.desc("startDate"));
     return queryFilter;
   }
 

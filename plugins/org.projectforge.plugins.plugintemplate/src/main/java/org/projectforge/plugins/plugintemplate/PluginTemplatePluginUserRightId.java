@@ -60,7 +60,7 @@ public enum PluginTemplatePluginUserRightId implements IUserRightId
    * @param orderString For displaying the rights in e. g. UserEditPage in the correct order.
    * @param i18nKey
    */
-  private PluginTemplatePluginUserRightId(final String id, final String orderString, final String i18nKey)
+  PluginTemplatePluginUserRightId(final String id, final String orderString, final String i18nKey)
   {
     this.id = id;
     this.orderString = orderString;

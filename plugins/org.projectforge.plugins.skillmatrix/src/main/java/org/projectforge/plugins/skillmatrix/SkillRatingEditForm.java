@@ -103,9 +103,9 @@ public class SkillRatingEditForm extends AbstractEditForm<SkillRatingDO, SkillRa
     final Integer[] curUserGroupIds = userDao.getAssignedGroups(ThreadLocalUserContext.getUser())
         .toArray(new Integer[0]);
     SkillDO skill = null;
-    if (isNew() == false) {
+    if (!isNew()) {
       skill = getData().getSkill();
-    } else if (NumberHelper.greaterZero(this.getParentPage().skillId) == true) {
+    } else if (NumberHelper.greaterZero(this.getParentPage().skillId)) {
       skill = skillDao.getById(this.getParentPage().skillId);
     }
 
@@ -139,10 +139,10 @@ public class SkillRatingEditForm extends AbstractEditForm<SkillRatingDO, SkillRa
       {
         final SkillSelectPanel skillSelectPanel = (SkillSelectPanel) dependentFormComponents[0];
         final DropDownChoice<SkillRating> skillRatingDropDown = (DropDownChoice<SkillRating>) dependentFormComponents[1];
-        if (skillSelectPanel.getConvertedInput().getRateable() == true
+        if (skillSelectPanel.getConvertedInput().getRateable()
             && skillRatingDropDown.getConvertedInput() == null) {
           error(getString(I18N_KEY_ERROR_RATEABLE_SKILL_WITH_NULL_RATING));
-        } else if (skillSelectPanel.getConvertedInput().getRateable() == false
+        } else if (!skillSelectPanel.getConvertedInput().getRateable()
             && skillRatingDropDown.getConvertedInput() != null) {
           error(getString(I18N_KEY_ERROR_UNRATEABLE_SKILL_WITH_RATING));
         }
@@ -154,14 +154,14 @@ public class SkillRatingEditForm extends AbstractEditForm<SkillRatingDO, SkillRa
     {
       // User
       final FieldsetPanel fs = gridBuilder.newFieldset(SkillRatingDO.class, "user");
-      if (isUserInFullAccessGroup == false) {
+      if (!isUserInFullAccessGroup) {
         data.setUser(ThreadLocalUserContext.getUser());
         final DivTextPanel username = new DivTextPanel(fs.newChildId(), data.getUser().getUsername());
         username.setStrong();
         fs.add(username);
       } else {
         final UserSelectPanel attendeeSelectPanel = new UserSelectPanel(fs.newChildId(),
-            new PropertyModel<PFUserDO>(data, "user"),
+            new PropertyModel<>(data, "user"),
             parentPage, "userId");
         attendeeSelectPanel.init();
         fs.add(attendeeSelectPanel.setFocus().setRequired(true));
@@ -171,7 +171,7 @@ public class SkillRatingEditForm extends AbstractEditForm<SkillRatingDO, SkillRa
     {
       // Skill
       final FieldsetPanel fs = gridBuilder.newFieldset(SkillRatingDO.class, "skill");
-      final SkillSelectPanel skillSelectPanel = new SkillSelectPanel(fs, new PropertyModel<SkillDO>(data, "skill"),
+      final SkillSelectPanel skillSelectPanel = new SkillSelectPanel(fs, new PropertyModel<>(data, "skill"),
           parentPage,
           "skillId")
       {
@@ -194,15 +194,15 @@ public class SkillRatingEditForm extends AbstractEditForm<SkillRatingDO, SkillRa
       // Skill rating
       fs = gridBuilder.newFieldset(SkillRatingDO.class, "skillRating");
       fs.getFieldset().setOutputMarkupId(true);
-      final LabelValueChoiceRenderer<SkillRating> ratingChoiceRenderer = new LabelValueChoiceRenderer<SkillRating>(this,
+      final LabelValueChoiceRenderer<SkillRating> ratingChoiceRenderer = new LabelValueChoiceRenderer<>(this,
           SkillRating.values());
       final DropDownChoicePanel<SkillRating> skillChoice = new DropDownChoicePanel<SkillRating>(fs.newChildId(),
-          new PropertyModel<SkillRating>(data, "skillRating"), ratingChoiceRenderer.getValues(), ratingChoiceRenderer)
+          new PropertyModel<>(data, "skillRating"), ratingChoiceRenderer.getValues(), ratingChoiceRenderer)
       {
         @Override
         public boolean isVisible()
         {
-          if (data == null || data.getSkill() == null || data.getSkill().getRateable() == false) {
+          if (data == null || data.getSkill() == null || !data.getSkill().getRateable()) {
             // If a skill is selected that is unrateable, reset the rating of the previous (probably rateable) skill.
             data.setSkillRating(null);
             return false;
@@ -219,27 +219,27 @@ public class SkillRatingEditForm extends AbstractEditForm<SkillRatingDO, SkillRa
       // Since year
       final FieldsetPanel fs = gridBuilder.newFieldset(SkillRatingDO.class, "sinceYear");
       fs.add(
-          new MinMaxNumberField<Integer>(fs.getTextFieldId(), new PropertyModel<Integer>(data, "sinceYear"), 0, 9000));
+          new MinMaxNumberField<>(fs.getTextFieldId(), new PropertyModel<>(data, "sinceYear"), 0, 9000));
     }
     {
       // Certificates
       final FieldsetPanel fs = gridBuilder.newFieldset(SkillRatingDO.class, "certificates");
-      fs.add(new MaxLengthTextField(fs.getTextFieldId(), new PropertyModel<String>(data, "certificates")));
+      fs.add(new MaxLengthTextField(fs.getTextFieldId(), new PropertyModel<>(data, "certificates")));
     }
     {
       // Training courses
       final FieldsetPanel fs = gridBuilder.newFieldset(SkillRatingDO.class, "trainingCourses");
-      fs.add(new MaxLengthTextField(fs.getTextFieldId(), new PropertyModel<String>(data, "trainingCourses")));
+      fs.add(new MaxLengthTextField(fs.getTextFieldId(), new PropertyModel<>(data, "trainingCourses")));
     }
     {
       // Description
       final FieldsetPanel fs = gridBuilder.newFieldset(SkillRatingDO.class, "description");
-      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<String>(data, "description"))).setAutogrow();
+      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<>(data, "description"))).setAutogrow();
     }
     {
       // Comment
       final FieldsetPanel fs = gridBuilder.newFieldset(SkillRatingDO.class, "comment");
-      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<String>(data, "comment"))).setAutogrow();
+      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<>(data, "comment"))).setAutogrow();
     }
   }
 

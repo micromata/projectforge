@@ -46,7 +46,7 @@ public class EmployeeConfigurationPage
   public EmployeeConfigurationPage(PageParameters parameters)
   {
     super(parameters, "plugins.eed.config");
-    if (parameters != null && parameters.get(PARAMETER_KEY_ID).isEmpty() == true) {
+    if (parameters != null && parameters.get(PARAMETER_KEY_ID).isEmpty()) {
       parameters.add(PARAMETER_KEY_ID, employeeConfigurationService.getSingleEmployeeConfigurationDOId());
     }
     init();

@@ -43,12 +43,12 @@ class PollEventDO : DefaultBaseDO() {
     var poll: PollDO? = null
 
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.MINUTE)
     @get:Column
     var startDate: Timestamp? = null
 
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.MINUTE)
     @get:Column
     var endDate: Timestamp? = null
 

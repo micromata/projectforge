@@ -143,7 +143,11 @@ function DynamicTaskSelect(
                             }}
                         />
                     )
-                    : <span className={inputStyle.text}>{label}</span>}
+                    : (
+                        <span className={inputStyle.text}>
+                            {label || ui.translations['select.placeholder']}
+                        </span>
+                    )}
                 <Button
                     color="link"
                     className="selectPanelIconLinks"
@@ -182,12 +186,13 @@ function DynamicTaskSelect(
 
 DynamicTaskSelect.propTypes = {
     id: PropTypes.string.isRequired,
-    label: PropTypes.string.isRequired,
+    label: PropTypes.string,
     onKost2Changed: PropTypes.func,
     showRootForAdmins: PropTypes.bool,
 };
 
 DynamicTaskSelect.defaultProps = {
+    label: undefined,
     onKost2Changed: undefined,
     showRootForAdmins: false,
 };

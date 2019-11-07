@@ -50,7 +50,7 @@ public class BankingPluginUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         // Does the data-base table already exist?
-        if (dao.doTablesExist(BankAccountDO.class) == true) {
+        if (dao.doTablesExist(BankAccountDO.class)) {
           // Check only the oldest table.
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {

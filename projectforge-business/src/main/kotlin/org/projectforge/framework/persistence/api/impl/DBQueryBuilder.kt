@@ -26,14 +26,17 @@ package org.projectforge.framework.persistence.api.impl
 import org.projectforge.business.multitenancy.TenantService
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.slf4j.LoggerFactory
 
 
-internal class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
-        val baseDao: BaseDao<O>,
+class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
+        private val baseDao: BaseDao<O>,
         tenantService: TenantService,
-        val mode: Mode,
+        private val queryFilter: QueryFilter,
+        dbFilter: DBFilter,
         ignoreTenant: Boolean = false) {
 
     enum class Mode {
@@ -53,18 +56,19 @@ internal class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
     }
 
     private val log = LoggerFactory.getLogger(DBQueryBuilder::class.java)
-    private var dbQueryBuilderByCriteria_: DBQueryBuilderByCriteria<O>? = null
+    private var _dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O>? = null
     private val dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O>
         get() {
-            if (dbQueryBuilderByCriteria_ == null) dbQueryBuilderByCriteria_ = DBQueryBuilderByCriteria<O>(baseDao)
-            return dbQueryBuilderByCriteria_!!
+            if (_dbQueryBuilderByCriteria == null) _dbQueryBuilderByCriteria = DBQueryBuilderByCriteria(baseDao, queryFilter)
+            return _dbQueryBuilderByCriteria!!
         }
-    private var dbQueryBuilderByFullText_: DBQueryBuilderByFullText<O>? = null
+    private var _dbQueryBuilderByFullText: DBQueryBuilderByFullText<O>? = null
     private val dbQueryBuilderByFullText: DBQueryBuilderByFullText<O>
         get() {
-            if (dbQueryBuilderByFullText_ == null) dbQueryBuilderByFullText_ = DBQueryBuilderByFullText<O>(baseDao, useMultiFieldQueryParser = mode == Mode.MULTI_FIELD_FULLTEXT_QUERY)
-            return dbQueryBuilderByFullText_!!
+            if (_dbQueryBuilderByFullText == null) _dbQueryBuilderByFullText = DBQueryBuilderByFullText(baseDao, queryFilter, useMultiFieldQueryParser = mode == Mode.MULTI_FIELD_FULLTEXT_QUERY)
+            return _dbQueryBuilderByFullText!!
         }
+    private val mode: Mode
 
     /**
      * As an alternative to the query builder of the full text search, Hibernate search supports a simple query string,
@@ -75,7 +79,7 @@ internal class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
      * matchers for filtering result list. Used e. g. for searching fields without index if criteria search is not
      * configured.
      */
-    private val dbResultMatchers = mutableListOf<DBResultMatcher>()
+    val resultPredicates = mutableListOf<DBPredicate>()
 
     private val criteriaSearchAvailable: Boolean
         get() = mode == Mode.CRITERIA
@@ -84,96 +88,63 @@ internal class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
         get() = mode == Mode.FULLTEXT || mode == Mode.MULTI_FIELD_FULLTEXT_QUERY
 
     init {
+        val stats = dbFilter.createStatistics(baseDao)
+        mode =
+                if (stats.multiFieldFullTextQueryRequired)
+                    Mode.MULTI_FIELD_FULLTEXT_QUERY
+                else if (stats.fullTextRequired)
+                    Mode.FULLTEXT
+                else
+                    Mode.CRITERIA // Criteria search (no full text search entries found).
+
         if (!ignoreTenant && tenantService.isMultiTenancyAvailable) {
             val userContext = ThreadLocalUserContext.getUserContext()
             val currentTenant = userContext.currentTenant
             if (currentTenant != null) {
                 if (currentTenant.isDefault) {
-                    addMatcher(DBResultMatcher.Or(DBResultMatcher.Equals("tenant", userContext.currentTenant),
-                            DBResultMatcher.IsNull("tenant")))
+                    addMatcher(DBPredicate.Or(DBPredicate.Equal("tenant", userContext.currentTenant),
+                            DBPredicate.IsNull("tenant")))
                 } else {
-                    addMatcher(DBResultMatcher.Equals("tenant", userContext.currentTenant))
+                    addMatcher(DBPredicate.Equal("tenant", userContext.currentTenant))
                 }
             }
         }
-    }
-
-    fun equal(field: String, value: Any) {
-        if (criteriaSearchAvailable) {
-            dbQueryBuilderByCriteria.addEqualPredicate(field, value)
-            return
+        dbFilter.predicates.forEach {
+            addMatcher(it)
         }
-        // Full text search
-        if (dbQueryBuilderByFullText.fieldSupported(field)) {
-            dbQueryBuilderByFullText.equal(field, value)
-        } else {
-            dbResultMatchers.add(DBResultMatcher.Equals(field, value))
-        }
-    }
 
-    fun ilike(field: String, value: String) {
-        if (fullTextSearch && dbQueryBuilderByFullText.fieldSupported(field)) {
-            dbQueryBuilderByFullText.ilike(field, value)
-        } else {
-            addMatcher(DBResultMatcher.Like(field, value))
+        var maxOrder = 3
+        for (sortProperty in dbFilter.sortProperties) {
+            addOrder(sortProperty)
+            if (--maxOrder <= 0)
+                break // Add only 3 orders.
         }
-    }
+        // TODO setCacheRegion(baseDao, criteria)
 
-    fun <O> anyOf(field: String, vararg values: O) {
-        addMatcher(DBResultMatcher.AnyOf<O>(field, *values))
-    }
-
-    fun <O : Comparable<O>> between(field: String, from: O, to: O) {
-        if (fullTextSearch && dbQueryBuilderByFullText.fieldSupported(field)) {
-            dbQueryBuilderByFullText.between<O>(field, from, to)
-        } else {
-            addMatcher(DBResultMatcher.Between(field, from, to))
-        }
-    }
-
-    fun <O : Comparable<O>> greaterEqual(field: String, from: O) {
-        if (fullTextSearch && dbQueryBuilderByFullText.fieldSupported(field)) {
-            dbQueryBuilderByFullText.greaterEqual<O>(field, from)
-        } else {
-            addMatcher(DBResultMatcher.GreaterEqual(field, from))
-        }
-    }
-
-    fun <O : Comparable<O>> lessEqual(field: String, to: O) {
-        if (fullTextSearch && dbQueryBuilderByFullText.fieldSupported(field)) {
-            dbQueryBuilderByFullText.lessEqual<O>(field, to)
-        } else {
-            addMatcher(DBResultMatcher.LessEqual(field, to))
-        }
     }
 
     /**
-     * Adds matcher to result matchers or, if criteria search is enabled, a new predicates for the criteria is appended.
+     * Adds predicate to result matchers or, if criteria search is enabled, a new predicates for the criteria is appended.
      */
-    private fun addMatcher(matcher: DBResultMatcher) {
+    private fun addMatcher(predicate: DBPredicate) {
         if (criteriaSearchAvailable) {
-            dbQueryBuilderByCriteria.add(matcher)
+            dbQueryBuilderByCriteria.add(predicate)
+        } else if (predicate.fullTextSupport) {
+            if (!dbQueryBuilderByFullText.add(predicate)) {
+                if (log.isDebugEnabled) log.debug("Adding result predicate: $predicate")
+                resultPredicates.add(predicate)
+            }
         } else {
-            dbResultMatchers.add(matcher)
+            if (log.isDebugEnabled) log.debug("Adding result predicate: $predicate")
+            resultPredicates.add(predicate)
         }
     }
 
     fun result(): DBResultIterator<O> {
         if (fullTextSearch) {
-            return dbQueryBuilderByFullText.createResultIterator(dbResultMatchers)
+            return dbQueryBuilderByFullText.createResultIterator(resultPredicates)
         }
-        return dbQueryBuilderByCriteria.createResultIterator()
-    }
-
-    /**
-     * Not supported.
-     */
-    fun fulltextSearch(searchString: String) {
-        if (fullTextSearch) {
-            dbQueryBuilderByFullText.fulltextSearch(searchString)
-        } else {
-            throw UnsupportedOperationException("Internal error: FullTextQuery not available for string: " + searchString)
-        }
+        return dbQueryBuilderByCriteria.createResultIterator(resultPredicates)
     }
 
     fun close() {
@@ -185,11 +156,11 @@ internal class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
     /**
      * Sorting for criteria query is done by the data base, for full text search by Kotlin after getting the result list.
      */
-    fun addOrder(sortBy: SortBy) {
+    fun addOrder(sortProperty: SortProperty) {
         if (fullTextSearch) {
-            dbQueryBuilderByFullText.addOrder(sortBy)
+            dbQueryBuilderByFullText.addOrder(sortProperty)
         } else {
-            dbQueryBuilderByCriteria.addOrder(sortBy)
+            dbQueryBuilderByCriteria.addOrder(sortProperty)
         }
     }
 }

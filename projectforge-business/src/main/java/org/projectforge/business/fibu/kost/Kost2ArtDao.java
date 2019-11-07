@@ -23,11 +23,11 @@
 
 package org.projectforge.business.fibu.kost;
 
-import org.hibernate.criterion.Order;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.SortProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -59,13 +59,13 @@ public class Kost2ArtDao extends BaseDao<Kost2ArtDO>
   public List<Kost2ArtDO> getList(final BaseSearchFilter filter)
   {
     final QueryFilter queryFilter = new QueryFilter(filter);
-    queryFilter.addOrder(Order.asc("id"));
+    queryFilter.addOrder(SortProperty.asc("id"));
     return getList(queryFilter);
   }
 
   /**
    * id != null && id &gt;= null;
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#isIdValid(java.lang.Integer)
    */
   @Override

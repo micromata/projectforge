@@ -24,7 +24,6 @@
 package org.projectforge.business.address;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.criterion.Order;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserRightId;
@@ -33,6 +32,7 @@ import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
@@ -52,11 +52,10 @@ import java.util.List;
  */
 @Repository
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-public class AddressbookDao extends BaseDao<AddressbookDO>
-{
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "usersgroups", "owner.username",
-      "owner.firstname",
-      "owner.lastname" };
+public class AddressbookDao extends BaseDao<AddressbookDO> {
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"usersgroups", "owner.username",
+          "owner.firstname",
+          "owner.lastname"};
 
   public static final int GLOBAL_ADDRESSBOOK_ID = 1;
 
@@ -69,33 +68,28 @@ public class AddressbookDao extends BaseDao<AddressbookDO>
   @Autowired
   private UserService userService;
 
-  public AddressbookDao()
-  {
+  public AddressbookDao() {
     super(AddressbookDO.class);
     userRightId = UserRightId.MISC_ADDRESSBOOK;
   }
 
   @Override
-  protected String[] getAdditionalSearchFields()
-  {
+  protected String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
-  public void setOwner(final AddressbookDO ab, final Integer userId)
-  {
+  public void setOwner(final AddressbookDO ab, final Integer userId) {
     final PFUserDO user = userDao.getOrLoad(userId);
     ab.setOwner(user);
   }
 
   @Override
-  public AddressbookDO newInstance()
-  {
+  public AddressbookDO newInstance() {
     return new AddressbookDO();
   }
 
   @Override
-  public List<AddressbookDO> getList(final BaseSearchFilter filter)
-  {
+  public List<AddressbookDO> getList(final BaseSearchFilter filter) {
     AddressbookFilter myFilter;
     if (filter instanceof AddressbookFilter)
       myFilter = (AddressbookFilter) filter;
@@ -104,7 +98,7 @@ public class AddressbookDao extends BaseDao<AddressbookDO>
     }
     final PFUserDO user = ThreadLocalUserContext.getUser();
     final QueryFilter queryFilter = new QueryFilter(myFilter);
-    queryFilter.addOrder(Order.asc("title"));
+    queryFilter.addOrder(SortProperty.asc("title"));
     final List<AddressbookDO> list = getList(queryFilter);
     if (myFilter.isDeleted()) {
       // No further filtering, show all deleted calendars.
@@ -114,7 +108,7 @@ public class AddressbookDao extends BaseDao<AddressbookDO>
     final AddressbookRight right = (AddressbookRight) getUserRight();
     final Integer userId = user.getId();
     final boolean adminAccessOnly = (myFilter.isAdmin()
-        && accessChecker.isUserMemberOfAdminGroup(user));
+            && accessChecker.isUserMemberOfAdminGroup(user));
     for (final AddressbookDO ab : list) {
       final boolean isOwn = right.isOwner(user, ab);
       if (isOwn) {
@@ -130,7 +124,7 @@ public class AddressbookDao extends BaseDao<AddressbookDO>
         // User is not owner.
         if (myFilter.isAll() || myFilter.isOthers() || adminAccessOnly) {
           if ((myFilter.isFullAccess() && right.hasFullAccess(ab, userId))
-              || (myFilter.isReadonlyAccess() && right.hasReadonlyAccess(ab, userId))) {
+                  || (myFilter.isReadonlyAccess() && right.hasReadonlyAccess(ab, userId))) {
             // Calendar matches the filter:
             if (!adminAccessOnly) {
               result.add(ab);
@@ -150,8 +144,7 @@ public class AddressbookDao extends BaseDao<AddressbookDO>
    *
    * @return
    */
-  public List<AddressbookDO> getAllAddressbooksWithFullAccess()
-  {
+  public List<AddressbookDO> getAllAddressbooksWithFullAccess() {
     final AddressbookFilter filter = new AddressbookFilter();
     filter.setOwnerType(AddressbookFilter.OwnerType.ALL);
     filter.setFullAccess(true).setReadonlyAccess(false);
@@ -162,8 +155,7 @@ public class AddressbookDao extends BaseDao<AddressbookDO>
     return resultList;
   }
 
-  public AddressbookDO getGlobalAddressbook()
-  {
+  public AddressbookDO getGlobalAddressbook() {
     return internalGetById(GLOBAL_ADDRESSBOOK_ID);
   }
 
@@ -173,13 +165,11 @@ public class AddressbookDao extends BaseDao<AddressbookDO>
    * @param addressbook
    * @param fullAccessGroups
    */
-  public void setFullAccessGroups(final AddressbookDO ab, final Collection<GroupDO> fullAccessGroups)
-  {
+  public void setFullAccessGroups(final AddressbookDO ab, final Collection<GroupDO> fullAccessGroups) {
     ab.setFullAccessGroupIds(groupService.getGroupIds(fullAccessGroups));
   }
 
-  public Collection<GroupDO> getSortedFullAccessGroups(final AddressbookDO ab)
-  {
+  public Collection<GroupDO> getSortedFullAccessGroups(final AddressbookDO ab) {
     return groupService.getSortedGroups(ab.getFullAccessGroupIds());
   }
 
@@ -189,13 +179,11 @@ public class AddressbookDao extends BaseDao<AddressbookDO>
    * @param addressbook
    * @param fullAccessUsers
    */
-  public void setFullAccessUsers(final AddressbookDO ab, final Collection<PFUserDO> fullAccessUsers)
-  {
+  public void setFullAccessUsers(final AddressbookDO ab, final Collection<PFUserDO> fullAccessUsers) {
     ab.setFullAccessUserIds(userService.getUserIds(fullAccessUsers));
   }
 
-  public Collection<PFUserDO> getSortedFullAccessUsers(final AddressbookDO ab)
-  {
+  public Collection<PFUserDO> getSortedFullAccessUsers(final AddressbookDO ab) {
     return userService.getSortedUsers(ab.getFullAccessUserIds());
   }
 
@@ -205,13 +193,11 @@ public class AddressbookDao extends BaseDao<AddressbookDO>
    * @param addressbook
    * @param readonlyAccessGroups
    */
-  public void setReadonlyAccessGroups(final AddressbookDO ab, final Collection<GroupDO> readonlyAccessGroups)
-  {
+  public void setReadonlyAccessGroups(final AddressbookDO ab, final Collection<GroupDO> readonlyAccessGroups) {
     ab.setReadonlyAccessGroupIds(groupService.getGroupIds(readonlyAccessGroups));
   }
 
-  public Collection<GroupDO> getSortedReadonlyAccessGroups(final AddressbookDO ab)
-  {
+  public Collection<GroupDO> getSortedReadonlyAccessGroups(final AddressbookDO ab) {
     return groupService.getSortedGroups(ab.getReadonlyAccessGroupIds());
   }
 
@@ -221,13 +207,11 @@ public class AddressbookDao extends BaseDao<AddressbookDO>
    * @param addressbook
    * @param readonlyAccessUsers
    */
-  public void setReadonlyAccessUsers(final AddressbookDO ab, final Collection<PFUserDO> readonlyAccessUsers)
-  {
+  public void setReadonlyAccessUsers(final AddressbookDO ab, final Collection<PFUserDO> readonlyAccessUsers) {
     ab.setReadonlyAccessUserIds(userService.getUserIds(readonlyAccessUsers));
   }
 
-  public Collection<PFUserDO> getSortedReadonlyAccessUsers(final AddressbookDO ab)
-  {
+  public Collection<PFUserDO> getSortedReadonlyAccessUsers(final AddressbookDO ab) {
     return userService.getSortedUsers(ab.getReadonlyAccessUserIds());
   }
 
@@ -235,8 +219,7 @@ public class AddressbookDao extends BaseDao<AddressbookDO>
    * @see BaseDao#getDisplayHistoryEntries(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
-  public List<DisplayHistoryEntry> getDisplayHistoryEntries(final AddressbookDO obj)
-  {
+  public List<DisplayHistoryEntry> getDisplayHistoryEntries(final AddressbookDO obj) {
     final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(obj);
     if (CollectionUtils.isEmpty(list)) {
       return list;
@@ -275,18 +258,16 @@ public class AddressbookDao extends BaseDao<AddressbookDO>
    * @see BaseDao#useOwnCriteriaCacheRegion()
    */
   @Override
-  protected boolean useOwnCriteriaCacheRegion()
-  {
+  protected boolean useOwnCriteriaCacheRegion() {
     return true;
   }
 
   @Override
-  protected void onDelete(final AddressbookDO obj)
-  {
+  protected void onDelete(final AddressbookDO obj) {
     super.onDelete(obj);
     emgrFactory.runInTrans(emgr -> {
       List<AddressDO> addressList = emgr
-          .selectAttached(AddressDO.class, "SELECT a FROM AddressDO a WHERE :addressbook MEMBER OF a.addressbookList", "addressbook", obj);
+              .selectAttached(AddressDO.class, "SELECT a FROM AddressDO a WHERE :addressbook MEMBER OF a.addressbookList", "addressbook", obj);
       for (AddressDO address : addressList) {
         if (address.getAddressbookList().size() == 1 && address.getAddressbookList().contains(obj)) {
           address.getAddressbookList().add(getGlobalAddressbook());

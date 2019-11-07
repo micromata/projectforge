@@ -56,7 +56,7 @@ public class LiquidityChartBuilder
    */
   public JFreeChart createXYPlot(final LiquidityForecast forecast, final LiquidityForecastSettings settings)
   {
-    if ((settings.getNextDays() > 0 && settings.getNextDays() <= LiquidityForecastSettings.MAX_FORECAST_DAYS) == false) {
+    if (!(settings.getNextDays() > 0 && settings.getNextDays() <= LiquidityForecastSettings.MAX_FORECAST_DAYS)) {
       settings.setNextDays(LiquidityForecastSettings.DEFAULT_FORECAST_DAYS);
     }
 
@@ -73,7 +73,7 @@ public class LiquidityChartBuilder
     final DayHolder dh = new DayHolder();
     final Date lower = dh.getDate();
     for (int i = 0; i < settings.getNextDays(); i++) {
-      if (log.isDebugEnabled() == true) {
+      if (log.isDebugEnabled()) {
         log.debug("day: " + i + ", credits=" + cashFlow.getCredits()[i] + ", debits=" + cashFlow.getDebits()[i]);
       }
       final Day day = new Day(dh.getDayOfMonth(), dh.getMonth() + 1, dh.getYear());
@@ -122,7 +122,7 @@ public class LiquidityChartBuilder
    */
   public JFreeChart createBarChart(final LiquidityForecast forecast, final LiquidityForecastSettings settings)
   {
-    if ((settings.getNextDays() > 0 && settings.getNextDays() <= LiquidityForecastSettings.MAX_FORECAST_DAYS) == false) {
+    if (!(settings.getNextDays() > 0 && settings.getNextDays() <= LiquidityForecastSettings.MAX_FORECAST_DAYS)) {
       settings.setNextDays(LiquidityForecastSettings.DEFAULT_FORECAST_DAYS);
     }
     final LiquidityForecastCashFlow cashFlow = new LiquidityForecastCashFlow(forecast, settings.getNextDays());

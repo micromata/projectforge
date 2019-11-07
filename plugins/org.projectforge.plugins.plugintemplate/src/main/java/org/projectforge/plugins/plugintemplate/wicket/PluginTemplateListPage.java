@@ -84,7 +84,7 @@ public class PluginTemplateListPage extends AbstractListPage<PluginTemplateListF
               final IModel<PluginTemplateDO> rowModel)
           {
             final PluginTemplateDO event = rowModel.getObject();
-            if (isSelectMode() == false) {
+            if (!isSelectMode()) {
               item.add(new ListSelectActionPanel(componentId, rowModel, PluginTemplateEditPage.class, event.getId(),
                   returnToPage, event.getKey()));
             } else {
@@ -99,15 +99,15 @@ public class PluginTemplateListPage extends AbstractListPage<PluginTemplateListF
         });
 
     columns
-        .add(new CellItemListenerPropertyColumn<PluginTemplateDO>(PluginTemplateDO.class, getSortable("value", sortable),
+        .add(new CellItemListenerPropertyColumn<>(PluginTemplateDO.class, getSortable("value", sortable),
             "value", cellItemListener));
 
     columns
-        .add(new CellItemListenerPropertyColumn<PluginTemplateDO>(PluginTemplateDO.class, getSortable("created", sortable),
+        .add(new CellItemListenerPropertyColumn<>(PluginTemplateDO.class, getSortable("created", sortable),
             "created", cellItemListener));
 
     columns
-        .add(new CellItemListenerPropertyColumn<PluginTemplateDO>(PluginTemplateDO.class, getSortable("lastUpdate", sortable),
+        .add(new CellItemListenerPropertyColumn<>(PluginTemplateDO.class, getSortable("lastUpdate", sortable),
             "lastUpdate", cellItemListener));
 
     return columns;

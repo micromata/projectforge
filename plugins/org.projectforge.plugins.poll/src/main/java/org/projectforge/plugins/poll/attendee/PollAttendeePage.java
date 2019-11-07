@@ -103,16 +103,16 @@ public class PollAttendeePage extends PollBasePage
     assignUsersListHelper = new MultiChoiceListHelper<PFUserDO>().setComparator(new UsersComparator()).setFullList(
         usersProvider.getSortedUsers());
     assignUsersListHelper.setAssignedItems(model.getUserDoFromAttendees());
-    final Select2MultiChoice<PFUserDO> users = new Select2MultiChoice<PFUserDO>(fsUserSelect.getSelect2MultiChoiceId(),
-        new PropertyModel<Collection<PFUserDO>>(this.assignUsersListHelper, "assignedItems"), usersProvider);
+    final Select2MultiChoice<PFUserDO> users = new Select2MultiChoice<>(fsUserSelect.getSelect2MultiChoiceId(),
+        new PropertyModel<>(this.assignUsersListHelper, "assignedItems"), usersProvider);
     fsUserSelect.add(users);
 
     // Group select
     assignGroupsListHelper = new MultiChoiceListHelper<GroupDO>().setComparator(new GroupsComparator());
     assignGroupsListHelper.setAssignedItems(model.getPollGroupList());
     final FieldsetPanel fsGroupSelect = gridBuilder.newFieldset(getString("plugins.poll.attendee.groups"));
-    final Select2MultiChoice<GroupDO> groups = new Select2MultiChoice<GroupDO>(fsGroupSelect.getSelect2MultiChoiceId(),
-        new PropertyModel<Collection<GroupDO>>(this.assignGroupsListHelper, "assignedItems"),
+    final Select2MultiChoice<GroupDO> groups = new Select2MultiChoice<>(fsGroupSelect.getSelect2MultiChoiceId(),
+        new PropertyModel<>(this.assignGroupsListHelper, "assignedItems"),
         new GroupsWicketProvider(groupService));
     fsGroupSelect.add(groups);
 
@@ -124,7 +124,7 @@ public class PollAttendeePage extends PollBasePage
 
   private TextField<String> getNewEMailField(final String wicketId)
   {
-    existingMailAddresses = new ArrayList<String>();
+    existingMailAddresses = new ArrayList<>();
     if (model.getPollAttendeeList() != null) {
       for (final PollAttendeeDO attendee : model.getPollAttendeeList()) {
         if (attendee.getEmail() != null) {
@@ -133,8 +133,8 @@ public class PollAttendeePage extends PollBasePage
         }
       }
     }
-    final PropertyModel<String> mailModel = new PropertyModel<String>(this, "emailList");
-    final TextField<String> eMailField = new TextField<String>(wicketId, mailModel);
+    final PropertyModel<String> mailModel = new PropertyModel<>(this, "emailList");
+    final TextField<String> eMailField = new TextField<>(wicketId, mailModel);
     return eMailField;
   }
 
@@ -153,12 +153,12 @@ public class PollAttendeePage extends PollBasePage
   @Override
   protected void onConfirm()
   {
-    final Set<PollAttendeeDO> allAttendeeList = new HashSet<PollAttendeeDO>();
-    final Set<PollAttendeeDO> userAttendees = new HashSet<PollAttendeeDO>();
-    final Set<GroupDO> assignedGroups = new HashSet<GroupDO>();
+    final Set<PollAttendeeDO> allAttendeeList = new HashSet<>();
+    final Set<PollAttendeeDO> userAttendees = new HashSet<>();
+    final Set<GroupDO> assignedGroups = new HashSet<>();
 
     if (assignGroupsListHelper.getAssignedItems() != null) {
-      if (assignGroupsListHelper.getAssignedItems().isEmpty() == false) {
+      if (!assignGroupsListHelper.getAssignedItems().isEmpty()) {
         for (final GroupDO group : assignGroupsListHelper.getAssignedItems()) {
           assignedGroups.add(group);
           for (final PFUserDO user : group.getAssignedUsers()) {
@@ -169,7 +169,7 @@ public class PollAttendeePage extends PollBasePage
     }
 
     if (assignUsersListHelper.getAssignedItems() != null) {
-      if (assignUsersListHelper.getAssignedItems().isEmpty() == false) {
+      if (!assignUsersListHelper.getAssignedItems().isEmpty()) {
         for (final PFUserDO user : assignUsersListHelper.getAssignedItems()) {
           final PollAttendeeDO attendee = createAttendee(user);
           allAttendeeList.add(attendee);
@@ -183,7 +183,7 @@ public class PollAttendeePage extends PollBasePage
     if (emails != null) {
       if (emails.length > 0) {
         for (final String email : emails) {
-          if (existingMailAddresses.contains(email.trim()) == false) {
+          if (!existingMailAddresses.contains(email.trim())) {
             final PollAttendeeDO newAttendee = new PollAttendeeDO();
             newAttendee.setEmail(email.trim());
             newAttendee.setSecureKey(NumberHelper.getSecureRandomUrlSaveString(SECURE_KEY_LENGTH));
@@ -194,11 +194,11 @@ public class PollAttendeePage extends PollBasePage
     }
 
     // add existing mail addresses
-    if (model.isNew() == false) {
+    if (!model.isNew()) {
       allAttendeeList.addAll(model.getUserOrEmailList(false));
     }
 
-    if (allAttendeeList.isEmpty() == true) {
+    if (allAttendeeList.isEmpty()) {
       error(getString("plugins.poll.attendee.error"));
     } else {
       model.getPollAttendeeList().clear();

@@ -73,7 +73,7 @@ public class SkillDao extends BaseDao<SkillDO> {
     synchronized (this) {
       checkConstraintViolation(obj);
     }
-    if (obj.getParent() == null && skillTree.isRootNode(obj) == false) {
+    if (obj.getParent() == null && !skillTree.isRootNode(obj)) {
       obj.setParent(skillTree.getRootSkillNode().getSkill());
     }
   }
@@ -128,17 +128,17 @@ public class SkillDao extends BaseDao<SkillDO> {
   }
 
   private void checkCyclicReference(final SkillDO obj) {
-    if (obj.getId().equals(obj.getParentId()) == true) {
+    if (obj.getId().equals(obj.getParentId())) {
       // Self reference
       throw new UserException(I18N_KEY_ERROR_CYCLIC_REFERENCE);
     }
     final SkillNode parent = skillTree.getSkillNodeById(obj.getParentId());
-    if (parent == null && skillTree.isRootNode(obj) == false) {
+    if (parent == null && !skillTree.isRootNode(obj)) {
       // Task is orphan because it has no parent task.
       throw new UserException(I18N_KEY_ERROR_PARENT_SKILL_NOT_FOUND);
     }
     final SkillNode node = skillTree.getSkillNodeById(obj.getId());
-    if (node.isParentOf(parent) == true) {
+    if (node.isParentOf(parent)) {
       // Cyclic reference because task is ancestor of itself.
       throw new UserException(TaskDao.I18N_KEY_ERROR_CYCLIC_REFERENCE);
     }

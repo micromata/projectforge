@@ -23,14 +23,10 @@
 
 package org.projectforge.web.doc;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskTree;
@@ -54,14 +50,15 @@ import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.MessagePage;
 import org.projectforge.web.wicket.WicketUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Standard error page should be shown in production mode.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public class TutorialPage extends AbstractSecuredPage
-{
+public class TutorialPage extends AbstractSecuredPage {
   private static final long serialVersionUID = 6326263860561990911L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TutorialPage.class);
@@ -104,8 +101,7 @@ public class TutorialPage extends AbstractSecuredPage
   @SpringBean
   private TaskDao taskDao;
 
-  public TutorialPage(final PageParameters params)
-  {
+  public TutorialPage(final PageParameters params) {
     super(params);
     type = WicketUtils.getAsString(params, KEY_TYPE);
     reference = WicketUtils.getAsString(params, KEY_REF);
@@ -123,8 +119,7 @@ public class TutorialPage extends AbstractSecuredPage
     }
   }
 
-  private void createUser()
-  {
+  private void createUser() {
     final String tutorialReference = getTutorialReference(reference);
     if (doesEntryAlreadyExist(userDao, tutorialReference) == true) {
       return;
@@ -133,14 +128,14 @@ public class TutorialPage extends AbstractSecuredPage
     List<Integer> groupsToAdd = null;
     if ("linda".equals(reference) == true) {
       user = createUser("linda", "Evans", "Linda", "l.evans@javagurus.com",
-          addTutorialReference("Project manager", tutorialReference));
+              addTutorialReference("Project manager", tutorialReference));
       groupsToAdd = addGroups(user, ProjectForgeGroup.PROJECT_MANAGER);
     } else if ("dave".equals(reference) == true) {
       user = createUser("dave", "Jones", "Dave", "d.jones@javagurus.com",
-          addTutorialReference("Developer", tutorialReference));
+              addTutorialReference("Developer", tutorialReference));
     } else if ("betty".equals(reference) == true) {
       user = createUser("betty", "Brown", "Betty", "b.brown@javagurus.com",
-          addTutorialReference("Developer", tutorialReference));
+              addTutorialReference("Developer", tutorialReference));
     } else {
       log.warn("Unknown tutorial request: user=" + reference);
       setResponsePage(new MessagePage("tutorial.unknown").setWarning(true));
@@ -150,13 +145,11 @@ public class TutorialPage extends AbstractSecuredPage
     setResponsePage(userEditPage);
   }
 
-  private String getTutorialReference(final String reference)
-  {
+  private String getTutorialReference(final String reference) {
     return "{tutorial-ref:" + reference + "}";
   }
 
-  private String addTutorialReference(final String text, final String tutorialReference)
-  {
+  private String addTutorialReference(final String text, final String tutorialReference) {
     if (StringUtils.isEmpty(text) == true) {
       return tutorialReference;
     } else {
@@ -165,8 +158,7 @@ public class TutorialPage extends AbstractSecuredPage
   }
 
   private PFUserDO createUser(final String userName, final String lastName, final String firstName, final String email,
-      final String description)
-  {
+                              final String description) {
     final PFUserDO user = new PFUserDO();
     user.setUsername(userName);
     user.setEmail(email);
@@ -176,16 +168,14 @@ public class TutorialPage extends AbstractSecuredPage
     return user;
   }
 
-  private List<Integer> addGroups(final PFUserDO user, final ProjectForgeGroup... groups)
-  {
+  private List<Integer> addGroups(final PFUserDO user, final ProjectForgeGroup... groups) {
     final List<Integer> groupsToAssign = new ArrayList<Integer>();
     final GroupDO group = getTenantRegistry().getUserGroupCache().getGroup(ProjectForgeGroup.PROJECT_MANAGER);
     groupsToAssign.add(group.getId());
     return groupsToAssign;
   }
 
-  private void createTask()
-  {
+  private void createTask() {
     final String tutorialReference = getTutorialReference(reference);
     if (doesEntryAlreadyExist(taskDao, tutorialReference) == true) {
       return;
@@ -205,8 +195,7 @@ public class TutorialPage extends AbstractSecuredPage
     setResponsePage(taskEditPage);
   }
 
-  private TaskDO createTask(final TaskDO parentTask, final String title, final String description)
-  {
+  private TaskDO createTask(final TaskDO parentTask, final String title, final String description) {
     final TaskDO task = new TaskDO();
     task.setParentTask(parentTask);
     task.setTitle(title);
@@ -214,8 +203,7 @@ public class TutorialPage extends AbstractSecuredPage
     return task;
   }
 
-  private void createGroup()
-  {
+  private void createGroup() {
     final String tutorialReference = getTutorialReference(reference);
     if (doesEntryAlreadyExist(groupDao, tutorialReference) == true) {
       return;
@@ -237,8 +225,7 @@ public class TutorialPage extends AbstractSecuredPage
     }
   }
 
-  private GroupDO createGroup(final String name, final String... usernames)
-  {
+  private GroupDO createGroup(final String name, final String... usernames) {
     final GroupDO group = new GroupDO();
     group.setName(name);
     if (usernames != null) {
@@ -253,8 +240,7 @@ public class TutorialPage extends AbstractSecuredPage
     return group;
   }
 
-  private void createAccess()
-  {
+  private void createAccess() {
     final String tutorialReference = getTutorialReference(reference);
     if (doesEntryAlreadyExist(accessDao, tutorialReference) == true) {
       return;
@@ -283,8 +269,7 @@ public class TutorialPage extends AbstractSecuredPage
   }
 
   private GroupTaskAccessDO createAccess(final TaskDO task, final GroupDO group, final String template,
-      final String description)
-  {
+                                         final String description) {
     final GroupTaskAccessDO access = new GroupTaskAccessDO();
     access.setTask(task);
     access.setGroup(group);
@@ -295,8 +280,7 @@ public class TutorialPage extends AbstractSecuredPage
     return access;
   }
 
-  private boolean doesEntryAlreadyExist(final BaseDao<?> dao, final String tutorialReference)
-  {
+  private boolean doesEntryAlreadyExist(final BaseDao<?> dao, final String tutorialReference) {
     final BaseDO<?> obj = getEntry(dao, tutorialReference);
     if (obj != null) {
       if (obj instanceof PFUserDO) {
@@ -315,17 +299,15 @@ public class TutorialPage extends AbstractSecuredPage
     return false;
   }
 
-  private PageParameters createEditPageParameters(final BaseDO<?> obj)
-  {
+  private PageParameters createEditPageParameters(final BaseDO<?> obj) {
     final PageParameters params = new PageParameters();
     params.add(AbstractEditPage.PARAMETER_KEY_ID, obj.getId());
     return params;
   }
 
-  private BaseDO<?> getEntry(final BaseDao<?> dao, final String tutorialReference)
-  {
+  private BaseDO<?> getEntry(final BaseDao<?> dao, final String tutorialReference) {
     final QueryFilter filter = new QueryFilter();
-    filter.add(Restrictions.ilike("description", "%" + tutorialReference + "%"));
+    filter.add(QueryFilter.like("description", "*" + tutorialReference + "*"));
     final List<?> list = dao.internalGetList(filter);
     if (CollectionUtils.isNotEmpty(dao.internalGetList(filter)) == true) {
       return (BaseDO<?>) list.get(0);
@@ -333,8 +315,7 @@ public class TutorialPage extends AbstractSecuredPage
     return null;
   }
 
-  private GroupDO getRequiredGroup(final String reference)
-  {
+  private GroupDO getRequiredGroup(final String reference) {
     final GroupDO group = (GroupDO) getEntry(groupDao, getTutorialReference(reference));
     if (group == null) {
       setResponsePage(new MessagePage("tutorial.expectedGroupNotFound", reference).setWarning(true));
@@ -342,8 +323,7 @@ public class TutorialPage extends AbstractSecuredPage
     return group;
   }
 
-  private PFUserDO getRequiredUser(final String reference)
-  {
+  private PFUserDO getRequiredUser(final String reference) {
     final PFUserDO user = (PFUserDO) getEntry(userDao, getTutorialReference(reference));
     if (user == null) {
       setResponsePage(new MessagePage("tutorial.expectedUserNotFound", reference).setWarning(true));
@@ -351,8 +331,7 @@ public class TutorialPage extends AbstractSecuredPage
     return user;
   }
 
-  private TaskDO getRequiredTask(final String reference)
-  {
+  private TaskDO getRequiredTask(final String reference) {
     final TaskDO task = (TaskDO) getEntry(taskDao, getTutorialReference(reference));
     if (task == null) {
       setResponsePage(new MessagePage("tutorial.expectedTaskNotFound", reference).setWarning(true));
@@ -361,8 +340,7 @@ public class TutorialPage extends AbstractSecuredPage
   }
 
   @Override
-  protected String getTitle()
-  {
+  protected String getTitle() {
     return "TutorialRedirectPage";
   }
 }

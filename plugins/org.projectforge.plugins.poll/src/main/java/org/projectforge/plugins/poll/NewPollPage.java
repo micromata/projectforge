@@ -71,14 +71,14 @@ public class NewPollPage extends PollBasePage
 
     final FieldsetPanel fsTitle = gridBuilder.newFieldset(getString("plugins.poll.new.title"));
     final MaxLengthTextField titleField = new MaxLengthTextField(fsTitle.getTextFieldId(),
-        new PropertyModel<String>(model.getPollDo(), "title"));
+        new PropertyModel<>(model.getPollDo(), "title"));
     titleField.setRequired(true);
     fsTitle.add(titleField);
 
     final FieldsetPanel fsLocation = gridBuilder.newFieldset(getString("plugins.poll.new.location"));
     final PFAutoCompleteMaxLengthTextField locationTextField = new PFAutoCompleteMaxLengthTextField(
         fsLocation.getTextFieldId(),
-        new PropertyModel<String>(model.getPollDo(), "location"))
+        new PropertyModel<>(model.getPollDo(), "location"))
     {
       private static final long serialVersionUID = 2008897410054999896L;
 
@@ -92,7 +92,7 @@ public class NewPollPage extends PollBasePage
 
     final FieldsetPanel fsDescription = gridBuilder.newFieldset(getString("plugins.poll.new.description"));
     final MaxLengthTextArea descriptionField = new MaxLengthTextArea(fsDescription.getTextAreaId(),
-        new PropertyModel<String>(
+        new PropertyModel<>(
             model.getPollDo(), "description"));
     fsDescription.add(descriptionField);
 

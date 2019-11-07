@@ -82,7 +82,7 @@ public class LicenseDao extends BaseDao<LicenseDO>
   public String getSortedOwnernames(final LicenseDO license)
   {
     final Collection<PFUserDO> sortedOwners = getSortedOwners(license);
-    if (CollectionUtils.isEmpty(sortedOwners) == true) {
+    if (CollectionUtils.isEmpty(sortedOwners)) {
       return "";
     }
     final StringBuffer buf = new StringBuffer();

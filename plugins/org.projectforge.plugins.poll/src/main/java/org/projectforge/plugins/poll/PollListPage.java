@@ -67,7 +67,7 @@ public class PollListPage extends AbstractListPage<PollListForm, PollDao, PollDO
   @Override
   public List<IColumn<PollDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
-    final List<IColumn<PollDO, String>> columns = new ArrayList<IColumn<PollDO, String>>();
+    final List<IColumn<PollDO, String>> columns = new ArrayList<>();
 
     final CellItemListener<PollDO> cellItemListener = new CellItemListener<PollDO>()
     {
@@ -99,16 +99,16 @@ public class PollListPage extends AbstractListPage<PollListForm, PollDao, PollDO
         addRowClick(item);
       }
     });
-    columns.add(new CellItemListenerPropertyColumn<PollDO>(getString("plugins.poll.new.description"),
+    columns.add(new CellItemListenerPropertyColumn<>(getString("plugins.poll.new.description"),
         getSortable("description", sortable),
         "description", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<PollDO>(getString("plugins.poll.new.location"),
+    columns.add(new CellItemListenerPropertyColumn<>(getString("plugins.poll.new.location"),
         getSortable("location", sortable),
         "location", cellItemListener));
     columns.add(
-        new CellItemListenerPropertyColumn<PollDO>(getString("plugins.teamcal.owner"), getSortable("owner", sortable),
+        new CellItemListenerPropertyColumn<>(getString("plugins.teamcal.owner"), getSortable("owner", sortable),
             "owner.username", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<PollDO>(getString("lastUpdate"), getSortable("lastUpdate", sortable),
+    columns.add(new CellItemListenerPropertyColumn<>(getString("lastUpdate"), getSortable("lastUpdate", sortable),
         "lastUpdate",
         cellItemListener));
     return columns;

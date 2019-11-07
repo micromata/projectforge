@@ -59,7 +59,7 @@ public class FinancialFairPlayPluginUpdates
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
-        if (checkAlreadyChangedToUser() == false) {
+        if (!checkAlreadyChangedToUser()) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
 
@@ -69,7 +69,7 @@ public class FinancialFairPlayPluginUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        if (checkAlreadyChangedToUser() == false) {
+        if (!checkAlreadyChangedToUser()) {
           updateEmployeeToUser();
           databaseService.updateSchema();
         }
@@ -78,7 +78,7 @@ public class FinancialFairPlayPluginUpdates
 
       private void updateEmployeeToUser()
       {
-        if (databaseService.doesTableAttributeExist("t_plugin_financialfairplay_event", "organizer_user_id") == false) {
+        if (!databaseService.doesTableAttributeExist("t_plugin_financialfairplay_event", "organizer_user_id")) {
           databaseService.update("ALTER TABLE t_plugin_financialfairplay_event ADD organizer_user_id integer");
         }
         List<DatabaseResultRow> eventQueryResult = databaseService.query("SELECT organizer_id FROM t_plugin_financialfairplay_event");
@@ -92,7 +92,7 @@ public class FinancialFairPlayPluginUpdates
           databaseService.update("ALTER TABLE t_plugin_financialfairplay_event DROP COLUMN organizer_id");
         }
 
-        if (databaseService.doesTableAttributeExist("t_plugin_financialfairplay_event_attendee", "attendee_user_pk") == false) {
+        if (!databaseService.doesTableAttributeExist("t_plugin_financialfairplay_event_attendee", "attendee_user_pk")) {
           databaseService.update("ALTER TABLE t_plugin_financialfairplay_event_attendee ADD attendee_user_pk integer");
         }
         List<DatabaseResultRow> attendeeQueryResult = databaseService.query("SELECT attendee_pk FROM t_plugin_financialfairplay_event_attendee");
@@ -107,10 +107,10 @@ public class FinancialFairPlayPluginUpdates
           databaseService.update("ALTER TABLE t_plugin_financialfairplay_event_attendee DROP COLUMN attendee_pk");
         }
 
-        if (databaseService.doesTableAttributeExist("t_plugin_financialfairplay_debt", "attendee_user_id_from") == false) {
+        if (!databaseService.doesTableAttributeExist("t_plugin_financialfairplay_debt", "attendee_user_id_from")) {
           databaseService.update("ALTER TABLE t_plugin_financialfairplay_debt ADD attendee_user_id_from integer");
         }
-        if (databaseService.doesTableAttributeExist("t_plugin_financialfairplay_debt", "attendee_user_id_to") == false) {
+        if (!databaseService.doesTableAttributeExist("t_plugin_financialfairplay_debt", "attendee_user_id_to")) {
           databaseService.update("ALTER TABLE t_plugin_financialfairplay_debt ADD attendee_user_id_to integer");
         }
         List<DatabaseResultRow> attendeeFromToQueryResult = databaseService
@@ -136,7 +136,7 @@ public class FinancialFairPlayPluginUpdates
           databaseService.update("ALTER TABLE t_plugin_financialfairplay_debt DROP COLUMN attendee_id_to");
         }
 
-        if (databaseService.doesTableAttributeExist("t_plugin_financialfairplay_accounting", "attendee_user_id") == false) {
+        if (!databaseService.doesTableAttributeExist("t_plugin_financialfairplay_accounting", "attendee_user_id")) {
           databaseService.update("ALTER TABLE t_plugin_financialfairplay_accounting ADD attendee_user_id integer");
         }
         List<DatabaseResultRow> attendeeAccountingQueryResult = databaseService.query("SELECT attendee_id FROM t_plugin_financialfairplay_accounting");
@@ -177,10 +177,10 @@ public class FinancialFairPlayPluginUpdates
 
       private boolean checkAlreadyChangedToUser()
       {
-        if (databaseService.doesTableAttributeExist("t_plugin_financialfairplay_event", "organizer_id") == false) {
+        if (!databaseService.doesTableAttributeExist("t_plugin_financialfairplay_event", "organizer_id")) {
           return true;
         }
-        if (databaseService.doesTableAttributeExist("t_plugin_financialfairplay_event", "organizer_user_id") == false) {
+        if (!databaseService.doesTableAttributeExist("t_plugin_financialfairplay_event", "organizer_user_id")) {
           return false;
         }
         return false;
@@ -197,8 +197,8 @@ public class FinancialFairPlayPluginUpdates
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
-        if (databaseService.doesTableAttributeExist("T_PLUGIN_FINANCIALFAIRPLAY_ACCOUNTING", "comment") == false ||
-            databaseService.doesTableAttributeExist("T_PLUGIN_FINANCIALFAIRPLAY_EVENT", "commonDebtValue") == false) {
+        if (!databaseService.doesTableAttributeExist("T_PLUGIN_FINANCIALFAIRPLAY_ACCOUNTING", "comment") ||
+            !databaseService.doesTableAttributeExist("T_PLUGIN_FINANCIALFAIRPLAY_EVENT", "commonDebtValue")) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
 
@@ -208,8 +208,8 @@ public class FinancialFairPlayPluginUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        if (databaseService.doesTableAttributeExist("T_PLUGIN_FINANCIALFAIRPLAY_ACCOUNTING", "comment") == false ||
-            databaseService.doesTableAttributeExist("T_PLUGIN_FINANCIALFAIRPLAY_EVENT", "commonDebtValue") == false) {
+        if (!databaseService.doesTableAttributeExist("T_PLUGIN_FINANCIALFAIRPLAY_ACCOUNTING", "comment") ||
+            !databaseService.doesTableAttributeExist("T_PLUGIN_FINANCIALFAIRPLAY_EVENT", "commonDebtValue")) {
           //Updating the schema
           databaseService.updateSchema();
         }

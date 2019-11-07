@@ -145,7 +145,7 @@ public class TrainingSelectPanel extends AbstractSelectPanel<TrainingDO> impleme
           @Override
           public Object convertToObject(final String value, final Locale locale)
           {
-            if (StringUtils.isEmpty(value) == true) {
+            if (StringUtils.isEmpty(value)) {
               getModel().setObject(null);
               return null;
             }
@@ -231,7 +231,7 @@ public class TrainingSelectPanel extends AbstractSelectPanel<TrainingDO> impleme
       this.recentTrainings = (RecentQueue<String>) UserPreferencesHelper.getEntry(USER_PREF_KEY_RECENT_TRAININGS);
     }
     if (this.recentTrainings == null) {
-      this.recentTrainings = new RecentQueue<String>();
+      this.recentTrainings = new RecentQueue<>();
       UserPreferencesHelper.putEntry(USER_PREF_KEY_RECENT_TRAININGS, this.recentTrainings, true);
     }
     return this.recentTrainings;

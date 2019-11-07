@@ -44,7 +44,7 @@ function ValidationManager({ children, customValidation }) {
                         additionalLabel = customValidation.message;
                     }
 
-                    if (type === DayPickerInput ) {
+                    if (type === DayPickerInput) {
                         extraLabel = <AdditionalLabel title={additionalLabel} />;
                     }
                 }
