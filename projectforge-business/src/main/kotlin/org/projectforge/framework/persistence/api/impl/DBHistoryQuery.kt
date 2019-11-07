@@ -67,7 +67,6 @@ internal object DBHistoryQuery {
 
     fun searchHistoryEntryByFullTextQuery(entityManager: EntityManager, clazz: Class<*>, searchParams: DBHistorySearchParams): Set<Long> {
         val fullTextEntityManager = org.hibernate.search.jpa.Search.getFullTextEntityManager(entityManager)
-        val transaction = entityManager.transaction
         val queryBuilder = fullTextEntityManager.searchFactory.buildQueryBuilder().forEntity(PfHistoryMasterDO::class.java).get()
         var boolJunction: BooleanJunction<*> = queryBuilder.bool()
         boolJunction = boolJunction.must(queryBuilder.keyword().onField("entityName").matching(clazz.name).createQuery())

@@ -25,7 +25,6 @@ package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonBackReference
 import de.micromata.genome.db.jpa.history.api.WithHistory
-import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.ListIndexBase
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.FieldBridge
@@ -57,17 +56,17 @@ class EingangsrechnungDO : AbstractRechnungDO(), Comparable<EingangsrechnungDO> 
     @PropertyInfo(i18nKey = "fibu.rechnung.receiver")
     @Field
     @get:Column
-    open var receiver: String? = null
+    var receiver: String? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.iban")
     @Field
     @get:Column(length = 50)
-    open var iban: String? = null
+    var iban: String? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.bic")
     @Field
     @get:Column(length = 11)
-    open var bic: String? = null
+    var bic: String? = null
 
 
     /**
@@ -137,9 +136,9 @@ class EingangsrechnungDO : AbstractRechnungDO(), Comparable<EingangsrechnungDO> 
 
     override fun compareTo(other: EingangsrechnungDO): Int {
         var cmp = compareValues(this.datum, other.datum)
-        if (cmp != null) return cmp
+        if (cmp != 0) return cmp
         cmp = StringComparator.compare(this.kreditor, other.kreditor)
-        if (cmp != null) return cmp
+        if (cmp != 0) return cmp
         return StringComparator.compare(this.referenz, other.referenz)
     }
 

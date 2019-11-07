@@ -59,12 +59,6 @@ class MagicFilterEntry(
     )
 
     var value: Value
-        get() {
-            if (field == null) {
-                field = Value()
-            }
-            return field
-        }
 
     init {
         value = Value(stringValue)
