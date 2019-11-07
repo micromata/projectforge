@@ -51,6 +51,7 @@ function AutoCompletion({ url, type, ...props }) {
 AutoCompletion.propTypes = {
     url: PropTypes.string.isRequired,
     type: PropTypes.oneOf(['USER', undefined]),
+    type: PropTypes.oneOf(['USER', 'RAW', undefined]),
 };
 
 AutoCompletion.defaultProps = {

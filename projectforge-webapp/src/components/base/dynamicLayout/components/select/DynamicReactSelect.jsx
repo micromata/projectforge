@@ -77,7 +77,7 @@ function DynamicReactSelect(props) {
         )
             .then(handleHTTPErrors)
             .then(response => response.json())
-            .then(resolveJSON(callback, labelProperty ? 'RAW' : autoCompletion.type));
+            .then(resolveJSON(callback, autoCompletion.type));
 
         const url = autoCompletion ? autoCompletion.url : undefined;
 
