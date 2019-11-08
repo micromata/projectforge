@@ -137,6 +137,7 @@ public class PfEmgrFactory extends SearchEmgrFactory<PfEmgr>
     properties.put(AvailableSettings.FORMAT_SQL, hibernateFormatSql);
     properties.put(AvailableSettings.HBM2DDL_AUTO, hibernateHbm2ddlAuto);
     properties.put(AvailableSettings.ENABLE_LAZY_LOAD_NO_TRANS, true);
+    properties.put(AvailableSettings.AUTOCOMMIT, false);
     properties.put("hibernate.search.default.indexBase", hibernateSearchDefaultIndexBase);
     properties.put(AvailableSettings.DATASOURCE, ds);
     return properties;
