@@ -48,7 +48,7 @@
       <version>${project.version}</version>
     </dependency>
 
-    <!-- PF 'Plugins' -->
+    <!-- BuildIn PF 'Plugins' -->
     <dependency>
       <groupId>org.projectforge</groupId>
       <artifactId>org.projectforge.plugins.extendemployeedata</artifactId>
@@ -136,6 +136,20 @@
           <layout>ZIP</layout>
           <!-- UNCOMMENT IF WANT TO BUILD WAR FILE-->
           <!--<layout>WAR</layout>-->
+          <excludes>
+            <exclude>
+              <groupId>org.projectforge</groupId>
+              <artifactId>org.projectforge.plugins.banking</artifactId>
+            </exclude>
+            <exclude>
+              <groupId>org.projectforge</groupId>
+              <artifactId>org.projectforge.plugins.plugintemplate</artifactId>
+            </exclude>
+            <exclude>
+              <groupId>org.projectforge</groupId>
+              <artifactId>org.projectforge.plugins.poll</artifactId>
+            </exclude>
+          </excludes>
         </configuration>
       </plugin>
       <plugin>
@@ -168,7 +182,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>${maven-compile-plugin-version}</version>
         <executions>
           <!-- Replacing default-compile as it is treated specially by maven -->
           <execution>
@@ -183,12 +196,16 @@
           <execution>
             <id>java-compile</id>
             <phase>compile</phase>
-            <goals> <goal>compile</goal> </goals>
+            <goals>
+              <goal>compile</goal>
+            </goals>
           </execution>
           <execution>
             <id>java-test-compile</id>
             <phase>test-compile</phase>
-            <goals> <goal>testCompile</goal> </goals>
+            <goals>
+              <goal>testCompile</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>
