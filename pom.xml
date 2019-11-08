@@ -245,10 +245,9 @@
 
     <downloadSources>true</downloadSources>
 
-    <maven-compile-plugin-version>3.8.0</maven-compile-plugin-version>
     <maven-surefire-plugin-version>3.0.0-M3</maven-surefire-plugin-version>
-    <java.version>1.8</java.version>
-    <!--java.version>9</java.version-->
+
+    <java.version>1.8</java.version> <!-- 1.8,1.9,1.10,11,12,13 -->
 
     <!--kotlin.compiler.incremental>true</kotlin.compiler.incremental--> <!-- It's experimentell, so don't use it for now -->
 
@@ -463,7 +462,7 @@
       <scope>test</scope>
     </dependency>
     <!-- Java 11+ -->
-    <!--dependency>
+    <dependency>
       <groupId>javax.xml.bind</groupId>
       <artifactId>jaxb-api</artifactId>
       <version>2.3.0</version>
@@ -477,11 +476,19 @@
       <groupId>com.sun.xml.bind</groupId>
       <artifactId>jaxb-impl</artifactId>
       <version>2.3.0</version>
-    </dependency-->
+    </dependency>
   </dependencies>
   <build>
     <sourceDirectory>src/main/java</sourceDirectory>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
+        </configuration>
+      </plugin>
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${maven-surefire-plugin-version}</version>
