@@ -48,8 +48,7 @@
       <version>${project.version}</version>
     </dependency>
 
-    <!-- PF 'Plugins' -->
-    <!--
+    <!-- BuildIn PF 'Plugins' -->
     <dependency>
       <groupId>org.projectforge</groupId>
       <artifactId>org.projectforge.plugins.extendemployeedata</artifactId>
@@ -104,7 +103,7 @@
       <version>${project.version}</version>
       <scope>runtime</scope>
     </dependency>
-    -->
+
     <!-- https://mvnrepository.com/artifact/com.googlecode.lanterna/lanterna -->
     <!-- For graphical user dialogs based on the terminal: -->
     <dependency>
@@ -140,51 +139,11 @@
           <excludes>
             <exclude>
               <groupId>org.projectforge</groupId>
-              <artifactId>org.projectforge.plugins</artifactId>
-            </exclude>
-            <exclude>
-              <groupId>org.projectforge</groupId>
               <artifactId>org.projectforge.plugins.banking</artifactId>
             </exclude>
             <exclude>
               <groupId>org.projectforge</groupId>
-              <artifactId>org.projectforge.plugins.licensemanagement</artifactId>
-            </exclude>
-            <exclude>
-              <groupId>org.projectforge</groupId>
-              <artifactId>org.projectforge.plugins.liquidityplanning</artifactId>
-            </exclude>
-            <exclude>
-              <groupId>org.projectforge</groupId>
-              <artifactId>org.projectforge.plugins.marketing</artifactId>
-            </exclude>
-            <exclude>
-              <groupId>org.projectforge</groupId>
-              <artifactId>org.projectforge.plugins.skillmatrix</artifactId>
-            </exclude>
-            <exclude>
-              <groupId>org.projectforge</groupId>
-              <artifactId>org.projectforge.plugins.todo</artifactId>
-            </exclude>
-            <exclude>
-              <groupId>org.projectforge</groupId>
-              <artifactId>org.projectforge.plugins.memo</artifactId>
-            </exclude>
-            <exclude>
-              <groupId>org.projectforge</groupId>
               <artifactId>org.projectforge.plugins.plugintemplate</artifactId>
-            </exclude>
-            <exclude>
-              <groupId>org.projectforge</groupId>
-              <artifactId>org.projectforge.plugins.financialfairplay</artifactId>
-            </exclude>
-            <exclude>
-              <groupId>org.projectforge</groupId>
-              <artifactId>org.projectforge.plugins.extendemployeedata</artifactId>
-            </exclude>
-            <exclude>
-              <groupId>org.projectforge</groupId>
-              <artifactId>org.projectforge.plugins.ihkexport</artifactId>
             </exclude>
             <exclude>
               <groupId>org.projectforge</groupId>

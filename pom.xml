@@ -212,7 +212,7 @@
     <module>projectforge-rest</module>
     <module>projectforge-webapp</module>
     <module>projectforge-wicket</module>
-    <!--<module>plugins</module>-->
+    <module>plugins</module>
     <module>projectforge-application</module>
   </modules>
 
@@ -226,7 +226,7 @@
         <module>projectforge-rest</module>
         <module>projectforge-webapp</module>
         <module>projectforge-wicket</module>
-        <!--<module>plugins</module>-->
+        <module>plugins</module>
         <module>projectforge-application</module>
         <module>projectforge-docker</module>
       </modules>
