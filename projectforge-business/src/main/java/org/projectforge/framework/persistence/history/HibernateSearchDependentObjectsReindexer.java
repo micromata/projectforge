@@ -23,15 +23,11 @@
 
 package org.projectforge.framework.persistence.history;
 
-import org.hibernate.CacheMode;
-import org.hibernate.FlushMode;
-import org.hibernate.Session;
-import org.hibernate.search.FullTextSession;
-import org.hibernate.search.Search;
 import org.hibernate.search.annotations.ContainedIn;
 import org.hibernate.search.annotations.IndexedEmbedded;
+import org.hibernate.search.jpa.FullTextEntityManager;
+import org.hibernate.search.jpa.Search;
 import org.projectforge.framework.persistence.api.BaseDO;
-import org.projectforge.framework.persistence.hibernate.HibernateCompatUtils;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.registry.Registry;
 import org.projectforge.registry.RegistryEntry;
@@ -41,6 +37,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
+import javax.persistence.FlushModeType;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -122,11 +119,9 @@ public class HibernateSearchDependentObjectsReindexer {
       public void run() {
         emgrFactory.runInTrans(emgr -> {
                   final EntityManager em = emgr.getEntityManager();
-                  final Session session = (Session) em.getDelegate();
                   final Set<String> alreadyReindexed = new HashSet<>();
                   final List<Entry> entryList = map.get(obj.getClass());
-                  reindexDependents(em, session, obj, entryList, alreadyReindexed);
-                  session.disconnect();
+                  reindexDependents(em, obj, entryList, alreadyReindexed);
                   final int size = alreadyReindexed.size();
                   if (size >= 10) {
                     log.info("Re-indexing of " + size + " objects done after updating " + obj.getClass().getName() + ":"
@@ -139,7 +134,7 @@ public class HibernateSearchDependentObjectsReindexer {
     }.start();
   }
 
-  private void reindexDependents(final EntityManager em, final Session session, final BaseDO<?> obj,
+  private void reindexDependents(final EntityManager em, final BaseDO<?> obj,
                                  final List<Entry> entryList, final Set<String> alreadyReindexed) {
     if (CollectionUtils.isEmpty(entryList)) {
       // Nothing to do.
@@ -158,14 +153,14 @@ public class HibernateSearchDependentObjectsReindexer {
             dependentObject = ((Object[]) dependentObject)[0];
           }
           if (dependentObject instanceof BaseDO) {
-            reindexDependents(em, session, (BaseDO<?>) dependentObject, alreadyReindexed);
+            reindexDependents(em, (BaseDO<?>) dependentObject, alreadyReindexed);
           }
         }
       }
     }
   }
 
-  private void reindexDependents(final EntityManager em, final Session session, final BaseDO<?> obj,
+  private void reindexDependents(final EntityManager em, final BaseDO<?> obj,
                                  final Set<String> alreadyReindexed) {
     if (alreadyReindexed.contains(getReindexId(obj))) {
       if (log.isDebugEnabled()) {
@@ -173,17 +168,17 @@ public class HibernateSearchDependentObjectsReindexer {
       }
       return;
     }
-    session.flush(); // Needed to flush the object changes!
-    final FullTextSession fullTextSession = Search.getFullTextSession(session);
+    em.flush(); // Needed to flush the object changes!
+    final FullTextEntityManager fullTextEntityManager = Search.getFullTextEntityManager(em);
 
-    HibernateCompatUtils.setFlushMode(fullTextSession, FlushMode.AUTO);
-    HibernateCompatUtils.setCacheMode(fullTextSession, CacheMode.IGNORE);
+    fullTextEntityManager.setFlushMode(FlushModeType.AUTO);
+    //HibernateCompatUtils.setCacheMode(fullTextSession, CacheMode.IGNORE);
     try {
-      BaseDO<?> dbObj = session.get(obj.getClass(), obj.getId());
+      BaseDO<?> dbObj = em.find(obj.getClass(), obj.getId());
       if (dbObj == null) {
-        dbObj = session.load(obj.getClass(), obj.getId());
+        dbObj = em.find(obj.getClass(), obj.getId());
       }
-      HibernateCompatUtils.index(fullTextSession, dbObj);
+      fullTextEntityManager.index(dbObj);
       alreadyReindexed.add(getReindexId(dbObj));
       if (log.isDebugEnabled()) {
         log.debug("Object added to index: " + getReindexId(dbObj));
@@ -192,9 +187,9 @@ public class HibernateSearchDependentObjectsReindexer {
       // Don't fail if any exception while re-indexing occurs.
       log.info("Fail to re-index " + obj.getClass() + ": " + ex.getMessage());
     }
-    // session.flush(); // clear every batchSize since the queue is processed
+    // em.flush(); // clear every batchSize since the queue is processed
     final List<Entry> entryList = map.get(obj.getClass());
-    reindexDependents(em, session, obj, entryList, alreadyReindexed);
+    reindexDependents(em, obj, entryList, alreadyReindexed);
   }
 
   private List<?> getDependents(final EntityManager em,
