@@ -456,6 +456,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * @return the generated identifier, if save method is used, otherwise null.
    */
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public Serializable saveOrUpdate(final O obj) throws AccessException {
     Serializable id = null;
     if (obj.getId() != null && obj.getCreated() != null) { // obj.created is needed for KundeDO (id isn't null for inserting new customers).
@@ -469,6 +470,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * @return the generated identifier, if save method is used, otherwise null.
    */
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public Serializable internalSaveOrUpdate(final O obj) {
     Serializable id = null;
     if (obj.getId() != null) {
@@ -482,6 +484,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * Call save(O) for every object in the given list.
    */
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public void save(final List<O> objects) throws AccessException {
     Validate.notNull(objects);
     for (final O obj : objects) {
@@ -493,6 +496,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * @return the generated identifier.
    */
   @Override
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public Integer save(final O obj) throws AccessException {
     //long begin = System.currentTimeMillis();
     Validate.notNull(obj);
@@ -510,6 +514,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   }
 
   @Override
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public Integer insert(O obj) throws AccessException {
     return save(obj);
   }
