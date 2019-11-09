@@ -30,7 +30,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.PredicateUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.hibernate.Session;
 import org.hibernate.search.jpa.Search;
 import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.business.multitenancy.TenantRegistry;
@@ -47,7 +46,6 @@ import org.projectforge.framework.persistence.database.DatabaseDao;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.history.HibernateSearchDependentObjectsReindexer;
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
-import org.projectforge.framework.persistence.history.SimpleHistoryEntry;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils;
@@ -446,14 +444,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   }
 
   /**
-   * Gets the history entries of the object in flat format.<br/>
-   * Please note: No check access will be done! Please check the access before getting the object.
-   */
-  public List<SimpleHistoryEntry> getSimpleHistoryEntries(final O obj) {
-    return HistoryBaseDaoAdapter.getSimpleHistoryEntries(obj, getUserGroupCache());
-  }
-
-  /**
    * @return the generated identifier, if save method is used, otherwise null.
    */
   @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -623,6 +613,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    *
    * @return the generated identifier.
    */
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public Integer internalSave(final O obj) {
     return BaseDaoSupport.internalSave(this, obj);
   }
@@ -631,12 +622,14 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     return em.find(TenantDO.class, 1);
   }
 
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public void saveOrUpdate(final Collection<O> col) {
     for (final O obj : col) {
       saveOrUpdate(obj);
     }
   }
 
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public void saveOrUpdate(final BaseDao<O> currentProxy, final Collection<O> col, final int blockSize) {
     final List<O> list = new ArrayList<>();
     int counter = 0;
@@ -652,12 +645,14 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     currentProxy.saveOrUpdate(list);
   }
 
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public void internalSaveOrUpdate(final Collection<O> col) {
     for (final O obj : col) {
       internalSaveOrUpdate(obj);
     }
   }
 
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public void internalSaveOrUpdate(final BaseDao<O> currentProxy, final Collection<O> col, final int blockSize) {
     final List<O> list = new ArrayList<>();
     int counter = 0;
@@ -678,6 +673,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * @see #internalUpdate(ExtendedBaseDO, boolean)
    */
   @Override
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public ModificationStatus update(final O obj) throws AccessException {
     Validate.notNull(obj);
     if (obj.getId() == null) {
@@ -694,6 +690,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * @return true, if modifications were done, false if no modification detected.
    * @see #internalUpdate(ExtendedBaseDO, boolean)
    */
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public ModificationStatus internalUpdate(final O obj) {
     return internalUpdate(obj, false);
   }
@@ -705,6 +702,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * @param checkAccess If false, any access check will be ignored.
    * @return true, if modifications were done, false if no modification detected.
    */
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public ModificationStatus internalUpdate(final O obj, final boolean checkAccess) {
     return BaseDaoSupport.internalUpdate(this, obj, checkAccess);
   }
@@ -738,6 +736,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * Object will be marked as deleted (boolean flag), therefore undelete is always possible without any loss of data.
    */
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   @Override
   public void markAsDeleted(final O obj) throws AccessException {
     Validate.notNull(obj);
@@ -753,6 +752,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     internalMarkAsDeleted(obj);
   }
 
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public void internalMarkAsDeleted(final O obj) {
     BaseDaoSupport.internalMarkAsDeleted(this, obj);
   }
@@ -771,6 +771,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * Object will be deleted finally out of the data base.
    */
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   @Override
   public void delete(final O obj) throws AccessException {
     Validate.notNull(obj);
@@ -804,6 +805,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * Object will be marked as deleted (booelan flag), therefore undelete is always possible without any loss of data.
    */
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   @Override
   public void undelete(final O obj) throws AccessException {
     Validate.notNull(obj);
@@ -818,6 +820,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     internalUndelete(obj);
   }
 
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public void internalUndelete(final O obj) {
     BaseDaoSupport.internalUndelete(this, obj);
   }
@@ -1118,6 +1121,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     return dest.copyValuesFrom(src, ignoreFields);
   }
 
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   protected void createHistoryEntry(final Object entity, final Number id, final String property,
                                     final Class<?> valueClass,
                                     final Object oldValue, final Object newValue) {
@@ -1178,6 +1182,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    *
    * @see DatabaseDao#createReindexSettings(boolean)
    */
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   @Override
   public void rebuildDatabaseIndex4NewestEntries() {
     final ReindexSettings settings = DatabaseDao.createReindexSettings(true);
@@ -1188,6 +1193,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * Re-indexes all entries (full re-index).
    */
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   @Override
   public void rebuildDatabaseIndex() {
     final ReindexSettings settings = DatabaseDao.createReindexSettings(false);
@@ -1200,10 +1206,12 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * Re-index all dependent objects manually (hibernate search). Hibernate doesn't re-index these objects, does it?
    */
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public void reindexDependentObjects(final O obj) {
     hibernateSearchDependentObjectsReindexer.reindexDependents(obj);
   }
 
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public void massUpdate(final List<O> list, final O master) {
     if (list == null || list.size() == 0) {
       // No entries to update.
@@ -1244,59 +1252,10 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     throw new UnsupportedOperationException("Mass update is not supported by this dao for: " + clazz.getName());
   }
 
-  /**
-   * Searches all history entries matching the given modified by user and modification intervall. Any given search
-   * string will be ignored. Use {@link #getHistoryEntriesFullTextSearch(Session, BaseSearchFilter)} for searching
-   * for strings.
-   *
-   * @see HibernateSearchFilterUtils#getHistoryEntriesDirect(Session, BaseSearchFilter, Set, Class)
-   */
-  public Set<Integer> getHistoryEntries(final Session session, final BaseSearchFilter filter) {
-    if (!hasLoggedInUserSelectAccess(false) || !hasLoggedInUserHistoryAccess(false)) {
-      // User has in general no access to history entries of the given object type (clazz).
-      return null;
-    }
-    final Set<Integer> idSet = new HashSet<>();
-    HibernateSearchFilterUtils.getHistoryEntriesDirect(session, filter, idSet, clazz);
-    if (getAdditionalHistorySearchDOs() != null) {
-      for (final Class<?> aclazz : getAdditionalHistorySearchDOs()) {
-        HibernateSearchFilterUtils.getHistoryEntriesDirect(session, filter, idSet, aclazz);
-      }
-    }
-    return idSet;
-  }
-
-  /**
-   * Searches all history entries matching the given modified by user, interval of modification and any given search string.
-   *
-   * @see HibernateSearchFilterUtils#getHistoryEntriesFromFullTextSearch(Session, BaseSearchFilter, Set, Class)
-   */
-  public Set<Integer> getHistoryEntriesFullTextSearch(final Session session, final BaseSearchFilter filter) {
-    if (!hasLoggedInUserSelectAccess(false) || !hasLoggedInUserHistoryAccess(false)) {
-      // User has in general no access to history entries of the given object type (clazz).
-      return null;
-    }
-    final Set<Integer> idSet = new HashSet();
-    HibernateSearchFilterUtils.getHistoryEntriesFromFullTextSearch(session, filter, idSet, clazz);
-    if (getAdditionalHistorySearchDOs() != null) {
-      for (final Class<?> aclazz : getAdditionalHistorySearchDOs()) {
-        HibernateSearchFilterUtils.getHistoryEntriesFromFullTextSearch(session, filter, idSet, aclazz);
-      }
-    }
-    return idSet;
-  }
-
   // TODO RK entweder so oder ueber annots.
   // siehe org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils.getNestedHistoryEntities(Class<?>)
   protected Class<?>[] getAdditionalHistorySearchDOs() {
     return null;
-  }
-
-  /**
-   * @return The type of the data object (BaseDO) this dao is responsible for.
-   */
-  public Class<?> getDataObjectType() {
-    return clazz;
   }
 
   public TenantRegistry getTenantRegistry() {
