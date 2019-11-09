@@ -175,15 +175,16 @@ public class TaskDao extends BaseDao<TaskDO> {
     log.debug("Calculating duration for all tasks");
     final String intervalInSeconds = DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime");
     if (intervalInSeconds != null) {
-      TypedQuery<Long> typedQuery = em.createQuery(
+      // Expected type is Integer or Long.
+      TypedQuery<Number> typedQuery = em.createQuery(
               "select " + intervalInSeconds + " from TimesheetDO where task.id=:taskId group by task.id",
-              Long.class).setParameter("taskId", taskId);
-      Long value = SQLHelper.ensureUniqueResult(typedQuery);
+              Number.class).setParameter("taskId", taskId);
+      Number value = SQLHelper.ensureUniqueResult(typedQuery);
       // select DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime") from TimesheetDO where task.id = :taskId and deleted=false")
       if (value == null) {
         return 0L;
       }
-      return value;
+      return value.longValue();
     }
     List<Tuple> result = em.createNamedQuery(TimesheetDO.FIND_START_STOP_BY_TASKID, Tuple.class)
             .setParameter("taskId", taskId)
