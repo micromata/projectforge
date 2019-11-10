@@ -49,87 +49,87 @@ import javax.persistence.*
 @NamedQueries(
         NamedQuery(name = BookDO.FIND_BY_SIGNATURE, query = "from BookDO where signature=:signature"),
         NamedQuery(name = BookDO.FIND_OTHER_BY_SIGNATURE, query = "from BookDO where signature=:signature and id<>:id"))
-class BookDO : DefaultBaseDO() {
+open class BookDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "book.title", required = true)
     @Field
     @get:Column(length = 255)
-    var title: String? = null
+    open var title: String? = null
 
     @PropertyInfo(i18nKey = "book.keywords")
     @Field
     @get:Column(length = 1024)
-    var keywords: String? = null
+    open var keywords: String? = null
 
     @PropertyInfo(i18nKey = "book.lendOutBy")
     @IndexedEmbedded(depth = 1, includePaths = ["username", "firstname", "lastname"])
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:Fetch(FetchMode.SELECT)
     @get:JoinColumn(name = "lend_out_by")
-    var lendOutBy: PFUserDO? = null
+    open var lendOutBy: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "date")
     @Field(index = Index.YES, analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "lend_out_date")
-    var lendOutDate: Date? = null
+    open var lendOutDate: Date? = null
 
     @PropertyInfo(i18nKey = "book.lendOutNote")
     @Field
     @get:Column(name = "lend_out_comment", length = 1024)
-    var lendOutComment: String? = null
+    open var lendOutComment: String? = null
 
     @PropertyInfo(i18nKey = "book.isbn")
     @Field
     @get:Column(length = 255)
-    var isbn: String? = null
+    open var isbn: String? = null
 
     @PropertyInfo(i18nKey = "book.signature")
     @Field
     @get:Column(length = 255)
-    var signature: String? = null
+    open var signature: String? = null
 
     @PropertyInfo(i18nKey = "book.publisher")
     @Field
     @get:Column(length = 255)
-    var publisher: String? = null
+    open var publisher: String? = null
 
     @PropertyInfo(i18nKey = "book.editor")
     @Field
     @get:Column(length = 255)
-    var editor: String? = null
+    open var editor: String? = null
 
     @PropertyInfo(i18nKey = "book.yearOfPublishing")
     @Field(index = Index.YES, store = Store.NO, name = "year")
     @get:Column(name = "year_of_publishing", length = 4)
-    var yearOfPublishing: String? = null
+    open var yearOfPublishing: String? = null
 
     @PropertyInfo(i18nKey = "book.authors")
     @Field
     @get:Column(length = 1000)
-    var authors: String? = null
+    open var authors: String? = null
 
     @PropertyInfo(i18nKey = "book.abstract")
     @Field(index = Index.YES, store = Store.NO, name = "abstract")
     @get:Column(name = "abstract_text", length = 4000)
-    var abstractText: String? = null
+    open var abstractText: String? = null
 
     @PropertyInfo(i18nKey = "comment")
     @Field
     @get:Column(length = 1000)
-    var comment: String? = null
+    open var comment: String? = null
 
     @PropertyInfo(i18nKey = "status")
     @Field(index = Index.YES, analyze = Analyze.NO, store = Store.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20, nullable = false)
-    var status: BookStatus? = null
+    open var status: BookStatus? = null
 
     @PropertyInfo(i18nKey = "book.type")
     @Field(index = Index.YES, analyze = Analyze.NO, store = Store.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "book_type", length = 20, nullable = true)
-    var type: BookType? = null
+    open var type: BookType? = null
 
     /**
      * Converts numbers in signature for alphanumeric sorting in 5-digit form. For example: "WT-145a" -&gt; "WT-00145a".

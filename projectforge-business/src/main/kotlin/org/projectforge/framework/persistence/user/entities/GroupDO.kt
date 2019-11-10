@@ -47,15 +47,15 @@ import javax.persistence.*
 @NamedQueries(
         NamedQuery(name = GroupDO.FIND_BY_NAME, query = "from GroupDO where name=:name"),
         NamedQuery(name = GroupDO.FIND_OTHER_GROUP_BY_NAME, query = "from GroupDO where name=:name and id<>:id"))
-class GroupDO : DefaultBaseDO(), ShortDisplayNameCapable {
+open class GroupDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     @PropertyInfo(i18nKey = "name")
     @Field
     @get:Column(length = 100)
-    var name: String? = null
+    open var name: String? = null
 
     @get:Column(name = "local_group", nullable = false)
-    var localGroup: Boolean = false
+    open var localGroup: Boolean = false
 
     // private boolean nestedGroupsAllowed = true;
 
@@ -104,19 +104,19 @@ class GroupDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @PropertyInfo(i18nKey = "organization")
     @Field
     @get:Column(length = 100)
-    var organization: String? = null
+    open var organization: String? = null
 
     @PropertyInfo(i18nKey = "description")
     @Field
     @get:Column(length = 1000)
-    var description: String? = null
+    open var description: String? = null
 
     private var usernames: String? = null
 
     @PropertyInfo(i18nKey = "ldap")
     @Field
     @get:Column(name = "ldap_values", length = 4000)
-    var ldapValues: String? = null
+    open var ldapValues: String? = null
 
     // TODO: Type Set not yet supported
     @PropertyInfo(i18nKey = "group.assignedUsers")
@@ -124,7 +124,7 @@ class GroupDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @IndexedEmbedded(depth = 1)
     @get:ManyToMany(targetEntity = PFUserDO::class, cascade = [CascadeType.MERGE], fetch = FetchType.EAGER)
     @get:JoinTable(name = "T_GROUP_USER", joinColumns = [JoinColumn(name = "GROUP_ID")], inverseJoinColumns = [JoinColumn(name = "USER_ID")], indexes = [javax.persistence.Index(name = "idx_fk_t_group_user_group_id", columnList = "group_id"), javax.persistence.Index(name = "idx_fk_t_group_user_user_id", columnList = "user_id")])
-    var assignedUsers: MutableSet<PFUserDO>? = null
+    open var assignedUsers: MutableSet<PFUserDO>? = null
 
     /**
      * Returns the collection of assigned users only if initialized. Avoids a LazyInitializationException.

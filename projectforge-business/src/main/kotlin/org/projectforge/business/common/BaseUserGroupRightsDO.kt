@@ -54,22 +54,22 @@ abstract class BaseUserGroupRightsDO : DefaultBaseDO() {
      * Members of these groups have full read/write access to all entries of this object.
      */
     @get:Column(name = "full_access_group_ids", nullable = true)
-    var fullAccessGroupIds: String? = null
+    open var fullAccessGroupIds: String? = null
 
     @get:Column(name = "full_access_user_ids", nullable = true)
-    var fullAccessUserIds: String? = null
+    open var fullAccessUserIds: String? = null
 
     /**
      * Members of these groups have full read-only access to all entries of this object.
      */
     @get:Column(name = "readonly_access_group_ids", nullable = true)
-    var readonlyAccessGroupIds: String? = null
+    open var readonlyAccessGroupIds: String? = null
 
     /**
      * These users have full read-only access to all entries of this object.
      */
     @get:Column(name = "readonly_access_user_ids", nullable = true)
-    var readonlyAccessUserIds: String? = null
+    open var readonlyAccessUserIds: String? = null
 
     /**
      * Members of these group have read-only access to all entries of this object, but they can only see a minimal
@@ -77,11 +77,11 @@ abstract class BaseUserGroupRightsDO : DefaultBaseDO() {
      * start and end time of an event, but no information of details such as location, notes etc.
      */
     @get:Column(name = "minimal_access_group_ids", nullable = true)
-    var minimalAccessGroupIds: String? = null
+    open var minimalAccessGroupIds: String? = null
 
     /**
      * Members of this group have only access to the start and stop time, nothing else.
      */
     @get:Column(name = "minimal_access_user_ids", nullable = true)
-    var minimalAccessUserIds: String? = null
+    open var minimalAccessUserIds: String? = null
 }

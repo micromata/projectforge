@@ -33,32 +33,31 @@ import javax.persistence.*
 @Entity
 @Table(name = "T_PLUGIN_FINANCIALFAIRPLAY_DEBT", uniqueConstraints = [UniqueConstraint(columnNames = ["EVENT_ID", "ATTENDEE_USER_ID_FROM", "ATTENDEE_USER_ID_TO"])], indexes = [javax.persistence.Index(name = "idx_fk_T_PLUGIN_FINANCIALFAIRPLAY_DEBT_event_id", columnList = "EVENT_ID"), javax.persistence.Index(name = "idx_fk_T_PLUGIN_FINANCIALFAIRPLAY_DEBT_from_id", columnList = "ATTENDEE_USER_ID_FROM"), javax.persistence.Index(name = "idx_fk_T_PLUGIN_FINANCIALFAIRPLAY_DEBT_to_id", columnList = "ATTENDEE_USER_ID_TO")])
 @WithHistory
-class FFPDebtDO : DefaultBaseDO() {
+open class FFPDebtDO : DefaultBaseDO() {
 
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "EVENT_ID")
-    var event: FFPEventDO? = null
+    open var event: FFPEventDO? = null
 
     @PropertyInfo(i18nKey = "plugins.ffp.from")
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "ATTENDEE_USER_ID_FROM")
-    var from: PFUserDO? = null
+    open var from: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "plugins.ffp.to")
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "ATTENDEE_USER_ID_TO")
-    var to: PFUserDO? = null
+    open var to: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "plugins.ffp.value")
     @get:Column(nullable = false)
-    var value: BigDecimal? = null
+    open var value: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "plugins.ffp.approvedByFrom")
     @get:Column(nullable = false)
-    var isApprovedByFrom: Boolean = false
+    open var isApprovedByFrom: Boolean = false
 
     @PropertyInfo(i18nKey = "plugins.ffp.approvedByTo")
     @get:Column(nullable = false)
-    var isApprovedByTo: Boolean = false
-
+    open var isApprovedByTo: Boolean = false
 }

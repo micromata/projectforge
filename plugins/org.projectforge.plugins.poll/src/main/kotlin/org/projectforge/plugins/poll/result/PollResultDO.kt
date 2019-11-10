@@ -36,18 +36,18 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "T_PLUGIN_POLL_RESULT", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_poll_result_tenant_id", columnList = "tenant_id")])
-class PollResultDO : DefaultBaseDO() {
+open class PollResultDO : DefaultBaseDO() {
 
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "poll_event_fk")
-    var pollEvent: PollEventDO? = null
+    open var pollEvent: PollEventDO? = null
 
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "poll_attendee_fk")
-    var pollAttendee: PollAttendeeDO? = null
+    open var pollAttendee: PollAttendeeDO? = null
 
     @get:Column
-    var result: Boolean = false
+    open var result: Boolean = false
 }

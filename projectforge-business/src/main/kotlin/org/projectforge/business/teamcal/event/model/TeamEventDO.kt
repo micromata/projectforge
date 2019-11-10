@@ -76,7 +76,7 @@ import javax.persistence.*
 @Table(name = "T_PLUGIN_CALENDAR_EVENT", uniqueConstraints = [UniqueConstraint(name = "unique_t_plugin_calendar_event_uid_calendar_fk", columnNames = ["uid", "calendar_fk"])], indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_calendar_fk", columnList = "calendar_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_tenant_id", columnList = "tenant_id"), javax.persistence.Index(name = "idx_plugin_team_cal_end_date", columnList = "calendar_fk, end_date"), javax.persistence.Index(name = "idx_plugin_team_cal_start_date", columnList = "calendar_fk, start_date"), javax.persistence.Index(name = "idx_plugin_team_cal_time", columnList = "calendar_fk, start_date, end_date")])
 @WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [TeamEventAttendeeDO::class])
 @AUserRightId(value = "PLUGIN_CALENDAR_EVENT")
-class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
+open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
     @PropertyInfo(i18nKey = "plugins.teamcal.event.subject")
     @Field
     @get:Column(length = Constants.LENGTH_SUBJECT)
@@ -107,16 +107,16 @@ class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
     @DateBridge(resolution = Resolution.SECOND)
     @NoHistory
     @get:Column(name = "last_email")
-    var lastEmail: Timestamp? = null
+    open var lastEmail: Timestamp? = null
 
     @get:Column(name = "dt_stamp")
-    var dtStamp: Timestamp? = null
+    open var dtStamp: Timestamp? = null
 
     @PropertyInfo(i18nKey = "plugins.teamcal.calendar")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "calendar_fk", nullable = false)
-    var calendar: TeamCalDO? = null
+    open var calendar: TeamCalDO? = null
 
     @Transient
     private var recurrenceRuleObject: RRule? = null
@@ -125,7 +125,7 @@ class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
      * RRULE (rfc5545)
      */
     @get:Column(name = "recurrence_rule", length = 4000)
-    var recurrenceRule: String? = null
+    open var recurrenceRule: String? = null
         set(recurrenceRule) {
             this.recurrenceRuleObject = null
             field = if (StringUtils.startsWith(recurrenceRule, "RRULE:")) {
@@ -142,20 +142,19 @@ class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
      * **Caution:** all timestamps must be represented in UTC!
      */
     @get:Column(name = "recurrence_ex_date", length = 4000)
-    var recurrenceExDate: String? = null
+    open var recurrenceExDate: String? = null
 
     /**
      * This field is RECURRENCE_ID. Isn't yet used (ex-date is always used instead in master event).
      */
     @get:Column(name = "recurrence_date")
-    var recurrenceReferenceDate: String? = null
+    open var recurrenceReferenceDate: String? = null
 
     /**
      * Isn't yet used (ex-date is always used instead in master event).
      */
     @get:Column(name = "recurrence_reference_id", length = 255)
-    var recurrenceReferenceId: String? = null
-
+    open var recurrenceReferenceId: String? = null
 
     /**
      * If not given the recurrence will never ends. Identifies the last possible event occurrence.
@@ -166,14 +165,14 @@ class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
      * This field exist only for data-base query purposes.
      */
     @get:Column(name = "recurrence_until")
-    var recurrenceUntil: Date? = null
+    open var recurrenceUntil: Date? = null
 
     @PropertyInfo(i18nKey = "plugins.teamcal.event.note")
     @Field
     @get:Column(length = 4000)
     override var note: String? = null
 
-    var attendees: MutableSet<TeamEventAttendeeDO>? = null
+    open var attendees: MutableSet<TeamEventAttendeeDO>? = null
         @OneToMany(fetch = FetchType.EAGER)
         @JoinColumn(name = "team_event_fk")
         get() {
@@ -184,17 +183,17 @@ class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
         }
 
     @get:Column
-    var ownership: Boolean? = null
+    open var ownership: Boolean? = null
 
     @get:Column(length = 1000)
-    var organizer: String? = null
+    open var organizer: String? = null
 
     @get:Column(length = 1000, name = "organizer_additional_params")
-    var organizerAdditionalParams: String? = null
+    open var organizerAdditionalParams: String? = null
 
     // See RFC 2445 section 4.8.7.4
     @get:Column
-    var sequence: Int? = 0
+    open var sequence: Int? = 0
 
     /**
      * Loads or creates the team event uid. Its very important that the uid is always the same in every ics file, which is
@@ -204,20 +203,20 @@ class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
     override var uid: String? = null
 
     @get:Column(name = "reminder_duration")
-    var reminderDuration: Int? = null
+    open var reminderDuration: Int? = null
 
     @get:Column(name = "reminder_duration_unit")
     @get:Enumerated(EnumType.STRING)
-    var reminderDurationUnit: ReminderDurationUnit? = null
+    open var reminderDurationUnit: ReminderDurationUnit? = null
 
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "reminder_action_type")
-    var reminderActionType: ReminderActionType? = null
+    open var reminderActionType: ReminderActionType? = null
 
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
     @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
     @get:JoinColumn(name = "team_event_fk2")
-    var attachments: MutableSet<TeamEventAttachmentDO>? = null
+    open var attachments: MutableSet<TeamEventAttachmentDO>? = null
         get() {
             if (field == null) {
                 field = TreeSet()
@@ -225,7 +224,7 @@ class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
             return field
         }
 
-    var creator: PFUserDO? = null
+    open var creator: PFUserDO? = null
         @ManyToOne(fetch = FetchType.LAZY)
         @JoinColumn(name = "team_event_fk_creator")
         get() {
@@ -237,7 +236,7 @@ class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
 
     val calendarId: Int?
         @Transient
-        get() = if (calendar != null) calendar!!.id else null
+        get() = calendar?.id
 
     /**
      * Will be renewed if [.setRecurrenceRule] is called.
@@ -283,9 +282,7 @@ class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
         note = null
         location = note
         subject = location
-        if (attendees != null) {
-            attendees!!.clear()
-        }
+        attendees?.clear()
         organizer = null
         organizerAdditionalParams = null
         reminderDuration = null
@@ -294,9 +291,7 @@ class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
         lastEmail = null
         sequence = null
         dtStamp = null
-        if (attachments != null) {
-            attachments!!.clear()
-        }
+        attachments?.clear()
         uid = null
 
         return this

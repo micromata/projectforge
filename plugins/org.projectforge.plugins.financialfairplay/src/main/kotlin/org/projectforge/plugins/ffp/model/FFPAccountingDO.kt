@@ -33,27 +33,27 @@ import javax.persistence.*
 @Entity
 @Table(name = "T_PLUGIN_FINANCIALFAIRPLAY_ACCOUNTING")
 @WithHistory
-class FFPAccountingDO : DefaultBaseDO() {
+open class FFPAccountingDO : DefaultBaseDO() {
 
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "EVENT_ID")
-    var event: FFPEventDO? = null
+    open var event: FFPEventDO? = null
 
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "ATTENDEE_USER_ID")
-    var attendee: PFUserDO? = null
+    open var attendee: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "plugins.ffp.value")
     @get:Column(nullable = false)
-    var value: BigDecimal? = null
+    open var value: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "plugins.ffp.weighting")
     @get:Column(nullable = false)
-    var weighting: BigDecimal? = null
+    open var weighting: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "plugins.ffp.comment")
     @get:Column
-    var comment: String? = null
+    open var comment: String? = null
 
     override fun equals(other: Any?): Boolean {
         if (other !is FFPAccountingDO) {

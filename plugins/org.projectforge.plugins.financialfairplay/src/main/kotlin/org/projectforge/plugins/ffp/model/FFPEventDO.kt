@@ -25,7 +25,6 @@ package org.projectforge.plugins.ffp.model
 
 import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.hibernate.search.annotations.DateBridge
-import org.hibernate.search.annotations.EncodingType
 import org.hibernate.search.annotations.IndexedEmbedded
 import org.hibernate.search.annotations.Resolution
 import org.projectforge.common.anots.PropertyInfo
@@ -42,7 +41,7 @@ import javax.persistence.*
 @Table(name = "T_PLUGIN_FINANCIALFAIRPLAY_EVENT")
 @WithHistory
 @AUserRightId(value = "FFP_EVENT", checkAccess = false)
-class FFPEventDO : DefaultBaseDO() {
+open class FFPEventDO : DefaultBaseDO() {
 
     /**
      * The organizer.
@@ -56,21 +55,21 @@ class FFPEventDO : DefaultBaseDO() {
     @IndexedEmbedded(includePaths = ["firstname", "lastname"])
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "organizer_user_id")
-    var organizer: PFUserDO? = null
+    open var organizer: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "plugins.ffp.title")
     @get:Column(nullable = false, length = 1000)
-    var title: String? = null
+    open var title: String? = null
 
     @PropertyInfo(i18nKey = "plugins.ffp.eventDate")
     @DateBridge(resolution = Resolution.DAY)
     @get:Temporal(TemporalType.DATE)
     @get:Column(nullable = false)
-    var eventDate: Date? = null
+    open var eventDate: Date? = null
 
     // TODO: Set not supported
     @PropertyInfo(i18nKey = "plugins.ffp.attendees")
-    var attendeeList: MutableSet<PFUserDO>? = null
+    open var attendeeList: MutableSet<PFUserDO>? = null
         @ManyToMany
         @JoinTable(name = "T_PLUGIN_FINANCIALFAIRPLAY_EVENT_ATTENDEE", joinColumns = [JoinColumn(name = "EVENT_PK", referencedColumnName = "PK")], inverseJoinColumns = [JoinColumn(name = "ATTENDEE_USER_PK", referencedColumnName = "PK")])
         get() {
@@ -81,7 +80,7 @@ class FFPEventDO : DefaultBaseDO() {
         }
 
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
-    var accountingList: Set<FFPAccountingDO>? = null
+    open var accountingList: Set<FFPAccountingDO>? = null
         @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, mappedBy = "event", orphanRemoval = true)
         get() {
             if (field == null) {
@@ -91,11 +90,11 @@ class FFPEventDO : DefaultBaseDO() {
         }
 
     @get:Column
-    var finished: Boolean = false
+    open var finished: Boolean = false
 
     @PropertyInfo(i18nKey = "plugins.ffp.commonDebtValue")
     @get:Column
-    var commonDebtValue: BigDecimal? = null
+    open var commonDebtValue: BigDecimal? = null
 
     val status: String
         @Transient

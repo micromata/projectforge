@@ -50,53 +50,53 @@ import javax.persistence.*
                 query = "from SkillRatingDO where user.id=:userId and skill.id=:skillId"),
         NamedQuery(name = SkillRatingDO.FIND_OTHER_BY_USER_AND_SKILL,
                 query = "from SkillRatingDO where user.id=:userId and skill.id=:skillId and id!=:id"))
-class SkillRatingDO : DefaultBaseDO() {
+open class SkillRatingDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skillrating.user")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "user_fk")
-    var user: PFUserDO? = null
+    open var user: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skillrating.skill")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "skill_fk")
-    var skill: SkillDO? = null
+    open var skill: SkillDO? = null
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skillrating.sinceyear")
     @Field(analyze = Analyze.NO)
     @get:Column(name = "since_year")
-    var sinceYear: Int? = null
+    open var sinceYear: Int? = null
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skillrating.rating")
     @Enumerated(EnumType.STRING)
     @Field
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 15, name = "skill_rating")
-    var skillRating: SkillRating? = null
+    open var skillRating: SkillRating? = null
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skillrating.certificates")
     @Field
     @get:Column(length = 4000)
-    var certificates: String? = null
+    open var certificates: String? = null
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skillrating.trainingcourses")
     @Field
     @get:Column(length = 4000)
-    var trainingCourses: String? = null
+    open var trainingCourses: String? = null
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skillrating.description")
     @UserPrefParameter(i18nKey = "description", multiline = true)
     @Field
     @get:Column(length = Constants.LENGTH_TEXT)
-    var description: String? = null
+    open var description: String? = null
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skillrating.comment")
     @UserPrefParameter(i18nKey = "comment", multiline = true)
     @Field
     @get:Column(length = Constants.LENGTH_TEXT)
-    var comment: String? = null
+    open var comment: String? = null
 
     val userId: Int?
         @Transient

@@ -50,7 +50,7 @@ import javax.persistence.*
 @NamedQueries(
         NamedQuery(name = HRPlanningDO.FIND_BY_USER_AND_WEEK, query = "from HRPlanningDO where user.id=:userId and week=:week"),
         NamedQuery(name = HRPlanningDO.FIND_OTHER_BY_USER_AND_WEEK, query = "from HRPlanningDO where user.id=:userId and week=:week and id!=:id"))
-class HRPlanningDO : DefaultBaseDO() {
+open class HRPlanningDO : DefaultBaseDO() {
 
     /**
      * The employee assigned to this planned week.
@@ -59,7 +59,7 @@ class HRPlanningDO : DefaultBaseDO() {
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "user_fk", nullable = false)
-    var user: PFUserDO? = null
+    open var user: PFUserDO? = null
 
     /**
      * @return The first day of the week.
@@ -67,7 +67,7 @@ class HRPlanningDO : DefaultBaseDO() {
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "week", nullable = false)
-    var week: Date? = null
+    open var week: Date? = null
 
     /**
      * Get the entries for this planned week.
@@ -76,7 +76,7 @@ class HRPlanningDO : DefaultBaseDO() {
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
     @ContainedIn
     @get:OneToMany(cascade = [CascadeType.ALL], mappedBy = "planning", fetch = FetchType.EAGER, orphanRemoval = true, targetEntity = HRPlanningEntryDO::class)
-    var entries: MutableList<HRPlanningEntryDO>? = null
+    open var entries: MutableList<HRPlanningEntryDO>? = null
 
     val formattedWeekOfYear: String
         @Transient

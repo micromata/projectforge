@@ -55,216 +55,216 @@ import javax.persistence.*
                 columnList = "tenant_id"), javax.persistence.Index(name = "idx_fk_t_address_uid_tenant_id",
                 columnList = "uid, tenant_id")])
 @Cache(region = "address", usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
+open class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
 
     @PropertyInfo(i18nKey = "address.contactStatus")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "contact_status", length = 20, nullable = false)
     @Field
-    var contactStatus = ContactStatus.ACTIVE
+    open var contactStatus = ContactStatus.ACTIVE
 
     @PropertyInfo(i18nKey = "address.addressStatus")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "address_status", length = 20, nullable = false)
     @Field
-    var addressStatus = AddressStatus.UPTODATE
+    open var addressStatus = AddressStatus.UPTODATE
 
     @get:Column(name = "uid")
-    var uid: String? = null
+    open var uid: String? = null
 
     @PropertyInfo(i18nKey = "name", required = true)
     @Field
     @get:Column(length = 255)
-    var name: String? = null
+    open var name: String? = null
 
     @PropertyInfo(i18nKey = "firstName")
     @Field
     @get:Column(name = "first_name", length = 255)
-    var firstName: String? = null
+    open var firstName: String? = null
 
     @PropertyInfo(i18nKey = "gender", required = true)
     @Field
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "form", length = 10)
-    var form: FormOfAddress? = null
+    open var form: FormOfAddress? = null
 
     @PropertyInfo(i18nKey = "address.title")
     @Field
     @get:Column(length = 255)
-    var title: String? = null
+    open var title: String? = null
 
     @PropertyInfo(i18nKey = "address.positionText")
     @Field
     @get:Column(length = 255)
-    var positionText: String? = null
+    open var positionText: String? = null
 
     @PropertyInfo(i18nKey = "organization")
     @Field
     @get:Column(length = 255)
-    var organization: String? = null
+    open var organization: String? = null
 
     @PropertyInfo(i18nKey = "address.division")
     @Field
     @get:Column(length = 255)
-    var division: String? = null
+    open var division: String? = null
 
     @PropertyInfo(i18nKey = "address.phone", additionalI18nKey = "address.business")
     @FieldBridge(impl = HibernateSearchPhoneNumberBridge::class)
     @Field
     @get:Column(name = "business_phone", length = 255)
-    var businessPhone: String? = null
+    open var businessPhone: String? = null
 
     @PropertyInfo(i18nKey = "address.phoneType.mobile", additionalI18nKey = "address.business")
     @FieldBridge(impl = HibernateSearchPhoneNumberBridge::class)
     @Field
     @get:Column(name = "mobile_phone", length = 255)
-    var mobilePhone: String? = null
+    open var mobilePhone: String? = null
 
     @PropertyInfo(i18nKey = "address.phoneType.fax", additionalI18nKey = "address.business")
     @FieldBridge(impl = HibernateSearchPhoneNumberBridge::class)
     @Field
     @get:Column(length = 255)
-    var fax: String? = null
+    open var fax: String? = null
 
     @PropertyInfo(i18nKey = "address.addressText", additionalI18nKey = "address.business")
     @Field
     @get:Column(length = 255)
-    var addressText: String? = null
+    open var addressText: String? = null
 
     @PropertyInfo(i18nKey = "address.zipCode", additionalI18nKey = "address.business")
     @Field
     @get:Column(name = "zip_code", length = 255)
-    var zipCode: String? = null
+    open var zipCode: String? = null
 
     @PropertyInfo(i18nKey = "address.city", additionalI18nKey = "address.business")
     @Field
     @get:Column(length = 255)
-    var city: String? = null
+    open var city: String? = null
 
     @PropertyInfo(i18nKey = "address.country", additionalI18nKey = "address.business")
     @Field
     @get:Column(length = 255)
-    var country: String? = null
+    open var country: String? = null
 
     @PropertyInfo(i18nKey = "address.state", additionalI18nKey = "address.business")
     @Field
     @get:Column(length = 255)
-    var state: String? = null
+    open var state: String? = null
 
     @PropertyInfo(i18nKey = "email", additionalI18nKey = "address.business")
     @Field
     @get:Column(length = 255)
-    var email: String? = null
+    open var email: String? = null
 
     @PropertyInfo(i18nKey = "address.addressText", additionalI18nKey = "address.postal")
     @Field
     @get:Column(length = 255, name = "postal_addresstext")
-    var postalAddressText: String? = null
+    open var postalAddressText: String? = null
 
     @PropertyInfo(i18nKey = "address.zipCode", additionalI18nKey = "address.postal")
     @Field
     @get:Column(name = "postal_zip_code", length = 255)
-    var postalZipCode: String? = null
+    open var postalZipCode: String? = null
 
     @PropertyInfo(i18nKey = "address.city", additionalI18nKey = "address.postal")
     @Field
     @get:Column(length = 255, name = "postal_city")
-    var postalCity: String? = null
+    open var postalCity: String? = null
 
     @PropertyInfo(i18nKey = "address.country", additionalI18nKey = "address.postal")
     @Field
     @get:Column(name = "postal_country", length = 255)
-    var postalCountry: String? = null
+    open var postalCountry: String? = null
 
     @PropertyInfo(i18nKey = "address.state", additionalI18nKey = "address.postal")
     @Field
     @get:Column(name = "postal_state", length = 255)
-    var postalState: String? = null
+    open var postalState: String? = null
 
     @PropertyInfo(i18nKey = "address.website")
     @Field
     @get:Column(length = 255)
-    var website: String? = null
+    open var website: String? = null
 
     /**
      * @return The communication will take place in this language.
      */
     @PropertyInfo(i18nKey = "address.communicationLanguage")
     @get:Column(name = "communication_language")
-    var communicationLanguage: Locale? = null
+    open var communicationLanguage: Locale? = null
 
     @PropertyInfo(i18nKey = "address.phone", additionalI18nKey = "address.private")
     @FieldBridge(impl = HibernateSearchPhoneNumberBridge::class)
     @Field
     @get:Column(name = "private_phone", length = 255)
-    var privatePhone: String? = null
+    open var privatePhone: String? = null
 
     @PropertyInfo(i18nKey = "address.phoneType.mobile", additionalI18nKey = "address.private")
     @FieldBridge(impl = HibernateSearchPhoneNumberBridge::class)
     @Field
     @get:Column(name = "private_mobile_phone", length = 255)
-    var privateMobilePhone: String? = null
+    open var privateMobilePhone: String? = null
 
     @PropertyInfo(i18nKey = "address.addressText", additionalI18nKey = "address.private")
     @Field
     @get:Column(length = 255, name = "private_addresstext")
-    var privateAddressText: String? = null
+    open var privateAddressText: String? = null
 
     @PropertyInfo(i18nKey = "address.zipCode", additionalI18nKey = "address.private")
     @Field
     @get:Column(name = "private_zip_code", length = 255)
-    var privateZipCode: String? = null
+    open var privateZipCode: String? = null
 
     @PropertyInfo(i18nKey = "address.city", additionalI18nKey = "address.private")
     @Field
     @get:Column(length = 255, name = "private_city")
-    var privateCity: String? = null
+    open var privateCity: String? = null
 
     @PropertyInfo(i18nKey = "address.country", additionalI18nKey = "address.private")
     @Field
     @get:Column(name = "private_country", length = 255)
-    var privateCountry: String? = null
+    open var privateCountry: String? = null
 
     @PropertyInfo(i18nKey = "address.state", additionalI18nKey = "address.private")
     @Field
     @get:Column(name = "private_state", length = 255)
-    var privateState: String? = null
+    open var privateState: String? = null
 
     @PropertyInfo(i18nKey = "email", additionalI18nKey = "address.private")
     @Field
     @get:Column(length = 255, name = "private_email")
-    var privateEmail: String? = null
+    open var privateEmail: String? = null
 
     @PropertyInfo(i18nKey = "address.publicKey")
     @Field
     @get:Column(name = "public_key", length = 20000)
-    var publicKey: String? = null
+    open var publicKey: String? = null
 
     @PropertyInfo(i18nKey = "address.fingerprint")
     @Field
     @get:Column(length = 255)
-    var fingerprint: String? = null
+    open var fingerprint: String? = null
 
     @PropertyInfo(i18nKey = "comment")
     @Field
     @get:Column(name = "comment", length = 5000)
-    var comment: String? = null
+    open var comment: String? = null
 
     @PropertyInfo(i18nKey = "address.birthday")
     @Field(index = Index.YES, analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY)
     @get:Column
-    var birthday: Date? = null
+    open var birthday: Date? = null
 
     @PropertyInfo(i18nKey = "address.image")
     @field:NoHistory
     @get:Column
-    var imageData: ByteArray? = null
+    open var imageData: ByteArray? = null
 
     @PropertyInfo(i18nKey = "address.image")
     @field:NoHistory
     @get:Column(name = "image_data_preview")
-    var imageDataPreview: ByteArray? = null
+    open var imageDataPreview: ByteArray? = null
 
     /**
      * The substitutions.
@@ -276,7 +276,7 @@ class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
             inverseJoinColumns = [JoinColumn(name = "addressbook_id", referencedColumnName = "PK")],
             indexes = [javax.persistence.Index(name = "idx_fk_t_addressbook_address_address_id", columnList = "address_id"),
                 javax.persistence.Index(name = "idx_fk_t_addressbook_address_addressbook_id", columnList = "addressbook_id")])
-    var addressbookList: MutableSet<AddressbookDO>? = HashSet()
+    open var addressbookList: MutableSet<AddressbookDO>? = HashSet()
 
     // @FieldBridge(impl = HibernateSearchInstantMessagingBridge.class)
     // @Field(index = Index.YES /*TOKENIZED*/, store = Store.NO)

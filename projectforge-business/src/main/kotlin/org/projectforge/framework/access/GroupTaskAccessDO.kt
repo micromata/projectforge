@@ -52,33 +52,33 @@ import javax.persistence.*
 @NamedQueries(
         NamedQuery(name = GroupTaskAccessDO.FIND_BY_TASK_AND_GROUP,
                 query = "from GroupTaskAccessDO a where a.task.id=:taskId and a.group.id=:groupId"))
-class GroupTaskAccessDO : DefaultBaseDO() {
+open class GroupTaskAccessDO : DefaultBaseDO() {
 
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(cascade = [CascadeType.MERGE])
     @get:JoinColumn(name = "group_id")
-    var group: GroupDO? = null
+    open var group: GroupDO? = null
 
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(cascade = [CascadeType.MERGE], targetEntity = TaskDO::class)
     @get:JoinColumn(name = "task_id")
-    var task: TaskDO? = null
+    open var task: TaskDO? = null
 
     /**
      * If true then the group rights are also valid for all sub tasks. If false, then each sub task needs its own
      * definition.
      */
     @get:Column
-    var isRecursive = true
+    open var isRecursive = true
 
     @Field
     @get:Column(name = "description", length = 4000)
-    var description: String? = null
+    open var description: String? = null
 
     @NoHistory
     @get:OneToMany(cascade = [CascadeType.MERGE, CascadeType.REMOVE], fetch = FetchType.EAGER, orphanRemoval = true)
     @get:JoinColumn(name = "group_task_access_fk", insertable = true, updatable = true)
-    var accessEntries: MutableSet<AccessEntryDO>? = null
+    open var accessEntries: MutableSet<AccessEntryDO>? = null
 
     val orderedEntries: List<AccessEntryDO>
         @Transient

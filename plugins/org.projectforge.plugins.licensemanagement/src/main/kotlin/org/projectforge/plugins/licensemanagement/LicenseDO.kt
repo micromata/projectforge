@@ -40,94 +40,94 @@ import javax.persistence.*
 @Indexed
 @ClassBridge(name = "owners", impl = HibernateSearchUsersBridge::class)
 @Table(name = "T_PLUGIN_LM_LICENSE", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_lm_license_tenant_id", columnList = "tenant_id")])
-class LicenseDO : DefaultBaseDO() {
+open class LicenseDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "organization")
     @Field
     @get:Column(length = 1000)
-    var organization: String? = null
+    open var organization: String? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.product")
     @Field
     @get:Column(length = 1000)
-    var product: String? = null
+    open var product: String? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.version")
     @Field
     @get:Column(length = 1000)
-    var version: String? = null
+    open var version: String? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.updateFromVersion")
     @Field
     @get:Column(name = "update_from_version", length = 1000)
-    var updateFromVersion: String? = null
+    open var updateFromVersion: String? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.licenseHolder")
     @Field
     @get:Column(length = 10000, name = "license_holder")
-    var licenseHolder: String? = null
+    open var licenseHolder: String? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.key")
     @Field
     @get:Column(length = 10000)
-    var key: String? = null
+    open var key: String? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.numberOfLicenses")
     @Field
     @get:Column(name = "number_of_licenses")
-    var numberOfLicenses: Int? = null
+    open var numberOfLicenses: Int? = null
 
     /**
      * Comma separated id's of owners (user id's).
      */
     @PropertyInfo(i18nKey = "plugins.licensemanagement.owner")
     @get:Column(length = 4000)
-    var ownerIds: String? = null
+    open var ownerIds: String? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.device")
     @Field
     @get:Column(length = 4000)
-    var device: String? = null
+    open var device: String? = null
 
     @PropertyInfo(i18nKey = "comment")
     @Field
     @get:Column(length = Constants.LENGTH_TEXT)
-    var comment: String? = null
+    open var comment: String? = null
 
     @Field(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
-    var status: LicenseStatus? = null
+    open var status: LicenseStatus? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.validSince")
     @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "valid_since")
-    var validSince: Date? = null
+    open var validSince: Date? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.validUntil")
     @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "valid_until")
-    var validUntil: Date? = null
+    open var validUntil: Date? = null
 
     @NoHistory
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column(name = "file1")
     @get:Type(type = "binary")
-    var file1: ByteArray? = null
+    open var file1: ByteArray? = null
 
     @Field
     @get:Column(name = "file_name1", length = 255)
-    var filename1: String? = null
+    open var filename1: String? = null
 
     @NoHistory
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column(name = "file2")
     @get:Type(type = "binary")
-    var file2: ByteArray? = null
+    open var file2: ByteArray? = null
 
     @Field
     @get:Column(name = "file_name2", length = 255)
-    var filename2: String? = null
+    open var filename2: String? = null
 
     val orderString: String
         @Transient

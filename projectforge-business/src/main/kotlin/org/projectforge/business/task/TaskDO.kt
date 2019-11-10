@@ -51,7 +51,7 @@ import javax.persistence.Index
 @ClassBridge(name = "taskpath", impl = HibernateSearchTaskPathBridge::class)
 @Table(name = "T_TASK",
         uniqueConstraints = [UniqueConstraint(columnNames = ["parent_task_id", "title"])],
-        indexes = [Index(name = "idx_fk_t_task_gantt_predecessor_fk", columnList = "gantt_predecessor_fk"),
+        indexes = [//Index(name = "idx_fk_t_task_gantt_predecessor_fk", columnList = "gantt_predecessor_fk"),
             Index(name = "idx_fk_t_task_parent_task_id", columnList = "parent_task_id"),
             Index(name = "idx_fk_t_task_responsible_user_id", columnList = "responsible_user_id"),
             Index(name = "idx_fk_t_task_tenant_id", columnList = "tenant_id")])
@@ -61,50 +61,50 @@ import javax.persistence.Index
                 query = "from TaskDO where parentTask.id=:parentTaskId and title=:title and id!=:id"),
         NamedQuery(name = TaskDO.FIND_BY_PARENTTASKID_AND_TITLE,
                 query = "from TaskDO where parentTask.id=:parentTaskId and title=:title"))
-class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObject
+open class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObject
 {
 
     @PropertyInfo(i18nKey = "task.parentTask")
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "parent_task_id")
-    var parentTask: TaskDO? = null
+    open var parentTask: TaskDO? = null
 
     @PropertyInfo(i18nKey = "task.title")
     @Field
     @get:Column(length = TITLE_LENGTH, nullable = false)
-    var title: String? = null
+    open var title: String? = null
 
     @PropertyInfo(i18nKey = "status")
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = STATUS_LENGTH)
-    var status = TaskStatus.N
+    open var status = TaskStatus.N
 
     @PropertyInfo(i18nKey = "priority")
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = PRIORITY_LENGTH)
-    var priority: Priority? = null
+    open var priority: Priority? = null
 
     @PropertyInfo(i18nKey = "shortDescription")
     @Field
     @get:Column(name = "short_description", length = SHORT_DESCRIPTION_LENGTH)
-    var shortDescription: String? = null
+    open var shortDescription: String? = null
 
     @PropertyInfo(i18nKey = "description")
     @Field
     @get:Column(name = "description", length = DESCRIPTION_LENGTH)
-    var description: String? = null
+    open var description: String? = null
 
     /** -&gt; Gantt  */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
     @PropertyInfo(i18nKey = "task.progress")
     @get:Column
-    var progress: Int? = null
+    open var progress: Int? = null
 
     @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
     @PropertyInfo(i18nKey = "task.maxHours")
     @get:Column(name = "max_hours")
-    var maxHours: Int? = null
+    open var maxHours: Int? = null
 
     /**
      * @see org.projectforge.business.gantt.GanttTask.getStartDate
@@ -114,7 +114,7 @@ class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObje
     @DateBridge(resolution = Resolution.DAY)
     @PropertyInfo(i18nKey = "gantt.startDate")
     @get:Column(name = "start_date")
-    var startDate: Date? = null
+    open var startDate: Date? = null
 
     /**
      * @see org.projectforge.business.gantt.GanttTask.getEndDate
@@ -124,7 +124,7 @@ class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObje
     @DateBridge(resolution = Resolution.DAY)
     @PropertyInfo(i18nKey = "gantt.endDate")
     @get:Column(name = "end_date")
-    var endDate: Date? = null
+    open var endDate: Date? = null
 
     /**
      * Duration in days.
@@ -134,7 +134,7 @@ class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObje
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @PropertyInfo(i18nKey = "gantt.duration")
     @get:Column(name = "duration", scale = 2, precision = 10)
-    var duration: BigDecimal? = null
+    open var duration: BigDecimal? = null
 
     /**
      * Zu diesem Task können keine Zeitberichte mehr eingegeben werden, die vor diesem Datum liegen (z. B. weil bis zu
@@ -146,13 +146,13 @@ class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObje
     @DateBridge(resolution = Resolution.DAY)
     @PropertyInfo(i18nKey = "task.protectTimesheetsUntil")
     @get:Column(name = "protect_timesheets_until")
-    var protectTimesheetsUntil: Date? = null
+    open var protectTimesheetsUntil: Date? = null
 
     @IndexedEmbedded(depth = 1)
     @PropertyInfo(i18nKey = "task.assignedUser")
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "responsible_user_id")
-    var responsibleUser: PFUserDO? = null
+    open var responsibleUser: PFUserDO? = null
 
     /**
      * Reference is a free use-able field, which will be inherited to all sibling tasks. The reference is exported e. g.
@@ -161,12 +161,12 @@ class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObje
     @Field
     @PropertyInfo(i18nKey = "task.reference")
     @get:Column(length = REFERENCE_LENGTH)
-    var reference: String? = null
+    open var reference: String? = null
 
     @PropertyInfo(i18nKey = "task.timesheetBooking")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "timesheet_booking_status", length = 20, nullable = false)
-    var timesheetBookingStatus: TimesheetBookingStatus? = TimesheetBookingStatus.DEFAULT
+    open var timesheetBookingStatus: TimesheetBookingStatus? = TimesheetBookingStatus.DEFAULT
         get() {
             return field ?: TimesheetBookingStatus.DEFAULT
         }
@@ -210,10 +210,10 @@ class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObje
      */
     @PropertyInfo(i18nKey = "fibu.kost2")
     @get:Column(name = "kost2_black_white_list", length = 1024)
-    var kost2BlackWhiteList: String? = null
+    open var kost2BlackWhiteList: String? = null
 
     @get:Column(name = "kost2_is_black_list", nullable = false)
-    var kost2IsBlackList: Boolean = false
+    open var kost2IsBlackList: Boolean = false
 
     /**
      * If set then normal user are not allowed to select (read) the time sheets of other users of this task and all sub
@@ -221,14 +221,14 @@ class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObje
      */
     @PropertyInfo(i18nKey = "task.protectionOfPrivacy")
     @get:Column(name = "protectionOfPrivacy", nullable = false, columnDefinition = "BOOLEAN DEFAULT 'false'")
-    var protectionOfPrivacy: Boolean = false
+    open var protectionOfPrivacy: Boolean = false
 
     /** -&gt; Gantt  */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @Field
     @PropertyInfo(i18nKey = "task.parentTask")
     @get:Column(name = "workpackage_code", length = 100)
-    var workpackageCode: String? = null
+    open var workpackageCode: String? = null
 
     /**
      * In days.
@@ -236,21 +236,21 @@ class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObje
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @PropertyInfo(i18nKey = "task.parentTask")
     @get:Column(name = "gantt_predecessor_offset")
-    var ganttPredecessorOffset: Int? = null
+    open var ganttPredecessorOffset: Int? = null
 
     /** -&gt; Gantt  */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @PropertyInfo(i18nKey = "task.parentTask")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "gantt_rel_type", length = 15)
-    var ganttRelationType: GanttRelationType? = null
+    open var ganttRelationType: GanttRelationType? = null
 
     /** -&gt; Gantt  */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @PropertyInfo(i18nKey = "task.parentTask")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "gantt_type", length = 10)
-    var ganttObjectType: GanttObjectType? = null
+    open var ganttObjectType: GanttObjectType? = null
 
     /**
      * Please note: if you use TaskTree as cache then note, that the depend-on-task can be out-dated! Get the id of the
@@ -258,9 +258,16 @@ class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObje
      */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @PropertyInfo(i18nKey = "task.parentTask")
-    @get:ManyToOne(cascade = [CascadeType.PERSIST, CascadeType.MERGE], targetEntity = TaskDO::class)
+        @get:ManyToOne(cascade = [CascadeType.PERSIST, CascadeType.MERGE], targetEntity = TaskDO::class, fetch = FetchType.LAZY)
     @get:JoinColumn(name = "gantt_predecessor_fk")
-    var ganttPredecessor: TaskDO? = null
+    open var ganttPredecessor: TaskDO? = null
+
+    /** -&gt; Gantt  */
+    @Suppress("DEPRECATION")
+    @Deprecated("Properties of Gantt diagram will be refactored some day.")
+    val ganttPredecessorId: Int?
+        @Transient
+        get() = this.ganttPredecessor?.id
 
     val parentTaskId: Int?
         @Transient
@@ -283,17 +290,6 @@ class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObje
     val kost2BlackWhiteItems: Array<String>?
         @Transient
         get() = getKost2BlackWhiteItems(kost2BlackWhiteList)
-
-    /** -&gt; Gantt  */
-    @Suppress("DEPRECATION")
-    @Deprecated("Properties of Gantt diagram will be refactored some day.")
-    val ganttPredecessorId: Int?
-        @Transient
-        get() = if (this.ganttPredecessor == null) {
-            null
-        } else {
-            this.ganttPredecessor!!.id
-        }
 
     @Deprecated("Please use getTitle() instead. getName() should only be used in Groovy scripts.")
     @Transient

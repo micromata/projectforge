@@ -82,25 +82,30 @@ The BaseDO objects are the entities of ProjectForge stored in the data base. As 
 [#src-listing]
 [source,java]
 ----
-class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
+open class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
 
     @PropertyInfo(i18nKey = "address.contactStatus")
     @Field
-    var contactStatus = ContactStatus.ACTIVE
+    open var contactStatus = ContactStatus.ACTIVE
 
     @PropertyInfo(i18nKey = "name", required = true)
     @Field
     @get:Column(length = 255)
-    var name: String? = null
+    open var name: String? = null
 
     @PropertyInfo(i18nKey = "address.phone", additionalI18nKey = "address.business")
     @Field
     @get:Column(length = 255)
-    var businessPhone: String? = null
+    open var businessPhone: String? = null
     ...
 }
 
 ----
+
+[NOTE]
+====
+BaseDO classes must be declared as open as well as all properties. Otherwise JPA/Hibernate isn't able to proxy these objects and lazy loading isn't supported.
+====
 
 As example some parts of `AddressDO.kt` are shown and described below:
 

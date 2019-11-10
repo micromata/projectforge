@@ -43,20 +43,20 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "T_PLUGIN_TODO", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_todo_assignee_fk", columnList = "assignee_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_todo_group_id", columnList = "group_id"), javax.persistence.Index(name = "idx_fk_t_plugin_todo_reporter_fk", columnList = "reporter_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_todo_task_id", columnList = "task_id"), javax.persistence.Index(name = "idx_fk_t_plugin_todo_tenant_id", columnList = "tenant_id")])
-class ToDoDO : DefaultBaseDO() {
+open class ToDoDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "plugins.todo.subject")
     @UserPrefParameter(i18nKey = "plugins.todo.subject")
     @Field(index = Index.YES, store = Store.NO)
     @get:Column(length = Constants.LENGTH_TITLE)
-    var subject: String? = null
+    open var subject: String? = null
 
     @PropertyInfo(i18nKey = "plugins.todo.reporter")
     @UserPrefParameter(i18nKey = "plugins.todo.reporter")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "reporter_fk")
-    var reporter: PFUserDO? = null
+    open var reporter: PFUserDO? = null
 
     /**
      * @param assignee
@@ -67,14 +67,14 @@ class ToDoDO : DefaultBaseDO() {
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "assignee_fk")
-    var assignee: PFUserDO? = null
+    open var assignee: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "task")
     @UserPrefParameter(i18nKey = "task")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "task_id", nullable = true)
-    var task: TaskDO? = null
+    open var task: TaskDO? = null
 
     /**
      * Optional group.
@@ -84,33 +84,33 @@ class ToDoDO : DefaultBaseDO() {
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "group_id", nullable = true)
-    var group: GroupDO? = null
+    open var group: GroupDO? = null
 
     @PropertyInfo(i18nKey = "description")
     @UserPrefParameter(i18nKey = "description", multiline = true)
     @Field
     @get:Column(length = Constants.LENGTH_TEXT)
-    var description: String? = null
+    open var description: String? = null
 
     @PropertyInfo(i18nKey = "comment")
     @UserPrefParameter(i18nKey = "comment", multiline = true)
     @Field
     @get:Column(length = Constants.LENGTH_TEXT)
-    var comment: String? = null
+    open var comment: String? = null
 
     @PropertyInfo(i18nKey = "plugins.todo.type")
     @UserPrefParameter(i18nKey = "plugins.todo.type")
     @Field(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
-    var type: ToDoType? = null
+    open var type: ToDoType? = null
 
     @PropertyInfo(i18nKey = "plugins.todo.status")
     @UserPrefParameter(i18nKey = "plugins.todo.status")
     @Field(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
-    var status: ToDoStatus? = null
+    open var status: ToDoStatus? = null
 
     /**
      * After any modification of a to-do by other users than the assignee this flag is set to true. The assignee see in
@@ -121,26 +121,26 @@ class ToDoDO : DefaultBaseDO() {
      */
     @field:NoHistory
     @get:Column
-    var recent: Boolean = false
+    open var recent: Boolean = false
 
     @PropertyInfo(i18nKey = "priority")
     @UserPrefParameter(i18nKey = "priority")
     @Field(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
-    var priority: Priority? = null
+    open var priority: Priority? = null
 
     @PropertyInfo(i18nKey = "dueDate")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "due_date")
-    var dueDate: Date? = null
+    open var dueDate: Date? = null
 
     @PropertyInfo(i18nKey = "resubmissionOnDate")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY)
     @get:Column
-    var resubmission: Date? = null
+    open var resubmission: Date? = null
 
     val reporterId: Int?
         @Transient

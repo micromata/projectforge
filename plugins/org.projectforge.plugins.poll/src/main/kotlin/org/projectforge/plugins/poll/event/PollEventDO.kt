@@ -35,22 +35,22 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "T_PLUGIN_POLL_EVENT", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_poll_event_tenant_id", columnList = "tenant_id")])
-class PollEventDO : DefaultBaseDO() {
+open class PollEventDO : DefaultBaseDO() {
 
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "poll_fk")
-    var poll: PollDO? = null
+    open var poll: PollDO? = null
 
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.MINUTE)
     @get:Column
-    var startDate: Timestamp? = null
+    open var startDate: Timestamp? = null
 
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.MINUTE)
     @get:Column
-    var endDate: Timestamp? = null
+    open var endDate: Timestamp? = null
 
     /**
      * @see java.lang.Object.hashCode

@@ -42,22 +42,22 @@ import javax.persistence.Transient
 @Entity
 @Indexed
 @Table(name = "T_PLUGIN_MARKETING_ADDRESS_CAMPAIGN", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_marketing_address_campaign_tenant_id", columnList = "tenant_id")])
-class AddressCampaignDO : DefaultBaseDO() {
+open class AddressCampaignDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "title")
     @Field
     @get:Column(length = Constants.LENGTH_TITLE)
-    var title: String? = null
+    open var title: String? = null
 
     @PropertyInfo(i18nKey = "values")
     @Field
     @get:Column(length = 1000, name = "s_values")
-    var values: String? = null
+    open var values: String? = null
 
     @PropertyInfo(i18nKey = "comment")
     @Field
     @get:Column(length = Constants.LENGTH_COMMENT)
-    var comment: String? = null
+    open var comment: String? = null
 
     val valuesArray: Array<String>?
         @Transient

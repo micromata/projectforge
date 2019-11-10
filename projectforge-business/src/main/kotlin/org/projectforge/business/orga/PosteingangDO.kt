@@ -40,39 +40,39 @@ import javax.persistence.*
         indexes = arrayOf(javax.persistence.Index(name = "idx_fk_t_orga_posteingang_tenant_id", columnList = "tenant_id")))
 @NamedQueries(
         NamedQuery(name = PosteingangDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from PosteingangDO"))
-class PosteingangDO : DefaultBaseDO() {
+open class PosteingangDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "date")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY)
     @get:Column(nullable = false)
-    var datum: Date? = null
+    open var datum: Date? = null
 
     @PropertyInfo(i18nKey = "orga.posteingang.absender")
     @Field
     @get:Column(name = "absender", length = 1000, nullable = false)
-    var absender: String? = null
+    open var absender: String? = null
 
     @PropertyInfo(i18nKey = "orga.posteingang.person")
     @Field
     @get:Column(name = "person", length = 1000)
-    var person: String? = null
+    open var person: String? = null
 
     @PropertyInfo(i18nKey = "orga.post.inhalt", required = true)
     @Field
     @get:Column(length = 1000)
-    var inhalt: String? = null
+    open var inhalt: String? = null
 
     @PropertyInfo(i18nKey = "comment")
     @Field
     @get:Column(length = 4000)
-    var bemerkung: String? = null
+    open var bemerkung: String? = null
 
     @PropertyInfo(i18nKey = "orga.post.type")
     @Field(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "post_type", length = 20, nullable = false)
-    var type: PostType? = null
+    open var type: PostType? = null
 
     companion object {
         internal const val SELECT_MIN_MAX_DATE = "PosteingangDO_SelectMinMaxDate"

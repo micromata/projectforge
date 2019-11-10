@@ -34,21 +34,21 @@ import javax.persistence.*
 @Indexed
 @Table(name = "T_PLUGIN_BANK_ACCOUNT_RECORD", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_bank_account_record_tenant_id", columnList = "tenant_id")])
 @WithHistory
-class BankAccountRecordDO : DefaultBaseDO() {
+open class BankAccountRecordDO : DefaultBaseDO() {
 
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "account_fk", nullable = false)
-    var account: BankAccountDO? = null
+    open var account: BankAccountDO? = null
 
     @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "date_col", nullable = false)
-    var date: Date? = null
+    open var date: Date? = null
 
     @get:Column(nullable = false, scale = 5, precision = 18)
-    var amount: BigDecimal? = null
+    open var amount: BigDecimal? = null
 
     @Field
     @get:Column(length = 255)
-    var text: String? = null
+    open var text: String? = null
 }

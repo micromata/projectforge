@@ -45,7 +45,7 @@ import javax.persistence.*
 @Table(name = "T_TENANT")
 @ATableTruncater(TenantTableTruncater::class)
 @NamedQueries(NamedQuery(name = TenantDO.FIND_ASSIGNED_TENANTS, query = "from TenantDO t where :user member of t.assignedUsers"))
-class TenantDO : DefaultBaseDO(), ShortDisplayNameCapable {
+open class TenantDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     private val log = LoggerFactory.getLogger(TenantDO::class.java)
 
@@ -53,19 +53,19 @@ class TenantDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * The short name is the display name.
      */
     @get:Column(length = 100)
-    var shortName: String? = null
+    open var shortName: String? = null
 
     /**
      * @return the name
      */
     @get:Column(length = 255)
-    var name: String? = null
+    open var name: String? = null
 
     /**
      * @return the description
      */
     @get:Column(length = 4000)
-    var description: String? = null
+    open var description: String? = null
 
     /**
      * No or only one default tenant should be exist. All entities in the database without a given tenant_id are
@@ -73,7 +73,7 @@ class TenantDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * from single tenant into a multi tenancy installation.
      */
     @get:Column(name = "default_tenant")
-    var defaultTenant: Boolean? = null
+    open var defaultTenant: Boolean? = null
 
     private var usernames: String? = null
 
@@ -81,7 +81,7 @@ class TenantDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @IndexedEmbedded(depth = 1)
     @get:ManyToMany(targetEntity = org.projectforge.framework.persistence.user.entities.PFUserDO::class, cascade = [CascadeType.PERSIST, CascadeType.MERGE], fetch = FetchType.LAZY)
     @get:JoinTable(name = "T_TENANT_USER", joinColumns = [JoinColumn(name = "TENANT_ID")], inverseJoinColumns = [JoinColumn(name = "USER_ID")])
-    var assignedUsers: MutableSet<PFUserDO>? = null
+    open var assignedUsers: MutableSet<PFUserDO>? = null
 
     /**
      * Returns the collection of assigned users only if initialized. Avoids a LazyInitializationException.

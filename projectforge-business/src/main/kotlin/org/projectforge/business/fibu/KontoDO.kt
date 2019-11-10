@@ -42,28 +42,28 @@ import javax.persistence.*
 @WithHistory
 @NamedQueries(
         NamedQuery(name = KontoDO.FIND_BY_NUMMER, query = "from KontoDO where nummer=:nummer"))
-class KontoDO : DefaultBaseDO(), ShortDisplayNameCapable {
+open class KontoDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     @PropertyInfo(i18nKey = "fibu.konto.nummer")
     @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
     @get:Column(name = "nummer", nullable = false)
-    var nummer: Int? = null
+    open var nummer: Int? = null
 
     @PropertyInfo(i18nKey = "fibu.konto.bezeichnung")
     @Field
     @get:Column(length = 255, nullable = false)
-    var bezeichnung: String? = null
+    open var bezeichnung: String? = null
 
     @PropertyInfo(i18nKey = "description")
     @Field
     @get:Column(name = "description", length = 4000, nullable = true)
-    var description: String? = null
+    open var description: String? = null
 
     @PropertyInfo(i18nKey = "status")
     @Field(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 10)
-    var status: KontoStatus? = null
+    open var status: KontoStatus? = null
 
     /**
      * Formats the account as string: "[nummer] [title]", e. g. "11000 Micromata GmbH"

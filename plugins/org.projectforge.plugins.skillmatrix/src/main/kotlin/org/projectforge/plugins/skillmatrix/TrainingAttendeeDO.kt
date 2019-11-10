@@ -41,49 +41,49 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "T_PLUGIN_SKILL_TRAINING_ATTENDEE", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_skill_training_attendee_attendee_fk", columnList = "attendee_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_skill_training_attendee_training_fk", columnList = "training_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_skill_training_attendee_tenant_id", columnList = "tenant_id")])
-class TrainingAttendeeDO : DefaultBaseDO(), ShortDisplayNameCapable {
+open class TrainingAttendeeDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skilltraining.attendee.menu")
     @UserPrefParameter(i18nKey = "plugins.skillmatrix.skilltraining.attendee.menu")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "attendee_fk")
-    var attendee: PFUserDO? = null
+    open var attendee: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skilltraining.training")
     @UserPrefParameter(i18nKey = "plugins.skillmatrix.skilltraining.training")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "training_fk")
-    var training: TrainingDO? = null
+    open var training: TrainingDO? = null
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skill.description")
     @UserPrefParameter(i18nKey = "description", multiline = true)
     @Field
     @get:Column(length = Constants.LENGTH_TEXT)
-    var description: String? = null
+    open var description: String? = null
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skilltraining.rating")
     @Field
     @get:Column(length = 1000)
-    var rating: String? = null
+    open var rating: String? = null
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skilltraining.certificate")
     @Field
     @get:Column(length = 4000)
-    var certificate: String? = null
+    open var certificate: String? = null
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skilltraining.startDate")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "start_date")
-    var startDate: Date? = null
+    open var startDate: Date? = null
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skilltraining.endDate")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "end_date")
-    var endDate: Date? = null
+    open var endDate: Date? = null
 
     val attendeeId: Int?
         @Transient

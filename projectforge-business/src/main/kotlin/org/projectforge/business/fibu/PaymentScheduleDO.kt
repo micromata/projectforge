@@ -38,7 +38,7 @@ import javax.persistence.*
  */
 @Entity
 @Table(name = "T_FIBU_PAYMENT_SCHEDULE", uniqueConstraints = [UniqueConstraint(columnNames = ["auftrag_id", "number"])], indexes = [Index(name = "idx_fk_t_fibu_payment_schedule_auftrag_id", columnList = "auftrag_id"), Index(name = "idx_fk_t_fibu_payment_schedule_tenant_id", columnList = "tenant_id")])
-class PaymentScheduleDO : DefaultBaseDO(), ShortDisplayNameCapable {
+open class PaymentScheduleDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     /**
      * Not used as object due to performance reasons.
@@ -47,39 +47,39 @@ class PaymentScheduleDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @JsonIgnore
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "auftrag_id", nullable = false)
-    var auftrag: AuftragDO? = null
+    open var auftrag: AuftragDO? = null
 
     /**
      * The position's number this payment schedule is assigned to.
      */
     @get:Column(name = "position_number")
-    var positionNumber: Short? = null
+    open var positionNumber: Short? = null
 
     @get:Column
-    var number: Short = 0
+    open var number: Short = 0
 
     @PropertyInfo(i18nKey = "date")
     @get:Column(name = "schedule_date")
-    var scheduleDate: Date? = null
+    open var scheduleDate: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.common.betrag")
     @get:Column(scale = 2, precision = 12)
-    var amount: BigDecimal? = null
+    open var amount: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "comment")
     @get:Column
-    var comment: String? = null
+    open var comment: String? = null
 
     @PropertyInfo(i18nKey = "fibu.common.reached")
     @get:Column
-    var reached: Boolean = false
+    open var reached: Boolean = false
 
     /**
      * Dieses Flag wird manuell von der FiBu gesetzt und kann nur für abgeschlossene Aufträge gesetzt werden.
      */
     @PropertyInfo(i18nKey = "fibu.auftrag.vollstaendigFakturiert")
     @get:Column(name = "vollstaendig_fakturiert", nullable = false)
-    var vollstaendigFakturiert: Boolean = false
+    open var vollstaendigFakturiert: Boolean = false
 
     val auftragId: Int?
         @Transient

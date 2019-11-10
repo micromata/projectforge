@@ -44,25 +44,25 @@ import javax.persistence.*
                 query = "from AddressCampaignValueDO where address.id=:addressId and addressCampaign.id=:addressCampaignId"),
         NamedQuery(name = AddressCampaignValueDO.FIND_BY_CAMPAIGN,
                 query = "from AddressCampaignValueDO where addressCampaign.id=:addressCampaignId and deleted=false"))
-class AddressCampaignValueDO : DefaultBaseDO() {
+open class AddressCampaignValueDO : DefaultBaseDO() {
 
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "address_campaign_fk", nullable = false)
-    var addressCampaign: AddressCampaignDO? = null
+    open var addressCampaign: AddressCampaignDO? = null
 
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "address_fk", nullable = false)
-    var address: AddressDO? = null
+    open var address: AddressDO? = null
 
     @PropertyInfo(i18nKey = "value")
     @get:Column(length = AddressCampaignDO.MAX_VALUE_LENGTH)
-    var value: String? = null
+    open var value: String? = null
 
     @PropertyInfo(i18nKey = "comment")
     @get:Column(length = Constants.LENGTH_COMMENT)
-    var comment: String? = null
+    open var comment: String? = null
 
     val addressCampaignId: Int?
         @Transient
