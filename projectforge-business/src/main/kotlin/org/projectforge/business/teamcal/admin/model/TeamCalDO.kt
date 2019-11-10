@@ -45,7 +45,7 @@ import javax.persistence.*
 @Indexed
 @ClassBridge(name = "usersgroups", index = Index.YES, store = Store.NO, impl = HibernateSearchUsersGroupsBridge::class)
 @Table(name = "T_CALENDAR", indexes = [javax.persistence.Index(name = "idx_fk_t_calendar_owner_fk", columnList = "owner_fk"), javax.persistence.Index(name = "idx_fk_t_calendar_tenant_id", columnList = "tenant_id")])
-class TeamCalDO() : BaseUserGroupRightsDO() {
+open class TeamCalDO() : BaseUserGroupRightsDO() {
 
     companion object {
         @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
@@ -55,13 +55,14 @@ class TeamCalDO() : BaseUserGroupRightsDO() {
             cal.id = value
             return cal
         }
+
         val TEAMCALRESTBLACKLIST = "teamCalRestBlackList"
     }
 
     @PropertyInfo(i18nKey = "plugins.teamcal.title")
     @Field
     @get:Column(length = Constants.LENGTH_TITLE)
-    var title: String? = null
+    open var title: String? = null
 
     @PropertyInfo(i18nKey = "plugins.teamcal.owner")
     @IndexedEmbedded(depth = 1)
@@ -72,11 +73,11 @@ class TeamCalDO() : BaseUserGroupRightsDO() {
     @PropertyInfo(i18nKey = "plugins.teamcal.description")
     @Field
     @get:Column(length = Constants.LENGTH_TEXT)
-    var description: String? = null
+    open var description: String? = null
 
     @PropertyInfo(i18nKey = "plugins.teamcal.externalsubscription.url")
     @get:Column(name = "ext_subscription", nullable = false, columnDefinition = "BOOLEAN DEFAULT 'false'")
-    var externalSubscription: Boolean = false
+    open var externalSubscription: Boolean = false
 
     /**
      * This hash value is used for detecting changes of an subscribed calendar.
@@ -84,7 +85,7 @@ class TeamCalDO() : BaseUserGroupRightsDO() {
     @JsonIgnore
     @field:NoHistory
     @get:Column(length = 255, name = "ext_subscription_hash")
-    var externalSubscriptionHash: String? = null
+    open var externalSubscriptionHash: String? = null
 
     /**
      * This calendar is a subscription of an external calendar. This URL shouldn't be visible for users without
@@ -94,7 +95,7 @@ class TeamCalDO() : BaseUserGroupRightsDO() {
      */
     @PropertyInfo(i18nKey = "plugins.teamcal.externalsubscription.label")
     @get:Column(name = "ext_subscription_url")
-    var externalSubscriptionUrl: String? = null
+    open var externalSubscriptionUrl: String? = null
 
     /**
      * This calendar is a subscription of an external calendar. This is the time in seconds after which this calendar
@@ -104,7 +105,7 @@ class TeamCalDO() : BaseUserGroupRightsDO() {
      */
     @PropertyInfo(i18nKey = "plugins.teamcal.externalsubscription.updateInterval")
     @get:Column(name = "ext_subscription_update_interval")
-    var externalSubscriptionUpdateInterval: Int? = null
+    open var externalSubscriptionUpdateInterval: Int? = null
 
     /**
      * This binary contains all the events of a subscribed calendar and might be large. Don't export this field to
@@ -115,7 +116,7 @@ class TeamCalDO() : BaseUserGroupRightsDO() {
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column(name = "ext_subscription_calendar_binary")
     @get:Type(type = "binary")
-    var externalSubscriptionCalendarBinary: ByteArray? = null
+    open var externalSubscriptionCalendarBinary: ByteArray? = null
 
     /**
      * Shorten the url or avoiding logging of user credentials as part of the url.<br></br>

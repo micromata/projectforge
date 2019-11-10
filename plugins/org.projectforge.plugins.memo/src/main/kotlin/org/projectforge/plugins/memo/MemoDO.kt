@@ -43,7 +43,7 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "T_PLUGIN_MEMO", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_memo_owner_fk", columnList = "owner_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_memo_tenant_id", columnList = "tenant_id")])
-class MemoDO : AbstractBaseDO<Int>() {
+open class MemoDO : AbstractBaseDO<Int>() {
 
     @PropertyInfo(i18nKey = "id")
     private var id: Int? = null
@@ -51,17 +51,17 @@ class MemoDO : AbstractBaseDO<Int>() {
     @PropertyInfo(i18nKey = "plugins.memo.subject")
     @Field
     @get:Column(length = Constants.LENGTH_TITLE)
-    var subject: String? = null
+    open var subject: String? = null
 
     @PropertyInfo(i18nKey = "plugins.memo.owner")
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "owner_fk")
-    var owner: PFUserDO? = null
+    open var owner: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "plugins.memo.memo")
     @Field
     @get:Column(length = Constants.LENGTH_TEXT)
-    var memo: String? = null
+    open var memo: String? = null
 
     val ownerId: Int?
         @Transient

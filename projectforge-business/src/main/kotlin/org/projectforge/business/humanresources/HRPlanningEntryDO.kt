@@ -45,35 +45,35 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "T_HR_PLANNING_ENTRY", indexes = [javax.persistence.Index(name = "idx_fk_t_hr_planning_entry_planning_fk", columnList = "planning_fk"), javax.persistence.Index(name = "idx_fk_t_hr_planning_entry_projekt_fk", columnList = "projekt_fk"), javax.persistence.Index(name = "idx_fk_t_hr_planning_entry_tenant_id", columnList = "tenant_id")])
-class HRPlanningEntryDO : DefaultBaseDO(), ShortDisplayNameCapable {
+open class HRPlanningEntryDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     @JsonManagedReference
     @IndexedEmbedded(depth = 3)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "planning_fk", nullable = false)
-    var planning: HRPlanningDO? = null
+    open var planning: HRPlanningDO? = null
 
     @PropertyInfo(i18nKey = "fibu.projekt")
     @IndexedEmbedded(depth = 2)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "projekt_fk")
-    var projekt: ProjektDO? = null
+    open var projekt: ProjektDO? = null
 
     @Field
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "status", length = 20)
-    var status: HRPlanningEntryStatus? = null
+    open var status: HRPlanningEntryStatus? = null
 
     @PropertyInfo(i18nKey = "hr.planning.priority")
     @Field(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
-    var priority: Priority? = null
+    open var priority: Priority? = null
 
     @PropertyInfo(i18nKey = "hr.planning.probability.short")
     @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
     @get:Column
-    var probability: Int? = null
+    open var probability: Int? = null
 
     /**
      * Ohne Wochentagszuordnung.
@@ -84,36 +84,36 @@ class HRPlanningEntryDO : DefaultBaseDO(), ShortDisplayNameCapable {
      */
     @PropertyInfo(i18nKey = "hr.planning.unassignedHours")
     @get:Column(scale = 2, precision = 5)
-    var unassignedHours: BigDecimal? = null
+    open var unassignedHours: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "calendar.shortday.monday")
     @get:Column(scale = 2, precision = 5)
-    var mondayHours: BigDecimal? = null
+    open var mondayHours: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "calendar.shortday.tuesday")
     @get:Column(scale = 2, precision = 5)
-    var tuesdayHours: BigDecimal? = null
+    open var tuesdayHours: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "calendar.shortday.wednesday")
     @get:Column(scale = 2, precision = 5)
-    var wednesdayHours: BigDecimal? = null
+    open var wednesdayHours: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "calendar.shortday.thursday")
     @get:Column(scale = 2, precision = 5)
-    var thursdayHours: BigDecimal? = null
+    open var thursdayHours: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "calendar.shortday.friday")
     @get:Column(scale = 2, precision = 5)
-    var fridayHours: BigDecimal? = null
+    open var fridayHours: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "hr.planning.weekend")
     @get:Column(scale = 2, precision = 5)
-    var weekendHours: BigDecimal? = null
+    open var weekendHours: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "hr.planning.description")
     @Field
     @get:Column(length = 4000)
-    var description: String? = null
+    open var description: String? = null
 
     val planningId: Int?
         @Transient

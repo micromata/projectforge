@@ -44,18 +44,18 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "T_SCRIPT", indexes = [Index(name = "idx_fk_t_script_tenant_id", columnList = "tenant_id")])
-class ScriptDO : DefaultBaseDO() {
+open class ScriptDO : DefaultBaseDO() {
     private val log = org.slf4j.LoggerFactory.getLogger(ScriptDO::class.java)
 
     @PropertyInfo(i18nKey = "scripting.script.name")
     @Field
     @get:Column(length = 255, nullable = false)
-    var name: String? = null // 255 not null
+    open var name: String? = null // 255 not null
 
     @PropertyInfo(i18nKey = "description")
     @Field
     @get:Column(length = 4000)
-    var description: String? = null // 4000;
+    open var description: String? = null // 4000;
 
     /**
      * Please note: script is not historizable. Therefore there is now history of scripts.
@@ -64,7 +64,7 @@ class ScriptDO : DefaultBaseDO() {
     @get:Basic(fetch = FetchType.LAZY)
     @get:Type(type = "binary")
     @get:Column(length = 2000)
-    var script: ByteArray? = null
+    open var script: ByteArray? = null
 
     /**
      * Instead of historizing the script the last version of the script after changing it will stored in this field.
@@ -73,79 +73,79 @@ class ScriptDO : DefaultBaseDO() {
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column(name = "script_backup", length = 2000)
     @get:Type(type = "binary")
-    var scriptBackup: ByteArray? = null
+    open var scriptBackup: ByteArray? = null
 
     @NoHistory
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column
     @get:Type(type = "binary")
-    var file: ByteArray? = null
+    open var file: ByteArray? = null
 
     @Field
     @get:Column(name = "file_name", length = 255)
-    var filename: String? = null
+    open var filename: String? = null
 
     @PropertyInfo(i18nKey = "scripting.script.parameterName")
     @get:Field
     @get:Column(length = PARAMETER_NAME_MAX_LENGTH)
-    var parameter1Name: String? = null
+    open var parameter1Name: String? = null
 
     @PropertyInfo(i18nKey = "scripting.script.parameterType")
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
-    var parameter1Type: ScriptParameterType? = null
+    open var parameter1Type: ScriptParameterType? = null
 
     @PropertyInfo(i18nKey = "scripting.script.parameterName")
     @get:Field
     @get:Column(length = PARAMETER_NAME_MAX_LENGTH)
-    var parameter2Name: String? = null
+    open var parameter2Name: String? = null
 
     @PropertyInfo(i18nKey = "scripting.script.parameterType")
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
-    var parameter2Type: ScriptParameterType? = null
+    open var parameter2Type: ScriptParameterType? = null
 
     @PropertyInfo(i18nKey = "scripting.script.parameterName")
     @get:Field
     @get:Column(length = PARAMETER_NAME_MAX_LENGTH)
-    var parameter3Name: String? = null
+    open var parameter3Name: String? = null
 
     @PropertyInfo(i18nKey = "scripting.script.parameterType")
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
-    var parameter3Type: ScriptParameterType? = null
+    open var parameter3Type: ScriptParameterType? = null
 
     @PropertyInfo(i18nKey = "scripting.script.parameterName")
     @get:Field
     @get:Column(length = PARAMETER_NAME_MAX_LENGTH)
-    var parameter4Name: String? = null
+    open var parameter4Name: String? = null
 
     @PropertyInfo(i18nKey = "scripting.script.parameterType")
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
-    var parameter4Type: ScriptParameterType? = null
+    open var parameter4Type: ScriptParameterType? = null
 
     @PropertyInfo(i18nKey = "scripting.script.parameterName")
     @get:Field
     @get:Column(length = PARAMETER_NAME_MAX_LENGTH)
-    var parameter5Name: String? = null
+    open var parameter5Name: String? = null
 
     @PropertyInfo(i18nKey = "scripting.script.parameterType")
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
-    var parameter5Type: ScriptParameterType? = null
+    open var parameter5Type: ScriptParameterType? = null
 
     @PropertyInfo(i18nKey = "scripting.script.parameterName")
     @get:Field
     @get:Column(length = PARAMETER_NAME_MAX_LENGTH)
-    var parameter6Name: String? = null
+    open var parameter6Name: String? = null
 
     @PropertyInfo(i18nKey = "scripting.script.parameterType")
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
-    var parameter6Type: ScriptParameterType? = null
+    open var parameter6Type: ScriptParameterType? = null
 
-    var scriptAsString: String?
+    open var scriptAsString: String?
         @Transient
         @Field(index = Index.YES, store = Store.NO)
         get() = convert(script)
@@ -153,7 +153,7 @@ class ScriptDO : DefaultBaseDO() {
             this.script = convert(script)
         }
 
-    var scriptBackupAsString: String?
+    open var scriptBackupAsString: String?
         @Transient
         get() = convert(scriptBackup)
         set(scriptBackup) {

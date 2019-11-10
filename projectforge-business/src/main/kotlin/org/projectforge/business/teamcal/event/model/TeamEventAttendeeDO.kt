@@ -39,61 +39,61 @@ import javax.persistence.*
 @Indexed
 @Table(name = "T_PLUGIN_CALENDAR_EVENT_ATTENDEE", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attendee_team_event_fk", columnList = "team_event_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attendee_address_id", columnList = "address_id"), javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attendee_user_id", columnList = "user_id"), javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attendee_tenant_id", columnList = "tenant_id")])
 @WithHistory(noHistoryProperties = ["loginToken"])
-class TeamEventAttendeeDO : DefaultBaseDO(), Comparable<TeamEventAttendeeDO> {
+open class TeamEventAttendeeDO : DefaultBaseDO(), Comparable<TeamEventAttendeeDO> {
 
     @get:Column
-    var number: Short? = null
+    open var number: Short? = null
 
     /**
      * The url (mail) of the attendee. Isn't used if the attendee is a ProjectForge user.
      */
     @get:Column(length = URL_MAX_LENGTH)
-    var url: String? = null
+    open var url: String? = null
 
     /**
      * Is set if the attendee is a ProjectForge user.
      */
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "address_id")
-    var address: AddressDO? = null
+    open var address: AddressDO? = null
 
     /**
      * Is set if the attendee is a ProjectForge user.
      */
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "user_id")
-    var user: PFUserDO? = null
+    open var user: PFUserDO? = null
 
     /**
      * Is used if the attendee isn't a ProjectForge user for authentication.
      */
     @get:Column(name = "login_token", length = 255)
-    var loginToken: String? = null
+    open var loginToken: String? = null
 
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 100)
-    var status: TeamEventAttendeeStatus? = TeamEventAttendeeStatus.NEEDS_ACTION
+    open var status: TeamEventAttendeeStatus? = TeamEventAttendeeStatus.NEEDS_ACTION
 
     @get:Column(length = 4000)
-    var comment: String? = null
+    open var comment: String? = null
 
     @get:Column(length = 4000, name = "comment_of_attendee")
-    var commentOfAttendee: String? = null
+    open var commentOfAttendee: String? = null
 
     @get:Column(length = 256, name = "common_name")
-    var commonName: String? = null
+    open var commonName: String? = null
 
     @get:Column(length = 20, name = "cu_type")
-    var cuType: String? = null
+    open var cuType: String? = null
 
     @get:Column
-    var rsvp: Boolean? = null
+    open var rsvp: Boolean? = null
 
     @get:Column
-    var role: String? = null
+    open var role: String? = null
 
     @get:Column(length = 1000, name = "additional_params")
-    var additionalParams: String? = null
+    open var additionalParams: String? = null
 
     val eMailAddress: String?
         @Transient

@@ -43,12 +43,12 @@ import javax.persistence.*
 @Indexed
 @ClassBridge(name = "usersgroups", impl = HibernateSearchUsersGroupsBridge::class)
 @Table(name = "T_ADDRESSBOOK", indexes = [Index(name = "idx_fk_t_addressbook_tenant_id", columnList = "tenant_id")])
-class AddressbookDO : BaseUserGroupRightsDO() {
+open class AddressbookDO : BaseUserGroupRightsDO() {
 
     @PropertyInfo(i18nKey = "addressbook.title")
     @Field
     @get:Column(length = Constants.LENGTH_TITLE)
-    var title: String? = null
+    open var title: String? = null
 
     @PropertyInfo(i18nKey = "addressbook.owner")
     @IndexedEmbedded(depth = 1)
@@ -60,7 +60,7 @@ class AddressbookDO : BaseUserGroupRightsDO() {
     @PropertyInfo(i18nKey = "addressbook.description")
     @Field
     @get:Column(length = Constants.LENGTH_TEXT)
-    var description: String? = null
+    open var description: String? = null
 
     /**
      * @see Object.hashCode

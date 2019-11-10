@@ -35,18 +35,18 @@ import javax.persistence.*
 @Entity
 @AUserRightId(value = "EMPLOYEE_VACATION", checkAccess = false)
 @Table(name = "t_employee_vacation_calendar", uniqueConstraints = [UniqueConstraint(columnNames = ["vacation_id", "calendar_id"])])
-class VacationCalendarDO : DefaultBaseDO() {
+open class VacationCalendarDO : DefaultBaseDO() {
 
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "vacation_id", nullable = false)
-    var vacation: VacationDO? = null
+    open var vacation: VacationDO? = null
 
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "calendar_id", nullable = false)
-    var calendar: TeamCalDO? = null
+    open var calendar: TeamCalDO? = null
 
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "event_id")
-    var event: CalEventDO? = null
+    open var event: CalEventDO? = null
 
 }

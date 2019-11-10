@@ -44,7 +44,7 @@ import javax.persistence.*
 @Indexed
 @Table(name = "t_employee_vacation", indexes = [javax.persistence.Index(name = "idx_fk_t_vacation_employee_id", columnList = "employee_id"), javax.persistence.Index(name = "idx_fk_t_vacation_manager_id", columnList = "manager_id"), javax.persistence.Index(name = "idx_fk_t_vacation_tenant_id", columnList = "tenant_id")])
 @AUserRightId(value = "EMPLOYEE_VACATION", checkAccess = false)
-class VacationDO : DefaultBaseDO() {
+open class VacationDO : DefaultBaseDO() {
 
     /**
      * The employee.
@@ -53,17 +53,17 @@ class VacationDO : DefaultBaseDO() {
     @IndexedEmbedded(includePaths = ["user.firstname", "user.lastname"])
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "employee_id", nullable = false)
-    var employee: EmployeeDO? = null
+    open var employee: EmployeeDO? = null
 
     @PropertyInfo(i18nKey = "vacation.startdate")
     @get:Temporal(TemporalType.DATE)
     @get:Column(name = "start_date", nullable = false)
-    var startDate: Date? = null
+    open var startDate: Date? = null
 
     @PropertyInfo(i18nKey = "vacation.enddate")
     @get:Temporal(TemporalType.DATE)
     @get:Column(name = "end_date", nullable = false)
-    var endDate: Date? = null
+    open var endDate: Date? = null
 
     /**
      * The substitutions.
@@ -71,7 +71,7 @@ class VacationDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "vacation.substitution")
     @get:ManyToMany
     @get:JoinTable(name = "t_employee_vacation_substitution", joinColumns = [JoinColumn(name = "vacation_id", referencedColumnName = "PK")], inverseJoinColumns = [JoinColumn(name = "substitution_id", referencedColumnName = "PK")], indexes = [Index(name = "idx_fk_t_employee_vacation_substitution_vacation_id", columnList = "vacation_id"), Index(name = "idx_fk_t_employee_vacation_substitution_substitution_id", columnList = "substitution_id")])
-    var substitutions: Set<EmployeeDO>? = HashSet()
+    open var substitutions: Set<EmployeeDO>? = HashSet()
 
     /**
      * The manager.
@@ -79,10 +79,10 @@ class VacationDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "vacation.manager")
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "manager_id", nullable = false)
-    var manager: EmployeeDO? = null
+    open var manager: EmployeeDO? = null
 
     @PropertyInfo(i18nKey = "vacation.status")
-    var status: VacationStatus? = null
+    open var status: VacationStatus? = null
         @Enumerated(EnumType.STRING)
         @Column(name = "vacation_status", length = 30, nullable = false)
         get() = if (field == null) {
@@ -96,11 +96,11 @@ class VacationDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "vacation.isSpecial")
     @get:Column(name = "is_special", nullable = false)
-    var special: Boolean? = null
+    open var special: Boolean? = null
 
     @PropertyInfo(i18nKey = "vacation.isHalfDay")
     @get:Column(name = "is_half_day")
-    var halfDay: Boolean? = null
+    open var halfDay: Boolean? = null
 
     @Transient
     fun getVacationmode(): VacationMode {

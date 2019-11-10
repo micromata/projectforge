@@ -36,16 +36,16 @@ import javax.persistence.Table
 @Indexed
 @Table(name = "T_PLUGIN_PLUGINTEMPLATE")
 @WithHistory
-class PluginTemplateDO : DefaultBaseDO() {
+open class PluginTemplateDO : DefaultBaseDO() {
 
     @Field
     @PropertyInfo(i18nKey = "plugins.plugintemplate.key")
     @get:Column(nullable = false)
-    var key: String? = null
+    open var key: String? = null
 
     @Field
     @PropertyInfo(i18nKey = "plugins.plugintemplate.value")
     @get:Column
-    var value: String? = null
+    open var value: String? = null
 
 }

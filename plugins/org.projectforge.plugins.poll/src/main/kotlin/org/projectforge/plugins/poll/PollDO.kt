@@ -36,28 +36,28 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "T_PLUGIN_POLL", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_poll_tenant_id", columnList = "tenant_id")])
-class PollDO : DefaultBaseDO() {
+open class PollDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "plugins.teamcal.owner")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "owner_fk")
-    var owner: PFUserDO? = null
+    open var owner: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "plugins.poll.new.title")
     @get:Column
-    var title: String? = null
+    open var title: String? = null
 
     @PropertyInfo(i18nKey = "plugins.poll.new.location")
     @get:Column
-    var location: String? = null
+    open var location: String? = null
 
     @PropertyInfo(i18nKey = "plugins.poll.new.description")
     @get:Column
-    var description: String? = null
+    open var description: String? = null
 
     @get:Column
-    var active: Boolean = false
+    open var active: Boolean = false
 
     /**
      * @see java.lang.Object.hashCode

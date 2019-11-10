@@ -34,27 +34,27 @@ import javax.persistence.*
 @Indexed
 @Table(name = "T_PLUGIN_BANK_ACCOUNT", uniqueConstraints = [UniqueConstraint(columnNames = ["account_number", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_bank_account_tenant_id", columnList = "tenant_id")])
 @WithHistory
-class BankAccountDO : DefaultBaseDO(), ShortDisplayNameCapable {
+open class BankAccountDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     @Field
     @get:Column(name = "account_number", length = 255, nullable = false)
-    var accountNumber: String? = null
+    open var accountNumber: String? = null
 
     @Field
     @get:Column(length = 255)
-    var bank: String? = null
+    open var bank: String? = null
 
     @Field
     @get:Column(name = "bank_identification_code", length = 100)
-    var bankIdentificationCode: String? = null
+    open var bankIdentificationCode: String? = null
 
     @Field
     @get:Column(length = 255)
-    var name: String? = null
+    open var name: String? = null
 
     @Field
     @get:Column(length = 4000)
-    var description: String? = null
+    open var description: String? = null
 
     @Transient
     override fun getShortDisplayName(): String {

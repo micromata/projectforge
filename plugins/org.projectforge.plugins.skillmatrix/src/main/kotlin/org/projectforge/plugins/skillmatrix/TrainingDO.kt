@@ -45,58 +45,58 @@ import javax.persistence.*
             javax.persistence.Index(name = "idx_fk_t_plugin_skill_training_tenant_id", columnList = "tenant_id")])
 @NamedQueries(
         NamedQuery(name = TrainingDO.FIND_BY_TITLE, query = "from TrainingDO where title=:title"))
-class TrainingDO : DefaultBaseDO(), ShortDisplayNameCapable {
+open class TrainingDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skill.title")
     @Field
     @get:Column(length = 255)
-    var title: String? = null
+    open var title: String? = null
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skillrating.skill")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "skill_fk")
-    var skill: SkillDO? = null
+    open var skill: SkillDO? = null
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skill.description")
     @UserPrefParameter(i18nKey = "description", multiline = true)
     @Field
     @get:Column(length = Constants.LENGTH_TEXT)
-    var description: String? = null
+    open var description: String? = null
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skilltraining.rating")
     @Field
     @get:Column(length = 255)
-    var rating: String? = null
+    open var rating: String? = null
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skilltraining.certificate")
     @Field
     @get:Column(length = 4000)
-    var certificate: String? = null
+    open var certificate: String? = null
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skilltraining.startDate")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "start_date")
-    var startDate: Date? = null
+    open var startDate: Date? = null
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skilltraining.endDate")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "end_date")
-    var endDate: Date? = null
+    open var endDate: Date? = null
 
     /**
      * Members of these groups have full read/write access to this training.
      */
     @get:Column(name = "full_access_group_ids", length = 4000, nullable = true)
-    var fullAccessGroupIds: String? = null
+    open var fullAccessGroupIds: String? = null
 
     /**
      * Members of these groups have full read-only access to this training.
      */
     @get:Column(name = "readonly_access_group_ids", length = 4000, nullable = true)
-    var readOnlyAccessGroupIds: String? = null
+    open var readOnlyAccessGroupIds: String? = null
 
     val skillId: Int?
         @Transient

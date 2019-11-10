@@ -51,22 +51,22 @@ import javax.persistence.*
 @WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [EingangsrechnungsPositionDO::class])
 @NamedQueries(
         NamedQuery(name = EingangsrechnungDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from EingangsrechnungDO"))
-class EingangsrechnungDO : AbstractRechnungDO(), Comparable<EingangsrechnungDO> {
+open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<EingangsrechnungDO> {
 
     @PropertyInfo(i18nKey = "fibu.rechnung.receiver")
     @Field
     @get:Column
-    var receiver: String? = null
+    open var receiver: String? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.iban")
     @Field
     @get:Column(length = 50)
-    var iban: String? = null
+    open var iban: String? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.bic")
     @Field
     @get:Column(length = 11)
-    var bic: String? = null
+    open var bic: String? = null
 
 
     /**
@@ -77,30 +77,30 @@ class EingangsrechnungDO : AbstractRechnungDO(), Comparable<EingangsrechnungDO> 
     @PropertyInfo(i18nKey = "fibu.common.reference")
     @Field
     @get:Column(length = 1000)
-    var referenz: String? = null
+    open var referenz: String? = null
 
     @PropertyInfo(i18nKey = "fibu.common.creditor")
     @Field
     @get:Column(length = 255)
-    var kreditor: String? = null
+    open var kreditor: String? = null
 
     @PropertyInfo(i18nKey = "fibu.payment.type")
     @Field(bridge = FieldBridge(impl = HibernateSearchPaymentTypeBridge::class))
     @get:Column(length = 20, name = "payment_type")
     @get:Enumerated(EnumType.STRING)
-    var paymentType: PaymentType? = null
+    open var paymentType: PaymentType? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.customernr")
     @Field
     @get:Column
-    var customernr: String? = null
+    open var customernr: String? = null
 
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
     @JsonBackReference
     @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, mappedBy = "eingangsrechnung", targetEntity = EingangsrechnungsPositionDO::class)
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
     @get:ListIndexBase(1)
-    var positionen: MutableList<EingangsrechnungsPositionDO>? = null
+    open var positionen: MutableList<EingangsrechnungsPositionDO>? = null
 
     override val abstractPositionen: List<AbstractRechnungsPositionDO>?
         @Transient

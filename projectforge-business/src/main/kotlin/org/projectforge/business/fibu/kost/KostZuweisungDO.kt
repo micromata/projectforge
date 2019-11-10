@@ -27,9 +27,9 @@ import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.IndexedEmbedded
+import org.projectforge.business.fibu.AbstractRechnungsPositionDO
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO
 import org.projectforge.business.fibu.EmployeeSalaryDO
-import org.projectforge.business.fibu.AbstractRechnungsPositionDO
 import org.projectforge.business.fibu.RechnungsPositionDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
@@ -49,7 +49,7 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "T_FIBU_KOST_ZUWEISUNG", uniqueConstraints = [UniqueConstraint(columnNames = ["index", "rechnungs_pos_fk", "kost1_fk", "kost2_fk"]), UniqueConstraint(columnNames = ["index", "eingangsrechnungs_pos_fk", "kost1_fk", "kost2_fk"]), UniqueConstraint(columnNames = ["index", "employee_salary_fk", "kost1_fk", "kost2_fk"])], indexes = [Index(name = "idx_fk_t_fibu_kost_zuweisung_eingangsrechnungs_pos_fk", columnList = "eingangsrechnungs_pos_fk"), Index(name = "idx_fk_t_fibu_kost_zuweisung_employee_salary_fk", columnList = "employee_salary_fk"), Index(name = "idx_fk_t_fibu_kost_zuweisung_kost1_fk", columnList = "kost1_fk"), Index(name = "idx_fk_t_fibu_kost_zuweisung_kost2_fk", columnList = "kost2_fk"), Index(name = "idx_fk_t_fibu_kost_zuweisung_rechnungs_pos_fk", columnList = "rechnungs_pos_fk"), Index(name = "idx_fk_t_fibu_kost_zuweisung_tenant_id", columnList = "tenant_id")])
-class KostZuweisungDO : DefaultBaseDO(), ShortDisplayNameCapable {
+open class KostZuweisungDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     /**
      * Die Kostzuweisungen sind als Array organisiert. Dies stellt den Index der Kostzuweisung dar. Der Index ist für
@@ -58,28 +58,28 @@ class KostZuweisungDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * @return
      */
     @get:Column
-    var index: Short = 0
+    open var index: Short = 0
 
     @PropertyInfo(i18nKey = "fibu.common.netto")
     @get:Column(scale = 2, precision = 12)
-    var netto: BigDecimal? = null
+    open var netto: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "fibu.kost1")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "kost1_fk", nullable = false)
-    var kost1: Kost1DO? = null
+    open var kost1: Kost1DO? = null
 
     @PropertyInfo(i18nKey = "fibu.kost2")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "kost2_fk", nullable = false)
-    var kost2: Kost2DO? = null
+    open var kost2: Kost2DO? = null
 
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "rechnungs_pos_fk", nullable = true)
-    var rechnungsPosition: RechnungsPositionDO? = null
+    open var rechnungsPosition: RechnungsPositionDO? = null
         set(rechnungsPosition) {
             if (rechnungsPosition != null && (this.eingangsrechnungsPosition != null || this.employeeSalary != null)) {
                 throw IllegalStateException("eingangsRechnung or employeeSalary already given!")
@@ -90,8 +90,8 @@ class KostZuweisungDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "eingangsrechnungs_pos_fk", nullable = true)
-    var eingangsrechnungsPosition: EingangsrechnungsPositionDO? = null
-        set(eingangsrechnungsPosition){
+    open var eingangsrechnungsPosition: EingangsrechnungsPositionDO? = null
+        set(eingangsrechnungsPosition) {
             if (eingangsrechnungsPosition != null && (this.rechnungsPosition != null || this.employeeSalary != null)) {
                 throw IllegalStateException("rechnungsPosition or employeeSalary already given!")
             }
@@ -108,7 +108,7 @@ class KostZuweisungDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "employee_salary_fk", nullable = true)
-    var employeeSalary: EmployeeSalaryDO? = null
+    open var employeeSalary: EmployeeSalaryDO? = null
         set(employeeSalary) {
             if (employeeSalary != null && (this.eingangsrechnungsPosition != null || this.rechnungsPosition != null)) {
                 throw IllegalStateException("eingangsRechnung or rechnungsPosition already given!")
@@ -118,7 +118,7 @@ class KostZuweisungDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     @Field
     @get:Column(length = Constants.COMMENT_LENGTH)
-    var comment: String? = null
+    open var comment: String? = null
 
     /**
      * Calculates gross amount using the vat from the invoice position.

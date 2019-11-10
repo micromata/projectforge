@@ -37,11 +37,11 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "t_fibu_eingangsrechnung_position", uniqueConstraints = [UniqueConstraint(columnNames = ["eingangsrechnung_fk", "number"])], indexes = [Index(name = "idx_fk_t_fibu_eingangsrechnung_position_eingangsrechnung_fk", columnList = "eingangsrechnung_fk"), Index(name = "idx_fk_t_fibu_eingangsrechnung_position_tenant_id", columnList = "tenant_id")])
-class EingangsrechnungsPositionDO : AbstractRechnungsPositionDO() {
+open class EingangsrechnungsPositionDO : AbstractRechnungsPositionDO() {
     @get:JsonManagedReference
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "eingangsrechnung_fk", nullable = false)
-    var eingangsrechnung: EingangsrechnungDO? = null
+    open var eingangsrechnung: EingangsrechnungDO? = null
 
     override val rechnungId: Int?
         @Transient

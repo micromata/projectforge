@@ -47,7 +47,7 @@ import javax.persistence.*
 @WithHistory
 @NamedQueries(
         NamedQuery(name = ProjektDO.FIND_BY_INTERNKOST24_AND_NUMMER, query = "from ProjektDO where internKost2_4=:internKost24 and nummer=:nummer"))
-class ProjektDO : DefaultBaseDO(), ShortDisplayNameCapable {
+open class ProjektDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     /**
      * Ziffer 5-6 von KOST2 (00-99)
@@ -55,12 +55,12 @@ class ProjektDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @PropertyInfo(i18nKey = "fibu.projekt.nummer")
     @get:Column(nullable = false)
     @Field(analyze = Analyze.NO)
-    var nummer: Int = 0
+    open var nummer: Int = 0
 
     @PropertyInfo(i18nKey = "fibu.projekt.name")
     @Field
     @get:Column(length = 255, nullable = false)
-    var name: String? = null
+    open var name: String? = null
 
     /**
      * The identifier is used e. g. for display the project as short name in human resources planning tables.
@@ -68,13 +68,13 @@ class ProjektDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @PropertyInfo(i18nKey = "fibu.projekt.identifier")
     @Field
     @get:Column(length = 20)
-    var identifier: String? = null
+    open var identifier: String? = null
 
     @PropertyInfo(i18nKey = "fibu.kunde")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "kunde_id")
-    var kunde: KundeDO? = null
+    open var kunde: KundeDO? = null
 
     /**
      * Nur bei internen Projekten ohne Kundennummer, stellt diese Nummer die Ziffern 2-4 aus 4.* dar.
@@ -82,18 +82,18 @@ class ProjektDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @PropertyInfo(i18nKey = "fibu.projekt.internKost2_4")
     @get:Column(name = "intern_kost2_4")
     @Field(analyze = Analyze.NO)
-    var internKost2_4: Int? = null
+    open var internKost2_4: Int? = null
 
     @PropertyInfo(i18nKey = "status")
     @Field
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 30)
-    var status: ProjektStatus? = null
+    open var status: ProjektStatus? = null
 
     @PropertyInfo(i18nKey = "description")
     @Field
     @get:Column(length = 4000)
-    var description: String? = null
+    open var description: String? = null
 
     /**
      * The member of this group have access to orders assigned to this project.
@@ -102,30 +102,30 @@ class ProjektDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "projektmanager_group_fk")
     @IndexedEmbedded(depth = 1)
-    var projektManagerGroup: GroupDO? = null
+    open var projektManagerGroup: GroupDO? = null
 
     @PropertyInfo(i18nKey = "fibu.projectManager")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "projectmanager_fk")
-    var projectManager: PFUserDO? = null
+    open var projectManager: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "fibu.headOfBusinessManager")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "headofbusinessmanager_fk")
-    var headOfBusinessManager: PFUserDO? = null
+    open var headOfBusinessManager: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "fibu.salesManager")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "salesmanager_fk")
-    var salesManager: PFUserDO? = null
+    open var salesManager: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "task")
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "task_fk", nullable = true)
-    var task: TaskDO? = null
+    open var task: TaskDO? = null
 
     /**
      * This Datev account number is used for the exports of invoices. If not given then the account number assigned to the
@@ -134,7 +134,7 @@ class ProjektDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @PropertyInfo(i18nKey = "fibu.konto")
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "konto_id")
-    var konto: KontoDO? = null
+    open var konto: KontoDO? = null
 
     val kost: String
         @Transient

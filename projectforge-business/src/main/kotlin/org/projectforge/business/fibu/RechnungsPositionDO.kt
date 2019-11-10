@@ -46,11 +46,11 @@ import javax.persistence.*
 @Cache(region = "invoices", usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 //@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Table(name = "t_fibu_rechnung_position", uniqueConstraints = [UniqueConstraint(columnNames = ["rechnung_fk", "number"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_position_auftrags_position_fk", columnList = "auftrags_position_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_position_rechnung_fk", columnList = "rechnung_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_position_tenant_id", columnList = "tenant_id")])
-class RechnungsPositionDO : AbstractRechnungsPositionDO() {
+open class RechnungsPositionDO : AbstractRechnungsPositionDO() {
     @get:JsonManagedReference
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "rechnung_fk", nullable = false)
-    var rechnung: RechnungDO? = null
+    open var rechnung: RechnungDO? = null
 
     override val rechnungId: Int?
         @Transient
@@ -60,22 +60,22 @@ class RechnungsPositionDO : AbstractRechnungsPositionDO() {
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "auftrags_position_fk")
-    var auftragsPosition: AuftragsPositionDO? = null
+    open var auftragsPosition: AuftragsPositionDO? = null
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.type")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "period_of_performance_type", length = 10)
-    var periodOfPerformanceType: PeriodOfPerformanceType? = PeriodOfPerformanceType.SEEABOVE
+    open var periodOfPerformanceType: PeriodOfPerformanceType? = PeriodOfPerformanceType.SEEABOVE
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.from")
     @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "period_of_performance_begin")
-    var periodOfPerformanceBegin: Date? = null
+    open var periodOfPerformanceBegin: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.to")
     @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "period_of_performance_end")
-    var periodOfPerformanceEnd: Date? = null
+    open var periodOfPerformanceEnd: Date? = null
 
     override fun checkKostZuweisungId(zuweisung: KostZuweisungDO): Boolean {
         return zuweisung.rechnungsPositionId == this.id

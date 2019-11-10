@@ -61,62 +61,62 @@ import javax.persistence.*
                 query = "select distinct location from TimesheetDO where deleted=false and user.id=:userId and lastUpdate>:lastUpdate and lower(location) like :locationSearch order by location"),
         NamedQuery(name = TimesheetDO.SELECT_RECENT_USED_LOCATIONS_BY_USER_AND_LAST_UPDATE,
                 query = "select distinct location from TimesheetDO where deleted=false and user.id=:userId and lastUpdate>:lastUpdate and location!=null and location!='' order by lastUpdate desc"))
-class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
+open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
 
     @PropertyInfo(i18nKey = "task")
     @UserPrefParameter(i18nKey = "task", orderString = "2")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "task_id", nullable = false)
-    var task: TaskDO? = null
+    open var task: TaskDO? = null
 
     @PropertyInfo(i18nKey = "user")
     @UserPrefParameter(i18nKey = "user", orderString = "1")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "user_id", nullable = false)
-    var user: PFUserDO? = null
+    open var user: PFUserDO? = null
 
     @get:Column(name = "time_zone", length = 100)
-    var timeZone: String? = null
+    open var timeZone: String? = null
 
     @PropertyInfo(i18nKey = "timesheet.startTime")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.MINUTE)
     @get:Column(name = "start_time", nullable = false)
-    var startTime: Timestamp? = null
+    open var startTime: Timestamp? = null
 
     @PropertyInfo(i18nKey = "timesheet.stopTime")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.MINUTE)
     @get:Column(name = "stop_time", nullable = false)
-    var stopTime: Timestamp? = null
+    open var stopTime: Timestamp? = null
 
     @PropertyInfo(i18nKey = "timesheet.location")
     @UserPrefParameter(i18nKey = "timesheet.location")
     @Field
     @get:Column(length = 100)
-    var location: String? = null
+    open var location: String? = null
 
     @PropertyInfo(i18nKey = "timesheet.description")
     @UserPrefParameter(i18nKey = "description", multiline = true)
     @Field
     @get:Column(length = 4000)
-    var description: String? = null
+    open var description: String? = null
 
     @PropertyInfo(i18nKey = "fibu.kost2")
     @UserPrefParameter(i18nKey = "fibu.kost2", orderString = "3", dependsOn = "task")
     @IndexedEmbedded(depth = 2)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "kost2_id", nullable = true)
-    var kost2: Kost2DO? = null
+    open var kost2: Kost2DO? = null
 
     /**
      * Marker is used to mark this time sheet e. g. as a time sheet with an time period collision.
      */
     @get:Transient
     @JsonIgnore
-    var marked: Boolean = false
+    open var marked: Boolean = false
 
     /**
      * @return Duration in millis if startTime and stopTime is given and stopTime is after startTime, otherwise 0.

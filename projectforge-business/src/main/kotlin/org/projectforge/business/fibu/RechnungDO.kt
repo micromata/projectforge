@@ -57,12 +57,12 @@ import javax.persistence.*
 @NamedQueries(
         NamedQuery(name = RechnungDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from RechnungDO"),
         NamedQuery(name = RechnungDO.FIND_OTHER_BY_NUMMER, query = "from RechnungDO where nummer=:nummer and id!=:id"))
-class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
+open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
 
     @PropertyInfo(i18nKey = "fibu.rechnung.nummer")
     @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
     @get:Column(nullable = true)
-    var nummer: Int? = null
+    open var nummer: Int? = null
 
     /**
      * Rechnungsempfänger. Dieser Kunde kann vom Kunden, der mit dem Projekt verbunden ist abweichen.
@@ -71,7 +71,7 @@ class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "kunde_id", nullable = true)
-    var kunde: KundeDO? = null
+    open var kunde: KundeDO? = null
 
     /**
      * Freitextfeld, falls Kunde nicht aus Liste gewählt werden kann bzw. für Rückwärtskompatibilität mit alten Kunden.
@@ -79,52 +79,52 @@ class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
     @PropertyInfo(i18nKey = "fibu.kunde")
     @Field
     @get:Column(name = "kunde_text")
-    var kundeText: String? = null
+    open var kundeText: String? = null
 
     @PropertyInfo(i18nKey = "fibu.projekt")
     @IndexedEmbedded(depth = 2)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "projekt_id", nullable = true)
-    var projekt: ProjektDO? = null
+    open var projekt: ProjektDO? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.status")
     @Field(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 30)
-    var status: RechnungStatus? = null
+    open var status: RechnungStatus? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.typ")
     @Field
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 40)
-    var typ: RechnungTyp? = null
+    open var typ: RechnungTyp? = null
 
     @PropertyInfo(i18nKey = "fibu.customerref1")
     @Field
     @get:Column(name = "customerref1")
-    var customerref1: String? = null
+    open var customerref1: String? = null
 
     @PropertyInfo(i18nKey = "fibu.attachment")
     @Field
     @get:Column(name = "attachment")
-    var attachment: String? = null
+    open var attachment: String? = null
 
     @PropertyInfo(i18nKey = "fibu.customer.address")
     @Field
     @get:Column(name = "customeraddress")
-    var customerAddress: String? = null
+    open var customerAddress: String? = null
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.from")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "period_of_performance_begin")
-    var periodOfPerformanceBegin: Date? = null
+    open var periodOfPerformanceBegin: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.to")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "period_of_performance_end")
-    var periodOfPerformanceEnd: Date? = null
+    open var periodOfPerformanceEnd: Date? = null
 
     /**
      * (this.status == RechnungStatus.BEZAHLT && this.bezahlDatum != null && this.zahlBetrag != null)
@@ -155,7 +155,7 @@ class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
     @get:OneToMany(cascade = [CascadeType.MERGE], fetch = FetchType.EAGER, mappedBy = "rechnung", targetEntity = RechnungsPositionDO::class)
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
     @get:ListIndexBase(1)
-    var positionen: MutableList<RechnungsPositionDO>? = null
+    open var positionen: MutableList<RechnungsPositionDO>? = null
 
     override val abstractPositionen: List<AbstractRechnungsPositionDO>?
         @Transient

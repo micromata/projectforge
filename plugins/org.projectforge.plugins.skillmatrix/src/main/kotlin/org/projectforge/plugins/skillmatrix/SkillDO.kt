@@ -57,31 +57,31 @@ import javax.persistence.*
                 query = "from SkillDO where title=:title and deleted=false and parent.id is null"),
         NamedQuery(name = SkillDO.FIND_OTHER_BY_TITLE_ON_TOPLEVEL,
                 query = "from SkillDO where title=:title and deleted=false and parent.id is null and id=:id"))
-class SkillDO : DefaultBaseDO() {
+open class SkillDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skill.title")
     @Field
     @get:Column(length = 255)
-    var title: String? = null
+    open var title: String? = null
 
     // Null if this skill is a top level skill.
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skill.parent")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "parent_fk")
-    var parent: SkillDO? = null
+    open var parent: SkillDO? = null
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skill.description")
     @UserPrefParameter(i18nKey = "description", multiline = true)
     @Field
     @get:Column(length = Constants.LENGTH_TEXT)
-    var description: String? = null
+    open var description: String? = null
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skill.comment")
     @UserPrefParameter(i18nKey = "comment", multiline = true)
     @Field
     @get:Column(length = Constants.LENGTH_TEXT)
-    var comment: String? = null
+    open var comment: String? = null
 
     /**
      * This value should be false for skills which should be used as categories or sub categories for which a rating isn't
@@ -90,25 +90,25 @@ class SkillDO : DefaultBaseDO() {
      */
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skill.rateable")
     @get:Column
-    var rateable = true
+    open var rateable = true
 
     /**
      * Members of these groups have full read/write access to this skill and related trainings.
      */
     @get:Column(name = "full_access_group_ids", length = 4000, nullable = true)
-    var fullAccessGroupIds: String? = null
+    open var fullAccessGroupIds: String? = null
 
     /**
      * Members of these groups have full read-only access to this skill.
      */
     @get:Column(name = "readonly_access_group_ids", length = 4000, nullable = true)
-    var readOnlyAccessGroupIds: String? = null
+    open var readOnlyAccessGroupIds: String? = null
 
     /**
      * Members of these groups have full read/write access to trainings of this skill.
      */
     @get:Column(name = "training_access_group_ids", length = 4000, nullable = true)
-    var trainingGroupsIds: String? = null
+    open var trainingGroupsIds: String? = null
 
     val parentId: Int?
         @Transient

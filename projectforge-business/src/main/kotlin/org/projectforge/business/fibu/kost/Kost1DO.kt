@@ -45,13 +45,13 @@ import javax.persistence.*
                 query = "from Kost1DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and endziffer=:endziffer"),
         NamedQuery(name = Kost1DO.FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER,
                 query = "from Kost1DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and endziffer=:endziffer and id!=:id"))
-class Kost1DO : DefaultBaseDO(), ShortDisplayNameCapable {
+open class Kost1DO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     @PropertyInfo(i18nKey = "status")
     @Field(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 30)
-    var kostentraegerStatus: KostentraegerStatus? = null
+    open var kostentraegerStatus: KostentraegerStatus? = null
 
     /**
      * Nummernkreis entspricht der ersten Ziffer.
@@ -59,7 +59,7 @@ class Kost1DO : DefaultBaseDO(), ShortDisplayNameCapable {
      * @return
      */
     @get:Column(name = "nummernkreis", length = 1)
-    var nummernkreis: Int = 0
+    open var nummernkreis: Int = 0
 
     /**
      * Bereich entspricht der 2.-4. Ziffer.
@@ -67,7 +67,7 @@ class Kost1DO : DefaultBaseDO(), ShortDisplayNameCapable {
      * @return
      */
     @get:Column(name = "bereich", length = 3)
-    var bereich: Int = 0
+    open var bereich: Int = 0
 
     /**
      * Teilbereich entspricht der 5.-6. Ziffer.
@@ -75,10 +75,10 @@ class Kost1DO : DefaultBaseDO(), ShortDisplayNameCapable {
      * @return
      */
     @get:Column(name = "teilbereich", length = 2)
-    var teilbereich: Int = 0
+    open var teilbereich: Int = 0
 
     @get:Column(name = "endziffer", length = 2)
-    var endziffer: Int = 0
+    open var endziffer: Int = 0
 
     /**
      * Optionale Kommentare zum Kostenträger.
@@ -88,7 +88,7 @@ class Kost1DO : DefaultBaseDO(), ShortDisplayNameCapable {
     @PropertyInfo(i18nKey = "description")
     @Field
     @get:Column(length = 4000)
-    var description: String? = null
+    open var description: String? = null
 
     /**
      * Format: #.###.##.##

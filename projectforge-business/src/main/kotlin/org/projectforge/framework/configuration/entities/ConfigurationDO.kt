@@ -47,69 +47,66 @@ import javax.persistence.*
 @AUserRightId("ADMIN_CORE")
 @NamedQueries(
         NamedQuery(name = ConfigurationDO.FIND_BY_PARAMETER, query = "from ConfigurationDO where parameter = :parameter"))
-class ConfigurationDO : DefaultBaseDO {
+open class ConfigurationDO : DefaultBaseDO {
 
     /**
      * If true this parameter is valid for all tenants (in multi-tenancy environments), otherwise this parameter is valid
      * only for the tenant this parameter is assigned to.
      */
     @get:Column(name = "is_global", columnDefinition = "boolean default false")
-    var global: Boolean = false
+    open var global: Boolean = false
 
     /**
      * Key under which the configuration value is stored in the database.
      */
     @Field
     @get:Column(length = 255, nullable = false)
-    var parameter: String? = null
+    open var parameter: String? = null
 
     /**
      * If entry is not from type STRING then a RuntimeException will be thrown.
      */
     @Field
     @get:Column(length = PARAM_LENGTH)
-    var stringValue: String? = null
+    open var stringValue: String? = null
         get() {
-            if(field != null){
+            if (field != null) {
                 checkType(ConfigurationType.STRING)
             }
             return field
         }
-
         set(stringValue) {
-            if(field != null){
+            if (field != null) {
                 checkType(ConfigurationType.STRING)
             }
             field = stringValue
         }
 
     @get:Column
-    var intValue: Int? = null
+    open var intValue: Int? = null
         get() {
-            if(field != null){
+            if (field != null) {
                 checkType(ConfigurationType.INTEGER)
             }
             return field
         }
-
         set(stringValue) {
-            if(field != null){
+            if (field != null) {
                 checkType(ConfigurationType.INTEGER)
             }
             field = stringValue
         }
 
     @get:Column(scale = 5, precision = 18)
-    var floatValue: BigDecimal? = null
+    open var floatValue: BigDecimal? = null
         get() {
-            if(field != null){
+            if (field != null) {
                 checkType(ConfigurationType.FLOAT)
             }
             return field
         }
-
         set(stringValue) {
-            if(field != null){
+            if (field != null) {
                 checkType(ConfigurationType.FLOAT)
             }
             field = stringValue
@@ -117,7 +114,7 @@ class ConfigurationDO : DefaultBaseDO {
 
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20, nullable = false)
-    var configurationType: ConfigurationType? = null
+    open var configurationType: ConfigurationType? = null
         set(type) {
             if (field == null) {
                 field = type
@@ -174,7 +171,7 @@ class ConfigurationDO : DefaultBaseDO {
             this.stringValue = id
         }
 
-    var timeZone: TimeZone?
+    open var timeZone: TimeZone?
         @Transient
         get() {
             if (stringValue != null) {
@@ -190,7 +187,7 @@ class ConfigurationDO : DefaultBaseDO {
             this.stringValue = timeZone.id
         }
 
-    var taskId: Int?
+    open var taskId: Int?
         @Transient
         get() {
             if (intValue != null) {
@@ -205,7 +202,7 @@ class ConfigurationDO : DefaultBaseDO {
             intValue = taskId
         }
 
-    var calendarId: Int?
+    open var calendarId: Int?
         @Transient
         get() {
             if (intValue != null) {
@@ -220,7 +217,7 @@ class ConfigurationDO : DefaultBaseDO {
             intValue = calendarId
         }
 
-    var booleanValue: Boolean?
+    open var booleanValue: Boolean?
         @Transient
         get() = if (this.configurationType == ConfigurationType.BOOLEAN) {
             java.lang.Boolean.TRUE.toString() == stringValue
@@ -231,7 +228,7 @@ class ConfigurationDO : DefaultBaseDO {
             this.stringValue = booleanValue?.toString() ?: java.lang.Boolean.FALSE.toString()
         }
 
-    var value: Any?
+    open var value: Any?
         @Transient
         get() = if (this.configurationType!!.isIn(ConfigurationType.STRING, ConfigurationType.TEXT, ConfigurationType.TIME_ZONE)) {
             this.stringValue

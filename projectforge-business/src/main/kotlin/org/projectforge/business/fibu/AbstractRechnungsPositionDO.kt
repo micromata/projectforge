@@ -36,28 +36,28 @@ import javax.persistence.*
 abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @PropertyInfo(i18nKey = "fibu.rechnung.nummer")
     @get:Column
-    var number: Short = 0
+    open var number: Short = 0
 
     @PropertyInfo(i18nKey = "fibu.rechnung.text")
     @get:Column(name = "s_text", length = 1000)
-    var text: String? = null
+    open  var text: String? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.menge")
     @get:Column(scale = 5, precision = 18)
-    var menge: BigDecimal? = null
+    open var menge: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.position.einzelNetto")
     @get:Column(name = "einzel_netto", scale = 2, precision = 18)
-    var einzelNetto: BigDecimal? = null
+    open var einzelNetto: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.mehrwertSteuerSatz")
     @get:Column(scale = 5, precision = 10)
-    var vat: BigDecimal? = null
+    open var vat: BigDecimal? = null
 
     @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
     @get:JoinColumn(name = "rechnungs_pos_fk")
     @get:OrderColumn(name = "index")
-    var kostZuweisungen: MutableList<KostZuweisungDO>? = null
+    open var kostZuweisungen: MutableList<KostZuweisungDO>? = null
 
     @get:Transient
     abstract val rechnungId: Int?

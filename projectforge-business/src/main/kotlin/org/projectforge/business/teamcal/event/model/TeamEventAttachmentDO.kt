@@ -40,7 +40,7 @@ import javax.persistence.Table
 @Entity
 @Indexed
 @Table(name = "T_PLUGIN_CALENDAR_EVENT_ATTACHMENT", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attachment_team_event_fk2", columnList = "team_event_fk2"), javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attachment_tenant_id", columnList = "tenant_id")])
-class TeamEventAttachmentDO : DefaultBaseDO(), Comparable<TeamEventAttachmentDO>, MailAttachment {
+open class TeamEventAttachmentDO : DefaultBaseDO(), Comparable<TeamEventAttachmentDO>, MailAttachment {
 
     private var filename: String? = null
 
@@ -51,7 +51,7 @@ class TeamEventAttachmentDO : DefaultBaseDO(), Comparable<TeamEventAttachmentDO>
         return filename
     }
 
-    fun setFilename(filename: String): TeamEventAttachmentDO {
+    open fun setFilename(filename: String): TeamEventAttachmentDO {
         this.filename = filename
         return this
     }
@@ -62,7 +62,7 @@ class TeamEventAttachmentDO : DefaultBaseDO(), Comparable<TeamEventAttachmentDO>
         return content
     }
 
-    fun setContent(content: ByteArray): TeamEventAttachmentDO {
+    open fun setContent(content: ByteArray): TeamEventAttachmentDO {
         this.content = content
         return this
     }

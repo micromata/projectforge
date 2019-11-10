@@ -47,7 +47,7 @@ import javax.persistence.*
             Index(name = "idx_fk_t_fibu_employee_salary_tenant_id", columnList = "tenant_id")])
 @NamedQueries(
         NamedQuery(name = EmployeeSalaryDO.SELECT_MIN_MAX_YEAR, query = "select min(year), max(year) from EmployeeSalaryDO"))
-class EmployeeSalaryDO : DefaultBaseDO() {
+open class EmployeeSalaryDO : DefaultBaseDO() {
 
     /**
      * @return Zugehöriger Mitarbeiter.
@@ -57,7 +57,7 @@ class EmployeeSalaryDO : DefaultBaseDO() {
     @IndexedEmbedded(depth = 2)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "employee_id", nullable = false)
-    var employee: EmployeeDO? = null
+    open var employee: EmployeeDO? = null
 
     /**
      * @return Abrechnungsjahr.
@@ -65,7 +65,7 @@ class EmployeeSalaryDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "calendar.year")
     @Field(analyze = Analyze.NO)
     @get:Column
-    var year: Int? = null
+    open var year: Int? = null
 
     /**
      * @return Abrechnungsmonat.
@@ -73,24 +73,24 @@ class EmployeeSalaryDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "calendar.month")
     @Field(analyze = Analyze.NO)
     @get:Column
-    var month: Int? = null
+    open var month: Int? = null
 
     /**
      * Die Bruttoauszahlung an den Arbeitnehmer (inklusive AG-Anteil Sozialversicherungen).
      */
     @PropertyInfo(i18nKey = "fibu.employee.salary.bruttoMitAgAnteil")
     @get:Column(name = "brutto_mit_ag_anteil", scale = 2, precision = 12)
-    var bruttoMitAgAnteil: BigDecimal? = null
+    open var bruttoMitAgAnteil: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "comment")
     @Field
     @get:Column(length = Constants.COMMENT_LENGTH)
-    var comment: String? = null
+    open var comment: String? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.salary.type")
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
-    var type: EmployeeSalaryType? = null
+    open var type: EmployeeSalaryType? = null
 
     val employeeId: Int?
         @Transient

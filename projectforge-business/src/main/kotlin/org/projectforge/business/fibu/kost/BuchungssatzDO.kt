@@ -48,7 +48,7 @@ import javax.persistence.*
 @NamedQueries(
         NamedQuery(name = BuchungssatzDO.FIND_BY_YEAR_MONTH_SATZNR,
                 query = "from BuchungssatzDO where year=:year and month=:month and satznr=:satznr"))
-class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
+open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
 
     private val log = LoggerFactory.getLogger(BuchungssatzDO::class.java)
 
@@ -59,7 +59,7 @@ class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
      */
     @Field(analyze = Analyze.NO)
     @get:Column(nullable = false)
-    var year: Int? = null
+    open var year: Int? = null
 
     /**
      * Monat zu der die Buchung gehört.
@@ -68,16 +68,16 @@ class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
      */
     @Field(index = Index.NO, analyze = Analyze.NO)
     @get:Column(nullable = false)
-    var month: Int? = null
+    open var month: Int? = null
 
     @PropertyInfo(i18nKey = "fibu.buchungssatz.satznr")
     @Field(index = Index.NO, analyze = Analyze.NO)
     @get:Column(nullable = false)
-    var satznr: Int? = null
+    open var satznr: Int? = null
 
     @PropertyInfo(i18nKey = "fibu.common.betrag")
     @get:Column(nullable = false, scale = 2, precision = 18)
-    var betrag: BigDecimal? = null
+    open var betrag: BigDecimal? = null
         set(betrag) {
             field = betrag?.setScale(2, RoundingMode.HALF_UP)
         }
@@ -86,61 +86,61 @@ class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
     @Field(index = Index.NO, analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 7, nullable = false)
-    var sh: SHType? = null
+    open var sh: SHType? = null
 
     @get:Transient
-    var isIgnore = false
+    open var isIgnore = false
 
     @PropertyInfo(i18nKey = "fibu.buchungssatz.konto")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "konto_id", nullable = false)
-    var konto: KontoDO? = null
+    open var konto: KontoDO? = null
 
     @PropertyInfo(i18nKey = "fibu.buchungssatz.gegenKonto")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "gegenkonto_id", nullable = false)
-    var gegenKonto: KontoDO? = null
+    open var gegenKonto: KontoDO? = null
 
     @Field(index = Index.YES, analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY)
     @get:Column(nullable = false)
-    var datum: Date? = null
+    open var datum: Date? = null
 
     /** Je nach Buchungssatz: Belegnummer / Referenznummer / Rechnungsnummer.  */
     @PropertyInfo(i18nKey = "fibu.buchungssatz.beleg")
     @Field
     @get:Column(length = 255)
-    var beleg: String? = null
+    open var beleg: String? = null
 
     /** Der Buchungstext.  */
     @PropertyInfo(i18nKey = "fibu.buchungssatz.text")
     @Field
     @get:Column(length = 255, name = "buchungstext")
-    var text: String? = null
+    open var text: String? = null
 
     @PropertyInfo(i18nKey = "fibu.buchungssatz.menge")
     @Field
     @get:Column(length = 255)
-    var menge: String? = null
+    open var menge: String? = null
 
     @PropertyInfo(i18nKey = "fibu.kost1")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "kost1_id", nullable = false)
-    var kost1: Kost1DO? = null
+    open var kost1: Kost1DO? = null
 
     @PropertyInfo(i18nKey = "fibu.kost2")
     @IndexedEmbedded(depth = 3)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "kost2_id", nullable = false)
-    var kost2: Kost2DO? = null
+    open var kost2: Kost2DO? = null
 
     @PropertyInfo(i18nKey = "comment")
     @Field
     @get:Column(length = 4000)
-    var comment: String? = null
+    open var comment: String? = null
 
     /**
      * In form yyyy-mm-###
