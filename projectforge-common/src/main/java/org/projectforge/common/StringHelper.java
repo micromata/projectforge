@@ -23,25 +23,15 @@
 
 package org.projectforge.common;
 
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.StringTokenizer;
-import java.util.TreeSet;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
+import java.sql.Timestamp;
+import java.util.*;
+
 /**
  * Some helper methods ...
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class StringHelper
@@ -55,7 +45,7 @@ public class StringHelper
    * first = StringHelper.append(buf, first, "Hurzel", ", ");<br/>
    * <br/>
    * first = StringBuffer.append(buf, first, myString, ", ");<br/>
-   * 
+   *
    * @param buf
    * @param first
    * @param str String to append. If null, nothing will be done and first will be returned.
@@ -71,6 +61,32 @@ public class StringHelper
       buf.append(delimiter);
     }
     buf.append(str);
+    return false;
+  }
+
+  /**
+   * Usage: final StringBuffer buf = new StringBuffer();<br/>
+   * boolean first = true;<br/>
+   * if (...) {<br/>
+   * first = StringHelper.append(buf, first, "Hurzel", ", ");<br/>
+   * <br/>
+   * first = StringBuffer.append(buf, first, myString, ", ");<br/>
+   *
+   * @param sb
+   * @param first
+   * @param str String to append. If null, nothing will be done and first will be returned.
+   * @param delimiter
+   * @return true if str is not empty and appended to buffer, otherwise first will be returned.
+   */
+  public static boolean append(final StringBuilder sb, final boolean first, final String str, final String delimiter)
+  {
+    if (StringUtils.isEmpty(str) == true) {
+      return first;
+    }
+    if (first == false) {
+      sb.append(delimiter);
+    }
+    sb.append(str);
     return false;
   }
 
@@ -104,7 +120,7 @@ public class StringHelper
 
   /**
    * Nullpointer save version of String.endsWith.
-   * 
+   *
    * @return True, if the given string ends with one of the given suffixes, otherwise false.
    * @see String#endsWith(String)
    */
@@ -123,7 +139,7 @@ public class StringHelper
 
   /**
    * Nullpointer save version of String.startsWith.
-   * 
+   *
    * @return True, if the given string starts with one of the given prefixes, otherwise false.
    * @see String#startsWith(String)
    */
@@ -142,7 +158,7 @@ public class StringHelper
 
   /**
    * For example ["Micromata", "IT-Services", "Computer"] -> "Computer, IT-Services, Micromata".
-   * 
+   *
    * @param list List of input strings.
    * @param delimiter The delimiter of the single string in output string.
    * @param sort If true, the given list will be first sorted.
@@ -158,7 +174,7 @@ public class StringHelper
 
   /**
    * For example ["Micromata", "IT-Services", "Computer"] -> "Computer, IT-Services, Micromata".
-   * 
+   *
    * @param list List of input strings.
    * @param delimiter The delimiter of the single string in output string.
    * @param sort If true, the given list will be first sorted.
@@ -176,7 +192,7 @@ public class StringHelper
 
   /**
    * For example ["Micromata", "IT-Services", "Computer"] -> "Computer, IT-Services, Micromata".
-   * 
+   *
    * @param list List of input strings.
    * @param delimiter The delimiter of the single string in output string.
    * @param sort If true, the given list will be first sorted.
@@ -281,7 +297,7 @@ public class StringHelper
   }
 
   /**
-   * 
+   *
    * @param delimiter
    * @param prefix will be prepended before every string.
    * @param suffix will be appended to every string.
@@ -333,7 +349,7 @@ public class StringHelper
   /**
    * 0 -&gt; "00", 1 -&gt; "01", ..., 9 -&gt; "09", 10 -&gt; "10", 100 -&gt; "100" etc. Uses StringUtils.leftPad(str, 2,
    * '0');
-   * 
+   *
    * @param value
    * @return
    * @see StringUtils#leftPad(String, int, char)
@@ -346,7 +362,7 @@ public class StringHelper
   /**
    * 0 -&gt; "000", 1 -&gt; "001", ..., 9 -&gt; "009", 10 -&gt; "010", 100 -&gt; "0100", 1000 -&gt; "1000" etc. Uses
    * StringUtils.leftPad(str, 2, '0');
-   * 
+   *
    * @param value
    * @return
    * @see StringUtils#leftPad(String, int, char)
@@ -358,7 +374,7 @@ public class StringHelper
 
   /**
    * Remove all non digits from the given string and return the result. If null is given, "" is returned.
-   * 
+   *
    * @param str
    * @return
    */
@@ -395,7 +411,7 @@ public class StringHelper
   /**
    * Formats string array, each string with max with and separated by separator with a total width. See StringHelperTest
    * for documentation.
-   * 
+   *
    * @param strings
    * @param maxWidth
    * @param maxTotalLength
@@ -455,7 +471,7 @@ public class StringHelper
    * <li>"Hello", "Hello ProjectForge", "Hello kitty" -&gt; "Hello"</li>
    * <li>"Hello", null, "Hello kitty" -&gt; ""</li>
    * </ul>
-   * 
+   *
    * @param strs
    * @return The wild card string that matches all given strings. If no matching found (null or empty strings given)
    *         then an empty string is returned.
@@ -520,7 +536,7 @@ public class StringHelper
    * <li>StringHelper.hideStringEnding("01", 'x', 3) -> "xx"</li>
    * <li>StringHelper.hideStringEnding(null, 'x', 3) -> "null</li>
    * </ul>
-   * 
+   *
    * @param str Original string.
    * @param ch Replace character.
    * @param numberOfCharacters
@@ -602,7 +618,7 @@ public class StringHelper
 
   /**
    * Trims all string of the resulting array.
-   * 
+   *
    * @param str
    * @param separatorChars
    * @return
@@ -623,7 +639,7 @@ public class StringHelper
 
   /**
    * Calls !{@link #isBlank(String...)}.
-   * 
+   *
    * @param strs
    * @return true if one of the given strings is not blank, otherwise false.
    * @see StringUtils#isNotBlank(String)
@@ -635,7 +651,7 @@ public class StringHelper
 
   /**
    * Calls {@link StringUtils#isBlank(String)} for each of the given strings.
-   * 
+   *
    * @param strs
    * @return true if one of the given strings is not blank, otherwise false.
    * @see #isNotBlank(String...)
