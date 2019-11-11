@@ -135,8 +135,8 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
                 }
                 val ctb = CompareToBuilder()
                 for (sortProperty in sortProperties) {
-                    val val1 = BeanHelper.getProperty(o1, sortProperty.property)
-                    val val2 = BeanHelper.getProperty(o2, sortProperty.property)
+                    val val1 = BeanHelper.getNestedProperty(o1, sortProperty.property)
+                    val val2 = BeanHelper.getNestedProperty(o2, sortProperty.property)
                     if (val1 is String) {
                         // Strings should be compared by using locale dependent collator (especially for german Umlaute)
                         if (sortProperty.ascending) {
