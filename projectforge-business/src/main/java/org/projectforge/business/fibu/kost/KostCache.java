@@ -118,6 +118,23 @@ public class KostCache extends AbstractCache {
   }
 
   /**
+   * @param kostString Format ######## or #.###.##.## is supported.
+   * @see #getKost2(int, int, int, int)
+   */
+  public Kost1DO getKost1(final String kostString) {
+    final int[] kost = KostHelper.parseKostString(kostString);
+    for (final Kost1DO kost1 : getKost1Map().values()) {
+      if (kost[0] == kost1.getNummernkreis() &&
+              kost[1] == kost1.getBereich() &&
+              kost[2] == kost1.getTeilbereich() &&
+              kost[3] == kost1.getEndziffer()) {
+        return kost1;
+      }
+    }
+    return null;
+  }
+
+  /**
    * Gibt die für das Projekt definierten, nicht gelöschten Kostenarten zurück.
    *
    * @param projektId

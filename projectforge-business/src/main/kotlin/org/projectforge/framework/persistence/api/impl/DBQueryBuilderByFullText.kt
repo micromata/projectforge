@@ -23,9 +23,11 @@
 
 package org.projectforge.framework.persistence.api.impl
 
+import org.hibernate.search.annotations.ClassBridge
 import org.hibernate.search.jpa.Search
 import org.hibernate.search.query.dsl.BooleanJunction
 import org.hibernate.search.query.dsl.QueryBuilder
+import org.projectforge.common.ClassUtils
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
@@ -46,9 +48,13 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     companion object {
         private val log = LoggerFactory.getLogger(DBQueryBuilderByFullText::class.java)
 
+        private val supportedFieldsMap = mutableMapOf<Class<out ExtendedBaseDO<Int>>, Array<String>>()
+
         fun getUsedSearchFields(baseDao: BaseDao<*>): Array<String> {
+            var result: Array<String>? = supportedFieldsMap[baseDao.doClass]
+            if (result != null) return result
+            val stringSet = mutableSetOf<String>()
             val fields = baseDao.searchFields
-            val stringFields = mutableListOf<String>()
             fields.forEach {
                 val type = PropUtils.getField(baseDao.doClass, it, true)?.type
                 if (type != null) {
@@ -56,16 +62,26 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
                             || type.isAssignableFrom(Integer::class.java)
                             || type.isAssignableFrom(Int::class.java)
                             || type.isAssignableFrom(java.util.Date::class.java)
+                            //|| type.isEnum() // Doesn't work
                             || type.isAssignableFrom(java.sql.Date::class.java)) {
-                        stringFields.add(it) // Search only for fields of type string and int, if no special field is specified.
+                        stringSet.add(it) // Search only for fields of type string and int, if no special field is specified.
                     } else {
                         if (log.isDebugEnabled) log.debug("Type '${type.name}' of search property '${baseDao.doClass}.$it' not supported.")
                     }
                 } else {
-                    log.warn("Search property '${baseDao.doClass}.$it' not found (ignoring it).")
+                    // Check @ClassBridge annotation:
+                    val ann = ClassUtils.getClassAnnotationOfField(baseDao.doClass, it, ClassBridge::class.java)
+                    if (ann != null && (ann.name == it || it.endsWith(ann.name))) {
+                        stringSet.add(it) // Search for class bridge name.
+                    } else {
+                        log.warn("Search property '${baseDao.doClass}.$it' not found (ignoring it).")
+                    }
                 }
             }
-            return stringFields.toTypedArray()
+            result = stringSet.toTypedArray()
+            log.info("${baseDao.doClass.simpleName}: Adding supported search fields to class: ${result.joinToString(", ")}")
+            supportedFieldsMap[baseDao.doClass] = result
+            return result
         }
     }
 
@@ -247,7 +263,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
                 multiFieldQuery.add("${fields[0]}:$value")
             } else {
                 if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [search] $value")
-                multiFieldQuery.add("$value")
+                multiFieldQuery.add(value)
             }
         } else {
             val context = if (value.indexOf('*') >= 0) {
