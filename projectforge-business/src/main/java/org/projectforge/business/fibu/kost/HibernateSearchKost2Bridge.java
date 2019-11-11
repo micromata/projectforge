@@ -23,30 +23,40 @@
 
 package org.projectforge.business.fibu.kost;
 
-import org.apache.lucene.document.Document;
-import org.hibernate.search.bridge.FieldBridge;
-import org.hibernate.search.bridge.LuceneOptions;
+import org.hibernate.search.bridge.TwoWayStringBridge;
 import org.projectforge.business.fibu.KostFormatter;
+import org.projectforge.framework.configuration.ApplicationContextProvider;
 
 
 /**
  * Kost2Bridge for hibernate search: Kostenträger kann à la 6.201.57 gesucht werden.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public class HibernateSearchKost2Bridge implements FieldBridge
-{
-  /**
-   * @see org.hibernate.search.bridge.FieldBridge#set(java.lang.String, java.lang.Object, org.apache.lucene.document.Document,
-   *      org.hibernate.search.bridge.LuceneOptions)
-   */
-  public void set(final String name, final Object value, final Document document, final LuceneOptions luceneOptions)
-  {
-    final Kost2DO kost2 = (Kost2DO) value;
+public class HibernateSearchKost2Bridge implements TwoWayStringBridge {
+  private KostCache kostCache = null;
+
+  private KostCache getKostCache() {
+    if (kostCache == null)
+      kostCache = ApplicationContextProvider.getApplicationContext().getBean(KostCache.class);
+    return kostCache;
+  }
+
+  @Override
+  public Object stringToObject(String stringValue) {
+    return getKostCache().getKost2(stringValue);
+  }
+
+  @Override
+  public String objectToString(Object object) {
+    if (object instanceof String) {
+      return (String)object;
+    }
+    final Kost2DO kost2 = (Kost2DO) object;
     final StringBuilder buf = new StringBuilder();
     buf.append(KostFormatter.format(kost2));
     buf.append(' ');
     buf.append(KostFormatter.format(kost2, true));
-    luceneOptions.addFieldToDocument(name, buf.toString(), document);
+    return buf.toString();
   }
 }
