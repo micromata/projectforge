@@ -23,28 +23,30 @@
 
 package org.projectforge.business.fibu;
 
-import org.apache.lucene.document.Document;
-import org.hibernate.search.bridge.FieldBridge;
-import org.hibernate.search.bridge.LuceneOptions;
+import org.hibernate.search.bridge.TwoWayStringBridge;
 
 /**
  * StringBridge for hibernate search to search in kost2 part of project: "5.010.01".
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public class HibernateSearchProjectKostBridge implements FieldBridge
-{
-  /**
-   * @see org.hibernate.search.bridge.FieldBridge#set(java.lang.String, java.lang.Object, org.apache.lucene.document.Document,
-   *      org.hibernate.search.bridge.LuceneOptions)
-   */
-  public void set(final String name, final Object value, final Document document, final LuceneOptions luceneOptions)
-  {
-    final ProjektDO projekt = (ProjektDO) value;
-    final StringBuilder buf = new StringBuilder();
-    buf.append(KostFormatter.format(projekt));
-    buf.append(' ');
-    buf.append(KostFormatter.format(projekt, true));
-    luceneOptions.addFieldToDocument(name, buf.toString(), document);
+public class HibernateSearchProjectKostBridge implements TwoWayStringBridge {
+  @Override
+  public String objectToString(Object object) {
+    if (object instanceof String) {
+      return (String) object;
+    }
+    final ProjektDO projekt = (ProjektDO) object;
+    final StringBuilder sb = new StringBuilder();
+    sb.append(KostFormatter.format(projekt));
+    sb.append(' ');
+    sb.append(KostFormatter.format(projekt, true));
+    return sb.toString();
+  }
+
+  @Override
+  public Object stringToObject(String stringValue) {
+    // Not supported.
+    return null;
   }
 }

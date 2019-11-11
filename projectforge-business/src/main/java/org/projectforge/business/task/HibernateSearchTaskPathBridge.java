@@ -23,11 +23,9 @@
 
 package org.projectforge.business.task;
 
-import org.apache.lucene.document.Document;
-import org.hibernate.search.bridge.FieldBridge;
-import org.hibernate.search.bridge.LuceneOptions;
+import org.hibernate.search.bridge.TwoWayStringBridge;
 import org.projectforge.business.tasktree.TaskTreeHelper;
-import org.projectforge.framework.persistence.database.PfJpaXmlDumpServiceImpl;
+import org.projectforge.framework.utils.NumberHelper;
 
 import java.util.List;
 
@@ -36,44 +34,50 @@ import java.util.List;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class HibernateSearchTaskPathBridge implements FieldBridge
-{
+public class HibernateSearchTaskPathBridge implements TwoWayStringBridge {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
-      .getLogger(HibernateSearchTaskPathBridge.class);
+          .getLogger(HibernateSearchTaskPathBridge.class);
+
+  private TaskTree getTaskTree() {
+    return TaskTreeHelper.getTaskTree();
+  }
+
+  @Override
+  public Object stringToObject(String stringValue) {
+    if (!stringValue.matches("[0-9]+:.*")) {
+      return null;
+    }
+    final Integer number = NumberHelper.parseInteger(stringValue.substring(0, stringValue.indexOf(':')));
+    if (number == null) {
+      return null;
+    }
+    return getTaskTree().getTaskById(number);
+  }
 
   /**
    * Get all names of ancestor tasks and task itself and creates an index containing all task titles separated by '|'.
    * <br/>
    * Please note: does not work in JUnit test mode.
-   *
-   * @see org.hibernate.search.bridge.FieldBridge#set(java.lang.String, java.lang.Object,
-   * org.apache.lucene.document.Document, org.hibernate.search.bridge.LuceneOptions)
    */
   @Override
-  public void set(final String name, final Object value, final Document document,
-      final LuceneOptions luceneOptions)
-  {
-    // DESIGN bug, low level index should not rely on other.
-    // did a workoround.
-    if (PfJpaXmlDumpServiceImpl.isTransaction) {
-      log.warn("PfJpaXmlDumpServiceImpl.isTransaction = true");
-      return;
+  public String objectToString(Object object) {
+    if (object instanceof String) {
+      return (String) object;
     }
-
-    final TaskDO task = (TaskDO) value;
-    final TaskTree taskTree = TaskTreeHelper.getTaskTree(task.getTenant());
-    final TaskNode taskNode = taskTree.getTaskNodeById(task.getId());
+    final TaskDO task = (TaskDO) object;
+    final TaskNode taskNode = getTaskTree().getTaskNodeById(task.getId());
     if (taskNode == null) {
-      return;
+      return "";
     }
     final List<TaskNode> list = taskNode.getPathToRoot();
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
+    buf.append(task.getId()).append(": "); // Adding the id for deserialization
     list.forEach(node -> {
       buf.append(node.getTask().getTitle()).append("|");
     });
     if (log.isDebugEnabled()) {
       log.debug(buf.toString());
     }
-    luceneOptions.addFieldToDocument(name, buf.toString(), document);
+    return buf.toString();
   }
 }
