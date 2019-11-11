@@ -51,7 +51,8 @@ import javax.persistence.Index
 @ClassBridge(name = "taskpath", impl = HibernateSearchTaskPathBridge::class)
 @Table(name = "T_TASK",
         uniqueConstraints = [UniqueConstraint(columnNames = ["parent_task_id", "title"])],
-        indexes = [//Index(name = "idx_fk_t_task_gantt_predecessor_fk", columnList = "gantt_predecessor_fk"),
+        indexes = [
+            Index(name = "idx_fk_t_task_gantt_predecessor_fk", columnList = "gantt_predecessor_fk"),
             Index(name = "idx_fk_t_task_parent_task_id", columnList = "parent_task_id"),
             Index(name = "idx_fk_t_task_responsible_user_id", columnList = "responsible_user_id"),
             Index(name = "idx_fk_t_task_tenant_id", columnList = "tenant_id")])
@@ -258,7 +259,7 @@ open class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , Gant
      */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @PropertyInfo(i18nKey = "task.parentTask")
-        @get:ManyToOne(cascade = [CascadeType.PERSIST, CascadeType.MERGE], targetEntity = TaskDO::class, fetch = FetchType.LAZY)
+    @get:ManyToOne(cascade = [CascadeType.PERSIST, CascadeType.MERGE], targetEntity = TaskDO::class, fetch = FetchType.LAZY)
     @get:JoinColumn(name = "gantt_predecessor_fk")
     open var ganttPredecessor: TaskDO? = null
 
