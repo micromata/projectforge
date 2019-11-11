@@ -24,9 +24,7 @@
 package org.projectforge.business.teamcal.admin.model;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.lucene.document.Document;
-import org.hibernate.search.bridge.FieldBridge;
-import org.hibernate.search.bridge.LuceneOptions;
+import org.hibernate.search.bridge.TwoWayStringBridge;
 import org.projectforge.business.common.BaseUserGroupRightsDO;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.GroupsComparator;
@@ -38,7 +36,6 @@ import org.projectforge.continuousdb.DatabaseSupport;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.springframework.context.ApplicationContext;
 
 import java.util.Collection;
 import java.util.TreeSet;
@@ -48,56 +45,57 @@ import java.util.TreeSet;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class HibernateSearchUsersGroupsBridge implements FieldBridge
+public class HibernateSearchUsersGroupsBridge implements TwoWayStringBridge
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(HibernateSearchUsersGroupsBridge.class);
+
+  private static GroupDao groupDao;
+
+  private static GroupDao getGroupDao() {
+    if (groupDao == null) groupDao = ApplicationContextProvider.getApplicationContext().getBean(GroupDao.class);
+    return groupDao;
+  }
+
+  private static UserDao userDao;
+
+  private static UserDao getUserDao() {
+    if (userDao == null) userDao = ApplicationContextProvider.getApplicationContext().getBean(UserDao.class);
+    return userDao;
+  }
 
   private final GroupsComparator groupsComparator = new GroupsComparator();
 
   private final UsersComparator usersComparator = new UsersComparator();
 
-  private GroupDao groupDao;
-
-  private UserDao userDao;
-
   /**
    * Get all names of groups and users and creates an index containing all user and group names separated by '|'. <br/>
    *
-   * @see org.hibernate.search.bridge.FieldBridge#set(java.lang.String, java.lang.Object,
-   * org.apache.lucene.document.Document, org.hibernate.search.bridge.LuceneOptions)
    */
   @Override
-  public void set(final String name, final Object value, final Document document, final LuceneOptions luceneOptions)
-  {
-    final BaseUserGroupRightsDO doObject = (BaseUserGroupRightsDO) value;
-    final ApplicationContext appContext = ApplicationContextProvider.getApplicationContext();
-    if (appContext == null) {
-      log.error("ApplicationContext not available!");
-      return;
-    }
-    this.groupDao = appContext.getBean(GroupDao.class);
-    this.userDao = appContext.getBean(UserDao.class);
-    if (groupDao == null) {
-      log.error("GroupDao not found in application context!");
-      return;
-    }
-    final StringBuffer buf = new StringBuffer();
-
+  public String objectToString(Object object) {
+    final BaseUserGroupRightsDO doObject = (BaseUserGroupRightsDO) object;
+    final StringBuilder sb = new StringBuilder();
     // query information in Bridge results in a deadlock in HSQLDB
     if (DatabaseSupport.getInstance().getDialect() != DatabaseDialect.HSQL) {
-      appendGroups(getSortedGroups(doObject.getFullAccessGroupIds()), buf);
-      appendGroups(getSortedGroups(doObject.getReadonlyAccessGroupIds()), buf);
-      appendGroups(getSortedGroups(doObject.getMinimalAccessGroupIds()), buf);
-      appendUsers(getSortedUsers(doObject.getFullAccessUserIds()), buf);
-      appendUsers(getSortedUsers(doObject.getReadonlyAccessUserIds()), buf);
-      appendUsers(getSortedUsers(doObject.getMinimalAccessUserIds()), buf);
+      appendGroups(getSortedGroups(doObject.getFullAccessGroupIds()), sb);
+      appendGroups(getSortedGroups(doObject.getReadonlyAccessGroupIds()), sb);
+      appendGroups(getSortedGroups(doObject.getMinimalAccessGroupIds()), sb);
+      appendUsers(getSortedUsers(doObject.getFullAccessUserIds()), sb);
+      appendUsers(getSortedUsers(doObject.getReadonlyAccessUserIds()), sb);
+      appendUsers(getSortedUsers(doObject.getMinimalAccessUserIds()), sb);
     }
 
     if (log.isDebugEnabled()) {
-      log.debug(buf.toString());
+      log.debug(sb.toString());
     }
-    luceneOptions.addFieldToDocument(name, buf.toString(), document);
+    return sb.toString();
+  }
+
+  @Override
+  public Object stringToObject(String stringValue) {
+    // Not supported.
+    return null;
   }
 
   private Collection<GroupDO> getSortedGroups(final String groupIds)
@@ -136,23 +134,23 @@ public class HibernateSearchUsersGroupsBridge implements FieldBridge
     return sortedUsers;
   }
 
-  private void appendGroups(final Collection<GroupDO> groups, final StringBuffer buf)
+  private void appendGroups(final Collection<GroupDO> groups, final StringBuilder sb)
   {
     if (groups == null) {
       return;
     }
     for (final GroupDO group : groups) {
-      buf.append(group.getName()).append("|");
+      sb.append(group.getName()).append("|");
     }
   }
 
-  private void appendUsers(final Collection<PFUserDO> users, final StringBuffer buf)
+  private void appendUsers(final Collection<PFUserDO> users, final StringBuilder sb)
   {
     if (users == null) {
       return;
     }
     for (final PFUserDO user : users) {
-      buf.append(user.getFullname()).append(user.getUsername()).append("|");
+      sb.append(user.getFullname()).append(user.getUsername()).append("|");
     }
   }
 }
