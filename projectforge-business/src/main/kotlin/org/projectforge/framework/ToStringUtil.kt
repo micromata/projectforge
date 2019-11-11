@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.hibernate.Hibernate
+import org.hibernate.proxy.AbstractLazyInitializer
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.kost.Kost1DO
@@ -90,6 +91,7 @@ class ToStringUtil {
             module.addSerializer(Timestamp::class.java, TimestampSerializer(UtilDateFormat.ISO_DATE_TIME_MILLIS))
             module.addSerializer(java.sql.Date::class.java, SqlDateSerializer())
             module.addSerializer(TenantDO::class.java, TenantSerializer())
+            module.addSerializer(AbstractLazyInitializer::class.java, HibernateProxySerializer())
 
             register(module, TeamCalDO::class.java, CalendarSerializer(), obj, ignoreEmbeddedSerializers)
             register(module, GroupDO::class.java, GroupSerializer(), obj, ignoreEmbeddedSerializers)
@@ -210,5 +212,23 @@ class ToStringUtil {
         }
 
         private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneOffset.UTC)
+    }
+
+    class HibernateProxySerializer : StdSerializer<AbstractLazyInitializer>(AbstractLazyInitializer::class.java) {
+        @Throws(IOException::class, JsonProcessingException::class)
+        override fun serialize(value: AbstractLazyInitializer?, jgen: JsonGenerator, provider: SerializerProvider) {
+            if (value == null) {
+                jgen.writeNull()
+                return
+            }
+            jgen.writeStartObject();
+            jgen.writeStringField("entity", value.entityName)
+            if (value.identifier == null) {
+                jgen.writeNullField("id")
+            } else {
+                jgen.writeStringField("id", "${value.identifier}")
+            }
+            jgen.writeEndObject()
+        }
     }
 }
