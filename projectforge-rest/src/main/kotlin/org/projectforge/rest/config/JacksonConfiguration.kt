@@ -44,7 +44,6 @@ import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.timesheet.TimesheetDO
-import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.json.*
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -163,7 +162,7 @@ open class JacksonConfiguration {
         module.addSerializer(TeamCalDO::class.java, TeamCalDOSerializer())
         module.addDeserializer(ICalendarEvent::class.java, ICalendarEventDeserializer())
 
-        module.addSerializer(AbstractLazyInitializer::class.java, ToStringUtil.HibernateProxySerializer())
+        module.addSerializer(AbstractLazyInitializer::class.java, HibernateProxySerializer())
 
         mapper.registerModule(module)
         return mapper
