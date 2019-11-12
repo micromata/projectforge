@@ -51,7 +51,7 @@ import java.util.Objects;
         })
 @NamedQueries(
         @NamedQuery(name = UserRightDO.FIND_ALL_ORDERED, query = "from UserRightDO order by user.id, rightIdString"))
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class UserRightDO extends DefaultBaseDO implements Comparable<UserRightDO>, Serializable, ShortDisplayNameCapable {
   private static final long serialVersionUID = 6703048743393453733L;
 
