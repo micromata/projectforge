@@ -23,7 +23,8 @@
 
 package org.projectforge.business.fibu
 
-import com.fasterxml.jackson.annotation.JsonBackReference
+import com.fasterxml.jackson.annotation.JsonIdentityInfo
+import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.hibernate.annotations.ListIndexBase
 import org.hibernate.search.annotations.Field
@@ -51,6 +52,7 @@ import javax.persistence.*
 @WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [EingangsrechnungsPositionDO::class])
 @NamedQueries(
         NamedQuery(name = EingangsrechnungDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from EingangsrechnungDO"))
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<EingangsrechnungDO> {
 
     @PropertyInfo(i18nKey = "fibu.rechnung.receiver")
@@ -96,7 +98,6 @@ open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<Eingangsrechnun
     open var customernr: String? = null
 
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
-    @JsonBackReference
     @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, mappedBy = "eingangsrechnung", targetEntity = EingangsrechnungsPositionDO::class)
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
     @get:ListIndexBase(1)

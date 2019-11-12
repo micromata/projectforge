@@ -23,11 +23,12 @@
 
 package org.projectforge.framework.persistence.user.entities;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.hibernate.search.annotations.*;
 import org.hibernate.search.annotations.Index;
+import org.hibernate.search.annotations.*;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.persistence.api.IUserRightId;
@@ -41,17 +42,17 @@ import java.util.Objects;
 @Entity
 @Indexed
 @Table(name = "T_USER_RIGHT",
-    uniqueConstraints = {
-        @UniqueConstraint(columnNames = { "user_fk", "right_id", "tenant_id" })
-    },
-    indexes = {
-        @javax.persistence.Index(name = "idx_fk_t_user_right_user_fk", columnList = "user_fk"),
-        @javax.persistence.Index(name = "idx_fk_t_user_right_tenant_id", columnList = "tenant_id")
-    })
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"user_fk", "right_id", "tenant_id"})
+        },
+        indexes = {
+                @javax.persistence.Index(name = "idx_fk_t_user_right_user_fk", columnList = "user_fk"),
+                @javax.persistence.Index(name = "idx_fk_t_user_right_tenant_id", columnList = "tenant_id")
+        })
 @NamedQueries(
         @NamedQuery(name = UserRightDO.FIND_ALL_ORDERED, query = "from UserRightDO order by user.id, rightIdString"))
-public class UserRightDO extends DefaultBaseDO implements Comparable<UserRightDO>, Serializable, ShortDisplayNameCapable
-{
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
+public class UserRightDO extends DefaultBaseDO implements Comparable<UserRightDO>, Serializable, ShortDisplayNameCapable {
   private static final long serialVersionUID = 6703048743393453733L;
 
   @Field(index = Index.YES, analyze = Analyze.NO)
@@ -60,32 +61,26 @@ public class UserRightDO extends DefaultBaseDO implements Comparable<UserRightDO
   @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
   protected UserRightValue value;
 
-  @JsonManagedReference
   @IndexedEmbedded(depth = 1)
   protected PFUserDO user;
 
-  public UserRightDO()
-  {
+  public UserRightDO() {
 
   }
 
-  public UserRightDO(final UserRightId rightId)
-  {
+  public UserRightDO(final UserRightId rightId) {
     this(null, rightId, null);
   }
 
-  public UserRightDO(final IUserRightId rightId, final UserRightValue value)
-  {
+  public UserRightDO(final IUserRightId rightId, final UserRightValue value) {
     this(null, rightId, value);
   }
 
-  public UserRightDO(final PFUserDO user, final IUserRightId rightId)
-  {
+  public UserRightDO(final PFUserDO user, final IUserRightId rightId) {
     this(user, rightId, null);
   }
 
-  public UserRightDO(final PFUserDO user, final IUserRightId rightId, final UserRightValue value)
-  {
+  public UserRightDO(final PFUserDO user, final IUserRightId rightId, final UserRightValue value) {
     this.user = user;
     this.rightIdString = rightId == null ? null : rightId.getId();
     this.value = value;
@@ -95,47 +90,40 @@ public class UserRightDO extends DefaultBaseDO implements Comparable<UserRightDO
    * Only for storing the right id in the data base.
    */
   @Column(name = "right_id", length = 40, nullable = false)
-  public String getRightIdString()
-  {
+  public String getRightIdString() {
     return rightIdString;
   }
 
-  public void setRightIdString(String rightIdString)
-  {
+  public void setRightIdString(String rightIdString) {
     this.rightIdString = rightIdString;
   }
 
   @Enumerated(EnumType.STRING)
   @Column(length = 40)
-  public UserRightValue getValue()
-  {
+  public UserRightValue getValue() {
     return value;
   }
 
-  public UserRightDO setValue(final UserRightValue value)
-  {
+  public UserRightDO setValue(final UserRightValue value) {
     this.value = value;
     return this;
   }
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_fk", nullable = false)
-  public PFUserDO getUser()
-  {
+  public PFUserDO getUser() {
     return user;
   }
 
   @Transient
-  public Integer getUserId()
-  {
+  public Integer getUserId() {
     if (this.user == null) {
       return null;
     }
     return user.getId();
   }
 
-  public UserRightDO setUser(final PFUserDO user)
-  {
+  public UserRightDO setUser(final PFUserDO user) {
     this.user = user;
     return this;
   }
@@ -144,14 +132,12 @@ public class UserRightDO extends DefaultBaseDO implements Comparable<UserRightDO
    * @see java.lang.Comparable#compareTo(java.lang.Object)
    */
   @Override
-  public int compareTo(final UserRightDO o)
-  {
+  public int compareTo(final UserRightDO o) {
     return this.rightIdString.compareTo(o.rightIdString);
   }
 
   @Override
-  public boolean equals(final Object o)
-  {
+  public boolean equals(final Object o) {
     if (o instanceof UserRightDO) {
       final UserRightDO other = (UserRightDO) o;
       if (!Objects.equals(this.getRightIdString(), other.getRightIdString())) {
@@ -166,8 +152,7 @@ public class UserRightDO extends DefaultBaseDO implements Comparable<UserRightDO
   }
 
   @Override
-  public int hashCode()
-  {
+  public int hashCode() {
     final HashCodeBuilder hcb = new HashCodeBuilder();
     if (getRightIdString() != null) {
       hcb.append(getRightIdString().hashCode());
@@ -181,14 +166,12 @@ public class UserRightDO extends DefaultBaseDO implements Comparable<UserRightDO
    */
   @Transient
   @Override
-  public String getShortDisplayName()
-  {
+  public String getShortDisplayName() {
     return String.valueOf(this.rightIdString);
   }
 
   @Override
-  public String toString()
-  {
+  public String toString() {
     final ToStringBuilder sb = new ToStringBuilder(this);
     sb.append("id", getId());
     sb.append("userId", this.getUserId());

@@ -23,8 +23,9 @@
 
 package org.projectforge.framework.persistence.user.entities
 
-import com.fasterxml.jackson.annotation.JsonBackReference
+import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import de.micromata.genome.jpa.metainf.EntityDependencies
 import org.hibernate.search.annotations.Field
@@ -63,6 +64,7 @@ import javax.persistence.*
                 query = "from PFUserDO where id=:id and authenticationToken=:authenticationToken"),
         NamedQuery(name = PFUserDO.SELECT_ID_MEB_MOBILE_NUMBERS,
                 query = "select id, personalMebMobileNumbers from PFUserDO where deleted=false and personalMebMobileNumbers is not null"))
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     @Transient
@@ -314,7 +316,6 @@ open class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     open var personalMebMobileNumbers: String? = null
 
     @PropertyInfo(i18nKey = "access.rights")
-    @JsonBackReference
     @get:OneToMany(fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "user")
     open var rights: MutableSet<UserRightDO>? = HashSet()
 

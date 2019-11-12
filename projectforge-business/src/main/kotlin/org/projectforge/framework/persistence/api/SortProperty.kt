@@ -23,8 +23,6 @@
 
 package org.projectforge.framework.persistence.api
 
-import com.fasterxml.jackson.annotation.JsonIgnore
-
 
 class SortProperty @JvmOverloads constructor(property: String? = null, var sortOrder: SortOrder = SortOrder.ASCENDING) {
     lateinit var property: String
@@ -34,7 +32,6 @@ class SortProperty @JvmOverloads constructor(property: String? = null, var sortO
             this.property = property
     }
 
-    @get:JsonIgnore
     val ascending: Boolean
         get() = (sortOrder == SortOrder.ASCENDING)
 

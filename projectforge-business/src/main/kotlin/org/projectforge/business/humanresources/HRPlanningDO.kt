@@ -23,7 +23,8 @@
 
 package org.projectforge.business.humanresources
 
-import com.fasterxml.jackson.annotation.JsonBackReference
+import com.fasterxml.jackson.annotation.JsonIdentityInfo
+import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.hibernate.search.annotations.*
 import org.projectforge.business.fibu.ProjektDO
@@ -50,6 +51,7 @@ import javax.persistence.*
 @NamedQueries(
         NamedQuery(name = HRPlanningDO.FIND_BY_USER_AND_WEEK, query = "from HRPlanningDO where user.id=:userId and week=:week"),
         NamedQuery(name = HRPlanningDO.FIND_OTHER_BY_USER_AND_WEEK, query = "from HRPlanningDO where user.id=:userId and week=:week and id!=:id"))
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class HRPlanningDO : DefaultBaseDO() {
 
     /**
@@ -72,9 +74,8 @@ open class HRPlanningDO : DefaultBaseDO() {
     /**
      * Get the entries for this planned week.
      */
-    @JsonBackReference
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
-    @ContainedIn
+    @get:ContainedIn
     @get:OneToMany(cascade = [CascadeType.ALL], mappedBy = "planning", fetch = FetchType.EAGER, orphanRemoval = true, targetEntity = HRPlanningEntryDO::class)
     open var entries: MutableList<HRPlanningEntryDO>? = null
 
