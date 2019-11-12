@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import org.hibernate.proxy.AbstractLazyInitializer
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.calendar.event.model.ICalendarEvent
 import org.projectforge.business.fibu.EmployeeDO
@@ -43,6 +44,7 @@ import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.timesheet.TimesheetDO
+import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.json.*
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -161,6 +163,7 @@ open class JacksonConfiguration {
         module.addSerializer(TeamCalDO::class.java, TeamCalDOSerializer())
         module.addDeserializer(ICalendarEvent::class.java, ICalendarEventDeserializer())
 
+        module.addSerializer(AbstractLazyInitializer::class.java, ToStringUtil.HibernateProxySerializer())
 
         mapper.registerModule(module)
         return mapper
