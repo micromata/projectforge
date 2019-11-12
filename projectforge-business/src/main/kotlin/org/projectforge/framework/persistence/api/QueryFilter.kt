@@ -24,6 +24,7 @@
 package org.projectforge.framework.persistence.api
 
 import org.projectforge.business.tasktree.TaskTreeHelper
+import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.persistence.api.impl.DBFilter
 import org.projectforge.framework.persistence.api.impl.DBHistorySearchParams
 import org.projectforge.framework.persistence.api.impl.DBJoin
@@ -199,6 +200,10 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null,
             dbFilter.sortProperties.add(it)
         }
         return dbFilter
+    }
+
+    override fun toString(): String {
+        return ToStringUtil.toJsonString(this)
     }
 
     companion object {
