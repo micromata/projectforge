@@ -23,7 +23,8 @@
 
 package org.projectforge.business.fibu
 
-import com.fasterxml.jackson.annotation.JsonManagedReference
+import com.fasterxml.jackson.annotation.JsonIdentityInfo
+import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
@@ -44,12 +45,12 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "t_fibu_employee_timed", uniqueConstraints = [UniqueConstraint(columnNames = ["employee_id", "group_name", "start_time"])], indexes = [Index(name = "idx_fibu_employee_timed_start_time", columnList = "start_time")])
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "pk")
 class EmployeeTimedDO : TimeableBaseDO<EmployeeTimedDO, Int>(), TimeableAttrRow<Int>, IdObject<Int> {
 
     /**
      * @return Zugehöriger Mitarbeiter.
      */
-    @JsonManagedReference
     @PropertyInfo(i18nKey = "fibu.employee")
     @IndexedEmbedded(depth = 2)
     @get:ManyToOne(fetch = FetchType.LAZY)
