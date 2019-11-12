@@ -29,6 +29,7 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,15 +37,14 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import javax.persistence.EntityManager
-import javax.persistence.PersistenceContext
 
 @Service
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 open class DBQuery {
     private val log = LoggerFactory.getLogger(DBQuery::class.java)
 
-    @PersistenceContext
-    protected lateinit var em: EntityManager
+    @Autowired
+    private lateinit var emgrFactory: PfEmgrFactory
 
     @Autowired
     private lateinit var accessChecker: AccessChecker
@@ -71,24 +71,26 @@ open class DBQuery {
         try {
             val begin = System.currentTimeMillis()
             val dbFilter = filter.createDBFilter()
-            val queryBuilder = DBQueryBuilder(baseDao, em, tenantService, filter, dbFilter,
-                    // Check here mixing fulltext and criteria searches in comparison to full text searches and DBResultMatchers.
-                    ignoreTenant = ignoreTenant)
+            return emgrFactory.runRoTrans { emgr ->
+                val em = emgr.entityManager
+                val queryBuilder = DBQueryBuilder(baseDao, em, tenantService, filter, dbFilter,
+                        // Check here mixing fulltext and criteria searches in comparison to full text searches and DBResultMatchers.
+                        ignoreTenant = ignoreTenant)
 
-            val dbResultIterator: DBResultIterator<O>
-            dbResultIterator = queryBuilder.result()
-            val historSearchParams = DBHistorySearchParams(filter.modifiedByUserId, filter.modifiedFrom, filter.modifiedTo, filter.searchHistory)
-            var list = createList(baseDao, em, dbResultIterator, queryBuilder.resultPredicates, dbFilter, historSearchParams, checkAccess)
-            dbResultIterator.sort(list)
+                val dbResultIterator: DBResultIterator<O>
+                dbResultIterator = queryBuilder.result()
+                val historSearchParams = DBHistorySearchParams(filter.modifiedByUserId, filter.modifiedFrom, filter.modifiedTo, filter.searchHistory)
+                var list = createList(baseDao, em, dbResultIterator, queryBuilder.resultPredicates, dbFilter, historSearchParams, checkAccess)
+                dbResultIterator.sort(list)
 
-            val end = System.currentTimeMillis()
-            if (end - begin > 2000) {
-                // Show only slow requests.
-                log.info(
-                        "BaseDao.getList for entity class: " + baseDao.entityClass.simpleName + " took: " + (end - begin) + " ms (>2s).")
+                val end = System.currentTimeMillis()
+                if (end - begin > 2000) {
+                    // Show only slow requests.
+                    log.info(
+                            "BaseDao.getList for entity class: " + baseDao.entityClass.simpleName + " took: " + (end - begin) + " ms (>2s).")
+                }
+                list
             }
-
-            return list
         } catch (ex: Exception) {
             log.error("Error while querying: ${ex.message}. Magicfilter: ${filter}.", ex)
             return mutableListOf()

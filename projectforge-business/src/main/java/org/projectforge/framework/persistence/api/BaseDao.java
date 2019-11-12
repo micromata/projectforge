@@ -267,6 +267,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    *
    * @return A list of found entries or empty list. PLEASE NOTE: Returns null only if any error occured.
    */
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   @Override
   public List<O> getList(final BaseSearchFilter filter) {
     final QueryFilter queryFilter = createQueryFilter(filter);
@@ -280,6 +281,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * Gets the list filtered by the given filter.
    */
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public List<O> getList(final QueryFilter filter) throws AccessException {
     return dbQuery.getList(this, filter, true, filter.getIgnoreTenant());
   }
@@ -287,6 +289,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * Gets the list filtered by the given filter.
    */
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public List<O> internalGetList(final QueryFilter filter) throws AccessException {
     return dbQuery.getList(this, filter, false, filter.getIgnoreTenant());
   }
