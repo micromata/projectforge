@@ -44,6 +44,7 @@ import org.projectforge.business.multitenancy.TenantRegistryMap
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
+import org.projectforge.framework.json.HibernateProxySerializer
 import org.projectforge.framework.json.TimestampSerializer
 import org.projectforge.framework.json.UtilDateFormat
 import org.projectforge.framework.json.UtilDateSerializer
@@ -212,23 +213,5 @@ class ToStringUtil {
         }
 
         private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneOffset.UTC)
-    }
-
-    class HibernateProxySerializer : StdSerializer<AbstractLazyInitializer>(AbstractLazyInitializer::class.java) {
-        @Throws(IOException::class, JsonProcessingException::class)
-        override fun serialize(value: AbstractLazyInitializer?, jgen: JsonGenerator, provider: SerializerProvider) {
-            if (value == null) {
-                jgen.writeNull()
-                return
-            }
-            jgen.writeStartObject();
-            jgen.writeStringField("entity", value.entityName)
-            if (value.identifier == null) {
-                jgen.writeNullField("id")
-            } else {
-                jgen.writeStringField("id", "${value.identifier}")
-            }
-            jgen.writeEndObject()
-        }
     }
 }
