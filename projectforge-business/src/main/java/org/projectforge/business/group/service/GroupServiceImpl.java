@@ -72,7 +72,7 @@ public class GroupServiceImpl implements GroupService
     }
     final List<String> list = new ArrayList<>();
     for (final Integer groupId : groupSet) {
-      final GroupDO group = getGroup(groupId);
+      final GroupDO group = userGroupCache.getGroup(groupId);
       if (group != null) {
         list.add(group.getName());
       } else {
@@ -95,7 +95,7 @@ public class GroupServiceImpl implements GroupService
     final int[] ids = StringHelper.splitToInts(groupIds, ",", false);
     final List<String> list = new ArrayList<>();
     for (final int id : ids) {
-      final GroupDO group = getGroup(id);
+      final GroupDO group = userGroupCache.getGroup(id);
       if (group != null) {
         list.add(group.getName());
       } else {
