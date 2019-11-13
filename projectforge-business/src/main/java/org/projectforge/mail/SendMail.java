@@ -143,7 +143,7 @@ public class SendMail
   private void sendIt(final Mail composedMessage, final String icalContent,
       final Collection<? extends MailAttachment> attachments)
   {
-    log.info("Start sending em-mail message.");
+    log.info("Start sending e-mail message: " + StringUtils.join(composedMessage.getTo(), ", "));
     try {
       final Session session = getSession();
       final MimeMessage message = new MimeMessage(session);
