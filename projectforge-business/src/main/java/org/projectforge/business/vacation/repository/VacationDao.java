@@ -59,6 +59,8 @@ public class VacationDao extends BaseDao<VacationDO> {
 
   private final static String META_SQL_WITH_SPECIAL = " AND v.deleted = :deleted AND v.tenant = :tenant";
 
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(VacationDao.class);
+
   @Autowired
   private AccessChecker accessChecker;
 
@@ -208,16 +210,20 @@ public class VacationDao extends BaseDao<VacationDO> {
   }
 
   public void saveVacationCalendar(VacationCalendarDO obj) {
-    emgrFactory.runInTrans(emgr -> {
-      if (obj.getId() != null) {
-        VacationCalendarDO vacationCalendarDO = emgr.selectByPkAttached(VacationCalendarDO.class, obj.getPk());
-        vacationCalendarDO.setEvent(obj.getEvent());
-        emgr.update(vacationCalendarDO);
-      } else {
-        emgr.insert(obj);
-      }
-      return null;
-    });
+    try {
+      emgrFactory.runInTrans(emgr -> {
+        if (obj.getId() != null) {
+          VacationCalendarDO vacationCalendarDO = emgr.selectByPkAttached(VacationCalendarDO.class, obj.getPk());
+          vacationCalendarDO.setEvent(obj.getEvent());
+          emgr.update(vacationCalendarDO);
+        } else {
+          emgr.insert(obj);
+        }
+        return null;
+      });
+    } catch (Exception ex) {
+      log.error("Error while writing vacation event: " + ex.getMessage(), ex);
+    }
   }
 
   public void markAsDeleted(VacationCalendarDO obj) {
