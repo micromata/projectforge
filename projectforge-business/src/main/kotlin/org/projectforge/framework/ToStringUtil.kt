@@ -192,7 +192,7 @@ class ToStringUtil {
 
     class KundeSerializer : EmbeddedDOSerializer<KundeDO>(KundeDO::class.java) {
         override fun writeFields(jgen: JsonGenerator, value: KundeDO, initialized: Boolean) {
-            writeFields(jgen, value.id, "name",  if (initialized) value.name else null)
+            writeFields(jgen, value.nummer, "name",  if (initialized) value.name else null)
         }
     }
 
