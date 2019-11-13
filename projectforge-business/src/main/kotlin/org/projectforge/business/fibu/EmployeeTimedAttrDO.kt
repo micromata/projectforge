@@ -23,6 +23,8 @@
 
 package org.projectforge.business.fibu
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo
+import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO
 import javax.persistence.*
 
@@ -34,6 +36,7 @@ import javax.persistence.*
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "withdata", discriminatorType = DiscriminatorType.CHAR)
 @DiscriminatorValue("0")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "pk")
 open class EmployeeTimedAttrDO : JpaTabAttrBaseDO<EmployeeTimedDO, Int> {
     constructor() : super()
 
