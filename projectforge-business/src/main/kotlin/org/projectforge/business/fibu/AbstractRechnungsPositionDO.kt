@@ -26,6 +26,7 @@ package org.projectforge.business.fibu
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.projectforge.business.fibu.kost.KostZuweisungDO
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.utils.NumberHelper
@@ -54,6 +55,7 @@ abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), ShortDisplayNameCa
     @get:Column(scale = 5, precision = 10)
     open var vat: BigDecimal? = null
 
+    @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
     @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
     @get:JoinColumn(name = "rechnungs_pos_fk")
     @get:OrderColumn(name = "index")
