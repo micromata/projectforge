@@ -289,8 +289,6 @@ public class RechnungDao extends BaseDao<RechnungDO> {
     queryFilter.addOrder(SortProperty.desc("datum"));
     queryFilter.addOrder(SortProperty.desc("nummer"));
     if (myFilter.isShowKostZuweisungStatus()) {
-      // TODO
-      log.warn("***************** TODO: setFetchmode");
       //queryFilter.setFetchMode("positionen.kostZuweisungen", FetchMode.JOIN);
     }
 
