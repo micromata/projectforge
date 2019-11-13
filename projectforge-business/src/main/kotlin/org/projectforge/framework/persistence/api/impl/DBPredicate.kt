@@ -25,6 +25,7 @@ package org.projectforge.framework.persistence.api.impl
 
 import org.projectforge.common.BeanHelper
 import org.projectforge.framework.ToStringUtil
+import org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils
 import org.slf4j.LoggerFactory
 import java.util.*
 import javax.persistence.criteria.Predicate
@@ -342,7 +343,7 @@ abstract class DBPredicate(
         private var queryString: String
 
         init {
-            queryString = modifySearchString(expectedValue,'%', '*', autoWildcardSearch)
+            queryString = modifySearchString(expectedValue, '%', '*', autoWildcardSearch)
         }
 
         override fun match(obj: Any): Boolean {
@@ -508,8 +509,8 @@ abstract class DBPredicate(
             queryString = "${queryString.substring(0, queryString.length - 1)}$newChar"
         if (queryString.startsWith(oldChar))
             queryString = "$newChar${queryString.substring(1)}"
-        else if (autoWildcardSearch && !queryString.endsWith(newChar) && queryString.matches("""[\p{L}0-9]+""".toRegex()))
-            queryString = "$queryString$newChar" // Always look for keyword* (\p{L} means all letters in all languages.
+        else if (autoWildcardSearch)
+            queryString = HibernateSearchFilterUtils.modifySearchString(queryString, "$newChar", false) // Always look for keyword* (\p{L} means all letters in all languages.
         return queryString
     }
 
