@@ -56,6 +56,7 @@ public class HibernateSearchUsersGroupsBridge implements TwoWayStringBridge {
    */
   @Override
   public String objectToString(Object object) {
+    if (object instanceof String) return (String)object;
     UserGroupCache userGroupCache = UserGroupCache.getTenantInstance();
     final BaseUserGroupRightsDO doObject = (BaseUserGroupRightsDO) object;
     final StringBuilder sb = new StringBuilder();

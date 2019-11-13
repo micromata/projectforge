@@ -28,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonProcessingException
+import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.SerializerProvider
@@ -56,6 +57,8 @@ import java.sql.Timestamp
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
+
+
 /**
  * Helper method to serialize objects as json strings and to use it in toString method.
  * @param obj Object to serialize as json string.
@@ -63,10 +66,11 @@ import java.time.format.DateTimeFormatter
  *        If this param constains a class of a [DefaultBaseDO], this object will be serialized with all fields.
  */
 fun toJsonString(obj: Any, vararg ignoreEmbeddedSerializers: Class<out Any>): String {
-    return ToStringUtil.toJsonString(obj, ignoreEmbeddedSerializers)
+    return ToStringUtil.toJsonString(obj, ignoreEmbeddedSerializers, null)
 }
 
 class ToStringUtil {
+    class Serializer<T>(val clazz: Class<T>, val serializer: JsonSerializer<T>)
 
     companion object {
         /**
@@ -77,15 +81,27 @@ class ToStringUtil {
          */
         @JvmStatic
         fun toJsonString(obj: Any, vararg ignoreEmbeddedSerializers: Class<out Any>): String {
-            return toJsonString(obj, ignoreEmbeddedSerializers)
+            return toJsonString(obj, ignoreEmbeddedSerializers, null)
         }
 
-        internal fun toJsonString(obj: Any, ignoreEmbeddedSerializers: Array<out Class<out Any>>): String {
+        /**
+         * Helper method to serialize objects as json strings and to use it in toString method.
+         * @param obj Object to serialize as json string.
+         * @param ignoreEmbeddedSerializers Most embedded objects of type [DefaultBaseDO] are serialized in short form (id and short info field).
+         *        If this param constains a class of a [DefaultBaseDO], this object will be serialized with all fields.
+         */
+        @JvmStatic
+        fun toJsonStringExtended(obj: Any, vararg additionalSerializers: Serializer<Any>): String {
+            return toJsonString(obj, null, additionalSerializers = additionalSerializers)
+        }
+
+        internal fun toJsonString(obj: Any, ignoreEmbeddedSerializers: Array<out Class<out Any>>?,
+                                  additionalSerializers: Array<out Serializer<Any>>?): String {
             val mapper = ObjectMapper()
             mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
             mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
             mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL)
-            mapper.setSerializationInclusion(JsonInclude.Include.NON_DEFAULT)
+           // mapper.setSerializationInclusion(JsonInclude.Include.NON_DEFAULT)
             mapper.configure(SerializationFeature.FAIL_ON_SELF_REFERENCES, false)
             val module = SimpleModule()
             module.addSerializer(java.util.Date::class.java, UtilDateSerializer(UtilDateFormat.ISO_DATE_TIME_SECONDS))
@@ -94,7 +110,9 @@ class ToStringUtil {
             module.addSerializer(TenantDO::class.java, TenantSerializer())
             module.addSerializer(AbstractLazyInitializer::class.java, HibernateProxySerializer())
 
-            register(module, TeamCalDO::class.java, CalendarSerializer(), obj, ignoreEmbeddedSerializers)
+            additionalSerializers?.forEach {
+                module.addSerializer(it.clazz, it.serializer)
+            }
             register(module, GroupDO::class.java, GroupSerializer(), obj, ignoreEmbeddedSerializers)
             register(module, Kost1DO::class.java, Kost1Serializer(), obj, ignoreEmbeddedSerializers)
             register(module, Kost2DO::class.java, Kost2Serializer(), obj, ignoreEmbeddedSerializers)
@@ -107,7 +125,7 @@ class ToStringUtil {
             return mapper.writeValueAsString(obj)
         }
 
-        private fun <T> register(module: SimpleModule, clazz: Class<T>, serializer: EmbeddedDOSerializer<T>, obj: Any, ignoreEmbeddedSerializers: Array<out Class<out Any>>) {
+        private fun <T> register(module: SimpleModule, clazz: Class<T>, serializer: EmbeddedDOSerializer<T>, obj: Any, ignoreEmbeddedSerializers: Array<out Class<out Any>>?) {
             if (obj::class.java.equals(clazz)) {
                 return // Don't use embedded serializer for current object itself.
             }
@@ -149,7 +167,7 @@ class ToStringUtil {
 
     class UserSerializer : EmbeddedDOSerializer<PFUserDO>(PFUserDO::class.java) {
         override fun writeFields(jgen: JsonGenerator, value: PFUserDO, initialized: Boolean) {
-            val username = if(initialized) value.username else TenantRegistryMap.getInstance().tenantRegistry.userGroupCache.getUsername(value.id)
+            val username = if (initialized) value.username else TenantRegistryMap.getInstance().tenantRegistry.userGroupCache.getUsername(value.id)
             writeFields(jgen, value.id, "username", username)
         }
     }
@@ -180,25 +198,25 @@ class ToStringUtil {
 
     class Kost2Serializer : EmbeddedDOSerializer<Kost2DO>(Kost2DO::class.java) {
         override fun writeFields(jgen: JsonGenerator, value: Kost2DO, initialized: Boolean) {
-            writeFields(jgen, value.id, "number",  if (initialized) value.formattedNumber else null)
+            writeFields(jgen, value.id, "number", if (initialized) value.formattedNumber else null)
         }
     }
 
     class ProjektSerializer : EmbeddedDOSerializer<ProjektDO>(ProjektDO::class.java) {
         override fun writeFields(jgen: JsonGenerator, value: ProjektDO, initialized: Boolean) {
-            writeFields(jgen, value.id, "name",  if (initialized) value.name else null)
+            writeFields(jgen, value.id, "name", if (initialized) value.name else null)
         }
     }
 
     class KundeSerializer : EmbeddedDOSerializer<KundeDO>(KundeDO::class.java) {
         override fun writeFields(jgen: JsonGenerator, value: KundeDO, initialized: Boolean) {
-            writeFields(jgen, value.nummer, "name",  if (initialized) value.name else null)
+            writeFields(jgen, value.nummer, "name", if (initialized) value.name else null)
         }
     }
 
     class TenantSerializer : EmbeddedDOSerializer<TenantDO>(TenantDO::class.java) {
         override fun writeFields(jgen: JsonGenerator, value: TenantDO, initialized: Boolean) {
-            writeFields(jgen, value.id, "name",  if (initialized) value.name else null)
+            writeFields(jgen, value.id, "name", if (initialized) value.name else null)
         }
     }
 

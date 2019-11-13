@@ -1,9 +1,9 @@
 /**
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p>
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -12,21 +12,7 @@
 
 package net.ftlines.wicket.fullcalendar;
 
-import java.util.UUID;
-
-import net.ftlines.wicket.fullcalendar.callback.AjaxConcurrency;
-import net.ftlines.wicket.fullcalendar.callback.ClickedEvent;
-import net.ftlines.wicket.fullcalendar.callback.DateRangeSelectedCallback;
-import net.ftlines.wicket.fullcalendar.callback.DroppedEvent;
-import net.ftlines.wicket.fullcalendar.callback.EventClickedCallback;
-import net.ftlines.wicket.fullcalendar.callback.EventDroppedCallback;
-import net.ftlines.wicket.fullcalendar.callback.EventResizedCallback;
-import net.ftlines.wicket.fullcalendar.callback.GetEventsCallback;
-import net.ftlines.wicket.fullcalendar.callback.ResizedEvent;
-import net.ftlines.wicket.fullcalendar.callback.SelectedRange;
-import net.ftlines.wicket.fullcalendar.callback.View;
-import net.ftlines.wicket.fullcalendar.callback.ViewDisplayCallback;
-
+import net.ftlines.wicket.fullcalendar.callback.*;
 import org.apache.wicket.behavior.IBehaviorListener;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
@@ -35,9 +21,11 @@ import org.apache.wicket.util.collections.MicroMap;
 import org.apache.wicket.util.string.Strings;
 import org.apache.wicket.util.template.PackageTextTemplate;
 import org.apache.wicket.util.template.TextTemplate;
+import org.projectforge.framework.ToStringUtil;
 
-public class FullCalendar extends AbstractFullCalendar implements IBehaviorListener
-{
+import java.util.UUID;
+
+public class FullCalendar extends AbstractFullCalendar implements IBehaviorListener {
   private static final long serialVersionUID = 6517344280923639300L;
 
   /**
@@ -60,8 +48,7 @@ public class FullCalendar extends AbstractFullCalendar implements IBehaviorListe
 
   private ViewDisplayCallback viewDisplay;
 
-  public FullCalendar(final String id, final Config config)
-  {
+  public FullCalendar(final String id, final Config config) {
     super(id);
     if (EVENTS == null) {
       EVENTS = new PackageTextTemplate(FullCalendar.class, "FullCalendar.events.tpl");
@@ -70,19 +57,16 @@ public class FullCalendar extends AbstractFullCalendar implements IBehaviorListe
     setVersioned(false);
   }
 
-  public Config getConfig()
-  {
+  public Config getConfig() {
     return config;
   }
 
-  public EventManager getEventManager()
-  {
+  public EventManager getEventManager() {
     return new EventManager(this);
   }
 
   @Override
-  protected void onInitialize()
-  {
+  protected void onInitialize() {
     super.onInitialize();
     for (final EventSource source : config.getEventSources()) {
 
@@ -92,15 +76,13 @@ public class FullCalendar extends AbstractFullCalendar implements IBehaviorListe
   }
 
   @Override
-  protected void onBeforeRender()
-  {
+  protected void onBeforeRender() {
     super.onBeforeRender();
     setupCallbacks();
   }
 
   @SuppressWarnings("serial")
-  private void setupCallbacks()
-  {
+  private void setupCallbacks() {
 
     if (getEvents != null)
       return;
@@ -110,8 +92,7 @@ public class FullCalendar extends AbstractFullCalendar implements IBehaviorListe
     for (final EventSource source : config.getEventSources()) {
       source.setEventsModel(new AbstractReadOnlyModel<String>() {
         @Override
-        public String getObject()
-        {
+        public String getObject() {
           return EVENTS.asString(new MicroMap<String, String>("url", getEvents.getUrl(source)));
         }
       });
@@ -120,8 +101,7 @@ public class FullCalendar extends AbstractFullCalendar implements IBehaviorListe
     if (Strings.isEmpty(config.getEventClick()) == true) {
       add(eventClicked = new EventClickedCallback() {
         @Override
-        protected void onClicked(final ClickedEvent event, final CalendarResponse response)
-        {
+        protected void onClicked(final ClickedEvent event, final CalendarResponse response) {
           onEventClicked(event, response);
         }
       });
@@ -131,8 +111,7 @@ public class FullCalendar extends AbstractFullCalendar implements IBehaviorListe
     if (Strings.isEmpty(config.getSelect()) == true) {
       add(dateRangeSelected = new DateRangeSelectedCallback(config.isIgnoreTimezone()) {
         @Override
-        protected void onSelect(final SelectedRange range, final CalendarResponse response)
-        {
+        protected void onSelect(final SelectedRange range, final CalendarResponse response) {
           FullCalendar.this.onDateRangeSelected(range, response);
         }
       });
@@ -143,8 +122,7 @@ public class FullCalendar extends AbstractFullCalendar implements IBehaviorListe
       add(eventDropped = new EventDroppedCallback(config) {
 
         @Override
-        protected boolean onEventDropped(final DroppedEvent event, final CalendarResponse response)
-        {
+        protected boolean onEventDropped(final DroppedEvent event, final CalendarResponse response) {
           return FullCalendar.this.onEventDropped(event, response);
         }
       });
@@ -155,8 +133,7 @@ public class FullCalendar extends AbstractFullCalendar implements IBehaviorListe
       add(eventResized = new EventResizedCallback() {
 
         @Override
-        protected boolean onEventResized(final ResizedEvent event, final CalendarResponse response)
-        {
+        protected boolean onEventResized(final ResizedEvent event, final CalendarResponse response) {
           return FullCalendar.this.onEventResized(event, response);
         }
 
@@ -168,8 +145,7 @@ public class FullCalendar extends AbstractFullCalendar implements IBehaviorListe
     if (Strings.isEmpty(config.getViewDisplay()) == true) {
       add(viewDisplay = new ViewDisplayCallback() {
         @Override
-        protected void onViewDisplayed(final View view, final CalendarResponse response)
-        {
+        protected void onViewDisplayed(final View view, final CalendarResponse response) {
           FullCalendar.this.onViewDisplayed(view, response);
         }
       });
@@ -180,51 +156,42 @@ public class FullCalendar extends AbstractFullCalendar implements IBehaviorListe
   }
 
   @Override
-  public void renderHead(final IHeaderResponse response)
-  {
+  public void renderHead(final IHeaderResponse response) {
     super.renderHead(response);
 
     String configuration = "$(\"#" + getMarkupId() + "\").fullCalendarExt(";
-    configuration += Json.toJson(config);
+    configuration += ToStringUtil.toJsonString(config);
     configuration += ");";
-
     response.render(OnDomReadyHeaderItem.forScript(configuration));
 
   }
 
-  protected boolean onEventDropped(final DroppedEvent event, final CalendarResponse response)
-  {
+  protected boolean onEventDropped(final DroppedEvent event, final CalendarResponse response) {
     return false;
   }
 
-  protected boolean onEventResized(final ResizedEvent event, final CalendarResponse response)
-  {
+  protected boolean onEventResized(final ResizedEvent event, final CalendarResponse response) {
     return false;
   }
 
-  protected void onDateRangeSelected(final SelectedRange range, final CalendarResponse response)
-  {
+  protected void onDateRangeSelected(final SelectedRange range, final CalendarResponse response) {
 
   }
 
-  protected void onEventClicked(final ClickedEvent event, final CalendarResponse response)
-  {
+  protected void onEventClicked(final ClickedEvent event, final CalendarResponse response) {
 
   }
 
-  protected void onViewDisplayed(final View view, final CalendarResponse response)
-  {
+  protected void onViewDisplayed(final View view, final CalendarResponse response) {
 
   }
 
-  public AjaxConcurrency getAjaxConcurrency()
-  {
+  public AjaxConcurrency getAjaxConcurrency() {
     return AjaxConcurrency.QUEUE;
   }
 
   @Override
-  public void onRequest()
-  {
+  public void onRequest() {
     getEvents.onRequest();
 
   }
