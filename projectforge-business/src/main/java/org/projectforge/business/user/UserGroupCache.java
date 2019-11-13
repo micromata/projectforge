@@ -60,6 +60,9 @@ public class UserGroupCache extends AbstractCache {
    */
   private Map<Integer, Set<Integer>> userGroupIdMap;
 
+  /**
+   * The key is the group id.
+   */
   private Map<Integer, GroupDO> groupMap;
 
   /**
@@ -119,6 +122,11 @@ public class UserGroupCache extends AbstractCache {
       }
     }
     return null;
+  }
+
+  public GroupDO getGroup(final Integer groupId) {
+    checkRefresh();
+    return groupMap.get(groupId);
   }
 
   public PFUserDO getUser(final Integer userId) {
