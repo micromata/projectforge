@@ -26,14 +26,12 @@ package org.projectforge.business.teamcal.admin.model;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.search.bridge.TwoWayStringBridge;
 import org.projectforge.business.common.BaseUserGroupRightsDO;
-import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.GroupsComparator;
-import org.projectforge.business.user.UserDao;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UsersComparator;
 import org.projectforge.common.DatabaseDialect;
 import org.projectforge.common.StringHelper;
 import org.projectforge.continuousdb.DatabaseSupport;
-import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
@@ -45,24 +43,9 @@ import java.util.TreeSet;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class HibernateSearchUsersGroupsBridge implements TwoWayStringBridge
-{
+public class HibernateSearchUsersGroupsBridge implements TwoWayStringBridge {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
-      .getLogger(HibernateSearchUsersGroupsBridge.class);
-
-  private static GroupDao groupDao;
-
-  private static GroupDao getGroupDao() {
-    if (groupDao == null) groupDao = ApplicationContextProvider.getApplicationContext().getBean(GroupDao.class);
-    return groupDao;
-  }
-
-  private static UserDao userDao;
-
-  private static UserDao getUserDao() {
-    if (userDao == null) userDao = ApplicationContextProvider.getApplicationContext().getBean(UserDao.class);
-    return userDao;
-  }
+          .getLogger(HibernateSearchUsersGroupsBridge.class);
 
   private final GroupsComparator groupsComparator = new GroupsComparator();
 
@@ -70,20 +53,20 @@ public class HibernateSearchUsersGroupsBridge implements TwoWayStringBridge
 
   /**
    * Get all names of groups and users and creates an index containing all user and group names separated by '|'. <br/>
-   *
    */
   @Override
   public String objectToString(Object object) {
+    UserGroupCache userGroupCache = UserGroupCache.getTenantInstance();
     final BaseUserGroupRightsDO doObject = (BaseUserGroupRightsDO) object;
     final StringBuilder sb = new StringBuilder();
     // query information in Bridge results in a deadlock in HSQLDB
     if (DatabaseSupport.getInstance().getDialect() != DatabaseDialect.HSQL) {
-      appendGroups(getSortedGroups(doObject.getFullAccessGroupIds()), sb);
-      appendGroups(getSortedGroups(doObject.getReadonlyAccessGroupIds()), sb);
-      appendGroups(getSortedGroups(doObject.getMinimalAccessGroupIds()), sb);
-      appendUsers(getSortedUsers(doObject.getFullAccessUserIds()), sb);
-      appendUsers(getSortedUsers(doObject.getReadonlyAccessUserIds()), sb);
-      appendUsers(getSortedUsers(doObject.getMinimalAccessUserIds()), sb);
+      appendGroups(getSortedGroups(userGroupCache, doObject.getFullAccessGroupIds()), sb);
+      appendGroups(getSortedGroups(userGroupCache, doObject.getReadonlyAccessGroupIds()), sb);
+      appendGroups(getSortedGroups(userGroupCache, doObject.getMinimalAccessGroupIds()), sb);
+      appendUsers(getSortedUsers(userGroupCache, doObject.getFullAccessUserIds()), sb);
+      appendUsers(getSortedUsers(userGroupCache, doObject.getReadonlyAccessUserIds()), sb);
+      appendUsers(getSortedUsers(userGroupCache, doObject.getMinimalAccessUserIds()), sb);
     }
 
     if (log.isDebugEnabled()) {
@@ -98,15 +81,14 @@ public class HibernateSearchUsersGroupsBridge implements TwoWayStringBridge
     return null;
   }
 
-  private Collection<GroupDO> getSortedGroups(final String groupIds)
-  {
+  private Collection<GroupDO> getSortedGroups(final UserGroupCache userGroupCache, final String groupIds) {
     if (StringUtils.isEmpty(groupIds)) {
       return null;
     }
     Collection<GroupDO> sortedGroups = new TreeSet<>(groupsComparator);
     final int[] ids = StringHelper.splitToInts(groupIds, ",", false);
     for (final int id : ids) {
-      final GroupDO group = groupDao.internalGetById(id);
+      final GroupDO group = userGroupCache.getGroup(id);
       if (group != null) {
         sortedGroups.add(group);
       } else {
@@ -116,15 +98,14 @@ public class HibernateSearchUsersGroupsBridge implements TwoWayStringBridge
     return sortedGroups;
   }
 
-  private Collection<PFUserDO> getSortedUsers(final String userIds)
-  {
+  private Collection<PFUserDO> getSortedUsers(final UserGroupCache userGroupCache, final String userIds) {
     if (StringUtils.isEmpty(userIds)) {
       return null;
     }
     Collection<PFUserDO> sortedUsers = new TreeSet<>(usersComparator);
     final int[] ids = StringHelper.splitToInts(userIds, ",", false);
     for (final int id : ids) {
-      final PFUserDO user = userDao.internalGetById(id);
+      final PFUserDO user = userGroupCache.getUser(id);
       if (user != null) {
         sortedUsers.add(user);
       } else {
@@ -134,8 +115,7 @@ public class HibernateSearchUsersGroupsBridge implements TwoWayStringBridge
     return sortedUsers;
   }
 
-  private void appendGroups(final Collection<GroupDO> groups, final StringBuilder sb)
-  {
+  private void appendGroups(final Collection<GroupDO> groups, final StringBuilder sb) {
     if (groups == null) {
       return;
     }
@@ -144,8 +124,7 @@ public class HibernateSearchUsersGroupsBridge implements TwoWayStringBridge
     }
   }
 
-  private void appendUsers(final Collection<PFUserDO> users, final StringBuilder sb)
-  {
+  private void appendUsers(final Collection<PFUserDO> users, final StringBuilder sb) {
     if (users == null) {
       return;
     }
