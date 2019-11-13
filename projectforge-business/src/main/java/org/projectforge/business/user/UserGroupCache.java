@@ -28,6 +28,7 @@ import org.apache.commons.lang3.Validate;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.multitenancy.TenantChecker;
+import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.framework.cache.AbstractCache;
@@ -49,6 +50,10 @@ import java.util.*;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class UserGroupCache extends AbstractCache {
+  public static UserGroupCache getTenantInstance() {
+    return TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
+  }
+
   private static final long serialVersionUID = -6501106088529363341L;
 
   private static Logger log = LoggerFactory.getLogger(UserGroupCache.class);
