@@ -98,6 +98,23 @@ public class HibernateSearchFilterUtils {
    * @see #ESCAPE_CHARS
    */
   public static String modifySearchString(final String searchString, final boolean andSearch) {
+    return modifySearchString(searchString, "*", andSearch);
+  }
+
+  /**
+   * If the search string starts with "'" then the searchString will be returned without leading "'". If the search
+   * string consists only of alphanumeric characters and allowed chars and spaces the wild card character '*' will be
+   * appended for enable ...* search. Otherwise the searchString itself will be returned.
+   *
+   * @param searchString
+   * @param wildcardChar The used wildcard character (normally '*' or '%')
+   * @param andSearch    If true then all terms must match (AND search), otherwise OR will used (default)
+   * @return The modified search string or the original one if no modification was done.
+   * @see #ALLOWED_CHARS
+   * @see #ALLOWED_BEGINNING_CHARS
+   * @see #ESCAPE_CHARS
+   */
+  public static String modifySearchString(final String searchString, String wildcardChar, final boolean andSearch) {
     if (searchString == null) {
       return "";
     }
@@ -128,7 +145,7 @@ public class HibernateSearchFilterUtils {
           buf.append("+");
         }
         buf.append(modified);
-        if (!modified.endsWith("*") && StringUtils.containsNone(modified, ESCAPE_CHARS)) {
+        if (!modified.endsWith(wildcardChar) && StringUtils.containsNone(modified, ESCAPE_CHARS)) {
           if (!andSearch || tokens.length > 1) {
             // Don't append '*' if used by SearchForm and only one token is given. It's will be appended automatically by BaseDao before the
             // search is executed.
