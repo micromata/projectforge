@@ -39,7 +39,7 @@ public class LdapUtilsTest
     user.setSurname("Reinhard");
     user.setUid("kai");
     user.setSambaNTPassword("secret");
-    assertEquals("{\"uid\":\"kai\",\"surname\":\"Reinhard\"}", user.toString());
+    assertEquals("{\"uid\":\"kai\",\"surname\":\"Reinhard\",\"deleted\":false,\"deactivated\":false,\"restrictedUser\":false,\"passwordGiven\":false}", user.toString());
   }
 
   @Test
