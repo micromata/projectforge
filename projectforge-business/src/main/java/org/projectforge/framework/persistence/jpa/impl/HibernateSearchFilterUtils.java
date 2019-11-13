@@ -149,7 +149,7 @@ public class HibernateSearchFilterUtils {
           if (!andSearch || tokens.length > 1) {
             // Don't append '*' if used by SearchForm and only one token is given. It's will be appended automatically by BaseDao before the
             // search is executed.
-            buf.append('*');
+            buf.append(wildcardChar);
           }
         }
       } else {
