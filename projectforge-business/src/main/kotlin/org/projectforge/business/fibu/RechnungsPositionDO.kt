@@ -25,12 +25,10 @@ package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
-import org.hibernate.search.annotations.DateBridge
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
-import org.hibernate.search.annotations.Resolution
+import org.hibernate.search.annotations.*
 import org.projectforge.business.fibu.kost.KostZuweisungDO
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import java.sql.Date
 import javax.persistence.*
 
@@ -72,6 +70,12 @@ open class RechnungsPositionDO : AbstractRechnungsPositionDO() {
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_end")
     open var periodOfPerformanceEnd: Date? = null
+
+    @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
+    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
+    @get:JoinColumn(name = "rechnungs_pos_fk")
+    @get:OrderColumn(name = "index")
+    override var kostZuweisungen: MutableList<KostZuweisungDO>? = null
 
     override fun checkKostZuweisungId(zuweisung: KostZuweisungDO): Boolean {
         return zuweisung.rechnungsPositionId == this.id
