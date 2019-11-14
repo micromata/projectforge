@@ -26,6 +26,7 @@ package org.projectforge.framework.persistence.api.impl
 import org.apache.commons.lang3.builder.CompareToBuilder
 import org.apache.lucene.analysis.standard.ClassicAnalyzer
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser
+import org.apache.lucene.queryparser.classic.QueryParser
 import org.hibernate.ScrollMode
 import org.hibernate.ScrollableResults
 import org.hibernate.search.jpa.FullTextEntityManager
@@ -109,6 +110,10 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
 
     init {
         searchClassInfo = HibernateSearchMeta.getClassInfo(baseDao)
+        if (log.isDebugEnabled && !multiFieldQuery.isNullOrEmpty()) {
+            val queryString = multiFieldQuery.joinToString(" ") ?: ""
+            log.debug("Using multifieldQuery (${baseDao.doClass.simpleName}): $queryString")
+        }
         result = nextResultBlock()
     }
 
@@ -183,9 +188,9 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
             fullTextEntityManager.createFullTextQuery(fullTextQuery, baseDao.doClass)
         } else {
             val queryString = multiFieldQuery?.joinToString(" ") ?: ""
-            if (log.isDebugEnabled) log.debug("Using multifieldQuery (${baseDao.doClass.simpleName}): $queryString")
 
-            val parser = MultiFieldQueryParser(searchClassInfo.allFieldNames, ClassicAnalyzer())
+            val parser = MultiFieldQueryParser(searchClassInfo.stringFieldNames, ClassicAnalyzer())
+            parser.defaultOperator = QueryParser.Operator.AND
             parser.allowLeadingWildcard = true
             var query: org.apache.lucene.search.Query? = null
             try {
