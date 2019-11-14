@@ -43,7 +43,7 @@ import javax.persistence.*
 abstract class AbstractRechnungDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "fibu.rechnung.datum")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.DAY)
     @get:Column(nullable = false)
     open var datum: Date? = null
 
@@ -64,7 +64,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "fibu.rechnung.faelligkeit")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.DAY)
     @get:Column
     open var faelligkeit: Date? = null
 
@@ -85,7 +85,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "fibu.rechnung.bezahlDatum")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(resolution = Resolution.DAY)
     @get:Column(name = "bezahl_datum")
     open var bezahlDatum: Date? = null
 
