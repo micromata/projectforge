@@ -49,7 +49,7 @@ public class BookDao extends BaseDao<BookDO> {
   }
 
   @Override
-  protected String[] getAdditionalSearchFields() {
+  public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 

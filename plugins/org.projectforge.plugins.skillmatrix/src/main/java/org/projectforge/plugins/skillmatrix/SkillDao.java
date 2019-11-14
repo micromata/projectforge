@@ -151,7 +151,7 @@ public class SkillDao extends BaseDao<SkillDO> {
    * @see org.projectforge.framework.persistence.api.BaseDao#getAdditionalSearchFields()
    */
   @Override
-  protected String[] getAdditionalSearchFields() {
+  public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 

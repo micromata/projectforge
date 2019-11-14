@@ -290,7 +290,7 @@ public class GroupDao extends BaseDao<GroupDO> {
   }
 
   @Override
-  protected String[] getAdditionalSearchFields() {
+  public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 

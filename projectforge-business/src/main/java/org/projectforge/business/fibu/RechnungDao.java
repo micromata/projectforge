@@ -255,7 +255,7 @@ public class RechnungDao extends BaseDao<RechnungDO> {
   }
 
   @Override
-  protected String[] getAdditionalSearchFields() {
+  public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 

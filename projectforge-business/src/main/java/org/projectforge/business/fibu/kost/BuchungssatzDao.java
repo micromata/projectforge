@@ -45,7 +45,7 @@ public class BuchungssatzDao extends BaseDao<BuchungssatzDO> {
           "gegenKonto.nummer"};
 
   @Override
-  protected String[] getAdditionalSearchFields() {
+  public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 

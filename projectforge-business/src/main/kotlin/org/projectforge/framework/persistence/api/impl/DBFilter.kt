@@ -69,10 +69,9 @@ class DBFilter(
         }
         stats.fullTextRequired = fullTextRequired
         if (fullTextRequired) {
-            val indexedSearchFields = DBQueryBuilderByFullText.getUsedSearchFields(baseDao)
+            val searchInfo = HibernateSearchMeta.getClassInfo(baseDao)
             predicates.forEach { predicate ->
-                if (predicate.fullTextSupport
-                        && (predicate.field == null || indexedSearchFields.any { it == predicate.field })) {
+                if (predicate.fullTextSupport && (predicate.field == null || searchInfo.containsField(predicate.field))) {
                     ++stats.numberOfFullTextQueries
                 } else {
                     ++stats.numberOfResultPredicates

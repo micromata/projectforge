@@ -118,7 +118,7 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO> {
   }
 
   @Override
-  protected String[] getAdditionalSearchFields() {
+  public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 

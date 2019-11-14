@@ -105,7 +105,7 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
   }
 
   @Override
-  protected String[] getAdditionalSearchFields() {
+  public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 

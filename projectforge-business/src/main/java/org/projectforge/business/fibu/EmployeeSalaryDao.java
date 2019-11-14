@@ -60,7 +60,7 @@ public class EmployeeSalaryDao extends BaseDao<EmployeeSalaryDO> {
   }
 
   @Override
-  protected String[] getAdditionalSearchFields() {
+  public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 

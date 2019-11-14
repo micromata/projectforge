@@ -35,25 +35,17 @@ import org.springframework.stereotype.Repository;
 import java.util.Collection;
 
 /**
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @Repository
 public class LicenseDao extends BaseDao<LicenseDO>
 {
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "owners" };
-
   private final UsersProvider usersProvider;
 
   @Autowired
   UserDao userDao;
-
-  @Override
-  protected String[] getAdditionalSearchFields()
-  {
-    return ADDITIONAL_SEARCH_FIELDS;
-  }
 
   public LicenseDao()
   {
@@ -64,7 +56,7 @@ public class LicenseDao extends BaseDao<LicenseDO>
 
   /**
    * Please note: Only the string license.owners will be modified (but not be saved)!
-   * 
+   *
    * @param license
    * @param owners Full list of all owners (user id's) which have are assigned to this license.
    * @return

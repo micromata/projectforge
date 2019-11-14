@@ -69,7 +69,7 @@ public class AddressbookDao extends BaseDao<AddressbookDO> {
   }
 
   @Override
-  protected String[] getAdditionalSearchFields() {
+  public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 

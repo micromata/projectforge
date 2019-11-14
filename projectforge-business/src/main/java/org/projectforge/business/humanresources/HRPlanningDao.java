@@ -83,7 +83,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
   }
 
   @Override
-  protected String[] getAdditionalSearchFields() {
+  public String[] getAdditionalSearchFields() {
     return new String[]{"entries.projekt.name", "entries.projekt.kunde.name", "user.username", "user.firstname",
             "user.lastname"};
   }

@@ -51,7 +51,7 @@ import java.util.*;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @Repository
 public class GanttChartDao extends BaseDao<GanttChartDO>
@@ -90,7 +90,7 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
   }
 
   @Override
-  protected String[] getAdditionalSearchFields()
+  public String[] getAdditionalSearchFields()
   {
     return ADDITIONAL_SEARCH_FIELDS;
   }
@@ -141,7 +141,7 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
   /**
    * Writes all Gantt objects as tree as xml. Writes only those values which are different to the original values of the
    * task with the same id.
-   * 
+   *
    * @param obj
    * @param rootObject
    */
@@ -214,7 +214,7 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
 
   /**
    * Reads all Gantt objects as tree from xml and TaskTree.
-   * 
+   *
    * @param obj
    * @return The root object of the read xml data.
    */

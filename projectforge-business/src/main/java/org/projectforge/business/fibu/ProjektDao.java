@@ -45,8 +45,7 @@ import java.util.List;
 public class ProjektDao extends BaseDao<ProjektDO> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.PM_PROJECT;
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjektDao.class);
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"kunde.name", "kunde.division", "kost2",
-          "projektManagerGroup.name"};
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"kunde.name", "kunde.division", "projektManagerGroup.name"};
 
   @Autowired
   private KundeDao kundeDao;
@@ -67,7 +66,7 @@ public class ProjektDao extends BaseDao<ProjektDO> {
   }
 
   @Override
-  protected String[] getAdditionalSearchFields() {
+  public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 

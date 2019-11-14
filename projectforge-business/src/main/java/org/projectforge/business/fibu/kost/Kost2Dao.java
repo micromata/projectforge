@@ -42,8 +42,7 @@ import java.util.List;
 public class Kost2Dao extends BaseDao<Kost2DO> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.FIBU_COST_UNIT;
 
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"projekt.name", "projekt.kunde.name",
-          "nummer"};
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"projekt.name", "projekt.kunde.name"};
 
   @Autowired
   private ProjektDao projektDao;
@@ -67,7 +66,7 @@ public class Kost2Dao extends BaseDao<Kost2DO> {
   }
 
   @Override
-  protected String[] getAdditionalSearchFields() {
+  public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
