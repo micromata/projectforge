@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.persistence.api.impl
 
+import org.apache.commons.lang3.math.NumberUtils
 import org.hibernate.search.jpa.Search
 import org.hibernate.search.query.dsl.BooleanJunction
 import org.hibernate.search.query.dsl.QueryBuilder
@@ -218,7 +219,12 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     }
 
     fun fulltextSearch(searchString: String) {
-        search(searchString, *searchClassInfo.fullTextSearchInFields)
+        if (NumberUtils.isCreatable(searchString)) {
+            val number = NumberUtils.createNumber(searchString)
+            search(number, *searchClassInfo.numericFieldNames)
+        } else {
+            search(searchString, *searchClassInfo.stringFieldNames)
+        }
     }
 
     fun createResultIterator(resultPredicates: List<DBPredicate>): DBResultIterator<O> {
@@ -267,6 +273,32 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
                 }
             }
             boolJunction = boolJunction.must(context.ignoreAnalyzer().matching(value).createQuery())
+        }
+    }
+
+    private fun search(value: Number, vararg fields: String) {
+        if (useMultiFieldQueryParser) {
+            if (fields.isNotEmpty() && fields.size == 1) {
+                if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [search] ${fields[0]}:$value")
+                multiFieldQuery.add("${fields[0]}:$value")
+            } else {
+                if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [search] $value")
+                multiFieldQuery.add("$value")
+            }
+        } else {
+            val context = if (fields.size > 1) {
+                if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.range().onFields(*).above/below($value)...): fields:${fields.joinToString(", ")}")
+                var ctx =  queryBuilder.range().onField(fields[0])
+                for (idx in 1 until fields.size - 1) {
+                    ctx = ctx.andField(fields[idx])
+                }
+                ctx
+            } else {
+                if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.keyword().onField('${fields[0]}').matching($value)...)")
+                queryBuilder.range().onField(fields[0])
+            }
+            boolJunction = boolJunction.must(context.ignoreAnalyzer().below(value).createQuery())
+            boolJunction = boolJunction.must(context.ignoreAnalyzer().above(value).createQuery())
         }
     }
 
