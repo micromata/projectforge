@@ -23,9 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.math.BigDecimal;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -33,13 +30,7 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.IValidator;
-import org.projectforge.business.fibu.AbstractRechnungDO;
-import org.projectforge.business.fibu.EingangsrechnungDO;
-import org.projectforge.business.fibu.EingangsrechnungDao;
-import org.projectforge.business.fibu.EingangsrechnungsPositionDO;
-import org.projectforge.business.fibu.KontoCache;
-import org.projectforge.business.fibu.KontoDO;
-import org.projectforge.business.fibu.PaymentType;
+import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.web.wicket.WicketUtils;
@@ -50,6 +41,9 @@ import org.projectforge.web.wicket.components.MaxLengthTextField;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.slf4j.Logger;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 public class EingangsrechnungEditForm extends
     AbstractRechnungEditForm<EingangsrechnungDO, EingangsrechnungsPositionDO, EingangsrechnungEditPage>
@@ -184,21 +178,21 @@ public class EingangsrechnungEditForm extends
     }
     {
       // Reciever
-      final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "receiver");
+      final FieldsetPanel fs = gridBuilder.newFieldset(EingangsrechnungDO.class, "receiver");
       recieverField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "receiver"));
       recieverField.setOutputMarkupId(true);
       fs.add(recieverField);
     }
     {
       // IBAN
-      final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "iban");
+      final FieldsetPanel fs = gridBuilder.newFieldset(EingangsrechnungDO.class, "iban");
       ibanField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "iban"));
       ibanField.setOutputMarkupId(true);
       fs.add(ibanField);
     }
     {
       // BIC
-      final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "bic");
+      final FieldsetPanel fs = gridBuilder.newFieldset(EingangsrechnungDO.class, "bic");
       bicField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "bic"));
       bicField.setOutputMarkupId(true);
       fs.add(bicField);
