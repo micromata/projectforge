@@ -38,7 +38,7 @@ abstract class DBPredicate(
         /**
          * True if this predicate may be attached to a full text query for indexed fields.
          */
-        val fullTextSupport: Boolean = false,
+        open val fullTextSupport: Boolean = false,
         /**
          * True if this predicate may be attached to a criteria search (as predicate).
          */
@@ -363,7 +363,7 @@ abstract class DBPredicate(
 
         fun multiFieldFulltextQueryRequired(): Boolean {
             for (str in expectedValue.split(' ', '\t', '\n')) {
-                if (str.matches("""[A-Za-z][A-Za-z0-9_]*:.+""".toRegex()))
+                if (str.matches("""[A-Za-z][A-Za-z0-9_\.]*:.+""".toRegex()))
                     return true
             }
             return false
@@ -406,6 +406,15 @@ abstract class DBPredicate(
     }
 
     class And(private vararg val predicates: DBPredicate) : DBPredicate(null, false) {
+        override val fullTextSupport: Boolean
+            get() {
+                for (predicate in predicates) {
+                    if (!predicate.fullTextSupport) {
+                        return false
+                    }
+                }
+                return true
+            }
 
         override fun match(obj: Any): Boolean {
             if (predicates.isNullOrEmpty()) {
@@ -424,6 +433,10 @@ abstract class DBPredicate(
             val result = ctx.cb.and(*predicates.map { it.asPredicate(ctx) }.toTypedArray())
             if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [and] cb.and(...) ended.")
             return result
+        }
+
+        override fun addTo(qb: DBQueryBuilderByFullText<*>) {
+            qb.and(*predicates)
         }
     }
 
