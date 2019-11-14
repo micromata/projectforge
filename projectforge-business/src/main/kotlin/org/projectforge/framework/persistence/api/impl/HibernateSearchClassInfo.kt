@@ -33,7 +33,6 @@ import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.persistence.api.BaseDao
 import org.slf4j.LoggerFactory
-import java.io.Serializable
 import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
@@ -47,7 +46,7 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
     @JsonIgnore
     private val fieldInfos = mutableMapOf<String, HibernateSearchFieldInfo>()
 
-    val stringFieldNames: Array<String>
+    val fullTextSearchInFields: Array<String>
     val allFieldNames: Array<String>
     val classBridges: Array<ClassBridge>
 
@@ -77,48 +76,41 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
                 log.warn("Search property '${baseDao.doClass}.$it' not found, but declared as additional field (ignoring it).")
             }
         }
-        val stringFields = mutableListOf<String>()
+        val fulltextSearchFields = mutableListOf<String>()
         val allFields = mutableListOf<String>()
         val bridges = mutableListOf<ClassBridge>()
         // Check @ClassBridge annotation:
         val classBridgeAnn = ClassUtils.getClassAnnotation(clazz, ClassBridge::class.java)
         if (classBridgeAnn != null) {
-            stringFields.add(classBridgeAnn.name) // Search for class bridge name.
+            fulltextSearchFields.add(classBridgeAnn.name) // Search for class bridge name.
             allFields.add(classBridgeAnn.name)
             bridges.add(classBridgeAnn)
         }
         val classBridgesAnn = ClassUtils.getClassAnnotation(clazz, ClassBridges::class.java)
         if (classBridgesAnn != null) {
             classBridgesAnn.value.forEach {
-                stringFields.add(it.name) // Search for class bridge name.
+                fulltextSearchFields.add(it.name) // Search for class bridge name.
                 allFields.add(it.name)
                 bridges.add(it)
             }
         }
 
         fieldInfos.values.forEach {
-            if (String::class.java.isAssignableFrom(it.type)) {
-                allFields.add(it.field)
-                stringFields.add(it.field)
-            } else if (Integer::class.java.isAssignableFrom(it.type)
-                    || Int::class.java.isAssignableFrom(it.type)
-                    || java.util.Date::class.java.isAssignableFrom(it.type)
-                    || it.field == "id" && Serializable::class.java.isAssignableFrom(it.type)
-                    //|| type.isEnum() // Doesn't work
-                    || java.sql.Date::class.java.isAssignableFrom(it.type)) {
-                allFields.add(it.field)
+            if (it.isFullTextSearchSupported()) {
+                fulltextSearchFields.add(it.field)
             } else {
-                if (log.isDebugEnabled) log.debug("Type '${it.type.name}' of search property '${clazz}.$it' not supported.")
+                if (log.isDebugEnabled) log.debug("Type '${it.type.name}' of search property '${clazz}.$it' not supported for fullTextSearchInFields.")
             }
+            allFields.add(it.field)
         }
         allFieldNames = allFields.toTypedArray()
-        stringFieldNames = stringFields.toTypedArray()
+        fullTextSearchInFields = fulltextSearchFields.toTypedArray()
         classBridges = bridges.toTypedArray()
         log.info("SearchInfo for class ${ClassUtils.getProxiedClass(baseDao::class.java).simpleName}: $this")
     }
 
     fun isStringField(field: String): Boolean {
-        return stringFieldNames.contains(field)
+        return fullTextSearchInFields.contains(field)
     }
 
     fun containsField(field: String): Boolean {

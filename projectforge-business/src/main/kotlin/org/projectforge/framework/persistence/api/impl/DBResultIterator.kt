@@ -185,7 +185,7 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
             val queryString = multiFieldQuery?.joinToString(" ") ?: ""
             if (log.isDebugEnabled) log.debug("Using multifieldQuery (${baseDao.doClass.simpleName}): $queryString")
 
-            val parser = MultiFieldQueryParser(searchClassInfo.stringFieldNames, ClassicAnalyzer())
+            val parser = MultiFieldQueryParser(searchClassInfo.fullTextSearchInFields, ClassicAnalyzer())
             parser.allowLeadingWildcard = true
             var query: org.apache.lucene.search.Query? = null
             try {
