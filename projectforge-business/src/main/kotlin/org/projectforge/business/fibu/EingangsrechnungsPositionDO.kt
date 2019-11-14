@@ -27,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.business.fibu.kost.KostZuweisungDO
+import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import javax.persistence.*
 
 /**
@@ -46,6 +47,12 @@ open class EingangsrechnungsPositionDO : AbstractRechnungsPositionDO() {
     override val rechnungId: Int?
         @Transient
         get() = eingangsrechnung?.id
+
+    @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
+    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
+    @get:JoinColumn(name = "eingangsrechnungs_pos_fk")
+    @get:OrderColumn(name = "index")
+    override var kostZuweisungen: MutableList<KostZuweisungDO>? = null
 
     override fun checkKostZuweisungId(zuweisung: KostZuweisungDO): Boolean {
         return zuweisung.eingangsrechnungsPositionId == this.id
