@@ -33,6 +33,16 @@ import java.lang.reflect.Field
 object ClassUtils {
     private val log = org.slf4j.LoggerFactory.getLogger(ClassUtils::class.java)
 
+    fun getProxiedClass(clazz: Class<*>): Class<*> {
+        if (clazz.name.contains("$$")) {
+            val superclass = clazz.superclass
+            if (superclass != null && superclass != Any::class.java) {
+                return getProxiedClass(superclass)
+            }
+        }
+        return clazz
+    }
+
     /**
      * @param clazz           The class of the specified property.
      * @param property        Nested properties are supported: task.project.title.

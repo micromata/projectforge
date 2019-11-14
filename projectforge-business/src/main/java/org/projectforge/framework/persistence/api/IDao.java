@@ -31,8 +31,6 @@ public interface IDao<O>
 {
   public List<O> getList(final BaseSearchFilter filter);
 
-  public String[] getSearchFields();
-
   public boolean isHistorizable();
 
   public boolean hasInsertAccess(final PFUserDO user);

@@ -44,7 +44,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * 
+ *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
  * @param <O>
@@ -159,13 +159,6 @@ public class CorePersistenceServiceImpl<PK extends Serializable, ENT extends Mar
         "Not implemented yet: CorePersistenceServiceImpl.getList(BaseSearchFilter)");
     // TODO Auto-generated method stub
     return Collections.emptyList();
-  }
-
-  @Override
-  public String[] getSearchFields()
-  {
-    String[] searchFields = HibernateSearchFilterUtils.determineSearchFields(getEntityClass(), new String[] {});
-    return searchFields;
   }
 
   @Override

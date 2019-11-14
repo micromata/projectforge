@@ -23,23 +23,28 @@
 
 package org.projectforge.framework.persistence.api.impl
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.hibernate.search.annotations.ClassBridge
 import org.hibernate.search.annotations.ClassBridges
 import org.hibernate.search.annotations.DocumentId
 import org.projectforge.common.BeanHelper
 import org.projectforge.common.ClassUtils
 import org.projectforge.common.props.PropUtils
+import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.persistence.api.BaseDao
 import org.slf4j.LoggerFactory
+import java.io.Serializable
 import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import javax.persistence.Id
 
 
-class HibernateSearchClassInfo(val baseDao: BaseDao<*>) {
+class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
+    @JsonIgnore
     private val log = LoggerFactory.getLogger(HibernateSearchClassInfo::class.java)
 
+    @JsonIgnore
     private val fieldInfos = mutableMapOf<String, HibernateSearchFieldInfo>()
 
     val stringFieldNames: Array<String>
@@ -67,7 +72,7 @@ class HibernateSearchClassInfo(val baseDao: BaseDao<*>) {
         baseDao.additionalSearchFields?.forEach {
             val field = PropUtils.getField(clazz, it)
             if (field != null) {
-                checkAndRegister(field.name, field.type, field)
+                checkAndRegister(it, field.type, field)
             } else {
                 log.warn("Search property '${baseDao.doClass}.$it' not found, but declared as additional field (ignoring it).")
             }
@@ -92,24 +97,24 @@ class HibernateSearchClassInfo(val baseDao: BaseDao<*>) {
         }
 
         fieldInfos.values.forEach {
-            if (it.type != null) {
-                if (it.type.isAssignableFrom(String::class.java)) {
-                    allFields.add(it.field)
-                    stringFields.add(it.field)
-                } else if (it.type.isAssignableFrom(Integer::class.java)
-                        || it.type.isAssignableFrom(Int::class.java)
-                        || it.type.isAssignableFrom(java.util.Date::class.java)
-                        //|| type.isEnum() // Doesn't work
-                        || it.type.isAssignableFrom(java.sql.Date::class.java)) {
-                    allFields.add(it.field)
-                } else {
-                    if (log.isDebugEnabled) log.debug("Type '${it.type.name}' of search property '${clazz}.$it' not supported.")
-                }
+            if (String::class.java.isAssignableFrom(it.type)) {
+                allFields.add(it.field)
+                stringFields.add(it.field)
+            } else if (Integer::class.java.isAssignableFrom(it.type)
+                    || Int::class.java.isAssignableFrom(it.type)
+                    || java.util.Date::class.java.isAssignableFrom(it.type)
+                    || it.field == "id" && Serializable::class.java.isAssignableFrom(it.type)
+                    //|| type.isEnum() // Doesn't work
+                    || java.sql.Date::class.java.isAssignableFrom(it.type)) {
+                allFields.add(it.field)
+            } else {
+                if (log.isDebugEnabled) log.debug("Type '${it.type.name}' of search property '${clazz}.$it' not supported.")
             }
         }
         allFieldNames = allFields.toTypedArray()
         stringFieldNames = stringFields.toTypedArray()
         classBridges = bridges.toTypedArray()
+        log.info("SearchInfo for class ${ClassUtils.getProxiedClass(baseDao::class.java).simpleName}: $this")
     }
 
     fun isStringField(field: String): Boolean {
@@ -179,5 +184,9 @@ class HibernateSearchClassInfo(val baseDao: BaseDao<*>) {
             return FieldInfo(method.name.substring(3).decapitalize(), method.parameterTypes[0])
         }
         return null
+    }
+
+    override fun toString(): String {
+        return ToStringUtil.toJsonString(this)
     }
 }
