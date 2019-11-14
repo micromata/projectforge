@@ -40,19 +40,12 @@ import java.util.List;
 public class Kost1Dao extends BaseDao<Kost1DO> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.FIBU_COST_UNIT;
 
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"nummer"};
-
   @Autowired
   private KostCache kostCache;
 
   public Kost1Dao() {
     super(Kost1DO.class);
     userRightId = USER_RIGHT_ID;
-  }
-
-  @Override
-  protected String[] getAdditionalSearchFields() {
-    return ADDITIONAL_SEARCH_FIELDS;
   }
 
   /**

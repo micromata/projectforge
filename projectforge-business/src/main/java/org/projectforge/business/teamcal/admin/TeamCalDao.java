@@ -81,7 +81,7 @@ public class TeamCalDao extends BaseDao<TeamCalDO> {
   }
 
   @Override
-  protected String[] getAdditionalSearchFields() {
+  public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 

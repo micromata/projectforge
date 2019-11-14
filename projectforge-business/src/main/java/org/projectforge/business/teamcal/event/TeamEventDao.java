@@ -88,9 +88,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
 
   private static final Class<?>[] ADDITIONAL_HISTORY_SEARCH_DOS = new Class[]{TeamEventAttendeeDO.class};
 
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"subject", "location", "calendar.id",
-          "calendar.title", "note",
-          "attendees"};
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"calendar.id", "calendar.title"};
 
   private final static String META_SQL_WITH_SPECIAL = " AND e.deleted = :deleted AND e.tenant = :tenant";
 
@@ -173,7 +171,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
   }
 
   @Override
-  protected String[] getAdditionalSearchFields() {
+  public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 

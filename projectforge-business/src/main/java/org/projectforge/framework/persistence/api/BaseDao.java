@@ -42,13 +42,13 @@ import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.impl.DBQuery;
+import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta;
 import org.projectforge.framework.persistence.database.DatabaseDao;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.history.HibernateSearchDependentObjectsReindexer;
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
-import org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
@@ -153,17 +153,13 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    */
   @Override
   public synchronized String[] getSearchFields() {
-    if (searchFields != null) {
-      return searchFields;
-    }
-    searchFields = HibernateSearchFilterUtils.determineSearchFields(clazz, getAdditionalSearchFields());
-    return searchFields;
+    return HibernateSearchMeta.INSTANCE.getClassInfo(this).getAllFieldNames();
   }
 
   /**
    * Overwrite this method for adding search fields manually (e. g. for embedded objects). For example see TimesheetDao.
    */
-  protected String[] getAdditionalSearchFields() {
+  public String[] getAdditionalSearchFields() {
     return null;
   }
 

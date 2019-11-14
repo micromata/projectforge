@@ -44,7 +44,7 @@ import java.util.List;
 public class TrainingAttendeeDao extends BaseDao<TrainingAttendeeDO> {
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"trainingAttendee.firstname",
           "trainingAttendee.lastname", "trainingAttendee.username", "training.title",
-          "training.skill.title", "rating", "certificate"};
+          "training.skill.title"};
 
   @Autowired
   private TrainingDao trainingDao;
@@ -58,7 +58,7 @@ public class TrainingAttendeeDao extends BaseDao<TrainingAttendeeDO> {
   }
 
   @Override
-  protected String[] getAdditionalSearchFields() {
+  public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 

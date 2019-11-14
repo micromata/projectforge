@@ -111,7 +111,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
   }
 
   @Override
-  protected String[] getAdditionalSearchFields() {
+  public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 

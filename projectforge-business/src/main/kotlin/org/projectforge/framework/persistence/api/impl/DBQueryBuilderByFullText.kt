@@ -23,12 +23,9 @@
 
 package org.projectforge.framework.persistence.api.impl
 
-import org.hibernate.search.annotations.ClassBridge
 import org.hibernate.search.jpa.Search
 import org.hibernate.search.query.dsl.BooleanJunction
 import org.hibernate.search.query.dsl.QueryBuilder
-import org.projectforge.common.ClassUtils
-import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -43,61 +40,25 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
          * Only for fall back to criteria search if no predicates found for full text search.
          */
         private val queryFilter: QueryFilter,
-        val useMultiFieldQueryParser: Boolean = false,
-        private var usedSearchFields: Array<String> = getUsedSearchFields(baseDao)) {
-    companion object {
-        private val log = LoggerFactory.getLogger(DBQueryBuilderByFullText::class.java)
+        val useMultiFieldQueryParser: Boolean = false) {
 
-        private val supportedFieldsMap = mutableMapOf<Class<out ExtendedBaseDO<Int>>, Array<String>>()
-
-        fun getUsedSearchFields(baseDao: BaseDao<*>): Array<String> {
-            var result: Array<String>? = supportedFieldsMap[baseDao.doClass]
-            if (result != null) return result
-            val stringSet = mutableSetOf<String>()
-            val fields = baseDao.searchFields
-            fields.forEach {
-                val type = PropUtils.getField(baseDao.doClass, it, true)?.type
-                if (type != null) {
-                    if (type.isAssignableFrom(String::class.java)
-                            || type.isAssignableFrom(Integer::class.java)
-                            || type.isAssignableFrom(Int::class.java)
-                            || type.isAssignableFrom(java.util.Date::class.java)
-                            //|| type.isEnum() // Doesn't work
-                            || type.isAssignableFrom(java.sql.Date::class.java)) {
-                        stringSet.add(it) // Search only for fields of type string and int, if no special field is specified.
-                    } else {
-                        if (log.isDebugEnabled) log.debug("Type '${type.name}' of search property '${baseDao.doClass}.$it' not supported.")
-                    }
-                } else {
-                    // Check @ClassBridge annotation:
-                    val ann = ClassUtils.getClassAnnotationOfField(baseDao.doClass, it, ClassBridge::class.java)
-                    if (ann != null && (ann.name == it || it.endsWith(ann.name))) {
-                        stringSet.add(it) // Search for class bridge name.
-                    } else {
-                        log.warn("Search property '${baseDao.doClass}.$it' not found (ignoring it).")
-                    }
-                }
-            }
-            result = stringSet.toTypedArray()
-            log.info("${baseDao.doClass.simpleName}: Adding supported search fields to class: ${result.joinToString(", ")}")
-            supportedFieldsMap[baseDao.doClass] = result
-            return result
-        }
-    }
+    private val log = LoggerFactory.getLogger(DBQueryBuilderByFullText::class.java)
 
     private var queryBuilder: QueryBuilder
     private var boolJunction: BooleanJunction<*>
     private val fullTextEntityManager = Search.getFullTextEntityManager(entityManager)
     private val sortOrders = mutableListOf<SortProperty>()
     private val multiFieldQuery = mutableListOf<String>()
+    private val searchClassInfo: HibernateSearchClassInfo
 
     init {
         queryBuilder = fullTextEntityManager.searchFactory.buildQueryBuilder().forEntity(baseDao.doClass).get()
         boolJunction = queryBuilder.bool()
+        searchClassInfo = HibernateSearchMeta.getClassInfo(baseDao)
     }
 
     fun fieldSupported(field: String): Boolean {
-        return usedSearchFields.contains(field)
+        return searchClassInfo.containsField(field)
     }
 
     /**
@@ -106,7 +67,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun add(predicate: DBPredicate): Boolean {
         if (!predicate.fullTextSupport) return false
         val field = predicate.field
-        if (field != null && !usedSearchFields.contains(field)) return false
+        if (field != null && !searchClassInfo.containsField(field)) return false
         predicate.addTo(this)
         return true
     }
@@ -115,7 +76,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
      * @return true if the given field is indexed, otherwise false (dbMatcher should be used instead).
      */
     fun equal(field: String, value: Any): Boolean {
-        if (usedSearchFields.contains(field)) {
+        if (searchClassInfo.containsField(field)) {
             if (useMultiFieldQueryParser) {
                 if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [equal] +$field:$value")
                 multiFieldQuery.add("+$field:$value")
@@ -132,7 +93,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
      * @return true if the given field is indexed, otherwise false (dbMatcher should be used instead).
      */
     fun notEqual(field: String, value: Any): Boolean {
-        if (usedSearchFields.contains(field)) {
+        if (searchClassInfo.containsField(field)) {
             if (useMultiFieldQueryParser) {
                 if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [notEqual] -$field:$value")
                 multiFieldQuery.add("-$field:$value")
@@ -149,7 +110,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
      * @return true if the given field is indexed, otherwise false (dbMatcher should be used instead).
      */
     fun <O : Comparable<O>> between(field: String, from: O, to: O): Boolean {
-        if (usedSearchFields.contains(field)) {
+        if (searchClassInfo.containsField(field)) {
             if (useMultiFieldQueryParser) {
                 if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [between] +$field:[$from TO $to]")
                 multiFieldQuery.add("+$field:[$from TO $to]")
@@ -166,7 +127,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
      * @return true if the given field is indexed, otherwise false (dbMatcher should be used instead).
      */
     fun <O : Comparable<O>> greater(field: String, from: O): Boolean {
-        if (usedSearchFields.contains(field)) {
+        if (searchClassInfo.containsField(field)) {
             if (useMultiFieldQueryParser) {
                 if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [greater] +$field:{$from TO *}")
                 multiFieldQuery.add("+$field:{$from TO *}")
@@ -183,7 +144,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
      * @return true if the given field is indexed, otherwise false (dbMatcher should be used instead).
      */
     fun <O : Comparable<O>> greaterEqual(field: String, from: O): Boolean {
-        if (usedSearchFields.contains(field)) {
+        if (searchClassInfo.containsField(field)) {
             if (useMultiFieldQueryParser) {
                 if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [greaterEqual] +$field:[$from TO *]")
                 multiFieldQuery.add("+$field:[$from TO *]")
@@ -200,7 +161,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
      * @return true if the given field is indexed, otherwise false (dbMatcher should be used instead).
      */
     fun <O : Comparable<O>> less(field: String, to: O): Boolean {
-        if (usedSearchFields.contains(field)) {
+        if (searchClassInfo.containsField(field)) {
             if (useMultiFieldQueryParser) {
                 if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [less] +$field:{* TO $to}")
                 multiFieldQuery.add("+$field:{* TO $to}")
@@ -217,7 +178,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
      * @return true if the given field is indexed, otherwise false (dbMatcher should be used instead).
      */
     fun <O : Comparable<O>> lessEqual(field: String, to: O): Boolean {
-        if (usedSearchFields.contains(field)) {
+        if (searchClassInfo.containsField(field)) {
             if (useMultiFieldQueryParser) {
                 if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [lessEqual] +$field:[* TO $to]")
                 multiFieldQuery.add("+$field:[* TO $to]")
@@ -234,14 +195,36 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
         search(value, field)
     }
 
+    fun and(vararg predicates: DBPredicate) {
+        if (predicates.isNullOrEmpty()) return
+        if (useMultiFieldQueryParser) {
+            if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [and] (... AND ...)")
+            multiFieldQuery.add("(")
+            var first = true
+            for (predicate in predicates) {
+                if (first) {
+                    first = false
+                } else {
+                    multiFieldQuery.add("AND")
+                }
+                predicate.addTo(this)
+            }
+            multiFieldQuery.add(")")
+        } else {
+            predicates.forEach {
+                it.addTo(this)
+            }
+        }
+    }
+
     fun fulltextSearch(searchString: String) {
-        search(searchString, *usedSearchFields)
+        search(searchString, *searchClassInfo.stringFieldNames)
     }
 
     fun createResultIterator(resultPredicates: List<DBPredicate>): DBResultIterator<O> {
         return when {
             useMultiFieldQueryParser -> {
-                DBFullTextResultIterator(baseDao, fullTextEntityManager, resultPredicates, sortOrders.toTypedArray(), usedSearchFields = usedSearchFields, multiFieldQuery = multiFieldQuery)
+                DBFullTextResultIterator(baseDao, fullTextEntityManager, resultPredicates, sortOrders.toTypedArray(), multiFieldQuery = multiFieldQuery)
             }
             boolJunction.isEmpty -> { // Shouldn't occur:
                 // No restrictions found, so use normal criteria search without where clause.

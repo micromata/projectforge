@@ -99,7 +99,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
   private UserDao userDao;
 
   @Override
-  protected String[] getAdditionalSearchFields() {
+  public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 

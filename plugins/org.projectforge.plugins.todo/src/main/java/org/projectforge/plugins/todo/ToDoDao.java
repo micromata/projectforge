@@ -84,7 +84,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
   }
 
   @Override
-  protected String[] getAdditionalSearchFields() {
+  public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 

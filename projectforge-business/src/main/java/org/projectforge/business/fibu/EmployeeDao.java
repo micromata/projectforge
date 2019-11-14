@@ -80,7 +80,7 @@ public class EmployeeDao extends BaseDao<EmployeeDO> {
   }
 
   @Override
-  protected String[] getAdditionalSearchFields() {
+  public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 

@@ -64,7 +64,7 @@ public class TaskDao extends BaseDao<TaskDO> {
   public static final String I18N_KEY_ERROR_DUPLICATE_CHILD_TASKS = "task.error.duplicateChildTasks";
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TaskDao.class);
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"responsibleUser.username",
-          "responsibleUser.firstname", "responsibleUser.lastname", "taskpath"};
+          "responsibleUser.firstname", "responsibleUser.lastname"};
   @Autowired
   private UserDao userDao;
 
@@ -73,7 +73,7 @@ public class TaskDao extends BaseDao<TaskDO> {
   }
 
   @Override
-  protected String[] getAdditionalSearchFields() {
+  public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
