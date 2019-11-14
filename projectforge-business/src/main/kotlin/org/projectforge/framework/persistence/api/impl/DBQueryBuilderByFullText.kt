@@ -32,6 +32,7 @@ import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.slf4j.LoggerFactory
+import java.text.SimpleDateFormat
 import javax.persistence.EntityManager
 
 internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
@@ -79,8 +80,9 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun equal(field: String, value: Any): Boolean {
         if (searchClassInfo.containsField(field)) {
             if (useMultiFieldQueryParser) {
-                if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [equal] +$field:$value")
-                multiFieldQuery.add("+$field:$value")
+                val valueString = formatMultiParserValue(value)
+                if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [equal] +$field:$valueString")
+                multiFieldQuery.add("+$field:$valueString")
             } else {
                 if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [equal] boolJunction.must(qb.keyword().onField('$field').matching('$value')...)")
                 boolJunction = boolJunction.must(queryBuilder.keyword().onField(field).matching(value).createQuery())
@@ -96,8 +98,9 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun notEqual(field: String, value: Any): Boolean {
         if (searchClassInfo.containsField(field)) {
             if (useMultiFieldQueryParser) {
-                if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [notEqual] -$field:$value")
-                multiFieldQuery.add("-$field:$value")
+                val valueString = formatMultiParserValue(value)
+                if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [notEqual] -$field:$valueString")
+                multiFieldQuery.add("-$field:$valueString")
             } else {
                 if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [notEqual] boolJunction.must(qb.keyword().onField('$field').matching('$value')...).not()")
                 boolJunction = boolJunction.must(queryBuilder.keyword().onField(field).matching(value).createQuery()).not()
@@ -113,8 +116,10 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun <O : Comparable<O>> between(field: String, from: O, to: O): Boolean {
         if (searchClassInfo.containsField(field)) {
             if (useMultiFieldQueryParser) {
-                if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [between] +$field:[$from TO $to]")
-                multiFieldQuery.add("+$field:[$from TO $to]")
+                val fromString = formatMultiParserValue(from)
+                val toString = formatMultiParserValue(to)
+                if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [between] +$field:[$fromString TO $toString]")
+                multiFieldQuery.add("+$field:[$fromString TO $toString]")
             } else {
                 if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [between] boolJunction.must(qb.range().onField('$field').from('$from').to('$to')...)")
                 boolJunction = boolJunction.must(queryBuilder.range().onField(field).from(from).to(to).createQuery())
@@ -130,8 +135,9 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun <O : Comparable<O>> greater(field: String, from: O): Boolean {
         if (searchClassInfo.containsField(field)) {
             if (useMultiFieldQueryParser) {
-                if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [greater] +$field:{$from TO *}")
-                multiFieldQuery.add("+$field:{$from TO *}")
+                val fromString = formatMultiParserValue(from)
+                if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [greater] +$field:{$fromString TO *}")
+                multiFieldQuery.add("+$field:{$fromString TO *}")
             } else {
                 if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [greater] boolJunction.must(qb.range().onField('$field').above('$from').excludeLimit()...)")
                 boolJunction = boolJunction.must(queryBuilder.range().onField(field).above(from).excludeLimit().createQuery())
@@ -147,8 +153,9 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun <O : Comparable<O>> greaterEqual(field: String, from: O): Boolean {
         if (searchClassInfo.containsField(field)) {
             if (useMultiFieldQueryParser) {
-                if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [greaterEqual] +$field:[$from TO *]")
-                multiFieldQuery.add("+$field:[$from TO *]")
+                val fromString = formatMultiParserValue(from)
+                if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [greaterEqual] +$field:[$fromString TO *]")
+                multiFieldQuery.add("+$field:[$fromString TO *]")
             } else {
                 if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [greaterEqual] boolJunction.must(qb.range().onField('$field').above('$from')...)")
                 boolJunction = boolJunction.must(queryBuilder.range().onField(field).above(from).createQuery())
@@ -164,8 +171,9 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun <O : Comparable<O>> less(field: String, to: O): Boolean {
         if (searchClassInfo.containsField(field)) {
             if (useMultiFieldQueryParser) {
-                if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [less] +$field:{* TO $to}")
-                multiFieldQuery.add("+$field:{* TO $to}")
+                val toString = formatMultiParserValue(to)
+                if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [less] +$field:{* TO $toString}")
+                multiFieldQuery.add("+$field:{* TO $toString}")
             } else {
                 if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [less] boolJunction.must(qb.range().below('$field').excludeLimit()...)")
                 boolJunction = boolJunction.must(queryBuilder.range().onField(field).below(to).excludeLimit().createQuery())
@@ -181,8 +189,9 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun <O : Comparable<O>> lessEqual(field: String, to: O): Boolean {
         if (searchClassInfo.containsField(field)) {
             if (useMultiFieldQueryParser) {
-                if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [lessEqual] +$field:[* TO $to]")
-                multiFieldQuery.add("+$field:[* TO $to]")
+                val toString = formatMultiParserValue(to)
+                if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [lessEqual] +$field:[* TO $toString]")
+                multiFieldQuery.add("+$field:[* TO $toString]")
             } else {
                 if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [lessEqual] boolJunction.must(qb.range().below('$field')...)")
                 boolJunction = boolJunction.must(queryBuilder.range().onField(field).below(to).createQuery())
@@ -192,6 +201,15 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
         return false
     }
 
+    fun formatMultiParserValue(value: Any): String {
+        return when (value) {
+            is java.sql.Date ->  SimpleDateFormat("yyyyMMdd").format(value)
+            is java.sql.Timestamp -> SimpleDateFormat("yyyyMMdd").format(value)//"${value.time}"
+            is java.util.Date ->  SimpleDateFormat("yyyyMMdd").format(value)//"${value.time}"
+            else -> "$value"
+        }
+    }
+
     fun ilike(field: String, value: String) {
         search(value, field)
     }
@@ -199,18 +217,9 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun and(vararg predicates: DBPredicate) {
         if (predicates.isNullOrEmpty()) return
         if (useMultiFieldQueryParser) {
-            if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [and] (... AND ...)")
-            multiFieldQuery.add("(")
-            var first = true
             for (predicate in predicates) {
-                if (first) {
-                    first = false
-                } else {
-                    multiFieldQuery.add("AND")
-                }
                 predicate.addTo(this)
             }
-            multiFieldQuery.add(")")
         } else {
             predicates.forEach {
                 it.addTo(this)
@@ -288,7 +297,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
         } else {
             val context = if (fields.size > 1) {
                 if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.range().onFields(*).above/below($value)...): fields:${fields.joinToString(", ")}")
-                var ctx =  queryBuilder.range().onField(fields[0])
+                var ctx = queryBuilder.range().onField(fields[0])
                 for (idx in 1 until fields.size - 1) {
                     ctx = ctx.andField(fields[idx])
                 }
