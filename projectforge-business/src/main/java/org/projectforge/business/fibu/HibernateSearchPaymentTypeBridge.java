@@ -50,7 +50,6 @@ public class HibernateSearchPaymentTypeBridge implements FieldBridge
   {
     final PaymentType paymentType = (PaymentType) value;
     if (paymentType == null) {
-      log.error("PaymentType object is null.");
       return;
     }
 

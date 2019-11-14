@@ -23,13 +23,6 @@
 
 package org.projectforge.web.wicket;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -52,17 +45,16 @@ import org.projectforge.common.StringHelper;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.framework.i18n.UserException;
-import org.projectforge.framework.persistence.api.BaseDO;
-import org.projectforge.framework.persistence.api.BaseDao;
-import org.projectforge.framework.persistence.api.BaseSearchFilter;
-import org.projectforge.framework.persistence.api.IDao;
-import org.projectforge.framework.persistence.api.IPersistenceService;
-import org.projectforge.framework.persistence.api.IdObject;
+import org.projectforge.framework.persistence.api.*;
+import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta;
 import org.projectforge.framework.utils.RecentQueue;
 import org.projectforge.framework.utils.ReflectionHelper;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
+
+import java.io.Serializable;
+import java.util.*;
 
 public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D extends IDao<?>, O extends IdObject<?>>
     extends AbstractSecuredPage implements ISelectCallerPage
@@ -723,7 +715,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    */
   public String getSearchFields()
   {
-    return StringHelper.listToString(", ", getBaseDao().getSearchFields());
+    return StringHelper.listToString(", ", HibernateSearchMeta.INSTANCE.getSearchFields(getBaseDao()));
   }
 
   /**

@@ -151,7 +151,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * The names are the property names or, if defined the name declared in the annotation of a field. <br/>
    * The user can search in these fields explicit by typing e. g. authors:beck (<field>:<searchString>)
    */
-  @Override
   public synchronized String[] getSearchFields() {
     return HibernateSearchMeta.INSTANCE.getClassInfo(this).getAllFieldNames();
   }

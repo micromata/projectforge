@@ -24,9 +24,15 @@
 package org.projectforge.framework.persistence.api.impl
 
 import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.framework.persistence.api.IDao
 
 object HibernateSearchMeta {
     private val classInfos = mutableMapOf<Class<*>, HibernateSearchClassInfo>()
+
+    fun getSearchFields(dao: IDao<*>): Array<String>? {
+        if (dao !is BaseDao) return null
+        return getClassInfo(dao).allFieldNames
+    }
 
     fun getClassInfo(baseDao: BaseDao<*>): HibernateSearchClassInfo {
         var result = classInfos[baseDao.doClass]

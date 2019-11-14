@@ -36,7 +36,7 @@ import java.util.List;
 
 /**
  * Delegates to getNested() Service.
- * 
+ *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
  * @param <O>
@@ -69,12 +69,6 @@ public abstract class PersistenceServiceDelegate<O extends ExtendedBaseDO<Intege
   public List<O> getList(BaseSearchFilter filter)
   {
     return getNested().getList(filter);
-  }
-
-  @Override
-  public String[] getSearchFields()
-  {
-    return getNested().getSearchFields();
   }
 
   @Override

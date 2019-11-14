@@ -239,11 +239,6 @@ public class HRDao implements IDao<HRViewData> {
     throw new UnsupportedOperationException();
   }
 
-  @Override
-  public String[] getSearchFields() {
-    return null;
-  }
-
   /**
    * @return false.
    * @see org.projectforge.framework.persistence.api.IDao#isHistorizable()
