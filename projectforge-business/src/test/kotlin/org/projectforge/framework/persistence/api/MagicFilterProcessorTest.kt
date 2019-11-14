@@ -46,10 +46,13 @@ class MagicFilterProcessorTest {
     @Test
     fun filterEntrySearchStringConversionTest() {
         testEntry("12345", "12345",  MatchType.EXACT)
-        testEntry("12345", "12345",  MatchType.STARTS_WITH, true)
-        testEntry("*12345", "12345",  MatchType.ENDS_WITH)
-        testEntry("*12345*", "12345",  MatchType.CONTAINS)
-        testEntry("12345*", "12345",  MatchType.STARTS_WITH)
+        testEntry("12345", "12345",  MatchType.EXACT, true) // Numerical
+
+        testEntry("abc", "abc",  MatchType.EXACT)
+        testEntry("abc", "abc",  MatchType.STARTS_WITH, true) // Numerical
+        testEntry("*abc", "abc",  MatchType.ENDS_WITH)
+        testEntry("*abc*", "abc",  MatchType.CONTAINS)
+        testEntry("abc*", "abc",  MatchType.STARTS_WITH)
     }
 
     private fun testEntry(value: String, expectedPlainString: String, matchType: MatchType, autoStartWithSearch: Boolean = false) {
