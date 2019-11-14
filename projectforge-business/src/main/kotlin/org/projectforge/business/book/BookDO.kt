@@ -70,7 +70,7 @@ open class BookDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "date")
     @Field(index = Index.YES, analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY)
+    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "lend_out_date")
     open var lendOutDate: Date? = null
 

@@ -49,12 +49,12 @@ public class CalEventDO extends DefaultBaseDO implements ICalendarEvent {
 
   @PropertyInfo(i18nKey = "plugins.teamcal.event.beginDate")
   @Field(index = Index.YES, analyze = Analyze.NO)
-  @DateBridge(resolution = Resolution.MINUTE)
+  @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
   private Timestamp startDate;
 
   @PropertyInfo(i18nKey = "plugins.teamcal.event.endDate")
   @Field(index = Index.YES, analyze = Analyze.NO)
-  @DateBridge(resolution = Resolution.MINUTE)
+  @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
   private Timestamp endDate;
 
   private String uid;

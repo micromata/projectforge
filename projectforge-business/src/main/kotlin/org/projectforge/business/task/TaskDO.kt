@@ -112,7 +112,7 @@ open class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , Gant
      */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY)
+    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @PropertyInfo(i18nKey = "gantt.startDate")
     @get:Column(name = "start_date")
     open var startDate: Date? = null
@@ -122,7 +122,7 @@ open class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , Gant
      */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY)
+    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @PropertyInfo(i18nKey = "gantt.endDate")
     @get:Column(name = "end_date")
     open var endDate: Date? = null
@@ -144,7 +144,7 @@ open class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , Gant
      * verschoben werden.
      */
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY)
+    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @PropertyInfo(i18nKey = "task.protectTimesheetsUntil")
     @get:Column(name = "protect_timesheets_until")
     open var protectTimesheetsUntil: Date? = null

@@ -116,11 +116,11 @@ open class AuftragsPositionDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @get:Column(name = "period_of_performance_type", length = 10)
     open var periodOfPerformanceType: PeriodOfPerformanceType? = PeriodOfPerformanceType.SEEABOVE
 
-    @DateBridge(resolution = Resolution.DAY)
+    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_begin")
     open var periodOfPerformanceBegin: Date? = null
 
-    @DateBridge(resolution = Resolution.DAY)
+    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_end")
     open var periodOfPerformanceEnd: Date? = null
 

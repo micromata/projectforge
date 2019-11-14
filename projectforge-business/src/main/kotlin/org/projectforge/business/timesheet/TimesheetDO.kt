@@ -82,13 +82,13 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
 
     @PropertyInfo(i18nKey = "timesheet.startTime")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.MINUTE)
+    @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
     @get:Column(name = "start_time", nullable = false)
     open var startTime: Timestamp? = null
 
     @PropertyInfo(i18nKey = "timesheet.stopTime")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.MINUTE)
+    @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
     @get:Column(name = "stop_time", nullable = false)
     open var stopTime: Timestamp? = null
 
