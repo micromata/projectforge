@@ -108,8 +108,8 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
     private val searchClassInfo: HibernateSearchClassInfo
 
     init {
-        result = nextResultBlock()
         searchClassInfo = HibernateSearchMeta.getClassInfo(baseDao)
+        result = nextResultBlock()
     }
 
     override fun next(): O? {
@@ -185,7 +185,7 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
             val queryString = multiFieldQuery?.joinToString(" ") ?: ""
             if (log.isDebugEnabled) log.debug("Using multifieldQuery (${baseDao.doClass.simpleName}): $queryString")
 
-            val parser = MultiFieldQueryParser(searchClassInfo.fullTextSearchInFields, ClassicAnalyzer())
+            val parser = MultiFieldQueryParser(searchClassInfo.allFieldNames, ClassicAnalyzer())
             parser.allowLeadingWildcard = true
             var query: org.apache.lucene.search.Query? = null
             try {

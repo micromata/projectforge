@@ -46,7 +46,8 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
     @JsonIgnore
     private val fieldInfos = mutableMapOf<String, HibernateSearchFieldInfo>()
 
-    val fullTextSearchInFields: Array<String>
+    val stringFieldNames: Array<String>
+    val numericFieldNames: Array<String>
     val allFieldNames: Array<String>
     val classBridges: Array<ClassBridge>
 
@@ -76,41 +77,43 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
                 log.warn("Search property '${baseDao.doClass}.$it' not found, but declared as additional field (ignoring it).")
             }
         }
-        val fulltextSearchFields = mutableListOf<String>()
+        val stringSearchFields = mutableListOf<String>()
+        val numericSearchFields = mutableListOf<String>()
         val allFields = mutableListOf<String>()
         val bridges = mutableListOf<ClassBridge>()
         // Check @ClassBridge annotation:
         val classBridgeAnn = ClassUtils.getClassAnnotation(clazz, ClassBridge::class.java)
         if (classBridgeAnn != null) {
-            fulltextSearchFields.add(classBridgeAnn.name) // Search for class bridge name.
+            stringSearchFields.add(classBridgeAnn.name) // Search for class bridge name.
             allFields.add(classBridgeAnn.name)
             bridges.add(classBridgeAnn)
         }
         val classBridgesAnn = ClassUtils.getClassAnnotation(clazz, ClassBridges::class.java)
         if (classBridgesAnn != null) {
             classBridgesAnn.value.forEach {
-                fulltextSearchFields.add(it.name) // Search for class bridge name.
+                stringSearchFields.add(it.name) // Search for class bridge name.
                 allFields.add(it.name)
                 bridges.add(it)
             }
         }
 
         fieldInfos.values.forEach {
-            if (it.isFullTextSearchSupported()) {
-                fulltextSearchFields.add(it.field)
-            } else {
-                if (log.isDebugEnabled) log.debug("Type '${it.type.name}' of search property '${clazz}.$it' not supported for fullTextSearchInFields.")
+            if (it.isStringSearchSupported()) {
+                stringSearchFields.add(it.field)
+            } else if (it.isNumericSearchSupported()) {
+                numericSearchFields.add(it.field)
             }
             allFields.add(it.field)
         }
         allFieldNames = allFields.toTypedArray()
-        fullTextSearchInFields = fulltextSearchFields.toTypedArray()
+        stringFieldNames = stringSearchFields.toTypedArray()
+        numericFieldNames = numericSearchFields.toTypedArray()
         classBridges = bridges.toTypedArray()
         log.info("SearchInfo for class ${ClassUtils.getProxiedClass(baseDao::class.java).simpleName}: $this")
     }
 
     fun isStringField(field: String): Boolean {
-        return fullTextSearchInFields.contains(field)
+        return stringFieldNames.contains(field)
     }
 
     fun containsField(field: String): Boolean {
