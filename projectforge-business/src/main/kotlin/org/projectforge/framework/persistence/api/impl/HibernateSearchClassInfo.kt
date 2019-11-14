@@ -46,12 +46,18 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
     private val log = LoggerFactory.getLogger(HibernateSearchClassInfo::class.java)
 
     @JsonIgnore
-    private val fieldInfos = mutableMapOf<String, HibernateSearchFieldInfo>()
+    private val fieldInfos = mutableListOf<HibernateSearchFieldInfo>()
 
-    val stringFieldNames: Array<String>
-    val numericFieldNames: Array<String>
-    val allFieldNames: Array<String>
     val classBridges: Array<ClassBridge>
+
+    val allFieldNames
+        get() = fieldInfos.map { it.luceneField }.toTypedArray()
+
+    val stringFieldNames
+        get() = fieldInfos.filter { it.isStringSearchSupported() }.map { it.luceneField }.toTypedArray()
+
+    val numericFieldNames
+        get() = fieldInfos.filter { it.isNumericSearchSupported() }.map { it.luceneField }.toTypedArray()
 
     private val clazz: Class<*>
 
@@ -79,47 +85,31 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
                 log.warn("Search property '${baseDao.doClass}.$it' not found, but declared as additional field (ignoring it).")
             }
         }
-        val stringSearchFields = mutableListOf<String>()
-        val numericSearchFields = mutableListOf<String>()
-        val allFields = mutableListOf<String>()
         val bridges = mutableListOf<ClassBridge>()
         // Check @ClassBridge annotation:
         val classBridgeAnn = ClassUtils.getClassAnnotation(clazz, ClassBridge::class.java)
         if (classBridgeAnn != null) {
-            stringSearchFields.add(classBridgeAnn.name) // Search for class bridge name.
-            allFields.add(classBridgeAnn.name)
+            fieldInfos.add(HibernateSearchFieldInfo(classBridgeAnn.name, Void::class.java)) // Search for class bridge name.
             bridges.add(classBridgeAnn)
         }
         val classBridgesAnn = ClassUtils.getClassAnnotation(clazz, ClassBridges::class.java)
         if (classBridgesAnn != null) {
             classBridgesAnn.value.forEach {
-                stringSearchFields.add(it.name) // Search for class bridge name.
-                allFields.add(it.name)
+                fieldInfos.add(HibernateSearchFieldInfo(it.name, Void::class.java)) // Search for class bridge name.
                 bridges.add(it)
             }
         }
 
-        fieldInfos.values.forEach {
-            if (it.isStringSearchSupported()) {
-                stringSearchFields.add(it.field)
-            } else if (it.isNumericSearchSupported()) {
-                numericSearchFields.add(it.field)
-            }
-            allFields.add(it.field)
-        }
-        allFieldNames = allFields.toTypedArray()
-        stringFieldNames = stringSearchFields.toTypedArray()
-        numericFieldNames = numericSearchFields.toTypedArray()
         classBridges = bridges.toTypedArray()
         log.info("SearchInfo for class ${ClassUtils.getProxiedClass(baseDao::class.java).simpleName}: $this")
     }
 
     fun isStringField(field: String): Boolean {
-        return stringFieldNames.contains(field)
+        return get(field)?.isStringSearchSupported() == true
     }
 
     fun containsField(field: String): Boolean {
-        return fieldInfos.contains(field)
+        return get(field) != null
     }
 
     fun getClassBridge(name: String): ClassBridge? {
@@ -127,11 +117,11 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
     }
 
     internal fun get(field: String): HibernateSearchFieldInfo? {
-        return fieldInfos[field]
+        return fieldInfos.find { it.javaProp == field || it.luceneField == field }
     }
 
     private fun checkAndRegister(clazz: Class<*>, fieldName: String, fieldType: Class<*>, accessible: AccessibleObject) {
-        var info = fieldInfos[fieldName]
+        var info = get(fieldName)
         var isNew = info == null
         if (info == null) {
             info = HibernateSearchFieldInfo(fieldName, fieldType)
@@ -171,7 +161,7 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
         if (accessible.isAnnotationPresent(DateBridge::class.java)) {
             info.dateBridgeAnn = accessible.getAnnotation(DateBridge::class.java)
         }
-        fieldInfos[fieldName] = info
+        fieldInfos.add(info)
     }
 
     class FieldInfo(val fieldName: String, val type: Class<*>)
