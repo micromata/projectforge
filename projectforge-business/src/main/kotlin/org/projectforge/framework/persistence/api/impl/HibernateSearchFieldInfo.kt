@@ -23,6 +23,8 @@
 
 package org.projectforge.framework.persistence.api.impl
 
+import java.io.Serializable
+
 internal class HibernateSearchFieldInfo(val field: String, val type: Class<*>) {
     private var annotations: MutableList<Annotation>? = null
 
@@ -38,5 +40,15 @@ internal class HibernateSearchFieldInfo(val field: String, val type: Class<*>) {
 
     fun hasAnnotations(): Boolean {
         return !annotations.isNullOrEmpty()
+    }
+
+    fun isFullTextSearchSupported(): Boolean {
+        return String::class.java.isAssignableFrom(type)
+                || Integer::class.java.isAssignableFrom(type)
+                || Int::class.java.isAssignableFrom(type)
+                || java.util.Date::class.java.isAssignableFrom(type)
+                || field == "id" && Serializable::class.java.isAssignableFrom(type)
+                //|| type.isEnum() // Doesn't work
+                || java.sql.Date::class.java.isAssignableFrom(type);
     }
 }

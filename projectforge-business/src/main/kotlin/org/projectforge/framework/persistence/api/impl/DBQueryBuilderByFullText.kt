@@ -218,7 +218,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     }
 
     fun fulltextSearch(searchString: String) {
-        search(searchString, *searchClassInfo.stringFieldNames)
+        search(searchString, *searchClassInfo.fullTextSearchInFields)
     }
 
     fun createResultIterator(resultPredicates: List<DBPredicate>): DBResultIterator<O> {
