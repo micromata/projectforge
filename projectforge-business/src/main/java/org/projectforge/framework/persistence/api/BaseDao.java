@@ -785,11 +785,11 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     }
     accessChecker.checkRestrictedOrDemoUser();
     onDelete(obj);
-    final O dbObj = em.getReference(clazz, obj.getId());
     checkPartOfCurrentTenant(obj, OperationType.DELETE);
-    checkLoggedInUserDeleteAccess(obj, dbObj);
     emgrFactory.runInTrans(emgr -> {
       EntityManager em = emgr.getEntityManager();
+      final O dbObj = em.find(clazz, obj.getId());
+      checkLoggedInUserDeleteAccess(obj, dbObj);
       em.remove(dbObj);
       return null;
     });
