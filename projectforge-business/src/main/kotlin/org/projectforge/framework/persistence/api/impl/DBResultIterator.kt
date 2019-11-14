@@ -121,12 +121,16 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
         while (true) {
             val next = internalNext() ?: return null
             if (!resultMatchers.isNullOrEmpty()) {
+                var matches = true
                 for (matcher in resultMatchers) {
-                    if (matcher.match(next)) {
-                        return next
+                    if (!matcher.match(next)) {
+                        matches = false // No match.
+                        break
                     }
                 }
-                continue // No match.
+                if (!matches)
+                    continue
+                return next
             }
             return next
         }
