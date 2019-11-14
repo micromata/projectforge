@@ -89,7 +89,7 @@ public class PfHistoryMasterDO extends HistoryMasterBaseDO<PfHistoryMasterDO, Lo
   }
 
   @Field(store = Store.NO)
-  @DateBridge(resolution = Resolution.MILLISECOND)
+  @DateBridge(resolution = Resolution.MILLISECOND, encoding = EncodingType.STRING)
   @Transient
   @Override
   public Date getModifiedAt()

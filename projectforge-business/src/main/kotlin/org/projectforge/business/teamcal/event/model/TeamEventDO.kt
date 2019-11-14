@@ -93,18 +93,18 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
 
     @PropertyInfo(i18nKey = "plugins.teamcal.event.beginDate")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.MINUTE)
+    @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
     @get:Column(name = "start_date")
     override var startDate: Timestamp? = null
 
     @PropertyInfo(i18nKey = "plugins.teamcal.event.endDate")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.MINUTE)
+    @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
     @get:Column(name = "end_date")
     override var endDate: Timestamp? = null
 
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.SECOND)
+    @DateBridge(resolution = Resolution.SECOND, encoding = EncodingType.STRING)
     @NoHistory
     @get:Column(name = "last_email")
     open var lastEmail: Timestamp? = null

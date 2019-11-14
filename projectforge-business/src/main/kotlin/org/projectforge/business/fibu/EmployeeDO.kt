@@ -110,13 +110,13 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
 
     @PropertyInfo(i18nKey = "fibu.employee.eintrittsdatum")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY)
+    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "eintritt")
     open var eintrittsDatum: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.austrittsdatum")
     @Field
-    @DateBridge(resolution = Resolution.DAY)
+    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "austritt")
     open var austrittsDatum: Date? = null
 
@@ -149,7 +149,7 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
 
     @PropertyInfo(i18nKey = "fibu.employee.birthday")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY)
+    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column
     open var birthday: Date? = null
 

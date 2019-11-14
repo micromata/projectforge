@@ -58,7 +58,7 @@ class MebEntryDO : AbstractBaseDO<Int>() {
 
     @PropertyInfo(i18nKey = "date")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY)
+    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(nullable = false)
     var date: Date? = null
 
