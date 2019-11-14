@@ -23,8 +23,19 @@
 
 package org.projectforge.framework.persistence.api.impl
 
+import org.hibernate.search.annotations.DateBridge
+import org.hibernate.search.annotations.EncodingType
+
 internal class HibernateSearchFieldInfo(val field: String, val type: Class<*>) {
     private var annotations: MutableList<Annotation>? = null
+    var idProperty: Boolean = false
+        internal set
+    var dateBridgeAnn: DateBridge? = null
+        internal set
+
+    fun getDateBridgeEncodingType(): EncodingType? {
+        return dateBridgeAnn?.encoding
+    }
 
     fun add(annotation: Annotation?) {
         if (annotation == null) {
@@ -47,5 +58,6 @@ internal class HibernateSearchFieldInfo(val field: String, val type: Class<*>) {
     fun isNumericSearchSupported(): Boolean {
         return Integer::class.java.isAssignableFrom(type)
                 || Int::class.java.isAssignableFrom(type)
+                || idProperty
     }
 }

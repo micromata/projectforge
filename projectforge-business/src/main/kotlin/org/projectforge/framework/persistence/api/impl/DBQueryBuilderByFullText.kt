@@ -24,6 +24,7 @@
 package org.projectforge.framework.persistence.api.impl
 
 import org.apache.commons.lang3.math.NumberUtils
+import org.hibernate.search.annotations.EncodingType
 import org.hibernate.search.jpa.Search
 import org.hibernate.search.query.dsl.BooleanJunction
 import org.hibernate.search.query.dsl.QueryBuilder
@@ -80,7 +81,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun equal(field: String, value: Any): Boolean {
         if (searchClassInfo.containsField(field)) {
             if (useMultiFieldQueryParser) {
-                val valueString = formatMultiParserValue(value)
+                val valueString = formatMultiParserValue(field, value)
                 if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [equal] +$field:$valueString")
                 multiFieldQuery.add("+$field:$valueString")
             } else {
@@ -98,7 +99,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun notEqual(field: String, value: Any): Boolean {
         if (searchClassInfo.containsField(field)) {
             if (useMultiFieldQueryParser) {
-                val valueString = formatMultiParserValue(value)
+                val valueString = formatMultiParserValue(field, value)
                 if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [notEqual] -$field:$valueString")
                 multiFieldQuery.add("-$field:$valueString")
             } else {
@@ -116,8 +117,8 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun <O : Comparable<O>> between(field: String, from: O, to: O): Boolean {
         if (searchClassInfo.containsField(field)) {
             if (useMultiFieldQueryParser) {
-                val fromString = formatMultiParserValue(from)
-                val toString = formatMultiParserValue(to)
+                val fromString = formatMultiParserValue(field, from)
+                val toString = formatMultiParserValue(field, to)
                 if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [between] +$field:[$fromString TO $toString]")
                 multiFieldQuery.add("+$field:[$fromString TO $toString]")
             } else {
@@ -135,7 +136,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun <O : Comparable<O>> greater(field: String, from: O): Boolean {
         if (searchClassInfo.containsField(field)) {
             if (useMultiFieldQueryParser) {
-                val fromString = formatMultiParserValue(from)
+                val fromString = formatMultiParserValue(field, from)
                 if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [greater] +$field:{$fromString TO *}")
                 multiFieldQuery.add("+$field:{$fromString TO *}")
             } else {
@@ -153,7 +154,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun <O : Comparable<O>> greaterEqual(field: String, from: O): Boolean {
         if (searchClassInfo.containsField(field)) {
             if (useMultiFieldQueryParser) {
-                val fromString = formatMultiParserValue(from)
+                val fromString = formatMultiParserValue(field, from)
                 if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [greaterEqual] +$field:[$fromString TO *]")
                 multiFieldQuery.add("+$field:[$fromString TO *]")
             } else {
@@ -171,7 +172,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun <O : Comparable<O>> less(field: String, to: O): Boolean {
         if (searchClassInfo.containsField(field)) {
             if (useMultiFieldQueryParser) {
-                val toString = formatMultiParserValue(to)
+                val toString = formatMultiParserValue(field, to)
                 if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [less] +$field:{* TO $toString}")
                 multiFieldQuery.add("+$field:{* TO $toString}")
             } else {
@@ -189,7 +190,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun <O : Comparable<O>> lessEqual(field: String, to: O): Boolean {
         if (searchClassInfo.containsField(field)) {
             if (useMultiFieldQueryParser) {
-                val toString = formatMultiParserValue(to)
+                val toString = formatMultiParserValue(field, to)
                 if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [lessEqual] +$field:[* TO $toString]")
                 multiFieldQuery.add("+$field:[* TO $toString]")
             } else {
@@ -201,11 +202,29 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
         return false
     }
 
-    fun formatMultiParserValue(value: Any): String {
+    fun formatMultiParserValue(field: String, value: Any): String {
         return when (value) {
-            is java.sql.Date ->  SimpleDateFormat("yyyyMMdd").format(value)
-            is java.sql.Timestamp -> SimpleDateFormat("yyyyMMdd").format(value)//"${value.time}"
-            is java.util.Date ->  SimpleDateFormat("yyyyMMdd").format(value)//"${value.time}"
+            is java.sql.Date -> {
+                if (searchClassInfo.get(field)?.getDateBridgeEncodingType() == EncodingType.NUMERIC) {
+                    value.time.toString()
+                } else {
+                    SimpleDateFormat("yyyyMMdd").format(value)
+                }
+            }
+            is java.sql.Timestamp -> {
+                if (searchClassInfo.get(field)?.getDateBridgeEncodingType() == EncodingType.NUMERIC) {
+                    value.time.toString()
+                } else {
+                    SimpleDateFormat("yyyyMMddHHmmssSSS").format(value)
+                }
+            }
+            is java.util.Date -> {
+                if (searchClassInfo.get(field)?.getDateBridgeEncodingType() == EncodingType.NUMERIC) {
+                    (value.time / 60000).toString()
+                } else {
+                    SimpleDateFormat("yyyyMMddHHmmssSSS").format(value)
+                }
+            }
             else -> "$value"
         }
     }

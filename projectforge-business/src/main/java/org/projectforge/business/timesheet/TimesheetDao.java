@@ -78,7 +78,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
   private static final String MAXIMUM_DURATION_EXCEEDED = "Maximum duration of time sheet exceeded. Maximum is "
           + (MAXIMUM_DURATION / 3600 / 1000)
           + "h!";
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"user.username", "user.firstname",
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"user.id", "user.username", "user.firstname",
           "user.lastname", "kost2.nummer", "kost2.description", "kost2.projekt.name"};
   private static final Logger log = LoggerFactory.getLogger(TimesheetDao.class);
   @Autowired
@@ -157,9 +157,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
   public QueryFilter buildQueryFilter(final TimesheetFilter filter) {
     final QueryFilter queryFilter = new QueryFilter(filter);
     if (filter.getUserId() != null) {
-      final PFUserDO user = new PFUserDO();
-      user.setId(filter.getUserId());
-      queryFilter.add(QueryFilter.eq("user", user));
+      queryFilter.add(QueryFilter.eq("user.id", filter.getUserId()));
     }
     if (filter.getStartTime() != null && filter.getStopTime() != null) {
       queryFilter.add(QueryFilter.and(QueryFilter.ge("stopTime", filter.getStartTime()),

@@ -26,12 +26,14 @@ package org.projectforge.framework.persistence.api.impl
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.hibernate.search.annotations.ClassBridge
 import org.hibernate.search.annotations.ClassBridges
+import org.hibernate.search.annotations.DateBridge
 import org.hibernate.search.annotations.DocumentId
 import org.projectforge.common.BeanHelper
 import org.projectforge.common.ClassUtils
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.slf4j.LoggerFactory
 import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Method
@@ -57,7 +59,7 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
         clazz = baseDao.doClass
         val fields = BeanHelper.getAllDeclaredFields(clazz)
         for (field in fields) {
-            checkAndRegister(field.name, field.type, field)
+            checkAndRegister(clazz, field.name, field.type, field)
         }
         val methods = clazz.methods
         for (method in methods) {
@@ -66,13 +68,13 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
                 fieldInfo = isSetter(method)
             }
             if (fieldInfo != null) {
-                checkAndRegister(fieldInfo.fieldName, fieldInfo.type, method)
+                checkAndRegister(clazz, fieldInfo.fieldName, fieldInfo.type, method)
             }
         }
         baseDao.additionalSearchFields?.forEach {
             val field = PropUtils.getField(clazz, it)
             if (field != null) {
-                checkAndRegister(it, field.type, field)
+                checkAndRegister(clazz, it, field.type, field)
             } else {
                 log.warn("Search property '${baseDao.doClass}.$it' not found, but declared as additional field (ignoring it).")
             }
@@ -128,15 +130,17 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
         return fieldInfos[field]
     }
 
-    private fun checkAndRegister(fieldName: String, fieldType: Class<*>, accessible: AccessibleObject) {
+    private fun checkAndRegister(clazz: Class<*>, fieldName: String, fieldType: Class<*>, accessible: AccessibleObject) {
         var info = fieldInfos[fieldName]
         var isNew = info == null
         if (info == null) {
             info = HibernateSearchFieldInfo(fieldName, fieldType)
         }
+        var isSearchField = false
         if (accessible.isAnnotationPresent(org.hibernate.search.annotations.Field::class.java)) {
             // @Field(index = Index.YES /*TOKENIZED*/),
             info.add(accessible.getAnnotation(org.hibernate.search.annotations.Field::class.java))
+            isSearchField = true
         } else if (accessible.isAnnotationPresent(org.hibernate.search.annotations.Fields::class.java)) {
             // @Fields( {
             // @Field(index = Index.YES /*TOKENIZED*/),
@@ -146,17 +150,28 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
             annFields?.value?.forEach {
                 info.add(it)
             }
+            isSearchField = true
         } else if (accessible.isAnnotationPresent(Id::class.java)) {
             info.add(accessible.getAnnotation(Id::class.java))
+            isSearchField = true
         } else if (accessible.isAnnotationPresent(DocumentId::class.java)) {
             info.add(accessible.getAnnotation(DocumentId::class.java))
-        } else {
-            return // No annotation found for field
+            isSearchField = true
+        } else if (fieldName.endsWith(".id")) {
+            val parentClass = ClassUtils.getClassOfField(clazz, fieldName)
+            if (parentClass != null && DefaultBaseDO::class.java.isAssignableFrom(parentClass)) {
+                // Embedded id found.
+                info.idProperty = true
+                isSearchField = true
+            }
         }
-
-        if (isNew && info.hasAnnotations()) {
-            fieldInfos[fieldName] = info
+        if (!isNew || !isSearchField) {
+            return
         }
+        if (accessible.isAnnotationPresent(DateBridge::class.java)) {
+            info.dateBridgeAnn = accessible.getAnnotation(DateBridge::class.java)
+        }
+        fieldInfos[fieldName] = info
     }
 
     class FieldInfo(val fieldName: String, val type: Class<*>)

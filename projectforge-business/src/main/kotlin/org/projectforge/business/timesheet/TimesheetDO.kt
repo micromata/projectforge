@@ -72,7 +72,7 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
 
     @PropertyInfo(i18nKey = "user")
     @UserPrefParameter(i18nKey = "user", orderString = "1")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(depth = 1, includeEmbeddedObjectId = true)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "user_id", nullable = false)
     open var user: PFUserDO? = null

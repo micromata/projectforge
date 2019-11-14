@@ -38,26 +38,22 @@ import javax.persistence.MappedSuperclass;
  */
 @MappedSuperclass
 @Analyzer(impl = ClassicAnalyzer.class)
-public class DefaultBaseDO extends AbstractHistorizableBaseDO<Integer>
-{
+public class DefaultBaseDO extends AbstractHistorizableBaseDO<Integer> {
   private static final long serialVersionUID = 659687830219996653L;
 
   @PropertyInfo(i18nKey = "id")
-  //  @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */, store = Store.NO)
   private Integer id;
 
   @Override
   @Id
   @GeneratedValue
   @Column(name = "pk")
-  public Integer getId()
-  {
+  public Integer getId() {
     return id;
   }
 
   @Override
-  public void setId(final Integer id)
-  {
+  public void setId(final Integer id) {
     this.id = id;
   }
 }
