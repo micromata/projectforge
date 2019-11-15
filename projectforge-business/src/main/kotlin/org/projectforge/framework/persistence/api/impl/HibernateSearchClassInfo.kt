@@ -24,6 +24,11 @@
 package org.projectforge.framework.persistence.api.impl
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.core.JsonProcessingException
+import com.fasterxml.jackson.databind.SerializerProvider
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import org.hibernate.search.annotations.ClassBridge
 import org.hibernate.search.annotations.ClassBridges
 import org.hibernate.search.annotations.DateBridge
@@ -35,6 +40,7 @@ import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.slf4j.LoggerFactory
+import java.io.IOException
 import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
@@ -48,6 +54,7 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
     @JsonIgnore
     private val fieldInfos = mutableListOf<HibernateSearchFieldInfo>()
 
+    @JsonSerialize(using = ClassBridgesSerializer::class)
     val classBridges: Array<ClassBridge>
 
     val allFieldNames
@@ -211,5 +218,17 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
 
     override fun toString(): String {
         return ToStringUtil.toJsonString(this)
+    }
+
+    class ClassBridgesSerializer : StdSerializer<Any>(Any::class.java) {
+        @Throws(IOException::class, JsonProcessingException::class)
+        override fun serialize(value: Any?, jgen: JsonGenerator, provider: SerializerProvider) {
+            if (value == null) {
+                jgen.writeNull()
+                return
+            }
+            value as Array<ClassBridge>
+            jgen.writeString(value.map { it.name }.joinToString(", "))
+        }
     }
 }
