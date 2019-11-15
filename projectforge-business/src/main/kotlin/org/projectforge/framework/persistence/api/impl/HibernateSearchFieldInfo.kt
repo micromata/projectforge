@@ -23,15 +23,18 @@
 
 package org.projectforge.framework.persistence.api.impl
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.hibernate.search.annotations.ClassBridge
 import org.hibernate.search.annotations.DateBridge
 import org.hibernate.search.annotations.EncodingType
 import org.hibernate.search.annotations.Field
 
 class HibernateSearchFieldInfo(val javaProp: String, val type: Class<*>) {
+    @JsonIgnore
     private var annotations: MutableList<Annotation>? = null
     var idProperty: Boolean = false
         internal set
+    @JsonIgnore
     var dateBridgeAnn: DateBridge? = null
         internal set
     var luceneField: String = javaProp
@@ -58,8 +61,12 @@ class HibernateSearchFieldInfo(val javaProp: String, val type: Class<*>) {
         return !annotations.isNullOrEmpty()
     }
 
+    /**
+     * If field is of type string or field is a class bridge.
+     */
     fun isStringSearchSupported(): Boolean {
         return String::class.java.isAssignableFrom(type)
+                || isClassBridge()
     }
 
     fun isNumericSearchSupported(): Boolean {

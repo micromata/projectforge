@@ -26,7 +26,6 @@ package org.projectforge.business.fibu.kost
 import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.annotations.*
-import org.hibernate.search.annotations.Index
 import org.projectforge.business.fibu.KontoDO
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
@@ -66,12 +65,12 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
      *
      * @return
      */
-    @Field(index = Index.NO, analyze = Analyze.NO)
+    @Field(analyze = Analyze.NO)
     @get:Column(nullable = false)
     open var month: Int? = null
 
     @PropertyInfo(i18nKey = "fibu.buchungssatz.satznr")
-    @Field(index = Index.NO, analyze = Analyze.NO)
+    @Field(analyze = Analyze.NO)
     @get:Column(nullable = false)
     open var satznr: Int? = null
 
@@ -83,7 +82,7 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
         }
 
     @PropertyInfo(i18nKey = "finance.accountingRecord.dc")
-    @Field(index = Index.NO, analyze = Analyze.NO)
+    @Field(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 7, nullable = false)
     open var sh: SHType? = null
@@ -103,7 +102,7 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
     @get:JoinColumn(name = "gegenkonto_id", nullable = false)
     open var gegenKonto: KontoDO? = null
 
-    @Field(index = Index.YES, analyze = Analyze.NO)
+    @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(nullable = false)
     open var datum: Date? = null
