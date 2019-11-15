@@ -35,6 +35,8 @@ import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import org.apache.commons.lang3.builder.EqualsBuilder
+import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.Hibernate
 import org.hibernate.proxy.AbstractLazyInitializer
 import org.projectforge.business.fibu.KundeDO
@@ -58,7 +60,6 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 
-
 /**
  * Helper method to serialize objects as json strings and to use it in toString method.
  * @param obj Object to serialize as json string.
@@ -71,8 +72,11 @@ fun toJsonString(obj: Any, vararg ignoreEmbeddedSerializers: Class<out Any>): St
 
 class ToStringUtil {
     class Serializer<T>(val clazz: Class<T>, val serializer: JsonSerializer<T>)
-
     companion object {
+        private val embeddedSerializerClasses = listOf(GroupDO::class.java, Kost1DO::class.java, Kost2DO::class.java, KundeDO::class.java, PFUserDO::class.java, ProjektDO::class.java, TaskDO::class.java)
+
+        private val mapperMap = mutableMapOf<ObjectMapperKey, ObjectMapper>()
+
         /**
          * Helper method to serialize objects as json strings and to use it in toString method.
          * @param obj Object to serialize as json string.
@@ -97,36 +101,12 @@ class ToStringUtil {
 
         internal fun toJsonString(obj: Any, ignoreEmbeddedSerializers: Array<out Class<out Any>>?,
                                   additionalSerializers: Array<out Serializer<Any>>?): String {
-            val mapper = ObjectMapper()
-            mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
-            mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
-            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL)
-           // mapper.setSerializationInclusion(JsonInclude.Include.NON_DEFAULT)
-            mapper.configure(SerializationFeature.FAIL_ON_SELF_REFERENCES, false)
-            val module = SimpleModule()
-            module.addSerializer(java.util.Date::class.java, UtilDateSerializer(UtilDateFormat.ISO_DATE_TIME_SECONDS))
-            module.addSerializer(Timestamp::class.java, TimestampSerializer(UtilDateFormat.ISO_DATE_TIME_MILLIS))
-            module.addSerializer(java.sql.Date::class.java, SqlDateSerializer())
-            module.addSerializer(TenantDO::class.java, TenantSerializer())
-            module.addSerializer(AbstractLazyInitializer::class.java, HibernateProxySerializer())
-
-            additionalSerializers?.forEach {
-                module.addSerializer(it.clazz, it.serializer)
-            }
-            register(module, GroupDO::class.java, GroupSerializer(), obj, ignoreEmbeddedSerializers)
-            register(module, Kost1DO::class.java, Kost1Serializer(), obj, ignoreEmbeddedSerializers)
-            register(module, Kost2DO::class.java, Kost2Serializer(), obj, ignoreEmbeddedSerializers)
-            register(module, KundeDO::class.java, KundeSerializer(), obj, ignoreEmbeddedSerializers)
-            register(module, PFUserDO::class.java, UserSerializer(), obj, ignoreEmbeddedSerializers)
-            register(module, ProjektDO::class.java, ProjektSerializer(), obj, ignoreEmbeddedSerializers)
-            register(module, TaskDO::class.java, TaskSerializer(), obj, ignoreEmbeddedSerializers)
-            mapper.registerModule(module)
-            mapper.registerModule(KotlinModule())
+            val mapper = getObjectMapper(obj::class.java, ignoreEmbeddedSerializers, additionalSerializers)
             return mapper.writeValueAsString(obj)
         }
 
-        private fun <T> register(module: SimpleModule, clazz: Class<T>, serializer: EmbeddedDOSerializer<T>, obj: Any, ignoreEmbeddedSerializers: Array<out Class<out Any>>?) {
-            if (obj::class.java.equals(clazz)) {
+        private fun <T> register(module: SimpleModule, clazz: Class<T>, serializer: EmbeddedDOSerializer<T>, objClass: Class<*>, ignoreEmbeddedSerializers: Array<out Class<out Any>>?) {
+            if (objClass.equals(clazz)) {
                 return // Don't use embedded serializer for current object itself.
             }
             if (!ignoreEmbeddedSerializers.isNullOrEmpty()) {
@@ -147,6 +127,48 @@ class ToStringUtil {
             if (value != null) {
                 jgen.writeStringField(fieldName, value)
             }
+        }
+
+        private fun getObjectMapper(objClass: Class<*>?, ignoreEmbeddedSerializers: Array<out Class<out Any>>?,
+                                    additionalSerializers: Array<out Serializer<Any>>?): ObjectMapper {
+            val key = if (objClass != null && embeddedSerializerClasses.any { it.isAssignableFrom(objClass) }) {
+                ObjectMapperKey(objClass, ignoreEmbeddedSerializers, additionalSerializers)
+            } else {
+                ObjectMapperKey(null, ignoreEmbeddedSerializers, additionalSerializers)
+            }
+            var mapper = mapperMap[key]
+            if (mapper != null) {
+                return mapper
+            }
+            mapper = ObjectMapper()
+            mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
+            mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
+            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL)
+            // mapper.setSerializationInclusion(JsonInclude.Include.NON_DEFAULT)
+            mapper.configure(SerializationFeature.FAIL_ON_SELF_REFERENCES, false)
+            val module = SimpleModule()
+            module.addSerializer(java.util.Date::class.java, UtilDateSerializer(UtilDateFormat.ISO_DATE_TIME_SECONDS))
+            module.addSerializer(Timestamp::class.java, TimestampSerializer(UtilDateFormat.ISO_DATE_TIME_MILLIS))
+            module.addSerializer(java.sql.Date::class.java, SqlDateSerializer())
+            module.addSerializer(TenantDO::class.java, TenantSerializer())
+            module.addSerializer(AbstractLazyInitializer::class.java, HibernateProxySerializer())
+
+            additionalSerializers?.forEach {
+                module.addSerializer(it.clazz, it.serializer)
+            }
+            if (objClass != null) {
+                register(module, GroupDO::class.java, GroupSerializer(), objClass, ignoreEmbeddedSerializers)
+                register(module, Kost1DO::class.java, Kost1Serializer(), objClass, ignoreEmbeddedSerializers)
+                register(module, Kost2DO::class.java, Kost2Serializer(), objClass, ignoreEmbeddedSerializers)
+                register(module, KundeDO::class.java, KundeSerializer(), objClass, ignoreEmbeddedSerializers)
+                register(module, PFUserDO::class.java, UserSerializer(), objClass, ignoreEmbeddedSerializers)
+                register(module, ProjektDO::class.java, ProjektSerializer(), objClass, ignoreEmbeddedSerializers)
+                register(module, TaskDO::class.java, TaskSerializer(), objClass, ignoreEmbeddedSerializers)
+            }
+            mapper.registerModule(module)
+            mapper.registerModule(KotlinModule())
+            mapperMap[key] = mapper
+            return mapper
         }
     }
 
@@ -231,5 +253,26 @@ class ToStringUtil {
         }
 
         private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneOffset.UTC)
+    }
+
+    private class ObjectMapperKey(var objClass: Class<*>?,
+                                  var ignoreEmbeddedSerializers: Array<out Class<out Any>>?,
+                                  var additionalSerializers: Array<out Serializer<Any>>?) {
+        override fun equals(other: Any?): Boolean {
+            other as ObjectMapperKey
+            return EqualsBuilder()
+                    .append(this.objClass, other.objClass)
+                    .append(this.ignoreEmbeddedSerializers, other.ignoreEmbeddedSerializers)
+                    .append(this.additionalSerializers, other.additionalSerializers)
+                    .isEquals
+        }
+
+        override fun hashCode(): Int {
+            return HashCodeBuilder()
+                    .append(objClass)
+                    .append(ignoreEmbeddedSerializers)
+                    .append(additionalSerializers)
+                    .toHashCode()
+        }
     }
 }

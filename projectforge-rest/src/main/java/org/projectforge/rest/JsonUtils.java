@@ -41,14 +41,15 @@ public class JsonUtils {
 
   private static Map<Class<?>, Object> typeAdapterMap = new HashMap<>();
 
+  private static ObjectMapper objectMapper;
+
   public static void add(final Class<?> cls, final Object typeAdapter) {
     typeAdapterMap.put(cls, typeAdapter);
   }
 
   public static String toJson(final Object obj) {
-    ObjectMapper mapper = createMapper();
     try {
-      return mapper.writeValueAsString(obj);
+      return getObjectMapper().writeValueAsString(obj);
     } catch (JsonProcessingException ex) {
       log.error(ex.getMessage(), ex);
       return "";
@@ -56,13 +57,15 @@ public class JsonUtils {
   }
 
   public static <T> T fromJson(final String json, final Class<T> classOfT) throws IOException {
-    ObjectMapper mapper = new ObjectMapper();
-    return mapper.readValue(json, classOfT);
+    return getObjectMapper().readValue(json, classOfT);
   }
 
-  private static ObjectMapper createMapper() {
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.registerModule(new KotlinModule());
-    return mapper;
+  private static ObjectMapper getObjectMapper() {
+    if (objectMapper == null) {
+      ObjectMapper mapper = new ObjectMapper();
+      mapper.registerModule(new KotlinModule());
+      objectMapper = mapper;
+    }
+    return objectMapper;
   }
 }

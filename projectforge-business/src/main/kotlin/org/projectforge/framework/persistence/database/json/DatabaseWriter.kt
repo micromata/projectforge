@@ -67,7 +67,7 @@ class DatabaseWriter(val emf: PfEmgrFactory,
     fun dump(out: OutputStream?) {
         val jfactory = JsonFactory()
         val jgen = jfactory.createGenerator(out, JsonEncoding.UTF8)
-        jgen.codec = createObjectMapper()
+        jgen.codec = getObjectMapper()
         jgen.writeStartObject();
         jgen.writeStringField("date", PFDateTime.now().isoString)
         jgen.writeStringField("app", ProjectForgeVersion.APP_ID)
@@ -96,7 +96,10 @@ class DatabaseWriter(val emf: PfEmgrFactory,
         //createObjectMapper().readValue(in, )
     }
 
-    private fun createObjectMapper(): ObjectMapper {
+    private fun getObjectMapper(): ObjectMapper {
+        if (objectMapper != null) {
+            return objectMapper!!
+        }
         val mapper = ObjectMapper()
         mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
         mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
@@ -110,6 +113,7 @@ class DatabaseWriter(val emf: PfEmgrFactory,
         module.addSerializer(java.sql.Date::class.java, ToStringUtil.SqlDateSerializer())
         mapper.registerModule(module)
         mapper.registerModule(KotlinModule())
+        objectMapper = mapper
         return mapper
     }
 
@@ -129,5 +133,9 @@ class DatabaseWriter(val emf: PfEmgrFactory,
         }
         jgen.writeEndArray()
         jgen.writeEndObject()
+    }
+
+    companion object {
+        private var objectMapper: ObjectMapper? = null
     }
 }

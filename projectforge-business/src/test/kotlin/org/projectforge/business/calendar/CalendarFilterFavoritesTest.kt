@@ -51,7 +51,7 @@ class CalendarFilterFavoritesTest {
                 "{\"type\":\"org.projectforge.business.calendar.CalendarFilter\",\"name\":\"Standard\",\"id\":8,\"defaultCalendarId\":-1,\"showStatistics\":true,\"timesheetUserId\":2,\"showTimesheets\":true,\"showBreaks\":true,\"showPlanning\":true,\"calendarIds\":[1240526,1240528],\"invisibleCalendars\":[1240528]},"+
                 "{\"type\":\"org.projectforge.business.calendar.CalendarFilter\",\"name\":\"Stéphanie\",\"id\":9,\"defaultCalendarId\":-1,\"calendarIds\":[1245916,1245918]}," +
                 "{\"type\":\"org.projectforge.business.calendar.CalendarFilter\",\"name\":\"Urlaub\",\"id\":10,\"defaultCalendarId\":-1,\"showBreaks\":true,\"calendarIds\":[1240530]}]}"
-        val favorites = UserPrefDao.createObjectMapper().readValue(json, Favorites::class.java)
+        val favorites = UserPrefDao.getObjectMapper().readValue(json, Favorites::class.java)
         assertEquals(11, favorites.favoriteNames.size)
     }
 
