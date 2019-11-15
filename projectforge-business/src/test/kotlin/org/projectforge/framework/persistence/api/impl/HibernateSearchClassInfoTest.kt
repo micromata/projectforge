@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.fibu.RechnungDao
+import org.projectforge.business.fibu.kost.BuchungssatzDao
 import org.projectforge.business.task.TaskDao
 
 class HibernateSearchClassInfoTest {
@@ -56,5 +57,12 @@ class HibernateSearchClassInfoTest {
     fun rechnungTest() {
         val info = HibernateSearchClassInfo(RechnungDao())
         Assertions.assertEquals("kunde.name", info.get("kunde.name")?.javaProp)
+    }
+
+    @Test
+    fun buchungssatzTest() {
+        val info = HibernateSearchClassInfo(BuchungssatzDao())
+        Assertions.assertTrue(info.containsField("kost1.nummer"))
+        Assertions.assertTrue(info.containsField("kost2.nummer"))
     }
 }
