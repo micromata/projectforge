@@ -618,7 +618,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
 
   private String toJson(Object obj) {
     try {
-      return MAGIC_JSON_START + createObjectMapper().writeValueAsString(obj);
+      return MAGIC_JSON_START + getObjectMapper().writeValueAsString(obj);
     } catch (JsonProcessingException ex) {
       log.error("Error while trying to serialze object as json: " + ex.getMessage(), ex);
       return "";
@@ -634,14 +634,19 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
       return null;
     json = json.substring(MAGIC_JSON_START.length());
     try {
-      return createObjectMapper().readValue(json, classOfT);
+      return getObjectMapper().readValue(json, classOfT);
     } catch (IOException ex) {
       log.error("Can't deserialize json object (may-be incompatible ProjectForge versions): " + ex.getMessage() + " json=" + json, ex);
       return null;
     }
   }
 
-  public static ObjectMapper createObjectMapper() {
+  private static ObjectMapper objectMapper = null;
+
+  public static ObjectMapper getObjectMapper() {
+    if (objectMapper != null) {
+      return objectMapper;
+    }
     ObjectMapper mapper = new ObjectMapper();
     mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE);
     mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
@@ -669,6 +674,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
 
     mapper.registerModule(module);
     mapper.registerModule(new KotlinModule());
+    objectMapper = mapper;
     return mapper;
   }
 }

@@ -98,8 +98,13 @@ open class JacksonConfiguration {
     @Value("\${projectforge.rest.json.allowUnkownProperties:true}")
     private var allowUnknownJsonProperties: Boolean = true
 
+    private var objectMapper: ObjectMapper? = null
+
     @Bean
     open fun objectMapper(): ObjectMapper {
+        if (objectMapper != null) {
+            return objectMapper!!
+        }
         val mapper = ObjectMapper()
         mapper.registerModule(KotlinModule())
         mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true)
@@ -165,6 +170,7 @@ open class JacksonConfiguration {
         module.addSerializer(AbstractLazyInitializer::class.java, HibernateProxySerializer())
 
         mapper.registerModule(module)
+        objectMapper = mapper
         return mapper
     }
 }

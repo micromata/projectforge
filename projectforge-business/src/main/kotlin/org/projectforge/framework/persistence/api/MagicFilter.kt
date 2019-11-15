@@ -104,7 +104,7 @@ class MagicFilter(
     }
 
     fun clone(): MagicFilter {
-        val mapper = UserPrefDao.createObjectMapper()
+        val mapper = UserPrefDao.getObjectMapper()
         val json = mapper.writeValueAsString(this)
         return mapper.readValue(json, MagicFilter::class.java)
     }

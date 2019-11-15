@@ -33,7 +33,7 @@ class MagicFilterTest {
     fun serializationTest() {
         val filter = MagicFilter()
         filter.entries.add(MagicFilterEntry("zipCode", "12345"))
-        val om = UserPrefDao.createObjectMapper()
+        val om = UserPrefDao.getObjectMapper()
         var json = om.writeValueAsString(filter)
         var obj = om.readValue(json, MagicFilter::class.java) as MagicFilter
         Assertions.assertEquals(1, obj.entries.size)
