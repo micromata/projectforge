@@ -51,7 +51,6 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
     @JsonIgnore
     private val log = LoggerFactory.getLogger(HibernateSearchClassInfo::class.java)
 
-    @JsonIgnore
     private val fieldInfos = mutableListOf<HibernateSearchFieldInfo>()
 
     @JsonSerialize(using = ClassBridgesSerializer::class)
@@ -86,7 +85,7 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
             }
         }
         baseDao.additionalSearchFields?.forEach { fieldName ->
-            val field = PropUtils.getField(clazz, fieldName)
+            val field = PropUtils.getField(clazz, fieldName, true)
             var fieldFound = false
             if (field != null && checkAndRegister(clazz, fieldName, field.type, field)) {
                 fieldFound = true
