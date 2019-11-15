@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.persistence.api.impl
 
+import org.hibernate.search.annotations.ClassBridge
 import org.hibernate.search.annotations.DateBridge
 import org.hibernate.search.annotations.EncodingType
 import org.hibernate.search.annotations.Field
@@ -48,7 +49,7 @@ class HibernateSearchFieldInfo(val javaProp: String, val type: Class<*>) {
             annotations = mutableListOf()
         }
         annotations!!.add(annotation)
-        if (annotation is Field && !annotation.name.isNullOrBlank()) {
+        if (annotation is Field && annotation.name.isNotBlank()) {
             luceneField = annotation.name
         }
     }
@@ -65,5 +66,9 @@ class HibernateSearchFieldInfo(val javaProp: String, val type: Class<*>) {
         return Integer::class.java.isAssignableFrom(type)
                 || Int::class.java.isAssignableFrom(type)
                 || idProperty
+    }
+
+    fun isClassBridge(): Boolean {
+        return ClassBridge::class.java.isAssignableFrom(type)
     }
 }
