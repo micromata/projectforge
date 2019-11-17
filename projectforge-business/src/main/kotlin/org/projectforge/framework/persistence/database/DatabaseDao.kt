@@ -48,6 +48,9 @@ import java.util.*
 import javax.persistence.EntityManager
 import javax.persistence.FlushModeType
 import javax.persistence.TypedQuery
+import javax.persistence.criteria.CriteriaBuilder
+import javax.persistence.criteria.CriteriaQuery
+import javax.persistence.criteria.Root
 
 /**
  * Creates index creation script and re-indexes data-base.
@@ -202,21 +205,22 @@ class DatabaseDao {
     }
 
     private fun <T> getRowCount(entityManager: EntityManager, clazz: Class<T>, settings: ReindexSettings?): Long {
-        return createQuery(entityManager, clazz, java.lang.Long::class.java, settings).singleResult as Long
+        return createQueryByBuilderRowCount<T>(entityManager, clazz, settings).singleResult as Long
     }
 
     private fun <T> createCriteria(entityManager: EntityManager, clazz: Class<T>, settings: ReindexSettings?): TypedQuery<T> {
-        return createQuery(entityManager, clazz, clazz, settings)
+        return createQueryByBuilder(entityManager, clazz, settings)
     }
 
-    private fun <T> createQuery(entityManager: EntityManager, clazz: Class<*>, resultClazz: Class<T>, settings: ReindexSettings?): TypedQuery<T> {
+    private fun <T> createQueryByHQL(entityManager: EntityManager, clazz: Class<*>, resultClazz: Class<T>, settings: ReindexSettings?): TypedQuery<T> {
         val rowCountOnly = resultClazz == java.lang.Long::class.java
         val select = if (rowCountOnly) "select count(*) from ${clazz.simpleName}" else "from  ${clazz.simpleName}"
         if (settings?.fromDate != null) {
-            val modAtProp =
-                    if (AbstractBaseDO::class.java.isAssignableFrom(clazz)) "lastUpdate"
-                    else if (StdRecord::class.java.isAssignableFrom(clazz)) "modifiedAt"
-                    else null
+            val modAtProp = when {
+                AbstractBaseDO::class.java.isAssignableFrom(clazz) -> "lastUpdate"
+                StdRecord::class.java.isAssignableFrom(clazz) -> "modifiedAt"
+                else -> null
+            }
             if (modAtProp != null) {
                 val query = entityManager.createQuery("$select where $modAtProp > :modifiedAt", resultClazz)
                 query.setParameter("modifiedAt", settings.fromDate)
@@ -231,7 +235,71 @@ class DatabaseDao {
             query.maxResults = settings.lastNEntries
             return query
         }
-        return entityManager.createQuery("$select", resultClazz)
+        return entityManager.createQuery(select, resultClazz)
+    }
+
+    private fun <T> createQueryByBuilderRowCount(entityManager: EntityManager, clazz: Class<T>, settings: ReindexSettings?)
+            : TypedQuery<Long> {
+        val cb = entityManager.criteriaBuilder
+        var cr = cb.createQuery(Long::class.java)
+        val root = cr.from(clazz)
+        cr.select(cb.count(root))
+        return handleSettings(entityManager, cb, cr, root, clazz, settings) ?: entityManager.createQuery(cr)
+    }
+
+    private fun <T> createQueryByBuilder(entityManager: EntityManager, clazz: Class<T>, settings: ReindexSettings?): TypedQuery<T> {
+        val cb = entityManager.criteriaBuilder
+        val cr = cb.createQuery(clazz)
+        val root = cr.from(clazz)
+        cr.select(root)
+        return handleSettings(entityManager, cb, cr, root, clazz, settings) ?: entityManager.createQuery(cr)
+    }
+
+    private fun <T> handleSettings(entityManager: EntityManager, cb: CriteriaBuilder, cr: CriteriaQuery<T>, root: Root<*>, clazz: Class<*>, settings: ReindexSettings?)
+            : TypedQuery<T>? {
+        if (settings == null)
+            return null
+        if (settings.fromDate != null) {
+            val modAtProp = when {
+                AbstractBaseDO::class.java.isAssignableFrom(clazz) -> "lastUpdate"
+                StdRecord::class.java.isAssignableFrom(clazz) -> "modifiedAt"
+                else -> null
+            }
+            if (modAtProp != null) {
+                cr.where(cb.greaterThan(root.get(modAtProp), settings.fromDate))
+                return entityManager.createQuery(cr)
+            }
+            log.error("Modified since '${settings.fromDate}' not supported for entities of type '${clazz.simpleName}'. Database column to use is unknown. Selecting all entities for indexing")
+        }
+    }
+
+    private fun handleModifiedAtCriteria(cb: CriteriaBuilder, cr: CriteriaQuery<*>, root: Root<*>, clazz: Class<*>, settings: ReindexSettings?): Boolean {
+        if (settings?.fromDate != null) {
+            val modAtProp = when {
+                AbstractBaseDO::class.java.isAssignableFrom(clazz) -> "lastUpdate"
+                StdRecord::class.java.isAssignableFrom(clazz) -> "modifiedAt"
+                else -> null
+            }
+            if (modAtProp != null) {
+                cr.where(cb.greaterThan(root.get(modAtProp), settings.fromDate))
+                return true
+            }
+            log.error("Modified since '${settings.fromDate}' not supported for entities of type '${clazz.simpleName}'. Database column to use is unknown. Selecting all entities for indexing")
+            return false
+        }
+        return false
+    }
+
+    private fun handleLastNEntriesCriteria(cb: CriteriaBuilder, cr: CriteriaQuery<*>, root: Root<*>, clazz: Class<*>, settings: ReindexSettings?): Boolean {
+        if (settings?.lastNEntries != null) {
+            if (clazz.isAssignableFrom(PfHistoryMasterDO::class.java)) {
+                cr.orderBy(cb.desc(root.get<Number>("pk")))
+            } else {
+                cr.orderBy(cb.desc(root.get<Number>("id")))
+            }
+            return true
+        }
+        return false
     }
 
     companion object {
