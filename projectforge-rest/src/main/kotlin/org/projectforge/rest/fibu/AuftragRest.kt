@@ -141,8 +141,6 @@ class AuftragRest() : AbstractDORest<AuftragDO, AuftragDao>(AuftragDao::class.ja
                                 .add(UICol()
                                         .add(lc, "position.fakturiertSum"))
                                 .add(UICol()
-                                        .add(lc, "position.nettoSumme"))
-                                .add(UICol()
                                         .add(lc, "position.status")))
                         .add(UIRow()
                                 .add(UICol()
