@@ -95,6 +95,7 @@ open class AuftragsPositionDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * Person days (man days) for this order position. The value may differ from the calculated net sum because you spent
      * more or less person days to realize this order position.
      */
+    @PropertyInfo(i18nKey = "projectmanagement.personDays")
     @get:Column(name = "person_days", scale = 2, precision = 12)
     open var personDays: BigDecimal? = null
 
