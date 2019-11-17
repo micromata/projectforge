@@ -25,17 +25,17 @@ package org.projectforge.framework.persistence.database
 
 import de.micromata.genome.jpa.StdRecord
 import org.apache.commons.lang3.ClassUtils
+import org.hibernate.CacheMode
 import org.hibernate.ScrollMode
+import org.hibernate.ScrollableResults
 import org.hibernate.Session
 import org.hibernate.query.Query
 import org.hibernate.search.FullTextSession
 import org.hibernate.search.Search
-import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.ReindexSettings
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO
-import org.projectforge.framework.persistence.jpa.PfEmgr
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.projectforge.framework.persistence.utils.PFTransactionTemplate.runInTrans
 import org.projectforge.framework.time.DateHelper
@@ -96,10 +96,10 @@ class DatabaseDao {
             return
         }
         // OK, full re-index required:
-        if (isIn(clazz, TimesheetDO::class.java, PfHistoryMasterDO::class.java)) { // MassIndexer throws LazyInitializationException for some classes, so use it only for the important classes (with most entries):
+        /*if (isIn(clazz, TimesheetDO::class.java, PfHistoryMasterDO::class.java)) { // MassIndexer throws LazyInitializationException for some classes, so use it only for the important classes (with most entries):
             reindexMassIndexer(clazz)
             return
-        }
+        }*/
         reindexObjects(clazz, null)
     }
 
@@ -116,8 +116,7 @@ class DatabaseDao {
         runInTrans(emgrFactory!!) { em: EntityManager ->
             val session = em.delegate as Session
             val number = getRowCount(em, clazz, settings) // Get number of objects to re-index (select count(*) from).
-            val scrollMode = number > MIN_REINDEX_ENTRIES_4_USE_SCROLL_MODE
-            log.info("Reindexing [${clazz.simpleName}]: Starting reindexing of $number entries with scrollMode=$scrollMode...")
+            log.info("Reindexing [${clazz.simpleName}]: Starting reindexing of $number entries with scrollMode=true...")
             val batchSize = 1000 // NumberUtils.createInteger(System.getProperty("hibernate.search.worker.batch_size")
             var fullTextSession: FullTextSession? = null
             try {
@@ -126,36 +125,23 @@ class DatabaseDao {
                 // HibernateCompatUtils.setFlushMode(fullTextSession, FlushMode.MANUAL);
                 // HibernateCompatUtils.setCacheMode(fullTextSession, CacheMode.IGNORE);
                 var index: Long = 0
-                val monitor = IndexProgressMonitor("Reindexing [" + clazz.simpleName + "]: ", number)
-                if (scrollMode) { // Scroll-able results will avoid loading too many objects in memory
-                    val query = createCriteria(em, clazz, settings)
-                    val hquery = query.unwrap(Query::class.java)
-                    val results = hquery.setFetchSize(1000).setReadOnly(true).scroll(ScrollMode.FORWARD_ONLY)
-                    while (results.next()) {
-                        val obj = results[0]
-                        if (obj is ExtendedBaseDO<*>) {
-                            obj.recalculate()
-                        }
-                        fullTextSession.index(obj)
-                        monitor.documentsAdded(1)
-                        if (index++ % batchSize == 0L) {
-                            em.clear()
-                            fullTextSession.flush() // clear every batchSize since the queue is processed
-                            fullTextSession.clear()
-                        }
+                val monitor = IndexProgressMonitor("Reindexing [" + clazz.simpleName + "]", number)
+                val query = createCriteria(em, clazz, settings)
+                val hquery = query.unwrap(Query::class.java)
+                //val scrollable = MyScrollable(hquery)
+                //while (scrollable.next()) {
+                val results = hquery.setCacheMode(CacheMode.IGNORE).setFetchSize(1000).setReadOnly(true).scroll(ScrollMode.FORWARD_ONLY)
+                while (results.next()) {
+                    val obj = results[0]
+                    //val obj = scrollable.current()
+                    if (obj is ExtendedBaseDO<*>) {
+                        obj.recalculate()
                     }
-                } else {
-                    val query = createCriteria(em, clazz, settings)
-                    val list = query.resultList
-                    for (obj in list) {
-                        if (obj is ExtendedBaseDO<*>) {
-                            (obj as ExtendedBaseDO<*>).recalculate()
-                        }
-                        fullTextSession.index<Any>(obj)
-                        if (index++ % batchSize == 0L) {
-                            fullTextSession.flush() // clear every batchSize since the queue is processed
-                            fullTextSession.clear()
-                        }
+                    fullTextSession.index(obj)
+                    monitor.documentsAdded(1)
+                    if (index++ % batchSize == 0L) {
+                        fullTextSession.flushToIndexes() // clear every batchSize since the queue is processed
+                        session.clear()
                     }
                 }
                 log.info("Reindexing [${clazz.simpleName}]: optimizing of " + number + " objects...")
@@ -164,38 +150,8 @@ class DatabaseDao {
                 log.info("Reindexing [${clazz.simpleName}]: reindexing done.")
                 return@runInTrans index
             } finally {
-                if (fullTextSession != null && fullTextSession.isOpen) {
-                    fullTextSession.close()
-                }
-            }
-        }
-    }
-
-    private fun <T> reindexMassIndexer(clazz: Class<T>): Long {
-        return emgrFactory!!.runInTrans { emgr: PfEmgr ->
-            val em = emgr.entityManager
-            val session = em.delegate as Session
-            val number = getRowCount(em, clazz, null) // Get number of objects to re-index (select count(*) from).
-            log.info("Reindexing [${clazz.simpleName}]: Starting (mass) re-indexing of $number entries...")
-            var fullTextSession: FullTextSession? = null
-            try {
-                fullTextSession = Search.getFullTextSession(session)
-                try {
-                    fullTextSession.createIndexer(clazz) //
-                            .batchSizeToLoadObjects(5) //
-                            .optimizeOnFinish(true)
-                            .idFetchSize(1000) //.cacheMode(CacheMode.NORMAL) //
-                            .threadsToLoadObjects(5) //
-                            .progressMonitor(IndexProgressMonitor("Reindexing [${clazz.simpleName}]: ", number)) //.threadsForIndexWriter(1) //
-                            .startAndWait()
-                } catch (ex: InterruptedException) {
-                    log.error("Exception encountered while reindexing: ${ex.message}", ex)
-                }
-                log.info("Reindexing [${clazz.simpleName}]: reindexing of $number objects done.")
-                return@runInTrans number
-            } finally {
-                if (fullTextSession != null && fullTextSession.isOpen) {
-                    fullTextSession.close()
+                if (session != null && session.isOpen) {
+                    session.close()
                 }
             }
         }
@@ -236,7 +192,6 @@ class DatabaseDao {
     }
 
     companion object {
-        private const val MIN_REINDEX_ENTRIES_4_USE_SCROLL_MODE = 2000
         private val log = LoggerFactory.getLogger(DatabaseDao::class.java)
         /**
          * Since yesterday and 1,000 newest entries at maximimum.
@@ -252,4 +207,35 @@ class DatabaseDao {
             }
         }
     }
+
+    class MyScrollable(val cr: Query<*>) {
+        private val scrollSize = 1000
+        private var offset = 1
+        private lateinit var scrollableResults: ScrollableResults
+
+        init {
+            nextScrollableResult()
+        }
+
+        fun next(): Boolean {
+            if (scrollableResults.isLast) {
+                nextScrollableResult()
+            }
+            return scrollableResults.next()
+        }
+
+        fun current(): Any {
+            return scrollableResults[0]
+        }
+
+        private fun nextScrollableResult() {
+            scrollableResults = cr.setFirstResult(offset)
+                    .setMaxResults(scrollSize)
+                    .setReadOnly(true)
+                    .setCacheMode(org.hibernate.CacheMode.IGNORE)
+                    .scroll(org.hibernate.ScrollMode.FORWARD_ONLY)
+            offset += scrollSize
+        }
+    }
+
 }
