@@ -41,8 +41,8 @@ import java.util.Calendar;
  * @author Florian Blumenstein
  */
 @Component
-public class CronHourlyJob {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CronHourlyJob.class);
+public class CronReindexingHourlyJob {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CronReindexingHourlyJob.class);
 
   @Autowired
   private DatabaseService databaseUpdateDao;
@@ -54,7 +54,12 @@ public class CronHourlyJob {
   private PfEmgrFactory emgrFactory;
 
   //@Scheduled(cron = "0 0 * * * *")
-  @Scheduled(cron = "${projectforge.cron.hourly}")
+  //@Scheduled(cron = "${projectforge.cron.hourly}")
+
+  /**
+   * In ms.
+   */
+  @Scheduled(fixedDelay = 3600 * 1000, initialDelay = 10 * 1000)
   public void execute() {
     log.info("Hourly job started.");
     try {
@@ -62,10 +67,7 @@ public class CronHourlyJob {
       final Calendar cal = Calendar.getInstance(DateHelper.UTC);
       cal.add(Calendar.DAY_OF_YEAR, -1);
       final ReindexSettings settings = new ReindexSettings(cal.getTime(), null);
-      emgrFactory.runInTrans(emgr -> {
-        hibernateSearchReindexer.rebuildDatabaseSearchIndices(settings, PfHistoryMasterDO.class);
-        return null;
-      });
+      hibernateSearchReindexer.rebuildDatabaseSearchIndices(settings, PfHistoryMasterDO.class);
     } catch (final Throwable ex) {
       log.error("While executing fix job for data base history entries: " + ex.getMessage(), ex);
     }
