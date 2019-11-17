@@ -33,26 +33,38 @@ import java.util.*
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class IndexProgressMonitor(private val logPrefix: String, private val totalNumber: Long) : SimpleIndexingProgressMonitor() {
+class IndexProgressMonitor(private val logPrefix: String, private val totalNumber: Long, private val synchronizedMode: Boolean = false) : SimpleIndexingProgressMonitor() {
     @Volatile
     private var done: Long = 0
     private var blockCounter: Long = 0
     private var progressSteps: Long = 0
+    private var lastTime = System.currentTimeMillis()
+
     override fun documentsAdded(increment: Long) {
-        synchronized(this) {
-            blockCounter += increment
-            done += increment
-            if (blockCounter > progressSteps) {
-                printStatusMessage(totalNumber, done)
-                blockCounter -= progressSteps
+        if (synchronizedMode) {
+            synchronized(this) {
+                internalAdded(increment)
             }
+        } else {
+            internalAdded(increment)
         }
     }
 
-    fun printStatusMessage(totalTodoCount: Long, doneCount: Long) {
+    private fun internalAdded(increment: Long) {
+        blockCounter += increment
+        done += increment
+        if (blockCounter > progressSteps) {
+            printStatusMessage(totalNumber, done, blockCounter)
+            blockCounter -= progressSteps
+        }
+    }
+
+    override fun printStatusMessage(totalTodoCount: Long, doneCount: Long, blockCounter: Long) {
         val format = NumberFormat.getInstance(Locale.US)
         val percentage = BigDecimal(doneCount).multiply(NumberHelper.HUNDRED).divide(BigDecimal(totalTodoCount), 0, RoundingMode.HALF_UP)
-        log.info("$logPrefix: Progress: ${percentage}% (${format.format(doneCount)}/${format.format(totalTodoCount)})")
+        val time = System.currentTimeMillis()
+        val speed = blockCounter * 1000 / (time - lastTime)
+        log.info("$logPrefix: Progress: ${percentage}% (${format.format(doneCount)}/${format.format(totalTodoCount)}): ${format.format(speed)}/s")
     }
 
     companion object {
