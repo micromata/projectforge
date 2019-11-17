@@ -66,6 +66,7 @@ class IndexProgressMonitor(private val logPrefix: String, private val totalNumbe
         val time = System.currentTimeMillis()
         val speed = blockCounter * 1000 / (time - lastTime)
         log.info("$logPrefix: Progress: ${percentage}% (${format.format(doneCount)}/${format.format(totalTodoCount)}): ${format.format(speed)}/s")
+        lastTime = time
     }
 
     companion object {
