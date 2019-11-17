@@ -33,6 +33,12 @@ function DynamicInputResolver({ dataType, autoCompletionUrl, ...props }) {
         case 'USER':
             Tag = DynamicUserSelect;
             break;
+        case 'INT':
+        case 'DECIMAL':
+        case 'NUMBER':
+            Tag = DynamicInput;
+            additionalProps.type = 'number';
+            break;
         default:
             return <span>{`${dataType} Input is not implemented.`}</span>;
     }
@@ -50,6 +56,9 @@ DynamicInputResolver.propTypes = {
         'TIMESTAMP',
         'TASK',
         'USER',
+        'INT',
+        'DECIMAL',
+        'NUMBER',
     ]).isRequired,
     autoCompletionUrl: PropTypes.string,
 };
