@@ -125,10 +125,7 @@ public class HibernateSearchReindexer {
     // PF-378: Performance of run of full re-indexing the data-base is very slow for large data-bases
     // Single transactions needed, otherwise the full run will be very slow for large data-bases.
     try {
-      emf.runInTrans(emgr -> {
-        databaseDao.reindex(clazz, settings, buf);
-        return true;
-      });
+      databaseDao.reindex(clazz, settings, buf);
     } catch (Exception ex) {
       buf.append(" (an error occured, see log file for further information.), ");
       log.error("While rebuilding data-base-search-index for '" + clazz.getName() + "': " + ex.getMessage(), ex);
