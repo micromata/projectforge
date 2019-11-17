@@ -98,9 +98,7 @@ class AuftragsPositionVO(auftragsPosition: AuftragsPositionDO) : Comparable<Auft
 
     override fun equals(other: Any?): Boolean {
         if (other is AuftragsPositionVO) {
-            if (this.number != other.number)
-                return false
-            return this.auftragId != other.auftragId
+            return this.number == other.number && this.auftragId == other.auftragId
         }
         return false
     }
@@ -114,7 +112,7 @@ class AuftragsPositionVO(auftragsPosition: AuftragsPositionDO) : Comparable<Auft
 
     override fun compareTo(other: AuftragsPositionVO): Int {
         val cmp = compareValues(this.auftragNummer, other.auftragNummer)
-        if (cmp == 0) return 0
+        if (cmp != 0) return cmp
         return compareValues(this.number, other.number)
     }
 }
