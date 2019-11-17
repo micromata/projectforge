@@ -23,18 +23,15 @@
 
 package org.projectforge.framework.persistence.database
 
-import de.micromata.genome.jpa.StdRecord
 import org.apache.commons.lang3.ClassUtils
 import org.hibernate.CacheMode
 import org.hibernate.ScrollMode
-import org.hibernate.ScrollableResults
 import org.hibernate.Session
 import org.hibernate.query.Query
 import org.hibernate.search.FullTextSession
 import org.hibernate.search.Search
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.ReindexSettings
-import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.projectforge.framework.persistence.utils.PFTransactionTemplate.runInTrans
@@ -117,7 +114,7 @@ class DatabaseDao {
             val session = em.delegate as Session
             val number = getRowCount(em, clazz, settings) // Get number of objects to re-index (select count(*) from).
             log.info("Reindexing [${clazz.simpleName}]: Starting reindexing of $number entries with scrollMode=true...")
-            val batchSize = 1000 // NumberUtils.createInteger(System.getProperty("hibernate.search.worker.batch_size")
+            val batchSize = 10000 // NumberUtils.createInteger(System.getProperty("hibernate.search.worker.batch_size")
             var fullTextSession: FullTextSession? = null
             try {
                 fullTextSession = Search.getFullTextSession(session)
@@ -167,15 +164,11 @@ class DatabaseDao {
 
     private fun <T> createQuery(entityManager: EntityManager, clazz: Class<*>, resultClazz: Class<T>, settings: ReindexSettings?): TypedQuery<T> {
         val rowCountOnly = resultClazz == java.lang.Long::class.java
-        val select = if (rowCountOnly) "select count(*) from ${clazz.simpleName}" else "from  ${clazz.simpleName}"
+        val strategy = ReindexerRegistry.get(clazz)
+        val select = if (rowCountOnly) "select count(*) from ${clazz.simpleName} as t" else "from ${clazz.simpleName} as t${strategy.join}"
         if (settings?.fromDate != null) {
-            val modAtProp = when {
-                AbstractBaseDO::class.java.isAssignableFrom(clazz) -> "lastUpdate"
-                StdRecord::class.java.isAssignableFrom(clazz) -> "modifiedAt"
-                else -> null
-            }
-            if (modAtProp != null) {
-                val query = entityManager.createQuery("$select where $modAtProp > :modifiedAt", resultClazz)
+            if (strategy.modifiedAtProperty != null) {
+                val query = entityManager.createQuery("$select where t.${strategy.modifiedAtProperty} > :modifiedAt", resultClazz)
                 query.setParameter("modifiedAt", settings.fromDate)
                 return query
             }
@@ -207,35 +200,4 @@ class DatabaseDao {
             }
         }
     }
-
-    class MyScrollable(val cr: Query<*>) {
-        private val scrollSize = 1000
-        private var offset = 1
-        private lateinit var scrollableResults: ScrollableResults
-
-        init {
-            nextScrollableResult()
-        }
-
-        fun next(): Boolean {
-            if (scrollableResults.isLast) {
-                nextScrollableResult()
-            }
-            return scrollableResults.next()
-        }
-
-        fun current(): Any {
-            return scrollableResults[0]
-        }
-
-        private fun nextScrollableResult() {
-            scrollableResults = cr.setFirstResult(offset)
-                    .setMaxResults(scrollSize)
-                    .setReadOnly(true)
-                    .setCacheMode(org.hibernate.CacheMode.IGNORE)
-                    .scroll(org.hibernate.ScrollMode.FORWARD_ONLY)
-            offset += scrollSize
-        }
-    }
-
 }
