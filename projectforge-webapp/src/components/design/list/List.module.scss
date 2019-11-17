@@ -1,0 +1,17 @@
+.listElement {
+  .header {
+    cursor: pointer;
+  }
+
+  .chevron {
+    margin-right: .5em;
+    transform: rotate(0);
+    transition: transform .3s;
+  }
+
+  &.bodyIsOpen {
+    .chevron {
+      transform: rotate(90deg);
+    }
+  }
+}

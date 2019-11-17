@@ -15,6 +15,8 @@ export {
     ButtonGroup,
     Card,
     CardBody,
+    CardFooter,
+    CardHeader,
     CardTitle,
     Col,
     Collapse,
