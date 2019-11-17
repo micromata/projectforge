@@ -39,7 +39,8 @@ data class UIList(
          * The name of an item of the list, usable by the child elements as prefix of id.
          */
         val elementVar: String,
-        val content: MutableList<UIElement> = mutableListOf())
+        val content: MutableList<UIElement> = mutableListOf(),
+        var positionLabel: String = "label.position.short")
     : UIElement(UIElementType.LIST) {
     init {
         lc.registerListElement(elementVar, listId)

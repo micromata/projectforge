@@ -281,6 +281,10 @@ class LayoutUtils {
                             }
                         }
                     }
+                    is UIList -> {
+                        // Translate position label
+                        it.positionLabel = translate(it.positionLabel)
+                    }
                 }
             }
             return elements
