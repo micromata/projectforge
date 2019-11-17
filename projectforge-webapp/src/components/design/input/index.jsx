@@ -93,7 +93,7 @@ Input.propTypes = {
     placeholder: PropTypes.string,
     small: PropTypes.bool,
     type: PropTypes.string,
-    value: PropTypes.string,
+    value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 Input.defaultProps = {
