@@ -76,6 +76,8 @@ class IndexProgressMonitor(private val logPrefix: String, private val totalNumbe
     init {
         progressSteps = if (totalNumber > 5000000) // 1.000.000
             totalNumber / 100 // Log message every 1%
+        else if (totalNumber > 2000000) // 1.000.000
+            totalNumber / 20 // Log message every 5%
         else if (totalNumber > 1000000) // 1.000.000
             totalNumber / 10 // Log message every 10%
         else if (totalNumber > 100000) // 100.000
