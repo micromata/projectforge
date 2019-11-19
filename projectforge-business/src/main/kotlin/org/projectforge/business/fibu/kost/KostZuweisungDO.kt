@@ -23,6 +23,9 @@
 
 package org.projectforge.business.fibu.kost
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo
+import com.fasterxml.jackson.annotation.JsonManagedReference
+import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
@@ -49,6 +52,7 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "T_FIBU_KOST_ZUWEISUNG", uniqueConstraints = [UniqueConstraint(columnNames = ["index", "rechnungs_pos_fk", "kost1_fk", "kost2_fk"]), UniqueConstraint(columnNames = ["index", "eingangsrechnungs_pos_fk", "kost1_fk", "kost2_fk"]), UniqueConstraint(columnNames = ["index", "employee_salary_fk", "kost1_fk", "kost2_fk"])], indexes = [Index(name = "idx_fk_t_fibu_kost_zuweisung_eingangsrechnungs_pos_fk", columnList = "eingangsrechnungs_pos_fk"), Index(name = "idx_fk_t_fibu_kost_zuweisung_employee_salary_fk", columnList = "employee_salary_fk"), Index(name = "idx_fk_t_fibu_kost_zuweisung_kost1_fk", columnList = "kost1_fk"), Index(name = "idx_fk_t_fibu_kost_zuweisung_kost2_fk", columnList = "kost2_fk"), Index(name = "idx_fk_t_fibu_kost_zuweisung_rechnungs_pos_fk", columnList = "rechnungs_pos_fk"), Index(name = "idx_fk_t_fibu_kost_zuweisung_tenant_id", columnList = "tenant_id")])
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class KostZuweisungDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     /**
@@ -79,6 +83,7 @@ open class KostZuweisungDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "rechnungs_pos_fk", nullable = true)
+    @JsonManagedReference
     open var rechnungsPosition: RechnungsPositionDO? = null
         set(rechnungsPosition) {
             if (rechnungsPosition != null && (this.eingangsrechnungsPosition != null || this.employeeSalary != null)) {
@@ -90,6 +95,7 @@ open class KostZuweisungDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "eingangsrechnungs_pos_fk", nullable = true)
+    @JsonManagedReference
     open var eingangsrechnungsPosition: EingangsrechnungsPositionDO? = null
         set(eingangsrechnungsPosition) {
             if (eingangsrechnungsPosition != null && (this.rechnungsPosition != null || this.employeeSalary != null)) {
