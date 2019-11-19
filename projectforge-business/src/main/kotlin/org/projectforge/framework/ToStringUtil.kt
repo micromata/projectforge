@@ -54,6 +54,7 @@ import org.projectforge.framework.json.UtilDateSerializer
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.TenantDO
+import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.sql.Timestamp
 import java.time.ZoneOffset
@@ -73,6 +74,8 @@ fun toJsonString(obj: Any, vararg ignoreEmbeddedSerializers: Class<out Any>): St
 class ToStringUtil {
     class Serializer<T>(val clazz: Class<T>, val serializer: JsonSerializer<T>)
     companion object {
+        private val log = LoggerFactory.getLogger(ToStringUtil::class.java)
+
         private val embeddedSerializerClasses = listOf(GroupDO::class.java, Kost1DO::class.java, Kost2DO::class.java, KundeDO::class.java, PFUserDO::class.java, ProjektDO::class.java, TaskDO::class.java)
 
         private val mapperMap = mutableMapOf<ObjectMapperKey, ObjectMapper>()
@@ -105,7 +108,9 @@ class ToStringUtil {
                 val mapper = getObjectMapper(obj::class.java, ignoreEmbeddedSerializers, additionalSerializers)
                 return mapper.writeValueAsString(obj)
             } catch(ex: Exception) {
-                return "[Exception while serializng object of type '${obj::class.java.simpleName}': ${ex.message}.]"
+                val id = System.currentTimeMillis()
+                log.error("Exception while serializing object of type '${obj::class.java.simpleName}' #$id: ${ex.message}", ex)
+                return "[*** Exception while serializing object of type '${obj::class.java.simpleName}', see log files #$id for more details.]"
             }
         }
 
