@@ -101,8 +101,12 @@ class ToStringUtil {
 
         internal fun toJsonString(obj: Any, ignoreEmbeddedSerializers: Array<out Class<out Any>>?,
                                   additionalSerializers: Array<out Serializer<Any>>?): String {
-            val mapper = getObjectMapper(obj::class.java, ignoreEmbeddedSerializers, additionalSerializers)
-            return mapper.writeValueAsString(obj)
+            try {
+                val mapper = getObjectMapper(obj::class.java, ignoreEmbeddedSerializers, additionalSerializers)
+                return mapper.writeValueAsString(obj)
+            } catch(ex: Exception) {
+                return "[Exception while serializng object of type '${obj::class.java.simpleName}': ${ex.message}.]"
+            }
         }
 
         private fun <T> register(module: SimpleModule, clazz: Class<T>, serializer: EmbeddedDOSerializer<T>, objClass: Class<*>, ignoreEmbeddedSerializers: Array<out Class<out Any>>?) {
