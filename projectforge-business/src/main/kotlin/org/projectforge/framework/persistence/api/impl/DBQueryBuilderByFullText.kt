@@ -292,18 +292,18 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
         } else {
             val context = if (value.indexOf('*') >= 0) {
                 if (fields.size > 1) {
-                    if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.keyword().wildcard().onFields(*).matching($value)...): fields:${fields.joinToString(", ")}")
+                    if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.keyword().wildcard().onFields(*).matching('$value')...): fields:${fields.joinToString(", ")}")
                     queryBuilder.keyword().wildcard().onFields(*fields)
                 } else {
-                    if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.keyword().wildcard().onField('${fields[0]}').matching($value)...)")
+                    if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.keyword().wildcard().onField('${fields[0]}').matching('$value')...)")
                     queryBuilder.keyword().wildcard().onField(fields[0])
                 }
             } else {
                 if (fields.size > 1) {
-                    if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.keyword().onFields(*).matching($value)...): fields:${fields.joinToString(", ")}")
+                    if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.keyword().onFields(*).matching('$value')...): fields:${fields.joinToString(", ")}")
                     queryBuilder.keyword().onFields(*fields)
                 } else {
-                    if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.keyword().onField('${fields[0]}').matching($value)...)")
+                    if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.keyword().onField('${fields[0]}').matching('$value')...)")
                     queryBuilder.keyword().onField(fields[0])
                 }
             }
