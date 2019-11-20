@@ -351,6 +351,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
     Validate.notNull(timesheet.getUser());
     final QueryFilter queryFilter = new QueryFilter();
     queryFilter.add(QueryFilter.eq("user", timesheet.getUser()));
+    queryFilter.add(QueryFilter.eq("deleted", false));
     queryFilter.add(QueryFilter.lt("startTime", timesheet.getStopTime()));
     queryFilter.add(QueryFilter.gt("stopTime", timesheet.getStartTime()));
     if (timesheet.getId() != null) {
