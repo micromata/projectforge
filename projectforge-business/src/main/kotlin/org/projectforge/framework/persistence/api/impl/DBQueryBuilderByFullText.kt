@@ -254,7 +254,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     }
 
     fun fulltextSearch(searchString: String) {
-        if (NumberUtils.isCreatable(searchString)) {
+        if (searchClassInfo.numericFieldNames.size > 0 && NumberUtils.isCreatable(searchString)) {
             val number = NumberUtils.createNumber(searchString)
             search(number, *searchClassInfo.numericFieldNames)
         } else {
