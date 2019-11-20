@@ -110,7 +110,7 @@ class DatabaseDao {
             }
             log.info("Reindexing [${clazz.simpleName}]: Starting reindexing of $number entries with scrollMode=true...")
 
-            val idsQuery = createQuery(em, clazz, java.lang.Long::class.java, settings, QueryMode.SELECT_IDS_ONLY)
+            val idsQuery = createQuery(em, clazz, Number::class.java, settings, QueryMode.SELECT_IDS_ONLY)
             val session = em.unwrap(Session::class.java)//.delegate as Session
             val bigResultSetHandler = BigResultSetHandler<T>(em, clazz, idsQuery)
             val fullTextSession = Search.getFullTextSession(session)
@@ -154,7 +154,7 @@ class DatabaseDao {
     }
 
     private fun <T> getRowCount(entityManager: EntityManager, clazz: Class<T>, settings: ReindexSettings?): Long {
-        val result = createQuery(entityManager, clazz, java.lang.Long::class.java, settings, QueryMode.ROW_COUNT)
+        val result = createQuery(entityManager, clazz, Number::class.java, settings, QueryMode.ROW_COUNT)
                 .singleResult as Long
         if (settings?.lastNEntries != null) {
             return minOf(result, settings.lastNEntries.toLong())
