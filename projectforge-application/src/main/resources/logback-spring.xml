@@ -7,7 +7,7 @@
     <appender name="ROLLING-FILE-ALL"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
         <encoder>
-            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <pattern>-%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}} ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } %X{client_ip} [%t] %-40.40logger{39} : %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}</pattern>
         </encoder>
         <file>${LOG_HOME}ProjectForge.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -43,7 +43,7 @@
 
     <!-- custom logging levels -->
     <logger name="de.micromata.genome.jpa.impl.JpaWithExtLibrariesScanner" level="WARN" />
-    <!--logger name="org.projectforge.framework.persistence.api.impl" level="DEBUG" /-->
+    <logger name="org.projectforge.framework.persistence.api.impl" level="DEBUG" />
     <!--logger name="org.hibernate.cache" level="DEBUG" /-->
 
 </configuration>
