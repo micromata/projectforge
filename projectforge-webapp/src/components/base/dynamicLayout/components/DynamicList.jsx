@@ -16,7 +16,7 @@ function DynamicList(
 
     const { data, renderLayout } = context;
 
-    const list = data[listId] || [];
+    const list = Object.getByString(data, listId) || [];
 
     return (
         <React.Fragment>
