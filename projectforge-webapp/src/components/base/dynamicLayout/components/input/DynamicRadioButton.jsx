@@ -14,6 +14,8 @@ function DynamicRadioButton(
 ) {
     const { data, setData } = React.useContext(DynamicLayoutContext);
 
+    const checked = Object.getByString(data, id) === value;
+
     return React.useMemo(() => {
         const handleCheckboxChange = ({ target }) => {
             if (target.checked) {
@@ -26,12 +28,12 @@ function DynamicRadioButton(
                     id={`${id}-${value}`}
                     name={name}
                     label={label}
-                    checked={data[id] === value}
+                    checked={checked}
                     onChange={handleCheckboxChange}
                 />
             </DynamicValidationManager>
         );
-    }, [data[id], setData]);
+    }, [checked, setData]);
 }
 
 DynamicRadioButton.propTypes = {

@@ -7,6 +7,8 @@ import DynamicValidationManager from './DynamicValidationManager';
 function DynamicInput({ id, focus, ...props }) {
     const { data, setData } = React.useContext(DynamicLayoutContext);
 
+    const value = Object.getByString(data, id) || '';
+
     // Only rerender input when data has changed
     return React.useMemo(() => {
         const handleInputChange = ({ target }) => setData({ [id]: target.value });
@@ -18,11 +20,11 @@ function DynamicInput({ id, focus, ...props }) {
                     onChange={handleInputChange}
                     autoFocus={focus}
                     {...props}
-                    value={data[id] || ''}
+                    value={value}
                 />
             </DynamicValidationManager>
         );
-    }, [data[id], setData]);
+    }, [value, setData]);
 }
 
 DynamicInput.propTypes = {

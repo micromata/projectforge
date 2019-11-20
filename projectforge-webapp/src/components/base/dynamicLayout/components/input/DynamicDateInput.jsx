@@ -23,7 +23,7 @@ function DynamicDateInput(props) {
     } = props;
 
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
-    const value = data[id];
+    const value = Object.getByString(data, id);
 
     return React.useMemo(() => {
         const handleDayChange = day => setData({

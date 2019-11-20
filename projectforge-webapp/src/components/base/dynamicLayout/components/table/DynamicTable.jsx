@@ -8,6 +8,8 @@ import DynamicTableRow from './DynamicTableRow';
 function DynamicTable({ columns, id }) {
     const { data, ui } = React.useContext(DynamicLayoutContext);
 
+    const entries = Object.getByString(data, id) || '';
+
     return React.useMemo(() => (
         <Card>
             <CardBody>
@@ -23,7 +25,7 @@ function DynamicTable({ columns, id }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {(data[id] || []).map(row => (
+                        {entries.map(row => (
                             <DynamicTableRow
                                 key={`table-body-row-${row.id}`}
                                 columns={columns}
@@ -41,7 +43,7 @@ function DynamicTable({ columns, id }) {
                     : undefined}
             </CardBody>
         </Card>
-    ), [data[id], ui]);
+    ), [entries, ui]);
 }
 
 DynamicTable.propTypes = {
