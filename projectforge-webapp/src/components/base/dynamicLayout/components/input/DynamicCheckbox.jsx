@@ -7,6 +7,8 @@ import DynamicValidationManager from './DynamicValidationManager';
 function DynamicCheckbox({ id, label, ...props }) {
     const { data, setData } = React.useContext(DynamicLayoutContext);
 
+    const value = Object.getByString(data, id) || false;
+
     return React.useMemo(() => {
         const handleCheckboxChange = ({ target }) => setData({ [id]: target.checked });
 
@@ -15,13 +17,13 @@ function DynamicCheckbox({ id, label, ...props }) {
                 <CheckBox
                     id={id}
                     label={label}
-                    checked={data[id] || false}
+                    checked={value}
                     onChange={handleCheckboxChange}
                     {...props}
                 />
             </DynamicValidationManager>
         );
-    }, [data[id], setData]);
+    }, [value, setData]);
 }
 
 DynamicCheckbox.propTypes = {

@@ -7,6 +7,8 @@ import DynamicValidationManager from './DynamicValidationManager';
 function DynamicTextArea({ id, focus, ...props }) {
     const { data, setData } = React.useContext(DynamicLayoutContext);
 
+    const value = Object.getByString(data, id) || '';
+
     return React.useMemo(() => {
         const handleTextAreaChange = ({ target }) => setData({ [id]: target.value });
 
@@ -17,11 +19,11 @@ function DynamicTextArea({ id, focus, ...props }) {
                     onChange={handleTextAreaChange}
                     autoFocus={focus}
                     {...props}
-                    value={data[id] || ''}
+                    value={value}
                 />
             </DynamicValidationManager>
         );
-    }, [data[id], setData]);
+    }, [value, setData]);
 }
 
 DynamicTextArea.propTypes = {
