@@ -23,27 +23,27 @@
 
 package org.projectforge.web.humanresources;
 
-import java.util.Date;
-import java.util.List;
-
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.projectforge.business.humanresources.HRDao;
+import org.projectforge.business.humanresources.HRViewDao;
 import org.projectforge.business.humanresources.HRViewData;
 import org.projectforge.business.user.UserFormatter;
+import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHolder;
-import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.web.wicket.WebConstants;
 
+import java.util.Date;
+import java.util.List;
+
 /**
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class HRListResourceLinkPanel extends Panel
 {
@@ -54,15 +54,15 @@ public class HRListResourceLinkPanel extends Panel
 
   private final HRListPage hrListPage;
 
-  private final HRDao hrDao;
+  private final HRViewDao hrViewDao;
 
   private final UserFormatter userFormatter;
 
-  public HRListResourceLinkPanel(final String id, final HRListPage hrListPage, final HRDao hrDao, final UserFormatter userFormatter)
+  public HRListResourceLinkPanel(final String id, final HRListPage hrListPage, final HRViewDao hrViewDao, final UserFormatter userFormatter)
   {
     super(id);
     this.hrListPage = hrListPage;
-    this.hrDao = hrDao;
+    this.hrViewDao = hrViewDao;
     this.userFormatter = userFormatter;
     userRepeater = new RepeatingView("userRepeater");
     add(userRepeater);
@@ -71,7 +71,7 @@ public class HRListResourceLinkPanel extends Panel
   public void refresh(final HRViewData hrViewData, final Date startTime)
   {
     userRepeater.removeAll();
-    final List<PFUserDO> unplannedUsers = hrDao.getUnplannedResources(hrViewData);
+    final List<PFUserDO> unplannedUsers = hrViewDao.getUnplannedResources(hrViewData);
     for (final PFUserDO user : unplannedUsers) {
       if (user.getHrPlanning() == false || user.hasSystemAccess() == false) {
         continue;

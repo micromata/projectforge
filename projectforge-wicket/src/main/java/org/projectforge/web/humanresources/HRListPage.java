@@ -41,7 +41,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.humanresources.HRDao;
+import org.projectforge.business.humanresources.HRViewDao;
 import org.projectforge.business.humanresources.HRFilter;
 import org.projectforge.business.humanresources.HRPlanningDO;
 import org.projectforge.business.humanresources.HRPlanningEntryDO;
@@ -67,20 +67,20 @@ import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 
 /**
- * 
+ *
  * @author Mario Groß (m.gross@micromata.de)
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @ListPage(editPage = HRPlanningEditPage.class)
-public class HRListPage extends AbstractListPage<HRListForm, HRDao, HRViewUserData> implements ISelectCallerPage
+public class HRListPage extends AbstractListPage<HRListForm, HRViewDao, HRViewUserData> implements ISelectCallerPage
 {
   private static final long serialVersionUID = -718881597957595460L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRListPage.class);
 
   @SpringBean
-  private HRDao hrDao;
+  private HRViewDao hrViewDao;
 
   @SpringBean
   private DatabaseDao databaseDao;
@@ -282,7 +282,7 @@ public class HRListPage extends AbstractListPage<HRListForm, HRDao, HRViewUserDa
 
   /**
    * Get the current date (start date) and preset this date for the edit page.
-   * 
+   *
    * @see org.projectforge.web.wicket.AbstractListPage#onNewEntryClick(org.apache.wicket.PageParameters)
    */
   @Override
@@ -304,7 +304,7 @@ public class HRListPage extends AbstractListPage<HRListForm, HRDao, HRViewUserDa
   {
     final DivPanel panel = new DivPanel(id);// DivType.GRID12, DivType.BOX, DivType.ROUND_ALL);
     form.add(panel);
-    resourceLinkPanel = new HRListResourceLinkPanel(panel.newChildId(), this, hrDao, userFormatter)
+    resourceLinkPanel = new HRListResourceLinkPanel(panel.newChildId(), this, hrViewDao, userFormatter)
     {
       @Override
       public boolean isVisible()
@@ -330,7 +330,7 @@ public class HRListPage extends AbstractListPage<HRListForm, HRDao, HRViewUserDa
   private HRViewData getHRViewData()
   {
     if (hrViewData == null) {
-      hrViewData = hrDao.getResources(form.getSearchFilter());
+      hrViewData = hrViewDao.getResources(form.getSearchFilter());
     }
     return hrViewData;
   }
@@ -349,9 +349,9 @@ public class HRListPage extends AbstractListPage<HRListForm, HRDao, HRViewUserDa
   }
 
   @Override
-  public HRDao getBaseDao()
+  public HRViewDao getBaseDao()
   {
-    return hrDao;
+    return hrViewDao;
   }
 
   @Override
