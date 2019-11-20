@@ -164,7 +164,7 @@ object BaseDaoSupport {
         baseDao.onSaveOrModify(obj)
         val dbObj: O = baseDao.emgrFactory.runInTrans { emgr ->
             val em = emgr.entityManager
-            val dbObj = em.getReference(baseDao.clazz, obj.getId())
+            val dbObj = em.find(baseDao.clazz, obj.id)
             HistoryBaseDaoAdapter.wrappHistoryUpdate(dbObj) {
                 BaseDaoJpaAdapter.beforeUpdateCopyMarkUnDelete(dbObj, obj)
                 baseDao.copyValues(obj, dbObj) // If user has made additional changes.
