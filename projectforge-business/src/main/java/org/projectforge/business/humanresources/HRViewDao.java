@@ -42,7 +42,7 @@ import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -51,9 +51,9 @@ import java.util.List;
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
-public class HRDao implements IDao<HRViewData> {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRDao.class);
+@Service
+public class HRViewDao implements IDao<HRViewData> {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRViewDao.class);
 
   @Autowired
   private TimesheetDao timesheetDao;
