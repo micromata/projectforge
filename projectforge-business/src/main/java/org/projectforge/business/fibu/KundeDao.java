@@ -44,6 +44,7 @@ public class KundeDao extends BaseDao<KundeDO>
   {
     super(KundeDO.class);
     avoidNullIdCheckBeforeSave = true;
+    this.idProperty = "nummer";
   }
 
   @Override
