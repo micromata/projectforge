@@ -26,10 +26,14 @@ package org.projectforge.rest;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.PredicateUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.address.*;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.AccessChecker;
+import org.projectforge.framework.configuration.Configuration;
+import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
+import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.model.rest.AddressObject;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.rest.converter.AddressDOConverter;
@@ -50,8 +54,7 @@ import static org.projectforge.framework.persistence.user.api.ThreadLocalUserCon
  */
 @Controller
 @Path(RestPaths.ADDRESS)
-public class AddressDaoRest
-{
+public class AddressDaoRest {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressDaoRest.class);
 
   @Autowired
@@ -85,72 +88,86 @@ public class AddressDaoRest
   @Path(RestPaths.LIST)
   @Produces(MediaType.APPLICATION_JSON)
   public Response getList(@QueryParam("search") final String searchTerm,
-      @QueryParam("modifiedSince") final Long modifiedSince,
-      @QueryParam("all") final Boolean all,
-      @QueryParam("disableImageData") final Boolean disableImageData,
-      @QueryParam("disableVCardData") final Boolean disableVCardData)
-  {
+                          @QueryParam("modifiedSince") final Long modifiedSince,
+                          @QueryParam("all") final Boolean all,
+                          @QueryParam("disableImageData") final Boolean disableImageData,
+                          @QueryParam("disableVCardData") final Boolean disableVCardData) {
     final AddressFilter filter = new AddressFilter(new BaseSearchFilter());
     Date modifiedSinceDate = null;
     if (modifiedSince != null) {
       modifiedSinceDate = new Date(modifiedSince);
       filter.setModifiedSince(modifiedSinceDate);
     }
-    filter.setSearchString(searchTerm);
+    if (StringUtils.isNotBlank(searchTerm) && NumberHelper.matchesPhoneNumber(searchTerm)) {
+      filter.setSearchString("*" + NumberHelper.extractPhonenumber(searchTerm, Configuration.getInstance().getStringValue(ConfigurationParam.DEFAULT_COUNTRY_PHONE_PREFIX)));
+    } else {
+      filter.setSearchString(searchTerm);
+    }
+
     final List<AddressDO> list = addressDao.getList(filter);
 
-    boolean exportAll = false;
-    if (BooleanUtils.isTrue(all)
-        && accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
-        ProjectForgeGroup.MARKETING_GROUP)) {
-      exportAll = true;
-    }
-
-    List<PersonalAddressDO> favorites = null;
-    Set<Integer> favoritesSet = null;
-    if (!exportAll) {
-      favorites = personalAddressDao.getList();
-      favoritesSet = new HashSet<>();
-      if (favorites != null) {
-        for (final PersonalAddressDO personalAddress : favorites) {
-          if (personalAddress.isFavoriteCard() && !personalAddress.isDeleted()) {
-            favoritesSet.add(personalAddress.getAddressId());
-          }
-        }
-      }
-    }
-    final List<AddressObject> result = new LinkedList<>();
-    if (list != null) {
-      for (final AddressDO addressDO : list) {
-        if (!exportAll && !favoritesSet.contains(addressDO.getId())) {
-          // Export only personal favorites due to data-protection.
-          continue;
-        }
+    final List<AddressObject> result = new ArrayList();
+    if (modifiedSince == null && accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
+            ProjectForgeGroup.MARKETING_GROUP)) {
+      for (AddressDO addressDO : list) {
         final AddressObject address = AddressDOConverter.getAddressObject(addressDao, addressDO,
-            BooleanUtils.isTrue(disableImageData), BooleanUtils.isTrue(disableVCardData));
+                BooleanUtils.isTrue(disableImageData), BooleanUtils.isTrue(disableVCardData));
         result.add(address);
       }
-    }
-    if (!exportAll && modifiedSinceDate != null) {
-      // Add now personal address entries which were modified since the given date (deleted or added):
-      for (final PersonalAddressDO personalAddress : favorites) {
-        if (personalAddress.getLastUpdate() != null
-            && !personalAddress.getLastUpdate().before(modifiedSinceDate)) {
-          final AddressDO addressDO = addressDao.getById(personalAddress.getAddressId());
-          final AddressObject address = AddressDOConverter.getAddressObject(addressDao, addressDO,
-              BooleanUtils.isTrue(disableImageData), BooleanUtils.isTrue(disableVCardData));
-          if (!personalAddress.isFavorite()) {
-            // This address was may-be removed by the user from the personal address book, so add this address as deleted to the result
-            // list.
-            address.setDeleted(true);
+    } else {
+      boolean exportAll = false;
+      if (BooleanUtils.isTrue(all)
+              && accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
+              ProjectForgeGroup.MARKETING_GROUP)) {
+        exportAll = true;
+      }
+
+      List<PersonalAddressDO> favorites = null;
+      Set<Integer> favoritesSet = null;
+      if (!exportAll) {
+        favorites = personalAddressDao.getList();
+        favoritesSet = new HashSet<>();
+        if (favorites != null) {
+          for (final PersonalAddressDO personalAddress : favorites) {
+            if (personalAddress.isFavoriteCard() && !personalAddress.isDeleted()) {
+              favoritesSet.add(personalAddress.getAddressId());
+            }
           }
+        }
+      }
+
+      if (list != null) {
+        for (final AddressDO addressDO : list) {
+          if (!exportAll && !favoritesSet.contains(addressDO.getId())) {
+            // Export only personal favorites due to data-protection.
+            continue;
+          }
+          final AddressObject address = AddressDOConverter.getAddressObject(addressDao, addressDO,
+                  BooleanUtils.isTrue(disableImageData), BooleanUtils.isTrue(disableVCardData));
           result.add(address);
         }
       }
+      if (!exportAll && modifiedSinceDate != null) {
+        // Add now personal address entries which were modified since the given date (deleted or added):
+        for (final PersonalAddressDO personalAddress : favorites) {
+          if (personalAddress.getLastUpdate() != null
+                  && !personalAddress.getLastUpdate().before(modifiedSinceDate)) {
+            final AddressDO addressDO = addressDao.getById(personalAddress.getAddressId());
+            final AddressObject address = AddressDOConverter.getAddressObject(addressDao, addressDO,
+                    BooleanUtils.isTrue(disableImageData), BooleanUtils.isTrue(disableVCardData));
+            if (!personalAddress.isFavorite()) {
+              // This address was may-be removed by the user from the personal address book, so add this address as deleted to the result
+              // list.
+              address.setDeleted(true);
+            }
+            result.add(address);
+          }
+        }
+      }
     }
-    @SuppressWarnings("unchecked")
-    final List<AddressObject> uniqResult = (List<AddressObject>) CollectionUtils.select(result,
-        PredicateUtils.uniquePredicate());
+
+    @SuppressWarnings("unchecked") final List<AddressObject> uniqResult = (List<AddressObject>) CollectionUtils.select(result,
+            PredicateUtils.uniquePredicate());
     final String json = JsonUtils.toJson(uniqResult);
     log.info("Rest call finished (" + result.size() + " addresses)...");
     return Response.ok(json).build();
@@ -160,8 +177,7 @@ public class AddressDaoRest
   @Path(RestPaths.SAVE_OR_UDATE)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response saveOrUpdateAddressObject(final AddressObject addressObject)
-  {
+  public Response saveOrUpdateAddressObject(final AddressObject addressObject) {
     String uid = addressObject.getUid() != null ? addressObject.getUid().replace("urn:uuid:", "") : UUID.randomUUID().toString();
     addressObject.setUid(uid);
     AddressDO addressDORequest = AddressDOConverter.getAddressDO(addressObject);
@@ -221,7 +237,7 @@ public class AddressDaoRest
     }
 
     final String json = JsonUtils.toJson(AddressDOConverter.getAddressObject(addressDao, dbAddress,
-        false, true));
+            false, true));
     log.info("Save or update address REST call finished.");
     return Response.ok(json).build();
   }
@@ -229,8 +245,7 @@ public class AddressDaoRest
   @DELETE
   @Path(RestPaths.DELETE)
   @Consumes(MediaType.APPLICATION_JSON)
-  public Response removeFavoriteAddressObject(final AddressObject addressObject)
-  {
+  public Response removeFavoriteAddressObject(final AddressObject addressObject) {
     String uid = addressObject.getUid() != null ? addressObject.getUid().replace("urn:uuid:", "") : UUID.randomUUID().toString();
     addressObject.setUid(uid);
     AddressDO addressDOOrig = null;
