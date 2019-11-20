@@ -233,10 +233,12 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     }
     CriteriaQuery<O> cr = em.getCriteriaBuilder().createQuery(clazz);
     Root<O> root = cr.from(clazz);
-    cr.select(root).where(root.get("id").in(idList)).distinct(true);
+    cr.select(root).where(root.get(idProperty).in(idList)).distinct(true);
     List<O> results = em.createQuery(cr).getResultList();
     return results;
   }
+
+  protected String idProperty = "id";
 
   public List<O> getListByIds(final Collection<? extends Serializable> idList) {
     if (idList == null) {
