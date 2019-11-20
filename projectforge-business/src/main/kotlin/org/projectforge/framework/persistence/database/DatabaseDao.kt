@@ -49,7 +49,7 @@ import javax.persistence.TypedQuery
 // Check open connections in PostgreSQL:
 // SELECT backend_start, query_start, state_change, wait_event_type, state, query  FROM pg_stat_activity where state <> 'idle';
 @Repository
-class DatabaseDao {
+open class DatabaseDao {
     private var currentReindexRun: Date? = null
     @Autowired
     private val emgrFactory: PfEmgrFactory? = null
