@@ -91,7 +91,7 @@ class DBPredicateTest {
     @Test
     fun multiFieldFulltextQueryRequiredTest() {
         testMultiField("dfladksj", false)
-        testMultiField("dfladksj* dfakl+", false)
+        testMultiField("dfladksj* dfakl+", true) // No wildcard search on fields...
         testMultiField("name:rein*", true)
         testMultiField("dfladksj name:rein*", true)
     }
