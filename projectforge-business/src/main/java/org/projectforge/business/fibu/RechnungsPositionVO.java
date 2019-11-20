@@ -31,7 +31,7 @@ import java.sql.Date;
 import java.util.Objects;
 
 /**
- * Repräsentiert einee Position innerhalb einer Rechnung als Übersichtsobject (value object) zur Verwendung z. B. in Listen.
+ * Repräsentiert eine Position innerhalb einer Rechnung als Übersichtsobjekt (value object) zur Verwendung z. B. in Listen.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class RechnungsPositionVO implements Comparable<RechnungsPositionVO>, Serializable
@@ -110,7 +110,7 @@ public class RechnungsPositionVO implements Comparable<RechnungsPositionVO>, Ser
   }
 
   /**
-   * @see RechnungDO#getTitel()
+   * @see RechnungDO#getBetreff() ()
    */
   public String getRechnungTitle()
   {
