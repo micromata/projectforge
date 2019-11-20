@@ -43,8 +43,7 @@ import java.util.Locale;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class NumberHelper
-{
+public class NumberHelper {
   public static final String ALLOWED_PHONE_NUMBER_CHARS = "+-/().";
 
   public static final int KILO_BYTES = 1024;
@@ -75,21 +74,18 @@ public class NumberHelper
 
   private static final Logger log = LoggerFactory.getLogger(NumberHelper.class);
 
-  public static NumberFormat getCurrencyFormat(final Locale locale)
-  {
+  public static NumberFormat getCurrencyFormat(final Locale locale) {
     return getNumberFraction2Format(locale);
   }
 
-  public static NumberFormat getNumberFraction2Format(final Locale locale)
-  {
+  public static NumberFormat getNumberFraction2Format(final Locale locale) {
     final NumberFormat format = NumberFormat.getNumberInstance(locale);
     format.setMaximumFractionDigits(2);
     format.setMinimumFractionDigits(2);
     return format;
   }
 
-  public static NumberFormat getNumberFractionFormat(final Locale locale, final int fractionDigits)
-  {
+  public static NumberFormat getNumberFractionFormat(final Locale locale, final int fractionDigits) {
     final NumberFormat format = NumberFormat.getNumberInstance(locale);
     format.setMaximumFractionDigits(fractionDigits);
     format.setMinimumFractionDigits(fractionDigits);
@@ -102,8 +98,7 @@ public class NumberHelper
    * @param bytes
    * @return
    */
-  public static String formatBytes(final long bytes)
-  {
+  public static String formatBytes(final long bytes) {
     if (bytes < KILO_BYTES) {
       return String.valueOf(bytes) + " bytes";
     }
@@ -132,8 +127,7 @@ public class NumberHelper
    * @param value
    * @return true, if value is not null and greater zero.
    */
-  public static boolean greaterZero(final Integer value)
-  {
+  public static boolean greaterZero(final Integer value) {
     return value != null && value > 0;
   }
 
@@ -141,18 +135,15 @@ public class NumberHelper
    * @param value
    * @return true, if value is not null and greater zero.
    */
-  public static boolean greaterZero(final Long value)
-  {
+  public static boolean greaterZero(final Long value) {
     return value != null && value.intValue() > 0;
   }
 
-  public static boolean isZeroOrNull(final Integer value)
-  {
+  public static boolean isZeroOrNull(final Integer value) {
     return (value == null || value == 0);
   }
 
-  public static boolean isGreaterZero(final BigDecimal value)
-  {
+  public static boolean isGreaterZero(final BigDecimal value) {
     return (value != null && value.compareTo(BigDecimal.ZERO) > 0);
   }
 
@@ -160,8 +151,7 @@ public class NumberHelper
    * @param value
    * @return true, if the given value is not null and not zero.
    */
-  public static boolean isNotZero(final Integer value)
-  {
+  public static boolean isNotZero(final Integer value) {
     return !isZeroOrNull(value);
   }
 
@@ -171,8 +161,7 @@ public class NumberHelper
    * @param value The string representation of the integer value to parse.
    * @return Integer value or null if an empty string was given or a syntax error occurs.
    */
-  public static Integer parseInteger(String value)
-  {
+  public static Integer parseInteger(String value) {
     if (value == null) {
       return null;
     }
@@ -195,8 +184,7 @@ public class NumberHelper
    * @param value The string representation of the short value to parse.
    * @return Short value or null if an empty string was given or a syntax error occurs.
    */
-  public static Short parseShort(String value)
-  {
+  public static Short parseShort(String value) {
     if (value == null) {
       return null;
     }
@@ -216,8 +204,7 @@ public class NumberHelper
   /**
    * Catches any NumberFormatException and returns 0, otherwise the long value represented by the given value is returned.
    */
-  public static Long parseLong(String value)
-  {
+  public static Long parseLong(String value) {
     if (value == null) {
       return null;
     }
@@ -235,9 +222,9 @@ public class NumberHelper
   }
 
   /**
+   *
    */
-  public static BigDecimal parseBigDecimal(String value)
-  {
+  public static BigDecimal parseBigDecimal(String value) {
     if (value == null) {
       return null;
     }
@@ -259,9 +246,9 @@ public class NumberHelper
   }
 
   /**
+   *
    */
-  public static BigDecimal parseCurrency(String value, final Locale locale)
-  {
+  public static BigDecimal parseCurrency(String value, final Locale locale) {
     if (value == null) {
       return null;
     }
@@ -288,8 +275,7 @@ public class NumberHelper
    * @param v2 null is supported.
    * @return
    */
-  public static BigDecimal add(final BigDecimal v1, final BigDecimal v2)
-  {
+  public static BigDecimal add(final BigDecimal v1, final BigDecimal v2) {
     if (v1 == null) {
       if (v2 == null) {
         return BigDecimal.ZERO;
@@ -311,8 +297,7 @@ public class NumberHelper
    * @param value The integer value to convert.
    * @return The String representation or empty String, if value is null.
    */
-  public static String getAsString(final Number value)
-  {
+  public static String getAsString(final Number value) {
     if (value == null) {
       return "";
     } else {
@@ -327,8 +312,7 @@ public class NumberHelper
    * @param format The format to use.
    * @return The String representation or empty String, if value is null.
    */
-  public static String getAsString(final Number value, final NumberFormat format)
-  {
+  public static String getAsString(final Number value, final NumberFormat format) {
     if (value == null) {
       return "";
     } else {
@@ -339,8 +323,7 @@ public class NumberHelper
   /**
    * @see ThreadLocalUserContext#getLocale()
    */
-  public static String formatFraction2(final Number value)
-  {
+  public static String formatFraction2(final Number value) {
     final Locale locale = ThreadLocalUserContext.getLocale();
     final NumberFormat format = getNumberFraction2Format(locale);
     return format.format(value);
@@ -351,8 +334,7 @@ public class NumberHelper
    *
    * @see #extractPhonenumber(String, String)
    */
-  public static String extractPhonenumber(final String str)
-  {
+  public static String extractPhonenumber(final String str) {
     final String defaultCountryPhonePrefix = Configuration.getInstance().getStringValue(ConfigurationParam.DEFAULT_COUNTRY_PHONE_PREFIX);
 
     return extractPhonenumber(str, defaultCountryPhonePrefix);
@@ -368,8 +350,7 @@ public class NumberHelper
    *                      by 0. Example: ("+49 561 / 316793-0", "+49") -> 05613167930; ("+39 123456", "+49") -> 0039123456.
    * @return
    */
-  public static String extractPhonenumber(String str, final String countryPrefix)
-  {
+  public static String extractPhonenumber(String str, final String countryPrefix) {
     if (str == null) {
       return null;
     }
@@ -380,9 +361,9 @@ public class NumberHelper
       buf.append('0');
       str = str.substring(countryPrefix.length());
     } else if (str.length() > 3
-        && str.charAt(0) == '+'
-        && Character.isDigit(str.charAt(1))
-        && Character.isDigit(str.charAt(2))) {
+            && str.charAt(0) == '+'
+            && Character.isDigit(str.charAt(1))
+            && Character.isDigit(str.charAt(2))) {
       buf.append("00");
       buf.append(str.charAt(1));
       buf.append(str.charAt(2));
@@ -397,6 +378,10 @@ public class NumberHelper
     return buf.toString();
   }
 
+  public static boolean matchesPhoneNumber(String str) {
+    return str.matches("^\\+?[0-9/\\-\\(\\)\\s]+$") && str.matches(".*\\d.*");
+  }
+
   /**
    * Compares two given BigDecimals. They are equal if the value is equal independent of the scale (5.70 is equals to 5.7 and null is equals
    * null, but null is not equals to 0).
@@ -406,8 +391,7 @@ public class NumberHelper
    * @return
    * @see BigDecimal#compareTo(BigDecimal)
    */
-  public static boolean isEqual(final BigDecimal value1, final BigDecimal value2)
-  {
+  public static boolean isEqual(final BigDecimal value1, final BigDecimal value2) {
     if (value1 == null) {
       return (value2 == null) ? true : false;
     }
@@ -421,13 +405,11 @@ public class NumberHelper
    * @param value
    * @return true, if the given value is not null and not zero.
    */
-  public static boolean isNotZero(final BigDecimal value)
-  {
+  public static boolean isNotZero(final BigDecimal value) {
     return !isZeroOrNull(value);
   }
 
-  public static boolean isZeroOrNull(final BigDecimal value)
-  {
+  public static boolean isZeroOrNull(final BigDecimal value) {
     return (value == null || value.compareTo(BigDecimal.ZERO) == 0);
   }
 
@@ -439,8 +421,7 @@ public class NumberHelper
    * @return
    * @see Integer#compareTo(Integer)
    */
-  public static boolean isEqual(final Integer value1, final Integer value)
-  {
+  public static boolean isEqual(final Integer value1, final Integer value) {
     if (value1 == null) {
       return (value == null) ? true : false;
     }
@@ -460,8 +441,7 @@ public class NumberHelper
    * @param split
    * @return
    */
-  public static int[] splitToInts(final Number value, final int... split)
-  {
+  public static int[] splitToInts(final Number value, final int... split) {
     int numberOfDigits = 0;
     for (final int n : split) {
       numberOfDigits += n;
@@ -487,8 +467,7 @@ public class NumberHelper
    * @see NumberUtils#createBigDecimal(String)
    * @see BigDecimal#toPlainString()
    */
-  public static String toPlainString(final String str)
-  {
+  public static String toPlainString(final String str) {
     if (NumberUtils.isCreatable(str)) {
       final BigDecimal bd = NumberUtils.createBigDecimal(str);
       return bd.toPlainString();
@@ -503,8 +482,7 @@ public class NumberHelper
    * @param number
    * @return
    */
-  public static BigDecimal setDefaultScale(final BigDecimal number)
-  {
+  public static BigDecimal setDefaultScale(final BigDecimal number) {
     if (number == null) {
       return null;
     }
@@ -523,8 +501,7 @@ public class NumberHelper
    * @param numberOfBytes
    * @return
    */
-  public static String getSecureRandomUrlSaveString(final int numberOfBytes)
-  {
+  public static String getSecureRandomUrlSaveString(final int numberOfBytes) {
     final SecureRandom random = new SecureRandom();
     final byte[] bytes = new byte[numberOfBytes];
     random.nextBytes(bytes);
@@ -538,16 +515,14 @@ public class NumberHelper
    * @param numberOfBytes
    * @return
    */
-  public static String getSecureRandomBase64String(final int numberOfBytes)
-  {
+  public static String getSecureRandomBase64String(final int numberOfBytes) {
     final SecureRandom random = new SecureRandom();
     final byte[] bytes = new byte[numberOfBytes];
     random.nextBytes(bytes);
     return org.apache.commons.codec.binary.StringUtils.newStringUtf8(Base64.encodeBase64(bytes, false));
   }
 
-  public static boolean isIn(final int value, final int... numbers)
-  {
+  public static boolean isIn(final int value, final int... numbers) {
     if (numbers == null) {
       return false;
     }

@@ -76,6 +76,17 @@ public class NumberHelperTest extends AbstractTestBase
   }
 
   @Test
+  void matchesPhoneNumberTest() {
+    assertTrue(NumberHelper.matchesPhoneNumber("0561 316793-0"));
+    assertTrue(NumberHelper.matchesPhoneNumber("+49 561 316793-0"));
+    assertTrue(NumberHelper.matchesPhoneNumber("(0049) 561 316793-0"));
+    assertTrue(NumberHelper.matchesPhoneNumber("0561 316793/0"));
+    assertFalse(NumberHelper.matchesPhoneNumber("test 0561 316793/0"));
+    assertFalse(NumberHelper.matchesPhoneNumber("+ ( ) / -"));
+    assertTrue(NumberHelper.matchesPhoneNumber("+ ( ) / 5 -"));
+  }
+
+  @Test
   public void splitToInts()
   {
     compareIntArray(new int[] { 1, 111, 5, 11 }, NumberHelper.splitToInts(11110511, 1, 3, 2, 2));
