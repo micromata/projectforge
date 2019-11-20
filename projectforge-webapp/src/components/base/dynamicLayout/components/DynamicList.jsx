@@ -4,7 +4,14 @@ import { contentPropType } from '../../../../utilities/propTypes';
 import ListElement from '../../../design/list/ListElement';
 import { DynamicLayoutContext } from '../context';
 
-function DynamicList({ listId, content, positionLabel }) {
+function DynamicList(
+    {
+        listId,
+        content,
+        positionLabel,
+        elementVar,
+    },
+) {
     const context = React.useContext(DynamicLayoutContext);
 
     const { data, renderLayout } = context;
@@ -23,7 +30,7 @@ function DynamicList({ listId, content, positionLabel }) {
                             value={{
                                 ...context,
                                 data: {
-                                    [listId]: element,
+                                    [elementVar]: element,
                                 },
                                 setData: console.log,
                             }}
@@ -39,6 +46,7 @@ function DynamicList({ listId, content, positionLabel }) {
 
 DynamicList.propTypes = {
     content: PropTypes.arrayOf(contentPropType).isRequired,
+    elementVar: PropTypes.string.isRequired,
     listId: PropTypes.string.isRequired,
     positionLabel: PropTypes.string.isRequired,
 };
