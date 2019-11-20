@@ -88,7 +88,7 @@ class BigResultSetHandler<T>(val em: EntityManager, val clazz: Class<T>, val ids
     }
 
     private fun readNextBlock(): Boolean {
-       /* val ids = idsQuery.unwrap(Query::class.java)
+        /*val ids = idsQuery.unwrap(Query::class.java)
                 .setCacheMode(CacheMode.IGNORE)
                 .setHibernateFlushMode(FlushMode.MANUAL)
                 .setLockMode(LockModeType.NONE)
@@ -105,7 +105,7 @@ class BigResultSetHandler<T>(val em: EntityManager, val clazz: Class<T>, val ids
             ids.add(scrollableResults[0] as java.lang.Long)
         }
         if (ids.size > 0) {
-            if (sessionClearCounter--<= 0) {
+            if (sessionClearCounter-- <= 0) {
                 val session = em.unwrap(Session::class.java)//.delegate as Session
                 session.flush()
                 session.clear()
