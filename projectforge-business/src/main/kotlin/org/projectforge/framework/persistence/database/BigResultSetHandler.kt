@@ -44,11 +44,11 @@ private const val BLOCK_SIZE = 200 // Is limited by database (supported number o
 /**
  * Load ids of result set as Scrollable and loads objects by their ids in blocks on demand.
  */
-class BigResultSetHandler<T>(val em: EntityManager, val clazz: Class<T>, val idsQuery: TypedQuery<java.lang.Long>) {
+class BigResultSetHandler<T>(val em: EntityManager, val clazz: Class<T>, idsQuery: TypedQuery<Number>) {
     var totalRead = 0L
         private set
 
-    private var sessionClearCounter = 100;
+    private var sessionClearCounter = 100
 
     val select: String
     val strategy = ReindexerRegistry.get(clazz)
@@ -97,12 +97,10 @@ class BigResultSetHandler<T>(val em: EntityManager, val clazz: Class<T>, val ids
                 .setMaxResults(BLOCK_SIZE)
                 .resultList
         offset += BLOCK_SIZE*/
-        @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
-        val ids = mutableListOf<java.lang.Long>()
+        val ids = mutableListOf<Number>()
         var counter = 0
         while (counter++ < BLOCK_SIZE && scrollableResults.next()) {
-            @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
-            ids.add(scrollableResults[0] as java.lang.Long)
+            ids.add(scrollableResults[0] as Number)
         }
         if (ids.size > 0) {
             if (sessionClearCounter-- <= 0) {
