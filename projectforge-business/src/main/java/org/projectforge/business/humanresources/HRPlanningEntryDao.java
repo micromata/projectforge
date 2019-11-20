@@ -94,9 +94,9 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO> {
     final QueryFilter queryFilter = buildQueryFilter(myFilter);
     myFilter.setIgnoreDeleted(true); // Ignore deleted flag of HRPlanningEntryDOs, use instead:
     if (myFilter.isDeleted()) {
-      queryFilter.add(QueryFilter.or(QueryFilter.eq("deleted", true), QueryFilter.eq("p.deleted", true)));
+      queryFilter.add(QueryFilter.or(QueryFilter.eq("deleted", true), QueryFilter.eq("planning.deleted", true)));
     } else {
-      queryFilter.add(QueryFilter.and(QueryFilter.eq("deleted", false), QueryFilter.eq("p.deleted", false)));
+      queryFilter.add(QueryFilter.and(QueryFilter.eq("deleted", false), QueryFilter.eq("planning.deleted", false)));
     }
     final List<HRPlanningEntryDO> list = getList(queryFilter);
     if (list == null) {
