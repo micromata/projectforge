@@ -24,10 +24,7 @@
 package org.projectforge.framework.persistence.database
 
 import org.apache.commons.lang3.ClassUtils
-import org.hibernate.CacheMode
-import org.hibernate.ScrollMode
 import org.hibernate.Session
-import org.hibernate.query.Query
 import org.hibernate.search.Search
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.ReindexSettings
@@ -49,6 +46,8 @@ import javax.persistence.TypedQuery
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
+// Check open connections in PostgreSQL:
+// SELECT backend_start, query_start, state_change, wait_event_type, state, query  FROM pg_stat_activity where state <> 'idle';
 @Repository
 class DatabaseDao {
     private var currentReindexRun: Date? = null
@@ -90,11 +89,6 @@ class DatabaseDao {
             reindexObjects(clazz, settings)
             return
         }
-        // OK, full re-index required:
-        /*if (isIn(clazz, TimesheetDO::class.java, PfHistoryMasterDO::class.java)) { // MassIndexer throws LazyInitializationException for some classes, so use it only for the important classes (with most entries):
-            reindexMassIndexer(clazz)
-            return
-        }*/
         reindexObjects(clazz, null)
     }
 
@@ -112,34 +106,44 @@ class DatabaseDao {
             val number = getRowCount(em, clazz, settings) // Get number of objects to re-index (select count(*) from).
             if (number == 0L) {
                 log.info("Reindexing [${clazz.simpleName}]: 0 entries found. Nothing to-do.")
-                return@runInTrans 0
+                return@runInTrans 0L
             }
             log.info("Reindexing [${clazz.simpleName}]: Starting reindexing of $number entries with scrollMode=true...")
-            val batchSize = 10000 // NumberUtils.createInteger(System.getProperty("hibernate.search.worker.batch_size")
-            val session = em.delegate as Session
+
+            val idsQuery = createQuery(em, clazz, java.lang.Long::class.java, settings, QueryMode.SELECT_IDS_ONLY)
+            val session = em.unwrap(Session::class.java)//.delegate as Session
+            val bigResultSetHandler = BigResultSetHandler<T>(em, clazz, idsQuery)
             val fullTextSession = Search.getFullTextSession(session)
             fullTextSession.flushMode = FlushModeType.COMMIT
-            // HibernateCompatUtils.setFlushMode(fullTextSession, FlushMode.MANUAL);
-            // HibernateCompatUtils.setCacheMode(fullTextSession, CacheMode.IGNORE);
-            var index: Long = 0
             val monitor = IndexProgressMonitor("Reindexing [" + clazz.simpleName + "]", number)
-            val query = createCriteria(em, clazz, settings)
-            val hquery = query.unwrap(Query::class.java)
-            //val scrollable = MyScrollable(hquery)
-            //while (scrollable.next()) {
-            val results = hquery.setCacheMode(CacheMode.IGNORE).setFetchSize(1000).setReadOnly(true).scroll(ScrollMode.FORWARD_ONLY)
-            while (results.next()) {
-                val obj = results[0]
-                //val obj = scrollable.current()
+            var blockCounter = 0
+            val batchSize = 10000 // NumberUtils.createInteger(System.getProperty("hibernate.search.worker.batch_size")
+            var index: Long = 0
+            //val set= mutableSetOf<Long>()
+            while (true) {
+                val obj = bigResultSetHandler.next() ?: break
+               /* if (obj is PfHistoryMasterDO) {
+                    if (set.contains(obj.pk)) {
+                        log.error("Duplicate object id: ${obj.pk}")
+                    } else {
+                        set.add(obj.pk)
+                    }
+                }*/
                 if (obj is ExtendedBaseDO<*>) {
                     obj.recalculate()
                 }
                 fullTextSession.index(obj)
+                session.evict(obj)
                 monitor.documentsAdded(1)
-                if (index++ % batchSize == 0L) {
+                if (++blockCounter >= batchSize) {
                     fullTextSession.flushToIndexes() // clear every batchSize since the queue is processed
-                    session.clear()
+                    blockCounter = 0
                 }
+                ++index
+            }
+            //log.info("******** ${set.size}")
+            if (bigResultSetHandler.totalRead != number) {
+                log.error("Oups, number of elements was $number, but read ${bigResultSetHandler.totalRead}.")
             }
             log.info("Reindexing [${clazz.simpleName}]: optimizing of " + number + " objects...")
             val searchFactory = fullTextSession.searchFactory
@@ -150,22 +154,21 @@ class DatabaseDao {
     }
 
     private fun <T> getRowCount(entityManager: EntityManager, clazz: Class<T>, settings: ReindexSettings?): Long {
-        val result = createQuery(entityManager, clazz, java.lang.Long::class.java, settings).singleResult as Long
+        val result = createQuery(entityManager, clazz, java.lang.Long::class.java, settings, QueryMode.ROW_COUNT)
+                .singleResult as Long
         if (settings?.lastNEntries != null) {
             return minOf(result, settings.lastNEntries.toLong())
         }
         return result
     }
 
-    private fun <T> createCriteria(entityManager: EntityManager, clazz: Class<T>, settings: ReindexSettings?): TypedQuery<T> {
-        return createQuery(entityManager, clazz, clazz, settings)
-    }
-
-    private fun <T> createQuery(entityManager: EntityManager, clazz: Class<*>, resultClazz: Class<T>, settings: ReindexSettings?): TypedQuery<T> {
-        val rowCountOnly = resultClazz == java.lang.Long::class.java
+    private fun <T> createQuery(entityManager: EntityManager, clazz: Class<*>, resultClazz: Class<T>, settings: ReindexSettings?, queryMode: QueryMode)
+            : TypedQuery<T> {
+        val rowCountOnly = queryMode == QueryMode.ROW_COUNT
         val strategy = ReindexerRegistry.get(clazz)
-        val join = if (settings?.lastNEntries != null) "" else strategy.join // Don't join for last n entries (not supported by Hibernate).
-        val select = if (rowCountOnly) "select count(*) from ${clazz.simpleName} as t" else "from ${clazz.simpleName} as t$join"
+        val idsOnly = if (queryMode == QueryMode.SELECT_IDS_ONLY) "select ${strategy.idProperty} " else ""
+        val join = if (queryMode == QueryMode.NORMAL && settings?.lastNEntries == null) strategy.join else "" // Don't join for last n entries (not supported by Hibernate).
+        val select = if (rowCountOnly) "select count(*) from ${clazz.simpleName} as t" else "${idsOnly}from ${clazz.simpleName} as t$join"
         if (settings?.fromDate != null) {
             if (strategy.modifiedAtProperty != null) {
                 val query = entityManager.createQuery("$select where t.${strategy.modifiedAtProperty} > :modifiedAt", resultClazz)
@@ -197,4 +200,6 @@ class DatabaseDao {
             }
         }
     }
+
+    enum class QueryMode { NORMAL, ROW_COUNT, SELECT_IDS_ONLY }
 }
