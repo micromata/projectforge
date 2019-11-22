@@ -92,6 +92,7 @@ public class AddressDaoRest {
                           @QueryParam("all") final Boolean all,
                           @QueryParam("disableImageData") final Boolean disableImageData,
                           @QueryParam("disableVCardData") final Boolean disableVCardData) {
+    log.info(RestPaths.LIST + "?search='" + searchTerm + "'&modifiedSince=" + modifiedSince + "&all=" + all + "disableImageDate=" + disableImageData + "&disableVCardData=" + disableVCardData);
     final AddressFilter filter = new AddressFilter(new BaseSearchFilter());
     Date modifiedSinceDate = null;
     if (modifiedSince != null) {
