@@ -24,6 +24,7 @@
 package org.projectforge.business.address;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.multitenancy.TenantService;
@@ -55,8 +56,14 @@ import java.util.*;
 @Repository
 public class AddressDao extends BaseDao<AddressDO> {
   private static final DateFormat V_CARD_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+  private static final String[] ENABLED_AUTOCOMPLETION_PROPERTIES = {"addressText", "postalAddressText", "privateAddressText", "organization"};
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressDao.class);
+
+  @Override
+  public boolean isAutocompletionPropertyEnabled(String property) {
+    return ArrayUtils.contains(ENABLED_AUTOCOMPLETION_PROPERTIES, property);
+  }
 
   @Autowired
   private AddressbookDao addressbookDao;
