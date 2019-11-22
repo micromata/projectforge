@@ -37,6 +37,8 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
@@ -48,6 +50,7 @@ import java.util.stream.Collectors;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
+@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class PersonalAddressDao {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PersonalAddressDao.class);
 
@@ -165,26 +168,29 @@ public class PersonalAddressDao {
    * @return true, if already existing entry was updated, otherwise false (e. g. if no entry exists for update).
    */
   private boolean internalUpdate(final PersonalAddressDO obj) {
-    PersonalAddressDO dbObj = null;
-    if (obj.getId() != null) {
-      dbObj = em.find(PersonalAddressDO.class, obj.getId(), LockModeType.PESSIMISTIC_WRITE);
-    }
-    if (dbObj == null) {
-      dbObj = getByAddressId(obj.getAddressId());
-    }
-    if (dbObj == null) {
-      return false;
-    }
-    checkAccess(dbObj);
-    Validate.isTrue(Objects.equals(dbObj.getAddressId(), obj.getAddressId()));
-    obj.setId(dbObj.getId());
-    // Copy all values of modified user to database object.
-    final ModificationStatus modified = dbObj.copyValuesFrom(obj, "owner", "address", "id");
-    if (modified == ModificationStatus.MAJOR) {
-      dbObj.setLastUpdate();
-      log.info("Object updated: " + dbObj.toString());
-    }
-    return true;
+    return emgrFactory.runInTrans(emgr -> {
+      EntityManager em = emgr.getEntityManager();
+      PersonalAddressDO dbObj = null;
+      if (obj.getId() != null) {
+        dbObj = em.find(PersonalAddressDO.class, obj.getId(), LockModeType.PESSIMISTIC_WRITE);
+      }
+      if (dbObj == null) {
+        dbObj = getByAddressId(obj.getAddressId());
+      }
+      if (dbObj == null) {
+        return false;
+      }
+      checkAccess(dbObj);
+      Validate.isTrue(Objects.equals(dbObj.getAddressId(), obj.getAddressId()));
+      obj.setId(dbObj.getId());
+      // Copy all values of modified user to database object.
+      final ModificationStatus modified = dbObj.copyValuesFrom(obj, "owner", "address", "id");
+      if (modified == ModificationStatus.MAJOR) {
+        dbObj.setLastUpdate();
+        log.info("Object updated: " + dbObj.toString());
+      }
+      return true;
+    });
   }
 
   /**
