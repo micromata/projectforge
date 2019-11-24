@@ -29,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.user.UserRightId;
+import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.configuration.Configuration;
@@ -639,5 +640,33 @@ public class AddressDao extends BaseDao<AddressDO> {
             ThreadLocalUserContext.getUser().getTenant() != null ? ThreadLocalUserContext.getUser().getTenant() : tenantService.getDefaultTenant();
     return emgrFactory.runRoTrans(emgr -> emgr.selectSingleAttached(AddressDO.class,
             "SELECT a FROM AddressDO a WHERE a.uid = :uid AND tenant = :tenant", "uid", uid, "tenant", tenant));
+  }
+
+  public String internalPhoneLookUp(String phoneNumber) {
+    final String searchNumber = NumberHelper.extractPhonenumber(phoneNumber);
+    log.info("number=" + phoneNumber + ", searchNumber=" + searchNumber);
+    final BaseSearchFilter filter = new BaseSearchFilter();
+    filter.setSearchString("*" + searchNumber + "*");
+    final QueryFilter queryFilter = new QueryFilter(filter);
+    // Use internal get list method for avoiding access checking (no user is logged-in):
+    List<AddressDO> resultList = internalGetList(queryFilter);
+    final StringBuffer buf = new StringBuffer();
+    if (resultList != null && resultList.size() >= 1) {
+      AddressDO result = resultList.get(0);
+      if (resultList.size() > 1) {
+        // More than one result, therefore find the newest one:
+        buf.append("+"); // Mark that more than one entry does exist.
+        for (final AddressDO matchingUser : resultList) {
+          if (matchingUser.getLastUpdate().after(result.getLastUpdate()) == true) {
+            result = matchingUser;
+          }
+        }
+      }
+      final String fullname = result.getFullName();
+      final String organization = result.getOrganization();
+      StringHelper.listToString(buf, "; ", fullname, organization);
+      return buf.toString();
+    }
+    return null;
   }
 }
