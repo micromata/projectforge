@@ -32,6 +32,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 
 import java.text.Collator;
+import java.time.DayOfWeek;
 import java.util.Comparator;
 import java.util.Locale;
 import java.util.Objects;
@@ -193,6 +194,16 @@ public class ThreadLocalUserContext
       }
     }
     return ConfigurationServiceAccessor.get().getDefaultFirstDayOfWeek();
+  }
+
+  public final static DayOfWeek getFirstDayOfWeek() {
+    // 1 - sunday, 2 - monday, 3 - tuesday
+    int firstDayOfWeek = getCalendarFirstDayOfWeek();
+    int day = firstDayOfWeek - 1;
+    if (day == 0) {
+      day = 7;
+    }
+    return DayOfWeek.of(day); // 1 (Monday) to 7 (Sunday)
   }
 
   public final static int getJodaFirstDayOfWeek()
