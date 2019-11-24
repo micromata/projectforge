@@ -38,6 +38,7 @@ class BigCalendarEvent(val title: String?,
                        val bgColor: String? = null,
                        val cssClass: String? = null,
                        val category: String,
+                       val readOnly: Boolean = false,
                        /**
                         * For subscribed events.
                         */
