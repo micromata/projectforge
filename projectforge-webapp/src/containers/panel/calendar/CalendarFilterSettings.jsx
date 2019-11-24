@@ -27,6 +27,7 @@ class CalendarFilterSettings extends Component {
 
         this.handleDefaultCalendarChange = this.handleDefaultCalendarChange.bind(this);
         this.handleTimesheetUserChange = this.handleTimesheetUserChange.bind(this);
+        this.handleGridSizeChange = this.handleGridSizeChange.bind(this);
         this.togglePopover = this.togglePopover.bind(this);
         this.handleCheckBoxChange = this.handleCheckBoxChange.bind(this);
     }
@@ -55,6 +56,18 @@ class CalendarFilterSettings extends Component {
             });
     }
 
+    handleGridSizeChange(gridSize) {
+        const { onGridSizeChange } = this.props;
+        const { saveUpdateResponseInState } = this.context;
+        const size = gridSize ? gridSize.value : 30;
+        fetchJsonGet('calendar/changeGridSizer',
+            { size },
+            (json) => {
+                onGridSizeChange(size);
+                saveUpdateResponseInState(json);
+            });
+    }
+
     handleDefaultCalendarChange(value) {
         const { onDefaultCalendarChange } = this.props;
         const { saveUpdateResponseInState } = this.context;
@@ -79,8 +92,29 @@ class CalendarFilterSettings extends Component {
             listOfDefaultCalendars,
             otherTimesheetUsersEnabled,
             timesheetUser,
+            gridSize,
             translations,
         } = this.props;
+        const gridSizes = [{
+            value: 5,
+            label: '5',
+        }, {
+            value: 10,
+            label: '10',
+        }, {
+            value: 15,
+            label: '15',
+        }, {
+            value: 30,
+            label: '30',
+        }, {
+            value: 60,
+            label: '60',
+        }];
+        const gridSizeValue = {
+            value: gridSize,
+            label: gridSize,
+        };
         const defaultCalendar = CalendarFilterSettings.extractDefaultCalendarValue(this.props);
         return (
             <React.Fragment>
@@ -143,8 +177,13 @@ class CalendarFilterSettings extends Component {
                             </Row>
                             <Row>
                                 <Col>
-                                    Optionen: Pausen, Statistik,
-                                    Geburtstage, Planungen
+                                    <ReactSelect
+                                        values={gridSizes}
+                                        value={gridSizeValue}
+                                        label={translations['calendar.option.gridSize']}
+                                        translations={translations}
+                                        onChange={this.handleGridSizeChange}
+                                    />
                                 </Col>
                             </Row>
                         </Container>
@@ -160,9 +199,11 @@ CalendarFilterSettings.contextType = CalendarContext;
 CalendarFilterSettings.propTypes = {
     onTimesheetUserChange: PropTypes.func.isRequired,
     onDefaultCalendarChange: PropTypes.func.isRequired,
+    onGridSizeChange: PropTypes.func.isRequired,
     /* eslint-disable-next-line react/no-unused-prop-types */
     defaultCalendarId: PropTypes.number,
     timesheetUser: PropTypes.shape(),
+    gridSize: PropTypes.number,
     otherTimesheetUsersEnabled: PropTypes.bool.isRequired,
     listOfDefaultCalendars: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
     translations: PropTypes.shape({}).isRequired,
@@ -171,6 +212,7 @@ CalendarFilterSettings.propTypes = {
 CalendarFilterSettings.defaultProps = {
     defaultCalendarId: undefined,
     timesheetUser: undefined,
+    gridSize: 30,
 };
 
 export default (CalendarFilterSettings);
