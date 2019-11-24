@@ -33,7 +33,10 @@ import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.AddressImageServicesRest.Companion.SESSION_IMAGE_ATTR
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.*
+import org.projectforge.rest.core.AbstractDTORest
+import org.projectforge.rest.core.ExpiringSessionAttributes
+import org.projectforge.rest.core.LanguageService
+import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.dto.Address
 import org.projectforge.sms.SmsSenderConfig
 import org.projectforge.ui.*
@@ -259,7 +262,8 @@ class AddressRest()
                         .add(UIFieldset(mdLength = 6, lgLength = 4)
                                 .add(lc, "birthday")
                                 .add(UIRow().add(UICol().add(communicationLanguage)))
-                                .add(lc, "organization", "division", "positionText", "website"))
+                                .add(UIInput("organization", lc).enableAutoCompletion(this))
+                                .add(lc, "division", "positionText", "website"))
                         .add(UIFieldset(mdLength = 6, lgLength = 4)
                                 .add(createFavoriteRow(UIInput("businessPhone", lc),
                                         "isFavoriteBusinessPhone"))
@@ -273,7 +277,7 @@ class AddressRest()
                                         "isFavoritePrivateMobilePhone"))))
                 .add(UIRow()
                         .add(UIFieldset(mdLength = 6, lgLength = 4, title = "address.heading.businessAddress")
-                                .add(UIInput("addressText", lc, ignoreAdditionalLabel = true))
+                                .add(UIInput("addressText", lc, ignoreAdditionalLabel = true).enableAutoCompletion(this))
                                 .add(UIRow()
                                         .add(UICol(xlLength = 3)
                                                 .add(UIInput("zipCode", lc, ignoreAdditionalLabel = true)))
@@ -285,7 +289,7 @@ class AddressRest()
                                         .add(UICol(xlLength = 6)
                                                 .add(UIInput("state", lc, ignoreAdditionalLabel = true)))))
                         .add(UIFieldset(mdLength = 6, lgLength = 4, title = "address.heading.postalAddress")
-                                .add(UIInput("postalAddressText", lc, ignoreAdditionalLabel = true))
+                                .add(UIInput("postalAddressText", lc, ignoreAdditionalLabel = true).enableAutoCompletion(this))
                                 .add(UIRow()
                                         .add(UICol(xlLength = 3)
                                                 .add(UIInput("postalZipCode", lc, ignoreAdditionalLabel = true)))
@@ -297,7 +301,7 @@ class AddressRest()
                                         .add(UICol(xlLength = 6)
                                                 .add(UIInput("postalState", lc, ignoreAdditionalLabel = true)))))
                         .add(UIFieldset(mdLength = 6, lgLength = 4, title = "address.heading.privateAddress")
-                                .add(UIInput("privateAddressText", lc, ignoreAdditionalLabel = true))
+                                .add(UIInput("privateAddressText", lc, ignoreAdditionalLabel = true).enableAutoCompletion(this))
                                 .add(UIRow()
                                         .add(UICol(xlLength = 3)
                                                 .add(UIInput("privateZipCode", lc, ignoreAdditionalLabel = true)))
