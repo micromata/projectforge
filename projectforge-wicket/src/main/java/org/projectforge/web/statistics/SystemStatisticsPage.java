@@ -42,11 +42,9 @@ import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryPoolMXBean;
-import java.lang.management.MemoryType;
-import java.lang.management.MemoryUsage;
+import java.lang.management.*;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 public class SystemStatisticsPage extends AbstractSecuredPage {
   private static final long serialVersionUID = 8587252641914110851L;
@@ -93,6 +91,8 @@ public class SystemStatisticsPage extends AbstractSecuredPage {
         log.info("Memory: " + usage);
       }
     }
+    OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
+    body.add(new Label("systemLoadAverage", new BigDecimal(osBean.getSystemLoadAverage()).setScale(2, RoundingMode.HALF_UP)));
   }
 
   private int getTableCount(final JdbcTemplate jdbc, final Class<?> entity) {
