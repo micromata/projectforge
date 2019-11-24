@@ -283,7 +283,7 @@ open class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     open var excelDateFormat: String? = null
 
     /**
-     * 0 - sunday, 1 - monday etc.
+     * 1 - sunday, 2 - monday etc.
      */
     @get:Column(name = "first_day_of_week")
     open var firstDayOfWeek: Int? = null
