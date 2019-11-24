@@ -154,6 +154,9 @@ class IndexPage extends React.Component {
                                 Backlog: Timepicker (substituion of current used),
                                 and date-range picker.
                             </li>
+                        </ol>
+                        <h1>Done</h1>
+                        <ol style={todoDone}>
                             <li>
                                 Prepare nested, indexed properties, such as
                                 {' '}
@@ -161,9 +164,6 @@ class IndexPage extends React.Component {
                                 <br />
                                 See /incomingInvoice
                             </li>
-                        </ol>
-                        <h1>Done</h1>
-                        <ol style={todoDone}>
                             <li>
                                 Clear Autocomplete (EditableMultiValueLabel) crash.
                             </li>
