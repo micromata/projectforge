@@ -48,7 +48,7 @@ public class TestSetup {
     user.setTimeZone(TimeZone.getTimeZone("Europe/Berlin"));
     user.setExcelDateFormat("YYYY-MM-DD");
     user.setDateFormat("dd.MM.yyyy");
-    user.setLocale(Locale.GERMAN);
+    user.setLocale(new Locale("de", "DE"));
     user.setFirstDayOfWeek(Calendar.MONDAY);
     ThreadLocalUserContext.setUserContext(new UserContext(user, null));
     ConfigXmlTest.createTestConfiguration();
