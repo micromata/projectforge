@@ -65,7 +65,7 @@ open class DBQuery {
                                                ignoreTenant: Boolean = false)
             : List<O> {
         baseDao.checkLoggedInUserSelectAccess()
-        if (accessChecker.isRestrictedUser) {
+        if (checkAccess && accessChecker.isRestrictedUser) {
             return listOf()
         }
         try {
