@@ -313,7 +313,7 @@ class CalendarPanel extends React.Component {
             topHeight,
             translations,
             match,
-            step,
+            gridSize,
         } = this.props;
         const initTime = new Date(date.getDate());
         initTime.setHours(8);
@@ -328,7 +328,7 @@ class CalendarPanel extends React.Component {
                     }}
                     localizer={localizer}
                     events={events}
-                    step={step}
+                    step={gridSize}
                     view={view}
                     onView={this.onView}
                     views={['month', 'work_week', 'week', 'day', 'agenda']}
@@ -383,7 +383,7 @@ CalendarPanel.propTypes = {
     topHeight: PropTypes.string,
     defaultDate: PropTypes.instanceOf(Date),
     defaultView: PropTypes.string,
-    step: PropTypes.number,
+    gridSize: PropTypes.number,
     translations: PropTypes.shape({}).isRequired,
     match: PropTypes.shape({
         url: PropTypes.string.isRequired,
@@ -398,7 +398,7 @@ CalendarPanel.defaultProps = {
     topHeight: '164px',
     defaultDate: new Date(),
     defaultView: 'month',
-    step: 30,
+    gridSize: 30,
 };
 
 const mapStateToProps = ({ authentication }) => ({

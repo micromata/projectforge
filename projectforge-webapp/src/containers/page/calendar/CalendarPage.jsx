@@ -25,6 +25,7 @@ class CalendarPage extends React.Component {
             filter: {
                 defaultCalendarId: undefined,
                 listOfDefaultCalendars: [],
+                gridSize: 30,
             },
             timesheetUser: undefined,
             filterFavorites: undefined,
@@ -36,6 +37,7 @@ class CalendarPage extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.handleMultiValueChange = this.handleMultiValueChange.bind(this);
         this.onDefaultCalendarChange = this.onDefaultCalendarChange.bind(this);
+        this.onGridSizeChange = this.onGridSizeChange.bind(this);
         this.onFavoriteCreate = this.onFavoriteCreate.bind(this);
         this.onFavoriteDelete = this.onFavoriteDelete.bind(this);
         this.onFavoriteRename = this.onFavoriteRename.bind(this);
@@ -66,6 +68,16 @@ class CalendarPage extends React.Component {
             filter: {
                 ...currentState.filter,
                 defaultCalendarId,
+            },
+        }));
+    }
+
+
+    onGridSizeChange(gridSize) {
+        this.setState(currentState => ({
+            filter: {
+                ...currentState.filter,
+                gridSize,
             },
         }));
     }
@@ -221,9 +233,11 @@ class CalendarPage extends React.Component {
                                                 filter.otherTimesheetUsersEnabled
                                             }
                                             timesheetUser={timesheetUser}
+                                            gridSize={filter.gridSize}
                                             translations={translations}
                                             onTimesheetUserChange={this.onTimesheetUserChange}
                                             onDefaultCalendarChange={this.onDefaultCalendarChange}
+                                            onGridSizeChange={this.onGridSizeChange}
                                         />
                                     </Col>
                                 </Row>
@@ -233,6 +247,7 @@ class CalendarPage extends React.Component {
                     <CalendarPanel
                         defaultDate={date}
                         defaultView={view}
+                        gridSize={filter.gridSize}
                         activeCalendars={activeCalendars}
                         timesheetUserId={timesheetUser ? timesheetUser.id : undefined}
                         topHeight="225px"

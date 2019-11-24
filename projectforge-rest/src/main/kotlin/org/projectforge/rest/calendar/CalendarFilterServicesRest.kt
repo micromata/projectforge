@@ -51,7 +51,8 @@ import java.util.*
 @RequestMapping("${Rest.URL}/calendar")
 class CalendarFilterServicesRest {
     class CalendarInit(var date: PFDateTime? = null,
-                       @Suppress("unused") var view: CalendarView? = CalendarView.WEEK,
+                       @Suppress("unused")
+                       var view: CalendarView? = CalendarView.WEEK,
                        var teamCalendars: List<StyledTeamCalendar>? = null,
                        var filterFavorites: List<Favorites.FavoriteIdTitle>? = null,
                        /**
@@ -161,6 +162,7 @@ class CalendarFilterServicesRest {
                 "calendar.defaultCalendar",
                 "calendar.defaultCalendar.tooltip",
                 "calendar.navigation.today",
+                "calendar.option.gridSize",
                 "calendar.option.timesheeets",
                 "calendar.title",
                 "calendar.view.agenda",
@@ -252,14 +254,14 @@ class CalendarFilterServicesRest {
     }
 
     @GetMapping("changeDefaultCalendar")
-    fun changeDefaultCalendar(@RequestParam("id", required = true) id: String) : Map<String, Any>{
+    fun changeDefaultCalendar(@RequestParam("id", required = true) id: String): Map<String, Any> {
         val currentFilter = getCurrentFilter()
         currentFilter.defaultCalendarId = NumberHelper.parseInteger(id)
         return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
     }
 
     @GetMapping("changeTimesheetUser")
-    fun changeTimesheetUser(@RequestParam("userId", required = true) userIdString: String) : Map<String, Any> {
+    fun changeTimesheetUser(@RequestParam("userId", required = true) userIdString: String): Map<String, Any> {
         val currentFilter = getCurrentFilter()
         val userId = NumberHelper.parseInteger(userIdString)
         if (timesheetDao.showTimesheetsOfOtherUsers()) {
@@ -274,11 +276,21 @@ class CalendarFilterServicesRest {
         return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
     }
 
+    @GetMapping("changeGridSizer")
+    fun changeGridSizer(@RequestParam("size", required = true) sizeString: String): Map<String, Any> {
+        val currentFilter = getCurrentFilter()
+        val size = NumberHelper.parseInteger(sizeString)
+        if (size != null && size in intArrayOf(5, 10, 15, 30, 60)) {
+            currentFilter.gridSize = size
+        }
+        return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
+    }
+
     /**
      * @return The currentFilter with changed name and defaultCalendarId and the new list of filterFavorites (id's with titles).
      */
     @GetMapping("createNewFilter")
-    fun createFavoriteilter(@RequestParam("newFilterName", required = true) newFilterName: String): Map<String, Any> {
+    fun createFavoriteFilter(@RequestParam("newFilterName", required = true) newFilterName: String): Map<String, Any> {
         val currentFilter = getCurrentFilter()
         currentFilter.name = newFilterName
         val favorites = getFilterFavorites()

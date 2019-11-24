@@ -43,9 +43,17 @@ class CalendarFilter(name: String? = null,
                       */
                      var defaultCalendarId: Int? = null,
 
+                     /**
+                      * Grid size of the calendar to display in minutes (60 should be dividable by step).
+                      */
+                     var gridSize: Int = 15,
+
                      var showBirthdays: Boolean? = null,
 
-                     var showStatistics: Boolean? = null,
+                     /**
+                      * Not yet supported: Statistics will always be displayed, if time sheets will be displayed.
+                      */
+                     var showStatistics: Boolean? = true,
 
                      var otherTimesheetUsersEnabled: Boolean = false,
                      /**
@@ -53,8 +61,14 @@ class CalendarFilter(name: String? = null,
                       */
                      var timesheetUserId: Int? = null,
 
-                     var showBreaks: Boolean? = true,
+                     /**
+                      * Not yet supported.
+                      */
+                     var showBreaks: Boolean? = false,
 
+                     /**
+                      * Not yet supported.
+                      */
                      var showPlanning: Boolean? = null)
     : AbstractFavorite(name, id) {
 
@@ -73,6 +87,7 @@ class CalendarFilter(name: String? = null,
         this.showBirthdays = src.showBirthdays
         this.showStatistics = src.showStatistics
         this.timesheetUserId = src.timesheetUserId
+        this.gridSize = src.gridSize
         this.showBreaks = src.showBreaks
         this.showPlanning = src.showPlanning
         this.calendarIds = mutableSetOf()
@@ -141,6 +156,7 @@ class CalendarFilter(name: String? = null,
         if (this.showBirthdays != other.showBirthdays) return true
         if (this.showStatistics != other.showStatistics) return true
         if (this.timesheetUserId != other.timesheetUserId) return true
+        if (this.gridSize != other.gridSize) return true
         if (this.showBreaks != other.showBreaks) return true
         if (this.showPlanning != other.showPlanning) return true
         if (isModified(this.calendarIds, other.calendarIds)) return true
