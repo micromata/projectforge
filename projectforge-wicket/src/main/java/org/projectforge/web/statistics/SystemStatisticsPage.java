@@ -92,7 +92,9 @@ public class SystemStatisticsPage extends AbstractSecuredPage {
       }
     }
     OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
-    body.add(new Label("systemLoadAverage", new BigDecimal(osBean.getSystemLoadAverage()).setScale(2, RoundingMode.HALF_UP)));
+    BigDecimal systemLoadAverage = new BigDecimal(osBean.getSystemLoadAverage()).setScale(2, RoundingMode.HALF_UP);
+    body.add(new Label("systemLoadAverage", systemLoadAverage));
+    log.info("System load average: " + systemLoadAverage);
   }
 
   private int getTableCount(final JdbcTemplate jdbc, final Class<?> entity) {
