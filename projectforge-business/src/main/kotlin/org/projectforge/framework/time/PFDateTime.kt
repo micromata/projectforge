@@ -29,7 +29,9 @@ import java.time.*
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
+import java.time.temporal.WeekFields
 import java.util.*
+
 
 /**
  * Immutable holder of [ZonedDateTime] for transforming to [java.util.Date] (once) if used several times.
@@ -100,6 +102,11 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
     val dayOfWeek: DayOfWeek
         get() = dateTime.dayOfWeek
 
+    val weekOfYear: Int
+        get() {
+            val weekFields = WeekFields.of(ThreadLocalUserContext.getLocale())
+            return dateTime.get(weekFields.weekOfWeekBasedYear())
+        }
 
     val beginOfWeek: PFDateTime
         get() {
