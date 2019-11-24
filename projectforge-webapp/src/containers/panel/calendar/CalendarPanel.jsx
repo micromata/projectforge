@@ -189,9 +189,10 @@ class CalendarPanel extends React.Component {
 
     // Callback fired when a calendar event is selected.
     onSelectEvent(event) {
+        if (event.readOnly === true) return;
         const { match } = this.props;
-        // start date is send to the server and is needed for series events to detect the current
-        // selected event of a series.
+        // start date is send to the server and is needed for series events to detect the
+        // current selected event of a series.
         history.push(`${match.url}/${event.category}/edit/${event.uid || event.dbId}?startDate=${event.start.getTime() / 1000}&endDate=${event.end.getTime() / 1000}`);
     }
 
@@ -202,10 +203,12 @@ class CalendarPanel extends React.Component {
     }
 
     onEventResize(info) {
+        if (info.event.readOnly === true) return;
         this.fetchAction('resize', info.start, info.end, undefined, info.allDay, info.event);
     }
 
     onEventDrop(info) {
+        if (info.event.readOnly === true) return;
         this.fetchAction('dragAndDrop', info.start, info.end, undefined, info.allDay, info.event);
     }
 
@@ -306,7 +309,12 @@ class CalendarPanel extends React.Component {
             view,
             specialDays,
         } = this.state;
-        const { topHeight, translations, match } = this.props;
+        const {
+            topHeight,
+            translations,
+            match,
+            step,
+        } = this.props;
         const initTime = new Date(date.getDate());
         initTime.setHours(8);
         initTime.setMinutes(0);
@@ -320,7 +328,7 @@ class CalendarPanel extends React.Component {
                     }}
                     localizer={localizer}
                     events={events}
-                    step={30}
+                    step={step}
                     view={view}
                     onView={this.onView}
                     views={['month', 'work_week', 'week', 'day', 'agenda']}
@@ -375,6 +383,7 @@ CalendarPanel.propTypes = {
     topHeight: PropTypes.string,
     defaultDate: PropTypes.instanceOf(Date),
     defaultView: PropTypes.string,
+    step: PropTypes.number,
     translations: PropTypes.shape({}).isRequired,
     match: PropTypes.shape({
         url: PropTypes.string.isRequired,
@@ -389,6 +398,7 @@ CalendarPanel.defaultProps = {
     topHeight: '164px',
     defaultDate: new Date(),
     defaultView: 'month',
+    step: 30,
 };
 
 const mapStateToProps = ({ authentication }) => ({

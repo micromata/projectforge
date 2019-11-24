@@ -30,17 +30,18 @@ import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.timesheet.TimesheetFilter
 import org.projectforge.common.StringHelper
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.TimePeriod
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import java.time.LocalDateTime
 import java.time.Month
 import java.time.ZonedDateTime
 
 @Component
 class TimesheetEventsProvider() {
+    private val log = org.slf4j.LoggerFactory.getLogger(TimesheetEventsProvider::class.java)
 
     @Autowired
     private lateinit var timesheetDao: TimesheetDao
@@ -77,7 +78,7 @@ class TimesheetEventsProvider() {
             ctx.firstDayOfMonth = dayInCurrentMonth.withDayOfMonth(1)
         }
 
-        var lastStopTime: LocalDateTime? = null
+        //var lastStopTime: LocalDateTime? = null
         for (timesheet in timesheets) {
             val startTime = PFDateTime.from(timesheet.startTime, true)
             val stopTime = PFDateTime.from(timesheet.stopTime, true)
@@ -114,21 +115,65 @@ class TimesheetEventsProvider() {
             if (ctx.month != null && startTime.month != ctx.month && stopTime.month != ctx.month) {
                 outOfRange = true
             }
-            val link = "timesheet/edit/${timesheet.id}"
-            events.add(BigCalendarEvent(title, timesheet.startTime!!, timesheet .stopTime!!, null,
-                    location =  timesheet.location, desc = description, tooltip=tooltip, formattedDuration = formattedDuration, outOfRange = outOfRange,
+            //val link = "timesheet/edit/${timesheet.id}"
+            events.add(BigCalendarEvent(title, timesheet.startTime!!, timesheet.stopTime!!, null,
+                    location = timesheet.location, desc = description, tooltip = tooltip, formattedDuration = formattedDuration, outOfRange = outOfRange,
                     cssClass = "timesheet", category = "timesheet", dbId = timesheet.id))
 
-            /*  if (ctx.month == startTime.month()) {
-                  ctx.totalDuration += timesheet.duration
-                  addDurationOfDay(startTime.dayOfMonth, duration)
-              }
-              val dayOfYear = startTime.dayOfYear
-              addDurationOfDayOfYear(dayOfYear, duration)
-              event.setTooltip(
-                      getString("timesheet"),
-                      arrayOf(arrayOf(title), arrayOf(timesheet.location, getString("timesheet.location")), arrayOf(KostFormatter.formatLong(timesheet.kost2), getString("fibu.kost2")), arrayOf(WicketTaskFormatter.getTaskPath(timesheet.taskId, true, OutputType.PLAIN), getString("task")), arrayOf(timesheet.description, getString("description"))))
-        */
+            val duration = timesheet.getDuration()
+            if (ctx.month == null || ctx.month == startTime.month) {
+                ctx.totalDuration += duration
+                ctx.addDurationOfDay(startTime.dayOfMonth, duration)
+            }
+            val dayOfYear = startTime.dayOfYear
+            ctx.addDurationOfDayOfYear(dayOfYear, duration)
+            //event.setTooltip(
+            //        getString("timesheet"),
+            //        arrayOf(arrayOf(title), arrayOf(timesheet.location, getString("timesheet.location")), arrayOf(KostFormatter.formatLong(timesheet.kost2), getString("fibu.kost2")), arrayOf(WicketTaskFormatter.getTaskPath(timesheet.taskId, true, OutputType.PLAIN), getString("task")), arrayOf(timesheet.description, getString("description"))))
+
+        }
+        if (showStatistics) { // Show statistics: duration of every day is shown as all day event.
+            var day = start
+            val numberOfDaysInYear = day.numberOfDaysInYear
+            var paranoiaCounter = 0
+            do {
+                if (++paranoiaCounter > 1000) {
+                    log.error("Paranoia counter exceeded! Dear developer, please have a look at the implementation of buildEvents.")
+                    break
+                }
+                val dayOfYear = day.dayOfYear
+                val duration: Long = ctx.getDurationOfDayOfYear(dayOfYear)
+                val firstDayOfWeek = (day.dayOfWeek == ThreadLocalUserContext.getFirstDayOfWeek())
+                if (!firstDayOfWeek && duration == 0L) {
+                    day = day.plusDays(1)
+                    continue
+                }
+                val durationString = formatDuration(duration, false)
+                val title = if (firstDayOfWeek) { // Show week of year at top of first day of week.
+                    var weekDuration: Long = 0
+                    for (i in 0..6) {
+                        var d = dayOfYear + i
+                        if (d > numberOfDaysInYear) {
+                            d -= numberOfDaysInYear
+                        }
+                        weekDuration += ctx.getDurationOfDayOfYear(d)
+                    }
+                    val buf = StringBuffer()
+                    buf.append(translate("calendar.weekOfYearShortLabel")).append(day.weekOfYear)
+                    if (ctx.days > 1 && weekDuration > 0) { // Show total sum of durations over all time sheets of current week (only in week and month view).
+                        buf.append(": ").append(formatDuration(weekDuration, false))
+                    }
+                    if (duration > 0) {
+                        buf.append(", ").append(durationString)
+                    }
+                    buf.toString()
+                } else {
+                    durationString
+                }
+                val event = BigCalendarEvent(title, start = day.utilDate, end = day.utilDate, allDay = true, category = "ts-stats", cssClass = "timesheet-stats", readOnly = true)
+                events.add(event)
+                day = day.plusDays(1)
+            } while (!day.isAfter(end))
         }
     }
 
@@ -179,5 +224,21 @@ class TimesheetEventsProvider() {
         val durationsPerDayOfYear = LongArray(380)
         var breaksMap = mutableMapOf<String, TimesheetDO>()
         var breaksCounter = 0
+
+        fun addDurationOfDay(dayOfMonth: Int, duration: Long) {
+            durationsPerDayOfMonth[dayOfMonth] += duration
+        }
+
+        fun addDurationOfDayOfYear(dayOfYear: Int, duration: Long) {
+            durationsPerDayOfYear[dayOfYear] += duration
+        }
+
+        fun getDurationOfDay(dayOfMonth: Int): Long {
+            return durationsPerDayOfMonth[dayOfMonth]
+        }
+
+        fun getDurationOfDayOfYear(dayOfYear: Int): Long {
+            return durationsPerDayOfYear[dayOfYear]
+        }
     }
 }
