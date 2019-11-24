@@ -151,7 +151,7 @@ class AddressServicesRest() {
     @GetMapping("downloadAppleScript")
     fun downloadAppleScript(): ResponseEntity<Any> {
         log.info("Downloading AppleScript.")
-        var content: ByteArray?
+        val content: ByteArray?
         val file = APPLE_SCRIPT_DIR + APPLE_SCRIPT_FOR_ADDRESS_BOOK
         try {
             val cLoader = this.javaClass.classLoader
@@ -174,9 +174,7 @@ class AddressServicesRest() {
 
     @GetMapping("exportVCard/{id}")
     fun exportVCard(@PathVariable("id") id: Int?): ResponseEntity<Any> {
-        val address = addressDao.getById(id)
-        if (address == null)
-            return ResponseEntity(HttpStatus.NOT_FOUND)
+        val address = addressDao.getById(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
         val filename = ("ProjectForge-" + ReplaceUtils.encodeFilename(address.fullName) + "_"
                 + DateHelper.getDateAsFilenameSuffix(Date()) + ".vcf")
         val writer = StringWriter()
