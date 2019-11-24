@@ -82,6 +82,9 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
     val monthValue: Int
         get() = dateTime.monthValue
 
+    val dayOfYear: Int
+        get() = dateTime.dayOfYear
+
     val dayOfMonth: Int
         get() = dateTime.dayOfMonth
 
@@ -93,6 +96,10 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
             val nextMonth = dateTime.plusMonths(1).withDayOfMonth(1)
             return PFDateTime(PFDateTimeUtils.getBeginOfDay(nextMonth.withDayOfMonth(1)))
         }
+
+    val dayOfWeek: DayOfWeek
+        get() = dateTime.dayOfWeek
+
 
     val beginOfWeek: PFDateTime
         get() {
@@ -117,6 +124,9 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
             val endOfDay = PFDateTimeUtils.getEndOfDay(dateTime)
             return PFDateTime(endOfDay)
         }
+
+    val numberOfDaysInYear: Int
+        get() = Year.from(dateTime).length()
 
     val epochSeconds: Long
         get() = dateTime.toEpochSecond()
