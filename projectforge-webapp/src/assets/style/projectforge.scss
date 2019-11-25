@@ -153,6 +153,7 @@ fieldset {
   0 1px 3px 1px rgba(60, 64, 67, .16);
   padding: 25px;
   margin-bottom: 20px;
+  border-radius: 3px;
 
   legend {
     font-weight: bold;
@@ -193,6 +194,11 @@ svg.fa-chevron-down {
 }
 
 // Calendar
+
+.rbc-time-view {
+  border-radius: 5px;
+  margin-bottom: 15px;
+}
 
 .rbc-allday-cell {
   max-height: 100px;
