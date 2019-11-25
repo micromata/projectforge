@@ -65,6 +65,8 @@ ul.categoryLinks {
 }
 
 .categoryListDropdownMenu {
+  border-radius: 5px;
+
   @media #{$mediumMediaQuery} {
     width: 730px;
   }
