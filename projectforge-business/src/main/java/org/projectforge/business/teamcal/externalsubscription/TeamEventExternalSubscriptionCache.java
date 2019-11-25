@@ -71,8 +71,18 @@ public class TeamEventExternalSubscriptionCache {
   // @PostConstruct doesn't work (it will be called to early before TenantRegistryMap is ready).
   private synchronized void init() {
     if (!initialized) {
-      updateCache();
+      final QueryFilter filter = new QueryFilter();
+      filter.add(QueryFilter.eq("externalSubscription", true));
+      final List<TeamCalDO> subscribedCalendars = teamCalDao.internalGetList(filter);
+      for (final TeamCalDO calendar : subscribedCalendars) {
+        TeamEventSubscription teamEventSubscription = new TeamEventSubscription();
+        subscriptions.put(calendar.getId(), teamEventSubscription);
+      }
       initialized = true;
+      // Start updateCache as may-be long-running thread. Avoids blocking of callee (CalendarPage).
+      new Thread(() -> {
+        updateCache();
+      }).start();
     }
   }
 
@@ -131,10 +141,12 @@ public class TeamEventExternalSubscriptionCache {
     final Long addedTime = calendar.getExternalSubscriptionUpdateInterval() == null ? SUBSCRIPTION_UPDATE_TIME
             : 1000L * calendar
             .getExternalSubscriptionUpdateInterval();
-    if (teamEventSubscription == null) {
+    if (teamEventSubscription == null || !teamEventSubscription.isInitialized()) {
       // First update of subscribed calendar:
-      teamEventSubscription = new TeamEventSubscription();
-      subscriptions.put(calendar.getId(), teamEventSubscription);
+      if (teamEventSubscription == null) {
+        teamEventSubscription = new TeamEventSubscription();
+        subscriptions.put(calendar.getId(), teamEventSubscription);
+      }
       teamEventSubscription.update(teamCalDao, calendar);
     } else if (force || teamEventSubscription.getLastUpdated() == null
             || teamEventSubscription.getLastUpdated() + addedTime <= now) {

@@ -57,6 +57,8 @@ public class TeamEventSubscription implements Serializable
 
   private Integer teamCalId;
 
+  private boolean initialized = false;
+
   private SubscriptionHolder subscription;
 
   private List<TeamEventDO> recurrenceEvents;
@@ -108,6 +110,7 @@ public class TeamEventSubscription implements Serializable
     this.teamCalId = teamCalDO.getId();
     currentInitializedHash = null;
     lastUpdated = null;
+    this.initialized = true;
     String url = teamCalDO.getExternalSubscriptionUrl();
     if (!teamCalDO.getExternalSubscription() || StringUtils.isEmpty(url)) {
       // No external subscription.
@@ -221,6 +224,7 @@ public class TeamEventSubscription implements Serializable
     this.lastErrorMessage = null;
     this.lastFailedUpdate = null;
     this.numberOfFailedUpdates = 0;
+    this.initialized = true;
   }
 
   private void error(final String errorMessage) {
@@ -316,5 +320,13 @@ public class TeamEventSubscription implements Serializable
   public List<TeamEventDO> getRecurrenceEvents()
   {
     return recurrenceEvents;
+  }
+
+  public boolean isInitialized() {
+    return initialized;
+  }
+
+  public void setInitialized(boolean initialized) {
+    this.initialized = initialized;
   }
 }
