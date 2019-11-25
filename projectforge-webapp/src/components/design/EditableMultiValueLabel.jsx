@@ -248,7 +248,10 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
         >
             <div
                 ref={popperRef}
-                style={{ minWidth: Math.min(window.innerWidth - 64, big ? 700 : 350) }}
+                style={{
+                    minWidth: Math.min(window.innerWidth - 64, big ? 700 : 350),
+                    padding: '10px 15px',
+                }}
             >
                 {popperContent}
                 <Button color="success" block onClick={submitValue}>
