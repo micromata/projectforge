@@ -183,7 +183,7 @@ class LayoutUtils {
                 if (!restService.isDeleted(dto)) {
                     if (userAccess.insert == true) {
                         layout.addAction(UIButton("update",
-                                color = UIColor.SUCCESS,
+                                color = UIColor.PRIMARY,
                                 default = true,
                                 responseAction = ResponseAction(restService.getRestPath(RestPaths.SAVE_OR_UDATE), targetType = TargetType.PUT)))
                     }
