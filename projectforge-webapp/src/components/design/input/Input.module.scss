@@ -415,7 +415,7 @@
       letter-spacing: .05em;
       color: #666;
 
-      @include transition(color $defaultTransitionTime);
+      @include transition(.3s);
     }
 
     .textArea {
@@ -484,7 +484,7 @@
 
   .additionalLabel {
     display: block;
-    margin: .5em 0;
+    margin-bottom: .5em;
     font-size: .85em;
 
     span {
