@@ -32,6 +32,7 @@ function Formatter(
 
     let result = value;
 
+    // TODO FORMAT NUMBERS RIGHT ALIGNED
     if (formatter) {
         switch (formatter) {
             case COST1_FORMATTER:
