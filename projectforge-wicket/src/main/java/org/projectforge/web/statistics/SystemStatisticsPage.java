@@ -58,6 +58,14 @@ public class SystemStatisticsPage extends AbstractSecuredPage {
     super(parameters);
     RepeatingView listItems = new RepeatingView("memoryStatisticsIterator");
     body.add(listItems);
+
+    // First: Get the system load average (don't measure gc run ;-)
+    OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
+    BigDecimal systemLoadAverage = new BigDecimal(osBean.getSystemLoadAverage()).setScale(2, RoundingMode.HALF_UP);
+    body.add(new Label("systemLoadAverage", systemLoadAverage));
+    log.info("System load average: " + systemLoadAverage);
+
+    // Second: run GC and measure memory consumption before getting database statistics.
     System.gc();
     for (MemoryPoolMXBean mpBean : ManagementFactory.getMemoryPoolMXBeans()) {
       if (mpBean.getType() == MemoryType.HEAP) {
@@ -75,21 +83,17 @@ public class SystemStatisticsPage extends AbstractSecuredPage {
         log.info("Memory: " + usage);
       }
     }
-    OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
-    BigDecimal systemLoadAverage = new BigDecimal(osBean.getSystemLoadAverage()).setScale(2, RoundingMode.HALF_UP);
-    body.add(new Label("systemLoadAverage", systemLoadAverage));
-    log.info("System load average: " + systemLoadAverage);
 
+    // Finally, the database statistics.
     final JdbcTemplate jdbc = new JdbcTemplate(dataSource);
     body.add(new Label("totalNumberOfTimesheets", NumberFormatter.format(getTableCount(jdbc, TimesheetDO.class))));
     final TaskTree taskTree = TaskTreeHelper.getTaskTree();
     final long totalDuration = taskTree.getRootTaskNode().getDuration(taskTree, true);
-    BigDecimal tatalPersonDays = new BigDecimal(totalDuration).divide(DateHelper.SECONDS_PER_WORKING_DAY, 2,
-            BigDecimal.ROUND_HALF_UP);
-    tatalPersonDays = NumberHelper.setDefaultScale(tatalPersonDays);
+    BigDecimal totalPersonDays = new BigDecimal(totalDuration).divide(DateHelper.SECONDS_PER_WORKING_DAY, 2, RoundingMode.HALF_UP);
+    totalPersonDays = NumberHelper.setDefaultScale(totalPersonDays);
     body.add(new Label("totalNumberOfTimesheetDurations",
-            NumberHelper.getNumberFractionFormat(getLocale(), tatalPersonDays.scale())
-                    .format(tatalPersonDays)));
+            NumberHelper.getNumberFractionFormat(getLocale(), totalPersonDays.scale())
+                    .format(totalPersonDays)));
     body.add(new Label("totalNumberOfUsers", NumberFormatter.format(getTableCount(jdbc, PFUserDO.class))));
     body.add(new Label("totalNumberOfTasks", NumberFormatter.format(getTableCount(jdbc, TaskDO.class))));
     final int totalNumberOfHistoryEntries = getTableCount(jdbc, PfHistoryMasterDO.class)
