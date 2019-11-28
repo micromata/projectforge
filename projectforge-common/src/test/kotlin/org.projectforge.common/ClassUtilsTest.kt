@@ -29,9 +29,12 @@ import org.junit.jupiter.api.Test
 class ClassUtilsTest {
     @Test
     fun getClassOfFieldTest() {
-        Assertions.assertEquals(Address::class.java, ClassUtils.getClassOfField(Timesheet::class.java, "employee.mainAddress.street"))
+        var fieldInfo = ClassUtils.getFieldInfo(Timesheet::class.java, "employee.mainAddress.street")
+        Assertions.assertEquals(Address::class.java, fieldInfo!!.clazz)
+        Assertions.assertEquals(String::class.java, fieldInfo.field!!.type)
         //Assertions.assertEquals(Address::class.java, ClassUtils.getClassOfField(Timesheet::class.java, "employee.addresses.street"))
-        Assertions.assertEquals(Address::class.java, ClassUtils.getClassOfField(Address::class.java, "street"))
+        fieldInfo = ClassUtils.getFieldInfo(Address::class.java, "street")
+        Assertions.assertEquals(Address::class.java, fieldInfo!!.clazz)
     }
 
     @Test

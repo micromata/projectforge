@@ -26,6 +26,7 @@ package org.projectforge.common
 import org.apache.commons.lang3.StringUtils
 
 import java.lang.reflect.Field
+import java.lang.reflect.ParameterizedType
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -52,9 +53,8 @@ object ClassUtils {
      */
     @JvmOverloads
     fun <A : Annotation> getClassAnnotationOfField(clazz: Class<*>, property: String, annotationClass: Class<A>, suppressWarning: Boolean = false): A? {
-        val clazz = getClassOfField(clazz, property, suppressWarning)
-        if (clazz == null) return null
-        return getClassAnnotation(clazz, annotationClass)
+        val cls = getFieldInfo(clazz, property, suppressWarning)?.clazz ?: return null
+        return getClassAnnotation(cls, annotationClass)
     }
 
     /**
@@ -81,7 +81,7 @@ object ClassUtils {
      * @return
      */
     @JvmOverloads
-    fun getClassOfField(clazz: Class<*>, property: String, suppressWarning: Boolean = false): Class<*>? {
+    fun getFieldInfo(clazz: Class<*>, property: String, suppressWarning: Boolean = false): Info? {
         val nestedProps = StringUtils.split(property, '.')
         if (nestedProps.isNullOrEmpty()) {
             if (!suppressWarning) {
@@ -89,30 +89,33 @@ object ClassUtils {
             }
             return null
         }
-        if (nestedProps.size == 1) {
-            return clazz
-        }
-        var cls = clazz
-        var field: Field? = null
-        var pos = 0
+        var currentInfo: Info? = null
+        var currentClass = clazz
         for (nestedProp in nestedProps) {
-            if (++pos >= nestedProps.size) {
-                // Ignore field itself to get parent.
-                break
-            }
-            field = null // Reset field from previous loops.
-            val declaredFields = BeanHelper.getAllDeclaredFields(cls)
-            for (declaredField in declaredFields) {
-                if (nestedProp == declaredField.name == true) {
-                    field = declaredField
-                    cls = field!!.type
+            val declaredFields = BeanHelper.getAllDeclaredFields(currentClass)
+            for (field in declaredFields) {
+                if (nestedProp == field.name) {
+                    currentInfo = Info(currentClass, field, currentInfo)
+                    if (Iterable::class.java.isAssignableFrom(field.type) && field.genericType is ParameterizedType) {
+                        val type = field.genericType as ParameterizedType
+                        currentClass = type.actualTypeArguments[0] as Class<*>
+                        currentInfo.genericType = currentClass
+                    } else {
+                        currentClass = field.type
+                    }
                     break
                 }
             }
         }
-        if (field == null && !suppressWarning) {
+        if (currentInfo == null && !suppressWarning) {
             log.warn("Field '" + clazz.name + "." + property + "' not found.")
         }
-        return field?.type
+        return currentInfo
     }
+
+    class Info(
+            /**
+             * The parent class of the field.
+             */
+            val clazz: Class<*>, val field: Field, val parent: Info? = null, var genericType: Class<*>? = null)
 }

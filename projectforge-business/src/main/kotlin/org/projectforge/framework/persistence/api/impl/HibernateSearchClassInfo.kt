@@ -29,10 +29,7 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
-import org.hibernate.search.annotations.ClassBridge
-import org.hibernate.search.annotations.ClassBridges
-import org.hibernate.search.annotations.DateBridge
-import org.hibernate.search.annotations.DocumentId
+import org.hibernate.search.annotations.*
 import org.projectforge.common.BeanHelper
 import org.projectforge.common.ClassUtils
 import org.projectforge.common.props.PropUtils
@@ -91,15 +88,22 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
                 fieldFound = true
             } else if (fieldName.contains('.')) {
                 // Try to find ClassBridge of embedded object:
-                val parentClass = ClassUtils.getClassOfField(clazz, fieldName)
-                if (parentClass != null) {
-                    val name = fieldName.substring(fieldName.lastIndexOf('.') + 1)
-                    val classBridges = getClassBridges(parentClass)
-                    val bridge = classBridges.find { it.name == name }
-                    if (bridge != null) {
-                        bridges.add(bridge)
-                        fieldInfos.add(HibernateSearchFieldInfo(fieldName, ClassBridge::class.java)) // Search for class bridge name.
-                        fieldFound = true
+                val fieldInfo = ClassUtils.getFieldInfo(clazz, fieldName, true)
+                if (fieldInfo != null) {
+                    val type = if (fieldInfo.genericType != null) fieldInfo.genericType else fieldInfo.field.type
+                    if (type != null) {
+                        val name = fieldName.substring(fieldName.lastIndexOf('.') + 1)
+                        val classBridges = getClassBridges(type)
+                        val bridge = classBridges.find { it.name == name }
+                        if (bridge != null) {
+                            bridges.add(bridge)
+                            fieldInfos.add(HibernateSearchFieldInfo(fieldName, ClassBridge::class.java)) // Search for class bridge name.
+                            fieldFound = true
+                        } else {
+                            if (checkAndRegister(clazz, fieldName, type, fieldInfo.field)) {
+                                fieldFound = true
+                            }
+                        }
                     }
                 }
             }
@@ -162,8 +166,8 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
             info.add(accessible.getAnnotation(DocumentId::class.java))
             isSearchField = true
         } else if (fieldName.endsWith(".id")) {
-            val parentClass = ClassUtils.getClassOfField(clazz, fieldName)
-            if (parentClass != null && DefaultBaseDO::class.java.isAssignableFrom(parentClass)) {
+            val fieldInfo = ClassUtils.getFieldInfo(clazz, fieldName)
+            if (fieldInfo != null && DefaultBaseDO::class.java.isAssignableFrom(fieldInfo.clazz)) {
                 // Embedded id found.
                 info.idProperty = true
                 isSearchField = true
@@ -172,6 +176,9 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
 
         if (!isNew || !isSearchField) {
             return false
+        }
+        if (accessible.isAnnotationPresent(FieldBridge::class.java)) {
+            info.fieldBridgeAnn = accessible.getAnnotation(FieldBridge::class.java)
         }
         if (accessible.isAnnotationPresent(DateBridge::class.java)) {
             info.dateBridgeAnn = accessible.getAnnotation(DateBridge::class.java)
