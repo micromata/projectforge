@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu;
 
 import org.projectforge.framework.cache.AbstractCache;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,27 +39,28 @@ import java.util.*;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-public class RechnungCache extends AbstractCache
-{
+public class RechnungCache extends AbstractCache {
   private static Logger log = LoggerFactory.getLogger(RechnungCache.class);
 
   @Autowired
-  private EntityManager em;
+  protected PfEmgrFactory emgrFactory;
 
-  /** The key is the order id. */
+  /**
+   * The key is the order id.
+   */
   private Map<Integer, Set<RechnungsPositionVO>> invoicePositionMapByAuftragId;
 
-  /** The key is the order position id. */
+  /**
+   * The key is the order position id.
+   */
   private Map<Integer, Set<RechnungsPositionVO>> invoicePositionMapByAuftragsPositionId;
 
-  public Set<RechnungsPositionVO> getRechnungsPositionVOSetByAuftragId(final Integer auftragId)
-  {
+  public Set<RechnungsPositionVO> getRechnungsPositionVOSetByAuftragId(final Integer auftragId) {
     checkRefresh();
     return invoicePositionMapByAuftragId.get(auftragId);
   }
 
-  public Set<RechnungsPositionVO> getRechnungsPositionVOSetByAuftragsPositionId(final Integer auftragsPositionId)
-  {
+  public Set<RechnungsPositionVO> getRechnungsPositionVOSetByAuftragsPositionId(final Integer auftragsPositionId) {
     checkRefresh();
     return invoicePositionMapByAuftragsPositionId.get(auftragsPositionId);
   }
@@ -68,22 +70,25 @@ public class RechnungCache extends AbstractCache
    */
   @Override
   @SuppressWarnings("unchecked")
-  protected void refresh()
-  {
+  protected void refresh() {
     log.info("Initializing RechnungCache ...");
     // This method must not be synchronized because it works with a new copy of maps.
     final Map<Integer, Set<RechnungsPositionVO>> mapByAuftragId = new HashMap<>();
     final Map<Integer, Set<RechnungsPositionVO>> mapByAuftragsPositionId = new HashMap<>();
-    final List<RechnungsPositionDO> list = em.createQuery("from RechnungsPositionDO t left join fetch t.auftragsPosition left join fetch t.auftragsPosition.auftrag where t.auftragsPosition is not null",
-            RechnungsPositionDO.class)
-            .getResultList();
+    final List<RechnungsPositionDO> list = emgrFactory.runRoTrans(emgr -> {
+      EntityManager em = emgr.getEntityManager();
+      em.clear();
+      return em.createQuery("from RechnungsPositionDO t left join fetch t.auftragsPosition left join fetch t.auftragsPosition.auftrag where t.auftragsPosition is not null",
+              RechnungsPositionDO.class)
+              .getResultList();
+    });
     for (final RechnungsPositionDO pos : list) {
-      RechnungDO rechnung = (RechnungDO) pos.getRechnung();
+      RechnungDO rechnung = pos.getRechnung();
       if (pos.getAuftragsPosition() == null || pos.getAuftragsPosition().getAuftrag() == null) {
         log.error("Assigned order position expected: " + pos);
         continue;
       } else if (pos.isDeleted() || rechnung == null || rechnung.isDeleted()
-          || rechnung.getNummer() == null) {
+              || rechnung.getNummer() == null) {
         // Invoice position or invoice is deleted.
         continue;
       }
@@ -104,6 +109,10 @@ public class RechnungCache extends AbstractCache
         setByAuftragId.add(vo);
       }
       if (!setByAuftragsPositionId.contains(vo)) {
+        if (vo.getRechnungNummer() == 9806) {
+          log.info(pos.toString());
+          log.info("AuftragsPosition " + auftragsPosition.getAuftrag().getNummer() + "." + auftragsPosition.getNumber() + ": " + vo.getRechnungNummer());
+        }
         setByAuftragsPositionId.add(vo);
       }
     }
@@ -111,5 +120,4 @@ public class RechnungCache extends AbstractCache
     this.invoicePositionMapByAuftragsPositionId = mapByAuftragsPositionId;
     log.info("Initializing of RechnungCache done.");
   }
-
 }
