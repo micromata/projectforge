@@ -75,6 +75,9 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
             return _localDate!!
         }
 
+    val year: Int
+        get() = dateTime.year
+
     val month: Month
         get() = dateTime.month
 
@@ -101,6 +104,18 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
 
     val dayOfWeek: DayOfWeek
         get() = dateTime.dayOfWeek
+
+    /**
+     * 1 - MONDAY, ..., 7 - SUNDAY
+     */
+    val dayOfWeekNumber: Int
+        get() = dayOfWeek.value
+
+    /**
+     * 1 - SUNDAY, 2 - MONDAY, ..., 7 - SATURDAY
+     */
+    val dayOfWeekCompatibilityNumber: Int
+        get() = if (dayOfWeek == DayOfWeek.SUNDAY) 1 else dayOfWeekNumber + 1
 
     val weekOfYear: Int
         get() {
@@ -197,6 +212,7 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
          * Sets the user's time zone.
          */
         @JvmStatic
+        @JvmOverloads
         fun from(epochSeconds: Long?, nowIfNull: Boolean = false): PFDateTime? {
             if (epochSeconds == null)
                 return if (nowIfNull) now() else null
@@ -208,6 +224,7 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
          * Sets the user's time zone.
          */
         @JvmStatic
+        @JvmOverloads
         fun from(localDateTime: LocalDateTime?, nowIfNull: Boolean = false): PFDateTime? {
             if (localDateTime == null)
                 return if (nowIfNull) now() else null
@@ -218,6 +235,7 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
          * Creates mindnight [ZonedDateTime] from given [LocalDate].
          */
         @JvmStatic
+        @JvmOverloads
         fun from(localDate: LocalDate?, nowIfNull: Boolean = false): PFDateTime? {
             if (localDate == null)
                 return if (nowIfNull) now() else null
@@ -229,6 +247,7 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
          * @param timeZone: TimeZone to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
          */
         @JvmStatic
+        @JvmOverloads
         fun from(date: java.util.Date?, nowIfNull: Boolean = false, timeZone: TimeZone? = null): PFDateTime? {
             if (date == null)
                 return if (nowIfNull) now() else null
@@ -243,6 +262,7 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
          * Creates mindnight [ZonedDateTime] from given [LocalDate].
          */
         @JvmStatic
+        @JvmOverloads
         fun from(date: java.sql.Date?, nowIfNull: Boolean = false): PFDateTime? {
             if (date == null)
                 return if (nowIfNull) now() else null
