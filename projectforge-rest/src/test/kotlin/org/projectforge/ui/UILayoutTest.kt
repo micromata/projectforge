@@ -93,20 +93,20 @@ class UILayoutTest : AbstractTestBase() {
         val jsonValidator = JsonValidator(jsonString)
 
         assertEquals("???book.title.edit???", jsonValidator.get("title")) // translations not available in test.
-        val title = jsonValidator.findParentMap("id", "title", "layout[0]")
-        assertField(title, "title", 255.0, "STRING", "???book.title???", type = "INPUT", key = "el-3")
+        val title = jsonValidator.getMap("layout[0]")
+        assertField(title, "title", 255.0, "STRING", "???book.title???", type = "INPUT", key = "el-1")
         assertEquals(true, title!!["focus"])
 
-        val authors = jsonValidator.findParentMap("id", "authors", "layout[1]")
-        assertField(authors, "authors", 1000.0, null, "???book.authors???", type = "TEXTAREA", key = "el-6")
+        val authors = jsonValidator.getMap("layout[1]")
+        assertField(authors, "authors", 1000.0, null, "???book.authors???", type = "TEXTAREA", key = "el-2")
         assertNull(jsonValidator.getBoolean("layout[1].focus"))
 
         assertEquals("ROW", jsonValidator.get("layout[2].type"))
-        assertEquals("el-7", jsonValidator.get("layout[2].key"))
+        assertEquals("el-3", jsonValidator.get("layout[2].key"))
 
         assertEquals(6.0, jsonValidator.getDouble("layout[2].content[0].length"))
         assertEquals("COL", jsonValidator.get("layout[2].content[0].type"))
-        assertEquals("el-8", jsonValidator.get("layout[2].content[0].key"))
+        assertEquals("el-4", jsonValidator.get("layout[2].content[0].key"))
     }
 
     @Test
