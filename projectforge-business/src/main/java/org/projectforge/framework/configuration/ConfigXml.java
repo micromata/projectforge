@@ -92,6 +92,8 @@ public class ConfigXml {
 
   private String workingDirectory;
 
+  private String backupDirectory;
+
   private String tempDirectory;
 
   private List<ContractType> contractTypes;
@@ -134,6 +136,7 @@ public class ConfigXml {
     ehcacheDirectory = "ehcache";
     loggingDirectory = "logs";
     workingDirectory = "work";
+    backupDirectory = "backup";
     tempDirectory = "tmp";
     accountingConfig = new AccountingConfig();
     accountingConfig.reset();
@@ -144,7 +147,7 @@ public class ConfigXml {
     reset();
   }
 
-  private boolean ensureDir(final File dir) {
+  public static boolean ensureDir(final File dir) {
     if (!dir.exists()) {
       log.info("Creating directory " + dir);
       dir.mkdir();
@@ -177,6 +180,8 @@ public class ConfigXml {
       ensureDir(new File(loggingDirectory));
       this.workingDirectory = FileHelper.getAbsolutePath(applicationHomeDir, this.workingDirectory);
       ensureDir(new File(workingDirectory));
+      this.backupDirectory = FileHelper.getAbsolutePath(applicationHomeDir, this.backupDirectory);
+      ensureDir(new File(backupDirectory));
       this.tempDirectory = FileHelper.getAbsolutePath(applicationHomeDir, this.tempDirectory);
       ensureDir(new File(tempDirectory));
     }
@@ -475,6 +480,10 @@ public class ConfigXml {
    */
   public void setWorkingDirectory(final String workingDirectory) {
     this.workingDirectory = workingDirectory;
+  }
+
+  public String getBackupDirectory() {
+    return backupDirectory;
   }
 
   /**
