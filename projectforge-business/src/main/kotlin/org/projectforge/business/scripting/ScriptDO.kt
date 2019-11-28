@@ -23,6 +23,7 @@
 
 package org.projectforge.business.scripting
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.Type
@@ -32,7 +33,6 @@ import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.Store
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.framework.persistence.utils.ReflectionToString
 import java.io.UnsupportedEncodingException
 import javax.persistence.*
 
@@ -45,6 +45,7 @@ import javax.persistence.*
 @Indexed
 @Table(name = "T_SCRIPT", indexes = [Index(name = "idx_fk_t_script_tenant_id", columnList = "tenant_id")])
 open class ScriptDO : DefaultBaseDO() {
+    @JsonIgnore
     private val log = org.slf4j.LoggerFactory.getLogger(ScriptDO::class.java)
 
     @PropertyInfo(i18nKey = "scripting.script.name")
@@ -61,6 +62,7 @@ open class ScriptDO : DefaultBaseDO() {
      * Please note: script is not historizable. Therefore there is now history of scripts.
      */
     @NoHistory
+    @JsonIgnore
     @get:Basic(fetch = FetchType.LAZY)
     @get:Type(type = "binary")
     @get:Column(length = 2000)
@@ -70,12 +72,14 @@ open class ScriptDO : DefaultBaseDO() {
      * Instead of historizing the script the last version of the script after changing it will stored in this field.
      */
     @NoHistory
+    @JsonIgnore
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column(name = "script_backup", length = 2000)
     @get:Type(type = "binary")
     open var scriptBackup: ByteArray? = null
 
     @NoHistory
+    @JsonIgnore
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column
     @get:Type(type = "binary")
@@ -216,18 +220,6 @@ open class ScriptDO : DefaultBaseDO() {
             }
         }
         return firstVar
-    }
-
-    /**
-     * Returns string containing all fields (except the file) of given object (via ReflectionToStringBuilder).
-     */
-    override fun toString(): String {
-        return object : ReflectionToString(this) {
-            override fun accept(f: java.lang.reflect.Field): Boolean {
-                return (super.accept(f) && "file" != f.name && "script" != f.name
-                        && "scriptBackup" != f.name)
-            }
-        }.toString()
     }
 
     companion object {
