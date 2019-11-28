@@ -235,7 +235,7 @@ public class PersonalAddressDao {
     Validate.notNull(owner);
     Validate.notNull(owner.getId());
     List<Integer> list = em
-            .createNamedQuery(PersonalAddressDO.FIND_IDS_BY_OWNER, Integer.class)
+            .createNamedQuery(PersonalAddressDO.FIND_FAVORITE_IDS_BY_OWNER, Integer.class)
             .setParameter("ownerId", owner.getId())
             .getResultList();
     return list;
