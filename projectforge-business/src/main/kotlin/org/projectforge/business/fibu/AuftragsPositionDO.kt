@@ -56,6 +56,7 @@ open class AuftragsPositionDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     // @JsonIgnore needed due to circular references.
     @JsonIgnore
+    @ContainedIn
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "auftrag_fk", nullable = false)
     open var auftrag: AuftragDO? = null
@@ -80,6 +81,7 @@ open class AuftragsPositionDO : DefaultBaseDO(), ShortDisplayNameCapable {
     open var status: AuftragsPositionsStatus? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.titel")
+    @Field
     @get:Column(name = "titel", length = 255)
     open var titel: String? = null
 
