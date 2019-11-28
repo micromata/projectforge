@@ -23,12 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.model.IModel;
@@ -43,6 +37,8 @@ import org.projectforge.business.fibu.AuftragDao;
 import org.projectforge.business.fibu.AuftragFilter;
 import org.projectforge.business.fibu.AuftragsPositionDO;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
+
+import java.util.*;
 
 /**
  * For displaying and selecting an order position.
@@ -117,7 +113,11 @@ public class AuftragsPositionFormComponent extends PFAutoCompleteTextField<Auftr
   protected List<AuftragsPositionDO> getChoices(final String input)
   {
     final AuftragFilter filter = new AuftragFilter();
-    filter.setSearchString(input);
+    if (input.indexOf('*') >= 0) {
+      filter.setSearchString(input);
+    } else {
+      filter.setSearchString(input + "*");
+    }
     final List<AuftragDO> list = auftragDao.getList(filter);
     Collections.sort(list, new Comparator<AuftragDO>()
     {
