@@ -32,7 +32,7 @@ import java.util.Date;
 /**
  * Provides some helper methods.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class TimesheetUtils
 {
@@ -67,7 +67,7 @@ public class TimesheetUtils
     }
     final TimesheetStats stats = new TimesheetStats(from, to);
     for (final TimesheetDO timesheet : timesheets) {
-      if (userId != timesheet.getUserId()) {
+      if (!userId.equals(timesheet.getUserId())) {
         continue;
       }
       stats.add(timesheet);
