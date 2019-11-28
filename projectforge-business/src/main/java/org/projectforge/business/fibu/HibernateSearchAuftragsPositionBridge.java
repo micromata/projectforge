@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu;
 
-import org.hibernate.search.bridge.TwoWayStringBridge;
+import org.hibernate.search.bridge.StringBridge;
 
 /**
  * Bridge for hibernate search to search for order positions of form ###.## (&lt;order number&gt;.&lt;position
@@ -31,12 +31,15 @@ import org.hibernate.search.bridge.TwoWayStringBridge;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class HibernateSearchAuftragsPositionBridge implements TwoWayStringBridge {
+public class HibernateSearchAuftragsPositionBridge implements StringBridge {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
           .getLogger(HibernateSearchAuftragsPositionBridge.class);
 
   @Override
   public String objectToString(Object object) {
+    if (object instanceof String) {
+      return object.toString();
+    }
     final AuftragsPositionDO position = (AuftragsPositionDO) object;
     if (position == null) {
       log.error("AuftragsPositionDO object is null.");
@@ -53,11 +56,5 @@ public class HibernateSearchAuftragsPositionBridge implements TwoWayStringBridge
       log.debug(sb.toString());
     }
     return sb.toString();
-  }
-
-  @Override
-  public Object stringToObject(String stringValue) {
-    // Not supported.
-    return null;
   }
 }
