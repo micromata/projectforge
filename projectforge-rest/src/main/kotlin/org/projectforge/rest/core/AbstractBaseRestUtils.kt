@@ -46,6 +46,7 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
         : ResultSet<O> {
     magicFilter.sortAndLimitMaxRowsWhileSelect = true
     val dbFilter = MagicFilterProcessor.doIt(baseDao.doClass, magicFilter)
+    dataObjectRest.processMagicFilter(dbFilter, magicFilter)
     val list = baseDao.getList(dbFilter)
     val resultSet = ResultSet<O>(dataObjectRest.filterList(list, magicFilter), list.size)
     return resultSet
