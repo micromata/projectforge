@@ -283,6 +283,12 @@ abstract class AbstractBaseRest<
     }
 
     /**
+     * For specific creation of QueryFilter from MagicFilter, especially for extended settings.
+     */
+    open fun processMagicFilter(target: QueryFilter, source: MagicFilter) {
+    }
+
+    /**
      * Get the list of all items matching the given filter.
      */
     @RequestMapping(RestPaths.LIST)

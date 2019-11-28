@@ -130,7 +130,7 @@ class LayoutUtils {
         fun addListDefaultOptions(group: UIGroup) {
             group
                     .add(UICheckbox("deleted", label = "onlyDeleted", tooltip = "onlyDeleted.tooltip", color = UIColor.DANGER))
-                    .add(UICheckbox("searchHistory", label = "search.searchHistory", tooltip = "search.searchHistory.additional.tooltip"))
+                    //.add(UICheckbox("searchHistory", label = "search.searchHistory", tooltip = "search.searchHistory.additional.tooltip"))
         }
 
         /**
