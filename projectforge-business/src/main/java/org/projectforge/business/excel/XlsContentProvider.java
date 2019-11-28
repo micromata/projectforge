@@ -27,6 +27,7 @@ import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.*;
 import org.projectforge.common.DateFormatType;
+import org.projectforge.framework.time.PFDateTime;
 
 import java.util.*;
 
@@ -229,6 +230,8 @@ public class XlsContentProvider implements ContentProvider
       } else {
         poiCell.setCellValue(String.valueOf(customizedValue));
       }
+    } else if (value instanceof PFDateTime) {
+      poiCell.setCellValue(((PFDateTime)value).getCalendar());
     } else if (value instanceof Date) { // Attention: Time zone is not given!
       poiCell.setCellValue((Date) value);
     } else if (value instanceof Calendar) {
