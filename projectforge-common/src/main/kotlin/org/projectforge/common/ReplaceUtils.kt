@@ -60,7 +60,8 @@ object ReplaceUtils {
      * all white spaces will be replaced by ' ' char.
      * @return The encoded filename.
      */
-
+    @JvmOverloads
+    @JvmStatic
     fun encodeFilename(filename: String?, reducedCharsOnly: Boolean = true): String {
         if (filename.isNullOrEmpty()) {
             return "file"
