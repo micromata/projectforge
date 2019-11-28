@@ -26,6 +26,7 @@ package org.projectforge.business.systeminfo;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.AppVersion;
+import org.projectforge.business.address.BirthdayCache;
 import org.projectforge.business.fibu.KontoCache;
 import org.projectforge.business.fibu.RechnungCache;
 import org.projectforge.business.fibu.kost.KostCache;
@@ -250,7 +251,8 @@ public class SystemService {
     kostCache.forceReload();
     rechnungCache.forceReload();
     systemInfoCache.forceReload();
-    return "UserGroupCache, TaskTree, KontoCache, KostCache, RechnungCache, SystemInfoCache";
+    TenantRegistryMap.getCache(BirthdayCache.class).forceReload();
+    return "UserGroupCache, TaskTree, KontoCache, KostCache, RechnungCache, SystemInfoCache, BirthdayCache";
   }
 
   public void setEnableVersionCheck(final boolean enableVersionCheck) {

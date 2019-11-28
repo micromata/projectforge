@@ -86,10 +86,13 @@ class BirthdayCache() : AbstractCache() {
     override fun refresh() {
         val filter = QueryFilter()
         filter.add(QueryFilter.isNotNull("birthday"))
+        filter.deleted = false
         val addressList = addressDao.internalGetList(filter)
         val newList = mutableListOf<BirthdayAddress>()
         addressList.forEach {
-            newList.add(BirthdayAddress(it))
+            if (!it.isDeleted) { // deleted shouldn't occur, already filtered above.
+                newList.add(BirthdayAddress(it))
+            }
         }
         cacheList = newList
     }
