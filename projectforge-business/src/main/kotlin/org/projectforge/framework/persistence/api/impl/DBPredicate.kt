@@ -363,7 +363,7 @@ abstract class DBPredicate(
 
         fun multiFieldFulltextQueryRequired(): Boolean {
             if (expectedValue.contains('*')) {
-                return true // Hibernate Search doesn't supprot wildcard() on multiple fields :-(
+                return true // Hibernate Search doesn't support wildcard() on multiple fields :-(
             }
             for (str in expectedValue.split(' ', '\t', '\n')) {
                 if (str.matches("""[A-Za-z][A-Za-z0-9_\.]*:.+""".toRegex())) // If any field is specified, e. g. street:max-planck

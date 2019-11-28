@@ -24,10 +24,9 @@
 package org.projectforge.framework.persistence.api.impl
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import org.hibernate.search.annotations.ClassBridge
-import org.hibernate.search.annotations.DateBridge
-import org.hibernate.search.annotations.EncodingType
-import org.hibernate.search.annotations.Field
+import org.hibernate.search.annotations.*
+import org.hibernate.search.bridge.builtin.NumberBridge
+import kotlin.reflect.full.isSubclassOf
 
 class HibernateSearchFieldInfo(val javaProp: String, val type: Class<*>) {
     @JsonIgnore
@@ -36,6 +35,16 @@ class HibernateSearchFieldInfo(val javaProp: String, val type: Class<*>) {
         internal set
     @JsonIgnore
     var dateBridgeAnn: DateBridge? = null
+        internal set
+    @JsonIgnore
+    var fieldBridgeAnn: FieldBridge? = null
+        internal set(value) {
+            field = value
+            if (value?.impl?.isSubclassOf(NumberBridge::class) == true) {
+                numberBridge = true
+            }
+        }
+    var numberBridge: Boolean = false
         internal set
     var luceneField: String = javaProp
         internal set
@@ -69,10 +78,14 @@ class HibernateSearchFieldInfo(val javaProp: String, val type: Class<*>) {
                 || isClassBridge()
     }
 
+    /**
+     * @return true if field is an Int/Integer field or idProperty and has no FieldBridge with NumberBridge impl.
+     */
     fun isNumericSearchSupported(): Boolean {
-        return Integer::class.java.isAssignableFrom(type)
-                || Int::class.java.isAssignableFrom(type)
-                || idProperty
+        return !numberBridge &&
+                (Integer::class.java.isAssignableFrom(type)
+                        || Int::class.java.isAssignableFrom(type)
+                        || idProperty)
     }
 
     fun isClassBridge(): Boolean {
