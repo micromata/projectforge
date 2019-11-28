@@ -26,6 +26,7 @@ package org.projectforge.business.address;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.user.UserRightId;
@@ -35,6 +36,7 @@ import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.persistence.api.*;
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
@@ -111,6 +113,18 @@ public class AddressDao extends BaseDao<AddressDO> {
   }
 
   @Override
+  public List<AddressDO> getList(QueryFilter filter) throws AccessException {
+    if (filter.getExtendedBooleanValue("doublets") == true) {
+      filter.add(new DoubletsResultFilter());
+    }
+    if (filter.getExtendedBooleanValue("favorites") == true) {
+      filter.add(new FavoritesResultFilter());
+    }
+    List<AddressDO> result = super.getList(filter);
+    return result;
+  }
+
+  @Override
   public List<AddressDO> getList(final BaseSearchFilter filter) {
     final AddressFilter myFilter;
     if (filter instanceof AddressFilter) {
@@ -184,24 +198,28 @@ public class AddressDao extends BaseDao<AddressDO> {
     queryFilter.addOrder(SortProperty.asc("name"));
     final List<AddressDO> result = getList(queryFilter);
     if (myFilter.isDoublets()) {
-      final HashSet<String> fullnames = new HashSet<>();
-      final HashSet<String> doubletFullnames = new HashSet<>();
-      for (final AddressDO address : result) {
-        final String fullname = getNormalizedFullname(address);
-        if (fullnames.contains(fullname)) {
-          doubletFullnames.add(fullname);
-        }
-        fullnames.add(fullname);
-      }
-      final List<AddressDO> doublets = new LinkedList<>();
-      for (final AddressDO address : result) {
-        if (doubletFullnames.contains(getNormalizedFullname(address))) {
-          doublets.add(address);
-        }
-      }
-      return doublets;
+      return filterDoublets(result);
     }
     return result;
+  }
+
+  private List<AddressDO> filterDoublets(List<AddressDO> result) {
+    final HashSet<String> fullnames = new HashSet<>();
+    final HashSet<String> doubletFullnames = new HashSet<>();
+    for (final AddressDO address : result) {
+      final String fullname = getNormalizedFullname(address);
+      if (fullnames.contains(fullname)) {
+        doubletFullnames.add(fullname);
+      }
+      fullnames.add(fullname);
+    }
+    final List<AddressDO> doublets = new ArrayList<>();
+    for (final AddressDO address : result) {
+      if (doubletFullnames.contains(getNormalizedFullname(address))) {
+        doublets.add(address);
+      }
+    }
+    return doublets;
   }
 
   private void addAddressbookRestriction(final QueryFilter queryFilter, final AddressFilter addressFilter) {
@@ -356,7 +374,7 @@ public class AddressDao extends BaseDao<AddressDO> {
    */
   public Set<BirthdayAddress> getBirthdays(final Date fromDate, final Date toDate, final boolean all) {
     BirthdayCache cache = TenantRegistryMap.getCache(BirthdayCache.class);
-    return cache.getBirthdays(fromDate, toDate, all, personalAddressDao.getIdList());
+    return cache.getBirthdays(fromDate, toDate, all, personalAddressDao.getFavoriteAddressIdList());
   }
 
   public List<PersonalAddressDO> getFavoriteVCards() {
@@ -668,5 +686,36 @@ public class AddressDao extends BaseDao<AddressDO> {
       return buf.toString();
     }
     return null;
+  }
+
+  class FavoritesResultFilter implements CustomResultFilter {
+    List<Integer> favoriteAddressIds;
+
+    FavoritesResultFilter() {
+      favoriteAddressIds = personalAddressDao.getFavoriteAddressIdList();
+    }
+
+    @Override
+    public boolean match(@NotNull Object element) {
+      return favoriteAddressIds.contains(((AddressDO) element).getId());
+    }
+  }
+
+  class DoubletsResultFilter implements CustomResultFilter {
+    final HashSet<String> fullnames = new HashSet<>();
+
+    @Override
+    public boolean match(@NotNull Object element) {
+      final AddressDO addressDO = (AddressDO)element;
+      if (addressDO.isDeleted()) {
+        return false;
+      }
+      final String fullname = getNormalizedFullname(addressDO);
+      if (fullnames.contains(fullname)) {
+        return true;
+      }
+      fullnames.add(fullname);
+      return false;
+    }
   }
 }

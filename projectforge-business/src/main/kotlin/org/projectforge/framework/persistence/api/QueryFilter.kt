@@ -25,10 +25,7 @@ package org.projectforge.framework.persistence.api
 
 import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.framework.ToStringUtil
-import org.projectforge.framework.persistence.api.impl.DBFilter
-import org.projectforge.framework.persistence.api.impl.DBHistorySearchParams
-import org.projectforge.framework.persistence.api.impl.DBJoin
-import org.projectforge.framework.persistence.api.impl.DBPredicate
+import org.projectforge.framework.persistence.api.impl.*
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDateTime
 import org.slf4j.LoggerFactory
@@ -69,6 +66,14 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null,
      */
     var deleted: Boolean? = null
 
+    /**
+     * Extend the filter by additional variables and settings.
+     */
+    var extended: MutableMap<String, Any> = mutableMapOf()
+
+    var customResultFilters: MutableList<CustomResultFilter>? = null
+        private set
+
     var searchHistory: String?
         get() = historyQuery.searchHistory
         set(value) {
@@ -96,6 +101,21 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null,
     var maxRows: Int = 50
 
     var sortAndLimitMaxRowsWhileSelect: Boolean = true
+
+    fun getExtendedBooleanValue(key: String): Boolean? {
+        val value = extended[key] ?: return null
+        if (value is Boolean) {
+            return value
+        }
+        return null
+    }
+
+    fun add(filter: CustomResultFilter) {
+        if (customResultFilters == null) {
+            customResultFilters = mutableListOf()
+        }
+        customResultFilters!!.add(filter)
+    }
 
     init {
         maxRows = QUERY_FILTER_MAX_ROWS
