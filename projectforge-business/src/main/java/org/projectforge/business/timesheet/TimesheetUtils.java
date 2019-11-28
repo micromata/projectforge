@@ -28,6 +28,7 @@ import org.projectforge.framework.time.DateHolder;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * Provides some helper methods.
@@ -67,7 +68,7 @@ public class TimesheetUtils
     }
     final TimesheetStats stats = new TimesheetStats(from, to);
     for (final TimesheetDO timesheet : timesheets) {
-      if (!userId.equals(timesheet.getUserId())) {
+      if (!Objects.equals(userId, timesheet.getUserId())) {
         continue;
       }
       stats.add(timesheet);
