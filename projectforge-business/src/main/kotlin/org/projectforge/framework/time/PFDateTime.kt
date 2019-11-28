@@ -40,6 +40,7 @@ import java.util.*
 class PFDateTime private constructor(val dateTime: ZonedDateTime) {
 
     private var _utilDate: java.util.Date? = null
+    private var _calendar: Calendar? = null
     /**
      * @return The date as java.util.Date. java.util.Date is only calculated, if this getter is called and it
      * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
@@ -49,6 +50,19 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
             if (_utilDate == null)
                 _utilDate = java.util.Date.from(dateTime.toInstant())
             return _utilDate!!
+        }
+
+    /**
+     * @return The date as java.util.Date. java.util.Date is only calculated, if this getter is called and it
+     * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
+     */
+    val calendar: Calendar
+        get() {
+            if (_calendar == null) {
+                _calendar = Calendar.getInstance(ThreadLocalUserContext.getTimeZone(), ThreadLocalUserContext.getLocale())
+                _calendar!!.time = utilDate
+            }
+           return _calendar!!
         }
 
     private var _sqlTimestamp: java.sql.Timestamp? = null
@@ -158,6 +172,12 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
      */
     val isoString: String
         get() = isoDateTimeFormatterMinutes.format(dateTime)
+
+    /**
+     * Date part as ISO string: "yyyy-MM-dd HH:mm" in UTC.
+     */
+    val isoStringSeconds: String
+        get() = isoDateTimeFormatterSeconds.format(dateTime)
 
     /**
      * Date as JavaScript string: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'" (UTC).
