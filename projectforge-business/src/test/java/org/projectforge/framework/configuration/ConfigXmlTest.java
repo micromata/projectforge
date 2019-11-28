@@ -69,6 +69,7 @@ public class ConfigXmlTest {
           + "  <ehcacheDirectory>ehcache</ehcacheDirectory>\n"
           + "  <loggingDirectory>logs</loggingDirectory>\n"
           + "  <workingDirectory>work</workingDirectory>\n"
+          + "  <backupDirectory>backup</backupDirectory>\n"
           + "  <tempDirectory>tmp</tempDirectory>\n"
           + "  <accountingConfig/>\n"
           + "</config>");
