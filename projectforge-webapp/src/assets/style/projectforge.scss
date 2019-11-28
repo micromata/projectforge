@@ -296,12 +296,15 @@ div.DayPickerInput input {
   width: 8em;
 }
 
-
 .rbc-addons-dnd.rbc-calendar {
   margin-top: 40px !important;
 
   .rbc-btn-group {
     background: #FFF;
+  }
+
+  .rbc-timeslot-group {
+    min-height: 20px;
   }
 }
 
