@@ -211,6 +211,6 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
 
         firstIndex += MAX_RESULTS
         @Suppress("UNCHECKED_CAST")
-        return fullTextQuery.getResultList() as List<O> // return a list of managed objects
+        return fullTextQuery.resultList as List<O> // return a list of managed objects
     }
 }
