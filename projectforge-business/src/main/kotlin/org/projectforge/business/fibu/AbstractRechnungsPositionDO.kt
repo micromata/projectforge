@@ -129,7 +129,7 @@ abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), ShortDisplayNameCa
 
     val isEmpty: Boolean
         @Transient
-        get() = text.isNullOrEmpty() || NumberHelper.isZeroOrNull(einzelNetto)
+        get() = text.isNullOrEmpty() && NumberHelper.isZeroOrNull(einzelNetto)
 
     @Transient
     override fun getShortDisplayName(): String {
@@ -137,7 +137,7 @@ abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), ShortDisplayNameCa
     }
 
     override fun equals(other: Any?): Boolean {
-        if (other == null || !(other is AbstractRechnungsPositionDO)) return false
+        if (other == null || other !is AbstractRechnungsPositionDO) return false
         return this.number == other.number && this.rechnungId == other.rechnungId
     }
 
