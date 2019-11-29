@@ -50,7 +50,7 @@ public class PosteingangEditPage extends AbstractEditPage<PosteingangDO, Postein
     init();
     if (isNew() == true) {
       getData().setDatum(new DayHolder().getSQLDate());
-      getData().setType(PostType.BRIEF);
+      getData().setType(PostType.E_MAIL);
     }
   }
 
