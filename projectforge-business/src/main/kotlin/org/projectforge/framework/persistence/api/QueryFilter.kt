@@ -102,12 +102,12 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null,
 
     var sortAndLimitMaxRowsWhileSelect: Boolean = true
 
-    fun getExtendedBooleanValue(key: String): Boolean? {
-        val value = extended[key] ?: return null
+    fun getExtendedBooleanValue(key: String): Boolean {
+        val value = extended[key] ?: return false
         if (value is Boolean) {
             return value
         }
-        return null
+        return false
     }
 
     init {
