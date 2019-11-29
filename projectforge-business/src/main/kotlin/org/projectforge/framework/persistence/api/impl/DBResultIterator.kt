@@ -111,7 +111,7 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
     init {
         searchClassInfo = HibernateSearchMeta.getClassInfo(baseDao)
         if (log.isDebugEnabled && !multiFieldQuery.isNullOrEmpty()) {
-            val queryString = multiFieldQuery.joinToString(" ") ?: ""
+            val queryString = multiFieldQuery.joinToString(" ")
             log.debug("Using multifieldQuery (${baseDao.doClass.simpleName}): $queryString")
         }
         result = nextResultBlock()
