@@ -143,6 +143,10 @@ class IndexPage extends React.Component {
                         <h1>ToDo&apos;s (Fin)</h1>
                         <ol>
                             <li>
+                                Modification of text searches (in all fields, non field-specific)
+                                is not possible.
+                            </li>
+                            <li>
                                 Return key closes the popover, another Return click submits the
                                 filter and requests a new list?
                             </li>
