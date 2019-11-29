@@ -114,14 +114,14 @@ public class AddressDao extends BaseDao<AddressDO> {
 
   @Override
   public List<AddressDO> getList(QueryFilter filter) throws AccessException {
+    final List<CustomResultFilter<AddressDO>> filters = new ArrayList<>();
     if (filter.getExtendedBooleanValue("doublets") == true) {
-      filter.add(new DoubletsResultFilter());
+      filters.add(new DoubletsResultFilter());
     }
     if (filter.getExtendedBooleanValue("favorites") == true) {
-      filter.add(new FavoritesResultFilter());
+      filters.add(new FavoritesResultFilter());
     }
-    List<AddressDO> result = super.getList(filter);
-    return result;
+    return super.getList(filter, filters);
   }
 
   @Override
@@ -688,7 +688,7 @@ public class AddressDao extends BaseDao<AddressDO> {
     return null;
   }
 
-  class FavoritesResultFilter implements CustomResultFilter {
+  class FavoritesResultFilter implements CustomResultFilter<AddressDO> {
     List<Integer> favoriteAddressIds;
 
     FavoritesResultFilter() {
@@ -696,24 +696,36 @@ public class AddressDao extends BaseDao<AddressDO> {
     }
 
     @Override
-    public boolean match(@NotNull Object element) {
-      return favoriteAddressIds.contains(((AddressDO) element).getId());
+    public boolean match(@NotNull List<AddressDO> list, @NotNull AddressDO element) {
+      return favoriteAddressIds.contains(element.getId());
     }
   }
 
-  class DoubletsResultFilter implements CustomResultFilter {
-    final HashSet<String> fullnames = new HashSet<>();
+  class DoubletsResultFilter implements CustomResultFilter<AddressDO> {
+    final Set<String> fullnames = new HashSet<>();
+    final Set<String> doubletFullnames = new HashSet<>();
+    final List<AddressDO> all = new ArrayList<>(); // Already processed addresses to add doublets.
+    final Set<Integer> addedDoublets = new HashSet<>();
 
     @Override
-    public boolean match(@NotNull Object element) {
-      final AddressDO addressDO = (AddressDO)element;
-      if (addressDO.isDeleted()) {
+    public boolean match(@NotNull List<AddressDO> list, @NotNull AddressDO element) {
+      if (element.isDeleted()) {
         return false;
       }
-      final String fullname = getNormalizedFullname(addressDO);
+      final String fullname = getNormalizedFullname(element);
       if (fullnames.contains(fullname)) {
+        doubletFullnames.add(fullname);
+        for (final AddressDO adr : all) {
+          if (addedDoublets.contains(adr.getId())) {
+            continue; // Already added.
+          } else if (doubletFullnames.contains(getNormalizedFullname(adr))) {
+            list.add(adr);
+            addedDoublets.add(adr.getId()); // Mark this address as already added.
+          }
+        }
         return true;
       }
+      all.add(element);
       fullnames.add(fullname);
       return false;
     }

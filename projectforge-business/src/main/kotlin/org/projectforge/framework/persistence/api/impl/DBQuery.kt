@@ -61,6 +61,7 @@ open class DBQuery {
     @JvmOverloads
     open fun <O : ExtendedBaseDO<Int>> getList(baseDao: BaseDao<O>,
                                                filter: QueryFilter,
+                                               customResultFilters: List<CustomResultFilter<O>>?,
                                                checkAccess: Boolean = true,
                                                ignoreTenant: Boolean = false)
             : List<O> {
@@ -82,7 +83,7 @@ open class DBQuery {
                 val dbResultIterator: DBResultIterator<O>
                 dbResultIterator = queryBuilder.result()
                 val historSearchParams = DBHistorySearchParams(filter.modifiedByUserId, filter.modifiedFrom, filter.modifiedTo, filter.searchHistory)
-                var list = createList(baseDao, em, dbResultIterator, filter.customResultFilters, queryBuilder.resultPredicates, dbFilter, historSearchParams, checkAccess)
+                var list = createList(baseDao, em, dbResultIterator, customResultFilters, queryBuilder.resultPredicates, dbFilter, historSearchParams, checkAccess)
                 dbResultIterator.sort(list)
 
                 val end = System.currentTimeMillis()
@@ -102,7 +103,7 @@ open class DBQuery {
     private fun <O : ExtendedBaseDO<Int>> createList(baseDao: BaseDao<O>,
                                                      em: EntityManager,
                                                      dbResultIterator: DBResultIterator<O>,
-                                                     customResultFilters: List<CustomResultFilter>?,
+                                                     customResultFilters: List<CustomResultFilter<O>>?,
                                                      resultPredicates: List<DBPredicate>,
                                                      filter: DBFilter,
                                                      historSearchParams: DBHistorySearchParams,
@@ -133,7 +134,7 @@ open class DBQuery {
                     ensureUniqueSet.add(next.id) // Mark current object as already proceeded (ensure uniqueness)
                     if ((!checkAccess || baseDao.hasSelectAccess(next, loggedInUser, superAdmin))
                             && baseDao.containsLong(idSet, next)
-                            && match(customResultFilters, resultPredicates, next)) {
+                            && match(list, customResultFilters, resultPredicates, next)) {
                         // Current result object fits the modified query:
                         list.add(next)
                         if (++resultCounter >= filter.maxRows) {
@@ -149,7 +150,7 @@ open class DBQuery {
                 if (!ensureUniqueSet.contains(next.id)) {
                     // Current result object wasn't yet proceeded.
                     ensureUniqueSet.add(next.id) // Mark current object as already proceeded (ensure uniqueness)
-                    if (!checkAccess || baseDao.hasSelectAccess(next, loggedInUser, superAdmin) && match(customResultFilters, resultPredicates, next)) {
+                    if (!checkAccess || baseDao.hasSelectAccess(next, loggedInUser, superAdmin) && match(list, customResultFilters, resultPredicates, next)) {
                         list.add(next)
                         if (++resultCounter >= filter.maxRows) {
                             break
@@ -166,10 +167,10 @@ open class DBQuery {
      * If predicates are definied (not used for data base query), they're checked with the given result object.
      * @return true, if no predicates are given or if all predicate matches, otherwise false.
      */
-    private fun match(customResultFilters: List<CustomResultFilter>?, predicates: List<DBPredicate>, next: ExtendedBaseDO<Int>): Boolean {
+    private fun <O : ExtendedBaseDO<Int>> match(list: MutableList<O>, customResultFilters: List<CustomResultFilter<O>>?, predicates: List<DBPredicate>, next: O): Boolean {
         if (!customResultFilters.isNullOrEmpty()) {
             for (filter in customResultFilters) {
-                if (!filter.match(next)) {
+                if (!filter.match(list, next)) {
                     return false
                 }
             }

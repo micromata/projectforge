@@ -26,6 +26,10 @@ package org.projectforge.framework.persistence.api.impl
 /**
  * Custom result filters may give by dao class for filtering the result list.
  */
-interface CustomResultFilter  {
-    fun match(element: Any): Boolean
+interface CustomResultFilter<O> {
+    /**
+     * @param list result list of already written elements.
+     * @param element The current processed element to check.
+     */
+    fun match(list: MutableList<O>, element: O): Boolean
 }
