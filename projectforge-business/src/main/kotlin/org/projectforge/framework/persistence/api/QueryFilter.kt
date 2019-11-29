@@ -25,7 +25,10 @@ package org.projectforge.framework.persistence.api
 
 import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.framework.ToStringUtil
-import org.projectforge.framework.persistence.api.impl.*
+import org.projectforge.framework.persistence.api.impl.DBFilter
+import org.projectforge.framework.persistence.api.impl.DBHistorySearchParams
+import org.projectforge.framework.persistence.api.impl.DBJoin
+import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDateTime
 import org.slf4j.LoggerFactory
@@ -71,9 +74,6 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null,
      */
     var extended: MutableMap<String, Any> = mutableMapOf()
 
-    var customResultFilters: MutableList<CustomResultFilter>? = null
-        private set
-
     var searchHistory: String?
         get() = historyQuery.searchHistory
         set(value) {
@@ -108,13 +108,6 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null,
             return value
         }
         return null
-    }
-
-    fun add(filter: CustomResultFilter) {
-        if (customResultFilters == null) {
-            customResultFilters = mutableListOf()
-        }
-        customResultFilters!!.add(filter)
     }
 
     init {

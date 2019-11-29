@@ -41,6 +41,7 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.i18n.UserException;
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter;
 import org.projectforge.framework.persistence.api.impl.DBQuery;
 import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta;
 import org.projectforge.framework.persistence.database.DatabaseDao;
@@ -280,7 +281,15 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    */
   @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public List<O> getList(final QueryFilter filter) throws AccessException {
-    return dbQuery.getList(this, filter, true, filter.getIgnoreTenant());
+    return getList(filter, null);
+  }
+
+  /**
+   * Gets the list filtered by the given filter.
+   */
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
+  protected List<O> getList(final QueryFilter filter, List<CustomResultFilter<O>> customResultFilters) throws AccessException {
+    return dbQuery.getList(this, filter, customResultFilters, true, filter.getIgnoreTenant());
   }
 
   /**
@@ -288,7 +297,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    */
   @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public List<O> internalGetList(final QueryFilter filter) throws AccessException {
-    return dbQuery.getList(this, filter, false, filter.getIgnoreTenant());
+    return dbQuery.getList(this, filter, null, false, filter.getIgnoreTenant());
   }
 
   /**
