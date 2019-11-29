@@ -143,7 +143,7 @@ class UILayoutTest : AbstractTestBase() {
 
         assertEquals(1, jsonValidator.getList("namedContainers[0].content")?.size)
 
-        assertEquals(2, jsonValidator.getList("namedContainers[0].content[0].content")?.size)
+        assertEquals(1, jsonValidator.getList("namedContainers[0].content[0].content")?.size)
 
         assertEquals("deleted", jsonValidator.get("namedContainers[0].content[0].content[0].id"))
         assertEquals("???onlyDeleted.tooltip???", jsonValidator.get("namedContainers[0].content[0].content[0].tooltip"))
