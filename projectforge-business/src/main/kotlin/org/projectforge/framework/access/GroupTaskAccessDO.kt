@@ -191,7 +191,7 @@ open class GroupTaskAccessDO : DefaultBaseDO() {
             for (srcEntry in src.accessEntries!!) {
                 val destEntry = ensureAndGetAccessEntry(srcEntry.accessType)
                 val st = destEntry.copyValuesFrom(srcEntry)
-                modificationStatus = AbstractBaseDO.getModificationStatus(modificationStatus, st)
+                modificationStatus = modificationStatus.combine(st)
             }
             val iterator = accessEntries!!.iterator()
             while (iterator.hasNext()) {

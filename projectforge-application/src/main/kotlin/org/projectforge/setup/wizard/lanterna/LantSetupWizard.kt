@@ -67,7 +67,7 @@ class LantSetupWizard(presetAppHomeDir: File? = null) : AbstractSetupWizard() {
         finalizeScreen = LantFinalizeScreen(context)
         textGUI.addWindow(finalizeScreen)
 
-        terminal.addResizeListener { terminal, newSize ->
+        terminal.addResizeListener { _, newSize ->
             context.terminalSize = newSize
             context.windowSize = newSize
             chooseDirectoryScreen.resize()

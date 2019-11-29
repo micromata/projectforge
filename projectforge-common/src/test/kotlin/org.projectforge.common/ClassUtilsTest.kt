@@ -31,7 +31,7 @@ class ClassUtilsTest {
     fun getClassOfFieldTest() {
         var fieldInfo = ClassUtils.getFieldInfo(Timesheet::class.java, "employee.mainAddress.street")
         Assertions.assertEquals(Address::class.java, fieldInfo!!.clazz)
-        Assertions.assertEquals(String::class.java, fieldInfo.field!!.type)
+        Assertions.assertEquals(String::class.java, fieldInfo.field.type)
         //Assertions.assertEquals(Address::class.java, ClassUtils.getClassOfField(Timesheet::class.java, "employee.addresses.street"))
         fieldInfo = ClassUtils.getFieldInfo(Address::class.java, "street")
         Assertions.assertEquals(Address::class.java, fieldInfo!!.clazz)
@@ -49,7 +49,7 @@ class ClassUtilsTest {
     internal inner class Employee(name: String, mainAddress: Address, addresses: List<Address>) : Person(name, mainAddress, addresses)
 
     @MyAnnotation(name = "person")
-    open internal inner class Person(var name: String, var mainAddress: Address, var addresses: List<Address>)
+    internal open inner class Person(var name: String, var mainAddress: Address, var addresses: List<Address>)
 
     @MyAnnotation(name = "address")
     internal inner class Address(var street: String)

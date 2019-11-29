@@ -40,11 +40,11 @@ open class SwingJdbcSettingsDialog(
 ) : JDialog(context.mainFrame, Texts.JDBC_TITLE, true) {
     private val log = org.slf4j.LoggerFactory.getLogger(SwingJdbcSettingsDialog::class.java)
 
-    private lateinit var jdbcUrlTextField: JTextField
-    private lateinit var jdbcUserTextField: JTextField
-    private lateinit var jdbcPasswordTextField: JPasswordField
-    private lateinit var jdbcTestButton: JButton
-    private lateinit var testResultLabel: JLabel
+    private var jdbcUrlTextField: JTextField
+    private var jdbcUserTextField: JTextField
+    private var jdbcPasswordTextField: JPasswordField
+    private var jdbcTestButton: JButton
+    private var testResultLabel: JLabel
 
     init {
         setSize(600, 400)
@@ -71,7 +71,7 @@ open class SwingJdbcSettingsDialog(
 
         jdbcTestButton = JButton(Texts.JDBC_BUTTON_TEST_CONNECTION)
         jdbcTestButton.addActionListener {
-            testResultLabel.text = JdbcConnectionTest.testConnection(jdbcUrlTextField.text, jdbcUserTextField.text, jdbcPasswordTextField.text)
+            testResultLabel.text = JdbcConnectionTest.testConnection(jdbcUrlTextField.text, jdbcUserTextField.text, jdbcPasswordTextField.password.toString())
         }
 
         val resetButton = JButton(Texts.BUTTON_RESET)
@@ -85,7 +85,7 @@ open class SwingJdbcSettingsDialog(
             jdbcSettings.driverClass = "org.postgresql.Driver"
             jdbcSettings.jdbcUrl = jdbcUrlTextField.text
             jdbcSettings.user = jdbcUserTextField.text
-            jdbcSettings.password = jdbcPasswordTextField.text
+            jdbcSettings.password = jdbcPasswordTextField.password.toString()
             context.setupData.jdbcSettings = jdbcSettings
             context.setupData.useEmbeddedDatabase = false
             finalizeWindow.redraw()
