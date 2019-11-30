@@ -46,7 +46,7 @@ class CalendarFilter(name: String? = null,
                      /**
                       * Grid size of the calendar to display in minutes (60 should be dividable by step).
                       */
-                     var gridSize: Int = 30,
+                     var gridSize: Int = 15,
 
                      var showBirthdays: Boolean? = null,
 
