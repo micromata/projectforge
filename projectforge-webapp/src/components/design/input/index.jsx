@@ -64,7 +64,7 @@ function Input(
                 )}
                 htmlFor={id}
             >
-                {icon ? <FontAwesomeIcon icon={icon} className={style.icon} /> : undefined}
+                {icon && <FontAwesomeIcon icon={icon} className={style.icon} />}
                 <input
                     className={style.input}
                     type={type}

@@ -57,13 +57,12 @@
       border: none;
       border-bottom: 1px solid #deddde;
       outline: none;
+      transition: border-bottom .3s;
 
       &:focus {
         border-bottom: 1px solid #007480;
-        transition: border-bottom 1s;
       }
 
-      //@include transition(border-bottom .3s);
 
     }
 
@@ -77,6 +76,10 @@
 
     &.noLabel {
       height: 1.1em;
+
+      .icon {
+        bottom: 0;
+      }
 
       .input {
         top: 0;
