@@ -143,6 +143,9 @@ class IndexPage extends React.Component {
                         <h1>ToDo&apos;s (Fin)</h1>
                         <ol>
                             <li>
+                                Can&apos;t delete last calendar.
+                            </li>
+                            <li>
                                 Modification of text searches (in all fields, non field-specific)
                                 is not possible.
                             </li>
