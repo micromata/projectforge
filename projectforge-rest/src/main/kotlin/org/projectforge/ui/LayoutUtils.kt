@@ -85,6 +85,7 @@ class LayoutUtils {
                             default = true,
                             responseAction = ResponseAction(restService.getRestPath(RestPaths.LIST), targetType = TargetType.POST)))
             process(layout)
+            layout.addTranslations("search")
             addCommonTranslations(layout)
             Favorites.addTranslations(layout.translations)
             return layout

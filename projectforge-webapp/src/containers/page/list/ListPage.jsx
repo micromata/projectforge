@@ -4,6 +4,7 @@ import DynamicLayout from '../../../components/base/dynamicLayout';
 import { registerComponent } from '../../../components/base/dynamicLayout/components/DynamicRenderer';
 import DynamicCheckbox
     from '../../../components/base/dynamicLayout/components/input/DynamicCheckbox';
+import { Card, Container } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
 import { getObjectFromQuery, getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import { defaultValues as defaultContextValues, ListPageContext } from './ListPageContext';
@@ -221,34 +222,37 @@ function ListPage(
     }
 
     return (
-        <ListPageContext.Provider
-            value={{
-                ...defaultContextValues,
-                category: match.params.category,
-                filter,
-                filterFavorites,
-                filterHelper,
-                highlightRow: location.state ? location.state.id : -1,
-                setFilterFavorites,
-                setUI,
-            }}
-        >
-            <LoadingContainer loading={loading}>
-                <DynamicLayout
-                    callAction={callAction}
-                    ui={ui}
-                    data={data}
-                    setData={setData}
-                    options={{
-                        displayPageMenu: true,
-                        setBrowserTitle: true,
-                        showActionButtons: false,
+        <Container fluid>
+            <Card>
+                <ListPageContext.Provider
+                    value={{
+                        ...defaultContextValues,
+                        category: match.params.category,
+                        filter,
+                        filterFavorites,
+                        filterHelper,
+                        highlightRow: location.state ? location.state.id : -1,
+                        setFilterFavorites,
+                        setUI,
                     }}
                 >
-                    <SearchFilter />
-                </DynamicLayout>
-            </LoadingContainer>
-        </ListPageContext.Provider>
+                    <LoadingContainer loading={loading}>
+                        <DynamicLayout
+                            callAction={callAction}
+                            ui={ui}
+                            data={data}
+                            setData={setData}
+                            options={{
+                                displayPageMenu: false,
+                                showActionButtons: false,
+                            }}
+                        >
+                            <SearchFilter />
+                        </DynamicLayout>
+                    </LoadingContainer>
+                </ListPageContext.Provider>
+            </Card>
+        </Container>
     );
 }
 
