@@ -213,43 +213,44 @@ function EditPage({ match, location }) {
     }
 
     return (
-        <LoadingContainer loading={loading}>
-            <Route
-                path={`${match.url}/:tab?`}
-                render={({ match: tabMatch }) => (
-                    <React.Fragment>
-                        <TabNavigation
-                            tabs={tabs}
-                            activeTab={tabMatch.params.tab || 'edit'}
-                        />
-                        <TabContent
-                            activeTab={tabMatch.params.tab || 'edit'}
-                            className={style.tabContent}
-                        >
-                            <TabPane tabId="edit">
-                                <Container fluid>
-                                    <form>
-                                        <DynamicLayout
-                                            callAction={callAction}
-                                            data={data}
-                                            options={{
-                                                displayPageMenu: id !== undefined,
-                                                setBrowserTitle: true,
-                                                showActionButtons: true,
-                                                showPageMenuTitle: false,
-                                            }}
-                                            setData={setData}
-                                            setVariables={setVariables}
-                                            ui={ui}
-                                            validationErrors={validationErrors}
-                                            variables={variables}
-                                        >
-                                            {globalValidation}
-                                        </DynamicLayout>
-                                    </form>
-                                </Container>
-                            </TabPane>
-                            {ui.showHistory === true && id
+        <Container fluid>
+            <LoadingContainer loading={loading}>
+                <Route
+                    path={`${match.url}/:tab?`}
+                    render={({ match: tabMatch }) => (
+                        <React.Fragment>
+                            <TabNavigation
+                                tabs={tabs}
+                                activeTab={tabMatch.params.tab || 'edit'}
+                            />
+                            <TabContent
+                                activeTab={tabMatch.params.tab || 'edit'}
+                                className={style.tabContent}
+                            >
+                                <TabPane tabId="edit">
+                                    <Container fluid>
+                                        <form>
+                                            <DynamicLayout
+                                                callAction={callAction}
+                                                data={data}
+                                                options={{
+                                                    displayPageMenu: id !== undefined,
+                                                    setBrowserTitle: true,
+                                                    showActionButtons: true,
+                                                    showPageMenuTitle: false,
+                                                }}
+                                                setData={setData}
+                                                setVariables={setVariables}
+                                                ui={ui}
+                                                validationErrors={validationErrors}
+                                                variables={variables}
+                                            >
+                                                {globalValidation}
+                                            </DynamicLayout>
+                                        </form>
+                                    </Container>
+                                </TabPane>
+                                {ui.showHistory === true && id
                                 && (
                                     <TabPane tabId="history">
                                         <Container fluid>
@@ -262,11 +263,12 @@ function EditPage({ match, location }) {
                                         </Container>
                                     </TabPane>
                                 )}
-                        </TabContent>
-                    </React.Fragment>
-                )}
-            />
-        </LoadingContainer>
+                            </TabContent>
+                        </React.Fragment>
+                    )}
+                />
+            </LoadingContainer>
+        </Container>
     );
 }
 
