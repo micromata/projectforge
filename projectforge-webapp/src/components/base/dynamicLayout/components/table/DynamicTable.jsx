@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Card, CardBody, Table } from '../../../../design';
+import { Table } from '../../../../design';
 import { DynamicLayoutContext } from '../../context';
 import DynamicTableHead from './DynamicTableHead';
 import DynamicTableRow from './DynamicTableRow';
@@ -11,38 +11,34 @@ function DynamicTable({ columns, id }) {
     const entries = Object.getByString(data, id) || '';
 
     return React.useMemo(() => (
-        <Card>
-            <CardBody>
-                <Table striped hover responsive>
-                    <thead>
-                        <tr>
-                            {columns.map(column => (
-                                <DynamicTableHead
-                                    key={`table-head-column-${column.id}`}
-                                    {...column}
-                                />
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {entries.map(row => (
-                            <DynamicTableRow
-                                key={`table-body-row-${row.id}`}
-                                columns={columns}
-                                row={row}
+        <React.Fragment>
+            <Table striped hover responsive>
+                <thead>
+                    <tr>
+                        {columns.map(column => (
+                            <DynamicTableHead
+                                key={`table-head-column-${column.id}`}
+                                {...column}
                             />
                         ))}
-                    </tbody>
-                </Table>
-                {data.size !== undefined
-                    ? (
-                        <span>
-                            {`${ui.translations['table.showing']} ${data.size}/${data.totalSize}`}
-                        </span>
-                    )
-                    : undefined}
-            </CardBody>
-        </Card>
+                    </tr>
+                </thead>
+                <tbody>
+                    {entries.map(row => (
+                        <DynamicTableRow
+                            key={`table-body-row-${row.id}`}
+                            columns={columns}
+                            row={row}
+                        />
+                    ))}
+                </tbody>
+            </Table>
+            {data.size !== undefined && (
+                <p style={{ paddingLeft: '1em' }}>
+                    {`${ui.translations['table.showing']} ${data.size}/${data.totalSize}`}
+                </p>
+            )}
+        </React.Fragment>
     ), [entries, ui]);
 }
 

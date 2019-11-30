@@ -16,7 +16,6 @@ function Input(
         label,
         onBlur,
         onFocus,
-        placeholder,
         small,
         type,
         value,
@@ -74,7 +73,7 @@ function Input(
                     onFocus={handleFocus}
                     value={value}
                 />
-                <span className={style.text}>{placeholder || label}</span>
+                <span className={style.text}>{label}</span>
             </label>
             <AdditionalLabel title={additionalLabel} />
         </div>
@@ -90,7 +89,6 @@ Input.propTypes = {
     label: PropTypes.string,
     onBlur: PropTypes.func,
     onFocus: PropTypes.func,
-    placeholder: PropTypes.string,
     small: PropTypes.bool,
     type: PropTypes.string,
     value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -104,7 +102,6 @@ Input.defaultProps = {
     label: undefined,
     onBlur: undefined,
     onFocus: undefined,
-    placeholder: undefined,
     small: false,
     type: 'text',
     value: undefined,
