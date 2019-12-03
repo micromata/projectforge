@@ -339,7 +339,7 @@ open class ForecastExport { // open needed by Wicket.
             return BigDecimal.ONE
         }
         return if (order!!.probabilityOfOccurrence != null) {
-            BigDecimal.valueOf(order.probabilityOfOccurrence!! / 100.toLong())
+            BigDecimal(order.probabilityOfOccurrence!!).divide(NumberHelper.HUNDRED, 2, RoundingMode.HALF_UP)
         } else when (pos.status) {
             AuftragsPositionsStatus.GELEGT -> BigDecimal.valueOf(0.5)
             AuftragsPositionsStatus.LOI -> BigDecimal.valueOf(0.9)
