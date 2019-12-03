@@ -109,10 +109,6 @@ public class RechnungCache extends AbstractCache {
         setByAuftragId.add(vo);
       }
       if (!setByAuftragsPositionId.contains(vo)) {
-        if (vo.getRechnungNummer() == 9806) {
-          log.info(pos.toString());
-          log.info("AuftragsPosition " + auftragsPosition.getAuftrag().getNummer() + "." + auftragsPosition.getNumber() + ": " + vo.getRechnungNummer());
-        }
         setByAuftragsPositionId.add(vo);
       }
     }
