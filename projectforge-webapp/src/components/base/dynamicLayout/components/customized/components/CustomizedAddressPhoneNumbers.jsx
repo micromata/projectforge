@@ -1,8 +1,6 @@
-import { faComment } from '@fortawesome/free-regular-svg-icons/index';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome/index';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Link } from 'react-router-dom';
+import PhoneNumber from '../../../../../design/phoneNumber/PhoneNumber';
 import { DynamicLayoutContext } from '../../../context';
 
 function CustomizedAddressPhoneNumbers({ data }) {
@@ -29,7 +27,6 @@ function CustomizedAddressPhoneNumbers({ data }) {
             if (!address) {
                 return <React.Fragment />;
             }
-            const stopPropagation = event => event.stopPropagation();
 
             add(address.businessPhone, 'BUSINESS', false, 0);
             add(address.mobilePhone, 'MOBILE', true, 1);
@@ -38,33 +35,14 @@ function CustomizedAddressPhoneNumbers({ data }) {
 
             return (
                 <React.Fragment>
-                    {phoneNumbers.map((value, index) => {
-                        const lineBreak = index > 0 ? <br /> : undefined;
-                        const phoneNumber = phoneCallEnabled ? (
-                            <Link
-                                onClick={stopPropagation}
-                                to={`/wa/phoneCall?addressId=${address.id}&number=${encodeURIComponent(value.number)}`}
-                            >
-                                {value.number}
-                            </Link>
-                        ) : <React.Fragment>{value.number}</React.Fragment>;
-                        const sms = smsEnabled && value.sms ? (
-                            <Link
-                                onClick={stopPropagation}
-                                to={`/wa/sendSms?addressId=${address.id}&phoneType=${value.phoneType}`}
-                            >
-                                {' '}
-                                <FontAwesomeIcon icon={faComment} />
-                            </Link>
-                        ) : undefined;
-                        return (
-                            <React.Fragment key={value.key}>
-                                {lineBreak}
-                                {phoneNumber}
-                                {sms}
-                            </React.Fragment>
-                        );
-                    })}
+                    {phoneNumbers.map(value => (
+                        <PhoneNumber
+                            addressId={address.id}
+                            phoneCallEnabled={phoneCallEnabled}
+                            smsEnabled={smsEnabled}
+                            {...value}
+                        />
+                    ))}
                 </React.Fragment>
             );
         },
