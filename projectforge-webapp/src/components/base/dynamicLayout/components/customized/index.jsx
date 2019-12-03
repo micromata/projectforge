@@ -3,6 +3,7 @@ import React from 'react';
 import BookLendOut from './components/BookLendOut';
 import CalendarEventRecurrency from './components/CalendarEventRecurrence';
 import CustomizedAddressImage from './components/CustomizedAddressImage';
+import CustomizedAddressPhoneNumbers from './components/CustomizedAddressPhoneNumbers';
 import CustomizedConsumptionBar from './components/CustomizedConsumptionBar';
 import CustomizedImageDataPreview from './components/ImageDataPreview';
 import DayRange from './components/DayRange';
@@ -19,6 +20,9 @@ function DynamicCustomized({ id, ...props }) {
             break;
         case 'address.imagePreview':
             Tag = CustomizedImageDataPreview;
+            break;
+        case 'address.phoneNumbers':
+            Tag = CustomizedAddressPhoneNumbers;
             break;
         case 'book.lendOutComponent':
             Tag = BookLendOut;

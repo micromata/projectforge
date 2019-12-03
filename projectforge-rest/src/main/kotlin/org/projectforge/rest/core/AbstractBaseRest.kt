@@ -94,7 +94,8 @@ abstract class AbstractBaseRest<
             val ui: UILayout?,
             val data: ResultSet<*>,
             val filterFavorites: List<Favorites.FavoriteIdTitle>,
-            val filter: MagicFilter)
+            val filter: MagicFilter,
+            var variables: Map<String, Any>? = null)
 
     private var initialized = false
 
@@ -255,7 +256,11 @@ abstract class AbstractBaseRest<
      */
     @GetMapping("initialList")
     fun requestInitialList(request: HttpServletRequest): InitialListData {
-        return getInitialList(request)
+        val result = getInitialList(request)
+        val additionalVariables = addVariablesForListPage()
+        if (additionalVariables != null)
+            result.variables = additionalVariables
+        return result
     }
 
     protected open fun getInitialList(request: HttpServletRequest): InitialListData {
@@ -527,6 +532,13 @@ abstract class AbstractBaseRest<
      * Use this method to add customized variables for your edit page for the initial call.
      */
     protected open fun addVariablesForEditPage(dto: DTO): Map<String, Any>? {
+        return null
+    }
+
+    /**
+     * Use this method to add customized variables for your list page for the initial call.
+     */
+    protected open fun addVariablesForListPage(): Map<String, Any>? {
         return null
     }
 
