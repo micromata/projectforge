@@ -189,10 +189,10 @@ class AddressRest()
                         .add(UITableColumn("address.imagePreview", "address.image", dataType = UIDataType.CUSTOMIZED))
                         .add(addressLC, "name", "firstName", "organization", "email")
                         .add(UITableColumn("address.phoneNumbers", "address.phoneNumbers", dataType = UIDataType.CUSTOMIZED))
-                        .add(lc, "addressbookList"))
+                        .add(lc, "address.addressbookList"))
         layout.getTableColumnById("address.lastUpdate").formatter = Formatter.DATE
-        layout.getTableColumnById("addressbookList").formatter = Formatter.ADDRESS_BOOK
-        layout.getTableColumnById("addressbookList").sortable = false
+        layout.getTableColumnById("address.addressbookList").formatter = Formatter.ADDRESS_BOOK
+        layout.getTableColumnById("address.addressbookList").sortable = false
         LayoutUtils.addListFilterContainer(layout,
                 UICheckbox("favorites", label = "address.filter.myFavorites"),
                 UICheckbox("doublets", label = "address.filter.doublets"))
