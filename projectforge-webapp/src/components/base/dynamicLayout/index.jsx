@@ -26,6 +26,7 @@ function DynamicLayout(
     } = ui;
 
     const {
+        disableLayoutRendering,
         displayPageMenu,
         setBrowserTitle,
         showActionButtons,
@@ -79,7 +80,7 @@ function DynamicLayout(
         >
             {menu}
             {children}
-            {renderLayout(layout)}
+            {!disableLayoutRendering && renderLayout(layout)}
             {actionGroup}
         </DynamicLayoutContext.Provider>
     );
@@ -99,6 +100,7 @@ DynamicLayout.propTypes = {
     data: PropTypes.shape({}),
     // Customization options
     options: PropTypes.shape({
+        disableLayoutRendering: PropTypes.bool,
         displayPageMenu: PropTypes.bool,
         setBrowserTitle: PropTypes.bool,
         showActionButtons: PropTypes.bool,

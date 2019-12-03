@@ -25,6 +25,7 @@ package org.projectforge.rest
 
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.address.*
+import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.image.ImageService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -67,6 +68,9 @@ class AddressRest()
 
     @Autowired
     private lateinit var addressServicesRest: AddressServicesRest
+
+    @Autowired
+    private lateinit var configurationService: ConfigurationService
 
     @Autowired
     private lateinit var imageService: ImageService
@@ -184,9 +188,11 @@ class AddressRest()
                         .add(addressLC, "lastUpdate")
                         .add(UITableColumn("address.imagePreview", "address.image", dataType = UIDataType.CUSTOMIZED))
                         .add(addressLC, "name", "firstName", "organization", "email")
-                        .add(UITableColumn("phoneNumbers", "address.phoneNumbers", dataType = UIDataType.CUSTOMIZED))
-                        .add(lc, "addressbookList"))
+                        .add(UITableColumn("address.phoneNumbers", "address.phoneNumbers", dataType = UIDataType.CUSTOMIZED))
+                        .add(lc, "address.addressbookList"))
         layout.getTableColumnById("address.lastUpdate").formatter = Formatter.DATE
+        layout.getTableColumnById("address.addressbookList").formatter = Formatter.ADDRESS_BOOK
+        layout.getTableColumnById("address.addressbookList").sortable = false
         LayoutUtils.addListFilterContainer(layout,
                 UICheckbox("favorites", label = "address.filter.myFavorites"),
                 UICheckbox("doublets", label = "address.filter.doublets"))
@@ -221,6 +227,12 @@ class AddressRest()
                 tooltip = "address.book.export.appleScript4Notes.tooltip",
                 type = MenuItemTargetType.DOWNLOAD))
         return LayoutUtils.processListPage(layout, this)
+    }
+
+    override fun addVariablesForListPage(): Map<String, Any>? {
+        return mutableMapOf(
+                "phoneCallEnabled" to configurationService.isTelephoneSystemUrlConfigured,
+                "smsEnabled" to smsSenderConfig.isSmsConfigured())
     }
 
     /**
