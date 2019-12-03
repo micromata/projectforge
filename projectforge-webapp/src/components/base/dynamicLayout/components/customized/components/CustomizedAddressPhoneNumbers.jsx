@@ -1,14 +1,12 @@
-import React from 'react';
-
 import { faComment } from '@fortawesome/free-regular-svg-icons/index';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome/index';
-import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
+import React from 'react';
+import { Link } from 'react-router-dom';
 
 function CustomizedAddressPhoneNumbers({ data }) {
     const { address } = data;
     // Fragen an Fin:
-    //  - Klick auf Telefonnummern (SMS) sollte dann dem Link folgen, nicht zur Editseite.
     //  - smsEnabled und phoneCallEnabled aus den Variablen des Servers bekommen.
     //  - Sollen für die Adressbücher in der Liste auch Customized-Elemente gebaut werden?
     // const { variables } = React.useContext(DynamicLayoutContext);
@@ -36,6 +34,8 @@ function CustomizedAddressPhoneNumbers({ data }) {
             if (!address) {
                 return <React.Fragment />;
             }
+            const stopPropagation = event => event.stopPropagation();
+
             add(address.businessPhone, 'BUSINESS', false, 0);
             add(address.mobilePhone, 'MOBILE', true, 1);
             add(address.privatePhone, 'PRIVATE', false, 2);
@@ -47,6 +47,7 @@ function CustomizedAddressPhoneNumbers({ data }) {
                         const lineBreak = index > 0 ? <br /> : undefined;
                         const phoneNumber = phoneCallEnabled ? (
                             <Link
+                                onClick={stopPropagation}
                                 to={`/wa/phoneCall?addressId=${address.id}&number=${encodeURIComponent(value.number)}`}
                             >
                                 {value.number}
@@ -54,6 +55,7 @@ function CustomizedAddressPhoneNumbers({ data }) {
                         ) : <React.Fragment>{value.number}</React.Fragment>;
                         const sms = smsEnabled && value.sms ? (
                             <Link
+                                onClick={stopPropagation}
                                 to={`/wa/sendSms?addressId=${address.id}&phoneType=${value.phoneType}`}
                             >
                                 {' '}
