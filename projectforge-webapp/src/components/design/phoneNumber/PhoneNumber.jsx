@@ -18,7 +18,7 @@ function PhoneNumber(
 ) {
     const stopPropagation = event => event.stopPropagation();
 
-    const phoneIcon = phoneType === 'MOBILE' || phoneType === 'BUSINESS_MOBILE'
+    const phoneIcon = phoneType === 'MOBILE' || phoneType === 'PRIVATE_MOBILE'
         ? faMobileAlt
         : faPhone;
 
