@@ -23,12 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.wicket.AttributeModifier;
@@ -45,31 +39,20 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.common.OutputType;
-import org.projectforge.business.fibu.AuftragDO;
-import org.projectforge.business.fibu.AuftragDao;
-import org.projectforge.business.fibu.AuftragsPositionDO;
-import org.projectforge.business.fibu.AuftragsStatus;
-import org.projectforge.business.fibu.ForecastExport;
-import org.projectforge.business.fibu.OrderExport;
-import org.projectforge.business.fibu.RechnungCache;
+import org.projectforge.business.fibu.*;
 import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.framework.i18n.UserException;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberFormatter;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.CurrencyPropertyColumn;
-import org.projectforge.web.wicket.DownloadUtils;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
-import org.projectforge.web.wicket.RowCssClass;
-import org.projectforge.web.wicket.WicketUtils;
+import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 @ListPage(editPage = AuftragEditPage.class)
 public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDao, AuftragDO>
@@ -289,15 +272,9 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
           public void onClick()
           {
             final List<AuftragDO> list = getList();
-            Calendar startDate = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
-            if (form != null && form.getSearchFilter() != null && form.getSearchFilter().getPeriodOfPerformanceStartDate() != null) {
-              startDate.setTime(form.getSearchFilter().getPeriodOfPerformanceStartDate());
-            } else {
-              startDate.set(Calendar.MONTH, 0);
-            }
             byte[] xls = null;
             try {
-              xls = forecastExport.export(list, startDate);
+              xls = forecastExport.export(list, form.getSearchFilter().getPeriodOfPerformanceStartDate());
             } catch (Exception e) {
               log.error("Exception while creating forecast report: " + e.getMessage(), e);
               throw new UserException("error", e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e));
