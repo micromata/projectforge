@@ -1,4 +1,5 @@
 import { faComment } from '@fortawesome/free-regular-svg-icons';
+import { faMobileAlt, faPhone } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -16,6 +17,10 @@ function PhoneNumber(
     },
 ) {
     const stopPropagation = event => event.stopPropagation();
+
+    const phoneIcon = phoneType === 'MOBILE' || phoneType === 'BUSINESS_MOBILE'
+        ? faMobileAlt
+        : faPhone;
 
     return (
         <div className={styles.number}>
@@ -35,7 +40,10 @@ function PhoneNumber(
                     <FontAwesomeIcon icon={faComment} className={styles.smsIcon} />
                 </Link>
             ) : undefined}
-            <span className={styles.zoom}>{number}</span>
+            <span className={styles.zoom}>
+                <FontAwesomeIcon icon={phoneIcon} className={styles.icon} />
+                {number}
+            </span>
         </div>
     );
 }
