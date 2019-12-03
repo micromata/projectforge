@@ -251,6 +251,7 @@ function ListPage(
                                 displayPageMenu: false,
                                 showActionButtons: false,
                             }}
+                            variables={variables}
                         >
                             <SearchFilter />
                         </DynamicLayout>
