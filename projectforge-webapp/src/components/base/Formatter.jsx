@@ -72,7 +72,9 @@ function Formatter(
                 result = value.name;
                 break;
             case ADDRESSBOOK_FORMATTER:
-                result = 'tbd'; // tbd: list of value.title
+                result = value
+                    .map(({ title }) => title)
+                    .join(', ');
                 break;
             default:
         }
