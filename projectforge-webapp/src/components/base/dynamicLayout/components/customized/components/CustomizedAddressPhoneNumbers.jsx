@@ -3,20 +3,15 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome/index';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { DynamicLayoutContext } from '../../../context';
 
 function CustomizedAddressPhoneNumbers({ data }) {
     const { address } = data;
-    // Fragen an Fin:
-    //  - smsEnabled und phoneCallEnabled aus den Variablen des Servers bekommen.
-    //  - Sollen für die Adressbücher in der Liste auch Customized-Elemente gebaut werden?
-    // const { variables } = React.useContext(DynamicLayoutContext);
+    const { variables } = React.useContext(DynamicLayoutContext);
 
     const phoneNumbers = [];
 
-    // console.log(variables.smsEnabled);
-    // const { smsEnabled, phoneCallEnabled } = variables;
-    const smsEnabled = true;
-    const phoneCallEnabled = true;
+    const { smsEnabled, phoneCallEnabled } = variables;
 
     function add(number, phoneType, sms, key) {
         if (number && number.trim().length > 0) {
