@@ -244,7 +244,7 @@ function ListPage(
                     setData={setData}
                     options={{
                         displayPageMenu: true,
-                        renderLayout: !loading,
+                        disableLayoutRendering: loading,
                         setBrowserTitle: true,
                         showActionButtons: false,
                     }}

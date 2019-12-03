@@ -21,13 +21,13 @@ export const defaultValues = {
      */
     options: {
         /**
+         * @type {Boolean} Disable render while loading or other circumstances.
+         */
+        disableLayoutRendering: false,
+        /**
          * @type {Boolean} Enables a general page menu.
          */
         displayPageMenu: true,
-        /**
-         * @type {Boolean} Disable render while loading or other circumstances.
-         */
-        renderLayout: true,
         /**
          * @type {Boolean} Changes the title of the browser to the title of the layout.
          */
