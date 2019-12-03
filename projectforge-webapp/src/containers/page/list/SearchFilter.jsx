@@ -1,9 +1,11 @@
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import classNames from 'classnames';
 import React from 'react';
 import { Navbar } from 'reactstrap';
 import { DynamicLayoutContext } from '../../../components/base/dynamicLayout/context';
 import Navigation from '../../../components/base/navigation';
 import { Col, Input, Row } from '../../../components/design';
+import AdvancedPopper from '../../../components/design/popper/AdvancedPopper';
 import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import FavoritesPanel from '../../panel/favorite/FavoritesPanel';
 import styles from './ListPage.module.scss';
@@ -15,6 +17,7 @@ function SearchFilter() {
         ui,
         setData,
     } = React.useContext(DynamicLayoutContext);
+
     const {
         category,
         filter,
@@ -23,6 +26,11 @@ function SearchFilter() {
         setFilterFavorites,
         setUI,
     } = React.useContext(ListPageContext);
+
+    const [searchActive, setSearchActive] = React.useState(false);
+
+    const handleSearchFocus = () => setSearchActive(true);
+    const handleSearchBlur = () => setSearchActive(false);
 
     const saveUpdateResponse = (
         {
@@ -81,14 +89,28 @@ function SearchFilter() {
         <React.Fragment>
             <Row>
                 <Col sm={4}>
-                    <Input
-                        id="searchFilter"
-                        icon={faSearch}
-                        className={styles.search}
-                        autoComplete="off"
-                        placeholder={ui.translations.search}
-                        // TODO ADD DELETE BUTTON
-                    />
+                    <AdvancedPopper
+                        setIsOpen={setSearchActive}
+                        isOpen={searchActive}
+                        basic={(
+                            <Input
+                                id="searchFilter"
+                                icon={faSearch}
+                                className={classNames(
+                                    styles.search,
+                                    { [styles.active]: searchActive },
+                                )}
+                                onFocus={handleSearchFocus}
+                                onBlur={handleSearchBlur}
+                                autoComplete="off"
+                                placeholder={ui.translations.search}
+                                // TODO ADD DELETE BUTTON
+                            />
+                        )}
+                        className={styles.searchContainer}
+                    >
+                        <h1>Addition</h1>
+                    </AdvancedPopper>
                     {/* TODO ADD AUTO COMPLETION */}
                 </Col>
                 <Col sm={1} className="d-flex align-items-center">
