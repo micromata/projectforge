@@ -30,6 +30,10 @@ $zoomedFontSize: 64px;
     align-items: center;
     justify-content: center;
     backdrop-filter: saturate(180%) blur(1px);
+
+    .icon {
+      margin-right: .5em;
+    }
   }
 
   &:hover .zoom {
