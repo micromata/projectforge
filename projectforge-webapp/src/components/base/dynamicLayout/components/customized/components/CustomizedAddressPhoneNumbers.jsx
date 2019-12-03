@@ -71,7 +71,7 @@ function CustomizedAddressPhoneNumbers({ data }) {
                 </React.Fragment>
             );
         },
-        [[address]],
+        [address],
     );
 }
 
