@@ -1,5 +1,6 @@
 .searchContainer {
   margin: 1em 0 0 1em;
+  height: 2.9em;
 
   .search {
     width: 100%;
@@ -10,7 +11,7 @@
     :global(#searchFilter) {
       border: none;
       top: -2px;
-      margin-left: 5px;
+      margin-left: 2px;
     }
   }
 }
