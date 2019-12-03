@@ -1,0 +1,40 @@
+$zoomedFontSize: 64px;
+
+@keyframes numberZoom {
+  from {
+    font-size: 14px;
+  }
+
+  to {
+    font-size: $zoomedFontSize;
+  }
+}
+
+
+.number {
+  .smsIcon {
+    margin-left: .5em;
+  }
+
+  .zoom {
+    visibility: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 125px;
+    font-size: $zoomedFontSize;
+    font-weight: bold;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: saturate(180%) blur(1px);
+  }
+
+  &:hover .zoom {
+    visibility: visible;
+
+    animation: numberZoom .3s;
+  }
+}
