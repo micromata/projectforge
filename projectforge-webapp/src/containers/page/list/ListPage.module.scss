@@ -14,4 +14,58 @@
       margin-left: 2px;
     }
   }
+
+  .completions {
+    top: .8em;
+
+    .entries {
+      margin: 0;
+      padding: 0;
+
+      .entry {
+        position: relative;
+        padding: 1em 1.5em;
+        cursor: default;
+
+        &:hover {
+          background-color: #eee;
+        }
+
+        .icon {
+          right: 1em;
+          position: absolute;
+        }
+      }
+    }
+  }
+}
+
+.actions {
+  border-top: 1px solid #eee;
+  padding: .8em .9em;
+
+  .deleteButton {
+    margin: 0;
+    display: inline-block;
+    text-align: center;
+    width: auto;
+    font-weight: 600;
+    padding: .8em;
+    color: #333;
+    outline: none;
+    border: none;
+    border-radius: 8px;
+    text-decoration: underline;
+
+    &:hover {
+      color: #000;
+      background-color: #f2f2f2;
+    }
+
+    &:disabled {
+      color: #ccc;
+      background-color: transparent;
+      cursor: not-allowed;
+    }
+  }
 }

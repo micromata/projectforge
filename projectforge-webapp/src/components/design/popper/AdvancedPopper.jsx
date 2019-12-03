@@ -6,6 +6,7 @@ import style from './Popper.module.scss';
 
 function AdvancedPopper(
     {
+        additionalClassName,
         basic,
         children,
         className,
@@ -53,7 +54,7 @@ function AdvancedPopper(
                 <div ref={basicReference} onFocus={() => setIsOpen(true)}>
                     {basic}
                 </div>
-                <div className={style.additional}>
+                <div className={classNames(style.additional, additionalClassName)}>
                     {children}
                 </div>
             </div>
@@ -65,12 +66,14 @@ AdvancedPopper.propTypes = {
     basic: PropTypes.node.isRequired,
     children: PropTypes.node.isRequired,
     setIsOpen: PropTypes.func.isRequired,
+    additionalClassName: PropTypes.string,
     className: PropTypes.string,
     contentClassName: PropTypes.string,
     isOpen: PropTypes.bool,
 };
 
 AdvancedPopper.defaultProps = {
+    additionalClassName: undefined,
     className: undefined,
     contentClassName: undefined,
     isOpen: false,

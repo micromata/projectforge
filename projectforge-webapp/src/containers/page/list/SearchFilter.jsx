@@ -1,4 +1,5 @@
-import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faChevronRight, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import React from 'react';
 import { Navbar } from 'reactstrap';
@@ -90,6 +91,7 @@ function SearchFilter() {
             <Row>
                 <Col sm={4}>
                     <AdvancedPopper
+                        additionalClassName={styles.completions}
                         setIsOpen={setSearchActive}
                         isOpen={searchActive}
                         basic={(
@@ -104,14 +106,46 @@ function SearchFilter() {
                                 onBlur={handleSearchBlur}
                                 autoComplete="off"
                                 placeholder={ui.translations.search}
-                                // TODO ADD DELETE BUTTON
                             />
                         )}
                         className={styles.searchContainer}
                     >
-                        <h1>Addition</h1>
+                        <ul className={styles.entries}>
+                            {/* TODO USE SERVER AUTO COMPLETION */}
+                            {/* TODO ADD KEYBOARD LISTENER FOR SELECTING */}
+                            <li
+                                className={styles.entry}
+                                onClick={console.log}
+                                role="option"
+                                aria-selected="false"
+                                onKeyPress={undefined}
+                            >
+                                Entry A
+                                <FontAwesomeIcon
+                                    icon={faChevronRight}
+                                    className={styles.icon}
+                                />
+                            </li>
+                            <li
+                                className={styles.entry}
+                                onClick={console.log}
+                                role="option"
+                                aria-selected="false"
+                                onKeyPress={undefined}
+                            >
+                                Entry B
+                                <FontAwesomeIcon
+                                    icon={faChevronRight}
+                                    className={styles.icon}
+                                />
+                            </li>
+                        </ul>
+                        <div className={styles.actions}>
+                            <button className={styles.deleteButton} type="button" disabled>
+                                {ui.translations.delete}
+                            </button>
+                        </div>
                     </AdvancedPopper>
-                    {/* TODO ADD AUTO COMPLETION */}
                 </Col>
                 <Col sm={1} className="d-flex align-items-center">
                     <FavoritesPanel
