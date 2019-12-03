@@ -23,7 +23,11 @@
 
 package org.projectforge.framework.time
 
-import java.time.*
+import java.time.Instant
+import java.time.LocalDate
+import java.time.Month
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
 
@@ -33,7 +37,7 @@ import java.time.temporal.TemporalAdjusters
  */
 class PFDate(val date: LocalDate) {
 
-    constructor(instant: Instant) : this(LocalDate.from(instant))
+    private constructor(instant: Instant) : this(LocalDate.from(instant))
 
     val year: Int
         get() = date.year
@@ -87,6 +91,13 @@ class PFDate(val date: LocalDate) {
         return date.format(formatter)
     }
 
+    /**
+     * Date part as ISO string: "yyyy-MM-dd HH:mm" in UTC.
+     */
+    val isoString: String
+        get() = PFDate.isoDateFormatter.format(date)
+
+
     private var _sqlDate: java.sql.Date? = null
     /**
      * @return The date as java.sql.Date. java.sql.Date is only calculated, if this getter is called and it
@@ -124,14 +135,16 @@ class PFDate(val date: LocalDate) {
             if (date is java.sql.Date) {
                 return PFDate(date.toLocalDate())
             }
-            return PFDate(date.toInstant()
-                    .atZone(ZoneId.of("UTC"))
-                    .toLocalDate())
+            val dateTime = PFDateTime.from(date)!!
+            val localDate = LocalDate.of(dateTime.year, dateTime.month, dateTime.dayOfMonth)
+            return PFDate(localDate)
         }
 
         @JvmStatic
         fun now(): PFDate {
             return PFDate(LocalDate.now())
         }
+
+        private val isoDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     }
 }
