@@ -24,7 +24,9 @@
 package org.projectforge.framework.time
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.projectforge.test.TestSetup
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.Month
@@ -66,11 +68,25 @@ class PFDateTest {
         assertEquals(2019, date.year)
         assertEquals(Month.FEBRUARY, date.month)
         assertEquals(28, date.dayOfMonth)
+
+        val dateTime = PFDateTime.parseUTCDate("2019-11-30 23:00")!!
+        date = PFDate.from(dateTime.utilDate)!!
+        assertEquals(2019, date.year)
+        assertEquals(Month.DECEMBER, date.month)
+        assertEquals(1, date.dayOfMonth)
     }
 
     private fun checkDate(date: LocalDate, year: Int, month: Month, dayOfMonth: Int) {
         assertEquals(year, date.year, "Year check failed.")
         assertEquals(month, date.month, "Month check failed.")
         assertEquals(dayOfMonth, date.dayOfMonth, "Day check failed.")
+    }
+
+    companion object {
+        @BeforeAll
+        @JvmStatic
+        fun setup() {
+            TestSetup.init()
+        }
     }
 }
