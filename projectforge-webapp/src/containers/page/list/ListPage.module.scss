@@ -1,20 +1,16 @@
-.search {
+.searchContainer {
   margin: 1em 0 0 1em;
-  padding: .5em;
-  border: 1px solid #ebebeb;
-  border-radius: 5px;
-  $baseShadow: 0 2px 3px rgba(0, 0, 0, 0.1);
-  box-shadow: $baseShadow;
-  transition: box-shadow .3s;
 
-  &:hover {
-    box-shadow: $baseShadow, 0 3px 12px rgba(0, 0, 0, 0.1);
-  }
+  .search {
+    width: 100%;
+    margin: 0;
+    padding: .5em;
 
-  // Use :global(...) to force css-modules to not convert #searchFilter.
-  :global(#searchFilter) {
-    border: none;
-    top: -2px;
-    margin-left: 5px;
+    // Use :global(...) to force css-modules to not convert #searchFilter.
+    :global(#searchFilter) {
+      border: none;
+      top: -2px;
+      margin-left: 5px;
+    }
   }
 }
