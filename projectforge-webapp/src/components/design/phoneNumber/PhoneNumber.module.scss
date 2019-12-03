@@ -29,7 +29,7 @@ $zoomedFontSize: 64px;
     display: flex;
     align-items: center;
     justify-content: center;
-    backdrop-filter: saturate(180%) blur(1px);
+    backdrop-filter: saturate(180%) blur(3px);
 
     .icon {
       margin-right: .5em;
