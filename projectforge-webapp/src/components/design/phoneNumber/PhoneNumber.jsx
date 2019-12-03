@@ -32,7 +32,7 @@ function PhoneNumber(
                     {number}
                 </Link>
             ) : number}
-            {!smsEnabled && sms ? (
+            {smsEnabled && sms ? (
                 <Link
                     onClick={stopPropagation}
                     to={`/wa/sendSms?addressId=${addressId}&phoneType=${encodeURIComponent(phoneType)}`}
