@@ -47,6 +47,27 @@ class PFDateTest {
         checkDate(date!!.date, 2019, Month.APRIL, 10)
     }
 
+    @Test
+    fun baseTest() {
+        var date = PFDate.from(LocalDate.of(2019, Month.APRIL, 10))!!
+        assertEquals(2019, date.year)
+        assertEquals(Month.APRIL, date.month)
+        assertEquals(4, date.monthValue)
+        assertEquals(1, date.beginOfMonth.dayOfMonth)
+        assertEquals(30, date.endOfMonth.dayOfMonth)
+
+        date = PFDate.from(LocalDate.of(2019, Month.JANUARY, 1))!!
+        assertEquals(2019, date.year)
+        assertEquals(Month.JANUARY, date.month)
+        assertEquals(1, date.monthValue)
+        assertEquals(1, date.beginOfMonth.dayOfMonth)
+
+        date = PFDate.from(LocalDate.of(2019, Month.JANUARY, 31))!!.plusMonths(1)
+        assertEquals(2019, date.year)
+        assertEquals(Month.FEBRUARY, date.month)
+        assertEquals(28, date.dayOfMonth)
+    }
+
     private fun checkDate(date: LocalDate, year: Int, month: Month, dayOfMonth: Int) {
         assertEquals(year, date.year, "Year check failed.")
         assertEquals(month, date.month, "Month check failed.")
