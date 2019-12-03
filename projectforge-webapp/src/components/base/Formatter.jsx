@@ -3,16 +3,17 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 
-const DATE_FORMATTER = 'DATE';
+const AUFTRAGPOSITION_FORMATTER = 'AUFTRAG_POSITION';
+const ADDRESSBOOK_FORMATTER = 'ADDRESS_BOOK';
 const COST1_FORMATTER = 'COST1';
 const COST2_FORMATTER = 'COST2';
 const CUSTOMER_FORMATTER = 'CUSTOMER';
+const DATE_FORMATTER = 'DATE';
 const KONTO_FORMATTER = 'KONTO';
 const PROJECT_FORMATTER = 'PROJECT';
 const USER_FORMATTER = 'USER';
 const TASK_FORMATTER = 'TASK_PATH';
 const TIMESTAMP_MINUTES_FORMATTER = 'TIMESTAMP_MINUTES';
-const AUFTRAGPOSITION_FORMATTER = 'AUFTRAG_POSITION';
 const GROUP_FORMATTER = 'GROUP';
 
 function Formatter(
@@ -69,6 +70,9 @@ function Formatter(
                 break;
             case GROUP_FORMATTER:
                 result = value.name;
+                break;
+            case ADDRESSBOOK_FORMATTER:
+                result = 'tbd'; // tbd: list of value.title
                 break;
             default:
         }
