@@ -38,7 +38,6 @@ import org.projectforge.framework.calendar.Holidays;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHolder;
-import org.projectforge.framework.time.PFDate;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.NumberHelper;
 
