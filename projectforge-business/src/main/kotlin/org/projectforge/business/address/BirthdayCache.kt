@@ -26,11 +26,11 @@ package org.projectforge.business.address
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.time.DateHelper
-import org.projectforge.framework.time.DateHolder
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.registry.Registry
 import java.util.*
 
-class BirthdayCache() : AbstractCache() {
+class BirthdayCache : AbstractCache() {
     private var addressDao: AddressDao
 
     private var cacheList = mutableListOf<BirthdayAddress>()
@@ -53,12 +53,11 @@ class BirthdayCache() : AbstractCache() {
         checkRefresh()
         // Uses not Collections.sort because every comparison needs Calendar.getDayOfYear().
         val set = TreeSet<BirthdayAddress>()
-        val from = DateHolder(fromDate)
-        val to = DateHolder(toDate)
-        var dh: DateHolder
-        val fromMonth = from.month
+        val from = PFDateTime.from(fromDate)
+        val to = PFDateTime.from(toDate)
+        val fromMonth = from!!.monthValue
         val fromDayOfMonth = from.dayOfMonth
-        val toMonth = to.month
+        val toMonth = to!!.monthValue
         val toDayOfMonth = to.dayOfMonth
         for (birthdayAddress in cacheList) {
             val address = birthdayAddress.address
@@ -70,14 +69,14 @@ class BirthdayCache() : AbstractCache() {
                 // Address is not a favorite address, so ignore it.
                 continue
             }
-            dh = DateHolder(address.birthday)
-            val month = dh.month
-            val dayOfMonth = dh.dayOfMonth
+            val dt = PFDateTime.from(address.birthday)!!
+            val month = dt.monthValue
+            val dayOfMonth = dt.dayOfMonth
             if (!DateHelper.dateOfYearBetween(month, dayOfMonth, fromMonth, fromDayOfMonth, toMonth, toDayOfMonth)) {
                 continue
             }
             val ba = BirthdayAddress(address)
-            ba.isFavorite = favorites.contains(address.getId())
+            ba.isFavorite = favorites.contains(address.id)
             set.add(ba)
         }
         return set

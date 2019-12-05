@@ -31,8 +31,7 @@ import org.projectforge.business.fibu.kost.Kost2ArtDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.framework.time.DateHolder
-import org.projectforge.framework.time.DayHolder
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.xstream.XmlObjectReader
 import java.math.BigDecimal
 import java.sql.Date
@@ -164,8 +163,8 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
             if (isBezahlt) {
                 return false
             }
-            val today = DayHolder()
-            return this.faelligkeit?.before(today.date) ?: false
+            val today = PFDateTime.now()
+            return this.faelligkeit?.before(today.utilDate) ?: false
         }
 
     val kontoId: Int?
@@ -191,9 +190,12 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
             return
         }
 
-        val date = DateHolder(this.datum)
-        this.zahlungsZielInTagen = if (this.faelligkeit == null) null else date.daysBetween(this.faelligkeit)
-        this.discountZahlungsZielInTagen = if (this.discountMaturity == null) null else date.daysBetween(this.discountMaturity)
+        val dateTime = PFDateTime.from(this.datum)
+        val dateFaelligkeit = PFDateTime.from(this.faelligkeit)!!
+        val dateDiscount = PFDateTime.from(this.discountMaturity)!!
+
+        this.zahlungsZielInTagen = if (this.faelligkeit == null) null else dateTime?.daysBetween(dateFaelligkeit)?.toInt()
+        this.discountZahlungsZielInTagen = if (this.discountMaturity == null) null else dateTime?.daysBetween(dateDiscount)?.toInt()
     }
 
     /**
@@ -213,7 +215,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
         addPositionWithoutCheck(position)
     }
 
-    abstract protected fun addPositionWithoutCheck(position: AbstractRechnungsPositionDO)
+    protected abstract fun addPositionWithoutCheck(position: AbstractRechnungsPositionDO)
 
     abstract fun setRechnung(position: AbstractRechnungsPositionDO)
 

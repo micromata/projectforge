@@ -35,11 +35,11 @@ import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.export.MyXlsContentProvider;
-import org.projectforge.framework.calendar.MonthHolder;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.CurrencyHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,12 +73,7 @@ public class EmployeeSalaryExportDao {
   public byte[] export(final List<EmployeeSalaryDO> list) {
     log.info("Exporting employee salary list.");
     Validate.notEmpty(list);
-    list.sort(new Comparator<EmployeeSalaryDO>() {
-      @Override
-      public int compare(final EmployeeSalaryDO o1, final EmployeeSalaryDO o2) {
-        return (o1.getEmployee().getUser().getFullname()).compareTo(o2.getEmployee().getUser().getFullname());
-      }
-    });
+    list.sort(Comparator.comparing(o2 -> (o2.getEmployee().getUser().getFullname())));
     final EmployeeFilter filter = new EmployeeFilter();
     filter.setShowOnlyActiveEntries(true);
     filter.setDeleted(false);
@@ -109,8 +104,8 @@ public class EmployeeSalaryExportDao {
     final int month = first.getMonth();
     final DayHolder buchungsdatum = new DayHolder();
     buchungsdatum.setDate(year, month, 1);
-    final MonthHolder monthHolder = new MonthHolder(buchungsdatum.getDate());
-    final BigDecimal numberOfWorkingDays = monthHolder.getNumberOfWorkingDays();
+    final PFDateTime dateTime = PFDateTime.from(buchungsdatum.getDate());
+    final BigDecimal numberOfWorkingDays = PFDateTime.getNumberOfWorkingDays(dateTime.getBeginOfMonth(), dateTime.getEndOfMonth());
     buchungsdatum.setEndOfMonth();
 
     final String sheetTitle = DateHelper.formatMonth(year, month);
