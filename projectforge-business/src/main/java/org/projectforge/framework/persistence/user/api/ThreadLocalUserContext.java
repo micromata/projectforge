@@ -52,7 +52,7 @@ public class ThreadLocalUserContext
   /**
    * @return The user of ThreadLocal if exists.
    */
-  public final static PFUserDO getUser()
+  public static PFUserDO getUser()
   {
     final UserContext userContext = getUserContext();
     if (userContext == null) {
@@ -61,12 +61,12 @@ public class ThreadLocalUserContext
     return userContext.getUser();
   }
 
-  public final static UserContext getUserContext()
+  public static UserContext getUserContext()
   {
     return threadLocalUserContext.get();
   }
 
-  public final static void clear()
+  public static void clear()
   {
     threadLocalUserContext.set(null);
   }
@@ -76,7 +76,7 @@ public class ThreadLocalUserContext
    *
    * @param user
    */
-  public final static void setUser(UserGroupCache userGroupCache, final PFUserDO user)
+  public static void setUser(UserGroupCache userGroupCache, final PFUserDO user)
   {
     if (user == null) {
       clear();
@@ -86,7 +86,7 @@ public class ThreadLocalUserContext
     setUserContext(userContext);
   }
 
-  public final static void setUserContext(final UserContext userContext)
+  public static void setUserContext(final UserContext userContext)
   {
     final PFUserDO oldUser = getUser();
     PFUserDO newUser = userContext != null ? userContext.getUser() : null;
@@ -106,7 +106,7 @@ public class ThreadLocalUserContext
    * @return The user id of the ThreadLocal user if exists.
    * @see #getUser()
    */
-  public final static Integer getUserId()
+  public static Integer getUserId()
   {
     final PFUserDO user = getUser();
     return user != null ? user.getId() : null;
@@ -117,7 +117,7 @@ public class ThreadLocalUserContext
    * @see #getUser()
    * @see PFUserDO#getLocale()
    */
-  public final static Locale getLocale()
+  public static Locale getLocale()
   {
     return getLocale(null);
   }
@@ -132,7 +132,7 @@ public class ThreadLocalUserContext
    * @see #getUser()
    * @see PFUserDO#getLocale()
    */
-  public final static Locale getLocale(final Locale defaultLocale)
+  public static Locale getLocale(final Locale defaultLocale)
   {
     final PFUserDO user = getUser();
     final Locale userLocale = user != null ? user.getLocale() : null;
@@ -160,7 +160,7 @@ public class ThreadLocalUserContext
    * @see PFUserDO#getTimeZoneObject()
    * @see Configuration#getDefaultTimeZone()
    */
-  public final static TimeZone getTimeZone()
+  public static TimeZone getTimeZone()
   {
     if (getUser() != null) {
       return getUser().getTimeZoneObject();
@@ -171,7 +171,7 @@ public class ThreadLocalUserContext
     return TimeZone.getDefault();
   }
 
-  public final static DateTimeZone getDateTimeZone()
+  public static DateTimeZone getDateTimeZone()
   {
     final TimeZone timeZone = getTimeZone();
     return DateTimeZone.forTimeZone(timeZone);
@@ -184,7 +184,7 @@ public class ThreadLocalUserContext
    *
    * @return
    */
-  public final static int getCalendarFirstDayOfWeek()
+  public static int getCalendarFirstDayOfWeek()
   {
     final PFUserDO user = getUser();
     if (user != null) {
@@ -196,7 +196,7 @@ public class ThreadLocalUserContext
     return ConfigurationServiceAccessor.get().getDefaultFirstDayOfWeek();
   }
 
-  public final static DayOfWeek getFirstDayOfWeek() {
+  public static DayOfWeek getFirstDayOfWeek() {
     // 1 - sunday, 2 - monday, 3 - tuesday
     int firstDayOfWeek = getCalendarFirstDayOfWeek();
     int day = firstDayOfWeek - 1;
@@ -206,7 +206,7 @@ public class ThreadLocalUserContext
     return DayOfWeek.of(day); // 1 (Monday) to 7 (Sunday)
   }
 
-  public final static int getJodaFirstDayOfWeek()
+  public static int getJodaFirstDayOfWeek()
   {
     return DateHelper.convertCalendarDayOfWeekToJoda(getCalendarFirstDayOfWeek());
   }
