@@ -24,6 +24,7 @@
 package org.projectforge.framework.time;
 
 import org.apache.commons.lang3.Validate;
+import org.projectforge.framework.calendar.Holiday;
 import org.projectforge.framework.calendar.Holidays;
 import org.projectforge.framework.i18n.UserException;
 
@@ -33,6 +34,7 @@ import java.util.*;
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
+@Deprecated
 public class DayHolder extends DateHolder
 {
   private static final long serialVersionUID = 2646871164508930568L;
@@ -79,7 +81,7 @@ public class DayHolder extends DateHolder
       if (day.isWorkingDay()) {
         final BigDecimal workFraction = day.getWorkFraction();
         if (workFraction != null) {
-          return day.getWorkFraction();
+          return workFraction;
         } else {
           return BigDecimal.ONE;
         }
@@ -91,16 +93,7 @@ public class DayHolder extends DateHolder
     BigDecimal numberOfWorkingDays = BigDecimal.ZERO;
     int numberOfFullWorkingDays = 0;
     int dayCounter = 1;
-    if (day.isWorkingDay()) {
-      final BigDecimal workFraction = day.getWorkFraction();
-      if (workFraction != null) {
-        numberOfWorkingDays = numberOfWorkingDays.add(day.getWorkFraction());
-      } else {
-        numberOfFullWorkingDays++;
-      }
-    }
     do {
-      day.add(Calendar.DAY_OF_MONTH, 1);
       if (dayCounter++ > 740) { // Endless loop protection, time period greater 2 years.
         throw new UserException(
             "getNumberOfWorkingDays does not support calculation of working days for a time period greater than two years!");
@@ -113,6 +106,7 @@ public class DayHolder extends DateHolder
           numberOfFullWorkingDays++;
         }
       }
+      day.add(Calendar.DAY_OF_MONTH, 1);
     } while (!day.isSameDay(to));
     numberOfWorkingDays = numberOfWorkingDays.add(new BigDecimal(numberOfFullWorkingDays));
     return numberOfWorkingDays;
@@ -189,9 +183,7 @@ public class DayHolder extends DateHolder
 
   public boolean isSunOrHoliday()
   {
-    if (isSunday() || isHoliday())
-      return true;
-    else return false;
+    return isSunday() || isHoliday();
   }
 
   public boolean isWorkingDay()

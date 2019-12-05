@@ -30,7 +30,6 @@ import de.micromata.genome.db.jpa.history.api.NoHistory
 import de.micromata.genome.jpa.metainf.EntityDependencies
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
-import org.joda.time.DateTimeZone
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.configuration.Configuration
@@ -40,6 +39,7 @@ import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.api.ModificationStatus
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.TimeNotation
 import java.io.Serializable
 import java.sql.Timestamp
@@ -247,9 +247,9 @@ open class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
         @Transient
         get() = timeZoneObject.displayName
 
-    val dateTimeZone: DateTimeZone
+    val dateTimeZone: PFDateTime
         @Transient
-        get() = DateTimeZone.forID(timeZoneObject.id)
+        get() = PFDateTime.now()
 
     /**
      * The locale given from the client (e. g. from the browser by the http request). This locale is needed by

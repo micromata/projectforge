@@ -32,6 +32,11 @@ import java.time.temporal.WeekFields
 class PFDateTimeUtils {
     companion object {
         @JvmStatic
+        fun getBeginOfYear(dateTime: ZonedDateTime): ZonedDateTime {
+            return getBeginOfDay(dateTime.withDayOfYear(1))
+        }
+
+        @JvmStatic
         fun getBeginOfWeek(date: ZonedDateTime): ZonedDateTime {
             val field = WeekFields.of(getFirstDayOfWeek(), 1).dayOfWeek()
             return getBeginOfDay(date.with(field, 1))
