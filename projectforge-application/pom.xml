@@ -69,6 +69,12 @@
     </dependency>
     <dependency>
       <groupId>org.projectforge</groupId>
+      <artifactId>org.projectforge.plugins.ihk</artifactId>
+      <version>${project.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
       <artifactId>org.projectforge.plugins.licensemanagement</artifactId>
       <version>${project.version}</version>
       <scope>runtime</scope>
