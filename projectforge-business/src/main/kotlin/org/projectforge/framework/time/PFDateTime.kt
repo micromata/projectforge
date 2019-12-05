@@ -24,7 +24,11 @@
 package org.projectforge.framework.time
 
 import org.apache.commons.lang3.StringUtils
+import org.apache.commons.lang3.Validate
+import org.projectforge.framework.calendar.Holidays
+import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import java.math.BigDecimal
 import java.time.*
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
@@ -39,16 +43,16 @@ import java.util.*
  */
 class PFDateTime private constructor(val dateTime: ZonedDateTime) {
 
-    private var _utilDate: java.util.Date? = null
+    private var _utilDate: Date? = null
     private var _calendar: Calendar? = null
     /**
      * @return The date as java.util.Date. java.util.Date is only calculated, if this getter is called and it
      * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
      */
-    val utilDate: java.util.Date
+    val utilDate: Date
         get() {
             if (_utilDate == null)
-                _utilDate = java.util.Date.from(dateTime.toInstant())
+                _utilDate = Date.from(dateTime.toInstant())
             return _utilDate!!
         }
 
@@ -62,7 +66,7 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
                 _calendar = Calendar.getInstance(ThreadLocalUserContext.getTimeZone(), ThreadLocalUserContext.getLocale())
                 _calendar!!.time = utilDate
             }
-           return _calendar!!
+            return _calendar!!
         }
 
     private var _sqlTimestamp: java.sql.Timestamp? = null
@@ -103,6 +107,9 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
 
     val dayOfYear: Int
         get() = dateTime.dayOfYear
+
+    val beginOfYear: PFDateTime
+        get() = PFDateTime(PFDateTimeUtils.getBeginOfYear(dateTime.withDayOfMonth(1)))
 
     val dayOfMonth: Int
         get() = dateTime.dayOfMonth
@@ -188,8 +195,8 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
     val zone: ZoneId
         get() = dateTime.zone
 
-    val timeZone: java.util.TimeZone
-        get() = java.util.TimeZone.getTimeZone(dateTime.zone)
+    val timeZone: TimeZone
+        get() = TimeZone.getTimeZone(dateTime.zone)
 
     fun isBefore(other: PFDateTime): Boolean {
         return dateTime.isBefore(other.dateTime)
@@ -197,6 +204,14 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
 
     fun isAfter(other: PFDateTime): Boolean {
         return dateTime.isAfter(other.dateTime)
+    }
+
+    fun isSameDay(other: PFDateTime): Boolean {
+        return year == other.year && dayOfYear == other.dayOfYear
+    }
+
+    fun isWeekend(): Boolean {
+        return DayOfWeek.SUNDAY == dayOfWeek || DayOfWeek.SATURDAY == dayOfWeek
     }
 
     fun daysBetween(other: PFDateTime): Long {
@@ -209,6 +224,14 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
 
     fun minusDays(days: Long): PFDateTime {
         return PFDateTime(dateTime.minusDays(days))
+    }
+
+    fun plusWeeks(weeks: Long): PFDateTime {
+        return PFDateTime(dateTime.plusWeeks(weeks))
+    }
+
+    fun minusWeeks(weeks: Long): PFDateTime {
+        return PFDateTime(dateTime.minusWeeks(weeks))
     }
 
     fun plusMonths(months: Long): PFDateTime {
@@ -252,7 +275,7 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
         }
 
         /**
-         * Creates mindnight [ZonedDateTime] from given [LocalDate].
+         * Creates midnight [ZonedDateTime] from given [LocalDate].
          */
         @JvmStatic
         @JvmOverloads
@@ -268,7 +291,7 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
          */
         @JvmStatic
         @JvmOverloads
-        fun from(date: java.util.Date?, nowIfNull: Boolean = false, timeZone: TimeZone? = null): PFDateTime? {
+        fun from(date: Date?, nowIfNull: Boolean = false, timeZone: TimeZone? = null): PFDateTime? {
             if (date == null)
                 return if (nowIfNull) now() else null
             return if (date is java.sql.Date) { // Yes, this occurs!
@@ -279,7 +302,7 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
         }
 
         /**
-         * Creates mindnight [ZonedDateTime] from given [LocalDate].
+         * Creates midnight [ZonedDateTime] from given [LocalDate].
          */
         @JvmStatic
         @JvmOverloads
@@ -339,6 +362,44 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
             } else { // yyyy-MM-dd HH:mm:ss
                 parseUTCDate(str, isoDateTimeFormatterSeconds)
             }
+        }
+
+        @JvmStatic
+        fun getNumberOfWorkingDays(from: PFDateTime, to: PFDateTime): BigDecimal {
+            Validate.notNull(from)
+            Validate.notNull(to)
+            val holidays = Holidays()
+            if (to.isBefore(from)) {
+                return BigDecimal.ZERO
+            }
+            if (from.isSameDay(to)) {
+                if (holidays.isWorkingDay(from.dateTime)) {
+                    val workFraction = holidays.getWorkFraction(from)
+                    return workFraction?: BigDecimal.ONE
+                } else {
+                    return BigDecimal.ZERO
+                }
+            }
+            var numberOfWorkingDays = BigDecimal.ZERO
+            var numberOfFullWorkingDays = 0
+            var dayCounter = 1
+            do {
+                if (dayCounter++ > 740) { // Endless loop protection, time period greater 2 years.
+                    throw UserException(
+                            "getNumberOfWorkingDays does not support calculation of working days for a time period greater than two years!")
+                }
+                if (holidays.isWorkingDay(from.dateTime)) {
+                    val workFraction = holidays.getWorkFraction(from)
+                    if (workFraction != null) {
+                        numberOfWorkingDays = numberOfWorkingDays.add(workFraction)
+                    } else {
+                        numberOfFullWorkingDays++
+                    }
+                }
+                from.plusDays(1)
+            } while (!from.isSameDay(to))
+            numberOfWorkingDays = numberOfWorkingDays.add(BigDecimal(numberOfFullWorkingDays))
+            return numberOfWorkingDays
         }
 
         private val log = org.slf4j.LoggerFactory.getLogger(PFDateTime::class.java)

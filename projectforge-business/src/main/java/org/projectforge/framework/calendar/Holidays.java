@@ -26,6 +26,7 @@ package org.projectforge.framework.calendar;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,16 +73,16 @@ public class Holidays
     }
 
     int g = year % 19; // "Golden Number" of year - 1
-    int i = 0; // # of days from 3/21 to the Paschal full moon
-    int j = 0; // Weekday (0-based) of Paschal full moon
+    int i; // # of days from 3/21 to the Paschal full moon
+    int j; // Weekday (0-based) of Paschal full moon
 
     // We're past the Gregorian switchover, so use the Gregorian rules.
     int c = year / 100;
     int h = (c - c / 4 - (8 * c + 13) / 25 + 19 * g + 15) % 30;
     i = h - (h / 28) * (1 - (h / 28) * (29 / (h + 1)) * ((21 - g) / 11));
     j = (year + year / 4 + i + 2 - c + c / 4) % 7;
-    /**
-     * Use otherwise the old Julian rules (not really yet needed ;-) i = (19*g + 15) % 30; j = (year + year/4 + i) % 7; }
+    /*
+      Use otherwise the old Julian rules (not really yet needed ;-) i = (19*g + 15) % 30; j = (year + year/4 + i) % 7; }
      */
     int l = i - j;
     int m = 3 + (l + 40) / 44; // 1-based month in which Easter falls
@@ -197,6 +198,11 @@ public class Holidays
     return holidays;
   }
 
+  public boolean isHoliday(PFDateTime dateTime)
+  {
+    return isHoliday(dateTime.getYear(), dateTime.getDayOfYear());
+  }
+
   public boolean isHoliday(int year, int dayOfYear)
   {
     return (getHolidays(year).containsKey(dayOfYear));
@@ -208,10 +214,7 @@ public class Holidays
       return false;
     }
     final Holiday day = getHolidays(date.getYear()).get(date.getDayOfYear());
-    if (day != null && !day.isWorkingDay()) {
-      return false;
-    }
-    return true;
+    return day == null || day.isWorkingDay();
   }
 
   public boolean isWorkingDay(final ZonedDateTime dateTime)
@@ -221,10 +224,7 @@ public class Holidays
       return false;
     }
     final Holiday day = getHolidays(dateTime.getYear()).get(dateTime.getDayOfYear());
-    if (day != null && !day.isWorkingDay()) {
-      return false;
-    }
-    return true;
+    return day == null || day.isWorkingDay();
   }
 
   public BigDecimal getWorkFraction(final DayHolder date)
@@ -237,6 +237,23 @@ public class Holidays
       return null;
     }
     return day.getWorkFraction();
+  }
+
+  public BigDecimal getWorkFraction(final PFDateTime date)
+  {
+    if (date.isWeekend()) {
+      return null;
+    }
+    final Holiday day = getHolidays(date.getYear()).get(date.getDayOfYear());
+    if (day == null) {
+      return null;
+    }
+    return day.getWorkFraction();
+  }
+
+  public String getHolidayInfo(PFDateTime dateTime)
+  {
+    return getHolidayInfo(dateTime.getYear(), dateTime.getDayOfYear());
   }
 
   public String getHolidayInfo(int year, int dayOfYear)

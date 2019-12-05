@@ -39,6 +39,7 @@ import java.util.TimeZone;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
+@Deprecated
 public class DateHolder implements Serializable, Cloneable, Comparable<DateHolder> {
   private static final long serialVersionUID = -5373883617915418698L;
 
@@ -780,8 +781,6 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    *
    * @param year
    * @param month
-   * @param day
-   * @param hour
    * @param minute
    * @param second
    * @param millisecond

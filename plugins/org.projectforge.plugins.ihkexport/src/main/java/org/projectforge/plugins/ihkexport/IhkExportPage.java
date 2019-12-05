@@ -34,7 +34,7 @@ import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 import org.projectforge.web.wicket.DownloadUtils;
@@ -74,11 +74,11 @@ public class IhkExportPage extends AbstractStandardFormPage implements ISelectCa
       final Date date = (Date) selectedValue;
 
       form.getTimePeriod().setFromDate(date);
-      final DateHolder dateHolder = new DateHolder(date);
+      PFDateTime dateTime = PFDateTime.from(date);
       if (property.endsWith(".week")) {
-        dateHolder.setEndOfWeek();
+        dateTime = dateTime.getBeginOfWeek();
       }
-      form.getTimePeriod().setToDate(dateHolder.getDate());
+      form.getTimePeriod().setToDate(dateTime.getUtilDate());
       form.startDate.markModelAsChanged();
       form.stopDate.markModelAsChanged();
     }

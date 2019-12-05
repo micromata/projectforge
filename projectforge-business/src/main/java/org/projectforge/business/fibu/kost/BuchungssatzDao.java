@@ -32,9 +32,9 @@ import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
+import org.projectforge.framework.time.PFDateTime;
 import org.springframework.stereotype.Repository;
 
-import java.util.Calendar;
 import java.util.List;
 
 @Repository
@@ -60,7 +60,7 @@ public class BuchungssatzDao extends BaseDao<BuchungssatzDO> {
   public int[] getYears() {
     final List<Object[]> list = em.createQuery("select min(year), max(year) from BuchungssatzDO t").getResultList();
     if (list.size() == 0 || list.get(0) == null || list.get(0)[0] == null) {
-      return new int[]{Calendar.getInstance().get(Calendar.YEAR)};
+      return new int[]{PFDateTime.now().getYear()};
     }
     final int minYear = (Integer) list.get(0)[0];
     final int maxYear = (Integer) list.get(0)[1];
