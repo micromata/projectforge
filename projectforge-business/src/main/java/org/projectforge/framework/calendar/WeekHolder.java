@@ -41,6 +41,7 @@ import java.util.Map;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  *
  */
+@Deprecated
 public class WeekHolder implements Serializable
 {
   private static final long serialVersionUID = -3895513078248004222L;
