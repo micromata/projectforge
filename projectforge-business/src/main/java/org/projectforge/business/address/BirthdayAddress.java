@@ -26,8 +26,6 @@ package org.projectforge.business.address;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.time.DateHolder;
-import org.projectforge.framework.time.PFDate;
-import org.projectforge.framework.time.PFDateTime;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -96,9 +94,9 @@ public class BirthdayAddress implements Comparable<BirthdayAddress>, Serializabl
   /** Sets and gets the age of the person at the given date. */
   public int setAge(final Date date)
   {
-    final PFDateTime dt = PFDateTime.from(date);
-    final PFDateTime birthday = PFDateTime.from(address.getBirthday());
-    age = dt.getYear() - birthday.getYear();
+    final DateHolder dh = new DateHolder(date);
+    final DateHolder birthday = new DateHolder(address.getBirthday());
+    age = dh.getYear() - birthday.getYear();
     return age;
   }
 
@@ -170,8 +168,8 @@ public class BirthdayAddress implements Comparable<BirthdayAddress>, Serializabl
     if (date == null) {
       throw new UnsupportedOperationException("Date not given!");
     }
-    final PFDateTime dt = PFDateTime.from(date);
-    return getDateOfYear(dt.getMonthValue(), dt.getDayOfMonth());
+    final DateHolder dh = new DateHolder(date);
+    return getDateOfYear(dh.getMonth(), dh.getDayOfMonth());
   }
 
   public static String getDateOfYear(final int month, final int dayOfMonth)

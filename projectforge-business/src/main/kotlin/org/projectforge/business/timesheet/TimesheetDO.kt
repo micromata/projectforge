@@ -32,7 +32,10 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.UserPrefParameter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.time.*
+import org.projectforge.framework.time.DateHolder
+import org.projectforge.framework.time.DatePrecision
+import org.projectforge.framework.time.DateTimeFormatter
+import org.projectforge.framework.time.TimePeriod
 import java.sql.Timestamp
 import java.util.*
 import javax.persistence.*
@@ -189,14 +192,15 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
      * Rounds the timestamp to DatePrecision.MINUTE_15 before.
      *
      * @param startDate the startTime to set
+     * @see DateHolder#DateHolder(Date, DatePrecision)
      */
     @Transient
     fun setStartDate(startDate: Date?): TimesheetDO {
         if (startDate != null) {
-            val dateTime = PFDateTime.from(startDate)
-            this.startTime = dateTime?.sqlTimestamp
+            val date = DateHolder(startDate, DatePrecision.MINUTE_15)
+            this.startTime = date.timestamp
         } else {
-            this.startTime = null
+            this.stopTime = null
         }
         return this
     }
@@ -212,12 +216,13 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
      *
      * @param stopDate the stopTime to set
      * @return this for chaining.
+     * @see DateHolder#DateHolder(Date, DatePrecision)
      */
     @Transient
     fun setStopDate(stopDate: Date?): TimesheetDO {
         if (stopDate != null) {
-            val dateTime = PFDateTime.from(stopDate)
-            this.stopTime = dateTime?.sqlTimestamp
+            val date = DateHolder(stopDate, DatePrecision.MINUTE_15)
+            this.stopTime = date.timestamp
         } else {
             this.stopTime = null
         }
