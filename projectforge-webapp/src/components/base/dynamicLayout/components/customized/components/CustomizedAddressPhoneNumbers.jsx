@@ -1,24 +1,15 @@
-import React from 'react';
-
-import { faComment } from '@fortawesome/free-regular-svg-icons/index';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome/index';
-import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
+import React from 'react';
+import PhoneNumber from '../../../../../design/phoneNumber/PhoneNumber';
+import { DynamicLayoutContext } from '../../../context';
 
 function CustomizedAddressPhoneNumbers({ data }) {
     const { address } = data;
-    // Fragen an Fin:
-    //  - Klick auf Telefonnummern (SMS) sollte dann dem Link folgen, nicht zur Editseite.
-    //  - smsEnabled und phoneCallEnabled aus den Variablen des Servers bekommen.
-    //  - Sollen für die Adressbücher in der Liste auch Customized-Elemente gebaut werden?
-    // const { variables } = React.useContext(DynamicLayoutContext);
+    const { variables } = React.useContext(DynamicLayoutContext);
 
     const phoneNumbers = [];
 
-    // console.log(variables.smsEnabled);
-    // const { smsEnabled, phoneCallEnabled } = variables;
-    const smsEnabled = true;
-    const phoneCallEnabled = true;
+    const { smsEnabled, phoneCallEnabled } = variables;
 
     function add(number, phoneType, sms, key) {
         if (number && number.trim().length > 0) {
@@ -36,6 +27,7 @@ function CustomizedAddressPhoneNumbers({ data }) {
             if (!address) {
                 return <React.Fragment />;
             }
+
             add(address.businessPhone, 'BUSINESS', false, 0);
             add(address.mobilePhone, 'MOBILE', true, 1);
             add(address.privatePhone, 'PRIVATE', false, 2);
@@ -43,35 +35,18 @@ function CustomizedAddressPhoneNumbers({ data }) {
 
             return (
                 <React.Fragment>
-                    {phoneNumbers.map((value, index) => {
-                        const lineBreak = index > 0 ? <br /> : undefined;
-                        const phoneNumber = phoneCallEnabled ? (
-                            <Link
-                                to={`/wa/phoneCall?addressId=${address.id}&number=${encodeURIComponent(value.number)}`}
-                            >
-                                {value.number}
-                            </Link>
-                        ) : <React.Fragment>{value.number}</React.Fragment>;
-                        const sms = smsEnabled && value.sms ? (
-                            <Link
-                                to={`/wa/sendSms?addressId=${address.id}&phoneType=${value.phoneType}`}
-                            >
-                                {' '}
-                                <FontAwesomeIcon icon={faComment} />
-                            </Link>
-                        ) : undefined;
-                        return (
-                            <React.Fragment key={value.key}>
-                                {lineBreak}
-                                {phoneNumber}
-                                {sms}
-                            </React.Fragment>
-                        );
-                    })}
+                    {phoneNumbers.map(value => (
+                        <PhoneNumber
+                            addressId={address.id}
+                            phoneCallEnabled={phoneCallEnabled}
+                            smsEnabled={smsEnabled}
+                            {...value}
+                        />
+                    ))}
                 </React.Fragment>
             );
         },
-        [[address]],
+        [address],
     );
 }
 

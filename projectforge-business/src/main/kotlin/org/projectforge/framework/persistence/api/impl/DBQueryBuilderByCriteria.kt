@@ -64,15 +64,19 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Int>>(
     }
 
     fun addOrder(sortProperty: SortProperty) {
-        order.add(
-                if (sortProperty.ascending) {
-                    if (log.isDebugEnabled) log.debug("Adding criteria orderBy (${ctx.entityName}): order by ${sortProperty.property}.")
-                    ctx.cb.asc(ctx.getField<Any>(sortProperty.property))
-                } else {
-                    if (log.isDebugEnabled) log.debug("Adding criteria orderBy (${ctx.entityName}): order by ${sortProperty.property} desc.")
-                    ctx.cb.desc(ctx.getField<Any>(sortProperty.property))
-                }
-        )
+        try {
+            order.add(
+                    if (sortProperty.ascending) {
+                        if (log.isDebugEnabled) log.debug("Adding criteria orderBy (${ctx.entityName}): order by ${sortProperty.property}.")
+                        ctx.cb.asc(ctx.getField<Any>(sortProperty.property))
+                    } else {
+                        if (log.isDebugEnabled) log.debug("Adding criteria orderBy (${ctx.entityName}): order by ${sortProperty.property} desc.")
+                        ctx.cb.desc(ctx.getField<Any>(sortProperty.property))
+                    }
+            )
+        } catch (ex: Exception) {
+            log.error("Can't add order for property '${ctx.entityName}.${sortProperty.property}: ${ex.message}")
+        }
     }
 
     private fun initJoinSets() {

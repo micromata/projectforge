@@ -21,28 +21,39 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.ui
+package org.projectforge.plugins.ihk;
 
-data class UITableColumn(var id: String,
-                         var title: String? = null,
-                         @Transient
-                         var protectTitle: Boolean = false,
-                         var dataType: UIDataType = UIDataType.STRING,
-                         var sortable: Boolean = true,
-                         var formatter: Formatter? = null)
-    : UIElement(UIElementType.TABLE_COLUMN)
+import org.projectforge.plugins.core.AbstractPlugin;
+import org.projectforge.plugins.core.PFPluginService;
 
-enum class Formatter {
-    ADDRESS_BOOK,
-    AUFTRAG_POSITION,
-    DATE,
-    COST1,
-    COST2,
-    CUSTOMER,
-    GROUP,
-    KONTO,
-    PROJECT,
-    TASK_PATH,
-    TIMESTAMP_MINUTES,
-    USER
+/**
+ * Created by mnuhn on 05.12.2019
+ */
+public class IHKPFPluginService implements PFPluginService
+{
+
+  @Override
+  public String getPluginId()
+  {
+    return IHKPlugin.ID;
+  }
+
+  @Override
+  public String getPluginName()
+  {
+    return "IHK";
+  }
+
+  @Override
+  public String getPluginDescription()
+  {
+    return "IHK PF PlugIn";
+  }
+
+  @Override
+  public AbstractPlugin createPluginInstance()
+  {
+    return new IHKPlugin();
+  }
+
 }

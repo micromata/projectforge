@@ -36,7 +36,6 @@ import java.util.*;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  * 
  */
-@Deprecated
 public class MonthHolder
 {
   /** Keys of the month names (e. g. needed for I18n). */

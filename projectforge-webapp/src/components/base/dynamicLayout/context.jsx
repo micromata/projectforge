@@ -21,6 +21,10 @@ export const defaultValues = {
      */
     options: {
         /**
+         * @type {Boolean} Disable render while loading or other circumstances.
+         */
+        disableLayoutRendering: false,
+        /**
          * @type {Boolean} Enables a general page menu.
          */
         displayPageMenu: true,
