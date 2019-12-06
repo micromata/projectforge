@@ -163,6 +163,10 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
         return DayOfWeek.SUNDAY == dayOfWeek || DayOfWeek.SATURDAY == dayOfWeek
     }
 
+    fun daysBetween(date: Date): Long {
+        return daysBetween(from(date)!!)
+    }
+
     fun daysBetween(other: PFDateTime): Long {
         return ChronoUnit.DAYS.between(dateTime, other.dateTime)
     }
@@ -199,15 +203,15 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
         return PFDateTime(dateTime.minusYears(years))
     }
 
-    private var _utilDate: java.util.Date? = null
+    private var _utilDate: Date? = null
     /**
      * @return The date as java.util.Date. java.util.Date is only calculated, if this getter is called and it
      * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
      */
-    val utilDate: java.util.Date
+    val utilDate: Date
         get() {
             if (_utilDate == null)
-                _utilDate = java.util.Date.from(dateTime.toInstant())
+                _utilDate = Date.from(dateTime.toInstant())
             return _utilDate!!
         }
 

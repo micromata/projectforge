@@ -39,7 +39,7 @@ import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHolder;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -71,14 +71,12 @@ public class HRViewDao implements IDao<HRViewData> {
   public HRViewData getResources(final HRFilter filter) {
     final HRViewData data = new HRViewData(filter);
     if (filter.getStartTime() == null) {
-      final DayHolder day = new DayHolder();
-      day.setBeginOfWeek();
-      filter.setStartTime(day.getDate());
+      final PFDateTime day = PFDateTime.now().getBeginOfWeek();
+      filter.setStartTime(day.getUtilDate());
     }
     if (filter.getStopTime() == null) {
-      final DayHolder day = new DayHolder(filter.getStartTime());
-      day.setEndOfWeek();
-      filter.setStopTime(day.getDate());
+      final PFDateTime day = PFDateTime.now().getEndOfWeek();
+      filter.setStartTime(day.getUtilDate());
     }
     if (filter.isShowBookedTimesheets()) {
       final TimesheetFilter tsFilter = new TimesheetFilter();

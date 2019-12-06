@@ -32,7 +32,7 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.time.DateHolder
-import org.projectforge.framework.time.DayHolder
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.xstream.XmlObjectReader
 import java.math.BigDecimal
 import java.sql.Date
@@ -164,8 +164,8 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
             if (isBezahlt) {
                 return false
             }
-            val today = DayHolder()
-            return this.faelligkeit?.before(today.date) ?: false
+            val today = PFDateTime.now()
+            return this.faelligkeit?.before(today.utilDate) ?: false
         }
 
     val kontoId: Int?

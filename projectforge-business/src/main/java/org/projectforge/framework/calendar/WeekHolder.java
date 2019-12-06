@@ -24,10 +24,7 @@
 package org.projectforge.framework.calendar;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateHolder;
-import org.projectforge.framework.time.DatePrecision;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.*;
 
 import java.io.Serializable;
 import java.util.Calendar;
@@ -47,7 +44,9 @@ public class WeekHolder implements Serializable
 
   private DayHolder[] days;
 
-  private int weekOfYear = -1;
+  private PFDateTime[] dayDates;
+
+  private int weekOfYear;
 
   private Map<String, Object> objects;
 
@@ -58,7 +57,7 @@ public class WeekHolder implements Serializable
   }
 
   /**
-   * 
+   *
    * @param cal
    */
   public WeekHolder(Calendar cal)
@@ -90,6 +89,32 @@ public class WeekHolder implements Serializable
     }
   }
 
+  public WeekHolder(PFDateTime dateTime){
+    this(dateTime, -1);
+  }
+
+  /**
+   * Builds the week for the given date. Every day will be marked, if it is not part of the given month.
+   * @param dateTime
+   * @param month
+   */
+  public WeekHolder(PFDateTime dateTime, int month)
+  {
+    weekOfYear = dateTime.getWeekOfYear();
+    dayDates = new PFDateTime[7];
+    PFDateTime day = dateTime.getBeginOfWeek();
+    // Process week
+    for (int i = 0; i < 7; i++) {
+      if (day.getMonthValue() != month) {
+        // TODO: Mark this day as day from the previous or next month:
+        //day.setMarker(true);
+      }
+      dayDates[i] = day;
+      day.plusDays(1);
+    }
+  }
+
+
   public int getWeekOfYear()
   {
     return weekOfYear;
@@ -108,6 +133,21 @@ public class WeekHolder implements Serializable
   public DayHolder getLastDay()
   {
     return days[days.length - 1];
+  }
+
+  public PFDateTime[] getDayDates()
+  {
+    return dayDates;
+  }
+
+  public PFDateTime getFirstDayDate()
+  {
+    return dayDates[0];
+  }
+
+  public PFDateTime getLastDayDate()
+  {
+    return dayDates[days.length - 1];
   }
 
   /**
