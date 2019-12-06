@@ -241,6 +241,20 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
             return _sqlTimestamp!!
         }
 
+    private var _sqlDate: java.sql.Date? = null
+
+    /**
+     * @return The date as java.sql.Date. java.sql.Date is only calculated, if this getter is called and it
+     * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
+     */
+    val sqlDate: java.sql.Date
+        get() {
+            if (_sqlDate == null) {
+                _sqlDate = PFDate.from(this)!!.sqlDate
+            }
+            return _sqlDate!!
+        }
+
     private var _localDate: LocalDate? = null
     /**
      * @return The date as LocalDate. LocalDate is only calculated, if this getter is called and it

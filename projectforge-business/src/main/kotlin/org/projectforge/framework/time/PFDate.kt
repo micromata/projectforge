@@ -140,6 +140,19 @@ class PFDate(val date: LocalDate) {
             return PFDate(localDate)
         }
 
+        /**
+         * @param date Date of type java.util.Date or java.sql.Date.
+         * Creates mindnight [ZonedDateTime] from given [date].
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun from(dateTime: PFDateTime, nowIfNull: Boolean = false): PFDate? {
+            if (dateTime == null)
+                return if (nowIfNull) now() else null
+            val localDate = LocalDate.of(dateTime.year, dateTime.month, dateTime.dayOfMonth)
+            return PFDate(localDate)
+        }
+
         @JvmStatic
         fun now(): PFDate {
             return PFDate(LocalDate.now())
