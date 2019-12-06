@@ -47,7 +47,6 @@ function AdvancedPopper(
                 role="menu"
                 ref={basicReference}
                 tabIndex={0}
-                onFocus={() => setIsOpen(true)}
                 onClick={() => setIsOpen(true)}
                 onKeyDown={() => setIsOpen(true)}
             >
