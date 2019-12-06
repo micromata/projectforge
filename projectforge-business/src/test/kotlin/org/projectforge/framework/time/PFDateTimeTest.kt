@@ -109,6 +109,20 @@ class PFDateTimeTest {
     }
 
     @Test
+    fun sqlDateTest() {
+        var sqlDate = PFDateTime.parseUTCDate("2019-12-06 23:30")!!.sqlDate
+        var localDate = sqlDate.toLocalDate()
+        assertEquals(2019, localDate.year)
+        assertEquals(Month.DECEMBER, localDate.month)
+        assertEquals(7, localDate.dayOfMonth)
+        sqlDate = PFDateTime.parseUTCDate("2019-12-06 22:30")!!.sqlDate
+        localDate = sqlDate.toLocalDate()
+        assertEquals(2019, localDate.year)
+        assertEquals(Month.DECEMBER, localDate.month)
+        assertEquals(6, localDate.dayOfMonth)
+    }
+
+    @Test
     fun weekOfYearTest() {
         // German weeks:
         var dateTime = PFDateTime.parseUTCDate("2020-12-31 10:00")
