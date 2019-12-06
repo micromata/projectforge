@@ -59,6 +59,8 @@ public class VacationDao extends BaseDao<VacationDO> {
 
   private final static String META_SQL_WITH_SPECIAL = " AND v.deleted = :deleted AND v.tenant = :tenant";
 
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"employee.user.firstname", "employee.user.lastname"};
+
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(VacationDao.class);
 
   @Autowired
@@ -70,6 +72,12 @@ public class VacationDao extends BaseDao<VacationDO> {
   public VacationDao() {
     super(VacationDO.class);
   }
+
+  @Override
+  public String[] getAdditionalSearchFields() {
+    return ADDITIONAL_SEARCH_FIELDS;
+  }
+
 
   @Override
   public VacationDO newInstance() {
