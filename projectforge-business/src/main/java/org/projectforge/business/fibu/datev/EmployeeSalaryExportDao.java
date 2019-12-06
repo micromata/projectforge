@@ -73,12 +73,7 @@ public class EmployeeSalaryExportDao {
   public byte[] export(final List<EmployeeSalaryDO> list) {
     log.info("Exporting employee salary list.");
     Validate.notEmpty(list);
-    list.sort(new Comparator<EmployeeSalaryDO>() {
-      @Override
-      public int compare(final EmployeeSalaryDO o1, final EmployeeSalaryDO o2) {
-        return (o1.getEmployee().getUser().getFullname()).compareTo(o2.getEmployee().getUser().getFullname());
-      }
-    });
+    list.sort(Comparator.comparing(o2 -> (o2.getEmployee().getUser().getFullname())));
     final EmployeeFilter filter = new EmployeeFilter();
     filter.setShowOnlyActiveEntries(true);
     filter.setDeleted(false);

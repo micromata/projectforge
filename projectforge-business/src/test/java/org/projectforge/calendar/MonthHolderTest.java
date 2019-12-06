@@ -31,6 +31,7 @@ import org.projectforge.framework.calendar.WeekHolder;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.TestSetup;
 
@@ -88,10 +89,10 @@ public class MonthHolderTest {
   @Test
   public void testDays() {
     final MonthHolder mh = new MonthHolder(2013, Calendar.MAY);
-    final List<DayHolder> list = mh.getDays();
+    final List<PFDateTime> list = mh.getDays();
     Assertions.assertEquals(31, list.size());
-    for (final DayHolder dh : list) {
-      Assertions.assertEquals(Calendar.MAY, dh.getMonth());
+    for (final PFDateTime dt : list) {
+      Assertions.assertEquals(Calendar.MAY, dt.getMonthValue());
     }
     Assertions.assertEquals(1, list.get(0).getDayOfMonth());
     Assertions.assertEquals(31, list.get(30).getDayOfMonth());

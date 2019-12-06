@@ -87,7 +87,7 @@ class PFDate(val date: LocalDate) {
         return PFDate(date.plusMonths(months))
     }
 
-    fun format(formatter: java.time.format.DateTimeFormatter): String {
+    fun format(formatter: DateTimeFormatter): String {
         return date.format(formatter)
     }
 
@@ -95,7 +95,7 @@ class PFDate(val date: LocalDate) {
      * Date part as ISO string: "yyyy-MM-dd HH:mm" in UTC.
      */
     val isoString: String
-        get() = PFDate.isoDateFormatter.format(date)
+        get() = isoDateFormatter.format(date)
 
 
     private var _sqlDate: java.sql.Date? = null

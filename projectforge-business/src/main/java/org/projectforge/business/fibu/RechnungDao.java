@@ -41,6 +41,7 @@ import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.xstream.XmlObjectWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -167,14 +168,15 @@ public class RechnungDao extends BaseDao<RechnungDO> {
       if (RechnungStatus.GEPLANT.equals(originValue.getStatus()) && !RechnungStatus.GEPLANT.equals(rechnung.getStatus())) {
         rechnung.setNummer(getNextNumber(rechnung));
 
-        final DayHolder day = new DayHolder();
-        rechnung.setDatum(day.getSQLDate());
+        final PFDateTime day = PFDateTime.now();
+        rechnung.setDatum(day);
 
         Integer zahlungsZielInTagen = rechnung.getZahlungsZielInTagen();
+        PFDateTime faelligkeitDay;
         if (zahlungsZielInTagen != null) {
-          day.add(Calendar.DAY_OF_MONTH, zahlungsZielInTagen);
+          faelligkeitDay = day.plusDays(zahlungsZielInTagen);
         }
-        rechnung.setFaelligkeit(day.getSQLDate());
+        rechnung.setFaelligkeit(faelligkeitDay);
       }
     }
 
@@ -399,12 +401,7 @@ public class RechnungDao extends BaseDao<RechnungDO> {
         }
       }
     }
-    list.sort(new Comparator<DisplayHistoryEntry>() {
-      @Override
-      public int compare(final DisplayHistoryEntry o1, final DisplayHistoryEntry o2) {
-        return (o2.getTimestamp().compareTo(o1.getTimestamp()));
-      }
-    });
+    list.sort((o1, o2) -> (o2.getTimestamp().compareTo(o1.getTimestamp())));
     return list;
   }
 
