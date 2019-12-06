@@ -62,12 +62,30 @@ open class ForecastExport { // open needed by Wicket.
     private val monthCols = arrayOf(PosCol.MONTH1, PosCol.MONTH2, PosCol.MONTH3, PosCol.MONTH4, PosCol.MONTH5, PosCol.MONTH6,
             PosCol.MONTH7, PosCol.MONTH8, PosCol.MONTH9, PosCol.MONTH10, PosCol.MONTH11, PosCol.MONTH12)
 
+    // Vergangene Auftragspositionen anzeigen, die nicht vollständig fakturiert bzw. abgelehnt sind.
+
     private val auftragsPositionsStatusToShow = listOf(
-            AuftragsPositionsStatus.IN_ERSTELLUNG,
-            AuftragsPositionsStatus.POTENZIAL,
-            AuftragsPositionsStatus.GELEGT,
+            //AuftragsPositionsStatus.ABGELEHNT,
+            //AuftragsPositionsStatus.ABGESCHLOSSEN,
             AuftragsPositionsStatus.BEAUFTRAGT,
-            AuftragsPositionsStatus.LOI)
+            //AuftragsPositionsStatus.ERSETZT,
+            AuftragsPositionsStatus.GELEGT,
+            AuftragsPositionsStatus.IN_ERSTELLUNG,
+            AuftragsPositionsStatus.LOI,
+            //AuftragsPositionsStatus.ESKALATION,
+            //AuftragsPositionsStatus.OPTIONAL,
+            AuftragsPositionsStatus.POTENZIAL)
+
+    private val auftragsStatusToShow = listOf(
+            // AuftragsStatus.ABGELEHNT,
+            AuftragsStatus.ABGESCHLOSSEN,
+            AuftragsStatus.BEAUFTRAGT,
+            // AuftragsStatus.ERSETZT,
+            AuftragsStatus.ESKALATION,
+            AuftragsStatus.GELEGT,
+            AuftragsStatus.IN_ERSTELLUNG,
+            AuftragsStatus.LOI,
+            AuftragsStatus.POTENZIAL)
 
     @Throws(IOException::class)
     open fun export(auftragList: List<AuftragDO?>, startDateParam: Date?): ByteArray? {
@@ -89,19 +107,21 @@ open class ForecastExport { // open needed by Wicket.
         val sheetProvider = sheet.contentProvider
         sheetProvider.putFormat(MyXlsContentProvider.FORMAT_CURRENCY, PosCol.NETSUM, PosCol.INVOICED, PosCol.TO_BE_INVOICED)
         sheetProvider.putFormat(DateFormats.getExcelFormatString(DateFormatType.DATE), PosCol.DATE_OF_OFFER, PosCol.DATE_OF_ENTRY, PosCol.PERIOD_OF_PERFORMANCE_BEGIN,
-                        PosCol.PERIOD_OF_PERFORMANCE_END)
+                PosCol.PERIOD_OF_PERFORMANCE_END)
         val istSumMap = createIstSumMap()
         for (order in auftragList) {
-            if (order?.positionenExcludingDeleted == null) {
+            if (order == null || order.isDeleted || order.positionenExcludingDeleted == null) {
                 continue
             }
             orderBookDao.calculateInvoicedSum(order)
-            for (pos in order.positionenExcludingDeleted) {
-                calculateIstSum(istSumMap, startDate, pos)
-                if (pos.status != null && auftragsPositionsStatusToShow.contains(pos.status!!)) {
-                    val mapping = PropertyMapping()
-                    addPosMapping(mapping, order, pos, startDate)
-                    sheet.addRow(mapping.mapping, 0)
+            if (auftragsStatusToShow.contains(order.auftragsStatus)) {
+                for (pos in order.positionenExcludingDeleted) {
+                    calculateIstSum(istSumMap, startDate, pos)
+                    if (pos.status != null && auftragsPositionsStatusToShow.contains(pos.status!!)) {
+                        val mapping = PropertyMapping()
+                        addPosMapping(mapping, order, pos, startDate)
+                        sheet.addRow(mapping.mapping, 0)
+                    }
                 }
             }
         }
