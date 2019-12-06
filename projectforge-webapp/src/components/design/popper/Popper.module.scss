@@ -14,8 +14,10 @@
   transition-duration: $transitionTime;
   $baseShadow: 0 2px 3px rgba(0, 0, 0, 0.1);
 
-  &.isOpen .content {
-    box-shadow: $baseShadow, 0 3px 12px rgba(0, 0, 0, 0.1);
+  &.isOpen {
+    .content {
+      box-shadow: $baseShadow, 0 3px 12px rgba(0, 0, 0, 0.1);
+    }
 
     .additional {
       opacity: 1;
@@ -23,13 +25,9 @@
       transition: opacity $transitionTime;
     }
   }
+
   .content {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 99;
+    position: relative;
     border: 1px solid #ebebeb;
     border-radius: 5px;
     box-shadow: $baseShadow;
@@ -38,20 +36,22 @@
     &:hover {
       box-shadow: $baseShadow, 0 3px 12px rgba(0, 0, 0, 0.1);
     }
+  }
 
-    .additional {
-      background-color: #fff;
-      opacity: 0;
-      overflow: auto;
-      border: 1px solid #EBEBEB;
-      border-radius: 5px;
-      box-shadow: 0 15px 46px -10px rgba(26, 26, 29, 0.3);
+  .additional {
+    background-color: #fff;
+    opacity: 0;
+    overflow: auto;
+    border: 1px solid #EBEBEB;
+    border-radius: 5px;
+    box-shadow: 0 15px 46px -10px rgba(26, 26, 29, 0.3);
+    z-index: 99;
+    top: 10px;
 
-      // Set height to 0 after the transition is done.
-      max-height: 0;
-      transition: opacity $transitionTime, max-height .01s linear $transitionTime;
+    // Set height to 0 after the transition is done.
+    max-height: 0;
+    transition: opacity $transitionTime, max-height .01s linear $transitionTime;
 
-      position: relative;
-    }
+    position: absolute;
   }
 }

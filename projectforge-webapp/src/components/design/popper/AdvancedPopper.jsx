@@ -35,6 +35,7 @@ function AdvancedPopper(
 
     return (
         <div
+            ref={reference}
             className={classNames(
                 style.advancedPopperContainer,
                 { [style.isOpen]: isOpen },
@@ -42,21 +43,22 @@ function AdvancedPopper(
             )}
         >
             <div
-                style={{
-                    height: `${basicHeight}px`,
-                    width: `${basicWidth}px`,
-                }}
-            />
-            <div
-                ref={reference}
                 className={classNames(style.content, contentClassName)}
+                role="menu"
+                ref={basicReference}
+                onFocus={() => setIsOpen(true)}
+                onClick={() => setIsOpen(true)}
             >
-                <div ref={basicReference} onFocus={() => setIsOpen(true)}>
-                    {basic}
-                </div>
-                <div className={classNames(style.additional, additionalClassName)}>
-                    {children}
-                </div>
+                {basic}
+            </div>
+            <div
+                className={classNames(style.additional, additionalClassName)}
+                style={{
+                    top: basicHeight + 10,
+                    minWidth: basicWidth + 2,
+                }}
+            >
+                {children}
             </div>
         </div>
     );
