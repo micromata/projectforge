@@ -26,7 +26,7 @@ package org.projectforge.business.fibu;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.common.StringHelper;
-import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.DateHolder;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -74,18 +74,18 @@ public class MonthlyEmployeeReportWeek implements Serializable
   {
     Validate.notNull(fromDate);
     this.fromDate = fromDate;
-    PFDateTime dt1 = PFDateTime.from(fromDate);
-    this.fromDayOfMonth = dt1.getDayOfMonth();
-    this.weekOfYear = dt1.getWeekOfYear();
-    dt1.getEndOfMonth();
-    PFDateTime dt2 = PFDateTime.from(fromDate);
-    dt2.getEndOfWeek();
-    if (dt1.isBefore(dt2)) {
-      this.toDate = dt1.getUtilDate();
-      this.toDayOfMonth = dt1.getDayOfMonth();
+    DateHolder d1 = new DateHolder(fromDate);
+    this.fromDayOfMonth = d1.getDayOfMonth();
+    this.weekOfYear = d1.getWeekOfYear();
+    d1.setEndOfMonth();
+    DateHolder d2 = new DateHolder(fromDate);
+    d2.setEndOfWeek();
+    if (d1.getDate().before(d2.getDate())) {
+      this.toDate = d1.getDate();
+      this.toDayOfMonth = d1.getDayOfMonth();
     } else {
-      this.toDate = dt2.getUtilDate();
-      this.toDayOfMonth = dt2.getDayOfMonth();
+      this.toDate = d2.getDate();
+      this.toDayOfMonth = d2.getDayOfMonth();
     }
   }
 

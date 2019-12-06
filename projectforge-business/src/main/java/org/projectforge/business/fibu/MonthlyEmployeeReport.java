@@ -34,11 +34,13 @@ import org.projectforge.business.task.formatter.TaskFormatter;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.common.StringHelper;
-import org.projectforge.framework.calendar.Holidays;
+import org.projectforge.framework.calendar.MonthHolder;
+import org.projectforge.framework.calendar.WeekHolder;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.utils.NumberHelper;
 
 import java.io.Serializable;
@@ -246,15 +248,15 @@ public class MonthlyEmployeeReport implements Serializable {
     }
     // Create the weeks:
     this.weeks = new ArrayList<>();
-    // TODO: How to init this with PFDateTime?
     final DateHolder dh = new DateHolder();
     dh.setDate(year, month, 1, 0, 0, 0);
     fromDate = dh.getDate();
-    final PFDateTime dateTime = PFDateTime.from(fromDate).getBeginOfMonth();
-    final PFDateTime dateTime2 = dateTime.getEndOfMonth();
+    final DateHolder dh2 = new DateHolder(dh.getDate());
+    dh2.setEndOfMonth();
+    toDate = dh2.getDate();
     int i = 0;
     do {
-      final MonthlyEmployeeReportWeek week = new MonthlyEmployeeReportWeek(dateTime.getUtilDate());
+      final MonthlyEmployeeReportWeek week = new MonthlyEmployeeReportWeek(dh.getDate());
       weeks.add(week);
       dh.setEndOfWeek();
       dh.add(Calendar.DAY_OF_WEEK, +1);
@@ -262,11 +264,11 @@ public class MonthlyEmployeeReport implements Serializable {
       if (i++ > 10) {
         throw new RuntimeException("Endless loop protection: Please contact developer!");
       }
-    } while (dateTime.isBefore(dateTime2));
+    } while (dh.getDate().before(toDate));
   }
 
   public void addTimesheet(final TimesheetDO sheet, final boolean hasSelectAccess) {
-    PFDateTime day = PFDateTime.from(sheet.getStartTime());
+    final DayHolder day = new DayHolder(sheet.getStartTime());
     bookedDays.add(day.getDayOfMonth());
     for (final MonthlyEmployeeReportWeek week : weeks) {
       if (week.matchWeek(sheet)) {
@@ -333,28 +335,16 @@ public class MonthlyEmployeeReport implements Serializable {
         }
       }
     }
-    PFDateTime dateTime = PFDateTime.from(this.fromDate);
-    this.numberOfWorkingDays = PFDateTime.getNumberOfWorkingDays(dateTime.getBeginOfMonth(), dateTime.getEndOfMonth());
-    PFDateTime iterate = dateTime.getBeginOfMonth();
-    PFDateTime day;
-    Holidays holidays = new Holidays();
-
-    while(iterate.isBefore(dateTime.getEndOfMonth())){
-      day = iterate.getBeginOfDay();
-      if(holidays.isWorkingDay(day.getDateTime()) && !bookedDays.contains(day.getDayOfMonth())){
-        unbookedDays.add(day.getDayOfMonth());
-      }
-      iterate.plusDays(1);
-    }
-
-    /*for (final WeekHolder week : monthHolder.getWeeks()) {
+    final MonthHolder monthHolder = new MonthHolder(this.fromDate);
+    this.numberOfWorkingDays = monthHolder.getNumberOfWorkingDays();
+    for (final WeekHolder week : monthHolder.getWeeks()) {
       for (final DayHolder day : week.getDays()) {
         if (day.getMonth() == this.month && day.isWorkingDay()
-            && !bookedDays.contains(day.getDayOfMonth())) {
+                && !bookedDays.contains(day.getDayOfMonth())) {
           unbookedDays.add(day.getDayOfMonth());
         }
       }
-    }*/
+    }
     if (vacationService != null && this.employee != null && this.employee.getUser() != null) {
       if (vacationService.couldUserUseVacationService(this.employee.getUser(), false)) {
         this.vacationCount = vacationService.getAvailableVacationDaysForYearAtDate(this.employee, this.toDate);
