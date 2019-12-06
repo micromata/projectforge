@@ -40,32 +40,31 @@
   }
 }
 
-.actions {
-  border-top: 1px solid #eee;
-  padding: .8em .9em;
+.magicFilters {
+  display: block;
+  margin: .8em 0 0 1em;
 
-  .deleteButton {
-    margin: 0;
+  .magicFilter {
+    margin-right: .8em;
     display: inline-block;
-    text-align: center;
-    width: auto;
-    font-weight: 600;
-    padding: .8em;
-    color: #333;
-    outline: none;
-    border: none;
-    border-radius: 8px;
-    text-decoration: underline;
 
-    &:hover {
-      color: #000;
-      background-color: #f2f2f2;
-    }
+    .pill {
+      $transitionTime: .3s;
 
-    &:disabled {
-      color: #ccc;
-      background-color: transparent;
-      cursor: not-allowed;
+      padding: .2em .8em;
+      outline: none;
+      transition: $transitionTime border-color, $transitionTime background-color;
+      cursor: default;
+      border-radius: 15px;
+
+      &:hover, &:focus {
+        border-color: #666;
+      }
+
+      &.isOpen {
+        border-color: #333;
+        background-color: #f8f8f8;
+      }
     }
   }
 }

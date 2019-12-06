@@ -6,6 +6,7 @@ import style from './Popper.module.scss';
 
 function AdvancedPopper(
     {
+        actions,
         additionalClassName,
         basic,
         children,
@@ -60,6 +61,11 @@ function AdvancedPopper(
                 }}
             >
                 {children}
+                {actions && (
+                    <div className={style.actions}>
+                        {actions}
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -69,6 +75,7 @@ AdvancedPopper.propTypes = {
     basic: PropTypes.node.isRequired,
     children: PropTypes.node.isRequired,
     setIsOpen: PropTypes.func.isRequired,
+    actions: PropTypes.node,
     additionalClassName: PropTypes.string,
     className: PropTypes.string,
     contentClassName: PropTypes.string,
@@ -76,6 +83,7 @@ AdvancedPopper.propTypes = {
 };
 
 AdvancedPopper.defaultProps = {
+    actions: undefined,
     additionalClassName: undefined,
     className: undefined,
     contentClassName: undefined,

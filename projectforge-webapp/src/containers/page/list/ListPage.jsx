@@ -8,7 +8,7 @@ import { Card, Container } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
 import { getObjectFromQuery, getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import { defaultValues as defaultContextValues, ListPageContext } from './ListPageContext';
-import SearchFilter from './SearchFilter';
+import SearchFilter from './searchFilter/SearchFilter';
 import SearchFilterCheckbox from './SearchFilterCheckbox';
 
 function ListPage(
