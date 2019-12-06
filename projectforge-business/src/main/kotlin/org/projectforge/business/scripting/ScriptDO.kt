@@ -61,8 +61,8 @@ open class ScriptDO : DefaultBaseDO() {
     /**
      * Please note: script is not historizable. Therefore there is now history of scripts.
      */
-    @NoHistory
     @JsonIgnore
+    @field:NoHistory
     @get:Basic(fetch = FetchType.LAZY)
     @get:Type(type = "binary")
     @get:Column(length = 2000)
@@ -71,15 +71,15 @@ open class ScriptDO : DefaultBaseDO() {
     /**
      * Instead of historizing the script the last version of the script after changing it will stored in this field.
      */
-    @NoHistory
     @JsonIgnore
+    @field:NoHistory
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column(name = "script_backup", length = 2000)
     @get:Type(type = "binary")
     open var scriptBackup: ByteArray? = null
 
-    @NoHistory
     @JsonIgnore
+    @field:NoHistory
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column
     @get:Type(type = "binary")
