@@ -3,14 +3,16 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import React from 'react';
 import { Navbar } from 'reactstrap';
-import { DynamicLayoutContext } from '../../../components/base/dynamicLayout/context';
-import Navigation from '../../../components/base/navigation';
-import { Col, Input, Row } from '../../../components/design';
-import AdvancedPopper from '../../../components/design/popper/AdvancedPopper';
-import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
-import FavoritesPanel from '../../panel/favorite/FavoritesPanel';
-import styles from './ListPage.module.scss';
-import { ListPageContext } from './ListPageContext';
+import { DynamicLayoutContext } from '../../../../components/base/dynamicLayout/context';
+import Navigation from '../../../../components/base/navigation';
+import { Col, Input, Row } from '../../../../components/design';
+import AdvancedPopper from '../../../../components/design/popper/AdvancedPopper';
+import AdvancedPopperAction from '../../../../components/design/popper/AdvancedPopperAction';
+import { getServiceURL, handleHTTPErrors } from '../../../../utilities/rest';
+import FavoritesPanel from '../../../panel/favorite/FavoritesPanel';
+import styles from '../ListPage.module.scss';
+import { ListPageContext } from '../ListPageContext';
+import MagicFilterPill from './MagicFilterPill';
 
 
 function SearchFilter() {
@@ -29,9 +31,6 @@ function SearchFilter() {
     } = React.useContext(ListPageContext);
 
     const [searchActive, setSearchActive] = React.useState(false);
-
-    const handleSearchFocus = () => setSearchActive(true);
-    const handleSearchBlur = () => setSearchActive(false);
 
     const saveUpdateResponse = (
         {
@@ -102,13 +101,16 @@ function SearchFilter() {
                                     styles.search,
                                     { [styles.active]: searchActive },
                                 )}
-                                onFocus={handleSearchFocus}
-                                onBlur={handleSearchBlur}
                                 autoComplete="off"
                                 placeholder={ui.translations.search}
                             />
                         )}
                         className={styles.searchContainer}
+                        actions={(
+                            <AdvancedPopperAction type="delete" disabled>
+                                {ui.translations.delete || ''}
+                            </AdvancedPopperAction>
+                        )}
                     >
                         <ul className={styles.entries}>
                             {/* TODO USE SERVER AUTO COMPLETION */}
@@ -140,11 +142,6 @@ function SearchFilter() {
                                 />
                             </li>
                         </ul>
-                        <div className={styles.actions}>
-                            <button className={styles.deleteButton} type="button" disabled>
-                                {ui.translations.delete}
-                            </button>
-                        </div>
                     </AdvancedPopper>
                 </Col>
                 <Col sm={1} className="d-flex align-items-center">
@@ -176,7 +173,29 @@ function SearchFilter() {
                 )}
             </Row>
             <hr />
-            {/* TODO ADD MAGIC FILTERS */}
+            <div className={styles.magicFilters}>
+                <MagicFilterPill
+                    name="Firma"
+                    value="Micromata"
+                    translations={ui.translations}
+                >
+                    Input Firma
+                </MagicFilterPill>
+                <MagicFilterPill
+                    name="Name"
+                    translations={ui.translations}
+                >
+                    Input Name
+                </MagicFilterPill>
+                <MagicFilterPill
+                    name="Weitere Filter"
+                    translations={ui.translations}
+                >
+                    Weitere Filter
+                </MagicFilterPill>
+            </div>
+            <hr />
+            {/* TODO IMPLEMENT DIFFERENT SELECTION TYPES */}
         </React.Fragment>
     );
 }
