@@ -42,57 +42,6 @@ import java.util.*
  * Zone date times will be generated automatically with the context user's time zone.
  */
 class PFDateTime private constructor(val dateTime: ZonedDateTime) {
-
-    private var _utilDate: Date? = null
-    private var _calendar: Calendar? = null
-    /**
-     * @return The date as java.util.Date. java.util.Date is only calculated, if this getter is called and it
-     * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
-     */
-    val utilDate: Date
-        get() {
-            if (_utilDate == null)
-                _utilDate = Date.from(dateTime.toInstant())
-            return _utilDate!!
-        }
-
-    /**
-     * @return The date as java.util.Date. java.util.Date is only calculated, if this getter is called and it
-     * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
-     */
-    val calendar: Calendar
-        get() {
-            if (_calendar == null) {
-                _calendar = Calendar.getInstance(ThreadLocalUserContext.getTimeZone(), ThreadLocalUserContext.getLocale())
-                _calendar!!.time = utilDate
-            }
-            return _calendar!!
-        }
-
-    private var _sqlTimestamp: java.sql.Timestamp? = null
-    /**
-     * @return The date as java.sql.Timestamp. java.sql.Timestamp is only calculated, if this getter is called and it
-     * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
-     */
-    val sqlTimestamp: java.sql.Timestamp
-        get() {
-            if (_sqlTimestamp == null)
-                _sqlTimestamp = java.sql.Timestamp.from(dateTime.toInstant())
-            return _sqlTimestamp!!
-        }
-
-    private var _localDate: LocalDate? = null
-    /**
-     * @return The date as LocalDate. LocalDate is only calculated, if this getter is called and it
-     * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
-     */
-    val localDate: LocalDate
-        get() {
-            if (_localDate == null)
-                _localDate = dateTime.toLocalDate()
-            return _localDate!!
-        }
-
     val year: Int
         get() = dateTime.year
 
@@ -181,7 +130,7 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
         get() = isoDateTimeFormatterMinutes.format(dateTime)
 
     /**
-     * Date part as ISO string: "yyyy-MM-dd HH:mm" in UTC.
+     * Date part as ISO string: "yyyy-MM-dd HH:mm:ss" in UTC.
      */
     val isoStringSeconds: String
         get() = isoDateTimeFormatterSeconds.format(dateTime)
@@ -249,6 +198,56 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
     fun minusYears(years: Long): PFDateTime {
         return PFDateTime(dateTime.minusYears(years))
     }
+
+    private var _utilDate: java.util.Date? = null
+    /**
+     * @return The date as java.util.Date. java.util.Date is only calculated, if this getter is called and it
+     * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
+     */
+    val utilDate: java.util.Date
+        get() {
+            if (_utilDate == null)
+                _utilDate = java.util.Date.from(dateTime.toInstant())
+            return _utilDate!!
+        }
+
+    private var _calendar: Calendar? = null
+    /**
+     * @return The date as java.util.Date. java.util.Date is only calculated, if this getter is called and it
+     * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
+     */
+    val calendar: Calendar
+        get() {
+            if (_calendar == null) {
+                _calendar = Calendar.getInstance(ThreadLocalUserContext.getTimeZone(), ThreadLocalUserContext.getLocale())
+                _calendar!!.time = utilDate
+            }
+            return _calendar!!
+        }
+
+    private var _sqlTimestamp: java.sql.Timestamp? = null
+    /**
+     * @return The date as java.sql.Timestamp. java.sql.Timestamp is only calculated, if this getter is called and it
+     * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
+     */
+    val sqlTimestamp: java.sql.Timestamp
+        get() {
+            if (_sqlTimestamp == null)
+                _sqlTimestamp = java.sql.Timestamp.from(dateTime.toInstant())
+            return _sqlTimestamp!!
+        }
+
+    private var _localDate: LocalDate? = null
+    /**
+     * @return The date as LocalDate. LocalDate is only calculated, if this getter is called and it
+     * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
+     */
+    val localDate: LocalDate
+        get() {
+            if (_localDate == null)
+                _localDate = dateTime.toLocalDate()
+            return _localDate!!
+        }
 
     companion object {
         /**

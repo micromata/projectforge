@@ -23,6 +23,7 @@ function ListPage(
         extended: {},
     });
     const [filterFavorites, setFilterFavorites] = React.useState([]);
+    const [variables, setVariables] = React.useState({});
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState(undefined);
 
@@ -127,12 +128,14 @@ function ListPage(
                     data: responseData,
                     filter: responseFilter,
                     filterFavorites: responseFilterFavorites,
+                    variables: responseVariables,
                 },
             ) => {
                 setFilter(responseFilter);
                 setFilterFavorites(responseFilterFavorites);
                 setData(responseData);
                 setUI(responseUi);
+                setVariables(responseVariables);
                 setLoading(false);
             })
             .catch(setError);
@@ -241,9 +244,11 @@ function ListPage(
                     setData={setData}
                     options={{
                         displayPageMenu: true,
+                        disableLayoutRendering: loading,
                         setBrowserTitle: true,
                         showActionButtons: false,
                     }}
+                    variables={variables}
                 >
                     <SearchFilter />
                 </DynamicLayout>

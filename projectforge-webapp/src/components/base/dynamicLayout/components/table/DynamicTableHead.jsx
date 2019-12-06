@@ -4,7 +4,7 @@ import { ListPageContext } from '../../../../../containers/page/list/ListPageCon
 import AnimatedChevron from '../../../../design/input/chevron/Animated';
 import style from './DynamicTable.module.scss';
 
-function DynamicTableHead({ id, title }) {
+function DynamicTableHead({ id, title, sortable, }) {
     const { filter, filterHelper } = React.useContext(ListPageContext);
     const sortProperty = Array.findByField(filter.sortProperties, 'property', id);
 
@@ -14,7 +14,7 @@ function DynamicTableHead({ id, title }) {
 
     return (
         <th onClick={handleHeadClick} className={style.tableHead}>
-            <AnimatedChevron direction={(sortProperty || {}).sortOrder} />
+            {sortable && <AnimatedChevron direction={(sortProperty || {}).sortOrder} />}
             {title}
         </th>
     );
@@ -23,8 +23,11 @@ function DynamicTableHead({ id, title }) {
 DynamicTableHead.propTypes = {
     id: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
+    sortable: PropTypes.bool,
 };
 
-DynamicTableHead.defaultProps = {};
+DynamicTableHead.defaultProps = {
+    sortable: false,
+};
 
 export default DynamicTableHead;
