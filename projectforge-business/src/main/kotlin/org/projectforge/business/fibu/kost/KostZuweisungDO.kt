@@ -55,6 +55,10 @@ import javax.persistence.*
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class KostZuweisungDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
+    override val shortDisplayName: String
+        @Transient
+        get() = "$index"
+
     /**
      * Die Kostzuweisungen sind als Array organisiert. Dies stellt den Index der Kostzuweisung dar. Der Index ist für
      * Gehaltszahlungen ohne Belang.
@@ -237,11 +241,6 @@ open class KostZuweisungDO : DefaultBaseDO(), ShortDisplayNameCapable {
             hcb.append(employeeSalaryId)
         }
         return hcb.toHashCode()
-    }
-
-    @Transient
-    override fun getShortDisplayName(): String {
-        return index.toString()
     }
 
     /**
