@@ -229,6 +229,8 @@ class AddressRest()
         return LayoutUtils.processListPage(layout, this)
     }
 
+    override val autoCompleteSearchFields = arrayOf("name", "firstName", "city")
+
     override fun addVariablesForListPage(): Map<String, Any>? {
         return mutableMapOf(
                 "phoneCallEnabled" to configurationService.isTelephoneSystemUrlConfigured,
