@@ -26,7 +26,6 @@ package org.projectforge.rest.core
 import org.apache.commons.beanutils.NestedNullException
 import org.apache.commons.beanutils.PropertyUtils
 import org.projectforge.Const
-import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.access.AccessChecker
