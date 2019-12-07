@@ -20,16 +20,12 @@
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
-
-package org.projectforge.framework.persistence.api;
+package org.projectforge.framework.persistence.api
 
 /**
  * Used to display history entries.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public interface ShortDisplayNameCapable
-{
-
-  public String getShortDisplayName();
+interface ShortDisplayNameCapable {
+    val shortDisplayName: String
 }

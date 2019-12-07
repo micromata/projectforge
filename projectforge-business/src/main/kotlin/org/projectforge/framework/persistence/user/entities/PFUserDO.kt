@@ -67,6 +67,10 @@ import javax.persistence.*
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
+    override val shortDisplayName
+        @Transient
+        get() = "$username"
+
     @Transient
     private var attributeMap: MutableMap<String, Any>? = null
 
@@ -378,11 +382,6 @@ open class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
             else
                 "$str (${this.username})"
         }
-
-    @Transient
-    override fun getShortDisplayName(): String? {
-        return this.username
-    }
 
     /**
      * PLEASE NOTE: Be very careful of modifying this method and don't remove this method! Otherwise

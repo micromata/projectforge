@@ -44,6 +44,10 @@ import javax.persistence.*
         NamedQuery(name = KontoDO.FIND_BY_NUMMER, query = "from KontoDO where nummer=:nummer"))
 open class KontoDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
+    override val shortDisplayName: String
+        @Transient
+        get() = "$nummer"
+
     @PropertyInfo(i18nKey = "fibu.konto.nummer")
     @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
     @get:Column(name = "nummer", nullable = false)
@@ -86,11 +90,6 @@ open class KontoDO : DefaultBaseDO(), ShortDisplayNameCapable {
         hcb.append(this.nummer)
         hcb.append(this.bezeichnung)
         return hcb.toHashCode()
-    }
-
-    @Transient
-    override fun getShortDisplayName(): String {
-        return nummer.toString()
     }
 
     companion object {

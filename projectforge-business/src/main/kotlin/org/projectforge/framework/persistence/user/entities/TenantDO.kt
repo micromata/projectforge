@@ -55,6 +55,10 @@ open class TenantDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @get:Column(length = 100)
     open var shortName: String? = null
 
+    override val shortDisplayName: String
+        @Transient
+        get() = "$shortName"
+
     /**
      * @return the name
      */
@@ -145,14 +149,6 @@ open class TenantDO : DefaultBaseDO(), ShortDisplayNameCapable {
     override fun setTenant(tenant: TenantDO): TenantDO {
         super.setTenant(this)
         return this
-    }
-
-    /**
-     * @see org.projectforge.framework.persistence.api.ShortDisplayNameCapable.getShortDisplayName
-     */
-    @Transient
-    override fun getShortDisplayName(): String? {
-        return name
     }
 
     companion object {

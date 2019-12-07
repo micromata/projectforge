@@ -49,6 +49,10 @@ import javax.persistence.*
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class HRPlanningEntryDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
+    override val shortDisplayName: String
+        @Transient
+        get() = "${projekt?.name}"
+
     @IndexedEmbedded(depth = 3)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "planning_fk", nullable = false)
@@ -296,11 +300,6 @@ open class HRPlanningEntryDO : DefaultBaseDO(), ShortDisplayNameCapable {
             }
         }
         return hcb.toHashCode()
-    }
-
-    @Transient
-    override fun getShortDisplayName(): String? {
-        return if (projekt != null) projekt!!.name else ""
     }
 
     /**
