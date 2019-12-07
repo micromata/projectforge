@@ -24,6 +24,7 @@
 package org.projectforge.web.wicket;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.core.request.handler.ComponentNotFoundException;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.protocol.http.PageExpiredException;
@@ -52,8 +53,7 @@ import java.util.Date;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class ErrorPage extends AbstractSecuredPage
-{
+public class ErrorPage extends AbstractSecuredPage {
   private static final long serialVersionUID = -637809894879133209L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ErrorPage.class);
@@ -86,9 +86,8 @@ public class ErrorPage extends AbstractSecuredPage
    * @return
    */
   public static String getExceptionMessage(final AbstractSecuredBasePage securedPage,
-      final ProjectForgeException exception,
-      final boolean doLog)
-  {
+                                           final ProjectForgeException exception,
+                                           final boolean doLog) {
     // Feedbackpanel!
     if (exception instanceof UserException) {
       final UserException ex = (UserException) exception;
@@ -116,13 +115,11 @@ public class ErrorPage extends AbstractSecuredPage
     throw new UnsupportedOperationException("For developer: Please add unknown ProjectForgeException here!", exception);
   }
 
-  public ErrorPage()
-  {
+  public ErrorPage() {
     this(null);
   }
 
-  public ErrorPage(final Throwable throwable)
-  {
+  public ErrorPage(final Throwable throwable) {
     super(null);
     errorMessage = getString("errorpage.unknownError");
     messageNumber = null;
@@ -180,13 +177,19 @@ public class ErrorPage extends AbstractSecuredPage
     feedbackPanel.setOutputMarkupId(true);
     body.add(feedbackPanel);
 
-    sendProactiveMessageToSupportTeam();
+    if (throwable == null ||
+            throwable instanceof ComponentNotFoundException) {
+      // Do nothing, this Exception can't be avoided. It occurs if the user clicks and navigates throw the
+      // AddressListPage, then image components will be removed.
+      log.error("ErrorPage shown for user, but no message sent to support team: " + throwable.getMessage());
+    } else {
+      sendProactiveMessageToSupportTeam();
+    }
   }
 
-  private void sendProactiveMessageToSupportTeam()
-  {
+  private void sendProactiveMessageToSupportTeam() {
     if (StringUtils.isBlank(configService.getPfSupportMailAddress()) == Boolean.FALSE
-        && configService.getSendMailConfiguration() != null) {
+            && configService.getSendMailConfiguration() != null) {
       log.info("Sending proactive mail to support.");
       Calendar cal = Calendar.getInstance();
       Date date = cal.getTime();
@@ -197,23 +200,21 @@ public class ErrorPage extends AbstractSecuredPage
       errorData.setReceiver(configService.getPfSupportMailAddress());
       errorData.setSubject("Error occured: #" + form.data.getMessageNumber() + " on " + domainService.getDomain());
       errorData.setDescription("Error occured at: " + dateString + "(" + cal.getTimeZone().getID()
-          + ") with number: #" + form.data.getMessageNumber()
-          + " from user: " + form.data.getSender() + " \n "
-          + "Exception stack trace: \n" +
-          form.data.getRootCauseStackTrace() + "\n");
+              + ") with number: #" + form.data.getMessageNumber()
+              + " from user: " + form.data.getSender() + " \n "
+              + "Exception stack trace: \n" +
+              form.data.getRootCauseStackTrace() + "\n");
       sendFeedback.send(errorData);
     } else {
       log.info("No messaging for proactive support configured.");
     }
   }
 
-  void cancel()
-  {
+  void cancel() {
     setResponsePage(WicketUtils.getDefaultPage());
   }
 
-  void sendFeedback()
-  {
+  void sendFeedback() {
     log.info("Send feedback.");
     boolean result = false;
     try {
@@ -233,8 +234,7 @@ public class ErrorPage extends AbstractSecuredPage
   }
 
   @Override
-  protected String getTitle()
-  {
+  protected String getTitle() {
     return title != null ? title : getString("errorpage.title");
   }
 
@@ -242,8 +242,7 @@ public class ErrorPage extends AbstractSecuredPage
    * @see org.apache.wicket.Component#isVersioned()
    */
   @Override
-  public boolean isVersioned()
-  {
+  public boolean isVersioned() {
     return false;
   }
 
@@ -251,8 +250,7 @@ public class ErrorPage extends AbstractSecuredPage
    * @see org.apache.wicket.Page#isErrorPage()
    */
   @Override
-  public boolean isErrorPage()
-  {
+  public boolean isErrorPage() {
     return true;
   }
 }
