@@ -26,6 +26,7 @@ package org.projectforge.rest.core
 import org.apache.commons.beanutils.NestedNullException
 import org.apache.commons.beanutils.PropertyUtils
 import org.projectforge.Const
+import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.access.AccessChecker
@@ -92,6 +93,7 @@ abstract class AbstractBaseRest<
      */
     class InitialListData(
             val ui: UILayout?,
+            val standardEditPage: String,
             val data: ResultSet<*>,
             val filterFavorites: List<Favorites.FavoriteIdTitle>,
             val filter: MagicFilter,
@@ -276,6 +278,7 @@ abstract class AbstractBaseRest<
         layout.postProcessPageMenu()
         layout.add(MenuItem(CREATE_MENU, title = "+", url = "${Const.REACT_APP_PATH}${getCategory()}/edit"), 0)
         return InitialListData(ui = layout,
+                standardEditPage = "${Const.REACT_APP_PATH}${getCategory()}/edit/\${id}",
                 data = resultSet,
                 filter = filter,
                 filterFavorites = favorites.idTitleList)
