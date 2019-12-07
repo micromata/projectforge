@@ -17,7 +17,7 @@ function AdvancedPopperAction({ type, children, ...props }) {
 
 AdvancedPopperAction.propTypes = {
     children: PropTypes.node.isRequired,
-    type: PropTypes.oneOf(['delete']).isRequired,
+    type: PropTypes.oneOf(['delete', 'success']).isRequired,
 };
 
 AdvancedPopperAction.defaultProps = {};
