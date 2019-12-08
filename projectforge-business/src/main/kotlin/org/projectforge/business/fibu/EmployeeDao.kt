@@ -109,10 +109,10 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
     open override fun getList(filter: BaseSearchFilter): List<EmployeeDO> {
         val myFilter = if (filter is EmployeeFilter) filter else EmployeeFilter(filter)
         val queryFilter = QueryFilter(myFilter)
-        val list = getList(queryFilter)
+        var list = getList(queryFilter)
         val now = Date()
         if (myFilter.isShowOnlyActiveEntries) {
-            list.filter { employee ->
+            list = list.filter { employee ->
                 if (employee.eintrittsDatum != null && now.before(employee.eintrittsDatum)) {
                     false
                 } else employee.austrittsDatum == null || !now.after(employee.austrittsDatum)
