@@ -138,6 +138,7 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
 
     override fun sort(list: List<O>): List<O> {
         val collator = Collator.getInstance(ThreadLocalUserContext.getLocale())
+        val errorProperties = mutableListOf<String>()
         return list.sortedWith(object : Comparator<O> {
             override fun compare(o1: O, o2: O): Int {
                 if (sortProperties.isNullOrEmpty()) {
@@ -145,26 +146,33 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
                 }
                 val ctb = CompareToBuilder()
                 for (sortProperty in sortProperties) {
-                    val val1 = BeanHelper.getNestedProperty(o1, sortProperty.property)
-                    val val2 = BeanHelper.getNestedProperty(o2, sortProperty.property)
-                    if (val1 is String) {
-                        // Strings should be compared by using locale dependent collator (especially for german Umlaute)
-                        if (sortProperty.ascending) {
-                            ctb.append(val1, val2, collator)
+                    try {
+                        val val1 = BeanHelper.getNestedProperty(o1, sortProperty.property)
+                        val val2 = BeanHelper.getNestedProperty(o2, sortProperty.property)
+                        if (val1 is String) {
+                            // Strings should be compared by using locale dependent collator (especially for german Umlaute)
+                            if (sortProperty.ascending) {
+                                ctb.append(val1, val2, collator)
+                            } else {
+                                ctb.append(val2, val1, collator)
+                            }
+                        } else if (val1 is Comparable<*>) {
+                            if (sortProperty.ascending) {
+                                ctb.append(val1, val2)
+                            } else {
+                                ctb.append(val2, val1)
+                            }
                         } else {
-                            ctb.append(val2, val1, collator)
+                            if (sortProperty.ascending) {
+                                ctb.append(val1?.toString(), val2?.toString())
+                            } else {
+                                ctb.append(val2?.toString(), val1?.toString())
+                            }
                         }
-                    } else if (val1 is Comparable<*>) {
-                        if (sortProperty.ascending) {
-                            ctb.append(val1, val2)
-                        } else {
-                            ctb.append(val2, val1)
-                        }
-                    } else {
-                        if (sortProperty.ascending) {
-                            ctb.append(val1?.toString(), val2?.toString())
-                        } else {
-                            ctb.append(val2?.toString(), val1?.toString())
+                    } catch(ex: Exception) {
+                        if (!errorProperties.contains(ex.message)) {
+                            errorProperties.add("${ex.message}")
+                            log.warn("Ignore sort property (OK): ${ex.message}")
                         }
                     }
                 }
