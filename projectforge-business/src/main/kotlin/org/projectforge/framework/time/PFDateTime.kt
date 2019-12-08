@@ -360,13 +360,14 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime,
          */
         @JvmStatic
         @JvmOverloads
-        fun from(date: Date?, nowIfNull: Boolean = false, timeZone: TimeZone = getUsersTimeZone(), locale: Locale = getUsersLocale()): PFDateTime? {
+        fun from(date: Date?, nowIfNull: Boolean = false, timeZone: TimeZone? = null, locale: Locale? = null): PFDateTime? {
             if (date == null)
                 return if (nowIfNull) now() else null
+            val zoneId = timeZone?.toZoneId() ?: getUsersZoneId()
             return if (date is java.sql.Date) { // Yes, this occurs!
-                from(date.toLocalDate(), false, timeZone.toZoneId(), locale)
+                from(date.toLocalDate(), false, zoneId, locale ?: getUsersLocale())
             } else {
-                PFDateTime(date.toInstant().atZone(timeZone.toZoneId()), locale)
+                PFDateTime(date.toInstant().atZone(zoneId), locale ?: getUsersLocale())
             }
         }
 
@@ -375,11 +376,12 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime,
          */
         @JvmStatic
         @JvmOverloads
-        fun from(date: java.sql.Date?, nowIfNull: Boolean = false, timeZone: TimeZone = getUsersTimeZone(), locale: Locale = getUsersLocale()): PFDateTime? {
+        fun from(date: java.sql.Date?, nowIfNull: Boolean = false, timeZone: TimeZone? = null, locale: Locale? = null): PFDateTime? {
             if (date == null)
                 return if (nowIfNull) now() else null
-            val dateTime = date.toInstant().atZone(timeZone.toZoneId())
-            return PFDateTime(dateTime, locale)
+            val zoneId = timeZone?.toZoneId() ?: getUsersZoneId()
+            val dateTime = date.toInstant().atZone(zoneId)
+            return PFDateTime(dateTime, locale ?: getUsersLocale())
         }
 
         @JvmStatic
