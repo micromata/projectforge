@@ -23,12 +23,14 @@
 
 package org.projectforge.framework.time
 
+import org.apache.commons.lang3.ObjectUtils
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.time.*
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
+import java.time.temporal.TemporalUnit
 import java.time.temporal.WeekFields
 import java.util.*
 
@@ -39,7 +41,8 @@ import java.util.*
  * Zone date times will be generated automatically with the context user's time zone.
  */
 class PFDateTime private constructor(val dateTime: ZonedDateTime,
-                                     val locale: Locale) {
+                                     val locale: Locale)
+    : Comparable<PFDateTime> {
 
     val year: Int
         get() = dateTime.year
@@ -128,6 +131,9 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime,
             return PFDateTime(endOfDay, locale)
         }
 
+    val isFirstDayOfWeek: Boolean
+        get() = dayOfWeek == PFDateTimeUtils.getFirstDayOfWeek()
+
     fun withYear(year: Int): PFDateTime {
         return PFDateTime(dateTime.withYear(year), locale)
     }
@@ -159,12 +165,19 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime,
         return PFDateTime(dateTime.withSecond(second), locale)
     }
 
+    fun withMilliSecond(millisOfSecond: Int): PFDateTime {
+        return PFDateTime(dateTime.withNano(millisOfSecond * 1000), locale)
+    }
+
     fun withNano(nanoOfSecond: Int): PFDateTime {
         return PFDateTime(dateTime.withNano(nanoOfSecond), locale)
     }
 
     val epochSeconds: Long
         get() = dateTime.toEpochSecond()
+
+    val epochMilli: Long
+        get() = dateTime.toInstant().toEpochMilli()
 
     /**
      * Date part as ISO string: "yyyy-MM-dd HH:mm" in UTC.
@@ -202,6 +215,10 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime,
         return ChronoUnit.DAYS.between(dateTime, other.dateTime)
     }
 
+    fun plus(amountToAdd: Long, temporalUnit: TemporalUnit): PFDateTime {
+        return PFDateTime(dateTime.plus(amountToAdd, temporalUnit), locale)
+    }
+
     fun plusDays(days: Long): PFDateTime {
         return PFDateTime(dateTime.plusDays(days), locale)
     }
@@ -232,6 +249,10 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime,
      */
     fun withPrecision(precision: DatePrecision): PFDateTime {
         return PFDateTime(precision.ensurePrecision(dateTime), locale)
+    }
+
+    override fun compareTo(other: PFDateTime): Int {
+        return ObjectUtils.compare(dateTime, other.dateTime)
     }
 
     private var _utilDate: Date? = null
