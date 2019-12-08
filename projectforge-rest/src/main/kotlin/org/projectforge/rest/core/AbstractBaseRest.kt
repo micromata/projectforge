@@ -613,7 +613,8 @@ abstract class AbstractBaseRest<
             throw RuntimeException("Can't call getAutoCompletion without property, because no autoCompleteSearchFields are configured by the developers for this entity.")
         }
         val filter = BaseSearchFilter()
-        filter.searchString = searchString
+        val modifiedSearchString = searchString?.split(' ', '\t', '\n')?.joinToString(" ") { "+$it*" }
+        filter.searchString = modifiedSearchString
         filter.setSearchFields(*autoCompleteSearchFields!!)
         val list = baseDao.getList(filter)
         val size = if (list.size > 29) 29 else list.size

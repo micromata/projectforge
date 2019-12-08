@@ -229,7 +229,7 @@ class AddressRest()
         return LayoutUtils.processListPage(layout, this)
     }
 
-    override val autoCompleteSearchFields = arrayOf("name", "firstName", "city")
+    override val autoCompleteSearchFields = arrayOf("name", "firstName")
 
     override fun addVariablesForListPage(): Map<String, Any>? {
         return mutableMapOf(

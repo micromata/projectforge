@@ -267,14 +267,14 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun createResultIterator(resultPredicates: List<DBPredicate>): DBResultIterator<O> {
         return when {
             useMultiFieldQueryParser -> {
-                DBFullTextResultIterator(baseDao, fullTextEntityManager, resultPredicates, sortOrders.toTypedArray(), multiFieldQuery = multiFieldQuery)
+                DBFullTextResultIterator(baseDao, fullTextEntityManager, resultPredicates, queryFilter, sortOrders.toTypedArray(), multiFieldQuery = multiFieldQuery)
             }
             boolJunction.isEmpty -> { // Shouldn't occur:
                 // No restrictions found, so use normal criteria search without where clause.
                 DBQueryBuilderByCriteria(baseDao, entityManager, queryFilter).createResultIterator(resultPredicates)
             }
             else -> {
-                DBFullTextResultIterator(baseDao, fullTextEntityManager, resultPredicates, sortOrders.toTypedArray(), fullTextQuery = boolJunction.createQuery())
+                DBFullTextResultIterator(baseDao, fullTextEntityManager, resultPredicates, queryFilter, sortOrders.toTypedArray(), fullTextQuery = boolJunction.createQuery())
             }
         }
     }
