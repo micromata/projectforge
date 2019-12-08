@@ -474,7 +474,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
    * Calls {@link #hasAccess(PFUserDO, IUserRightId, Object, Object, OperationType, boolean)} with {@link OperationType#SELECT}
    * and both Objects as null.
    *
-   * @param user           Check the access for the given user instead of the logged-in user.
+   * @param user Check the access for the given user instead of the logged-in user.
    * @see #hasAccess(PFUserDO, IUserRightId, Object, Object, OperationType, boolean)
    */
   public boolean hasSelectAccess(final PFUserDO user, final IUserRightId rightId, final boolean throwException) {
@@ -530,6 +530,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
 
   /**
    * Calls {@link #hasAccess(PFUserDO, IUserRightId, Object, Object, OperationType, boolean)} with {@link OperationType#UPDATE}.
+   *
    * @see #hasAccess(PFUserDO, IUserRightId, Object, Object, OperationType, boolean)
    */
   public boolean hasLoggedInUserUpdateAccess(final IUserRightId rightId, final Object obj, final Object oldObj,
@@ -589,7 +590,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
    * Checks the availability and the demanded value of the right for the context user. The right will be checked itself
    * on required constraints, e. g. if assigned groups required.
    *
-   * @param origUser           Check the access for the given user instead of the logged-in user.
+   * @param origUser       Check the access for the given user instead of the logged-in user.
    * @param rightId
    * @param values         At least one of the values should match.
    * @param throwException
@@ -603,6 +604,9 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final PFUserDO user = userGroupCache.getUser(origUser.getId());
     if (user == null) {
+      if (throwException) {
+        throw new AccessException("access.exception.noUserGiven", rightId, StringHelper.listToString(", ", (Object[]) values));
+      }
       return false;
     }
     final UserRightDO rightDO = user.getRight(rightId);
