@@ -33,6 +33,7 @@ import org.hibernate.search.jpa.FullTextEntityManager
 import org.projectforge.common.BeanHelper
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.slf4j.LoggerFactory
@@ -52,7 +53,7 @@ interface DBResultIterator<O : ExtendedBaseDO<Int>> {
 /**
  * Usable for empty queries without any result.
  */
-internal class DBEmptyResultIterator<O : ExtendedBaseDO<Int>>()
+internal class DBEmptyResultIterator<O : ExtendedBaseDO<Int>>
     : DBResultIterator<O> {
     override fun next(): O? {
         return null
@@ -96,8 +97,9 @@ private const val MAX_RESULTS = 100
 
 internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
         val baseDao: BaseDao<O>,
-        val fullTextEntityManager: FullTextEntityManager,
-        val resultMatchers: List<DBPredicate>,
+        private val fullTextEntityManager: FullTextEntityManager,
+        private val resultMatchers: List<DBPredicate>,
+        private val filter: QueryFilter,
         val sortProperties: Array<SortProperty>,
         val fullTextQuery: org.apache.lucene.search.Query? = null, // Full text query
         val multiFieldQuery: List<String>? = null)     // MultiField query
@@ -106,14 +108,17 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
     private var result: List<O>
     private var resultIndex = -1
     private var firstIndex = 0
-    private val searchClassInfo: HibernateSearchClassInfo
+    private val searchClassInfo = HibernateSearchMeta.getClassInfo(baseDao)
+    private val searchFields: Array<String>
 
     init {
-        searchClassInfo = HibernateSearchMeta.getClassInfo(baseDao)
         if (log.isDebugEnabled && !multiFieldQuery.isNullOrEmpty()) {
             val queryString = multiFieldQuery.joinToString(" ")
             log.debug("Using multifieldQuery (${baseDao.doClass.simpleName}): $queryString")
         }
+        val fullTextSearchFields = filter.fullTextSearchFields
+        searchFields = if (fullTextSearchFields.isNullOrEmpty()) searchClassInfo.stringFieldNames else fullTextSearchFields
+        log.debug("Using search fields: ${searchFields.joinToString(", ")}")
         result = nextResultBlock()
     }
 
@@ -169,7 +174,7 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
                                 ctb.append(val2?.toString(), val1?.toString())
                             }
                         }
-                    } catch(ex: Exception) {
+                    } catch (ex: Exception) {
                         if (!errorProperties.contains(ex.message)) {
                             errorProperties.add("${ex.message}")
                             log.warn("Ignore sort property (OK): ${ex.message}")
@@ -186,6 +191,8 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
             return null
         }
         if (++resultIndex >= result.size) {
+            if (result.size < MAX_RESULTS)
+                return null
             result = nextResultBlock()
             if (result.isEmpty()) {
                 return null
@@ -200,8 +207,7 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
             fullTextEntityManager.createFullTextQuery(fullTextQuery, baseDao.doClass)
         } else {
             val queryString = multiFieldQuery?.joinToString(" ") ?: ""
-
-            val parser = MultiFieldQueryParser(searchClassInfo.stringFieldNames, ClassicAnalyzer())
+            val parser = MultiFieldQueryParser(searchFields, ClassicAnalyzer())
             parser.defaultOperator = QueryParser.Operator.AND
             parser.allowLeadingWildcard = true
             var query: org.apache.lucene.search.Query? = null
