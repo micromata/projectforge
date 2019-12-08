@@ -38,6 +38,7 @@ import java.util.*
  * Zone date times will be generated automatically with the context user's time zone.
  */
 class PFDateTime private constructor(val dateTime: ZonedDateTime) {
+
     val year: Int
         get() = dateTime.year
 
@@ -55,6 +56,18 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
 
     val dayOfMonth: Int
         get() = dateTime.dayOfMonth
+
+    val hour: Int
+        get() = dateTime.hour
+
+    val minute: Int
+        get() = dateTime.minute
+
+    val second: Int
+        get() = dateTime.second
+
+    val nano: Int
+        get() = dateTime.nano
 
     val beginOfMonth: PFDateTime
         get() = PFDateTime(PFDateTimeUtils.getBeginOfDay(dateTime.withDayOfMonth(1)))
@@ -86,6 +99,9 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
             return dateTime.get(weekFields.weekOfWeekBasedYear())
         }
 
+    val numberOfDaysInYear: Int
+        get() = Year.from(dateTime).length()
+
     val beginOfWeek: PFDateTime
         get() {
             val startOfWeek = PFDateTimeUtils.getBeginOfWeek(this.dateTime)
@@ -110,8 +126,40 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
             return PFDateTime(endOfDay)
         }
 
-    val numberOfDaysInYear: Int
-        get() = Year.from(dateTime).length()
+    fun withYear(year: Int): PFDateTime {
+        return PFDateTime(dateTime.withYear(year))
+    }
+
+    /**
+     * 1 (January) to 12 (December)
+     */
+    fun withMonth(month: Int): PFDateTime {
+        return PFDateTime(dateTime.withMonth(month))
+    }
+
+    fun withDayOfYear(dayOfYear: Int): PFDateTime {
+        return PFDateTime(dateTime.withDayOfYear(dayOfYear))
+    }
+
+    fun withDayOfMonth(dayOfMonth: Int): PFDateTime {
+        return PFDateTime(dateTime.withDayOfMonth(dayOfMonth))
+    }
+
+    fun withHour(hour: Int): PFDateTime {
+        return PFDateTime(dateTime.withHour(hour))
+    }
+
+    fun withMinute(minute: Int): PFDateTime {
+        return PFDateTime(dateTime.withMinute(minute))
+    }
+
+    fun withSecond(second: Int): PFDateTime {
+        return PFDateTime(dateTime.withSecond(second))
+    }
+
+    fun withNano(nanoOfSecond: Int): PFDateTime {
+        return PFDateTime(dateTime.withNano(nanoOfSecond))
+    }
 
     val epochSeconds: Long
         get() = dateTime.toEpochSecond()
@@ -174,6 +222,14 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime) {
 
     fun minusYears(years: Long): PFDateTime {
         return PFDateTime(dateTime.minusYears(years))
+    }
+
+    /**
+     * Ensure the given precision by setting / rounding fields such as minutes and seconds. If precision is MINUTE_15 then rounding the
+     * minutes down: 00-14 -&gt; 00; 15-29 -&gt; 15, 30-44 -&gt; 30, 45-59 -&gt; 45.
+     */
+    fun withPrecision(precision: DatePrecision): PFDateTime {
+        return PFDateTime(precision.ensurePrecision(dateTime))
     }
 
     private var _utilDate: java.util.Date? = null
