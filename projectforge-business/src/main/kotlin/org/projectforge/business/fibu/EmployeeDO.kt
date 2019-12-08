@@ -247,7 +247,7 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
     // unfortunatelly this does work. Date is not valid for order (only integral types)
     //  @OrderColumn(name = "startTime")
     @HistoryProperty(converter = TimependingHistoryPropertyConverter::class)
-    override fun getTimeableAttributes(): List<EmployeeTimedDO> {
+    override fun getTimeableAttributes(): MutableList<EmployeeTimedDO> {
         return timeableAttributes
     }
 
