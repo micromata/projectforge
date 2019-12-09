@@ -26,6 +26,12 @@
       <artifactId>projectforge-model</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/de.micromata.merlin/merlin-core -->
+    <dependency>
+      <groupId>de.micromata.merlin</groupId>
+      <artifactId>merlin-core</artifactId>
+      <version>${micromata.merlin-core.version}</version>
+    </dependency>
     <dependency>
       <groupId>de.micromata.mgc</groupId>
       <artifactId>de.micromata.mgc.jpa.tabattr</artifactId>

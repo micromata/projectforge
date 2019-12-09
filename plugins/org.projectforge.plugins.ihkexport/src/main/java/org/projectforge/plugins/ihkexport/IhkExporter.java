@@ -27,9 +27,7 @@ import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
@@ -95,7 +93,7 @@ class IhkExporter
       hourCounter = fillRow(hourCounter, newRow, timesheet);
 
       CellStyle style = workbook.createCellStyle();
-      style.setBorderBottom((short) 1);
+      style.setBorderBottom(BorderStyle.HAIR);
       style.setShrinkToFit(true);
       style.setWrapText(true);
       newRow.setRowStyle(style);
@@ -171,22 +169,22 @@ class IhkExporter
 
       // Set the cell data value
       switch (oldCell.getCellType()) {
-        case Cell.CELL_TYPE_BLANK:
+        case BLANK:
           newCell.setCellValue(oldCell.getStringCellValue());
           break;
-        case Cell.CELL_TYPE_BOOLEAN:
+        case BOOLEAN:
           newCell.setCellValue(oldCell.getBooleanCellValue());
           break;
-        case Cell.CELL_TYPE_ERROR:
+        case ERROR:
           newCell.setCellErrorValue(oldCell.getErrorCellValue());
           break;
-        case Cell.CELL_TYPE_FORMULA:
+        case FORMULA:
           newCell.setCellFormula(oldCell.getCellFormula());
           break;
-        case Cell.CELL_TYPE_NUMERIC:
+        case NUMERIC:
           newCell.setCellValue(oldCell.getNumericCellValue());
           break;
-        case Cell.CELL_TYPE_STRING:
+        case STRING:
           newCell.setCellValue(oldCell.getRichStringCellValue());
           break;
       }
