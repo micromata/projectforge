@@ -23,17 +23,12 @@
 
 package org.projectforge.plugins.ihk;
 
-import static org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUser;
-
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
@@ -45,6 +40,12 @@ import org.projectforge.business.excel.ExportSheet;
 import org.projectforge.business.excel.ExportWorkbook;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.springframework.core.io.ClassPathResource;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.List;
+
+import static org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUser;
 
 /**
  * Created by mnuhn on 05.12.2019
@@ -96,7 +97,7 @@ class IHKExporter
       hourCounter = fillRow(hourCounter, newRow, timesheet);
 
       CellStyle style = workbook.createCellStyle();
-      style.setBorderBottom((short) 1);
+      style.setBorderBottom(BorderStyle.HAIR);
       style.setShrinkToFit(true);
       style.setWrapText(true);
       newRow.setRowStyle(style);
@@ -189,22 +190,22 @@ class IHKExporter
 
       // Set the cell data value
       switch (oldCell.getCellType()) {
-        case Cell.CELL_TYPE_BLANK:
+        case BLANK:
           newCell.setCellValue(oldCell.getStringCellValue());
           break;
-        case Cell.CELL_TYPE_BOOLEAN:
+        case BOOLEAN:
           newCell.setCellValue(oldCell.getBooleanCellValue());
           break;
-        case Cell.CELL_TYPE_ERROR:
+        case ERROR:
           newCell.setCellErrorValue(oldCell.getErrorCellValue());
           break;
-        case Cell.CELL_TYPE_FORMULA:
+        case FORMULA:
           newCell.setCellFormula(oldCell.getCellFormula());
           break;
-        case Cell.CELL_TYPE_NUMERIC:
+        case NUMERIC:
           newCell.setCellValue(oldCell.getNumericCellValue());
           break;
-        case Cell.CELL_TYPE_STRING:
+        case STRING:
           newCell.setCellValue(oldCell.getRichStringCellValue());
           break;
       }
