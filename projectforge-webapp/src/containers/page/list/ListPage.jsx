@@ -231,6 +231,7 @@ function ListPage(
     return (
         <Container fluid>
             <Card>
+                {/* TODO ADD NEW FIELDS TO CONTEXT */}
                 <ListPageContext.Provider
                     value={{
                         ...defaultContextValues,

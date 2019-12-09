@@ -87,6 +87,8 @@ function SearchFilter() {
 
     const handleSearchFilterChange = ({ target }) => {
         filterHelper.setSearchString(target.value);
+
+        // TODO AUTO COMPLETION
     };
 
     return (
