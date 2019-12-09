@@ -21,40 +21,36 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.utils;
+package org.projectforge.framework.utils
 
-import java.math.BigDecimal;
+import java.math.BigDecimal
 
-public class CurrencyHelper
-{
-  /**
-   * @param net If null then zero is returned.
-   * @param vat
-   * @return Gross amount or net if vat is null or zero.
-   */
-  public static final BigDecimal getGrossAmount(final BigDecimal net, final BigDecimal vat)
-  {
-    if (net == null) {
-      return BigDecimal.ZERO;
+object CurrencyHelper {
+    /**
+     * @param net If null then zero is returned.
+     * @param vat
+     * @return Gross amount or net if vat is null or zero.
+     */
+    @JvmStatic
+    fun getGrossAmount(net: BigDecimal?, vat: BigDecimal?): BigDecimal {
+        if (net == null) {
+            return BigDecimal.ZERO
+        }
+        return if (NumberHelper.isZeroOrNull(vat)) {
+            net
+        } else {
+            net.multiply(BigDecimal.ONE.add(vat))
+        }
     }
-    if (NumberHelper.isZeroOrNull(vat)) {
-      return net;
-    }
-    return net.multiply(BigDecimal.ONE.add(vat));
-  }
 
-  public static final BigDecimal multiply(final BigDecimal val1, final BigDecimal val2)
-  {
-    if (val1 == null) {
-      if (val2 == null) {
-        return BigDecimal.ZERO;
-      } else {
-        return val2;
-      }
-    } else if (val2 == null) {
-      return val1;
-    } else {
-      return val1.multiply(val2);
+    @JvmStatic
+    fun multiply(val1: BigDecimal?, val2: BigDecimal?): BigDecimal {
+        return if (val1 == null) {
+            val2 ?: BigDecimal.ZERO
+        } else if (val2 == null) {
+            val1
+        } else {
+            val1.multiply(val2)
+        }
     }
-  }
 }

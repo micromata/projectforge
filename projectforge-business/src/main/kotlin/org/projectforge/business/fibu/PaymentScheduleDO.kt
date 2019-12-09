@@ -40,6 +40,10 @@ import javax.persistence.*
 @Table(name = "T_FIBU_PAYMENT_SCHEDULE", uniqueConstraints = [UniqueConstraint(columnNames = ["auftrag_id", "number"])], indexes = [Index(name = "idx_fk_t_fibu_payment_schedule_auftrag_id", columnList = "auftrag_id"), Index(name = "idx_fk_t_fibu_payment_schedule_tenant_id", columnList = "tenant_id")])
 open class PaymentScheduleDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
+    override val shortDisplayName: String
+        @Transient
+        get() = "$auftragId:$number"
+
     /**
      * Not used as object due to performance reasons.
      */
@@ -117,13 +121,4 @@ open class PaymentScheduleDO : DefaultBaseDO(), ShortDisplayNameCapable {
         }
         return hcb.toHashCode()
     }
-
-    /**
-     * @see org.projectforge.framework.persistence.api.ShortDisplayNameCapable.getShortDisplayName
-     */
-    @Transient
-    override fun getShortDisplayName(): String {
-        return if (auftragId == null) java.lang.Short.toString(number) else auftragId!!.toString() + ":" + java.lang.Short.toString(number)
-    }
-
 }

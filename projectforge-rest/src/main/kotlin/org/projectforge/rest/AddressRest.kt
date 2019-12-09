@@ -188,7 +188,7 @@ class AddressRest()
                         .add(addressLC, "lastUpdate")
                         .add(UITableColumn("address.imagePreview", "address.image", dataType = UIDataType.CUSTOMIZED))
                         .add(addressLC, "name", "firstName", "organization", "email")
-                        .add(UITableColumn("address.phoneNumbers", "address.phoneNumbers", dataType = UIDataType.CUSTOMIZED))
+                        .add(UITableColumn("address.phoneNumbers", "address.phoneNumbers", dataType = UIDataType.CUSTOMIZED, sortable = false))
                         .add(lc, "address.addressbookList"))
         layout.getTableColumnById("address.lastUpdate").formatter = Formatter.DATE
         layout.getTableColumnById("address.addressbookList").formatter = Formatter.ADDRESS_BOOK
@@ -228,6 +228,8 @@ class AddressRest()
                 type = MenuItemTargetType.DOWNLOAD))
         return LayoutUtils.processListPage(layout, this)
     }
+
+    override val autoCompleteSearchFields = arrayOf("name", "firstName")
 
     override fun addVariablesForListPage(): Map<String, Any>? {
         return mutableMapOf(

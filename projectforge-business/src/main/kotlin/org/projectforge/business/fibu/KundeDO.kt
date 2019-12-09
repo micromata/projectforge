@@ -46,7 +46,11 @@ import javax.persistence.*
         indexes = [Index(name = "idx_fk_t_fibu_kunde_konto_id", columnList = "konto_id"),
             Index(name = "idx_fk_t_fibu_kunde_tenant_id", columnList = "tenant_id")])
 @Analyzer(impl = ClassicAnalyzer::class)
-open class KundeDO : AbstractHistorizableBaseDO<Int>(), ShortDisplayNameCapable, IManualIndex {
+open class KundeDO : AbstractHistorizableBaseDO<Int>(), IManualIndex, ShortDisplayNameCapable {
+
+    override val shortDisplayName: String
+        @Transient
+        get() = KostFormatter.formatKunde(this)
 
     /**
      * Kundennummer.
@@ -138,16 +142,7 @@ open class KundeDO : AbstractHistorizableBaseDO<Int>(), ShortDisplayNameCapable,
         @Transient
         get() = if (konto != null) konto!!.id else null
 
-    /**
-     * @see org.projectforge.framework.persistence.api.ShortDisplayNameCapable.getShortDisplayName
-     * @see KostFormatter.format
-     */
-    @Transient
-    override fun getShortDisplayName(): String {
-        return KostFormatter.formatKunde(this)
-    }
-
     companion object {
-        val MAX_ID = 999
+        const val MAX_ID = 999
     }
 }

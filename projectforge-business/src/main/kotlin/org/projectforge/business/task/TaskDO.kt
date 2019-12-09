@@ -62,8 +62,11 @@ import javax.persistence.Index
                 query = "from TaskDO where parentTask.id=:parentTaskId and title=:title and id!=:id"),
         NamedQuery(name = TaskDO.FIND_BY_PARENTTASKID_AND_TITLE,
                 query = "from TaskDO where parentTask.id=:parentTaskId and title=:title"))
-open class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , GanttObject
+open class TaskDO : DefaultBaseDO(), Cloneable, ShortDisplayNameCapable // , GanttObject
 {
+    override val shortDisplayName: String
+        @Transient
+        get() = this.title + " (#" + this.id + ")"
 
     @PropertyInfo(i18nKey = "task.parentTask")
     @get:ManyToOne(fetch = FetchType.LAZY)
@@ -309,11 +312,6 @@ open class TaskDO : DefaultBaseDO(), ShortDisplayNameCapable, Cloneable// , Gant
         val hcb = HashCodeBuilder()
         hcb.append(this.parentTaskId).append(this.title)
         return hcb.toHashCode()
-    }
-
-    @Transient
-    override fun getShortDisplayName(): String {
-        return this.title + " (#" + this.id + ")"
     }
 
     /**
