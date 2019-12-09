@@ -109,7 +109,7 @@ open class LicenseDO : DefaultBaseDO() {
     @get:Column(name = "valid_until")
     open var validUntil: Date? = null
 
-    @NoHistory
+    @field:NoHistory
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column(name = "file1")
     @get:Type(type = "binary")
@@ -119,7 +119,7 @@ open class LicenseDO : DefaultBaseDO() {
     @get:Column(name = "file_name1", length = 255)
     open var filename1: String? = null
 
-    @NoHistory
+    @field:NoHistory
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column(name = "file2")
     @get:Type(type = "binary")

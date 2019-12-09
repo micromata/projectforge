@@ -29,6 +29,7 @@ import org.hibernate.annotations.FetchMode
 import org.hibernate.search.annotations.*
 import org.hibernate.search.annotations.Index
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
@@ -49,7 +50,10 @@ import javax.persistence.*
 @NamedQueries(
         NamedQuery(name = BookDO.FIND_BY_SIGNATURE, query = "from BookDO where signature=:signature"),
         NamedQuery(name = BookDO.FIND_OTHER_BY_SIGNATURE, query = "from BookDO where signature=:signature and id<>:id"))
-open class BookDO : DefaultBaseDO() {
+open class BookDO : DefaultBaseDO(), ShortDisplayNameCapable {
+    override val shortDisplayName: String
+        @Transient
+        get() = "$authors: $title"
 
     @PropertyInfo(i18nKey = "book.title", required = true)
     @Field

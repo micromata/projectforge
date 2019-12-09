@@ -47,6 +47,10 @@ import javax.persistence.*
         NamedQuery(name = TrainingDO.FIND_BY_TITLE, query = "from TrainingDO where title=:title"))
 open class TrainingDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
+    override val shortDisplayName: String
+        @Transient
+        get() = "$title (#$id)"
+
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skill.title")
     @Field
     @get:Column(length = 255)
@@ -109,11 +113,6 @@ open class TrainingDO : DefaultBaseDO(), ShortDisplayNameCapable {
     val certificateArray: Array<String>?
         @Transient
         get() = getValuesArray(certificate)
-
-    @Transient
-    override fun getShortDisplayName(): String {
-        return this.title + " (#" + this.id + ")"
-    }
 
     companion object {
         internal const val FIND_BY_TITLE = "TrainingDO_FindByTitle"

@@ -26,13 +26,12 @@ package org.projectforge.business.fibu
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.apache.commons.lang3.StringUtils
-import org.hibernate.annotations.Cache
-import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.annotations.ListIndexBase
 import org.hibernate.search.annotations.*
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
+import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
@@ -67,9 +66,13 @@ import javax.persistence.*
         NamedQuery(name = AuftragDO.SELECT_MIN_MAX_DATE, query = "select min(angebotsDatum), max(angebotsDatum) from AuftragDO"),
         NamedQuery(name = AuftragDO.FIND_BY_NUMMER, query = "from AuftragDO where nummer=:nummer"),
         NamedQuery(name = AuftragDO.FIND_OTHER_BY_NUMMER, query = "from AuftragDO where nummer=:nummer and id!=:id"))
-open class AuftragDO : DefaultBaseDO() {
+open class AuftragDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     private val log = org.slf4j.LoggerFactory.getLogger(AuftragDO::class.java)
+
+    override val shortDisplayName: String
+        @Transient
+        get() = "$nummer: $titel"
 
     /**
      * Auftragsnummer ist eindeutig und wird fortlaufend erzeugt.

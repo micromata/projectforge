@@ -84,7 +84,7 @@ open class DBQuery {
                 dbResultIterator = queryBuilder.result()
                 val historSearchParams = DBHistorySearchParams(filter.modifiedByUserId, filter.modifiedFrom, filter.modifiedTo, filter.searchHistory)
                 var list = createList(baseDao, em, dbResultIterator, customResultFilters, queryBuilder.resultPredicates, dbFilter, historSearchParams, checkAccess)
-                dbResultIterator.sort(list)
+                list = dbResultIterator.sort(list)
 
                 val end = System.currentTimeMillis()
                 if (end - begin > 2000) {

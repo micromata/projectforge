@@ -48,7 +48,7 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
     val dbFilter = MagicFilterProcessor.doIt(baseDao.doClass, magicFilter)
     dataObjectRest.processMagicFilter(dbFilter, magicFilter)
     val list = baseDao.getList(dbFilter)
-    val resultSet = ResultSet<O>(dataObjectRest.filterList(list, magicFilter), list.size)
+    val resultSet = ResultSet(dataObjectRest.filterList(list, magicFilter), list.size)
     return resultSet
 }
 

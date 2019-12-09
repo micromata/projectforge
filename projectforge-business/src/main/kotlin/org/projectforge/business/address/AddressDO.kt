@@ -29,12 +29,11 @@ import de.micromata.genome.db.jpa.history.impl.TabAttrHistoryPropertyConverter
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
 import org.apache.commons.lang3.StringUtils
-import org.hibernate.annotations.Cache
-import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.search.annotations.*
 import org.hibernate.search.annotations.Index
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO
 import org.projectforge.framework.persistence.history.HibernateSearchPhoneNumberBridge
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -54,7 +53,10 @@ import javax.persistence.*
         indexes = [javax.persistence.Index(name = "idx_fk_t_address_tenant_id",
                 columnList = "tenant_id"), javax.persistence.Index(name = "idx_fk_t_address_uid_tenant_id",
                 columnList = "uid, tenant_id")])
-open class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
+open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), ShortDisplayNameCapable {
+    override val shortDisplayName: String
+        @Transient
+        get() = if (city.isNullOrBlank()) "$fullName" else "$fullName, $city"
 
     @PropertyInfo(i18nKey = "address.contactStatus")
     @get:Enumerated(EnumType.STRING)
@@ -521,6 +523,26 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
     @HistoryProperty(converter = TabAttrHistoryPropertyConverter::class)
     override fun getAttrs(): Map<String, JpaTabAttrBaseDO<AddressDO, Int>> {
         return super.getAttrs()
+    }
+
+    override fun toString(): String {
+        if (compareValues(imageData?.size, 10) <= 0 && compareValues(imageDataPreview?.size, 10) <= 0)
+            return super.toString()
+        // imageData or imageDatePreview is larger than 10 bytes: slice it...
+        // Ignore images
+        val clone = AddressDO()
+        clone.copyValuesFrom(this)
+        clone.imageDataPreview = sliceByteArray(imageDataPreview)
+        clone.imageData = sliceByteArray(imageData)
+        return clone.toString()
+    }
+
+    private fun sliceByteArray(byteArray: ByteArray?): ByteArray? {
+        var size = byteArray?.size ?: return null
+        if (size > 9) {
+            size = 9
+        }
+        return byteArray.sliceArray(0..size)
     }
 
     companion object {

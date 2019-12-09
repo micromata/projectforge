@@ -21,15 +21,12 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.api;
+package org.projectforge.plugins.ihk.service;
 
-/**
- * Used to display history entries.
- * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
- */
-public interface ShortDisplayNameCapable
+import org.springframework.stereotype.Service;
+
+@Service
+public class IHKService
 {
 
-  public String getShortDisplayName();
 }

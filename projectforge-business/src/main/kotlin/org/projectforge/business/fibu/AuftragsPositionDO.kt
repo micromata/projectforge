@@ -51,6 +51,10 @@ import javax.persistence.*
 @Table(name = "t_fibu_auftrag_position", uniqueConstraints = [UniqueConstraint(columnNames = ["auftrag_fk", "number"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_position_auftrag_fk", columnList = "auftrag_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_position_task_fk", columnList = "task_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_position_tenant_id", columnList = "tenant_id")])
 open class AuftragsPositionDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
+    override val shortDisplayName: String
+        @Transient
+        get() = "${auftrag?.nummer}.$number"
+
     @get:Column
     open var number: Short = 0
 
@@ -200,11 +204,6 @@ open class AuftragsPositionDO : DefaultBaseDO(), ShortDisplayNameCapable {
             hcb.append(auftrag!!.id)
         }
         return hcb.toHashCode()
-    }
-
-    @Transient
-    override fun getShortDisplayName(): String {
-        return (if (this.auftrag != null) this.auftrag!!.nummer.toString() else "???") + "." + number.toString()
     }
 
     @Transient

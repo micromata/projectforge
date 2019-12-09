@@ -32,6 +32,7 @@ import org.hibernate.search.annotations.FieldBridge
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
+import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.utils.StringComparator
 import java.math.BigDecimal
 import javax.persistence.*
@@ -53,7 +54,11 @@ import javax.persistence.*
 @NamedQueries(
         NamedQuery(name = EingangsrechnungDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from EingangsrechnungDO"))
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
-open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<EingangsrechnungDO> {
+open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<EingangsrechnungDO>, ShortDisplayNameCapable {
+
+    override val shortDisplayName: String
+        @Transient
+        get() = if (referenz.isNullOrBlank()) "$kreditor" else "$kreditor: $referenz"
 
     @PropertyInfo(i18nKey = "fibu.rechnung.receiver")
     @Field

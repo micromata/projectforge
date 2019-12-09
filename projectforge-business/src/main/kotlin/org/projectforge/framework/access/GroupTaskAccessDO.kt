@@ -75,7 +75,7 @@ open class GroupTaskAccessDO : DefaultBaseDO() {
     @get:Column(name = "description", length = 4000)
     open var description: String? = null
 
-    @NoHistory
+    @field:NoHistory
     @get:OneToMany(cascade = [CascadeType.MERGE, CascadeType.REMOVE], fetch = FetchType.EAGER, orphanRemoval = true)
     @get:JoinColumn(name = "group_task_access_fk", insertable = true, updatable = true)
     open var accessEntries: MutableSet<AccessEntryDO>? = null
