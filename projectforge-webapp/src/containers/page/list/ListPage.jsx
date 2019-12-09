@@ -72,6 +72,10 @@ function ListPage(
             },
         }),
         setFilterState: setFilter,
+        setSearchString: searchString => setFilter({
+            ...filter,
+            searchString,
+        }),
         sort: (column, sortProperty) => {
             let newSortProperty = sortProperty;
 

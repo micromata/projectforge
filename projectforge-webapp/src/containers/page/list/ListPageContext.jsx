@@ -81,6 +81,14 @@ export const defaultValues = {
         /* eslint-disable-next-line no-unused-vars */
         setFilterState: filter => notImplementedFunction(),
         /**
+         * Sets the searchString in the filter state.
+         *
+         * @param {String} searchString The new searchString.
+         */
+        // Disable no-unused-vars so its clear what you need to override the function.
+        /* eslint-disable-next-line no-unused-vars */
+        setSearchString: searchString => notImplementedFunction(),
+        /**
          * Change the sorting for a specific column.
          *
          * @param {String} column The id of the column to be sorted.
@@ -95,6 +103,11 @@ export const defaultValues = {
      */
     highlightRow: 0,
     /**
+     * @type {String} The url of the quick selector. Only given, when quick select is enabled for
+     *  the current page.
+     */
+    quickSelectUrl: undefined,
+    /**
      * Set the filter favorites.
      * @param {Object} filterFavorites The filter favorites provided by the rest api.
      */
@@ -108,6 +121,11 @@ export const defaultValues = {
     // Disable no-unused-vars so its clear what you need to override the function.
     /* eslint-disable-next-line no-unused-vars */
     setUI: ui => notImplementedFunction(),
+    /**
+     * @type {String} Link to the standard edit page which should be called when no further options
+     *  are set for an entry.
+     */
+    standardEditPage: '',
 };
 
 export const ListPageContext = React.createContext(defaultValues);
