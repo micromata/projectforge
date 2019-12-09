@@ -85,6 +85,10 @@ function SearchFilter() {
     });
     const handleFavoriteUpdate = () => fetchFavorites('update', { body: filter });
 
+    const handleSearchFilterChange = ({ target }) => {
+        filterHelper.setSearchString(target.value);
+    };
+
     return (
         <React.Fragment>
             <Row>
@@ -103,6 +107,8 @@ function SearchFilter() {
                                 )}
                                 autoComplete="off"
                                 placeholder={ui.translations.search}
+                                onChange={handleSearchFilterChange}
+                                value={filter.searchString || ''}
                             />
                         )}
                         className={styles.searchContainer}
