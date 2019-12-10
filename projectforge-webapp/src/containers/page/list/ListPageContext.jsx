@@ -101,7 +101,7 @@ export const defaultValues = {
     /**
      * @type {Number} The id of the object that should be highlighted in the row.
      */
-    highlightRow: 0,
+    highlightRow: -1,
     /**
      * @type {String} The url of the quick selector. Only given, when quick select is enabled for
      *  the current page.
