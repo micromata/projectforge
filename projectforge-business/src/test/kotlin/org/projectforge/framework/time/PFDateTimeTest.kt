@@ -109,6 +109,20 @@ class PFDateTimeTest {
     }
 
     @Test
+    fun sqlDateTest() {
+        var sqlDate = PFDateTime.parseUTCDate("2019-12-06 23:30")!!.sqlDate
+        var localDate = sqlDate.toLocalDate()
+        assertEquals(2019, localDate.year)
+        assertEquals(Month.DECEMBER, localDate.month)
+        assertEquals(7, localDate.dayOfMonth)
+        sqlDate = PFDateTime.parseUTCDate("2019-12-06 22:30")!!.sqlDate
+        localDate = sqlDate.toLocalDate()
+        assertEquals(2019, localDate.year)
+        assertEquals(Month.DECEMBER, localDate.month)
+        assertEquals(6, localDate.dayOfMonth)
+    }
+
+    @Test
     fun weekOfYearTest() {
         // German weeks:
         var dateTime = PFDateTime.parseUTCDate("2020-12-31 10:00")
@@ -141,6 +155,49 @@ class PFDateTimeTest {
 
         contextUser.locale = storedLocale
     }
+
+    @Test
+    fun ensurePrecision() {
+        assertPrecision("1970-11-20 23:00:00", "1970-11-21 21:04:50", DatePrecision.DAY)
+
+        assertPrecision("1970-11-21 04:00:00", "1970-11-21 04:50:23", DatePrecision.HOUR_OF_DAY)
+
+        assertPrecision("1970-11-21 04:50:00", "1970-11-21 04:50:23", DatePrecision.MINUTE)
+
+        assertPrecision("1970-11-21 04:00:00", "1970-11-21 04:00:00", DatePrecision.MINUTE_15)
+        assertPrecision("1970-11-21 04:00:00", "1970-11-21 04:07:59", DatePrecision.MINUTE_15)
+        assertPrecision("1970-11-21 04:15:00", "1970-11-21 04:08:00", DatePrecision.MINUTE_15)
+        assertPrecision("1970-11-21 04:15:00", "1970-11-21 04:15:00", DatePrecision.MINUTE_15)
+        assertPrecision("1970-11-21 04:15:00", "1970-11-21 04:22:59", DatePrecision.MINUTE_15)
+        assertPrecision("1970-11-21 04:30:00", "1970-11-21 04:23:00", DatePrecision.MINUTE_15)
+        assertPrecision("1970-11-21 04:30:00", "1970-11-21 04:30:00", DatePrecision.MINUTE_15)
+        assertPrecision("1970-11-21 04:30:00", "1970-11-21 04:37:59", DatePrecision.MINUTE_15)
+        assertPrecision("1970-11-21 04:45:00", "1970-11-21 04:38:00", DatePrecision.MINUTE_15)
+        assertPrecision("1970-11-21 04:45:00", "1970-11-21 04:45:00", DatePrecision.MINUTE_15)
+        assertPrecision("1970-11-21 04:45:00", "1970-11-21 04:52:59", DatePrecision.MINUTE_15)
+        assertPrecision("1970-11-21 05:00:00", "1970-11-21 04:53:00", DatePrecision.MINUTE_15)
+
+        assertPrecision("1970-11-21 04:00:00", "1970-11-21 04:02:59", DatePrecision.MINUTE_5)
+        assertPrecision("1970-11-21 04:05:00", "1970-11-21 04:03:00", DatePrecision.MINUTE_5)
+        assertPrecision("1970-11-21 04:50:00", "1970-11-21 04:48:00", DatePrecision.MINUTE_5)
+        assertPrecision("1970-11-21 04:50:00", "1970-11-21 04:52:59", DatePrecision.MINUTE_5)
+        assertPrecision("1970-11-21 04:55:00", "1970-11-21 04:53:00", DatePrecision.MINUTE_5)
+        assertPrecision("1970-11-21 04:55:00", "1970-11-21 04:57:59", DatePrecision.MINUTE_5)
+        assertPrecision("1970-11-21 05:00:00", "1970-11-21 04:58:00", DatePrecision.MINUTE_5)
+
+        assertPrecision("1970-11-21 04:50:23", "1970-11-21 04:50:23", DatePrecision.SECOND)
+    }
+
+    private fun assertPrecision(expected: String, dateString: String, precision: DatePrecision) {
+        val dt = PFDateTime.parseUTCDate(dateString)!!.withNano(123456).withPrecision(precision)
+        if (precision == DatePrecision.MILLISECOND) {
+            assertEquals(123000, dt.nano)
+        } else {
+            assertEquals(0, dt.nano)
+        }
+        assertEquals(expected, dt.isoStringSeconds)
+    }
+
 
     private fun checkDate(date: ZonedDateTime, year: Int, month: Month, dayOfMonth: Int, checkMidnight: Boolean = true) {
         assertEquals(year, date.year, "Year check failed.")

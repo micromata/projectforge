@@ -43,6 +43,10 @@ import javax.persistence.*
 @Table(name = "T_PLUGIN_SKILL_TRAINING_ATTENDEE", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_skill_training_attendee_attendee_fk", columnList = "attendee_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_skill_training_attendee_training_fk", columnList = "training_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_skill_training_attendee_tenant_id", columnList = "tenant_id")])
 open class TrainingAttendeeDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
+    override val shortDisplayName: String
+        @Transient
+        get() = "${training?.title} (#$id)"
+
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skilltraining.attendee.menu")
     @UserPrefParameter(i18nKey = "plugins.skillmatrix.skilltraining.attendee.menu")
     @IndexedEmbedded(depth = 1)
@@ -92,9 +96,4 @@ open class TrainingAttendeeDO : DefaultBaseDO(), ShortDisplayNameCapable {
     val trainingId: Int?
         @Transient
         get() = if (training != null) training!!.id else null
-
-    @Transient
-    override fun getShortDisplayName(): String {
-        return if (training != null) training!!.title + " (#" + this.id + ")" else " (#" + this.id + ")"
-    }
 }

@@ -87,6 +87,7 @@ public class BaseSearchFilter implements Serializable {
   }
 
   public void copyBaseSearchFieldsFrom(final BaseSearchFilter filter) {
+    this.searchFields = filter.searchFields;
     this.searchString = filter.searchString;
     this.deleted = filter.deleted;
     this.ignoreDeleted = filter.ignoreDeleted;
@@ -143,7 +144,7 @@ public class BaseSearchFilter implements Serializable {
    *
    * @return
    */
-  public String[] getSearchFields() {
+  public String[] getFullTextSearchFields() {
     return searchFields;
   }
 

@@ -9,11 +9,13 @@ function DynamicTableHead({ id, title, sortable, }) {
     const sortProperty = Array.findByField(filter.sortProperties, 'property', id);
 
     const handleHeadClick = () => {
-        filterHelper.sort(id, sortProperty);
+        if (sortable) {
+            filterHelper.sort(id, sortProperty);
+        }
     };
 
     return (
-        <th onClick={handleHeadClick} className={style.tableHead}>
+        <th onClick={handleHeadClick} className={sortable && style.clickableTableHead}>
             {sortable && <AnimatedChevron direction={(sortProperty || {}).sortOrder} />}
             {title}
         </th>
