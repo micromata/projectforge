@@ -45,6 +45,7 @@ import java.util.Set;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
+// TODO: Skip
 public class BirthdayEventsProvider extends MyFullCalendarEventsProvider
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BirthdayEventsProvider.class);

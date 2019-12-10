@@ -32,6 +32,7 @@ import org.projectforge.business.excel.ExportWorkbook;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.plugins.eed.model.EmployeeConfigurationDO;
 import org.projectforge.plugins.eed.model.EmployeeConfigurationTimedDO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +41,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -65,7 +65,7 @@ public class LBExporterService
   @Autowired
   private EmployeeConfigurationService employeeConfigurationService;
 
-  public byte[] getExcel(final List<EmployeeDO> employeeList, Calendar selectedDate)
+  public byte[] getExcel(final List<EmployeeDO> employeeList, PFDateTime selectedDate)
   {
     if (employeeList.size() < 1) {
       return new byte[0];
@@ -159,16 +159,16 @@ public class LBExporterService
   }
 
   private String getAttrValueForMonthAsString(EmployeeDO employee, String attrGroup, String attrProperty,
-      Calendar selectedDate)
+      PFDateTime selectedDate)
   {
-    final EmployeeTimedDO attribute = timeableService.getAttrRowForSameMonth(employee, attrGroup, selectedDate.getTime());
+    final EmployeeTimedDO attribute = timeableService.getAttrRowForSameMonth(employee, attrGroup, selectedDate.getUtilDate());
     return attribute != null ? attribute.getStringAttribute(attrProperty) : null;
   }
 
   private boolean getAttrValueForMonthAsBoolean(EmployeeDO employee, String attrGroup, String attrProperty,
-      Calendar selectedDate)
+      PFDateTime selectedDate)
   {
-    final EmployeeTimedDO attribute = timeableService.getAttrRowForSameMonth(employee, attrGroup, selectedDate.getTime());
+    final EmployeeTimedDO attribute = timeableService.getAttrRowForSameMonth(employee, attrGroup, selectedDate.getUtilDate());
 
     if (attribute == null) {
       return false;
@@ -179,15 +179,15 @@ public class LBExporterService
   }
 
   private BigDecimal getAttrValueForMonthAsBigDecimal(EmployeeDO employee, String attrGroupString, String attrProperty,
-      Calendar selectedDate)
+                                                      PFDateTime selectedDate)
   {
-    final EmployeeTimedDO attribute = timeableService.getAttrRowForSameMonth(employee, attrGroupString, selectedDate.getTime());
+    final EmployeeTimedDO attribute = timeableService.getAttrRowForSameMonth(employee, attrGroupString, selectedDate.getUtilDate());
     return attribute != null ? attribute.getAttribute(attrProperty, BigDecimal.class) : null;
   }
 
-  private BigDecimal getAttrValueForMonthAsBigDecimal(EmployeeConfigurationDO configuration, String attrGroup, String attrProperty, Calendar selectedDate)
+  private BigDecimal getAttrValueForMonthAsBigDecimal(EmployeeConfigurationDO configuration, String attrGroup, String attrProperty, PFDateTime selectedDate)
   {
-    EmployeeConfigurationTimedDO attribute = timeableService.getAttrRowForSameMonth(configuration, attrGroup, selectedDate.getTime());
+    EmployeeConfigurationTimedDO attribute = timeableService.getAttrRowForSameMonth(configuration, attrGroup, selectedDate.getUtilDate());
     return attribute != null ? attribute.getAttribute(attrProperty, BigDecimal.class) : null;
   }
 

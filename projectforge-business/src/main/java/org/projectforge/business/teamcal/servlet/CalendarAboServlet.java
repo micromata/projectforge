@@ -292,16 +292,16 @@ public class CalendarAboServlet extends HttpServlet
       return;
     }
 
-    final java.util.Calendar cal = java.util.Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
+    final PFDateTime dt = PFDateTime.now();
 
     // initializes timesheet filter
     final TimesheetFilter filter = new TimesheetFilter();
     filter.setUserId(timesheetUser.getId());
     filter.setDeleted(false);
-    cal.add(java.util.Calendar.MONTH, CalendarFeedConst.PERIOD_IN_MONTHS);
-    filter.setStopTime(cal.getTime());
-    cal.add(java.util.Calendar.MONTH, -2 * CalendarFeedConst.PERIOD_IN_MONTHS);
-    filter.setStartTime(cal.getTime());
+    PFDateTime stopTime = dt.plusMonths(CalendarFeedConst.PERIOD_IN_MONTHS);
+    filter.setStopTime(stopTime.getUtilDate());
+    PFDateTime startTime = dt.minusMonths(2 * CalendarFeedConst.PERIOD_IN_MONTHS);
+    filter.setStartTime(startTime.getUtilDate());
 
     final List<TimesheetDO> timesheetList = timesheetDao.getList(filter);
 
@@ -343,15 +343,15 @@ public class CalendarAboServlet extends HttpServlet
       }
       final Date date = day.getUtilDate();
       final TimeZone timeZone = day.getTimeZone();
-      final PFDateTime dh = PFDateTime.from(date, false, timeZone);
+      final PFDateTime dt = PFDateTime.from(date, false, timeZone);
       Holidays holidays = new Holidays();
-      if (!holidays.isHoliday(dh)) {
+      if (!holidays.isHoliday(dt)) {
         day = day.plusDays(1);
         continue;
       }
 
       final String title;
-      final String holidayInfo = holidays.getHolidayInfo(dh);
+      final String holidayInfo = holidays.getHolidayInfo(dt);
       if (holidayInfo != null && holidayInfo.startsWith("calendar.holiday.")) {
         title = ThreadLocalUserContext.getLocalizedString(holidayInfo);
       } else {

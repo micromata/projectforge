@@ -25,12 +25,11 @@ package org.projectforge.plugins.eed.service;
 
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 import org.projectforge.business.fibu.EmployeeDao;
+import org.projectforge.framework.time.PFDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,7 +48,7 @@ public class EEDHelper
   {
     // do not cache the years because this is a long lasting service and the years could change in the meantime
     final List<Integer> years = timeableService.getAvailableStartTimeYears(employeeDao.internalLoadAll());
-    final Integer actualYear = new GregorianCalendar().get(Calendar.YEAR);
+    final Integer actualYear = PFDateTime.now().getYear();
     if (!years.contains(actualYear)) {
       years.add(actualYear);
     }

@@ -27,14 +27,14 @@ import net.sf.mpxj.*;
 import net.sf.mpxj.mpx.MPXWriter;
 import net.sf.mpxj.mspdi.MSPDIWriter;
 import net.sf.mpxj.writer.ProjectWriter;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.calendar.Holidays;
+import org.projectforge.framework.time.PFDateTime;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.Date;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -109,18 +109,20 @@ public class ExportMSProject
     final ProjectCalendar calendar = file.addDefaultBaseCalendar();
     calendar.setWorkingDay(Day.SATURDAY, false);
     calendar.setWorkingDay(Day.SUNDAY, false);
-    final DayHolder dh = new DayHolder(ganttChart.getCalculatedStartDate());
+    PFDateTime dt = PFDateTime.from(ganttChart.getCalculatedStartDate());
     for (int i = 0; i < 3000; i++) { // Endless loop protection (paranoia)
-      dh.add(Calendar.DAY_OF_MONTH, 1);
-      if (!dh.isWorkingDay() && dh.isHoliday() && !dh.isWeekend()) {
+      dt = dt.plusDays(1);
+      Holidays holidays = new Holidays();
+      if (!holidays.isWorkingDay(dt.getDateTime()) && holidays.isHoliday(dt) && !dt.isWeekend()) {
         // Add this holiday to the calendar:
-        final Date date = dh.getSQLDate();
+        final Date date = dt.getSqlDate();
         calendar.addCalendarException(date, date);
         if (log.isDebugEnabled()) {
           log.debug("Add holiday: " + date);
         }
       }
-      if (!dh.before(ganttChart.getCalculatedEndDate())) {
+      PFDateTime dtEnd = PFDateTime.from(ganttChart.getCalculatedEndDate());
+      if (!dt.isBefore(dtEnd)) {
         break;
       }
     }

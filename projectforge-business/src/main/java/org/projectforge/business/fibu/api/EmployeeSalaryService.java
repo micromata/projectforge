@@ -25,15 +25,14 @@ package org.projectforge.business.fibu.api;
 
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeSalaryDO;
-
-import java.util.Calendar;
+import org.projectforge.framework.time.PFDateTime;
 
 public interface EmployeeSalaryService
 {
 
   EmployeeSalaryDO getLatestSalaryForEmployee(EmployeeDO employee);
 
-  EmployeeSalaryDO getEmployeeSalaryByDate(EmployeeDO employee, Calendar selectedDate);
+  EmployeeSalaryDO getEmployeeSalaryByDate(EmployeeDO employee, PFDateTime selectedDate);
 
   void saveOrUpdate(EmployeeSalaryDO employeeSalaryDO);
 

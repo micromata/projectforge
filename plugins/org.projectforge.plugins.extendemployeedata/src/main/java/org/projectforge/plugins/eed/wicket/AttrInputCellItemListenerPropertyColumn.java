@@ -35,9 +35,9 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.web.wicket.CellItemListener;
 
-import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 /**
@@ -107,11 +107,12 @@ public class AttrInputCellItemListenerPropertyColumn<T> extends PropertyColumn<T
   public void populateItem(final Item<ICellPopulator<T>> item, final String componentId, final IModel<T> rowModel)
   {
     final EmployeeDO employee = (EmployeeDO) rowModel.getObject();
-    final Calendar cal = new GregorianCalendar(selectedYear, selectedMonth - 1, 1, 0, 0);
-    EmployeeTimedDO row = timeableService.getAttrRowForSameMonth(employee, getPropertyExpression(), cal.getTime());
+    PFDateTime dt = PFDateTime.from(new GregorianCalendar(selectedYear, selectedMonth - 1, 1, 0, 0).getTime());
+
+    EmployeeTimedDO row = timeableService.getAttrRowForSameMonth(employee, getPropertyExpression(), dt.getUtilDate());
     if (row == null) {
       row = employeeService.addNewTimeAttributeRow(employee, getPropertyExpression());
-      row.setStartTime(cal.getTime());
+      row.setStartTime(dt.getUtilDate());
     }
     final AttrGroup attrGroup = guiAttrSchemaService.getAttrGroup(employee, getPropertyExpression());
     final AttrDescription attrDescription = guiAttrSchemaService.getAttrDescription(attrGroup, groupAttribute);

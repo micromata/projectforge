@@ -29,9 +29,9 @@ import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.impl.DBPredicate;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
 
 import java.math.BigDecimal;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Optional;
 
@@ -100,9 +100,9 @@ public class AuftragAndRechnungDaoHelper {
     if (rechnung.getFaelligkeit() == null && zahlungsZiel != null) {
       final Date rechnungsDatum = rechnung.getDatum();
       if (rechnungsDatum != null) {
-        final DayHolder day = new DayHolder(rechnungsDatum);
-        day.add(Calendar.DAY_OF_YEAR, zahlungsZiel);
-        rechnung.setFaelligkeit(day.getSQLDate());
+        PFDateTime day = PFDateTime.from(rechnungsDatum);
+        day = day.plusDays(zahlungsZiel);
+        rechnung.setFaelligkeit(day.getSqlDate());
       }
     }
   }
@@ -112,9 +112,9 @@ public class AuftragAndRechnungDaoHelper {
     if (rechnung.getDiscountMaturity() == null && discountZahlungsZiel != null) {
       final Date rechnungsDatum = rechnung.getDatum();
       if (rechnungsDatum != null) {
-        final DayHolder day = new DayHolder(rechnungsDatum);
-        day.add(Calendar.DAY_OF_YEAR, discountZahlungsZiel);
-        rechnung.setDiscountMaturity(day.getSQLDate());
+        PFDateTime day = PFDateTime.from(rechnungsDatum);
+        day = day.plusDays(discountZahlungsZiel);
+        rechnung.setDiscountMaturity(day.getSqlDate());
       }
     }
   }
