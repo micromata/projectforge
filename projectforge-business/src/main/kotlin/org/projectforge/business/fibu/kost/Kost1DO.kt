@@ -47,6 +47,10 @@ import javax.persistence.*
                 query = "from Kost1DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and endziffer=:endziffer and id!=:id"))
 open class Kost1DO : DefaultBaseDO(), ShortDisplayNameCapable {
 
+    override val shortDisplayName: String
+        @Transient
+        get() = KostFormatter.format(this)
+
     @PropertyInfo(i18nKey = "status")
     @Field(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
@@ -105,11 +109,6 @@ open class Kost1DO : DefaultBaseDO(), ShortDisplayNameCapable {
     val nummer: Int?
         @Transient
         get() = KostFormatter.getKostAsInt(nummernkreis, bereich, teilbereich, endziffer)
-
-    @Transient
-    override fun getShortDisplayName(): String {
-        return KostFormatter.format(this)
-    }
 
     /**
      * return true if nummernkreis, bereich, teilbereich and endziffer is equal, otherwise false;

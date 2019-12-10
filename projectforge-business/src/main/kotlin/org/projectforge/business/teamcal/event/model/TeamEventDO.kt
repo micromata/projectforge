@@ -105,7 +105,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
 
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.SECOND, encoding = EncodingType.STRING)
-    @NoHistory
+    @field:NoHistory
     @get:Column(name = "last_email")
     open var lastEmail: Timestamp? = null
 

@@ -46,13 +46,13 @@ import org.projectforge.common.anots.StringAlphanumericSort
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.ModificationStatus
+import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO
 import org.projectforge.framework.persistence.attr.impl.HibernateSearchAttrSchemaFieldInfoProvider
 import org.projectforge.framework.persistence.history.ToStringFieldBridge
 import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.Constants
-import org.slf4j.LoggerFactory
 import java.io.Serializable
 import java.math.BigDecimal
 import java.util.*
@@ -73,10 +73,13 @@ import javax.persistence.*
         NamedQuery(name = EmployeeDO.FIND_BY_USER_ID, query = "from EmployeeDO where user.id=:userId and tenant.id=:tenantId"),
         NamedQuery(name = EmployeeDO.FIND_BY_LASTNAME_AND_FIRST_NAME, query = "from EmployeeDO where user.lastname=:lastname and user.firstname=:firstname"))
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
-open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableAttr<Int, EmployeeTimedDO>, ComplexEntity, EntityWithConfigurableAttr, Comparable<Any> {
+open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableAttr<Int, EmployeeTimedDO>, ComplexEntity, EntityWithConfigurableAttr, Comparable<Any>,
+        ShortDisplayNameCapable {
     // The class must be declared as open for mocking in VacationServiceTest.
 
-    private val LOG = LoggerFactory.getLogger(EmployeeDO::class.java)
+    override val shortDisplayName: String
+        @Transient
+        get() = "${user?.shortDisplayName}"
 
     /**
      * The ProjectForge user assigned to this employee.
@@ -244,7 +247,7 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
     // unfortunatelly this does work. Date is not valid for order (only integral types)
     //  @OrderColumn(name = "startTime")
     @HistoryProperty(converter = TimependingHistoryPropertyConverter::class)
-    override fun getTimeableAttributes(): List<EmployeeTimedDO> {
+    override fun getTimeableAttributes(): MutableList<EmployeeTimedDO> {
         return timeableAttributes
     }
 

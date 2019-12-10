@@ -32,6 +32,7 @@ import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
 
 /**
+ * All date time acrobatics of ProjectForge should be done by PFDateTime or PFDate.
  * Immutable holder of [LocalDate] for transforming to [java.sql.Date] (once) if used several times.
  * If you don't need to use [java.sql.Date] you may use [LocalDate] directly.
  */
@@ -136,6 +137,19 @@ class PFDate(val date: LocalDate) {
                 return PFDate(date.toLocalDate())
             }
             val dateTime = PFDateTime.from(date)!!
+            val localDate = LocalDate.of(dateTime.year, dateTime.month, dateTime.dayOfMonth)
+            return PFDate(localDate)
+        }
+
+        /**
+         * @param date Date of type java.util.Date or java.sql.Date.
+         * Creates mindnight [ZonedDateTime] from given [date].
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun from(dateTime: PFDateTime, nowIfNull: Boolean = false): PFDate? {
+            if (dateTime == null)
+                return if (nowIfNull) now() else null
             val localDate = LocalDate.of(dateTime.year, dateTime.month, dateTime.dayOfMonth)
             return PFDate(localDate)
         }

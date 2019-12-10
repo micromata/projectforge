@@ -75,6 +75,7 @@ public class AddressFilter extends BaseSearchFilter implements Serializable
   {
     super(filter);
     reset();
+    copyBaseSearchFieldsFrom(filter);
     if (filter instanceof AddressFilter) {
       AddressFilter obj = (AddressFilter) filter;
       this.uptodate = obj.isUptodate();

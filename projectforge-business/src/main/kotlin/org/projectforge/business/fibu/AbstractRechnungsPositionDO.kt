@@ -36,13 +36,18 @@ import javax.persistence.Transient
 
 @MappedSuperclass
 abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), ShortDisplayNameCapable {
+
+    override val shortDisplayName: String
+        @Transient
+        get() = "$number"
+
     @PropertyInfo(i18nKey = "fibu.rechnung.nummer")
     @get:Column
     open var number: Short = 0
 
     @PropertyInfo(i18nKey = "fibu.rechnung.text")
     @get:Column(name = "s_text", length = 1000)
-    open  var text: String? = null
+    open var text: String? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.menge")
     @get:Column(scale = 5, precision = 18)
@@ -57,7 +62,7 @@ abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), ShortDisplayNameCa
     open var vat: BigDecimal? = null
 
     @get:Transient
-    abstract var  kostZuweisungen: MutableList<KostZuweisungDO>?
+    abstract var kostZuweisungen: MutableList<KostZuweisungDO>?
 
     @get:Transient
     abstract val rechnungId: Int?
@@ -130,11 +135,6 @@ abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), ShortDisplayNameCa
     val isEmpty: Boolean
         @Transient
         get() = text.isNullOrEmpty() && NumberHelper.isZeroOrNull(einzelNetto)
-
-    @Transient
-    override fun getShortDisplayName(): String {
-        return number.toString()
-    }
 
     override fun equals(other: Any?): Boolean {
         if (other == null || other !is AbstractRechnungsPositionDO) return false
