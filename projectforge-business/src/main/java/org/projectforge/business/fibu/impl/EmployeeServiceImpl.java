@@ -43,6 +43,7 @@ import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImpl;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.time.PFDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -207,8 +208,8 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   }
 
   @Override
-  public BigDecimal getMonthlySalary(EmployeeDO employee, Calendar selectedDate) {
-    final EmployeeTimedDO attribute = timeableService.getAttrRowValidAtDate(employee, "annuity", selectedDate.getTime());
+  public BigDecimal getMonthlySalary(EmployeeDO employee, PFDateTime selectedDate) {
+    final EmployeeTimedDO attribute = timeableService.getAttrRowValidAtDate(employee, "annuity", selectedDate.getUtilDate());
     final BigDecimal annualSalary = attribute != null ? attribute.getAttribute("annuity", BigDecimal.class) : null;
     final BigDecimal weeklyWorkingHours = employee.getWeeklyWorkingHours();
 
@@ -309,18 +310,16 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   }
 
   @Override
-  public boolean isFulltimeEmployee(final EmployeeDO employee, final Calendar selectedDate) {
-    final Calendar date = (Calendar) selectedDate.clone(); // create a clone to avoid changing the original object
-    final Date startOfMonth = date.getTime();
-    date.add(Calendar.MONTH, 1);
-    date.add(Calendar.DATE, -1);
-    final Date endOfMonth = date.getTime();
+  public boolean isFulltimeEmployee(final EmployeeDO employee, final PFDateTime selectedDate) {
+    final Date startOfMonth = selectedDate.getUtilDate();
+    final PFDateTime dt = selectedDate.plusMonths(1).minusDays(1);
+    final Date endOfMonth = dt.getUtilDate();
 
     final List<EmployeeTimedDO> attrRows = timeableService
             .getAttrRowsWithinDateRange(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, startOfMonth, endOfMonth);
 
     final EmployeeTimedDO rowValidAtBeginOfMonth = timeableService
-            .getAttrRowValidAtDate(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, selectedDate.getTime());
+            .getAttrRowValidAtDate(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, selectedDate.getUtilDate());
 
     if (rowValidAtBeginOfMonth != null) {
       attrRows.add(rowValidAtBeginOfMonth);

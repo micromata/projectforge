@@ -29,14 +29,13 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.framework.i18n.I18nHelper;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.plugins.eed.service.EEDHelper;
 import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-
-import java.util.Calendar;
 
 public class ExportDataForm extends AbstractStandardForm<Object, ExportDataPage>
 {
@@ -63,14 +62,14 @@ public class ExportDataForm extends AbstractStandardForm<Object, ExportDataPage>
     //Fieldset for Date DropDown
     final FieldsetPanel fsMonthYear = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("plugins.eed.listcare.yearmonth"));
     //Get actual Month as preselected
-    selectedMonth = Calendar.getInstance().get(Calendar.MONTH) + 1;
+    selectedMonth = PFDateTime.now().getMonthValue() + 1;
     //Month DropDown
     DropDownChoicePanel<Integer> ddcMonth = new DropDownChoicePanel<>(fsMonthYear.newChildId(),
         new DropDownChoice<>(DropDownChoicePanel.WICKET_ID, new PropertyModel<>(this, "selectedMonth"),
             EEDHelper.MONTH_INTEGERS));
     fsMonthYear.add(ddcMonth);
     //Get actual year for pre select
-    selectedYear = Calendar.getInstance().get(Calendar.YEAR);
+    selectedYear = PFDateTime.now().getYear();
     //Year DropDown
     DropDownChoicePanel<Integer> ddcYear = new DropDownChoicePanel<>(fsMonthYear.newChildId(),
         new DropDownChoice<>(DropDownChoicePanel.WICKET_ID, new PropertyModel<>(this, "selectedYear"),

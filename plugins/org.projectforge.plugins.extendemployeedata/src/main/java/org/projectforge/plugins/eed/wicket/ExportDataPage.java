@@ -29,12 +29,12 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.plugins.eed.service.LBExporterService;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 import org.projectforge.web.wicket.DownloadUtils;
 
-import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 
@@ -92,8 +92,9 @@ public class ExportDataPage extends AbstractStandardFormPage implements ISelectC
     final String filename = "Liste-PF-"
         + form.selectedMonth + "-" + form.selectedYear
         + ".xls";
-    Calendar cal = new GregorianCalendar(form.selectedYear, form.selectedMonth - 1, 1);
-    byte[] xls = exporterService.getExcel(employeeList, cal);
+    PFDateTime dt = PFDateTime.from(new GregorianCalendar(form.selectedYear, form.selectedMonth - 1, 1)
+        .getTime());
+    byte[] xls = exporterService.getExcel(employeeList, dt);
     if (xls == null || xls.length == 0) {
       log.error("Oups, xls has zero size. Filename: " + filename);
       return;

@@ -30,11 +30,11 @@ import org.projectforge.framework.configuration.IConfigurationParam;
 import org.projectforge.framework.configuration.SecurityConfig;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.TimeNotation;
 import org.projectforge.mail.SendMailConfig;
 
 import javax.net.ssl.SSLSocketFactory;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -127,7 +127,7 @@ public interface ConfigurationService {
 
   String getTeamCalCryptPassword();
 
-  Calendar getEndDateVacationFromLastYear();
+  PFDateTime getEndDateVacationFromLastYear();
 
   String getHREmailadress();
 
