@@ -2,7 +2,7 @@ import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import PropTypes from 'prop-types';
 import React from 'react';
 import LoadingContainer from '../../../components/design/loading-container';
-import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
+import { debouncedWaitTime, getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import TaskTreeTable from './table/TaskTreeTable';
 import TaskFilter from './TaskFilter';
 import TaskTreeContext, { taskTreeContextDefaultValues } from './TaskTreeContext';
@@ -94,7 +94,7 @@ function TaskTreePanel(
     const [nodes, setNodes] = React.useState([]);
     const [columnsVisibility, setColumnsVisibility] = React.useState({});
     const [loadTasksDebounced] = React.useState(
-        () => AwesomeDebouncePromise(loadTasksBounced, 500),
+        () => AwesomeDebouncePromise(loadTasksBounced, debouncedWaitTime),
     );
 
     const loadTasks = (

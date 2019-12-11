@@ -8,7 +8,7 @@ import Navigation from '../../../../components/base/navigation';
 import { Col, Input, Row } from '../../../../components/design';
 import AdvancedPopper from '../../../../components/design/popper/AdvancedPopper';
 import AdvancedPopperAction from '../../../../components/design/popper/AdvancedPopperAction';
-import { getServiceURL, handleHTTPErrors } from '../../../../utilities/rest';
+import { debouncedWaitTime, getServiceURL, handleHTTPErrors } from '../../../../utilities/rest';
 import FavoritesPanel from '../../../panel/favorite/FavoritesPanel';
 import styles from '../ListPage.module.scss';
 import { ListPageContext } from '../ListPageContext';
@@ -53,7 +53,7 @@ function SearchFilter() {
     const [quickSelections, setQuickSelections] = React.useState([]);
     const [searchActive, setSearchActive] = React.useState(false);
     const [loadQuickSelections] = React.useState(
-        () => AwesomeDebouncePromise(loadQuickSelectionsBounced, 500),
+        () => AwesomeDebouncePromise(loadQuickSelectionsBounced, debouncedWaitTime),
     );
 
     // Initial QuickSelections call. Recall when url changed.
