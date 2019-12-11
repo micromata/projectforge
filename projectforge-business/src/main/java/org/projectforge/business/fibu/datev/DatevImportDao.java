@@ -41,6 +41,8 @@ import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.framework.utils.ActionLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
@@ -49,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 @Repository
+@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class DatevImportDao {
   public static final UserRightId USER_RIGHT_ID = UserRightId.FIBU_DATEV_IMPORT;
   static final String[] KONTO_DIFF_PROPERTIES = {"nummer", "bezeichnung"};
