@@ -8,7 +8,7 @@
     padding: .5em;
 
     // Use :global(...) to force css-modules to not convert #searchFilter.
-    :global(#searchFilter) {
+    :global(#searchString) {
       border: none;
       top: -2px;
       margin-left: 2px;
@@ -17,6 +17,13 @@
 
   .completions {
     top: .8em;
+
+    .errorMessage {
+      margin: 0;
+      padding: 1em;
+      background-color: #fafafa;
+      text-align: center;
+    }
 
     .entries {
       margin: 0;

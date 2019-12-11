@@ -18,9 +18,9 @@ export const defaultValues = {
          */
         entries: [],
         /**
-         * @type {Object} Map of the checkboxes and maxRows.
+         * @type {String} The string you can search for quick selections.
          */
-        searchFilter: {},
+        searchString: '',
     },
     filterFavorites: [],
     /**

@@ -1,6 +1,6 @@
 import { faChevronRight, faSearch } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import classNames from 'classnames';
+import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import React from 'react';
 import { Navbar } from 'reactstrap';
 import { DynamicLayoutContext } from '../../../../components/base/dynamicLayout/context';
@@ -14,6 +14,25 @@ import styles from '../ListPage.module.scss';
 import { ListPageContext } from '../ListPageContext';
 import MagicFilterPill from './MagicFilterPill';
 
+const loadQuickSelectionsBounced = (
+    {
+        url,
+        searchString = '',
+        setQuickSelections,
+    },
+) => {
+    fetch(
+        getServiceURL(url.replace(':searchString', encodeURIComponent(searchString))),
+        {
+            method: 'GET',
+            credentials: 'include',
+            headers: { Accept: 'application/json' },
+        },
+    )
+        .then(handleHTTPErrors)
+        .then(response => response.json())
+        .then(setQuickSelections);
+};
 
 function SearchFilter() {
     const {
@@ -26,11 +45,27 @@ function SearchFilter() {
         filter,
         filterFavorites,
         filterHelper,
+        quickSelectUrl,
         setFilterFavorites,
         setUI,
     } = React.useContext(ListPageContext);
 
+    const [quickSelections, setQuickSelections] = React.useState([]);
     const [searchActive, setSearchActive] = React.useState(false);
+    const [loadQuickSelections] = React.useState(
+        () => AwesomeDebouncePromise(loadQuickSelectionsBounced, 500),
+    );
+
+    // Initial QuickSelections call. Recall when url changed.
+    React.useEffect(() => {
+        if (quickSelectUrl) {
+            loadQuickSelections({
+                url: quickSelectUrl,
+                searchString: filter.searchString,
+                setQuickSelections,
+            });
+        }
+    }, [quickSelectUrl, filter.searchString]);
 
     const saveUpdateResponse = (
         {
@@ -85,11 +120,7 @@ function SearchFilter() {
     });
     const handleFavoriteUpdate = () => fetchFavorites('update', { body: filter });
 
-    const handleSearchFilterChange = ({ target }) => {
-        filterHelper.setSearchString(target.value);
-
-        // TODO AUTO COMPLETION
-    };
+    const handleSearchStringChange = ({ target }) => filterHelper.setSearchString(target.value);
 
     return (
         <React.Fragment>
@@ -101,55 +132,49 @@ function SearchFilter() {
                         isOpen={searchActive}
                         basic={(
                             <Input
-                                id="searchFilter"
+                                id="searchString"
                                 icon={faSearch}
-                                className={classNames(
-                                    styles.search,
-                                    { [styles.active]: searchActive },
-                                )}
+                                className={styles.search}
                                 autoComplete="off"
                                 placeholder={ui.translations.search}
-                                onChange={handleSearchFilterChange}
+                                onChange={handleSearchStringChange}
                                 value={filter.searchString || ''}
                             />
                         )}
                         className={styles.searchContainer}
                         actions={(
-                            <AdvancedPopperAction type="delete" disabled>
+                            <AdvancedPopperAction
+                                type="delete"
+                                disabled={!filter.searchString}
+                                onClick={() => filterHelper.setSearchString('')}
+                            >
                                 {ui.translations.delete || ''}
                             </AdvancedPopperAction>
                         )}
                     >
                         <ul className={styles.entries}>
-                            {/* TODO USE SERVER AUTO COMPLETION */}
                             {/* TODO ADD KEYBOARD LISTENER FOR SELECTING */}
-                            <li
-                                className={styles.entry}
-                                onClick={console.log}
-                                role="option"
-                                aria-selected="false"
-                                onKeyPress={undefined}
-                            >
-                                Entry A
-                                <FontAwesomeIcon
-                                    icon={faChevronRight}
-                                    className={styles.icon}
-                                />
-                            </li>
-                            <li
-                                className={styles.entry}
-                                onClick={console.log}
-                                role="option"
-                                aria-selected="false"
-                                onKeyPress={undefined}
-                            >
-                                Entry B
-                                <FontAwesomeIcon
-                                    icon={faChevronRight}
-                                    className={styles.icon}
-                                />
-                            </li>
+                            {/* TODO onClick Handler */}
+                            {quickSelections.map(({ id, displayName }) => (
+                                <li
+                                    key={`quick-selection-${id}`}
+                                    className={styles.entry}
+                                    onClick={console.log}
+                                    role="option"
+                                    aria-selected="false"
+                                    onKeyPress={undefined}
+                                >
+                                    {displayName}
+                                    <FontAwesomeIcon
+                                        icon={faChevronRight}
+                                        className={styles.icon}
+                                    />
+                                </li>
+                            ))}
                         </ul>
+                        {quickSelections.length === 0 && (
+                            <p className={styles.errorMessage}>???No quick selections found.???</p>
+                        )}
                     </AdvancedPopper>
                 </Col>
                 <Col sm={1} className="d-flex align-items-center">
