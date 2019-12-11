@@ -1,6 +1,10 @@
 const testServer = 'http://localhost:8080/rs';
 
-export const debouncedWaitTime = 250;
+// Save Data when saveData mode is enabled.
+// https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/saveData
+export const debouncedWaitTime = (
+    navigator && navigator.connection && navigator.connection.saveData
+) ? 1000 : 250;
 
 // Cannot achieve coverage of 100% because of testing environment.
 export const baseURL = (process.env.NODE_ENV === 'development' ? testServer : '/rs');
