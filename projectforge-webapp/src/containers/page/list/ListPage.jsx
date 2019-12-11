@@ -25,6 +25,7 @@ function ListPage(
     });
     const [filterFavorites, setFilterFavorites] = React.useState([]);
     const [variables, setVariables] = React.useState({});
+    const [constants, setConstants] = React.useState({});
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState(undefined);
 
@@ -133,6 +134,8 @@ function ListPage(
                     data: responseData,
                     filter: responseFilter,
                     filterFavorites: responseFilterFavorites,
+                    quickSelectUrl,
+                    standardEditPage,
                     variables: responseVariables,
                 },
             ) => {
@@ -141,6 +144,10 @@ function ListPage(
                 setData(responseData);
                 setUI(responseUi);
                 setVariables(responseVariables);
+                setConstants({
+                    quickSelectUrl,
+                    standardEditPage,
+                });
                 setLoading(false);
             })
             .catch(setError);
@@ -231,7 +238,6 @@ function ListPage(
     return (
         <Container fluid>
             <Card>
-                {/* TODO ADD NEW FIELDS TO CONTEXT */}
                 <ListPageContext.Provider
                     value={{
                         ...defaultContextValues,
@@ -242,6 +248,7 @@ function ListPage(
                         highlightRow: location.state ? location.state.id : -1,
                         setFilterFavorites,
                         setUI,
+                        ...constants,
                     }}
                     variables={variables}
                 >
