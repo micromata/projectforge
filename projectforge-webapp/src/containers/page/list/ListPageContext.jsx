@@ -103,6 +103,13 @@ export const defaultValues = {
      */
     highlightRow: -1,
     /**
+     * Opens the edit page with the default edit page link.
+     * @param id The id of the edit page that should be opened.
+     */
+    // Disable no-unused-vars so its clear what you need to override the function.
+    /* eslint-disable-next-line no-unused-vars */
+    openEditPage: id => notImplementedFunction(),
+    /**
      * @type {String} The url of the quick selector. Only given, when quick select is enabled for
      *  the current page.
      */
@@ -121,11 +128,6 @@ export const defaultValues = {
     // Disable no-unused-vars so its clear what you need to override the function.
     /* eslint-disable-next-line no-unused-vars */
     setUI: ui => notImplementedFunction(),
-    /**
-     * @type {String} Link to the standard edit page which should be called when no further options
-     *  are set for an entry.
-     */
-    standardEditPage: '',
 };
 
 export const ListPageContext = React.createContext(defaultValues);

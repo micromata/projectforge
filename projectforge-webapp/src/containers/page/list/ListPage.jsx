@@ -6,6 +6,7 @@ import DynamicCheckbox
     from '../../../components/base/dynamicLayout/components/input/DynamicCheckbox';
 import { Card, Container } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
+import history from '../../../utilities/history';
 import { getObjectFromQuery, getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import { defaultValues as defaultContextValues, ListPageContext } from './ListPageContext';
 import SearchFilter from './searchFilter/SearchFilter';
@@ -219,6 +220,8 @@ function ListPage(
         }
     };
 
+    const openEditPage = id => history.push(`/${constants.standardEditPage.replace(':id', id)}`);
+
     // Only reload the list when the category or search string changes.
     React.useEffect(loadInitialList, [match.params.category, location.search]);
 
@@ -246,6 +249,7 @@ function ListPage(
                         filterFavorites,
                         filterHelper,
                         highlightRow: location.state ? location.state.id : -1,
+                        openEditPage,
                         setFilterFavorites,
                         setUI,
                         ...constants,
