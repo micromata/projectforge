@@ -45,6 +45,7 @@ function SearchFilter() {
         filter,
         filterFavorites,
         filterHelper,
+        openEditPage,
         quickSelectUrl,
         setFilterFavorites,
         setUI,
@@ -159,7 +160,7 @@ function SearchFilter() {
                                 <li
                                     key={`quick-selection-${id}`}
                                     className={styles.entry}
-                                    onClick={console.log}
+                                    onClick={() => openEditPage(id)}
                                     role="option"
                                     aria-selected="false"
                                     onKeyPress={undefined}
