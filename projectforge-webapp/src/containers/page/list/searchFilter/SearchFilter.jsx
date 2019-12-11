@@ -8,6 +8,7 @@ import Navigation from '../../../../components/base/navigation';
 import { Col, Input, Row } from '../../../../components/design';
 import AdvancedPopper from '../../../../components/design/popper/AdvancedPopper';
 import AdvancedPopperAction from '../../../../components/design/popper/AdvancedPopperAction';
+import { getNamedContainer } from '../../../../utilities/layout';
 import { debouncedWaitTime, getServiceURL, handleHTTPErrors } from '../../../../utilities/rest';
 import FavoritesPanel from '../../../panel/favorite/FavoritesPanel';
 import styles from '../ListPage.module.scss';
@@ -56,6 +57,8 @@ function SearchFilter() {
     const [loadQuickSelections] = React.useState(
         () => AwesomeDebouncePromise(loadQuickSelectionsBounced, debouncedWaitTime),
     );
+
+    const searchFilter = getNamedContainer('searchFilter', ui.namedContainers);
 
     // Initial QuickSelections call. Recall when url changed.
     React.useEffect(() => {
@@ -208,6 +211,23 @@ function SearchFilter() {
             </Row>
             <hr />
             <div className={styles.magicFilters}>
+                {searchFilter && filter.entries
+                    .map(({ field, value }) => ({
+                        details: Array.findByField(searchFilter.content, 'id', field),
+                        field,
+                        value,
+                    }))
+                    .filter(({ details }) => details !== undefined)
+                    .map(({ details }) => (
+                        <MagicFilterPill
+                            key={`magic-filter-${details.id}`}
+                            translations={ui.translations}
+                            name={details.label}
+                            value="abc"
+                        >
+                            {details.label}
+                        </MagicFilterPill>
+                    ))}
                 <MagicFilterPill
                     name="Firma"
                     value="Micromata"
@@ -222,7 +242,7 @@ function SearchFilter() {
                     Input Name
                 </MagicFilterPill>
                 <MagicFilterPill
-                    name="Weitere Filter"
+                    name="???Weitere Filter???"
                     translations={ui.translations}
                 >
                     Weitere Filter
