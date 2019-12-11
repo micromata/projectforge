@@ -1,5 +1,7 @@
 const testServer = 'http://localhost:8080/rs';
 
+export const debouncedWaitTime = 250;
+
 // Cannot achieve coverage of 100% because of testing environment.
 export const baseURL = (process.env.NODE_ENV === 'development' ? testServer : '/rs');
 
