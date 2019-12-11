@@ -284,7 +284,7 @@ abstract class AbstractBaseRest<
         layout.postProcessPageMenu()
         layout.add(MenuItem(CREATE_MENU, title = "+", url = "${Const.REACT_APP_PATH}${getCategory()}/edit"), 0)
         return InitialListData(ui = layout,
-                standardEditPage = "${Const.REACT_APP_PATH}${getCategory()}/edit/\${id}",
+                standardEditPage = "${Const.REACT_APP_PATH}${getCategory()}/edit/:id",
                 quickSelectUrl = quickSelectUrl,
                 data = resultSet,
                 filter = filter,
@@ -295,7 +295,7 @@ abstract class AbstractBaseRest<
      * At standard, quickSelectUrl is only given, if the doClass implements ShortDisplayNameCapable and autoCompleteSearchFields are given.
      */
     protected open val quickSelectUrl: String?
-        get() = if (!autoCompleteSearchFields.isNullOrEmpty() && ShortDisplayNameCapable::class.java.isAssignableFrom(baseDao.doClass)) "${getRestPath()}/quickSelect?search=\${searchString}" else null
+        get() = if (!autoCompleteSearchFields.isNullOrEmpty() && ShortDisplayNameCapable::class.java.isAssignableFrom(baseDao.doClass)) "${getRestPath()}/quickSelect?search=:searchString" else null
 
     /**
      * Add customized magic filter element in addition to the automatically detected elements.
