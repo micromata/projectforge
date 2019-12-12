@@ -23,20 +23,7 @@ function ListPage(
         [match.params.category, location.search],
     );
 
-    /*
-    // Update the list on new sorting
-    React.useEffect(() => {
-        if (loading || !filter.sortProperties) {
-            return;
-        }
-
-        performListUpdate();
-    }, [filter.sortProperties]);
-    if (category.error) {
-        return <h4>{category.error.message}</h4>;
-    }
-
-     */
+    // TODO ADD ERROR HANDLING
 
     return (
         <Container fluid>
