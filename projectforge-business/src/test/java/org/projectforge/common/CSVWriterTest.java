@@ -24,19 +24,21 @@
 package org.projectforge.common;
 
 import org.junit.jupiter.api.Test;
+import org.projectforge.framework.time.PFDateTime;
 
 import java.io.StringWriter;
-import java.util.Calendar;
+import java.time.Month;
+import java.time.ZoneId;
 import java.util.Date;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class CSVWriterTest
 {
   @Test
-  public void testWriteCSV() throws Exception
-  {
-    Date date = createDate(1970, Calendar.NOVEMBER, 21, 13, 17, 57, 742);
+  public void testWriteCSV() {
+    Date date = createDate(1970, Month.NOVEMBER.getValue(), 21, 13, 17, 57, 742);
     StringWriter writer = new StringWriter();
     CSVWriter csv = new CSVWriter(writer);
     csv.write("Hallo");
@@ -56,14 +58,7 @@ public class CSVWriterTest
 
   private Date createDate(int year, int month, int day, int hour, int minute, int second, int millisecond)
   {
-    Calendar c = Calendar.getInstance();
-    c.set(Calendar.YEAR, year);
-    c.set(Calendar.MONTH, month);
-    c.set(Calendar.DAY_OF_MONTH, day);
-    c.set(Calendar.HOUR_OF_DAY, hour);
-    c.set(Calendar.MINUTE, minute);
-    c.set(Calendar.SECOND, second);
-    c.set(Calendar.MILLISECOND, millisecond);
-    return c.getTime();
+    return PFDateTime.now(ZoneId.of("UTC"), Locale.GERMAN).withYear(year).withMonth(month)
+        .withDayOfMonth(day).withHour(hour).withMinute(minute).withSecond(second).withMilliSecond(millisecond).getUtilDate();
   }
 }

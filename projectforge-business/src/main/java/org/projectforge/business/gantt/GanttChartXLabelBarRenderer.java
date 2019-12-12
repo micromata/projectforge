@@ -258,9 +258,6 @@ public class GanttChartXLabelBarRenderer
               // So draw labels on 1st, 5th, 10th, 15th, 20th, 25th of month.
               drawLabel = (dayOfMonth == 1 || dayOfMonth == 5 || dayOfMonth == 10 || dayOfMonth == 15 || dayOfMonth == 20 || dayOfMonth == 25);
             } else if (labelScale <= 15) {
-              // So draw labels on 1st, 15th.
-              drawLabel = (dayOfMonth == 1 || dayOfMonth == 15);
-            } else if (labelScale <= 15) {
               // So draw labels on 1st.
               drawLabel = (dayOfMonth == 1);
             } else {

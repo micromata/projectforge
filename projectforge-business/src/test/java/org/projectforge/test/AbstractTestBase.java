@@ -51,6 +51,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.registry.Registry;
 import org.projectforge.web.WicketSupport;
 import org.springframework.beans.BeansException;
@@ -67,7 +68,6 @@ import javax.persistence.PersistenceContext;
 import javax.sql.DataSource;
 import java.io.File;
 import java.math.BigDecimal;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -409,9 +409,9 @@ public abstract class AbstractTestBase {
     assertTrue(v1.compareTo(v2) == 0, "BigDecimal values are not equal.");
   }
 
-  protected Calendar assertUTCDate(final Date date, final int year, final int month, final int day, final int hour,
-                                   final int minute,
-                                   final int second) {
+  protected PFDateTime assertUTCDate(final Date date, final int year, final int month, final int day, final int hour,
+                                     final int minute,
+                                     final int second) {
     final Calendar cal = Calendar.getInstance(DateHelper.UTC);
     cal.setTime(date);
     assertEquals(year, cal.get(Calendar.YEAR));

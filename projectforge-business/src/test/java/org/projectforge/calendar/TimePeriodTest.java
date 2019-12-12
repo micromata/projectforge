@@ -23,14 +23,14 @@
 
 package org.projectforge.calendar;
 
+import org.jfree.data.time.Month;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.TimePeriod;
 import org.projectforge.test.TestSetup;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -50,32 +50,31 @@ public class TimePeriodTest
   @Test
   public void testTimePeriod()
   {
-    final DateHolder date1 = new DateHolder(new Date(), DatePrecision.MINUTE, Locale.GERMAN);
-    date1.setDate(1970, Calendar.NOVEMBER, 21, 0, 0, 0);
+    final PFDateTime dateTime1 = PFDateTime.from(new Date(), true, null, Locale.GERMAN).withPrecision(DatePrecision.MINUTE)
+        .withYear(1970).withMonth(Month.NOVEMBER).withDayOfMonth(21).withHour(0).withMinute(0).withSecond(0);
 
-    final DateHolder date2 = new DateHolder(new Date(), DatePrecision.MINUTE, Locale.GERMAN);
-    date2.setDate(1970, Calendar.NOVEMBER, 21, 10, 0, 0);
+    PFDateTime dateTime2 = dateTime1.withHour(10);
 
-    TimePeriod timePeriod = new TimePeriod(date1.getDate(), date2.getDate());
+    TimePeriod timePeriod = new TimePeriod(dateTime1.getUtilDate(), dateTime2.getUtilDate());
     assertResultArray(new int[] { 0, 10, 0 }, timePeriod.getDurationFields());
     assertResultArray(new int[] { 1, 2, 0 }, timePeriod.getDurationFields(8));
 
-    date2.setDate(1970, Calendar.NOVEMBER, 22, 0, 0, 0);
-    timePeriod = new TimePeriod(date1.getDate(), date2.getDate());
+    dateTime2 = dateTime2.withDayOfMonth(22).withHour(0);
+    timePeriod = new TimePeriod(dateTime1.getUtilDate(), dateTime2.getUtilDate());
     assertResultArray(new int[] { 1, 0, 0 }, timePeriod.getDurationFields());
     assertResultArray(new int[] { 3, 0, 0 }, timePeriod.getDurationFields(8));
     assertResultArray(new int[] { 0, 24, 0 }, timePeriod.getDurationFields(8, 25));
     assertResultArray(new int[] { 3, 0, 0 }, timePeriod.getDurationFields(8, 24));
 
-    date2.setDate(1970, Calendar.NOVEMBER, 21, 23, 59, 59);
-    timePeriod = new TimePeriod(date1.getDate(), date2.getDate());
+    dateTime2 = dateTime2.withDayOfMonth(21).withHour(23).withMinute(59).withSecond(59);
+    timePeriod = new TimePeriod(dateTime1.getUtilDate(), dateTime2.getUtilDate());
     assertResultArray(new int[] { 0, 23, 59 }, timePeriod.getDurationFields());
     assertResultArray(new int[] { 2, 7, 59 }, timePeriod.getDurationFields(8));
     assertResultArray(new int[] { 0, 23, 59 }, timePeriod.getDurationFields(8, 24));
     assertResultArray(new int[] { 2, 7, 59 }, timePeriod.getDurationFields(8, 22));
 
-    date2.setDate(1970, Calendar.NOVEMBER, 23, 5, 30, 0);
-    timePeriod = new TimePeriod(date1.getDate(), date2.getDate());
+    dateTime2 = dateTime2.withDayOfMonth(23).withHour(5).withMinute(30).withSecond(0);
+    timePeriod = new TimePeriod(dateTime1.getUtilDate(), dateTime2.getUtilDate());
     assertResultArray(new int[] { 2, 5, 30 }, timePeriod.getDurationFields());
     assertResultArray(new int[] { 6, 5, 30 }, timePeriod.getDurationFields(8));
     assertResultArray(new int[] { 0, 53, 30 }, timePeriod.getDurationFields(8, 54));

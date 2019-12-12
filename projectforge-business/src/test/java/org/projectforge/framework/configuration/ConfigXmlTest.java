@@ -30,11 +30,12 @@ import org.projectforge.common.JiraUtilsTest;
 import org.projectforge.framework.calendar.ConfigureHoliday;
 import org.projectforge.framework.calendar.HolidayDefinition;
 import org.projectforge.framework.calendar.Holidays;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.xstream.XmlHelper;
 
-import java.util.Calendar;
+import java.time.Month;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ConfigXmlTest {
   private final static String xml = XmlHelper.replaceQuotes(XmlHelper.XML_HEADER
@@ -89,24 +90,20 @@ public class ConfigXmlTest {
     final ConfigXml config = ConfigXml.getInstance();
     assertEquals(5, config.getHolidays().size());
     ConfigureHoliday holiday = config.getHolidays().get(0);
-    assertEquals(Calendar.MAY, (int) holiday.getMonth());
+    assertEquals(Month.MAY.getValue(), (int) holiday.getMonth());
     holiday = config.getHolidays().get(2);
     assertEquals(HolidayDefinition.XMAS_EVE, holiday.getId());
     holiday = config.getHolidays().get(3);
     assertEquals(HolidayDefinition.SHROVE_TUESDAY, holiday.getId());
-    assertEquals(true, holiday.isIgnore());
+    assertTrue(holiday.isIgnore());
 
     final Holidays holidays = Holidays.getInstance();
-    final Calendar cal = Calendar.getInstance();
-    cal.set(Calendar.YEAR, 2009);
-    cal.set(Calendar.MONTH, Calendar.MAY);
-    cal.set(Calendar.DAY_OF_MONTH, 1);
-    assertEquals(true, holidays.isHoliday(2009, cal.get(Calendar.DAY_OF_YEAR)), "Should be there.");
-    cal.set(Calendar.MONTH, Calendar.FEBRUARY);
-    cal.set(Calendar.DAY_OF_MONTH, 23);
-    assertEquals(true, holidays.isHoliday(2009, cal.get(Calendar.DAY_OF_YEAR)), "Should be there.");
-    cal.set(Calendar.DAY_OF_MONTH, 24);
-    assertEquals(false, holidays.isHoliday(2009, cal.get(Calendar.DAY_OF_YEAR)), "Should be ignored.");
+    PFDateTime dateTime = PFDateTime.now().withYear(2009).withMonth(Month.MAY.getValue()).withDayOfMonth(1);
+    assertTrue(holidays.isHoliday(2009, dateTime.getDayOfYear()), "Should be there.");
+    dateTime = dateTime.withMonth(Month.FEBRUARY.getValue()).withDayOfMonth(23);
+    assertTrue(holidays.isHoliday(2009, dateTime.getDayOfYear()), "Should be there.");
+    dateTime = dateTime.withDayOfMonth(24);
+    assertFalse(holidays.isHoliday(2009, dateTime.getDayOfYear()), "Should be ignored.");
   }
 
   @Test

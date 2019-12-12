@@ -23,16 +23,17 @@
 
 package org.projectforge.core;
 
+import org.jfree.data.time.Month;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.book.BookDO;
 import org.projectforge.business.book.BookStatus;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 
+import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -44,7 +45,7 @@ public class AbstractBaseDOTest extends AbstractTestBase {
   }
 
   @Test
-  public void determinePropertyName() throws NoSuchMethodException {
+  public void determinePropertyName() {
     BookDO obj = createBookDO(21, 22, false, BookStatus.DISPOSED, "Hurzel");
     final String created = DateHelper.getForTestCase(obj.getCreated());
     final String lastUpdate = DateHelper.getForTestCase(obj.getLastUpdate());
@@ -72,12 +73,12 @@ public class AbstractBaseDOTest extends AbstractTestBase {
   private BookDO createBookDO(final int createdDayOfMonth, final int lastUpdateDateOfMonth, final boolean deleted,
                               final BookStatus bookStatus, final String testString) {
     BookDO obj = new BookDO();
-    DateHolder dateHolder = new DateHolder(DatePrecision.SECOND, Locale.GERMAN);
+    PFDateTime dateTime = PFDateTime.now(ZoneId.of("UTC"), Locale.GERMAN).withPrecision(DatePrecision.SECOND);
     obj.setId(42);
-    dateHolder.setDate(1970, Calendar.NOVEMBER, createdDayOfMonth, 4, 50, 0);
-    obj.setCreated(dateHolder.getDate());
-    dateHolder.setDate(1970, Calendar.NOVEMBER, lastUpdateDateOfMonth, 4, 50, 0);
-    obj.setLastUpdate(dateHolder.getDate());
+    dateTime = dateTime.withYear(1970).withMonth(Month.NOVEMBER).withDayOfMonth(createdDayOfMonth).withHour(4).withMinute(50).withSecond(0);
+    obj.setCreated(dateTime.getUtilDate());
+    dateTime = dateTime.withDayOfMonth(lastUpdateDateOfMonth);
+    obj.setLastUpdate(dateTime.getUtilDate());
     obj.setDeleted(deleted);
 
     obj.setStatus(bookStatus);

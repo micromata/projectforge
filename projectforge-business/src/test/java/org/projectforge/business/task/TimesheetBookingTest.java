@@ -33,12 +33,12 @@ import org.projectforge.common.task.TaskStatus;
 import org.projectforge.common.task.TimesheetBookingStatus;
 import org.projectforge.framework.access.*;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Calendar;
+import java.time.temporal.ChronoUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -56,11 +56,11 @@ public class TimesheetBookingTest extends AbstractTestBase {
   @Autowired
   private AuftragDao auftragDao;
 
-  private static DateHolder date;
+  private static PFDateTime date;
 
   @Override
   protected void beforeAll() {
-    date = new DateHolder(DatePrecision.MINUTE_15);
+    date = PFDateTime.now().withPrecision(DatePrecision.MINUTE_15);
     logon(getUser(AbstractTestBase.TEST_ADMIN_USER));
     TaskDO task;
     task = initTestDB.addTask("TimesheetBookingTest", "root");
@@ -201,8 +201,8 @@ public class TimesheetBookingTest extends AbstractTestBase {
   private TimesheetDO createNewSheet() {
     TimesheetDO sheet = new TimesheetDO();
     sheet.setUser(getUser(AbstractTestBase.TEST_USER));
-    sheet.setStartDate(date.getDate());
-    sheet.setStopDate(date.add(Calendar.HOUR, 1).getDate());
+    sheet.setStartDate(date.getUtilDate());
+    sheet.setStopDate(date.plus(1, ChronoUnit.HOURS).getUtilDate());
     return sheet;
   }
 

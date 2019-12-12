@@ -24,11 +24,12 @@
 package org.projectforge.common;
 
 import org.junit.jupiter.api.Test;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.KeyValuePairWriter;
 import org.projectforge.test.AbstractTestBase;
 
 import java.io.StringWriter;
-import java.util.Calendar;
+import java.time.Month;
 import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -42,7 +43,7 @@ public class KeyValuePairWriterTest extends AbstractTestBase
   @Test
   public void testWritekeyValuePairs() throws Exception
   {
-    final Date date = createDate(1970, Calendar.NOVEMBER, 21, 13, 17, 57, 742);
+    final Date date = createDate(1970, Month.NOVEMBER.getValue(), 21, 13, 17, 57, 742);
     log.info("Created date: " + date.toString());
     final StringWriter stringWriter = new StringWriter();
     final KeyValuePairWriter writer = new KeyValuePairWriter(stringWriter);
@@ -58,14 +59,7 @@ public class KeyValuePairWriterTest extends AbstractTestBase
 
   private Date createDate(int year, int month, int day, int hour, int minute, int second, int millisecond)
   {
-    Calendar c = Calendar.getInstance();
-    c.set(Calendar.YEAR, year);
-    c.set(Calendar.MONTH, month);
-    c.set(Calendar.DAY_OF_MONTH, day);
-    c.set(Calendar.HOUR_OF_DAY, hour);
-    c.set(Calendar.MINUTE, minute);
-    c.set(Calendar.SECOND, second);
-    c.set(Calendar.MILLISECOND, millisecond);
-    return c.getTime();
+    return PFDateTime.now().withYear(year).withMonth(month)
+        .withDayOfMonth(day).withHour(hour).withMinute(minute).withSecond(second).withMilliSecond(millisecond).getUtilDate();
   }
 }

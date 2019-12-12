@@ -25,6 +25,7 @@ package org.projectforge.framework.calendar;
 
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.PFDateTime;
 
 import java.sql.Timestamp;
 import java.util.Calendar;
@@ -133,13 +134,7 @@ public class CalendarUtils
 
   public static Date getEndOfDay(final Date date, final TimeZone timeZone)
   {
-    final Calendar cal = Calendar.getInstance(timeZone);
-    cal.setTime(date);
-    cal.set(Calendar.HOUR_OF_DAY, 23);
-    cal.set(Calendar.MINUTE, 59);
-    cal.set(Calendar.SECOND, 59);
-    cal.set(Calendar.MILLISECOND, 999);
-    return cal.getTime();
+    return PFDateTime.from(date, true, timeZone).withHour(23).withMinute(59).withSecond(59).withMilliSecond(999).getUtilDate();
   }
 
   public static int daysBetween(final Calendar cal1, final Calendar cal2)

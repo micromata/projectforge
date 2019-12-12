@@ -23,17 +23,18 @@
 
 package org.projectforge.calendar;
 
+import org.jfree.data.time.Month;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.calendar.WeekHolder;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.TestSetup;
 
-import java.util.Calendar;
+import java.time.ZoneId;
 import java.util.Locale;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class WeekHolderTest {
   //private final static Logger log = Logger.getLogger(WeekHolderTest.class);
@@ -46,14 +47,14 @@ public class WeekHolderTest {
 
   @Test
   public void testWeekHolder() {
-    final Calendar cal = Calendar.getInstance(Locale.GERMAN);
-    WeekHolder week = new WeekHolder(cal);
+    final PFDateTime dt = PFDateTime.now(ZoneId.of("UTC"), Locale.GERMAN);
+    WeekHolder week = new WeekHolder(dt);
     assertEquals(7, week.getDays().length);
     assertEquals(2, week.getDays()[0].getDayOfWeek());
     assertEquals("monday", week.getDays()[0].getDayKey());
-    final DateHolder dateHolder = new DateHolder(DatePrecision.DAY, Locale.GERMAN);
-    dateHolder.setDate(1970, Calendar.NOVEMBER, 21, 4, 50, 23);
-    week = new WeekHolder(dateHolder.getDateTime());
+    PFDateTime dateTime = PFDateTime.now(ZoneId.of("UTC"), Locale.GERMAN).withPrecision(DatePrecision.DAY)
+        .withYear(1970).withMonth(Month.NOVEMBER).withDayOfMonth(21).withHour(4).withMinute(50).withSecond(23);
+    week = new WeekHolder(dateTime);
     assertEquals(7, week.getDays().length);
     assertEquals(2, week.getDays()[0].getDayOfWeek());
     assertEquals("monday", week.getDays()[0].getDayKey());
@@ -61,15 +62,15 @@ public class WeekHolderTest {
     assertEquals(16, week.getDays()[0].getDayOfMonth());
     assertEquals("saturday", week.getDays()[5].getDayKey());
     assertEquals(21, week.getDays()[5].getDayOfMonth());
-    dateHolder.setDate(2007, Calendar.MARCH, 1, 4, 50, 23);
-    assertEquals(Calendar.MARCH, dateHolder.getMonth());
-    week = new WeekHolder(dateHolder.getDateTime(), dateHolder.getMonth());
+    dateTime = dateTime.withYear(2007).withMonth(Month.MARCH).withDayOfMonth(1);
+    assertEquals(Month.MARCH, dateTime.getMonthValue());
+    week = new WeekHolder(dateTime, dateTime.getMonthValue());
     assertEquals("monday", week.getDays()[0].getDayKey());
     assertEquals(26, week.getDays()[0].getDayOfMonth());
-    assertEquals(true, week.getDays()[0].isMarker()); // February, 26
-    assertEquals(true, week.getDays()[1].isMarker()); // February, 27
-    assertEquals(true, week.getDays()[2].isMarker()); // February, 28
+    assertTrue(week.getDays()[0].isMarker()); // February, 26
+    assertTrue(week.getDays()[1].isMarker()); // February, 27
+    assertTrue(week.getDays()[2].isMarker()); // February, 28
     assertEquals(1, week.getDays()[3].getDayOfMonth());
-    assertEquals(false, week.getDays()[3].isMarker(), "Day is not of current month and should be marked."); // March, 1
+    assertFalse(week.getDays()[3].isMarker(), "Day is not of current month and should be marked."); // March, 1
   }
 }

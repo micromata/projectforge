@@ -36,6 +36,7 @@ import java.util.Calendar;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Deprecated
 public class DayHolderTest {
   @BeforeAll
   static void beforeAll() {

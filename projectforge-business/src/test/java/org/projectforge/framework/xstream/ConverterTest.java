@@ -23,19 +23,20 @@
 
 package org.projectforge.framework.xstream;
 
+import org.jfree.data.time.Month;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.xstream.converter.DateConverter;
 import org.projectforge.framework.xstream.converter.ISODateConverter;
 import org.projectforge.framework.xstream.converter.LocaleConverter;
 import org.projectforge.framework.xstream.converter.TimeZoneConverter;
 import org.projectforge.test.TestSetup;
 
-import java.util.Calendar;
+import java.time.ZoneId;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -58,20 +59,18 @@ public class ConverterTest
     final PFUserDO cetUser = new PFUserDO();
     cetUser.setTimeZone(DateHelper.EUROPE_BERLIN);
     ThreadLocalUserContext.setUser(null, cetUser); // login CET user.
-    DateHolder dh = new DateHolder();
-    dh.setDate(2010, Calendar.AUGUST, 29, 23, 8, 17, 123);
-    assertEquals("1283116097123", dateConverter.toString(dh.getDate()));
-    assertEquals("2010-08-29 23:08:17.123", isoDateConverter.toString(dh.getDate()));
-    assertEquals("2010-08-29 23:08:17", isoDateConverter.toString(dh.setMilliSecond(0).getDate()));
-    assertEquals("2010-08-29 23:08", isoDateConverter.toString(dh.setSecond(0).getDate()));
-    assertEquals("2010-08-29 23:00", isoDateConverter.toString(dh.setMinute(0).getDate()));
-    assertEquals("2010-08-29", isoDateConverter.toString(dh.setHourOfDay(0).getDate()));
+    PFDateTime dt = PFDateTime.now(ZoneId.of("UTC")).withYear(2010).withMonth(Month.AUGUST).withDayOfMonth(29).withHour(23).withMinute(8).withSecond(17)
+        .withMilliSecond(123);
+    assertEquals("1283116097123", dateConverter.toString(dt.getUtilDate()));
+    assertEquals("2010-08-29 23:08:17.123", isoDateConverter.toString(dt.getUtilDate()));
+    assertEquals("2010-08-29 23:08:17", isoDateConverter.toString(dt.withMilliSecond(0).getUtilDate()));
+    assertEquals("2010-08-29 23:08", isoDateConverter.toString(dt.withSecond(0).getUtilDate()));
+    assertEquals("2010-08-29 23:00", isoDateConverter.toString(dt.withMinute(0).getUtilDate()));
+    assertEquals("2010-08-29", isoDateConverter.toString(dt.withHour(0).getUtilDate()));
     final PFUserDO utcUser = new PFUserDO();
     utcUser.setTimeZone(DateHelper.UTC);
     ThreadLocalUserContext.setUser(null, utcUser); // login UTC user.
-    dh = new DateHolder(DateHelper.UTC);
-    dh.setDate(2010, Calendar.AUGUST, 29, 23, 8, 17, 123);
-    assertEquals("2010-08-29 23:08:17.123", isoDateConverter.toString(dh.getDate()));
+    assertEquals("2010-08-29 23:08:17.123", isoDateConverter.toString(dt.getUtilDate()));
   }
 
   @Test

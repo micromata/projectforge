@@ -36,6 +36,7 @@ import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Deprecated
 public class DateHolderTest
 {
   @BeforeAll
@@ -73,13 +74,13 @@ public class DateHolderTest
   public void daysBetween()
   {
     final DateHolder date1 = new DateHolder(DatePrecision.DAY, Locale.GERMAN);
-    date1.setDate(2008, 02, 23, 0, 0, 0);
+    date1.setDate(2008, 2, 23, 0, 0, 0);
     final DateHolder date2 = new DateHolder(DatePrecision.DAY, Locale.GERMAN);
-    date2.setDate(2008, 02, 23, 0, 0, 0);
+    date2.setDate(2008, 2, 23, 0, 0, 0);
     assertEquals(0, date1.daysBetween(date2.getDate()));
-    date2.setDate(2008, 02, 24, 0, 0, 0);
+    date2.setDate(2008, 2, 24, 0, 0, 0);
     assertEquals(1, date1.daysBetween(date2.getDate()));
-    date2.setDate(2008, 02, 22, 0, 0, 0);
+    date2.setDate(2008, 2, 22, 0, 0, 0);
     assertEquals(-1, date1.daysBetween(date2.getDate()));
     date2.setDate(date1.getDate());
     date2.add(Calendar.DAY_OF_YEAR, 364);
@@ -110,8 +111,8 @@ public class DateHolderTest
     date2.setDate(2010, Calendar.FEBRUARY, 14, 0, 0, 0);
     final DateHolder date3 = new DateHolder(DatePrecision.DAY);
     date3.setDate(2010, Calendar.FEBRUARY, 15, 0, 0, 0);
-    assertFalse(date1.isBetween((Date) null, (Date) null));
-    assertFalse(date1.isBetween((DateHolder) null, (DateHolder) null));
+    assertFalse(date1.isBetween(null, (Date) null));
+    assertFalse(date1.isBetween(null, (DateHolder) null));
     assertTrue(date1.isBetween(null, date2));
     assertFalse(date2.isBetween(null, date1));
     assertTrue(date2.isBetween(date1, null));

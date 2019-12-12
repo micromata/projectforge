@@ -27,14 +27,16 @@ import org.joda.time.DateTimeConstants;
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.time.DayOfWeek;
+import java.time.Month;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -63,9 +65,9 @@ public class DateHelperTest extends AbstractTestBase
   public void formatIsoDate()
   {
     assertEquals("1970-11-21", DateHelper
-        .formatIsoDate(createDate(1970, Calendar.NOVEMBER, 21, 16, 0, 0, 0, ThreadLocalUserContext.getTimeZone())));
+        .formatIsoDate(createDate(1970, Month.NOVEMBER.getValue(), 21, 16, 0, 0, 0, ThreadLocalUserContext.getTimeZone())));
     assertEquals("1970-11-21", DateHelper
-        .formatIsoDate(createDate(1970, Calendar.NOVEMBER, 21, 16, 35, 27, 968, ThreadLocalUserContext.getTimeZone())));
+        .formatIsoDate(createDate(1970, Month.NOVEMBER.getValue(), 21, 16, 35, 27, 968, ThreadLocalUserContext.getTimeZone())));
   }
 
   @Test
@@ -73,20 +75,25 @@ public class DateHelperTest extends AbstractTestBase
   {
     assertEquals("1970-11-21 17:00:00.000",
         DateHelper.formatIsoTimestamp(
-            createDate(1970, Calendar.NOVEMBER, 21, 17, 0, 0, 0, ThreadLocalUserContext.getTimeZone())));
+            createDate(1970, Month.NOVEMBER.getValue(), 21, 17, 0, 0, 0, ThreadLocalUserContext.getTimeZone())));
     assertEquals("1970-11-21 17:05:07.123",
         DateHelper.formatIsoTimestamp(
-            createDate(1970, Calendar.NOVEMBER, 21, 17, 5, 7, 123, ThreadLocalUserContext.getTimeZone())));
+            createDate(1970, Month.NOVEMBER.getValue(), 21, 17, 5, 7, 123, ThreadLocalUserContext.getTimeZone())));
   }
 
   @Test
   public void getDuration()
   {
-    final DateHolder dateHolder = new DateHolder(DatePrecision.MINUTE, Locale.GERMAN);
-    dateHolder.setDate(1970, Calendar.NOVEMBER, 21, 4, 50, 0);
-    final Date startTime = dateHolder.getDate();
-    dateHolder.setDate(1970, Calendar.NOVEMBER, 21, 6, 59, 0);
-    final Date stopTime = dateHolder.getDate();
+    final PFDateTime dateTime = PFDateTime.now(ZoneId.of("UTC"), Locale.GERMAN)
+        .withPrecision(DatePrecision.MINUTE)
+        .withYear(1970)
+        .withMonth(Month.NOVEMBER.getValue())
+        .withDayOfMonth(21)
+        .withHour(6)
+        .withMinute(50)
+        .withSecond(0);
+    final Date startTime = dateTime.getUtilDate();
+    final Date stopTime = dateTime.withMinute(59).getUtilDate();
     assertEquals(129, DateHelper.getDuration(startTime, stopTime));
     assertEquals(0, DateHelper.getDuration(stopTime, startTime));
     assertEquals(0, DateHelper.getDuration(null, stopTime));
@@ -99,11 +106,11 @@ public class DateHelperTest extends AbstractTestBase
   public void formatMonth()
   {
     assertEquals("2009-01", DateHelper.formatMonth(2009, 0));
-    assertEquals("2009-01", DateHelper.formatMonth(2009, Calendar.JANUARY));
-    assertEquals("2009-03", DateHelper.formatMonth(2009, Calendar.MARCH));
-    assertEquals("2009-09", DateHelper.formatMonth(2009, Calendar.SEPTEMBER));
-    assertEquals("2009-10", DateHelper.formatMonth(2009, Calendar.OCTOBER));
-    assertEquals("2009-12", DateHelper.formatMonth(2009, Calendar.DECEMBER));
+    assertEquals("2009-01", DateHelper.formatMonth(2009, Month.JANUARY.getValue()));
+    assertEquals("2009-03", DateHelper.formatMonth(2009, Month.MARCH.getValue()));
+    assertEquals("2009-09", DateHelper.formatMonth(2009, Month.SEPTEMBER.getValue()));
+    assertEquals("2009-10", DateHelper.formatMonth(2009, Month.OCTOBER.getValue()));
+    assertEquals("2009-12", DateHelper.formatMonth(2009, Month.DECEMBER.getValue()));
   }
 
   @Test
@@ -155,13 +162,13 @@ public class DateHelperTest extends AbstractTestBase
   @Test
   public void convertCalendarDayOfWeekToJoda()
   {
-    assertEquals(DateTimeConstants.MONDAY, DateHelper.convertCalendarDayOfWeekToJoda(Calendar.MONDAY));
-    assertEquals(DateTimeConstants.TUESDAY, DateHelper.convertCalendarDayOfWeekToJoda(Calendar.TUESDAY));
-    assertEquals(DateTimeConstants.WEDNESDAY, DateHelper.convertCalendarDayOfWeekToJoda(Calendar.WEDNESDAY));
-    assertEquals(DateTimeConstants.THURSDAY, DateHelper.convertCalendarDayOfWeekToJoda(Calendar.THURSDAY));
-    assertEquals(DateTimeConstants.FRIDAY, DateHelper.convertCalendarDayOfWeekToJoda(Calendar.FRIDAY));
-    assertEquals(DateTimeConstants.SATURDAY, DateHelper.convertCalendarDayOfWeekToJoda(Calendar.SATURDAY));
-    assertEquals(DateTimeConstants.SUNDAY, DateHelper.convertCalendarDayOfWeekToJoda(Calendar.SUNDAY));
+    assertEquals(DateTimeConstants.MONDAY, DateHelper.convertCalendarDayOfWeekToJoda(DayOfWeek.MONDAY.getValue()));
+    assertEquals(DateTimeConstants.TUESDAY, DateHelper.convertCalendarDayOfWeekToJoda(DayOfWeek.TUESDAY.getValue()));
+    assertEquals(DateTimeConstants.WEDNESDAY, DateHelper.convertCalendarDayOfWeekToJoda(DayOfWeek.WEDNESDAY.getValue()));
+    assertEquals(DateTimeConstants.THURSDAY, DateHelper.convertCalendarDayOfWeekToJoda(DayOfWeek.THURSDAY.getValue()));
+    assertEquals(DateTimeConstants.FRIDAY, DateHelper.convertCalendarDayOfWeekToJoda(DayOfWeek.FRIDAY.getValue()));
+    assertEquals(DateTimeConstants.SATURDAY, DateHelper.convertCalendarDayOfWeekToJoda(DayOfWeek.SATURDAY.getValue()));
+    assertEquals(DateTimeConstants.SUNDAY, DateHelper.convertCalendarDayOfWeekToJoda(DayOfWeek.SUNDAY.getValue()));
   }
 
   @Test
@@ -179,23 +186,14 @@ public class DateHelperTest extends AbstractTestBase
   }
 
   public static Date createDate(final int year, final int month, final int day, final int hour, final int minute,
-      final int second,
-      final int millisecond, TimeZone timeZone)
+      final int second, final int millisecond, TimeZone timeZone)
   {
-    final Calendar cal = Calendar.getInstance(timeZone);
-    cal.set(Calendar.YEAR, year);
-    cal.set(Calendar.MONTH, month);
-    cal.set(Calendar.DAY_OF_MONTH, day);
-    cal.set(Calendar.HOUR_OF_DAY, hour);
-    cal.set(Calendar.MINUTE, minute);
-    cal.set(Calendar.SECOND, second);
-    cal.set(Calendar.MILLISECOND, millisecond);
-    return cal.getTime();
+    return PFDateTime.from(null, true, timeZone, Locale.GERMAN).withYear(year).withMonth(month)
+        .withDayOfMonth(day).withHour(hour).withMinute(minute).withSecond(second).withMilliSecond(millisecond).getUtilDate();
   }
 
   public static Date createDate(final int year, final int month, final int day, final int hour, final int minute,
-      final int second,
-      final int millisecond)
+      final int second, final int millisecond)
   {
     return createDate(year, month, day, hour, minute, second, millisecond, TimeZone.getDefault());
   }
