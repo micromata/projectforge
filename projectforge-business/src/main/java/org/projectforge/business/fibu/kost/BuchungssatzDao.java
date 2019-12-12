@@ -124,11 +124,11 @@ public class BuchungssatzDao extends BaseDao<BuchungssatzDO> {
     } else {
       myFilter = new BuchungssatzFilter(filter);
     }
-    filter.setMaxRows(QUERY_FILTER_MAX_ROWS);
     final QueryFilter queryFilter = new QueryFilter(filter);
     if (!validateTimeperiod(myFilter)) {
       throw new UserException("fibu.buchungssatz.error.invalidTimeperiod");
     }
+    queryFilter.setMaxRows(QUERY_FILTER_MAX_ROWS);
     if (myFilter.getFromMonth() < 0) {
       // Kein Von-Monat gesetzt.
       queryFilter.add(QueryFilter.eq("year", myFilter.getFromYear()));
