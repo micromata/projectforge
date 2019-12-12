@@ -1,58 +1,72 @@
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { ListPageContext } from '../../../../../containers/page/list/ListPageContext';
+import { connect } from 'react-redux';
+import { openEditPage } from '../../../../../actions';
 import { tableColumnsPropType } from '../../../../../utilities/propTypes';
 import Formatter from '../../../Formatter';
 import DynamicCustomized from '../customized';
 import style from './DynamicTable.module.scss';
 
-function DynamicTableRow({ columns, row }) {
-    const { category, highlightRow, openEditPage } = React.useContext(ListPageContext);
-
-    return React.useMemo(() => {
-        const handleRowClick = () => openEditPage(row.id);
-
-        return (
-            <tr
-                onClick={handleRowClick}
-                className={classNames(
-                    style.clickable,
-                    { [style.highlighted]: highlightRow === row.id },
-                )}
-            >
-                {columns.map((
-                    {
-                        id,
-                        formatter,
-                        dataType,
-                    },
-                ) => (
-                    <td key={`table-body-row-${row.id}-column-${id}`}>
-                        {dataType === 'CUSTOMIZED'
-                            ? <DynamicCustomized id={id} data={row} />
-                            : (
-                                <Formatter
-                                    formatter={formatter}
-                                    data={row}
-                                    id={id}
-                                    dataType={dataType}
-                                />
-                            )}
-                    </td>
-                ))}
-            </tr>
-        );
-    }, [category, columns, row]);
+function DynamicTableRow(
+    {
+        columns,
+        row,
+        highlightRow,
+        handleRowClick,
+    },
+) {
+    return (
+        <tr
+            onClick={handleRowClick}
+            className={classNames(
+                style.clickable,
+                { [style.highlighted]: highlightRow === row.id },
+            )}
+        >
+            {columns.map((
+                {
+                    id,
+                    formatter,
+                    dataType,
+                },
+            ) => (
+                <td key={`table-body-row-${row.id}-column-${id}`}>
+                    {dataType === 'CUSTOMIZED'
+                        ? <DynamicCustomized id={id} data={row} />
+                        : (
+                            <Formatter
+                                formatter={formatter}
+                                data={row}
+                                id={id}
+                                dataType={dataType}
+                            />
+                        )}
+                </td>
+            ))}
+        </tr>
+    );
 }
 
 DynamicTableRow.propTypes = {
     columns: tableColumnsPropType.isRequired,
+    handleRowClick: PropTypes.func.isRequired,
     row: PropTypes.shape({
         id: PropTypes.number.isRequired,
     }).isRequired,
+    highlightRow: PropTypes.number,
 };
 
-DynamicTableRow.defaultProps = {};
+DynamicTableRow.defaultProps = {
+    highlightRow: -1,
+};
 
-export default DynamicTableRow;
+const mapStateToProps = ({ list }) => ({
+    highlightRow: list.categories[list.currentCategory].highlightRow,
+});
+
+const actions = (dispatch, { row }) => ({
+    handleRowClick: () => dispatch(openEditPage(row.id)),
+});
+
+export default connect(mapStateToProps, actions)(DynamicTableRow);
