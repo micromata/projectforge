@@ -7,51 +7,50 @@ import style from './DynamicTable.module.scss';
 
 function DynamicTableHead(
     {
-        handleHeadClick,
+        id,
         sortable,
-        sortProperty,
+        direction,
+        dispatchSort,
         title,
     },
 ) {
-    // TODO DISPLAY SORT ORDER.
+    const handleHeadClick = () => {
+        if (sortable) {
+            dispatchSort(id, direction);
+        }
+    };
 
     return (
         <th onClick={handleHeadClick} className={sortable ? style.clickableTableHead : ''}>
-            {sortable && <AnimatedChevron direction={(sortProperty || {}).sortOrder} />}
+            {sortable && <AnimatedChevron direction={direction} />}
             {title}
         </th>
     );
 }
 
 DynamicTableHead.propTypes = {
-    // Prop is used by redux
-    // eslint-disable-next-line react/no-unused-prop-types
     id: PropTypes.string.isRequired,
-    handleHeadClick: PropTypes.func.isRequired,
+    dispatchSort: PropTypes.func.isRequired,
     title: PropTypes.string.isRequired,
+    direction: PropTypes.string,
     sortable: PropTypes.bool,
-    sortProperty: PropTypes.string,
 };
 
 DynamicTableHead.defaultProps = {
     sortable: false,
-    sortProperty: undefined,
+    direction: undefined,
 };
 
 const mapStateToProps = ({ list }, { id }) => ({
-    sortProperty: Array.findByField(
+    direction: (Array.findByField(
         list.categories[list.currentCategory].filter.sortProperties,
         'property',
         id,
-    ),
+    ) || {}).sortOrder,
 });
 
-const actions = (dispatch, { id, sortable, sortProperty }) => ({
-    handleHeadClick: () => {
-        if (sortable) {
-            dispatch(sortList(id, sortProperty));
-        }
-    },
-});
+const actions = {
+    dispatchSort: sortList,
+};
 
 export default connect(mapStateToProps, actions)(DynamicTableHead);
