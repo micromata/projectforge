@@ -115,6 +115,9 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null,
     init {
         maxRows = QUERY_FILTER_MAX_ROWS
         if (filter != null) {
+            if (filter.maxRows > 0) {
+                maxRows = filter.maxRows
+            }
             this.fullTextSearchFields = filter.fullTextSearchFields
             this.autoWildcardSearch = true
             // Legacy for old implementation:
