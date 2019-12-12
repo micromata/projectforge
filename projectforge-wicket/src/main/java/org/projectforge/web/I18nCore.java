@@ -73,7 +73,7 @@ public class I18nCore
 
   /**
    * Sets the date and time formats of the FullCalendar (jquery plugin). It's easier to understand this method if you run ProjectForge and
-   * check the calendar page during analyzing this method.
+   * check the dateTime page during analyzing this method.
    *
    * @param config
    */

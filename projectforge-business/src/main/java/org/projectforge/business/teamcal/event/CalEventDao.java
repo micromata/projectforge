@@ -103,7 +103,7 @@ public class CalEventDao extends BaseDao<CalEventDO> {
 
     // workaround to still handle old requests
     if (calendarId != null) {
-      sqlQuery.append(" AND e.calendar.id = :calendarId");
+      sqlQuery.append(" AND e.dateTime.id = :calendarId");
       params.add("calendarId");
       params.add(calendarId);
     }
@@ -303,9 +303,9 @@ public class CalEventDao extends BaseDao<CalEventDO> {
     final QueryFilter queryFilter = new QueryFilter(filter);
     final Collection<Integer> cals = filter.getTeamCals();
     if (CollectionUtils.isNotEmpty(cals)) {
-      queryFilter.add(QueryFilter.isIn("calendar.id", cals));
+      queryFilter.add(QueryFilter.isIn("dateTime.id", cals));
     } else if (filter.getTeamCalId() != null) {
-      queryFilter.add(QueryFilter.eq("calendar.id", filter.getTeamCalId()));
+      queryFilter.add(QueryFilter.eq("dateTime.id", filter.getTeamCalId()));
     }
     // Following period extension is needed due to all day events which are stored in UTC. The additional events in the result list not
     // matching the time period have to be removed by caller!

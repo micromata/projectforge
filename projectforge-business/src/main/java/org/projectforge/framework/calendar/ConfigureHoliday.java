@@ -60,7 +60,7 @@ public class ConfigureHoliday
   }
 
   /**
-   * @return Label to display in calendar.
+   * @return Label to display in dateTime.
    */
   public String getLabel()
   {

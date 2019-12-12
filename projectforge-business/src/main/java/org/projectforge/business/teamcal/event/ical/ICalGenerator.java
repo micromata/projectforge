@@ -108,7 +108,7 @@ public class ICalGenerator
 
   public ICalGenerator reset()
   {
-    // creating a new calendar
+    // creating a new dateTime
     this.calendar = new Calendar();
     calendar.getProperties().add(new ProdId("-//" + user.getShortDisplayName() + "//ProjectForge//" + locale.toString().toUpperCase()));
     calendar.getProperties().add(Version.VERSION_2_0);
@@ -143,7 +143,7 @@ public class ICalGenerator
 
       return stream;
     } catch (IOException e) {
-      log.error("Error while exporting calendar " + e.getMessage());
+      log.error("Error while exporting dateTime " + e.getMessage());
       return null;
     }
   }
@@ -154,7 +154,7 @@ public class ICalGenerator
       CalendarOutputter outputter = new CalendarOutputter();
       outputter.output(this.calendar, stream);
     } catch (IOException e) {
-      log.error("Error while exporting calendar " + e.getMessage());
+      log.error("Error while exporting dateTime " + e.getMessage());
     }
   }
 
@@ -227,7 +227,7 @@ public class ICalGenerator
       fortunaStartDate = new net.fortuna.ical4j.model.Date(startUtc);
       // TODO should not be done
       final org.joda.time.DateTime jodaTime = new org.joda.time.DateTime(endUtc);
-      // requires plus 1 because one day will be omitted by calendar.
+      // requires plus 1 because one day will be omitted by dateTime.
       fortunaEndDate = new net.fortuna.ical4j.model.Date(jodaTime.plusDays(1).toDate());
     } else {
       fortunaStartDate = new net.fortuna.ical4j.model.DateTime(startDate);

@@ -49,6 +49,10 @@ import javax.persistence.*
         NamedQuery(name = GroupDO.FIND_OTHER_GROUP_BY_NAME, query = "from GroupDO where name=:name and id<>:id"))
 open class GroupDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
+    override val shortDisplayName: String
+        @Transient
+        get() = "$name"
+
     @PropertyInfo(i18nKey = "name")
     @Field
     @get:Column(length = 100)
@@ -133,7 +137,7 @@ open class GroupDO : DefaultBaseDO(), ShortDisplayNameCapable {
      */
     val safeAssignedUsers: Set<PFUserDO>?
         @Transient
-        get() = if (this.assignedUsers == null || Hibernate.isInitialized(this.assignedUsers) == false) {
+        get() = if (this.assignedUsers == null || !Hibernate.isInitialized(this.assignedUsers)) {
             null
         } else this.assignedUsers
 
@@ -174,11 +178,6 @@ open class GroupDO : DefaultBaseDO(), ShortDisplayNameCapable {
         val hcb = HashCodeBuilder()
         hcb.append(this.name)
         return hcb.toHashCode()
-    }
-
-    @Transient
-    override fun getShortDisplayName(): String? {
-        return this.name
     }
 
     companion object {

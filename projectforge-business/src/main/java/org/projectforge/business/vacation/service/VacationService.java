@@ -30,10 +30,10 @@ import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.framework.persistence.api.IDao;
 import org.projectforge.framework.persistence.api.IPersistenceService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.time.PFDateTime;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -164,7 +164,7 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    *
    * @return
    */
-  Calendar getEndDateVacationFromLastYear();
+  PFDateTime getEndDateVacationFromLastYear();
 
   /**
    * Updates the used days from last year

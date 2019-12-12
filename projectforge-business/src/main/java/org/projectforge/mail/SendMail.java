@@ -212,7 +212,7 @@ public class SendMail
       icalBodyPart.setHeader("Content-Class", "urn:content-  classes:calendarmessage");
       icalBodyPart.setHeader("Content-ID", "calendar_message");
       icalBodyPart.setDataHandler(new DataHandler(
-          new ByteArrayDataSource(icalContent.getBytes(), "text/calendar")));
+          new ByteArrayDataSource(icalContent.getBytes(), "text/dateTime")));
       final String s = Integer.toString(random.nextInt(Integer.MAX_VALUE));
       icalBodyPart.setFileName("ICal-" + s + ".ics");
 

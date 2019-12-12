@@ -45,7 +45,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Holds and updates events of a subscribed calendar.
+ * Holds and updates events of a subscribed dateTime.
  *
  * @author Johannes Unterstein (j.unterstein@micromata.de)
  */
@@ -119,7 +119,7 @@ public class TeamEventSubscription implements Serializable
     }
     url = StringUtils.replace(url, "webcal", "http");
     final String displayUrl = teamCalDO.getExternalSubscriptionUrlAnonymized();
-    log.info("Getting subscribed calendar #" + teamCalDO.getId() + " from: " + displayUrl);
+    log.info("Getting subscribed dateTime #" + teamCalDO.getId() + " from: " + displayUrl);
     byte[] bytes = null;
     try {
 
@@ -129,7 +129,7 @@ public class TeamEventSubscription implements Serializable
       final int statusCode = client.executeMethod(method);
 
       if (statusCode != HttpStatus.SC_OK) {
-        error("Unable to gather subscription calendar #"
+        error("Unable to gather subscription dateTime #"
             + teamCalDO.getId()
             + " information, using database from url '"
             + displayUrl
@@ -154,7 +154,7 @@ public class TeamEventSubscription implements Serializable
       }
     } catch (final Exception e) {
       bytes = teamCalDO.getExternalSubscriptionCalendarBinary();
-      error("Unable to gather subscription calendar #"
+      error("Unable to gather subscription dateTime #"
           + teamCalDO.getId()
           + " information, using database from url '"
           + displayUrl
@@ -162,7 +162,7 @@ public class TeamEventSubscription implements Serializable
           + e.getMessage());
     }
     if (bytes == null) {
-      error("Unable to use database subscription calendar #" + teamCalDO.getId() + " information, quit from url '"
+      error("Unable to use database subscription dateTime #" + teamCalDO.getId() + " information, quit from url '"
               + displayUrl + "'.",
           null);
       return;
@@ -170,7 +170,7 @@ public class TeamEventSubscription implements Serializable
     if (currentInitializedHash != null
         && StringUtils.equals(currentInitializedHash, teamCalDO.getExternalSubscriptionHash())) {
       // nothing to do here if the hashes are equal
-      log.info("No modification of subscribed calendar #" + teamCalDO.getId() + " found from: " + displayUrl
+      log.info("No modification of subscribed dateTime #" + teamCalDO.getId() + " found from: " + displayUrl
           + " (OK, nothing to be done).");
       clear();
       return;
@@ -208,9 +208,9 @@ public class TeamEventSubscription implements Serializable
       lastUpdated = System.currentTimeMillis();
       currentInitializedHash = teamCalDO.getExternalSubscriptionHash();
       clear();
-      log.info("Subscribed calendar #" + teamCalDO.getId() + " successfully received from: " + displayUrl);
+      log.info("Subscribed dateTime #" + teamCalDO.getId() + " successfully received from: " + displayUrl);
     } catch (final Exception e) {
-      error("Unable to instantiate team event list for calendar #"
+      error("Unable to instantiate team event list for dateTime #"
           + teamCalDO.getId()
           + " information, quit from url '"
           + displayUrl
@@ -298,7 +298,7 @@ public class TeamEventSubscription implements Serializable
     // + result.size()
     // + " events of "
     // + eventDurationAccess.size()
-    // + " in total from calendar #"
+    // + " in total from dateTime #"
     // + teamCalId
     // + ".");
     return result;

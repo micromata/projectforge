@@ -29,7 +29,7 @@ import org.projectforge.framework.utils.NumberHelper;
 import java.io.Serializable;
 
 /**
- * Persist the settings of one calendar entry in the filter.
+ * Persist the settings of one dateTime entry in the filter.
  * 
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  * @author K. Reinhard (k.reinhard@micromata.de)

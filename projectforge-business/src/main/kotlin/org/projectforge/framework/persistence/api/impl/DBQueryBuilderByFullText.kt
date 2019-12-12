@@ -254,25 +254,27 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     }
 
     fun fulltextSearch(searchString: String) {
-        if (searchClassInfo.numericFieldNames.size > 0 && NumberUtils.isCreatable(searchString)) {
+        if (searchClassInfo.numericFieldNames.isNotEmpty() && NumberUtils.isCreatable(searchString)) {
             val number = NumberUtils.createNumber(searchString)
             search(number, *searchClassInfo.numericFieldNames)
-        } else {
+        } else if (queryFilter.fullTextSearchFields.isNullOrEmpty()) {
             search(searchString, *searchClassInfo.stringFieldNames)
+        } else {
+            search(searchString, *queryFilter.fullTextSearchFields!!)
         }
     }
 
     fun createResultIterator(resultPredicates: List<DBPredicate>): DBResultIterator<O> {
         return when {
             useMultiFieldQueryParser -> {
-                DBFullTextResultIterator(baseDao, fullTextEntityManager, resultPredicates, sortOrders.toTypedArray(), multiFieldQuery = multiFieldQuery)
+                DBFullTextResultIterator(baseDao, fullTextEntityManager, resultPredicates, queryFilter, sortOrders.toTypedArray(), multiFieldQuery = multiFieldQuery)
             }
             boolJunction.isEmpty -> { // Shouldn't occur:
                 // No restrictions found, so use normal criteria search without where clause.
                 DBQueryBuilderByCriteria(baseDao, entityManager, queryFilter).createResultIterator(resultPredicates)
             }
             else -> {
-                DBFullTextResultIterator(baseDao, fullTextEntityManager, resultPredicates, sortOrders.toTypedArray(), fullTextQuery = boolJunction.createQuery())
+                DBFullTextResultIterator(baseDao, fullTextEntityManager, resultPredicates, queryFilter, sortOrders.toTypedArray(), fullTextQuery = boolJunction.createQuery())
             }
         }
     }

@@ -181,7 +181,7 @@ class MenuCreator {
         // COMMON
         //
         val commonMenu = menuItemDefHolder.add(MenuItemDef(MenuItemDefId.COMMON))
-                .add(MenuItemDef(MenuItemDefId.CALENDAR, "${REACT_PREFIX}calendar"))
+                .add(MenuItemDef(MenuItemDefId.CALENDAR, "${REACT_PREFIX}dateTime"))
                 .add(MenuItemDef(MenuItemDefId.TEAMCALENDAR, "wa/wicket/bookmarkable/org.projectforge.web.teamcal.admin.TeamCalListPage")) // teamCal
                 .add(MenuItemDef(MenuItemDefId.VACATION, "wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationListPage",
                         badgeCounter = { vacationService.getOpenLeaveApplicationsForUser(ThreadLocalUserContext.getUser()).toInt() }))

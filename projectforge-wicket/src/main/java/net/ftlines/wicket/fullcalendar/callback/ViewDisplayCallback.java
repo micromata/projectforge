@@ -25,7 +25,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import net.ftlines.wicket.fullcalendar.CalendarResponse;
 
 /**
- * A base callback that passes back calendar's starting date
+ * A base callback that passes back dateTime's starting date
  * 
  * @author igor
  * 

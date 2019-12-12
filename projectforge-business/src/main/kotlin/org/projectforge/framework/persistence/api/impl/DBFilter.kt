@@ -32,7 +32,8 @@ import org.projectforge.framework.persistence.api.SortProperty
  */
 class DBFilter(
         var sortAndLimitMaxRowsWhileSelect: Boolean = true,
-        var maxRows: Int = 50) {
+        var maxRows: Int = 50,
+        val searchFields: Array<String>?) {
     /**
      * Statistics are needed to evaluate which query should be used (full-text or criteria search).
      */
@@ -59,12 +60,17 @@ class DBFilter(
     fun createStatistics(baseDao: BaseDao<*>): Statistics {
         val stats = Statistics()
         var fullTextRequired = false
-        for (it in predicates) {
-            if (!it.criteriaSupport && !it.resultSetSupport) {
-                fullTextRequired = true
-            }
-            if (it is DBPredicate.FullSearch && it.multiFieldFulltextQueryRequired()) {
-                stats.multiFieldFullTextQueryRequired = true
+        if (!searchFields.isNullOrEmpty()) {
+            fullTextRequired = true
+            stats.multiFieldFullTextQueryRequired = true
+        } else {
+            for (it in predicates) {
+                if (!it.criteriaSupport && !it.resultSetSupport) {
+                    fullTextRequired = true
+                }
+                if (it is DBPredicate.FullSearch && it.multiFieldFulltextQueryRequired()) {
+                    stats.multiFieldFullTextQueryRequired = true
+                }
             }
         }
         stats.fullTextRequired = fullTextRequired

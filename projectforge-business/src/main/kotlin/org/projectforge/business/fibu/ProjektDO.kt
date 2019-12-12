@@ -49,6 +49,10 @@ import javax.persistence.*
         NamedQuery(name = ProjektDO.FIND_BY_INTERNKOST24_AND_NUMMER, query = "from ProjektDO where internKost2_4=:internKost24 and nummer=:nummer"))
 open class ProjektDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
+    override val shortDisplayName: String
+        @Transient
+        get() = KostFormatter.formatProjekt(this)
+
     /**
      * Ziffer 5-6 von KOST2 (00-99)
      */
@@ -199,11 +203,6 @@ open class ProjektDO : DefaultBaseDO(), ShortDisplayNameCapable {
     val teilbereich: Int
         @Transient
         get() = nummer
-
-    @Transient
-    override fun getShortDisplayName(): String {
-        return KostFormatter.formatProjekt(this)
-    }
 
     companion object {
         internal const val FIND_BY_INTERNKOST24_AND_NUMMER = "ProjektDO_FindByInternkostAndNummer"

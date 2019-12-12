@@ -401,7 +401,7 @@ public class DateHelper implements Serializable
   }
 
   /**
-   * Returns a calendar instance. If a context user is given then the user's time zone and locale will be used if given.
+   * Returns a dateTime instance. If a context user is given then the user's time zone and locale will be used if given.
    */
   public static Calendar getCalendar()
   {
@@ -409,7 +409,7 @@ public class DateHelper implements Serializable
   }
 
   /**
-   * Returns a calendar instance. If a context user is given then the user's time zone and locale will be used if given.
+   * Returns a dateTime instance. If a context user is given then the user's time zone and locale will be used if given.
    *
    * @param locale if given this locale will overwrite any the context user's locale.
    */

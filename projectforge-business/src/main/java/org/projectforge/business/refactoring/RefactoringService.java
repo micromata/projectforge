@@ -45,8 +45,8 @@ public interface RefactoringService
   /**
    * Parse the packe name of an full qualified class name
    * 
-   * @param fullClassName E.g. org.projectforge.framework.calendar.WeekHolder
-   * @return the packe name (e.g. org.projectforge.framework.calendar)
+   * @param fullClassName E.g. org.projectforge.framework.dateTime.WeekHolder
+   * @return the packe name (e.g. org.projectforge.framework.dateTime)
    */
   String getPackageName(String fullClassName);
 

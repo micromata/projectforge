@@ -90,7 +90,7 @@ public class HolidayEventsProvider extends MyFullCalendarEventsProvider
       event.setStart(day.toDateTime());
       String title;
       final String holidayInfo = dh.getHolidayInfo();
-      if (holidayInfo != null && holidayInfo.startsWith("calendar.holiday.") == true) {
+      if (holidayInfo != null && holidayInfo.startsWith("dateTime.holiday.") == true) {
         title = ThreadLocalUserContext.getLocalizedString(holidayInfo);
       } else {
         title = holidayInfo;

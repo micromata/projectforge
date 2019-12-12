@@ -50,7 +50,7 @@ import javax.ws.rs.BadRequestException
  * Rest services for getting events.
  */
 @RestController
-@RequestMapping("${Rest.URL}/calendar")
+@RequestMapping("${Rest.URL}/dateTime")
 class CalendarServicesRest {
     enum class ACCESS { OWNER, FULL, READ, MINIMAL, NONE }
 
@@ -61,7 +61,7 @@ class CalendarServicesRest {
     private class DateTimeRange(var start: PFDateTime,
                                 var end: PFDateTime? = null)
 
-    @Value("\${calendar.useNewCalendarEvents}")
+    @Value("\${dateTime.useNewCalendarEvents}")
     private var useNewCalendarEvents: Boolean = false
 
     @Autowired
@@ -95,7 +95,7 @@ class CalendarServicesRest {
     }
 
     /**
-     * The users selected a slot in the calendar.
+     * The users selected a slot in the dateTime.
      * @param action slotSelected, resize, drop
      * @param startDate startDate timestamp of event (after resize or drag&drop)
      * @param endDate endDate timestamp of event (after resize or drag&drop)
@@ -133,7 +133,7 @@ class CalendarServicesRest {
             }
             url = "$category/edit?startDate=$startDate&endDate=$endDate"
             if (defaultCalendarId != null && defaultCalendarId > 0) {
-                url = "$url&calendar=$defaultCalendarId"
+                url = "$url&dateTime=$defaultCalendarId"
             }
         } else if (action == "resize" || action == "dragAndDrop") {
             val origStartDate = if (startDate != null) RestHelper.parseJSDateTime(origStartDateParam)?.epochSeconds else null
@@ -211,7 +211,7 @@ class CalendarServicesRest {
     private fun adjustRange(range: DateTimeRange, view: CalendarView?) {
         if (range.end != null) {
             if (range.start.daysBetween(range.end!!) > 50)
-                throw BadRequestException("Requested range for calendar to big. Max. number of days between start and end must not higher than 50.")
+                throw BadRequestException("Requested range for dateTime to big. Max. number of days between start and end must not higher than 50.")
             return
         }
         val start = range.start

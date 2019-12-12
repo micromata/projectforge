@@ -518,7 +518,7 @@ public class DatabaseCoreUpdates
     // 6.12.0
     // /////////////////////////////////////////////////////////////////
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.12.0", "2017-05-22",
-        "Correct calendar exdates. Change address image data to AddressDO.")
+        "Correct dateTime exdates. Change address image data to AddressDO.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
@@ -811,7 +811,7 @@ public class DatabaseCoreUpdates
     // 6.8.0
     // /////////////////////////////////////////////////////////////////
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.8.0", "2017-02-15",
-        "Add calendar to vacation." + "Add possibility to create applications for leave of a half day.")
+        "Add dateTime to vacation." + "Add possibility to create applications for leave of a half day.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()

@@ -21,40 +21,12 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.utils;
+package org.projectforge.framework.persistence.api
 
-import java.math.BigDecimal;
-
-public class CurrencyHelper
-{
-  /**
-   * @param net If null then zero is returned.
-   * @param vat
-   * @return Gross amount or net if vat is null or zero.
-   */
-  public static final BigDecimal getGrossAmount(final BigDecimal net, final BigDecimal vat)
-  {
-    if (net == null) {
-      return BigDecimal.ZERO;
-    }
-    if (NumberHelper.isZeroOrNull(vat)) {
-      return net;
-    }
-    return net.multiply(BigDecimal.ONE.add(vat));
-  }
-
-  public static final BigDecimal multiply(final BigDecimal val1, final BigDecimal val2)
-  {
-    if (val1 == null) {
-      if (val2 == null) {
-        return BigDecimal.ZERO;
-      } else {
-        return val2;
-      }
-    } else if (val2 == null) {
-      return val1;
-    } else {
-      return val1.multiply(val2);
-    }
-  }
+/**
+ * Used to display history entries.
+ * @author Kai Reinhard (k.reinhard@micromata.de)
+ */
+interface ShortDisplayNameCapable {
+    val shortDisplayName: String
 }

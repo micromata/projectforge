@@ -156,7 +156,7 @@ public class MonthHolder
    */
   public String getI18nKey()
   {
-    return "calendar.month." + getMonthKey();
+    return "dateTime.month." + getMonthKey();
   }
 
   public WeekHolder getFirstWeek()

@@ -311,7 +311,7 @@ public class TeamCalDao extends BaseDao<TeamCalDO> {
       // only update if the url has changed!
       getTeamEventExternalSubscriptionCache().updateCache(obj);
     }
-    // if calendar is present in subscription cache and is not an external subscription anymore -> cleanup!
+    // if dateTime is present in subscription cache and is not an external subscription anymore -> cleanup!
     if (obj != null
             && !obj.getExternalSubscription()
             && getTeamEventExternalSubscriptionCache().isExternalSubscribedCalendar(obj.getId())) {

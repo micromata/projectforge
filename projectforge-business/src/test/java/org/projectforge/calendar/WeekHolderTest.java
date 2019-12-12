@@ -53,7 +53,7 @@ public class WeekHolderTest {
     assertEquals("monday", week.getDays()[0].getDayKey());
     final DateHolder dateHolder = new DateHolder(DatePrecision.DAY, Locale.GERMAN);
     dateHolder.setDate(1970, Calendar.NOVEMBER, 21, 4, 50, 23);
-    week = new WeekHolder(dateHolder.getCalendar());
+    week = new WeekHolder(dateHolder.getDateTime());
     assertEquals(7, week.getDays().length);
     assertEquals(2, week.getDays()[0].getDayOfWeek());
     assertEquals("monday", week.getDays()[0].getDayKey());
@@ -63,7 +63,7 @@ public class WeekHolderTest {
     assertEquals(21, week.getDays()[5].getDayOfMonth());
     dateHolder.setDate(2007, Calendar.MARCH, 1, 4, 50, 23);
     assertEquals(Calendar.MARCH, dateHolder.getMonth());
-    week = new WeekHolder(dateHolder.getCalendar(), dateHolder.getMonth());
+    week = new WeekHolder(dateHolder.getDateTime(), dateHolder.getMonth());
     assertEquals("monday", week.getDays()[0].getDayKey());
     assertEquals(26, week.getDays()[0].getDayOfMonth());
     assertEquals(true, week.getDays()[0].isMarker()); // February, 26

@@ -248,7 +248,7 @@ public class ICalHandler
     final TeamEventDO event = eventHandle.getEvent();
     final TeamEventDO eventInDB = eventHandle.getEventInDB();
 
-    // set calendar
+    // set dateTime
     event.setCalendar(eventHandle.getCalendar());
 
     // fix attendees

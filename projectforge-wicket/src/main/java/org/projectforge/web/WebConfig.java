@@ -36,7 +36,7 @@ import org.projectforge.web.wicket.WicketApplication;
  * <pre>
  * &lt;config&gt;
  *   ...
- *   &lt;web defaultPage="org.projectforge.web.calendar.CalendarPage" /&gt;
+ *   &lt;web defaultPage="org.projectforge.web.dateTime.CalendarPage" /&gt;
  *   ...
  * &lt;/config&gt;
  * </pre>

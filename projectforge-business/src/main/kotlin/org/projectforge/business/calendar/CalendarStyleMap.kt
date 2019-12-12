@@ -34,7 +34,7 @@ import org.projectforge.business.calendar.TeamCalendar.Companion.BIRTHDAYS_FAVS_
  */
 class CalendarStyleMap {
     /**
-     * Colors for the calendarIds by calendar id.
+     * Colors for the calendarIds by dateTime id.
      */
     private val styles = mutableMapOf<Int, CalendarStyle>()
 

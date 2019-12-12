@@ -121,7 +121,7 @@ public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamE
       }
     };
 
-    columns.add(new CellItemListenerPropertyColumn<TeamEventDO>(getString("plugins.teamcal.calendar"), null, "calendar",
+    columns.add(new CellItemListenerPropertyColumn<TeamEventDO>(getString("plugins.teamcal.calendar"), null, "dateTime",
         cellItemListener)
     {
       /**

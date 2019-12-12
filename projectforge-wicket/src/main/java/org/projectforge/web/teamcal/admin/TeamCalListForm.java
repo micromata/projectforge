@@ -114,7 +114,7 @@ public class TeamCalListForm extends AbstractListForm<TeamCalFilter, TeamCalList
       public boolean isVisible()
       {
 
-        // Show check box panel only if user selects others calendar.
+        // Show check box panel only if user selects others dateTime.
         return getSearchFilter().isDeleted() == false && (getSearchFilter().isAll() == true || getSearchFilter().isOthers() == true);
       }
     };

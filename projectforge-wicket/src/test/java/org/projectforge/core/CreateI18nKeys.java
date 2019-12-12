@@ -133,12 +133,12 @@ public class CreateI18nKeys
       // "i18nkey");
       if (file.getPath().endsWith(PATH_DAYHOLDER) == true) {
         for (final String key : DayHolder.DAY_KEYS) {
-          add(i18nKeyUsage, "calendar.day." + key, file);
-          add(i18nKeyUsage, "calendar.shortday." + key, file);
+          add(i18nKeyUsage, "dateTime.day." + key, file);
+          add(i18nKeyUsage, "dateTime.shortday." + key, file);
         }
       } else if (file.getPath().endsWith(PATH_MONTHHOLDER) == true) {
         for (final String key : MonthHolder.MONTH_KEYS) {
-          add(i18nKeyUsage, "calendar.month." + key, file);
+          add(i18nKeyUsage, "dateTime.month." + key, file);
         }
       } else if (file.getPath().endsWith(PATH_FORM_OF_ADDRESS) == true) {
         for (final FormOfAddress form : FormOfAddress.values()) {

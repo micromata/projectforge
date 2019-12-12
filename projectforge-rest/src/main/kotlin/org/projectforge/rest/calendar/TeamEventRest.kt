@@ -89,7 +89,7 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
 
     override fun validate(validationErrors: MutableList<ValidationError>, dto: TeamEvent) {
         if (dto.calendar == null)
-            validationErrors.add(ValidationError.createFieldRequired(baseDao.doClass, fieldId = "calendar"))
+            validationErrors.add(ValidationError.createFieldRequired(baseDao.doClass, fieldId = "dateTime"))
         if (dto.subject.isNullOrBlank())
             validationErrors.add(ValidationError.createFieldRequired(baseDao.doClass, fieldId = "subject"))
         if (dto.id != null && dto.hasRecurrence && dto.seriesModificationMode == null) {
@@ -120,7 +120,7 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
                         sequence = dto.sequence)
             }
         } else {
-            val calendarId = NumberHelper.parseInteger(request.getParameter("calendar"))
+            val calendarId = NumberHelper.parseInteger(request.getParameter("dateTime"))
             if (calendarId != null && calendarId > 0) {
                 dto.calendar = teamCalDao.getById(calendarId)
             }
@@ -131,14 +131,14 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
 
     override fun beforeDatabaseAction(request: HttpServletRequest, obj: TeamEventDO, dto: TeamEvent, operation: OperationType) {
         if (obj.calendarId != null) {
-            // Calendar from client has only id and title. Get the calendar object from the data base (e. g. owner
+            // Calendar from client has only id and title. Get the dateTime object from the data base (e. g. owner
             // is needed by the access checker.
             obj.calendar = teamCalDao.getById(obj.calendarId)
         }
     }
 
     override fun afterEdit(obj: TeamEventDO, dto: TeamEvent): ResponseAction {
-        return ResponseAction("/${Const.REACT_APP_PATH}calendar")
+        return ResponseAction("/${Const.REACT_APP_PATH}dateTime")
                 .addVariable("date", dto.startDate)
                 .addVariable("id", obj.id ?: -1)
     }
@@ -149,7 +149,7 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
         if (idString.contains('-')) { // {calendarId}-{uid}
             val vals = idString.split('-', limit = 2)
             if (vals.size != 2) {
-                log.error("Can't get event of subscribed calendar. id must be of form {calId}-{uid} but is '$idString'.")
+                log.error("Can't get event of subscribed dateTime. id must be of form {calId}-{uid} but is '$idString'.")
 
                 return TeamEvent()
             }
@@ -160,17 +160,17 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
                 if (eventDO == null) {
                     val cal = teamCalDao.getById(calId)
                     if (cal == null) {
-                        log.error("Can't get calendar with id #$calId.")
+                        log.error("Can't get dateTime with id #$calId.")
                     } else if (!cal.externalSubscription) {
                         log.error("Calendar with id #$calId is not an external subscription, can't get event by uid.")
                     } else {
-                        log.error("Can't find event with uid '$uid' in subscribed calendar with id #$calId.")
+                        log.error("Can't find event with uid '$uid' in subscribed dateTime with id #$calId.")
                     }
                     return TeamEvent()
                 }
                 return transformFromDB(eventDO, editMode)
             } catch (ex: NumberFormatException) {
-                log.error("Can't get event of subscribed calendar. id must be of form {calId}-{uid} but is '$idString', a NumberFormatException occured.")
+                log.error("Can't get event of subscribed dateTime. id must be of form {calId}-{uid} but is '$idString', a NumberFormatException occured.")
                 return TeamEvent()
             }
         }
@@ -187,7 +187,7 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
     }
 
     override fun getRestEditPath(): String {
-        return "calendar/${super.getRestEditPath()}"
+        return "dateTime/${super.getRestEditPath()}"
     }
 
     /**
@@ -212,7 +212,7 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
             teamEvent.calendar?.id = calendarId
         }
         val editLayoutData = getItemAndLayout(request, teamEvent, UILayout.UserAccess(false, true))
-        return ResponseAction(url = "/${Const.REACT_APP_PATH}calendar/${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
+        return ResponseAction(url = "/${Const.REACT_APP_PATH}dateTime/${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
                 .addVariable("data", editLayoutData.data)
                 .addVariable("ui", editLayoutData.ui)
                 .addVariable("variables", editLayoutData.variables)
@@ -235,8 +235,8 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
         val calendars = teamCalDao.getAllCalendarsWithFullAccess()
         calendars.removeIf { it.externalSubscription } // Remove full access calendars, but subscribed.
         if (dto.calendar != null && calendars.find { it.id == dto.calendar?.id } == null) {
-            // Calendar of event is not in the list of editable calendars. Add this non-editable calendar to show
-            // the calendar of the event.
+            // Calendar of event is not in the list of editable calendars. Add this non-editable dateTime to show
+            // the dateTime of the event.
             calendars.add(0, dto.calendar)
         }
         val calendarSelectValues = calendars.map {
@@ -260,7 +260,7 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
         layout.add(UIFieldset(12)
                 .add(UIRow()
                         .add(UICol(6)
-                                .add(UISelect<Int>("calendar",
+                                .add(UISelect<Int>("dateTime",
                                         values = calendarSelectValues.toMutableList(),
                                         label = "plugins.teamcal.event.teamCal",
                                         labelProperty = "title",
@@ -270,8 +270,8 @@ class TeamEventRest() : AbstractDTORest<TeamEventDO, TeamEvent, TeamEventDao>(
                         .add(UICol(6)
                                 .add(lc, "startDate", "endDate", "allDay")
                                 .add(lc, "note"))))
-                .add(UICustomized("calendar.reminder"))
-                .add(UIRow().add(UICol(12).add(UICustomized("calendar.recurrency"))))
+                .add(UICustomized("dateTime.reminder"))
+                .add(UIRow().add(UICol(12).add(UICustomized("dateTime.recurrency"))))
         layout.addAction(UIButton("switch",
                 title = translate("plugins.teamcal.switchToTimesheetButton"),
                 color = UIColor.DARK,

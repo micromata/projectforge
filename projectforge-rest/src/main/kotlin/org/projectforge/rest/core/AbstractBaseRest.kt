@@ -81,6 +81,8 @@ abstract class AbstractBaseRest<
         const val CREATE_MENU = "CREATE"
     }
 
+    class ShortDisplayObject(val id: Any, val displayName: String?)
+
     /**
      * Contains the layout data returned for the frontend regarding edit pages.
      * @param variables Additional variables / data provided for the edit page.
@@ -92,9 +94,15 @@ abstract class AbstractBaseRest<
      */
     class InitialListData(
             val ui: UILayout?,
+            val standardEditPage: String,
             val data: ResultSet<*>,
             val filterFavorites: List<Favorites.FavoriteIdTitle>,
             val filter: MagicFilter,
+            /**
+             * Quickselect url for searching entries while typing search string. If given, the user may click on
+             * the autocompletion results for direct editing of the object.
+             */
+            val quickSelectUrl: String? = null,
             var variables: Map<String, Any>? = null)
 
     private var initialized = false
@@ -140,7 +148,7 @@ abstract class AbstractBaseRest<
      * @return new instance of class ExtendedDO.
      */
     open fun newBaseDO(request: HttpServletRequest? = null): O {
-        return baseDao.doClass.newInstance()
+        return baseDao.doClass.getDeclaredConstructor().newInstance()
     }
 
     /**
@@ -276,10 +284,18 @@ abstract class AbstractBaseRest<
         layout.postProcessPageMenu()
         layout.add(MenuItem(CREATE_MENU, title = "+", url = "${Const.REACT_APP_PATH}${getCategory()}/edit"), 0)
         return InitialListData(ui = layout,
+                standardEditPage = "${Const.REACT_APP_PATH}${getCategory()}/edit/\${id}",
+                quickSelectUrl = quickSelectUrl,
                 data = resultSet,
                 filter = filter,
                 filterFavorites = favorites.idTitleList)
     }
+
+    /**
+     * At standard, quickSelectUrl is only given, if the doClass implements ShortDisplayNameCapable and autoCompleteSearchFields are given.
+     */
+    protected open val quickSelectUrl: String?
+        get() = if (!autoCompleteSearchFields.isNullOrEmpty() && ShortDisplayNameCapable::class.java.isAssignableFrom(baseDao.doClass)) "${getRestPath()}/quickSelect?search=\${searchString}" else null
 
     /**
      * Add customized magic filter element in addition to the automatically detected elements.
@@ -579,7 +595,30 @@ abstract class AbstractBaseRest<
         val filter = BaseSearchFilter()
         filter.searchString = searchString
         filter.setSearchFields(*autoCompleteSearchFields!!)
-        return baseDao.getList(filter)
+        val resultSet = ResultSet(baseDao.getList(filter))
+        @Suppress("UNCHECKED_CAST")
+        return processResultSetBeforeExport(resultSet).resultSet as MutableList<O>
+    }
+
+    /**
+     * Gets the quick select list for the given search string by searching in all properties defined by [autoCompleteSearchFields].
+     * If [autoCompleteSearchFields] is not given an [InternalErrorException] will be thrown.
+     * The result set is limited to 30 entries and only
+     * @param searchString
+     * @return list of found objects.
+     */
+    @GetMapping("quickSelect")
+    open fun getQuickSelectObjects(@RequestParam("search") searchString: String?): List<ShortDisplayObject> {
+        if (autoCompleteSearchFields.isNullOrEmpty()) {
+            throw RuntimeException("Can't call getAutoCompletion without property, because no autoCompleteSearchFields are configured by the developers for this entity.")
+        }
+        val filter = BaseSearchFilter()
+        val modifiedSearchString = searchString?.split(' ', '\t', '\n')?.joinToString(" ") { "+$it*" }
+        filter.searchString = modifiedSearchString
+        filter.setSearchFields(*autoCompleteSearchFields!!)
+        val list = baseDao.getList(filter)
+        val size = if (list.size > 29) 29 else list.size
+        return list.subList(0, size).map { ShortDisplayObject(it.id, (it as ShortDisplayNameCapable).shortDisplayName) }
     }
 
     /**
@@ -612,7 +651,7 @@ abstract class AbstractBaseRest<
     }
 
     /**
-     * Might be modified e. g. for edit pages handled in modals (timesheets and calendar events).
+     * Might be modified e. g. for edit pages handled in modals (timesheets and dateTime events).
      */
     open protected fun getRestEditPath(): String {
         return getRestRootPath(RestPaths.EDIT)

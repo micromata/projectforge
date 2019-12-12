@@ -73,7 +73,7 @@ abstract class BaseUserGroupRightsDO : DefaultBaseDO() {
 
     /**
      * Members of these group have read-only access to all entries of this object, but they can only see a minimal
-     * set of the data of this object. This is used e. g. for calendar entries, where the users may only see the
+     * set of the data of this object. This is used e. g. for dateTime entries, where the users may only see the
      * start and end time of an event, but no information of details such as location, notes etc.
      */
     @get:Column(name = "minimal_access_group_ids", nullable = true)

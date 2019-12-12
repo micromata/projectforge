@@ -260,7 +260,7 @@ public class TeamCalCalendarForm extends CalendarForm
         // Here we have just one event.
         final TeamEventDO event = parser.getExtractedEvents().get(0);
         final TemplateEntry activeTemplateEntry = ((TeamCalCalendarFilter) filter).getActiveTemplateEntry();
-        // check id/external id. If not yet given, create new entry and ask for calendar to add: Redirect to TeamEventEditPage.
+        // check id/external id. If not yet given, create new entry and ask for dateTime to add: Redirect to TeamEventEditPage.
 
         if (event.getUid() != null && activeTemplateEntry != null) {
           final TeamEventDO dbEvent = teamEventDao.getByUid(activeTemplateEntry.getDefaultCalendarId(), event.getUid(), false);
@@ -273,14 +273,14 @@ public class TeamCalCalendarForm extends CalendarForm
               event.setCreator(dbEvent.getCreator());
               event.setDeleted(dbEvent.isDeleted());
             } else {
-              // Can't import event with existing uid in selected calendar, redirect to import page:
+              // Can't import event with existing uid in selected dateTime, redirect to import page:
               redirectToImportPage(parser.getVEvents(), activeModel.getObject());
               return;
             }
           }
         }
 
-        // set calendar
+        // set dateTime
         if (activeTemplateEntry != null && activeTemplateEntry.getDefaultCalendarId() != null) {
           teamEventDao.setCalendar(event, activeTemplateEntry.getDefaultCalendarId());
         }

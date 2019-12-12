@@ -28,13 +28,21 @@ import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import javax.persistence.*
+import javax.persistence.Column
+import javax.persistence.Entity
+import javax.persistence.Table
+import javax.persistence.Transient
+import javax.persistence.UniqueConstraint
 
 @Entity
 @Indexed
 @Table(name = "T_PLUGIN_BANK_ACCOUNT", uniqueConstraints = [UniqueConstraint(columnNames = ["account_number", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_bank_account_tenant_id", columnList = "tenant_id")])
 @WithHistory
 open class BankAccountDO : DefaultBaseDO(), ShortDisplayNameCapable {
+
+    override val shortDisplayName: String
+        @Transient
+        get() = "$accountNumber"
 
     @Field
     @get:Column(name = "account_number", length = 255, nullable = false)
@@ -55,9 +63,4 @@ open class BankAccountDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @Field
     @get:Column(length = 4000)
     open var description: String? = null
-
-    @Transient
-    override fun getShortDisplayName(): String {
-        return accountNumber.toString()
-    }
 }

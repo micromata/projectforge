@@ -68,7 +68,7 @@ public class MyXlsContentProvider extends XlsContentProvider
   public Object getCustomizedValue(final Object value)
   {
     if (value instanceof DateHolder) {
-      return ((DateHolder) value).getCalendar();
+      return ((DateHolder) value).getDateTime();
     } else if (value instanceof PFUserDO) {
       return ((PFUserDO) value).getFullname();
     } else if (value instanceof I18nEnum) {
