@@ -112,20 +112,19 @@ class IHKExporter
     final double durationInHours = timesheet.getDuration() / (1000.0 * 60.0 * 60.0);
     hourCounter += durationInHours;
 
-    String lernfeld;
-    String description;
+    String lernfeld = "";
+    String description = "";
 
-    if(timesheet.getDescription().indexOf(" | ")!=-1){ // If no | in String then IndexOf will be -1
-      lernfeld = StringUtils.substringBefore(timesheet.getDescription(), " | ");
-      description = StringUtils.substringAfter(timesheet.getDescription(), " | ");
-    } else if(
-      timesheet.getDescription().indexOf("|")!=-1){ // If no | in String then IndexOf will be -1
-      lernfeld = StringUtils.substringBefore(timesheet.getDescription(), "|");
-      description = StringUtils.substringAfter(timesheet.getDescription(), "|");
-    }
-    else {
-      lernfeld = "";
-      description = timesheet.getDescription();
+    System.out.println(timesheet.getDescription());
+
+    if (!(timesheet.getDescription() == null)) {
+      if(timesheet.getDescription().indexOf("|") != -1) { // If no | in String then IndexOf will be -1
+        lernfeld = StringUtils.substringBefore(timesheet.getDescription(), "|").trim();
+        description = StringUtils.substringAfter(timesheet.getDescription(), "|").trim();
+      } else {
+        lernfeld = "";
+        description = timesheet.getDescription();
+      }
     }
 
     newRow.getCell(0).setCellValue(sdf.format(timesheet.getStartTime()));
