@@ -1,3 +1,5 @@
+import { loadList } from './index';
+
 export const LIST_FILTER_SORT = 'LIST_FILTER_SORT';
 
 const sort = (column, sortProperty, category) => ({
@@ -23,5 +25,8 @@ export const sortList = (property, sortOrder) => (dispatch, getState) => {
         sortProperty.sortOrder = 'DESCENDING';
     }
 
-    dispatch(sort(property, sortProperty, getState().list.currentCategory));
+    const category = getState().list.currentCategory;
+
+    dispatch(sort(property, sortProperty, category));
+    loadList(category)(dispatch, getState);
 };
