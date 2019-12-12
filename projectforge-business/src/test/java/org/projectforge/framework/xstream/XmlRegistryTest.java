@@ -23,13 +23,14 @@
 
 package org.projectforge.framework.xstream;
 
+import org.jfree.data.time.Month;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.xstream.converter.ISODateConverter;
 import org.projectforge.test.TestSetup;
 
-import java.util.Calendar;
+import java.time.ZoneId;
 import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -49,22 +50,21 @@ public class XmlRegistryTest
   {
     final XmlObjectWriter writer = new XmlObjectWriter();
     TestObject obj = new TestObject();
-    final DateHolder dh = new DateHolder();
-
-    dh.setDate(2010, Calendar.AUGUST, 29, 23, 8, 17, 123);
-    obj.date = dh.getDate();
+    PFDateTime dt = PFDateTime.now(ZoneId.of("UTC")).withYear(2010).withMonth(Month.AUGUST).withDayOfMonth(29).withHour(23).withMinute(8)
+        .withSecond(17).withMilliSecond(123);
+    obj.date = dt.getUtilDate();
     assertEquals("<test d1=\"0.0\" i1=\"0\" date=\"1283116097123\"/>", writer.writeToXml(obj));
     final XmlRegistry reg = new XmlRegistry();
     reg.registerConverter(Date.class, new ISODateConverter());
     writer.setXmlRegistry(reg);
     assertEquals("<test d1=\"0.0\" i1=\"0\" date=\"2010-08-29 23:08:17.123\"/>", writer.writeToXml(obj));
-    obj.date = dh.setMilliSecond(0).getDate();
+    obj.date = dt.withMilliSecond(0).getUtilDate();
     assertEquals("<test d1=\"0.0\" i1=\"0\" date=\"2010-08-29 23:08:17\"/>", writer.writeToXml(obj));
-    obj.date = dh.setSecond(0).getDate();
+    obj.date = dt.withSecond(0).getUtilDate();
     assertEquals("<test d1=\"0.0\" i1=\"0\" date=\"2010-08-29 23:08\"/>", writer.writeToXml(obj));
-    obj.date = dh.setMinute(0).getDate();
+    obj.date = dt.withMinute(0).getUtilDate();
     assertEquals("<test d1=\"0.0\" i1=\"0\" date=\"2010-08-29 23:00\"/>", writer.writeToXml(obj));
-    obj.date = dh.setHourOfDay(0).getDate();
+    obj.date = dt.withHour(0).getUtilDate();
     assertEquals("<test d1=\"0.0\" i1=\"0\" date=\"2010-08-29\"/>", writer.writeToXml(obj));
   }
 }

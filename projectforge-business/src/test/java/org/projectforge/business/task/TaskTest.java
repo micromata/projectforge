@@ -23,6 +23,7 @@
 
 package org.projectforge.business.task;
 
+import org.jfree.data.time.Month;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.ProjektDao;
@@ -40,11 +41,12 @@ import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
-import java.util.Calendar;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 
@@ -453,28 +455,26 @@ public class TaskTest extends AbstractTestBase {
     final TaskDO subTask2 = initTestDB.addTask("totalDurationTask.subtask2", "totalDurationTask");
     final TaskTree taskTree = TaskTreeHelper.getTaskTree();
     assertEquals(0, taskDao.readTotalDuration(task.getId()));
-    final DateHolder dh = new DateHolder();
-    dh.setDate(2010, Calendar.APRIL, 20, 8, 0);
+    final PFDateTime dt = PFDateTime.now().withYear(2010).withMonth(Month.APRIL).withDayOfMonth(20).withHour(8).withMinute(0);
     TimesheetDO ts = new TimesheetDO();
     ts.setUser(getUser(AbstractTestBase.TEST_USER));
-    ts.setStartDate(dh.getDate())
-            .setStopTime(dh.add(Calendar.HOUR_OF_DAY, 4).getTimestamp());
+    ts.setStartDate(dt.getUtilDate()).setStopTime(dt.plus(4, ChronoUnit.HOURS).getSqlTimestamp());
     ts.setTask(task);
     timesheetDao.save(ts);
     assertEquals(4 * 3600, taskDao.readTotalDuration(task.getId()));
     assertEquals(4 * 3600, getTotalDuration(taskTree, task.getId()));
     ts = new TimesheetDO();
     ts.setUser(getUser(AbstractTestBase.TEST_USER));
-    ts.setStartDate(dh.add(Calendar.HOUR_OF_DAY, 1).getDate())
-            .setStopTime(dh.add(Calendar.HOUR_OF_DAY, 4).getTimestamp());
+    ts.setStartDate(dt.plus(5, ChronoUnit.HOURS).getUtilDate())
+            .setStopTime(dt.plus(9, ChronoUnit.HOURS).getSqlTimestamp());
     ts.setTask(task);
     timesheetDao.save(ts);
     assertEquals(8 * 3600, taskDao.readTotalDuration(task.getId()));
     assertEquals(8 * 3600, getTotalDuration(taskTree, task.getId()));
     ts = new TimesheetDO();
     ts.setUser(getUser(AbstractTestBase.TEST_USER));
-    ts.setStartDate(dh.add(Calendar.HOUR_OF_DAY, 1).getDate())
-            .setStopTime(dh.add(Calendar.HOUR_OF_DAY, 4).getTimestamp());
+    ts.setStartDate(dt.plus(10, ChronoUnit.HOURS).getUtilDate())
+            .setStopTime(dt.plus(14, ChronoUnit.HOURS).getSqlTimestamp());
     ts.setTask(subTask1);
     timesheetDao.save(ts);
     final List<Object[]> list = taskDao.readTotalDurations();

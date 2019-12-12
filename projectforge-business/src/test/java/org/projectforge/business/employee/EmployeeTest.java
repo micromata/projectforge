@@ -31,11 +31,11 @@ import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.Gender;
 import org.projectforge.business.fibu.GenderConverter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
+import java.time.Month;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -85,8 +85,8 @@ public class EmployeeTest extends AbstractTestBase
     log.info("Employee history entry size: " + historyEntries.size());
 
     //Update employee
-    Calendar birthday = new GregorianCalendar(1985, Calendar.DECEMBER, 17);
-    e.setBirthday(birthday.getTime());
+    PFDateTime birthday = PFDateTime.now().withYear(1985).withMonth(Month.DECEMBER.getValue()).withDayOfMonth(17);
+    e.setBirthday(birthday.getUtilDate());
     employeeDao.update(e);
 
     //Check updates
