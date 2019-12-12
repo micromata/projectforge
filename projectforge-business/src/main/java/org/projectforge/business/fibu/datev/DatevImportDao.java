@@ -34,6 +34,7 @@ import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.i18n.UserException;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.utils.ImportStatus;
 import org.projectforge.framework.persistence.utils.ImportStorage;
 import org.projectforge.framework.persistence.utils.ImportedElement;
@@ -70,7 +71,7 @@ public class DatevImportDao {
   private static final int KONTO_INSERT_BLOCK_SIZE = 50;
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DatevImportDao.class);
   @Autowired
-  private EntityManager em;
+  private PfEmgrFactory emgrFactory;
   @Autowired
   private AccessChecker accessChecker;
   @Autowired
@@ -87,7 +88,6 @@ public class DatevImportDao {
    *
    * @param accessChecker
    * @see UserRightId#FIBU_DATEV_IMPORT
-   * @see AccessChecker#hasRight(UserRightId, UserRightValue, boolean)
    */
   public static boolean hasRight(final AccessChecker accessChecker) {
     return hasRight(accessChecker, false);
@@ -99,7 +99,6 @@ public class DatevImportDao {
    * @param accessChecker
    * @throws AccessException
    * @see UserRightId#FIBU_DATEV_IMPORT
-   * @see AccessChecker#hasRight(UserRightId, UserRightValue, boolean)
    */
   public static boolean checkLoggeinUserRight(final AccessChecker accessChecker) {
     return hasRight(accessChecker, true);
@@ -161,7 +160,7 @@ public class DatevImportDao {
    * muss der FINANCE_GROUP angehören, um diese Funktionalität ausführen zu können.
    *
    * @param storage
-   * @param name    of sheet to reconcile.
+   * @param sheetName    of sheet to reconcile.
    */
   @SuppressWarnings("unchecked")
   public void reconcile(final ImportStorage<?> storage, final String sheetName) {
@@ -186,12 +185,13 @@ public class DatevImportDao {
     if (sheet.getStatus() != ImportStatus.RECONCILED) {
       throw new UserException("common.import.action.commit.error.notReconciled");
     }
-    int no = -1;
-    if (storage.getId() == Type.KONTENPLAN) {
-      no = commitKontenplan((ImportedSheet<KontoDO>) sheet);
-    } else {
-      no = commitBuchungsdaten((ImportedSheet<BuchungssatzDO>) sheet);
-    }
+    int no = emgrFactory.runInTrans(emgr -> {
+      if (storage.getId() == Type.KONTENPLAN) {
+        return commitKontenplan((ImportedSheet<KontoDO>) sheet);
+      } else {
+        return commitBuchungsdaten((ImportedSheet<BuchungssatzDO>) sheet);
+      }
+    });
     sheet.setNumberOfCommittedElements(no);
     sheet.setStatus(ImportStatus.IMPORTED);
   }
@@ -265,7 +265,10 @@ public class DatevImportDao {
     if (id == null) {
       return null;
     }
-    return em.find(clazz, id, LockModeType.READ);
+    return emgrFactory.runRoTrans(emgr -> {
+      EntityManager em = emgr.getEntityManager();
+      return em.find(clazz, id, LockModeType.READ);
+    });
   }
 
   private int commitBuchungsdaten(final ImportedSheet<BuchungssatzDO> sheet) {
