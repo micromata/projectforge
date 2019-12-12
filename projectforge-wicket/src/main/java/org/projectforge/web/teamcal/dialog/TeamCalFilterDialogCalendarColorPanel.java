@@ -43,7 +43,7 @@ import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
 
 /**
- * Inner class to represent a single calendar color and visibility panel.
+ * Inner class to represent a single dateTime color and visibility panel.
  */
 public class TeamCalFilterDialogCalendarColorPanel extends Panel
 {
@@ -135,7 +135,7 @@ public class TeamCalFilterDialogCalendarColorPanel extends Panel
           if (props != null) {
             props.setColorCode(selectedColor);
           } else {
-            log.warn("TeamCalendarProperties not found: calendar.id='"
+            log.warn("TeamCalendarProperties not found: dateTime.id='"
                 + calendar.getId()
                 + "' + for active template '"
                 + activeTemplateEntry.getName()

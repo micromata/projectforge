@@ -220,7 +220,7 @@ public class PollEventEditPage extends AbstractSecuredPage
         eventProvider.eventClicked(event, response);
       }
     };
-    calendar.setMarkupId("calendar");
+    calendar.setMarkupId("dateTime");
     final EventSource eventSource = new EventSource();
     eventSource.setEventsProvider(eventProvider);
     config.add(eventSource);

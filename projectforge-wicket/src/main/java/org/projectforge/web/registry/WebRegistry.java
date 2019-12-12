@@ -326,7 +326,7 @@ public class WebRegistry
     addMountPages(DaoConst.USER_PREF, UserPrefListPage.class, UserPrefEditPage.class);
 
     addMountPage("admin", AdminPage.class);
-    addMountPage("calendar", CalendarPage.class);
+    addMountPage("dateTime", CalendarPage.class);
     addMountPage("changePassword", ChangePasswordPage.class);
     addMountPage("configuration", ConfigurationListPage.class);
     addMountPage("datevImport", DatevImportPage.class);

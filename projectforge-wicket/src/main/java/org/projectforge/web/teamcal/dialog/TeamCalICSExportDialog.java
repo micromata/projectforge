@@ -75,7 +75,7 @@ public class TeamCalICSExportDialog extends AbstractICSExportDialog
       public String getObject()
       {
         return getLocalizer().getString("plugins.teamcal.download", TeamCalICSExportDialog.this,
-            new I18nParamMap().put("calendar", calendarTitle));
+            new I18nParamMap().put("dateTime", calendarTitle));
       }
     });
   }

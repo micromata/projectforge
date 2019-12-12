@@ -49,6 +49,10 @@ import javax.persistence.*
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class HRPlanningEntryDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
+    override val shortDisplayName: String
+        @Transient
+        get() = "${projekt?.name}"
+
     @IndexedEmbedded(depth = 3)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "planning_fk", nullable = false)
@@ -87,23 +91,23 @@ open class HRPlanningEntryDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @get:Column(scale = 2, precision = 5)
     open var unassignedHours: BigDecimal? = null
 
-    @PropertyInfo(i18nKey = "calendar.shortday.monday")
+    @PropertyInfo(i18nKey = "dateTime.shortday.monday")
     @get:Column(scale = 2, precision = 5)
     open var mondayHours: BigDecimal? = null
 
-    @PropertyInfo(i18nKey = "calendar.shortday.tuesday")
+    @PropertyInfo(i18nKey = "dateTime.shortday.tuesday")
     @get:Column(scale = 2, precision = 5)
     open var tuesdayHours: BigDecimal? = null
 
-    @PropertyInfo(i18nKey = "calendar.shortday.wednesday")
+    @PropertyInfo(i18nKey = "dateTime.shortday.wednesday")
     @get:Column(scale = 2, precision = 5)
     open var wednesdayHours: BigDecimal? = null
 
-    @PropertyInfo(i18nKey = "calendar.shortday.thursday")
+    @PropertyInfo(i18nKey = "dateTime.shortday.thursday")
     @get:Column(scale = 2, precision = 5)
     open var thursdayHours: BigDecimal? = null
 
-    @PropertyInfo(i18nKey = "calendar.shortday.friday")
+    @PropertyInfo(i18nKey = "dateTime.shortday.friday")
     @get:Column(scale = 2, precision = 5)
     open var fridayHours: BigDecimal? = null
 
@@ -296,11 +300,6 @@ open class HRPlanningEntryDO : DefaultBaseDO(), ShortDisplayNameCapable {
             }
         }
         return hcb.toHashCode()
-    }
-
-    @Transient
-    override fun getShortDisplayName(): String? {
-        return if (projekt != null) projekt!!.name else ""
     }
 
     /**

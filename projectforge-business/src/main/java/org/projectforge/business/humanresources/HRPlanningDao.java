@@ -52,8 +52,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Date;
-import java.util.Calendar;
-import java.util.Comparator;
+import java.time.DayOfWeek;
 import java.util.List;
 import java.util.Locale;
 
@@ -233,7 +232,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
   @Override
   protected void onSaveOrModify(final HRPlanningDO obj) {
     final DateHolder date = new DateHolder(obj.getWeek(), DateHelper.UTC, Locale.GERMANY);
-    if (date.getDayOfWeek() != Calendar.MONDAY || date.getMilliSecond() != 0 || date.getMinute() != 0
+    if (date.getDayOfWeek() != DayOfWeek.MONDAY.getValue() || date.getMilliSecond() != 0 || date.getMinute() != 0
             || date.getHourOfDay() != 0) {
       log.error("Date is not begin of week, try to change date: " + DateHelper.formatAsUTC(date.getDate()));
       obj.setFirstDayOfWeek(date.getSQLDate());
@@ -321,12 +320,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
         list.addAll(entries);
       }
     }
-    list.sort(new Comparator<DisplayHistoryEntry>() {
-      @Override
-      public int compare(final DisplayHistoryEntry o1, final DisplayHistoryEntry o2) {
-        return (o2.getTimestamp().compareTo(o1.getTimestamp()));
-      }
-    });
+    list.sort((o1, o2) -> (o2.getTimestamp().compareTo(o1.getTimestamp())));
     return list;
   }
 

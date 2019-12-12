@@ -55,11 +55,11 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
   }
 
   /**
-   * Try to find a previous used color for the given calendar in any entry of this filter. If found multiple ones, the
+   * Try to find a previous used color for the given dateTime in any entry of this filter. If found multiple ones, the
    * newest one is used.
    * 
-   * @param calId Id of the calendar to search for.
-   * @return Previous used color for the given calendar or DEFAULT_COLOR if not found.
+   * @param calId Id of the dateTime to search for.
+   * @return Previous used color for the given dateTime or DEFAULT_COLOR if not found.
    */
   public String getUsedColor(final Integer calId)
   {

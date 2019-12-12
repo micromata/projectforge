@@ -21,15 +21,36 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.api;
+package org.projectforge.framework.utils
 
-/**
- * Used to display history entries.
- * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
- */
-public interface ShortDisplayNameCapable
-{
+import java.math.BigDecimal
 
-  public String getShortDisplayName();
+object CurrencyHelper {
+    /**
+     * @param net If null then zero is returned.
+     * @param vat
+     * @return Gross amount or net if vat is null or zero.
+     */
+    @JvmStatic
+    fun getGrossAmount(net: BigDecimal?, vat: BigDecimal?): BigDecimal {
+        if (net == null) {
+            return BigDecimal.ZERO
+        }
+        return if (NumberHelper.isZeroOrNull(vat)) {
+            net
+        } else {
+            net.multiply(BigDecimal.ONE.add(vat))
+        }
+    }
+
+    @JvmStatic
+    fun multiply(val1: BigDecimal?, val2: BigDecimal?): BigDecimal {
+        return if (val1 == null) {
+            val2 ?: BigDecimal.ZERO
+        } else if (val2 == null) {
+            val1
+        } else {
+            val1.multiply(val2)
+        }
+    }
 }

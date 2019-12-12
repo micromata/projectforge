@@ -71,7 +71,7 @@ import java.util.Map;
 import java.util.TimeZone;
 
 /**
- * Feed Servlet, which generates a 'text/calendar' output of the last four mounts. Currently relevant information is
+ * Feed Servlet, which generates a 'text/dateTime' output of the last four mounts. Currently relevant information is
  * date, start- and stop time and last but not least the location of an event.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -204,9 +204,9 @@ public class CalendarAboServlet extends HttpServlet
         buf.append(", ");
       }
       logMessage = buf.toString();
-      log.info("Read calendar entries for: " + logMessage);
+      log.info("Read dateTime entries for: " + logMessage);
 
-      resp.setContentType("text/calendar");
+      resp.setContentType("text/dateTime");
       generator.writeCalendarToOutputStream(resp.getOutputStream());
 
     } finally {
@@ -305,7 +305,7 @@ public class CalendarAboServlet extends HttpServlet
 
     final List<TimesheetDO> timesheetList = timesheetDao.getList(filter);
 
-    // iterate over all timesheets and adds each event to the calendar
+    // iterate over all timesheets and adds each event to the dateTime
     for (final TimesheetDO timesheet : timesheetList) {
       final String uid = TeamCalConfig.get().createTimesheetUid(timesheet.getId());
       final String summary = CalendarHelper.getTitle(timesheet) + " (ts)";
@@ -352,7 +352,7 @@ public class CalendarAboServlet extends HttpServlet
 
       final String title;
       final String holidayInfo = holidays.getHolidayInfo(dt);
-      if (holidayInfo != null && holidayInfo.startsWith("calendar.holiday.")) {
+      if (holidayInfo != null && holidayInfo.startsWith("dateTime.holiday.")) {
         title = ThreadLocalUserContext.getLocalizedString(holidayInfo);
       } else {
         title = holidayInfo;

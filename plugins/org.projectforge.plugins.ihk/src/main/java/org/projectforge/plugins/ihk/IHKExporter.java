@@ -23,12 +23,6 @@
 
 package org.projectforge.plugins.ihk;
 
-import static org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUser;
-
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
@@ -45,6 +39,12 @@ import org.projectforge.business.excel.ExportSheet;
 import org.projectforge.business.excel.ExportWorkbook;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.springframework.core.io.ClassPathResource;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.List;
+
+import static org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUser;
 
 /**
  * Created by mnuhn on 05.12.2019
@@ -111,20 +111,19 @@ class IHKExporter
     final double durationInHours = timesheet.getDuration() / (1000.0 * 60.0 * 60.0);
     hourCounter += durationInHours;
 
-    String lernfeld;
-    String description;
+    String lernfeld = "";
+    String description = "";
 
-    if(timesheet.getDescription().indexOf(" | ")!=-1){ // If no | in String then IndexOf will be -1
-      lernfeld = StringUtils.substringBefore(timesheet.getDescription(), " | ");
-      description = StringUtils.substringAfter(timesheet.getDescription(), " | ");
-    } else if(
-      timesheet.getDescription().indexOf("|")!=-1){ // If no | in String then IndexOf will be -1
-      lernfeld = StringUtils.substringBefore(timesheet.getDescription(), "|");
-      description = StringUtils.substringAfter(timesheet.getDescription(), "|");
-    }
-    else {
-      lernfeld = "";
-      description = timesheet.getDescription();
+    System.out.println(timesheet.getDescription());
+
+    if (!(timesheet.getDescription() == null)) {
+      if(timesheet.getDescription().indexOf("|") != -1) { // If no | in String then IndexOf will be -1
+        lernfeld = StringUtils.substringBefore(timesheet.getDescription(), "|").trim();
+        description = StringUtils.substringAfter(timesheet.getDescription(), "|").trim();
+      } else {
+        lernfeld = "";
+        description = timesheet.getDescription();
+      }
     }
 
     newRow.getCell(0).setCellValue(sdf.format(timesheet.getStartTime()));

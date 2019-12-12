@@ -26,7 +26,7 @@ package org.projectforge.rest.calendar
 import java.util.*
 
 /**
- * CalendarFilter to request calendar events as POST param. Dates are required as JavaScript ISO date time strings
+ * CalendarFilter to request dateTime events as POST param. Dates are required as JavaScript ISO date time strings
  * (start and end).
  */
 class CalendarRestFilter(var start: Date? = null,
@@ -38,9 +38,9 @@ class CalendarRestFilter(var start: Date? = null,
                          /** The team calendarIds to display. */
                          var activeCalendarIds: MutableSet<Int>? = null,
                          /**
-                          * If true, then this filter updates the fields of the user's calendar state (start date and view).
-                          * If the user calls the calendar page next time, this properties are restored.
-                          * Default is false (the calendar state will not be updated.
+                          * If true, then this filter updates the fields of the user's dateTime state (start date and view).
+                          * If the user calls the dateTime page next time, this properties are restored.
+                          * Default is false (the dateTime state will not be updated.
                           * This flag is only used by the React client for restoring the states on later views.
                           */
                          var updateState: Boolean? = false,

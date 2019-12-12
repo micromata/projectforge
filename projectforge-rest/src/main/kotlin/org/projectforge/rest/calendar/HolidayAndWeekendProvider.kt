@@ -53,7 +53,7 @@ object HolidayAndWeekendProvider {
                 if (holidayInfo.isNullOrBlank()) {
                     holidayInfo = null
                 } else
-                    if (holidayInfo.startsWith("calendar.holiday.")) {
+                    if (holidayInfo.startsWith("dateTime.holiday.")) {
                         holidayInfo = translate(holidayInfo)
                     }
                 val dayInfo = SpecialDayInfo(weekend, holiday, holidayInfo, workingDay)

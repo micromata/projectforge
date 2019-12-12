@@ -181,7 +181,7 @@ public class CalendarPanel extends Panel
           try {
             dropMode = CalendarDropMode.fromAjaxTarget(parameterValue.toString());
           } catch (final Exception ex) {
-            log.warn("Unable to get calendar drop mode for given value, using default mode. Given mode: "
+            log.warn("Unable to get dateTime drop mode for given value, using default mode. Given mode: "
                 + parameterValue.toString());
           }
         }
@@ -297,7 +297,7 @@ public class CalendarPanel extends Panel
         response.getTarget().add(((CalendarPage) getPage()).getForm().getDurationLabel());
       }
     };
-    calendar.setMarkupId("calendar");
+    calendar.setMarkupId("dateTime");
     add(calendar);
     setConfig();
 
@@ -399,7 +399,7 @@ public class CalendarPanel extends Panel
   }
 
   /**
-   * Hook method for overwriting children, which is called, when something in the calendar was clicked
+   * Hook method for overwriting children, which is called, when something in the dateTime was clicked
    *
    * @param clickedEvent
    * @param response

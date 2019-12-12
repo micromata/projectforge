@@ -773,7 +773,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
         calChoiceRenderer.addValue(cal, cal.getTitle());
       }
       final DropDownChoice<TeamCalDO> calDropDownChoice = new DropDownChoice<>(fieldSet.getDropDownChoiceId(),
-          new PropertyModel<TeamCalDO>(data, "calendar"), calChoiceRenderer.getValues(), calChoiceRenderer);
+          new PropertyModel<TeamCalDO>(data, "dateTime"), calChoiceRenderer.getValues(), calChoiceRenderer);
       calDropDownChoice.setNullValid(false);
       calDropDownChoice.setRequired(true);
       fieldSet.add(calDropDownChoice);

@@ -431,7 +431,7 @@ public class TeamCalFilterDialog extends ModalDialog
         if (activeTemplateEntry != null) {
           for (final TeamCalDO cal : activeTemplateEntry.getCalendars()) {
             if (teamEventRight.hasUpdateAccess(ThreadLocalUserContext.getUser(), cal) == true) {
-              // User is allowed to insert events to this calendar:
+              // User is allowed to insert events to this dateTime:
               result.add(cal);
             }
           }

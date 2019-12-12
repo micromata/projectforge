@@ -57,6 +57,8 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null,
 
     var sortProperties = mutableListOf<SortProperty>()
 
+    var fullTextSearchFields: Array<String>? = null
+
     private val historyQuery = DBHistorySearchParams()
 
     /**
@@ -113,6 +115,7 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null,
     init {
         maxRows = QUERY_FILTER_MAX_ROWS
         if (filter != null) {
+            this.fullTextSearchFields = filter.fullTextSearchFields
             this.autoWildcardSearch = true
             // Legacy for old implementation:
             if (!filter.ignoreDeleted) {
@@ -202,7 +205,7 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null,
     }
 
     fun createDBFilter(): DBFilter {
-        val dbFilter = DBFilter(sortAndLimitMaxRowsWhileSelect, maxRows)
+        val dbFilter = DBFilter(sortAndLimitMaxRowsWhileSelect, maxRows, fullTextSearchFields)
         if (deleted != null) {
             dbFilter.predicates.add(DBPredicate.Equal("deleted", deleted == true))
         }

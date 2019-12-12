@@ -146,7 +146,7 @@ public class BirthdayAddress implements Comparable<BirthdayAddress>, Serializabl
   }
 
   /**
-   * Java calendar style.
+   * Java dateTime style.
    */
   public int getDayOfMonth()
   {

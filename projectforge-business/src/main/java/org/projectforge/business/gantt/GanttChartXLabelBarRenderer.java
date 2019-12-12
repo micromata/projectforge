@@ -27,7 +27,6 @@ import org.projectforge.export.SVGColor;
 import org.projectforge.export.SVGHelper;
 import org.projectforge.framework.calendar.Holidays;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.time.PFDateTime;
 import org.w3c.dom.Document;
@@ -331,10 +330,11 @@ public class GanttChartXLabelBarRenderer
       return;
     }
     PFDateTime dt = PFDateTime.from(day);
+    PFDateTime dtTo = PFDateTime.from(toDate);
     final double x1 = getXValue(day);
     for (int i = 0; i < 100; i++) { // End-less loop protection.
       dt = dt.plusDays(1);
-      if (new Holidays().isWorkingDay(dt.getDateTime()) || !dt.isBefore(toDate)) {
+      if (new Holidays().isWorkingDay(dt.getDateTime()) || !dt.isBefore(dtTo)) {
         break;
       }
     }
@@ -374,8 +374,8 @@ public class GanttChartXLabelBarRenderer
   private int getFromToDays()
   {
     if (fromToDays < 0) {
-      final DateHolder dh = new DateHolder(fromDate);
-      fromToDays = dh.daysBetween(toDate);
+      final PFDateTime dt = PFDateTime.from(fromDate);
+      fromToDays = (int) dt.daysBetween(toDate);
     }
     return fromToDays;
   }

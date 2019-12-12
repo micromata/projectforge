@@ -51,7 +51,7 @@ public class WicketMenuBuilder {
   public WicketMenu getFavoriteMenu() {
     Menu menu = favoritesMenuCreator.getFavoriteMenu();
     MenuItemDef reactMenu = MenuItemDef.create("GoReact", "goreact.menu.new");
-    reactMenu.setUrl("/react/calendar");
+    reactMenu.setUrl("/react/dateTime");
     menu.add(reactMenu);
     return buildMenuTree(menu);
   }

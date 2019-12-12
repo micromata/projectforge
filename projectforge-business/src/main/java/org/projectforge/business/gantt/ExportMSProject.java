@@ -104,7 +104,7 @@ public class ExportMSProject
     header.setStartDate(ganttChart.getCalculatedStartDate());
 
     //
-    // Add a default calendar called "Standard"
+    // Add a default dateTime called "Standard"
     //
     final ProjectCalendar calendar = file.addDefaultBaseCalendar();
     calendar.setWorkingDay(Day.SATURDAY, false);
@@ -114,7 +114,7 @@ public class ExportMSProject
       dt = dt.plusDays(1);
       Holidays holidays = new Holidays();
       if (!holidays.isWorkingDay(dt.getDateTime()) && holidays.isHoliday(dt) && !dt.isWeekend()) {
-        // Add this holiday to the calendar:
+        // Add this holiday to the dateTime:
         final Date date = dt.getSqlDate();
         calendar.addCalendarException(date, date);
         if (log.isDebugEnabled()) {

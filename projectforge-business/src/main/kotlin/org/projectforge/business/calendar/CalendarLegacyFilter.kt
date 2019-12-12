@@ -36,9 +36,9 @@ import org.projectforge.framework.time.PFDateTimeUtils
  *
  * Some helpful sql statements for testing the migration:
  *
- * select key, serializedSettings from t_user_xml_prefs where user_id=2 and key like 'calendar.%';
+ * select key, serializedSettings from t_user_xml_prefs where user_id=2 and key like 'dateTime.%';
  *
- * delete from t_user_pref where user_fk=2 and area='calendar';
+ * delete from t_user_pref where user_fk=2 and area='dateTime';
  *
  * You may extract settings by using AdminRest.main
  */

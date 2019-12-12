@@ -50,7 +50,7 @@ import javax.persistence.*
                 query = "from Kost2DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and kost2Art.id=:kost2ArtId and id!=:id"),
         NamedQuery(name = Kost2DO.FIND_ACTIVES_BY_NK_BEREICH_TEILBEREICH,
                 query = "from Kost2DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and (kostentraegerStatus='ACTIVE' or kostentraegerStatus is null) order by kost2Art.id"))
-open class Kost2DO() : DefaultBaseDO(), ShortDisplayNameCapable, Comparable<Kost2DO> {
+open class Kost2DO() : DefaultBaseDO(), Comparable<Kost2DO>, ShortDisplayNameCapable {
 
     companion object {
         @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
@@ -65,6 +65,10 @@ open class Kost2DO() : DefaultBaseDO(), ShortDisplayNameCapable, Comparable<Kost
         internal const val FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_KOST2ART = "Kost2DO_FindOtherByNKBereichTeilbereichKost2Art"
         internal const val FIND_ACTIVES_BY_NK_BEREICH_TEILBEREICH = "Kost2DO_FindActivesByNKBereichTeilbereich"
     }
+
+    override val shortDisplayName: String
+        @Transient
+        get() = KostFormatter.format(this)
 
     @PropertyInfo(i18nKey = "status")
     @Field
@@ -156,15 +160,6 @@ open class Kost2DO() : DefaultBaseDO(), ShortDisplayNameCapable, Comparable<Kost
         get() = if (this.projekt == null) {
             null
         } else projekt!!.id
-
-    /**
-     * @see KostFormatter.format
-     * @see org.projectforge.framework.persistence.api.ShortDisplayNameCapable.getShortDisplayName
-     */
-    @Transient
-    override fun getShortDisplayName(): String {
-        return KostFormatter.format(this)
-    }
 
     @Transient
     fun isEqual(nummernkreis: Int, bereich: Int, teilbereich: Int, kost2Art: Int): Boolean {

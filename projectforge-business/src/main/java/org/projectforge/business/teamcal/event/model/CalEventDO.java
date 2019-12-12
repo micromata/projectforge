@@ -141,14 +141,14 @@ public class CalEventDO extends DefaultBaseDO implements ICalendarEvent {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "calendar_fk", nullable = false)
   /**
-   * @return the calendar
+   * @return the dateTime
    */
   public TeamCalDO getCalendar() {
     return calendar;
   }
 
   /**
-   * @param calendar the calendar to set
+   * @param calendar the dateTime to set
    * @return this for chaining.
    */
   public void setCalendar(final TeamCalDO calendar) {

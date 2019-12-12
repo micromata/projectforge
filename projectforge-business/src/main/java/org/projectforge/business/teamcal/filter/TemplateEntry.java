@@ -180,7 +180,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
       if (cal != null) {
         result.add(cal);
       } else {
-        log.error("Oups, calendar with id " + props.getCalId() + " not found in TeamCalCache.");
+        log.error("Oups, dateTime with id " + props.getCalId() + " not found in TeamCalCache.");
       }
     }
     return result;

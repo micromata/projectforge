@@ -211,7 +211,7 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
     // final AbstractICSExportDialog icsExportDialog = new AbstractICSExportDialog(newModalDialogId(), new
     // ResourceModel("timesheet.iCalSubscription")) {
     // /**
-    // * @see org.projectforge.web.calendar.AbstractICSExportDialog#getUrl()
+    // * @see org.projectforge.web.dateTime.AbstractICSExportDialog#getUrl()
     // */
     // @Override
     // protected String getUrl()

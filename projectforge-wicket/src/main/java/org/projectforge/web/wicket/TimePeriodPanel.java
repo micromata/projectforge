@@ -79,7 +79,7 @@ public class TimePeriodPanel extends FormComponentPanel<TimePeriod> implements I
     add(quickSelectPanel);
     quickSelectPanel.init();
 
-    // calendar week
+    // dateTime week
     add(new DivTextPanel("calendarWeek",
         LambdaModel.of(() -> WicketUtils.getCalendarWeeks(this, startDateModel.getObject(), endDateModel.getObject()))
     ));

@@ -41,13 +41,13 @@ public class ExternalCalendarSubscriptionJob
   @Scheduled(cron = "${projectforge.cron.externalCalendar}")
   public void execute()
   {
-    log.info("External calendar subscriptions job started.");
+    log.info("External dateTime subscriptions job started.");
     try {
       teamEventExternalSubscriptionCache.updateCache();
     } catch (final Throwable ex) {
       log.error("Exception while executing ExternalCalendarSubscriptionJob: " + ex.getMessage());
     }
-    log.info("External calendar subscriptions job finished.");
+    log.info("External dateTime subscriptions job finished.");
   }
 
 }

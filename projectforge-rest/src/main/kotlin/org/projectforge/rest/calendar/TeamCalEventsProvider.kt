@@ -34,7 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 /**
- * Provides the events of a calendar (team calendar).
+ * Provides the events of a dateTime (team dateTime).
  */
 @Deprecated("Will be replaced by CalendarEventsProvider.")
 @Component

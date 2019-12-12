@@ -132,7 +132,7 @@ public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
   }
 
   /**
-   * Owners of the given calendar and users with full access hav update access to the given calendar: obj.getCalendar().
+   * Owners of the given dateTime and users with full access hav update access to the given dateTime: obj.getDateTime().
    * 
    * @see org.projectforge.business.user.UserRightAccessCheck#hasUpdateAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
    *      java.lang.Object, java.lang.Object)
@@ -167,8 +167,8 @@ public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
   }
 
   /**
-   * Owners of the given calendar and users with full and read-only access have update access to the given calendar:
-   * obj.getCalendar().
+   * Owners of the given dateTime and users with full and read-only access have update access to the given dateTime:
+   * obj.getDateTime().
    * 
    * @see org.projectforge.business.user.UserRightAccessCheck#hasHistoryAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
    *      java.lang.Object)

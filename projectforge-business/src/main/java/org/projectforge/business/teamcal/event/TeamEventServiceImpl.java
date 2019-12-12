@@ -545,7 +545,7 @@ public class TeamEventServiceImpl implements TeamEventService
 
   private String getResponseLink(TeamEventDO event, TeamEventAttendeeDO attendee, TeamEventAttendeeStatus status)
   {
-    final String messageParamBegin = "calendar=" + event.getCalendarId() + "&uid=" + event.getUid() + "&attendee=" + attendee.getId();
+    final String messageParamBegin = "dateTime=" + event.getCalendarId() + "&uid=" + event.getUid() + "&attendee=" + attendee.getId();
     final String acceptParams = cryptService.encryptParameterMessage(messageParamBegin + "&status=" + status.name());
     return domainService.getDomain() + TeamCalResponseServlet.PFCALENDAR + "?" + acceptParams;
   }

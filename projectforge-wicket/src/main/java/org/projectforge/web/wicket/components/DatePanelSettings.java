@@ -111,7 +111,7 @@ public class DatePanelSettings implements Serializable
   }
 
   /**
-   * Customized tool tip to show for the calendar view select icon.
+   * Customized tool tip to show for the dateTime view select icon.
    *
    * @param i18nKey
    * @return this

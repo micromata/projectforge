@@ -216,7 +216,7 @@ public class EmployeeSalaryExportDao {
           mapping.add(ExcelColumn.KORREKTUR, "");
           mapping.add(ExcelColumn.SUMME, "");
         }
-        mapping.add(ExcelColumn.DATUM, buchungsdatum.getCalendar()); // Last day of month
+        mapping.add(ExcelColumn.DATUM, buchungsdatum.getDateTime()); // Last day of month
         mapping.add(ExcelColumn.KONTO, KONTO); // constant.
         mapping.add(ExcelColumn.GEGENKONTO, GEGENKONTO); // constant.
         sheet.addRow(mapping.getMapping(), 0);

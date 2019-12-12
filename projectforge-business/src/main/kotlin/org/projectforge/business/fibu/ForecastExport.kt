@@ -31,7 +31,6 @@ import org.projectforge.export.MyXlsContentProvider
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.PFDate
-import org.projectforge.framework.utils.NumberHelper
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
@@ -41,7 +40,6 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.format.DateTimeFormatter
 import java.util.*
-import java.util.stream.Collectors
 
 /**
  * Forcast excel export.
@@ -62,12 +60,7 @@ open class ForecastExport { // open needed by Wicket.
     private val monthCols = arrayOf(PosCol.MONTH1, PosCol.MONTH2, PosCol.MONTH3, PosCol.MONTH4, PosCol.MONTH5, PosCol.MONTH6,
             PosCol.MONTH7, PosCol.MONTH8, PosCol.MONTH9, PosCol.MONTH10, PosCol.MONTH11, PosCol.MONTH12)
 
-    private val auftragsPositionsStatusToShow = listOf(
-            AuftragsPositionsStatus.IN_ERSTELLUNG,
-            AuftragsPositionsStatus.POTENZIAL,
-            AuftragsPositionsStatus.GELEGT,
-            AuftragsPositionsStatus.BEAUFTRAGT,
-            AuftragsPositionsStatus.LOI)
+    // Vergangene Auftragspositionen anzeigen, die nicht vollständig fakturiert bzw. abgelehnt sind.
 
     @Throws(IOException::class)
     open fun export(auftragList: List<AuftragDO?>, startDateParam: Date?): ByteArray? {
@@ -89,19 +82,21 @@ open class ForecastExport { // open needed by Wicket.
         val sheetProvider = sheet.contentProvider
         sheetProvider.putFormat(MyXlsContentProvider.FORMAT_CURRENCY, PosCol.NETSUM, PosCol.INVOICED, PosCol.TO_BE_INVOICED)
         sheetProvider.putFormat(DateFormats.getExcelFormatString(DateFormatType.DATE), PosCol.DATE_OF_OFFER, PosCol.DATE_OF_ENTRY, PosCol.PERIOD_OF_PERFORMANCE_BEGIN,
-                        PosCol.PERIOD_OF_PERFORMANCE_END)
+                PosCol.PERIOD_OF_PERFORMANCE_END)
         val istSumMap = createIstSumMap()
         for (order in auftragList) {
-            if (order?.positionenExcludingDeleted == null) {
+            if (order == null || order.isDeleted || order.positionenExcludingDeleted.isEmpty()) {
                 continue
             }
             orderBookDao.calculateInvoicedSum(order)
-            for (pos in order.positionenExcludingDeleted) {
-                calculateIstSum(istSumMap, startDate, pos)
-                if (pos.status != null && auftragsPositionsStatusToShow.contains(pos.status!!)) {
-                    val mapping = PropertyMapping()
-                    addPosMapping(mapping, order, pos, startDate)
-                    sheet.addRow(mapping.mapping, 0)
+            if (ForecastUtils.auftragsStatusToShow.contains(order.auftragsStatus)) {
+                for (pos in order.positionenExcludingDeleted) {
+                    calculateIstSum(istSumMap, startDate, pos)
+                    if (pos.status != null && ForecastUtils.auftragsPositionsStatusToShow.contains(pos.status!!)) {
+                        val mapping = PropertyMapping()
+                        addPosMapping(mapping, order, pos, startDate)
+                        sheet.addRow(mapping.mapping, 0)
+                    }
                 }
             }
         }
@@ -162,7 +157,7 @@ open class ForecastExport { // open needed by Wicket.
         mapping.add(PosCol.POS_NUMBER, "#" + pos.number)
         mapping.add(PosCol.DATE_OF_OFFER, order.angebotsDatum)
         mapping.add(PosCol.DATE_OF_ENTRY, order.erfassungsDatum)
-        mapping.add(PosCol.DATE_OF_DECISION, ensureErfassungsDatum(order))
+        mapping.add(PosCol.DATE_OF_DECISION, ForecastUtils.ensureErfassungsDatum(order))
         mapping.add(PosCol.HOB_MANAGER, if (order.headOfBusinessManager != null) order.headOfBusinessManager!!.getFullname() else "")
         mapping.add(PosCol.PROJECT, order.projektAsString)
         mapping.add(PosCol.ORDER_TITLE, order.titel)
@@ -176,11 +171,11 @@ open class ForecastExport { // open needed by Wicket.
         val invoicedSum = if (pos.fakturiertSum != null) pos.fakturiertSum else BigDecimal.ZERO
         val toBeInvoicedSum = netSum!!.subtract(invoicedSum)
         mapping.add(PosCol.NETSUM, netSum)
-        addCurrency(mapping, PosCol.INVOICED, invoicedSum)
-        addCurrency(mapping, PosCol.TO_BE_INVOICED, toBeInvoicedSum)
+        ForecastUtils.addCurrency(mapping, PosCol.INVOICED, invoicedSum)
+        ForecastUtils.addCurrency(mapping, PosCol.TO_BE_INVOICED, toBeInvoicedSum)
         mapping.add(PosCol.COMPLETELY_INVOICED, if (pos.vollstaendigFakturiert!!) "x" else "")
         val invoicePositions = rechnungCache.getRechnungsPositionVOSetByAuftragsPositionId(pos.id)
-        mapping.add(PosCol.INVOICES, getInvoices(invoicePositions))
+        mapping.add(PosCol.INVOICES, ForecastUtils.getInvoices(invoicePositions))
         if (PeriodOfPerformanceType.OWN == pos.periodOfPerformanceType) { // use "own" period -> from pos
             mapping.add(PosCol.PERIOD_OF_PERFORMANCE_BEGIN, pos.periodOfPerformanceBegin)
             mapping.add(PosCol.PERIOD_OF_PERFORMANCE_END, pos.periodOfPerformanceEnd)
@@ -188,22 +183,22 @@ open class ForecastExport { // open needed by Wicket.
             mapping.add(PosCol.PERIOD_OF_PERFORMANCE_BEGIN, order.periodOfPerformanceBegin)
             mapping.add(PosCol.PERIOD_OF_PERFORMANCE_END, order.periodOfPerformanceEnd)
         }
-        val probability = getProbabilityOfAccurence(order, pos)
+        val probability = ForecastUtils.getProbabilityOfAccurence(order, pos)
         mapping.add(PosCol.PROBABILITY_OF_OCCURRENCE, probability.multiply(BigDecimal(100)))
         //    mapping.add(PosCol.PROBABILITY_OF_OCCURRENCE, order.getProbabilityOfOccurrence())
         mapping.add(PosCol.CONTACT_PERSON, if (order.contactPerson != null) order.contactPerson!!.getFullname() else "")
         val node = TenantRegistryMap.getInstance().tenantRegistry.taskTree.getTaskNodeById(pos.taskId)
         mapping.add(PosCol.TASK, if (node != null && node.task != null) node.task.title else "")
         mapping.add(PosCol.COMMENT, pos.bemerkung)
-        val accurenceValue = computeAccurenceValue(order, pos)
+        val accurenceValue = ForecastUtils.computeAccurenceValue(order, pos)
         mapping.add(PosCol.PROBABILITY_OF_OCCURRENCE_VALUE, accurenceValue)
 
         val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-        mapping.add(PosCol.MONTHEND_STARTDATE_ADD1, getStartLeistungszeitraumNextMonthEnd(order, pos).format(formatter))
-        mapping.add(PosCol.MONTHEND_ENDDATE_ADD1, getEndLeistungszeitraumNextMonthEnd(order, pos).format(formatter))
-        mapping.add(PosCol.MONTHCOUNT, getMonthCountForOrderPosition(order, pos))
+        mapping.add(PosCol.MONTHEND_STARTDATE_ADD1, ForecastUtils.getStartLeistungszeitraumNextMonthEnd(order, pos).format(formatter))
+        mapping.add(PosCol.MONTHEND_ENDDATE_ADD1, ForecastUtils.getEndLeistungszeitraumNextMonthEnd(order, pos).format(formatter))
+        mapping.add(PosCol.MONTHCOUNT, ForecastUtils.getMonthCountForOrderPosition(order, pos))
         // get payment schedule for order position
-        val paymentSchedules = getPaymentSchedule(order, pos)
+        val paymentSchedules = ForecastUtils.getPaymentSchedule(order, pos)
         val sumPaymentSchedule: BigDecimal
         var beginDistribute: PFDate
         // handle payment schedule
@@ -221,7 +216,7 @@ open class ForecastExport { // open needed by Wicket.
             beginDistribute = beginDistribute.plusMonths(2) // values are added to the next month (+1), start the month after the last one (+1)
         } else {
             sumPaymentSchedule = BigDecimal.ZERO
-            beginDistribute = getStartLeistungszeitraumNextMonthEnd(order, pos)
+            beginDistribute = ForecastUtils.getStartLeistungszeitraumNextMonthEnd(order, pos)
         }
         // compute diff, return if diff is empty
         val diff = accurenceValue.subtract(sumPaymentSchedule)
@@ -242,8 +237,8 @@ open class ForecastExport { // open needed by Wicket.
     }
 
     private fun fillByPaymentSchedule(paymentSchedules: List<PaymentScheduleDO>, mapping: PropertyMapping,
-                                      order: AuftragDO?, pos: AuftragsPositionDO, startDate: PFDate) { // payment values
-        val probability = getProbabilityOfAccurence(order, pos)
+                                      order: AuftragDO, pos: AuftragsPositionDO, startDate: PFDate) { // payment values
+        val probability = ForecastUtils.getProbabilityOfAccurence(order, pos)
         var currentMonth = startDate.plusMonths(-1).beginOfMonth
         for (monthCol in monthCols) {
             currentMonth = currentMonth.plusMonths(1)
@@ -265,7 +260,7 @@ open class ForecastExport { // open needed by Wicket.
 
     private fun addEndAtPeriodOfPerformance(sum: BigDecimal, mapping: PropertyMapping,
                                             order: AuftragDO?, pos: AuftragsPositionDO, startDate: PFDate) {
-        val posEndDate = getEndLeistungszeitraumNextMonthEnd(order, pos)
+        val posEndDate = ForecastUtils.getEndLeistungszeitraumNextMonthEnd(order, pos)
         val index = getMonthIndex(posEndDate, startDate)
         if (index < 0 || index > 11) {
             return
@@ -298,18 +293,10 @@ open class ForecastExport { // open needed by Wicket.
         return toCheck.isAfter(oneMonthBeforeNow)
     }
 
-    private fun getPaymentSchedule(order: AuftragDO?, pos: AuftragsPositionDO): List<PaymentScheduleDO> {
-        val schedules = order!!.paymentSchedules ?: return emptyList()
-        return schedules.stream()
-                .filter { schedule: PaymentScheduleDO -> schedule.positionNumber != null && schedule.scheduleDate != null && schedule.amount != null }
-                .filter { schedule: PaymentScheduleDO -> schedule.positionNumber!!.toInt() == pos.number.toInt() }
-                .collect(Collectors.toList())
-    }
-
     private fun fillMonthColumnsDistributed(value: BigDecimal, mapping: PropertyMapping, order: AuftragDO?, pos: AuftragsPositionDO,
                                             startDate: PFDate, beginDistribute: PFDate) {
         var indexBegin = getMonthIndex(beginDistribute, startDate)
-        var indexEnd = getMonthIndex(getEndLeistungszeitraumNextMonthEnd(order, pos), startDate)
+        var indexEnd = getMonthIndex(ForecastUtils.getEndLeistungszeitraumNextMonthEnd(order, pos), startDate)
         if (indexEnd < indexBegin) { //should not happen
             return
         }
@@ -324,97 +311,6 @@ open class ForecastExport { // open needed by Wicket.
         for (i in indexBegin..indexEnd) {
             mapping.add(monthCols[i], partlyNettoSum)
         }
-    }
-
-    private fun computeAccurenceValue(order: AuftragDO?, pos: AuftragsPositionDO): BigDecimal {
-        val netSum = if (pos.nettoSumme != null) pos.nettoSumme else BigDecimal.ZERO
-        val invoicedSum = if (pos.fakturiertSum != null) pos.fakturiertSum else BigDecimal.ZERO
-        val toBeInvoicedSum = netSum!!.subtract(invoicedSum)
-        val probability = getProbabilityOfAccurence(order, pos)
-        return toBeInvoicedSum.multiply(probability)
-    }
-
-    private fun getProbabilityOfAccurence(order: AuftragDO?, pos: AuftragsPositionDO): BigDecimal {
-        if (pos.status == AuftragsPositionsStatus.BEAUFTRAGT) {
-            return BigDecimal.ONE
-        }
-        return if (order!!.probabilityOfOccurrence != null) {
-            BigDecimal(order.probabilityOfOccurrence!!).divide(NumberHelper.HUNDRED, 2, RoundingMode.HALF_UP)
-        } else when (pos.status) {
-            AuftragsPositionsStatus.GELEGT -> BigDecimal.valueOf(0.5)
-            AuftragsPositionsStatus.LOI -> BigDecimal.valueOf(0.9)
-            AuftragsPositionsStatus.BEAUFTRAGT, AuftragsPositionsStatus.ABGESCHLOSSEN -> BigDecimal.ONE
-            else -> BigDecimal.ZERO
-        }
-    }
-
-    private fun getStartLeistungszeitraumNextMonthEnd(order: AuftragDO?, pos: AuftragsPositionDO): PFDate {
-        var result = PFDate.now()
-        if (PeriodOfPerformanceType.OWN == pos.periodOfPerformanceType) {
-            if (pos.periodOfPerformanceBegin != null) {
-                result = PFDate.from(pos.periodOfPerformanceBegin)!!.plusMonths(1).endOfMonth
-            }
-        } else if (order!!.periodOfPerformanceBegin != null) {
-            result = PFDate.from(order.periodOfPerformanceBegin)!!.plusMonths(1).endOfMonth
-        }
-        return result
-    }
-
-    private fun getEndLeistungszeitraumNextMonthEnd(order: AuftragDO?, pos: AuftragsPositionDO): PFDate {
-        var result = PFDate.now()
-        if (PeriodOfPerformanceType.OWN == pos.periodOfPerformanceType) {
-            if (pos.periodOfPerformanceEnd != null) {
-                result = PFDate.from(pos.periodOfPerformanceEnd)!!.plusMonths(1).endOfMonth
-            }
-        } else {
-            if (order!!.periodOfPerformanceEnd != null) {
-                result = PFDate.from(order.periodOfPerformanceEnd)!!.plusMonths(1).endOfMonth
-            }
-        }
-        return result
-    }
-
-    private fun getMonthCountForOrderPosition(order: AuftragDO?, pos: AuftragsPositionDO): BigDecimal? {
-        if (PeriodOfPerformanceType.OWN == pos.periodOfPerformanceType) {
-            if (pos.periodOfPerformanceEnd != null && pos.periodOfPerformanceBegin != null) {
-                return getMonthCount(pos.periodOfPerformanceBegin!!, pos.periodOfPerformanceEnd!!)
-            }
-        } else {
-            if (order!!.periodOfPerformanceEnd != null && order.periodOfPerformanceBegin != null) {
-                return getMonthCount(order.periodOfPerformanceBegin!!, order.periodOfPerformanceEnd!!)
-            }
-        }
-        return null
-    }
-
-    private fun getMonthCount(start: Date, end: Date): BigDecimal {
-        val startDate = PFDate.from(start)!!
-        val endDate = PFDate.from(end)!!
-        val diffYear = endDate.year - startDate.year
-        val diffMonth = diffYear * 12 + endDate.monthValue - startDate.monthValue + 1
-        return BigDecimal.valueOf(diffMonth.toLong())
-    }
-
-    private fun addCurrency(mapping: PropertyMapping, col: Enum<*>, value: BigDecimal?) {
-        if (NumberHelper.isNotZero(value)) {
-            mapping.add(col, value)
-        } else {
-            mapping.add(col, "")
-        }
-    }
-
-    private fun getInvoices(invoicePositions: Set<RechnungsPositionVO>?): String {
-        return invoicePositions?.joinToString(", ") { it.rechnungNummer?.toString() ?: "" } ?: ""
-    }
-
-    private fun ensureErfassungsDatum(order: AuftragDO): Date? {
-        if (order.erfassungsDatum != null)
-            return order.erfassungsDatum
-        if (order.created != null)
-            return order.created
-        if (order.angebotsDatum != null)
-            return order.angebotsDatum
-        return PFDate.now().sqlDate
     }
 
     companion object {
