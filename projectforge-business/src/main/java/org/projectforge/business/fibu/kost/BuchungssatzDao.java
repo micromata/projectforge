@@ -44,6 +44,11 @@ public class BuchungssatzDao extends BaseDao<BuchungssatzDO> {
           "kost2.description", "kost2.comment", "kost2.projekt.name", "kost2.projekt.kunde.name", "konto.nummer",
           "gegenKonto.nummer"};
 
+  /**
+   * Need more results:
+   */
+  private static final int QUERY_FILTER_MAX_ROWS = 100000;
+
   @Override
   public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
@@ -119,6 +124,7 @@ public class BuchungssatzDao extends BaseDao<BuchungssatzDO> {
     } else {
       myFilter = new BuchungssatzFilter(filter);
     }
+    filter.setMaxRows(QUERY_FILTER_MAX_ROWS);
     final QueryFilter queryFilter = new QueryFilter(filter);
     if (!validateTimeperiod(myFilter)) {
       throw new UserException("fibu.buchungssatz.error.invalidTimeperiod");
