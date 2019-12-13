@@ -33,7 +33,6 @@ function MagicFilterPill(
                         </AdvancedPopperAction>
                     </React.Fragment>
                 )}
-                additionalClassName={styles.addition}
             >
                 {children}
             </AdvancedPopper>
