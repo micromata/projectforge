@@ -48,12 +48,15 @@
 }
 
 .magicFilters {
-  display: block;
+  display: flex;
   margin: .8em 0 0 1em;
 
   .magicFilter {
     margin-right: .8em;
-    display: inline-block;
+
+    &:last-child {
+      flex: 1;
+    }
 
     .pill {
       $transitionTime: .3s;
@@ -71,6 +74,22 @@
       &.isOpen {
         border-color: #333;
         background-color: #f8f8f8;
+      }
+    }
+  }
+
+  .allFilters {
+    .filterList {
+      margin: 0;
+      padding: 0;
+
+      .filter {
+        padding: 1em;
+        cursor: default;
+
+        &:hover {
+          background-color: #eee;
+        }
       }
     }
   }

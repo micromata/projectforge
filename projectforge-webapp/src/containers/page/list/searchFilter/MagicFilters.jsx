@@ -37,9 +37,21 @@ function MagicFilters({ searchFilter, filterEntries }) {
                 Input Name
             </MagicFilterPill>
             <MagicFilterPill
-                name="???Weitere Filter???"
+                name="???Alle Filter???"
+                className={styles.allFilters}
             >
-                Weitere Filter
+                {searchFilter && (
+                    <ul className={styles.filterList}>
+                        {searchFilter.content.map(entry => (
+                            <li
+                                key={`filter-${entry.id}`}
+                                className={styles.filter}
+                            >
+                                {entry.label}
+                            </li>
+                        ))}
+                    </ul>
+                )}
             </MagicFilterPill>
         </div>
     );
@@ -51,7 +63,7 @@ MagicFilters.propTypes = {
 };
 
 MagicFilters.defaultProps = {
-    searchFilter: {},
+    searchFilter: undefined,
 };
 
 const mapStateToProps = ({ list }) => {
