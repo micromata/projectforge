@@ -39,7 +39,7 @@ function AdvancedPopper(
             ref={reference}
             className={classNames(
                 style.advancedPopperContainer,
-                { [style.isOpen]: isOpen },
+                { [style.isOpen]: isOpen && children },
                 className,
             )}
         >
@@ -73,10 +73,10 @@ function AdvancedPopper(
 
 AdvancedPopper.propTypes = {
     basic: PropTypes.node.isRequired,
-    children: PropTypes.node.isRequired,
     setIsOpen: PropTypes.func.isRequired,
     actions: PropTypes.node,
     additionalClassName: PropTypes.string,
+    children: PropTypes.node,
     className: PropTypes.string,
     contentClassName: PropTypes.string,
     isOpen: PropTypes.bool,
@@ -85,6 +85,7 @@ AdvancedPopper.propTypes = {
 AdvancedPopper.defaultProps = {
     actions: undefined,
     additionalClassName: undefined,
+    children: undefined,
     className: undefined,
     contentClassName: undefined,
     isOpen: false,
