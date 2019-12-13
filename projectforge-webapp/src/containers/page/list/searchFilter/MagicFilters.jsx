@@ -22,6 +22,7 @@ function MagicFilters({ searchFilter, translations, filterEntries }) {
                         name={details.label}
                         value="abc"
                     >
+                        {/* TODO IMPLEMENT DIFFERENT SELECTION TYPES */}
                         {details.label}
                     </MagicFilterPill>
                 ))}
