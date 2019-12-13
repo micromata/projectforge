@@ -15,7 +15,6 @@ import { getNamedContainer } from '../../../../utilities/layout';
 import { debouncedWaitTime, getServiceURL, handleHTTPErrors } from '../../../../utilities/rest';
 import FavoritesPanel from '../../../panel/favorite/FavoritesPanel';
 import styles from '../ListPage.module.scss';
-import { ListPageContext } from '../ListPageContext';
 import MagicFilterPill from './MagicFilterPill';
 import QuickSelectionEntry from './QuickSelectionEntry';
 
@@ -48,21 +47,18 @@ function SearchFilter(props) {
         onFavoriteSelect,
         onFavoriteUpdate,
         onSearchStringChange,
+        onSearchStringDelete,
     } = props;
 
     const {
         filter,
         filterFavorites,
+        quickSelectUrl,
     } = category;
 
     const {
         ui,
     } = React.useContext(DynamicLayoutContext);
-
-    const {
-        filterHelper,
-        quickSelectUrl,
-    } = React.useContext(ListPageContext);
 
     const [quickSelections, setQuickSelections] = React.useState([]);
     const [searchActive, setSearchActive] = React.useState(false);
@@ -107,7 +103,7 @@ function SearchFilter(props) {
                             <AdvancedPopperAction
                                 type="delete"
                                 disabled={!filter.searchString}
-                                onClick={() => filterHelper.setSearchString('')}
+                                onClick={onSearchStringDelete}
                             >
                                 {ui.translations.delete || ''}
                             </AdvancedPopperAction>
@@ -212,6 +208,7 @@ SearchFilter.propTypes = {
     onFavoriteSelect: PropTypes.func.isRequired,
     onFavoriteUpdate: PropTypes.func.isRequired,
     onSearchStringChange: PropTypes.func.isRequired,
+    onSearchStringDelete: PropTypes.func.isRequired,
 };
 
 SearchFilter.defaultProps = {};
@@ -242,6 +239,7 @@ const actions = (dispatch, { filter }) => ({
     onFavoriteSelect: id => dispatch(fetchListFavorites('select', { params: { id } })),
     onFavoriteUpdate: () => dispatch(fetchListFavorites('update', { body: filter })),
     onSearchStringChange: ({ target }) => dispatch(changeSearchString(target.value)),
+    onSearchStringDelete: () => dispatch(changeSearchString('')),
 });
 
 export default connect(mapStateToProps, actions)(SearchFilter);
