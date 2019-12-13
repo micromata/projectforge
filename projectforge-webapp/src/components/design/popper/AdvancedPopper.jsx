@@ -48,8 +48,6 @@ function AdvancedPopper(
 
     const additionalVisible = isOpen && children;
 
-    console.log('Hey');
-
     return (
         <div
             ref={reference}
