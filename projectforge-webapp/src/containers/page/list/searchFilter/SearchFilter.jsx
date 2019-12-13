@@ -86,7 +86,7 @@ function SearchFilter(props) {
                     <AdvancedPopper
                         additionalClassName={styles.completions}
                         setIsOpen={setSearchActive}
-                        isOpen={searchActive}
+                        isOpen={quickSelectUrl && searchActive}
                         basic={(
                             <Input
                                 id="searchString"
@@ -109,18 +109,24 @@ function SearchFilter(props) {
                             </AdvancedPopperAction>
                         )}
                     >
-                        <ul className={styles.entries}>
-                            {/* TODO ADD KEYBOARD LISTENER FOR SELECTING */}
-                            {quickSelections.map(({ id, displayName }) => (
-                                <QuickSelectionEntry
-                                    key={`quick-selection-${id}`}
-                                    id={id}
-                                    displayName={displayName}
-                                />
-                            ))}
-                        </ul>
-                        {quickSelections.length === 0 && (
-                            <p className={styles.errorMessage}>???No quick selections found.???</p>
+                        {quickSelectUrl && (
+                            <React.Fragment>
+                                <ul className={styles.entries}>
+                                    {/* TODO ADD KEYBOARD LISTENER FOR SELECTING */}
+                                    {quickSelections.map(({ id, displayName }) => (
+                                        <QuickSelectionEntry
+                                            key={`quick-selection-${id}`}
+                                            id={id}
+                                            displayName={displayName}
+                                        />
+                                    ))}
+                                </ul>
+                                {quickSelections.length === 0 && (
+                                    <p className={styles.errorMessage}>
+                                        ???No quick selections found.???
+                                    </p>
+                                )}
+                            </React.Fragment>
                         )}
                     </AdvancedPopper>
                 </Col>
