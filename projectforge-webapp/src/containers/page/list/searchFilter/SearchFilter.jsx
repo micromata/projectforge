@@ -1,8 +1,11 @@
 import { faChevronRight, faSearch } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
+import PropTypes from 'prop-types';
 import React from 'react';
+import { connect } from 'react-redux';
 import { Navbar } from 'reactstrap';
+import { fetchListFavorites } from '../../../../actions';
 import { DynamicLayoutContext } from '../../../../components/base/dynamicLayout/context';
 import Navigation from '../../../../components/base/navigation';
 import { Col, Input, Row } from '../../../../components/design';
@@ -35,21 +38,29 @@ const loadQuickSelectionsBounced = (
         .then(setQuickSelections);
 };
 
-function SearchFilter() {
+function SearchFilter(props) {
+    const {
+        category,
+        onFavoriteCreate,
+        onFavoriteDelete,
+        onFavoriteRename,
+        onFavoriteSelect,
+        onFavoriteUpdate,
+    } = props;
+
+    const {
+        filter,
+        filterFavorites,
+    } = category;
+
     const {
         ui,
-        setData,
     } = React.useContext(DynamicLayoutContext);
 
     const {
-        category,
-        filter,
-        filterFavorites,
         filterHelper,
         openEditPage,
         quickSelectUrl,
-        setFilterFavorites,
-        setUI,
     } = React.useContext(ListPageContext);
 
     const [quickSelections, setQuickSelections] = React.useState([]);
@@ -70,59 +81,6 @@ function SearchFilter() {
             });
         }
     }, [quickSelectUrl, filter.searchString]);
-
-    const saveUpdateResponse = (
-        {
-            data: responseData,
-            ui: responseUI,
-            filter: responseFilter,
-            filterFavorites: responseFilterFavorites,
-        },
-    ) => {
-        if (responseData) {
-            setData(responseData);
-        }
-        if (responseUI) {
-            setUI(responseUI);
-        }
-        if (responseFilter) {
-            filterHelper.setFilterState(responseFilter);
-        }
-        if (responseFilterFavorites) {
-            setFilterFavorites(responseFilterFavorites);
-        }
-    };
-
-    const fetchFavorites = (action, { params = {}, body }) => fetch(
-        getServiceURL(`${category}/filter/${action}`, params),
-        {
-            method: body ? 'POST' : 'GET',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json',
-            },
-            body: JSON.stringify(body),
-        },
-    )
-        .then(handleHTTPErrors)
-        .then(response => response.json())
-        .then(saveUpdateResponse)
-        .catch(error => alert(`Internal error: ${error}`));
-
-    const handleFavoriteCreate = (newFilterName) => {
-        filter.name = newFilterName;
-        fetchFavorites('create', { body: filter });
-    };
-    const handleFavoriteDelete = id => fetchFavorites('delete', { params: { id } });
-    const handleFavoriteSelect = id => fetchFavorites('select', { params: { id } });
-    const handleFavoriteRename = (id, newName) => fetchFavorites('rename', {
-        params: {
-            id,
-            newName,
-        },
-    });
-    const handleFavoriteUpdate = () => fetchFavorites('update', { body: filter });
 
     const handleSearchStringChange = ({ target }) => filterHelper.setSearchString(target.value);
 
@@ -183,11 +141,11 @@ function SearchFilter() {
                 </Col>
                 <Col sm={1} className="d-flex align-items-center">
                     <FavoritesPanel
-                        onFavoriteCreate={handleFavoriteCreate}
-                        onFavoriteDelete={handleFavoriteDelete}
-                        onFavoriteRename={handleFavoriteRename}
-                        onFavoriteSelect={handleFavoriteSelect}
-                        onFavoriteUpdate={handleFavoriteUpdate}
+                        onFavoriteCreate={onFavoriteCreate}
+                        onFavoriteDelete={onFavoriteDelete}
+                        onFavoriteRename={onFavoriteRename}
+                        onFavoriteSelect={onFavoriteSelect}
+                        onFavoriteUpdate={onFavoriteUpdate}
                         favorites={filterFavorites}
                         currentFavoriteId={filter.id}
                         isModified
@@ -254,8 +212,45 @@ function SearchFilter() {
     );
 }
 
-SearchFilter.propTypes = {};
+SearchFilter.propTypes = {
+    category: PropTypes.shape({
+        filter: PropTypes.shape({}),
+        filterFavorites: PropTypes.arrayOf(PropTypes.shape({})),
+    }).isRequired,
+    onFavoriteCreate: PropTypes.func.isRequired,
+    onFavoriteDelete: PropTypes.func.isRequired,
+    onFavoriteRename: PropTypes.func.isRequired,
+    onFavoriteSelect: PropTypes.func.isRequired,
+    onFavoriteUpdate: PropTypes.func.isRequired,
+};
 
 SearchFilter.defaultProps = {};
 
-export default SearchFilter;
+const mapStateToProps = ({ list }) => {
+    const category = list.categories[list.currentCategory];
+
+    return {
+        category,
+        filter: category.filter,
+    };
+};
+
+const actions = (dispatch, { filter }) => ({
+    onFavoriteCreate: name => dispatch(fetchListFavorites('create', {
+        body: {
+            ...filter,
+            name,
+        },
+    })),
+    onFavoriteDelete: id => dispatch(fetchListFavorites('delete', { params: { id } })),
+    onFavoriteRename: (id, newName) => fetchListFavorites('rename', {
+        params: {
+            id,
+            newName,
+        },
+    }),
+    onFavoriteSelect: id => dispatch(fetchListFavorites('select', { params: { id } })),
+    onFavoriteUpdate: () => dispatch(fetchListFavorites('update', { body: filter })),
+});
+
+export default connect(mapStateToProps, actions)(SearchFilter);

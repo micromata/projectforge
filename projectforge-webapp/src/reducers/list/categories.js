@@ -1,5 +1,6 @@
 import {
     LIST_CALL_SUCCESS,
+    LIST_FAVORITES_RECEIVED,
     LIST_FETCH_DATA_BEGIN,
     LIST_FETCH_FAILURE,
     LIST_FILTER_SORT,
@@ -61,6 +62,11 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
                 },
             };
         }
+        case LIST_FAVORITES_RECEIVED:
+            return {
+                ...state,
+                ...payload.response,
+            };
         default:
             return state;
     }
@@ -72,7 +78,8 @@ const reducer = (state = initialState, action) => {
         case LIST_INITIAL_CALL_BEGIN:
         case LIST_FETCH_DATA_BEGIN:
         case LIST_CALL_SUCCESS:
-        case LIST_FILTER_SORT: {
+        case LIST_FILTER_SORT:
+        case LIST_FAVORITES_RECEIVED: {
             const { category } = payload;
 
             return {

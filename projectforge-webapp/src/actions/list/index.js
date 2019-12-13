@@ -12,7 +12,7 @@ const switchCategory = category => ({
     payload: { category },
 });
 
-const fetchFailure = error => ({
+export const fetchFailure = error => ({
     type: LIST_FETCH_FAILURE,
     payload: { error },
 });
