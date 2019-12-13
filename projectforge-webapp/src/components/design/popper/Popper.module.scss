@@ -21,7 +21,6 @@
 
     .additional {
       opacity: 1;
-      max-height: 300px;
       transition: opacity $transitionTime;
     }
   }
@@ -49,7 +48,6 @@
     top: 10px;
 
     // Set height to 0 after the transition is done.
-    max-height: 0;
     transition: opacity $transitionTime, max-height .01s linear $transitionTime;
 
     position: absolute;
