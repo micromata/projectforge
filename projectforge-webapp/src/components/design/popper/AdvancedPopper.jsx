@@ -20,24 +20,35 @@ function AdvancedPopper(
     const basicReference = React.useRef(null);
     const [basicHeight, setBasicHeight] = React.useState(0);
     const [basicWidth, setBasicWidth] = React.useState(0);
-    const [basicOffsetTop, setBasicOffsetTop] = React.useState(0);
+    const [additionalHeight, setAdditionalHeight] = React.useState(0);
 
     useClickOutsideHandler(reference, setIsOpen, isOpen);
 
     React.useLayoutEffect(
         () => {
-            setBasicHeight(basicReference.current.clientHeight);
-            setBasicWidth(basicReference.current.clientWidth);
-            setBasicOffsetTop(basicReference.current.getBoundingClientRect().top);
+            if (reference.current) {
+                setBasicWidth(basicReference.current.clientWidth);
+                setAdditionalHeight(
+                    window.innerHeight
+                    - reference.current.getBoundingClientRect().top
+                    - basicHeight
+                    - 64,
+                );
+            }
+            if (basicReference.current) {
+                setBasicHeight(basicReference.current.clientHeight);
+            }
         },
         [
             basicReference.current && basicReference.current.clientHeight,
-            basicReference.current && basicReference.current.clientWidth,
-            basicReference.current && basicReference.current.getBoundingClientRect().top,
+            reference.current && reference.current.clientWidth,
+            reference.current && reference.current.getBoundingClientRect().top,
         ],
     );
 
     const additionalVisible = isOpen && children;
+
+    console.log('Hey');
 
     return (
         <div
@@ -63,7 +74,7 @@ function AdvancedPopper(
                 style={{
                     top: basicHeight + 10,
                     minWidth: basicWidth + 2,
-                    maxHeight: additionalVisible ? `calc(100vh - ${basicOffsetTop}px - ${basicHeight}px - 64px)` : 0,
+                    maxHeight: additionalVisible ? additionalHeight : 0,
                 }}
             >
                 {children}

@@ -12,6 +12,7 @@ function MagicFilterPill(
         name,
         translations,
         value,
+        ...props
     },
 ) {
     const [isOpen, setIsOpen] = React.useState(false);
@@ -33,6 +34,7 @@ function MagicFilterPill(
                         </AdvancedPopperAction>
                     </React.Fragment>
                 )}
+                {...props}
             >
                 {children}
             </AdvancedPopper>
@@ -41,13 +43,14 @@ function MagicFilterPill(
 }
 
 MagicFilterPill.propTypes = {
-    children: PropTypes.node.isRequired,
     name: PropTypes.string.isRequired,
     translations: PropTypes.shape({}).isRequired,
+    children: PropTypes.node,
     value: PropTypes.string,
 };
 
 MagicFilterPill.defaultProps = {
+    children: undefined,
     value: undefined,
 };
 
