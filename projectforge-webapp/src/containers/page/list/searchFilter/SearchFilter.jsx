@@ -1,11 +1,11 @@
-import { faChevronRight, faSearch } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import { Navbar } from 'reactstrap';
 import { fetchListFavorites } from '../../../../actions';
+import { changeSearchString } from '../../../../actions/list/filter';
 import { DynamicLayoutContext } from '../../../../components/base/dynamicLayout/context';
 import Navigation from '../../../../components/base/navigation';
 import { Col, Input, Row } from '../../../../components/design';
@@ -17,6 +17,7 @@ import FavoritesPanel from '../../../panel/favorite/FavoritesPanel';
 import styles from '../ListPage.module.scss';
 import { ListPageContext } from '../ListPageContext';
 import MagicFilterPill from './MagicFilterPill';
+import QuickSelectionEntry from './QuickSelectionEntry';
 
 const loadQuickSelectionsBounced = (
     {
@@ -46,6 +47,7 @@ function SearchFilter(props) {
         onFavoriteRename,
         onFavoriteSelect,
         onFavoriteUpdate,
+        onSearchStringChange,
     } = props;
 
     const {
@@ -59,7 +61,6 @@ function SearchFilter(props) {
 
     const {
         filterHelper,
-        openEditPage,
         quickSelectUrl,
     } = React.useContext(ListPageContext);
 
@@ -82,8 +83,6 @@ function SearchFilter(props) {
         }
     }, [quickSelectUrl, filter.searchString]);
 
-    const handleSearchStringChange = ({ target }) => filterHelper.setSearchString(target.value);
-
     return (
         <React.Fragment>
             <Row>
@@ -99,7 +98,7 @@ function SearchFilter(props) {
                                 className={styles.search}
                                 autoComplete="off"
                                 placeholder={ui.translations.search}
-                                onChange={handleSearchStringChange}
+                                onChange={onSearchStringChange}
                                 value={filter.searchString || ''}
                             />
                         )}
@@ -116,22 +115,12 @@ function SearchFilter(props) {
                     >
                         <ul className={styles.entries}>
                             {/* TODO ADD KEYBOARD LISTENER FOR SELECTING */}
-                            {/* TODO onClick Handler */}
                             {quickSelections.map(({ id, displayName }) => (
-                                <li
+                                <QuickSelectionEntry
                                     key={`quick-selection-${id}`}
-                                    className={styles.entry}
-                                    onClick={() => openEditPage(id)}
-                                    role="option"
-                                    aria-selected="false"
-                                    onKeyPress={undefined}
-                                >
-                                    {displayName}
-                                    <FontAwesomeIcon
-                                        icon={faChevronRight}
-                                        className={styles.icon}
-                                    />
-                                </li>
+                                    id={id}
+                                    displayName={displayName}
+                                />
                             ))}
                         </ul>
                         {quickSelections.length === 0 && (
@@ -222,6 +211,7 @@ SearchFilter.propTypes = {
     onFavoriteRename: PropTypes.func.isRequired,
     onFavoriteSelect: PropTypes.func.isRequired,
     onFavoriteUpdate: PropTypes.func.isRequired,
+    onSearchStringChange: PropTypes.func.isRequired,
 };
 
 SearchFilter.defaultProps = {};
@@ -251,6 +241,7 @@ const actions = (dispatch, { filter }) => ({
     }),
     onFavoriteSelect: id => dispatch(fetchListFavorites('select', { params: { id } })),
     onFavoriteUpdate: () => dispatch(fetchListFavorites('update', { body: filter })),
+    onSearchStringChange: ({ target }) => dispatch(changeSearchString(target.value)),
 });
 
 export default connect(mapStateToProps, actions)(SearchFilter);

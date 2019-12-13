@@ -1,6 +1,15 @@
 import { loadList } from './index';
 
+export const LIST_FILTER_SEARCH_STRING_CHANGED = 'LIST_FILTER_SEARCH_STRING_CHANGED';
 export const LIST_FILTER_SORT = 'LIST_FILTER_SORT';
+
+const searchFilterChanged = (category, searchString) => ({
+    type: LIST_FILTER_SEARCH_STRING_CHANGED,
+    payload: {
+        category,
+        searchString,
+    },
+});
 
 const sort = (column, sortProperty, category) => ({
     type: LIST_FILTER_SORT,
@@ -10,6 +19,10 @@ const sort = (column, sortProperty, category) => ({
         sortProperty,
     },
 });
+
+export const changeSearchString = searchString => (dispatch, getState) => dispatch(
+    searchFilterChanged(getState().list.currentCategory, searchString),
+);
 
 export const sortList = (property, sortOrder) => (dispatch, getState) => {
     let sortProperty = {
