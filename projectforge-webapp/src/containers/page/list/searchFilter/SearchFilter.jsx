@@ -6,16 +6,14 @@ import { connect } from 'react-redux';
 import { Navbar } from 'reactstrap';
 import { fetchListFavorites } from '../../../../actions';
 import { changeSearchString } from '../../../../actions/list/filter';
-import { DynamicLayoutContext } from '../../../../components/base/dynamicLayout/context';
 import Navigation from '../../../../components/base/navigation';
 import { Col, Input, Row } from '../../../../components/design';
 import AdvancedPopper from '../../../../components/design/popper/AdvancedPopper';
 import AdvancedPopperAction from '../../../../components/design/popper/AdvancedPopperAction';
-import { getNamedContainer } from '../../../../utilities/layout';
 import { debouncedWaitTime, getServiceURL, handleHTTPErrors } from '../../../../utilities/rest';
 import FavoritesPanel from '../../../panel/favorite/FavoritesPanel';
 import styles from '../ListPage.module.scss';
-import MagicFilterPill from './MagicFilterPill';
+import MagicFilters from './MagicFilters';
 import QuickSelectionEntry from './QuickSelectionEntry';
 
 const loadQuickSelectionsBounced = (
@@ -54,19 +52,14 @@ function SearchFilter(props) {
         filter,
         filterFavorites,
         quickSelectUrl,
-    } = category;
-
-    const {
         ui,
-    } = React.useContext(DynamicLayoutContext);
+    } = category;
 
     const [quickSelections, setQuickSelections] = React.useState([]);
     const [searchActive, setSearchActive] = React.useState(false);
     const [loadQuickSelections] = React.useState(
         () => AwesomeDebouncePromise(loadQuickSelectionsBounced, debouncedWaitTime),
     );
-
-    const searchFilter = getNamedContainer('searchFilter', ui.namedContainers);
 
     // Initial QuickSelections call. Recall when url changed.
     React.useEffect(() => {
@@ -86,7 +79,7 @@ function SearchFilter(props) {
                     <AdvancedPopper
                         additionalClassName={styles.completions}
                         setIsOpen={setSearchActive}
-                        isOpen={quickSelectUrl && searchActive}
+                        isOpen={searchActive}
                         basic={(
                             <Input
                                 id="searchString"
@@ -159,44 +152,7 @@ function SearchFilter(props) {
                 )}
             </Row>
             <hr />
-            <div className={styles.magicFilters}>
-                {searchFilter && filter.entries
-                    .map(({ field, value }) => ({
-                        details: Array.findByField(searchFilter.content, 'id', field),
-                        field,
-                        value,
-                    }))
-                    .filter(({ details }) => details !== undefined)
-                    .map(({ details }) => (
-                        <MagicFilterPill
-                            key={`magic-filter-${details.id}`}
-                            translations={ui.translations}
-                            name={details.label}
-                            value="abc"
-                        >
-                            {details.label}
-                        </MagicFilterPill>
-                    ))}
-                <MagicFilterPill
-                    name="Firma"
-                    value="Micromata"
-                    translations={ui.translations}
-                >
-                    Input Firma
-                </MagicFilterPill>
-                <MagicFilterPill
-                    name="Name"
-                    translations={ui.translations}
-                >
-                    Input Name
-                </MagicFilterPill>
-                <MagicFilterPill
-                    name="???Weitere Filter???"
-                    translations={ui.translations}
-                >
-                    Weitere Filter
-                </MagicFilterPill>
-            </div>
+            <MagicFilters />
             <hr />
             {/* TODO IMPLEMENT DIFFERENT SELECTION TYPES */}
         </React.Fragment>
