@@ -26,3 +26,8 @@ export {
 export {
     LIST_FILTER_SORT,
 } from './list/filter';
+
+export {
+    LIST_FAVORITES_RECEIVED,
+    fetchFavorites as fetchListFavorites,
+} from './list/favorites';
