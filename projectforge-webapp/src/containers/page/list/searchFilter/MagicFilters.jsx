@@ -5,7 +5,7 @@ import { getNamedContainer } from '../../../../utilities/layout';
 import styles from '../ListPage.module.scss';
 import MagicFilterPill from './MagicFilterPill';
 
-function MagicFilters({ searchFilter, translations, filterEntries }) {
+function MagicFilters({ searchFilter, filterEntries }) {
     return (
         <div className={styles.magicFilters}>
             {searchFilter && filterEntries
@@ -18,7 +18,6 @@ function MagicFilters({ searchFilter, translations, filterEntries }) {
                 .map(({ details }) => (
                     <MagicFilterPill
                         key={`magic-filter-${details.id}`}
-                        translations={translations}
                         name={details.label}
                         value="abc"
                     >
@@ -29,19 +28,16 @@ function MagicFilters({ searchFilter, translations, filterEntries }) {
             <MagicFilterPill
                 name="Firma"
                 value="Micromata"
-                translations={translations}
             >
                 Input Firma
             </MagicFilterPill>
             <MagicFilterPill
                 name="Name"
-                translations={translations}
             >
                 Input Name
             </MagicFilterPill>
             <MagicFilterPill
                 name="???Weitere Filter???"
-                translations={translations}
             >
                 Weitere Filter
             </MagicFilterPill>
@@ -50,7 +46,6 @@ function MagicFilters({ searchFilter, translations, filterEntries }) {
 }
 
 MagicFilters.propTypes = {
-    translations: PropTypes.shape({}).isRequired,
     filterEntries: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
     searchFilter: PropTypes.shape({}),
 };
@@ -64,7 +59,6 @@ const mapStateToProps = ({ list }) => {
 
     return {
         searchFilter: getNamedContainer('searchFilter', ui.namedContainers),
-        translations: ui.translations,
         filterEntries: filter.entries,
     };
 };
