@@ -154,7 +154,6 @@ function SearchFilter(props) {
             <hr />
             <MagicFilters />
             <hr />
-            {/* TODO IMPLEMENT DIFFERENT SELECTION TYPES */}
         </React.Fragment>
     );
 }
