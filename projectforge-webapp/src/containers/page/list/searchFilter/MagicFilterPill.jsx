@@ -1,6 +1,7 @@
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
+import { connect } from 'react-redux';
 import AdvancedPopper from '../../../../components/design/popper/AdvancedPopper';
 import AdvancedPopperAction from '../../../../components/design/popper/AdvancedPopperAction';
 import styles from '../ListPage.module.scss';
@@ -51,4 +52,8 @@ MagicFilterPill.defaultProps = {
     value: undefined,
 };
 
-export default MagicFilterPill;
+const mapStateToProps = ({ list }) => ({
+    translations: list.categories[list.currentCategory].ui.translations,
+});
+
+export default connect(mapStateToProps)(MagicFilterPill);
