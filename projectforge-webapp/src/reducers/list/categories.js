@@ -6,6 +6,7 @@ import {
     LIST_FILTER_SORT,
     LIST_INITIAL_CALL_BEGIN,
 } from '../../actions';
+import { LIST_FILTER_SEARCH_STRING_CHANGED } from '../../actions/list/filter';
 
 const initialState = {};
 const initialCategoryState = {
@@ -46,6 +47,14 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
                 isFetching: false,
                 error: payload.error,
             };
+        case LIST_FILTER_SEARCH_STRING_CHANGED:
+            return {
+                ...state,
+                filter: {
+                    ...state.filter,
+                    searchString: payload.searchString,
+                },
+            };
         case LIST_FILTER_SORT: {
             const { filter } = state;
 
@@ -78,6 +87,7 @@ const reducer = (state = initialState, action) => {
         case LIST_INITIAL_CALL_BEGIN:
         case LIST_FETCH_DATA_BEGIN:
         case LIST_CALL_SUCCESS:
+        case LIST_FILTER_SEARCH_STRING_CHANGED:
         case LIST_FILTER_SORT:
         case LIST_FAVORITES_RECEIVED: {
             const { category } = payload;
