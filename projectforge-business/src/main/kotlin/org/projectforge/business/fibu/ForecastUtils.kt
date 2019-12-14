@@ -70,13 +70,17 @@ object ForecastUtils { // open needed by Wicket.
                 .filter { it.positionNumber!!.toInt() == pos.number.toInt() }
     }
 
+    /**
+     * Multiplies the probybility with the sum to be invoiced and returns the value if greater 0, otherwise 0. No
+     * negative values will be returned.
+     */
     @JvmStatic
     fun computeAccurenceValue(order: AuftragDO, pos: AuftragsPositionDO): BigDecimal {
         val netSum = if (pos.nettoSumme != null) pos.nettoSumme else BigDecimal.ZERO
         val invoicedSum = if (pos.fakturiertSum != null) pos.fakturiertSum else BigDecimal.ZERO
         val toBeInvoicedSum = netSum!!.subtract(invoicedSum)
         val probability = getProbabilityOfAccurence(order, pos)
-        return toBeInvoicedSum.multiply(probability)
+        return if (toBeInvoicedSum > BigDecimal.ZERO) toBeInvoicedSum.multiply(probability) else BigDecimal.ZERO
     }
 
     /**
@@ -127,36 +131,29 @@ object ForecastUtils { // open needed by Wicket.
 
     @JvmStatic
     fun getGivenProbability(order: AuftragDO, defaultValue: BigDecimal): BigDecimal {
-        val propability = order.probabilityOfOccurrence
-        if (propability == null) {
-            return defaultValue
-        }
+        val propability = order.probabilityOfOccurrence ?: return defaultValue
         return BigDecimal(propability).divide(NumberHelper.HUNDRED, 2, RoundingMode.HALF_UP)
     }
 
     @JvmStatic
-    fun getStartLeistungszeitraumNextMonthEnd(order: AuftragDO?, pos: AuftragsPositionDO): PFDate {
-        var result = PFDate.now()
-        if (PeriodOfPerformanceType.OWN == pos.periodOfPerformanceType) {
-            if (pos.periodOfPerformanceBegin != null) {
-                result = PFDate.from(pos.periodOfPerformanceBegin)!!.plusMonths(1).endOfMonth
-            }
-        } else if (order!!.periodOfPerformanceBegin != null) {
-            result = PFDate.from(order.periodOfPerformanceBegin)!!.plusMonths(1).endOfMonth
-        }
-        return result
+    fun getStartLeistungszeitraumNextMonthEnd(order: AuftragDO, pos: AuftragsPositionDO): PFDate {
+        return getNextMonth(pos, order.periodOfPerformanceBegin, pos.periodOfPerformanceBegin)
     }
 
     @JvmStatic
-    fun getEndLeistungszeitraumNextMonthEnd(order: AuftragDO?, pos: AuftragsPositionDO): PFDate {
+    fun getEndLeistungszeitraumNextMonthEnd(order: AuftragDO, pos: AuftragsPositionDO): PFDate {
+        return getNextMonth(pos, order.periodOfPerformanceEnd, pos.periodOfPerformanceEnd)
+    }
+
+    private fun getNextMonth(pos: AuftragsPositionDO, orderDate: Date?, posDate: Date?): PFDate {
         var result = PFDate.now()
         if (PeriodOfPerformanceType.OWN == pos.periodOfPerformanceType) {
-            if (pos.periodOfPerformanceEnd != null) {
-                result = PFDate.from(pos.periodOfPerformanceEnd)!!.plusMonths(1).endOfMonth
+            if (posDate != null) {
+                result = PFDate.from(posDate)!!.plusMonths(1).endOfMonth
             }
         } else {
-            if (order!!.periodOfPerformanceEnd != null) {
-                result = PFDate.from(order.periodOfPerformanceEnd)!!.plusMonths(1).endOfMonth
+            if (orderDate != null) {
+                result = PFDate.from(orderDate)!!.plusMonths(1).endOfMonth
             }
         }
         return result
@@ -210,6 +207,6 @@ object ForecastUtils { // open needed by Wicket.
         return PFDate.now().sqlDate
     }
 
-    val POINT_FIVE = BigDecimal(".5")
-    val POINT_NINE = BigDecimal(".9")
+    private val POINT_FIVE = BigDecimal(".5")
+    private val POINT_NINE = BigDecimal(".9")
 }
