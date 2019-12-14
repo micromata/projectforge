@@ -42,7 +42,14 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "t_employee_vacation", indexes = [javax.persistence.Index(name = "idx_fk_t_vacation_employee_id", columnList = "employee_id"), javax.persistence.Index(name = "idx_fk_t_vacation_manager_id", columnList = "manager_id"), javax.persistence.Index(name = "idx_fk_t_vacation_tenant_id", columnList = "tenant_id")])
+@Table(name = "t_employee_vacation",
+        indexes = [javax.persistence.Index(name = "idx_fk_t_vacation_employee_id", columnList = "employee_id"),
+            javax.persistence.Index(name = "idx_fk_t_vacation_manager_id", columnList = "manager_id"),
+            javax.persistence.Index(name = "idx_fk_t_vacation_tenant_id", columnList = "tenant_id")])
+@NamedQueries(
+        NamedQuery(name = VacationDO.FIND_BY_PERIOD,
+                query = "FROM VacationDO WHERE endDate >= :startDate AND startDate <= :endDate AND deleted = false AND tenant = :tenant")
+)
 @AUserRightId(value = "EMPLOYEE_VACATION", checkAccess = false)
 open class VacationDO : DefaultBaseDO() {
 
@@ -127,4 +134,7 @@ open class VacationDO : DefaultBaseDO() {
 
     }
 
+    companion object {
+        internal const val FIND_BY_PERIOD = "VacationDO_FindByPeriod"
+    }
 }
