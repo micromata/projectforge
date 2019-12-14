@@ -73,7 +73,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
   private OrderExport orderExport;
 
   @SpringBean
-  private ForecastExportNew forecastExport;
+  private ForecastExport forecastExport;
 
   @SpringBean
   private UserFormatter userFormatter;
