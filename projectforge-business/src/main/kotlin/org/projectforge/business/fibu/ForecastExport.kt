@@ -259,7 +259,7 @@ open class ForecastExport { // open needed by Wicket.
     }
 
     private fun addEndAtPeriodOfPerformance(sum: BigDecimal, mapping: PropertyMapping,
-                                            order: AuftragDO?, pos: AuftragsPositionDO, startDate: PFDate) {
+                                            order: AuftragDO, pos: AuftragsPositionDO, startDate: PFDate) {
         val posEndDate = ForecastUtils.getEndLeistungszeitraumNextMonthEnd(order, pos)
         val index = getMonthIndex(posEndDate, startDate)
         if (index < 0 || index > 11) {
@@ -293,7 +293,7 @@ open class ForecastExport { // open needed by Wicket.
         return toCheck.isAfter(oneMonthBeforeNow)
     }
 
-    private fun fillMonthColumnsDistributed(value: BigDecimal, mapping: PropertyMapping, order: AuftragDO?, pos: AuftragsPositionDO,
+    private fun fillMonthColumnsDistributed(value: BigDecimal, mapping: PropertyMapping, order: AuftragDO, pos: AuftragsPositionDO,
                                             startDate: PFDate, beginDistribute: PFDate) {
         var indexBegin = getMonthIndex(beginDistribute, startDate)
         var indexEnd = getMonthIndex(ForecastUtils.getEndLeistungszeitraumNextMonthEnd(order, pos), startDate)
