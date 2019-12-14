@@ -23,6 +23,7 @@
 
 package org.projectforge.business.vacation.repository;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.user.UserRightId;
@@ -39,8 +40,10 @@ import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
+import org.projectforge.framework.time.PFDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -104,6 +107,47 @@ public class VacationDao extends BaseDao<VacationDO> {
       return dbResultList;
     });
     return result;
+  }
+
+  @SuppressWarnings("unchecked")
+  public List<VacationDO> getVacationForPeriod(final Date startVacationDate, final Date endVacationDate) {
+    final List<VacationDO> list = em
+            .createNamedQuery(VacationDO.FIND_BY_PERIOD, VacationDO.class)
+            .setParameter("startDate", startVacationDate)
+            .setParameter("endDate", endVacationDate)
+            .setParameter("tenant", getTenant())
+            .getResultList();
+    return list;
+  }
+
+  @SuppressWarnings("unchecked")
+  public List<VacationDO> getVacationForPeriodAndGroups(final PFDateTime startVacationDate, final PFDateTime endVacationDate, List<GroupDO> groups) {
+    final List<VacationDO> result = new ArrayList<>();
+    if (CollectionUtils.isEmpty(groups)) {
+      log.info("No groups given, therefore no vacation will be returned.");
+      return result;
+    }
+    final List<VacationDO> list = getVacationForPeriod(startVacationDate.getSqlDate(), endVacationDate.getSqlDate());
+    for (VacationDO vacation : list) {
+      final EmployeeDO employee = vacation.getEmployee();
+      if (employee == null)
+        continue;
+      final PFUserDO employeeUser = employee.getUser();
+      if (employeeUser == null)
+        continue;
+      outerloop:
+      for (GroupDO group : groups) {
+        if (group.getAssignedUsers() == null)
+          continue;
+        for (PFUserDO assignedUser : group.getAssignedUsers()) {
+          if (Objects.equals(assignedUser.getId(), employeeUser.getId())) {
+            result.add(vacation); // Employee is part of group, so return the vacation entry for this user.
+            break outerloop;
+          }
+        }
+      }
+    }
+    return list;
   }
 
   @Override
