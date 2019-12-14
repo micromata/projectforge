@@ -64,7 +64,7 @@ open class ForecastExportNew { // open needed by Wicket.
 
     enum class ForecastCol(val header: String) {
         ORDER_NR("Nr."), POS_NR("Position"), DATE_OF_OFFER("Angebotsdatum"), DATE("Erfassungsdatum"),
-        DATE_OF_DECISION("Entscheidungsdatum"), HEAD("HOB"), PROJECT("Projekt"),
+        DATE_OF_DECISION("Entscheidungsdatum"), HEAD("HOB"), CUSTOMER("Kunde"), PROJECT("Projekt"),
         TITEL("Titel"), POS_TITLE("Pos.-Titel"), ART("Art"), ABRECHNUNGSART("Abrechnungsart"),
         AUFTRAG_STATUS("Auftrag Status"), POSITION_STATUS("Position Status"),
         PT("PT"), NETTOSUMME("Nettosumme"), FAKTURIERT("fakturiert"),
@@ -207,6 +207,7 @@ open class ForecastExportNew { // open needed by Wicket.
         sheet.setDateValue(row, ForecastCol.DATE.header, order.erfassungsDatum, ctx.excelDateFormat)
         sheet.setDateValue(row, ForecastCol.DATE_OF_DECISION.header, ForecastUtils.ensureErfassungsDatum(order), ctx.excelDateFormat)
         sheet.setStringValue(row, ForecastCol.HEAD.header, order.headOfBusinessManager?.getFullname())
+        sheet.setStringValue(row, ForecastCol.CUSTOMER.header, order.kundeAsString)
         sheet.setStringValue(row, ForecastCol.PROJECT.header, order.projektAsString)
         sheet.setStringValue(row, ForecastCol.TITEL.header, order.titel)
         if (pos.titel != order.titel)
