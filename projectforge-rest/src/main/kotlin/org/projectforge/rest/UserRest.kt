@@ -103,10 +103,11 @@ class UserRest
 
     override val autoCompleteSearchFields = arrayOf("username", "firstname", "lastname", "email")
 
-    override fun getAutoCompletionObjects(@RequestParam("search") searchString: String?): MutableList<PFUserDO> {
+    override fun getAutoCompletionObjects(@RequestParam("search") searchString: String?): MutableList<User> {
         val result = super.getAutoCompletionObjects(searchString)
-        if (searchString.isNullOrBlank())
+        if (searchString.isNullOrBlank()) {
             result.removeIf { it.deactivated } // Remove deactivated users when returning all. Show deactivated users only if search string is given.
+        }
         return result
     }
 }
