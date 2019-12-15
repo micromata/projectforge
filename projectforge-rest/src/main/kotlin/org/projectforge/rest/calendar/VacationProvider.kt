@@ -23,10 +23,8 @@
 
 package org.projectforge.rest.calendar
 
-import org.projectforge.business.calendar.CalendarStyleMap
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.calendar.Holidays
-import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.time.PFDateTime
 
 /**
@@ -40,12 +38,15 @@ object VacationProvider {
                   start: PFDateTime,
                   end: PFDateTime,
                   events: MutableList<BigCalendarEvent>,
-                  styleMap: CalendarStyleMap,
                   /**
                    * Vacation days will only be displayed for employees (users) who are member of at least one of the following groups:
                    */
-                  groups: List<GroupDO>) {
-        val vacations = vacationDao.getVacationForPeriodAndGroups(start, end, groups)
+                  groupIds: Set<Int>?,
+                  userIds: Set<Int>?) {
+        if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {
+            return // Nothing to do
+        }
+        val vacations = vacationDao.getVacationForPeriodAndUsers(start, end, groupIds, userIds)
         vacations.forEach {
             val bgColor= "#ffa500"
             val fgColor= "#ffffff"
