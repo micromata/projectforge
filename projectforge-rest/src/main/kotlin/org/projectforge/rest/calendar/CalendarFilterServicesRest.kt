@@ -135,14 +135,20 @@ class CalendarFilterServicesRest {
         initial.activeCalendars = getActiveCalendars(currentFilter, calendars, styleMap)
         initial.vacationGroups = currentFilter.vacationGroupIds?.map {
             val group = Group()
-            group.copyFromMinimal(userGroupCache.getGroup(it))
+            val dbGroup = userGroupCache.getGroup(it)
+            if (dbGroup != null) {
+                group.copyFromMinimal(dbGroup)
+            }
             group
-        }
+        }?.filter { it.id != null }
         initial.vacationUsers = currentFilter.vacationUserIds?.map {
             val user = User()
-            user.copyFromMinimal(userGroupCache.getUser(it))
+            val dbUser = userGroupCache.getUser(it)
+            if (dbUser != null) {
+                user.copyFromMinimal(dbUser)
+            }
             user
-        }
+        }?.filter { it.id != null }
 
         val favorites = getFilterFavorites()
         initial.filterFavorites = favorites.idTitleList
