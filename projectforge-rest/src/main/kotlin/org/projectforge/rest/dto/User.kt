@@ -46,5 +46,6 @@ class User(id: Int? = null,
     override fun copyFromMinimal(src: PFUserDO) {
         super.copyFromMinimal(src)
         username = src.username
+        fullname = src.getFullname()
     }
 }
