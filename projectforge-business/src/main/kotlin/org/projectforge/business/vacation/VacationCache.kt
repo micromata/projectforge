@@ -53,7 +53,7 @@ class VacationCache : AbstractCache() {
      * Checks also the select access of the logged in user.
      */
     fun getVacationForPeriodAndUsers(startVacationDate: PFDateTime, endVacationDate: PFDateTime,
-                                     groupIds: Set<Int>?, userIds: Set<Int>?): List<VacationDO>? {
+                                     groupIds: Set<Int>?, userIds: Set<Int>?): List<VacationDO> {
         checkRefresh()
         val result = mutableListOf<VacationDO>()
         if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {

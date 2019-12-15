@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.calendar
 
-import org.projectforge.business.vacation.repository.VacationDao
+import org.projectforge.business.vacation.VacationCache
 import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.time.PFDateTime
 
@@ -34,7 +34,7 @@ object VacationProvider {
     private val log = org.slf4j.LoggerFactory.getLogger(VacationProvider::class.java)
     private val holidays = Holidays.getInstance()
 
-    fun addEvents(vacationDao: VacationDao,
+    fun addEvents(vacationCache: VacationCache,
                   start: PFDateTime,
                   end: PFDateTime,
                   events: MutableList<BigCalendarEvent>,
@@ -46,7 +46,7 @@ object VacationProvider {
         if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {
             return // Nothing to do
         }
-        val vacations = vacationDao.getVacationForPeriodAndUsers(start, end, groupIds, userIds)
+        val vacations = vacationCache.getVacationForPeriodAndUsers(start, end, groupIds, userIds)
         vacations.forEach {
             val bgColor= "#ffa500"
             val fgColor= "#ffffff"
