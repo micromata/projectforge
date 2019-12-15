@@ -404,11 +404,16 @@ class CalendarFilterServicesRest {
 
     internal fun updateCalendarFilter(startDate: Date?,
                                       view: CalendarView?,
-                                      activeCalendarIds: Set<Int>?) {
+                                      restFilter: CalendarRestFilter) {
         getFilterState().updateCalendarFilter(startDate, view)
+        val currentFilter = getCurrentFilter()
+        val activeCalendarIds = restFilter.activeCalendarIds
         if (!activeCalendarIds.isNullOrEmpty()) {
-            getCurrentFilter().calendarIds = activeCalendarIds.toMutableSet()
+            currentFilter.calendarIds = activeCalendarIds.toMutableSet()
         }
+        //currentFilter.showVacations = restFilter.showVacations
+        currentFilter.vacationGroupIds = restFilter.vacationGroupIds
+        currentFilter.vacationUserIds = restFilter.vacationGroupIds
     }
 }
 
