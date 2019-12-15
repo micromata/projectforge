@@ -28,6 +28,7 @@ class CalendarFilterSettings extends Component {
         this.handleDefaultCalendarChange = this.handleDefaultCalendarChange.bind(this);
         this.handleTimesheetUserChange = this.handleTimesheetUserChange.bind(this);
         this.handleVacationGroupsChange = this.handleVacationGroupsChange.bind(this);
+        this.handleVacationUsersChange = this.handleVacationUsersChange.bind(this);
         this.handleGridSizeChange = this.handleGridSizeChange.bind(this);
         this.togglePopover = this.togglePopover.bind(this);
         this.handleCheckBoxChange = this.handleCheckBoxChange.bind(this);
@@ -59,6 +60,12 @@ class CalendarFilterSettings extends Component {
 
     handleVacationGroupsChange(groups) {
         console.log(groups);
+        // fetchJsonGet('calendar/changeVacationGroups',
+    }
+
+    handleVacationUsersChange(users) {
+        console.log(users);
+        // fetchJsonGet('calendar/changeVacationUsers',
     }
 
     handleGridSizeChange(gridSize) {
@@ -191,6 +198,20 @@ class CalendarFilterSettings extends Component {
                                         valueProperty="id"
                                         labelProperty="title"
                                         onChange={this.handleVacationGroupsChange}
+                                    />
+                                </Col>
+                            </Row>
+                            <Row>
+                                <Col>
+                                    <ReactSelect
+                                        values={listOfDefaultCalendars}
+                                        value={defaultCalendar}
+                                        label={translations['calendar.filter.vacation.users']}
+                                        tooltip={translations['calendar.filter.vacation.user.tooltip']}
+                                        translations={translations}
+                                        valueProperty="id"
+                                        labelProperty="title"
+                                        onChange={this.handleVacationUsersChange}
                                     />
                                 </Col>
                             </Row>
