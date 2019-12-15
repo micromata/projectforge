@@ -106,17 +106,6 @@ public class VacationDao extends BaseDao<VacationDO> {
     return result;
   }
 
-  @SuppressWarnings("unchecked")
-  public List<VacationDO> getVacationForPeriod(final Date startVacationDate, final Date endVacationDate) {
-    final List<VacationDO> list = em
-            .createNamedQuery(VacationDO.FIND_BY_PERIOD, VacationDO.class)
-            .setParameter("startDate", startVacationDate)
-            .setParameter("endDate", endVacationDate)
-            .setParameter("tenant", getTenant())
-            .getResultList();
-    return list;
-  }
-
   @Override
   public List<VacationDO> getList(final BaseSearchFilter filter) {
     final VacationFilter myFilter;
