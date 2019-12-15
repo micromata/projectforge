@@ -280,6 +280,18 @@ class CalendarFilterServicesRest {
         return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
     }
 
+    @GetMapping("changeVacationGroups")
+    fun changeVacationGroups(): Map<String, Any> {
+        val currentFilter = getCurrentFilter()
+        return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
+    }
+
+    @GetMapping("changeVacationUsers")
+    fun changeVacationUsers(): Map<String, Any> {
+        val currentFilter = getCurrentFilter()
+        return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
+    }
+
     @GetMapping("changeGridSizer")
     fun changeGridSizer(@RequestParam("size", required = true) sizeString: String): Map<String, Any> {
         val currentFilter = getCurrentFilter()

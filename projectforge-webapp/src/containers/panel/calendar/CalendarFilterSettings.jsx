@@ -188,6 +188,7 @@ class CalendarFilterSettings extends Component {
                                 </Col>
                             </Row>
                             <Row>
+                                // Fin: Autocompletion url: group/aco?search=xxx
                                 <Col>
                                     <ReactSelect
                                         values={listOfDefaultCalendars}
@@ -203,6 +204,7 @@ class CalendarFilterSettings extends Component {
                             </Row>
                             <Row>
                                 <Col>
+                                    // Fin: Autocompletion url: vacation/users?search=xxx
                                     <ReactSelect
                                         values={listOfDefaultCalendars}
                                         value={defaultCalendar}
