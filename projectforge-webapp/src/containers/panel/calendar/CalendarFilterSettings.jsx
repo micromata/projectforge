@@ -27,6 +27,7 @@ class CalendarFilterSettings extends Component {
 
         this.handleDefaultCalendarChange = this.handleDefaultCalendarChange.bind(this);
         this.handleTimesheetUserChange = this.handleTimesheetUserChange.bind(this);
+        this.handleVacationGroupsChange = this.handleVacationGroupsChange.bind(this);
         this.handleGridSizeChange = this.handleGridSizeChange.bind(this);
         this.togglePopover = this.togglePopover.bind(this);
         this.handleCheckBoxChange = this.handleCheckBoxChange.bind(this);
@@ -54,6 +55,10 @@ class CalendarFilterSettings extends Component {
                 onTimesheetUserChange(user);
                 saveUpdateResponseInState(json);
             });
+    }
+
+    handleVacationGroupsChange(groups) {
+        console.log(groups);
     }
 
     handleGridSizeChange(gridSize) {
@@ -173,6 +178,20 @@ class CalendarFilterSettings extends Component {
                                             checked={timesheetUser && timesheetUser.id > 0}
                                         />
                                     )}
+                                </Col>
+                            </Row>
+                            <Row>
+                                <Col>
+                                    <ReactSelect
+                                        values={listOfDefaultCalendars}
+                                        value={defaultCalendar}
+                                        label={translations['calendar.filter.vacation.groups']}
+                                        tooltip={translations['calendar.filter.vacation.groups.tooltip']}
+                                        translations={translations}
+                                        valueProperty="id"
+                                        labelProperty="title"
+                                        onChange={this.handleVacationGroupsChange}
+                                    />
                                 </Col>
                             </Row>
                             <Row>

@@ -158,6 +158,10 @@ class CalendarFilterServicesRest {
         val translations = addTranslations(
                 "select.placeholder",
                 "calendar.filter.dialog.title",
+                "calendar.filter.vacation.groups",
+                "calendar.filter.vacation.groups.tooltip",
+                "calendar.filter.vacation.users",
+                "calendar.filter.vacation.users.tooltip",
                 "calendar.filter.visible",
                 "calendar.defaultCalendar",
                 "calendar.defaultCalendar.tooltip",
