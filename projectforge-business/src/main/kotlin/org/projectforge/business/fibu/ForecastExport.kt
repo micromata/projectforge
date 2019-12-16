@@ -384,7 +384,10 @@ open class ForecastExport { // open needed by Wicket.
         }
         val partlyNettoSum = value.divide(BigDecimal.valueOf(indexEnd - indexBegin + 1.toLong()), RoundingMode.HALF_UP)
         MonthCol.values().forEach {
-            ctx.forecastSheet.setBigDecimalValue(row, ctx.forecastSheet.getColumnDef(it.header), partlyNettoSum).cellStyle = ctx.currencyCellStyle
+            val month = it.ordinal + 1
+            if (month >= indexBegin && month <= indexEnd) {
+                ctx.forecastSheet.setBigDecimalValue(row, ctx.forecastSheet.getColumnDef(it.header), partlyNettoSum).cellStyle = ctx.currencyCellStyle
+            }
         }
     }
 
