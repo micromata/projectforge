@@ -33,6 +33,8 @@ import java.util.Locale;
 
 public class Const
 {
+  public static final String RESOURCE_BUNDLE_NAME = "I18nResources";
+
   public static final String REACT_APP_PATH = "react/";
 
   public static final String WICKET_APPLICATION_PATH = "wa/";

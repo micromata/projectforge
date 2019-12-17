@@ -35,6 +35,21 @@ class CalendarRestFilter(var start: Date? = null,
                          /** Will be ignored if end is given. */
                          var view: String? = null,
                          var timesheetUserId: Int? = null,
+                         /**
+                          * Check box for enabling and disabling vacation entries of employees.
+                          */
+                         //var showVacations: Boolean = false,
+
+                         /**
+                          * All vacations of any employee assigned to at least one of this
+                          * vacationGroups will be displayed.
+                          */
+                         var vacationGroupIds: MutableSet<Int>? = null,
+
+                         /**
+                          * All vacations of the given employees (by user) will be displayed.
+                          */
+                         var vacationUserIds: MutableSet<Int>? = null,
                          /** The team calendarIds to display. */
                          var activeCalendarIds: MutableSet<Int>? = null,
                          /**
@@ -60,7 +75,8 @@ class CalendarRestFilter(var start: Date? = null,
      * function.
      */
     fun afterDeserialization() {
-        val nullValue: Int? = null
-        activeCalendarIds?.remove(nullValue)
+        activeCalendarIds?.remove(null as Int?)
+        vacationGroupIds?.remove(null as Int?)
+        vacationUserIds?.remove(null as Int?)
     }
 }

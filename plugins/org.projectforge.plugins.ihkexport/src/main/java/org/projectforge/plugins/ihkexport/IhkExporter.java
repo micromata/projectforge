@@ -27,10 +27,7 @@ import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.ss.usermodel.BorderStyle;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.projectforge.business.excel.ExportRow;
 import org.projectforge.business.excel.ExportSheet;
@@ -96,7 +93,7 @@ class IhkExporter
       hourCounter = fillRow(hourCounter, newRow, timesheet);
 
       CellStyle style = workbook.createCellStyle();
-      style.setBorderBottom(BorderStyle.valueOf((short) 1));
+      style.setBorderBottom(BorderStyle.HAIR);
       style.setShrinkToFit(true);
       style.setWrapText(true);
       newRow.setRowStyle(style);
@@ -170,7 +167,7 @@ class IhkExporter
       newCell.setCellType(oldCell.getCellTypeEnum());
 
       // Set the cell data value
-      switch (oldCell.getCellTypeEnum()) {
+      switch (oldCell.getCellType()) {
         case BLANK:
           newCell.setCellValue(oldCell.getStringCellValue());
           break;

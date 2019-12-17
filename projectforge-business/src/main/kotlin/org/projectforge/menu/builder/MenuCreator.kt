@@ -291,6 +291,12 @@ class MenuCreator {
                             hasRight(Kost2Dao.USER_RIGHT_ID, *READONLY_READWRITE) ||
                                     isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
                         }))
+                .add(MenuItemDef(MenuItemDefId.COST2_TYPE_LIST, "wa/cost2TypeList",
+                        checkAccess =
+                        {
+                            hasRight(Kost2Dao.USER_RIGHT_ID, *READONLY_READWRITE) ||
+                                    isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
+                        }))
 
         //////////////////////////////////////
         //

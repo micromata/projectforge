@@ -58,7 +58,6 @@ open class ProjektDO : DefaultBaseDO(), ShortDisplayNameCapable {
      */
     @PropertyInfo(i18nKey = "fibu.projekt.nummer")
     @get:Column(nullable = false)
-    @Field(analyze = Analyze.NO)
     open var nummer: Int = 0
 
     @PropertyInfo(i18nKey = "fibu.projekt.name")
