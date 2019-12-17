@@ -86,7 +86,7 @@ import java.util.Map;
 @Controller
 public class WicketApplication extends WebApplication implements WicketApplicationInterface/* , SmartLifecycle */
 {
-  public static final String RESOURCE_BUNDLE_NAME = "I18nResources";
+  public static final String RESOURCE_BUNDLE_NAME = Const.RESOURCE_BUNDLE_NAME;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(WicketApplication.class);
 

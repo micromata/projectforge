@@ -55,10 +55,16 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime,
         get() = dateTime.month
 
     /**
-     * Gets the month-of-year field from 1 to 12.
+     * Gets the month-of-year field from 1 (January) to 12 (December).
      */
     val monthValue: Int
         get() = dateTime.monthValue
+
+    /**
+     * Gets the month-of-year field from 0 (January) to 11 (December).
+     */
+    val monthCompatibilityValue: Int
+        get() = monthValue - 1
 
     val dayOfYear: Int
         get() = dateTime.dayOfYear

@@ -284,7 +284,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
               return;
             }
             final String filename = "ProjectForge-Forecast_" + DateHelper.getDateAsFilenameSuffix(new Date())
-                + ".xls";
+                + ".xlsx";
             DownloadUtils.setDownloadTarget(xls, filename);
           }
         }, getString("fibu.auftrag.forecastExportAsXls")).setTooltip(getString("fibu.auftrag.forecastExportAsXls.tooltip"));

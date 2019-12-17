@@ -30,6 +30,7 @@ import org.projectforge.business.calendar.CalendarView
 import org.projectforge.business.calendar.TeamCalendar
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.service.UserPrefService
+import org.projectforge.business.vacation.VacationCache
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
@@ -71,6 +72,9 @@ class CalendarServicesRest {
     private lateinit var addressDao: AddressDao
 
     @Autowired
+    private lateinit var vacationCache: VacationCache
+
+    @Autowired
     private lateinit var teamCalEventsProvider: TeamCalEventsProvider
 
     @Autowired
@@ -97,14 +101,14 @@ class CalendarServicesRest {
     /**
      * The users selected a slot in the dateTime.
      * @param action slotSelected, resize, drop
-     * @param startDate startDate timestamp of event (after resize or drag&drop)
-     * @param endDate endDate timestamp of event (after resize or drag&drop)
+     * @param startDateParam startDate timestamp of event (after resize or drag&drop)
+     * @param endDateParam endDate timestamp of event (after resize or drag&drop)
      * @param allDay
-     * @param category calEvent, teamEvent or timesheet.
-     * @param dbId Data base id of timesheet or team event.
-     * @param uid Uid of event, if given.
-     * @param origStartDate For resizing or moving events of series, the origin startDate date is required.
-     * @param origEndDate For resizing or moving events of series, the origin endDate date is required.
+     * @param categoryParam calEvent, teamEvent or timesheet.
+     * @param dbIdParam Data base id of timesheet or team event.
+     * @param uidParam Uid of event, if given.
+     * @param origStartDateParam For resizing or moving events of series, the origin startDate date is required.
+     * @param origEndDateParam For resizing or moving events of series, the origin endDate date is required.
      */
     @GetMapping("action")
     fun action(@RequestParam("action") action: String?,
@@ -159,7 +163,7 @@ class CalendarServicesRest {
         // ZoneInfo.getTimeZone returns null, if timeZone not known. TimeZone.getTimeZone returns GMT on failure!
         val timeZone = if (filter.timeZone != null) TimeZone.getTimeZone(filter.timeZone) else null
         if (filter.updateState == true) {
-            calendarFilterServicesRest.updateCalendarFilter(filter.start, view, filter.activeCalendarIds)
+            calendarFilterServicesRest.updateCalendarFilter(filter.start, view, filter)
         }
         val range = DateTimeRange(PFDateTime.from(filter.start, timeZone = timeZone)!!,
                 PFDateTime.from(filter.end, timeZone = timeZone))
@@ -196,6 +200,7 @@ class CalendarServicesRest {
                             ProjectForgeGroup.HR_GROUP,
                             ProjectForgeGroup.ORGA_TEAM))
         }
+        VacationProvider.addEvents(vacationCache, range.start, range.end!!, events, filter.vacationGroupIds, filter.vacationUserIds)
 
         val specialDays = HolidayAndWeekendProvider.getSpecialDayInfos(range.start, range.end!!)
         var counter = 0
