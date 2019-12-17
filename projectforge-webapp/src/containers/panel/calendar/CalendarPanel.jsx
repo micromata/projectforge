@@ -106,6 +106,8 @@ class CalendarPanel extends React.Component {
         {
             activeCalendars: prevActiveCalendars,
             timesheetUserId: prevTimesheetUserId,
+            vacationGroups: prevVacationGroups,
+            vacationUsers: prevVacationUsers,
             location: prevLocation,
         },
     ) {
@@ -114,11 +116,15 @@ class CalendarPanel extends React.Component {
             timesheetUserId,
             location,
             match,
+            vacationGroups,
+            vacationUsers,
         } = this.props;
 
         if (
             (match.isExact && location.pathname !== prevLocation.pathname)
             || (timesheetUserId !== prevTimesheetUserId)
+            || (vacationGroups !== prevVacationGroups)
+            || (vacationUsers !== prevVacationUsers)
         ) {
             this.fetchEvents();
             return;
@@ -377,6 +383,8 @@ class CalendarPanel extends React.Component {
 CalendarPanel.propTypes = {
     activeCalendars: PropTypes.arrayOf(PropTypes.shape({})),
     timesheetUserId: PropTypes.number,
+    vacationGroups: PropTypes.arrayOf(PropTypes.shape({})),
+    vacationUsers: PropTypes.arrayOf(PropTypes.shape({})),
     firstDayOfWeek: PropTypes.number.isRequired,
     timeZone: PropTypes.string.isRequired,
     locale: PropTypes.string,
@@ -394,6 +402,8 @@ CalendarPanel.propTypes = {
 CalendarPanel.defaultProps = {
     activeCalendars: [],
     timesheetUserId: undefined,
+    vacationGroups: null,
+    vacationUsers: null,
     locale: 'en',
     topHeight: '164px',
     defaultDate: new Date(),
