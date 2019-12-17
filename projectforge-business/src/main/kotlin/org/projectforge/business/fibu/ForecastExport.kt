@@ -60,10 +60,13 @@ open class ForecastExport { // open needed by Wicket.
     private lateinit var rechnungCache: RechnungCache
 
     @Autowired
+    private lateinit var rechnungDao: RechnungDao
+
+    @Autowired
     private lateinit var applicationContext: ApplicationContext
 
     enum class ForecastCol(val header: String) {
-        ORDER_NR("Nr."), POS_NR("Position"), DATE_OF_OFFER("Angebotsdatum"), DATE("Erfassungsdatum"),
+        ORDER_NR("Nr."), POS_NR("Pos."), DATE_OF_OFFER("Angebotsdatum"), DATE("Erfassungsdatum"),
         DATE_OF_DECISION("Entscheidungsdatum"), HEAD("HOB"), CUSTOMER("Kunde"), PROJECT("Projekt"),
         TITEL("Titel"), POS_TITLE("Pos.-Titel"), ART("Art"), ABRECHNUNGSART("Abrechnungsart"),
         AUFTRAG_STATUS("Auftrag Status"), POSITION_STATUS("Position Status"),
@@ -72,8 +75,14 @@ open class ForecastExport { // open needed by Wicket.
         DEBITOREN_RECHNUNGEN("Debitorenrechnungen"), LEISTUNGSZEITRAUM("Leistungszeitraum"),
         EINTRITTSWAHRSCHEINLICHKEIT("Eintrittswahrsch. in %"), ANSPRECHPARTNER("Ansprechpartner"),
         STRUKTUR_ELEMENT("Strukturelement"), BEMERKUNG("Bemerkung"), WAHRSCHEINLICHKEITSWERT("Wahrscheinlichkeitswert"),
-        MONATSENDE_START_DATUM("Monatsende Startdatum +1"), MONATSENDE_ENDE_DATUM("Monatsende Enddatum +1"),
+        MONATSENDE_START_DATUM("Monatsende Startdatum"), MONATSENDE_ENDE_DATUM("Monatsende Enddatum"),
         ANZAHL_MONATE("Anzahl Monate")
+    }
+
+    enum class InvoicesCol(val header: String) {
+        INVOICE_NR("Nr."), POS_NR("Pos."), DATE("Datum"), CUSTOMER("Kunde"), PROJECT("Projekt"),
+        SUBJECT("Betreff"), POS_TEXT("Positionstext"), DATE_OF_PAYMENT("Bezahldatum"),
+        LEISTUNGSZEITRAUM("Leistungszeitraum"), ORDER("Auftrag"), NETSUM("Netto")
     }
 
     enum class MonthCol(val header: String) {
@@ -81,12 +90,14 @@ open class ForecastExport { // open needed by Wicket.
         MONTH7("Month 7"), MONTH8("Month 8"), MONTH9("Month 9"), MONTH10("Month 10"), MONTH11("Month 11"), MONTH12("Month 12")
     }
 
-    private class Context(workbook: ExcelWorkbook, val forecastSheet: ExcelSheet) {
+    private class Context(workbook: ExcelWorkbook, val forecastSheet: ExcelSheet, val invoicesSheet: ExcelSheet, val baseDate: PFDate) {
         val excelDateFormat = ThreadLocalUserContext.getUser()?.excelDateFormat ?: ExcelDateFormats.EXCEL_DEFAULT_DATE
         val currencyCellStyle = workbook.createOrGetCellStyle("DataFormat.currency")!!
         val percentageCellStyle = workbook.createOrGetCellStyle("DataFormat.percentage")!!
         val monthMap = mutableMapOf<MonthCol, BigDecimal>()
         val writerContext = ExcelWriterContext(I18n(Const.RESOURCE_BUNDLE_NAME, ThreadLocalUserContext.getLocale()), workbook)
+        val processedInvoicePositions = mutableSetOf<String>()
+        val invoiceMap = mutableMapOf<Int, RechnungDO>()
 
         init {
             currencyCellStyle.dataFormat = workbook.getDataFormat(XlsContentProvider.FORMAT_CURRENCY)
@@ -97,46 +108,47 @@ open class ForecastExport { // open needed by Wicket.
     // Vergangene Auftragspositionen anzeigen, die nicht vollständig fakturiert bzw. abgelehnt sind.
 
     @Throws(IOException::class)
-    open fun export(auftragList: List<AuftragDO?>, startDateParam: Date?): ByteArray? {
+    open fun export(auftragList: List<AuftragDO>, baseDateParam: Date?): ByteArray? {
         if (CollectionUtils.isEmpty(auftragList)) {
             return null
         }
-        val startDate = (if (startDateParam != null) PFDate.from(startDateParam)!! else PFDate.now()).beginOfMonth
-        log.info("Exporting forecast script for date ${startDate.isoString}")
+        val baseDate = (if (baseDateParam != null) PFDate.from(baseDateParam)!!.beginOfMonth else PFDate.now()).beginOfMonth
+        log.info("Exporting forecast script for date ${baseDate.isoString}")
         val forecastTemplate = applicationContext.getResource("classpath:officeTemplates/ForecastTemplate.xlsx")
 
         val workbook = ExcelWorkbook(forecastTemplate.inputStream, "ForecastTemplate.xlsx")
         val forecastSheet = workbook.getSheet("Forecast_Data")
-        ForecastCol.values().forEach {
-            forecastSheet.registerColumn(it.header)
-        }
-        MonthCol.values().forEach {
-            forecastSheet.registerColumn(it.header)
-        }
-        val context = Context(workbook, forecastSheet)
+        ForecastCol.values().forEach { forecastSheet.registerColumn(it.header) }
+        MonthCol.values().forEach { forecastSheet.registerColumn(it.header) }
 
-        val istSumMap = createIstSumMap()
+        val invoicesSheet = workbook.getSheet("Rechnungen")
+        InvoicesCol.values().forEach { invoicesSheet.registerColumn(it.header) }
+        MonthCol.values().forEach { invoicesSheet.registerColumn(it.header) }
+
+        val context = Context(workbook, forecastSheet, invoicesSheet, baseDate)
+
         var currentRow = 9
         for (order in auftragList) {
-            if (order == null || order.isDeleted || order.positionenExcludingDeleted.isEmpty()) {
+            if (order.isDeleted || order.positionenExcludingDeleted.isEmpty()) {
                 continue
             }
             orderBookDao.calculateInvoicedSum(order)
             if (ForecastUtils.auftragsStatusToShow.contains(order.auftragsStatus)) {
                 for (pos in order.positionenExcludingDeleted) {
-                    calculateIstSum(istSumMap, startDate, pos)
                     if (pos.status != null && ForecastUtils.auftragsPositionsStatusToShow.contains(pos.status!!)) {
-                        addOrderPosition(context, currentRow++, order, pos, startDate)
+                        addOrderPosition(context, currentRow++, order, pos)
                     }
                 }
             }
         }
-        fillIstSum(context, istSumMap)
-        replaceMonthDatesInHeaderRow(context, startDate, forecastSheet)
+        fillInvoices(context, auftragList)
+        replaceMonthDatesInHeaderRow(context, forecastSheet)
+        replaceMonthDatesInHeaderRow(context, invoicesSheet)
         forecastSheet.setAutoFilter()
+        invoicesSheet.setAutoFilter()
 
         // Now: evaluate the formulars:
-        for (row in 1..6) {
+        for (row in 1..7) {
             val excelRow = forecastSheet.getRow(row)
             MonthCol.values().forEach {
                 val cell = excelRow.getCell(forecastSheet.getColumnDef(it.header))
@@ -157,48 +169,60 @@ open class ForecastExport { // open needed by Wicket.
         return result
     }
 
-    private fun createIstSumMap(): MutableMap<Int, BigDecimal> {
-        val istSumMap = mutableMapOf<Int, BigDecimal>()
-        for (month in 0..11) {
-            istSumMap[month] = BigDecimal.ZERO
-        }
-        return istSumMap
-    }
-
-    private fun fillIstSum(ctx: Context, istSumMap: Map<Int, BigDecimal>) {
-        val istRow = ctx.forecastSheet.getRow(FORECAST_IST_SUM_ROW)
-        var col = ctx.forecastSheet.getColumnDef(MonthCol.MONTH1.header).columnNumber
-        for (monthCol in istSumMap.keys) {
-            ctx.forecastSheet.setBigDecimalValue(istRow.rowNum, col, istSumMap[monthCol]).cellStyle = ctx.currencyCellStyle
-            col++
-        }
-    }
-
-    private fun calculateIstSum(istSumMap: MutableMap<Int, BigDecimal>, startDate: PFDate, pos: AuftragsPositionDO) {
-        val invoicePositions = rechnungCache.getRechnungsPositionVOSetByAuftragsPositionId(pos.id) ?: return
-        val beginCurrentMonth = PFDate.now().beginOfMonth
-        for (rpo in invoicePositions) {
-            val rDate = PFDate.from(rpo.date)
-            if (rDate?.isBefore(beginCurrentMonth) == true) {
-                val monthCol = getMonthIndex(rDate, startDate)
-                if (monthCol in 0..11) {
-                    istSumMap.replace(monthCol, istSumMap[monthCol]!!.add(rpo.nettoSumme))
+    private fun fillInvoices(ctx: Context, orderList: List<AuftragDO>) {
+        val sheet = ctx.invoicesSheet
+        var firstMonthCol = sheet.getColumnDef(MonthCol.MONTH1.header).columnNumber
+        for (order in orderList) {
+            val orderPositions = order.positionen ?: continue
+            for (orderPos in orderPositions) {
+                val invoicePositions = rechnungCache.getRechnungsPositionVOSetByAuftragsPositionId(orderPos.id)
+                        ?: continue
+                for (invoicePosVO in invoicePositions) {
+                    val monthIndex = getMonthIndex(ctx, PFDate.from(invoicePosVO.date)!!)
+                    if (!(monthIndex in 0..11)) {
+                        continue
+                    }
+                    val key = "${invoicePosVO.rechnungNummer}.${invoicePosVO.auftragsPositionNummer}"
+                    if (ctx.processedInvoicePositions.contains(key)) {
+                        continue
+                    }
+                    ctx.processedInvoicePositions.add(key)
+                    var invoice = ctx.invoiceMap[invoicePosVO.rechnungNummer]
+                    if (invoice == null) {
+                        invoice = rechnungDao.internalGetById(invoicePosVO.rechnungId) ?: continue
+                        ctx.invoiceMap[invoice.nummer!!] = invoice
+                    }
+                    val invoicePos = invoice.getAbstractPosition(invoicePosVO.number.toInt()) ?: continue
+                    val rowNumber = sheet.createRow().rowNum
+                    sheet.setIntValue(rowNumber, InvoicesCol.INVOICE_NR.header, invoice.nummer)
+                    sheet.setStringValue(rowNumber, InvoicesCol.POS_NR.header, "#${invoicePos.number}")
+                    sheet.setDateValue(rowNumber, InvoicesCol.DATE.header, invoice.datum, ctx.excelDateFormat)
+                    sheet.setStringValue(rowNumber, InvoicesCol.CUSTOMER.header, invoice.kundeAsString)
+                    sheet.setStringValue(rowNumber, InvoicesCol.PROJECT.header, invoice.projekt?.name)
+                    sheet.setStringValue(rowNumber, InvoicesCol.POS_TEXT.header, invoicePos.text)
+                    sheet.setDateValue(rowNumber, InvoicesCol.DATE_OF_PAYMENT.header, invoice.bezahlDatum, ctx.excelDateFormat)
+                    val leistungsZeitraumColDef = sheet.getColumnDef(InvoicesCol.LEISTUNGSZEITRAUM.header)
+                    sheet.setDateValue(rowNumber, leistungsZeitraumColDef, invoice.periodOfPerformanceBegin, ctx.excelDateFormat)
+                    sheet.setDateValue(rowNumber, leistungsZeitraumColDef.columnNumber + 1, invoice.periodOfPerformanceEnd, ctx.excelDateFormat)
+                    sheet.setStringValue(rowNumber, InvoicesCol.ORDER.header, "${order.nummer}.${invoicePosVO.auftragsPositionNummer}")
+                    sheet.setBigDecimalValue(rowNumber, InvoicesCol.NETSUM.header, invoicePos.netSum).cellStyle = ctx.currencyCellStyle
+                    sheet.setBigDecimalValue(rowNumber, firstMonthCol + monthIndex, invoicePos.netSum).cellStyle = ctx.currencyCellStyle
                 }
             }
         }
     }
 
-    private fun replaceMonthDatesInHeaderRow(ctx: Context, startDate: PFDate, sheet: ExcelSheet) { // Adding month columns
+    private fun replaceMonthDatesInHeaderRow(ctx: Context, sheet: ExcelSheet) { // Adding month columns
         val formatter = DateTimeFormatter.ofPattern("MMM yyyy")
-        var currentMonth = startDate
+        var currentMonth = ctx.baseDate
         MonthCol.values().forEach {
-            val cell = sheet.headRow.getCell(ctx.forecastSheet.getColumnDef(it.header))
+            val cell = sheet.headRow.getCell(sheet.getColumnDef(it.header))
             cell.setCellValue(currentMonth.format(formatter))
             currentMonth = currentMonth.plusMonths(1)
         }
     }
 
-    private fun addOrderPosition(ctx: Context, row: Int, order: AuftragDO, pos: AuftragsPositionDO, startDate: PFDate) {
+    private fun addOrderPosition(ctx: Context, row: Int, order: AuftragDO, pos: AuftragsPositionDO) {
         ctx.monthMap.clear()
         val sheet = ctx.forecastSheet
         sheet.setIntValue(row, ForecastCol.ORDER_NR.header, order.nummer)
@@ -250,8 +274,8 @@ open class ForecastExport { // open needed by Wicket.
         sheet.setStringValue(row, ForecastCol.STRUKTUR_ELEMENT.header, node?.task?.title ?: "")
         sheet.setStringValue(row, ForecastCol.BEMERKUNG.header, pos.bemerkung)
 
-        sheet.setDateValue(row, ForecastCol.MONATSENDE_START_DATUM.header, ForecastUtils.getStartLeistungszeitraumNextMonthEnd(order, pos).sqlDate, ctx.excelDateFormat)
-        sheet.setDateValue(row, ForecastCol.MONATSENDE_ENDE_DATUM.header, ForecastUtils.getEndLeistungszeitraumNextMonthEnd(order, pos).sqlDate, ctx.excelDateFormat)
+        sheet.setDateValue(row, ForecastCol.MONATSENDE_START_DATUM.header, ForecastUtils.getStartLeistungszeitraum(order, pos).sqlDate, ctx.excelDateFormat)
+        sheet.setDateValue(row, ForecastCol.MONATSENDE_ENDE_DATUM.header, ForecastUtils.getEndLeistungszeitraum(order, pos).sqlDate, ctx.excelDateFormat)
 
         sheet.setBigDecimalValue(row, ForecastCol.ANZAHL_MONATE.header, ForecastUtils.getMonthCountForOrderPosition(order, pos))
 
@@ -271,12 +295,12 @@ open class ForecastExport { // open needed by Wicket.
                     beginDistribute = PFDate.from(schedule.scheduleDate)!!
                 }
             }
-            fillByPaymentSchedule(paymentSchedules, ctx, row, order, pos, startDate)
+            fillByPaymentSchedule(paymentSchedules, ctx, row, order, pos)
             sumPaymentSchedule = sum
             beginDistribute = beginDistribute.plusMonths(2) // values are added to the next month (+1), start the month after the last one (+1)
         } else {
             sumPaymentSchedule = BigDecimal.ZERO
-            beginDistribute = ForecastUtils.getStartLeistungszeitraumNextMonthEnd(order, pos)
+            beginDistribute = ForecastUtils.getStartLeistungszeitraum(order, pos)
         }
         // compute diff, return if diff is empty
         val diff = accurenceValue.subtract(sumPaymentSchedule)
@@ -286,20 +310,20 @@ open class ForecastExport { // open needed by Wicket.
         // handle diff
         if (pos.paymentType != null) {
             when (pos.paymentType) {
-                AuftragsPositionsPaymentType.TIME_AND_MATERIALS -> fillMonthColumnsDistributed(diff, ctx, row, order, pos, startDate, beginDistribute)
+                AuftragsPositionsPaymentType.TIME_AND_MATERIALS -> fillMonthColumnsDistributed(diff, ctx, row, order, pos, beginDistribute)
                 AuftragsPositionsPaymentType.PAUSCHALE -> if (order.probabilityOfOccurrence != null) {
-                    fillMonthColumnsDistributed(diff, ctx, row, order, pos, startDate, beginDistribute)
+                    fillMonthColumnsDistributed(diff, ctx, row, order, pos,  beginDistribute)
                 }
                 AuftragsPositionsPaymentType.FESTPREISPAKET ->  // fill reset at end of project time
-                    addEndAtPeriodOfPerformance(diff, ctx, row, order, pos, startDate)
+                    addEndAtPeriodOfPerformance(diff, ctx, row, order, pos)
             }
         }
     }
 
     private fun fillByPaymentSchedule(paymentSchedules: List<PaymentScheduleDO>, ctx: Context, row: Int,
-                                      order: AuftragDO, pos: AuftragsPositionDO, startDate: PFDate) { // payment values
+                                      order: AuftragDO, pos: AuftragsPositionDO) { // payment values
         val probability = ForecastUtils.getProbabilityOfAccurence(order, pos)
-        var currentMonth = startDate.plusMonths(-1).beginOfMonth
+        var currentMonth = ctx.baseDate.plusMonths(-1).beginOfMonth
         MonthCol.values().forEach {
             currentMonth = currentMonth.plusMonths(1)
             if (checkAfterMonthBefore(currentMonth)) {
@@ -332,9 +356,9 @@ open class ForecastExport { // open needed by Wicket.
     }
 
     private fun addEndAtPeriodOfPerformance(sum: BigDecimal, ctx: Context, row: Int,
-                                            order: AuftragDO, pos: AuftragsPositionDO, startDate: PFDate) {
-        val posEndDate = ForecastUtils.getEndLeistungszeitraumNextMonthEnd(order, pos)
-        val index = getMonthIndex(posEndDate, startDate)
+                                            order: AuftragDO, pos: AuftragsPositionDO) {
+        val posEndDate = ForecastUtils.getEndLeistungszeitraum(order, pos)
+        val index = getMonthIndex(ctx, posEndDate)
         if (index < 0 || index > 11) {
             return
         }
@@ -358,10 +382,10 @@ open class ForecastExport { // open needed by Wicket.
         }
     }
 
-    private fun getMonthIndex(date: PFDate, startDate: PFDate): Int {
+    private fun getMonthIndex(ctx: Context, date: PFDate): Int {
         val monthDate = date.year * 12 + date.monthValue
-        val monthStartDate = startDate.year * 12 + startDate.monthValue
-        return monthDate - monthStartDate + 1 // index from 0 to 11, +1 because table starts one month before
+        val monthBaseDate = ctx.baseDate.year * 12 + ctx.baseDate.monthValue
+        return monthDate - monthBaseDate // index from 0 to 11
     }
 
     /**
@@ -376,16 +400,16 @@ open class ForecastExport { // open needed by Wicket.
     }
 
     private fun fillMonthColumnsDistributed(value: BigDecimal, ctx: Context, row: Int, order: AuftragDO, pos: AuftragsPositionDO,
-                                            startDate: PFDate, beginDistribute: PFDate) {
-        val indexBegin = getMonthIndex(beginDistribute, startDate)
-        val indexEnd = getMonthIndex(ForecastUtils.getEndLeistungszeitraumNextMonthEnd(order, pos), startDate)
+                                            beginDistribute: PFDate) {
+        val indexBegin = getMonthIndex(ctx, beginDistribute)
+        val indexEnd = getMonthIndex(ctx, ForecastUtils.getEndLeistungszeitraum(order, pos))
         if (indexEnd < indexBegin) { //should not happen
             return
         }
         val partlyNettoSum = value.divide(BigDecimal.valueOf(indexEnd - indexBegin + 1.toLong()), RoundingMode.HALF_UP)
         MonthCol.values().forEach {
-            val month = it.ordinal + 1
-            if (month >= indexBegin && month <= indexEnd) {
+            val month = it.ordinal
+            if (month in indexBegin..indexEnd) {
                 ctx.forecastSheet.setBigDecimalValue(row, ctx.forecastSheet.getColumnDef(it.header), partlyNettoSum).cellStyle = ctx.currencyCellStyle
             }
         }
