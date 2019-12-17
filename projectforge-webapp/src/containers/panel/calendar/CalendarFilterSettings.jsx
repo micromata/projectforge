@@ -7,7 +7,7 @@ import UserSelect from '../../../components/base/page/layout/UserSelect';
 import CheckBox from '../../../components/design/input/CheckBox';
 import style from '../../../components/design/input/Input.module.scss';
 import ReactSelect from '../../../components/design/ReactSelect';
-import { fetchJsonGet } from '../../../utilities/rest';
+import { fetchJsonGet, fetchJsonPost } from '../../../utilities/rest';
 import { CalendarContext } from '../../page/calendar/CalendarContext';
 
 /**
@@ -17,6 +17,22 @@ class CalendarFilterSettings extends Component {
     static extractDefaultCalendarValue(props) {
         const { listOfDefaultCalendars, defaultCalendarId } = props;
         return listOfDefaultCalendars.find(it => it.id === defaultCalendarId);
+    }
+
+    static loadVacationGroupsOptions(search, callback) {
+        fetchJsonGet(
+            'group/aco',
+            { search },
+            callback,
+        );
+    }
+
+    static loadVacationUsersOptions(search, callback) {
+        fetchJsonGet(
+            'vacation/users',
+            { search },
+            callback,
+        );
     }
 
     constructor(props) {
@@ -59,13 +75,29 @@ class CalendarFilterSettings extends Component {
     }
 
     handleVacationGroupsChange(groups) {
-        console.log(groups);
-        // fetchJsonGet('calendar/changeVacationGroups',
+        fetchJsonPost(
+            'calendar/changeVacationGroups',
+            (groups || []).map(({ id }) => id),
+            (json) => {
+                const { saveUpdateResponseInState } = this.context;
+                const { onVacationGroupsChange } = this.props;
+                onVacationGroupsChange(groups);
+                saveUpdateResponseInState(json);
+            },
+        );
     }
 
     handleVacationUsersChange(users) {
-        console.log(users);
-        // fetchJsonGet('calendar/changeVacationUsers',
+        fetchJsonPost(
+            'calendar/changeVacationUsers',
+            (users || []).map(({ id }) => id),
+            (json) => {
+                const { saveUpdateResponseInState } = this.context;
+                const { onVacationUsersChange } = this.props;
+                onVacationUsersChange(users);
+                saveUpdateResponseInState(json);
+            },
+        );
     }
 
     handleGridSizeChange(gridSize) {
@@ -106,6 +138,8 @@ class CalendarFilterSettings extends Component {
             timesheetUser,
             gridSize,
             translations,
+            vacationGroups,
+            vacationUsers,
         } = this.props;
         const gridSizes = [{
             value: 5,
@@ -188,31 +222,36 @@ class CalendarFilterSettings extends Component {
                                 </Col>
                             </Row>
                             <Row>
-                                // Fin: Autocompletion url: group/aco?search=xxx
                                 <Col>
                                     <ReactSelect
-                                        values={listOfDefaultCalendars}
-                                        value={defaultCalendar}
+                                        loadOptions={
+                                            CalendarFilterSettings.loadVacationGroupsOptions
+                                        }
+                                        getOptionLabel={({ name }) => name}
+                                        value={vacationGroups}
                                         label={translations['calendar.filter.vacation.groups']}
                                         tooltip={translations['calendar.filter.vacation.groups.tooltip']}
                                         translations={translations}
                                         valueProperty="id"
-                                        labelProperty="title"
+                                        multi
                                         onChange={this.handleVacationGroupsChange}
                                     />
                                 </Col>
                             </Row>
                             <Row>
                                 <Col>
-                                    // Fin: Autocompletion url: vacation/users?search=xxx
                                     <ReactSelect
-                                        values={listOfDefaultCalendars}
-                                        value={defaultCalendar}
+                                        loadOptions={
+                                            CalendarFilterSettings.loadVacationUsersOptions
+                                        }
+                                        getOptionLabel={({ fullname, username }) => `${fullname} (${username})`}
+                                        value={vacationUsers}
                                         label={translations['calendar.filter.vacation.users']}
                                         tooltip={translations['calendar.filter.vacation.user.tooltip']}
                                         translations={translations}
                                         valueProperty="id"
                                         labelProperty="title"
+                                        multi
                                         onChange={this.handleVacationUsersChange}
                                     />
                                 </Col>
@@ -242,6 +281,8 @@ CalendarFilterSettings.propTypes = {
     onTimesheetUserChange: PropTypes.func.isRequired,
     onDefaultCalendarChange: PropTypes.func.isRequired,
     onGridSizeChange: PropTypes.func.isRequired,
+    onVacationGroupsChange: PropTypes.func.isRequired,
+    onVacationUsersChange: PropTypes.func.isRequired,
     /* eslint-disable-next-line react/no-unused-prop-types */
     defaultCalendarId: PropTypes.number,
     timesheetUser: PropTypes.shape(),
@@ -249,12 +290,22 @@ CalendarFilterSettings.propTypes = {
     otherTimesheetUsersEnabled: PropTypes.bool.isRequired,
     listOfDefaultCalendars: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
     translations: PropTypes.shape({}).isRequired,
+    vacationGroups: PropTypes.arrayOf(PropTypes.shape({
+        title: PropTypes.string,
+        id: PropTypes.number,
+    })),
+    vacationUsers: PropTypes.arrayOf(PropTypes.shape({
+        title: PropTypes.string,
+        id: PropTypes.number,
+    })),
 };
 
 CalendarFilterSettings.defaultProps = {
     defaultCalendarId: undefined,
     timesheetUser: undefined,
     gridSize: 30,
+    vacationGroups: [],
+    vacationUsers: [],
 };
 
 export default (CalendarFilterSettings);

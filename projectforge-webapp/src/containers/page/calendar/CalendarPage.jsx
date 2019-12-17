@@ -31,6 +31,8 @@ class CalendarPage extends React.Component {
             filterFavorites: undefined,
             isFilterModified: false,
             translations: undefined,
+            vacationGroups: [],
+            vacationUsers: [],
         };
 
         this.fetchInitial = this.fetchInitial.bind(this);
@@ -45,6 +47,8 @@ class CalendarPage extends React.Component {
         this.onFavoriteUpdate = this.onFavoriteUpdate.bind(this);
         this.saveUpdateResponseInState = this.saveUpdateResponseInState.bind(this);
         this.onTimesheetUserChange = this.onTimesheetUserChange.bind(this);
+        this.onVacationGroupsChange = this.onVacationGroupsChange.bind(this);
+        this.onVacationUsersChange = this.onVacationUsersChange.bind(this);
     }
 
     componentDidMount() {
@@ -61,6 +65,14 @@ class CalendarPage extends React.Component {
 
     onTimesheetUserChange(timesheetUser) {
         this.setState({ timesheetUser });
+    }
+
+    onVacationGroupsChange(vacationGroups) {
+        this.setState({ vacationGroups });
+    }
+
+    onVacationUsersChange(vacationUsers) {
+        this.setState({ vacationUsers });
     }
 
     onDefaultCalendarChange(defaultCalendarId) {
@@ -161,6 +173,8 @@ class CalendarPage extends React.Component {
             teamCalendars,
             translations,
             view,
+            vacationGroups,
+            vacationUsers,
         } = this.state;
 
         if (!translations) {
@@ -238,6 +252,10 @@ class CalendarPage extends React.Component {
                                             onTimesheetUserChange={this.onTimesheetUserChange}
                                             onDefaultCalendarChange={this.onDefaultCalendarChange}
                                             onGridSizeChange={this.onGridSizeChange}
+                                            onVacationGroupsChange={this.onVacationGroupsChange}
+                                            onVacationUsersChange={this.onVacationUsersChange}
+                                            vacationGroups={vacationGroups}
+                                            vacationUsers={vacationUsers}
                                         />
                                     </Col>
                                 </Row>
@@ -254,6 +272,8 @@ class CalendarPage extends React.Component {
                         translations={translations}
                         match={match}
                         location={location}
+                        vacationGroups={vacationGroups}
+                        vacationUsers={vacationUsers}
                     />
                 </CalendarContext.Provider>
             </LoadingContainer>
