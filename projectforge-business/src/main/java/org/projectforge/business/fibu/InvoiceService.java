@@ -105,12 +105,12 @@ public class InvoiceService {
       variables.put("Anlage", getReplacementForAttachment(data));
       variables.put("isSkonto", isSkonto);
       if (isSkonto) {
-        variables.put("Skonto", formatBigDecimal(data.getDiscountPercent()) + " %");
+        variables.put("Skonto", formatBigDecimal(data.getDiscountPercent().stripTrailingZeros()) + "%");
         variables.put("Faelligkeit_Skonto", DateTimeFormatter.instance().getFormattedDate(data.getDiscountMaturity()));
       }
-      variables.put("Zwischensumme", formatBigDecimal(data.getNetSum()));
-      variables.put("MwSt", formatBigDecimal(data.getVatAmountSum()));
-      variables.put("Gesamtbetrag", formatBigDecimal(data.getGrossSum()));
+      variables.put("Zwischensumme", formatCurrencyAmount(data.getNetSum()));
+      variables.put("MwSt", formatCurrencyAmount(data.getVatAmountSum()));
+      variables.put("Gesamtbetrag", formatCurrencyAmount(data.getGrossSum()));
 
       WordDocument document = new WordDocument(invoiceTemplate.getInputStream(), invoiceTemplate.getFile().getName());
 
@@ -132,12 +132,25 @@ public class InvoiceService {
     }
   }
 
+  private String formatCurrencyAmount(final BigDecimal value) {
+    return formatBigDecimal(value.setScale(2, RoundingMode.HALF_UP));
+  }
+
   private String formatBigDecimal(final BigDecimal value) {
     if (value == null) {
       return "";
     }
-    DecimalFormat df = new DecimalFormat("#,###.00");
-    return df.format(value.setScale(2, RoundingMode.HALF_DOWN));
+    DecimalFormat df;
+    if (value.scale() == 0) {
+      df = new DecimalFormat("#,###");
+    } else if (value.scale() == 1) {
+      df = new DecimalFormat("#,###.0");
+    } else if (value.scale() == 2) {
+      df = new DecimalFormat("#,###.00");
+    } else {
+      df = new DecimalFormat("#,###.#");
+    }
+    return df.format(value);
   }
 
   private String getPeriodOfPerformance(final RechnungsPositionDO position, final RechnungDO invoice) {
@@ -180,9 +193,9 @@ public class InvoiceService {
       variables.put("Posnummer", String.valueOf(position.getNumber()));
       variables.put("Text", position.getText());
       variables.put("Leistungszeitraum", getPeriodOfPerformance(position, invoice));
-      variables.put("Menge", formatBigDecimal(position.getMenge()));
-      variables.put("Einzelpreis", formatBigDecimal(position.getEinzelNetto()));
-      variables.put("Betrag", formatBigDecimal(position.getNetSum()));
+      variables.put("Menge", formatCurrencyAmount(position.getMenge()));
+      variables.put("Einzelpreis", formatCurrencyAmount(position.getEinzelNetto()));
+      variables.put("Betrag", formatCurrencyAmount(position.getNetSum()));
       for (XWPFTableCell cell : newRow.getTableCells()) {
         for (XWPFParagraph cellParagraph : cell.getParagraphs()) {
           new RunsProcessor(cellParagraph).replace(variables);
