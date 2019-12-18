@@ -272,7 +272,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     return getList(queryFilter);
   }
 
-  protected QueryFilter createQueryFilter(final BaseSearchFilter filter) {
+  public QueryFilter createQueryFilter(final BaseSearchFilter filter) {
     return new QueryFilter(filter, false);
   }
 

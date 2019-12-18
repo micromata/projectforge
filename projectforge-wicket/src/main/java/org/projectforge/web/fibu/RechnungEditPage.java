@@ -23,25 +23,14 @@
 
 package org.projectforge.web.fibu;
 
-import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.protocol.http.request.WebClientInfo;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.fibu.InvoiceService;
-import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.fibu.ProjektDao;
-import org.projectforge.business.fibu.RechnungDO;
-import org.projectforge.business.fibu.RechnungDao;
-import org.projectforge.business.fibu.RechnungStatus;
-import org.projectforge.business.fibu.RechnungTyp;
-import org.projectforge.business.fibu.RechnungsPositionDO;
+import org.projectforge.business.fibu.*;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.web.session.UserAgentBrowser;
 import org.projectforge.web.wicket.AbstractEditPage;
@@ -50,6 +39,10 @@ import org.projectforge.web.wicket.DownloadUtils;
 import org.projectforge.web.wicket.EditPage;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.slf4j.Logger;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 
 @EditPage(defaultReturnPage = RechnungListPage.class)
 public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditForm, RechnungDao> implements ISelectCallerPage
