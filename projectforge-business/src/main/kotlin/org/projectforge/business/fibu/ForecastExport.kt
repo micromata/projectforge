@@ -173,9 +173,9 @@ open class ForecastExport { // open needed by Wicket.
             }
         }
         fillInvoices(ctx)
-        replaceMonthDatesInHeaderRow(ctx, forecastSheet, baseDate)
-        replaceMonthDatesInHeaderRow(ctx, invoicesSheet, baseDate)
-        replaceMonthDatesInHeaderRow(ctx, invoicesPriorYearSheet, prioYearBaseDate)
+        replaceMonthDatesInHeaderRow(forecastSheet, baseDate)
+        replaceMonthDatesInHeaderRow(invoicesSheet, baseDate)
+        replaceMonthDatesInHeaderRow(invoicesPriorYearSheet, prioYearBaseDate)
         forecastSheet.setAutoFilter()
         invoicesSheet.setAutoFilter()
         invoicesPriorYearSheet.setAutoFilter()
@@ -242,7 +242,7 @@ open class ForecastExport { // open needed by Wicket.
         }
     }
 
-    private fun replaceMonthDatesInHeaderRow(ctx: Context, sheet: ExcelSheet, baseDate: PFDate) { // Adding month columns
+    private fun replaceMonthDatesInHeaderRow(sheet: ExcelSheet, baseDate: PFDate) { // Adding month columns
         val formatter = DateTimeFormatter.ofPattern("MMM yyyy")
         var currentMonth = baseDate
         MonthCol.values().forEach {
