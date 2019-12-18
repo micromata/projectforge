@@ -222,6 +222,7 @@ open class ForecastExport { // open needed by Wicket.
                 sheet.setDateValue(rowNumber, InvoicesCol.DATE.header, invoice.datum, ctx.excelDateFormat)
                 sheet.setStringValue(rowNumber, InvoicesCol.CUSTOMER.header, invoice.kundeAsString)
                 sheet.setStringValue(rowNumber, InvoicesCol.PROJECT.header, invoice.projekt?.name)
+                sheet.setStringValue(rowNumber, InvoicesCol.SUBJECT.header, invoice.betreff)
                 sheet.setStringValue(rowNumber, InvoicesCol.POS_TEXT.header, pos.text)
                 sheet.setDateValue(rowNumber, InvoicesCol.DATE_OF_PAYMENT.header, invoice.bezahlDatum, ctx.excelDateFormat)
                 val leistungsZeitraumColDef = sheet.getColumnDef(InvoicesCol.LEISTUNGSZEITRAUM.header)
