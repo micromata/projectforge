@@ -100,7 +100,6 @@ open class ForecastExport { // open needed by Wicket.
         val currencyFormat = NumberHelper.getCurrencyFormat(ThreadLocalUserContext.getLocale())!!
         val currencyCellStyle = workbook.createOrGetCellStyle("DataFormat.currency")!!
         val percentageCellStyle = workbook.createOrGetCellStyle("DataFormat.percentage")!!
-        val monthMap = mutableMapOf<MonthCol, BigDecimal>()
         val writerContext = ExcelWriterContext(I18n(Const.RESOURCE_BUNDLE_NAME, ThreadLocalUserContext.getLocale()), workbook)
         val orderMap = mutableMapOf<Int, AuftragDO>()
         val orderPositionMap = mutableMapOf<Int, AuftragsPositionDO>()
@@ -109,7 +108,6 @@ open class ForecastExport { // open needed by Wicket.
 
         init {
             currencyCellStyle.dataFormat = workbook.getDataFormat(XlsContentProvider.FORMAT_CURRENCY)
-
             percentageCellStyle.dataFormat = workbook.getDataFormat("0%")
         }
     }
@@ -205,7 +203,7 @@ open class ForecastExport { // open needed by Wicket.
     }
 
     private fun fillInvoices(ctx: Context) {
-        var firstMonthCol = ctx.invoicesSheet.getColumnDef(MonthCol.MONTH1.header).columnNumber
+        val firstMonthCol = ctx.invoicesSheet.getColumnDef(MonthCol.MONTH1.header).columnNumber
         for (invoice in ctx.invoices) {
             for (pos in invoice.positionen ?: continue) {
                 val orderPos = pos.auftragsPosition ?: continue
@@ -218,7 +216,7 @@ open class ForecastExport { // open needed by Wicket.
                     continue
                 }
                 var monthIndex = getMonthIndex(ctx, PFDate.from(invoice.datum)!!)
-                if (!(monthIndex in -12..11)) {
+                if (monthIndex !in -12..11) {
                     continue
                 }
                 val sheet = if (monthIndex < 0) ctx.invoicesPriorYearSheet else ctx.invoicesSheet
@@ -255,7 +253,6 @@ open class ForecastExport { // open needed by Wicket.
     }
 
     private fun addOrderPosition(ctx: Context, row: Int, order: AuftragDO, pos: AuftragsPositionDO) {
-        ctx.monthMap.clear()
         val sheet = ctx.forecastSheet
         sheet.setIntValue(row, ForecastCol.ORDER_NR.header, order.nummer)
         sheet.setStringValue(row, ForecastCol.POS_NR.header, "#${pos.number}")
@@ -356,8 +353,13 @@ open class ForecastExport { // open needed by Wicket.
                     }
                     fillMonthColumnsDistributed(diff, ctx, row, order, pos, beginDistribute, toBeInvoicedSum)
                 }
-                AuftragsPositionsPaymentType.FESTPREISPAKET ->  // fill reset at end of project time
-                    addEndAtPeriodOfPerformance(diff, ctx, row, order, pos)
+                AuftragsPositionsPaymentType.FESTPREISPAKET -> { // fill reset at end of project time
+                    val indexEnd = getMonthIndex(ctx, ForecastUtils.getEndLeistungszeitraum(order, pos))
+                    if (indexEnd in 0..11) {
+                        val firstMonthCol = ctx.forecastSheet.getColumnDef(MonthCol.MONTH1.header).columnNumber
+                        ctx.forecastSheet.setBigDecimalValue(row, firstMonthCol + indexEnd, diff).cellStyle = ctx.currencyCellStyle
+                    }
+                }
             }
         }
     }
@@ -399,34 +401,6 @@ open class ForecastExport { // open needed by Wicket.
             ctx.writerContext.cellHighlighter.setCellComment(excelCell, comment)
     }
 
-    private fun addEndAtPeriodOfPerformance(sum: BigDecimal, ctx: Context, row: Int,
-                                            order: AuftragDO, pos: AuftragsPositionDO) {
-        val posEndDate = ForecastUtils.getEndLeistungszeitraum(order, pos)
-        val index = getMonthIndex(ctx, posEndDate)
-        if (!(index in 0..11)) {
-            return
-        }
-        val month = MonthCol.values()[index]
-        // handle payment difference
-        val previousValue = ctx.monthMap[month]
-        val value = if (previousValue == null && checkAfterMonthBefore(posEndDate)) {
-            sum
-        } else if (checkAfterMonthBefore(posEndDate)) {
-            sum.add(previousValue)
-        } else {
-            BigDecimal.ZERO
-        }
-        ctx.monthMap[month] = value
-        val monthColDef = ctx.forecastSheet.getColumnDef(month.header)
-        val cell = ctx.forecastSheet.setBigDecimalValue(row, monthColDef, sum)
-        cell.cellStyle = ctx.currencyCellStyle
-        if (sum < BigDecimal.ZERO) {
-            if (sum < BigDecimal.ZERO) {
-                highlightErrorCell(ctx, row, monthColDef.columnNumber)
-            }
-        }
-    }
-
     private fun getMonthIndex(ctx: Context, date: PFDate): Int {
         val monthDate = date.year * 12 + date.monthValue
         val monthBaseDate = ctx.baseDate.year * 12 + ctx.baseDate.monthValue
@@ -463,6 +437,7 @@ open class ForecastExport { // open needed by Wicket.
                 }
             }
         }
+        // Calculate the difference between to be invoiced sum and forecasted sums:
         var futureInvoicesAmount = toBeInvoicedSum.negate()
         for (m in indexBegin..indexEnd) {
             if (m >= currentMonth) {
