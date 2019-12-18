@@ -159,6 +159,14 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime,
         return PFDateTime(dateTime.withDayOfMonth(dayOfMonth), locale)
     }
 
+    /**
+     * 1 - first day of week (locale dependent, e. g. Monday or Sunday).
+     * 7 - last day of week.
+     */
+    fun withDayOfWeek(dayOfWeek: Int): PFDateTime {
+        return if (dayOfWeek == 1) this else beginOfWeek.plusDays((dayOfWeek - 1).toLong())
+    }
+
     fun withHour(hour: Int): PFDateTime {
         return PFDateTime(dateTime.withHour(hour), locale)
     }
