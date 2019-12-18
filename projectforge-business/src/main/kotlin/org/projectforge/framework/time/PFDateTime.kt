@@ -164,7 +164,11 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime,
      * 7 - last day of week.
      */
     fun withDayOfWeek(dayOfWeek: Int): PFDateTime {
-        return if (dayOfWeek == 1) this else beginOfWeek.plusDays((dayOfWeek - 1).toLong())
+        if (dayOfWeek in 1..7) {
+            return if (dayOfWeek == 1) beginOfWeek else beginOfWeek.plusDays((dayOfWeek - 1).toLong())
+        } else {
+            throw IllegalArgumentException("withDayOfWeek accepts only day of weeks from 1 (first day of week) to 7 (last day of week).")
+        }
     }
 
     fun withHour(hour: Int): PFDateTime {
