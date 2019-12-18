@@ -37,7 +37,7 @@ import java.time.temporal.TemporalUnit
  * Immutable holder of [LocalDate] for transforming to [java.sql.Date] (once) if used several times.
  * If you don't need to use [java.sql.Date] you may use [LocalDate] directly.
  */
-class PFDate(val date: LocalDate) {
+class PFDate(val date: LocalDate): Comparable<PFDate> {
 
     private constructor(instant: Instant) : this(LocalDate.from(instant))
 
@@ -120,8 +120,12 @@ class PFDate(val date: LocalDate) {
         return date.format(formatter)
     }
 
+    override fun compareTo(other: PFDate): Int {
+        return date.compareTo(other.date)
+    }
+
     /**
-     * Date part as ISO string: "yyyy-MM-dd HH:mm" in UTC.
+     * Date part as ISO string: "yyyy-MM-dd" in UTC.
      */
     val isoString: String
         get() = isoDateFormatter.format(date)
