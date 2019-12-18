@@ -95,6 +95,9 @@ class CalendarServicesRest {
         if (filter.start == null) {
             return ResponseEntity("At least start date required for getting events.", HttpStatus.BAD_REQUEST)
         }
+        val currentFilter = calendarFilterServicesRest.getCurrentFilter()
+        filter.vacationGroupIds = currentFilter.vacationGroupIds?.toMutableSet()
+        filter.vacationUserIds = currentFilter.vacationUserIds?.toMutableSet()
         return ResponseEntity(buildEvents(filter), HttpStatus.OK)
     }
 
