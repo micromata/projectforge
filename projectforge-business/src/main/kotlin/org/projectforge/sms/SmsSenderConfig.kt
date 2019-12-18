@@ -27,7 +27,7 @@ import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 
-
+// Please note: open class and open vars needed by Wicket's @SpringBean annotation.
 @Configuration
 open class SmsSenderConfig {
     enum class HttpMethodType {
@@ -35,37 +35,37 @@ open class SmsSenderConfig {
     }
 
     @Value("\${projectforge.sms.httpMethod}")
-    var httpMethodType: HttpMethodType? = null
+    open var httpMethodType: HttpMethodType? = null
 
     @Value("\${projectforge.sms.url}")
-    var url: String? = null
+    open var url: String? = null
 
     @Value("#{\${projectforge.sms.httpParameters}}")
-    var httpParams: Map<String, String>? = null
+    open var httpParams: Map<String, String>? = null
 
     @Value("\${projectforge.sms.returnCodePattern.success}")
-    var smsReturnPatternSuccess: String? = null
+    open var smsReturnPatternSuccess: String? = null
 
     @Value("\${projectforge.sms.returnCodePattern.numberError}")
-    var smsReturnPatternNumberError: String? = null
+    open var smsReturnPatternNumberError: String? = null
 
     @Value("\${projectforge.sms.returnCodePattern.messageToLargeError}")
-    var smsReturnPatternMessageToLargeError: String? = null
+    open var smsReturnPatternMessageToLargeError: String? = null
 
     @Value("\${projectforge.sms.returnCodePattern.messageError}")
-    var smsReturnPatternMessageError: String? = null
+    open var smsReturnPatternMessageError: String? = null
 
     @Value("\${projectforge.sms.returnCodePattern.error}")
-    var smsReturnPatternError: String? = null
+    open var smsReturnPatternError: String? = null
 
     @Value("\${projectforge.sms.smsMaxMessageLength}")
-    var smsMaxMessageLength = 160
+    open var smsMaxMessageLength = 160
 
-    fun isSmsConfigured(): Boolean {
+    open fun isSmsConfigured(): Boolean {
         return StringUtils.isNotBlank(url)
     }
 
-    fun setHttpMethodType(httpMethodType: String): SmsSenderConfig {
+    open fun setHttpMethodType(httpMethodType: String): SmsSenderConfig {
         this.httpMethodType = if (StringUtils.equalsIgnoreCase("get", httpMethodType)) HttpMethodType.GET else HttpMethodType.POST
         return this
     }
