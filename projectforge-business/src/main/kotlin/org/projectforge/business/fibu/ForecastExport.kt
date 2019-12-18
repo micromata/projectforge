@@ -27,12 +27,12 @@ import de.micromata.merlin.I18n
 import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.excel.ExcelWorkbook
 import de.micromata.merlin.excel.ExcelWriterContext
-import org.apache.commons.collections4.CollectionUtils
 import org.projectforge.Const
 import org.projectforge.business.excel.ExcelDateFormats
 import org.projectforge.business.excel.XlsContentProvider
 import org.projectforge.business.multitenancy.TenantRegistryMap
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDate
 import org.slf4j.LoggerFactory
@@ -43,7 +43,6 @@ import java.io.IOException
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.format.DateTimeFormatter
-import java.util.*
 
 /**
  * Forcast excel export.
@@ -90,14 +89,15 @@ open class ForecastExport { // open needed by Wicket.
         MONTH7("Month 7"), MONTH8("Month 8"), MONTH9("Month 9"), MONTH10("Month 10"), MONTH11("Month 11"), MONTH12("Month 12")
     }
 
-    private class Context(workbook: ExcelWorkbook, val forecastSheet: ExcelSheet, val invoicesSheet: ExcelSheet, val baseDate: PFDate) {
+    private class Context(workbook: ExcelWorkbook, val forecastSheet: ExcelSheet, val invoicesSheet: ExcelSheet, val invoicesPriorYearSheet: ExcelSheet,
+                          val baseDate: PFDate, val invoices: List<RechnungDO>) {
         val excelDateFormat = ThreadLocalUserContext.getUser()?.excelDateFormat ?: ExcelDateFormats.EXCEL_DEFAULT_DATE
         val currencyCellStyle = workbook.createOrGetCellStyle("DataFormat.currency")!!
         val percentageCellStyle = workbook.createOrGetCellStyle("DataFormat.percentage")!!
         val monthMap = mutableMapOf<MonthCol, BigDecimal>()
         val writerContext = ExcelWriterContext(I18n(Const.RESOURCE_BUNDLE_NAME, ThreadLocalUserContext.getLocale()), workbook)
-        val processedInvoicePositions = mutableSetOf<String>()
-        val invoiceMap = mutableMapOf<Int, RechnungDO>()
+        val orderMap = mutableMapOf<Int, AuftragDO>()
+        val orderPositionMap = mutableMapOf<Int, AuftragsPositionDO>()
 
         init {
             currencyCellStyle.dataFormat = workbook.getDataFormat(XlsContentProvider.FORMAT_CURRENCY)
@@ -108,11 +108,27 @@ open class ForecastExport { // open needed by Wicket.
     // Vergangene Auftragspositionen anzeigen, die nicht vollständig fakturiert bzw. abgelehnt sind.
 
     @Throws(IOException::class)
-    open fun export(auftragList: List<AuftragDO>, baseDateParam: Date?): ByteArray? {
-        if (CollectionUtils.isEmpty(auftragList)) {
+    open fun export(origFilter: AuftragFilter): ByteArray? {
+        val baseDateParam = origFilter.periodOfPerformanceStartDate
+        val baseDate = if (baseDateParam != null) PFDate.from(baseDateParam)!!.beginOfMonth else PFDate.now().beginOfYear
+        val prioYearBaseDate = baseDate.plusYears(-1).plusDays(-1) // One day back for getting all invoices.
+
+        val filter = AuftragFilter()
+        filter.searchString = origFilter.searchString
+        filter.auftragFakturiertFilterStatus = origFilter.auftragFakturiertFilterStatus
+        filter.auftragsPositionsPaymentType = origFilter.auftragsPositionsPaymentType
+        filter.periodOfPerformanceStartDate = baseDate.plusYears(-2).utilDate // Go 2 years back for getting all orders referred by invoices of prior year.
+        filter.user = origFilter.user
+        val orderList = orderBookDao.getList(filter)
+        if (orderList.isNullOrEmpty()) {
             return null
         }
-        val baseDate = (if (baseDateParam != null) PFDate.from(baseDateParam)!!.beginOfMonth else PFDate.now()).beginOfMonth
+        val invoiceFilter = RechnungFilter()
+        invoiceFilter.fromDate = prioYearBaseDate.utilDate
+        val queryFilter = AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction(invoiceFilter)
+        queryFilter.addOrder(desc("datum"))
+        queryFilter.addOrder(desc("nummer"))
+        val invoices = rechnungDao.internalGetList(queryFilter)
         log.info("Exporting forecast script for date ${baseDate.isoString}")
         val forecastTemplate = applicationContext.getResource("classpath:officeTemplates/ForecastTemplate.xlsx")
 
@@ -125,10 +141,18 @@ open class ForecastExport { // open needed by Wicket.
         InvoicesCol.values().forEach { invoicesSheet.registerColumn(it.header) }
         MonthCol.values().forEach { invoicesSheet.registerColumn(it.header) }
 
-        val context = Context(workbook, forecastSheet, invoicesSheet, baseDate)
+        val invoicesPriorYearSheet = workbook.getSheet("Rechnungen Vorjahr")
+        InvoicesCol.values().forEach { invoicesPriorYearSheet.registerColumn(it.header) }
+        MonthCol.values().forEach { invoicesPriorYearSheet.registerColumn(it.header) }
+
+        val ctx = Context(workbook, forecastSheet, invoicesSheet, invoicesPriorYearSheet, baseDate, invoices)
 
         var currentRow = 9
-        for (order in auftragList) {
+        for (order in orderList) {
+            ctx.orderMap[order.id] = order
+            for (pos in order.positionen ?: continue) {
+                ctx.orderPositionMap[pos.id] = pos // Register all order positions for invoice handling.
+            }
             if (order.isDeleted || order.positionenExcludingDeleted.isEmpty()) {
                 continue
             }
@@ -136,16 +160,18 @@ open class ForecastExport { // open needed by Wicket.
             if (ForecastUtils.auftragsStatusToShow.contains(order.auftragsStatus)) {
                 for (pos in order.positionenExcludingDeleted) {
                     if (pos.status != null && ForecastUtils.auftragsPositionsStatusToShow.contains(pos.status!!)) {
-                        addOrderPosition(context, currentRow++, order, pos)
+                        addOrderPosition(ctx, currentRow++, order, pos)
                     }
                 }
             }
         }
-        fillInvoices(context, auftragList)
-        replaceMonthDatesInHeaderRow(context, forecastSheet)
-        replaceMonthDatesInHeaderRow(context, invoicesSheet)
+        fillInvoices(ctx)
+        replaceMonthDatesInHeaderRow(ctx, forecastSheet, baseDate)
+        replaceMonthDatesInHeaderRow(ctx, invoicesSheet, baseDate)
+        replaceMonthDatesInHeaderRow(ctx, invoicesPriorYearSheet, prioYearBaseDate)
         forecastSheet.setAutoFilter()
         invoicesSheet.setAutoFilter()
+        invoicesPriorYearSheet.setAutoFilter()
 
         // Now: evaluate the formulars:
         for (row in 1..7) {
@@ -156,7 +182,7 @@ open class ForecastExport { // open needed by Wicket.
             }
         }
         val revenueSheet = workbook.getSheet("Umsatz kumuliert")
-        for (row in 0..5) {
+        for (row in 0..7) {
             val excelRow = revenueSheet.getRow(row)
             for (col in 1..12) {
                 val cell = excelRow.getCell(col)
@@ -169,52 +195,48 @@ open class ForecastExport { // open needed by Wicket.
         return result
     }
 
-    private fun fillInvoices(ctx: Context, orderList: List<AuftragDO>) {
-        val sheet = ctx.invoicesSheet
-        var firstMonthCol = sheet.getColumnDef(MonthCol.MONTH1.header).columnNumber
-        for (order in orderList) {
-            val orderPositions = order.positionen ?: continue
-            for (orderPos in orderPositions) {
-                val invoicePositions = rechnungCache.getRechnungsPositionVOSetByAuftragsPositionId(orderPos.id)
-                        ?: continue
-                for (invoicePosVO in invoicePositions) {
-                    val monthIndex = getMonthIndex(ctx, PFDate.from(invoicePosVO.date)!!)
-                    if (!(monthIndex in 0..11)) {
-                        continue
-                    }
-                    val key = "${invoicePosVO.rechnungNummer}.${invoicePosVO.auftragsPositionNummer}"
-                    if (ctx.processedInvoicePositions.contains(key)) {
-                        continue
-                    }
-                    ctx.processedInvoicePositions.add(key)
-                    var invoice = ctx.invoiceMap[invoicePosVO.rechnungNummer]
-                    if (invoice == null) {
-                        invoice = rechnungDao.internalGetById(invoicePosVO.rechnungId) ?: continue
-                        ctx.invoiceMap[invoice.nummer!!] = invoice
-                    }
-                    val invoicePos = invoice.getAbstractPosition(invoicePosVO.number.toInt()) ?: continue
-                    val rowNumber = sheet.createRow().rowNum
-                    sheet.setIntValue(rowNumber, InvoicesCol.INVOICE_NR.header, invoice.nummer)
-                    sheet.setStringValue(rowNumber, InvoicesCol.POS_NR.header, "#${invoicePos.number}")
-                    sheet.setDateValue(rowNumber, InvoicesCol.DATE.header, invoice.datum, ctx.excelDateFormat)
-                    sheet.setStringValue(rowNumber, InvoicesCol.CUSTOMER.header, invoice.kundeAsString)
-                    sheet.setStringValue(rowNumber, InvoicesCol.PROJECT.header, invoice.projekt?.name)
-                    sheet.setStringValue(rowNumber, InvoicesCol.POS_TEXT.header, invoicePos.text)
-                    sheet.setDateValue(rowNumber, InvoicesCol.DATE_OF_PAYMENT.header, invoice.bezahlDatum, ctx.excelDateFormat)
-                    val leistungsZeitraumColDef = sheet.getColumnDef(InvoicesCol.LEISTUNGSZEITRAUM.header)
-                    sheet.setDateValue(rowNumber, leistungsZeitraumColDef, invoice.periodOfPerformanceBegin, ctx.excelDateFormat)
-                    sheet.setDateValue(rowNumber, leistungsZeitraumColDef.columnNumber + 1, invoice.periodOfPerformanceEnd, ctx.excelDateFormat)
-                    sheet.setStringValue(rowNumber, InvoicesCol.ORDER.header, "${order.nummer}.${invoicePosVO.auftragsPositionNummer}")
-                    sheet.setBigDecimalValue(rowNumber, InvoicesCol.NETSUM.header, invoicePos.netSum).cellStyle = ctx.currencyCellStyle
-                    sheet.setBigDecimalValue(rowNumber, firstMonthCol + monthIndex, invoicePos.netSum).cellStyle = ctx.currencyCellStyle
+    private fun fillInvoices(ctx: Context) {
+        var firstMonthCol = ctx.invoicesSheet.getColumnDef(MonthCol.MONTH1.header).columnNumber
+        for (invoice in ctx.invoices) {
+            for (pos in invoice.positionen ?: continue) {
+                val orderPos = pos.auftragsPosition ?: continue
+                if (ctx.orderPositionMap[orderPos.id] == null) {
+                    continue // Ignore invoices referring an order position which isn't part of the order list filtered by the user.
                 }
+                val order = ctx.orderMap[orderPos.auftragId]
+                if (order == null) {
+                    log.error("Shouldn't occur: order position is registered but referred order itself not.")
+                    continue
+                }
+                var monthIndex = getMonthIndex(ctx, PFDate.from(invoice.datum)!!)
+                if (!(monthIndex in -12..11)) {
+                    continue
+                }
+                val sheet = if (monthIndex < 0) ctx.invoicesPriorYearSheet else ctx.invoicesSheet
+                if (monthIndex < 0) {
+                    monthIndex += 12
+                }
+                val rowNumber = sheet.createRow().rowNum
+                sheet.setIntValue(rowNumber, InvoicesCol.INVOICE_NR.header, invoice.nummer)
+                sheet.setStringValue(rowNumber, InvoicesCol.POS_NR.header, "#${pos.number}")
+                sheet.setDateValue(rowNumber, InvoicesCol.DATE.header, invoice.datum, ctx.excelDateFormat)
+                sheet.setStringValue(rowNumber, InvoicesCol.CUSTOMER.header, invoice.kundeAsString)
+                sheet.setStringValue(rowNumber, InvoicesCol.PROJECT.header, invoice.projekt?.name)
+                sheet.setStringValue(rowNumber, InvoicesCol.POS_TEXT.header, pos.text)
+                sheet.setDateValue(rowNumber, InvoicesCol.DATE_OF_PAYMENT.header, invoice.bezahlDatum, ctx.excelDateFormat)
+                val leistungsZeitraumColDef = sheet.getColumnDef(InvoicesCol.LEISTUNGSZEITRAUM.header)
+                sheet.setDateValue(rowNumber, leistungsZeitraumColDef, invoice.periodOfPerformanceBegin, ctx.excelDateFormat)
+                sheet.setDateValue(rowNumber, leistungsZeitraumColDef.columnNumber + 1, invoice.periodOfPerformanceEnd, ctx.excelDateFormat)
+                sheet.setStringValue(rowNumber, InvoicesCol.ORDER.header, "${order.nummer}.${orderPos.number}")
+                sheet.setBigDecimalValue(rowNumber, InvoicesCol.NETSUM.header, pos.netSum).cellStyle = ctx.currencyCellStyle
+                sheet.setBigDecimalValue(rowNumber, firstMonthCol + monthIndex, pos.netSum).cellStyle = ctx.currencyCellStyle
             }
         }
     }
 
-    private fun replaceMonthDatesInHeaderRow(ctx: Context, sheet: ExcelSheet) { // Adding month columns
+    private fun replaceMonthDatesInHeaderRow(ctx: Context, sheet: ExcelSheet, baseDate: PFDate) { // Adding month columns
         val formatter = DateTimeFormatter.ofPattern("MMM yyyy")
-        var currentMonth = ctx.baseDate
+        var currentMonth = baseDate
         MonthCol.values().forEach {
             val cell = sheet.headRow.getCell(sheet.getColumnDef(it.header))
             cell.setCellValue(currentMonth.format(formatter))
@@ -312,7 +334,7 @@ open class ForecastExport { // open needed by Wicket.
             when (pos.paymentType) {
                 AuftragsPositionsPaymentType.TIME_AND_MATERIALS -> fillMonthColumnsDistributed(diff, ctx, row, order, pos, beginDistribute)
                 AuftragsPositionsPaymentType.PAUSCHALE -> if (order.probabilityOfOccurrence != null) {
-                    fillMonthColumnsDistributed(diff, ctx, row, order, pos,  beginDistribute)
+                    fillMonthColumnsDistributed(diff, ctx, row, order, pos, beginDistribute)
                 }
                 AuftragsPositionsPaymentType.FESTPREISPAKET ->  // fill reset at end of project time
                     addEndAtPeriodOfPerformance(diff, ctx, row, order, pos)
