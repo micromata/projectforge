@@ -445,7 +445,7 @@ class CalendarFilterServicesRest {
         }
         //currentFilter.showVacations = restFilter.showVacations
         currentFilter.vacationGroupIds = restFilter.vacationGroupIds
-        currentFilter.vacationUserIds = restFilter.vacationGroupIds
+        currentFilter.vacationUserIds = restFilter.vacationUserIds
     }
 }
 
