@@ -45,7 +45,7 @@ class VacationServicesRest {
 
     @GetMapping("users")
     fun getVacationUserObjects(@RequestParam("search") searchString: String?): List<User> {
-        val autoCompleteSearchFields = arrayOf("employee.username", "employee.firstname", "employee.lastname", "employee.email")
+        val autoCompleteSearchFields = arrayOf("user.username", "user.firstname", "user.lastname", "user.email")
         val filter = BaseSearchFilter()
         filter.searchString = searchString
         filter.setSearchFields(*autoCompleteSearchFields)
