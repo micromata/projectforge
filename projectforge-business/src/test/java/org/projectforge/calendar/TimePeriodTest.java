@@ -23,7 +23,6 @@
 
 package org.projectforge.calendar;
 
-import org.jfree.data.time.Month;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.time.DatePrecision;
@@ -31,6 +30,7 @@ import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.TimePeriod;
 import org.projectforge.test.TestSetup;
 
+import java.time.Month;
 import java.util.Date;
 import java.util.Locale;
 
@@ -50,8 +50,7 @@ public class TimePeriodTest
   @Test
   public void testTimePeriod()
   {
-    final PFDateTime dateTime1 = PFDateTime.from(new Date(), true, null, Locale.GERMAN).withPrecision(DatePrecision.MINUTE)
-        .withYear(1970).withMonth(Month.NOVEMBER).withDayOfMonth(21).withHour(0).withMinute(0).withSecond(0);
+    final PFDateTime dateTime1 = PFDateTime.from(new Date(), true, null, Locale.GERMAN).withPrecision(DatePrecision.MINUTE).withDate(1970, Month.NOVEMBER.getValue(),21, 0, 0, 0);
 
     PFDateTime dateTime2 = dateTime1.withHour(10);
 

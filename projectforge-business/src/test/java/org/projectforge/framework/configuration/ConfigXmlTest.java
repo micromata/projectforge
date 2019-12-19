@@ -98,7 +98,7 @@ public class ConfigXmlTest {
     assertTrue(holiday.isIgnore());
 
     final Holidays holidays = Holidays.getInstance();
-    PFDateTime dateTime = PFDateTime.now().withYear(2009).withMonth(Month.MAY.getValue()).withDayOfMonth(1);
+    PFDateTime dateTime = PFDateTime.now().withDate(2009, Month.MAY.getValue(), 1);
     assertTrue(holidays.isHoliday(2009, dateTime.getDayOfYear()), "Should be there.");
     dateTime = dateTime.withMonth(Month.FEBRUARY.getValue()).withDayOfMonth(23);
     assertTrue(holidays.isHoliday(2009, dateTime.getDayOfYear()), "Should be there.");

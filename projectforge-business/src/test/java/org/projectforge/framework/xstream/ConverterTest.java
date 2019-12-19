@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.xstream;
 
-import org.jfree.data.time.Month;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -36,6 +35,7 @@ import org.projectforge.framework.xstream.converter.LocaleConverter;
 import org.projectforge.framework.xstream.converter.TimeZoneConverter;
 import org.projectforge.test.TestSetup;
 
+import java.time.Month;
 import java.time.ZoneId;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -59,8 +59,7 @@ public class ConverterTest
     final PFUserDO cetUser = new PFUserDO();
     cetUser.setTimeZone(DateHelper.EUROPE_BERLIN);
     ThreadLocalUserContext.setUser(null, cetUser); // login CET user.
-    PFDateTime dt = PFDateTime.now(ZoneId.of("UTC")).withYear(2010).withMonth(Month.AUGUST).withDayOfMonth(29).withHour(23).withMinute(8).withSecond(17)
-        .withMilliSecond(123);
+    PFDateTime dt = PFDateTime.now(ZoneId.of("UTC")).withDate(2010, Month.AUGUST.getValue(), 29, 23, 8, 17, 123);
     assertEquals("1283116097123", dateConverter.toString(dt.getUtilDate()));
     assertEquals("2010-08-29 23:08:17.123", isoDateConverter.toString(dt.getUtilDate()));
     assertEquals("2010-08-29 23:08:17", isoDateConverter.toString(dt.withMilliSecond(0).getUtilDate()));

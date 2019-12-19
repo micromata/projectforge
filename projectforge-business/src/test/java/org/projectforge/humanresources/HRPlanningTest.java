@@ -138,7 +138,7 @@ public class HRPlanningTest extends AbstractTestBase {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     HRPlanningDO planning = new HRPlanningDO();
     final java.sql.Date date = createDate(2010, Month.JANUARY.getValue(), 9, 1, 10, 57, 456);
-    final PFDateTime firstDayOfWeek = PFDateTime.now(ZoneId.of("UTC")).withYear(2010).withMonth(Month.JANUARY.getValue() - 1).withDayOfMonth(4)
+    final PFDateTime firstDayOfWeek = PFDateTime.now(ZoneId.of("UTC")).withDate(2010,Month.JANUARY.getValue() - 1, 4)
         .withHour(0).withMinute(0).withSecond(0).withMilliSecond(0);
     final long millis = firstDayOfWeek.getEpochMilli();
     planning.setFirstDayOfWeek(date);

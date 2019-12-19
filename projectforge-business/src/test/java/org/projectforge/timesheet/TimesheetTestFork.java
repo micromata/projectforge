@@ -23,7 +23,6 @@
 
 package org.projectforge.timesheet;
 
-import org.jfree.data.time.Month;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.task.TaskDO;
@@ -33,13 +32,14 @@ import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.common.task.TaskStatus;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.i18n.UserException;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.time.Month;
 import java.util.Date;
 import java.util.Locale;
 
@@ -53,11 +53,11 @@ public class TimesheetTestFork extends AbstractTestBase {
   @Autowired
   TaskDao taskDao;
 
-  DateHolder date;
+  PFDateTime date;
 
   @BeforeEach
   public void setUp() {
-    date = new DateHolder(new Date(), DatePrecision.MINUTE_15, Locale.GERMAN);
+    date = PFDateTime.from(new Date(), false, null, Locale.GERMAN).withPrecision(DatePrecision.MINUTE_15);
   }
 
   @Test
@@ -197,33 +197,33 @@ public class TimesheetTestFork extends AbstractTestBase {
     task = initTestDB.addTask("tpt.1", "tpt");
     task = initTestDB.addTask("tpt.1.1", "tpt.1");
     task = initTestDB.addTask("tpt.2", "tpt");
-    date.setDate(2008, Month.OCTOBER, 31, 0, 0, 0);
-    task.setProtectTimesheetsUntil(date.getDate());
+    date = date.withDate(2008, Month.OCTOBER.getValue(), 31, 0, 0, 0);
+    task.setProtectTimesheetsUntil(date.getUtilDate());
     taskDao.internalUpdate(task); // Without check access.
     task = initTestDB.addTask("tpt.2.1", "tpt.2");
     TimesheetDO sheet = new TimesheetDO();
     sheet.setUser(getUser("tpt-user"));
     System.out.println(sheet.getUserId());
     sheet.setTask(getTask("tpt.2.1"));
-    setTimeperiod(sheet, 2008, Month.OCTOBER, 1, 7, 0, 21, 8, 15); // 10/01 from 07:00 to 08:15
+    setTimeperiod(sheet, 2008, Month.OCTOBER.getValue(), 1, 7, 0, 21, 8, 15); // 10/01 from 07:00 to 08:15
     try {
       timesheetDao.save(sheet);
       fail("AccessException caused by time sheet violation expected.");
     } catch (final AccessException ex) {
       // OK
     }
-    setTimeperiod(sheet, 2008, Month.OCTOBER, 31, 23, 45, 31, 0, 15); // 10/30 from 23:45 to 00:15
+    setTimeperiod(sheet, 2008, Month.OCTOBER.getValue(), 31, 23, 45, 31, 0, 15); // 10/30 from 23:45 to 00:15
     try {
       timesheetDao.save(sheet);
       fail("AccessException caused by time sheet violation expected.");
     } catch (final AccessException ex) {
       // OK
     }
-    setTimeperiod(sheet, 2008, Month.NOVEMBER, 1, 0, 0, 1, 2, 15); // 11/01 from 00:00 to 02:15
+    setTimeperiod(sheet, 2008, Month.NOVEMBER.getValue(), 1, 0, 0, 1, 2, 15); // 11/01 from 00:00 to 02:15
     final Serializable id = timesheetDao.save(sheet);
     sheet = timesheetDao.getById(id);
-    date.setDate(2008, Month.OCTOBER, 31, 23, 45, 0);
-    sheet.setStartTime(date.getTimestamp());
+    date = date.withDate(2008, Month.OCTOBER.getValue(), 31, 23, 45, 0);
+    sheet.setStartTime(date.getSqlTimestamp());
     try {
       timesheetDao.update(sheet);
       fail("AccessException caused by time sheet violation expected.");
@@ -231,15 +231,15 @@ public class TimesheetTestFork extends AbstractTestBase {
       // OK
     }
     task = getTask("tpt.2");
-    date.setDate(2008, Month.NOVEMBER, 30, 0, 0, 0); // Change protection date, so time sheet is now protected.
-    task.setProtectTimesheetsUntil(date.getDate());
+    date.withDate(2008, Month.NOVEMBER.getValue(), 30, 0, 0, 0); // Change protection date, so time sheet is now protected.
+    task.setProtectTimesheetsUntil(date.getUtilDate());
     taskDao.internalUpdate(task); // Without check access.
     sheet = timesheetDao.getById(id);
     sheet.setDescription("Hurzel"); // Should work, because start and stop time is not modified.
     timesheetDao.update(sheet);
-    date.setDate(2008, Month.NOVEMBER, 1, 2, 0, 0);
+    date.withDate(2008, Month.NOVEMBER.getValue(), 1, 2, 0, 0);
     sheet = timesheetDao.getById(id);
-    sheet.setStopTime(date.getTimestamp());
+    sheet.setStopTime(date.getSqlTimestamp());
     try {
       timesheetDao.update(sheet);
       fail("AccessException caused by time sheet violation expected.");
@@ -265,7 +265,7 @@ public class TimesheetTestFork extends AbstractTestBase {
     TimesheetDO sheet = new TimesheetDO();
     sheet.setUser(getUser("ttb-user"));
     sheet.setTask(getTask("dB.1.1"));
-    setTimeperiod(sheet, 2009, Month.OCTOBER, 1, 7, 0, 1, 8, 15); // 10/01 from 07:00 to 08:15
+    setTimeperiod(sheet, 2009, Month.OCTOBER.getValue(), 1, 7, 0, 1, 8, 15); // 10/01 from 07:00 to 08:15
     timesheetDao.save(sheet);
     task1.setStatus(TaskStatus.C);
     taskDao.internalUpdate(task1);
@@ -274,7 +274,7 @@ public class TimesheetTestFork extends AbstractTestBase {
     sheet = new TimesheetDO();
     sheet.setUser(getUser("ttb-user"));
     sheet.setTask(getTask("dB.1.1"));
-    setTimeperiod(sheet, 2009, Month.OCTOBER, 2, 7, 0, 2, 8, 15); // 10/02 from 07:00 to 08:15
+    setTimeperiod(sheet, 2009, Month.OCTOBER.getValue(), 2, 7, 0, 2, 8, 15); // 10/02 from 07:00 to 08:15
     try {
       timesheetDao.save(sheet);
       fail("Exception expected: Task should not be bookable because parent task is closed.");
@@ -292,15 +292,15 @@ public class TimesheetTestFork extends AbstractTestBase {
 
   private void setTimeperiod(final TimesheetDO timesheet, final int fromDay, final int fromHour, final int fromMinute,
                              final int toDay, final int toHour, final int toMinute) {
-    setTimeperiod(timesheet, 1970, Month.NOVEMBER, fromDay, fromHour, fromMinute, toDay, toHour, toMinute);
+    setTimeperiod(timesheet, 1970, Month.NOVEMBER.getValue(), fromDay, fromHour, fromMinute, toDay, toHour, toMinute);
   }
 
   private void setTimeperiod(final TimesheetDO timesheet, final int year, final int month, final int fromDay,
                              final int fromHour, final int fromMinute, final int toDay, final int toHour,
                              final int toMinute) {
-    date.setDate(year, month, fromDay, fromHour, fromMinute, 0);
-    timesheet.setStartTime(date.getTimestamp());
-    date.setDate(year, month, toDay, toHour, toMinute, 0);
-    timesheet.setStopTime(date.getTimestamp());
+    date.withDate(year, month, fromDay, fromHour, fromMinute, 0);
+    timesheet.setStartTime(date.getSqlTimestamp());
+    date.withDate(year, month, toDay, toHour, toMinute, 0);
+    timesheet.setStopTime(date.getSqlTimestamp());
   }
 }
