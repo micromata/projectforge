@@ -26,8 +26,6 @@ package org.projectforge.business.ldap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.projectforge.framework.ToStringUtil;
 
 import java.io.Serializable;

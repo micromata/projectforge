@@ -36,7 +36,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,9 +87,8 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO> {
   public List<HRPlanningEntryDO> getList(final BaseSearchFilter filter) {
     final HRPlanningFilter myFilter = (HRPlanningFilter) filter;
     if (myFilter.getStopTime() != null) {
-      final DateHolder date = new DateHolder(myFilter.getStopTime());
-      date.setEndOfDay();
-      myFilter.setStopTime(date.getDate());
+      final PFDateTime date = PFDateTime.from(myFilter.getStopTime()).getEndOfDay();
+      myFilter.setStopTime(date.getUtilDate());
     }
     final QueryFilter queryFilter = buildQueryFilter(myFilter);
     myFilter.setIgnoreDeleted(true); // Ignore deleted flag of HRPlanningEntryDOs, use instead:

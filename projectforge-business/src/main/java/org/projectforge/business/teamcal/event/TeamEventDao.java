@@ -50,7 +50,7 @@ import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -514,9 +514,8 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
             + " t where deleted=false and t.calendar in :cals and lastUpdate > :lastUpdate and lower(t.location) like :location) order by t.location";
     final TypedQuery<String> query = em.createQuery(s, String.class);
     query.setParameter("cals", calendars);
-    final DateHolder dh = new DateHolder();
-    dh.add(Calendar.YEAR, -1);
-    query.setParameter("lastUpdate", dh.getDate());
+    PFDateTime dateTime = PFDateTime.now().minusYears(1);
+    query.setParameter("lastUpdate", dateTime.getUtilDate());
     query.setParameter("location", "%" + StringUtils.lowerCase(searchString) + "%");
     return query.getResultList();
   }
@@ -775,8 +774,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
           col.add(event);
         } else {
           // Now we need this event as date with the user's time-zone.
-          final Calendar userCal = Calendar.getInstance(timeZone);
-          userCal.setTime(dateTime);
+          final PFDateTime userCal = PFDateTime.from(dateTime.getTime(), false, timeZone.toZoneId());
           final TeamRecurrenceEvent recurEvent = new TeamRecurrenceEvent(event, userCal);
           col.add(recurEvent);
         }

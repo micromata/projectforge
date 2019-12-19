@@ -23,7 +23,9 @@
 
 package org.projectforge.framework.calendar;
 
-import org.projectforge.framework.time.*;
+import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
 
 import java.math.BigDecimal;
 import java.util.*;

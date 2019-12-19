@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.xstream.converter;
 
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -37,11 +37,11 @@ public class ISODateConverter extends DateConverter
     if (obj == null) {
       return null;
     }
-    final DateHolder dh = new DateHolder((Date) obj);
+    final PFDateTime dateTime = PFDateTime.from((Date) obj);
     final String format;
-    if (dh.getMilliSecond() == 0) {
-      if (dh.getSecond() == 0) {
-        if (dh.getMinute() == 0 && dh.getHourOfDay() == 0) {
+    if (dateTime.getMilliSecond() == 0) {
+      if (dateTime.getSecond() == 0) {
+        if (dateTime.getMinute() == 0 && dateTime.getHour() == 0) {
           format = FORMAT_ISO_DATE;
         } else {
           format = FORMAT_ISO_TIMESTAMP_MINUTES;

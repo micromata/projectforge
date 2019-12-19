@@ -39,7 +39,6 @@ import org.projectforge.framework.calendar.MonthHolder;
 import org.projectforge.framework.calendar.WeekHolder;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.NumberHelper;
 
@@ -247,9 +246,9 @@ public class MonthlyEmployeeReport implements Serializable {
     }
     // Create the weeks:
     this.weeks = new ArrayList<>();
-    final DateHolder dh = new DateHolder();
-    dh.setDate(year, month, 1, 0, 0, 0);
-    PFDateTime dt = PFDateTime.from(dh.getDate());
+
+    final PFDateTime dh = PFDateTime.now().withDate(year, month, 1, 0, 0, 0);
+    PFDateTime dt = PFDateTime.from(dh.getUtilDate());
     PFDateTime dt2 = PFDateTime.from(fromDate).getEndOfMonth();
     toDate = dt2.getUtilDate();
     int i = 0;

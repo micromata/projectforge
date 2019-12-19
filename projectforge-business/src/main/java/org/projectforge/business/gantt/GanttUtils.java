@@ -25,7 +25,7 @@ package org.projectforge.business.gantt;
 
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.StringHelper;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.NumberHelper;
 
 import java.io.Serializable;
@@ -255,8 +255,8 @@ public class GanttUtils
 
   private static Date calculateDate(final Date date, final int workingDayOffset)
   {
-    final DateHolder dh = new DateHolder(date);
-    dh.addWorkingDays(workingDayOffset);
-    return dh.getDate();
+    final PFDateTime dt = PFDateTime.from(date);
+    dt.addWorkingDays(workingDayOffset);
+    return dt.getUtilDate();
   }
 }

@@ -38,7 +38,7 @@ import java.util.TimeZone;
  * Parse and formats dates.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- */
+ */´
 @Deprecated
 public class DateHolder implements Serializable, Cloneable, Comparable<DateHolder> {
   private static final long serialVersionUID = -5373883617915418698L;
